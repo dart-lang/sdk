@@ -11,6 +11,9 @@ abstract class _IOResourceInfo {
   static int _count = 0;
 
   static final Stopwatch _sw = new Stopwatch()..start();
+  static final _startTime = new DateTime.now().millisecondsSinceEpoch;
+
+  static double get timestamp => _startTime + _sw.elapsedMicroseconds/1000;
 
   _IOResourceInfo(this.type) : id = _IOResourceInfo.getNextID();
 
@@ -39,16 +42,13 @@ abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
   double lastRead;
   double lastWrite;
 
-  static double get timestamp =>
-      _IOResourceInfo._sw.elapsedMicroseconds / 1000000.0;
-
   // Not all call sites use this. In some cases, e.g., a socket, a read does
   // not always mean that we actually read some bytes (we may do a read to see
   // if there are some bytes available).
   void addRead(int bytes) {
     totalRead += bytes;
     readCount++;
-    lastRead = timestamp;
+    lastRead = _IOResourceInfo.timestamp;
   }
 
   // In cases where we read but did not neccesarily get any bytes, use this to
@@ -59,7 +59,7 @@ abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
   void addWrite(int bytes) {
     totalWritten += bytes;
     writeCount++;
-    lastWrite = timestamp;
+    lastWrite = _IOResourceInfo.timestamp;
   }
 
   _ReadWriteResourceInfo(String type) :
@@ -140,13 +140,13 @@ class _FileResourceInfo extends _ReadWriteResourceInfo {
 class _ProcessResourceInfo extends _IOResourceInfo{
   static const String TYPE = '_process';
   final process;
-  final int startedAt;
+  final double startedAt;
 
   static Map<int, _ProcessResourceInfo> startedProcesses =
       new Map<int, _ProcessResourceInfo>();
 
   _ProcessResourceInfo(this.process) :
-      startedAt = new DateTime.now().millisecondsSinceEpoch,
+      startedAt = _IOResourceInfo.timestamp,
       super(TYPE) {
     ProcessStarted(this);
   }

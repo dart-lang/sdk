@@ -27,15 +27,6 @@ Future setupTCP() async {
   await socket2.flush();
 }
 
-void expectTimeBiggerThanZero(time) {
-   // Stopwatch resolution on windows makes us sometimes report 0;
-  if (io.Platform.isWindows) {
-    expect(time, greaterThanOrEqualTo(0));
-  } else {
-    expect(time, greaterThan(0));
-  }
-}
-
 var tcpTests = [
   // Initial.
   (Isolate isolate) async {
@@ -59,7 +50,7 @@ var tcpTests = [
     expect(listening['listening'], isTrue);
     expect(listening['socket_type'], equals('TCP'));
     expect(listening['port'], greaterThanOrEqualTo(1024));
-    expectTimeBiggerThanZero(listening['last_read']);
+    expect(listening['last_read'], greaterThan(0));
 
     expect(listening['total_read'], equals(2));
     expect(listening['last_write'], equals(0));
@@ -99,13 +90,13 @@ var tcpTests = [
     // The client and server "mirror" each other in reads and writes, and the
     // timestamps are in correct order.
     expect(client['last_read'], equals(0));
-    expectTimeBiggerThanZero(server['last_read']);
+    expect(server['last_read'], greaterThan(0));
     expect(client['total_read'], equals(0));
     expect(server['total_read'], equals(12));
     expect(client['read_count'], equals(0));
     expect(server['read_count'], greaterThanOrEqualTo(1));
 
-    expectTimeBiggerThanZero(client['last_write']);
+    expect(client['last_write'], greaterThan(0));
     expect(server['last_write'], equals(0));
     expect(client['total_written'], equals(12));
     expect(server['total_written'], equals(0));
@@ -149,13 +140,13 @@ var tcpTests = [
     // The client and server "mirror" each other in reads and writes, and the
     // timestamps are in correct order.
     expect(second_client['last_read'], equals(0));
-    expectTimeBiggerThanZero(second_server['last_read']);
+    expect(second_server['last_read'], greaterThan(0));
     expect(second_client['total_read'], equals(0));
     expect(second_server['total_read'], equals(12));
     expect(second_client['read_count'], equals(0));
     expect(second_server['read_count'], greaterThanOrEqualTo(1));
 
-    expectTimeBiggerThanZero(second_client['last_write']);
+    expect(second_client['last_write'], greaterThan(0));
     expect(second_server['last_write'], equals(0));
     expect(second_client['total_written'], equals(12));
     expect(second_server['total_written'], equals(0));
