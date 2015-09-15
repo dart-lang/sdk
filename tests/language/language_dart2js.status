@@ -337,6 +337,7 @@ deferred_regression_22995_test: Crash # (lib.foofoo()): deferred access is not i
 deferred_shadow_load_library_test: Crash # (lib.trueVar): deferred access is not implemented
 deferred_shared_and_unshared_classes_test: Crash # (lib2.foo()): deferred access is not implemented
 deferred_static_seperate_test: Crash # (lib1.x): deferred access is not implemented
+deferred_super_dependency_test/01: Crash # we are missing a call to the resolver for throwNoSuchMethod
 deferred_type_dependency_test/as: Crash # (lib1.fooAs("string")): deferred access is not implemented
 deferred_type_dependency_test/is: Crash # (lib1.fooIs("string")): deferred access is not implemented
 deferred_type_dependency_test/none: Crash # (lib2.getInstance()): deferred access is not implemented
