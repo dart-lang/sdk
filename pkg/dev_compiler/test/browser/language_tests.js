@@ -35,11 +35,16 @@
     }
   }
 
-  suite('scoping', () => {
+  suite('scopes and names', () => {
     dartLanguageTests([
       'implicit_scope_test',
-      ['built_in_identifier_test', 'none', 1]
+      ['built_in_identifier_test', 'none', 1],
+      'naming3_test'
     ]);
+  });
+
+  suite('strings', () => {
+    dartLanguageTests(['optimized_string_charcodeat_test']);
   });
 
   suite('method binding', () => {

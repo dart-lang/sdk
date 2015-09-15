@@ -226,11 +226,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       module
     ]);
 
-    var jsBin = compiler.options.runnerOptions.v8Binary;
-
-    String scriptTag = null;
-    if (library.library.scriptTag != null) scriptTag = '/usr/bin/env $jsBin';
-    return new JS.Program(<JS.Statement>[moduleDef], scriptTag: scriptTag);
+    // TODO(jmesserly): scriptTag support.
+    // Enable this if we know we're targetting command line environment?
+    // It doesn't work in browser.
+    // var jsBin = compiler.options.runnerOptions.v8Binary;
+    // String scriptTag = null;
+    // if (library.library.scriptTag != null) scriptTag = '/usr/bin/env $jsBin';
+    return new JS.Program(<JS.Statement>[moduleDef]);
   }
 
   void _emitModuleItem(AstNode node) {
@@ -3191,6 +3193,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       name = 'set';
     } else if (name == '-' && unary) {
       name = 'unary-';
+    } else if (name == 'constructor' || name == 'prototype') {
+      // This uses an illegal (in Dart) character for a member, avoiding the
+      // conflict. We could use practically any character for this.
+      name = '+$name';
     }
 
     // Dart "extension" methods. Used for JS Array, Boolean, Number, String.

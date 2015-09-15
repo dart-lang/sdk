@@ -1,4 +1,3 @@
-#!/usr/bin/env iojs
 dart_library.library('script', null, /* Imports */[
   "dart_runtime/dart",
   'dart/core'

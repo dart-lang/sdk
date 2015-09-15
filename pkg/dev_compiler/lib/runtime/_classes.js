@@ -393,6 +393,10 @@ dart_library.library('dart_runtime/_classes', null, /* Imports */[
 
   function canonicalMember(obj, name) {
     if (obj != null && obj[_extensionType]) return dartx[name];
+    // Check for certain names that we can't use in JS
+    if (name == 'constructor' || name == 'prototype') {
+      name = '+' + name;
+    }
     return name;
   }
   exports.canonicalMember = canonicalMember;

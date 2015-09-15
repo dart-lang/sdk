@@ -16,8 +16,6 @@ dart_library.library('dart_runtime/_types', null, /* Imports */[
   const getOwnPropertyNames = Object.getOwnPropertyNames;
 
   const assert = dart_utils.assert;
-  const copyProperties = dart_utils.copyProperties;
-  const safeGetOwnProperty = dart_utils.safeGetOwnProperty;
 
   /**
    * Types in dart are represented at runtime as follows.
@@ -64,13 +62,13 @@ dart_library.library('dart_runtime/_types', null, /* Imports */[
 
   class Bottom extends TypeRep {
     toString() { return "bottom"; }
-  };
+  }
   let bottomR = new Bottom();
   exports.bottom = bottomR;
 
   class JSObject extends TypeRep {
     toString() { return "NativeJavaScriptObject"; }
-  };
+  }
   let jsobjectR = new JSObject();
   exports.jsobject = jsobjectR;
 
