@@ -198,12 +198,8 @@ io/secure_socket_renegotiate_test: RuntimeError
 io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection just puts a READ_CLOSED on the stream, rather than signaling an error on the stream.
 
 [ $compiler == dart2js && $cps_ir ]
-coverage_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-io/addlatexhash_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 io/file_error_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 io/file_read_encoded_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 io/file_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-io/http_client_connect_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 io/observatory_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-io/skipping_dart2js_compilations_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 priority_queue_stress_test: RuntimeError # Cannot read property 'length' of undefined

@@ -495,6 +495,9 @@ class TransformingVisitor extends LeafVisitor {
 
   void visitContinuation(Continuation node) {
     if (node.isReturnContinuation) return;
+    if (!analyzer.reachableContinuations.contains(node)) {
+      replaceSubtree(node.body, new Unreachable());
+    }
     // Process the continuation body.
     // Note that the continuation body may have changed since the continuation
     // was put on the stack (e.g. [visitInvokeContinuation] may do this).
@@ -2008,6 +2011,24 @@ class TypePropagationVisitor implements Visitor {
     defWorklist.add(node);
   }
 
+  /// Updates the value of a [CallExpression]'s continuation parameter.
+  void setResult(CallExpression call,
+                 AbstractValue updateValue,
+                 {bool canReplace: false}) {
+    Continuation cont = call.continuation.definition;
+    setValue(cont.parameters.single, updateValue);
+    if (!updateValue.isNothing) {
+      setReachable(cont);
+
+      if (updateValue.isConstant && canReplace) {
+        replacements[call] = updateValue.constant;
+      } else {
+        // A replacement might have been set in a previous iteration.
+        replacements.remove(call);
+      }
+    }
+  }
+
   bool isInterceptedSelector(Selector selector) {
     return backend.isInterceptedSelector(selector);
   }
@@ -2090,35 +2111,17 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitInvokeStatic(InvokeStatic node) {
-    Continuation cont = node.continuation.definition;
-    setReachable(cont);
-
-    assert(cont.parameters.length == 1);
-    Parameter returnValue = cont.parameters[0];
-
-    /// Sets the value of the target continuation parameter, and possibly
-    /// try to replace the whole invocation with a constant.
-    void setResult(AbstractValue updateValue, {bool canReplace: false}) {
-      setValue(returnValue, updateValue);
-      if (canReplace && updateValue.isConstant) {
-        replacements[node] = updateValue.constant;
-      } else {
-        // A previous iteration might have tried to replace this.
-        replacements.remove(node);
-      }
-    }
-
     if (node.target.library.isInternalLibrary) {
       switch (node.target.name) {
         case InternalMethod.Stringify:
           AbstractValue argValue = getValue(node.arguments[0].definition);
-          setResult(lattice.stringify(argValue), canReplace: true);
+          setResult(node, lattice.stringify(argValue), canReplace: true);
           return;
       }
     }
 
     TypeMask returnType = typeSystem.getReturnType(node.target);
-    setResult(nonConstant(returnType));
+    setResult(node, nonConstant(returnType));
   }
 
   void visitInvokeContinuation(InvokeContinuation node) {
@@ -2135,29 +2138,13 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitInvokeMethod(InvokeMethod node) {
-    Continuation cont = node.continuation.definition;
-    setReachable(cont);
-
-    /// Sets the value of the target continuation parameter, and possibly
-    /// try to replace the whole invocation with a constant.
-    void setResult(AbstractValue updateValue, {bool canReplace: false}) {
-      Parameter returnValue = cont.parameters[0];
-      setValue(returnValue, updateValue);
-      if (canReplace && updateValue.isConstant) {
-        replacements[node] = updateValue.constant;
-      } else {
-        // A previous iteration might have tried to replace this.
-        replacements.remove(node);
-      }
-    }
-
     AbstractValue receiver = getValue(node.receiver.definition);
     if (receiver.isNothing) {
       return;  // And come back later.
     }
     if (!node.selector.isOperator) {
       // TODO(jgruber): Handle known methods on constants such as String.length.
-      setResult(lattice.getInvokeReturnType(node.selector, node.mask));
+      setResult(node, lattice.getInvokeReturnType(node.selector, node.mask));
       return;
     }
 
@@ -2183,9 +2170,9 @@ class TypePropagationVisitor implements Visitor {
     // Update value of the continuation parameter. Again, this is effectively
     // a phi.
     if (result == null) {
-      setResult(lattice.getInvokeReturnType(node.selector, node.mask));
+      setResult(node, lattice.getInvokeReturnType(node.selector, node.mask));
     } else {
-      setResult(result, canReplace: true);
+      setResult(node, result, canReplace: true);
     }
   }
 
@@ -2286,22 +2273,12 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitInvokeMethodDirectly(InvokeMethodDirectly node) {
-    Continuation cont = node.continuation.definition;
-    setReachable(cont);
-
-    assert(cont.parameters.length == 1);
-    Parameter returnValue = cont.parameters[0];
     // TODO(karlklose): lookup the function and get ites return type.
-    setValue(returnValue, nonConstant());
+    setResult(node, nonConstant());
   }
 
   void visitInvokeConstructor(InvokeConstructor node) {
-    Continuation cont = node.continuation.definition;
-    setReachable(cont);
-
-    assert(cont.parameters.length == 1);
-    Parameter returnValue = cont.parameters[0];
-    setValue(returnValue, nonConstant(typeSystem.getReturnType(node.target)));
+    setResult(node, nonConstant(typeSystem.getReturnType(node.target)));
   }
 
   void visitThrow(Throw node) {
@@ -2440,12 +2417,7 @@ class TypePropagationVisitor implements Visitor {
   void visitSetStatic(SetStatic node) {}
 
   void visitGetLazyStatic(GetLazyStatic node) {
-    Continuation cont = node.continuation.definition;
-    setReachable(cont);
-
-    assert(cont.parameters.length == 1);
-    Parameter returnValue = cont.parameters[0];
-    setValue(returnValue, nonConstant(typeSystem.getFieldType(node.element)));
+    setResult(node, nonConstant(typeSystem.getFieldType(node.element)));
   }
 
   void visitInterceptor(Interceptor node) {
@@ -2504,12 +2476,7 @@ class TypePropagationVisitor implements Visitor {
   @override
   void visitForeignCode(ForeignCode node) {
     if (node.continuation != null) {
-      Continuation continuation = node.continuation.definition;
-      setReachable(continuation);
-
-      assert(continuation.parameters.length == 1);
-      Parameter returnValue = continuation.parameters.first;
-      setValue(returnValue, nonConstant(node.type));
+      setResult(node, nonConstant(node.type));
     }
   }
 

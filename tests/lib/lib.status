@@ -357,9 +357,9 @@ mirrors/constructor_kinds_test/none: Crash # (static Iterable<Str...  cannot han
 mirrors/constructors_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 mirrors/dart2js_mirrors_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 mirrors/declarations_type_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-mirrors/deferred_mirrors_metadata_test: Crash # (lib1.foo()): deferred access is not implemented
-mirrors/deferred_mirrors_metatarget_test: Crash # (lib.foo()): deferred access is not implemented
-mirrors/deferred_mirrors_update_test: Crash # (l.foo()): deferred access is not implemented
+mirrors/deferred_mirrors_metadata_test: RuntimeError # TypeError: U.loadLibrary is not a function
+mirrors/deferred_mirrors_metatarget_test: RuntimeError # TypeError: X.loadLibrary is not a function
+mirrors/deferred_mirrors_update_test: RuntimeError # TypeError: U.loadLibrary is not a function
 mirrors/deferred_type_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 mirrors/delegate_call_through_getter_test: RuntimeError # Please triage this failure.
 mirrors/delegate_class_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions

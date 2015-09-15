@@ -82,7 +82,10 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
       });
       tag("HIR", () {
         if (entryPointParameters != null) {
-          String params = entryPointParameters.map(names.name).join(', ');
+          String formatParameter(cps_ir.Parameter param) {
+            return '${names.name(param)} ${param.type}';
+          }
+          String params = entryPointParameters.map(formatParameter).join(', ');
           printStmt('x0', 'Entry ($params)');
         }
         for (cps_ir.Parameter param in block.parameters) {

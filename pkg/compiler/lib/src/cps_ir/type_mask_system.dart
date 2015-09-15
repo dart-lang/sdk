@@ -105,7 +105,14 @@ class TypeMaskSystem {
   }
 
   TypeMask getInvokeReturnType(Selector selector, TypeMask mask) {
-    return inferrer.getGuaranteedTypeOfSelector(selector, mask);
+    TypeMask result = inferrer.getGuaranteedTypeOfSelector(selector, mask);
+    // Tearing off .call from a function returns the function itself.
+    if (selector.isGetter &&
+        selector.name == Identifiers.call &&
+        !areDisjoint(functionType, mask)) {
+      result = join(result, functionType);
+    }
+    return result;
   }
 
   TypeMask getFieldType(FieldElement field) {
