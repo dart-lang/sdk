@@ -1655,16 +1655,16 @@ class ObservatoryDebugger extends Debugger {
       var event = isolate.pauseEvent;
       if (event.kind == ServiceEvent.kPauseStart) {
         console.print("Type 'continue' [F7] or 'step' [F10] to start the isolate");
-        return;
+        return null;
       }
       if (event.kind == ServiceEvent.kPauseExit) {
         console.print("Type 'continue' [F7] to exit the isolate");
-        return;
+        return null;
       }
       return isolate.stepOver();
     } else {
       console.print('The program is already running');
-      return;
+      return null;
     }
   }
 

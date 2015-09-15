@@ -121,13 +121,14 @@ class BreakpointAnnotation extends Annotation {
 
   BreakpointAnnotation(this.bpt) {
     var script = bpt.location.script;
-    if (bpt.location.tokenPos != null) {
-      var pos = bpt.location.tokenPos;
+    var location = bpt.location;
+    if (location.tokenPos != null) {
+      var pos = location.tokenPos;
       line = script.tokenToLine(pos);
       columnStart = script.tokenToCol(pos) - 1;  // tokenToCol is 1-origin.
-    } else {
-      line = bpt.location.line;
-      columnStart = bpt.location.column;
+    } else if (location is UnresolvedSourceLocation) {
+      line = location.line;
+      columnStart = location.column;
       if (columnStart == null) {
         columnStart = 0;
       }
@@ -1019,4 +1020,3 @@ class SourceInsetElement extends PolymerElement {
   @published bool inDebuggerContext = false;
   @published ObservableList variables;
 }
-
