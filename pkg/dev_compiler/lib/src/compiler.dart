@@ -152,8 +152,8 @@ class BatchCompiler extends AbstractCompiler {
     // TODO(jmesserly): in incremental mode, we can skip the transitive
     // compile of imports/exports.
     _compileLibrary(_dartCore); // implicit dart:core dependency
-    library.importedLibraries.forEach(_compileLibrary);
-    library.exportedLibraries.forEach(_compileLibrary);
+    for (var import in library.imports) _compileLibrary(import.importedLibrary);
+    for (var export in library.exports) _compileLibrary(export.exportedLibrary);
 
     var unitElements = [library.definingCompilationUnit]..addAll(library.parts);
     var units = <CompilationUnit>[];
@@ -269,8 +269,9 @@ class BatchCompiler extends AbstractCompiler {
     var uri = lib.source.uri;
     if (!loaded.add(uri)) return;
     _collectLibraries(_dartCore, loaded);
-    for (var l in lib.importedLibraries) _collectLibraries(l, loaded);
-    for (var l in lib.exportedLibraries) _collectLibraries(l, loaded);
+
+    for (var l in lib.imports) _collectLibraries(l.importedLibrary, loaded);
+    for (var l in lib.exports) _collectLibraries(l.exportedLibrary, loaded);
     // Move the item to the end of the list.
     loaded.remove(uri);
     loaded.add(uri);
