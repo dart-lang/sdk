@@ -909,7 +909,13 @@ class _DeclaredDeferredImport implements _DeferredImport {
   String computeImportDeferName(Compiler compiler) {
     String result;
     if (declaration.isDeferred) {
-      result = declaration.prefix.name;
+      if (declaration.prefix != null) {
+        result = declaration.prefix.name;
+      } else {
+        // This happens when the deferred import isn't declared with a prefix.
+        assert(compiler.compilationFailed);
+        result = '';
+      }
     } else {
       // Finds the first argument to the [DeferredLibrary] annotation
       List<MetadataAnnotation> metadatas = declaration.metadata;
