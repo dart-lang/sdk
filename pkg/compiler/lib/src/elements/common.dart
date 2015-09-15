@@ -133,9 +133,9 @@ abstract class LibraryElementCommon implements LibraryElement {
   bool get isInternalLibrary =>
       isPlatformLibrary && canonicalUri.path.startsWith('_');
 
-  String getLibraryOrScriptName() {
-    if (hasLibraryName()) {
-      return getLibraryName();
+  String get libraryOrScriptName {
+    if (hasLibraryName) {
+      return libraryName;
     } else {
       // Use the file name as script name.
       String path = canonicalUri.path;
@@ -145,7 +145,7 @@ abstract class LibraryElementCommon implements LibraryElement {
 
   int compareTo(LibraryElement other) {
     if (this == other) return 0;
-    return getLibraryOrScriptName().compareTo(other.getLibraryOrScriptName());
+    return libraryOrScriptName.compareTo(other.libraryOrScriptName);
   }
 }
 

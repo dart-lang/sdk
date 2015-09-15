@@ -1537,7 +1537,7 @@ abstract class Compiler implements DiagnosticListener {
    * See [LibraryLoader] for terminology on URIs.
    */
   Uri translateResolvedUri(LibraryElement importingLibrary,
-                           Uri resolvedUri, Node node) {
+                           Uri resolvedUri, Spannable spannable) {
     unimplemented(importingLibrary, 'Compiler.translateResolvedUri');
     return null;
   }

@@ -17,17 +17,26 @@ import 'diagnostics/invariant.dart' show
     invariant;
 import 'diagnostics/messages.dart' show
     MessageKind;
+import 'diagnostics/spannable.dart' show
+    Spannable;
 import 'elements/elements.dart' show
     CompilationUnitElement,
     Element,
+    ImportElement,
+    ExportElement,
     LibraryElement,
     PrefixElement;
 import 'elements/modelx.dart' show
     CompilationUnitElementX,
     DeferredLoaderGetterElementX,
     ErroneousElementX,
+    ExportElementX,
+    ImportElementX,
     LibraryElementX,
-    PrefixElementX;
+    LibraryDependencyElementX,
+    PrefixElementX,
+    SyntheticImportElement;
+
 import 'native/native.dart' as native;
 import 'script.dart';
 import 'tree/tree.dart';
@@ -337,7 +346,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     Uri resourceUri = library.entryCompilationUnit.script.resourceUri;
     libraryResourceUriMap[resourceUri] = library;
 
-    String name = library.getLibraryOrScriptName();
+    String name = library.libraryOrScriptName;
     libraryNames[name] = library;
   }
 
@@ -374,21 +383,52 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     TagState tagState = new TagState();
 
     bool importsDartCore = false;
-    var libraryDependencies = new LinkBuilder<LibraryDependency>();
+    LinkBuilder<LibraryDependencyElementX> libraryDependencies =
+        new LinkBuilder<LibraryDependencyElementX>();
     Uri base = library.entryCompilationUnit.script.readableUri;
 
     return Future.forEach(library.tags, (LibraryTag tag) {
       return compiler.withCurrentElement(library, () {
+
+        Uri computeUri(LibraryDependency node) {
+          String tagUriString = node.uri.dartString.slowToString();
+          try {
+            return Uri.parse(tagUriString);
+          } on FormatException {
+            compiler.reportError(
+                node.uri,
+                MessageKind.INVALID_URI, {'uri': tagUriString});
+            return null;
+          }
+        }
+
         if (tag.isImport) {
-          Import import = tag;
-          tagState.checkTag(TagState.IMPORT_OR_EXPORT, import, compiler);
-          if (import.uri.dartString.slowToString() == 'dart:core') {
+          Uri uri = computeUri(tag);
+          if (uri == null) {
+            // Skip this erroneous import.
+            return new Future.value();
+          }
+          // TODO(johnniwinther): Create imports during parsing.
+          ImportElementX import =
+              new ImportElementX(library.entryCompilationUnit, tag, uri);
+          tagState.checkTag(TagState.IMPORT_OR_EXPORT, import.node, compiler);
+          if (import.uri == Uris.dart_core) {
             importsDartCore = true;
           }
+          library.addImportDeclaration(import);
           libraryDependencies.addLast(import);
         } else if (tag.isExport) {
-          tagState.checkTag(TagState.IMPORT_OR_EXPORT, tag, compiler);
-          libraryDependencies.addLast(tag);
+          Uri uri = computeUri(tag);
+          if (uri == null) {
+            // Skip this erroneous export.
+            return new Future.value();
+          }
+          // TODO(johnniwinther): Create exports during parsing.
+          ExportElementX export =
+              new ExportElementX(library.entryCompilationUnit, tag, uri);
+          tagState.checkTag(TagState.IMPORT_OR_EXPORT, export.node, compiler);
+          library.addExportDeclaration(export);
+          libraryDependencies.addLast(export);
         } else if (tag.isLibraryName) {
           tagState.checkTag(TagState.LIBRARY, tag, compiler);
           if (library.libraryTag == null) {
@@ -416,14 +456,19 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         if (!importsDartCore && library.canonicalUri != Uris.dart_core) {
           return createLibrary(handler, null, Uris.dart_core)
               .then((LibraryElement coreLibrary) {
-            handler.registerDependency(library, null, coreLibrary);
+            handler.registerDependency(library,
+                new SyntheticImportElement(
+                    library.entryCompilationUnit, Uris.dart_core),
+                coreLibrary);
           });
         }
       });
     }).then((_) {
-      return Future.forEach(libraryDependencies.toList(), (tag) {
+      return Future.forEach(libraryDependencies.toList(),
+          (LibraryDependencyElementX libraryDependency) {
         return compiler.withCurrentElement(library, () {
-          return registerLibraryFromTag(handler, library, tag);
+          return registerLibraryFromImportExport(
+              handler, library, libraryDependency);
         });
       });
     });
@@ -432,15 +477,14 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   void checkDuplicatedLibraryName(LibraryElement library) {
     if (library.isInternalLibrary) return;
     Uri resourceUri = library.entryCompilationUnit.script.resourceUri;
-    LibraryName tag = library.libraryTag;
     LibraryElement existing =
         libraryResourceUriMap.putIfAbsent(resourceUri, () => library);
     if (!identical(existing, library)) {
-      if (tag != null) {
+      if (library.hasLibraryName) {
         compiler.withCurrentElement(library, () {
-          compiler.reportWarning(tag.name,
+          compiler.reportWarning(library,
               MessageKind.DUPLICATED_LIBRARY_RESOURCE,
-              {'libraryName': tag.name,
+              {'libraryName': library.libraryName,
                'resourceUri': resourceUri,
                'canonicalUri1': library.canonicalUri,
                'canonicalUri2': existing.canonicalUri});
@@ -452,17 +496,17 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
              'canonicalUri1': library.canonicalUri,
              'canonicalUri2': existing.canonicalUri});
       }
-    } else if (tag != null) {
-      String name = library.getLibraryOrScriptName();
+    } else if (library.hasLibraryName) {
+      String name = library.libraryOrScriptName;
       existing = libraryNames.putIfAbsent(name, () => library);
       if (!identical(existing, library)) {
         compiler.withCurrentElement(library, () {
-          compiler.reportWarning(tag.name,
+          compiler.reportWarning(library,
               MessageKind.DUPLICATED_LIBRARY_NAME,
               {'libraryName': name});
         });
         compiler.withCurrentElement(existing, () {
-          compiler.reportWarning(existing.libraryTag.name,
+          compiler.reportWarning(existing,
               MessageKind.DUPLICATED_LIBRARY_NAME,
               {'libraryName': name});
         });
@@ -501,25 +545,19 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
    * export scope. If the tag does not contain a valid URI, then its dependency
    * is not registered in [handler].
    */
-  Future<Null> registerLibraryFromTag(LibraryDependencyHandler handler,
-                                      LibraryElement library,
-                                      LibraryDependency tag) {
+  Future<Null> registerLibraryFromImportExport(
+      LibraryDependencyHandler handler,
+      LibraryElement library,
+      LibraryDependencyElementX libraryDependency) {
     Uri base = library.canonicalUri;
-    String tagUriString = tag.uri.dartString.slowToString();
-    Uri resolvedUri;
-    try {
-      resolvedUri = base.resolve(tagUriString);
-    } on FormatException {
-      compiler.reportError(
-          tag.uri, MessageKind.INVALID_URI, {'uri': tagUriString});
-      // 'reportError' does not stop necessarily stop compilation
-      return new Future.value();
-    }
-    return createLibrary(handler, library, resolvedUri, tag.uri)
+    Uri resolvedUri = base.resolveUri(libraryDependency.uri);
+    return createLibrary(handler, library, resolvedUri, libraryDependency)
         .then((LibraryElement loadedLibrary) {
           if (loadedLibrary == null) return;
           compiler.withCurrentElement(library, () {
-            handler.registerDependency(library, tag, loadedLibrary);
+            libraryDependency.libraryDependency = loadedLibrary;
+            handler.registerDependency(
+                library, libraryDependency, loadedLibrary);
           });
         });
   }
@@ -534,10 +572,13 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     compiler.onLibraryCreated(library);
     libraryCanonicalUriMap[library.canonicalUri] = library;
     return compiler.onLibraryScanned(library, handler).then((_) {
-      return Future.forEach(library.tags, (LibraryTag tag) {
-        LibraryElement dependency = library.getLibraryFromTag(tag);
-        return createLibrary(handler, library, dependency.canonicalUri);
-      }).then((_) => library);
+      return Future.forEach(library.imports, (ImportElement import) {
+        return createLibrary(handler, library, import.uri);
+      }).then((_) {
+        return Future.forEach(library.exports, (ExportElement export) {
+          return createLibrary(handler, library, export.uri);
+        }).then((_) => library);
+      });
     });
   }
 
@@ -550,7 +591,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   Future<LibraryElement> createLibrary(LibraryDependencyHandler handler,
                                        LibraryElement importingLibrary,
                                        Uri resolvedUri,
-                                       [Node node]) {
+                                       [Spannable node]) {
     Uri readableUri =
         compiler.translateResolvedUri(importingLibrary, resolvedUri, node);
     LibraryElement library = libraryCanonicalUriMap[resolvedUri];
@@ -671,7 +712,7 @@ class TagState {
  * An [import] tag and the [importedLibrary] imported through [import].
  */
 class ImportLink {
-  final Import import;
+  final ImportElementX import;
   final LibraryElement importedLibrary;
 
   ImportLink(this.import, this.importedLibrary);
@@ -683,14 +724,19 @@ class ImportLink {
     assert(invariant(importingLibrary,
                      importedLibrary.exportsHandled,
                      message: 'Exports not handled on $importedLibrary'));
-    var combinatorFilter = new CombinatorFilter.fromTag(import);
-    if (import != null && import.prefix != null) {
-      String prefix = import.prefix.source;
+    Import tag = import.node;
+    CombinatorFilter combinatorFilter =
+        new CombinatorFilter.fromTag(tag);
+    if (tag != null && tag.prefix != null) {
+      String prefix = tag.prefix.source;
       Element existingElement = importingLibrary.find(prefix);
-      PrefixElement prefixElement;
+      PrefixElementX prefixElement;
       if (existingElement == null || !existingElement.isPrefix) {
-        prefixElement = new PrefixElementX(prefix,
-            importingLibrary.entryCompilationUnit, import.getBeginToken());
+        prefixElement = new PrefixElementX(
+            prefix,
+            importingLibrary.entryCompilationUnit,
+            tag.getBeginToken(),
+            tag.isDeferred ? import : null);
       } else {
         prefixElement = existingElement;
       }
@@ -699,14 +745,11 @@ class ImportLink {
         if (combinatorFilter.exclude(element)) return;
         prefixElement.addImport(element, import, compiler);
       });
-      if (import.isDeferred) {
+      import.prefix = prefixElement;
+      if (prefixElement.isDeferred) {
         prefixElement.addImport(
             new DeferredLoaderGetterElementX(prefixElement),
             import, compiler);
-        // TODO(sigurdm): When we remove support for the annotation based
-        // syntax the [PrefixElement] constructor should receive this
-        // information.
-        prefixElement.markAsDeferred(import);
       }
     } else {
       importedLibrary.forEachExport((Element element) {
@@ -725,13 +768,13 @@ class ImportLink {
  * the library dependency graph.
  */
 class ExportLink {
-  final Export export;
+  final ExportElementX export;
   final CombinatorFilter combinatorFilter;
   final LibraryDependencyNode exportNode;
 
-  ExportLink(Export export, LibraryDependencyNode this.exportNode)
+  ExportLink(ExportElementX export, LibraryDependencyNode this.exportNode)
       : this.export = export,
-        this.combinatorFilter = new CombinatorFilter.fromTag(export);
+        this.combinatorFilter = new CombinatorFilter.fromTag(export.node);
 
   /**
    * Exports [element] to the dependent library unless [element] is filtered by
@@ -780,11 +823,11 @@ class LibraryDependencyNode {
    * The export scope for [library] which is gradually computed by the work-list
    * computation in [LibraryDependencyHandler.computeExports].
    */
-  Map<String, Element> exportScope =
-      new Map<String, Element>();
+  Map<String, Element> exportScope = <String, Element>{};
 
   /// Map from exported elements to the export directives that exported them.
-  Map<Element, Link<Export>> exporters = new Map<Element, Link<Export>>();
+  Map<Element, Link<ExportElement>> exporters =
+      <Element, Link<ExportElement>>{};
 
   /**
    * The set of exported elements that need to be propageted to dependent
@@ -792,8 +835,8 @@ class LibraryDependencyNode {
    * [LibraryDependencyHandler.computeExports]. Each export element is mapped
    * to a list of exports directives that export it.
    */
-  Map<Element, Link<Export>> pendingExportMap =
-      new Map<Element, Link<Export>>();
+  Map<Element, Link<ExportElement>> pendingExportMap =
+      <Element, Link<ExportElement>>{};
 
   LibraryDependencyNode(this.library);
 
@@ -801,7 +844,7 @@ class LibraryDependencyNode {
    * Registers that the library of this node imports [importLibrary] through the
    * [import] tag.
    */
-  void registerImportDependency(Import import,
+  void registerImportDependency(ImportElementX import,
                                 LibraryElement importedLibrary) {
     imports = imports.prepend(new ImportLink(import, importedLibrary));
   }
@@ -810,7 +853,7 @@ class LibraryDependencyNode {
    * Registers that the library of this node is exported by
    * [exportingLibraryNode] through the [export] tag.
    */
-  void registerExportDependency(Export export,
+  void registerExportDependency(ExportElementX export,
                                 LibraryDependencyNode exportingLibraryNode) {
     // Register the exported library in the exporting library node.
     exportingLibraryNode.exports =
@@ -827,22 +870,22 @@ class LibraryDependencyNode {
    */
   void registerInitialExports() {
     for (Element element in library.getNonPrivateElementsInScope()) {
-      pendingExportMap[element] = const Link<Export>();
+      pendingExportMap[element] = const Link<ExportElement>();
     }
   }
 
   void registerHandledExports(LibraryElement exportedLibraryElement,
-                              Export export,
+                              ExportElementX export,
                               CombinatorFilter filter) {
     assert(invariant(library, exportedLibraryElement.exportsHandled));
-    for (Element exportedElement in exportedLibraryElement.exports) {
+    exportedLibraryElement.forEachExport((Element exportedElement) {
       if (!filter.exclude(exportedElement)) {
-        Link<Export> exports =
+        Link<ExportElement> exports =
             pendingExportMap.putIfAbsent(exportedElement,
-                                         () => const Link<Export>());
+                                         () => const Link<ExportElement>());
         pendingExportMap[exportedElement] = exports.prepend(export);
       }
-    }
+    });
   }
 
   /**
@@ -864,9 +907,9 @@ class LibraryDependencyNode {
   /**
    * Copies and clears pending export set for this node.
    */
-  Map<Element, Link<Export>> pullPendingExports() {
-    Map<Element, Link<Export>> pendingExports =
-        new Map<Element, Link<Export>>.from(pendingExportMap);
+  Map<Element, Link<ExportElement>> pullPendingExports() {
+    Map<Element, Link<ExportElement>> pendingExports =
+        new Map<Element, Link<ExportElement>>.from(pendingExportMap);
     pendingExportMap.clear();
     return pendingExports;
   }
@@ -876,17 +919,17 @@ class LibraryDependencyNode {
    * is a duplicate, an error element is inserted into the export scope.
    */
   Element addElementToExportScope(Compiler compiler, Element element,
-                                  Link<Export> exports) {
+                                  Link<ExportElement> exports) {
     String name = element.name;
 
     void reportDuplicateExport(Element duplicate,
-                               Link<Export> duplicateExports,
+                               Link<ExportElement> duplicateExports,
                                {bool reportError: true}) {
       assert(invariant(library, !duplicateExports.isEmpty,
           message: "No export for $duplicate from ${duplicate.library} "
                    "in $library."));
       compiler.withCurrentElement(library, () {
-        for (Export export in duplicateExports) {
+        for (ExportElement export in duplicateExports) {
           if (reportError) {
             compiler.reportError(export,
                 MessageKind.DUPLICATE_EXPORT, {'name': name});
@@ -900,7 +943,7 @@ class LibraryDependencyNode {
     }
 
     void reportDuplicateExportDecl(Element duplicate,
-                                   Link<Export> duplicateExports) {
+                                   Link<ExportElement> duplicateExports) {
       assert(invariant(library, !duplicateExports.isEmpty,
           message: "No export for $duplicate from ${duplicate.library} "
                    "in $library."));
@@ -922,7 +965,7 @@ class LibraryDependencyNode {
         exporters[element] = exports;
       } else {
         // Declared elements hide exported elements.
-        Link<Export> existingExports = exporters[existingElement];
+        Link<ExportElement> existingExports = exporters[existingElement];
         reportDuplicateExport(existingElement, existingExports);
         reportDuplicateExport(element, exports, reportError: false);
         reportDuplicateExportDecl(existingElement, existingExports);
@@ -957,12 +1000,12 @@ class LibraryDependencyNode {
    * the pending export set was modified. The combinators of [export] are used
    * to filter the element.
    */
-  bool addElementToPendingExports(Element element, Export export) {
+  bool addElementToPendingExports(Element element, ExportElement export) {
     bool changed = false;
     if (!identical(exportScope[element.name], element)) {
-      Link<Export> exports = pendingExportMap.putIfAbsent(element, () {
+      Link<ExportElement> exports = pendingExportMap.putIfAbsent(element, () {
         changed = true;
-        return const Link<Export>();
+        return const Link<ExportElement>();
       });
       pendingExportMap[element] = exports.prepend(export);
     }
@@ -1006,8 +1049,8 @@ class LibraryDependencyHandler implements LibraryLoader {
     bool changed = true;
     while (changed) {
       changed = false;
-      Map<LibraryDependencyNode, Map<Element, Link<Export>>> tasks =
-          new Map<LibraryDependencyNode, Map<Element, Link<Export>>>();
+      Map<LibraryDependencyNode, Map<Element, Link<ExportElement>>> tasks =
+          new Map<LibraryDependencyNode, Map<Element, Link<ExportElement>>>();
 
       // Locally defined elements take precedence over exported
       // elements.  So we must propagate local elements first.  We
@@ -1015,12 +1058,13 @@ class LibraryDependencyHandler implements LibraryLoader {
       // propagating.  This enforces that we handle exports
       // breadth-first, with locally defined elements being level 0.
       nodeMap.forEach((_, LibraryDependencyNode node) {
-        Map<Element, Link<Export>> pendingExports = node.pullPendingExports();
+        Map<Element, Link<ExportElement>> pendingExports =
+            node.pullPendingExports();
         tasks[node] = pendingExports;
       });
       tasks.forEach((LibraryDependencyNode node,
-                     Map<Element, Link<Export>> pendingExports) {
-        pendingExports.forEach((Element element, Link<Export> exports) {
+                     Map<Element, Link<ExportElement>> pendingExports) {
+        pendingExports.forEach((Element element, Link<ExportElement> exports) {
           element = node.addElementToExportScope(compiler, element, exports);
           if (node.propagateElement(element)) {
             changed = true;
@@ -1042,23 +1086,20 @@ class LibraryDependencyHandler implements LibraryLoader {
     });
   }
 
-  /**
-   * Registers that [library] depends on [loadedLibrary] through [tag].
-   */
+  /// Registers that [library] depends on [loadedLibrary] through
+  /// [libraryDependency].
   void registerDependency(LibraryElementX library,
-                          LibraryDependency tag,
+                          LibraryDependencyElementX libraryDependency,
                           LibraryElement loadedLibrary) {
-    if (tag != null) {
-      library.recordResolvedTag(tag, loadedLibrary);
-    }
-    if (tag is Export) {
+    if (libraryDependency.isExport) {
       // [loadedLibrary] is exported by [library].
       LibraryDependencyNode exportingNode = nodeMap[library];
       if (loadedLibrary.exportsHandled) {
         // Export scope already computed on [loadedLibrary].
-        var combinatorFilter = new CombinatorFilter.fromTag(tag);
+        CombinatorFilter combinatorFilter =
+            new CombinatorFilter.fromTag(libraryDependency.node);
         exportingNode.registerHandledExports(
-            loadedLibrary, tag, combinatorFilter);
+            loadedLibrary, libraryDependency, combinatorFilter);
         return;
       }
       LibraryDependencyNode exportedNode = nodeMap[loadedLibrary];
@@ -1066,13 +1107,13 @@ class LibraryDependencyHandler implements LibraryLoader {
           message: "$loadedLibrary has not been registered"));
       assert(invariant(library, exportingNode != null,
           message: "$library has not been registered"));
-      exportedNode.registerExportDependency(tag, exportingNode);
-    } else if (tag == null || tag is Import) {
+      exportedNode.registerExportDependency(libraryDependency, exportingNode);
+    } else if (libraryDependency == null || libraryDependency.isImport) {
       // [loadedLibrary] is imported by [library].
       LibraryDependencyNode importingNode = nodeMap[library];
       assert(invariant(library, importingNode != null,
           message: "$library has not been registered"));
-      importingNode.registerImportDependency(tag, loadedLibrary);
+      importingNode.registerImportDependency(libraryDependency, loadedLibrary);
     }
   }
 

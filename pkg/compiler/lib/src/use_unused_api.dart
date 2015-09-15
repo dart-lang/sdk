@@ -144,6 +144,7 @@ void useNode(tree.Node node) {
     ..asFor()
     ..asFunctionDeclaration()
     ..asIf()
+    ..asImport()
     ..asLabeledStatement()
     ..asLibraryDependency()
     ..asLibraryName()

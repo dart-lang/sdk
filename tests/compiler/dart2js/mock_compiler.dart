@@ -279,7 +279,7 @@ class MockCompiler extends Compiler {
   }
 
   Uri translateResolvedUri(LibraryElement importingLibrary,
-                           Uri resolvedUri, Node node) => resolvedUri;
+                           Uri resolvedUri, Spannable spannable) => resolvedUri;
 
   // The mock library doesn't need any patches.
   Uri resolvePatchUri(String dartLibraryName) {

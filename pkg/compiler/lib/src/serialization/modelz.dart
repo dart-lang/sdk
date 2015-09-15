@@ -27,16 +27,12 @@ import '../elements/visitor.dart';
 import '../io/source_file.dart';
 import '../ordered_typeset.dart';
 import '../resolution/class_members.dart' as class_members;
-import '../resolution/enum_creator.dart' show
-    AstBuilder;
 import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../resolution/scope.dart' show
     Scope;
 import '../script.dart';
 import '../serialization/constant_serialization.dart';
-import '../tokens/precedence_constants.dart' as Precedence show
-    SEMICOLON_INFO;
 import '../tokens/token.dart' show
     Token;
 import '../tree/tree.dart';
@@ -375,7 +371,8 @@ class LibraryElementZ extends DeserializedElementZ
   Uri _canonicalUri;
   CompilationUnitElement _entryCompilationUnit;
   Link<CompilationUnitElement> _compilationUnits;
-  Link<Element> _exports;
+  List<ImportElement> _imports;
+  List<ExportElement> _exports;
   ListedContainer _exportsMap;
   ListedContainer _importsMap;
   Map<LibraryTag, LibraryElement> _libraryDependencies;
@@ -426,12 +423,12 @@ class LibraryElementZ extends DeserializedElementZ
   }
 
   @override
-  bool hasLibraryName() {
-    return getLibraryName() != '';
+  bool get hasLibraryName {
+    return libraryName != '';
   }
 
   @override
-  String getLibraryName() {
+  String get libraryName {
     return _decoder.getString(Key.LIBRARY_NAME);
   }
 
@@ -439,20 +436,15 @@ class LibraryElementZ extends DeserializedElementZ
   bool get exportsHandled => true;
 
   void _ensureExports() {
-    if (_exports == null) {
-      _exportsMap = new ListedContainer(_decoder.getElements(Key.EXPORTS));
-      _exports = toLink(_exportsMap.values);
+    if (_exportsMap == null) {
+      _exportsMap = new ListedContainer(_decoder.getElements(Key.EXPORT_SCOPE));
     }
-  }
-
-  Link<Element> get exports {
-    _ensureExports();
-    return _exports;
   }
 
   @override
   void forEachExport(f(Element element)) {
-    exports.forEach(f);
+    _ensureExports();
+    _exportsMap.forEach(f);
   }
 
   @override
@@ -470,53 +462,6 @@ class LibraryElementZ extends DeserializedElementZ
     return localLookup(elementName);
   }
 
-  void _ensureLibraryDependencies() {
-    if (_libraryDependencies == null) {
-      _libraryDependencies = <LibraryTag, LibraryElement>{};
-      ListDecoder tags = _decoder.getList(Key.TAGS);
-      AstBuilder builder = new AstBuilder(0);
-      for (int i = 0; i < tags.length; i++) {
-        ObjectDecoder dependency = tags.getObject(i);
-        String kind = dependency.getString(Key.KIND);
-        LibraryElement library = dependency.getElement(Key.LIBRARY);
-        // TODO(johnniwinther): Add `ImportElement` and `ExportElement` to the
-        // element model to avoid hacking up nodes.
-        if (kind == 'import') {
-          Import tag = new Import(
-              builder.keywordToken('import'),
-              builder.literalString(library.canonicalUri.toString())
-                  ..getEndToken().next =
-                      builder.symbolToken(Precedence.SEMICOLON_INFO),
-              null, // prefix
-              null, // combinators
-              null, // metadata
-              isDeferred: false);
-          _libraryDependencies[tag] = library;
-        } else if (kind == 'export') {
-          Export tag = new Export(
-              builder.keywordToken('export'),
-              builder.literalString(library.canonicalUri.toString())
-                  ..getEndToken().next =
-                      builder.symbolToken(Precedence.SEMICOLON_INFO),
-              null,  // combinators
-              null); // metadata
-          _libraryDependencies[tag] = library;
-        }
-      }
-    }
-  }
-
-  @override
-  Iterable<LibraryTag> get tags {
-    _ensureLibraryDependencies();
-    return _libraryDependencies.keys;
-  }
-
-  LibraryElement getLibraryFromTag(LibraryDependency tag) {
-    _ensureLibraryDependencies();
-    return _libraryDependencies[tag];
-  }
-
   @override
   bool get canUseNative => false;
 
@@ -525,7 +470,7 @@ class LibraryElementZ extends DeserializedElementZ
 
   void _ensureImports() {
     if (_importsMap == null) {
-      _importsMap = new ListedContainer(_decoder.getElements(Key.IMPORTS));
+      _importsMap = new ListedContainer(_decoder.getElements(Key.IMPORT_SCOPE));
     }
   }
 
@@ -536,13 +481,28 @@ class LibraryElementZ extends DeserializedElementZ
   }
 
   @override
-  Link<Import> getImportsFor(Element element) => _unsupported('getImportsFor');
-
-  @override
-  LibraryName get libraryTag => _unsupported('libraryTag');
+  Iterable<ImportElement> getImportsFor(Element element) {
+    return _unsupported('getImportsFor');
+  }
 
   String toString() {
     return 'Zlibrary(${canonicalUri})';
+  }
+
+  @override
+  Iterable<ExportElement> get exports {
+    if (_exports == null) {
+      _exports = _decoder.getElements(Key.EXPORTS, isOptional: true);
+    }
+    return _exports;
+  }
+
+  @override
+  Iterable<ImportElement> get imports {
+    if (_imports == null) {
+      _imports = _decoder.getElements(Key.IMPORTS, isOptional: true);
+    }
+    return _imports;
   }
 }
 
@@ -1456,7 +1416,6 @@ class ParameterElementZ extends DeserializedElementZ
   MemberElement get memberContext => executableContext.memberContext;
 }
 
-
 class InitializingFormalElementZ extends ParameterElementZ
     implements InitializingFormalElement {
   FieldElement _fieldElement;
@@ -1479,5 +1438,142 @@ class InitializingFormalElementZ extends ParameterElementZ
 
   @override
   ElementKind get kind => ElementKind.INITIALIZING_FORMAL;
+}
 
+class ImportElementZ extends DeserializedElementZ
+    with LibraryMemberMixin implements ImportElement {
+  bool _isDeferred;
+  PrefixElement _prefix;
+  LibraryElement _importedLibrary;
+  Uri _uri;
+
+  ImportElementZ(ObjectDecoder decoder)
+      : super(decoder);
+
+  @override
+  String get name => '';
+
+  @override
+  accept(ElementVisitor visitor, arg) => visitor.visitImportElement(this, arg);
+
+  @override
+  ElementKind get kind => ElementKind.IMPORT;
+
+  @override
+  LibraryElement get importedLibrary {
+    if (_importedLibrary == null) {
+      _importedLibrary = _decoder.getElement(Key.LIBRARY_DEPENDENCY);
+    }
+    return _importedLibrary;
+  }
+
+  void _ensurePrefixResolved() {
+    if (_isDeferred == null) {
+      _isDeferred = _decoder.getBool(Key.IS_DEFERRED);
+      _prefix = _decoder.getElement(Key.PREFIX, isOptional: true);
+    }
+  }
+
+  @override
+  bool get isDeferred {
+    _ensurePrefixResolved();
+    return _isDeferred;
+  }
+
+  @override
+  PrefixElement get prefix {
+    _ensurePrefixResolved();
+    return _prefix;
+  }
+
+  @override
+  Uri get uri {
+    if (_uri == null) {
+      _uri = _decoder.getUri(Key.URI);
+    }
+    return _uri;
+  }
+
+  @override
+  Import get node => _unsupported('node');
+
+  String toString() => 'Z$kind($uri)';
+}
+
+class ExportElementZ extends DeserializedElementZ
+    with LibraryMemberMixin implements ExportElement {
+  LibraryElement _exportedLibrary;
+  Uri _uri;
+
+  ExportElementZ(ObjectDecoder decoder)
+      : super(decoder);
+
+  @override
+  String get name => '';
+
+  @override
+  accept(ElementVisitor visitor, arg) => visitor.visitExportElement(this, arg);
+
+  @override
+  ElementKind get kind => ElementKind.EXPORT;
+
+  @override
+  LibraryElement get exportedLibrary {
+    if (_exportedLibrary == null) {
+      _exportedLibrary = _decoder.getElement(Key.LIBRARY_DEPENDENCY);
+    }
+    return _exportedLibrary;
+  }
+
+  @override
+  Uri get uri {
+    if (_uri == null) {
+      _uri = _decoder.getUri(Key.URI);
+    }
+    return _uri;
+  }
+
+  @override
+  Export get node => _unsupported('node');
+
+  String toString() => 'Z$kind($uri)';
+}
+
+class PrefixElementZ extends DeserializedElementZ
+    with LibraryMemberMixin implements PrefixElement {
+  bool _isDeferred;
+  ImportElement _deferredImport;
+
+  PrefixElementZ(ObjectDecoder decoder)
+      : super(decoder);
+
+  @override
+  accept(ElementVisitor visitor, arg) => visitor.visitPrefixElement(this, arg);
+
+  void _ensureDeferred() {
+    if (_isDeferred == null) {
+      _isDeferred = _decoder.getBool(Key.IS_DEFERRED);
+      _deferredImport = _decoder.getElement(Key.IMPORT, isOptional: true);
+    }
+  }
+
+  @override
+  ImportElement get deferredImport {
+    _ensureDeferred();
+    return _deferredImport;
+  }
+
+  @override
+  bool get isDeferred {
+    _ensureDeferred();
+    return _isDeferred;
+  }
+
+  @override
+  ElementKind get kind => ElementKind.PREFIX;
+
+  @override
+  Element lookupLocalMember(String memberName) {
+    return _unsupported('lookupLocalMember');
+  }
 }

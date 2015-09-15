@@ -221,9 +221,9 @@ class Compiler extends leg.Compiler {
 
   /// See [leg.Compiler.translateResolvedUri].
   Uri translateResolvedUri(elements.LibraryElement importingLibrary,
-                           Uri resolvedUri, tree.Node node) {
+                           Uri resolvedUri, Spannable spannable) {
     if (resolvedUri.scheme == 'dart') {
-      return translateDartUri(importingLibrary, resolvedUri, node);
+      return translateDartUri(importingLibrary, resolvedUri, spannable);
     }
     return resolvedUri;
   }
@@ -317,7 +317,7 @@ class Compiler extends leg.Compiler {
   }
 
   Uri translateDartUri(elements.LibraryElement importingLibrary,
-                       Uri resolvedUri, tree.Node node) {
+                       Uri resolvedUri, Spannable spannable) {
     LibraryInfo libraryInfo = lookupLibraryInfo(resolvedUri.path);
     String path = lookupLibraryPath(resolvedUri, libraryInfo);
     if (libraryInfo != null &&
@@ -334,13 +334,13 @@ class Compiler extends leg.Compiler {
       if (!allowInternalLibraryAccess) {
         if (importingLibrary != null) {
           reportError(
-              node,
+              spannable,
               MessageKind.INTERNAL_LIBRARY_FROM,
               {'resolvedUri': resolvedUri,
                'importingUri': importingLibrary.canonicalUri});
         } else {
           reportError(
-              node,
+              spannable,
               MessageKind.INTERNAL_LIBRARY,
               {'resolvedUri': resolvedUri});
         }
@@ -348,10 +348,10 @@ class Compiler extends leg.Compiler {
     }
     if (path == null) {
       if (libraryInfo == null) {
-        reportError(node, MessageKind.LIBRARY_NOT_FOUND,
+        reportError(spannable, MessageKind.LIBRARY_NOT_FOUND,
                     {'resolvedUri': resolvedUri});
       } else {
-        reportError(node, MessageKind.LIBRARY_NOT_SUPPORTED,
+        reportError(spannable, MessageKind.LIBRARY_NOT_SUPPORTED,
                     {'resolvedUri': resolvedUri});
       }
       // TODO(johnniwinther): Support signaling the error through the returned

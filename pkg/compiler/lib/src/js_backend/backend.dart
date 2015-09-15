@@ -1520,17 +1520,15 @@ class JavaScriptBackend extends Backend {
            'percentage': percentage.round()});
       for (LibraryElement library in compiler.libraryLoader.libraries) {
         if (library.isInternalLibrary) continue;
-        for (LibraryTag tag in library.tags) {
-          Import importTag = tag.asImport();
-          if (importTag == null) continue;
-          LibraryElement importedLibrary = library.getLibraryFromTag(tag);
+        for (ImportElement import in library.imports) {
+          LibraryElement importedLibrary = import.importedLibrary;
           if (importedLibrary != compiler.mirrorsLibrary) continue;
           MessageKind kind =
               compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(library)
               ? MessageKind.MIRROR_IMPORT
               : MessageKind.MIRROR_IMPORT_NO_USAGE;
           compiler.withCurrentElement(library, () {
-            compiler.reportInfo(importTag, kind);
+            compiler.reportInfo(import, kind);
           });
         }
       }

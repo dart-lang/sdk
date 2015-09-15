@@ -4,15 +4,32 @@
 
 library related_types;
 
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/core_types.dart';
 import 'package:compiler/src/dart_types.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/resolution/semantic_visitor.dart';
 import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/universe/universe.dart';
 import 'package:compiler/src/world.dart';
+import 'memory_compiler.dart';
+
+main(List<String> arguments) async {
+  if (arguments.isNotEmpty) {
+    Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.last));
+    CompilationResult result = await runCompiler(
+        entryPoint: entryPoint,
+        options: [Flags.analyzeOnly, '--categories=Client,Server']);
+    if (result.isSuccess) {
+      checkRelatedTypes(result.compiler);
+    }
+  } else {
+    print('Usage dart related_types.dart <entry-point>');
+  }
+}
 
 /// Check all loaded libraries in [compiler] for unrelated types.
 void checkRelatedTypes(Compiler compiler) {

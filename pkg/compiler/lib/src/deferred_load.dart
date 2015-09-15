@@ -27,7 +27,9 @@ import 'elements/elements.dart' show
     Element,
     ElementKind,
     Elements,
+    ExportElement,
     FunctionElement,
+    ImportElement,
     LibraryElement,
     MetadataAnnotation,
     PrefixElement,
@@ -227,7 +229,7 @@ class DeferredLoadTask extends CompilerTask {
   /// Answers whether [element] is explicitly deferred when referred to from
   /// [library].
   bool _isExplicitlyDeferred(Element element, LibraryElement library) {
-    Link<Import> imports = _getImports(element, library);
+    Iterable<ImportElement> imports = _getImports(element, library);
     // If the element is not imported explicitly, it is implicitly imported
     // not deferred.
     if (imports.isEmpty) return false;
@@ -235,11 +237,11 @@ class DeferredLoadTask extends CompilerTask {
     // is explicitly deferred, we say the element is explicitly deferred.
     // TODO(sigurdm): We might want to give a warning if the imports do not
     // agree.
-    return imports.every((Import import) => import.isDeferred);
+    return imports.every((ImportElement import) => import.isDeferred);
   }
 
   /// Returns a [Link] of every [Import] that imports [element] into [library].
-  Link<Import> _getImports(Element element, LibraryElement library) {
+  Iterable<ImportElement> _getImports(Element element, LibraryElement library) {
     if (element.isClassMember) {
       element = element.enclosingClass;
     }
@@ -397,13 +399,15 @@ class DeferredLoadTask extends CompilerTask {
       iterateTags(LibraryElement library) {
         // TODO(sigurdm): Make helper getLibraryDependencyTags when tags is
         // changed to be a List instead of a Link.
-        for (LibraryTag tag in library.tags) {
-          if (tag is! LibraryDependency) continue;
-          LibraryDependency libraryDependency = tag;
-          if (!(libraryDependency is Import && libraryDependency.isDeferred)) {
-            LibraryElement importedLibrary = library.getLibraryFromTag(tag);
+        for (ImportElement import in library.imports) {
+          if (!import.isDeferred) {
+            LibraryElement importedLibrary = import.importedLibrary;
             traverseLibrary(importedLibrary);
           }
+        }
+        for (ExportElement export in library.exports) {
+          LibraryElement exportedLibrary = export.exportedLibrary;
+          traverseLibrary(exportedLibrary);
         }
       }
 
@@ -468,9 +472,8 @@ class DeferredLoadTask extends CompilerTask {
 
     for (Element dependency in dependentElements) {
       if (_isExplicitlyDeferred(dependency, library)) {
-        for (Import deferredImport in _getImports(dependency, library)) {
-          _mapDependencies(
-              element: dependency,
+        for (ImportElement deferredImport in _getImports(dependency, library)) {
+          _mapDependencies(element: dependency,
               import: new _DeclaredDeferredImport(deferredImport));
         }
       } else {
@@ -501,27 +504,20 @@ class DeferredLoadTask extends CompilerTask {
       // So we have to filter them out here.
       if (element is AnalyzableElementX && !element.hasTreeElements) return;
       if (compiler.backend.isAccessibleByReflection(element)) {
-        _mapDependencies(element: element, import: deferredImport,
-                         isMirrorUsage: true);
+        _mapDependencies(
+            element: element, import: deferredImport, isMirrorUsage: true);
       }
     }
 
     // For each deferred import we analyze all elements reachable from the
     // imported library through non-deferred imports.
-    handleLibrary(LibraryElement library, _DeferredImport deferredImport) {
+    void handleLibrary(LibraryElement library, _DeferredImport deferredImport) {
       library.implementation.forEachLocalMember((Element element) {
         mapDependenciesIfResolved(element, deferredImport);
       });
 
-      for (MetadataAnnotation metadata in library.metadata) {
-        ConstantValue constant =
-            backend.constants.getConstantValueForMetadata(metadata);
-        if (constant != null) {
-          _mapConstantDependencies(constant, deferredImport);
-        }
-      }
-      for (LibraryTag tag in library.tags) {
-        for (MetadataAnnotation metadata in tag.metadata) {
+      void processMetadata(Element element) {
+        for (MetadataAnnotation metadata in element.metadata) {
           ConstantValue constant =
               backend.constants.getConstantValueForMetadata(metadata);
           if (constant != null) {
@@ -529,6 +525,10 @@ class DeferredLoadTask extends CompilerTask {
           }
         }
       }
+
+      processMetadata(library);
+      library.imports.forEach(processMetadata);
+      library.exports.forEach(processMetadata);
     }
 
     for (_DeferredImport deferredImport in _allDeferredImports.keys) {
@@ -712,17 +712,15 @@ class DeferredLoadTask extends CompilerTask {
     // The prefixes that have been used by any imports in this library.
     Setlet<String> usedPrefixes = new Setlet<String>();
     // The last deferred import we saw with a given prefix (if any).
-    Map<String, Import> prefixDeferredImport = new Map<String, Import>();
+    Map<String, ImportElement> prefixDeferredImport =
+        new Map<String, ImportElement>();
     for (LibraryElement library in compiler.libraryLoader.libraries) {
       compiler.withCurrentElement(library, () {
         prefixDeferredImport.clear();
         usedPrefixes.clear();
         // TODO(sigurdm): Make helper getLibraryImportTags when tags is a List
         // instead of a Link.
-        for (LibraryTag tag in library.tags) {
-          if (tag is! Import) continue;
-          Import import = tag;
-
+        for (ImportElement import in library.imports) {
           /// Give an error if the old annotation-based syntax has been used.
           List<MetadataAnnotation> metadataList = import.metadata;
           if (metadataList != null) {
@@ -739,13 +737,13 @@ class DeferredLoadTask extends CompilerTask {
           }
 
           String prefix = (import.prefix != null)
-              ? import.prefix.toString()
+              ? import.prefix.name
               : null;
           // The last import we saw with the same prefix.
-          Import previousDeferredImport = prefixDeferredImport[prefix];
+          ImportElement previousDeferredImport = prefixDeferredImport[prefix];
           if (import.isDeferred) {
             _DeferredImport key = new _DeclaredDeferredImport(import);
-            LibraryElement importedLibrary = library.getLibraryFromTag(import);
+            LibraryElement importedLibrary = import.importedLibrary;
             _allDeferredImports[key] = importedLibrary;
 
             if (prefix == null) {
@@ -762,7 +760,7 @@ class DeferredLoadTask extends CompilerTask {
           if (prefix != null) {
             if (previousDeferredImport != null ||
                 (import.isDeferred && usedPrefixes.contains(prefix))) {
-              Import failingImport = (previousDeferredImport != null)
+              ImportElement failingImport = (previousDeferredImport != null)
                   ? previousDeferredImport
                   : import;
               compiler.reportError(failingImport.prefix,
@@ -876,20 +874,18 @@ class ImportDescription {
   final String prefix;
   final LibraryElement _importingLibrary;
 
-  ImportDescription(Import import,
+  ImportDescription(ImportElement import,
                     LibraryElement importingLibrary,
                     Compiler compiler)
       : importingUri = uri_extras.relativize(
           compiler.mainApp.canonicalUri,
           importingLibrary.canonicalUri, false),
-        prefix = import.prefix.source,
+        prefix = import.prefix.name,
         _importingLibrary = importingLibrary;
 
   String get importingLibraryName {
-    String libraryName = _importingLibrary.getLibraryName();
-    return libraryName == ""
-      ? "<unnamed>"
-      : libraryName;
+    return _importingLibrary.hasLibraryName
+        ? _importingLibrary.libraryName : "<unnamed>";
   }
 }
 
@@ -905,7 +901,7 @@ class _DeferredImport {
 
 /// A node in the deferred import graph defined by a deferred import directive.
 class _DeclaredDeferredImport implements _DeferredImport {
-  final Import declaration;
+  final ImportElement declaration;
 
   _DeclaredDeferredImport(this.declaration);
 
@@ -913,7 +909,7 @@ class _DeclaredDeferredImport implements _DeferredImport {
   String computeImportDeferName(Compiler compiler) {
     String result;
     if (declaration.isDeferred) {
-      result = declaration.prefix.toString();
+      result = declaration.prefix.name;
     } else {
       // Finds the first argument to the [DeferredLibrary] annotation
       List<MetadataAnnotation> metadatas = declaration.metadata;

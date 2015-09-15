@@ -1144,12 +1144,12 @@ class Namer {
       LibraryElement library = element;
       name = libraryLongNames[library];
       if (name != null) return name;
-      name = library.getLibraryOrScriptName();
+      name = library.libraryOrScriptName;
       if (name.contains('.')) {
         // For libraries that have a library tag, we use the last part
         // of the fully qualified name as their base name. For all other
         // libraries, we use the first part of their filename.
-        name = library.hasLibraryName()
+        name = library.hasLibraryName
             ? name.substring(name.lastIndexOf('.') + 1)
             : name.substring(0, name.indexOf('.'));
       }
@@ -1346,7 +1346,7 @@ class Namer {
       return 'P';
     }
     return userGlobalObjects[
-        library.getLibraryOrScriptName().hashCode % userGlobalObjects.length];
+        library.libraryOrScriptName.hashCode % userGlobalObjects.length];
   }
 
   jsAst.Name deriveLazyInitializerName(jsAst.Name name) {

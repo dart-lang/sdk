@@ -1846,7 +1846,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     registry.registerThrowNoSuchMethod();
     ErroneousElement error = reportAndCreateErroneousElement(
         node, name.text, MessageKind.PRIVATE_ACCESS,
-        {'libraryName': member.library.getLibraryOrScriptName(),
+        {'libraryName': member.library.libraryOrScriptName,
          'name': name});
     // TODO(johnniwinther): Add an [AccessSemantics] for unresolved static
     // member access.
@@ -1862,7 +1862,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     registry.registerThrowNoSuchMethod();
     ErroneousElement error = reportAndCreateErroneousElement(
         node, name.text, MessageKind.PRIVATE_ACCESS,
-        {'libraryName': member.library.getLibraryOrScriptName(),
+        {'libraryName': member.library.libraryOrScriptName,
          'name': name});
     // TODO(johnniwinther): Add an [AccessSemantics] for unresolved static
     // member access.

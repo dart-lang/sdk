@@ -3341,7 +3341,7 @@ class SsaBuilder extends ast.Visitor
     String loadId =
         compiler.deferredLoadTask.getImportDeferName(location, prefixElement);
     HInstruction loadIdConstant = addConstantString(loadId);
-    String uri = prefixElement.deferredImport.uri.dartString.slowToString();
+    String uri = prefixElement.deferredImport.uri.toString();
     HInstruction uriConstant = addConstantString(uri);
     Element helper = backend.getCheckDeferredIsLoaded();
     pushInvokeStatic(location, helper, [loadIdConstant, uriConstant]);

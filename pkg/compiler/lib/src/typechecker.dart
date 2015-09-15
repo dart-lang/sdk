@@ -738,7 +738,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           node,
           MessageKind.PRIVATE_ACCESS,
           {'name': name,
-           'libraryName': element.library.getLibraryOrScriptName()});
+           'libraryName': element.library.libraryOrScriptName});
     }
 
   }
@@ -832,7 +832,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
                  node,
                  MessageKind.PRIVATE_ACCESS,
                  {'name': name,
-                  'libraryName': privateName.library.getLibraryOrScriptName()},
+                  'libraryName': privateName.library.libraryOrScriptName},
                  isHint: isHint);
             foundPrivateMember = true;
           }
