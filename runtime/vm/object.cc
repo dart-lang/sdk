@@ -13795,9 +13795,8 @@ RawMegamorphicCache* MegamorphicCache::New() {
   const intptr_t capacity = kInitialCapacity;
   const Array& buckets = Array::Handle(
       Array::New(kEntryLength * capacity, Heap::kOld));
-  ASSERT(Isolate::Current()->megamorphic_cache_table()->miss_handler() != NULL);
   const Function& handler = Function::Handle(
-      Isolate::Current()->megamorphic_cache_table()->miss_handler());
+      MegamorphicCacheTable::miss_handler(Isolate::Current()));
   for (intptr_t i = 0; i < capacity; ++i) {
     SetEntry(buckets, i, smi_illegal_cid(), handler);
   }
@@ -13818,7 +13817,7 @@ void MegamorphicCache::EnsureCapacity() const {
         Array::Handle(Array::New(kEntryLength * new_capacity));
 
     Function& target = Function::Handle(
-        Isolate::Current()->megamorphic_cache_table()->miss_handler());
+        MegamorphicCacheTable::miss_handler(Isolate::Current()));
     for (intptr_t i = 0; i < new_capacity; ++i) {
       SetEntry(new_buckets, i, smi_illegal_cid(), target);
     }

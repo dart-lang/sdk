@@ -660,7 +660,9 @@ RawApiError* SnapshotReader::ReadFullSnapshot() {
     HeapLocker hl(isolate, old_space());
 
     // Read in all the objects stored in the object store.
-    intptr_t num_flds = (object_store->to() - object_store->from());
+    RawObject** toobj = snapshot_code() ? object_store->to()
+                                        : object_store->to_snapshot();
+    intptr_t num_flds = (toobj - object_store->from());
     for (intptr_t i = 0; i <= num_flds; i++) {
       *(object_store->from() + i) = ReadObjectImpl(kAsInlinedObject);
     }
@@ -1994,7 +1996,9 @@ void FullSnapshotWriter::WriteIsolateFullSnapshot() {
     // Write out all the objects in the object store of the isolate which
     // is the root set for all dart allocated objects at this point.
     SnapshotWriterVisitor visitor(&writer, false);
-    object_store->VisitObjectPointers(&visitor);
+    visitor.VisitPointers(object_store->from(),
+                          snapshot_code_ ? object_store->to()
+                                         : object_store->to_snapshot());
 
     // Write out all forwarded objects.
     writer.WriteForwardedObjects();
