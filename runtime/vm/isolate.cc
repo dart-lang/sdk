@@ -1544,7 +1544,7 @@ void Isolate::Shutdown() {
 
     if (FLAG_trace_isolates) {
       heap()->PrintSizes();
-      megamorphic_cache_table()->PrintSizes();
+      MegamorphicCacheTable::PrintSizes(this);
       Symbols::DumpStats();
       OS::Print("[-] Stopping isolate:\n"
                 "\tisolate:    %s\n", name());
@@ -1622,9 +1622,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit objects in the class table.
   class_table()->VisitObjectPointers(visitor);
-
-  // Visit objects in the megamorphic cache.
-  megamorphic_cache_table()->VisitObjectPointers(visitor);
 
   // Visit objects in per isolate stubs.
   StubCode::VisitObjectPointers(visitor);
