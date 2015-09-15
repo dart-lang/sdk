@@ -392,14 +392,14 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     Expression value = getVariableUse(node.value);
     List<Expression> typeArgs = translateArguments(node.typeArguments);
     Expression expression =
-        new TypeOperator(value, node.type, typeArgs, isTypeTest: false);
+        new TypeOperator(value, node.dartType, typeArgs, isTypeTest: false);
     return makeCallExpression(node, expression);
   }
 
   NodeCallback visitInvokeConstructor(cps_ir.InvokeConstructor node) {
     List<Expression> arguments = translateArguments(node.arguments);
     Expression invoke = new InvokeConstructor(
-        node.type,
+        node.dartType,
         node.target,
         node.selector,
         arguments,
@@ -580,13 +580,13 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
 
   Expression visitLiteralList(cps_ir.LiteralList node) {
     return new LiteralList(
-            node.type,
+            node.dartType,
             translateArguments(node.values));
   }
 
   Expression visitLiteralMap(cps_ir.LiteralMap node) {
     return new LiteralMap(
-        node.type,
+        node.dartType,
         new List<LiteralMapEntry>.generate(node.entries.length, (int index) {
           return new LiteralMapEntry(
               getVariableUse(node.entries[index].key),
@@ -625,7 +625,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   Expression visitTypeTest(cps_ir.TypeTest node) {
     Expression value = getVariableUse(node.value);
     List<Expression> typeArgs = translateArguments(node.typeArguments);
-    return new TypeOperator(value, node.type, typeArgs, isTypeTest: true);
+    return new TypeOperator(value, node.dartType, typeArgs, isTypeTest: true);
   }
 
   Expression visitGetStatic(cps_ir.GetStatic node) {

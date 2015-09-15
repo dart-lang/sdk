@@ -161,7 +161,7 @@ class EffectiveUseIterable extends IterableBase<Reference<Primitive>> {
 /// The subclass describes how to compute the value.
 ///
 /// All primitives except [Parameter] must be bound by a [LetPrim].
-abstract class Primitive extends Definition<Primitive> {
+abstract class Primitive extends Variable<Primitive> {
   /// The [VariableElement] or [ParameterElement] from which the primitive
   /// binding originated.
   Entity hint;
@@ -495,14 +495,14 @@ class InvokeMethodDirectly extends CallExpression {
 /// Note that [InvokeConstructor] does it itself allocate an object.
 /// The invoked constructor will do that using [CreateInstance].
 class InvokeConstructor extends CallExpression {
-  final DartType type;
+  final DartType dartType;
   final ConstructorElement target;
   final List<Reference<Primitive>> arguments;
   final Reference<Continuation> continuation;
   final Selector selector;
   final SourceInformation sourceInformation;
 
-  InvokeConstructor(this.type,
+  InvokeConstructor(this.dartType,
                     this.target,
                     this.selector,
                     List<Primitive> args,
@@ -523,9 +523,9 @@ class InvokeConstructor extends CallExpression {
 /// to the same primitive).
 class Refinement extends Primitive {
   Reference<Primitive> value;
-  final TypeMask type;
+  final TypeMask refineType;
 
-  Refinement(Primitive value, this.type)
+  Refinement(Primitive value, this.refineType)
     : value = new Reference<Primitive>(value);
 
   bool get isSafeForElimination => true;
@@ -545,7 +545,7 @@ class Refinement extends Primitive {
 /// to simplify code generation for type tests.
 class TypeTest extends Primitive {
   Reference<Primitive> value;
-  final DartType type;
+  final DartType dartType;
 
   /// If [type] is an [InterfaceType], this holds the internal representation of
   /// the type arguments to [type]. Since these may reference type variables
@@ -561,7 +561,7 @@ class TypeTest extends Primitive {
   final List<Reference<Primitive>> typeArguments;
 
   TypeTest(Primitive value,
-           this.type,
+           this.dartType,
            List<Primitive> typeArguments)
   : this.value = new Reference<Primitive>(value),
     this.typeArguments = _referenceList(typeArguments);
@@ -584,14 +584,14 @@ class TypeTest extends Primitive {
 /// continuation parameter without needing flow-sensitive analysis.
 class TypeCast extends CallExpression {
   Reference<Primitive> value;
-  final DartType type;
+  final DartType dartType;
 
   /// See the corresponding field on [TypeTest].
   final List<Reference<Primitive>> typeArguments;
   final Reference<Continuation> continuation;
 
   TypeCast(Primitive value,
-           this.type,
+           this.dartType,
            List<Primitive> typeArguments,
            Continuation cont)
       : this.value = new Reference<Primitive>(value),
@@ -1047,10 +1047,10 @@ class Constant extends Primitive {
 
 class LiteralList extends Primitive {
   /// The List type being created; this is not the type argument.
-  final InterfaceType type;
+  final InterfaceType dartType;
   final List<Reference<Primitive>> values;
 
-  LiteralList(this.type, List<Primitive> values)
+  LiteralList(this.dartType, List<Primitive> values)
       : this.values = _referenceList(values);
 
   accept(Visitor visitor) => visitor.visitLiteralList(this);
@@ -1069,10 +1069,10 @@ class LiteralMapEntry {
 }
 
 class LiteralMap extends Primitive {
-  final InterfaceType type;
+  final InterfaceType dartType;
   final List<LiteralMapEntry> entries;
 
-  LiteralMap(this.type, this.entries);
+  LiteralMap(this.dartType, this.entries);
 
   accept(Visitor visitor) => visitor.visitLiteralMap(this);
 
@@ -1146,8 +1146,16 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
   accept(Visitor visitor) => visitor.visitContinuation(this);
 }
 
+/// Common interface for [Primitive] and [MutableVariable].
+abstract class Variable<T extends Variable<T>> extends Definition<T> {
+  /// Type of value held in the variable.
+  ///
+  /// Is `null` until initialized by type propagation.
+  TypeMask type;
+}
+
 /// Identifies a mutable variable.
-class MutableVariable extends Definition {
+class MutableVariable extends Variable<MutableVariable> {
   Entity hint;
 
   MutableVariable(this.hint);

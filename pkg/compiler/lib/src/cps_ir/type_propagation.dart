@@ -336,13 +336,15 @@ class TypePropagator extends Pass {
   final CpsFunctionCompiler _functionCompiler;
   final ConstantPropagationLattice _lattice;
   final dart2js.InternalErrorFunction _internalError;
-  final Map<Definition, AbstractValue> _values = <Definition, AbstractValue>{};
+  final Map<Variable, ConstantValue> _values = <Variable, ConstantValue>{};
+  final TypeMaskSystem _typeSystem;
 
   TypePropagator(dart2js.Compiler compiler,
                  TypeMaskSystem typeSystem,
                  this._functionCompiler)
       : _compiler = compiler,
         _internalError = compiler.internalError,
+        _typeSystem = typeSystem,
         _lattice = new ConstantPropagationLattice(
             typeSystem,
             compiler.backend.constantSystem,
@@ -409,7 +411,7 @@ class TransformingVisitor extends LeafVisitor {
   JavaScriptBackend get backend => compiler.backend;
   TypeMaskSystem get typeSystem => lattice.typeSystem;
   types.DartTypes get dartTypes => lattice.dartTypes;
-  Map<Node, AbstractValue> get values => analyzer.values;
+  Map<Variable, ConstantValue> get values => analyzer.values;
 
   final dart2js.InternalErrorFunction internalError;
 
@@ -568,8 +570,8 @@ class TransformingVisitor extends LeafVisitor {
   /// Make a constant primitive for [constant] and set its entry in [values].
   Constant makeConstantPrimitive(ConstantValue constant) {
     Constant primitive = new Constant(constant);
-    values[primitive] = new AbstractValue.constantValue(constant,
-        typeSystem.getTypeOf(constant));
+    primitive.type = typeSystem.getTypeOf(constant);
+    values[primitive] = constant;
     return primitive;
   }
 
@@ -1505,7 +1507,7 @@ class TransformingVisitor extends LeafVisitor {
     Continuation cont = node.continuation.definition;
 
     AbstractValue value = getValue(node.value.definition);
-    switch (lattice.isSubtypeOf(value, node.type, allowNull: true)) {
+    switch (lattice.isSubtypeOf(value, node.dartType, allowNull: true)) {
       case AbstractBool.Maybe:
       case AbstractBool.Nothing:
         break;
@@ -1658,9 +1660,15 @@ class TransformingVisitor extends LeafVisitor {
     if (inlineInvokeStatic(node)) return;
   }
 
-  AbstractValue getValue(Primitive primitive) {
-    AbstractValue value = values[primitive];
-    return value == null ? new AbstractValue.nothing() : value;
+  AbstractValue getValue(Variable node) {
+    ConstantValue constant = values[node];
+    if (constant != null) {
+      return new AbstractValue.constantValue(constant, node.type);
+    }
+    if (node.type != null) {
+      return new AbstractValue.nonConstant(node.type);
+    }
+    return lattice.nothing;
   }
 
 
@@ -1790,7 +1798,7 @@ class TransformingVisitor extends LeafVisitor {
   Primitive visitTypeTest(TypeTest node) {
     Primitive prim = node.value.definition;
     AbstractValue value = getValue(prim);
-    if (node.type == dartTypes.coreTypes.intType) {
+    if (node.dartType == dartTypes.coreTypes.intType) {
       // Compile as typeof x === 'number' && Math.floor(x) === x
       if (lattice.isDefinitelyNum(value, allowNull: true)) {
         // If value is null or a number, we can skip the typeof test.
@@ -1812,8 +1820,8 @@ class TransformingVisitor extends LeafVisitor {
           <Primitive>[prim, prim, prim],
           node.sourceInformation);
     }
-    if (node.type == dartTypes.coreTypes.numType ||
-        node.type == dartTypes.coreTypes.doubleType) {
+    if (node.dartType == dartTypes.coreTypes.numType ||
+        node.dartType == dartTypes.coreTypes.doubleType) {
       return new ApplyBuiltinOperator(
           BuiltinOperator.IsNumber,
           <Primitive>[prim],
@@ -1907,7 +1915,7 @@ class TypePropagationVisitor implements Visitor {
 
   // Stores the current lattice value for primitives and mutable variables.
   // Access through [getValue] and [setValue].
-  final Map<Definition, AbstractValue> values;
+  final Map<Variable, ConstantValue> values;
 
   /// Expressions that invoke their call continuation with a constant value
   /// and without any side effects. These can be replaced by the constant.
@@ -1971,17 +1979,24 @@ class TypePropagationVisitor implements Visitor {
   /// Returns the lattice value corresponding to [node], defaulting to nothing.
   ///
   /// Never returns null.
-  AbstractValue getValue(Definition node) {
-    AbstractValue value = values[node];
-    return (value == null) ? nothing : value;
+  AbstractValue getValue(Variable node) {
+    ConstantValue constant = values[node];
+    if (constant != null) {
+      return new AbstractValue.constantValue(constant, node.type);
+    }
+    if (node.type != null) {
+      return new AbstractValue.nonConstant(node.type);
+    }
+    return lattice.nothing;
   }
 
   /// Joins the passed lattice [updateValue] to the current value of [node],
   /// and adds it to the definition work set if it has changed and [node] is
   /// a definition.
-  void setValue(Definition node, AbstractValue updateValue) {
+  void setValue(Variable node, AbstractValue updateValue) {
     AbstractValue oldValue = getValue(node);
     AbstractValue newValue = lattice.join(oldValue, updateValue);
+    node.type = newValue.type; // Ensure type is initialized even if bottom.
     if (oldValue == newValue) {
       return;
     }
@@ -1989,7 +2004,7 @@ class TypePropagationVisitor implements Visitor {
     // Values may only move in the direction NOTHING -> CONSTANT -> NONCONST.
     assert(newValue.kind >= oldValue.kind);
 
-    values[node] = newValue;
+    values[node] = newValue.isConstant ? newValue.constant : null;
     defWorklist.add(node);
   }
 
@@ -2113,7 +2128,7 @@ class TypePropagationVisitor implements Visitor {
     // Forward the constant status of all continuation invokes to the
     // continuation. Note that this is effectively a phi node in SSA terms.
     for (int i = 0; i < node.arguments.length; i++) {
-      Definition def = node.arguments[i].definition;
+      Primitive def = node.arguments[i].definition;
       AbstractValue cell = getValue(def);
       setValue(cont.parameters[i], cell);
     }
@@ -2322,7 +2337,7 @@ class TypePropagationVisitor implements Visitor {
   void visitTypeTest(TypeTest node) {
     AbstractValue input = getValue(node.value.definition);
     TypeMask boolType = typeSystem.boolType;
-    switch(lattice.isSubtypeOf(input, node.type, allowNull: false)) {
+    switch(lattice.isSubtypeOf(input, node.dartType, allowNull: false)) {
       case AbstractBool.Nothing:
         break; // And come back later.
 
@@ -2343,7 +2358,7 @@ class TypePropagationVisitor implements Visitor {
   void visitTypeCast(TypeCast node) {
     Continuation cont = node.continuation.definition;
     AbstractValue input = getValue(node.value.definition);
-    switch (lattice.isSubtypeOf(input, node.type, allowNull: true)) {
+    switch (lattice.isSubtypeOf(input, node.dartType, allowNull: true)) {
       case AbstractBool.Nothing:
         break; // And come back later.
 
@@ -2359,7 +2374,7 @@ class TypePropagationVisitor implements Visitor {
         setReachable(cont);
         // Narrow type of output to those that survive the cast.
         TypeMask type = input.type.intersection(
-            typeSystem.subtypesOf(node.type),
+            typeSystem.subtypesOf(node.dartType),
             classWorld);
         setValue(cont.parameters.single, nonConstant(type));
         break;
@@ -2522,13 +2537,14 @@ class TypePropagationVisitor implements Visitor {
   @override
   void visitRefinement(Refinement node) {
     AbstractValue value = getValue(node.value.definition);
-    if (value.isNothing || typeSystem.areDisjoint(value.type, node.type)) {
+    if (value.isNothing ||
+        typeSystem.areDisjoint(value.type, node.refineType)) {
       setValue(node, nothing);
     } else if (value.isConstant) {
       setValue(node, value);
     } else {
       setValue(node,
-          nonConstant(value.type.intersection(node.type, classWorld)));
+          nonConstant(value.type.intersection(node.refineType, classWorld)));
     }
   }
 }
@@ -2632,7 +2648,7 @@ class OriginalLengthEntity extends Entity {
 
 class ResetAnalysisInfo extends RecursiveVisitor {
   Set<Continuation> reachableContinuations;
-  Map<Definition, AbstractValue> values;
+  Map<Variable, ConstantValue> values;
 
   ResetAnalysisInfo(this.reachableContinuations, this.values);
 
@@ -2642,10 +2658,12 @@ class ResetAnalysisInfo extends RecursiveVisitor {
   }
 
   processLetPrim(LetPrim node) {
-    values.remove(node.primitive);
+    node.primitive.type = null;
+    values[node.primitive] = null;
   }
 
   processLetMutable(LetMutable node) {
-    values.remove(node.variable);
+    node.variable.type = null;
+    values[node.variable] = null;
   }
 }

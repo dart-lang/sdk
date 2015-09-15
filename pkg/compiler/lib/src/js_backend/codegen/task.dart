@@ -49,6 +49,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   // TODO(karlklose,sigurdm): remove and update dart-doc of [compile].
   final FunctionCompiler fallbackCompiler;
+  TypeMaskSystem typeSystem;
 
   Tracer get tracer => compiler.tracer;
 
@@ -71,6 +72,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
   js.Fun compile(CodegenWorkItem work) {
     AstElement element = work.element;
     return compiler.withCurrentElement(element, () {
+      typeSystem = new TypeMaskSystem(compiler);
       try {
         // TODO(karlklose): remove this fallback when we do not need it for
         // testing anymore.

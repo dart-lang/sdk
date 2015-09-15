@@ -6,9 +6,15 @@ library dart2js.cps_ir.share_interceptors;
 
 import 'cps_ir_nodes.dart';
 import 'optimizers.dart';
+import 'type_mask_system.dart';
+import '../elements/elements.dart';
 import '../constants/values.dart';
 
-/// Merges calls to `getInterceptor` when one call dominates the other.
+/// Merges calls to `getInterceptor` when one call is in scope of the other.
+///
+/// Also replaces `getInterceptor` calls with an interceptor constant when
+/// the result is known statically, and there is no interceptor already in
+/// scope.
 /// 
 /// Should run after [LoopInvariantCodeMotion] so interceptors lifted out from
 /// loops can be merged.

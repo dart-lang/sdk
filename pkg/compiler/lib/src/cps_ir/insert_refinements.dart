@@ -163,7 +163,7 @@ class InsertRefinements extends RecursiveVisitor implements Pass {
     // If the condition is an 'is' check, promote the checked value.
     if (condition is TypeTest) {
       Primitive value = condition.value.definition;
-      TypeMask type = types.subtypesOf(condition.type);
+      TypeMask type = types.subtypesOf(condition.dartType);
       Primitive refinedValue = new Refinement(value, type);
       pushRefinement(trueCont, refinedValue);
       push(falseCont);

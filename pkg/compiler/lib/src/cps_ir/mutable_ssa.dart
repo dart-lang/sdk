@@ -191,6 +191,7 @@ class MutableVariableEliminator implements Pass {
               <MutableVariable, Primitive>{};
           for (MutableVariable variable in mutableVariables) {
             Parameter phi = new Parameter(variable.hint);
+            phi.type = variable.type;
             cont.parameters.add(phi);
             phi.parent = cont;
             environment[variable] = phi;

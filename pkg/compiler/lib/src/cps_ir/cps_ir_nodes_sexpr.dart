@@ -159,8 +159,8 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     // constructor calls in the DartBackend, we get an element with no enclosing
     // class.  Clean this up by introducing a name field to the node and
     // removing [ErroneousElement]s from the IR.
-    if (node.type != null) {
-      className = node.type.toString();
+    if (node.dartType != null) {
+      className = node.dartType.toString();
     } else {
       className = node.target.enclosingClass.name;
     }
@@ -232,13 +232,14 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     String value = access(node.value);
     String cont = access(node.continuation);
     String typeArguments = node.typeArguments.map(access).join(' ');
-    return '$indentation(TypeCast $value ${node.type} ($typeArguments) $cont)';
+    return '$indentation(TypeCast $value ${node.dartType}'
+                         ' ($typeArguments) $cont)';
   }
 
   String visitTypeTest(TypeTest node) {
     String value = access(node.value);
     String typeArguments = node.typeArguments.map(access).join(' ');
-    return '(TypeTest $value ${node.type} ($typeArguments))';
+    return '(TypeTest $value ${node.dartType} ($typeArguments))';
   }
 
   String visitLiteralList(LiteralList node) {

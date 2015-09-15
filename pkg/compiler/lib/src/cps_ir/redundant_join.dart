@@ -248,6 +248,7 @@ class AlphaRenamer extends RecursiveVisitor {
       // create a new parameter object for this continuation.
       if (param.parent != cont) {
         Parameter newParam = new Parameter(param.hint);
+        newParam.type = param.type;
         renaming[param] = newParam;
         cont.parameters[i] = newParam;
         newParam.parent = cont;
