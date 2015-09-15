@@ -7596,11 +7596,13 @@ void Field::SetPrecompiledInitializer(const Function& initializer) const {
 
 
 bool Field::HasPrecompiledInitializer() const {
-  return raw_ptr()->initializer_.precompiled_->IsFunction();
+  return raw_ptr()->initializer_.precompiled_->IsHeapObject() &&
+         raw_ptr()->initializer_.precompiled_->IsFunction();
 }
 
 
 void Field::SetSavedInitialStaticValue(const Instance& value) const {
+  ASSERT(!HasPrecompiledInitializer());
   StorePointer(&raw_ptr()->initializer_.saved_value_, value.raw());
 }
 
@@ -7617,7 +7619,7 @@ void Field::EvaluateInitializer() const {
     }
     ASSERT(value.IsNull() || value.IsInstance());
     SetStaticValue(value.IsNull() ? Instance::null_instance()
-                             : Instance::Cast(value));
+                                  : Instance::Cast(value));
     return;
   } else if (StaticValue() == Object::transition_sentinel().raw()) {
     SetStaticValue(Object::null_instance());

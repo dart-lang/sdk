@@ -756,15 +756,25 @@ void RawField::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectImpl(ptr()->type_, kAsReference);
   // Write out the initial static value or field offset.
   if (Field::StaticBit::decode(ptr()->kind_bits_)) {
-    // For static field we write out the initial static value.
-    writer->WriteObjectImpl(ptr()->initializer_.saved_value_, kAsReference);
+    if (writer->snapshot_code()) {
+      // For precompiled static fields, the value was already reset and
+      // initializer_ now contains a Function.
+      writer->WriteObjectImpl(ptr()->value_.static_value_, kAsReference);
+    } else {
+      // Otherwise, for static fields we write out the initial static value.
+      writer->WriteObjectImpl(ptr()->initializer_.saved_value_, kAsReference);
+    }
   } else {
     writer->WriteObjectImpl(ptr()->value_.offset_, kAsReference);
   }
   // Write out the dependent code.
   writer->WriteObjectImpl(ptr()->dependent_code_, kAsReference);
-  // Write out the initializer value.
-  writer->WriteObjectImpl(ptr()->initializer_.saved_value_, kAsReference);
+  // Write out the initializer function or saved initial value.
+  if (writer->snapshot_code()) {
+    writer->WriteObjectImpl(ptr()->initializer_.precompiled_, kAsReference);
+  } else {
+    writer->WriteObjectImpl(ptr()->initializer_.saved_value_, kAsReference);
+  }
   // Write out the guarded list length.
   writer->WriteObjectImpl(ptr()->guarded_list_length_, kAsReference);
 }

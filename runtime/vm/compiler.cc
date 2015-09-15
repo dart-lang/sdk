@@ -1288,13 +1288,12 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
 
 void Compiler::CompileStaticInitializer(const Field& field) {
   ASSERT(field.is_static());
-  if (field.PrecompiledInitializer() != Function::null()) {
+  if (field.HasPrecompiledInitializer()) {
     // TODO(rmacnak): Investigate why this happens for _enum_names.
     OS::Print("Warning: Ignoring repeated request for initializer for %s\n",
               field.ToCString());
     return;
   }
-  ASSERT(field.PrecompiledInitializer() == Function::null());
   Thread* thread = Thread::Current();
   StackZone zone(thread);
 

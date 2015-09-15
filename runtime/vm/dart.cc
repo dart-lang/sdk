@@ -120,12 +120,14 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     ASSERT(vm_isolate_ == NULL);
     ASSERT(Flags::Initialized());
     const bool is_vm_isolate = true;
+    const bool precompiled = instructions_snapshot != NULL;
 
     // Setup default flags for the VM isolate.
     Isolate::Flags vm_flags;
     Dart_IsolateFlags api_flags;
     vm_flags.CopyTo(&api_flags);
     vm_isolate_ = Isolate::Init("vm-isolate", api_flags, is_vm_isolate);
+    vm_isolate_->set_compilation_allowed(!precompiled);
     // Verify assumptions about executing in the VM isolate.
     ASSERT(vm_isolate_ == Isolate::Current());
     ASSERT(vm_isolate_ == Thread::Current()->isolate());
@@ -137,10 +139,10 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     TargetCPUFeatures::InitOnce();
     Object::InitOnce(vm_isolate_);
     ArgumentsDescriptor::InitOnce();
-    StubCode::InitOnce();
-    Thread::InitOnceAfterObjectAndStubCode();
-    // Now that the needed stub has been generated, set the stack limit.
-    vm_isolate_->InitializeStackLimit();
+    // When precompiled the stub code is initialized from the snapshot.
+    if (!precompiled) {
+      StubCode::InitOnce();
+    }
     if (vm_isolate_snapshot != NULL) {
       const Snapshot* snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
       if (snapshot == NULL) {
@@ -169,6 +171,9 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     } else {
       Symbols::InitOnce(vm_isolate_);
     }
+    Thread::InitOnceAfterObjectAndStubCode();
+    // Now that the needed stub has been generated, set the stack limit.
+    vm_isolate_->InitializeStackLimit();
     Scanner::InitOnce();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.

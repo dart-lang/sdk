@@ -32,6 +32,7 @@ class Library;
 class Object;
 class PassiveObject;
 class ObjectStore;
+class MegamorphicCache;
 class PageSpace;
 class RawApiError;
 class RawArray;
@@ -339,6 +340,8 @@ class SnapshotReader : public BaseReader {
   ExternalTypedData* DataHandle() { return &data_; }
   TypedData* TypedDataHandle() { return &typed_data_; }
   Code* CodeHandle() { return &code_; }
+  Function* FunctionHandle() { return &function_; }
+  MegamorphicCache* MegamorphicCacheHandle() { return &megamorphic_cache_; }
   Snapshot::Kind kind() const { return kind_; }
   bool snapshot_code() const { return snapshot_code_; }
 
@@ -521,6 +524,8 @@ class SnapshotReader : public BaseReader {
   ExternalTypedData& data_;  // Temporary stream data handle.
   TypedData& typed_data_;  // Temporary typed data handle.
   Code& code_;  // Temporary code handle.
+  Function& function_;  // Temporary function handle.
+  MegamorphicCache& megamorphic_cache_;  // Temporary megamorphic cache handle.
   UnhandledException& error_;  // Error handle.
   intptr_t max_vm_isolate_object_id_;
   ZoneGrowableArray<BackRefNode>* backward_references_;

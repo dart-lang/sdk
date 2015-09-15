@@ -15,6 +15,8 @@ class Code;
 class Isolate;
 class ObjectPointerVisitor;
 class RawCode;
+class SnapshotReader;
+class SnapshotWriter;
 
 
 // List of stubs created in the VM isolate, these stubs are shared by different
@@ -97,6 +99,9 @@ class StubCode : public AllStatic {
   // Generate all stubs which are shared across all isolates, this is done
   // only once and the stub code resides in the vm_isolate heap.
   static void InitOnce();
+
+  static void ReadFrom(SnapshotReader* reader);
+  static void WriteTo(SnapshotWriter* writer);
 
   // Generate all stubs which are generated on a per isolate basis as they
   // have embedded objects which are isolate specific.

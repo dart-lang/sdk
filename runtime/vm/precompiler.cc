@@ -439,11 +439,13 @@ void Precompiler::AddField(const Field& field) {
     AddClass(cls);
 
     if (field.has_initializer()) {
-      if (field.PrecompiledInitializer() != Function::null()) return;
+      if (field.HasPrecompiledInitializer()) return;
 
       if (FLAG_trace_precompiler) {
         THR_Print("Precompiling initializer for %s\n", field.ToCString());
       }
+      ASSERT(Object::instructions_snapshot_buffer() == NULL);
+      field.SetStaticValue(Instance::Handle(field.SavedInitialStaticValue()));
       Compiler::CompileStaticInitializer(field);
 
       const Function& function =

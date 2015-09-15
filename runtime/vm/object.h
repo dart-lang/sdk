@@ -8036,6 +8036,7 @@ void Field::SetStaticValue(const Instance& value,
   ASSERT(is_static());  // Valid only for static dart fields.
   StorePointer(&raw_ptr()->value_.static_value_, value.raw());
   if (save_initial_value) {
+    ASSERT(!HasPrecompiledInitializer());
     StorePointer(&raw_ptr()->initializer_.saved_value_, value.raw());
   }
 }

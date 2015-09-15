@@ -198,6 +198,8 @@ SnapshotReader::SnapshotReader(
       data_(ExternalTypedData::Handle(zone_)),
       typed_data_(TypedData::Handle(zone_)),
       code_(Code::Handle(zone_)),
+      function_(Function::Handle(zone_)),
+      megamorphic_cache_(MegamorphicCache::Handle(zone_)),
       error_(UnhandledException::Handle(zone_)),
       max_vm_isolate_object_id_(
           (kind == Snapshot::kFull) ?
@@ -1542,12 +1544,7 @@ RawApiError* VmIsolateSnapshotReader::ReadVmIsolateSnapshot() {
       LocalVarDescriptors::CheckedHandle(ReadObject());  // empty var desc
       ExceptionHandlers::CheckedHandle(ReadObject());  // empty exc handlers
 
-#define READ_STUB(name)                                                       \
-      *(CodeHandle()) ^= ReadObject();
-      // TODO(rmacnak):
-      // StubCode::name##_entry()->InitOnceFromSnapshot(CodeHandle())
-      VM_STUB_CODE_LIST(READ_STUB);
-#undef READ_STUB
+      StubCode::ReadFrom(this);
     }
 
     // Validate the class table.
@@ -1571,6 +1568,7 @@ IsolateSnapshotReader::IsolateSnapshotReader(const uint8_t* buffer,
                      new ZoneGrowableArray<BackRefNode>(
                          kNumInitialReferencesInFullSnapshot),
                      thread) {
+  isolate()->set_compilation_allowed(instructions_buffer_ == NULL);
 }
 
 
@@ -1951,10 +1949,7 @@ void FullSnapshotWriter::WriteVmIsolateSnapshot() {
       writer.WriteObject(Object::empty_var_descriptors().raw());
       writer.WriteObject(Object::empty_exception_handlers().raw());
 
-#define WRITE_STUB(name)                                                       \
-      writer.WriteObject(StubCode::name##_entry()->code());
-      VM_STUB_CODE_LIST(WRITE_STUB);
-#undef WRITE_STUB
+      StubCode::WriteTo(&writer);
     }
 
 
