@@ -405,6 +405,17 @@ class InvokeMethod extends CallExpression {
   final Reference<Continuation> continuation;
   final SourceInformation sourceInformation;
 
+  /// If true, the [receiver] is intercepted and the actual receiver is in
+  /// the first argument. Otherwise, the [receiver] is the actual receiver.
+  ///
+  /// This flag is always false for non-intercepted selectors, but it may also
+  /// be false for intercepted selectors after dummy receiver optimization
+  /// (in this case the first argument is a dummy value).
+  ///
+  /// It is always false before the unsugaring pass, where interceptors have
+  /// not yet been introduced.
+  bool receiverIsIntercepted = false;
+
   /// If true, it is known that the receiver cannot be `null`.
   bool receiverIsNotNull = false;
 

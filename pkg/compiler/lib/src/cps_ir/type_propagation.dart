@@ -719,10 +719,8 @@ class TransformingVisitor extends LeafVisitor {
     }
 
     if (node.selector.isOperator && node.arguments.length == 2) {
-      // The operators we specialize are are intercepted calls, so the operands
-      // are in the argument list.
-      Primitive leftArg = node.arguments[0].definition;
-      Primitive rightArg = node.arguments[1].definition;
+      Primitive leftArg = getDartReceiver(node);
+      Primitive rightArg = getDartArgument(node, 0);
       AbstractValue left = getValue(leftArg);
       AbstractValue right = getValue(rightArg);
 
@@ -794,7 +792,7 @@ class TransformingVisitor extends LeafVisitor {
   }
 
   Primitive getDartReceiver(InvokeMethod node) {
-    if (isInterceptedSelector(node.selector)) {
+    if (node.receiverIsIntercepted) {
       return node.arguments[0].definition;
     } else {
       return node.receiver.definition;
@@ -1475,7 +1473,7 @@ class TransformingVisitor extends LeafVisitor {
     AbstractValue receiver = getValue(node.receiver.definition);
     node.receiverIsNotNull = receiver.isDefinitelyNotNull;
 
-    if (isInterceptedSelector(node.selector) &&
+    if (node.receiverIsIntercepted &&
         node.receiver.definition.sameValue(node.arguments[0].definition)) {
       // The receiver and first argument are the same; that means we already
       // determined in visitInterceptor that we are targeting a non-interceptor.
@@ -1498,6 +1496,7 @@ class TransformingVisitor extends LeafVisitor {
         insertLetPrim(node, dummy);
         node.arguments[0].unlink();
         node.arguments[0] = new Reference<Primitive>(dummy);
+        node.receiverIsIntercepted = false;
       }
     }
   }
@@ -1994,6 +1993,26 @@ class TypePropagationVisitor implements Visitor {
     defWorklist.add(node);
   }
 
+  bool isInterceptedSelector(Selector selector) {
+    return backend.isInterceptedSelector(selector);
+  }
+
+  Primitive getDartReceiver(InvokeMethod node) {
+    if (node.receiverIsIntercepted) {
+      return node.arguments[0].definition;
+    } else {
+      return node.receiver.definition;
+    }
+  }
+
+  Primitive getDartArgument(InvokeMethod node, int n) {
+    if (isInterceptedSelector(node.selector)) {
+      return node.arguments[n+1].definition;
+    } else {
+      return node.arguments[n].definition;
+    }
+  }
+
   // -------------------------- Visitor overrides ------------------------------
   void visit(Node node) { node.accept(this); }
 
@@ -2128,11 +2147,10 @@ class TypePropagationVisitor implements Visitor {
     }
 
     // Calculate the resulting constant if possible.
-    // Operators are intercepted, so the operands are in the argument list.
     AbstractValue result;
     String opname = node.selector.name;
     if (node.arguments.length == 1) {
-      AbstractValue argument = getValue(node.arguments[0].definition);
+      AbstractValue argument = getValue(getDartReceiver(node));
       // Unary operator.
       if (opname == "unary-") {
         opname = "-";
@@ -2141,8 +2159,8 @@ class TypePropagationVisitor implements Visitor {
       result = lattice.unaryOp(operator, argument);
     } else if (node.arguments.length == 2) {
       // Binary operator.
-      AbstractValue left = getValue(node.arguments[0].definition);
-      AbstractValue right = getValue(node.arguments[1].definition);
+      AbstractValue left = getValue(getDartReceiver(node));
+      AbstractValue right = getValue(getDartArgument(node, 0));
       BinaryOperator operator = BinaryOperator.parse(opname);
       result = lattice.binaryOp(operator, left, right);
     }
