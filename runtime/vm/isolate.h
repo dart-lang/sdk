@@ -145,6 +145,10 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, class_table_);
   }
 
+  MegamorphicCacheTable* megamorphic_cache_table() {
+    return &megamorphic_cache_table_;
+  }
+
   Dart_MessageNotifyCallback message_notify_callback() const {
     return message_notify_callback_;
   }
@@ -811,6 +815,7 @@ class Isolate : public BaseIsolate {
   StoreBuffer* store_buffer_;
   ThreadRegistry* thread_registry_;
   ClassTable class_table_;
+  MegamorphicCacheTable megamorphic_cache_table_;
   Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
   char* debugger_name_;

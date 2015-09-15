@@ -6,52 +6,50 @@
 
 #include <stdlib.h>
 #include "vm/object.h"
-#include "vm/object_store.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 
 namespace dart {
 
-RawMegamorphicCache* MegamorphicCacheTable::Lookup(Isolate* isolate,
-                                                   const String& name,
-                                                   const Array& descriptor) {
-  ASSERT(name.IsSymbol());
-  // TODO(rmacnak): ASSERT(descriptor.IsCanonical());
+MegamorphicCacheTable::MegamorphicCacheTable()
+    : miss_handler_function_(NULL),
+      miss_handler_code_(NULL),
+      capacity_(0),
+      length_(0),
+      table_(NULL) {
+}
 
-  // TODO(rmacnak): Make a proper hashtable a la symbol table.
-  GrowableObjectArray& table = GrowableObjectArray::Handle(
-      isolate->object_store()->megamorphic_cache_table());
-  if (table.IsNull()) {
-    table = GrowableObjectArray::New();
-    ASSERT((table.Length() % kEntrySize) == 0);
-    isolate->object_store()->set_megamorphic_cache_table(table);
-  } else {
-    for (intptr_t i = 0; i < table.Length(); i += kEntrySize) {
-      if ((table.At(i + kEntryNameOffset) == name.raw()) &&
-          (table.At(i + kEntryDescriptorOffset) == descriptor.raw())) {
-        return MegamorphicCache::RawCast(table.At(i + kEntryCacheOffset));
-      }
+
+MegamorphicCacheTable::~MegamorphicCacheTable() {
+  free(table_);
+}
+
+
+RawMegamorphicCache* MegamorphicCacheTable::Lookup(const String& name,
+                                                   const Array& descriptor) {
+  for (intptr_t i = 0; i < length_; ++i) {
+    if ((table_[i].name == name.raw()) &&
+        (table_[i].descriptor == descriptor.raw())) {
+      return table_[i].cache;
     }
   }
 
+  if (length_ == capacity_) {
+    capacity_ += kCapacityIncrement;
+    table_ =
+        reinterpret_cast<Entry*>(realloc(table_, capacity_ * sizeof(*table_)));
+  }
+
+  ASSERT(length_ < capacity_);
   const MegamorphicCache& cache =
       MegamorphicCache::Handle(MegamorphicCache::New());
-  table.Add(name);
-  table.Add(descriptor);
-  table.Add(cache);
-  ASSERT((table.Length() % kEntrySize) == 0);
+  Entry entry = { name.raw(), descriptor.raw(), cache.raw() };
+  table_[length_++] = entry;
   return cache.raw();
 }
 
 
-RawFunction* MegamorphicCacheTable::miss_handler(Isolate* isolate) {
-  ASSERT(isolate->object_store()->megamorphic_miss_handler() !=
-         Function::null());
-  return isolate->object_store()->megamorphic_miss_handler();
-}
-
-
-void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
+void MegamorphicCacheTable::InitMissHandler() {
   // The miss handler for a class ID not found in the table is invoked as a
   // normal Dart function.
   const Code& code =
@@ -71,27 +69,37 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
                                      0));  // No token position.
   function.set_is_debuggable(false);
   function.set_is_visible(false);
+  miss_handler_code_ = code.raw();
+  miss_handler_function_ = function.raw();
   function.AttachCode(code);
-
-  isolate->object_store()->set_megamorphic_miss_handler(function);
 }
 
 
-void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {
+void MegamorphicCacheTable::VisitObjectPointers(ObjectPointerVisitor* v) {
+  ASSERT(v != NULL);
+  v->VisitPointer(reinterpret_cast<RawObject**>(&miss_handler_code_));
+  v->VisitPointer(reinterpret_cast<RawObject**>(&miss_handler_function_));
+  for (intptr_t i = 0; i < length_; ++i) {
+    v->VisitPointer(reinterpret_cast<RawObject**>(&table_[i].name));
+    v->VisitPointer(reinterpret_cast<RawObject**>(&table_[i].descriptor));
+    v->VisitPointer(reinterpret_cast<RawObject**>(&table_[i].cache));
+  }
+}
+
+
+void MegamorphicCacheTable::PrintSizes() {
   StackZone zone(Thread::Current());
   intptr_t size = 0;
   MegamorphicCache& cache = MegamorphicCache::Handle();
   Array& buckets = Array::Handle();
-  const GrowableObjectArray& table = GrowableObjectArray::Handle(
-      isolate->object_store()->megamorphic_cache_table());
-  for (intptr_t i = 0; i < table.Length(); i += kEntrySize) {
-    cache ^= table.At(i + kEntryCacheOffset);
+  for (intptr_t i = 0; i < length_; ++i) {
+    cache = table_[i].cache;
     buckets = cache.buckets();
     size += MegamorphicCache::InstanceSize();
     size += Array::InstanceSize(buckets.Length());
   }
   OS::Print("%" Pd " megamorphic caches using %" Pd "KB.\n",
-            table.Length() / kEntrySize, size / 1024);
+            length_, size / 1024);
 }
 
 }  // namespace dart

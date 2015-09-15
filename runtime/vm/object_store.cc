@@ -88,9 +88,7 @@ ObjectStore::ObjectStore()
     empty_uint32_array_(TypedData::null()),
     handle_message_function_(Function::null()),
     library_load_error_table_(Array::null()),
-    compile_time_constants_(Array::null()),
-    megamorphic_cache_table_(GrowableObjectArray::null()),
-    megamorphic_miss_handler_(Function::null()) {
+    compile_time_constants_(Array::null()) {
   for (RawObject** current = from(); current <= to(); current++) {
     ASSERT(*current == Object::null());
   }

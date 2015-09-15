@@ -11,7 +11,6 @@ namespace dart {
 
 class Array;
 class Function;
-class Isolate;
 class ObjectPointerVisitor;
 class RawArray;
 class RawFunction;
@@ -20,24 +19,36 @@ class RawMegamorphicCache;
 class RawString;
 class String;
 
-class MegamorphicCacheTable : public AllStatic {
+class MegamorphicCacheTable {
  public:
-  static RawFunction* miss_handler(Isolate* isolate);
-  static void InitMissHandler(Isolate* isolate);
+  MegamorphicCacheTable();
+  ~MegamorphicCacheTable();
 
-  static RawMegamorphicCache* Lookup(Isolate* isolate,
-                                     const String& name,
-                                     const Array& descriptor);
+  RawFunction* miss_handler() const { return miss_handler_function_; }
+  void InitMissHandler();
 
-  static void PrintSizes(Isolate* isolate);
+  RawMegamorphicCache* Lookup(const String& name, const Array& descriptor);
+
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+  void PrintSizes();
 
  private:
-  enum {
-    kEntryNameOffset = 0,
-    kEntryDescriptorOffset,
-    kEntryCacheOffset,
-    kEntrySize
+  struct Entry {
+    RawString* name;
+    RawArray* descriptor;
+    RawMegamorphicCache* cache;
   };
+
+  static const int kCapacityIncrement = 128;
+
+  RawFunction* miss_handler_function_;
+  RawCode* miss_handler_code_;
+  intptr_t capacity_;
+  intptr_t length_;
+  Entry* table_;
+
+  DISALLOW_COPY_AND_ASSIGN(MegamorphicCacheTable);
 };
 
 }  // namespace dart

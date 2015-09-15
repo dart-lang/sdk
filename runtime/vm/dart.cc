@@ -158,7 +158,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
         OS::Print("Size of vm isolate snapshot = %" Pd "\n",
                   snapshot->length());
         vm_isolate_->heap()->PrintSizes();
-        MegamorphicCacheTable::PrintSizes(vm_isolate_);
+        vm_isolate_->megamorphic_cache_table()->PrintSizes();
         intptr_t size;
         intptr_t capacity;
         Symbols::GetStats(vm_isolate_, &size, &capacity);
@@ -294,7 +294,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     }
     if (FLAG_trace_isolates) {
       I->heap()->PrintSizes();
-      MegamorphicCacheTable::PrintSizes(I);
+      I->megamorphic_cache_table()->PrintSizes();
     }
   } else {
     // Populate the isolate's symbol table with all symbols from the
@@ -311,7 +311,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     StubCode::Init(I);
   }
 
-  MegamorphicCacheTable::InitMissHandler(I);
+  I->megamorphic_cache_table()->InitMissHandler();
   if (snapshot_buffer == NULL) {
     if (!I->object_store()->PreallocateObjects()) {
       return I->object_store()->sticky_error();

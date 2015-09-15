@@ -433,19 +433,6 @@ class ObjectStore {
     compile_time_constants_ = value.raw();
   }
 
-  RawGrowableObjectArray* megamorphic_cache_table() const {
-    return megamorphic_cache_table_;
-  }
-  void set_megamorphic_cache_table(const GrowableObjectArray& value) {
-    megamorphic_cache_table_ = value.raw();
-  }
-  RawFunction* megamorphic_miss_handler() const {
-    return megamorphic_miss_handler_;
-  }
-  void set_megamorphic_miss_handler(const Function& value) {
-    megamorphic_miss_handler_ = value.raw();
-  }
-
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -536,10 +523,8 @@ class ObjectStore {
   RawFunction* handle_message_function_;
   RawArray* library_load_error_table_;
   RawArray* compile_time_constants_;
-  RawGrowableObjectArray* megamorphic_cache_table_;
-  RawFunction* megamorphic_miss_handler_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&megamorphic_miss_handler_);
+    return reinterpret_cast<RawObject**>(&compile_time_constants_);
   }
 
   friend class SnapshotReader;

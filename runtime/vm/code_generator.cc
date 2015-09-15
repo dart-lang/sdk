@@ -1012,7 +1012,7 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   const Array& descriptor = Array::CheckedHandle(arguments.ArgAt(2));
   const String& name = String::Handle(ic_data.target_name());
   const MegamorphicCache& cache = MegamorphicCache::Handle(
-      MegamorphicCacheTable::Lookup(isolate, name, descriptor));
+      isolate->megamorphic_cache_table()->Lookup(name, descriptor));
   Class& cls = Class::Handle(receiver.clazz());
   ASSERT(!cls.IsNull());
   if (FLAG_trace_ic || FLAG_trace_ic_miss_in_optimized) {

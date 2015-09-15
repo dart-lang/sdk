@@ -1296,12 +1296,13 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
+  MegamorphicCacheTable* table = isolate()->megamorphic_cache_table();
   const String& name = String::Handle(zone(), ic_data.target_name());
   const Array& arguments_descriptor =
       Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
-      MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
+      table->Lookup(name, arguments_descriptor));
   const Register receiverR = EDI;
   const Register cacheR = EBX;
   const Register targetR = EBX;
