@@ -468,7 +468,7 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
   void visitLibraryElement(LibraryElement element1, LibraryElement element2) {
     checkElementIdentities(null, null, null, element1, element2);
     check(element1, element2, 'name', element1.name, element2.name);
-    check(element1, element2, 'getLibraryName',
+    check(element1, element2, 'libraryName',
           element1.libraryName, element2.libraryName);
     visitMembers(element1, element2);
     visit(element1.entryCompilationUnit, element2.entryCompilationUnit);
