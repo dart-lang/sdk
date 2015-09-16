@@ -79,6 +79,11 @@ import '../resolution/tree_elements.dart' show
 import '../ssa/ssa.dart';
 import '../tree/tree.dart';
 import '../types/types.dart';
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector,
+    SelectorKind;
 import '../universe/universe.dart';
 import '../util/characters.dart';
 import '../util/util.dart';

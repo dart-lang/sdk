@@ -47,11 +47,12 @@ import '../types/types.dart' show
     ValueTypeMask;
 import '../types/constants.dart' show
     computeTypeMask;
-import '../universe/universe.dart' show
-    CallStructure,
-    Selector,
-    SideEffects,
-    TypedSelector;
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
+import '../universe/side_effects.dart' show
+    SideEffects;
 import '../util/util.dart' show
     ImmutableEmptySet,
     Setlet;

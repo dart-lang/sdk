@@ -27,11 +27,13 @@ import 'elements/elements.dart' show
     VariableElement;
 import 'ordered_typeset.dart';
 import 'types/types.dart' as ti;
-import 'universe/universe.dart' show
-    FunctionSet,
-    Selector,
-    SideEffects;
 import 'universe/class_set.dart';
+import 'universe/function_set.dart' show
+    FunctionSet;
+import 'universe/selector.dart' show
+    Selector;
+import 'universe/side_effects.dart' show
+    SideEffects;
 import 'util/util.dart' show
     Link;
 

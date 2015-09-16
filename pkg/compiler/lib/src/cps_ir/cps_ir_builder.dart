@@ -22,8 +22,9 @@ import '../tree/tree.dart' as ast;
 import '../types/types.dart' show
     TypeMask;
 import '../closure.dart' hide ClosureScope;
-import '../universe/universe.dart' show
-    CallStructure,
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
     Selector,
     SelectorKind;
 import 'cps_ir_nodes.dart' as ir;

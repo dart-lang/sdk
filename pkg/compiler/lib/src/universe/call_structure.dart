@@ -2,7 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of universe;
+library dart2js.call_structure;
+
+import 'dart:collection';
+
+import '../common/names.dart' show
+    Identifiers,
+    Names,
+    Selectors;
+import '../compiler.dart' show
+    Compiler;
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/spannable.dart' show
+    SpannableAssertionFailure;
+import '../elements/elements.dart';
+import '../dart_types.dart';
+import '../tree/tree.dart';
+import '../types/types.dart';
+import '../util/util.dart';
+import '../world.dart' show
+    ClassWorld,
+    World;
+
+import 'selector.dart' show
+    Selector;
 
 /// The structure of the arguments at a call-site.
 // TODO(johnniwinther): Should these be cached?
@@ -48,9 +72,7 @@ class CallStructure {
 
   String toString() => 'CallStructure(${structureToString()})';
 
-  Selector get callSelector {
-    return new Selector(SelectorKind.CALL, Selector.CALL_NAME, this);
-  }
+  Selector get callSelector => new Selector.call(Names.call, this);
 
   bool match(CallStructure other) {
     if (identical(this, other)) return true;

@@ -15,7 +15,7 @@ import '../io/source_information.dart' show SourceInformation;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;
-import '../universe/universe.dart';
+import '../universe/selector.dart' show Selector;
 import '../world.dart' show World;
 
 enum AbstractBool {

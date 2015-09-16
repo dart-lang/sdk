@@ -42,9 +42,11 @@ import '../types/types.dart' show
 import '../util/util.dart' show
     Link,
     Setlet;
-import '../universe/universe.dart' show
-    CallStructure,
-    Selector,
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
+import '../universe/side_effects.dart' show
     SideEffects;
 import '../world.dart' show ClassWorld;
 

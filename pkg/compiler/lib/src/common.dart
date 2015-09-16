@@ -5,6 +5,9 @@
 library dart2js.common;
 
 
+export 'common/names.dart' show
+    Names;
+
 export 'common/tasks.dart' show
     CompilerTask;
 
@@ -53,10 +56,11 @@ export 'tree/tree.dart' show
 export 'types/types.dart' show
     TypeMask;
 
-export 'universe/universe.dart' show
-    CallStructure,
-    Selector,
-    SelectorKind;
+export 'universe/call_structure.dart' show
+    CallStructure;
+
+export 'universe/selector.dart' show
+    Selector;
 
 export 'util/util.dart' show
     Link;

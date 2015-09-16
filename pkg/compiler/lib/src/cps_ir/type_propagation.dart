@@ -8,7 +8,8 @@ import 'optimizers.dart';
 import '../closure.dart' show
     ClosureClassElement, Identifiers;
 import '../common/names.dart' show
-    Selectors, Identifiers;
+    Identifiers,
+    Selectors;
 import '../compiler.dart' as dart2js show
     Compiler;
 import '../constants/constant_system.dart';
@@ -17,16 +18,21 @@ import '../dart_types.dart' as types;
 import '../diagnostics/invariant.dart' as dart2js show
     InternalErrorFunction;
 import '../elements/elements.dart';
-import '../io/source_information.dart' show SourceInformation;
-import '../js_backend/js_backend.dart' show JavaScriptBackend;
-import '../js_backend/codegen/task.dart' show CpsFunctionCompiler;
+import '../io/source_information.dart' show
+    SourceInformation;
+import '../js_backend/js_backend.dart' show
+    JavaScriptBackend;
+import '../js_backend/codegen/task.dart' show
+    CpsFunctionCompiler;
 import '../resolution/access_semantics.dart';
 import '../resolution/operators.dart';
 import '../resolution/send_structure.dart';
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
-import '../types/constants.dart' show computeTypeMask;
-import '../universe/universe.dart';
+import '../types/constants.dart' show
+    computeTypeMask;
+import '../universe/selector.dart' show
+    Selector;
 import '../world.dart' show World;
 import 'cps_fragment.dart';
 import 'cps_ir_nodes.dart';
@@ -1344,7 +1350,7 @@ class TransformingVisitor extends LeafVisitor {
 
       InvokeMethod invoke = new InvokeMethod.byReference(
         new Reference<Primitive>(object),
-        new Selector(SelectorKind.CALL, getter.memberName, call.callStructure),
+        new Selector.call(getter.memberName, call.callStructure),
         type,
         node.arguments,
         node.continuation,

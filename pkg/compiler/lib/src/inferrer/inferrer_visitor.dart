@@ -26,7 +26,10 @@ import '../types/types.dart' show
     TypeMask;
 import '../types/constants.dart' show
     computeTypeMask;
-import '../universe/universe.dart';
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
 import '../util/util.dart';
 import '../world.dart' show
     ClassWorld;

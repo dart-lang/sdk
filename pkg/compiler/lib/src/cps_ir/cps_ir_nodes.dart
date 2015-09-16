@@ -9,7 +9,7 @@ import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../types/types.dart' show TypeMask;
-import '../universe/universe.dart' show Selector;
+import '../universe/selector.dart' show Selector;
 
 import 'builtin_operator.dart';
 export 'builtin_operator.dart';

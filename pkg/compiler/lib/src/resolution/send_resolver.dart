@@ -13,7 +13,10 @@ import '../diagnostics/spannable.dart' show
     SpannableAssertionFailure;
 import '../elements/elements.dart';
 import '../tree/tree.dart';
-import '../universe/universe.dart';
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
 
 import 'access_semantics.dart';
 import 'semantic_visitor.dart';

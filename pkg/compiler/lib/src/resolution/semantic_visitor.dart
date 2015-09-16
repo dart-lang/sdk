@@ -11,7 +11,10 @@ import '../diagnostics/spannable.dart' show
     SpannableAssertionFailure;
 import '../tree/tree.dart';
 import '../elements/elements.dart';
-import '../universe/universe.dart';
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
 
 import 'operators.dart';
 import 'send_resolver.dart';

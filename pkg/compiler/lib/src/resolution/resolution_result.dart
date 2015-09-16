@@ -8,7 +8,7 @@ import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart';
-import '../universe/universe.dart' show
+import '../universe/call_structure.dart' show
     CallStructure;
 
 enum ResultKind {

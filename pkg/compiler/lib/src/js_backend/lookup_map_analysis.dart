@@ -25,7 +25,6 @@ import '../elements/elements.dart' show
     FunctionSignature,
     LibraryElement,
     VariableElement;
-import '../enqueue.dart' show Enqueuer;
 import 'js_backend.dart' show JavaScriptBackend;
 import '../dart_types.dart' show DynamicType, InterfaceType;
 import 'package:pub_semver/pub_semver.dart';

@@ -9,7 +9,7 @@ import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../types/types.dart' show TypeMask;
-import '../universe/universe.dart' show Selector;
+import '../universe/selector.dart' show Selector;
 
 import '../cps_ir/builtin_operator.dart';
 export '../cps_ir/builtin_operator.dart';
@@ -372,7 +372,7 @@ class ApplyBuiltinMethod extends Expression {
 
   bool receiverIsNotNull;
 
-  ApplyBuiltinMethod(this.method, 
+  ApplyBuiltinMethod(this.method,
                      this.receiver,
                      this.arguments,
                      {this.receiverIsNotNull: false});
@@ -501,7 +501,7 @@ class WhileTrue extends Loop {
 /**
  * A loop with a condition and update expressions. If there are any update
  * expressions, this generates a for loop, otherwise a while loop.
- * 
+ *
  * When the condition is false, control resumes at the [next] statement.
  *
  * It is NOT valid to target this statement with a [Break].

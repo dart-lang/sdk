@@ -38,9 +38,11 @@ import '../tokens/token.dart' show
 import '../tree/tree.dart';
 import '../util/util.dart' show
     Link;
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
 import '../universe/universe.dart' show
-    CallStructure,
-    Selector,
     UniverseSelector;
 
 import 'access_semantics.dart';

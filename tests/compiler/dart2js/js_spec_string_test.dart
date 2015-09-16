@@ -7,7 +7,7 @@
 import 'package:expect/expect.dart';
 import 'package:compiler/src/native/native.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
-import 'package:compiler/src/universe/universe.dart'
+import 'package:compiler/src/universe/side_effects.dart'
     show SideEffects;
 
 const OBJECT = 'Object';

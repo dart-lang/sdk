@@ -12,8 +12,9 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/modelx.dart';
 import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/types/types.dart';
-import 'package:compiler/src/universe/universe.dart' show
-    CallStructure,
+import 'package:compiler/src/universe/call_structure.dart' show
+    CallStructure;
+import 'package:compiler/src/universe/selector.dart' show
     Selector;
 import 'package:compiler/src/world.dart';
 

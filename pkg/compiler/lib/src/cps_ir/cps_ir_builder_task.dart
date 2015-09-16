@@ -35,10 +35,10 @@ import '../resolution/operators.dart' as op;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart' show
     TypeMask;
-import '../universe/universe.dart' show
-    CallStructure,
-    Selector,
-    SelectorKind;
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
 import '../constants/values.dart' show
     ConstantValue;
 import 'cps_ir_nodes.dart' as ir;
@@ -2011,7 +2011,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     String nameString = Elements.reconstructConstructorName(constructor);
     Name name = new Name(nameString, constructor.library);
     return buildStaticNoSuchMethod(
-        new Selector(SelectorKind.CALL, name, callStructure),
+        new Selector.call(name, callStructure),
         translateDynamicArguments(arguments, callStructure));
   }
 
@@ -2190,7 +2190,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     // Translate as a method call.
     List<ir.Primitive> args = arguments.nodes.mapToList(visit);
     return buildStaticNoSuchMethod(
-        new Selector(SelectorKind.CALL, setter.memberName, callStructure),
+        new Selector.call(setter.memberName, callStructure),
         args);
   }
 
@@ -2237,7 +2237,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     List<ir.Primitive> args =
         translateDynamicArguments(arguments, callStructure);
     return buildInstanceNoSuchMethod(
-        new Selector(SelectorKind.CALL, setter.memberName, callStructure),
+        new Selector.call(setter.memberName, callStructure),
         elements.getTypeMask(node),
         args);
   }

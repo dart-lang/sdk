@@ -25,7 +25,11 @@ import '../types/types.dart' show
     TypeMask,
     TypesInferrer,
     UnionTypeMask;
-import '../universe/universe.dart';
+import '../universe/selector.dart' show
+    Selector,
+    SelectorKind;
+import '../universe/side_effects.dart' show
+    SideEffects;
 import '../world.dart' show
     ClassWorld;
 
@@ -2011,7 +2015,7 @@ class ConcreteTypesInferrer
                                      SideEffects sideEffects,
                                      bool inLoop) {
     caller = getRealCaller(caller);
-    if ((selector == null) || (selector.kind == SelectorKind.CALL)) {
+    if ((selector == null) || (selector.isCall)) {
       callee = callee.implementation;
       if (selector != null && selector.name == 'JS') {
         return null;
@@ -2044,7 +2048,7 @@ class ConcreteTypesInferrer
         }
         return getSendReturnType(selector, callee, receiverClass, arguments);
       }
-    } else if (selector.kind == SelectorKind.GETTER) {
+    } else if (selector.isGetter) {
       if (callee.isField) {
         addFieldReader(callee, caller);
         return getFieldType(selector, callee);
@@ -2058,7 +2062,7 @@ class ConcreteTypesInferrer
         addClosure(callee, null, null);
         return singletonConcreteType(baseTypes.functionBaseType);
       }
-    } else if (selector.kind == SelectorKind.SETTER) {
+    } else if (selector.isSetter) {
       ConcreteType argumentType = arguments.positional.first;
       if (callee.isField) {
         augmentFieldType(callee, argumentType);

@@ -21,10 +21,9 @@ import '../elements/elements.dart';
 import '../tree/tree.dart';
 import '../util/util.dart' show
     Setlet;
+import '../universe/selector.dart' show
+    Selector;
 import '../universe/universe.dart' show
-    CallStructure,
-    Selector,
-    SelectorKind,
     UniverseSelector;
 import '../world.dart' show World;
 

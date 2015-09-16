@@ -128,9 +128,11 @@ import 'tree/tree.dart' show
 import 'typechecker.dart' show
     TypeCheckerTask;
 import 'types/types.dart' as ti;
+import 'universe/call_structure.dart' show
+    CallStructure;
+import 'universe/selector.dart' show
+    Selector;
 import 'universe/universe.dart' show
-    CallStructure,
-    Selector,
     Universe;
 import 'util/util.dart' show
     Link,

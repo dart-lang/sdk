@@ -28,8 +28,9 @@ import '../elements/modelx.dart' show
 import '../tree/tree.dart';
 import '../util/util.dart' show
     Link;
-import '../universe/universe.dart' show
-    CallStructure,
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
     Selector;
 
 import 'members.dart' show

@@ -15,10 +15,11 @@ import '../types/types.dart' show
     TypeMask;
 import '../tree/tree.dart';
 import '../util/util.dart';
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
 import '../universe/universe.dart' show
-    CallStructure,
-    Selector,
-    SelectorKind,
     UniverseSelector;
 
 import 'secret_tree_element.dart' show getTreeElement, setTreeElement;

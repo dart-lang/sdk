@@ -15,11 +15,19 @@ import '../diagnostics/invariant.dart' show
 import '../diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE;
 import '../elements/elements.dart';
-import '../inferrer/concrete_types_inferrer.dart' show ConcreteTypesInferrer;
-import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
+import '../inferrer/concrete_types_inferrer.dart' show
+    ConcreteTypesInferrer;
+import '../inferrer/type_graph_inferrer.dart' show
+    TypeGraphInferrer;
 import '../tree/tree.dart';
 import '../util/util.dart';
-import '../universe/universe.dart';
+import '../universe/selector.dart' show
+    Selector;
+import '../universe/universe.dart' show
+    ReceiverMask,
+    ReceiverMaskSet,
+    UniverseReceiverMaskSet,
+    ReceiverMaskStrategy;
 import '../world.dart' show
     ClassWorld,
     World;

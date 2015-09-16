@@ -49,7 +49,7 @@ class ClassEmitter extends CodeEmitterHelper {
       // We add a special getter here to allow for tearing off a closure from
       // itself.
       jsAst.Fun function = js('function() { return this; }');
-      jsAst.Name name = namer.getterForMember(Selector.CALL_NAME);
+      jsAst.Name name = namer.getterForMember(Names.call);
       builder.addProperty(name, function);
     }
 

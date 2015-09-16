@@ -18,8 +18,9 @@ import '../../js/js.dart' as js;
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
 import '../../tree_ir/tree_ir_nodes.dart' show BuiltinOperator, BuiltinMethod;
 import '../../types/types.dart' show TypeMask;
+import '../../universe/selector.dart' show
+    Selector;
 import '../../universe/universe.dart' show
-    Selector,
     UniverseSelector;
 import '../../util/maplet.dart';
 
@@ -129,7 +130,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
       jsVariables.add(jsVariable);
 
       // Remove the initializer from the for loop.
-      accumulator[accumulatorIndex] = 
+      accumulator[accumulatorIndex] =
           new js.For(null, forLoop.condition, forLoop.update, forLoop.body);
     }
 
@@ -572,7 +573,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
       loopNode = new js.While(condition, body);
     } else { // Compile as a for loop.
       js.Expression init;
-      if (accumulator.isNotEmpty && 
+      if (accumulator.isNotEmpty &&
           accumulator.last is js.ExpressionStatement) {
         // Take the preceding expression from the accumulator and use
         // it as the initializer expression.
@@ -890,7 +891,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   /// The JS name of a built-in method.
-  static final Map<BuiltinMethod, String> builtinMethodName = 
+  static final Map<BuiltinMethod, String> builtinMethodName =
     const <BuiltinMethod, String>{
       BuiltinMethod.Push: 'push',
       BuiltinMethod.Pop: 'pop',

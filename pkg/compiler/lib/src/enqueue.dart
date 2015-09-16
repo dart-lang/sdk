@@ -55,6 +55,8 @@ import 'tree/tree.dart' show
     Send;
 import 'types/types.dart' show
     TypeMaskStrategy;
+import 'universe/selector.dart' show
+    Selector;
 import 'universe/universe.dart';
 import 'util/util.dart' show
     Link,

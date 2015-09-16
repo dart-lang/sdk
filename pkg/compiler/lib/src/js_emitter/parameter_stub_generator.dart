@@ -243,8 +243,7 @@ class ParameterStubGenerator {
     // Start with the callSelectors since they imply the generation of the
     // non-call version.
     for (Selector selector in callSelectors.keys) {
-      Selector renamedSelector = new Selector(
-          SelectorKind.CALL,
+      Selector renamedSelector = new Selector.call(
           member.memberName,
           selector.callStructure);
       renamedCallSelectors.add(renamedSelector);

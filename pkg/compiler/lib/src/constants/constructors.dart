@@ -8,7 +8,8 @@ import '../dart_types.dart';
 import '../elements/elements.dart' show
     ConstructorElement,
     FieldElement;
-import '../universe/universe.dart' show CallStructure;
+import '../universe/call_structure.dart' show
+    CallStructure;
 import '../util/util.dart';
 import 'evaluation.dart';
 import 'expressions.dart';

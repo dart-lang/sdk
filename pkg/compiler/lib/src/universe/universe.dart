@@ -25,10 +25,11 @@ import '../world.dart' show
     ClassWorld,
     World;
 
-part 'call_structure.dart';
-part 'function_set.dart';
-part 'selector.dart';
-part 'side_effects.dart';
+import 'call_structure.dart';
+import 'selector.dart' show
+    Selector;
+import 'function_set.dart';
+import 'side_effects.dart';
 
 class UniverseSelector {
   final Selector selector;

@@ -25,9 +25,8 @@ import '../tree/tree.dart';
 import '../util/util.dart' show
     Link,
     Setlet;
-import '../universe/universe.dart' show
-    CallStructure,
-    Selector;
+import '../universe/call_structure.dart' show
+    CallStructure;
 
 import 'enum_creator.dart';
 import 'members.dart' show

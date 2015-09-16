@@ -7,7 +7,7 @@ import '../../constants/values.dart';
 import '../../elements/elements.dart';
 import '../../io/source_information.dart';
 import '../../js_backend/codegen/glue.dart';
-import '../../universe/universe.dart' show Selector;
+import '../../universe/selector.dart' show Selector;
 import '../../cps_ir/cps_ir_builder.dart' show ThisParameterLocal;
 
 class ExplicitReceiverParameterEntity implements Local {
@@ -52,7 +52,7 @@ class UnsugarVisitor extends RecursiveVisitor {
   bool methodUsesReceiverArgument(FunctionElement function) {
     assert(_glue.isInterceptedMethod(function));
     ClassElement clazz = function.enclosingClass.declaration;
-    return _glue.isInterceptorClass(clazz) || 
+    return _glue.isInterceptorClass(clazz) ||
            _glue.isUsedAsMixin(clazz);
   }
 

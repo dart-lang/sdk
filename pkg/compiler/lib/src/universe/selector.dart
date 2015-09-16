@@ -2,7 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of universe;
+library dart2js.selector;
+
+import '../common/names.dart' show
+    Names;
+import '../diagnostics/spannable.dart' show
+    SpannableAssertionFailure;
+import '../elements/elements.dart' show
+    Element,
+    Elements,
+    FunctionElement,
+    FunctionSignature,
+    Name,
+    LibraryElement,
+    PublicName;
+import '../universe/universe.dart' show
+    CallStructure;
+import '../util/util.dart' show
+    Hashing;
+import '../world.dart' show
+    World;
+
+import 'call_structure.dart' show
+    CallStructure;
 
 class SelectorKind {
   final String name;
@@ -34,16 +56,13 @@ class Selector {
 
   LibraryElement get library => memberName.library;
 
-  static const Name INDEX_NAME = const PublicName("[]");
-  static const Name INDEX_SET_NAME = const PublicName("[]=");
-  static const Name CALL_NAME = Names.call;
-
   Selector.internal(this.kind,
                     this.memberName,
                     this.callStructure,
                     this.hashCode) {
     assert(kind == SelectorKind.INDEX ||
-           (memberName != INDEX_NAME && memberName != INDEX_SET_NAME));
+           (memberName != Names.INDEX_NAME &&
+            memberName != Names.INDEX_SET_NAME));
     assert(kind == SelectorKind.OPERATOR ||
            kind == SelectorKind.INDEX ||
            !Elements.isOperatorName(memberName.text) ||
@@ -82,9 +101,9 @@ class Selector {
   factory Selector.fromElement(Element element) {
     Name name = new Name(element.name, element.library);
     if (element.isFunction) {
-      if (name == INDEX_NAME) {
+      if (name == Names.INDEX_NAME) {
         return new Selector.index();
-      } else if (name == INDEX_SET_NAME) {
+      } else if (name == Names.INDEX_SET_NAME) {
         return new Selector.indexSet();
       }
       FunctionSignature signature =
@@ -141,22 +160,22 @@ class Selector {
       CallStructure.ONE_ARG);
 
   factory Selector.index()
-      => new Selector(SelectorKind.INDEX, INDEX_NAME,
+      => new Selector(SelectorKind.INDEX, Names.INDEX_NAME,
                       CallStructure.ONE_ARG);
 
   factory Selector.indexSet()
-      => new Selector(SelectorKind.INDEX, INDEX_SET_NAME,
+      => new Selector(SelectorKind.INDEX, Names.INDEX_SET_NAME,
                       CallStructure.TWO_ARGS);
 
   factory Selector.call(Name name, CallStructure callStructure)
       => new Selector(SelectorKind.CALL, name, callStructure);
 
   factory Selector.callClosure(int arity, [List<String> namedArguments])
-      => new Selector(SelectorKind.CALL, CALL_NAME,
+      => new Selector(SelectorKind.CALL, Names.call,
                       new CallStructure(arity, namedArguments));
 
   factory Selector.callClosureFrom(Selector selector)
-      => new Selector(SelectorKind.CALL, CALL_NAME, selector.callStructure);
+      => new Selector(SelectorKind.CALL, Names.call, selector.callStructure);
 
   factory Selector.callConstructor(Name name,
                                    [int arity = 0,
@@ -173,7 +192,7 @@ class Selector {
   bool get isGetter => kind == SelectorKind.GETTER;
   bool get isSetter => kind == SelectorKind.SETTER;
   bool get isCall => kind == SelectorKind.CALL;
-  bool get isClosureCall => isCall && memberName == CALL_NAME;
+  bool get isClosureCall => isCall && memberName == Names.CALL_NAME;
 
   bool get isIndex => kind == SelectorKind.INDEX && argumentCount == 1;
   bool get isIndexSet => kind == SelectorKind.INDEX && argumentCount == 2;
