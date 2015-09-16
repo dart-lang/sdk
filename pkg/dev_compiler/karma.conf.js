@@ -29,6 +29,8 @@ module.exports = function(config) {
       'test/codegen/expect/unittest/unittest.js',
       'test/codegen/expect/syncstar_syntax.js',
       'test/codegen/expect/language/*.js',
+      'test/codegen/expect/language/sub/sub.js',
+      'test/codegen/expect/language/*.lib',
       'test/browser/*.js',
       'test-main.js',
     ],
@@ -67,6 +69,9 @@ module.exports = function(config) {
     // enable / disable watching file and executing tests whenever any file changes
     autoWatch: true,
 
+    browserNoActivityTimeout: 60000,
+    browserDisconnectTolerance: 5,
+
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
 
@@ -94,7 +99,8 @@ module.exports = function(config) {
         flags: [ '--no-sandbox', harmony_flags ]
       },
     },
-    browsers: ['chrome_harmony', 'chrome_canary_harmony'],
+    // TODO(jmesserly): 'chrome_harmony',
+    browsers: ['chrome_canary_harmony'],
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits

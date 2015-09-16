@@ -27,12 +27,19 @@ import 'multitest.dart';
 final ArgParser argParser = new ArgParser()
   ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null);
 
+final inputDir = path.join(testDirectory, 'codegen');
+
 Iterable<String> _findTests(String dir, RegExp filePattern) {
-  return new Directory(dir)
+  var files = new Directory(dir)
       .listSync()
       .where((f) => f is File)
       .map((f) => f.path)
       .where((p) => p.endsWith('.dart') && filePattern.hasMatch(p));
+  if (dir != inputDir) {
+    files = files
+        .where((p) => p.endsWith('_test.dart') || p.endsWith('_multi.dart'));
+  }
+  return files;
 }
 
 main(arguments) {
@@ -41,6 +48,8 @@ main(arguments) {
   var filePattern = new RegExp(args.rest.length > 0 ? args.rest[0] : '.');
   var compilerMessages = new StringBuffer();
   var loggerSub;
+
+  bool codeCoverage = Platform.environment.containsKey('COVERALLS_TOKEN');
 
   setUp(() {
     compilerMessages.clear();
@@ -54,7 +63,6 @@ main(arguments) {
     }
   });
 
-  var inputDir = path.join(testDirectory, 'codegen');
   var expectDir = path.join(inputDir, 'expect');
 
   bool compile(String entryPoint, AnalysisContext context,
@@ -77,6 +85,7 @@ main(arguments) {
     return new BatchCompiler(context, options, reporter: reporter).run();
   }
 
+  var multitests = new Set<String>();
   {
     // Expand wacky multitests into a bunch of test files.
     // We'll compile each one as if it was an input.
@@ -88,27 +97,11 @@ main(arguments) {
 
       var contents = new File(filePath).readAsStringSync();
       if (isMultiTest(contents)) {
+        multitests.add(filePath);
+
         var tests = new Map<String, String>();
         var outcomes = new Map<String, Set<String>>();
         extractTestsFromMultitest(filePath, contents, tests, outcomes);
-
-        // For now skip all tests that aren't `ok` or `runtime error`
-        outcomes.forEach((name, Set<String> outcomes) {
-          // TODO(jmesserly): unfortunately we can't communicate this status
-          // to the test runner, so if an error is expected, it's encoded in
-          // language-tests.js. We should probably encode expected error in the
-          // name, and then have our runner just load all multi tests it finds,
-          // using the file name to expect either success or failure.
-          outcomes.remove('ok');
-          outcomes.remove('runtime error');
-          if (outcomes.isNotEmpty) {
-            // Skip all other outcomes.
-            //
-            // They are handled by analyzer/static type system, and
-            // therefore are not interesting to run.
-            tests.remove(name);
-          }
-        });
 
         var filename = path.basenameWithoutExtension(filePath);
         tests.forEach((name, contents) {
@@ -120,12 +113,16 @@ main(arguments) {
   }
 
   for (var dir in [null, 'language']) {
+    if (codeCoverage && dir == 'language') continue;
+    
     group('dartdevc ' + path.join('test', 'codegen', dir), () {
       var outDir = new Directory(path.join(expectDir, dir));
       if (!outDir.existsSync()) outDir.createSync(recursive: true);
 
       var testFiles = _findTests(path.join(inputDir, dir), filePattern);
       for (var filePath in testFiles) {
+        if (multitests.contains(filePath)) continue;
+
         var filename = path.basenameWithoutExtension(filePath);
 
         test('$filename.dart', () {
@@ -144,14 +141,14 @@ main(arguments) {
               .writeAsStringSync('$compilerMessages');
 
           var outFile = new File(path.join(outDir.path, '$filename.js'));
-          expect(outFile.existsSync(), success,
-              reason: '${outFile.path} was created iff compilation succeeds');
+          expect(!success || outFile.existsSync(), true,
+              reason: '${outFile.path} was created if compilation succeeds');
         });
       }
     });
   }
 
-  if (Platform.environment.containsKey('COVERALLS_TOKEN')) {
+  if (codeCoverage) {
     group('sdk', () {
       // The analyzer does not bubble exception messages for certain internal
       // dart:* library failures, such as failing to find
