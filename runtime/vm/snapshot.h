@@ -445,6 +445,7 @@ class SnapshotReader : public BaseReader {
   RawObject* AllocateUninitialized(intptr_t class_id, intptr_t size);
 
   RawClass* ReadClassId(intptr_t object_id);
+  RawFunction* ReadFunctionId(intptr_t object_id);
   RawObject* ReadStaticImplicitClosure(intptr_t object_id, intptr_t cls_header);
 
   // Implementation to read an object.
@@ -880,6 +881,8 @@ class SnapshotWriter : public BaseWriter {
   void SetInstructionsCode(RawInstructions* instructions, RawCode* code) {
     return instructions_writer_->SetInstructionsCode(instructions, code);
   }
+
+  void WriteFunctionId(RawFunction* func, bool owner_is_class);
 
  protected:
   void UnmarkAll() {

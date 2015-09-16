@@ -264,6 +264,43 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
 }
 
 
+RawFunction* SnapshotReader::ReadFunctionId(intptr_t object_id) {
+  ASSERT(kind_ == Snapshot::kScript);
+  // Read the function header information and lookup the function.
+  intptr_t func_header = Read<int32_t>();
+  ASSERT((func_header & kSmiTagMask) != kSmiTag);
+  ASSERT(!IsVMIsolateObject(func_header) ||
+         !IsSingletonClassId(GetVMIsolateObjectId(func_header)));
+  ASSERT((SerializedHeaderTag::decode(func_header) != kObjectId) ||
+         !IsObjectStoreClassId(SerializedHeaderData::decode(func_header)));
+  Function& func = Function::ZoneHandle(zone(), Function::null());
+  AddBackRef(object_id, &func, kIsDeserialized);
+  // Read the library/class/function information and lookup the function.
+  str_ ^= ReadObjectImpl(func_header, kAsInlinedObject, kInvalidPatchIndex, 0);
+  library_ = Library::LookupLibrary(str_);
+  if (library_.IsNull() || !library_.Loaded()) {
+    SetReadException("Expected a library name, but found an invalid name.");
+  }
+  str_ ^= ReadObjectImpl(kAsInlinedObject);
+  if (str_.Equals(Symbols::TopLevel(), 0, Symbols::TopLevel().Length())) {
+    str_ ^= ReadObjectImpl(kAsInlinedObject);
+    func ^= library_.LookupLocalFunction(str_);
+  } else {
+    cls_ = library_.LookupClass(str_);
+    if (cls_.IsNull()) {
+      SetReadException("Expected a class name, but found an invalid name.");
+    }
+    cls_.EnsureIsFinalized(isolate());
+    str_ ^= ReadObjectImpl(kAsInlinedObject);
+    func ^= cls_.LookupFunctionAllowPrivate(str_);
+  }
+  if (func.IsNull()) {
+    SetReadException("Expected a function name, but found an invalid name.");
+  }
+  return func.raw();
+}
+
+
 RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
                                                      intptr_t class_header) {
   ASSERT(kind_ != Snapshot::kFull);
@@ -1311,58 +1348,59 @@ RawObject* SnapshotReader::AllocateUninitialized(intptr_t class_id,
 }
 
 
+#define READ_VM_SINGLETON_OBJ(id, obj)                                         \
+  if (object_id == id) {                                                       \
+    return obj;                                                                \
+  }                                                                            \
+
 RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   intptr_t object_id = GetVMIsolateObjectId(header_value);
-  if (object_id == kNullObject) {
-    // This is a singleton null object, return it.
-    return Object::null();
-  }
-  if (object_id == kSentinelObject) {
-    return Object::sentinel().raw();
-  }
-  if (object_id == kTransitionSentinelObject) {
-    return Object::transition_sentinel().raw();
-  }
-  if (object_id == kEmptyArrayObject) {
-    return Object::empty_array().raw();
-  }
-  if (object_id == kZeroArrayObject) {
-    return Object::zero_array().raw();
-  }
-  if (object_id == kDynamicType) {
-    return Object::dynamic_type();
-  }
-  if (object_id == kVoidType) {
-    return Object::void_type();
-  }
-  if (object_id == kTrueValue) {
-    return Bool::True().raw();
-  }
-  if (object_id == kFalseValue) {
-    return Bool::False().raw();
-  }
-  if (object_id == kExtractorParameterTypes) {
-    return Object::extractor_parameter_types().raw();
-  }
-  if (object_id == kExtractorParameterNames) {
-    return Object::extractor_parameter_names().raw();
-  }
-  if (object_id == kEmptyContextScopeObject) {
-    return Object::empty_context_scope().raw();
-  }
+
+  // First check if it is one of the singleton objects.
+  READ_VM_SINGLETON_OBJ(kNullObject, Object::null());
+  READ_VM_SINGLETON_OBJ(kSentinelObject, Object::sentinel().raw());
+  READ_VM_SINGLETON_OBJ(kTransitionSentinelObject,
+                        Object::transition_sentinel().raw());
+  READ_VM_SINGLETON_OBJ(kEmptyArrayObject, Object::empty_array().raw());
+  READ_VM_SINGLETON_OBJ(kZeroArrayObject, Object::zero_array().raw());
+  READ_VM_SINGLETON_OBJ(kDynamicType, Object::dynamic_type());
+  READ_VM_SINGLETON_OBJ(kVoidType, Object::void_type());
+  READ_VM_SINGLETON_OBJ(kTrueValue, Bool::True().raw());
+  READ_VM_SINGLETON_OBJ(kFalseValue, Bool::False().raw());
+  READ_VM_SINGLETON_OBJ(kExtractorParameterTypes,
+                        Object::extractor_parameter_types().raw());
+  READ_VM_SINGLETON_OBJ(kExtractorParameterNames,
+                        Object::extractor_parameter_names().raw());
+  READ_VM_SINGLETON_OBJ(kEmptyContextScopeObject,
+                        Object::empty_context_scope().raw());
+  READ_VM_SINGLETON_OBJ(kEmptyObjectPool, Object::empty_object_pool().raw());
+  READ_VM_SINGLETON_OBJ(kEmptyDescriptors, Object::empty_descriptors().raw());
+  READ_VM_SINGLETON_OBJ(kEmptyVarDescriptors,
+                        Object::empty_var_descriptors().raw());
+  READ_VM_SINGLETON_OBJ(kEmptyExceptionHandlers,
+                        Object::empty_exception_handlers().raw());
+
+  // Check if it is a double.
   if (object_id == kDoubleObject) {
     ASSERT(kind_ == Snapshot::kMessage);
     return Double::New(ReadDouble());
   }
+
+  // Check it is a singleton class object.
   intptr_t class_id = ClassIdFromObjectId(object_id);
   if (IsSingletonClassId(class_id)) {
     return isolate()->class_table()->At(class_id);  // get singleton class.
-  } else {
-    ASSERT(Symbols::IsVMSymbolId(object_id));
-    return Symbols::GetVMSymbol(object_id);  // return VM symbol.
   }
-  UNREACHABLE();
-  return Object::null();
+
+  // Check if it is a singleton Argument descriptor object.
+  for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
+    if (object_id == (kCachedArgumentsDescriptor0 + i)) {
+      return ArgumentsDescriptor::cached_args_descriptors_[i];
+    }
+  }
+
+  ASSERT(Symbols::IsVMSymbolId(object_id));
+  return Symbols::GetVMSymbol(object_id);  // return VM symbol.
 }
 
 
@@ -1529,21 +1567,7 @@ RawApiError* VmIsolateSnapshotReader::ReadVmIsolateSnapshot() {
     // only memory.
     *(ArrayHandle()) ^= ReadObject();
 
-
     if (snapshot_code()) {
-      for (intptr_t i = 0;
-           i < ArgumentsDescriptor::kCachedDescriptorCount;
-           i++) {
-        *(ArrayHandle()) ^= ReadObject();
-        // TODO(rmacnak):
-        // ArgumentsDescriptor::InitOnceFromSnapshot(i, *(ArrayHandle()));
-      }
-
-      ObjectPool::CheckedHandle(ReadObject());  // empty pool
-      PcDescriptors::CheckedHandle(ReadObject());  // empty pc desc
-      LocalVarDescriptors::CheckedHandle(ReadObject());  // empty var desc
-      ExceptionHandlers::CheckedHandle(ReadObject());  // empty exc handlers
-
       StubCode::ReadFrom(this);
     }
 
@@ -1657,78 +1681,36 @@ void SnapshotWriter::WriteObject(RawObject* rawobj) {
     return true;                                                               \
   }                                                                            \
 
+#define WRITE_VM_SINGLETON_OBJ(obj, id)                                        \
+  if (rawobj == obj) {                                                         \
+    WriteVMIsolateObject(id);                                                  \
+    return true;                                                               \
+  }                                                                            \
+
 bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
-  // Check if it is a singleton null object.
-  if (rawobj == Object::null()) {
-    WriteVMIsolateObject(kNullObject);
-    return true;
-  }
-
-  // Check if it is a singleton sentinel object.
-  if (rawobj == Object::sentinel().raw()) {
-    WriteVMIsolateObject(kSentinelObject);
-    return true;
-  }
-
-  // Check if it is a singleton sentinel object.
-  if (rawobj == Object::transition_sentinel().raw()) {
-    WriteVMIsolateObject(kTransitionSentinelObject);
-    return true;
-  }
-
-  // Check if it is a singleton empty array object.
-  if (rawobj == Object::empty_array().raw()) {
-    WriteVMIsolateObject(kEmptyArrayObject);
-    return true;
-  }
-
-  // Check if it is a singleton zero array object.
-  if (rawobj == Object::zero_array().raw()) {
-    WriteVMIsolateObject(kZeroArrayObject);
-    return true;
-  }
-
-  // Check if it is a singleton dyanmic Type object.
-  if (rawobj == Object::dynamic_type()) {
-    WriteVMIsolateObject(kDynamicType);
-    return true;
-  }
-
-  // Check if it is a singleton void Type object.
-  if (rawobj == Object::void_type()) {
-    WriteVMIsolateObject(kVoidType);
-    return true;
-  }
-
-  // Check if it is a singleton boolean true object.
-  if (rawobj == Bool::True().raw()) {
-    WriteVMIsolateObject(kTrueValue);
-    return true;
-  }
-
-  // Check if it is a singleton boolean false object.
-  if (rawobj == Bool::False().raw()) {
-    WriteVMIsolateObject(kFalseValue);
-    return true;
-  }
-
-  // Check if it is a singleton extractor parameter types array.
-  if (rawobj == Object::extractor_parameter_types().raw()) {
-    WriteVMIsolateObject(kExtractorParameterTypes);
-    return true;
-  }
-
-  // Check if it is a singleton extractor parameter names array.
-  if (rawobj == Object::extractor_parameter_names().raw()) {
-    WriteVMIsolateObject(kExtractorParameterNames);
-    return true;
-  }
-
-  // Check if it is a singleton empty context scope object.
-  if (rawobj == Object::empty_context_scope().raw()) {
-    WriteVMIsolateObject(kEmptyContextScopeObject);
-    return true;
-  }
+  // Check if it is one of the singleton VM objects.
+  WRITE_VM_SINGLETON_OBJ(Object::null(), kNullObject);
+  WRITE_VM_SINGLETON_OBJ(Object::sentinel().raw(), kSentinelObject);
+  WRITE_VM_SINGLETON_OBJ(Object::transition_sentinel().raw(),
+                         kTransitionSentinelObject);
+  WRITE_VM_SINGLETON_OBJ(Object::empty_array().raw(), kEmptyArrayObject);
+  WRITE_VM_SINGLETON_OBJ(Object::zero_array().raw(), kZeroArrayObject);
+  WRITE_VM_SINGLETON_OBJ(Object::dynamic_type(), kDynamicType);
+  WRITE_VM_SINGLETON_OBJ(Object::void_type(), kVoidType);
+  WRITE_VM_SINGLETON_OBJ(Bool::True().raw(), kTrueValue);
+  WRITE_VM_SINGLETON_OBJ(Bool::False().raw(), kFalseValue);
+  WRITE_VM_SINGLETON_OBJ(Object::extractor_parameter_types().raw(),
+                         kExtractorParameterTypes);
+  WRITE_VM_SINGLETON_OBJ(Object::extractor_parameter_names().raw(),
+                         kExtractorParameterNames);
+  WRITE_VM_SINGLETON_OBJ(Object::empty_context_scope().raw(),
+                         kEmptyContextScopeObject);
+  WRITE_VM_SINGLETON_OBJ(Object::empty_object_pool().raw(), kEmptyObjectPool);
+  WRITE_VM_SINGLETON_OBJ(Object::empty_descriptors().raw(), kEmptyDescriptors);
+  WRITE_VM_SINGLETON_OBJ(Object::empty_var_descriptors().raw(),
+                         kEmptyVarDescriptors);
+  WRITE_VM_SINGLETON_OBJ(Object::empty_exception_handlers().raw(),
+                         kEmptyExceptionHandlers);
 
   // Check if it is a singleton class object which is shared by
   // all isolates.
@@ -1739,6 +1721,14 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
     if (IsSingletonClassId(class_id)) {
       intptr_t object_id = ObjectIdFromClassId(class_id);
       WriteVMIsolateObject(object_id);
+      return true;
+    }
+  }
+
+  // Check if it is a singleton Argument descriptor object.
+  for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
+    if (rawobj == ArgumentsDescriptor::cached_args_descriptors_[i]) {
+      WriteVMIsolateObject(kCachedArgumentsDescriptor0 + i);
       return true;
     }
   }
@@ -1937,18 +1927,6 @@ void FullSnapshotWriter::WriteVmIsolateSnapshot() {
 
     if (snapshot_code_) {
       ASSERT(!vm_isolate_is_symbolic_);
-
-      for (intptr_t i = 0;
-           i < ArgumentsDescriptor::kCachedDescriptorCount;
-           i++) {
-        writer.WriteObject(ArgumentsDescriptor::cached_args_descriptors_[i]);
-      }
-
-      writer.WriteObject(Object::empty_object_pool().raw());
-      writer.WriteObject(Object::empty_descriptors().raw());
-      writer.WriteObject(Object::empty_var_descriptors().raw());
-      writer.WriteObject(Object::empty_exception_handlers().raw());
-
       StubCode::WriteTo(&writer);
     }
 
@@ -2437,6 +2415,22 @@ void SnapshotWriter::WriteClassId(RawClass* cls) {
   ASSERT(library != Library::null());
   WriteObjectImpl(library->ptr()->url_, kAsInlinedObject);
   WriteObjectImpl(cls->ptr()->name_, kAsInlinedObject);
+}
+
+
+void SnapshotWriter::WriteFunctionId(RawFunction* func, bool owner_is_class) {
+  ASSERT(kind_ == Snapshot::kScript);
+  RawClass* cls = (owner_is_class) ?
+      reinterpret_cast<RawClass*>(func->ptr()->owner_) :
+      reinterpret_cast<RawPatchClass*>(
+          func->ptr()->owner_)->ptr()->patched_class_;
+
+  // Write out the library url and class name.
+  RawLibrary* library = cls->ptr()->library_;
+  ASSERT(library != Library::null());
+  WriteObjectImpl(library->ptr()->url_, kAsInlinedObject);
+  WriteObjectImpl(cls->ptr()->name_, kAsInlinedObject);
+  WriteObjectImpl(func->ptr()->name_, kAsInlinedObject);
 }
 
 

@@ -505,10 +505,7 @@ RawPatchClass* PatchClass::ReadFrom(SnapshotReader* reader,
   // Set all the object fields.
   READ_OBJECT_FIELDS(cls, cls.raw()->from(), cls.raw()->to(), kAsReference);
 
-  ASSERT(((kind == Snapshot::kScript) &&
-          !Class::IsInFullSnapshot(cls.source_class())) ||
-         (kind == Snapshot::kFull));
-
+  ASSERT((kind == Snapshot::kScript) || (kind == Snapshot::kFull));
   return cls.raw();
 }
 
@@ -632,37 +629,45 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
   ASSERT((kind == Snapshot::kScript) || (kind == Snapshot::kFull));
 
-  // Allocate function object.
-  Function& func = Function::ZoneHandle(
-      reader->zone(), NEW_OBJECT(Function));
-  reader->AddBackRef(object_id, &func, kIsDeserialized);
+  bool is_in_fullsnapshot = reader->Read<bool>();
+  if ((kind == Snapshot::kFull) || !is_in_fullsnapshot) {
+    // Allocate function object.
+    Function& func = Function::ZoneHandle(
+        reader->zone(), NEW_OBJECT(Function));
+    reader->AddBackRef(object_id, &func, kIsDeserialized);
 
-  // Set all the non object fields.
-  func.set_token_pos(reader->Read<int32_t>());
-  func.set_end_token_pos(reader->Read<int32_t>());
-  func.set_usage_counter(reader->Read<int32_t>());
-  func.set_num_fixed_parameters(reader->Read<int16_t>());
-  func.set_num_optional_parameters(reader->Read<int16_t>());
-  func.set_deoptimization_counter(reader->Read<int16_t>());
-  func.set_kind_tag(reader->Read<uint32_t>());
-  func.set_optimized_instruction_count(reader->Read<uint16_t>());
-  func.set_optimized_call_site_count(reader->Read<uint16_t>());
+    // Set all the non object fields.
+    func.set_token_pos(reader->Read<int32_t>());
+    func.set_end_token_pos(reader->Read<int32_t>());
+    func.set_usage_counter(reader->Read<int32_t>());
+    func.set_num_fixed_parameters(reader->Read<int16_t>());
+    func.set_num_optional_parameters(reader->Read<int16_t>());
+    func.set_deoptimization_counter(reader->Read<int16_t>());
+    func.set_kind_tag(reader->Read<uint32_t>());
+    func.set_optimized_instruction_count(reader->Read<uint16_t>());
+    func.set_optimized_call_site_count(reader->Read<uint16_t>());
 
-  // Set all the object fields.
-  READ_OBJECT_FIELDS(func,
-                     func.raw()->from(),
-                     reader->snapshot_code() ? func.raw()->to()
-                                             : func.raw()->to_snapshot(),
-                     kAsReference);
-
-  if (!reader->snapshot_code()) {
-    // Initialize all fields that are not part of the snapshot.
-    func.ClearICDataArray();
-    func.ClearCode();
+    // Set all the object fields.
+    bool is_optimized = func.usage_counter() != 0;
+    RawObject** toobj = reader->snapshot_code() ? func.raw()->to() :
+        (is_optimized ? func.raw()->to_optimized_snapshot() :
+         func.raw()->to_snapshot());
+    READ_OBJECT_FIELDS(func,
+                       func.raw()->from(), toobj,
+                       kAsReference);
+    if (!reader->snapshot_code()) {
+      // Initialize all fields that are not part of the snapshot.
+      if (!is_optimized) {
+        func.ClearICDataArray();
+      }
+      func.ClearCode();
+    } else {
+      // TODO(rmacnak): Fix entry_point_.
+    }
+    return func.raw();
   } else {
-    // TODO(rmacnak): Fix entry_point_.
+    return reader->ReadFunctionId(object_id);
   }
-  return func.raw();
 }
 
 
@@ -671,6 +676,17 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
                           Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   ASSERT((kind == Snapshot::kScript) || (kind == Snapshot::kFull));
+  bool is_in_fullsnapshot = false;
+  bool owner_is_class = false;
+  if (kind == Snapshot::kScript) {
+    intptr_t tags = writer->GetObjectTags(ptr()->owner_);
+    intptr_t cid = ClassIdTag::decode(tags);
+    owner_is_class = (cid == kClassCid);
+    is_in_fullsnapshot =  owner_is_class ?
+        Class::IsInFullSnapshot(reinterpret_cast<RawClass*>(ptr()->owner_)) :
+        PatchClass::IsInFullSnapshot(
+            reinterpret_cast<RawPatchClass*>(ptr()->owner_));
+  }
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -679,25 +695,38 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   writer->WriteVMIsolateObject(kFunctionCid);
   writer->WriteTags(writer->GetObjectTags(this));
 
-  // Write out all the non object fields.
-  writer->Write<int32_t>(ptr()->token_pos_);
-  writer->Write<int32_t>(ptr()->end_token_pos_);
-  if (Code::IsOptimized(ptr()->instructions_->ptr()->code_)) {
-    writer->Write<int32_t>(FLAG_optimization_counter_threshold);
-  } else {
-    writer->Write<int32_t>(0);
-  }
-  writer->Write<int16_t>(ptr()->num_fixed_parameters_);
-  writer->Write<int16_t>(ptr()->num_optional_parameters_);
-  writer->Write<int16_t>(ptr()->deoptimization_counter_);
-  writer->Write<uint32_t>(ptr()->kind_tag_);
-  writer->Write<uint16_t>(ptr()->optimized_instruction_count_);
-  writer->Write<uint16_t>(ptr()->optimized_call_site_count_);
+  // Write out the boolean is_in_fullsnapshot first as this will
+  // help the reader decide how the rest of the information needs
+  // to be interpreted.
+  writer->Write<bool>(is_in_fullsnapshot);
 
-  // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
-  visitor.VisitPointers(from(), writer->snapshot_code() ? to()
-                                                        : to_snapshot());
+  if (kind == Snapshot::kFull || !is_in_fullsnapshot) {
+    bool is_optimized = Code::IsOptimized(ptr()->instructions_->ptr()->code_);
+
+    // Write out all the non object fields.
+    writer->Write<int32_t>(ptr()->token_pos_);
+    writer->Write<int32_t>(ptr()->end_token_pos_);
+    if (is_optimized) {
+      writer->Write<int32_t>(FLAG_optimization_counter_threshold);
+    } else {
+      writer->Write<int32_t>(0);
+    }
+    writer->Write<int16_t>(ptr()->num_fixed_parameters_);
+    writer->Write<int16_t>(ptr()->num_optional_parameters_);
+    writer->Write<int16_t>(ptr()->deoptimization_counter_);
+    writer->Write<uint32_t>(ptr()->kind_tag_);
+    writer->Write<uint16_t>(ptr()->optimized_instruction_count_);
+    writer->Write<uint16_t>(ptr()->optimized_call_site_count_);
+
+    // Write out all the object pointer fields.
+    RawObject** toobj =
+        writer->snapshot_code() ? to() :
+        (is_optimized ? to_optimized_snapshot() : to_snapshot());
+    SnapshotWriterVisitor visitor(writer);
+    visitor.VisitPointers(from(), toobj);
+  } else {
+    writer->WriteFunctionId(this, owner_is_class);
+  }
 }
 
 
@@ -1689,8 +1718,7 @@ RawICData* ICData::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
                             intptr_t tags,
                             Snapshot::Kind kind) {
-  ASSERT(reader->snapshot_code());
-  ASSERT(kind == Snapshot::kFull);
+  ASSERT((kind == Snapshot::kScript) || (kind == Snapshot::kFull));
 
   ICData& result = ICData::ZoneHandle(reader->zone(), NEW_OBJECT(ICData));
   reader->AddBackRef(object_id, &result, kIsDeserialized);
@@ -1710,8 +1738,7 @@ RawICData* ICData::ReadFrom(SnapshotReader* reader,
 void RawICData::WriteTo(SnapshotWriter* writer,
                         intptr_t object_id,
                         Snapshot::Kind kind) {
-  ASSERT(writer->snapshot_code());
-  ASSERT(kind == Snapshot::kFull);
+  ASSERT((kind == Snapshot::kScript) || (kind == Snapshot::kFull));
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);

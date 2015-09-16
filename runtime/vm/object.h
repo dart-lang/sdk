@@ -1751,6 +1751,10 @@ class PatchClass : public Object {
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawPatchClass));
   }
+  static bool IsInFullSnapshot(RawPatchClass* cls) {
+    NoSafepointScope no_safepoint;
+    return Class::IsInFullSnapshot(cls->ptr()->patched_class_);
+  }
 
   static RawPatchClass* New(const Class& patched_class,
                             const Class& source_class);
