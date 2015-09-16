@@ -210,10 +210,10 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 #if defined(DEBUG)
     {
       NativeFunction current_function = NULL;
-      const Code& current_trampoline = Code::Handle(
+      uword current_trampoline =
           CodePatcher::GetNativeCallAt(caller_frame->pc(),
                                        code,
-                                       &current_function));
+                                       &current_function);
 #if !defined(USING_SIMULATOR)
       ASSERT(current_function ==
              reinterpret_cast<NativeFunction>(LinkNativeCall));
@@ -225,8 +225,8 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
                      Simulator::kBootstrapNativeCall,
                      NativeEntry::kNumArguments)));
 #endif
-      ASSERT(current_trampoline.raw() ==
-             StubCode::CallBootstrapCFunction_entry()->code());
+      ASSERT(current_trampoline ==
+             StubCode::CallBootstrapCFunction_entry()->EntryPoint());
     }
 #endif
 

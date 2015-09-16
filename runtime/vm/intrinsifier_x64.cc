@@ -1599,11 +1599,11 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // String.
   __ testq(RCX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through);  // Non-smi index.
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
   // Range check.
   __ cmpq(RCX, FieldAddress(RAX, String::length_offset()));
   // Runtime throws exception.
-  __ j(ABOVE_EQUAL, &fall_through);
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
   __ CompareClassId(RAX, kOneByteStringCid);
   __ j(NOT_EQUAL, &try_two_byte_string, Assembler::kNearJump);
   __ SmiUntag(RCX);
@@ -1619,7 +1619,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
 
   __ Bind(&try_two_byte_string);
   __ CompareClassId(RAX, kTwoByteStringCid);
-  __ j(NOT_EQUAL, &fall_through);
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
   ASSERT(kSmiTagShift == 1);
   __ movzxw(RCX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
   __ cmpq(RCX, Immediate(Symbols::kNumberOfOneCharCodeSymbols));
@@ -1963,7 +1963,6 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   __ xorq(RCX, RCX);
 
   // Tail-call the function.
-  __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
   __ movq(RDI, FieldAddress(RAX, Function::entry_point_offset()));
   __ jmp(RDI);
 }

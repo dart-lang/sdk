@@ -104,6 +104,23 @@ class CallPattern : public CallOrJumpPattern<CallPattern> {
 };
 
 
+class JumpPattern : public CallOrJumpPattern<JumpPattern> {
+ public:
+  JumpPattern(uword pc, const Code& code) : CallOrJumpPattern(pc) {}
+
+  static int pattern_length_in_bytes() { return kLengthInBytes; }
+  static const int* pattern() {
+    static const int kJumpPattern[kLengthInBytes] = {0xE9, -1, -1, -1, -1};
+    return kJumpPattern;
+  }
+
+ private:
+  static const int kLengthInBytes = 5;
+
+  DISALLOW_COPY_AND_ASSIGN(JumpPattern);
+};
+
+
 class ReturnPattern : public InstructionPattern<ReturnPattern> {
  public:
   explicit ReturnPattern(uword pc) : InstructionPattern(pc) {}

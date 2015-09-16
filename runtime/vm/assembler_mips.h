@@ -288,11 +288,20 @@ class Assembler : public ValueObject {
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
-  void EnterStubFrame(intptr_t frame_size = 0);
+  void EnterStubFrame();
   void LeaveStubFrame();
   // A separate macro for when a Ret immediately follows, so that we can use
   // the branch delay slot.
   void LeaveStubFrameAndReturn(Register ra = RA);
+
+  // Instruction pattern from entrypoint is used in dart frame prologs
+  // to set up the frame and save a PC which can be used to figure out the
+  // RawInstruction object corresponding to the code running in the frame.
+  // See EnterDartFrame. There are 6 instructions before we know the PC.
+  static const intptr_t kEntryPointToPcMarkerOffset = 6 * Instr::kInstrSize;
+  static intptr_t EntryPointToPcMarkerOffset() {
+    return kEntryPointToPcMarkerOffset;
+  }
 
   void UpdateAllocationStats(intptr_t cid,
                              Register temp_reg,
@@ -903,10 +912,11 @@ class Assembler : public ValueObject {
     SubuDetectOverflow(rd, rs, rd, ro);
   }
 
-  void Branch(const StubEntry& stub_entry, Register pp = PP);
+  void Branch(const StubEntry& stub_entry);
+
+  void BranchPatchable(const StubEntry& stub_entry);
 
   void BranchLink(const ExternalLabel* label, Patchability patchable);
-
   void BranchLink(const StubEntry& stub_entry,
                   Patchability patchable = kNotPatchable);
 
@@ -919,16 +929,14 @@ class Assembler : public ValueObject {
     }
   }
 
-  void LoadPoolPointer(Register reg = PP) {
+  void LoadPoolPointer() {
     ASSERT(!in_delay_slot_);
-    CheckCodePointer();
-    lw(reg, FieldAddress(CODE_REG, Code::object_pool_offset()));
-    set_constant_pool_allowed(reg == PP);
+    GetNextPC(TMP);  // TMP gets the address of the next instruction.
+    const intptr_t object_pool_pc_dist =
+        Instructions::HeaderSize() - Instructions::object_pool_offset() +
+        CodeSize();
+    lw(PP, Address(TMP, -object_pool_pc_dist));
   }
-
-  void CheckCodePointer();
-
-  void RestoreCodePointer();
 
   void LoadImmediate(Register rd, int32_t value) {
     ASSERT(!in_delay_slot_);
@@ -1510,14 +1518,12 @@ class Assembler : public ValueObject {
   void EnterCallRuntimeFrame(intptr_t frame_space);
   void LeaveCallRuntimeFrame();
 
+  void LoadWordFromPoolOffset(Register rd, int32_t offset);
   void LoadObject(Register rd, const Object& object);
   void LoadUniqueObject(Register rd, const Object& object);
   void LoadExternalLabel(Register rd,
                          const ExternalLabel* label,
                          Patchability patchable);
-  void LoadFunctionFromCalleePool(Register dst,
-                                  const Function& function,
-                                  Register new_pp);
   void LoadNativeEntry(Register rd,
                        const ExternalLabel* label,
                        Patchability patchable);
@@ -1569,8 +1575,8 @@ class Assembler : public ValueObject {
   // enable easy access to the RawInstruction object of code corresponding
   // to this frame.
   void EnterDartFrame(intptr_t frame_size);
-  void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
-  void LeaveDartFrameAndReturn(Register ra = RA);
+  void LeaveDartFrame();
+  void LeaveDartFrameAndReturn();
 
   // Set up a Dart frame for a function compiled for on-stack replacement.
   // The frame layout is a normal Dart frame, but the frame is partially set
@@ -1631,9 +1637,7 @@ class Assembler : public ValueObject {
   bool constant_pool_allowed_;
 
   void BranchLink(const ExternalLabel* label);
-  void BranchLink(const Code& code, Patchability patchable);
 
-  void LoadWordFromPoolOffset(Register rd, int32_t offset, Register pp = PP);
   void LoadObjectHelper(Register rd, const Object& object, bool is_unique);
 
   void Emit(int32_t value) {

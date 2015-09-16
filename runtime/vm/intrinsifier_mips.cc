@@ -2125,7 +2125,6 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   __ mov(S5, ZR);
 
   // Tail-call the function.
-  __ lw(CODE_REG, FieldAddress(T0, Function::code_offset()));
   __ lw(T3, FieldAddress(T0, Function::entry_point_offset()));
   __ jr(T3);
 }

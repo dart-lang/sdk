@@ -90,8 +90,7 @@ void BlockScheduler::AssignEdgeWeights() const {
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(unoptimized_code.pc_descriptors());
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kDeopt);
-  uword entry =
-      Instructions::Handle(unoptimized_code.instructions()).EntryPoint();
+  uword entry = unoptimized_code.EntryPoint();
   while (iter.MoveNext()) {
     intptr_t deopt_id = iter.DeoptId();
     ASSERT(deopt_id != Isolate::kNoDeoptId);

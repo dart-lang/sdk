@@ -21,7 +21,6 @@ class LongJumpScope;
 class Object;
 class RawBool;
 class RawObject;
-class RawCode;
 class RawString;
 class RuntimeEntry;
 class StackResource;
@@ -33,13 +32,6 @@ class Zone;
   V(RawObject*, object_null_, Object::null(), NULL)                            \
   V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
   V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
-  V(RawCode*, update_store_buffer_code_,                                       \
-    StubCode::UpdateStoreBuffer_entry()->code(), NULL)                         \
-  V(RawCode*, fix_callers_target_code_,                                        \
-    StubCode::FixCallersTarget_entry()->code(), NULL)                          \
-  V(RawCode*, fix_allocation_stub_code_,                                       \
-    StubCode::FixAllocationStubTarget_entry()->code(), NULL)                   \
-
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
   V(uword, update_store_buffer_entry_point_,                                   \

@@ -2170,16 +2170,12 @@ class Function : public Object {
   // Return the most recently compiled and installed code for this function.
   // It is not the only Code object that points to this function.
   RawCode* CurrentCode() const {
-    return raw_ptr()->code_;
+    return raw_ptr()->instructions_->ptr()->code_;
   }
 
   RawCode* unoptimized_code() const { return raw_ptr()->unoptimized_code_; }
   void set_unoptimized_code(const Code& value) const;
   bool HasCode() const;
-
-  static intptr_t code_offset() {
-    return OFFSET_OF(RawFunction, code_);
-  }
 
   static intptr_t entry_point_offset() {
     return OFFSET_OF(RawFunction, entry_point_);
@@ -3718,6 +3714,14 @@ class ObjectPool : public Object {
 class Instructions : public Object {
  public:
   intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
+  RawCode* code() const { return raw_ptr()->code_; }
+  static intptr_t code_offset() {
+    return OFFSET_OF(RawInstructions, code_);
+  }
+  RawObjectPool* object_pool() const { return raw_ptr()->object_pool_; }
+  static intptr_t object_pool_offset() {
+    return OFFSET_OF(RawInstructions, object_pool_);
+  }
 
   uword EntryPoint() const {
     return reinterpret_cast<uword>(raw_ptr()) + HeaderSize();
@@ -3755,6 +3759,12 @@ class Instructions : public Object {
  private:
   void set_size(intptr_t size) const {
     StoreNonPointer(&raw_ptr()->size_, size);
+  }
+  void set_code(RawCode* code) const {
+    StorePointer(&raw_ptr()->code_, code);
+  }
+  void set_object_pool(RawObjectPool* object_pool) const {
+    StorePointer(&raw_ptr()->object_pool_, object_pool);
   }
 
   // New is a private method as RawInstruction and RawCode objects should
@@ -4087,23 +4097,10 @@ class DeoptInfo : public AllStatic {
 
 class Code : public Object {
  public:
-  RawInstructions* active_instructions() const {
-    return raw_ptr()->active_instructions_;
-  }
-
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
-
-  static intptr_t saved_instructions_offset() {
-    return OFFSET_OF(RawCode, instructions_);
-  }
 
   static intptr_t entry_point_offset() {
     return OFFSET_OF(RawCode, entry_point_);
-  }
-
-  RawObjectPool* object_pool() const { return raw_ptr()->object_pool_; }
-  static intptr_t object_pool_offset() {
-    return OFFSET_OF(RawCode, object_pool_);
   }
 
   intptr_t pointer_offsets_length() const {
@@ -4120,14 +4117,17 @@ class Code : public Object {
   void set_is_alive(bool value) const;
 
   uword EntryPoint() const {
-    return Instructions::Handle(instructions()).EntryPoint();
+    ASSERT(raw_ptr()->entry_point_ ==
+           Instructions::Handle(instructions()).EntryPoint());
+    return raw_ptr()->entry_point_;
   }
   intptr_t Size() const {
     const Instructions& instr = Instructions::Handle(instructions());
     return instr.size();
   }
   RawObjectPool* GetObjectPool() const {
-    return object_pool();
+    const Instructions& instr = Instructions::Handle(instructions());
+    return instr.object_pool();
   }
   bool ContainsInstructionAt(uword addr) const {
     const Instructions& instr = Instructions::Handle(instructions());
@@ -4322,6 +4322,10 @@ class Code : public Object {
     kInvalidPc = -1
   };
 
+  // Returns 0 if code is not patchable
+  uword GetEntryPatchPc() const;
+  uword GetPatchCodePc() const;
+
   uword GetLazyDeoptPc() const;
 
   // Find pc, return 0 if not found.
@@ -4334,6 +4338,22 @@ class Code : public Object {
   int64_t compile_timestamp() const {
     return raw_ptr()->compile_timestamp_;
   }
+
+  intptr_t entry_patch_pc_offset() const {
+    return raw_ptr()->entry_patch_pc_offset_;
+  }
+  void set_entry_patch_pc_offset(intptr_t pc) const {
+    StoreNonPointer(&raw_ptr()->entry_patch_pc_offset_, pc);
+  }
+
+
+  intptr_t patch_code_pc_offset() const {
+    return raw_ptr()->patch_code_pc_offset_;
+  }
+  void set_patch_code_pc_offset(intptr_t pc) const {
+    StoreNonPointer(&raw_ptr()->patch_code_pc_offset_, pc);
+  }
+
 
   intptr_t lazy_deopt_pc_offset() const {
     return raw_ptr()->lazy_deopt_pc_offset_;
@@ -4348,10 +4368,6 @@ class Code : public Object {
 
  private:
   void set_state_bits(intptr_t bits) const;
-
-  void set_object_pool(RawObjectPool* object_pool) const {
-    StorePointer(&raw_ptr()->object_pool_, object_pool);
-  }
 
   friend class RawObject;  // For RawObject::SizeFromClass().
   friend class RawCode;
@@ -4373,6 +4389,8 @@ class Code : public Object {
         : FindObjectVisitor(Isolate::Current()), pc_(pc) { }
     virtual ~FindRawCodeVisitor() { }
 
+    virtual uword filter_addr() const { return pc_; }
+
     // Check if object matches find condition.
     virtual bool FindObject(RawObject* obj) const;
 
@@ -4392,17 +4410,13 @@ class Code : public Object {
     StoreNonPointer(&raw_ptr()->compile_timestamp_, timestamp);
   }
 
-  void set_active_instructions(RawInstructions* instructions) const {
+  void set_instructions(RawInstructions* instructions) {
     // RawInstructions are never allocated in New space and hence a
     // store buffer update is not needed here.
-    StorePointer(&raw_ptr()->active_instructions_, instructions);
-    StoreNonPointer(&raw_ptr()->entry_point_,
-                    reinterpret_cast<uword>(instructions->ptr()) +
-                    Instructions::HeaderSize());
-  }
-
-  void set_instructions(RawInstructions* instructions) const {
     StorePointer(&raw_ptr()->instructions_, instructions);
+    uword entry_point = reinterpret_cast<uword>(instructions->ptr()) +
+        Instructions::HeaderSize();
+    StoreNonPointer(&raw_ptr()->entry_point_, entry_point);
   }
 
   void set_pointer_offsets_length(intptr_t value) {
@@ -4436,7 +4450,7 @@ class Code : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Code, Object);
   friend class Class;
   friend class SnapshotWriter;
-  friend class CodePatcher;  // for set_instructions
+
   // So that the RawFunction pointer visitor can determine whether code the
   // function points to is optimized.
   friend class RawFunction;

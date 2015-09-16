@@ -758,9 +758,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         if (optimized) {
           // We may not have previous code if 'always_optimize' is set.
           if ((osr_id == Isolate::kNoDeoptId) && function.HasCode()) {
-            CodePatcher::PatchEntry(
-                Code::Handle(function.CurrentCode()),
-                Code::Handle(StubCode::FixCallersTarget_entry()->code()));
+            CodePatcher::PatchEntry(Code::Handle(function.CurrentCode()));
             if (FLAG_trace_compiler || FLAG_trace_patching) {
               if (FLAG_trace_compiler) {
                 THR_Print("  ");
@@ -792,6 +790,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
           }
           function.set_unoptimized_code(code);
           function.AttachCode(code);
+          ASSERT(CodePatcher::CodeIsPatchable(code));
         }
         if (parsed_function->HasDeferredPrefixes()) {
           ASSERT(!FLAG_load_deferred_eagerly);

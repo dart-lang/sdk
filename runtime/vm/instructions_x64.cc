@@ -11,6 +11,27 @@
 
 namespace dart {
 
+intptr_t IndexFromPPLoad(uword start) {
+  int32_t offset = *reinterpret_cast<int32_t*>(start);
+  return ObjectPool::IndexFromOffset(offset);
+}
+
+
+uword JumpPattern::TargetAddress() const {
+  ASSERT(IsValid());
+  int index = IndexFromPPLoad(start() + 3);
+  return object_pool_.RawValueAt(index);
+}
+
+
+void JumpPattern::SetTargetAddress(uword target) const {
+  ASSERT(IsValid());
+  int index = IndexFromPPLoad(start() + 3);
+  object_pool_.SetRawValueAt(index, target);
+  // No need to flush the instruction cache, since the code is not modified.
+}
+
+
 void ShortCallPattern::SetTargetAddress(uword target) const {
   ASSERT(IsValid());
   *reinterpret_cast<uint32_t*>(start() + 1) = target - start() - kLengthInBytes;

@@ -606,18 +606,19 @@ class Assembler : public ValueObject {
   void bx(Register rm, Condition cond = AL);
   void blx(Register rm, Condition cond = AL);
 
-  void Branch(const StubEntry& stub_entry,
-              Patchability patchable = kNotPatchable,
-              Register pp = PP,
-              Condition cond = AL);
+  // Macros.
+  // Branch to an entry address. Call sequence is never patched.
+  void Branch(const StubEntry& stub_entry, Condition cond = AL);
+
+  // Branch to an entry address. Call sequence can be patched or even replaced.
+  void BranchPatchable(const StubEntry& stub_entry);
 
   void BranchLink(const StubEntry& stub_entry,
                   Patchability patchable = kNotPatchable);
-  void BranchLink(const Code& code, Patchability patchable);
+  void BranchLink(const ExternalLabel* label, Patchability patchable);
 
   // Branch and link to an entry address. Call sequence can be patched.
   void BranchLinkPatchable(const StubEntry& stub_entry);
-  void BranchLinkPatchable(const Code& code);
 
   // Branch and link to [base + offset]. Call sequence is never patched.
   void BranchLinkOffset(Register base, int32_t offset);
@@ -660,8 +661,7 @@ class Assembler : public ValueObject {
 
   void Drop(intptr_t stack_elements);
 
-  void RestoreCodePointer();
-  void LoadPoolPointer(Register reg = PP);
+  void LoadPoolPointer();
 
   void LoadIsolate(Register rd);
 
@@ -671,9 +671,6 @@ class Assembler : public ValueObject {
                          const ExternalLabel* label,
                          Patchability patchable,
                          Condition cond = AL);
-  void LoadFunctionFromCalleePool(Register dst,
-                                  const Function& function,
-                                  Register new_pp);
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
                        Patchability patchable,
@@ -874,8 +871,6 @@ class Assembler : public ValueObject {
     b(is_smi, CC);
   }
 
-  void CheckCodePointer();
-
   // Function frame setup and tear down.
   void EnterFrame(RegList regs, intptr_t frame_space);
   void LeaveFrame(RegList regs);
@@ -894,7 +889,7 @@ class Assembler : public ValueObject {
   // enable easy access to the RawInstruction object of code corresponding
   // to this frame.
   void EnterDartFrame(intptr_t frame_size);
-  void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
+  void LeaveDartFrame();
 
   // Set up a Dart frame for a function compiled for on-stack replacement.
   // The frame layout is a normal Dart frame, but the frame is partially set
@@ -905,6 +900,13 @@ class Assembler : public ValueObject {
   // a stub frame.
   void EnterStubFrame();
   void LeaveStubFrame();
+
+  // Instruction pattern from entrypoint is used in Dart frame prologs
+  // to set up the frame and save a PC which can be used to figure out the
+  // RawInstruction object corresponding to the code running in the frame.
+  static intptr_t EntryPointToPcMarkerOffset() {
+    return TargetCPUFeatures::store_pc_read_offset();
+  }
 
   // The register into which the allocation stats table is loaded with
   // LoadAllocationStatsAddress should be passed to
@@ -991,12 +993,9 @@ class Assembler : public ValueObject {
   void BindARMv6(Label* label);
   void BindARMv7(Label* label);
 
-  void LoadWordFromPoolOffset(Register rd,
-                              int32_t offset,
-                              Register pp,
-                              Condition cond);
-
   void BranchLink(const ExternalLabel* label);
+
+  void LoadWordFromPoolOffset(Register rd, int32_t offset, Condition cond);
 
   class CodeComment : public ZoneAllocated {
    public:
@@ -1020,8 +1019,7 @@ class Assembler : public ValueObject {
   void LoadObjectHelper(Register rd,
                         const Object& object,
                         Condition cond,
-                        bool is_unique,
-                        Register pp);
+                        bool is_unique);
 
   void EmitType01(Condition cond,
                   int type,

@@ -274,7 +274,6 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == T0);
   __ LoadImmediate(S5, 0);
   __ lw(T2, FieldAddress(T0, Function::entry_point_offset()));
-  __ lw(CODE_REG, FieldAddress(T0, Function::code_offset()));
   __ jalr(T2);
   compiler->RecordSafepoint(locs());
   // Marks either the continuation point in unoptimized code or the
@@ -2667,8 +2666,11 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 catch_handler_types_,
                                 needs_stacktrace());
   // Restore pool pointer.
-  __ RestoreCodePointer();
-  __ LoadPoolPointer();
+  __ GetNextPC(CMPRES1, TMP);
+  const intptr_t object_pool_pc_dist =
+     Instructions::HeaderSize() - Instructions::object_pool_offset() +
+     compiler->assembler()->CodeSize() - 1 * Instr::kInstrSize;
+  __ LoadFromOffset(PP, CMPRES1, -object_pool_pc_dist);
 
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -5425,22 +5427,20 @@ LocationSummary* IndirectGotoInstr::MakeLocationSummary(Zone* zone,
 
 
 void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register target_reg = locs()->temp_slot(0)->reg();
+  Register target_address_reg = locs()->temp_slot(0)->reg();
 
-  __ GetNextPC(target_reg, TMP);
-  const intptr_t entry_offset =
-     __ CodeSize() - 1 * Instr::kInstrSize;
-  __ AddImmediate(target_reg, target_reg, -entry_offset);
+  // Load from [current frame pointer] + kPcMarkerSlotFromFp.
+  __ lw(target_address_reg, Address(FP, kPcMarkerSlotFromFp * kWordSize));
 
   // Add the offset.
   Register offset_reg = locs()->in(0).reg();
   if (offset()->definition()->representation() == kTagged) {
   __ SmiUntag(offset_reg);
   }
-  __ addu(target_reg, target_reg, offset_reg);
+  __ addu(target_address_reg, target_address_reg, offset_reg);
 
   // Jump to the absolute address.
-  __ jr(target_reg);
+  __ jr(target_address_reg);
 }
 
 

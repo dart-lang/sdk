@@ -46,7 +46,7 @@ namespace dart {
 
 #define LEAF_RUNTIME_ENTRY_LIST(V)                                             \
   V(void, PrintStopMessage, const char*)                                       \
-  V(intptr_t, DeoptimizeCopyFrame, uword, uword)                               \
+  V(intptr_t, DeoptimizeCopyFrame, uword)                                      \
   V(void, DeoptimizeFillFrame, uword)                                          \
   V(void, StoreBufferBlockProcess, Thread*)                                    \
   V(intptr_t, BigintCompare, RawBigint*, RawBigint*)                           \

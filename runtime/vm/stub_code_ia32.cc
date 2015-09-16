@@ -80,8 +80,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // There are no runtime calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
   __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
-  // Compute argv.
-  __ leal(EAX, Address(EBP, EDX, TIMES_4, kParamEndSlotFromFp * kWordSize));
+  __ leal(EAX, Address(EBP, EDX, TIMES_4, 1 * kWordSize));  // Compute argv.
   __ movl(Address(ESP, argv_offset), EAX);  // Set argv in NativeArguments.
   __ addl(EAX, Immediate(1 * kWordSize));  // Retval is next to 1st argument.
   __ movl(Address(ESP, retval_offset), EAX);  // Set retval in NativeArguments.
@@ -370,13 +369,11 @@ static void PushArgumentsArray(Assembler* assembler) {
 //   +------------------+
 //   | return-address   |  (deoptimization point)
 //   +------------------+
-//   | Saved CODE_REG   |
-//   +------------------+
 //   | ...              | <- SP of optimized frame
 //
 // Parts of the code cannot GC, part of the code can GC.
 static void GenerateDeoptimizationSequence(Assembler* assembler,
-                                           DeoptStubKind kind) {
+                                           bool preserve_result) {
   // Leaf runtime function DeoptimizeCopyFrame expects a Dart frame.
   __ EnterDartFrame(0);
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
@@ -388,13 +385,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Push registers in their enumeration order: lowest register number at
   // lowest address.
   for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; i--) {
-    if (i == CODE_REG) {
-      // Save the original value of CODE_REG pushed before invoking this stub
-      // instead of the value used to call this stub.
-      __ pushl(Address(EBP, 2 * kWordSize));
-    } else {
-      __ pushl(static_cast<Register>(i));
-    }
+    __ pushl(static_cast<Register>(i));
   }
   __ subl(ESP, Immediate(kNumberOfXmmRegisters * kFpuRegisterSize));
   intptr_t offset = 0;
@@ -405,13 +396,11 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
 
   __ movl(ECX, ESP);  // Preserve saved registers block.
-  __ ReserveAlignedFrameSpace(2 * kWordSize);
-  __ movl(Address(ESP, 0 * kWordSize), ECX);  // Start of register block.
-  __ movl(Address(ESP, 1 * kWordSize), Immediate(kind == kLazyDeopt ? 1 : 0));
-  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 2);
+  __ ReserveAlignedFrameSpace(1 * kWordSize);
+  __ movl(Address(ESP, 0), ECX);  // Start of register block.
+  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 1);
   // Result (EAX) is stack-size (FP - SP) in bytes.
 
-  const bool preserve_result = (kind == kLazyDeopt);
   if (preserve_result) {
     // Restore result into EBX temporarily.
     __ movl(EBX, Address(EBP, saved_result_slot_from_fp * kWordSize));
@@ -471,12 +460,12 @@ void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
   __ popl(EBX);
   __ subl(EBX, Immediate(CallPattern::pattern_length_in_bytes()));
   __ pushl(EBX);
-  GenerateDeoptimizationSequence(assembler, kLazyDeopt);
+  GenerateDeoptimizationSequence(assembler, true);  // Preserve EAX.
 }
 
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
-  GenerateDeoptimizationSequence(assembler, kEagerDeopt);
+  GenerateDeoptimizationSequence(assembler, false);  // Don't preserve EAX.
 }
 
 
@@ -695,13 +684,13 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 // Called when invoking dart code from C++ (VM code).
 // Input parameters:
 //   ESP : points to return address.
-//   ESP + 4 : code object of the dart function to call.
+//   ESP + 4 : entrypoint of the dart function to call.
 //   ESP + 8 : arguments descriptor array.
 //   ESP + 12 : arguments array.
 //   ESP + 16 : current thread.
 // Uses EAX, EDX, ECX, EDI as temporary registers.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
-  const intptr_t kTargetCodeOffset = 2 * kWordSize;
+  const intptr_t kEntryPointOffset = 2 * kWordSize;
   const intptr_t kArgumentsDescOffset = 3 * kWordSize;
   const intptr_t kArgumentsOffset = 4 * kWordSize;
   const intptr_t kThreadOffset = 5 * kWordSize;
@@ -767,9 +756,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Bind(&done_push_arguments);
 
   // Call the dart code entrypoint.
-  __ movl(EAX, Address(EBP, kTargetCodeOffset));
-  __ movl(EAX, Address(EAX, VMHandles::kOffsetOfRawPtrInHandle));
-  __ call(FieldAddress(EAX, Code::entry_point_offset()));
+  __ call(Address(EBP, kEntryPointOffset));
 
   // Reread the arguments descriptor array to obtain the number of passed
   // arguments.
@@ -1014,7 +1001,9 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 // Returns patch_code_pc offset where patching code for disabling the stub
 // has been generated (similar to regularly generated Dart code).
 void StubCode::GenerateAllocationStubForClass(
-    Assembler* assembler, const Class& cls) {
+    Assembler* assembler, const Class& cls,
+    uword* entry_patch_offset, uword* patch_code_pc_offset) {
+  *entry_patch_offset = assembler->CodeSize();
   const intptr_t kObjectTypeArgumentsOffset = 1 * kWordSize;
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -1136,6 +1125,10 @@ void StubCode::GenerateAllocationStubForClass(
   // Restore the frame pointer.
   __ LeaveFrame();
   __ ret();
+  // Emit function patching code. This will be swapped with the first 5 bytes
+  // at entry point.
+  *patch_code_pc_offset = assembler->CodeSize();
+  __ Jmp(*StubCode::FixAllocationStubTarget_entry());
 }
 
 
@@ -1175,7 +1168,7 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
 // function and not the top-scope function.
 void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
   Register ic_reg = ECX;
-  Register func_reg = EBX;
+  Register func_reg = EDI;
   if (FLAG_trace_optimized_ic_calls) {
     __ EnterStubFrame();
     __ pushl(func_reg);     // Preserve
@@ -1711,12 +1704,10 @@ void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ pushl(raw_null);  // Room for result.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
-  __ popl(EAX);  // Code of original stub.
+  __ popl(EAX);  // Address of original stub.
   __ popl(ECX);  // Restore IC data.
   __ LeaveFrame();
-  // Jump to original stub.
-  __ movl(EAX, FieldAddress(EAX, Code::entry_point_offset()));
-  __ jmp(EAX);
+  __ jmp(EAX);   // Jump to original stub.
 }
 
 
@@ -1728,11 +1719,9 @@ void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ pushl(raw_null);  // Room for result.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
-  __ popl(EAX);  // Code of the original stub
+  __ popl(EAX);  // Address of original stub.
   __ LeaveFrame();
-  // Jump to original stub.
-  __ movl(EAX, FieldAddress(EAX, Code::entry_point_offset()));
-  __ jmp(EAX);
+  __ jmp(EAX);   // Jump to original stub.
 }
 
 
@@ -1904,7 +1893,7 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
 
 
 // Calls to the runtime to optimize the given function.
-// EBX: function to be reoptimized.
+// EDI: function to be reoptimized.
 // EDX: argument descriptor (preserved).
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   const Immediate& raw_null =
@@ -1912,7 +1901,7 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushl(EDX);
   __ pushl(raw_null);  // Setup space on stack for return value.
-  __ pushl(EBX);
+  __ pushl(EDI);
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
   __ popl(EAX);  // Discard argument.
   __ popl(EAX);  // Get Code object
@@ -2079,12 +2068,12 @@ void StubCode::EmitMegamorphicLookup(
 
 
 // Called from megamorphic calls.
-//  ECX: receiver.
+//  EDI: receiver.
 //  EBX: lookup cache.
 // Result:
 //  EBX: entry point.
 void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
-  EmitMegamorphicLookup(assembler, ECX, EBX, EBX);
+  EmitMegamorphicLookup(assembler, EDI, EBX, EBX);
   __ ret();
 }
 

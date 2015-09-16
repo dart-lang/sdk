@@ -355,24 +355,22 @@ void Assembler::Bind(Label* label) {
 }
 
 
-void Assembler::LoadWordFromPoolOffset(Register rd,
-                                       int32_t offset,
-                                       Register pp) {
-  ASSERT((pp != PP) || constant_pool_allowed());
+void Assembler::LoadWordFromPoolOffset(Register rd, int32_t offset) {
+  ASSERT(constant_pool_allowed());
   ASSERT(!in_delay_slot_);
-  ASSERT(rd != pp);
+  ASSERT(rd != PP);
   if (Address::CanHoldOffset(offset)) {
-    lw(rd, Address(pp, offset));
+    lw(rd, Address(PP, offset));
   } else {
     const int16_t offset_low = Utils::Low16Bits(offset);  // Signed.
     offset -= offset_low;
     const uint16_t offset_high = Utils::High16Bits(offset);  // Unsigned.
     if (offset_high != 0) {
       lui(rd, Immediate(offset_high));
-      addu(rd, rd, pp);
+      addu(rd, rd, PP);
       lw(rd, Address(rd, offset_low));
     } else {
-      lw(rd, Address(pp, offset_low));
+      lw(rd, Address(PP, offset_low));
     }
   }
 }
@@ -459,43 +457,22 @@ void Assembler::SubuDetectOverflow(Register rd, Register rs, Register rt,
 }
 
 
-void Assembler::CheckCodePointer() {
-#ifdef DEBUG
-  Label cid_ok, instructions_ok;
-  Push(CMPRES1);
-  Push(CMPRES2);
-  LoadClassId(CMPRES1, CODE_REG);
-  BranchEqual(CMPRES1, Immediate(kCodeCid), &cid_ok);
-  break_(0);
-  Bind(&cid_ok);
-  GetNextPC(CMPRES1, TMP);
-  const intptr_t entry_offset = CodeSize() - Instr::kInstrSize +
-      Instructions::HeaderSize() - kHeapObjectTag;
-  AddImmediate(CMPRES1, CMPRES1, -entry_offset);
-  lw(CMPRES2, FieldAddress(CODE_REG, Code::saved_instructions_offset()));
-  BranchEqual(CMPRES1, CMPRES2, &instructions_ok);
-  break_(1);
-  Bind(&instructions_ok);
-  Pop(CMPRES2);
-  Pop(CMPRES1);
-#endif
-}
-
-
-void Assembler::RestoreCodePointer() {
-  lw(CODE_REG, Address(FP, kPcMarkerSlotFromFp * kWordSize));
-  CheckCodePointer();
-}
-
-
-void Assembler::Branch(const StubEntry& stub_entry, Register pp) {
+void Assembler::Branch(const StubEntry& stub_entry) {
   ASSERT(!in_delay_slot_);
-  const Code& target_code = Code::Handle(stub_entry.code());
-  const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindObject(target_code, kPatchable));
-  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, pp);
-  lw(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  LoadImmediate(TMP, stub_entry.label().address());
   jr(TMP);
+}
+
+
+void Assembler::BranchPatchable(const StubEntry& stub_entry) {
+  ASSERT(!in_delay_slot_);
+  const ExternalLabel& label = stub_entry.label();
+  const uint16_t low = Utils::Low16Bits(label.address());
+  const uint16_t high = Utils::High16Bits(label.address());
+  lui(T9, Immediate(high));
+  ori(T9, T9, Immediate(low));
+  jr(T9);
+  delay_slot_available_ = false;  // CodePatcher expects a nop.
 }
 
 
@@ -510,21 +487,7 @@ void Assembler::BranchLink(const ExternalLabel* label, Patchability patchable) {
   ASSERT(!in_delay_slot_);
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindExternalLabel(label, patchable));
-  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
-  lw(T9, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  jalr(T9);
-  if (patchable == kPatchable) {
-    delay_slot_available_ = false;  // CodePatcher expects a nop.
-  }
-}
-
-
-void Assembler::BranchLink(const Code& target, Patchability patchable) {
-  ASSERT(!in_delay_slot_);
-  const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindObject(target, patchable));
-  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
-  lw(T9, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  LoadWordFromPoolOffset(T9, offset - kHeapObjectTag);
   jalr(T9);
   if (patchable == kPatchable) {
     delay_slot_available_ = false;  // CodePatcher expects a nop.
@@ -534,12 +497,12 @@ void Assembler::BranchLink(const Code& target, Patchability patchable) {
 
 void Assembler::BranchLink(const StubEntry& stub_entry,
                            Patchability patchable) {
-  BranchLink(Code::Handle(stub_entry.code()), patchable);
+  BranchLink(&stub_entry.label(), patchable);
 }
 
 
 void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
-  BranchLink(Code::Handle(stub_entry.code()), kPatchable);
+  BranchLink(&stub_entry.label(), kPatchable);
 }
 
 
@@ -591,15 +554,6 @@ void Assembler::LoadExternalLabel(Register rd,
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindExternalLabel(label, patchable));
   LoadWordFromPoolOffset(rd, offset - kHeapObjectTag);
-}
-
-
-void Assembler::LoadFunctionFromCalleePool(Register dst,
-                                           const Function& function,
-                                           Register new_pp) {
-  const int32_t offset =
-      ObjectPool::element_offset(object_pool_wrapper_.FindObject(function));
-  LoadWordFromPoolOffset(dst, offset - kHeapObjectTag, new_pp);
 }
 
 
@@ -680,7 +634,6 @@ void Assembler::StoreIntoObject(Register object,
   if (object != T0) {
     mov(T0, object);
   }
-  lw(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
   lw(T9, Address(THR, Thread::update_store_buffer_entry_point_offset()));
   jalr(T9);
   lw(RA, Address(SP, 0 * kWordSize));
@@ -875,8 +828,17 @@ void Assembler::LeaveFrameAndReturn() {
 }
 
 
-void Assembler::EnterStubFrame(intptr_t frame_size) {
-  EnterDartFrame(frame_size);
+void Assembler::EnterStubFrame() {
+  ASSERT(!in_delay_slot_);
+  SetPrologueOffset();
+  addiu(SP, SP, Immediate(-4 * kWordSize));
+  sw(ZR, Address(SP, 3 * kWordSize));  // PC marker is 0 in stubs.
+  sw(RA, Address(SP, 2 * kWordSize));
+  sw(FP, Address(SP, 1 * kWordSize));
+  sw(PP, Address(SP, 0 * kWordSize));
+  addiu(FP, SP, Immediate(1 * kWordSize));
+  // Setup pool pointer for this stub.
+  LoadPoolPointer();
 }
 
 
@@ -886,7 +848,13 @@ void Assembler::LeaveStubFrame() {
 
 
 void Assembler::LeaveStubFrameAndReturn(Register ra) {
-  LeaveDartFrameAndReturn(ra);
+  ASSERT(!in_delay_slot_);
+  addiu(SP, FP, Immediate(-1 * kWordSize));
+  lw(RA, Address(SP, 2 * kWordSize));
+  lw(FP, Address(SP, 1 * kWordSize));
+  lw(PP, Address(SP, 0 * kWordSize));
+  jr(ra);
+  delay_slot()->addiu(SP, SP, Immediate(4 * kWordSize));
 }
 
 
@@ -1106,19 +1074,31 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 
 void Assembler::EnterDartFrame(intptr_t frame_size) {
   ASSERT(!in_delay_slot_);
+  const intptr_t offset = CodeSize();
 
   SetPrologueOffset();
 
   addiu(SP, SP, Immediate(-4 * kWordSize));
-  sw(RA, Address(SP, 3 * kWordSize));
-  sw(FP, Address(SP, 2 * kWordSize));
-  sw(CODE_REG, Address(SP, 1 * kWordSize));
+  sw(RA, Address(SP, 2 * kWordSize));
+  sw(FP, Address(SP, 1 * kWordSize));
   sw(PP, Address(SP, 0 * kWordSize));
 
-  // Set FP to the saved previous FP.
-  addiu(FP, SP, Immediate(2 * kWordSize));
+  GetNextPC(TMP);  // TMP gets the address of the next instruction.
 
-  LoadPoolPointer();
+  // Calculate the offset of the pool pointer from the PC.
+  const intptr_t object_pool_pc_dist =
+      Instructions::HeaderSize() - Instructions::object_pool_offset() +
+      CodeSize();
+
+  // Save PC in frame for fast identification of corresponding code.
+  AddImmediate(TMP, -offset);
+  sw(TMP, Address(SP, 3 * kWordSize));
+
+  // Set FP to the saved previous FP.
+  addiu(FP, SP, Immediate(kWordSize));
+
+  // Load the pool pointer. offset has already been subtracted from TMP.
+  lw(PP, Address(TMP, -object_pool_pc_dist + offset));
 
   // Reserve space for locals.
   AddImmediate(SP, -frame_size);
@@ -1134,43 +1114,55 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
   ASSERT(!in_delay_slot_);
   Comment("EnterOsrFrame");
 
+  GetNextPC(TMP);  // TMP gets the address of the next instruction.
+
+  // The runtime system assumes that the code marker address is
+  // kEntryPointToPcMarkerOffset bytes from the entry.  Since there is no
+  // code to set up the frame pointer, etc., the address needs to be adjusted.
+  const intptr_t offset = EntryPointToPcMarkerOffset() - CodeSize();
+  // Calculate the offset of the pool pointer from the PC.
+  const intptr_t object_pool_pc_dist =
+      Instructions::HeaderSize() - Instructions::object_pool_offset() +
+      CodeSize();
+
+  // Adjust PC by the offset, and store it in the stack frame.
+  AddImmediate(TMP, TMP, offset);
+  sw(TMP, Address(FP, kPcMarkerSlotFromFp * kWordSize));
+
   // Restore return address.
   lw(RA, Address(FP, 1 * kWordSize));
 
   // Load the pool pointer. offset has already been subtracted from temp.
-  RestoreCodePointer();
-  LoadPoolPointer();
+  lw(PP, Address(TMP, -object_pool_pc_dist - offset));
 
   // Reserve space for locals.
   AddImmediate(SP, -extra_size);
 }
 
 
-void Assembler::LeaveDartFrame(RestorePP restore_pp) {
+void Assembler::LeaveDartFrame() {
   ASSERT(!in_delay_slot_);
-  addiu(SP, FP, Immediate(-2 * kWordSize));
+  addiu(SP, FP, Immediate(-kWordSize));
 
-  lw(RA, Address(SP, 3 * kWordSize));
-  lw(FP, Address(SP, 2 * kWordSize));
-  if (restore_pp == kRestoreCallerPP) {
-    lw(PP, Address(SP, 0 * kWordSize));
-  }
+  lw(RA, Address(SP, 2 * kWordSize));
+  lw(FP, Address(SP, 1 * kWordSize));
+  lw(PP, Address(SP, 0 * kWordSize));
 
   // Adjust SP for PC, RA, FP, PP pushed in EnterDartFrame.
   addiu(SP, SP, Immediate(4 * kWordSize));
 }
 
 
-void Assembler::LeaveDartFrameAndReturn(Register ra) {
+void Assembler::LeaveDartFrameAndReturn() {
   ASSERT(!in_delay_slot_);
-  addiu(SP, FP, Immediate(-2 * kWordSize));
+  addiu(SP, FP, Immediate(-kWordSize));
 
-  lw(RA, Address(SP, 3 * kWordSize));
-  lw(FP, Address(SP, 2 * kWordSize));
+  lw(RA, Address(SP, 2 * kWordSize));
+  lw(FP, Address(SP, 1 * kWordSize));
   lw(PP, Address(SP, 0 * kWordSize));
 
   // Adjust SP for PC, RA, FP, PP pushed in EnterDartFrame, and return.
-  jr(ra);
+  Ret();
   delay_slot()->addiu(SP, SP, Immediate(4 * kWordSize));
 }
 

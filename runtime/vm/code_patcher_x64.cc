@@ -16,44 +16,28 @@
 
 namespace dart {
 
-
-static bool MatchesPattern(uword addr, int16_t* pattern, intptr_t size) {
-  uint8_t* bytes = reinterpret_cast<uint8_t*>(addr);
-  for (intptr_t i = 0; i < size; i++) {
-    int16_t val = pattern[i];
-    if ((val >= 0) && (val != bytes[i])) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
-intptr_t IndexFromPPLoad(uword start) {
-  int32_t offset = *reinterpret_cast<int32_t*>(start);
-  return ObjectPool::IndexFromOffset(offset);
-}
-
-
+// The expected pattern of a Dart unoptimized call (static and instance):
+//   0: 49 8b 9f imm32  mov RBX, [PP + off]
+//   7: 41 ff 97 imm32  call [PP + off]
+//  14 <- return address
 class UnoptimizedCall : public ValueObject {
  public:
   UnoptimizedCall(uword return_address, const Code& code)
       : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
         start_(return_address - kCallPatternSize) {
+    ASSERT(IsValid(return_address));
     ASSERT((kCallPatternSize - 7) == Assembler::kCallExternalLabelSize);
-    ASSERT(IsValid());
   }
 
-  static const int kCallPatternSize = 22;
+  static const int kCallPatternSize = 14;
 
-  bool IsValid() const {
-    static int16_t pattern[kCallPatternSize] = {
-      0x49, 0x8b, 0x9f, -1, -1, -1, -1,  // movq RBX, [PP + offs]
-      0x4d, 0x8b, 0xa7, -1, -1, -1, -1,  // movq CR, [PP + offs]
-      0x4d, 0x8b, 0x5c, 0x24, 0x07,      // movq TMP, [CR + entry_point_offs]
-      0x41, 0xff, 0xd3                   // callq TMP
-    };
-    return MatchesPattern(start_, pattern, kCallPatternSize);
+  static bool IsValid(uword return_address) {
+    uint8_t* code_bytes =
+        reinterpret_cast<uint8_t*>(return_address - kCallPatternSize);
+    return (code_bytes[0] == 0x49) && (code_bytes[1] == 0x8B) &&
+           (code_bytes[2] == 0x9F) &&
+           (code_bytes[7] == 0x41) && (code_bytes[8] == 0xFF) &&
+           (code_bytes[9] == 0x97);
   }
 
   intptr_t argument_index() const {
@@ -64,16 +48,14 @@ class UnoptimizedCall : public ValueObject {
     return object_pool_.ObjectAt(argument_index());
   }
 
-  RawCode* target() const {
+  uword target() const {
     intptr_t index = IndexFromPPLoad(start_ + 10);
-    Code& code = Code::Handle();
-    code ^= object_pool_.ObjectAt(index);
-    return code.raw();
+    return object_pool_.RawValueAt(index);
   }
 
-  void set_target(const Code& target) const {
+  void set_target(uword target) const {
     intptr_t index = IndexFromPPLoad(start_ + 10);
-    object_pool_.SetObjectAt(index, target);
+    object_pool_.SetRawValueAt(index, target);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
@@ -140,38 +122,36 @@ class UnoptimizedStaticCall : public UnoptimizedCall {
 
 
 // The expected pattern of a call where the target is loaded from
-// the object pool.
+// the object pool:
+//   0: 41 ff 97 imm32  call [PP + off]
+//   7: <- return address
 class PoolPointerCall : public ValueObject {
  public:
   explicit PoolPointerCall(uword return_address, const Code& code)
       : start_(return_address - kCallPatternSize),
         object_pool_(ObjectPool::Handle(code.GetObjectPool())) {
-    ASSERT(IsValid());
+    ASSERT(IsValid(return_address));
   }
 
-  static const int kCallPatternSize = 15;
+  static const int kCallPatternSize = 7;
 
-  bool IsValid() const {
-    static int16_t pattern[kCallPatternSize] = {
-      0x4d, 0x8b, 0xa7,   -1,   -1, -1, -1,  // movq CR, [PP + offs]
-      0x4d, 0x8b, 0x5c, 0x24, 0x07,          // movq TMP, [CR + entry_point_off]
-      0x41, 0xff, 0xd3                       // callq TMP
-    };
-    return MatchesPattern(start_, pattern, kCallPatternSize);
+  static bool IsValid(uword return_address) {
+    uint8_t* code_bytes =
+        reinterpret_cast<uint8_t*>(return_address - kCallPatternSize);
+    return (code_bytes[0] == 0x41) && (code_bytes[1] == 0xFF) &&
+           (code_bytes[2] == 0x97);
   }
 
   intptr_t pp_index() const {
     return IndexFromPPLoad(start_ + 3);
   }
 
-  RawCode* Target() const {
-    Code& code = Code::Handle();
-    code ^= object_pool_.ObjectAt(pp_index());
-    return code.raw();
+  uword Target() const {
+    return object_pool_.RawValueAt(pp_index());
   }
 
-  void SetTarget(const Code& target) const {
-    object_pool_.SetObjectAt(pp_index(), target);
+  void SetTarget(uword target) const {
+    object_pool_.SetRawValueAt(pp_index(), target);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
@@ -184,8 +164,8 @@ class PoolPointerCall : public ValueObject {
 };
 
 
-RawCode* CodePatcher::GetStaticCallTargetAt(uword return_address,
-                                            const Code& code) {
+uword CodePatcher::GetStaticCallTargetAt(uword return_address,
+                                         const Code& code) {
   ASSERT(code.ContainsInstructionAt(return_address));
   PoolPointerCall call(return_address, code);
   return call.Target();
@@ -194,23 +174,32 @@ RawCode* CodePatcher::GetStaticCallTargetAt(uword return_address,
 
 void CodePatcher::PatchStaticCallAt(uword return_address,
                                     const Code& code,
-                                    const Code& new_target) {
+                                    uword new_target) {
   PatchPoolPointerCallAt(return_address, code, new_target);
 }
 
 
 void CodePatcher::PatchPoolPointerCallAt(uword return_address,
                                          const Code& code,
-                                         const Code& new_target) {
+                                         uword new_target) {
   ASSERT(code.ContainsInstructionAt(return_address));
   PoolPointerCall call(return_address, code);
   call.SetTarget(new_target);
 }
 
 
-RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
-                                        const Code& code,
-                                        ICData* ic_data) {
+void CodePatcher::PatchInstanceCallAt(uword return_address,
+                                      const Code& code,
+                                      uword new_target) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  InstanceCall call(return_address, code);
+  call.set_target(new_target);
+}
+
+
+uword CodePatcher::GetInstanceCallAt(uword return_address,
+                                     const Code& code,
+                                     ICData* ic_data) {
   ASSERT(code.ContainsInstructionAt(return_address));
   InstanceCall call(return_address, code);
   if (ic_data != NULL) {
@@ -225,7 +214,7 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
 }
 
 
-void CodePatcher::InsertDeoptimizationCallAt(uword start, uword target) {
+void CodePatcher::InsertCallAt(uword start, uword target) {
   // The inserted call should not overlap the lazy deopt jump code.
   ASSERT(start + ShortCallPattern::pattern_length_in_bytes() <= target);
   *reinterpret_cast<uint8_t*>(start) = 0xE8;
@@ -254,14 +243,14 @@ void CodePatcher::PatchNativeCallAt(uword return_address,
                                     const Code& trampoline) {
   ASSERT(code.ContainsInstructionAt(return_address));
   NativeCall call(return_address, code);
-  call.set_target(trampoline);
+  call.set_target(trampoline.EntryPoint());
   call.set_native_function(target);
 }
 
 
-RawCode* CodePatcher::GetNativeCallAt(uword return_address,
-                                      const Code& code,
-                                      NativeFunction* target) {
+uword CodePatcher::GetNativeCallAt(uword return_address,
+                                   const Code& code,
+                                   NativeFunction* target) {
   ASSERT(code.ContainsInstructionAt(return_address));
   NativeCall call(return_address, code);
   *target = call.native_function();
