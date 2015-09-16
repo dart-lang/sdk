@@ -131,10 +131,11 @@ def _PromoteDartArchiveBuild(channel, revision):
     remove_gs_directory(to_loc)
     Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
 
-    # Copy api-docs zipfile.
-    from_loc = raw_namer.apidocs_zipfilepath(revision)
-    to_loc = release_namer.apidocs_zipfilepath(to_revision)
-    Gsutil(['-m', 'cp', '-a', 'public-read', from_loc, to_loc])
+    # Copy api-docs directory.
+    from_loc = raw_namer.apidocs_directory(revision)
+    to_loc = release_namer.apidocs_directory(to_revision)
+    remove_gs_directory(to_loc)
+    Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
 
     # Copy dartium directory.
     from_loc = raw_namer.dartium_directory(revision)
