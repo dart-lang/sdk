@@ -3321,18 +3321,33 @@ class FallThroughErrorImplementation extends FallThroughError {
 
 /**
  * Helper function for implementing asserts. The compiler treats this specially.
+ *
+ * Returns the negation of the condition. That is: `true` if the assert should
+ * fail.
  */
+bool assertTest(condition) {
+  // Do bool success check first, it is common and faster than 'is Function'.
+  if (true == condition) return false;
+  if (condition is Function) condition = condition();
+  if (condition is bool) return !condition;
+  throw new TypeErrorImplementation(condition, 'bool');
+}
+
+/**
+ * Helper function for implementing asserts with messages.
+ * The compiler treats this specially.
+ */
+void assertThrow(Object message) {
+  throw new _AssertionError(message);
+}
+
+/**
+ * Helper function for implementing asserts without messages.
+ * The compiler treats this specially.
+ */
+@NoInline()
 void assertHelper(condition) {
-  // Do a bool check first because it is common and faster than 'is Function'.
-  if (condition is !bool) {
-    if (condition is Function) condition = condition();
-    if (condition is !bool) {
-      throw new TypeErrorImplementation(condition, 'bool');
-    }
-  }
-  // Compare to true to avoid boolean conversion check in checked
-  // mode.
-  if (true != condition) throw new AssertionError();
+  if (assertTest(condition)) throw new AssertionError();
 }
 
 /**
@@ -3994,4 +4009,11 @@ void badMain() {
 
 void mainHasTooManyParameters() {
   throw new MainError("'main' expects too many parameters.");
+}
+
+class _AssertionError extends AssertionError {
+  final _message;
+  _AssertionError(this._message);
+
+  String toString() => "Assertion failed: " + Error.safeToString(_message);
 }

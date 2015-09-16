@@ -9,6 +9,7 @@ abstract class Visitor<R> {
 
   R visitNode(Node node);
 
+  R visitAssert(Assert node) => visitStatement(node);
   R visitAsyncForIn(AsyncForIn node) => visitLoop(node);
   R visitAsyncModifier(AsyncModifier node) => visitNode(node);
   R visitAwait(Await node) => visitExpression(node);
@@ -146,6 +147,7 @@ abstract class Node extends NullTreeElementMixin implements Spannable {
 
   Token getEndToken();
 
+  Assert asAssert() => null;
   AsyncModifier asAsyncModifier() => null;
   Await asAwait() => null;
   Block asBlock() => null;
@@ -1209,6 +1211,30 @@ class Await extends Expression {
   Token getBeginToken() => awaitToken;
 
   Token getEndToken() => expression.getEndToken();
+}
+
+class Assert extends Statement {
+  final Token assertToken;
+  final Expression condition;
+  /** Message may be `null`. */
+  final Expression message;
+  final Token semicolonToken;
+
+  Assert(this.assertToken, this.condition, this.message, this.semicolonToken);
+
+  Assert asAssert() => this;
+
+  bool get hasMessage => message != null;
+
+  accept(Visitor visitor) => visitor.visitAssert(this);
+
+  visitChildren(Visitor visitor) {
+    condition.accept(visitor);
+    if (message != null) message.accept(visitor);
+  }
+
+  Token getBeginToken() => assertToken;
+  Token getEndToken() => semicolonToken;
 }
 
 class Rethrow extends Statement {

@@ -83,15 +83,6 @@ class TypeResult extends ResolutionResult {
   String toString() => 'TypeResult($type)';
 }
 
-/// The result for the resolution of the `assert` method.
-class AssertResult extends ResolutionResult {
-  const AssertResult();
-
-  ResultKind get kind => ResultKind.ASSERT;
-
-  String toString() => 'AssertResult()';
-}
-
 /// The result for resolving a constant expression.
 class ConstantResult extends ResolutionResult {
   final Node node;
