@@ -118,7 +118,6 @@ void OSThread::Join(ThreadJoinId id) {
   // Second OSThread could be refactored to no longer be AllStatic. Then the
   // handle could be cached in the object by the Start method.
   if (handle == NULL) {
-    ASSERT(GetLastError() == ERROR_INVALID_PARAMETER);
     return;
   }
 
