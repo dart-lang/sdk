@@ -19,7 +19,7 @@ namespace bin {
 
 // Global flag that is used to indicate that the VM should do a clean
 // shutdown.
-bool do_vm_shutdown = true;
+bool do_vm_shutdown = false;
 
 static const int kProcessIdNativeField = 0;
 
