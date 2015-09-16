@@ -76,12 +76,12 @@ abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
       'type': type,
       'id': id,
       'name': name,
-      'total_read': totalRead,
-      'total_written': totalWritten,
-      'read_count': readCount,
-      'write_count': writeCount,
-      'last_read': lastRead,
-      'last_write': lastWrite
+      'totalRead': totalRead,
+      'totalWritten': totalWritten,
+      'readCount': readCount,
+      'writeCount': writeCount,
+      'lastRead': lastRead,
+      'lastWrite': lastWrite
     };
 }
 
@@ -161,9 +161,9 @@ class _ProcessResourceInfo extends _IOResourceInfo{
       'id': id,
       'name': name,
       'pid': process.pid,
-      'started_at': startedAt,
+      'startedAt': startedAt,
       'arguments': process._arguments,
-      'working_directory':
+      'workingDirectory':
           process._workingDirectory == null ? '.' : process._workingDirectory,
     };
 
@@ -232,24 +232,24 @@ class _SocketResourceInfo extends _ReadWriteResourceInfo {
 
   Map<String, String> getSocketInfoMap() {
     var result = fullValueMap;
-    result['socket_type'] = socket.isTcp ? TCP_STRING : UDP_STRING;
+    result['socketType'] = socket.isTcp ? TCP_STRING : UDP_STRING;
     result['listening'] = socket.isListening;
     result['host'] = socket.address.host;
     result['port'] = socket.port;
     if (!socket.isListening) {
       try {
-        result['remote_host'] = socket.remoteAddress.host;
-        result['remote_port'] = socket.remotePort;
+        result['remoteHost'] = socket.remoteAddress.host;
+        result['remotePort'] = socket.remotePort;
       } catch (e) {
         // UDP.
-        result['remote_port'] = 'NA';
-        result['remote_host'] = 'NA';
+        result['remotePort'] = 'NA';
+        result['remoteHost'] = 'NA';
       }
     } else {
-      result['remote_port'] = 'NA';
-      result['remote_host'] = 'NA';
+      result['remotePort'] = 'NA';
+      result['remoteHost'] = 'NA';
     }
-    result['address_type'] = socket.address.type.name;
+    result['addressType'] = socket.address.type.name;
     return result;
   }
 

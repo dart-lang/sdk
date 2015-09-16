@@ -62,12 +62,12 @@ var tests = [
     var server = await isolate.invokeRpcNoUpgrade(
         '__getSocketByID', { 'id' : result['data'][0]['id'] });
     expect(server['listening'], isTrue);
-    expect(server['last_read'], equals(0));
-    expect(server['total_read'], equals(0));
-    expect(server['last_write'], equals(0));
-    expect(server['total_written'], equals(0));
-    expect(server['write_count'], equals(0));
-    expect(server['read_count'], equals(0));
+    expect(server['lastRead'], equals(0));
+    expect(server['totalRead'], equals(0));
+    expect(server['lastWrite'], equals(0));
+    expect(server['totalWritten'], equals(0));
+    expect(server['writeCount'], equals(0));
+    expect(server['readCount'], equals(0));
   },
 ];
 
