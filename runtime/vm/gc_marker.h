@@ -49,8 +49,10 @@ class GCMarker : public ValueObject {
   // Called by anyone: finalize and accumulate stats from 'visitor'.
   void FinalizeResultsFrom(MarkingVisitor* visitor);
 
-  Monitor monitor_;  // Protects marked_bytes_ and done_count_.
   Heap* heap_;
+
+  Mutex stats_mutex_;
+  // TODO(koda): Remove after verifying it's redundant w.r.t. ClassHeapStats.
   uintptr_t marked_bytes_;
 
   friend class MarkTask;

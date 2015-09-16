@@ -520,11 +520,12 @@ void ClassTable::ResetAllocationAccumulators() {
 }
 
 
-void ClassTable::UpdateLiveOld(intptr_t cid, intptr_t size) {
+void ClassTable::UpdateLiveOld(intptr_t cid, intptr_t size, intptr_t count) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
   ASSERT(stats != NULL);
   ASSERT(size >= 0);
-  stats->post_gc.AddOld(size);
+  ASSERT(count >= 0);
+  stats->post_gc.AddOld(size, count);
 }
 
 

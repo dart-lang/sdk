@@ -155,7 +155,8 @@ class MarkingVisitor : public ObjectPointerVisitor {
         thread_(Thread::Current()),
         heap_(heap),
         vm_heap_(Dart::vm_isolate()->heap()),
-        class_table_(isolate->class_table()),
+        class_stats_count_(isolate->class_table()->NumCids()),
+        class_stats_size_(isolate->class_table()->NumCids()),
         page_space_(page_space),
         work_list_(marking_stack),
         delay_set_(delay_set),
@@ -164,9 +165,23 @@ class MarkingVisitor : public ObjectPointerVisitor {
         marked_bytes_(0) {
     ASSERT(heap_ != vm_heap_);
     ASSERT(thread_->isolate() == isolate);
+    class_stats_count_.SetLength(isolate->class_table()->NumCids());
+    class_stats_size_.SetLength(isolate->class_table()->NumCids());
+    for (intptr_t i = 0; i < class_stats_count_.length(); ++i) {
+      class_stats_count_[i] = 0;
+      class_stats_size_[i] = 0;
+    }
   }
 
   uintptr_t marked_bytes() const { return marked_bytes_; }
+
+  intptr_t live_count(intptr_t class_id) {
+    return class_stats_count_[class_id];
+  }
+
+  intptr_t live_size(intptr_t class_id) {
+    return class_stats_size_[class_id];
+  }
 
   // Returns true if some non-zero amount of work was performed.
   bool DrainMarkingStack() {
@@ -347,18 +362,26 @@ class MarkingVisitor : public ObjectPointerVisitor {
       return;
     }
     if (RawObject::IsVariableSizeClassId(raw_obj->GetClassId())) {
-      class_table_->UpdateLiveOld(raw_obj->GetClassId(), raw_obj->Size());
+      UpdateLiveOld(raw_obj->GetClassId(), raw_obj->Size());
     } else {
-      class_table_->UpdateLiveOld(raw_obj->GetClassId(), 0);
+      UpdateLiveOld(raw_obj->GetClassId(), 0);
     }
 
     MarkAndPush(raw_obj);
   }
 
+  void UpdateLiveOld(intptr_t class_id, intptr_t size) {
+    // TODO(koda): Support growing the array once mutator runs concurrently.
+    ASSERT(class_id < class_stats_count_.length());
+    class_stats_count_[class_id] += 1;
+    class_stats_size_[class_id] += size;
+  }
+
   Thread* thread_;
   Heap* heap_;
   Heap* vm_heap_;
-  ClassTable* class_table_;
+  GrowableArray<intptr_t> class_stats_count_;
+  GrowableArray<intptr_t> class_stats_size_;
   PageSpace* page_space_;
   WorkList work_list_;
   DelaySet* delay_set_;
@@ -611,8 +634,18 @@ class MarkTask : public ThreadPool::Task {
 
 void GCMarker::FinalizeResultsFrom(MarkingVisitor* visitor) {
   {
-    MonitorLocker ml(&monitor_);
+    MutexLocker ml(&stats_mutex_);
     marked_bytes_ += visitor->marked_bytes();
+    // Class heap stats are not themselves thread-safe yet, so we update the
+    // stats while holding stats_mutex_.
+    ClassTable* table = heap_->isolate()->class_table();
+    for (intptr_t i = 0; i < table->NumCids(); ++i) {
+      const intptr_t count = visitor->live_count(i);
+      if (count > 0) {
+        const intptr_t size = visitor->live_size(i);
+        table->UpdateLiveOld(i, size, count);
+      }
+    }
   }
   visitor->Finalize();
 }
