@@ -46,6 +46,17 @@ var tests = [
     }
     expect(caughtException, isTrue);
   },
+
+  // Plausible isolate id, not found.
+  (VM vm) async {
+    var params = {
+      'isolateId': 'isolates/9999999999',
+    };
+    var result = await vm.invokeRpcNoUpgrade('getIsolate', params);
+    expect(result['type'], equals('Sentinel'));
+    expect(result['kind'], equals('Collected'));
+    expect(result['valueAsString'], equals('<collected>'));
+  },
 ];
 
 main(args) async => runVMTests(args, tests);

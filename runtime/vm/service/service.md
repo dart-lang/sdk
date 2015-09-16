@@ -478,18 +478,21 @@ See [FlagList](#flaglist).
 ### getIsolate
 
 ```
-Isolate getIsolate(string isolateId)
+Isolate|Sentinel getIsolate(string isolateId)
 ```
 
 The _getIsolate_ RPC is used to lookup an _Isolate_ object by its _id_.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [Isolate](#isolate).
 
 ### getObject
 
 ```
-Object|Sentinel  getObject(string isolateId,
-                           string objectId)
+Object|Sentinel getObject(string isolateId,
+                          string objectId)
 ```
 
 The _getObject_ RPC is used to lookup an _object_ from some isolate by
@@ -2113,7 +2116,7 @@ version | comments
 ------- | --------
 1.0 draft 1 | initial revision
 1.1 | Describe protocol version 2.0.
-1.2 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.
+1.2 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.
 
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

@@ -51,6 +51,16 @@ String encodeRpcError(Message message, int code, {String details}) {
   return JSON.encode(response);
 }
 
+String encodeResult(Message message, Map result) {
+  var response = {
+    'jsonrpc': '2.0',
+    'id' : message.serial,
+    'result' : result,
+  };
+  return JSON.encode(response);
+}
+
+
 class VMService extends MessageRouter {
   static VMService _instance;
 
@@ -174,15 +184,6 @@ class VMService extends MessageRouter {
     message.setResponse(JSON.encode(result));
   }
 
-  String _encodeResult(Message message, Map result) {
-    var response = {
-      'jsonrpc': '2.0',
-      'id' : message.serial,
-      'result' : result,
-    };
-    return JSON.encode(response);
-  }
-
   bool _isAnyClientSubscribed(String streamId) {
     for (var client in clients) {
       if (client.streams.contains(streamId)) {
@@ -209,7 +210,7 @@ class VMService extends MessageRouter {
     client.streams.add(streamId);
 
     var result = { 'type' : 'Success' };
-    return _encodeResult(message, result);
+    return encodeResult(message, result);
   }
 
   Future<String> _streamCancel(Message message) async {
@@ -225,7 +226,7 @@ class VMService extends MessageRouter {
     }
 
     var result = { 'type' : 'Success' };
-    return _encodeResult(message, result);
+    return encodeResult(message, result);
   }
 
   // TODO(johnmccutchan): Turn this into a command line tool that uses the
@@ -283,7 +284,7 @@ class VMService extends MessageRouter {
     }
 
     // Encode the entire crash dump.
-    return _encodeResult(message, responses);
+    return encodeResult(message, responses);
   }
 
   Future<String> route(Message message) {
