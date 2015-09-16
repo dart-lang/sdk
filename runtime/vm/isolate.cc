@@ -845,9 +845,12 @@ Isolate* Isolate::Init(const char* name_prefix,
                 "\tisolate:    %s\n", result->name());
     }
   }
-  if (FLAG_compiler_stats) {
-    result->compiler_stats_ = new CompilerStats(result);
+
+  result->compiler_stats_ = new CompilerStats(result);
+  if (FLAG_compiler_benchmark) {
+    result->compiler_stats_->EnableBenchmark();
   }
+
   ObjectIdRing::Init(result);
 
   // Add to isolate list. Shutdown and delete the isolate on failure.
@@ -1479,7 +1482,7 @@ void Isolate::LowLevelShutdown() {
   HandleScope handle_scope(thread);
   NoSafepointScope no_safepoint_scope;
 
-  if (compiler_stats_ != NULL) {
+  if (FLAG_compiler_stats) {
     OS::Print("%s", compiler_stats()->PrintToZone());
   }
 

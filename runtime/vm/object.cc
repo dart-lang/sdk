@@ -8584,9 +8584,9 @@ void Script::Tokenize(const String& private_key) const {
   CSTAT_TIMER_SCOPE(thread, scanner_timer);
   const String& src = String::Handle(zone, Source());
   Scanner scanner(src, private_key);
-  set_tokens(TokenStream::Handle(zone,
-                                 TokenStream::New(scanner.GetStream(),
-                                                  private_key)));
+  const Scanner::GrowableTokenStream& ts = scanner.GetStream();
+  INC_STAT(thread, num_tokens_scanned, ts.length());
+  set_tokens(TokenStream::Handle(zone, TokenStream::New(ts, private_key)));
   INC_STAT(thread, src_length, src.Length());
 }
 
