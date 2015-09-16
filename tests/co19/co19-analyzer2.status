@@ -290,26 +290,3 @@ Language/15_Types/4_Interface_Types_A10_t09: StaticWarning # co19 issue 745
 Language/13_Statements/15_Assert_A04_t07: StaticWarning # Issue 23663
 Language/13_Statements/15_Assert_A03_t08: StaticWarning # Issue 23663
 
-# isProtocolHandlerRegistered and unregisterProtocolHandler don't exist
-LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: Skip
-WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t01: StaticWarning
-WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t02: StaticWarning
-WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t03: StaticWarning
-WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t04: StaticWarning
-WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t05: StaticWarning
-WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t06: StaticWarning
-LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: StaticWarning
-
-# Missing concrete implementation of setter 'XPathNSResolver.blink_jsObject' and getter 'XPathNSResolver.blink_jsObject'
-# TODO(terry): Dartium only because of implements instead of extends consider fixing by making blink_jsObject private
-#              with private wrap_jso and unwrap_jso in each library that delegates to the public wrap/unwrap_jso.
-LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t02: StaticWarning
-LayoutTests/fast/xpath/4XPath/Core/test_node_test_t01: StaticWarning
-LayoutTests/fast/xpath/4XPath/Core/test_node_test_t02: StaticWarning
-LayoutTests/fast/xpath/attr-namespace_t01: StaticWarning
-LayoutTests/fast/xpath/attr-namespace_t02: StaticWarning
-LayoutTests/fast/xpath/node-name-case-sensitivity_t01: StaticWarning
-LayoutTests/fast/xpath/node-name-case-sensitivity_t02: StaticWarning
-LayoutTests/fast/xpath/py-dom-xpath/data_t01: StaticWarning
-LayoutTests/fast/svg/getbbox_t01: StaticWarning
-

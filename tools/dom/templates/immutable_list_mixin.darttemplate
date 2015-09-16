@@ -7,7 +7,7 @@ $if DEFINE_LENGTH_AS_NUM_ITEMS
 $endif
 
 $if DEFINE_LENGTH_SETTER
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 $endif

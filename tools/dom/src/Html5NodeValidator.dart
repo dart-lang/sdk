@@ -423,11 +423,11 @@ class _Html5NodeValidator implements NodeValidator {
   }
 
   bool allowsElement(Element element) {
-    return _allowedElements.contains(element._safeTagName);
+    return _allowedElements.contains(element.tagName);
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
-    var tagName = element._safeTagName;
+    var tagName = element.tagName;
     var validator = _attributeValidators['$tagName::$attributeName'];
     if (validator == null) {
       validator = _attributeValidators['*::$attributeName'];

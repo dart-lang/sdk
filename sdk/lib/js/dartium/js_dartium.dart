@@ -4,7 +4,7 @@
 
 /**
  * Support for interoperating with JavaScript.
- *
+ * 
  * This library provides access to JavaScript objects from Dart, allowing
  * Dart code to get and set properties, and call methods of JavaScript objects
  * and invoke JavaScript functions. The library takes care of converting
@@ -27,14 +27,14 @@
  * global function `alert()`:
  *
  *     import 'dart:js';
- *
+ *     
  *     main() => context.callMethod('alert', ['Hello from Dart!']);
  *
  * This example shows how to create a [JsObject] from a JavaScript constructor
  * and access its properties:
  *
  *     import 'dart:js';
- *
+ *     
  *     main() {
  *       var object = new JsObject(context['Object']);
  *       object['greeting'] = 'Hello';
@@ -44,7 +44,7 @@
  *     }
  *
  * ## Proxying and automatic conversion
- *
+ * 
  * When setting properties on a JsObject or passing arguments to a Javascript
  * method or function, Dart objects are automatically converted or proxied to
  * JavaScript objects. When accessing JavaScript properties, or when a Dart
@@ -80,7 +80,7 @@
  * `a` and `b` defined:
  *
  *     var jsMap = new JsObject.jsify({'a': 1, 'b': 2});
- *
+ * 
  * This expression creates a JavaScript array:
  *
  *     var jsArray = new JsObject.jsify([1, 2, 3]);
@@ -91,7 +91,6 @@ import 'dart:collection' show ListMixin;
 import 'dart:nativewrappers';
 import 'dart:math' as math;
 import 'dart:mirrors' as mirrors;
-import 'dart:html' as html;
 
 // Pretend we are always in checked mode as we aren't interested in users
 // running Dartium code outside of checked mode.
@@ -492,14 +491,8 @@ class JsObject extends NativeFieldWrapperClass2 {
    * Constructs a new JavaScript object from [constructor] and returns a proxy
    * to it.
    */
-  factory JsObject(JsFunction constructor, [List arguments]) {
-    try {
-      return _create(constructor, arguments);
-    } catch (e) {
-      // Re-throw any errors (returned as a string) as a DomException.
-      throw new html.DomException.jsInterop(e);
-    }
-  }
+  factory JsObject(JsFunction constructor, [List arguments]) =>
+      _create(constructor, arguments);
 
   static JsObject _create(
       JsFunction constructor, arguments) native "JsObject_constructorCallback";
@@ -524,7 +517,7 @@ class JsObject extends NativeFieldWrapperClass2 {
    * Use this constructor only if you wish to get access to JavaScript
    * properties attached to a browser host object, such as a Node or Blob, that
    * is normally automatically converted into a native Dart object.
-   *
+   * 
    * An exception will be thrown if [object] either is `null` or has the type
    * `bool`, `num`, or `String`.
    */
@@ -553,7 +546,8 @@ class JsObject extends NativeFieldWrapperClass2 {
 
   static JsObject _jsify(object) native "JsObject_jsify";
 
-  static JsObject _fromBrowserObject(object) => html.unwrap_jso(object);
+  static JsObject _fromBrowserObject(
+      object) native "JsObject_fromBrowserObject";
 
   /**
    * Returns the value associated with [property] from the proxied JavaScript
@@ -561,15 +555,7 @@ class JsObject extends NativeFieldWrapperClass2 {
    *
    * The type of [property] must be either [String] or [num].
    */
-  operator [](property) {
-    try {
-      return _operator_getter(property);
-    } catch (e) {
-      // Re-throw any errors (returned as a string) as a DomException.
-      throw new html.DomException.jsInterop(e);
-    }
-  }
-  _operator_getter(property) native "JsObject_[]";
+  operator [](property) native "JsObject_[]";
 
   /**
    * Sets the value associated with [property] on the proxied JavaScript
@@ -577,26 +563,11 @@ class JsObject extends NativeFieldWrapperClass2 {
    *
    * The type of [property] must be either [String] or [num].
    */
-  operator []=(property, value) {
-    try {
-      _operator_setter(property, value);
-    } catch (e) {
-      // Re-throw any errors (returned as a string) as a DomException.
-      throw new html.DomException.jsInterop(e);
-    }
-  }
-  _operator_setter(property, value) native "JsObject_[]=";
+  operator []=(property, value) native "JsObject_[]=";
 
   int get hashCode native "JsObject_hashCode";
 
-  operator ==(other) {
-    var is_JsObject = other is JsObject;
-    if (!is_JsObject) {
-      other = html.unwrap_jso(other);
-      is_JsObject = other is JsObject;
-    }
-    return is_JsObject && _identityEquality(this, other);
-  }
+  operator ==(other) => other is JsObject && _identityEquality(this, other);
 
   static bool _identityEquality(
       JsObject a, JsObject b) native "JsObject_identityEquality";
@@ -647,8 +618,7 @@ class JsObject extends NativeFieldWrapperClass2 {
       return _callMethod(method, args);
     } catch (e) {
       if (hasProperty(method)) {
-        // Return a DomException if DOM call returned an error.
-        throw new html.DomException.jsInterop(e);
+        rethrow;
       } else {
         throw new NoSuchMethodError(this, new Symbol(method), args, null);
       }
@@ -784,12 +754,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     if (index is int) {
       _checkIndex(index);
     }
-
-    // Lazily create the Dart class that wraps the JS object when the object in
-    // a list if fetched.
-    var wrap_entry = html.wrap_jso(super[index]);
-    super[index] = wrap_entry;
-    return wrap_entry;
+    return super[index];
   }
 
   void operator []=(index, E value) {
@@ -801,7 +766,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 
   int get length native "JsArray_length";
 
-  set length(int length) {
+  void set length(int length) {
     super['length'] = length;
   }
 

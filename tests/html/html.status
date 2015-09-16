@@ -10,10 +10,17 @@ js_array_test: Skip # Issue 23676, 23677
 js_typed_interop_test: Skip # Issue 23676, 23677
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Issue 18931 (Disabled for Chrome 35 roll)
 form_data_test/functional: Skip # Issue 19726
 indexeddb_1_test/functional: Skip # Issue 19512 (timing out)
 indexeddb_4_test: Skip # Issue 19726
+mouse_event_test: Fail # Issue 20437
 worker_api_test: Fail # Issue 10223
+media_stream_test/constructors: Pass, Crash # Issue 22267
+element_animate_test/simple_timing: Fail # Not supported on Dartium
+element_animate_test/omit_timing: Fail # Not supported on Dartium
+element_animate_test/timing_dict: Fail # Not supported on Dartium
+trusted_html_tree_sanitizer_test/untrusted: Fail # We make adoptNode throw to verify it's not being called. That doesn't work on Dartium.
 resource_http_test: Fail # Issue 24203
 
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
@@ -29,7 +36,7 @@ custom/element_upgrade_test: Fail # Issue 17298
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor. Issue 14835
 fontface_loaded_test: Fail # Support for promises.
-storage_quota_test: Fail # Support for promises. API also not yet available anywhere.
+storage_quota_test: Fail # Support for promises.
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
@@ -51,9 +58,17 @@ isolates_test: Fail # Issue 13921
 indexeddb_3_test: Skip # Issue 19578.  Timeouts and RuntimeError
 fileapi_test/getFile: Pass, Fail # Issue 20488
 
+# DO NOT Suppress/Skip the below XSS security test for dart2js - any failure is a P0 bug.
+node_validator_important_if_you_suppress_make_the_bug_critical_test/dom_clobbering: Fail # Dartium is immune to DOM clobbering, so the HTML passes through the sanitizer.
+
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) && $mode == debug ]
 websocket_test/websocket: Skip # Issue 17666
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Issue 17666
+
+[ $compiler == none && $runtime == ContentShellOnAndroid ]
+canvasrenderingcontext2d_test/drawImage_video_element: RuntimeError # Issue 19127
+canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass, Fail # Issue 20524
+notification_test/constructors: Skip # Times out on Android Dartium. Issue 22835
 
 element_offset_test/offset: RuntimeError # Issue 17550
 request_animation_frame_test: Skip # Times out, and also passes while taking 4.00 minutes. Issue 19127.
