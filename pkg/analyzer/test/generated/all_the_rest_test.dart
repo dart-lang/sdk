@@ -868,8 +868,8 @@ class ConstantEvaluatorTest extends ResolverTestCase {
     NodeList<VariableDeclaration> variables =
         (declaration as TopLevelVariableDeclaration).variables.variables;
     expect(variables, hasLength(1));
-    ConstantEvaluator evaluator =
-        new ConstantEvaluator(source, analysisContext.typeProvider);
+    ConstantEvaluator evaluator = new ConstantEvaluator(
+        source, analysisContext.typeProvider, analysisContext.typeSystem);
     return evaluator.evaluate(variables[0].initializer);
   }
 }
@@ -2361,6 +2361,7 @@ class A {
     validator.computer = new ConstantValueComputer(
         analysisContext2,
         analysisContext2.typeProvider,
+        analysisContext2.typeSystem,
         analysisContext2.declaredVariables,
         validator);
     return validator.computer;
@@ -2393,8 +2394,8 @@ class ConstantVisitorTest extends ResolverTestCase {
     _assertValue(
         0,
         expression.accept(new ConstantVisitor(
-            new ConstantEvaluationEngine(
-                new TestTypeProvider(), new DeclaredVariables()),
+            new ConstantEvaluationEngine(new TestTypeProvider(),
+                new TypeSystemImpl(), new DeclaredVariables()),
             errorReporter)));
     errorListener.assertNoErrors();
   }
@@ -2409,8 +2410,8 @@ class ConstantVisitorTest extends ResolverTestCase {
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
     DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(
-            new TestTypeProvider(), new DeclaredVariables()),
+        new ConstantEvaluationEngine(new TestTypeProvider(),
+            new TypeSystemImpl(), new DeclaredVariables()),
         errorReporter));
     expect(result, isNull);
     errorListener
@@ -2426,8 +2427,8 @@ class ConstantVisitorTest extends ResolverTestCase {
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
     DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(
-            new TestTypeProvider(), new DeclaredVariables()),
+        new ConstantEvaluationEngine(new TestTypeProvider(),
+            new TypeSystemImpl(), new DeclaredVariables()),
         errorReporter));
     expect(result, isNull);
     errorListener
@@ -2443,8 +2444,8 @@ class ConstantVisitorTest extends ResolverTestCase {
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
     DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(
-            new TestTypeProvider(), new DeclaredVariables()),
+        new ConstantEvaluationEngine(new TestTypeProvider(),
+            new TypeSystemImpl(), new DeclaredVariables()),
         errorReporter));
     expect(result, isNull);
     errorListener
@@ -2462,8 +2463,8 @@ class ConstantVisitorTest extends ResolverTestCase {
     _assertValue(
         1,
         expression.accept(new ConstantVisitor(
-            new ConstantEvaluationEngine(
-                new TestTypeProvider(), new DeclaredVariables()),
+            new ConstantEvaluationEngine(new TestTypeProvider(),
+                new TypeSystemImpl(), new DeclaredVariables()),
             errorReporter)));
     errorListener.assertNoErrors();
   }
@@ -2536,7 +2537,8 @@ const b = 3;''');
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
     DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(typeProvider, new DeclaredVariables()),
+        new ConstantEvaluationEngine(
+            typeProvider, typeSystem, new DeclaredVariables()),
         errorReporter,
         lexicalEnvironment: lexicalEnvironment));
     errorListener.assertNoErrors();

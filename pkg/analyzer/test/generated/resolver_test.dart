@@ -1987,8 +1987,8 @@ class ElementResolverTest extends EngineTestCase {
     _definingLibrary.definingCompilationUnit = definingCompilationUnit;
     Library library = new Library(context, _listener, source);
     library.libraryElement = _definingLibrary;
-    _visitor = new ResolverVisitor(
-        library.libraryElement, source, _typeProvider, library.errorListener,
+    _visitor = new ResolverVisitor(library.libraryElement, source,
+        _typeProvider, context.typeSystem, library.errorListener,
         nameScope: library.libraryScope,
         inheritanceManager: library.inheritanceManager);
     try {
@@ -7894,6 +7894,13 @@ class ResolverTestCase extends EngineTestCase {
   TypeProvider get typeProvider => analysisContext2.typeProvider;
 
   /**
+   * Return a type system that can be used to test the results of resolution.
+   *
+   * @return a type system
+   */
+  TypeSystem get typeSystem => analysisContext2.typeSystem;
+
+  /**
    * Add a source file to the content provider. The file path should be absolute.
    *
    * @param filePath the path of the file being added
@@ -11379,8 +11386,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     definingLibrary.definingCompilationUnit = definingCompilationUnit;
     Library library = new Library(context, _listener, source);
     library.libraryElement = definingLibrary;
-    _visitor = new ResolverVisitor(
-        library.libraryElement, source, _typeProvider, library.errorListener,
+    _visitor = new ResolverVisitor(library.libraryElement, source,
+        _typeProvider, context.typeSystem, library.errorListener,
         nameScope: library.libraryScope,
         inheritanceManager: library.inheritanceManager);
     _visitor.overrideManager.enterScope();
@@ -11958,7 +11965,7 @@ main() async {
     String code = r'''
 main() {
   var v = null;
-  return v; // marker
+  v; // marker
 }''';
     _assertPropagatedAssignedType(code, typeProvider.dynamicType, null);
     _assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
@@ -11968,7 +11975,7 @@ main() {
     String code = r'''
 main() {
   var v = 3;
-  return v; // marker
+  v; // marker
 }''';
     _assertPropagatedAssignedType(code, typeProvider.intType, null);
     _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
@@ -11978,7 +11985,7 @@ main() {
     String code = r'''
 main() {
   dynamic v = 3;
-  return v; // marker
+  v; // marker
 }''';
     _assertPropagatedAssignedType(
         code, typeProvider.dynamicType, typeProvider.intType);
@@ -11991,7 +11998,7 @@ main() {
 main() {
   var v;
   v = 3;
-  return v; // marker
+  v; // marker
 }''';
     _assertPropagatedAssignedType(
         code, typeProvider.dynamicType, typeProvider.intType);
@@ -12074,7 +12081,7 @@ main() {
 main() {
   var x = <int>[3];
   var v = x[0];
-  return v; // marker
+  v; // marker
 }''';
     _assertPropagatedAssignedType(code, typeProvider.intType, null);
     _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
@@ -12085,7 +12092,7 @@ main() {
 main() {
   var x = 3;
   var v = x;
-  return v; // marker
+  v; // marker
 }''';
     _assertPropagatedAssignedType(code, typeProvider.intType, null);
     _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
@@ -12099,7 +12106,7 @@ main() {
 final x = 3;
 main() {
   var v = x;
-  return v; // marker
+  v; // marker
 }
 ''';
     _assertPropagatedAssignedType(code, typeProvider.intType, null);
@@ -12113,7 +12120,7 @@ main() {
     String code = r'''
 main() {
   var v = x;
-  return v; // marker
+  v; // marker
 }
 final x = 3;
 ''';
@@ -12126,7 +12133,7 @@ final x = 3;
 int x = 3;
 main() {
   var v = x;
-  return v; // marker
+  v; // marker
 }
 ''';
     _assertPropagatedAssignedType(code, typeProvider.intType, null);
@@ -12137,7 +12144,7 @@ main() {
     String code = r'''
 main() {
   var v = x;
-  return v; // marker
+  v; // marker
 }
 int x = 3;
 ''';

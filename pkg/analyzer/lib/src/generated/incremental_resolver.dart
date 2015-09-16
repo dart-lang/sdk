@@ -914,6 +914,11 @@ class IncrementalResolver {
   TypeProvider _typeProvider;
 
   /**
+   * The type system primitives.
+   */
+  TypeSystem _typeSystem;
+
+  /**
    * The element for the library containing the compilation unit being resolved.
    */
   LibraryElementImpl _definingLibrary;
@@ -992,6 +997,7 @@ class IncrementalResolver {
     _source = _definingUnit.source;
     _context = _definingUnit.context;
     _typeProvider = _context.typeProvider;
+    _typeSystem = _context.typeSystem;
   }
 
   /**
@@ -1100,15 +1106,19 @@ class IncrementalResolver {
     {
       CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
       ConstantValueComputer computer = new ConstantValueComputer(
-          _context, _typeProvider, _context.declaredVariables);
+          _context, _typeProvider, _typeSystem, _context.declaredVariables);
       computer.add(unit, _source, _librarySource);
       computer.computeValues();
     }
     // validate
     {
       ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
-      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter,
-          _definingLibrary, _typeProvider, _context.declaredVariables);
+      ConstantVerifier constantVerifier = new ConstantVerifier(
+          errorReporter,
+          _definingLibrary,
+          _typeProvider,
+          _typeSystem,
+          _context.declaredVariables);
       node.accept(constantVerifier);
     }
   }
@@ -1172,8 +1182,8 @@ class IncrementalResolver {
       }
       // resolve references
       {
-        ResolverVisitor visitor = new ResolverVisitor(
-            _definingLibrary, _source, _typeProvider, errorListener,
+        ResolverVisitor visitor = new ResolverVisitor(_definingLibrary, _source,
+            _typeProvider, _typeSystem, errorListener,
             nameScope: scope);
         if (_resolutionContext.enclosingClassDeclaration != null) {
           visitor.visitClassDeclarationIncrementally(
@@ -1332,6 +1342,7 @@ class IncrementalResolver {
           errorReporter,
           _definingLibrary,
           _typeProvider,
+          _typeSystem,
           new InheritanceManager(_definingLibrary),
           _context.analysisOptions.enableSuperMixins);
       if (_resolutionContext.enclosingClassDeclaration != null) {

@@ -161,6 +161,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   TypeProvider _typeProvider;
 
   /**
+   * The [TypeSystem] for this context, `null` if not yet created.
+   */
+  TypeSystem _typeSystem;
+
+  /**
    * The controller for sending [SourcesChangedEvent]s.
    */
   StreamController<SourcesChangedEvent> _onSourcesChangedController;
@@ -478,6 +483,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   void set typeProvider(TypeProvider typeProvider) {
     _typeProvider = typeProvider;
+  }
+
+  @override
+  TypeSystem get typeSystem {
+    if (_typeSystem == null) {
+      _typeSystem = TypeSystem.create(this);
+    }
+    return _typeSystem;
   }
 
   @override

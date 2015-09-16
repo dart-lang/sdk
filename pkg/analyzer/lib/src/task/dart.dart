@@ -1515,11 +1515,13 @@ class ComputeConstantDependenciesTask extends ConstantEvaluationAnalysisTask {
     //
     ConstantEvaluationTarget constant = target;
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    TypeSystem typeSystem = context.typeSystem;
     //
     // Compute dependencies.
     //
     List<ConstantEvaluationTarget> dependencies = <ConstantEvaluationTarget>[];
-    new ConstantEvaluationEngine(typeProvider, context.declaredVariables)
+    new ConstantEvaluationEngine(
+            typeProvider, typeSystem, context.declaredVariables)
         .computeDependencies(constant, dependencies.add);
     //
     // Record outputs.
@@ -1605,12 +1607,14 @@ class ComputeConstantValueTask extends ConstantEvaluationAnalysisTask {
     ConstantEvaluationTarget constant = target;
     AnalysisContext context = constant.context;
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    TypeSystem typeSystem = context.typeSystem;
     //
     // Compute the value of the constant, or report an error if there was a
     // cycle.
     //
     ConstantEvaluationEngine constantEvaluationEngine =
-        new ConstantEvaluationEngine(typeProvider, context.declaredVariables);
+        new ConstantEvaluationEngine(
+            typeProvider, typeSystem, context.declaredVariables);
     if (dependencyCycle == null) {
       constantEvaluationEngine.computeConstantValue(constant);
     } else {
@@ -2342,10 +2346,12 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
         getRequiredInput(USED_LOCAL_ELEMENTS_INPUT);
     CompilationUnitElement unitElement = unit.element;
     LibraryElement libraryElement = unitElement.library;
+    TypeSystem typeSystem = context.typeSystem;
+
     //
     // Generate errors.
     //
-    unit.accept(new DeadCodeVerifier(errorReporter));
+    unit.accept(new DeadCodeVerifier(errorReporter, typeSystem));
     // Verify imports.
     {
       ImportsVerifier verifier = new ImportsVerifier();
@@ -2370,7 +2376,9 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     InheritanceManager inheritanceManager =
         new InheritanceManager(libraryElement);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
-    unit.accept(new BestPracticesVerifier(errorReporter, typeProvider));
+
+    unit.accept(
+        new BestPracticesVerifier(errorReporter, typeProvider, typeSystem));
     unit.accept(new OverrideVerifier(errorReporter, inheritanceManager));
     // Find to-do comments.
     new ToDoFinder(errorReporter).findIn(unit);
@@ -2455,12 +2463,13 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
     //
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    TypeSystem typeSystem = context.typeSystem;
     //
     // Infer instance members.
     //
     if (context.analysisOptions.strongMode) {
       InstanceMemberInferrer inferrer =
-          new InstanceMemberInferrer(typeProvider);
+          new InstanceMemberInferrer(typeProvider, typeSystem);
       inferrer.inferCompilationUnit(unit.element);
     }
     //
@@ -2663,6 +2672,7 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
     VariableElementImpl variable = target;
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    TypeSystem typeSystem = context.typeSystem;
     RecordingErrorListener errorListener = new RecordingErrorListener();
     if (dependencyCycle == null) {
       //
@@ -2681,8 +2691,8 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
       ResolutionEraser.erase(initializer, eraseDeclarations: false);
       ResolutionContext resolutionContext =
           ResolutionContextBuilder.contextFor(initializer, errorListener);
-      ResolverVisitor visitor = new ResolverVisitor(
-          variable.library, variable.source, typeProvider, errorListener,
+      ResolverVisitor visitor = new ResolverVisitor(variable.library,
+          variable.source, typeProvider, typeSystem, errorListener,
           nameScope: resolutionContext.scope);
       if (resolutionContext.enclosingClassDeclaration != null) {
         visitor.prepareToResolveMembersInClass(
@@ -3141,13 +3151,14 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     CompilationUnitElement unitElement = unit.element;
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    TypeSystem typeSystem = context.typeSystem;
     //
     // Resolve references.
     //
     InheritanceManager inheritanceManager =
         new InheritanceManager(libraryElement);
-    PartialResolverVisitor visitor = new PartialResolverVisitor(
-        libraryElement, unitElement.source, typeProvider, errorListener,
+    PartialResolverVisitor visitor = new PartialResolverVisitor(libraryElement,
+        unitElement.source, typeProvider, typeSystem, errorListener,
         inheritanceManager: inheritanceManager);
     unit.accept(visitor);
     //
@@ -3363,18 +3374,19 @@ class ResolveFunctionBodiesInUnitTask extends SourceBasedAnalysisTask {
     //
     CompilationUnitElement unitElement = unit.element;
     RecordingErrorListener errorListener = new RecordingErrorListener();
+    TypeSystem typeSystem = context.typeSystem;
     for (CompilationUnitMember unitMember in unit.declarations) {
       if (unitMember is FunctionDeclaration) {
         _resolveFunctionBody(unitMember.functionExpression.body, unitElement,
-            typeProvider, errorListener);
+            typeProvider, typeSystem, errorListener);
       } else if (unitMember is ClassDeclaration) {
         for (ClassMember classMember in unitMember.members) {
           if (classMember is ConstructorDeclaration) {
-            _resolveFunctionBody(
-                classMember.body, unitElement, typeProvider, errorListener);
+            _resolveFunctionBody(classMember.body, unitElement, typeProvider,
+                typeSystem, errorListener);
           } else if (classMember is MethodDeclaration) {
-            _resolveFunctionBody(
-                classMember.body, unitElement, typeProvider, errorListener);
+            _resolveFunctionBody(classMember.body, unitElement, typeProvider,
+                typeSystem, errorListener);
           }
         }
       }
@@ -3390,11 +3402,12 @@ class ResolveFunctionBodiesInUnitTask extends SourceBasedAnalysisTask {
       FunctionBody functionBody,
       CompilationUnitElement unitElement,
       TypeProvider typeProvider,
+      TypeSystem typeSystem,
       RecordingErrorListener errorListener) {
     ResolutionContext resolutionContext =
         ResolutionContextBuilder.contextFor(functionBody, errorListener);
-    ResolverVisitor visitor = new ResolverVisitor(
-        unitElement.library, unitElement.source, typeProvider, errorListener,
+    ResolverVisitor visitor = new ResolverVisitor(unitElement.library,
+        unitElement.source, typeProvider, typeSystem, errorListener,
         nameScope: resolutionContext.scope);
     if (resolutionContext.enclosingClassDeclaration != null) {
       visitor.prepareToResolveMembersInClass(
@@ -3895,6 +3908,7 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     CompilationUnitElement unitElement = unit.element;
     LibraryElement libraryElement = unitElement.library;
+    TypeSystem typeSystem = context.typeSystem;
     //
     // Validate the directives.
     //
@@ -3902,8 +3916,8 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     //
     // Use the ConstantVerifier to compute errors.
     //
-    ConstantVerifier constantVerifier = new ConstantVerifier(
-        errorReporter, libraryElement, typeProvider, context.declaredVariables);
+    ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter,
+        libraryElement, typeProvider, typeSystem, context.declaredVariables);
     unit.accept(constantVerifier);
     //
     // Use the ErrorVerifier to compute errors.
@@ -3912,6 +3926,7 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
         errorReporter,
         libraryElement,
         typeProvider,
+        typeSystem,
         new InheritanceManager(libraryElement),
         context.analysisOptions.enableSuperMixins);
     unit.accept(errorVerifier);

@@ -214,6 +214,11 @@ class ConstantEvaluationEngine {
       "^(?:${ConstantValueComputer._OPERATOR_RE}\$|$_PUBLIC_IDENTIFIER_RE(?:=?\$|[.](?!\$)))+?\$");
 
   /**
+   * The type provider used to access the known types.
+   */
+  final TypeProvider typeProvider;
+
+  /**
    * The type system.  This is used to gues the types of constants when their
    * exact value is unknown.
    */
@@ -237,17 +242,12 @@ class ConstantEvaluationEngine {
    * given, is used to verify correct dependency analysis when running unit
    * tests.
    */
-  ConstantEvaluationEngine(TypeProvider typeProvider, this._declaredVariables,
+  ConstantEvaluationEngine(
+      this.typeProvider, this.typeSystem, this._declaredVariables,
       {ConstantEvaluationValidator validator})
       : validator = validator != null
             ? validator
-            : new ConstantEvaluationValidator_ForProduction(),
-        typeSystem = new TypeSystemImpl(typeProvider);
-
-  /**
-   * The type provider used to access the known types.
-   */
-  TypeProvider get typeProvider => typeSystem.typeProvider;
+            : new ConstantEvaluationValidator_ForProduction();
 
   /**
    * Check that the arguments to a call to fromEnvironment() are correct. The
@@ -1150,17 +1150,23 @@ class ConstantEvaluator {
   final TypeProvider _typeProvider;
 
   /**
+   * The type system primitives.
+   */
+  final TypeSystem _typeSystem;
+
+  /**
    * Initialize a newly created evaluator to evaluate expressions in the given
    * [source]. The [typeProvider] is the type provider used to access known
    * types.
    */
-  ConstantEvaluator(this._source, this._typeProvider);
+  ConstantEvaluator(this._source, this._typeProvider, this._typeSystem);
 
   EvaluationResult evaluate(Expression expression) {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
     DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(_typeProvider, new DeclaredVariables()),
+        new ConstantEvaluationEngine(
+            _typeProvider, _typeSystem, new DeclaredVariables()),
         errorReporter));
     if (result != null) {
       return EvaluationResult.forValue(result);
@@ -1303,10 +1309,10 @@ class ConstantValueComputer {
    * the set of variables declared on the command line using '-D'.
    */
   ConstantValueComputer(this._context, TypeProvider typeProvider,
-      DeclaredVariables declaredVariables,
+      TypeSystem typeSystem, DeclaredVariables declaredVariables,
       [ConstantEvaluationValidator validator])
       : evaluationEngine = new ConstantEvaluationEngine(
-            typeProvider, declaredVariables,
+            typeProvider, typeSystem, declaredVariables,
             validator: validator);
 
   /**
@@ -1577,7 +1583,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     ParameterizedType thenType = thenResult.type;
     ParameterizedType elseType = elseResult.type;
     return new DartObjectImpl.validWithUnknownValue(
-        _typeSystem.getLeastUpperBound(thenType, elseType) as InterfaceType);
+        _typeSystem.getLeastUpperBound(_typeProvider, thenType, elseType)
+        as InterfaceType);
   }
 
   @override

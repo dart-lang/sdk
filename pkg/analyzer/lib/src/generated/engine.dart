@@ -429,6 +429,11 @@ abstract class AnalysisContext {
   TypeProvider get typeProvider;
 
   /**
+   * Return a type system for this context.
+   */
+  TypeSystem get typeSystem;
+
+  /**
    * Add the given [listener] to the list of objects that are to be notified
    * when various analysis results are produced in this context.
    */
@@ -1040,6 +1045,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   TypeProvider _typeProvider;
 
   /**
+   * The [TypeSystem] for this context, `null` if not yet created.
+   */
+  TypeSystem _typeSystem;
+
+  /**
    * The object used to manage the list of sources that need to be analyzed.
    */
   WorkManager _workManager = new WorkManager();
@@ -1547,6 +1557,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   void set typeProvider(TypeProvider typeProvider) {
     _typeProvider = typeProvider;
+  }
+
+  @override
+  TypeSystem get typeSystem {
+    if (_typeSystem == null) {
+      _typeSystem = TypeSystem.create(this);
+    }
+    return _typeSystem;
   }
 
   @override
@@ -8472,6 +8490,7 @@ class GenerateDartErrorsTask extends AnalysisTask {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
       TypeProvider typeProvider = context.typeProvider;
+      TypeSystem typeSystem = context.typeSystem;
       //
       // Validate the directives
       //
@@ -8494,6 +8513,7 @@ class GenerateDartErrorsTask extends AnalysisTask {
           errorReporter,
           libraryElement,
           typeProvider,
+          typeSystem,
           new InheritanceManager(libraryElement),
           context.analysisOptions.enableSuperMixins);
       _unit.accept(errorVerifier);
@@ -10930,6 +10950,7 @@ class ResolveDartUnitTask extends AnalysisTask {
   @override
   void internalPerform() {
     TypeProvider typeProvider = _libraryElement.context.typeProvider;
+    TypeSystem typeSystem = _libraryElement.context.typeSystem;
     CompilationUnit unit = context.computeResolvableCompilationUnit(source);
     if (unit == null) {
       throw new AnalysisException(
@@ -10952,7 +10973,7 @@ class ResolveDartUnitTask extends AnalysisTask {
     InheritanceManager inheritanceManager =
         new InheritanceManager(_libraryElement);
     ResolverVisitor resolverVisitor = new ResolverVisitor(
-        _libraryElement, source, typeProvider, errorListener,
+        _libraryElement, source, typeProvider, typeSystem, errorListener,
         inheritanceManager: inheritanceManager);
     unit.accept(resolverVisitor);
     //
@@ -10964,6 +10985,7 @@ class ResolveDartUnitTask extends AnalysisTask {
           errorReporter,
           _libraryElement,
           typeProvider,
+          typeSystem,
           inheritanceManager,
           context.analysisOptions.enableSuperMixins);
       unit.accept(errorVerifier);
