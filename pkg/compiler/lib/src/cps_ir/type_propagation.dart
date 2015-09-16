@@ -2268,8 +2268,13 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
-    // TODO(asgerf): For pop(), use the container type from the TypeMask.
-    setValue(node, nonConstant());
+    AbstractValue receiver = getValue(node.receiver.definition);
+    if (node.method == BuiltinMethod.Pop) {
+      setValue(node, nonConstant(
+          typeSystem.elementTypeOfIndexable(receiver.type)));
+    } else {
+      setValue(node, nonConstant());
+    }
   }
 
   void visitInvokeMethodDirectly(InvokeMethodDirectly node) {
@@ -2482,12 +2487,21 @@ class TypePropagationVisitor implements Visitor {
 
   @override
   void visitGetLength(GetLength node) {
-    setValue(node, nonConstant(typeSystem.intType));
+    AbstractValue input = getValue(node.object.definition);
+    int length = typeSystem.getContainerLength(input.type);
+    if (length != null) {
+      // TODO(asgerf): Constant-folding the length might degrade the VM's
+      // own bounds-check elimination?
+      setValue(node, constantValue(new IntConstantValue(length)));
+    } else {
+      setValue(node, nonConstant(typeSystem.intType));
+    }
   }
 
   @override
   void visitGetIndex(GetIndex node) {
-    setValue(node, nonConstant());
+    AbstractValue input = getValue(node.object.definition);
+    setValue(node, nonConstant(typeSystem.elementTypeOfIndexable(input.type)));
   }
 
   @override

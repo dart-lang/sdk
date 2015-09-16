@@ -302,4 +302,35 @@ class TypeMaskSystem {
   TypeMask receiverTypeFor(Selector selector, TypeMask mask) {
     return classWorld.allFunctions.receiverType(selector, mask);
   }
+
+  /// The result of an index operation on something of [type], or the dynamic
+  /// type if unknown.
+  TypeMask elementTypeOfIndexable(TypeMask type) {
+    if (type is UnionTypeMask) {
+      return new TypeMask.unionOf(
+          type.disjointMasks.map(elementTypeOfIndexable), classWorld);
+    }
+    if (type is ContainerTypeMask) {
+      return type.elementType;
+    }
+    if (isDefinitelyString(type)) {
+      return stringType;
+    }
+    if (type.satisfies(backend.typedArrayClass, classWorld)) {
+      if (type.satisfies(backend.typedArrayOfIntClass, classWorld)) {
+        return intType;
+      }
+      return numType;
+    }
+    return dynamicType;
+  }
+
+  /// The length of something of [type], or `null` if unknown.
+  int getContainerLength(TypeMask type) {
+    if (type is ContainerTypeMask) {
+      return type.length;
+    } else {
+      return null;
+    }
+  }
 }

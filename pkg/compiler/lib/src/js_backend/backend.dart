@@ -332,6 +332,9 @@ class JavaScriptBackend extends Backend {
 
   ClassElement jsInvocationMirrorClass;
 
+  ClassElement typedArrayClass;
+  ClassElement typedArrayOfIntClass;
+
   /// If [true], the compiler will emit code that logs whenever a method is
   /// called. When TRACE_METHOD is 'console' this will be logged
   /// directly in the JavaScript console. When TRACE_METHOD is 'post' the
@@ -2149,6 +2152,9 @@ class JavaScriptBackend extends Backend {
         htmlLibraryIsLoaded = true;
       } else if (uri == PACKAGE_LOOKUP_MAP) {
         lookupMapAnalysis.init(library);
+      } else if (uri == Uris.dart__native_typed_data) {
+        typedArrayClass = findClass('NativeTypedArray');
+        typedArrayOfIntClass = findClass('NativeTypedArrayOfInt');
       }
       annotations.onLibraryScanned(library);
     });
