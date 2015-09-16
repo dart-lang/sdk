@@ -565,6 +565,7 @@ def ExecuteCommand(cmd):
 
 
 def DartBinary():
+  # TODO(24311): Replace all uses of this with CheckedInSdk[Fix]Executable().
   tools_dir = os.path.dirname(os.path.realpath(__file__))
   dart_binary_prefix = os.path.join(tools_dir, 'testing', 'bin')
   if IsWindows():
@@ -592,6 +593,8 @@ def DartSdkBinary():
   return os.path.join(dart_binary_prefix, 'dart')
 
 
+# The checked-in SDKs are documented at
+#     https://github.com/dart-lang/sdk/wiki/The-checked-in-SDK-in-tools
 def CheckedInSdkPath():
   # We don't use the normal macos, linux, win32 directory names here, instead,
   # we use the names that the download_from_google_storage script uses.
@@ -609,11 +612,29 @@ def CheckedInSdkPath():
                       'dart-sdk')
 
 
-def CheckedInPubPath():
-  executable_name = 'pub'
-  if platform.system() == 'Windows':
-    executable_name = 'pub.bat'
-  return os.path.join(CheckedInSdkPath(), 'bin', executable_name)
+def CheckedInSdkExecutable():
+  name = 'dart'
+  if IsWindows():
+    name = 'dart.exe'
+  elif GuessOS() == 'linux':
+    arch = GuessArchitecture()
+    if arch == 'mips':
+      name = 'dart-mips'
+    elif arch == 'arm':
+      name = 'dart-arm'
+  return os.path.join(CheckedInSdkPath(), 'bin', name)
+
+
+def CheckedInSdkCheckExecutable():
+  executable = CheckedInSdkExecutable()
+  canary_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                               'canary.dart')
+  try:
+    if 42 == subprocess.call([executable, canary_script]):
+      return True
+  except OSError as e:
+    pass
+  return False
 
 
 class TempDir(object):
