@@ -103,8 +103,6 @@
     'constants_ia32.h',
     'constants_mips.h',
     'constants_x64.h',
-    'counters.cc',
-    'counters.h',
     'coverage.cc',
     'coverage.h',
     'coverage_test.cc',

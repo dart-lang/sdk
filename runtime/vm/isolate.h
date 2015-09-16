@@ -10,7 +10,6 @@
 #include "vm/atomic.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
-#include "vm/counters.h"
 #include "vm/handles.h"
 #include "vm/megamorphic_cache_table.h"
 #include "vm/metrics.h"
@@ -736,8 +735,6 @@ class Isolate : public BaseIsolate {
 
   static void VisitIsolates(IsolateVisitor* visitor);
 
-  Counters* counters() { return &counters_; }
-
   // Handle service messages until we are told to resume execution.
   void PauseEventHandler();
 
@@ -915,8 +912,6 @@ class Isolate : public BaseIsolate {
   RawGrowableObjectArray* registered_service_extension_handlers_;
 
   Metric* metrics_list_head_;
-
-  Counters counters_;
 
   bool compilation_allowed_;
 
