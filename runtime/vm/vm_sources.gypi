@@ -444,6 +444,8 @@
     'tags.h',
     'thread.cc',
     'thread.h',
+    'thread_barrier.h',
+    'thread_barrier_test.cc',
     'thread_interrupter.cc',
     'thread_interrupter.h',
     'thread_interrupter_android.cc',

@@ -13,6 +13,8 @@ namespace dart {
 class Random {
  public:
   Random();
+  // Seed must be non-zero.
+  explicit Random(uint64_t seed);
   ~Random();
 
   uint32_t NextUInt32();
@@ -23,6 +25,7 @@ class Random {
 
  private:
   void NextState();
+  void Initialize(uint64_t seed);
 
   uint64_t _state;
 

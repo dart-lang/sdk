@@ -16,6 +16,7 @@
 #include "vm/raw_object.h"
 #include "vm/stack_frame.h"
 #include "vm/store_buffer.h"
+#include "vm/thread_barrier.h"
 #include "vm/thread_pool.h"
 #include "vm/visitor.h"
 #include "vm/object_id_ring.h"
@@ -553,6 +554,7 @@ class MarkTask : public ThreadPool::Task {
            PageSpace* page_space,
            MarkingStack* marking_stack,
            DelaySet* delay_set,
+           ThreadBarrier* barrier,
            bool collect_code,
            bool visit_prologue_weak_persistent_handles)
       : marker_(marker),
@@ -561,6 +563,7 @@ class MarkTask : public ThreadPool::Task {
         page_space_(page_space),
         marking_stack_(marking_stack),
         delay_set_(delay_set),
+        barrier_(barrier),
         collect_code_(collect_code),
         visit_prologue_weak_persistent_handles_(
             visit_prologue_weak_persistent_handles) {
@@ -580,15 +583,15 @@ class MarkTask : public ThreadPool::Task {
       marker_->IterateRoots(isolate_, &visitor,
                             visit_prologue_weak_persistent_handles_);
       visitor.DrainMarkingStack();
-      marker_->TaskSync();
+      barrier_->Sync();
       // Phase 2: Weak processing and follow-up marking on main thread.
-      marker_->TaskSync();
+      barrier_->Sync();
       // Phase 3: Finalize results from all markers (detach code, etc.).
       marker_->FinalizeResultsFrom(&visitor);
     }
     Thread::ExitIsolateAsHelper(true);
     // This task is done. Notify the original thread.
-    marker_->TaskNotifyDone();
+    barrier_->Exit();
   }
 
  private:
@@ -598,44 +601,12 @@ class MarkTask : public ThreadPool::Task {
   PageSpace* page_space_;
   MarkingStack* marking_stack_;
   DelaySet* delay_set_;
+  ThreadBarrier* barrier_;
   bool collect_code_;
   bool visit_prologue_weak_persistent_handles_;
 
   DISALLOW_COPY_AND_ASSIGN(MarkTask);
 };
-
-
-void GCMarker::MainSync(intptr_t num_tasks) {
-  MonitorLocker ml(&monitor_);
-  while (done_count_ < num_tasks) {
-    ml.Wait();
-  }
-  done_count_ = 0;  // Tasks may now resume.
-  // TODO(koda): Add barrier utility with two condition variables to allow for
-  // Notify rather than NotifyAll. Also use it for safepoints.
-  ml.NotifyAll();
-}
-
-
-void GCMarker::TaskNotifyDone() {
-  MonitorLocker ml(&monitor_);
-  ++done_count_;
-  // TODO(koda): Add barrier utility with two condition variables to allow for
-  // Notify rather than NotifyAll. Also use it for safepoints.
-  ml.NotifyAll();
-}
-
-
-void GCMarker::TaskSync() {
-  MonitorLocker ml(&monitor_);
-  ++done_count_;
-  ml.NotifyAll();  // Notify controller that this thread reached end of phase.
-  ASSERT(done_count_ > 0);
-  while (done_count_ > 0) {
-    // Wait for the controller to release into next phase.
-    ml.Wait();
-  }
-}
 
 
 void GCMarker::FinalizeResultsFrom(MarkingVisitor* visitor) {
@@ -683,14 +654,15 @@ void GCMarker::MarkObjects(Isolate* isolate,
         // 2. concurrent tasks, after synchronizing headers.
         FATAL("Multiple marking tasks not yet supported");
       }
+      ThreadBarrier barrier(num_tasks + 1);  // +1 for the main thread.
       // Phase 1: Populate and drain marking stack in task.
       MarkTask* mark_task =
           new MarkTask(this, isolate, heap_, page_space, &marking_stack,
-                       &delay_set, collect_code,
+                       &delay_set, &barrier, collect_code,
                        visit_prologue_weak_persistent_handles);
       ThreadPool* pool = Dart::thread_pool();
       pool->Run(mark_task);
-      MainSync(num_tasks);
+      barrier.Sync();
       // Phase 2: Weak processing and follow-up marking on main thread.
       SkippedCodeFunctions* skipped_code_functions =
           collect_code ? new(zone) SkippedCodeFunctions() : NULL;
@@ -700,11 +672,10 @@ void GCMarker::MarkObjects(Isolate* isolate,
       MarkingWeakVisitor mark_weak;
       IterateWeakRoots(isolate, &mark_weak,
                        !visit_prologue_weak_persistent_handles);
-      MainSync(num_tasks);
+      barrier.Sync();
       // Phase 3: Finalize results from all markers (detach code, etc.).
       FinalizeResultsFrom(&mark);
-      MainSync(num_tasks);
-      // Finalization complete and all tasks exited.
+      barrier.Exit();
     }
     delay_set.ClearReferences();
     ProcessWeakTables(page_space);
