@@ -1496,12 +1496,6 @@ void Isolate::LowLevelShutdown() {
   HandleScope handle_scope(thread);
   NoSafepointScope no_safepoint_scope;
 
-  if (FLAG_compiler_stats
-      && !ServiceIsolate::IsServiceIsolate(this)
-      && (this != Dart::vm_isolate())) {
-    OS::Print("%s", compiler_stats()->PrintToZone());
-  }
-
   // Notify exit listeners that this isolate is shutting down.
   if (object_store() != NULL) {
     NotifyExitListeners();
@@ -1576,6 +1570,13 @@ void Isolate::Shutdown() {
     if ((this != Dart::vm_isolate()) &&
         !ServiceIsolate::IsServiceIsolateDescendant(this)) {
       CodeCoverage::Write(this);
+    }
+
+    // Write compiler stats data if enabled.
+    if (FLAG_compiler_stats
+        && !ServiceIsolate::IsServiceIsolateDescendant(this)
+        && (this != Dart::vm_isolate())) {
+      OS::Print("%s", compiler_stats()->PrintToZone());
     }
   }
 
