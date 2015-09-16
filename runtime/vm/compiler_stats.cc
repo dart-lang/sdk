@@ -137,6 +137,9 @@ char* CompilerStats::BenchmarkOutput() {
   Update();
   Log log(PrintToStats);
   LogBlock lb(Thread::Current(), &log);
+  log.Print("==== Compiler Stats for isolate '%s' ====\n",
+            isolate_->debugger_name());
+
   log.Print("NumberOfTokens: %" Pd64 "\n", num_tokens_total);
   log.Print("NumClassesParsed: %" Pd64 "\n", num_classes_parsed);
   log.Print("NumFunctionsCompiled: %" Pd64 "\n", num_functions_compiled);
@@ -161,16 +164,18 @@ char* CompilerStats::BenchmarkOutput() {
 
   // Compiler stats.
   int64_t codegen_usecs = codegen_timer.TotalElapsedTime();
-  int64_t compile_usecs = scan_usecs+ parse_usecs + codegen_usecs;
+  int64_t compile_usecs = scan_usecs + parse_usecs + codegen_usecs;
+  int64_t compile_speed =
+      compile_usecs > 0 ? (1000 * num_func_tokens_compiled / compile_usecs) : 0;
   log.Print("NumTokensCompiled: %" Pd64 " tokens\n", num_func_tokens_compiled);
   log.Print("CompilerTime: %" Pd64 " ms\n", compile_usecs / 1000);
 
-  log.Print("CompilerSpeed: %" Pd64 " tokens/ms\n",
-            compile_usecs > 0 ?
-                (1000 * num_func_tokens_compiled / compile_usecs) : 0);
+  log.Print("CompilerSpeed: %" Pd64 " tokens/ms\n", compile_speed);
   log.Print("CodeSize: %" Pd64 " KB\n", total_code_size / 1024);
-  log.Print("CodeDensity: %" Pd64 " tokens/KB\n",
-            (1024 * num_func_tokens_compiled) / total_instr_size);
+  int64_t code_density = total_instr_size > 0 ?
+      (num_func_tokens_compiled * 1024) / total_instr_size : 0;
+
+  log.Print("CodeDensity: %" Pd64 " tokens/KB\n", code_density);
   log.Print("InstrSize: %" Pd64 " KB\n", total_instr_size / 1024);
   log.Flush();
   char* benchmark_text = text;
@@ -225,8 +230,7 @@ char* CompilerStats::PrintToZone() {
   int64_t codegen_usecs = codegen_timer.TotalElapsedTime();
 
   log.Print("==== Backend stats:\n");
-  log.Print("Code gen. time:          %" Pd64 " ms\n",
-            codegen_usecs / 1000);
+  log.Print("Code gen. time:          %" Pd64 " ms\n", codegen_usecs / 1000);
   int64_t graphbuilder_usecs = graphbuilder_timer.TotalElapsedTime();
   log.Print("  Graph builder:         %" Pd64 " ms\n",
             graphbuilder_usecs / 1000);
@@ -266,15 +270,17 @@ char* CompilerStats::PrintToZone() {
 
   log.Print("==== Compiled code stats:\n");
   int64_t compile_usecs = scan_usecs + parse_usecs + codegen_usecs;
+  int64_t compile_speed = compile_usecs > 0 ?
+      (1000 * num_func_tokens_compiled / compile_usecs) : 0;
   log.Print("Functions parsed:        %" Pd64 "\n", num_functions_parsed);
   log.Print("Functions compiled:      %" Pd64 "\n", num_functions_compiled);
   log.Print("  optimized:             %" Pd64 "\n", num_functions_optimized);
   log.Print("Compiler time:           %" Pd64 " ms\n", compile_usecs / 1000);
   log.Print("Tokens compiled:         %" Pd64 "\n", num_func_tokens_compiled);
-  log.Print("Compilation speed:       %" Pd64 " tokens/ms\n",
-            (1000 * num_func_tokens_compiled) / compile_usecs);
-  log.Print("Code density:            %" Pd64 " tokens per KB\n",
-            (num_func_tokens_compiled * 1024) / total_instr_size);
+  log.Print("Compilation speed:       %" Pd64 " tokens/ms\n", compile_speed);
+  int64_t code_density = total_instr_size > 0 ?
+      (num_func_tokens_compiled * 1024) / total_instr_size : 0;
+  log.Print("Code density:            %" Pd64 " tokens per KB\n", code_density);
   log.Print("Code size:               %" Pd64 " KB\n", total_code_size / 1024);
   log.Print("  Instr size:            %" Pd64 " KB\n",
             total_instr_size / 1024);

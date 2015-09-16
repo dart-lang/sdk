@@ -1496,7 +1496,9 @@ void Isolate::LowLevelShutdown() {
   HandleScope handle_scope(thread);
   NoSafepointScope no_safepoint_scope;
 
-  if (FLAG_compiler_stats) {
+  if (FLAG_compiler_stats
+      && !ServiceIsolate::IsServiceIsolate(this)
+      && (this != Dart::vm_isolate())) {
     OS::Print("%s", compiler_stats()->PrintToZone());
   }
 
