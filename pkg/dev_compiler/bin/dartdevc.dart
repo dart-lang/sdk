@@ -5,7 +5,7 @@
 
 /// Runs dev_compiler's checker, and optionally the code generator.
 /// Also can run a server for local development.
-library dev_compiler.bin.devc;
+library dev_compiler.bin.dartdevc;
 
 import 'dart:io';
 
