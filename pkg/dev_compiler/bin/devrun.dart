@@ -29,10 +29,17 @@ main(List<String> args) async {
     ..add('--arrow-fn-bind-this')
     ..addAll(args);
 
-  CompilerOptions options = validateOptions(args, forceOutDir: true);
-  if (options == null || options.help) {
+  CompilerOptions options;
+
+  try {
+    options = validateOptions(args, forceOutDir: true);
+  } on FormatException catch (e) {
+    print('${e.message}\n');
     _showUsageAndExit();
   }
+
+  if (options == null || options.help) _showUsageAndExit();
+
   if (options.inputs.length != 1) {
     stderr.writeln("Please only specify one input to run");
     _showUsageAndExit();

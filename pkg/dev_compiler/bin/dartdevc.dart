@@ -23,7 +23,15 @@ void _showUsageAndExit() {
 }
 
 main(List<String> args) async {
-  var options = validateOptions(args);
+  var options;
+
+  try {
+    options = validateOptions(args);
+  } on FormatException catch (e) {
+    print('${e.message}\n');
+    _showUsageAndExit();
+  }
+
   if (options == null || options.help) _showUsageAndExit();
 
   setupLogger(options.logLevel, print);
