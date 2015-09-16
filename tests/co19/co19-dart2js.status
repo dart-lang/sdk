@@ -1363,7 +1363,6 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocume
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_constructor_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_constructor_t02: RuntimeError # Please triage this failure
-WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && $checked ]
 LayoutTests/fast/css-intrinsic-dimensions/css-tables_t01: RuntimeError # Please triage this failure
@@ -3052,7 +3051,6 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-011_t0
 WebPlatformTest/webstorage/event_constructor_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_constructor_t02: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure. Note that Chrome also requires the Slow flag. (Could just be a slow test).
-WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
@@ -3556,7 +3554,6 @@ LayoutTests/fast/dom/html-collections-named-getter-mandatory-arg_t01: RuntimeErr
 LayoutTests/fast/dom/implementation-api-args_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/importNode-unsupported-node-type_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/location-hash_t01: Skip # Times out. Please triage this failure
-LayoutTests/fast/dom/location-missing-arguments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: Skip # API not supported.
 LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: Skip # API not supported.
 LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: Skip # API not supported.
@@ -4335,7 +4332,6 @@ WebPlatformTest/webstorage/event_local_key_t01: RuntimeError # Please triage thi
 WebPlatformTest/webstorage/event_session_key_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_session_storagearea_t01: Pass, RuntimeError # Fails on 7.1. Please triage this failure
 WebPlatformTest/webstorage/event_session_url_t01: Skip # Times out. Please triage this failure
-WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
@@ -4834,7 +4830,6 @@ LayoutTests/fast/dom/implementation-api-args_t01: RuntimeError # Please triage t
 LayoutTests/fast/dom/importNode-unsupported-node-type_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/jsDevicePixelRatio_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/location-hash_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/dom/location-missing-arguments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: Skip # API not supported.
 LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: Skip # API not supported.
 LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: Skip # API not supported.
@@ -5649,7 +5644,6 @@ WebPlatformTest/webstorage/event_constructor_t01: RuntimeError # Please triage t
 WebPlatformTest/webstorage/event_constructor_t02: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_local_key_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_session_key_t01: RuntimeError # Please triage this failure
-WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please triage this failure
 
 # This test is not flaky: IE10 on Windows 7 is different from IE10 on Windows 8.
 # The test fails on Windows 7's version, but it is currently not possible to test
