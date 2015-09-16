@@ -12708,8 +12708,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
     }
     var convertedFrames = frames;
     if (convertedFrames is Iterable) {
-      convertedFrames = convertDartToNative_List(
-          frames.map(convertDartToNative_Dictionary).toList());
+      convertedFrames = frames.map(convertDartToNative_Dictionary).toList();
     }
     var convertedTiming = timing;
     if (convertedTiming is Map) {

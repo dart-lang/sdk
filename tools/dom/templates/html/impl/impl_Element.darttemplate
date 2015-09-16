@@ -821,8 +821,12 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
     }
     var convertedFrames = frames;
     if (convertedFrames is Iterable) {
+$if DART2JS
+      convertedFrames = frames.map(convertDartToNative_Dictionary).toList();
+$else
       convertedFrames = convertDartToNative_List(
           frames.map(convertDartToNative_Dictionary).toList());
+$endif
     }
     var convertedTiming = timing;
     if (convertedTiming is Map) {
