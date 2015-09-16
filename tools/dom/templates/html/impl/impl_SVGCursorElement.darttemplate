@@ -1,0 +1,19 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+@DocsEditable()
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$!MEMBERS
+$if DARTIUM
+  // Override these methods for Dartium _SVGCursorElement can't be abstract.
+  StringList get requiredExtensions => wrap_jso(_blink.BlinkSVGCursorElement.instance.requiredExtensions_Getter_(unwrap_jso(this)));
+  StringList get requiredFeatures => wrap_jso(_blink.BlinkSVGCursorElement.instance.requiredFeatures_Getter_(unwrap_jso(this)));
+  StringList get systemLanguage => wrap_jso(_blink.BlinkSVGCursorElement.instance.systemLanguage_Getter_(unwrap_jso(this)));
+  AnimatedString get href => wrap_jso(_blink.BlinkSVGCursorElement.instance.href_Getter_(unwrap_jso(this)));
+  bool hasExtension(String extension) => _blink.BlinkSVGCursorElement.instance.hasExtension_Callback_1_(unwrap_jso(this), extension);
+$endif
+}
+

@@ -72,7 +72,7 @@ abstract class NodeTreeSanitizer {
   /**
    * A sanitizer for trees that we trust. It does no validation and allows
    * any elements. It is also more efficient, since it can pass the text
-   * directly through to the underlying APIs without creating a document 
+   * directly through to the underlying APIs without creating a document
    * fragment to be sanitized.
    */
   static const trusted = const _TrustedHtmlTreeSanitizer();
@@ -87,7 +87,7 @@ class _TrustedHtmlTreeSanitizer implements NodeTreeSanitizer {
 
   sanitizeTree(Node node) {}
 }
-  
+
 /**
  * Defines the policy for what types of uris are allowed for particular
  * attribute values.
@@ -141,14 +141,14 @@ class _ThrowsNodeValidator implements NodeValidator {
 
   bool allowsElement(Element element) {
     if (!validator.allowsElement(element)) {
-      throw new ArgumentError(element.tagName);
+      throw new ArgumentError(element._safeTagName);
     }
     return true;
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
     if (!validator.allowsAttribute(element, attributeName, value)) {
-      throw new ArgumentError('${element.tagName}[$attributeName="$value"]');
+      throw new ArgumentError('${element._safeTagName}[$attributeName="$value"]');
     }
   }
 }
@@ -213,10 +213,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     try {
       elementText = element.toString();
     } catch(e) {}
-    var elementTagName = 'element tag unavailable';
-    try {
-      elementTagName = element.tagName;
-    } catch(e) {}
+    var elementTagName = element._safeTagName;
     _sanitizeElement(element, parent, corrupted, elementText, elementTagName,
         attrs, isAttr);
   }

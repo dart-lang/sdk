@@ -39,12 +39,12 @@ $if DART2JS
     if (view == null) {
       view = window;
     }
-    
+
     return JS('WheelEvent', 'new WheelEvent(#, #)',
         type, convertDartToNative_Dictionary(options));
 
 $else
-    return _blink.BlinkWheelEvent.constructorCallback_2(type, options);
+    return wrap_jso(_blink.BlinkWheelEvent.instance.constructorCallback_2_(type, convertDartToNative_Dictionary(options)));
 $endif
   }
 

@@ -18,8 +18,14 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
 import 'dart:_blink' as _blink;
+import 'dart:js' as js;
 
 part '$AUXILIARY_DIR/shared_SVGFactoryProviders.dart';
+
+// Need a default constructor for constructing classes with mixins that are
+// also extending NativeFieldWrapperClass2.  Defining JsoNativeFieldWrapper
+// extending NativeFieldWrapperClass2 creates a default constructor.
+class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
 
 $!GENERATED_DART_FILES
 // FIXME: Can we make this private?

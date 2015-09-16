@@ -1,3 +1,4 @@
+
 import gclient_utils
 import os
 
@@ -12,8 +13,8 @@ vars.update({
   "dartium_chromium_branch": "master",
   "dartium_chromium_commit": "62a7524d4f71c9e0858d24b0aa1bbff3a2d09bff",
   "chromium_base_revision": "297060",
-  "dartium_webkit_branch": "/blink/branches/dart/2171_3/dartium",
-  "dartium_webkit_revision": "201240",
+  "dartium_webkit_branch": "/blink/branches/dart/dartium",
+  "dartium_webkit_revision": "202007",
 
   # We use mirrors of all github repos to guarantee reproducibility and
   # consistency between what users see and what the bots see.
@@ -68,7 +69,7 @@ vars.update({
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
 
-  "co19_rev": "@f95f109fea67127a220958794ef5200a63cb454c",
+  "co19_rev": "@fad777939a2b891c0a79b69a4d79c914049c69b0",
   "fake_async_rev": "@38614",
 })
 

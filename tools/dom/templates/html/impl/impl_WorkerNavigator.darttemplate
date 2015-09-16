@@ -1,0 +1,23 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+@DocsEditable()
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$!MEMBERS
+$if DARTIUM
+  // Override these methods for Dartium _WorkerNavigator can't be abstract.
+  String get appCodeName => _blink.BlinkWorkerNavigator.instance.appCodeName_Getter_(unwrap_jso(this));
+  String get appName => _blink.BlinkWorkerNavigator.instance.appCodeName_Getter_(unwrap_jso(this));
+  String get appVersion => _blink.BlinkWorkerNavigator.instance.appVersion_Getter_(unwrap_jso(this));
+  bool get dartEnabled => _blink.BlinkWorkerNavigator.instance.dartEnabled_Getter_(unwrap_jso(this));
+  String get platform => _blink.BlinkWorkerNavigator.instance.platform_Getter_(unwrap_jso(this));
+  String get product => _blink.BlinkWorkerNavigator.instance.product_Getter_(unwrap_jso(this));
+  String get userAgent => _blink.BlinkWorkerNavigator.instance.userAgent_Getter_(unwrap_jso(this));
+  int get hardwareConcurrency => _blink.BlinkWorkerNavigator.instance.hardwareConcurrency_Getter_(unwrap_jso(this));
+  bool get onLine => _blink.BlinkWorkerNavigator.instance.onLine_Getter_(unwrap_jso(this));
+$endif
+}
+

@@ -250,7 +250,6 @@ Type _getSvgType(String key) {
   return null;
 }
 
-
 $if JSINTEROP
 // FIXME: Can we make this private?
 final htmlBlinkFunctionMap = {
@@ -303,42 +302,42 @@ getHtmlCreateFunction(String key) {
   return null;
 }
 
-Type _getHtmlFunction(String key) {
+Function _getHtmlFunction(String key) {
   if (htmlBlinkFunctionMap.containsKey(key)) {
     return htmlBlinkFunctionMap[key]();
   }
   return null;
 }
 
-Type _getWebGlFunction(String key) {
+Function _getWebGlFunction(String key) {
   if (web_glBlinkFunctionMap.containsKey(key)) {
     return web_glBlinkFunctionMap[key]();
   }
   return null;
 }
 
-Type _getIndexDbFunction(String key) {
+Function _getIndexDbFunction(String key) {
   if (indexed_dbBlinkFunctionMap.containsKey(key)) {
     return indexed_dbBlinkFunctionMap[key]();
   }
   return null;
 }
 
-Type _getWebAudioFunction(String key) {
+Function _getWebAudioFunction(String key) {
   if (web_audioBlinkFunctionMap.containsKey(key)) {
     return web_audioBlinkFunctionMap[key]();
   }
   return null;
 }
 
-Type _getWebSqlFunction(String key) {
+Function _getWebSqlFunction(String key) {
   if (web_sqlBlinkFunctionMap.containsKey(key)) {
     return web_sqlBlinkFunctionMap[key]();
   }
   return null;
 }
 
-Type _getSvgFunction(String key) {
+Function _getSvgFunction(String key) {
   if (svgBlinkFunctionMap.containsKey(key)) {
     return svgBlinkFunctionMap[key]();
   }
@@ -352,8 +351,17 @@ Type _getSvgFunction(String key) {
  **********                                                          **********
  ******************************************************************************/
 
-Rectangle make_dart_rectangle(r) => new Rectangle(r['top'], r['left'], r['width'], r['height']);
+Rectangle make_dart_rectangle(r) =>
+    r == null ? null : new Rectangle(r['left'], r['top'], r['width'], r['height']);
 
+// Need a default constructor for constructing classes with mixins that are
+// also extending NativeFieldWrapperClass2.  Defining JsoNativeFieldWrapper
+// extending NativeFieldWrapperClass2 creates a default constructor.
+class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
+
+// Flag to disable JS interop asserts.  Setting to false will speed up the
+// wrap_jso calls.
+bool __interop_checks = true;
 
 /** Expando for JsObject, used by every Dart class associated with a Javascript
  *  class (e.g., DOM, WebAudio, etc.).
@@ -362,47 +370,110 @@ Rectangle make_dart_rectangle(r) => new Rectangle(r['top'], r['left'], r['width'
 /**
  * Return the JsObject associated with a Dart class [dartClass_instance].
  */
-js.JsObject unwrap_jso(dartClass_instance) {
+unwrap_jso(dartClass_instance) {
   try {
-      if (dartClass_instance != null)
-          return dartClass_instance is! Function ? dartClass_instance.blink_jsObject : dartClass_instance;
-      else
-          return null;
-//      return dartClass_instance.dartium_expando[dartClass_instance.expandoJsObject];
+    if (dartClass_instance != null)
+      return dartClass_instance is NativeFieldWrapperClass2 ?
+          dartClass_instance.blink_jsObject : dartClass_instance;
+    else
+      return null;
   } catch(NoSuchMethodException) {
-      // No blink_jsObject then return the dartClass_instance is probably an
-      // array that was already converted to a Dart class e.g., Uint8ClampedList.
-      return dartClass_instance;
+    // No blink_jsObject then return the dartClass_instance is probably an
+    // array that was already converted to a Dart class e.g., Uint8ClampedList.
+    return dartClass_instance;
   }
 }
 
 /**
  * Create Dart class that maps to the JS Type, add the JsObject as an expando
- * on the Dart class and return the created Dart class. 
+ * on the Dart class and return the created Dart class.
  */
 wrap_jso(jsObject) {
-try {
-//  debug_or_assert("jsObject != null", jsObject != null);
-  if (jsObject is! js.JsObject) {
+  try {
+    if (jsObject is! js.JsObject) {
       // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
       return jsObject;
+    }
+    var constructor = jsObject['constructor'];
+    if (__interop_checks) {
+      if (jsObject is js.JsArray) {
+        return jsObject;
+      }
+
+      debug_or_assert("constructor != null", constructor != null);
+    }
+    if (constructor == js.context['Object']) {
+      return convertNativeObjectToDartMap(jsObject);
+    }
+    if (constructor == js.context['Promise']) {
+      return convertNativePromiseToDartFuture(jsObject);
+    }
+    var jsTypeName = constructor['name'];
+    if (__interop_checks) {
+      debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
+    }
+
+    var dartClass_instance;
+    if (jsObject.hasProperty('dart_class')) {
+      // Got a dart_class (it's a custom element) use it it's already set up.
+      dartClass_instance = jsObject['dart_class'];
+    } else {
+      var func = getHtmlCreateFunction(jsTypeName);
+      if (func != null) {
+        dartClass_instance = func();
+        dartClass_instance.blink_jsObject = jsObject;
+      }
+    }
+    return dartClass_instance;
+  } catch(e, stacktrace){
+    if (__interop_checks) {
+      if (e is DebugAssertException)
+        window.console.log("${e.message}\n ${stacktrace}");
+      else
+        window.console.log("${stacktrace}");
+    }
   }
-  var constructor = jsObject['constructor'];
-  debug_or_assert("constructor != null", constructor != null);
-  var jsTypeName = constructor['name'];
-  debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
-  var func = getHtmlCreateFunction(jsTypeName);
-  debug_or_assert("func != null name = ${jsTypeName}", func != null);
-  var dartClass_instance = func();
-  dartClass_instance.blink_jsObject = jsObject;
-//  dartClass_instance.dartium_expando[dartClass_instance.expandoJsObject] = jsObject;
-  return dartClass_instance;
-} catch(e, stacktrace){
-  if (e is DebugAssertException)
-    window.console.log("${e.message}\n ${stacktrace}");
-  else
-    window.console.log("${stacktrace}");
+
+  return null;
 }
+
+/**
+ * Create Dart class that maps to the JS Type that is the JS type being 
+ * extended using JS interop createCallback (we need the base type of the
+ * custom element) not the Dart created constructor.
+ */
+wrap_jso_custom_element(jsObject) {
+  try {
+    if (jsObject is! js.JsObject) {
+      // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
+      return jsObject;
+    }
+
+    // Find out what object we're extending.
+    var objectName = jsObject.toString();
+    // Expect to see something like '[object HTMLElement]'.
+    if (!objectName.startsWith('[object ')) {
+      return jsObject;
+    }
+
+    var extendsClass = objectName.substring(8, objectName.length - 1);
+    var func = getHtmlCreateFunction(extendsClass);
+    if (__interop_checks)
+      debug_or_assert("func != null name = ${extendsClass}", func != null);
+    var dartClass_instance = func();
+    dartClass_instance.blink_jsObject = jsObject;
+    return dartClass_instance;
+  } catch(e, stacktrace){
+    if (__interop_checks) {
+      if (e is DebugAssertException)
+        window.console.log("${e.message}\n ${stacktrace}");
+      else
+        window.console.log("${stacktrace}");
+    }
+
+    // Problem?
+    return null;
+  }
 }
 
 class DebugAssertException implements Exception {
@@ -416,20 +487,73 @@ debug_or_assert(message, expression) {
   }
 }
 
-// Wrap JsObject node list to return a List<node>.
-List<Node> wrap_jso_list(jso_nodes) {
-  List<Node> nodes = new List<Node>();
-  var collectionLen = jso_nodes['length'];
-  for (var i = 0; i < collectionLen; i++) {
-    nodes.add(wrap_jso(jso_nodes.callMethod('item', [i])));
-  }
-  var frozen_nodes = new _FrozenElementList._wrap(nodes);
-  frozen_nodes.dartClass_instance = jso_nodes;
-  return frozen_nodes;
+// TODO(terry): Manage JS interop JsFunctions for each listener used for add/
+//              removeEventListener.  These JsFunctions will leak look at
+//              fixing with weak-refs in C++.  The key are the hashcodes of the
+//              user's this (this is needed for futures) and listener function.
+Map<int, Map<int, js.JsFunction>> _knownListeners = {};
+
+js.JsFunction wrap_event_listener(theObject, Function listener) {
+  var thisHashCode = theObject.hashCode;
+  var listenerHashCode = identityHashCode(listener);
+
+  _knownListeners.putIfAbsent(thisHashCode, () => new Map<int, js.JsFunction>());
+  _knownListeners[thisHashCode].putIfAbsent(listenerHashCode, () =>
+    new js.JsFunction.withThis((theObject, event) => listener(wrap_jso(event))));
+
+  return _knownListeners[thisHashCode][listenerHashCode];
 }
+
+Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
+  var result = new Map();
+  var keys = js.context['Object'].callMethod('keys', [jsObject]);
+  for (var key in keys) {
+    result[key] = wrap_jso(jsObject[key]);
+  }
+  return result;
+}
+
+// Converts a flat Dart map into a JavaScript object with properties this is
+// is the Dartium only version it uses dart:js.
+convertDartToNative_Dictionary(Map dict) {
+  if (dict == null) return null;
+  var jsObject = new js.JsObject(js.context['Object']);
+  dict.forEach((String key, value) {
+    if (value is List) {
+      var jsArray = new js.JsArray();
+      value.forEach((elem) {
+        jsArray.add(elem is Map ? convertDartToNative_Dictionary(elem): elem);
+      });
+      jsObject[key] = jsArray;
+    } else {
+      jsObject[key] = value;
+    }
+  });
+  return jsObject;
+}
+
+// Converts a Dart list into a JsArray. For the Dartium version only.
+convertDartToNative_List(List input) => new js.JsArray()..addAll(input);
+
+// Conversion function place holder (currently not used in dart2js or dartium).
+List convertDartToNative_StringArray(List<String> input) => input;
+
+Future convertNativePromiseToDartFuture(js.JsObject promise) {
+  var completer = new Completer();
+  var newPromise = promise
+      .callMethod("then", [(result) => completer.complete(result)])
+      .callMethod("catch", [(result) => completer.completeError(result)]);
+  return completer.future;
+}
+
 $else
+class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
+
 unwrap_jso(dartClass_instance) => dartClass_instance;
 wrap_jso(jsObject) => jsObject;
-wrap_jso_list(jso_nodes) => jso_nodes;
 make_dart_rectangle(r) => r;
+convertDartToNative_Dictionary(Map dict) =>  dict;
+List convertDartToNative_StringArray(List<String> input) => input;
+convertDartToNative_List(List input) => input;
+
 $endif

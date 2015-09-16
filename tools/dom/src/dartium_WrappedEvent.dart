@@ -8,6 +8,13 @@ part of dart.html;
  * Helper class to implement custom events which wrap DOM events.
  */
 class _WrappedEvent implements Event {
+  /** Needed because KeyboardEvent is implements.
+   *  TODO(terry): Consider making blink_jsObject private (add underscore) for
+   *               all blink_jsObject.  Then needed private wrap/unwrap_jso
+   *               functions that delegate to a public wrap/unwrap_jso.
+   */
+  js.JsObject blink_jsObject;
+
   final Event wrapped;
 
   /** The CSS selector involved with event delegation. */

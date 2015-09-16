@@ -34,7 +34,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
 
   void operator []=(int index, E value) { _list[index] = value; }
 
-  void set length(int newLength) { _list.length = newLength; }
+  set length(int newLength) { _list.length = newLength; }
 
   void sort([int compare(E a, E b)]) { _list.sort(compare); }
 
