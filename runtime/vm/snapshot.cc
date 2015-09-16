@@ -2668,7 +2668,9 @@ void SnapshotWriter::WriteInstanceRef(RawObject* raw, RawClass* cls) {
 
 
 bool SnapshotWriter::AllowObjectsInDartLibrary(RawLibrary* library) {
-  return library == object_store()->typed_data_library();
+  return (library == object_store()->collection_library() ||
+          library == object_store()->core_library() ||
+          library == object_store()->typed_data_library());
 }
 
 
