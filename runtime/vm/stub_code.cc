@@ -10,6 +10,7 @@
 #include "vm/disassembler.h"
 #include "vm/flags.h"
 #include "vm/object_store.h"
+#include "vm/snapshot.h"
 #include "vm/virtual_memory.h"
 #include "vm/visitor.h"
 
@@ -53,6 +54,24 @@ void StubCode::InitOnce() {
 #undef STUB_CODE_GENERATE
 
 
+void StubCode::ReadFrom(SnapshotReader* reader) {
+#define READ_STUB(name)                                                        \
+  *(reader->CodeHandle()) ^= reader->ReadObject();                             \
+  name##_entry_ = new StubEntry(*(reader->CodeHandle()));
+  VM_STUB_CODE_LIST(READ_STUB);
+#undef READ_STUB
+}
+
+void StubCode::WriteTo(SnapshotWriter* writer) {
+  // TODO(rmacnak): Consider writing only the instructions to avoid
+  // vm_isolate_is_symbolic.
+#define WRITE_STUB(name)                                                       \
+  writer->WriteObject(StubCode::name##_entry()->code());
+  VM_STUB_CODE_LIST(WRITE_STUB);
+#undef WRITE_STUB
+}
+
+
 void StubCode::Init(Isolate* isolate) { }
 
 
@@ -93,11 +112,11 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     stub.set_owner(cls);
     cls.set_allocation_stub(stub);
     if (FLAG_disassemble_stubs) {
-      LogBlock lb(Isolate::Current());
-      ISL_Print("Code for allocation stub '%s': {\n", name);
+      LogBlock lb;
+      THR_Print("Code for allocation stub '%s': {\n", name);
       DisassembleToStdout formatter;
       stub.Disassemble(&formatter);
-      ISL_Print("}\n");
+      THR_Print("}\n");
       const ObjectPool& object_pool = ObjectPool::Handle(
           Instructions::Handle(stub.instructions()).object_pool());
       object_pool.DebugPrint();
@@ -131,11 +150,11 @@ RawCode* StubCode::Generate(const char* name,
   GenerateStub(&assembler);
   const Code& code = Code::Handle(Code::FinalizeCode(name, &assembler));
   if (FLAG_disassemble_stubs) {
-    LogBlock lb(Isolate::Current());
-    ISL_Print("Code for stub '%s': {\n", name);
+    LogBlock lb;
+    THR_Print("Code for stub '%s': {\n", name);
     DisassembleToStdout formatter;
     code.Disassemble(&formatter);
-    ISL_Print("}\n");
+    THR_Print("}\n");
     const ObjectPool& object_pool = ObjectPool::Handle(
         Instructions::Handle(code.instructions()).object_pool());
     object_pool.DebugPrint();

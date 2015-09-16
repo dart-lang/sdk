@@ -14,6 +14,7 @@ namespace dart {
 
 // Forward declarations.
 class Isolate;
+class Zone;
 
 // Interface to the underlying OS platform.
 class OS {
@@ -119,6 +120,13 @@ class OS {
   static int VSNPrint(char* str, size_t size,
                       const char* format,
                       va_list args);
+
+  // Allocate a string and print formatted output into the buffer.
+  // Uses the zone for allocation if one if provided, and otherwise uses
+  // malloc.
+  static char* SCreate(Zone* zone, const char* format, ...)
+      PRINTF_ATTRIBUTE(2, 3);
+  static char* VSCreate(Zone* zone, const char* format, va_list args);
 
   // Converts a C string which represents a valid dart integer into a 64 bit
   // value.

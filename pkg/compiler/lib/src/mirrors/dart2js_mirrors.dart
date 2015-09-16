@@ -18,6 +18,8 @@ import '../diagnostics/source_span.dart' show
 import '../diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE;
 import '../elements/elements.dart';
+import '../elements/modelx.dart' show
+    LibraryElementX;
 import '../resolution/scope.dart' show
     Scope;
 import '../script.dart';

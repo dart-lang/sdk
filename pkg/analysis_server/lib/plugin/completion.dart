@@ -5,6 +5,23 @@
 /**
  * Support for client code that extends the analysis server by adding new code
  * completion contributors.
+ *
+ * Plugins can register completion contributors. The registered contributors
+ * will be used to get completions any time a client issues a
+ * 'completion.getSuggestions' request.
+ *
+ * If a plugin wants to add completions, it should implement the class
+ * [CompletionContributor] and then register the contributor by including code
+ * like the following in the plugin's registerExtensions method:
+ *
+ *     @override
+ *     void registerExtensions(RegisterExtension registerExtension) {
+ *       ...
+ *       registerExtension(
+ *           COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
+ *           new MyCompletionContributor());
+ *       ...
+ *     }
  */
 library analysis_server.plugin.completion;
 

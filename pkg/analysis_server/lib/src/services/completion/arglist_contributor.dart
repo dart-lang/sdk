@@ -19,8 +19,13 @@ void _addNamedParameterSuggestion(
     DartCompletionRequest request, List<String> namedArgs, String name) {
   if (name != null && name.length > 0 && !namedArgs.contains(name)) {
     request.addSuggestion(new CompletionSuggestion(
-        CompletionSuggestionKind.NAMED_ARGUMENT, DART_RELEVANCE_NAMED_PARAMETER,
-        '$name: ', name.length + 2, 0, false, false));
+        CompletionSuggestionKind.NAMED_ARGUMENT,
+        DART_RELEVANCE_NAMED_PARAMETER,
+        '$name: ',
+        name.length + 2,
+        0,
+        false,
+        false));
   }
 }
 
@@ -216,8 +221,13 @@ class _ArgSuggestionBuilder {
     }
     completion.write(')');
     CompletionSuggestion suggestion = new CompletionSuggestion(
-        CompletionSuggestionKind.ARGUMENT_LIST, DART_RELEVANCE_HIGH,
-        completion.toString(), completion.length, 0, false, false);
+        CompletionSuggestionKind.ARGUMENT_LIST,
+        DART_RELEVANCE_HIGH,
+        completion.toString(),
+        completion.length,
+        0,
+        false,
+        false);
     suggestion.parameterNames = paramNames;
     suggestion.parameterTypes = paramTypes;
     request.addSuggestion(suggestion);
@@ -353,8 +363,13 @@ class _LocalArgSuggestionBuilder extends LocalDeclarationVisitor {
     }
     completion.write(')');
     CompletionSuggestion suggestion = new CompletionSuggestion(
-        CompletionSuggestionKind.ARGUMENT_LIST, DART_RELEVANCE_HIGH,
-        completion.toString(), completion.length, 0, false, false);
+        CompletionSuggestionKind.ARGUMENT_LIST,
+        DART_RELEVANCE_HIGH,
+        completion.toString(),
+        completion.length,
+        0,
+        false,
+        false);
     suggestion.parameterNames = paramNames;
     suggestion.parameterTypes = paramTypes;
     request.addSuggestion(suggestion);

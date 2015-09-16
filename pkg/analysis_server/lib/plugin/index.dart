@@ -5,6 +5,28 @@
 /**
  * Support for client code that extends the analysis server by adding new index
  * contributors.
+ *
+ * Plugins can register index contributors. The registered contributors will be
+ * used to contribute relationships to the index when the analysis of a file has
+ * been completed.
+ *
+ * Typical relationships include things like "this variable is referenced here"
+ * or "this method is invoked here". The index is used to improve the
+ * performance of operations such as search or building a type hierarchy by
+ * pre-computing some of the information needed by those operations.
+ *
+ * If a plugin wants to contribute information to the index, it should implement
+ * the class [IndexContributor] and then register the contributor by including
+ * code like the following in the plugin's registerExtensions method:
+ *
+ *     @override
+ *     void registerExtensions(RegisterExtension registerExtension) {
+ *       ...
+ *       registerExtension(
+ *           INDEX_CONTRIBUTOR_EXTENSION_POINT_ID,
+ *           new MyIndexContributor());
+ *       ...
+ *     }
  */
 library analysis_server.plugin.index;
 

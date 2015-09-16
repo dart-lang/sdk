@@ -1751,6 +1751,10 @@ class PatchClass : public Object {
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawPatchClass));
   }
+  static bool IsInFullSnapshot(RawPatchClass* cls) {
+    NoSafepointScope no_safepoint;
+    return Class::IsInFullSnapshot(cls->ptr()->patched_class_);
+  }
 
   static RawPatchClass* New(const Class& patched_class,
                             const Class& source_class);
@@ -3222,7 +3226,9 @@ class Script : public Object {
   void SetLocationOffset(intptr_t line_offset, intptr_t col_offset) const;
 
   void GetTokenLocation(intptr_t token_pos,
-                        intptr_t* line, intptr_t* column) const;
+                        intptr_t* line,
+                        intptr_t* column,
+                        intptr_t* token_len = NULL) const;
 
   // Returns index of first and last token on the given line. Returns both
   // indices < 0 if no token exists on or after the line. If a token exists
@@ -3604,6 +3610,7 @@ class ObjectPool : public Object {
     kTaggedObject,
     kImmediate,
     kExternalLabel,
+    kNativeEntry,
   };
 
   struct Entry {
@@ -8033,6 +8040,7 @@ void Field::SetStaticValue(const Instance& value,
   ASSERT(is_static());  // Valid only for static dart fields.
   StorePointer(&raw_ptr()->value_.static_value_, value.raw());
   if (save_initial_value) {
+    ASSERT(!HasPrecompiledInitializer());
     StorePointer(&raw_ptr()->initializer_.saved_value_, value.raw());
   }
 }

@@ -124,7 +124,7 @@ char* CompilerStats::PrintToZone() {
   Dart::vm_isolate()->heap()->IterateObjects(&visitor);
 
   Log log(PrintToStats);
-  LogBlock lb(isolate_, &log);
+  LogBlock lb(Thread::Current(), &log);
 
   log.Print("==== Compiler Stats for isolate '%s' ====\n",
             isolate_->debugger_name());

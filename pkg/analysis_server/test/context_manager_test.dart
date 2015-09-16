@@ -366,8 +366,8 @@ analyzer:
 ''');
     // Setup .packages file
     newFile(
-      [projPath, '.packages'],
-      r'''
+        [projPath, '.packages'],
+        r'''
 test_pack:lib/
 ''');
     // Setup context.
@@ -381,7 +381,6 @@ test_pack:lib/
     var source = context.sourceFactory.forUri('dart:foobar');
     expect(source.fullName, equals('/my/proj/sdk_ext/entry.dart'));
   }
-
 
   test_refresh_folder_with_packagespec() {
     // create a context with a .packages file

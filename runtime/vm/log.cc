@@ -11,10 +11,31 @@ namespace dart {
 
 DEFINE_FLAG(bool, force_log_flush, false, "Always flush log messages.");
 
+DEFINE_FLAG(charp, isolate_log_filter, NULL,
+            "Log isolates whose name include the filter. "
+            "Default: service isolate log messages are suppressed.");
+
 Log::Log(LogPrinter printer)
     : printer_(printer),
       manual_flush_(0),
       buffer_(0) {
+}
+
+
+Log::~Log() {
+  // Did someone enable manual flushing and then forgot to Flush?
+  ASSERT(cursor() == 0);
+}
+
+
+Log* Log::Current() {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (isolate != NULL && Log::ShouldLogForIsolate(isolate)) {
+    return thread->log();
+  } else {
+    return Log::NoOpLog();
+  }
 }
 
 
@@ -92,6 +113,24 @@ intptr_t Log::cursor() const {
 }
 
 
+bool Log::ShouldLogForIsolate(const Isolate* isolate) {
+  if (FLAG_isolate_log_filter == NULL) {
+    if (isolate->is_service_isolate()) {
+      // By default, do not log for the service isolate.
+      return false;
+    }
+    return true;
+  }
+  const char* name = isolate->name();
+  ASSERT(name != NULL);
+  if (strstr(name, FLAG_isolate_log_filter) == NULL) {
+    // Filter does not match, do not log for this isolate.
+    return false;
+  }
+  return true;
+}
+
+
 Log Log::noop_log_;
 Log* Log::NoOpLog() {
   return &noop_log_;
@@ -117,25 +156,14 @@ void Log::DisableManualFlush() {
 }
 
 
-LogBlock::LogBlock(Thread* thread, Log* log)
-    : StackResource(thread),
-      log_(log), cursor_(log->cursor()) {
-  CommonConstructor();
+void LogBlock::Initialize() {
+  log_->EnableManualFlush();
 }
 
 
-LogBlock::LogBlock(Isolate* isolate)
-    : StackResource(isolate),
-      log_(isolate->Log()), cursor_(isolate->Log()->cursor()) {
-  CommonConstructor();
-}
-
-
-LogBlock::LogBlock(Thread* thread)
-    : StackResource(thread),
-      log_(thread->isolate()->Log()),
-      cursor_(thread->isolate()->Log()->cursor()) {
-  CommonConstructor();
+LogBlock::~LogBlock() {
+  log_->Flush(cursor_);
+  log_->DisableManualFlush();
 }
 
 }  // namespace dart

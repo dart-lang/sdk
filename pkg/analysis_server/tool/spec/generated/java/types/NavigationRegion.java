@@ -55,7 +55,8 @@ public class NavigationRegion {
 
   /**
    * The indexes of the targets (in the enclosing navigation response) to which the given region is
-   * bound. By opening the target, clients can implement one form of navigation.
+   * bound. By opening the target, clients can implement one form of navigation. This list cannot be
+   * empty.
    */
   private final int[] targets;
 
@@ -125,7 +126,8 @@ public class NavigationRegion {
 
   /**
    * The indexes of the targets (in the enclosing navigation response) to which the given region is
-   * bound. By opening the target, clients can implement one form of navigation.
+   * bound. By opening the target, clients can implement one form of navigation. This list cannot be
+   * empty.
    */
   public int[] getTargets() {
     return targets;

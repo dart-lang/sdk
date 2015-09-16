@@ -72,7 +72,9 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     for (Element newNameMember in getChildren(parentClass, newName)) {
       String message = format(
           "Class '{0}' already declares {1} with name '{2}'.",
-          parentClass.displayName, getElementKindName(newNameMember), newName);
+          parentClass.displayName,
+          getElementKindName(newNameMember),
+          newName);
       result.addError(message, newLocation_fromElement(newNameMember));
     }
   }

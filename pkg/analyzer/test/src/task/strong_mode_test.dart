@@ -18,52 +18,8 @@ import '../context/abstract_context.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(InferrenceFinderTest);
   runReflectiveTests(InstanceMemberInferrerTest);
   runReflectiveTests(VariableGathererTest);
-}
-
-@reflectiveTest
-class InferrenceFinderTest extends AbstractContextTest {
-  void test_creation() {
-    InferrenceFinder finder = new InferrenceFinder();
-    expect(finder, isNotNull);
-    expect(finder.classes, isEmpty);
-    expect(finder.staticVariables, isEmpty);
-  }
-
-  void test_visit() {
-    Source source = addSource(
-        '/test.dart',
-        r'''
-const c = 1;
-final f = '';
-var v = const A();
-int i;
-class A {
-  static final fa = 0;
-  static int fi;
-  const A();
-}
-class B extends A {
-  static const cb = 1;
-  static vb = 0;
-  const ci = 2;
-  final fi = '';
-  var vi;
-}
-class C = Object with A;
-typedef int F(int x);
-''');
-    LibrarySpecificUnit librarySpecificUnit =
-        new LibrarySpecificUnit(source, source);
-    computeResult(librarySpecificUnit, RESOLVED_UNIT5);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
-    InferrenceFinder finder = new InferrenceFinder();
-    unit.accept(finder);
-    expect(finder.classes, hasLength(3));
-    expect(finder.staticVariables, hasLength(6));
-  }
 }
 
 @reflectiveTest

@@ -164,7 +164,6 @@ Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
   isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
     var subscription;
     subscription = stream.listen((ServiceEvent event) {
-        print("Event: $event");
         if (event.kind == ServiceEvent.kPauseBreakpoint) {
           print('Breakpoint reached');
           subscription.cancel();
@@ -192,6 +191,41 @@ Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
   });
 
   return completer.future;  // Will complete when breakpoint hit.
+}
+
+
+Future<Isolate> hasPausedAtStart(Isolate isolate) {
+  // Set up a listener to wait for breakpoint events.
+  Completer completer = new Completer();
+  isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
+    var subscription;
+    subscription = stream.listen((ServiceEvent event) {
+        if (event.kind == ServiceEvent.kPauseStart) {
+          print('Paused at isolate start');
+          subscription.cancel();
+          if (completer != null) {
+            // Reload to update isolate.pauseEvent.
+            completer.complete(isolate.reload());
+            completer = null;
+          }
+        }
+    });
+
+    // Pause may have happened before we subscribed.
+    isolate.reload().then((_) {
+      if ((isolate.pauseEvent != null) &&
+         (isolate.pauseEvent.kind == ServiceEvent.kPauseStart)) {
+        print('Paused at isolate start');
+        subscription.cancel();
+        if (completer != null) {
+          completer.complete(isolate);
+          completer = null;
+        }
+      }
+    });
+  });
+
+  return completer.future;
 }
 
 

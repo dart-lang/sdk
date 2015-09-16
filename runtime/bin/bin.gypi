@@ -295,7 +295,7 @@
       'conditions': [
         ['dart_io_support==1', {
           'dependencies': [
-            'bin/net/zlib.gyp:zlib_dart',
+            'bin/zlib.gyp:zlib_dart',
           ],
         }],
         ['dart_io_support==1 and dart_io_secure_socket==1', {

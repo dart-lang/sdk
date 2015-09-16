@@ -172,9 +172,11 @@ class MoveFileRefactoringImpl extends RefactoringImpl
           if (uri != null) {
             String oldPrefix = 'package:$oldPackageName/';
             if (uri.startsWith(oldPrefix)) {
-              doSourceChange_addElementEdit(change, library, new SourceEdit(
-                  element.uriOffset + 1, oldPrefix.length,
-                  'package:$newPackageName/'));
+              doSourceChange_addElementEdit(
+                  change,
+                  library,
+                  new SourceEdit(element.uriOffset + 1, oldPrefix.length,
+                      'package:$newPackageName/'));
             }
           }
         }

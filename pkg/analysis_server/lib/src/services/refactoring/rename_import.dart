@@ -82,8 +82,11 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         SimpleIdentifier interpolationIdentifier =
             _getInterpolationIdentifier(reference);
         if (interpolationIdentifier != null) {
-          doSourceChange_addElementEdit(change, reference.element,
-              new SourceEdit(interpolationIdentifier.offset,
+          doSourceChange_addElementEdit(
+              change,
+              reference.element,
+              new SourceEdit(
+                  interpolationIdentifier.offset,
                   interpolationIdentifier.length,
                   '{$newName.${interpolationIdentifier.name}}'));
         } else {

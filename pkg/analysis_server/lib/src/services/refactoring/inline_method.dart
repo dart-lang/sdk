@@ -45,13 +45,17 @@ SourceRange _getLocalsConflictingRange(AstNode node) {
  * Returns the source which should replace given invocation with given
  * arguments.
  */
-String _getMethodSourceForInvocation(RefactoringStatus status, _SourcePart part,
-    CorrectionUtils utils, AstNode contextNode, Expression targetExpression,
+String _getMethodSourceForInvocation(
+    RefactoringStatus status,
+    _SourcePart part,
+    CorrectionUtils utils,
+    AstNode contextNode,
+    Expression targetExpression,
     List<Expression> arguments) {
   // prepare edits to replace parameters with arguments
   List<SourceEdit> edits = <SourceEdit>[];
-  part._parameters.forEach((ParameterElement parameter,
-      List<_ParameterOccurrence> occurrences) {
+  part._parameters.forEach(
+      (ParameterElement parameter, List<_ParameterOccurrence> occurrences) {
     // prepare argument
     Expression argument = null;
     for (Expression arg in arguments) {

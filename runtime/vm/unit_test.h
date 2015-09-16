@@ -521,6 +521,24 @@ class CompilerTest : public AllStatic {
     }                                                                          \
   } while (0)
 
+
+// Elide a substring which starts with some prefix and ends with a ".
+//
+// This is used to remove non-deterministic or fragile substrings from
+// JSON output.
+//
+// For example:
+//
+//    prefix = "classes"
+//    in = "\"id\":\"classes/46\""
+//
+// Yields:
+//
+//    out = "\"id\":\"\""
+//
+void ElideJSONSubstring(const char* prefix, const char* in, char* out);
+
+
 }  // namespace dart
 
 #endif  // VM_UNIT_TEST_H_

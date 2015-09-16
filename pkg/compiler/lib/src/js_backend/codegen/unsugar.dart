@@ -250,6 +250,7 @@ class UnsugarVisitor extends RecursiveVisitor {
     }
     node.arguments.insert(0, node.receiver);
     node.receiver = new Reference<Primitive>(newReceiver);
+    node.receiverIsIntercepted = true;
   }
 
   processInvokeMethodDirectly(InvokeMethodDirectly node) {

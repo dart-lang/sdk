@@ -28,6 +28,7 @@ import '../elements/elements.dart' show
 import '../enqueue.dart' show Enqueuer;
 import 'js_backend.dart' show JavaScriptBackend;
 import '../dart_types.dart' show DynamicType, InterfaceType;
+import 'package:pub_semver/pub_semver.dart';
 
 /// An analysis and optimization to remove unused entries from a `LookupMap`.
 ///
@@ -162,8 +163,12 @@ class LookupMapAnalysis {
 
     // TODO(sigmund): add proper version resolution using the pub_semver package
     // when we introduce the next version.
-    String version = value.primitiveValue.slowToString();
-    if (version != '0.0.1') {
+    Version version;
+    try {
+      version = new Version.parse(value.primitiveValue.slowToString());
+    } catch (e) {}
+
+    if (version == null || !_validLookupMapVersionConstraint.allows(version)) {
       backend.compiler.reportInfo(lookupMapVersionVariable,
           MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
       return;
@@ -430,3 +435,6 @@ class _LookupMapInfo {
     }
   }
 }
+
+final _validLookupMapVersionConstraint =
+    new VersionConstraint.parse('^0.0.1');

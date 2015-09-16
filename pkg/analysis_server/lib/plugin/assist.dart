@@ -5,6 +5,22 @@
 /**
  * Support for client code that extends the analysis server by adding new assist
  * contributors.
+ *
+ * Plugins can register assist contributors. The registered contributors will be
+ * used to get assists any time a client issues an 'edit.getAssists' request.
+ *
+ * If a plugin wants to add assists, it should implement the class
+ * [AssistContributor] and then register the contributor by including code like
+ * the following in the plugin's registerExtensions method:
+ *
+ *     @override
+ *     void registerExtensions(RegisterExtension registerExtension) {
+ *       ...
+ *       registerExtension(
+ *           ASSIST_CONTRIBUTOR_EXTENSION_POINT_ID,
+ *           new MyAssistContributor());
+ *       ...
+ *     }
  */
 library analysis_server.plugin.assist;
 

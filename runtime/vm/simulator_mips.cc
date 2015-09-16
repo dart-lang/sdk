@@ -1268,6 +1268,7 @@ void Simulator::DoBreak(Instr *instr) {
         d0 = target(d6, d7);
         set_fregister_double(F0, d0);
       } else if (redirection->call_kind() == kBootstrapNativeCall) {
+        ASSERT(redirection->argument_count() == 1);
         NativeArguments* arguments;
         arguments = reinterpret_cast<NativeArguments*>(get_register(A0));
         SimulatorBootstrapNativeCall target =

@@ -106,10 +106,11 @@ class VMService extends MessageRouter {
   void _exit() {
     isolateLifecyclePort.close();
     scriptLoadPort.close();
-    // Create a copy of the set as a list because client.close() alters the set.
+    // Create a copy of the set as a list because client.disconnect() will
+    // alter the connected clients set.
     var clientsList = clients.toList();
     for (var client in clientsList) {
-      client.close();
+      client.disconnect();
     }
     // Call embedder shutdown hook after the internal shutdown.
     if (onShutdown != null) {

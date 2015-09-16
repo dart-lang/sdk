@@ -138,7 +138,7 @@ mint_maker_test: StaticWarning
 package_root_test: SkipByDesign # Uses dart:io.
 
 [ $compiler == dart2js && $cps_ir ]
-deferred_in_isolate2_test: Crash # (lib.f()): deferred access is not implemented
+deferred_in_isolate2_test: RuntimeError # Exception: Some tests failed.
 isolate_current_test: RuntimeError # Please triage this failure.
 message3_test/byteBuffer: RuntimeError # Please triage this failure.
 message3_test/fun: RuntimeError # Please triage this failure.

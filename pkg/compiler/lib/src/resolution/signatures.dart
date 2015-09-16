@@ -102,7 +102,8 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     currentDefinitions = node;
     FormalElementX element = definition.accept(this);
     if (currentDefinitions.metadata != null) {
-      element.metadata = compiler.resolver.resolveMetadata(element, node);
+      element.metadataInternal =
+          compiler.resolver.resolveMetadata(element, node);
     }
     currentDefinitions = null;
     return element;

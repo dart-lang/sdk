@@ -99,7 +99,6 @@ class CommonUsageComputer {
  * An [AstVisitor] used to determine the best defining type of a node.
  */
 class _BestTypeVisitor extends GeneralizingAstVisitor {
-
   /**
    * The entity which the completed text will replace (or which will be
    * displaced once the completed text is inserted).  This may be an AstNode or

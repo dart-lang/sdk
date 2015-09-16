@@ -14,14 +14,9 @@ static const char* formatted_version = NULL;
 
 const char* Version::String() {
   if (formatted_version == NULL) {
-    const char* format = "%s on \"%s_%s\"";
     const char* os = OS::Name();
     const char* arch = CPU::Id();
-
-    intptr_t len = OS::SNPrint(NULL, 0, format, str_, os, arch);
-    char* buffer = reinterpret_cast<char*>(malloc(len + 1));
-    OS::SNPrint(buffer, (len + 1), format, str_, os, arch);
-    formatted_version = buffer;
+    formatted_version = OS::SCreate(NULL, "%s on \"%s_%s\"", str_, os, arch);
   }
   return formatted_version;
 }

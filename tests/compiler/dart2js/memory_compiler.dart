@@ -81,6 +81,10 @@ class DiagnosticCollector implements CompilerDiagnostics {
   bool get hasRegularMessages {
     return messages.any((m) => m.kind != Diagnostic.VERBOSE_INFO);
   }
+
+  void clear() {
+    messages.clear();
+  }
 }
 
 class MultiDiagnostics implements CompilerDiagnostics {

@@ -29,6 +29,7 @@ class OSThread {
  public:
   static ThreadLocalKey kUnsetThreadLocalKey;
   static ThreadId kInvalidThreadId;
+  static ThreadJoinId kInvalidThreadJoinId;
 
   typedef void (*ThreadStartFunction) (uword parameter);
   typedef void (*ThreadDestructor) (void* parameter);
@@ -47,7 +48,11 @@ class OSThread {
   static void SetThreadLocal(ThreadLocalKey key, uword value);
   static intptr_t GetMaxStackSize();
   static ThreadId GetCurrentThreadId();
-  static bool Join(ThreadId id);
+  static intptr_t CurrentCurrentThreadIdAsIntPtr() {
+    return ThreadIdToIntPtr(GetCurrentThreadId());
+  }
+  static ThreadJoinId GetCurrentThreadJoinId();
+  static void Join(ThreadJoinId id);
   static intptr_t ThreadIdToIntPtr(ThreadId id);
   static ThreadId ThreadIdFromIntPtr(intptr_t id);
   static bool Compare(ThreadId a, ThreadId b);

@@ -128,10 +128,12 @@ class StringUtilities {
         str.codeUnitAt(length - 2) == c2 &&
         str.codeUnitAt(length - 1) == c3;
   }
+
   static endsWithChar(String str, int c) {
     int length = str.length;
     return length > 0 && str.codeUnitAt(length - 1) == c;
   }
+
   static int indexOf1(String str, int start, int c) {
     int index = start;
     int last = str.length;
@@ -143,6 +145,7 @@ class StringUtilities {
     }
     return -1;
   }
+
   static int indexOf2(String str, int start, int c1, int c2) {
     int index = start;
     int last = str.length - 1;
@@ -154,6 +157,7 @@ class StringUtilities {
     }
     return -1;
   }
+
   static int indexOf4(
       String string, int start, int c1, int c2, int c3, int c4) {
     int index = start;
@@ -169,6 +173,7 @@ class StringUtilities {
     }
     return -1;
   }
+
   static int indexOf5(
       String str, int start, int c1, int c2, int c3, int c4, int c5) {
     int index = start;
@@ -203,10 +208,12 @@ class StringUtilities {
     }
     return last;
   }
+
   static String intern(String string) => INTERNER.intern(string);
   static bool isEmpty(String s) {
     return s == null || s.isEmpty;
   }
+
   static bool isTagName(String s) {
     if (s == null || s.length == 0) {
       return false;
@@ -225,6 +232,7 @@ class StringUtilities {
     }
     return true;
   }
+
   /**
    * Produce a string containing all of the names in the given array, surrounded by single quotes,
    * and separated by commas. The list must contain at least two elements.
@@ -255,17 +263,20 @@ class StringUtilities {
     buffer.write("'");
     return buffer.toString();
   }
+
   static startsWith2(String str, int start, int c1, int c2) {
     return str.length - start >= 2 &&
         str.codeUnitAt(start) == c1 &&
         str.codeUnitAt(start + 1) == c2;
   }
+
   static startsWith3(String str, int start, int c1, int c2, int c3) {
     return str.length - start >= 3 &&
         str.codeUnitAt(start) == c1 &&
         str.codeUnitAt(start + 1) == c2 &&
         str.codeUnitAt(start + 2) == c3;
   }
+
   static startsWith4(String str, int start, int c1, int c2, int c3, int c4) {
     return str.length - start >= 4 &&
         str.codeUnitAt(start) == c1 &&
@@ -273,6 +284,7 @@ class StringUtilities {
         str.codeUnitAt(start + 2) == c3 &&
         str.codeUnitAt(start + 3) == c4;
   }
+
   static startsWith5(
       String str, int start, int c1, int c2, int c3, int c4, int c5) {
     return str.length - start >= 5 &&
@@ -282,6 +294,7 @@ class StringUtilities {
         str.codeUnitAt(start + 3) == c4 &&
         str.codeUnitAt(start + 4) == c5;
   }
+
   static startsWith6(
       String str, int start, int c1, int c2, int c3, int c4, int c5, int c6) {
     return str.length - start >= 6 &&
@@ -292,6 +305,7 @@ class StringUtilities {
         str.codeUnitAt(start + 4) == c5 &&
         str.codeUnitAt(start + 5) == c6;
   }
+
   static startsWithChar(String str, int c) {
     return str.length != 0 && str.codeUnitAt(0) == c;
   }

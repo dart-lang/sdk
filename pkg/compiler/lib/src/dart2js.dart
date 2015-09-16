@@ -12,6 +12,7 @@ import 'dart:io'
          stdin, stderr;
 
 import '../compiler.dart' as api;
+import 'commandline_options.dart';
 import 'io/source_file.dart';
 import 'source_file_provider.dart';
 import 'filenames.dart';
@@ -286,10 +287,10 @@ Future<api.CompilationResult> compile(List<String> argv) {
           wantHelp = true;
           break;
         case 'c':
-          setCheckedMode('--enable-checked-mode');
+          setCheckedMode(Flags.enableCheckedMode);
           break;
         case 'm':
-          implyCompilation('--minify');
+          implyCompilation(Flags.minify);
           break;
         default:
           throw 'Internal error: "$shortOption" did not match';
@@ -301,60 +302,60 @@ Future<api.CompilationResult> compile(List<String> argv) {
   List<OptionHandler> handlers = <OptionHandler>[
     new OptionHandler('-[chvm?]+', handleShortOptions),
     new OptionHandler('--throw-on-error(?:=[0-9]+)?', handleThrowOnError),
-    new OptionHandler('--suppress-warnings', (_) {
+    new OptionHandler(Flags.suppressWarnings, (_) {
       diagnosticHandler.showWarnings = false;
-      passThrough('--suppress-warnings');
+      passThrough(Flags.suppressWarnings);
     }),
-    new OptionHandler('--fatal-warnings', passThrough),
-    new OptionHandler('--suppress-hints',
+    new OptionHandler(Flags.fatalWarnings, passThrough),
+    new OptionHandler(Flags.suppressHints,
                       (_) => diagnosticHandler.showHints = false),
     new OptionHandler(
         '--output-type=dart|--output-type=dart-multi|--output-type=js',
         setOutputType),
-    new OptionHandler('--use-cps-ir', passThrough),
-    new OptionHandler('--no-frequency-based-minification', passThrough),
-    new OptionHandler('--verbose', setVerbose),
-    new OptionHandler('--version', (_) => wantVersion = true),
+    new OptionHandler(Flags.useCpsIr, passThrough),
+    new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
+    new OptionHandler(Flags.verbose, setVerbose),
+    new OptionHandler(Flags.version, (_) => wantVersion = true),
     new OptionHandler('--library-root=.+', setLibraryRoot),
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
-    new OptionHandler('--allow-mock-compilation', passThrough),
-    new OptionHandler('--fast-startup', passThrough),
-    new OptionHandler('--minify|-m', implyCompilation),
-    new OptionHandler('--preserve-uris', passThrough),
+    new OptionHandler(Flags.allowMockCompilation, passThrough),
+    new OptionHandler(Flags.fastStartup, passThrough),
+    new OptionHandler('${Flags.minify}|-m', implyCompilation),
+    new OptionHandler(Flags.preserveUris, passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
-    new OptionHandler('--disable-diagnostic-colors',
+    new OptionHandler(Flags.disableDiagnosticColors,
                       (_) => diagnosticHandler.enableColors = false),
-    new OptionHandler('--enable-diagnostic-colors',
+    new OptionHandler(Flags.enableDiagnosticColors,
                       (_) => diagnosticHandler.enableColors = true),
     new OptionHandler('--enable[_-]checked[_-]mode|--checked',
-                      (_) => setCheckedMode('--enable-checked-mode')),
-    new OptionHandler('--enable-concrete-type-inference',
+                      (_) => setCheckedMode(Flags.enableCheckedMode)),
+    new OptionHandler(Flags.enableConcreteTypeInference,
                       (_) => implyCompilation(
-                          '--enable-concrete-type-inference')),
-    new OptionHandler('--trust-type-annotations',
+                          Flags.enableConcreteTypeInference)),
+    new OptionHandler(Flags.trustTypeAnnotations,
                       (_) => setTrustTypeAnnotations(
-                          '--trust-type-annotations')),
-    new OptionHandler('--trust-primitives',
+                          Flags.trustTypeAnnotations)),
+    new OptionHandler(Flags.trustPrimitives,
                       (_) => setTrustPrimitives(
-                          '--trust-primitives')),
+                          Flags.trustPrimitives)),
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
     new OptionHandler('--packages=.+', setPackageConfig),
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
-    new OptionHandler('--analyze-all', setAnalyzeAll),
-    new OptionHandler('--analyze-only', setAnalyzeOnly),
-    new OptionHandler('--no-source-maps', passThrough),
-    new OptionHandler('--analyze-signatures-only', setAnalyzeOnly),
-    new OptionHandler('--disable-native-live-type-analysis', passThrough),
+    new OptionHandler(Flags.analyzeAll, setAnalyzeAll),
+    new OptionHandler(Flags.analyzeOnly, setAnalyzeOnly),
+    new OptionHandler(Flags.noSourceMaps, passThrough),
+    new OptionHandler(Flags.analyzeSignaturesOnly, setAnalyzeOnly),
+    new OptionHandler(Flags.disableNativeLiveTypeAnalysis, passThrough),
     new OptionHandler('--categories=.*', setCategories),
-    new OptionHandler('--disable-type-inference', implyCompilation),
-    new OptionHandler('--terse', passThrough),
+    new OptionHandler(Flags.disableTypeInference, implyCompilation),
+    new OptionHandler(Flags.terse, passThrough),
     new OptionHandler('--deferred-map=.+', implyCompilation),
-    new OptionHandler('--dump-info', setDumpInfo),
+    new OptionHandler(Flags.dumpInfo, setDumpInfo),
     new OptionHandler('--disallow-unsafe-eval',
                       (_) => hasDisallowUnsafeEval = true),
-    new OptionHandler('--show-package-warnings', passThrough),
-    new OptionHandler('--csp', passThrough),
-    new OptionHandler('--enable-experimental-mirrors', passThrough),
+    new OptionHandler(Flags.showPackageWarnings, passThrough),
+    new OptionHandler(Flags.useContentSecurityPolicy, passThrough),
+    new OptionHandler(Flags.enableExperimentalMirrors, passThrough),
     new OptionHandler('--enable-async', (_) {
       diagnosticHandler.info(
           "Option '--enable-async' is no longer needed. "
@@ -373,9 +374,9 @@ Future<api.CompilationResult> compile(List<String> argv) {
           "Enums are supported by default.",
           api.Diagnostic.HINT);
     }),
-    new OptionHandler('--allow-native-extensions', setAllowNativeExtensions),
-    new OptionHandler('--generate-code-with-compile-time-errors', passThrough),
-    new OptionHandler('--test-mode', passThrough),
+    new OptionHandler(Flags.allowNativeExtensions, setAllowNativeExtensions),
+    new OptionHandler(Flags.generateCodeWithCompileTimeErrors, passThrough),
+    new OptionHandler(Flags.testMode, passThrough),
 
     // The following three options must come last.
     new OptionHandler('-D.+=.*', addInEnvironment),
@@ -415,7 +416,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
 
   if (checkedMode && trustTypeAnnotations) {
-    helpAndFail("Option '--trust-type-annotations' may not be used in "
+    helpAndFail("Option '${Flags.trustTypeAnnotations}' may not be used in "
                 "checked mode.");
   }
 
@@ -426,23 +427,23 @@ Future<api.CompilationResult> compile(List<String> argv) {
   if ((analyzeOnly || analyzeAll) && !optionsImplyCompilation.isEmpty) {
     if (!analyzeOnly) {
       diagnosticHandler.info(
-          "Option '--analyze-all' implies '--analyze-only'.",
+          "Option '${Flags.analyzeAll}' implies '${Flags.analyzeOnly}'.",
           api.Diagnostic.INFO);
     }
     diagnosticHandler.info(
         "Options $optionsImplyCompilation indicate that output is expected, "
-        "but compilation is turned off by the option '--analyze-only'.",
+        "but compilation is turned off by the option '${Flags.analyzeOnly}'.",
         api.Diagnostic.INFO);
   }
   if (analyzeAll) analyzeOnly = true;
   if (!analyzeOnly) {
     if (allowNativeExtensions) {
-      helpAndFail("Option '--allow-native-extensions' is only supported in "
-                  "combination with the '--analyze-only' option.");
+      helpAndFail("Option '${Flags.allowNativeExtensions}' is only supported "
+                  "in combination with the '${Flags.analyzeOnly}' option.");
     }
   }
   if (dumpInfo && outputLanguage == OUTPUT_LANGUAGE_DART) {
-    helpAndFail("Option '--dump-info' is not supported in "
+    helpAndFail("Option '${Flags.dumpInfo}' is not supported in "
                 "combination with the '--output-type=dart' option.");
   }
 

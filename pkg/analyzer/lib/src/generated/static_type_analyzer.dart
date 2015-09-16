@@ -328,7 +328,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         node.element as ExecutableElementImpl;
     functionElement.returnType =
         _computeStaticReturnTypeOfFunctionDeclaration(node);
-    _recordPropagatedTypeOfFunction(functionElement, function.body);
+    if (node.parent is FunctionDeclarationStatement) {
+      _recordPropagatedTypeOfFunction(functionElement, function.body);
+    }
     _recordStaticType(function, functionElement.type);
     return null;
   }

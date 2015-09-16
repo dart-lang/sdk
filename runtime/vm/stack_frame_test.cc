@@ -101,10 +101,8 @@ void FUNCTION_NAME(StackFrame_validateFrame)(Dart_NativeArguments args) {
       const Library& lib = Library::Handle(Library::LookupLibrary(url));
       ASSERT(!lib.IsNull());
       const char* lib_name = String::Handle(lib.url()).ToCString();
-      intptr_t length = OS::SNPrint(NULL, 0, "%s_%s", lib_name, expected_name);
-      char* full_name = Thread::Current()->zone()->Alloc<char>(length + 1);
-      ASSERT(full_name != NULL);
-      OS::SNPrint(full_name, (length + 1), "%s_%s", lib_name, expected_name);
+      char* full_name = OS::SCreate(Thread::Current()->zone(),
+          "%s_%s", lib_name, expected_name);
       if (strcmp(full_name, name) != 0) {
         FATAL("StackFrame_validateFrame fails, incorrect frame.\n");
       }

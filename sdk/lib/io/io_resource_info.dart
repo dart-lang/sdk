@@ -10,9 +10,12 @@ abstract class _IOResourceInfo {
   String get name;
   static int _count = 0;
 
-  _IOResourceInfo(this.type) : id = _IOResourceInfo.getNextID();
+  static final Stopwatch _sw = new Stopwatch()..start();
+  static final _startTime = new DateTime.now().millisecondsSinceEpoch;
 
-  String toJSON();
+  static double get timestamp => _startTime + _sw.elapsedMicroseconds/1000;
+
+  _IOResourceInfo(this.type) : id = _IOResourceInfo.getNextID();
 
   /// Get the full set of values for a specific implementation. This is normally
   /// looked up based on an id from a referenceValueMap.
@@ -31,9 +34,6 @@ abstract class _IOResourceInfo {
   static int getNextID() => _count++;
 }
 
-// TODO(ricow): Move stopwatch into this class and use it for both files
-// and sockets (by using setters on totalRead/totalWritten). Also, consider
-// setting readCount and writeCount in those setters.
 abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
   int totalRead;
   int totalWritten;
@@ -41,6 +41,26 @@ abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
   int writeCount;
   double lastRead;
   double lastWrite;
+
+  // Not all call sites use this. In some cases, e.g., a socket, a read does
+  // not always mean that we actually read some bytes (we may do a read to see
+  // if there are some bytes available).
+  void addRead(int bytes) {
+    totalRead += bytes;
+    readCount++;
+    lastRead = _IOResourceInfo.timestamp;
+  }
+
+  // In cases where we read but did not neccesarily get any bytes, use this to
+  // update the readCount and timestamp. Manually update totalRead if any bytes
+  // where acutally read.
+  void didRead() => addRead(0);
+
+  void addWrite(int bytes) {
+    totalWritten += bytes;
+    writeCount++;
+    lastWrite = _IOResourceInfo.timestamp;
+  }
 
   _ReadWriteResourceInfo(String type) :
     totalRead = 0,
@@ -56,17 +76,13 @@ abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
       'type': type,
       'id': id,
       'name': name,
-      'total_read': totalRead,
-      'total_written': totalWritten,
-      'read_count': readCount,
-      'write_count': writeCount,
-      'last_read': lastRead,
-      'last_write': lastWrite
+      'totalRead': totalRead,
+      'totalWritten': totalWritten,
+      'readCount': readCount,
+      'writeCount': writeCount,
+      'lastRead': lastRead,
+      'lastWrite': lastWrite
     };
-
-  String toJSON() {
-    return JSON.encode(fullValueMap);
-  }
 }
 
 class _FileResourceInfo extends _ReadWriteResourceInfo {
@@ -121,6 +137,68 @@ class _FileResourceInfo extends _ReadWriteResourceInfo {
   }
 }
 
+class _ProcessResourceInfo extends _IOResourceInfo{
+  static const String TYPE = '_process';
+  final process;
+  final double startedAt;
+
+  static Map<int, _ProcessResourceInfo> startedProcesses =
+      new Map<int, _ProcessResourceInfo>();
+
+  _ProcessResourceInfo(this.process) :
+      startedAt = _IOResourceInfo.timestamp,
+      super(TYPE) {
+    ProcessStarted(this);
+  }
+
+  String get name => process._path;
+
+  void stopped() => ProcessStopped(this);
+
+  Map<String, String> get fullValueMap =>
+    {
+      'type': type,
+      'id': id,
+      'name': name,
+      'pid': process.pid,
+      'startedAt': startedAt,
+      'arguments': process._arguments,
+      'workingDirectory':
+          process._workingDirectory == null ? '.' : process._workingDirectory,
+    };
+
+  static ProcessStarted(_ProcessResourceInfo info) {
+    assert(!startedProcesses.containsKey(info.id));
+    startedProcesses[info.id] = info;
+  }
+
+  static ProcessStopped(_ProcessResourceInfo info) {
+    assert(startedProcesses.containsKey(info.id));
+    startedProcesses.remove(info.id);
+  }
+
+  static Iterable<Map<String, String>> getStartedProcessesList() =>
+      new List.from(startedProcesses.values.map((e) => e.referenceValueMap));
+
+  static Future<ServiceExtensionResponse> getStartedProcesses(
+      String function, Map<String, String> params) {
+    assert(function == '__getProcesses');
+    var data = {'type': '_startedprocesses', 'data': getStartedProcessesList()};
+    var json = JSON.encode(data);
+    return new Future.value(new ServiceExtensionResponse.result(json));
+  }
+
+  static Future<ServiceExtensionResponse> getProcessInfoMapById(
+      String function, Map<String, String> params) {
+    var id = int.parse(params['id']);
+    var result = startedProcesses.containsKey(id)
+        ? startedProcesses[id].fullValueMap
+        : {};
+    var json = JSON.encode(result);
+    return new Future.value(new ServiceExtensionResponse.result(json));
+  }
+}
+
 class _SocketResourceInfo extends _ReadWriteResourceInfo {
   static const String TCP_STRING = 'TCP';
   static const String UDP_STRING = 'UDP';
@@ -154,24 +232,24 @@ class _SocketResourceInfo extends _ReadWriteResourceInfo {
 
   Map<String, String> getSocketInfoMap() {
     var result = fullValueMap;
-    result['socket_type'] = socket.isTcp ? TCP_STRING : UDP_STRING;
+    result['socketType'] = socket.isTcp ? TCP_STRING : UDP_STRING;
     result['listening'] = socket.isListening;
     result['host'] = socket.address.host;
     result['port'] = socket.port;
     if (!socket.isListening) {
       try {
-        result['remote_host'] = socket.remoteAddress.host;
-        result['remote_port'] = socket.remotePort;
+        result['remoteHost'] = socket.remoteAddress.host;
+        result['remotePort'] = socket.remotePort;
       } catch (e) {
         // UDP.
-        result['remote_port'] = 'NA';
-        result['remote_host'] = 'NA';
+        result['remotePort'] = 'NA';
+        result['remoteHost'] = 'NA';
       }
     } else {
-      result['remote_port'] = 'NA';
-      result['remote_host'] = 'NA';
+      result['remotePort'] = 'NA';
+      result['remoteHost'] = 'NA';
     }
-    result['address_type'] = socket.address.type.name;
+    result['addressType'] = socket.address.type.name;
     return result;
   }
 

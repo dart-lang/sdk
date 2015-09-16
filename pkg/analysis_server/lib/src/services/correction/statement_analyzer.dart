@@ -190,7 +190,8 @@ class StatementAnalyzer extends SelectionAnalyzer {
       AstNode lastNode = nodes.last;
       SourceRange rangeAfterLastNode = rangeEndEnd(lastNode, selection);
       if (_hasTokens(rangeAfterLastNode)) {
-        invalidSelection("The end of the selection contains characters that "
+        invalidSelection(
+            "The end of the selection contains characters that "
             "do not belong to a statement.",
             newLocation_fromUnit(unit, rangeAfterLastNode));
       }

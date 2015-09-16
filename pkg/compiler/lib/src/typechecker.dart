@@ -4,6 +4,8 @@
 
 library dart2js.typechecker;
 
+import 'common/names.dart' show
+    Identifiers;
 import 'common/tasks.dart' show
     CompilerTask;
 import 'compiler.dart' show
@@ -62,7 +64,7 @@ class TypeCheckerTask extends CompilerTask {
     if (element.isClass) return;
     if (element.isTypedef) return;
     ResolvedAst resolvedAst = element.resolvedAst;
-    compiler.withCurrentElement(element, () {
+    compiler.withCurrentElement(element.implementation, () {
       measure(() {
         TypeCheckerVisitor visitor = new TypeCheckerVisitor(
             compiler, resolvedAst.elements, compiler.types);
@@ -420,6 +422,16 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     compiler.reportWarning(spannable, kind, arguments);
   }
 
+  reportMessage(Spannable spannable, MessageKind kind,
+                Map arguments,
+                {bool isHint: false}) {
+    if (isHint) {
+      compiler.reportHint(spannable, kind, arguments);
+    } else {
+      compiler.reportWarning(spannable, kind, arguments);
+    }
+  }
+
   reportTypeInfo(Spannable spannable, MessageKind kind,
                  [Map arguments = const {}]) {
     compiler.reportInfo(spannable, kind, arguments);
@@ -726,49 +738,21 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           node,
           MessageKind.PRIVATE_ACCESS,
           {'name': name,
-           'libraryName': element.library.getLibraryOrScriptName()});
+           'libraryName': element.library.libraryOrScriptName});
     }
 
   }
 
   ElementAccess lookupMember(Node node, DartType receiverType, String name,
                              MemberKind memberKind, Element receiverElement,
-                             {bool lookupClassMember: false}) {
+                             {bool lookupClassMember: false,
+                              bool isHint: false}) {
     if (receiverType.treatAsDynamic) {
       return const DynamicAccess();
     }
 
     Name memberName = new Name(name, currentLibrary,
         isSetter: memberKind == MemberKind.SETTER);
-
-    // Compute the unaliased type of the first non type variable bound of
-    // [type].
-    DartType computeUnaliasedBound(DartType type) {
-      DartType originalType = type;
-      while (identical(type.kind, TypeKind.TYPE_VARIABLE)) {
-        TypeVariableType variable = type;
-        type = variable.element.bound;
-        if (type == originalType) {
-          type = compiler.objectClass.rawType;
-        }
-      }
-      if (type.isMalformed) {
-        return const DynamicType();
-      }
-      return type.unalias(compiler);
-    }
-
-    // Compute the interface type of [type]. For type variable it is the
-    // interface type of the bound, for function types and typedefs it is the
-    // `Function` type.
-    InterfaceType computeInterfaceType(DartType type) {
-      if (type.isFunctionType) {
-         type = compiler.functionClass.rawType;
-      }
-      assert(invariant(node, type.isInterfaceType,
-          message: "unexpected type kind ${type.kind}."));
-      return type;
-    }
 
     // Lookup the class or interface member [name] in [interface].
     MemberSignature lookupMemberSignature(Name name, InterfaceType interface) {
@@ -802,11 +786,13 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       return null;
     }
 
-    DartType unaliasedBound = computeUnaliasedBound(receiverType);
+    DartType unaliasedBound =
+        Types.computeUnaliasedBound(compiler, receiverType);
     if (unaliasedBound.treatAsDynamic) {
       return new DynamicAccess();
     }
-    InterfaceType interface = computeInterfaceType(unaliasedBound);
+    InterfaceType interface =
+        Types.computeInterfaceType(compiler, unaliasedBound);
     ElementAccess access = getAccess(memberName, unaliasedBound, interface);
     if (access != null) {
       return access;
@@ -818,9 +804,11 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         while (!typePromotions.isEmpty) {
           TypePromotion typePromotion = typePromotions.head;
           if (!typePromotion.isValid) {
-            DartType unaliasedBound = computeUnaliasedBound(typePromotion.type);
+            DartType unaliasedBound =
+                Types.computeUnaliasedBound(compiler, typePromotion.type);
             if (!unaliasedBound.treatAsDynamic) {
-              InterfaceType interface = computeInterfaceType(unaliasedBound);
+              InterfaceType interface =
+                  Types.computeInterfaceType(compiler, unaliasedBound);
               if (getAccess(memberName, unaliasedBound, interface) != null) {
                 reportTypePromotionHint(typePromotion);
               }
@@ -840,11 +828,12 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         void findPrivateMember(MemberSignature member) {
           if (memberName.isSimilarTo(member.name)) {
             PrivateName privateName = member.name;
-            reportTypeWarning(
+            reportMessage(
                  node,
                  MessageKind.PRIVATE_ACCESS,
                  {'name': name,
-                  'libraryName': privateName.library.getLibraryOrScriptName()});
+                  'libraryName': privateName.library.libraryOrScriptName},
+                 isHint: isHint);
             foundPrivateMember = true;
           }
         }
@@ -860,19 +849,22 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       if (!foundPrivateMember) {
         switch (memberKind) {
           case MemberKind.METHOD:
-            reportTypeWarning(node, MessageKind.METHOD_NOT_FOUND,
-                {'className': receiverType.name, 'memberName': name});
+            reportMessage(node, MessageKind.METHOD_NOT_FOUND,
+                {'className': receiverType.name, 'memberName': name},
+                isHint: isHint);
             break;
           case MemberKind.OPERATOR:
-            reportTypeWarning(node, MessageKind.OPERATOR_NOT_FOUND,
-                {'className': receiverType.name, 'memberName': name});
+            reportMessage(node, MessageKind.OPERATOR_NOT_FOUND,
+                {'className': receiverType.name, 'memberName': name},
+                isHint: isHint);
             break;
           case MemberKind.GETTER:
             if (lookupMemberSignature(memberName.setter, interface) != null) {
               // A setter is present so warn explicitly about the missing
               // getter.
-              reportTypeWarning(node, MessageKind.GETTER_NOT_FOUND,
-                  {'className': receiverType.name, 'memberName': name});
+              reportMessage(node, MessageKind.GETTER_NOT_FOUND,
+                  {'className': receiverType.name, 'memberName': name},
+                  isHint: isHint);
             } else if (name == 'await') {
               Map arguments = {'className': receiverType.name};
               String functionName = executableContext.name;
@@ -883,15 +875,17 @@ class TypeCheckerVisitor extends Visitor<DartType> {
                 kind = MessageKind.AWAIT_MEMBER_NOT_FOUND;
                 arguments['functionName'] = functionName;
               }
-              reportTypeWarning(node, kind, arguments);
+              reportMessage(node, kind, arguments, isHint: isHint);
             } else {
-              reportTypeWarning(node, MessageKind.MEMBER_NOT_FOUND,
-                  {'className': receiverType.name, 'memberName': name});
+              reportMessage(node, MessageKind.MEMBER_NOT_FOUND,
+                  {'className': receiverType.name, 'memberName': name},
+                  isHint: isHint);
             }
             break;
           case MemberKind.SETTER:
-            reportTypeWarning(node, MessageKind.SETTER_NOT_FOUND,
-                {'className': receiverType.name, 'memberName': name});
+            reportMessage(node, MessageKind.SETTER_NOT_FOUND,
+                {'className': receiverType.name, 'memberName': name},
+                isHint: isHint);
             break;
         }
       }
@@ -900,8 +894,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   DartType lookupMemberType(Node node, DartType type, String name,
-                            MemberKind memberKind) {
-    return lookupMember(node, type, name, memberKind, null)
+                            MemberKind memberKind,
+                            {bool isHint: false}) {
+    return lookupMember(node, type, name, memberKind, null, isHint: isHint)
         .computeType(compiler);
   }
 
@@ -1797,14 +1792,67 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return const StatementType();
   }
 
+  DartType computeForInElementType(ForIn node) {
+    VariableDefinitions declaredIdentifier =
+        node.declaredIdentifier.asVariableDefinitions();
+    if (declaredIdentifier != null) {
+      return
+          analyzeWithDefault(declaredIdentifier.type, const DynamicType());
+    } else {
+      return analyze(node.declaredIdentifier);
+    }
+  }
+
   visitAsyncForIn(AsyncForIn node) {
-    analyze(node.expression);
+    DartType elementType = computeForInElementType(node);
+    DartType expressionType = analyze(node.expression);
+    // TODO(johnniwinther): Move this to _CompilerCoreTypes.
+    compiler.streamClass.ensureResolved(compiler);
+    DartType streamOfDynamic = coreTypes.streamType();
+    if (!types.isAssignable(expressionType, streamOfDynamic)) {
+      reportMessage(node.expression,
+          MessageKind.NOT_ASSIGNABLE,
+          {'fromType': expressionType, 'toType': streamOfDynamic},
+          isHint: true);
+    } else {
+      InterfaceType interfaceType =
+          Types.computeInterfaceType(compiler, expressionType);
+      if (interfaceType != null) {
+        InterfaceType streamType =
+            interfaceType.asInstanceOf(compiler.streamClass);
+        if (streamType != null) {
+          DartType streamElementType = streamType.typeArguments.first;
+          if (!types.isAssignable(streamElementType, elementType)) {
+            reportMessage(node.expression,
+                MessageKind.FORIN_NOT_ASSIGNABLE,
+                {'currentType': streamElementType,
+                 'expressionType': expressionType,
+                 'elementType': elementType},
+                isHint: true);
+          }
+        }
+      }
+    }
     analyze(node.body);
     return const StatementType();
   }
 
   visitSyncForIn(SyncForIn node) {
-    analyze(node.expression);
+    DartType elementType = computeForInElementType(node);
+    DartType expressionType = analyze(node.expression);
+    DartType iteratorType = lookupMemberType(node.expression,
+        expressionType, Identifiers.iterator, MemberKind.GETTER);
+    DartType currentType = lookupMemberType(node.expression,
+              iteratorType, Identifiers.current, MemberKind.GETTER,
+              isHint: true);
+    if (!types.isAssignable(currentType, elementType)) {
+      reportMessage(node.expression,
+          MessageKind.FORIN_NOT_ASSIGNABLE,
+          {'currentType': currentType,
+           'expressionType': expressionType,
+           'elementType': elementType},
+          isHint: true);
+    }
     analyze(node.body);
     return const StatementType();
   }

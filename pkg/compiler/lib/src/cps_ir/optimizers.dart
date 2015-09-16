@@ -37,3 +37,11 @@ bool isFalsyConstant(ConstantValue value) {
       value.isNaN ||
       value is StringConstantValue && value.primitiveValue.isEmpty;
 }
+
+/// Returns true if [value] satisfies a branching condition with the
+/// given strictness.
+///
+/// For non-strict, this is the opposite of [isFalsyConstant].
+bool isTruthyConstant(ConstantValue value, {bool strict: false}) {
+  return strict ? value.isTrue : !isFalsyConstant(value);
+}

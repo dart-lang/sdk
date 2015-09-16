@@ -210,8 +210,7 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
                                            Label* is_true,
                                            Label* is_false) {
   Label fall_through;
-  __ CompareImmediate(bool_register,
-                      reinterpret_cast<intptr_t>(Object::null()));
+  __ CompareObject(bool_register, Object::null_object());
   __ b(&fall_through, EQ);
   __ CompareObject(bool_register, Bool::True());
   __ b(is_true, EQ);
@@ -236,11 +235,11 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
   __ LoadUniqueObject(R2, type_test_cache);
   if (test_kind == kTestTypeOneArg) {
     ASSERT(type_arguments_reg == kNoRegister);
-    __ LoadImmediate(R1, reinterpret_cast<intptr_t>(Object::null()));
+    __ LoadObject(R1, Object::null_object());
     __ BranchLink(*StubCode::Subtype1TestCache_entry());
   } else if (test_kind == kTestTypeTwoArgs) {
     ASSERT(type_arguments_reg == kNoRegister);
-    __ LoadImmediate(R1, reinterpret_cast<intptr_t>(Object::null()));
+    __ LoadObject(R1, Object::null_object());
     __ BranchLink(*StubCode::Subtype2TestCache_entry());
   } else if (test_kind == kTestTypeThreeArgs) {
     ASSERT(type_arguments_reg == R1);
@@ -390,7 +389,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     // Check if instance is a closure.
     __ LoadClassById(R3, kClassIdReg);
     __ ldr(R3, FieldAddress(R3, Class::signature_function_offset()));
-    __ CompareImmediate(R3, reinterpret_cast<int32_t>(Object::null()));
+    __ CompareObject(R3, Object::null_object());
     __ b(is_instance_lbl, NE);
   }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
@@ -458,7 +457,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ ldr(R1, Address(SP, 0));  // Get instantiator type arguments.
     // R1: instantiator type arguments.
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
-    __ CompareImmediate(R1, reinterpret_cast<intptr_t>(Object::null()));
+    __ CompareObject(R1, Object::null_object());
     __ b(is_instance_lbl, EQ);
     __ ldr(R2,
         FieldAddress(R1, TypeArguments::type_at_offset(type_param.index())));
@@ -603,7 +602,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     // We can only inline this null check if the type is instantiated at compile
     // time, since an uninstantiated type at compile time could be Object or
     // dynamic at run time.
-    __ CompareImmediate(R0, reinterpret_cast<int32_t>(Object::null()));
+    __ CompareObject(R0, Object::null_object());
     __ b(type.IsNullType() ? &is_instance : &is_not_instance, EQ);
   }
 
@@ -679,7 +678,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ PushList((1 << R1) | (1 << R2));
   // A null object is always assignable and is returned as result.
   Label is_assignable, runtime_call;
-  __ CompareImmediate(R0, reinterpret_cast<int32_t>(Object::null()));
+  __ CompareObject(R0, Object::null_object());
   __ b(&is_assignable, EQ);
 
   // Generate throw new TypeError() if the type is malformed or malbounded.
@@ -877,7 +876,7 @@ void FlowGraphCompiler::CopyParameters() {
       // Check that R6 now points to the null terminator in the arguments
       // descriptor.
       __ ldr(R5, Address(R6, 0));
-      __ CompareImmediate(R5, reinterpret_cast<int32_t>(Object::null()));
+      __ CompareObject(R5, Object::null_object());
       __ b(&all_arguments_processed, EQ);
     }
   } else {
@@ -939,7 +938,7 @@ void FlowGraphCompiler::CopyParameters() {
   __ SmiUntag(R9);
   __ add(R7, FP, Operand((kParamEndSlotFromFp + 1) * kWordSize));
   const Address original_argument_addr(R7, R9, LSL, 2);
-  __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(IP, Object::null_object());
   Label null_args_loop, null_args_loop_condition;
   __ b(&null_args_loop_condition);
   __ Bind(&null_args_loop);
@@ -970,7 +969,7 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   __ ldr(R0, Address(SP, 1 * kWordSize));  // Receiver.
   __ ldr(R1, Address(SP, 0 * kWordSize));  // Value.
   __ StoreIntoObjectOffset(R0, offset, R1);
-  __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(R0, Object::null_object());
   __ Ret();
 }
 
@@ -1104,7 +1103,7 @@ void FlowGraphCompiler::CompileGraph() {
     const intptr_t context_index =
         parsed_function().current_context_var()->index();
     if (num_locals > 1) {
-      __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+      __ LoadObject(R0, Object::null_object());
     }
     for (intptr_t i = 0; i < num_locals; ++i) {
       // Subtract index i (locals lie at lower addresses than FP).
@@ -1285,13 +1284,12 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
-  MegamorphicCacheTable* table = Isolate::Current()->megamorphic_cache_table();
   const String& name = String::Handle(zone(), ic_data.target_name());
   const Array& arguments_descriptor =
       Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
-  const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
-      zone(), table->Lookup(name, arguments_descriptor));
+  const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
+      MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
   const Register receiverR = R0;
   const Register cacheR = R1;
   const Register targetR = R1;

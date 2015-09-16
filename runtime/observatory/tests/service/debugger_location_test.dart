@@ -59,7 +59,7 @@ hasStoppedAtBreakpoint,
   return initDebugger(isolate).then((debugger) {
     return DebuggerLocation.parse(debugger, '').then((DebuggerLocation loc) {
       expect(loc.valid, isTrue);
-      expect(loc.toString(), equals('debugger_location_test.dart:17'));
+      expect(loc.toString(), equals('debugger_location_test.dart:17:5'));
     });
   });
 },

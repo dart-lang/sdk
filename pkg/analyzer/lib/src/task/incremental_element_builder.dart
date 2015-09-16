@@ -69,8 +69,8 @@ class IncrementalCompilationUnitElementBuilder {
    * Fills [unitDelta] with added/remove elements.
    */
   void build() {
-    new CompilationUnitBuilder().buildCompilationUnit(
-        unitSource, newUnit, librarySource);
+    new CompilationUnitBuilder()
+        .buildCompilationUnit(unitSource, newUnit, librarySource);
     _processDirectives();
     _processUnitMembers();
     newUnit.element = unitElement;

@@ -832,6 +832,8 @@ TEST_CASE(Utf8Decode) {
   }
 
   // 5.1 - Single UTF-16 surrogates
+  // UTF-8 suggests single surrogates are invalid, but both JS and
+  // Dart allow them and make use of them.
 
   // 5.1.1 - U+D800 = ed a0 80 = "\xED\xA0\x80"
   {
@@ -840,8 +842,8 @@ TEST_CASE(Utf8Decode) {
     int32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
     bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
-    EXPECT(!is_valid);
-    EXPECT(memcmp(expected, dst, sizeof(expected)));
+    EXPECT(is_valid);
+    EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
 
   // 5.1.2 - U+DB7F = ed ad bf = "\xED\xAD\xBF"
@@ -851,8 +853,8 @@ TEST_CASE(Utf8Decode) {
     int32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
     bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
-    EXPECT(!is_valid);
-    EXPECT(memcmp(expected, dst, sizeof(expected)));
+    EXPECT(is_valid);
+    EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
 
   // 5.1.3 - U+DB80 = ed ae 80 = "\xED\xAE\x80"
@@ -862,8 +864,8 @@ TEST_CASE(Utf8Decode) {
     int32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
     bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
-    EXPECT(!is_valid);
-    EXPECT(memcmp(expected, dst, sizeof(expected)));
+    EXPECT(is_valid);
+    EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
 
   // 5.1.4 - U+DBFF = ed af bf = "\xED\xAF\xBF"
@@ -873,8 +875,8 @@ TEST_CASE(Utf8Decode) {
     int32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
     bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
-    EXPECT(!is_valid);
-    EXPECT(memcmp(expected, dst, sizeof(expected)));
+    EXPECT(is_valid);
+    EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
 
   // 5.1.5 - U+DC00 = ed b0 80 = "\xED\xB0\x80"
@@ -884,8 +886,8 @@ TEST_CASE(Utf8Decode) {
     int32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
     bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
-    EXPECT(!is_valid);
-    EXPECT(memcmp(expected, dst, sizeof(expected)));
+    EXPECT(is_valid);
+    EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
 
   // 5.1.6 - U+DF80 = ed be 80 = "\xED\xBE\x80"
@@ -895,8 +897,8 @@ TEST_CASE(Utf8Decode) {
     int32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
     bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
-    EXPECT(!is_valid);
-    EXPECT(memcmp(expected, dst, sizeof(expected)));
+    EXPECT(is_valid);
+    EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
 
   // 5.1.7 - U+DFFF = ed bf bf = "\xED\xBF\xBF"
@@ -906,11 +908,16 @@ TEST_CASE(Utf8Decode) {
     int32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
     bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
-    EXPECT(!is_valid);
-    EXPECT(memcmp(expected, dst, sizeof(expected)));
+    EXPECT(is_valid);
+    EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
 
   // 5.2 Paired UTF-16 surrogates
+  // Also not a valid string, but accepted in Dart, even if it doesn't make
+  // sense. e.g.
+  // var s =  new String.fromCharCodes([0xd800, 0xDC00]);
+  // print(s.runes);  // (65536) (0x10000)
+  // print(s.codeUnits); // [55296, 56320]
 
   // 5.2.1 - U+D800 U+DC00 = ed a0 80 ed b0 80 = "\xED\xA0\x80\xED\xB0\x80"
   {
@@ -919,8 +926,8 @@ TEST_CASE(Utf8Decode) {
     int32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
     bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
-    EXPECT(!is_valid);
-    EXPECT(memcmp(expected, dst, sizeof(expected)));
+    EXPECT(is_valid);
+    EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
 
   // 5.2.2 - U+D800 U+DFFF = ed a0 80 ed bf bf = "\xED\xA0\x80\xED\xBF\xBF"
@@ -930,8 +937,8 @@ TEST_CASE(Utf8Decode) {
     int32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
     bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
-    EXPECT(!is_valid);
-    EXPECT(memcmp(expected, dst, sizeof(expected)));
+    EXPECT(is_valid);
+    EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
 
   // 5.2.3 - U+DB7F U+DC00 = ed a0 80 ed bf bf = "\xED\xAD\xBF\xED\xB0\x80"
@@ -941,8 +948,8 @@ TEST_CASE(Utf8Decode) {
     int32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
     bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
-    EXPECT(!is_valid);
-    EXPECT(memcmp(expected, dst, sizeof(expected)));
+    EXPECT(is_valid);
+    EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
 
   // 5.2.4 - U+DB7F U+DFFF = ed ad bf ed bf bf = "\xED\xAD\xBF\xED\xBF\xBF"
@@ -952,8 +959,8 @@ TEST_CASE(Utf8Decode) {
     int32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
     bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
-    EXPECT(!is_valid);
-    EXPECT(memcmp(expected, dst, sizeof(expected)));
+    EXPECT(is_valid);
+    EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
 
   // 5.2.5 - U+DB80 U+DC00 = ed ae 80 ed b0 80 = "\xED\xAE\x80\xED\xB0\x80"
@@ -963,8 +970,8 @@ TEST_CASE(Utf8Decode) {
     int32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
     bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
-    EXPECT(!is_valid);
-    EXPECT(memcmp(expected, dst, sizeof(expected)));
+    EXPECT(is_valid);
+    EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
 
   // 5.2.6 - U+DB80 U+DFFF = ed ae 80 ed bf bf = "\xED\xAE\x80\xED\xBF\xBF"
@@ -974,8 +981,8 @@ TEST_CASE(Utf8Decode) {
     int32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
     bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
-    EXPECT(!is_valid);
-    EXPECT(memcmp(expected, dst, sizeof(expected)));
+    EXPECT(is_valid);
+    EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
 
   // 5.2.7 - U+DBFF U+DC00 = ed af bf ed b0 80 = "\xED\xAF\xBF\xED\xB0\x80"
@@ -985,8 +992,8 @@ TEST_CASE(Utf8Decode) {
     int32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
     bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
-    EXPECT(!is_valid);
-    EXPECT(memcmp(expected, dst, sizeof(expected)));
+    EXPECT(is_valid);
+    EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
 
   // 5.2.8 - U+DBFF U+DFFF = ed af bf ed bf bf = "\xED\xAF\xBF\xED\xBF\xBF"
@@ -996,8 +1003,8 @@ TEST_CASE(Utf8Decode) {
     int32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));
     bool is_valid = Utf8::DecodeCStringToUTF32(src, dst, ARRAY_SIZE(dst));
-    EXPECT(!is_valid);
-    EXPECT(memcmp(expected, dst, sizeof(expected)));
+    EXPECT(is_valid);
+    EXPECT(!memcmp(expected, dst, sizeof(expected)));
   }
 
   // 5.3 - Other illegal code positions

@@ -138,7 +138,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   args.SetAt(1, Integer::Handle(Integer::New(0)));
   args.SetAt(2, Integer::Handle(Integer::New(Array::kMaxElements)));
   args.SetAt(3, Symbols::Length());
-  Exceptions::ThrowByType(Exceptions::kRangeRange, args);
+  Exceptions::ThrowByType(Exceptions::kRange, args);
 }
 
 
@@ -1012,7 +1012,7 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   const Array& descriptor = Array::CheckedHandle(arguments.ArgAt(2));
   const String& name = String::Handle(ic_data.target_name());
   const MegamorphicCache& cache = MegamorphicCache::Handle(
-      isolate->megamorphic_cache_table()->Lookup(name, descriptor));
+      MegamorphicCacheTable::Lookup(isolate, name, descriptor));
   Class& cls = Class::Handle(receiver.clazz());
   ASSERT(!cls.IsNull());
   if (FLAG_trace_ic || FLAG_trace_ic_miss_in_optimized) {
@@ -1476,7 +1476,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     function.set_usage_counter(0);
     if (FLAG_trace_compiler) {
       if (function.HasOptimizedCode()) {
-        ISL_Print("ReCompiling function: '%s' \n",
+        THR_Print("ReCompiling function: '%s' \n",
                   function.ToFullyQualifiedCString());
       }
     }

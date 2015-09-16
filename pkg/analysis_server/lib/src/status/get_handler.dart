@@ -179,8 +179,8 @@ class GetHandler {
     if (analysisServer == null) {
       return null;
     }
-    return analysisServer.handlers.firstWhere(
-        (h) => h is CompletionDomainHandler, orElse: () => null);
+    return analysisServer.handlers
+        .firstWhere((h) => h is CompletionDomainHandler, orElse: () => null);
   }
 
   /**
@@ -223,7 +223,8 @@ class GetHandler {
    */
   Folder _findFolder(AnalysisServer analysisServer, String contextFilter) {
     return analysisServer.folderMap.keys.firstWhere(
-        (Folder folder) => folder.path == contextFilter, orElse: () => null);
+        (Folder folder) => folder.path == contextFilter,
+        orElse: () => null);
   }
 
   /**
@@ -342,12 +343,15 @@ class GetHandler {
         buffer.write('<p><b>Task performace data</b></p>');
         buffer.write(
             '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
-        _writeRow(buffer, [
-          'Task Name',
-          'Count',
-          'Total Time (in ms)',
-          'Average Time (in ms)'
-        ], header: true);
+        _writeRow(
+            buffer,
+            [
+              'Task Name',
+              'Count',
+              'Total Time (in ms)',
+              'Average Time (in ms)'
+            ],
+            header: true);
 
         Map<Type, int> countMap = AnalysisTask.countMap;
         Map<Type, Stopwatch> stopwatchMap = AnalysisTask.stopwatchMap;
@@ -367,7 +371,12 @@ class GetHandler {
             count,
             taskTime,
             count <= 0 ? '-' : (taskTime / count).toStringAsFixed(3)
-          ], classes: [null, "right", "right", "right"]);
+          ], classes: [
+            null,
+            "right",
+            "right",
+            "right"
+          ]);
         });
         _writeRow(buffer, ['Total', '-', totalTaskTime, '-'],
             classes: [null, "right", "right", "right"]);
@@ -402,10 +411,8 @@ class GetHandler {
     InternalAnalysisContext context = analysisServer.folderMap[folder];
 
     _writeResponse(request, (StringBuffer buffer) {
-      _writePage(buffer, 'Analysis Server - AST Structure', [
-        'Context: $contextFilter',
-        'File: $sourceUri'
-      ], (HttpResponse) {
+      _writePage(buffer, 'Analysis Server - AST Structure',
+          ['Context: $contextFilter', 'File: $sourceUri'], (HttpResponse) {
         Source source = context.sourceFactory.forUri(sourceUri);
         if (source == null) {
           buffer.write('<p>Not found.</p>');
@@ -486,10 +493,8 @@ class GetHandler {
     InternalAnalysisContext context = analysisServer.folderMap[folder];
 
     _writeResponse(request, (StringBuffer buffer) {
-      _writePage(buffer, 'Analysis Server - Cache Entry', [
-        'Context: $contextFilter',
-        'File: $sourceUri'
-      ], (HttpResponse) {
+      _writePage(buffer, 'Analysis Server - Cache Entry',
+          ['Context: $contextFilter', 'File: $sourceUri'], (HttpResponse) {
         buffer.write('<h3>Analyzing Contexts</h3><p>');
         bool first = true;
         allContexts.forEach((Folder folder) {
@@ -503,10 +508,13 @@ class GetHandler {
           if (analyzingContext == context) {
             buffer.write(folder.path);
           } else {
-            buffer.write(makeLink(CACHE_ENTRY_PATH, {
-              CONTEXT_QUERY_PARAM: folder.path,
-              SOURCE_QUERY_PARAM: sourceUri
-            }, HTML_ESCAPE.convert(folder.path)));
+            buffer.write(makeLink(
+                CACHE_ENTRY_PATH,
+                {
+                  CONTEXT_QUERY_PARAM: folder.path,
+                  SOURCE_QUERY_PARAM: sourceUri
+                },
+                HTML_ESCAPE.convert(folder.path)));
           }
           if (entryMap[folder][0].explicitlyAdded) {
             buffer.write(' (explicit)');
@@ -760,10 +768,14 @@ class GetHandler {
           if (exception != null) {
             exceptions.add(exception);
           }
-          String link = makeLink(CACHE_ENTRY_PATH, {
-            CONTEXT_QUERY_PARAM: folder.path,
-            SOURCE_QUERY_PARAM: source.uri.toString()
-          }, sourceName, exception != null);
+          String link = makeLink(
+              CACHE_ENTRY_PATH,
+              {
+                CONTEXT_QUERY_PARAM: folder.path,
+                SOURCE_QUERY_PARAM: source.uri.toString()
+              },
+              sourceName,
+              exception != null);
           if (entry.explicitlyAdded) {
             explicitNames.add(sourceName);
           } else {
@@ -803,8 +815,9 @@ class GetHandler {
     }
 
     _writeResponse(request, (StringBuffer buffer) {
-      _writePage(buffer, 'Analysis Server - Context',
-          ['Context: $contextFilter'], (StringBuffer buffer) {
+      _writePage(
+          buffer, 'Analysis Server - Context', ['Context: $contextFilter'],
+          (StringBuffer buffer) {
         List headerRowText = ['Context'];
         headerRowText.addAll(CacheState.values);
         buffer.write('<h3>Summary</h3>');
@@ -928,8 +941,8 @@ class GetHandler {
           buffer.write('<table border="1">');
           _writeRow(buffer, ['Element', 'Relationship', 'Location'],
               header: true);
-          relations.forEach((List<String> elementPath,
-              List<InspectLocation> relations) {
+          relations.forEach(
+              (List<String> elementPath, List<InspectLocation> relations) {
             String elementLocation = elementPath.join(' ');
             relations.forEach((InspectLocation location) {
               var relString = location.relationship.identifier;
@@ -1085,9 +1098,8 @@ class GetHandler {
           buffer.write('<br>');
         }
         String key = folder.shortName;
-        buffer.write(makeLink(CONTEXT_PATH, {
-          CONTEXT_QUERY_PARAM: folder.path
-        }, key, _hasException(folderMap[folder])));
+        buffer.write(makeLink(CONTEXT_PATH, {CONTEXT_QUERY_PARAM: folder.path},
+            key, _hasException(folderMap[folder])));
       });
       buffer.write('</p>');
 
@@ -1174,24 +1186,26 @@ class GetHandler {
       return;
     }
     buffer.write('<table>');
-    _writeRow(buffer, [
-      'Start Time',
-      '',
-      'First (ms)',
-      '',
-      'Complete (ms)',
-      '',
-      '# Notifications',
-      '',
-      '# Suggestions',
-      '',
-      'Snippet'
-    ], header: true);
+    _writeRow(
+        buffer,
+        [
+          'Start Time',
+          '',
+          'First (ms)',
+          '',
+          'Complete (ms)',
+          '',
+          '# Notifications',
+          '',
+          '# Suggestions',
+          '',
+          'Snippet'
+        ],
+        header: true);
     int index = 0;
     for (CompletionPerformance performance in handler.performanceList) {
-      String link = makeLink(COMPLETION_PATH, {
-        'index': '$index'
-      }, '${performance.startTimeAndMs}');
+      String link = makeLink(COMPLETION_PATH, {'index': '$index'},
+          '${performance.startTimeAndMs}');
       _writeRow(buffer, [
         link,
         '&nbsp;&nbsp;',

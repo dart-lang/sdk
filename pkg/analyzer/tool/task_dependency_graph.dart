@@ -94,7 +94,9 @@ class Driver {
     CompilationUnitElement modelElement = getUnit(modelSource).element;
     InterfaceType analysisTaskType = modelElement.getType('AnalysisTask').type;
     DartType dynamicType = context.typeProvider.dynamicType;
-    resultDescriptorType = modelElement.getType('ResultDescriptor').type
+    resultDescriptorType = modelElement
+        .getType('ResultDescriptor')
+        .type
         .substitute4([dynamicType]);
     CompilationUnit taskUnit = getUnit(taskSource);
     CompilationUnitElement taskUnitElement = taskUnit.element;

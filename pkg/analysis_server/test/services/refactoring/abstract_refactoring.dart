@@ -92,7 +92,8 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
    */
   void assertRefactoringStatus(
       RefactoringStatus status, RefactoringProblemSeverity expectedSeverity,
-      {String expectedMessage, SourceRange expectedContextRange,
+      {String expectedMessage,
+      SourceRange expectedContextRange,
       String expectedContextSearch}) {
     expect(status.severity, expectedSeverity, reason: status.toString());
     if (expectedSeverity != null) {

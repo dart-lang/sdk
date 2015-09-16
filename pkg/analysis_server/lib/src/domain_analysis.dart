@@ -14,7 +14,10 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart'
-    show sendAnalysisNotificationNavigation;
+    show
+        NavigationOperation,
+        OccurrencesOperation,
+        sendAnalysisNotificationNavigation;
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -136,14 +139,14 @@ class AnalysisDomainHandler implements RequestHandler {
             server.sendResponse(new Response.getNavigationInvalidFile(request));
           } else {
             CompilationUnitElement unitElement = units.first.element;
-            NavigationHolderImpl holder = computeNavigation(
+            NavigationCollectorImpl collector = computeNavigation(
                 server,
                 unitElement.context,
                 unitElement.source,
                 params.offset,
                 params.length);
             server.sendResponse(new AnalysisGetNavigationResult(
-                    holder.files, holder.targets, holder.regions)
+                    collector.files, collector.targets, collector.regions)
                 .toResponse(request.id));
           }
           break;
@@ -347,11 +350,13 @@ class AnalysisDomainImpl implements AnalysisDomain {
   @override
   void scheduleNotification(
       engine.AnalysisContext context, Source source, AnalysisService service) {
-    // TODO(scheglov) schedule, don't do it right now
     String file = source.fullName;
     if (server.hasAnalysisSubscription(service, file)) {
       if (service == AnalysisService.NAVIGATION) {
-        sendAnalysisNotificationNavigation(server, context, source);
+        server.scheduleOperation(new NavigationOperation(context, source));
+      }
+      if (service == AnalysisService.OCCURRENCES) {
+        server.scheduleOperation(new OccurrencesOperation(context, source));
       }
     }
   }

@@ -296,6 +296,8 @@ class ObjectPoolWrapper : public ValueObject {
   intptr_t FindImmediate(uword imm);
   intptr_t FindExternalLabel(const ExternalLabel* label,
                              Patchability patchable);
+  intptr_t FindNativeEntry(const ExternalLabel* label,
+                           Patchability patchable);
 
   RawObjectPool* MakeObjectPool();
 

@@ -162,8 +162,8 @@ class PubPackageMapProvider implements PackageMapProvider {
     String workingDirectory = folder.path;
     int subprocessId = AnalysisEngine.instance.instrumentationService
         .logSubprocessStart(executablePath, arguments, workingDirectory);
-    io.ProcessResult result = io.Process.runSync(executablePath, arguments,
-        workingDirectory: workingDirectory);
+    io.ProcessResult result = io.Process
+        .runSync(executablePath, arguments, workingDirectory: workingDirectory);
     AnalysisEngine.instance.instrumentationService.logSubprocessResult(
         subprocessId, result.exitCode, result.stdout, result.stderr);
     return result;

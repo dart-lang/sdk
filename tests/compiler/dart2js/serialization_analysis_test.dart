@@ -7,6 +7,7 @@ library dart2js.serialization_analysis_test;
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/enqueue.dart';
@@ -180,7 +181,7 @@ Future analyze(String serializedData, Uri entryPoint, Test test) async {
   await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: test != null ? test.sourceFiles : const {},
-      options: ['--analyze-only', '--output-type=dart'],
+      options: [Flags.analyzeOnly, '--output-type=dart'],
       diagnosticHandler: diagnosticCollector,
       beforeRun: (Compiler compiler) {
         compiler.serialization.deserializer =

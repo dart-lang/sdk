@@ -94,9 +94,6 @@ int OSThread::Start(ThreadStartFunction function, uword parameter) {
   int result = pthread_attr_init(&attr);
   RETURN_ON_PTHREAD_FAILURE(result);
 
-  result = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-  RETURN_ON_PTHREAD_FAILURE(result);
-
   result = pthread_attr_setstacksize(&attr, OSThread::GetMaxStackSize());
   RETURN_ON_PTHREAD_FAILURE(result);
 
@@ -116,6 +113,8 @@ int OSThread::Start(ThreadStartFunction function, uword parameter) {
 ThreadLocalKey OSThread::kUnsetThreadLocalKey =
     static_cast<pthread_key_t>(-1);
 ThreadId OSThread::kInvalidThreadId = reinterpret_cast<ThreadId>(NULL);
+ThreadJoinId OSThread::kInvalidThreadJoinId =
+    reinterpret_cast<ThreadJoinId>(NULL);
 
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   pthread_key_t key = kUnsetThreadLocalKey;
@@ -151,8 +150,13 @@ ThreadId OSThread::GetCurrentThreadId() {
 }
 
 
-bool OSThread::Join(ThreadId id) {
-  return false;
+ThreadJoinId OSThread::GetCurrentThreadJoinId() {
+  return pthread_self();
+}
+
+
+void OSThread::Join(ThreadJoinId id) {
+  ASSERT(pthread_join(id, NULL) == 0);
 }
 
 

@@ -11,6 +11,20 @@
  * The analysis server will invoke the contributed functions and analyze the
  * file if at least one of the functions returns `true`. (The server is not
  * required to invoke every function with every file.)
+ *
+ * If a plugin is interested in analyzing a certain kind of files, it needs to
+ * ensure that files of that kind will be analyzed. It should register a
+ * function by including code like the following in the plugin's
+ * registerExtensions method:
+ *
+ *     @override
+ *     void registerExtensions(RegisterExtension registerExtension) {
+ *       ...
+ *       registerExtension(
+ *           ANALYZE_FILE_EXTENSION_POINT_ID,
+ *           (File file) => file.path.endsWith(...));
+ *       ...
+ *     }
  */
 library analysis_server.plugin.analyzed_files;
 

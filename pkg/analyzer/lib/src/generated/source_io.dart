@@ -415,8 +415,10 @@ class PackageUriResolver extends UriResolver {
             new CaughtException(exception, stackTrace));
       }
     }
-    return new JavaFile.relative(pkgDir, relPath.replaceAll(
-        '/', new String.fromCharCode(JavaFile.separatorChar)));
+    return new JavaFile.relative(
+        pkgDir,
+        relPath.replaceAll(
+            '/', new String.fromCharCode(JavaFile.separatorChar)));
   }
 
   @override

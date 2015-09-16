@@ -267,7 +267,7 @@ class LibraryInfo {
         fixedStaticNames.add(element.name);
       });
 
-      for (Element export in library.exports) {
+      library.forEachExport((Element export) {
         if (!library.isInternalLibrary &&
             export.library.isInternalLibrary) {
           // If an element of an internal library is reexported by a platform
@@ -276,7 +276,7 @@ class LibraryInfo {
           // implementation detail of dart2js.
           reexportingLibraries[export] = library;
         }
-      }
+      });
     }
 
     // Map to keep track of names of enum classes. Since these cannot be renamed
@@ -526,23 +526,22 @@ class MainOutputGenerator {
             stripTypes: forceStripTypes,
             minify: enableMinification);
         unparsers[outputLibrary] = unparser;
-        LibraryName libraryName = outputLibrary.libraryTag;
-        if (libraryName != null) {
-          unparser.visitLibraryName(libraryName);
+        if (outputLibrary.hasLibraryName) {
+          unparser.unparseLibraryName(outputLibrary.libraryName);
         }
-        for (LibraryTag tag in outputLibrary.tags) {
-          if (tag is! LibraryDependency) continue;
-          LibraryDependency dependency = tag;
-          LibraryElement libraryElement =
-              outputLibrary.getLibraryFromTag(dependency);
+        for (ImportElement import in outputLibrary.imports) {
+          LibraryElement libraryElement = import.importedLibrary;
           String uri = outputPaths.containsKey(libraryElement)
               ? "${outputPaths[libraryElement]}.dart"
               : libraryElement.canonicalUri.toString();
-          if (dependency is Import) {
-            unparser.unparseImportTag(uri);
-          } else {
-            unparser.unparseExportTag(uri);
-          }
+          unparser.unparseImportTag(uri);
+        }
+        for (ExportElement export in outputLibrary.exports) {
+          LibraryElement libraryElement = export.exportedLibrary;
+          String uri = outputPaths.containsKey(libraryElement)
+              ? "${outputPaths[libraryElement]}.dart"
+              : libraryElement.canonicalUri.toString();
+          unparser.unparseExportTag(uri);
         }
       }
     } else {

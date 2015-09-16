@@ -10,23 +10,7 @@
 namespace dart {
 
 ThreadRegistry::~ThreadRegistry() {
-  {
-    // Each thread that is scheduled in this isolate may have a cached timeline
-    // block. Mark these timeline blocks as finished.
-    MonitorLocker ml(monitor_);
-    TimelineEventRecorder* recorder = Timeline::recorder();
-    if (recorder != NULL) {
-      MutexLocker recorder_lock(&recorder->lock_);
-      for (intptr_t i = 0; i < entries_.length(); i++) {
-        // NOTE: It is only safe to access |entry.state| here.
-        const Entry& entry = entries_.At(i);
-        if (entry.state.timeline_block != NULL) {
-          entry.state.timeline_block->Finish();
-        }
-      }
-    }
-  }
-
+  CloseAllTimelineBlocks();
   // Delete monitor.
   delete monitor_;
 }
@@ -83,11 +67,45 @@ void ThreadRegistry::PruneThread(Thread* thread) {
   if (found_index < 0) {
     return;
   }
+  {
+    TimelineEventRecorder* recorder = Timeline::recorder();
+    if (recorder != NULL) {
+      MutexLocker recorder_lock(&recorder->lock_);
+      // Cleanup entry.
+      Entry& entry_to_remove = entries_[found_index];
+      CloseTimelineBlockLocked(&entry_to_remove);
+    }
+  }
   if (found_index != (length - 1)) {
     // Swap with last entry.
     entries_.Swap(found_index, length - 1);
   }
   entries_.RemoveLast();
+}
+
+
+void ThreadRegistry::CloseAllTimelineBlocks() {
+  // Each thread that is scheduled in this isolate may have a cached timeline
+  // block. Mark these timeline blocks as finished.
+  MonitorLocker ml(monitor_);
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  if (recorder != NULL) {
+    MutexLocker recorder_lock(&recorder->lock_);
+    for (intptr_t i = 0; i < entries_.length(); i++) {
+      // NOTE: It is only safe to access |entry.state| here.
+      Entry& entry = entries_[i];
+      CloseTimelineBlockLocked(&entry);
+    }
+  }
+}
+
+
+void ThreadRegistry::CloseTimelineBlockLocked(Entry* entry) {
+  if ((entry != NULL) && !entry->scheduled &&
+      (entry->state.timeline_block != NULL)) {
+    entry->state.timeline_block->Finish();
+    entry->state.timeline_block = NULL;
+  }
 }
 
 

@@ -148,6 +148,7 @@ number_identity2_test: RuntimeError # Issue 12596
 double_int_to_string_test: RuntimeError # Issue 1533
 mint_arithmetic_test: RuntimeError # Issue 1533
 left_shift_test: RuntimeError # Issue 1533
+regress_24283_test: RuntimeError # Issue 1533
 bad_override_test/01: CompileTimeError # Issue 11496
 bad_override_test/02: CompileTimeError # Issue 11496
 constructor_named_arguments_test/01: CompileTimeError # Issue 5519
@@ -279,6 +280,8 @@ async_star_regression_fisk_test: Crash # (fisk()async*{res.ad...  cannot handle 
 async_star_stream_take_test: Crash # (await for(var v in s.take(5))r+= v;): await for
 async_star_take_reyield_test: Crash # (fivePartialSums(Str...  cannot handle sync*/async* functions
 async_star_test: Crash # (f()async*{}): cannot handle sync*/async* functions
+async_switch_test/none: RuntimeError # Uncaught Error: Expect.equals(expected: <1>, actual: <null>) fails.
+async_switch_test/withDefault: RuntimeError # Uncaught Error: Expect.equals(expected: <1>, actual: <null>) fails.
 asyncstar_concat_test: Crash # (concat(a,b)async*{yield* a;yield* b;}): cannot handle sync*/async* functions
 asyncstar_throw_in_catch_test: Crash # (foo4(Tracer tracer)...  cannot handle sync*/async* functions
 asyncstar_yield_test: Crash # (Stream<int> foo4()a...  cannot handle sync*/async* functions
@@ -286,7 +289,7 @@ asyncstar_yieldstar_test: Crash # (foo2(Stream subStream)async*{yield* subStream
 await_for_cancel_test: Crash # (await for(var x in controller.stream){for(int j=0;j<10;j++ ){if(j==5)continue outer;}}): await for
 await_for_test: Crash # (await for(var x in infiniteStream()){i++ ;if(i>10)break;t4.record(x);}): await for
 await_for_use_local_test: Crash # (await for(var v in s){accum+= v;}): await for
-await_future_test: RuntimeError # Please triage this failure.
+await_future_test: Timeout
 await_regression_test: RuntimeError # "Obelix".then$1 is not a function
 cha_deopt1_test: Crash # (d.make_u()): deferred access is not implemented
 cha_deopt2_test: Crash # (d.make_u()): deferred access is not implemented
@@ -298,30 +301,30 @@ constructor12_test: RuntimeError # Please triage this failure.
 crash_6725_test/01: Crash # unsupported operation on erroneous element
 cyclic_default_values_test: RuntimeError # Z.cyclic_default_values_test__foo$closure is not a function
 deferred_call_empty_before_load_test: Crash # (lib1.thefun()): deferred access is not implemented
-deferred_closurize_load_library_test: Crash # (lib.trueVar): deferred access is not implemented
-deferred_constant_list_test: Crash # (lib.finalConstList): deferred access is not implemented
+deferred_closurize_load_library_test: RuntimeError # TypeError: D.loadLibrary is not a function
+deferred_constant_list_test: RuntimeError # TypeError: K.loadLibrary is not a function
 deferred_constraints_constants_test/none: Crash # (lib.constantInstance): deferred access is not implemented
 deferred_constraints_constants_test/reference_after_load: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/as_operation: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/catch_check: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/is_check: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/new: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/new_before_load: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/new_generic1: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/new_generic2: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/new_generic3: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/none: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/static_method: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/type_annotation1: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/type_annotation_generic1: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/type_annotation_generic2: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/type_annotation_generic3: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/type_annotation_generic4: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/type_annotation_null: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/type_annotation_top_level: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_function_type_test: Crash # (lib.runTest()): deferred access is not implemented
-deferred_global_test: Crash # (lib.finalConstGlobal): deferred access is not implemented
+deferred_constraints_type_annotation_test/as_operation: RuntimeError # TypeError: Z.loadLibrary is not a function
+deferred_constraints_type_annotation_test/catch_check: RuntimeError # TypeError: D.loadLibrary is not a function
+deferred_constraints_type_annotation_test/is_check: RuntimeError # TypeError: L.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new: RuntimeError # TypeError: R.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new_before_load: RuntimeError # TypeError: K.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new_generic1: RuntimeError # TypeError: R.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new_generic2: RuntimeError # TypeError: X.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new_generic3: RuntimeError # TypeError: K.loadLibrary is not a function
+deferred_constraints_type_annotation_test/none: RuntimeError # TypeError: D.loadLibrary is not a function
+deferred_constraints_type_annotation_test/static_method: RuntimeError # TypeError: F.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation1: RuntimeError # TypeError: K.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic1: RuntimeError # TypeError: T.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic2: RuntimeError # TypeError: Q.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic3: RuntimeError # TypeError: Z.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic4: RuntimeError # TypeError: Q.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError # TypeError: R.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_null: RuntimeError # TypeError: Z.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_top_level: RuntimeError # TypeError: U.loadLibrary is not a function
+deferred_function_type_test: RuntimeError # TypeError: N.loadLibrary is not a function
+deferred_global_test: RuntimeError # TypeError: Y.loadLibrary is not a function
 deferred_inlined_test: Crash # (lib.foo()): deferred access is not implemented
 deferred_load_constants_test/none: Crash # (foo.c): deferred access is not implemented
 deferred_load_inval_code_test: Crash # (d.foo()): deferred access is not implemented
@@ -329,18 +332,20 @@ deferred_load_library_wrong_args_test/none: RuntimeError # Y.loadLibrary is not 
 deferred_mixin_test: RuntimeError # X.loadLibrary is not a function
 deferred_no_such_method_test: RuntimeError # D.loadLibrary is not a function
 deferred_not_loaded_check_test: Crash # (lib.closure(sideEffect())): deferred access is not implemented
-deferred_only_constant_test: Crash # (lib.constant): deferred access is not implemented
+deferred_only_constant_test: RuntimeError # TypeError: O.loadLibrary is not a function
 deferred_optimized_test: Crash # (lib.foo()): deferred access is not implemented
 deferred_redirecting_factory_test: Crash # (lib1.loadLib2()): deferred access is not implemented
-deferred_regression_22995_test: Crash # (lib.foofoo()): deferred access is not implemented
-deferred_shadow_load_library_test: Crash # (lib.trueVar): deferred access is not implemented
-deferred_shared_and_unshared_classes_test: Crash # (lib2.foo()): deferred access is not implemented
-deferred_static_seperate_test: Crash # (lib1.x): deferred access is not implemented
+deferred_regression_22995_test: RuntimeError # TypeError: U.loadLibrary is not a function
+deferred_shadow_load_library_test: RuntimeError # TypeError: Y.loadLibrary is not a function
+deferred_shared_and_unshared_classes_test: RuntimeError # TypeError: U.loadLibrary is not a function
+deferred_static_seperate_test: RuntimeError # TypeError: L.loadLibrary is not a function
+deferred_super_dependency_test/01: RuntimeError # Uncaught Error: NoSuchMethodError: method not found: 'loadLibrary' ($async$temp1.loadLibrary is not a function)
 deferred_type_dependency_test/as: Crash # (lib1.fooAs("string")): deferred access is not implemented
 deferred_type_dependency_test/is: Crash # (lib1.fooIs("string")): deferred access is not implemented
 deferred_type_dependency_test/none: Crash # (lib2.getInstance()): deferred access is not implemented
 deferred_type_dependency_test/type_annotation: Crash # (lib1.fooAnnotation("string")): deferred access is not implemented
 enum_mirror_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
+field3a_negative_test: Fail # Bogus result from type inference in case of invalid program.
 first_class_types_test: RuntimeError # Please triage this failure.
 for2_test: Crash # The null object does not have a getter 'field'.
 for_variable_capture_test: Crash # (i=0): For-loop variable captured in loop header

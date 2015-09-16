@@ -184,7 +184,6 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
   bool call_through_wrapper = false;
 #ifdef USING_SIMULATOR
   bool is_native_auto_setup_scope = false;
-  intptr_t num_parameters = -1;
 #endif
 
   {
@@ -197,7 +196,6 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
     const Function& func = Function::Handle(code.function());
 #ifdef USING_SIMULATOR
     is_native_auto_setup_scope = func.IsNativeAutoSetupScope();
-    num_parameters = func.NumParameters();
 #endif
 
     if (FLAG_trace_natives) {
@@ -225,7 +223,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
                  Simulator::RedirectExternalReference(
                      reinterpret_cast<uword>(LinkNativeCall),
                      Simulator::kBootstrapNativeCall,
-                     func.NumParameters())));
+                     NativeEntry::kNumArguments)));
 #endif
       ASSERT(current_trampoline ==
              StubCode::CallBootstrapCFunction_entry()->EntryPoint());
@@ -248,7 +246,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
       patch_target_function = reinterpret_cast<NativeFunction>(
           Simulator::RedirectExternalReference(
               reinterpret_cast<uword>(patch_target_function),
-              Simulator::kBootstrapNativeCall, num_parameters));
+              Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments));
     }
 #endif
 

@@ -126,9 +126,15 @@ class LoopInvariantCodeMotion extends RecursiveVisitor implements Pass {
   }
 
   bool shouldLift(Primitive prim) {
-    // Interceptors are safe and almost always profitable for lifting
+    // Interceptors are generally safe and almost always profitable for lifting
     // out of loops. Several other primitive could be lifted too, but it's not
     // always profitable to do so.
+
+    // Note that the type of the interceptor is technically not sound after
+    // lifting because its current type might have been computed based on a
+    // refinement node (which has since been removed). As a whole, it still
+    // works out because all uses of the interceptor must occur in a context
+    // where it indeed has the type it claims to have.
     return prim is Interceptor;
   }
 }

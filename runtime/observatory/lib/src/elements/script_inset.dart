@@ -121,9 +121,18 @@ class BreakpointAnnotation extends Annotation {
 
   BreakpointAnnotation(this.bpt) {
     var script = bpt.location.script;
-    var pos = bpt.location.tokenPos;
-    line = script.tokenToLine(pos);
-    columnStart = script.tokenToCol(pos) - 1;  // tokenToCol is 1-origin.
+    var location = bpt.location;
+    if (location.tokenPos != null) {
+      var pos = location.tokenPos;
+      line = script.tokenToLine(pos);
+      columnStart = script.tokenToCol(pos) - 1;  // tokenToCol is 1-origin.
+    } else if (location is UnresolvedSourceLocation) {
+      line = location.line;
+      columnStart = location.column;
+      if (columnStart == null) {
+        columnStart = 0;
+      }
+    }
     var length = script.guessTokenLength(line, columnStart);
     if (length == null) {
       length = 1;
@@ -139,7 +148,11 @@ class BreakpointAnnotation extends Annotation {
     var pos = bpt.location.tokenPos;
     int line = script.tokenToLine(pos);
     int column = script.tokenToCol(pos);
-    element.classes.add("breakAnnotation");
+    if (bpt.resolved) {
+      element.classes.add("resolvedBreakAnnotation");
+    } else {
+      element.classes.add("unresolvedBreakAnnotation");
+    }
     element.title = "Breakpoint ${bpt.number} at ${line}:${column}";
   }
 }
@@ -448,6 +461,11 @@ class ScriptInsetElement extends ObservatoryElement {
   Element a(String text) => new AnchorElement()..text = text;
   Element span(String text) => new SpanElement()..text = text;
 
+  Element hitsCurrent(Element element) {
+    element.classes.add('hitsCurrent');
+    element.title = "";
+    return element;
+  }
   Element hitsUnknown(Element element) {
     element.classes.add('hitsNone');
     element.title = "";
@@ -930,7 +948,9 @@ class ScriptInsetElement extends ObservatoryElement {
     var e = span("$nbsp$lineNumber$nbsp");
     e.classes.add('noCopy');
 
-    if ((line == null) || (line.hits == null)) {
+    if (lineNumber == _currentLine) {
+      hitsCurrent(e);
+    } else if ((line == null) || (line.hits == null)) {
       hitsUnknown(e);
     } else if (line.hits == 0) {
       hitsNotExecuted(e);
@@ -1000,4 +1020,3 @@ class SourceInsetElement extends PolymerElement {
   @published bool inDebuggerContext = false;
   @published ObservableList variables;
 }
-

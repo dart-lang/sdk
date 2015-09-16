@@ -155,7 +155,7 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
   }
 
   if (FLAG_print_flow_graph && FlowGraphPrinter::ShouldPrint(function)) {
-    ISL_Print("Intrinsic graph before\n");
+    THR_Print("Intrinsic graph before\n");
     FlowGraphPrinter printer(*graph);
     printer.PrintBlocks();
   }
@@ -165,7 +165,7 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
   allocator.AllocateRegisters();
 
   if (FLAG_print_flow_graph && FlowGraphPrinter::ShouldPrint(function)) {
-    ISL_Print("Intrinsic graph after\n");
+    THR_Print("Intrinsic graph after\n");
     FlowGraphPrinter printer(*graph);
     printer.PrintBlocks();
   }

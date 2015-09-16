@@ -6,7 +6,6 @@
 
 library manual_inspector_test;
 
-import 'dart:async';
 import 'dart:isolate';
 import 'dart:mirrors';
 import 'dart:developer';

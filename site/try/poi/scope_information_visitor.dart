@@ -74,7 +74,7 @@ class ScopeInformationVisitor extends BaseElementVisitor/* <void> */ {
         // TODO(ahe): We omit the import scope if there is no current
         // class. That's wrong.
         omitEnclosing: ignoreImports || currentClass == null,
-        name: e.getLibraryName(),
+        name: e.libraryName,
         serializeEnclosing: () {
           // The enclosing scope of a library is a scope which contains all the
           // imported names.

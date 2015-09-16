@@ -175,18 +175,6 @@ class DartScriptsTaskTest extends AbstractContextTest {
 
 @reflectiveTest
 class HtmlErrorsTaskTest extends AbstractContextTest {
-  test_buildInputs() {
-    Source source = newSource('/test.html');
-    Map<String, TaskInput> inputs = HtmlErrorsTask.buildInputs(source);
-    expect(inputs, isNotNull);
-    expect(
-        inputs.keys,
-        unorderedEquals([
-          HtmlErrorsTask.DART_ERRORS_INPUT,
-          HtmlErrorsTask.DOCUMENT_ERRORS_INPUT
-        ]));
-  }
-
   test_constructor() {
     Source source = newSource('/test.html');
     HtmlErrorsTask task = new HtmlErrorsTask(context, source);

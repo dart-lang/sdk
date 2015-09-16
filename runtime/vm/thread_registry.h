@@ -142,6 +142,8 @@ class ThreadRegistry {
 
   void PruneThread(Thread* thread);
 
+  void CloseAllTimelineBlocks();
+
   struct Entry {
     // NOTE: |thread| is deleted automatically when the thread exits.
     // In other words, it is not safe to dereference |thread| unless you are on
@@ -181,6 +183,11 @@ class ThreadRegistry {
     }
     return NULL;
   }
+
+  // Close the timeline block cache inside entry.
+  // NOTE: Lock should be taken before this function is called.
+  // NOTE: Recorder lock should be taken before this function is called.
+  void CloseTimelineBlockLocked(Entry* entry);
 
   // Note: Lock should be taken before this function is called.
   void CheckSafepointLocked();

@@ -161,18 +161,13 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     if (!_mustEmitMetadataFor(element)) return null;
     return _compiler.withCurrentElement(element, () {
       List<jsAst.Expression> metadata = <jsAst.Expression>[];
-      Link link = element.metadata;
-      // TODO(ahe): Why is metadata sometimes null?
-      if (link != null) {
-        for (; !link.isEmpty; link = link.tail) {
-          MetadataAnnotation annotation = link.head;
-          ConstantValue constant =
-              _backend.constants.getConstantValueForMetadata(annotation);
-          if (constant == null) {
-            _compiler.internalError(annotation, 'Annotation value is null.');
-          } else {
-            metadata.add(_emitter.constantReference(constant));
-          }
+      for (MetadataAnnotation annotation in element.metadata) {
+        ConstantValue constant =
+            _backend.constants.getConstantValueForMetadata(annotation);
+        if (constant == null) {
+          _compiler.internalError(annotation, 'Annotation value is null.');
+        } else {
+          metadata.add(_emitter.constantReference(constant));
         }
       }
       if (metadata.isEmpty) return null;
@@ -289,12 +284,8 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     return _compiler.withCurrentElement(element, () {
       if (!_mustEmitMetadataFor(element)) return const <jsAst.DeferredNumber>[];
       List<jsAst.DeferredNumber> metadata = <jsAst.DeferredNumber>[];
-      Link link = element.metadata;
-      // TODO(ahe): Why is metadata sometimes null?
-      if (link != null) {
-        for (; !link.isEmpty; link = link.tail) {
-          metadata.add(reifyMetadata(link.head));
-        }
+      for (MetadataAnnotation annotation in element.metadata) {
+        metadata.add(reifyMetadata(annotation));
       }
       return metadata;
     });

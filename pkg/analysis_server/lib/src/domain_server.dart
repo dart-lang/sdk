@@ -55,7 +55,8 @@ class ServerDomainHandler implements RequestHandler {
    */
   Response setSubscriptions(Request request) {
     server.serverServices =
-        new ServerSetSubscriptionsParams.fromRequest(request).subscriptions
+        new ServerSetSubscriptionsParams.fromRequest(request)
+            .subscriptions
             .toSet();
     return new ServerSetSubscriptionsResult().toResponse(request.id);
   }

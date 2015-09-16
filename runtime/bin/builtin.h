@@ -49,7 +49,7 @@ class Builtin {
   // load it.
   static Dart_Handle LoadAndCheckLibrary(BuiltinLibraryId id);
 
-  static void SetLoadPort(Dart_Port port);
+  static Dart_Handle SetLoadPort(Dart_Port port);
 
  private:
   // Map specified URI to an actual file name from 'source_paths' and read

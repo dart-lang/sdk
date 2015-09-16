@@ -7,8 +7,6 @@ library compiler_helper;
 import 'dart:async';
 import "package:expect/expect.dart";
 
-import 'package:compiler/compiler.dart' as api;
-
 import 'package:compiler/src/elements/elements.dart'
        as lego;
 export 'package:compiler/src/elements/elements.dart';
@@ -16,6 +14,7 @@ export 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/js_backend/js_backend.dart'
        as js;
 
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/codegen.dart';
 import 'package:compiler/src/common/resolution.dart';
 
@@ -39,24 +38,35 @@ export 'package:compiler/src/tree/tree.dart';
 import 'mock_compiler.dart';
 export 'mock_compiler.dart';
 
+import 'memory_compiler.dart' hide compilerFor;
+
 import 'output_collector.dart';
 export 'output_collector.dart';
 
+/// Compile [code] and returns the code for [entry].
+///
+/// If [check] is provided, it is executed on the code for [entry] before
+/// returning. If [useMock] is `true` the [MockCompiler] is used for
+/// compilation, otherwise the memory compiler is used.
 Future<String> compile(String code,
                        {String entry: 'main',
                         bool enableTypeAssertions: false,
                         bool minify: false,
                         bool analyzeAll: false,
                         bool disableInlining: true,
-                        void check(String generated)}) {
-  MockCompiler compiler = new MockCompiler.internal(
-      enableTypeAssertions: enableTypeAssertions,
-      // Type inference does not run when manually
-      // compiling a method.
-      disableTypeInference: true,
-      enableMinification: minify,
-      disableInlining: disableInlining);
-  return compiler.init().then((_) {
+                        bool useMock: false,
+                        void check(String generated)}) async {
+  if (useMock) {
+    // TODO(johnniwinther): Remove this when no longer needed by
+    // `arithmetic_simplication_test.dart`.
+    MockCompiler compiler = new MockCompiler.internal(
+        enableTypeAssertions: enableTypeAssertions,
+        // Type inference does not run when manually
+        // compiling a method.
+        disableTypeInference: true,
+        enableMinification: minify,
+        disableInlining: disableInlining);
+    await compiler.init();
     compiler.parseScript(code);
     lego.Element element = compiler.mainApp.find(entry);
     if (element == null) return null;
@@ -75,40 +85,49 @@ Future<String> compile(String code,
     compiler.phase = Compiler.PHASE_COMPILING;
     work.run(compiler, compiler.enqueuer.codegen);
     js.JavaScriptBackend backend = compiler.backend;
-    String generated = backend.assembleCode(element);
+    String generated = backend.getGeneratedCode(element);
     if (check != null) {
       check(generated);
     }
     return generated;
-  });
-}
+  } else {
+    List<String> options = <String>[
+        Flags.disableTypeInference];
+    if (enableTypeAssertions) {
+      options.add(Flags.enableCheckedMode);
+    }
+    if (minify) {
+      options.add(Flags.minify);
+    }
+    if (analyzeAll) {
+      options.add(Flags.analyzeAll);
+    }
 
-// TODO(herhut): Disallow warnings and errors during compilation by default.
-MockCompiler compilerFor(String code, Uri uri,
-                         {bool analyzeAll: false,
-                          bool analyzeOnly: false,
-                          Map<String, String> coreSource,
-                          bool disableInlining: true,
-                          bool minify: false,
-                          bool trustTypeAnnotations: false,
-                          bool enableTypeAssertions: false,
-                          int expectedErrors,
-                          int expectedWarnings,
-                          api.CompilerOutputProvider outputProvider}) {
-  MockCompiler compiler = new MockCompiler.internal(
-      analyzeAll: analyzeAll,
-      analyzeOnly: analyzeOnly,
-      coreSource: coreSource,
-      disableInlining: disableInlining,
-      enableMinification: minify,
-      trustTypeAnnotations: trustTypeAnnotations,
-      enableTypeAssertions: enableTypeAssertions,
-      expectedErrors: expectedErrors,
-      expectedWarnings: expectedWarnings,
-      outputProvider: outputProvider);
-  compiler.registerSource(uri, code);
-  compiler.diagnosticHandler = createHandler(compiler, code);
-  return compiler;
+    Map<String, String> source;
+    if (entry != 'main') {
+      source = {'main.dart': "$code\n\nmain() => $entry;" };
+    } else {
+      source = {'main.dart': code};
+    }
+
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: source,
+        options: options,
+        beforeRun: (compiler) {
+          if (disableInlining) {
+            compiler.disableInlining = true;
+          }
+        });
+    Expect.isTrue(result.isSuccess);
+    Compiler compiler =  result.compiler;
+    lego.Element element = compiler.mainApp.find(entry);
+    js.JavaScriptBackend backend = compiler.backend;
+    String generated = backend.getGeneratedCode(element);
+    if (check != null) {
+      check(generated);
+    }
+    return generated;
+  }
 }
 
 Future<String> compileAll(String code,
@@ -225,8 +244,11 @@ void checkNumberOfMatches(Iterator it, int nb) {
   Expect.isFalse(hasNext, "Found more than $nb matches");
 }
 
-Future compileAndMatch(String code, String entry, RegExp regexp) {
-  return compile(code, entry: entry, check: (String generated) {
+Future compileAndMatch(String code, String entry, RegExp regexp,
+                       {bool useMock: false}) {
+  return compile(code, entry: entry,
+      useMock: useMock,
+      check: (String generated) {
     Expect.isTrue(regexp.hasMatch(generated),
                   '"$generated" does not match /$regexp/');
   });

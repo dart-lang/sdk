@@ -565,6 +565,7 @@ def ExecuteCommand(cmd):
 
 
 def DartBinary():
+  # TODO(24311): Replace all uses of this with CheckedInSdk[Fix]Executable().
   tools_dir = os.path.dirname(os.path.realpath(__file__))
   dart_binary_prefix = os.path.join(tools_dir, 'testing', 'bin')
   if IsWindows():
@@ -590,6 +591,51 @@ def DartSdkBinary():
   tools_dir = os.path.dirname(os.path.realpath(__file__))
   dart_binary_prefix = os.path.join(tools_dir, '..', 'sdk' , 'bin')
   return os.path.join(dart_binary_prefix, 'dart')
+
+
+# The checked-in SDKs are documented at
+#     https://github.com/dart-lang/sdk/wiki/The-checked-in-SDK-in-tools
+def CheckedInSdkPath():
+  # We don't use the normal macos, linux, win32 directory names here, instead,
+  # we use the names that the download_from_google_storage script uses.
+  osdict = {'Darwin':'mac', 'Linux':'linux', 'Windows':'win'}
+  system = platform.system()
+  try:
+    osname = osdict[system]
+  except KeyError:
+    print >>sys.stderr, ('WARNING: platform "%s" not supported') % (system)
+    return None;
+  tools_dir = os.path.dirname(os.path.realpath(__file__))
+  return os.path.join(tools_dir,
+                      'sdks',
+                      osname,
+                      'dart-sdk')
+
+
+def CheckedInSdkExecutable():
+  name = 'dart'
+  if IsWindows():
+    name = 'dart.exe'
+  elif GuessOS() == 'linux':
+    arch = GuessArchitecture()
+    if arch == 'mips':
+      name = 'dart-mips'
+    elif arch == 'arm':
+      name = 'dart-arm'
+  return os.path.join(CheckedInSdkPath(), 'bin', name)
+
+
+def CheckedInSdkCheckExecutable():
+  executable = CheckedInSdkExecutable()
+  canary_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                               'canary.dart')
+  try:
+    if 42 == subprocess.call([executable, canary_script]):
+      return True
+  except OSError as e:
+    pass
+  return False
+
 
 class TempDir(object):
   def __init__(self, prefix=''):

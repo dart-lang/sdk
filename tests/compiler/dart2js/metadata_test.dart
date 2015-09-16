@@ -33,9 +33,9 @@ void checkAnnotation(String name, String declaration,
 
   compileAndCheck(source1, name, (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
-    Expect.equals(1, length(element.metadata),
+    Expect.equals(1, element.metadata.length,
         'Unexpected metadata count on $element.');
-    PartialMetadataAnnotation annotation = element.metadata.head;
+    PartialMetadataAnnotation annotation = element.metadata.first;
     annotation.ensureResolved(compiler);
     PrimitiveConstantValue value =
         compiler.constants.getConstantValue(annotation.constant);
@@ -53,9 +53,9 @@ void checkAnnotation(String name, String declaration,
 
   compileAndCheck(source2, name, (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
-    Expect.equals(2, length(element.metadata));
-    PartialMetadataAnnotation annotation1 = element.metadata.head;
-    PartialMetadataAnnotation annotation2 = element.metadata.tail.head;
+    Expect.equals(2, element.metadata.length);
+    PartialMetadataAnnotation annotation1 = element.metadata.elementAt(0);
+    PartialMetadataAnnotation annotation2 = element.metadata.elementAt(1);
     annotation1.ensureResolved(compiler);
     annotation2.ensureResolved(compiler);
     Expect.isFalse(identical(annotation1, annotation2),
@@ -86,12 +86,12 @@ void checkAnnotation(String name, String declaration,
 
   compileAndCheck(source3, 'Foo', (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
-    Expect.equals(0, length(element.metadata));
+    Expect.equals(0, element.metadata.length);
     element.ensureResolved(compiler);
-    Expect.equals(0, length(element.metadata));
+    Expect.equals(0, element.metadata.length);
     element = element.lookupLocalMember(name);
-    Expect.equals(1, length(element.metadata));
-    PartialMetadataAnnotation annotation = element.metadata.head;
+    Expect.equals(1, element.metadata.length);
+    PartialMetadataAnnotation annotation = element.metadata.first;
     annotation.ensureResolved(compiler);
     PrimitiveConstantValue value =
         compiler.constants.getConstantValue(annotation.constant);
@@ -111,13 +111,13 @@ void checkAnnotation(String name, String declaration,
 
   compileAndCheck(source4, 'Foo', (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
-    Expect.equals(0, length(element.metadata));
+    Expect.equals(0, element.metadata.length);
     element.ensureResolved(compiler);
-    Expect.equals(0, length(element.metadata));
+    Expect.equals(0, element.metadata.length);
     element = element.lookupLocalMember(name);
-    Expect.equals(2, length(element.metadata));
-    PartialMetadataAnnotation annotation1 = element.metadata.head;
-    PartialMetadataAnnotation annotation2 = element.metadata.tail.head;
+    Expect.equals(2, element.metadata.length);
+    PartialMetadataAnnotation annotation1 = element.metadata.elementAt(0);
+    PartialMetadataAnnotation annotation2 = element.metadata.elementAt(1);
     annotation1.ensureResolved(compiler);
     annotation2.ensureResolved(compiler);
     Expect.isFalse(identical(annotation1, annotation2),
@@ -152,7 +152,7 @@ void testTopLevelFieldMetadata() {
 void testLibraryTags() {
   void compileAndCheckLibrary(
       String source,
-      Link<MetadataAnnotation> extractMetadata(LibraryElement element)) {
+      List<MetadataAnnotation> extractMetadata(LibraryElement element)) {
     Uri partUri = new Uri(scheme: 'source', path: 'part.dart');
     String partSource = '@native part of foo;';
 
@@ -170,10 +170,10 @@ void testLibraryTags() {
       LibraryElement element = compiler.libraryLoader.lookupLibrary(uri);
       Expect.isNotNull(element, 'Cannot find $uri');
 
-      Link<MetadataAnnotation> metadata = extractMetadata(element);
-      Expect.equals(1, length(metadata));
+      List<MetadataAnnotation> metadata = extractMetadata(element);
+      Expect.equals(1, metadata.length);
 
-      PartialMetadataAnnotation annotation = metadata.head;
+      PartialMetadataAnnotation annotation = metadata.first;
       annotation.ensureResolved(compiler);
       PrimitiveConstantValue value =
           compiler.constants.getConstantValue(annotation.constant);

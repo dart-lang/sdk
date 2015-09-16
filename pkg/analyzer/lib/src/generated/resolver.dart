@@ -9547,6 +9547,154 @@ class OverrideVerifier extends RecursiveAstVisitor<Object> {
 }
 
 /**
+ * An AST visitor that is used to resolve the some of the nodes within a single
+ * compilation unit. The nodes that are skipped are those that are within
+ * function bodies.
+ */
+class PartialResolverVisitor extends ResolverVisitor {
+  /**
+   * A flag indicating whether the resolver is being run in strong mode.
+   */
+  final bool strongMode;
+
+  /**
+   * The static variables that have an initializer. These are the variables that
+   * need to be re-resolved after static variables have their types inferred. A
+   * subset of these variables are those whose types should be inferred. The
+   * list will be empty unless the resolver is being run in strong mode.
+   */
+  final List<VariableElement> staticVariables = <VariableElement>[];
+
+  /**
+   * A flag indicating whether we should discard errors while resolving the
+   * initializer for variable declarations. We do this for top-level variables
+   * and fields because their initializer will be re-resolved at a later time.
+   */
+  bool discardErrorsInInitializer = false;
+
+  /**
+   * Initialize a newly created visitor to resolve the nodes in an AST node.
+   *
+   * The [definingLibrary] is the element for the library containing the node
+   * being visited. The [source] is the source representing the compilation unit
+   * containing the node being visited. The [typeProvider] is the object used to
+   * access the types from the core library. The [errorListener] is the error
+   * listener that will be informed of any errors that are found during
+   * resolution. The [nameScope] is the scope used to resolve identifiers in the
+   * node that will first be visited.  If `null` or unspecified, a new
+   * [LibraryScope] will be created based on [definingLibrary] and
+   * [typeProvider]. The [inheritanceManager] is used to perform inheritance
+   * lookups.  If `null` or unspecified, a new [InheritanceManager] will be
+   * created based on [definingLibrary]. The [typeAnalyzerFactory] is used to
+   * create the type analyzer.  If `null` or unspecified, a type analyzer of
+   * type [StaticTypeAnalyzer] will be created.
+   */
+  PartialResolverVisitor(LibraryElement definingLibrary, Source source,
+      TypeProvider typeProvider, AnalysisErrorListener errorListener,
+      {Scope nameScope,
+      InheritanceManager inheritanceManager,
+      StaticTypeAnalyzerFactory typeAnalyzerFactory})
+      : strongMode = definingLibrary.context.analysisOptions.strongMode,
+        super(definingLibrary, source, typeProvider,
+            new DisablableErrorListener(errorListener));
+
+  @override
+  Object visitBlockFunctionBody(BlockFunctionBody node) {
+    if (_shouldBeSkipped(node)) {
+      return null;
+    }
+    return super.visitBlockFunctionBody(node);
+  }
+
+  @override
+  Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    if (_shouldBeSkipped(node)) {
+      return null;
+    }
+    return super.visitExpressionFunctionBody(node);
+  }
+
+  @override
+  Object visitFieldDeclaration(FieldDeclaration node) {
+    if (strongMode && node.isStatic) {
+      _addStaticVariables(node.fields.variables);
+      bool wasDiscarding = discardErrorsInInitializer;
+      discardErrorsInInitializer = true;
+      try {
+        return super.visitFieldDeclaration(node);
+      } finally {
+        discardErrorsInInitializer = wasDiscarding;
+      }
+    }
+    return super.visitFieldDeclaration(node);
+  }
+
+  @override
+  Object visitNode(AstNode node) {
+    if (discardErrorsInInitializer) {
+      AstNode parent = node.parent;
+      if (parent is VariableDeclaration && parent.initializer == node) {
+        DisablableErrorListener listener = errorListener;
+        return listener.disableWhile(() => super.visitNode(node));
+      }
+    }
+    return super.visitNode(node);
+  }
+
+  @override
+  Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    if (strongMode) {
+      _addStaticVariables(node.variables.variables);
+      bool wasDiscarding = discardErrorsInInitializer;
+      discardErrorsInInitializer = true;
+      try {
+        return super.visitTopLevelVariableDeclaration(node);
+      } finally {
+        discardErrorsInInitializer = wasDiscarding;
+      }
+    }
+    return super.visitTopLevelVariableDeclaration(node);
+  }
+
+  /**
+   * Add all of the [variables] with initializers to the list of variables whose
+   * type can be inferred. Technically, we only infer the types of variables
+   * that do not have a static type, but all variables with initializers
+   * potentially need to be re-resolved after inference because they might
+   * refer to a field whose type was inferred.
+   */
+  void _addStaticVariables(NodeList<VariableDeclaration> variables) {
+    for (VariableDeclaration variable in variables) {
+      if (variable.initializer != null) {
+        staticVariables.add(variable.element);
+      }
+    }
+  }
+
+  /**
+   * Return `true` if the given function body should be skipped because it is
+   * the body of a top-level function, method or constructor.
+   */
+  bool _shouldBeSkipped(FunctionBody body) {
+    AstNode parent = body.parent;
+    if (parent is MethodDeclaration) {
+      return parent.body == body;
+    }
+    if (parent is ConstructorDeclaration) {
+      return parent.body == body;
+    }
+    if (parent is FunctionExpression) {
+      AstNode parent2 = parent.parent;
+      if (parent2 is FunctionDeclaration &&
+          parent2.parent is! FunctionDeclarationStatement) {
+        return parent.body == body;
+      }
+    }
+    return false;
+  }
+}
+
+/**
  * Instances of the class `PubVerifier` traverse an AST structure looking for deviations from
  * pub best practices.
  */
@@ -10132,21 +10280,19 @@ class ResolverVisitor extends ScopedVisitor {
   /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
-   * [definingLibrary] is the element for the library containing the node being
-   * visited.
-   * [source] is the source representing the compilation unit containing the
-   * node being visited.
-   * [typeProvider] the object used to access the types from the core library.
-   * [errorListener] the error listener that will be informed of any errors
-   * that are found during resolution.
-   * [nameScope] is the scope used to resolve identifiers in the node that will
-   * first be visited.  If `null` or unspecified, a new [LibraryScope] will be
-   * created based on [definingLibrary] and [typeProvider].
-   * [inheritanceManager] is used to perform inheritance lookups.  If `null` or
-   * unspecified, a new [InheritanceManager] will be created based on
-   * [definingLibrary].
-   * [typeAnalyzerFactory] is used to create the type analyzer.  If `null` or
-   * unspecified, a type analyzer of type [StaticTypeAnalyzer] will be created.
+   * The [definingLibrary] is the element for the library containing the node
+   * being visited. The [source] is the source representing the compilation unit
+   * containing the node being visited. The [typeProvider] is the object used to
+   * access the types from the core library. The [errorListener] is the error
+   * listener that will be informed of any errors that are found during
+   * resolution. The [nameScope] is the scope used to resolve identifiers in the
+   * node that will first be visited.  If `null` or unspecified, a new
+   * [LibraryScope] will be created based on [definingLibrary] and
+   * [typeProvider]. The [inheritanceManager] is used to perform inheritance
+   * lookups.  If `null` or unspecified, a new [InheritanceManager] will be
+   * created based on [definingLibrary]. The [typeAnalyzerFactory] is used to
+   * create the type analyzer.  If `null` or unspecified, a type analyzer of
+   * type [StaticTypeAnalyzer] will be created.
    */
   ResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
@@ -10285,7 +10431,14 @@ class ResolverVisitor extends ScopedVisitor {
   /**
    * Prepares this [ResolverVisitor] to using it for incremental resolution.
    */
-  void initForIncrementalResolution() {
+  void initForIncrementalResolution([Declaration declaration = null]) {
+    if (declaration != null) {
+      Element element = declaration.element;
+      if (element is ExecutableElement) {
+        _enclosingFunction = element;
+      }
+      _commentBeforeFunction = declaration.documentationComment;
+    }
     _overrideManager.enterScope();
   }
 

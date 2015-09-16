@@ -21,22 +21,22 @@ void DisassembleToStdout::ConsumeInstruction(char* hex_buffer,
                                              uword pc) {
   static const int kHexColumnWidth = 23;
   uint8_t* pc_ptr = reinterpret_cast<uint8_t*>(pc);
-  ISL_Print("%p    %s", pc_ptr, hex_buffer);
+  THR_Print("%p    %s", pc_ptr, hex_buffer);
   int hex_length = strlen(hex_buffer);
   if (hex_length < kHexColumnWidth) {
     for (int i = kHexColumnWidth - hex_length; i > 0; i--) {
-      ISL_Print(" ");
+      THR_Print(" ");
     }
   }
-  ISL_Print("%s", human_buffer);
-  ISL_Print("\n");
+  THR_Print("%s", human_buffer);
+  THR_Print("\n");
 }
 
 
 void DisassembleToStdout::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  ISL_VPrint(format, args);
+  THR_VPrint(format, args);
   va_end(args);
 }
 

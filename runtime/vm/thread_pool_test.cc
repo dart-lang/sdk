@@ -12,18 +12,6 @@ namespace dart {
 DECLARE_FLAG(int, worker_timeout_millis);
 
 
-class ThreadPoolTestPeer {
- public:
-  // When the pool has an exit monitor, workers notify a monitor just
-  // before they exit.  This is only used in tests to make sure that
-  // Shutdown works.
-  static void SetExitMonitor(Monitor* exit_monitor, int* exit_count) {
-    ThreadPool::exit_monitor_ = exit_monitor;
-    ThreadPool::exit_count_ = exit_count;
-  }
-};
-
-
 UNIT_TEST_CASE(ThreadPool_Create) {
   ThreadPool thread_pool;
 }
@@ -88,40 +76,73 @@ UNIT_TEST_CASE(ThreadPool_RunMany) {
 
 class SleepTask : public ThreadPool::Task {
  public:
-  explicit SleepTask(int millis)
-      : millis_(millis) {
+  SleepTask(Monitor* sync, int* started_count, int* slept_count, int millis)
+      : sync_(sync),
+        started_count_(started_count),
+        slept_count_(slept_count),
+        millis_(millis) {
   }
 
   virtual void Run() {
+    {
+      MonitorLocker ml(sync_);
+      *started_count_ = *started_count_ + 1;
+      ml.Notify();
+    }
+    // Sleep so we can be sure the ThreadPool destructor blocks until we're
+    // done.
     OS::Sleep(millis_);
+    {
+      MonitorLocker ml(sync_);
+      *slept_count_ = *slept_count_ + 1;
+      // No notification here. The main thread is blocked in ThreadPool
+      // shutdown waiting for this thread to finish.
+    }
   }
 
  private:
+  Monitor* sync_;
+  int* started_count_;
+  int* slept_count_;
   int millis_;
 };
 
 
 UNIT_TEST_CASE(ThreadPool_WorkerShutdown) {
-  Monitor exit_sync;
-  int exit_count = 0;
-  MonitorLocker ml(&exit_sync);
+  const int kTaskCount = 10;
+  Monitor sync;
+  int slept_count = 0;
+  int started_count = 0;
 
   // Set up the ThreadPool so that workers notify before they exit.
   ThreadPool* thread_pool = new ThreadPool();
-  ThreadPoolTestPeer::SetExitMonitor(&exit_sync, &exit_count);
 
   // Run a single task.
-  thread_pool->Run(new SleepTask(2));
+  for (int i = 0; i < kTaskCount; i++) {
+    thread_pool->Run(new SleepTask(&sync, &started_count, &slept_count, 2));
+  }
 
-  // Kill the thread pool.
+  {
+    // Wait for everybody to start.
+    MonitorLocker ml(&sync);
+    while (started_count < kTaskCount) {
+      ml.Wait();
+    }
+  }
+
+  // Kill the thread pool while the workers are sleeping.
   delete thread_pool;
   thread_pool = NULL;
 
-  // Wait for the workers to terminate.
-  while (exit_count == 0) {
-    ml.Wait();
+  int final_count = 0;
+  {
+    MonitorLocker ml(&sync);
+    final_count = slept_count;
   }
-  EXPECT_EQ(1, exit_count);
+
+  // We should have waited for all the workers to finish, so they all should
+  // have had a chance to increment slept_count.
+  EXPECT_EQ(kTaskCount, final_count);
 }
 
 
@@ -172,12 +193,11 @@ class SpawnTask : public ThreadPool::Task {
 
     // Spawn 0-2 children.
     if (todo_ > 0) {
-      pool_->Run(
-          new SpawnTask(pool_, sync_, todo_ - child_todo, total_, done_));
+      pool_->Run(new SpawnTask(
+          pool_, sync_, todo_ - child_todo, total_, done_));
     }
     if (todo_ > 1) {
-      pool_->Run(
-          new SpawnTask(pool_, sync_, child_todo, total_, done_));
+      pool_->Run(new SpawnTask(pool_, sync_, child_todo, total_, done_));
     }
 
     {
@@ -213,6 +233,5 @@ UNIT_TEST_CASE(ThreadPool_RecursiveSpawn) {
   }
   EXPECT_EQ(kTotalTasks, done);
 }
-
 
 }  // namespace dart

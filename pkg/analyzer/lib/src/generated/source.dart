@@ -602,8 +602,8 @@ class SourceFactory {
   SourceFactory(this._resolvers,
       [this._packages, ResourceProvider resourceProvider])
       : _resourceProvider = resourceProvider != null
-          ? resourceProvider
-          : PhysicalResourceProvider.INSTANCE;
+            ? resourceProvider
+            : PhysicalResourceProvider.INSTANCE;
 
   /**
    * Return the [DartSdk] associated with this [SourceFactory], or `null` if there
@@ -639,16 +639,17 @@ class SourceFactory {
       Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
       _packages.asMap().forEach((String name, Uri uri) {
         if (uri.scheme == 'file' || uri.scheme == '' /* unspecified */) {
-          packageMap[name] =
-              <Folder>[_resourceProvider.getFolder(uri.toFilePath())];
+          packageMap[name] = <Folder>[
+            _resourceProvider.getFolder(uri.toFilePath())
+          ];
         }
       });
       return packageMap;
     }
 
     // Default to the PackageMapUriResolver.
-    PackageMapUriResolver resolver = _resolvers.firstWhere(
-        (r) => r is PackageMapUriResolver, orElse: () => null);
+    PackageMapUriResolver resolver = _resolvers
+        .firstWhere((r) => r is PackageMapUriResolver, orElse: () => null);
     return resolver != null ? resolver.packageMap : null;
   }
 

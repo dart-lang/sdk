@@ -1578,6 +1578,7 @@ void Simulator::SupervisorCall(Instr* instr) {
             set_register(R1, r1);
           }
         } else if (redirection->call_kind() == kBootstrapNativeCall) {
+          ASSERT(redirection->argument_count() == 1);
           NativeArguments* arguments;
           arguments = reinterpret_cast<NativeArguments*>(get_register(R0));
           SimulatorBootstrapNativeCall target =

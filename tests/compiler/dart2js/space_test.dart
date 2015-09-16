@@ -5,6 +5,7 @@
 import 'dart:io';
 import 'package:compiler/src/dart2js.dart'
   as dart2js;
+import 'package:compiler/src/commandline_options.dart';
 
 main() {
   Uri currentDirectory = Uri.base;
@@ -13,6 +14,6 @@ main() {
   Directory.current = script.resolve("path with spaces").toFilePath();
 
   return dart2js.main(["--library-root=${libraryRoot.toFilePath()}",
-                       "--analyze-only",
+                       Flags.analyzeOnly,
                        "file with spaces.dart"]);
 }

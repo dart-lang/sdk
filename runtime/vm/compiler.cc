@@ -192,7 +192,7 @@ RawError* Compiler::Compile(const Library& library, const Script& script) {
     if (FLAG_trace_compiler) {
       const String& script_url = String::Handle(script.url());
       // TODO(iposva): Extract script kind.
-      ISL_Print("Compiling %s '%s'\n", "", script_url.ToCString());
+      THR_Print("Compiling %s '%s'\n", "", script_url.ToCString());
     }
     const String& library_key = String::Handle(library.private_key());
     script.Tokenize(library_key);
@@ -304,7 +304,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     if (FLAG_trace_compiler) {
-      ISL_Print("Compiling Class %s '%s'\n", "", cls.ToCString());
+      THR_Print("Compiling Class %s '%s'\n", "", cls.ToCString());
     }
 
     // Add the primary class which needs to be parsed to the parse list.
@@ -427,7 +427,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
           if (FLAG_print_ic_data_map) {
             for (intptr_t i = 0; i < ic_data_array->length(); i++) {
               if ((*ic_data_array)[i] != NULL) {
-                ISL_Print("%" Pd " ", i);
+                THR_Print("%" Pd " ", i);
                 FlowGraphPrinter::PrintICData(*(*ic_data_array)[i]);
               }
             }
@@ -761,9 +761,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
             CodePatcher::PatchEntry(Code::Handle(function.CurrentCode()));
             if (FLAG_trace_compiler || FLAG_trace_patching) {
               if (FLAG_trace_compiler) {
-                ISL_Print("  ");
+                THR_Print("  ");
               }
-              ISL_Print("Patch unoptimized '%s' entry point %#" Px "\n",
+              THR_Print("Patch unoptimized '%s' entry point %#" Px "\n",
                   function.ToFullyQualifiedCString(),
                   Code::Handle(function.unoptimized_code()).EntryPoint());
             }
@@ -822,7 +822,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         // try again (done = true), and indicate that we did not finish
         // compiling (is_compiled = false).
         if (FLAG_trace_bailout) {
-          ISL_Print("%s\n", error.ToErrorCString());
+          THR_Print("%s\n", error.ToErrorCString());
         }
         done = true;
         ASSERT(optimized);
@@ -844,35 +844,35 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
 
 static void DisassembleCode(const Function& function, bool optimized) {
   const char* function_fullname = function.ToFullyQualifiedCString();
-  ISL_Print("Code for %sfunction '%s' {\n",
+  THR_Print("Code for %sfunction '%s' {\n",
             optimized ? "optimized " : "",
             function_fullname);
   const Code& code = Code::Handle(function.CurrentCode());
   code.Disassemble();
-  ISL_Print("}\n");
+  THR_Print("}\n");
 
-  ISL_Print("Pointer offsets for function: {\n");
+  THR_Print("Pointer offsets for function: {\n");
   // Pointer offsets are stored in descending order.
   Object& obj = Object::Handle();
   for (intptr_t i = code.pointer_offsets_length() - 1; i >= 0; i--) {
     const uword addr = code.GetPointerOffsetAt(i) + code.EntryPoint();
     obj = *reinterpret_cast<RawObject**>(addr);
-    ISL_Print(" %d : %#" Px " '%s'\n",
+    THR_Print(" %d : %#" Px " '%s'\n",
               code.GetPointerOffsetAt(i), addr, obj.ToCString());
   }
-  ISL_Print("}\n");
+  THR_Print("}\n");
 
-  ISL_Print("PC Descriptors for function '%s' {\n", function_fullname);
+  THR_Print("PC Descriptors for function '%s' {\n", function_fullname);
   PcDescriptors::PrintHeaderString();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
-  ISL_Print("%s}\n", descriptors.ToCString());
+  THR_Print("%s}\n", descriptors.ToCString());
 
   uword start = Instructions::Handle(code.instructions()).EntryPoint();
   const Array& deopt_table = Array::Handle(code.deopt_info_array());
   intptr_t deopt_table_length = DeoptTable::GetLength(deopt_table);
   if (deopt_table_length > 0) {
-    ISL_Print("DeoptInfo: {\n");
+    THR_Print("DeoptInfo: {\n");
     Smi& offset = Smi::Handle();
     TypedData& info = TypedData::Handle();
     Smi& reason_and_flags = Smi::Handle();
@@ -881,31 +881,31 @@ static void DisassembleCode(const Function& function, bool optimized) {
       const intptr_t reason =
           DeoptTable::ReasonField::decode(reason_and_flags.Value());
       ASSERT((0 <= reason) && (reason < ICData::kDeoptNumReasons));
-      ISL_Print("%4" Pd ": 0x%" Px "  %s  (%s)\n",
+      THR_Print("%4" Pd ": 0x%" Px "  %s  (%s)\n",
                 i,
                 start + offset.Value(),
                 DeoptInfo::ToCString(deopt_table, info),
                 DeoptReasonToCString(
                     static_cast<ICData::DeoptReasonId>(reason)));
     }
-    ISL_Print("}\n");
+    THR_Print("}\n");
   }
 
   const ObjectPool& object_pool = ObjectPool::Handle(code.GetObjectPool());
   object_pool.DebugPrint();
 
-  ISL_Print("Stackmaps for function '%s' {\n", function_fullname);
+  THR_Print("Stackmaps for function '%s' {\n", function_fullname);
   if (code.stackmaps() != Array::null()) {
     const Array& stackmap_table = Array::Handle(code.stackmaps());
     Stackmap& map = Stackmap::Handle();
     for (intptr_t i = 0; i < stackmap_table.Length(); ++i) {
       map ^= stackmap_table.At(i);
-      ISL_Print("%s\n", map.ToCString());
+      THR_Print("%s\n", map.ToCString());
     }
   }
-  ISL_Print("}\n");
+  THR_Print("}\n");
 
-  ISL_Print("Variable Descriptors for function '%s' {\n",
+  THR_Print("Variable Descriptors for function '%s' {\n",
             function_fullname);
   const LocalVarDescriptors& var_descriptors =
       LocalVarDescriptors::Handle(code.GetLocalVarDescriptors());
@@ -918,34 +918,34 @@ static void DisassembleCode(const Function& function, bool optimized) {
     var_descriptors.GetInfo(i, &var_info);
     const int8_t kind = var_info.kind();
     if (kind == RawLocalVarDescriptors::kSavedCurrentContext) {
-      ISL_Print("  saved current CTX reg offset %d\n", var_info.index());
+      THR_Print("  saved current CTX reg offset %d\n", var_info.index());
     } else {
       if (kind == RawLocalVarDescriptors::kContextLevel) {
-        ISL_Print("  context level %d scope %d", var_info.index(),
+        THR_Print("  context level %d scope %d", var_info.index(),
             var_info.scope_id);
       } else if (kind == RawLocalVarDescriptors::kStackVar) {
-        ISL_Print("  stack var '%s' offset %d",
+        THR_Print("  stack var '%s' offset %d",
           var_name.ToCString(), var_info.index());
       } else if (kind == RawLocalVarDescriptors::kContextVar) {
-        ISL_Print("  context var '%s' level %d offset %d",
+        THR_Print("  context var '%s' level %d offset %d",
             var_name.ToCString(), var_info.scope_id, var_info.index());
       } else {
         ASSERT(kind == RawLocalVarDescriptors::kAsyncOperation);
-        ISL_Print("  async operation '%s' level %d offset %d",
+        THR_Print("  async operation '%s' level %d offset %d",
             var_name.ToCString(), var_info.scope_id, var_info.index());
       }
-      ISL_Print(" (valid %d-%d)\n", var_info.begin_pos, var_info.end_pos);
+      THR_Print(" (valid %d-%d)\n", var_info.begin_pos, var_info.end_pos);
     }
   }
-  ISL_Print("}\n");
+  THR_Print("}\n");
 
-  ISL_Print("Exception Handlers for function '%s' {\n", function_fullname);
+  THR_Print("Exception Handlers for function '%s' {\n", function_fullname);
   const ExceptionHandlers& handlers =
         ExceptionHandlers::Handle(code.exception_handlers());
-  ISL_Print("%s}\n", handlers.ToCString());
+  THR_Print("%s}\n", handlers.ToCString());
 
   {
-    ISL_Print("Static call target functions {\n");
+    THR_Print("Static call target functions {\n");
     const Array& table = Array::Handle(code.static_calls_target_table());
     Smi& offset = Smi::Handle();
     Function& function = Function::Handle();
@@ -960,24 +960,24 @@ static void DisassembleCode(const Function& function, bool optimized) {
         cls ^= code.owner();
         if (cls.IsNull()) {
           const String& code_name = String::Handle(code.Name());
-          ISL_Print("  0x%" Px ": %s, %p\n",
+          THR_Print("  0x%" Px ": %s, %p\n",
               start + offset.Value(),
               code_name.ToCString(),
               code.raw());
         } else {
-          ISL_Print("  0x%" Px ": allocation stub for %s, %p\n",
+          THR_Print("  0x%" Px ": allocation stub for %s, %p\n",
               start + offset.Value(),
               cls.ToCString(),
               code.raw());
         }
       } else {
-        ISL_Print("  0x%" Px ": %s, %p\n",
+        THR_Print("  0x%" Px ": %s, %p\n",
             start + offset.Value(),
             function.ToFullyQualifiedCString(),
             code.raw());
       }
     }
-    ISL_Print("}\n");
+    THR_Print("}\n");
   }
   if (optimized && FLAG_trace_inlining_intervals) {
     code.DumpInlinedIntervals();
@@ -1039,7 +1039,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     ParsedFunction* parsed_function = new(zone) ParsedFunction(
         thread, Function::ZoneHandle(zone, function.raw()));
     if (FLAG_trace_compiler) {
-      ISL_Print("Compiling %s%sfunction: '%s' @ token %" Pd ", size %" Pd "\n",
+      THR_Print("Compiling %s%sfunction: '%s' @ token %" Pd ", size %" Pd "\n",
                 (osr_id == Isolate::kNoDeoptId ? "" : "osr "),
                 (optimized ? "optimized " : ""),
                 function.ToFullyQualifiedCString(),
@@ -1069,10 +1069,10 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
         ASSERT(!Compiler::always_optimize());  // Optimized is the only code.
         // Optimizer bailed out. Disable optimizations and never try again.
         if (FLAG_trace_compiler) {
-          ISL_Print("--> disabling optimizations for '%s'\n",
+          THR_Print("--> disabling optimizations for '%s'\n",
                     function.ToFullyQualifiedCString());
         } else if (FLAG_trace_failed_optimization_attempts) {
-          ISL_Print("Cannot optimize: %s\n",
+          THR_Print("Cannot optimize: %s\n",
                     function.ToFullyQualifiedCString());
         }
         function.SetIsOptimizable(false);
@@ -1084,7 +1084,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     per_compile_timer.Stop();
 
     if (FLAG_trace_compiler) {
-      ISL_Print("--> '%s' entry: %#" Px " size: %" Pd " time: %" Pd64 " us\n",
+      THR_Print("--> '%s' entry: %#" Px " size: %" Pd " time: %" Pd64 " us\n",
                 function.ToFullyQualifiedCString(),
                 Code::Handle(function.CurrentCode()).EntryPoint(),
                 Code::Handle(function.CurrentCode()).Size(),
@@ -1099,9 +1099,9 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                optimized &&
                FlowGraphPrinter::ShouldPrint(function)) {
       // TODO(fschneider): Print unoptimized code along with the optimized code.
-      ISL_Print("*** BEGIN CODE\n");
+      THR_Print("*** BEGIN CODE\n");
       DisassembleCode(function, true);
-      ISL_Print("*** END CODE\n");
+      THR_Print("*** END CODE\n");
     }
 #if defined(DEBUG)
     CheckInliningIntervals(function);
@@ -1170,7 +1170,7 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
   }
   ASSERT(function.unoptimized_code() != Object::null());
   if (FLAG_trace_compiler) {
-    ISL_Print("Ensure unoptimized code for %s\n", function.ToCString());
+    THR_Print("Ensure unoptimized code for %s\n", function.ToCString());
   }
   return Error::null();
 }
@@ -1288,13 +1288,12 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
 
 void Compiler::CompileStaticInitializer(const Field& field) {
   ASSERT(field.is_static());
-  if (field.PrecompiledInitializer() != Function::null()) {
+  if (field.HasPrecompiledInitializer()) {
     // TODO(rmacnak): Investigate why this happens for _enum_names.
     OS::Print("Warning: Ignoring repeated request for initializer for %s\n",
               field.ToCString());
     return;
   }
-  ASSERT(field.PrecompiledInitializer() == Function::null());
   Thread* thread = Thread::Current();
   StackZone zone(thread);
 
@@ -1339,6 +1338,8 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
                                   false,  // optimized
                                   Isolate::kNoDeoptId);
       initializer = parsed_function->function().raw();
+      Code::Handle(initializer.unoptimized_code()).set_var_descriptors(
+          Object::empty_var_descriptors());
     } else {
       initializer ^= field.PrecompiledInitializer();
     }
@@ -1364,7 +1365,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
   if (setjmp(*jump.Set()) == 0) {
     Thread* const thread = Thread::Current();
     if (FLAG_trace_compiler) {
-      ISL_Print("compiling expression: ");
+      THR_Print("compiling expression: ");
       AstPrinter::PrintNode(fragment);
     }
 
@@ -1406,6 +1407,8 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
                                 parsed_function,
                                 false,
                                 Isolate::kNoDeoptId);
+    Code::Handle(func.unoptimized_code()).set_var_descriptors(
+        Object::empty_var_descriptors());
 
     const Object& result = PassiveObject::Handle(
         DartEntry::InvokeFunction(func, Object::empty_array()));

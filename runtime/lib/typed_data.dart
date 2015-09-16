@@ -477,9 +477,8 @@ abstract class _TypedListBase {
   }
 
   List sublist(int start, [int end]) {
-    if (end == null) end = this.length;
+    end = RangeError.checkValidRange(start, end, this.length);
     var length = end - start;
-    _rangeCheck(this.length, start, length);
     List result = _createList(length);
     result.setRange(0, length, this, start);
     return result;

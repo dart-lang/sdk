@@ -169,6 +169,7 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
     Link<T> link = head;
     lastLink = null;
     head = null;
+    length = 0;
     return link;
   }
 
@@ -184,6 +185,7 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
     }
     lastLink = null;
     head = null;
+    length = 0;
     return list;
   }
 
@@ -200,4 +202,17 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
   }
 
   bool get isEmpty => length == 0;
+
+  T get first {
+    if (head != null) {
+      return head.head;
+    }
+    throw new StateError("no elements");
+  }
+
+  void clear() {
+    head = null;
+    lastLink = null;
+    length = 0;
+  }
 }

@@ -125,6 +125,7 @@ abstract class HtmlMixin {
   void box(void callback()) {
     element('div', {'class': 'box'}, callback);
   }
+
   void br() => element('br', {});
   void dd(void callback()) => element('dd', {}, callback);
   void dl(void callback()) => element('dl', {}, callback);
@@ -140,6 +141,7 @@ abstract class HtmlMixin {
     }
     return element('h2', {'class': cls}, callback);
   }
+
   void h3(void callback()) => element('h3', {}, callback);
   void h4(void callback()) => element('h4', {}, callback);
   void h5(void callback()) => element('h5', {}, callback);
@@ -151,6 +153,7 @@ abstract class HtmlMixin {
   void link(String id, void callback()) {
     element('a', {'href': '#$id'}, callback);
   }
+
   void p(void callback()) => element('p', {}, callback);
   void pre(void callback()) => element('pre', {}, callback);
   void title(void callback()) => element('title', {}, callback);
@@ -526,8 +529,11 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     h5(() => write("Requests"));
     element('ul', {}, () {
       for (var request in requests) {
-        element('li', {}, () => link('request_${request.longMethod}', () =>
-          write(request.method)));
+        element(
+            'li',
+            {},
+            () => link(
+                'request_${request.longMethod}', () => write(request.method)));
       }
     });
   }
@@ -537,8 +543,11 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     element('div', {'class': 'subindex'}, () {
       element('ul', {}, () {
         for (var notification in notifications) {
-          element('li', {}, () => link('notification_${notification.longEvent}',
-            () => write(notification.event)));
+          element(
+              'li',
+              {},
+              () => link('notification_${notification.longEvent}',
+                  () => write(notification.event)));
         }
       });
     });
@@ -571,8 +580,11 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     element('div', {'class': 'subindex'}, () {
       element('ul', {}, () {
         for (var refactoring in refactorings) {
-          element('li', {}, () => link('refactoring_${refactoring.kind}',
-            () => write(refactoring.kind)));
+          element(
+              'li',
+              {},
+              () => link('refactoring_${refactoring.kind}',
+                  () => write(refactoring.kind)));
         }
       });
     });

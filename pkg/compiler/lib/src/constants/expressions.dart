@@ -1563,7 +1563,7 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
 
   @override
   void visitDeferred(DeferredConstantExpression exp, context) {
-    sb.write(exp.prefix.deferredImport.prefix.source);
+    sb.write(exp.prefix.name);
     sb.write('.');
     write(exp, exp.expression);
   }

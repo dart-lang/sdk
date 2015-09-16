@@ -698,6 +698,11 @@ class Unparser extends Indentation implements Visitor {
     indentLess();
   }
 
+  unparseLibraryName(String libraryName) {
+    write('library $libraryName;');
+    newline();
+  }
+
   unparseImportTag(String uri, {String prefix,
                                 List<String> shows: const <String>[],
                                 bool isDeferred: false}) {

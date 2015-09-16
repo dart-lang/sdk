@@ -482,8 +482,10 @@ class RelationKeyData {
   RelationKeyData.forData(
       this.elementId1, this.elementId2, this.elementId3, this.relationshipId);
 
-  RelationKeyData.forObject(ElementCodec elementCodec,
-      RelationshipCodec relationshipCodec, IndexableObject indexable,
+  RelationKeyData.forObject(
+      ElementCodec elementCodec,
+      RelationshipCodec relationshipCodec,
+      IndexableObject indexable,
       RelationshipImpl relationship)
       : elementId1 = elementCodec.encode1(indexable),
         elementId2 = elementCodec.encode2(indexable),
@@ -1050,8 +1052,10 @@ class _TopElementData {
 
   factory _TopElementData(
       ElementCodec elementCodec, IndexableObject indexable) {
-    return new _TopElementData._(indexable.name,
-        elementCodec.encode1(indexable), elementCodec.encode2(indexable),
+    return new _TopElementData._(
+        indexable.name,
+        elementCodec.encode1(indexable),
+        elementCodec.encode2(indexable),
         elementCodec.encode3(indexable));
   }
 

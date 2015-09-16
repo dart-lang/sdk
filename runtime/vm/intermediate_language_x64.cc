@@ -22,6 +22,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, allow_absolute_addresses);
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
@@ -785,14 +786,14 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const StubEntry* stub_entry;
   if (link_lazily()) {
     stub_entry = StubCode::CallBootstrapCFunction_entry();
-    __ LoadExternalLabel(
+    __ LoadNativeEntry(
         RBX, &NativeEntry::LinkNativeCallLabel(), kPatchable);
   } else {
     stub_entry = (is_bootstrap_native() || is_leaf_call)
         ? StubCode::CallBootstrapCFunction_entry()
         : StubCode::CallNativeCFunction_entry();
     const ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
-    __ LoadExternalLabel(RBX, &label, kNotPatchable);
+    __ LoadNativeEntry(RBX, &label, kNotPatchable);
   }
   compiler->GenerateCall(token_pos(),
                          *stub_entry,
@@ -2600,6 +2601,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       Register temp = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
+      ASSERT(FLAG_allow_absolute_addresses);
       __ LoadImmediate(temp, Immediate(flags_address));
       __ movq(Address(temp, 0), Immediate(Isolate::kOsrRequest));
     }
@@ -2646,7 +2648,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Register temp = locs()->temp(0).reg();
   // Generate stack overflow check.
-  if (compiler->is_optimizing()) {
+  if (compiler->is_optimizing() && FLAG_allow_absolute_addresses) {
     __ LoadImmediate(
         temp, Immediate(Isolate::Current()->stack_limit_address()));
     __ cmpq(RSP, Address(temp, 0));
@@ -3405,9 +3407,7 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     if ((value()->Type()->ToNullableCid() == box_cid) &&
         value()->Type()->is_nullable()) {
-      const Immediate& raw_null =
-          Immediate(reinterpret_cast<intptr_t>(Object::null()));
-      __ cmpq(box, raw_null);
+      __ CompareObject(box, Object::null_object());
       __ j(EQUAL, deopt);
     } else {
       __ testq(box, Immediate(kSmiTagMask));

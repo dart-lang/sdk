@@ -57,7 +57,6 @@ main() {
   runReflectiveTests(PartiallyResolveUnitReferencesTaskTest);
   runReflectiveTests(ResolveFunctionBodiesInUnitTaskTest);
   runReflectiveTests(ResolveLibraryTypeNamesTaskTest);
-//  runReflectiveTests(ResolveUnitReferencesTaskTest);
   runReflectiveTests(ResolveUnitTypeNamesTaskTest);
   runReflectiveTests(ResolveVariableReferencesTaskTest);
   runReflectiveTests(ScanDartTaskTest);
@@ -1911,7 +1910,22 @@ class Z {}
 
 @reflectiveTest
 class InferStaticVariableTypesInUnitTaskTest extends _AbstractDartTaskTest {
-  void test_perform() {
+  void test_perform_nestedDeclarations() {
+    enableStrongMode();
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+var f = (int x) {
+  int squared(int value) => value * value;
+  var xSquared = squared(x);
+  return xSquared;
+};
+''');
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6,
+        matcher: isInferStaticVariableTypesInUnitTask);
+  }
+
+  void test_perform_recursive() {
     enableStrongMode();
     AnalysisTarget firstSource = newSource(
         '/first.dart',
@@ -1948,6 +1962,30 @@ class M {}
     expect(variableB.initializer.staticType, typeM);
     expect(variableC.element.type, typeM);
     expect(variableC.initializer.staticType, typeM);
+  }
+
+  void test_perform_simple() {
+    enableStrongMode();
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+var X = 1;
+
+var Y = () {
+  return 1 + X;
+};
+''');
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6,
+        matcher: isInferStaticVariableTypesInUnitTask);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
+    TopLevelVariableDeclaration declaration = unit.declarations[1];
+    FunctionExpression function =
+        declaration.variables.variables[0].initializer;
+    BlockFunctionBody body = function.body;
+    ReturnStatement statement = body.block.statements[0];
+    Expression expression = statement.expression;
+    InterfaceType intType = context.typeProvider.intType;
+    expect(expression.staticType, intType);
   }
 }
 
@@ -2269,8 +2307,7 @@ class C {
     computeResult(target, RESOLVED_UNIT5,
         matcher: isPartiallyResolveUnitReferencesTask);
     // Test the outputs
-    expect(outputs[CLASSES_IN_UNIT], hasLength(2));
-    expect(outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT], hasLength(2));
+    expect(outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT], hasLength(4));
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
     expect(unit, same(outputs[RESOLVED_UNIT5]));
     // Test the state of the AST
@@ -2280,8 +2317,7 @@ class C {
     expect(initializer.staticElement, isNotNull);
     // Test the error generation
     _fillErrorListener(PARTIALLY_RESOLVE_REFERENCES_ERRORS);
-    errorListener.assertErrorsWithCodes(
-        <ErrorCode>[StaticWarningCode.UNDEFINED_IDENTIFIER]);
+    errorListener.assertNoErrors();
   }
 
   test_perform_importExport() {
@@ -2311,20 +2347,83 @@ main() {
     computeResult(new LibrarySpecificUnit(sourceC, sourceC), RESOLVED_UNIT5,
         matcher: isPartiallyResolveUnitReferencesTask);
     // validate
-    expect(outputs[CLASSES_IN_UNIT], hasLength(0));
     expect(outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT], hasLength(0));
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
     expect(unit, isNotNull);
 
-    FunctionDeclaration functionDeclaration = unit.declarations[0];
-    BlockFunctionBody body = functionDeclaration.functionExpression.body;
+    FunctionDeclaration mainFunction = unit.declarations[0];
+    expect(mainFunction.element, isNotNull);
+    BlockFunctionBody body = mainFunction.functionExpression.body;
     List<Statement> statements = body.block.statements;
     ExpressionStatement statement = statements[0];
     MethodInvocation invocation = statement.expression;
     MethodElement methodElement = invocation.methodName.staticElement;
-    expect(methodElement, isNotNull);
-    expect(methodElement.type, isNotNull);
-    expect(methodElement.returnType.toString(), 'int');
+    expect(methodElement, isNull);
+  }
+
+  test_perform_notResolved() {
+    enableStrongMode();
+    Source source = newSource(
+        '/test.dart',
+        '''
+int A;
+f1() {
+  A;
+}
+var f2 = () {
+  A;
+  void f3() {
+    A;
+  }
+}
+class C {
+  C() {
+    A;
+  }
+  m() {
+    A;
+  }
+}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT5,
+        matcher: isPartiallyResolveUnitReferencesTask);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    NodeList<CompilationUnitMember> declarations = unit.declarations;
+
+    void expectReference(BlockFunctionBody body, bool isResolved) {
+      ExpressionStatement statement = body.block.statements[0];
+      SimpleIdentifier reference = statement.expression;
+      expect(reference.staticElement, isResolved ? isNotNull : isNull);
+    }
+    //
+    // The reference to 'A' in 'f1' should not be resolved.
+    //
+    FunctionDeclaration f1 = declarations[1];
+    expectReference(f1.functionExpression.body, false);
+    //
+    // The references to 'A' in 'f2' should be resolved.
+    //
+    TopLevelVariableDeclaration f2 = declarations[2];
+    FunctionExpression expression2 = f2.variables.variables[0].initializer;
+    BlockFunctionBody body2 = expression2.body;
+    expectReference(body2, true);
+
+    FunctionDeclarationStatement statement2 = body2.block.statements[1];
+    BlockFunctionBody innerBody =
+        statement2.functionDeclaration.functionExpression.body;
+    expectReference(innerBody, true);
+    //
+    // The references to 'A' in 'C' should not be resolved.
+    //
+    ClassDeclaration c = declarations[3];
+    NodeList<ClassMember> members = c.members;
+
+    ConstructorDeclaration constructor = members[0];
+    expectReference(constructor.body, false);
+
+    MethodDeclaration method = members[1];
+    expectReference(method.body, false);
   }
 }
 

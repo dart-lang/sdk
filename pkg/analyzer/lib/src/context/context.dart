@@ -252,6 +252,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         (this._options.hint && !options.hint) ||
         (this._options.lint && !options.lint) ||
         this._options.preserveComments != options.preserveComments ||
+        this._options.strongMode != options.strongMode ||
         this._options.enableStrictCallChecks !=
             options.enableStrictCallChecks ||
         this._options.enableSuperMixins != options.enableSuperMixins;
@@ -272,6 +273,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.incrementalValidation = options.incrementalValidation;
     this._options.lint = options.lint;
     this._options.preserveComments = options.preserveComments;
+    this._options.strongMode = options.strongMode;
     if (needsRecompute) {
       for (WorkManager workManager in workManagers) {
         workManager.onAnalysisOptionsChanged();

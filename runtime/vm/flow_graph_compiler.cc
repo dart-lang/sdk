@@ -28,6 +28,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, allow_absolute_addresses, true,
+    "Allow embedding absolute addresses in generated code.");
 DEFINE_FLAG(bool, always_megamorphic_calls, false,
     "Instance call always as megamorphic.");
 DEFINE_FLAG(bool, enable_simd_inline, true,
@@ -51,6 +53,7 @@ DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, disassemble);
 DECLARE_FLAG(bool, disassemble_optimized);
 DECLARE_FLAG(bool, emit_edge_counters);
+DECLARE_FLAG(bool, fields_may_be_reset);
 DECLARE_FLAG(bool, guess_other_cid);
 DECLARE_FLAG(bool, ic_range_profiling);
 DECLARE_FLAG(bool, intrinsify);
@@ -120,6 +123,8 @@ static void PrecompileModeHandler(bool value) {
     FLAG_enable_mirrors = false;
     FLAG_precompile_collect_closures = true;
     FLAG_link_natives_lazily = true;
+    FLAG_fields_may_be_reset = true;
+    FLAG_allow_absolute_addresses = false;
   }
 }
 
@@ -431,7 +436,7 @@ struct IntervalStruct {
   intptr_t inlining_id;
   IntervalStruct(intptr_t s, intptr_t id) : start(s), inlining_id(id) {}
   void Dump() {
-    ISL_Print("start: 0x%" Px " iid: %" Pd " ",  start, inlining_id);
+    THR_Print("start: 0x%" Px " iid: %" Pd " ",  start, inlining_id);
   }
 };
 
@@ -520,7 +525,7 @@ void FlowGraphCompiler::VisitBlocks() {
   }
 
   if (is_optimizing()) {
-    LogBlock lb(Thread::Current());
+    LogBlock lb;
     intervals.Add(IntervalStruct(prev_offset, prev_inlining_id));
     inlined_code_intervals_ =
         Array::New(intervals.length() * Code::kInlIntNumEntries, Heap::kOld);
@@ -532,7 +537,7 @@ void FlowGraphCompiler::VisitBlocks() {
         const Function& function =
             *inline_id_to_function_.At(intervals[i].inlining_id);
         intervals[i].Dump();
-        ISL_Print(" parent iid %" Pd " %s\n",
+        THR_Print(" parent iid %" Pd " %s\n",
             caller_inline_id_[intervals[i].inlining_id],
             function.ToQualifiedCString());
       }
@@ -549,10 +554,10 @@ void FlowGraphCompiler::VisitBlocks() {
   }
   set_current_block(NULL);
   if (FLAG_trace_inlining_intervals && is_optimizing()) {
-    LogBlock lb(Isolate::Current());
-    ISL_Print("Intervals:\n");
+    LogBlock lb;
+    THR_Print("Intervals:\n");
     for (intptr_t cc = 0; cc < caller_inline_id_.length(); cc++) {
-      ISL_Print("  iid: %" Pd " caller iid: %" Pd "\n",
+      THR_Print("  iid: %" Pd " caller iid: %" Pd "\n",
           cc, caller_inline_id_[cc]);
     }
     Smi& temp = Smi::Handle();
@@ -560,9 +565,9 @@ void FlowGraphCompiler::VisitBlocks() {
          i += Code::kInlIntNumEntries) {
       temp ^= inlined_code_intervals_.At(i + Code::kInlIntStart);
       ASSERT(!temp.IsNull());
-      ISL_Print("% " Pd " start: 0x%" Px " ", i, temp.Value());
+      THR_Print("% " Pd " start: 0x%" Px " ", i, temp.Value());
       temp ^= inlined_code_intervals_.At(i + Code::kInlIntInliningId);
-      ISL_Print("iid: %" Pd " ", temp.Value());
+      THR_Print("iid: %" Pd " ", temp.Value());
     }
   }
 }

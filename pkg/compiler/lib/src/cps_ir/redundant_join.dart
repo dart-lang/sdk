@@ -109,12 +109,12 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
       Primitive argument = invoke.arguments[parameterIndex].definition;
       if (argument is! Constant) return; // Branching condition is unknown.
       Constant constant = argument;
-      if (isFalsyConstant(constant.value)) {
-        ++falseHits;
-        falseCall = invoke;
-      } else {
+      if (isTruthyConstant(constant.value, strict: branch.isStrictCheck)) {
         ++trueHits;
         trueCall = invoke;
+      } else {
+        ++falseHits;
+        falseCall = invoke;
       }
     }
 
@@ -182,10 +182,10 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
       Reference reference = branchCont.firstRef;
       InvokeContinuation invoke = branchCont.firstRef.parent;
       Constant condition = invoke.arguments[parameterIndex].definition;
-      if (isFalsyConstant(condition.value)) {
-        invoke.continuation.changeTo(falseCont);
-      } else {
+      if (isTruthyConstant(condition.value, strict: branch.isStrictCheck)) {
         invoke.continuation.changeTo(trueCont);
+      } else {
+        invoke.continuation.changeTo(falseCont);
       }
       assert(branchCont.firstRef != reference);
     }
@@ -248,6 +248,7 @@ class AlphaRenamer extends RecursiveVisitor {
       // create a new parameter object for this continuation.
       if (param.parent != cont) {
         Parameter newParam = new Parameter(param.hint);
+        newParam.type = param.type;
         renaming[param] = newParam;
         cont.parameters[i] = newParam;
         newParam.parent = cont;

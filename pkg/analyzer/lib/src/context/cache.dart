@@ -38,8 +38,8 @@ class AnalysisCache {
   /**
    * The [StreamController] reporting [InvalidatedResult]s.
    */
-  final StreamController<InvalidatedResult> _onResultInvalidated =
-      new StreamController<InvalidatedResult>.broadcast(sync: true);
+  final ReentrantSynchronousStream<InvalidatedResult> onResultInvalidated =
+      new ReentrantSynchronousStream<InvalidatedResult>();
 
   /**
    * Initialize a newly created cache to have the given [partitions]. The
@@ -50,16 +50,10 @@ class AnalysisCache {
   AnalysisCache(this._partitions) {
     for (CachePartition partition in _partitions) {
       partition.onResultInvalidated.listen((InvalidatedResult event) {
-        _onResultInvalidated.add(event);
+        onResultInvalidated.add(event);
       });
     }
   }
-
-  /**
-   * Return the stream that is notified when a value is invalidated.
-   */
-  Stream<InvalidatedResult> get onResultInvalidated =>
-      _onResultInvalidated.stream;
 
   // TODO(brianwilkerson) Implement or delete this.
 //  /**
@@ -465,8 +459,11 @@ class CacheEntry {
    * Set the value of the result represented by the given [descriptor] to the
    * given [value].
    */
-  /*<V>*/ void setValue(ResultDescriptor /*<V>*/ descriptor, dynamic /*V*/
-      value, List<TargetedResult> dependedOn) {
+  /*<V>*/ void setValue(
+      ResultDescriptor /*<V>*/ descriptor,
+      dynamic /*V*/
+      value,
+      List<TargetedResult> dependedOn) {
 //    {
 //      String valueStr = '$value';
 //      if (valueStr.length > 20) {
@@ -493,9 +490,9 @@ class CacheEntry {
    */
   void setValueIncremental(ResultDescriptor descriptor, dynamic value) {
     ResultData data = getResultData(descriptor);
-    List<TargetedResult> dependedOn = data.dependedOnResults;
-    _invalidate(descriptor, null);
-    setValue(descriptor, value, dependedOn);
+    _invalidateDependentResults(data, null);
+    data.state = CacheState.VALID;
+    data.value = value;
   }
 
   @override
@@ -538,26 +535,20 @@ class CacheEntry {
     TargetedResult thisResult = new TargetedResult(target, descriptor);
     for (TargetedResult dependedOnResult in thisData.dependedOnResults) {
       ResultData data = _partition._getDataFor(dependedOnResult);
-      if (data != null) {
+      if (data != null && deltaResult != DeltaResult.KEEP_CONTINUE) {
         data.dependentResults.remove(thisResult);
       }
     }
     // Invalidate results that depend on this result.
-    List<TargetedResult> dependentResults = thisData.dependentResults.toList();
-    for (TargetedResult dependentResult in dependentResults) {
-      CacheEntry entry = _partition.get(dependentResult.target);
-      if (entry != null) {
-        entry._invalidate(dependentResult.result, delta);
-      }
-    }
+    _invalidateDependentResults(thisData, delta);
     // If empty, remove the entry altogether.
     if (_resultMap.isEmpty) {
       _partition._targetMap.remove(target);
       _partition._removeIfSource(target);
     }
     // Notify controller.
-    _partition._onResultInvalidated
-        .add(new InvalidatedResult(this, descriptor));
+    _partition.onResultInvalidated
+        .add(new InvalidatedResult(this, descriptor, thisData.value));
   }
 
   /**
@@ -567,6 +558,19 @@ class CacheEntry {
     List<ResultDescriptor> results = _resultMap.keys.toList();
     for (ResultDescriptor result in results) {
       _invalidate(result, null);
+    }
+  }
+
+  /**
+   * Invalidate results that depend on [thisData].
+   */
+  void _invalidateDependentResults(ResultData thisData, Delta delta) {
+    List<TargetedResult> dependentResults = thisData.dependentResults.toList();
+    for (TargetedResult dependentResult in dependentResults) {
+      CacheEntry entry = _partition.get(dependentResult.target);
+      if (entry != null) {
+        entry._invalidate(dependentResult.result, delta);
+      }
     }
   }
 
@@ -804,8 +808,8 @@ abstract class CachePartition {
   /**
    * The [StreamController] reporting [InvalidatedResult]s.
    */
-  final StreamController<InvalidatedResult> _onResultInvalidated =
-      new StreamController<InvalidatedResult>.broadcast(sync: true);
+  final ReentrantSynchronousStream<InvalidatedResult> onResultInvalidated =
+      new ReentrantSynchronousStream<InvalidatedResult>();
 
   /**
    * A table mapping the targets belonging to this partition to the information
@@ -838,12 +842,6 @@ abstract class CachePartition {
    * should not be used for any other purpose.
    */
   Map<AnalysisTarget, CacheEntry> get map => _targetMap;
-
-  /**
-   * Return the stream that is notified when a value is invalidated.
-   */
-  Stream<InvalidatedResult> get onResultInvalidated =>
-      _onResultInvalidated.stream;
 
   /**
    * Notifies the partition that the client is going to stop using it.
@@ -1039,10 +1037,44 @@ class InvalidatedResult {
    */
   final ResultDescriptor descriptor;
 
-  InvalidatedResult(this.entry, this.descriptor);
+  /**
+   * The value of the result which was invalidated.
+   */
+  final Object value;
+
+  InvalidatedResult(this.entry, this.descriptor, this.value);
 
   @override
   String toString() => '$descriptor of ${entry.target}';
+}
+
+/**
+ * A Stream-like interface, which broadcasts events synchronously.
+ * If a second event is fired while delivering a first event, then the second
+ * event will be delivered first, and then delivering of the first will be
+ * continued.
+ */
+class ReentrantSynchronousStream<T> {
+  final List<Function> listeners = <Function>[];
+
+  /**
+   * Send the given [event] to the stream.
+   */
+  void add(T event) {
+    List<Function> listeners = this.listeners.toList();
+    for (Function listener in listeners) {
+      listener(event);
+    }
+  }
+
+  /**
+   * Listen for the events in this stream.
+   * Note that if the [listener] fires a new event, then the [listener] will be
+   * invoked again before returning from the [add] invocation.
+   */
+  void listen(void listener(T event)) {
+    listeners.add(listener);
+  }
 }
 
 /**

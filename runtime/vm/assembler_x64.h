@@ -763,6 +763,9 @@ class Assembler : public ValueObject {
   void LoadExternalLabel(Register dst,
                          const ExternalLabel* label,
                          Patchability patchable);
+  void LoadNativeEntry(Register dst,
+                       const ExternalLabel* label,
+                       Patchability patchable);
   void LoadFunctionFromCalleePool(Register dst,
                                   const Function& function,
                                   Register new_pp);

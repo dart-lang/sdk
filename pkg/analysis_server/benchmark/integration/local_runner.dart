@@ -51,11 +51,8 @@ main(List<String> args) {
   if (!new Directory(join(gitDir.path, outDirName)).existsSync()) {
     throw 'failed to find out or xcodebuild directory';
   }
-  result = Process.runSync('ln', [
-    '-s',
-    join(gitDir.path, outDirName),
-    join(tmpSrcDirPath, outDirName)
-  ]);
+  result = Process.runSync('ln',
+      ['-s', join(gitDir.path, outDirName), join(tmpSrcDirPath, outDirName)]);
   if (result.exitCode != 0) throw 'failed to link out or xcodebuild: $result';
   /*
    * Collect arguments

@@ -95,6 +95,18 @@ main() {
             expect(units, hasLength(1));
           });
         });
+
+        test('nonexistent folder', () async {
+          String fileB = '/project_b/b.dart';
+          resourceProvider.newFile(fileB, '// b');
+          var response = testSetAnalysisRoots(['/project_a', '/project_b'], []);
+          var serverRef = server;
+          expect(response, isResponseSuccess('0'));
+          // Non-existence of /project_a should not prevent files in /project_b
+          // from being analyzed.
+          await server.onAnalysisComplete;
+          expect(serverRef.getResolvedCompilationUnits(fileB), hasLength(1));
+        });
       });
     });
 

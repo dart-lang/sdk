@@ -386,10 +386,7 @@ abstract class EagerAnnotationHandler<T> {
   static checkAnnotation(Compiler compiler,
                          Element element,
                          EagerAnnotationHandler handler) {
-    for (Link<MetadataAnnotation> link = element.metadata;
-         !link.isEmpty;
-         link = link.tail) {
-      MetadataAnnotation annotation = link.head;
+    for (MetadataAnnotation annotation in element.implementation.metadata) {
       var result = handler.apply(compiler, element, annotation);
       if (result != null) {
         // TODO(johnniwinther): Perform this check in

@@ -15,12 +15,12 @@
 /xcodebuild
 /.flaky.log
 /.debug.log
-/*.Makefile
+*.Makefile
 *.opensdf
 *.sdf
 *.sln
 *.suo
-/*.target.mk
+*.target.mk
 *.host.mk
 *.vcproj
 *.vcxproj

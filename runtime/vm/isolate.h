@@ -145,10 +145,6 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, class_table_);
   }
 
-  MegamorphicCacheTable* megamorphic_cache_table() {
-    return &megamorphic_cache_table_;
-  }
-
   Dart_MessageNotifyCallback message_notify_callback() const {
     return message_notify_callback_;
   }
@@ -169,9 +165,6 @@ class Isolate : public BaseIsolate {
   const char* name() const { return name_; }
   const char* debugger_name() const { return debugger_name_; }
   void set_debugger_name(const char* name);
-
-  // TODO(koda): Move to Thread.
-  class Log* Log() const;
 
   int64_t start_time() const { return start_time_; }
 
@@ -759,8 +752,17 @@ class Isolate : public BaseIsolate {
     mutator_thread_->set_zone(zone);
   }
 
+  bool is_service_isolate() const { return is_service_isolate_; }
+
+  static void KillAllIsolates();
+  static void KillIfExists(Isolate* isolate);
+
+  static void DisableIsolateCreation();
+  static void EnableIsolateCreation();
+
  private:
   friend class Dart;  // Init, InitOnce, Shutdown.
+  friend class IsolateKillerVisitor;  // Kill().
 
   explicit Isolate(const Dart_IsolateFlags& api_flags);
 
@@ -768,7 +770,14 @@ class Isolate : public BaseIsolate {
   static Isolate* Init(const char* name_prefix,
                        const Dart_IsolateFlags& api_flags,
                        bool is_vm_isolate = false);
+
+  // The isolates_list_monitor_ should be held when calling Kill().
+  void KillLocked();
+
+  void LowLevelShutdown();
   void Shutdown();
+  // Assumes mutator is the only thread still in the isolate.
+  void CloseAllTimelineBlocks();
 
   void BuildName(const char* name_prefix);
   void PrintInvokedFunctions();
@@ -812,9 +821,9 @@ class Isolate : public BaseIsolate {
 
   uword vm_tag_;
   StoreBuffer* store_buffer_;
+  Heap* heap_;
   ThreadRegistry* thread_registry_;
   ClassTable class_table_;
-  MegamorphicCacheTable megamorphic_cache_table_;
   Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
   char* debugger_name_;
@@ -824,7 +833,6 @@ class Isolate : public BaseIsolate {
   uint64_t pause_capability_;
   uint64_t terminate_capability_;
   bool errors_fatal_;
-  Heap* heap_;
   ObjectStore* object_store_;
   uword top_exit_frame_info_;
   void* init_callback_data_;
@@ -858,9 +866,7 @@ class Isolate : public BaseIsolate {
 
   CompilerStats* compiler_stats_;
 
-  // Log.
   bool is_service_isolate_;
-  class Log* log_;
 
   // Status support.
   char* stacktrace_;
@@ -962,11 +968,13 @@ class Isolate : public BaseIsolate {
   static void WakePauseEventHandler(Dart_Isolate isolate);
 
   // Manage list of existing isolates.
-  static void AddIsolateTolist(Isolate* isolate);
+  static bool AddIsolateToList(Isolate* isolate);
   static void RemoveIsolateFromList(Isolate* isolate);
 
-  static Monitor* isolates_list_monitor_;  // Protects isolates_list_head_
+  // This monitor protects isolates_list_head_, and creation_enabled_.
+  static Monitor* isolates_list_monitor_;
   static Isolate* isolates_list_head_;
+  static bool creation_enabled_;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;

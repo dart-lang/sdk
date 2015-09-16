@@ -2122,7 +2122,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Statement thenBody = new js.Block.empty();
       js.Block oldContainer = currentContainer;
       currentContainer = thenBody;
-      generateThrowWithHelper('ioore', [node.array, node.index]);
+      generateThrowWithHelper('ioore', [node.array, node.reportedIndex]);
       currentContainer = oldContainer;
       thenBody = unwrapStatement(thenBody);
       pushStatement(new js.If.noElse(underOver, thenBody)
@@ -2694,7 +2694,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkString(input, '!==', input.sourceInformation);
       return pop();
     }
-    compiler.internalError(input, 'Unexpected check.');
+    compiler.internalError(input, 'Unexpected check: $checkedType.');
     return null;
   }
 

@@ -20,6 +20,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, allow_absolute_addresses);
 DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
 DECLARE_FLAG(bool, inline_alloc);
@@ -396,6 +397,14 @@ void Assembler::LoadExternalLabel(Register dst, const ExternalLabel* label) {
 }
 
 
+void Assembler::LoadNativeEntry(Register dst,
+                                const ExternalLabel* label) {
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindNativeEntry(label, kNotPatchable));
+  LoadWordFromPoolOffset(dst, offset);
+}
+
+
 void Assembler::LoadExternalLabelFixed(Register dst,
                                        const ExternalLabel* label,
                                        Patchability patchable) {
@@ -422,6 +431,7 @@ void Assembler::LoadObjectHelper(Register dst,
     LoadWordFromPoolOffset(dst, offset);
   } else {
     ASSERT(object.IsSmi() || object.InVMHeap());
+    ASSERT(object.IsSmi() || FLAG_allow_absolute_addresses);
     LoadDecodableImmediate(dst, reinterpret_cast<int64_t>(object.raw()));
   }
 }
@@ -457,6 +467,7 @@ void Assembler::CompareObject(Register reg, const Object& object) {
     LoadObject(TMP, object);
     CompareRegisters(reg, TMP);
   } else {
+    ASSERT(object.IsSmi() || FLAG_allow_absolute_addresses);
     CompareImmediate(reg, reinterpret_cast<int64_t>(object.raw()));
   }
 }
@@ -1245,6 +1256,7 @@ void Assembler::UpdateAllocationStats(intptr_t cid,
   intptr_t counter_offset =
       ClassTable::CounterOffsetFor(cid, space == Heap::kNew);
   if (inline_isolate) {
+    ASSERT(FLAG_allow_absolute_addresses);
     ClassTable* class_table = Isolate::Current()->class_table();
     ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
     if (cid < kNumPredefinedCids) {
@@ -1314,6 +1326,7 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   ASSERT(cid > 0);
   intptr_t state_offset = ClassTable::StateOffsetFor(cid);
   if (inline_isolate) {
+    ASSERT(FLAG_allow_absolute_addresses);
     ClassTable* class_table = Isolate::Current()->class_table();
     ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
     if (cid < kNumPredefinedCids) {

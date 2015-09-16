@@ -207,9 +207,12 @@ class _Requestor {
       for (LocationImpl location in locations) {
         IndexableObject indexable = location.indexable;
         if (indexable is IndexableElement) {
-          matches.add(new SearchMatch(kind, indexable.element,
+          matches.add(new SearchMatch(
+              kind,
+              indexable.element,
               new SourceRange(location.offset, location.length),
-              location.isResolved, location.isQualified));
+              location.isResolved,
+              location.isQualified));
         }
       }
       return matches;

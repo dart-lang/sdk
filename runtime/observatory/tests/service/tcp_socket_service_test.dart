@@ -27,15 +27,6 @@ Future setupTCP() async {
   await socket2.flush();
 }
 
-void expectTimeBiggerThanZero(time) {
-   // Stopwatch resolution on windows makes us sometimes report 0;
-  if (io.Platform.isWindows) {
-    expect(time, greaterThanOrEqualTo(0));
-  } else {
-    expect(time, greaterThan(0));
-  }
-}
-
 var tcpTests = [
   // Initial.
   (Isolate isolate) async {
@@ -57,17 +48,17 @@ var tcpTests = [
         '__getSocketByID', { 'id' : result['data'][0]['id'] });
     expect(listening['id'], equals(result['data'][0]['id']));
     expect(listening['listening'], isTrue);
-    expect(listening['socket_type'], equals('TCP'));
+    expect(listening['socketType'], equals('TCP'));
     expect(listening['port'], greaterThanOrEqualTo(1024));
-    expectTimeBiggerThanZero(listening['last_read']);
+    expect(listening['lastRead'], greaterThan(0));
 
-    expect(listening['total_read'], equals(2));
-    expect(listening['last_write'], equals(0));
-    expect(listening['total_written'], equals(0));
-    expect(listening['write_count'], equals(0));
-    expect(listening['read_count'], equals(0));
-    expect(listening['remote_host'], equals('NA'));
-    expect(listening['remote_port'], equals('NA'));
+    expect(listening['totalRead'], equals(2));
+    expect(listening['lastWrite'], equals(0));
+    expect(listening['totalWritten'], equals(0));
+    expect(listening['writeCount'], equals(0));
+    expect(listening['readCount'], equals(2));
+    expect(listening['remoteHost'], equals('NA'));
+    expect(listening['remotePort'], equals('NA'));
 
     var client = await isolate.invokeRpcNoUpgrade(
         '__getSocketByID', { 'id' : result['data'][1]['id'] });
@@ -79,8 +70,8 @@ var tcpTests = [
 
     // We expect the client to be connected on the port and
     // host of the listening socket.
-    expect(client['remote_port'], equals(listening['port']));
-    expect(client['remote_host'], equals(listening['host']));
+    expect(client['remotePort'], equals(listening['port']));
+    expect(client['remoteHost'], equals(listening['host']));
     // We expect the third socket (accepted server) to be connected to the
     // same port and host as the listening socket (the listening one).
     expect(server['port'], equals(listening['port']));
@@ -89,8 +80,8 @@ var tcpTests = [
     expect(client['listening'], isFalse);
     expect(server['listening'], isFalse);
 
-    expect(client['socket_type'], equals('TCP'));
-    expect(server['socket_type'], equals('TCP'));
+    expect(client['socketType'], equals('TCP'));
+    expect(server['socketType'], equals('TCP'));
 
     // We are using no reserved ports.
     expect(client['port'], greaterThanOrEqualTo(1024));
@@ -98,76 +89,76 @@ var tcpTests = [
 
     // The client and server "mirror" each other in reads and writes, and the
     // timestamps are in correct order.
-    expect(client['last_read'], equals(0));
-    expectTimeBiggerThanZero(server['last_read']);
-    expect(client['total_read'], equals(0));
-    expect(server['total_read'], equals(12));
-    expect(client['read_count'], equals(0));
-    expect(server['read_count'], greaterThanOrEqualTo(1));
+    expect(client['lastRead'], equals(0));
+    expect(server['lastRead'], greaterThan(0));
+    expect(client['totalRead'], equals(0));
+    expect(server['totalRead'], equals(12));
+    expect(client['readCount'], equals(0));
+    expect(server['readCount'], greaterThanOrEqualTo(1));
 
-    expectTimeBiggerThanZero(client['last_write']);
-    expect(server['last_write'], equals(0));
-    expect(client['total_written'], equals(12));
-    expect(server['total_written'], equals(0));
-    expect(client['write_count'], greaterThanOrEqualTo(2));
-    expect(server['write_count'], equals(0));
+    expect(client['lastWrite'], greaterThan(0));
+    expect(server['lastWrite'], equals(0));
+    expect(client['totalWritten'], equals(12));
+    expect(server['totalWritten'], equals(0));
+    expect(client['writeCount'], greaterThanOrEqualTo(2));
+    expect(server['writeCount'], equals(0));
 
     // Order
     // Stopwatch resolution on windows can make us have the same timestamp.
     if (io.Platform.isWindows) {
-      expect(server['last_read'], greaterThanOrEqualTo(client['last_write']));
+      expect(server['lastRead'], greaterThanOrEqualTo(client['lastWrite']));
     } else {
-      expect(server['last_read'], greaterThan(client['last_write']));
+      expect(server['lastRead'], greaterThan(client['lastWrite']));
     }
 
-    var second_client = await isolate.invokeRpcNoUpgrade(
+    var secondClient = await isolate.invokeRpcNoUpgrade(
         '__getSocketByID', { 'id' : result['data'][3]['id'] });
-    expect(second_client['id'], equals(result['data'][3]['id']));
-    var second_server = await isolate.invokeRpcNoUpgrade(
+    expect(secondClient['id'], equals(result['data'][3]['id']));
+    var secondServer = await isolate.invokeRpcNoUpgrade(
         '__getSocketByID', { 'id' : result['data'][4]['id'] });
-    expect(second_server['id'], equals(result['data'][4]['id']));
+    expect(secondServer['id'], equals(result['data'][4]['id']));
 
     // We expect the client to be connected on the port and
     // host of the listening socket.
-    expect(second_client['remote_port'], equals(listening['port']));
-    expect(second_client['remote_host'], equals(listening['host']));
+    expect(secondClient['remotePort'], equals(listening['port']));
+    expect(secondClient['remoteHost'], equals(listening['host']));
     // We expect the third socket (accepted server) to be connected to the
     // same port and host as the listening socket (the listening one).
-    expect(second_server['port'], equals(listening['port']));
-    expect(second_server['host'], equals(listening['host']));
+    expect(secondServer['port'], equals(listening['port']));
+    expect(secondServer['host'], equals(listening['host']));
 
-    expect(second_client['listening'], isFalse);
-    expect(second_server['listening'], isFalse);
+    expect(secondClient['listening'], isFalse);
+    expect(secondServer['listening'], isFalse);
 
-    expect(second_client['socket_type'], equals('TCP'));
-    expect(second_server['socket_type'], equals('TCP'));
+    expect(secondClient['socketType'], equals('TCP'));
+    expect(secondServer['socketType'], equals('TCP'));
 
     // We are using no reserved ports.
-    expect(second_client['port'], greaterThanOrEqualTo(1024));
-    expect(second_server['port'], greaterThanOrEqualTo(1024));
+    expect(secondClient['port'], greaterThanOrEqualTo(1024));
+    expect(secondServer['port'], greaterThanOrEqualTo(1024));
 
     // The client and server "mirror" each other in reads and writes, and the
     // timestamps are in correct order.
-    expect(second_client['last_read'], equals(0));
-    expectTimeBiggerThanZero(second_server['last_read']);
-    expect(second_client['total_read'], equals(0));
-    expect(second_server['total_read'], equals(12));
-    expect(second_client['read_count'], equals(0));
-    expect(second_server['read_count'], greaterThanOrEqualTo(1));
+    expect(secondClient['lastRead'], equals(0));
+    expect(secondServer['lastRead'], greaterThan(0));
+    expect(secondClient['totalRead'], equals(0));
+    expect(secondServer['totalRead'], equals(12));
+    expect(secondClient['readCount'], equals(0));
+    expect(secondServer['readCount'], greaterThanOrEqualTo(1));
 
-    expectTimeBiggerThanZero(second_client['last_write']);
-    expect(second_server['last_write'], equals(0));
-    expect(second_client['total_written'], equals(12));
-    expect(second_server['total_written'], equals(0));
-    expect(second_client['write_count'], greaterThanOrEqualTo(1));
-    expect(second_server['write_count'], equals(0));
+    expect(secondClient['lastWrite'], greaterThan(0));
+    expect(secondServer['lastWrite'], equals(0));
+    expect(secondClient['totalWritten'], equals(12));
+    expect(secondServer['totalWritten'], equals(0));
+    expect(secondClient['writeCount'], greaterThanOrEqualTo(1));
+    expect(secondServer['writeCount'], equals(0));
 
     // Order
     // Stopwatch resolution on windows make us sometimes report the same value.
     if (io.Platform.isWindows) {
-      expect(server['last_read'], greaterThanOrEqualTo(client['last_write']));
+      expect(server['lastRead'], greaterThanOrEqualTo(client['lastWrite']));
     } else {
-      expect(server['last_read'], greaterThan(client['last_write']));
+      expect(server['lastRead'], greaterThan(client['lastWrite']));
     }
   },
 ];

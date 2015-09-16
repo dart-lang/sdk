@@ -675,6 +675,8 @@ class RunServiceTask : public ThreadPool::Task {
   static void ShutdownIsolate(uword parameter) {
     Isolate* I = reinterpret_cast<Isolate*>(parameter);
     ASSERT(ServiceIsolate::IsServiceIsolate(I));
+    ServiceIsolate::SetServiceIsolate(NULL);
+    ServiceIsolate::SetServicePort(ILLEGAL_PORT);
     {
       // Print the error if there is one.  This may execute dart code to
       // print the exception object, so we need to use a StartIsolateScope.
@@ -695,8 +697,6 @@ class RunServiceTask : public ThreadPool::Task {
       SwitchIsolateScope switch_scope(I);
       Dart::ShutdownIsolate();
     }
-    ServiceIsolate::SetServiceIsolate(NULL);
-    ServiceIsolate::SetServicePort(ILLEGAL_PORT);
     if (FLAG_trace_service) {
       OS::Print("vm-service: Shutdown.\n");
     }
@@ -762,8 +762,30 @@ void ServiceIsolate::Run() {
 }
 
 
+void ServiceIsolate::KillServiceIsolate() {
+  {
+    MonitorLocker ml(monitor_);
+    shutting_down_ = true;
+  }
+  Isolate::KillIfExists(isolate_);
+  {
+    MonitorLocker ml(monitor_);
+    while (shutting_down_) {
+      ml.Wait();
+    }
+  }
+}
+
+
 void ServiceIsolate::Shutdown() {
   if (!IsRunning()) {
+    if (isolate_ != NULL) {
+      // TODO(johnmccutchan,turnidge) When it is possible to properly create
+      // the VMService object and set up its shutdown handler in the service
+      // isolate's main() function, this case will no longer be possible and
+      // can be removed.
+      KillServiceIsolate();
+    }
     return;
   }
   {

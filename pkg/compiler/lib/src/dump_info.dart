@@ -82,8 +82,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   }
 
   LibraryInfo visitLibraryElement(LibraryElement element, _) {
-    String libname = element.getLibraryName();
-    libname = libname == "" ? "<unnamed>" : libname;
+    String libname = element.hasLibraryName ? element.libraryName : "<unnamed>";
     int size = compiler.dumpInfoTask.sizeOf(element);
     LibraryInfo info =
       new LibraryInfo(libname, element.canonicalUri, null, size);

@@ -23,6 +23,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, allow_absolute_addresses);
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_osr);
@@ -800,7 +801,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     entry = reinterpret_cast<uword>(&NativeEntry::LinkNativeCall);
 #if defined(USING_SIMULATOR)
     entry = Simulator::RedirectExternalReference(
-        entry, Simulator::kBootstrapNativeCall, function().NumParameters());
+        entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
 #endif
   } else {
     entry = reinterpret_cast<uword>(native_c_function());
@@ -808,7 +809,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       stub_entry = StubCode::CallBootstrapCFunction_entry();
 #if defined(USING_SIMULATOR)
       entry = Simulator::RedirectExternalReference(
-          entry, Simulator::kBootstrapNativeCall, function().NumParameters());
+          entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
 #endif
     } else {
       // In the case of non bootstrap native methods the CallNativeCFunction
@@ -818,14 +819,14 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #if defined(USING_SIMULATOR)
       if (!function().IsNativeAutoSetupScope()) {
         entry = Simulator::RedirectExternalReference(
-            entry, Simulator::kBootstrapNativeCall, function().NumParameters());
+            entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
       }
 #endif
     }
   }
   __ LoadImmediate(R1, argc_tag);
   ExternalLabel label(entry);
-  __ LoadExternalLabel(R5, &label);
+  __ LoadNativeEntry(R5, &label);
   compiler->GenerateCall(token_pos(),
                          *stub_entry,
                          RawPcDescriptors::kOther,
@@ -2598,6 +2599,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       const Register value = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
+      ASSERT(FLAG_allow_absolute_addresses);
       __ LoadImmediate(TMP, flags_address);
       __ LoadImmediate(value, Isolate::kOsrRequest);
       __ str(value, Address(TMP));
@@ -2642,7 +2644,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  if (compiler->is_optimizing()) {
+  if (compiler->is_optimizing() && FLAG_allow_absolute_addresses) {
     __ LoadImmediate(TMP, Isolate::Current()->stack_limit_address());
     __ ldr(TMP, Address(TMP));
   } else {

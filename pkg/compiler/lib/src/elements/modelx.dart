@@ -59,7 +59,7 @@ abstract class ElementX extends Element with ElementCommon {
   final ElementKind kind;
   final Element enclosingElement;
   final int hashCode = ++elementHashCode;
-  Link<MetadataAnnotation> metadata = const Link<MetadataAnnotation>();
+  List<MetadataAnnotation> metadataInternal;
 
   ElementX(this.name, this.kind, this.enclosingElement) {
     assert(isErroneous || implementationLibrary != null);
@@ -73,14 +73,27 @@ abstract class ElementX extends Element with ElementCommon {
     return null;
   }
 
-  void addMetadata(MetadataAnnotationX annotation) {
-    assert(annotation.annotatedElement == null);
-    annotation.annotatedElement = this;
-    addMetadataInternal(annotation);
+  void set metadata(List<MetadataAnnotation> metadata) {
+    assert(metadataInternal == null);
+    for (MetadataAnnotationX annotation in metadata) {
+      assert(annotation.annotatedElement == null);
+      annotation.annotatedElement = this;
+    }
+    metadataInternal = metadata;
   }
 
-  void addMetadataInternal(MetadataAnnotation annotation) {
-    metadata = metadata.prepend(annotation);
+  Iterable<MetadataAnnotation> get metadata {
+    if (isPatch && metadataInternal != null) {
+      if (origin.metadata.isEmpty) {
+        return metadataInternal;
+      } else {
+        return <MetadataAnnotation>[]
+            ..addAll(origin.metadata)
+            ..addAll(metadataInternal);
+      }
+    }
+    return metadataInternal != null
+        ? metadataInternal : const <MetadataAnnotation>[];
   }
 
   bool get isClosure => false;
@@ -280,7 +293,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   }
 
   get asyncMarker => AsyncMarker.SYNC;
-  Link<MetadataAnnotation> get metadata => unsupported();
+  Iterable<MetadataAnnotation> get metadata => unsupported();
   bool get hasNode => false;
   get node => unsupported();
   get hasResolvedAst => false;
@@ -547,11 +560,10 @@ class AmbiguousImportX extends AmbiguousElementX {
     for (Element element in ambiguousElements) {
       var arguments = {'name': element.name};
       listener.reportInfo(element, code, arguments);
-      Link<Import> importers = importer.importers.getImports(element);
       listener.withCurrentElement(importer, () {
-        for (; !importers.isEmpty; importers = importers.tail) {
+        for (ImportElement import in importer.importers.getImports(element)) {
           listener.reportInfo(
-              importers.head, MessageKind.IMPORTED_HERE, arguments);
+              import, MessageKind.IMPORTED_HERE, arguments);
         }
       });
     }
@@ -678,6 +690,19 @@ class CompilationUnitElementX extends ElementX
   @override
   LibraryElementX get library => enclosingElement.declaration;
 
+  void set metadata(List<MetadataAnnotation> metadata) {
+    for (MetadataAnnotationX annotation in metadata) {
+      assert(annotation.annotatedElement == null);
+      annotation.annotatedElement = this;
+    }
+    // TODO(johnniwinther): Remove this work-around when import, export,
+    // part, and part-of declarations are elements.
+    if (metadataInternal == null) {
+      metadataInternal = <MetadataAnnotation>[];
+    }
+    metadataInternal.addAll(metadata);
+  }
+
   void forEachLocalMember(f(Element element)) {
     localMembers.forEach(f);
   }
@@ -736,22 +761,26 @@ class CompilationUnitElementX extends ElementX
   }
 }
 
+/// Map from [Element] to the [ImportElement]s throught which it was imported.
+///
+/// This is used for error reporting and deferred loading.
 class Importers {
-  Map<Element, Link<Import>> importers = new Map<Element, Link<Import>>();
+  Map<Element, List<ImportElement>> importers =
+      new Map<Element, List<ImportElement>>();
 
-  Link<Import> getImports(Element element) {
-    Link<Import> imports = importers[element];
-    return imports != null ? imports : const Link<Import>();
+  /// Returns the the list of [ImportElement]s through which [element] was
+  /// imported.
+  List<ImportElement> getImports(Element element) {
+    List<ImportElement> imports = importers[element];
+    return imports != null ? imports : const <ImportElement>[];
   }
 
-  Import getImport(Element element) => getImports(element).head;
+  /// Returns the first [ImportElement] through which [element] was imported.
+  ImportElement getImport(Element element) => getImports(element).first;
 
-  void registerImport(Element element, Import import) {
-    if (import == null) return;
-
-    importers[element] =
-        importers.putIfAbsent(element, () => const Link<Import>())
-          .prepend(import);
+  /// Register [element] as imported through [import];
+  void registerImport(Element element, ImportElement import) {
+    importers.putIfAbsent(element, () => <ImportElement>[]).add(import);
   }
 }
 
@@ -774,7 +803,7 @@ class ImportScope {
    */
   void addImport(Element enclosingElement,
                  Element element,
-                 Import import,
+                 ImportElement import,
                  DiagnosticListener listener) {
     LibraryElementX library = enclosingElement.library;
     Importers importers = library.importers;
@@ -789,7 +818,7 @@ class ImportScope {
     Element existing = importScope.putIfAbsent(name, () => element);
     importers.registerImport(element, import);
 
-    void registerWarnOnUseElement(Import import,
+    void registerWarnOnUseElement(ImportElement import,
                                   MessageKind messageKind,
                                   Element hidingElement,
                                   Element hiddenElement) {
@@ -810,7 +839,7 @@ class ImportScope {
     }
 
     if (existing != element) {
-      Import existingImport = importers.getImport(existing);
+      ImportElement existingImport = importers.getImport(existing);
       if (existing.library.isPlatformLibrary &&
           !element.library.isPlatformLibrary) {
         // [existing] is implicitly hidden.
@@ -819,7 +848,7 @@ class ImportScope {
       } else if (!existing.library.isPlatformLibrary &&
                  element.library.isPlatformLibrary) {
         // [element] is implicitly hidden.
-        if (import == null) {
+        if (import.isSynthesized) {
           // [element] is imported implicitly (probably through dart:core).
           registerWarnOnUseElement(
               existingImport, MessageKind.HIDDEN_IMPLICIT_IMPORT,
@@ -840,6 +869,94 @@ class ImportScope {
   }
 
   Element operator [](String name) => importScope[name];
+
+  void forEach(f(Element element)) => importScope.values.forEach(f);
+}
+
+abstract class LibraryDependencyElementX extends ElementX {
+  final LibraryDependency node;
+  final Uri uri;
+  LibraryElement libraryDependency;
+
+  LibraryDependencyElementX(CompilationUnitElement enclosingElement,
+                            ElementKind kind,
+                            this.node,
+                            this.uri)
+      : super('', kind, enclosingElement);
+
+  @override
+  List<MetadataAnnotation> get metadata => node.metadata;
+
+  void set metadata(value) {
+    // The metadata is stored on [libraryDependency].
+    throw new SpannableAssertionFailure(
+        this, 'Cannot set metadata on a import/export.');
+  }
+
+  @override
+  Token get position => node.getBeginToken();
+
+  SourceSpan get sourcePosition {
+    return new SourceSpan.fromNode(compilationUnit.script.resourceUri, node);
+  }
+
+  String toString() => '$kind($uri)';
+}
+
+class ImportElementX extends LibraryDependencyElementX
+    implements ImportElement {
+  PrefixElementX prefix;
+
+  ImportElementX(CompilationUnitElement enclosingElement, Import node, Uri uri)
+      : super(enclosingElement, ElementKind.IMPORT, node, uri);
+
+  @override
+  Import get node => super.node;
+
+  @override
+  LibraryElement get importedLibrary => libraryDependency;
+
+  @override
+  accept(ElementVisitor visitor, arg) => visitor.visitImportElement(this, arg);
+
+  @override
+  bool get isDeferred => node.isDeferred;
+}
+
+class SyntheticImportElement extends ImportElementX {
+  SyntheticImportElement(CompilationUnitElement enclosingElement, Uri uri)
+      : super(enclosingElement, null, uri);
+
+  @override
+  Token get position => library.position;
+
+  @override
+  bool get isSynthesized => true;
+
+  @override
+  bool get isDeferred => false;
+
+  @override
+  List<MetadataAnnotation> get metadata => const <MetadataAnnotation>[];
+
+  @override
+  SourceSpan get sourcePosition => library.sourcePosition;
+}
+
+
+class ExportElementX extends LibraryDependencyElementX
+    implements ExportElement {
+
+  ExportElementX(CompilationUnitElement enclosingElement, Export node, Uri uri)
+      : super(enclosingElement, ElementKind.EXPORT, node, uri);
+
+  Export get node => super.node;
+
+  @override
+  LibraryElement get exportedLibrary => libraryDependency;
+
+  @override
+  accept(ElementVisitor visitor, arg) => visitor.visitExportElement(this, arg);
 }
 
 class LibraryElementX
@@ -877,6 +994,9 @@ class LibraryElementX
    */
   Link<Element> slotForExports;
 
+  List<ImportElement> _imports = <ImportElement>[];
+  List<ExportElement> _exports = <ExportElement>[];
+
   final Map<LibraryDependency, LibraryElement> tagMapping =
       new Map<LibraryDependency, LibraryElement>();
 
@@ -892,11 +1012,14 @@ class LibraryElementX
     }
   }
 
-  Link<MetadataAnnotation> get metadata {
-    return (libraryTag == null) ? super.metadata : libraryTag.metadata;
+  Iterable<MetadataAnnotation> get metadata {
+    if (libraryTag != null) {
+      return libraryTag.metadata;
+    }
+    return const <MetadataAnnotation>[];
   }
 
-  set metadata(value) {
+  void set metadata(value) {
     // The metadata is stored on [libraryTag].
     throw new SpannableAssertionFailure(this, 'Cannot set metadata on Library');
   }
@@ -925,13 +1048,17 @@ class LibraryElementX
     return tagsCache;
   }
 
-  /// Record which element an import or export tag resolved to.
-  void recordResolvedTag(LibraryDependency tag, LibraryElement library) {
-    assert(tagMapping[tag] == null);
-    tagMapping[tag] = library;
+  void addImportDeclaration(ImportElement import) {
+    _imports.add(import);
   }
 
-  LibraryElement getLibraryFromTag(LibraryDependency tag) => tagMapping[tag];
+  Iterable<ImportElement> get imports => _imports;
+
+  void addExportDeclaration(ExportElement export) {
+    _exports.add(export);
+  }
+
+  Iterable<ExportElement> get exports => _exports;
 
   /**
    * Adds [element] to the import scope of this library.
@@ -940,7 +1067,9 @@ class LibraryElementX
    * [ErroneousElement] will be put in the imported scope, allowing for
    * detection of ambiguous uses of imported names.
    */
-  void addImport(Element element, Import import, DiagnosticListener listener) {
+  void addImport(Element element,
+                 ImportElement import,
+                 DiagnosticListener listener) {
     importScope.addImport(this, element, import, listener);
   }
 
@@ -966,12 +1095,6 @@ class LibraryElementX
    * library.
    */
   bool get exportsHandled => slotForExports != null;
-
-  Link<Element> get exports {
-    assert(invariant(this, exportsHandled,
-                     message: 'Exports not handled on $this'));
-    return slotForExports;
-  }
 
   /**
    * Sets the export scope of this library. This method can only be called once.
@@ -1024,7 +1147,9 @@ class LibraryElementX
   }
 
   Element findExported(String elementName) {
-    for (Link link = exports; !link.isEmpty; link = link.tail) {
+    assert(invariant(this, exportsHandled,
+                     message: 'Exports not handled on $this'));
+    for (Link link = slotForExports; !link.isEmpty; link = link.tail) {
       Element element = link.head;
       if (element.name == elementName) return element;
     }
@@ -1032,15 +1157,16 @@ class LibraryElementX
   }
 
   void forEachExport(f(Element element)) {
-    exports.forEach((Element e) => f(e));
+    assert(invariant(this, exportsHandled,
+                     message: 'Exports not handled on $this'));
+    slotForExports.forEach((Element e) => f(e));
   }
 
-  Link<Import> getImportsFor(Element element) => importers.getImports(element);
-
-  @override
-  void forEachImport(f(Element element)) {
-    importScope.importScope.values.forEach(f);
+  Iterable<ImportElement> getImportsFor(Element element) {
+    return importers.getImports(element);
   }
+
+  void forEachImport(f(Element element)) => importScope.forEach(f);
 
   void forEachLocalMember(f(Element element)) {
     if (isPatch) {
@@ -1067,15 +1193,21 @@ class LibraryElementX
     });
   }
 
-  bool hasLibraryName() => libraryTag != null;
+  bool get hasLibraryName => libraryTag != null;
 
-  /**
-   * Returns the library name, which is either the name given in the library tag
-   * or the empty string if there is no library tag.
-   */
-  String getLibraryName() {
+  String get libraryName {
     if (libraryTag == null) return '';
     return libraryTag.name.toString();
+  }
+
+  String get libraryOrScriptName {
+    if (libraryTag != null) {
+      return libraryTag.name.toString();
+    } else {
+      // Use the file name as script name.
+      String path = canonicalUri.path;
+      return path.substring(path.lastIndexOf('/') + 1);
+    }
   }
 
   Scope buildScope() => new LibraryScope(this);
@@ -1104,13 +1236,15 @@ class PrefixElementX extends ElementX implements PrefixElement {
 
   final ImportScope importScope = new ImportScope();
 
-  bool get isDeferred => _deferredImport != null;
+  bool get isDeferred => deferredImport != null;
 
   // Only needed for deferred imports.
-  Import _deferredImport;
-  Import get deferredImport => _deferredImport;
+  final ImportElement deferredImport;
 
-  PrefixElementX(String prefix, Element enclosing, this.firstPosition)
+  PrefixElementX(String prefix,
+                 Element enclosing,
+                 this.firstPosition,
+                 this.deferredImport)
       : super(prefix, ElementKind.PREFIX, enclosing);
 
   bool get isTopLevel => false;
@@ -1121,16 +1255,14 @@ class PrefixElementX extends ElementX implements PrefixElement {
 
   Token get position => firstPosition;
 
-  void addImport(Element element, Import import, DiagnosticListener listener) {
+  void addImport(Element element,
+                 ImportElement import,
+                 DiagnosticListener listener) {
     importScope.addImport(this, element, import, listener);
   }
 
   accept(ElementVisitor visitor, arg) {
     return visitor.visitPrefixElement(this, arg);
-  }
-
-  void markAsDeferred(Import deferredImport) {
-    _deferredImport = deferredImport;
   }
 
   String toString() => '$kind($name)';
@@ -1218,7 +1350,7 @@ class VariableList implements DeclarationSite {
   VariableDefinitions definitions;
   DartType type;
   final Modifiers modifiers;
-  Link<MetadataAnnotation> metadata = const Link<MetadataAnnotation>();
+  List<MetadataAnnotation> metadataInternal;
 
   VariableList(Modifiers this.modifiers);
 
@@ -1226,6 +1358,25 @@ class VariableList implements DeclarationSite {
       : this.definitions = node,
         this.modifiers = node.modifiers {
     assert(modifiers != null);
+  }
+
+  Iterable<MetadataAnnotation> get metadata {
+    return metadataInternal != null
+        ? metadataInternal : const <MetadataAnnotation>[];
+  }
+
+  void set metadata(List<MetadataAnnotation> metadata) {
+    if (metadata.isEmpty) {
+      // For a multi declaration like:
+      //
+      //    @foo @bar var a, b, c
+      //
+      // the metadata list is reported through the declaration of `a`, and `b`
+      // and `c` report an empty list of metadata.
+      return;
+    }
+    assert(metadataInternal == null);
+    metadataInternal = metadata;
   }
 
   VariableDefinitions parseNode(Element element, DiagnosticListener listener) {
@@ -1284,10 +1435,14 @@ abstract class VariableElementX extends ElementX
 
   // TODO(johnniwinther): Ensure that the [TreeElements] for this variable hold
   // the mappings for all its metadata.
-  Link<MetadataAnnotation> get metadata => variables.metadata;
+  Iterable<MetadataAnnotation> get metadata => variables.metadata;
 
-  void addMetadataInternal(MetadataAnnotation annotation) {
-    variables.metadata = variables.metadata.prepend(annotation);
+  void set metadata(List<MetadataAnnotation> metadata) {
+    for (MetadataAnnotationX annotation in metadata) {
+      assert(annotation.annotatedElement == null);
+      annotation.annotatedElement = this;
+    }
+    variables.metadata = metadata;
   }
 
   // A variable cannot be patched therefore defines itself.
@@ -2097,7 +2252,7 @@ class ConstructorBodyElementX extends BaseFunctionElementX
 
   FunctionExpression get node => constructor.node;
 
-  Link<MetadataAnnotation> get metadata => constructor.metadata;
+  List<MetadataAnnotation> get metadata => constructor.metadata;
 
   bool get isInstanceMember => true;
 
@@ -2363,6 +2518,7 @@ abstract class BaseClassElementX extends ElementX
   void ensureResolved(Compiler compiler) {
     if (resolutionState == STATE_NOT_STARTED) {
       compiler.resolver.resolveClass(this);
+      compiler.world.registerClass(this);
     }
   }
 
@@ -2617,7 +2773,7 @@ class MixinApplicationElementX extends BaseClassElementX
   final Node node;
   final Modifiers modifiers;
 
-  Link<FunctionElement> constructors = new Link<FunctionElement>();
+  Link<ConstructorElement> constructors = new Link<ConstructorElement>();
 
   InterfaceType mixinType;
 

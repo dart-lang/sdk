@@ -20,6 +20,8 @@ abstract class ElementVisitor<R, A> {
   R visitAmbiguousElement(AmbiguousElement e, A arg) => null;
   R visitCompilationUnitElement(CompilationUnitElement e, A arg) => null;
   R visitLibraryElement(LibraryElement e, A arg) => null;
+  R visitImportElement(ImportElement e, A arg) => null;
+  R visitExportElement(ExportElement e, A arg) => null;
   R visitPrefixElement(PrefixElement e, A arg) => null;
   R visitTypedefElement(TypedefElement e, A arg) => null;
   R visitVariableElement(VariableElement e, A arg) => null;
@@ -73,6 +75,16 @@ abstract class BaseElementVisitor<R, A> extends ElementVisitor<R, A> {
   @override
   R visitLibraryElement(LibraryElement e, A arg) {
     return visitScopeContainerElement(e, arg);
+  }
+
+  @override
+  R visitImportElement(ImportElement e, A arg) {
+    return visitElement(e, arg);
+  }
+
+  @override
+  R visitExportElement(ExportElement e, A arg) {
+    return visitElement(e, arg);
   }
 
   @override

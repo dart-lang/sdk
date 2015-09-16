@@ -45,7 +45,14 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
       }''',
   'identical': 'bool identical(Object a, Object b) { return true; }',
   'int': 'abstract class int extends num { }',
-  'Iterable': 'abstract class Iterable {}',
+  'Iterable': '''
+      abstract class Iterable<E> {
+          Iterator<E> get iterator => null;
+      }''',
+  'Iterator': '''
+      abstract class Iterator<E> {
+          E get current => null;
+      }''',
   'LinkedHashMap': r'''
       class LinkedHashMap {
         factory LinkedHashMap._empty() => null;
@@ -54,7 +61,7 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
         static _makeLiteral(elements) => null;
       }''',
   'List': r'''
-      class List<E> {
+      class List<E> extends Iterable<E> {
         var length;
         List([length]);
         List.filled(length, element);
@@ -286,6 +293,7 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
             E removeAt(index) => this[0];
             E elementAt(index) => this[0];
             E singleWhere(f) => this[0];
+            Iterator<E> get iterator => null; 
           }''',
   'JSBool': 'class JSBool extends Interceptor implements bool {}',
   'JSDouble': 'class JSDouble extends JSNumber implements double {}',
@@ -384,7 +392,7 @@ const Map<String, String> DEFAULT_ISOLATE_HELPER_LIBRARY =
 
 const Map<String, String> DEFAULT_ASYNC_LIBRARY = const <String, String>{
   'DeferredLibrary': 'class DeferredLibrary {}',
-  'Future': 
+  'Future':
       '''
       class Future<T> {
         Future.value([value]);
@@ -434,5 +442,5 @@ const Map<String, String> DEFAULT_LOOKUP_MAP_LIBRARY = const <String, String>{
         : _entries = const [], _nestedMaps = const [];
     V operator[](K k) => null;
   }''',
-  '_version': 'const _version = "0.0.1";',
+  '_version': 'const _version = "0.0.1+1";',
 };

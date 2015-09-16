@@ -74,9 +74,11 @@ ArgParser _argParser;
 ArgParser get argParser {
   _argParser = new ArgParser();
 
-  _argParser.addOption(INPUT_CMDLINE_OPTION, abbr: 'i', help: '<filePath>\n'
-      'The input file specifying how this client should interact with the server.\n'
-      'If the input file name is "stdin", then the instructions are read from standard input.');
+  _argParser.addOption(INPUT_CMDLINE_OPTION,
+      abbr: 'i',
+      help: '<filePath>\n'
+          'The input file specifying how this client should interact with the server.\n'
+          'If the input file name is "stdin", then the instructions are read from standard input.');
   _argParser.addOption(MAP_OPTION,
       abbr: 'm',
       allowMultiple: true,
@@ -87,9 +89,11 @@ ArgParser get argParser {
           'to the target source directory <newSrcPath> used during performance testing.\n'
           'Multiple mappings can be specified.\n'
           'WARNING: The contents of the target directory will be modified');
-  _argParser.addOption(TMP_SRC_DIR_OPTION, abbr: 't', help: '<dirPath>\n'
-      'The temporary directory containing source used during performance measurement.\n'
-      'WARNING: The contents of the target directory will be modified');
+  _argParser.addOption(TMP_SRC_DIR_OPTION,
+      abbr: 't',
+      help: '<dirPath>\n'
+          'The temporary directory containing source used during performance measurement.\n'
+          'WARNING: The contents of the target directory will be modified');
   _argParser.addFlag(NEW_TASK_MODEL_OPTION,
       help: "enable the use of the new task model",
       defaultsTo: false,
@@ -119,7 +123,9 @@ Stream<Operation> openInput(PerfArgs args) {
     inputRaw = new File(args.inputPath).openRead();
   }
   for (PathMapEntry entry in args.srcPathMap.entries) {
-    logger.log(Level.INFO, 'mapping source path\n'
+    logger.log(
+        Level.INFO,
+        'mapping source path\n'
         '  from ${entry.oldSrcPrefix}\n  to   ${entry.newSrcPrefix}');
   }
   logger.log(Level.INFO, 'tmpSrcDir: ${args.tmpSrcDirPath}');
@@ -224,7 +230,6 @@ String _withTrailingSeparator(String dirPath) {
  * The performance measurement arguments specified on the command line.
  */
 class PerfArgs {
-
   /**
    * The file path of the instrumentation or log file
    * used to drive performance measurement,

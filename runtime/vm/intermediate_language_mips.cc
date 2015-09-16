@@ -23,6 +23,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, allow_absolute_addresses);
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_osr);
@@ -998,7 +999,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     entry = reinterpret_cast<uword>(&NativeEntry::LinkNativeCall);
 #if defined(USING_SIMULATOR)
     entry = Simulator::RedirectExternalReference(
-        entry, Simulator::kBootstrapNativeCall, function().NumParameters());
+      entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
 #endif
   } else {
     entry = reinterpret_cast<uword>(native_c_function());
@@ -1006,7 +1007,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       stub_entry = StubCode::CallBootstrapCFunction_entry();
 #if defined(USING_SIMULATOR)
       entry = Simulator::RedirectExternalReference(
-          entry, Simulator::kBootstrapNativeCall, function().NumParameters());
+          entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
 #endif
     } else {
       // In the case of non bootstrap native methods the CallNativeCFunction
@@ -1016,14 +1017,14 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #if defined(USING_SIMULATOR)
       if (!function().IsNativeAutoSetupScope()) {
         entry = Simulator::RedirectExternalReference(
-            entry, Simulator::kBootstrapNativeCall, function().NumParameters());
+            entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
       }
 #endif
     }
   }
   __ LoadImmediate(A1, argc_tag);
   ExternalLabel label(entry);
-  __ LoadExternalLabel(T5, &label, kNotPatchable);
+  __ LoadNativeEntry(T5, &label, kNotPatchable);
   compiler->GenerateCall(token_pos(),
                          *stub_entry,
                          RawPcDescriptors::kOther,
@@ -1737,7 +1738,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ LoadImmediate(TMP, kNullCid);
           __ subu(CMPRES1, value_cid_reg, TMP);
         } else {
-          __ LoadImmediate(TMP, reinterpret_cast<int32_t>(Object::null()));
+          __ LoadObject(TMP, Object::null_object());
           __ subu(CMPRES1, value_reg, TMP);
         }
       }
@@ -2204,7 +2205,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // T7: null.
   if (num_elements > 0) {
     const intptr_t array_size = instance_size - sizeof(RawArray);
-    __ LoadImmediate(T7, reinterpret_cast<int32_t>(Object::null()));
+    __ LoadObject(T7, Object::null_object());
     __ AddImmediate(T2, V0, sizeof(RawArray) - kHeapObjectTag);
     if (array_size < (kInlineArraySize * kWordSize)) {
       intptr_t current_offset = 0;
@@ -2715,6 +2716,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       Register value = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
+      ASSERT(FLAG_allow_absolute_addresses);
       __ LoadImmediate(TMP, flags_address);
       __ LoadImmediate(value, Isolate::kOsrRequest);
       __ sw(value, Address(TMP));
@@ -2760,7 +2762,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  if (compiler->is_optimizing()) {
+  if (compiler->is_optimizing() && FLAG_allow_absolute_addresses) {
     __ LoadImmediate(TMP, Isolate::Current()->stack_limit_address());
     __ lw(CMPRES1, Address(TMP));
   } else {

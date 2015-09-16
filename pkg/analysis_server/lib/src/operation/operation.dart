@@ -9,6 +9,21 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
+ * [MergeableOperation] can decide whether other operation can be merged into
+ * it, so that it should not be added as a separate operation.
+ */
+abstract class MergeableOperation extends ServerOperation {
+  MergeableOperation(AnalysisContext context) : super(context);
+
+  /**
+   * Attempt to merge the given [other] operation into this one, return `true`
+   * in case of success, so that [other] should not be added as a separate
+   * operation.
+   */
+  bool merge(ServerOperation other);
+}
+
+/**
  * The class [ServerOperation] defines the behavior of objects used to perform
  * operations on a [AnalysisServer].
  */

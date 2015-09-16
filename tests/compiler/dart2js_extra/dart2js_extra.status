@@ -75,15 +75,13 @@ async_stacktrace_test/asyncStar: Crash # (foo()async*{try {tr...  cannot handle 
 async_stacktrace_test/none: RuntimeError # $async$temp1.Tracer$ is not a function
 closure_capture5_test: Crash # (i=0): For-loop variable captured in loop header
 deferred/deferred_class_test: RuntimeError # Z.loadLibrary is not a function
-deferred/deferred_constant2_test: Crash # (lib.C1): deferred access is not implemented
-deferred/deferred_constant3_test: Crash # (lib.C1): deferred access is not implemented
+deferred/deferred_constant2_test: RuntimeError # TypeError: U.loadLibrary is not a function
+deferred/deferred_constant3_test: RuntimeError # TypeError: Y.loadLibrary is not a function
 deferred/deferred_constant4_test: RuntimeError # B.loadLibrary is not a function
 deferred/deferred_function_test: Crash # (lib.foo): deferred access is not implemented
-deferred/deferred_mirrors1_test: Crash # (lazy.foo()): deferred access is not implemented
+deferred/deferred_mirrors1_test: RuntimeError # TypeError: U.loadLibrary is not a function
 deferred/deferred_overlapping_test: RuntimeError # E.loadLibrary is not a function
-deferred_fail_and_retry_test: Crash # (lib.foo()): deferred access is not implemented
-deferred_fail_and_retry_worker_test: Crash # (lib.foo()): deferred access is not implemented
-deferred_split_test: Crash # (b.createA()): deferred access is not implemented
+deferred_split_test: RuntimeError # TypeError: Z.loadLibrary is not a function
 lookup_map/live_entry_through_mirrors_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 mirror_printer_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 mirror_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions

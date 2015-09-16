@@ -152,10 +152,13 @@ class _ClassMemberValidator {
   Future<RefactoringStatus> validate() async {
     // check if there is a member with "newName" in the same ClassElement
     for (Element newNameMember in getChildren(elementClass, name)) {
-      result.addError(format(
-          "Class '{0}' already declares {1} with name '{2}'.",
-          elementClass.displayName, getElementKindName(newNameMember),
-          name), newLocation_fromElement(newNameMember));
+      result.addError(
+          format(
+              "Class '{0}' already declares {1} with name '{2}'.",
+              elementClass.displayName,
+              getElementKindName(newNameMember),
+              name),
+          newLocation_fromElement(newNameMember));
     }
     // do chained computations
     Set<ClassElement> superClasses = getSuperClasses(elementClass);
@@ -170,17 +173,23 @@ class _ClassMemberValidator {
       Element nameClass = nameElement.enclosingElement;
       // renamed Element shadows member of superclass
       if (superClasses.contains(nameClass)) {
-        result.addError(format(isRename
+        result.addError(
+            format(
+                isRename
                     ? "Renamed {0} will shadow {1} '{2}'."
                     : "Created {0} will shadow {1} '{2}'.",
-                elementKind.displayName, getElementKindName(nameElement),
+                elementKind.displayName,
+                getElementKindName(nameElement),
                 getElementQualifiedName(nameElement)),
             newLocation_fromElement(nameElement));
       }
       // renamed Element is shadowed by member of subclass
       if (isRename && subClasses.contains(nameClass)) {
-        result.addError(format("Renamed {0} will be shadowed by {1} '{2}'.",
-                elementKind.displayName, getElementKindName(nameElement),
+        result.addError(
+            format(
+                "Renamed {0} will be shadowed by {1} '{2}'.",
+                elementKind.displayName,
+                getElementKindName(nameElement),
                 getElementQualifiedName(nameElement)),
             newLocation_fromElement(nameElement));
       }
@@ -193,10 +202,13 @@ class _ClassMemberValidator {
             subClasses.contains(enclosingClass)) {
           for (SearchMatch reference in references) {
             if (isReferenceInLocalRange(localElement, reference)) {
-              result.addError(format(
-                  "Usage of renamed {0} will be shadowed by {1} '{2}'.",
-                  elementKind.displayName, getElementKindName(localElement),
-                  localElement.displayName), newLocation_fromMatch(reference));
+              result.addError(
+                  format(
+                      "Usage of renamed {0} will be shadowed by {1} '{2}'.",
+                      elementKind.displayName,
+                      getElementKindName(localElement),
+                      localElement.displayName),
+                  newLocation_fromMatch(reference));
             }
           }
         }

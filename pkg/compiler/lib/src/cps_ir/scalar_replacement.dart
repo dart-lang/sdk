@@ -40,16 +40,18 @@ class ScalarReplacer extends Pass {
   String get passName => 'Scalar replacement';
 
   final dart2js.InternalErrorFunction _internalError;
+  final World _classWorld;
 
   ScalarReplacer(dart2js.Compiler compiler)
-      : _internalError = compiler.internalError;
+      : _internalError = compiler.internalError,
+        _classWorld = compiler.world;
 
   @override
   void rewrite(FunctionDefinition root) {
     // Set all parent pointers.
     new ParentVisitor().visit(root);
     ScalarReplacementVisitor analyzer =
-        new ScalarReplacementVisitor(_internalError);
+        new ScalarReplacementVisitor(_internalError, _classWorld);
     analyzer.analyze(root);
     analyzer.process();
   }
@@ -62,13 +64,14 @@ class ScalarReplacer extends Pass {
 class ScalarReplacementVisitor extends RecursiveVisitor {
 
   final dart2js.InternalErrorFunction internalError;
+  final World classWorld;
   ScalarReplacementRemovalVisitor removalVisitor;
 
   Primitive _current = null;
   Set<Primitive> _allocations = new Set<Primitive>();
   Queue<Primitive> _queue = new Queue<Primitive>();
 
-  ScalarReplacementVisitor(this.internalError) {
+  ScalarReplacementVisitor(this.internalError, this.classWorld) {
     removalVisitor = new ScalarReplacementRemovalVisitor(this);
   }
 
@@ -130,6 +133,7 @@ class ScalarReplacementVisitor extends RecursiveVisitor {
     InteriorNode insertionPoint = allocation.parent;  // LetPrim
     for (FieldElement field in writes) {
       MutableVariable variable = new MutableVariable(field);
+      variable.type = new TypeMask.nonNullEmpty();
       cells[field] = variable;
       Primitive initialValue = fieldInitialValues[field];
       if (initialValue == null) {
@@ -153,6 +157,7 @@ class ScalarReplacementVisitor extends RecursiveVisitor {
         MutableVariable variable = cells[getField.field];
         if (variable != null) {
           GetMutable getter = new GetMutable(variable);
+          getter.type = getField.type;
           getter.variable.parent = getter;
           getter.substituteFor(getField);
           replacePrimitive(getField, getter);
@@ -166,6 +171,7 @@ class ScalarReplacementVisitor extends RecursiveVisitor {
         SetField setField = use;
         MutableVariable variable = cells[setField.field];
         Primitive value = setField.value.definition;
+        variable.type = variable.type.union(value.type, classWorld);
         SetMutable setter = new SetMutable(variable, value);
         setter.variable.parent = setter;
         setter.value.parent = setter;

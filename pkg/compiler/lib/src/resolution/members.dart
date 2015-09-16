@@ -1846,7 +1846,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     registry.registerThrowNoSuchMethod();
     ErroneousElement error = reportAndCreateErroneousElement(
         node, name.text, MessageKind.PRIVATE_ACCESS,
-        {'libraryName': member.library.getLibraryOrScriptName(),
+        {'libraryName': member.library.libraryOrScriptName,
          'name': name});
     // TODO(johnniwinther): Add an [AccessSemantics] for unresolved static
     // member access.
@@ -1862,7 +1862,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     registry.registerThrowNoSuchMethod();
     ErroneousElement error = reportAndCreateErroneousElement(
         node, name.text, MessageKind.PRIVATE_ACCESS,
-        {'libraryName': member.library.getLibraryOrScriptName(),
+        {'libraryName': member.library.libraryOrScriptName,
          'name': name});
     // TODO(johnniwinther): Add an [AccessSemantics] for unresolved static
     // member access.
@@ -1953,8 +1953,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else {
       semantics = new StaticAccess.typeParameterTypeLiteral(element);
     }
-    registry.registerClassUsingVariableExpression(element.enclosingClass);
-    registry.registerTypeVariableExpression();
+    registry.registerTypeVariableExpression(element);
 
     registry.useElement(node, element);
     registry.registerTypeLiteral(node, element.type);
@@ -2005,6 +2004,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         error = reportAndCreateErroneousElement(
             node.selector, name.text,
             MessageKind.ASSIGNING_TYPE, const {});
+      }
+
+      if (node.isComplex) {
+        // We read the type variable before trying write to it.
+        registry.registerTypeVariableExpression(element);
       }
 
       // TODO(23998): Remove this when all information goes through
@@ -3422,6 +3426,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           ? new PrefixStructure(semantics, operator)
           : new PostfixStructure(semantics, operator);
       registry.registerSendStructure(node, sendStructure);
+      registry.registerIncDecOperation();
     } else {
       Node rhs = node.arguments.head;
       visitExpression(rhs);
@@ -3783,7 +3788,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       }
     }
     if (node.metadata != null) {
-      variables.metadata =
+      variables.metadataInternal =
           compiler.resolver.resolveMetadata(enclosingElement, node);
     }
     visitor.visit(node.definitions);
@@ -3892,6 +3897,21 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
     if (node.isConst) {
       analyzeConstantDeferred(node);
+
+      // TODO(johnniwinther): Compute this in the [ConstructorResolver].
+      // Check that the constructor is not deferred.
+      Send send = node.send.selector.asSend();
+      if (send != null) {
+        // Of the form `const a.b(...)`.
+        if (compiler.deferredLoadTask.deferredPrefixElement(
+                send, registry.mapping) != null) {
+          // `a` is a deferred prefix.
+          isValidAsConstant = false;
+          // TODO(johnniwinther): Create an [ErroneousConstantExpression] here
+          // when constants are only created during resolution.
+        }
+      }
+
       if (isValidAsConstant &&
           constructor.isConst &&
           argumentsResult.isValidAsConstant) {

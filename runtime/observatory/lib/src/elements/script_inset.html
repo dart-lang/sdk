@@ -39,11 +39,7 @@
       .currentCol {
         background-color: #6cf;
       }
-      .breakAnnotation {
-        background-color: #e66;
-        color: white;
-      }
-      .hitsNone, .hitsNotExecuted, .hitsExecuted {
+      .hitsCurrent, .hitsNone, .hitsNotExecuted, .hitsExecuted {
         display: table-cell;
         vertical-align: top;
         font: 400 14px consolas, courier, monospace;
@@ -51,6 +47,10 @@
         margin-right: 5px;
         text-align: right;
         color: #a8a8a8;
+      }
+      .hitsCurrent {
+        background-color: #6cf;
+        color: black;
       }
       .hitsNotExecuted {
         background-color: #faa;
@@ -84,6 +84,14 @@
         background-color: #cac;
       }
       .resolvedBreakpoint {
+        color: white;
+        background-color: #e66;
+      }
+      .unresolvedBreakAnnotation {
+        color: white;
+        background-color: #cac;
+      }
+      .resolvedBreakAnnotation {
         color: white;
         background-color: #e66;
       }

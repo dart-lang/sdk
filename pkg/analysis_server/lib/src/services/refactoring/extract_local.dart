@@ -150,9 +150,11 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         String declStatement = prefix + indent + declarationSource + eol;
         String exprStatement = prefix + indent + 'return ';
         Expression expr = target.expression;
-        doSourceChange_addElementEdit(change, unitElement, new SourceEdit(
-            target.offset, expr.offset - target.offset,
-            '{' + eol + declStatement + exprStatement));
+        doSourceChange_addElementEdit(
+            change,
+            unitElement,
+            new SourceEdit(target.offset, expr.offset - target.offset,
+                '{' + eol + declStatement + exprStatement));
         doSourceChange_addElementEdit(change, unitElement,
             new SourceEdit(expr.end, 0, ';' + eol + prefix + '}'));
       }
@@ -378,7 +380,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
           stringLiteralPart, excludedVariableNames));
     } else if (singleExpression != null) {
       names.addAll(getVariableNameSuggestionsForExpression(
-          singleExpression.staticType, singleExpression,
+          singleExpression.staticType,
+          singleExpression,
           excludedVariableNames));
     }
   }

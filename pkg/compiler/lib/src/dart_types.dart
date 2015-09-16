@@ -12,7 +12,8 @@ import 'compiler.dart' show
 import 'diagnostics/invariant.dart' show
     invariant;
 import 'diagnostics/spannable.dart' show
-    CURRENT_ELEMENT_SPANNABLE;
+    CURRENT_ELEMENT_SPANNABLE,
+    NO_LOCATION_SPANNABLE;
 import 'elements/modelx.dart' show
     LibraryElementX,
     TypeDeclarationElementX,
@@ -1662,6 +1663,88 @@ class Types implements DartTypes {
       return computeLeastUpperBoundInterfaces(a, b);
     }
     return const DynamicType();
+  }
+
+  /// Computes the unaliased type of the first non type variable bound of
+  /// [type].
+  ///
+  /// This is used to normalize malformed types, type variables and typedef
+  /// before use in typechecking.
+  ///
+  /// Malformed types are normalized to `dynamic`. Typedefs are normalized to
+  /// their alias, or `dynamic` if cyclic. Type variables are normalized to the
+  /// normalized type of their bound, or `Object` if cyclic.
+  ///
+  /// For instance for these types:
+  ///
+  ///     class Foo<T extends Bar, S extends T, U extends Baz> {}
+  ///     class Bar<X extends Y, Y extends X> {}
+  ///     typedef Baz();
+  ///
+  /// the unaliased bounds types are:
+  ///
+  ///     unaliasedBound(Foo) = Foo
+  ///     unaliasedBound(Bar) = Bar
+  ///     unaliasedBound(Unresolved) = `dynamic`
+  ///     unaliasedBound(Baz) = ()->dynamic
+  ///     unaliasedBound(T) = Bar
+  ///     unaliasedBound(S) = unaliasedBound(T) = Bar
+  ///     unaliasedBound(U) = unaliasedBound(Baz) = ()->dynamic
+  ///     unaliasedBound(X) = unaliasedBound(Y) = `Object`
+  ///
+  static DartType computeUnaliasedBound(Compiler compiler, DartType type) {
+    DartType originalType = type;
+    while (type.isTypeVariable) {
+      TypeVariableType variable = type;
+      type = variable.element.bound;
+      if (type == originalType) {
+        type = compiler.objectClass.rawType;
+      }
+    }
+    if (type.isMalformed) {
+      return const DynamicType();
+    }
+    return type.unalias(compiler);
+  }
+
+  /// Computes the interface type of [type], which is the type that defines
+  /// the property of [type].
+  ///
+  /// For an interface type it is the type itself, for a type variable it is the
+  /// interface type of the bound, for function types and typedefs it is the
+  /// `Function` type. For other types, like `dynamic`, `void` and malformed
+  /// types, there is no interface type and `null` is returned.
+  ///
+  /// For instance for these types:
+  ///
+  ///     class Foo<T extends Bar, S extends T, U extends Baz> {}
+  ///     class Bar {}
+  ///     typedef Baz();
+  ///
+  /// the interface types are:
+  ///
+  ///     interfaceType(Foo) = Foo
+  ///     interfaceType(Bar) = Bar
+  ///     interfaceType(Baz) = interfaceType(()->dynamic) = Function
+  ///     interfaceType(T) = interfaceType(Bar) = Bar
+  ///     interfaceType(S) = interfaceType(T) = interfaceType(Bar) = Bar
+  ///     interfaceType(U) = interfaceType(Baz)
+  ///                      = intefaceType(()->dynamic) = Function
+  ///
+  /// When typechecking `o.foo` the interface type of the static type of `o` is
+  /// used to lookup the existence and type of `foo`.
+  ///
+  static InterfaceType computeInterfaceType(Compiler compiler, DartType type) {
+    type = computeUnaliasedBound(compiler, type);
+    if (type.treatAsDynamic) {
+      return null;
+    }
+    if (type.isFunctionType) {
+      type = compiler.functionClass.rawType;
+    }
+    assert(invariant(NO_LOCATION_SPANNABLE, type.isInterfaceType,
+        message: "unexpected type kind ${type.kind}."));
+    return type;
   }
 }
 

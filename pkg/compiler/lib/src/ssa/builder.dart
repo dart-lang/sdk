@@ -1097,6 +1097,7 @@ class SsaBuilder extends ast.Visitor
       this.work = work,
       this.rti = backend.rti,
       this.elements = work.resolutionTree {
+    graph.element = work.element;
     localsHandler = new LocalsHandler(this, work.element, null);
     sourceElementStack.add(work.element);
     sourceInformationBuilder =
@@ -3338,9 +3339,9 @@ class SsaBuilder extends ast.Visitor
                                              ast.Node location) {
     if (prefixElement == null) return;
     String loadId =
-        compiler.deferredLoadTask.importDeferName[prefixElement.deferredImport];
+        compiler.deferredLoadTask.getImportDeferName(location, prefixElement);
     HInstruction loadIdConstant = addConstantString(loadId);
-    String uri = prefixElement.deferredImport.uri.dartString.slowToString();
+    String uri = prefixElement.deferredImport.uri.toString();
     HInstruction uriConstant = addConstantString(uri);
     Element helper = backend.getCheckDeferredIsLoaded();
     pushInvokeStatic(location, helper, [loadIdConstant, uriConstant]);
@@ -4413,8 +4414,8 @@ class SsaBuilder extends ast.Visitor
     invariant(node, deferredLoader.isDeferredLoaderGetter);
     Element loadFunction = compiler.loadLibraryFunction;
     PrefixElement prefixElement = deferredLoader.enclosingElement;
-    String loadId = compiler.deferredLoadTask
-        .importDeferName[prefixElement.deferredImport];
+    String loadId =
+        compiler.deferredLoadTask.getImportDeferName(node, prefixElement);
     var inputs = [graph.addConstantString(
         new ast.DartString.literal(loadId), compiler)];
     push(new HInvokeStatic(loadFunction, inputs, backend.nonNullType,

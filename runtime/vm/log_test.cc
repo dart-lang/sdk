@@ -47,13 +47,12 @@ class LogTestHelper : public AllStatic {
 
 TEST_CASE(Log_Macro) {
   test_output_ = NULL;
-  Isolate* isolate = Isolate::Current();
-  Log* log = isolate->Log();
+  Log* log = Log::Current();
   LogTestHelper::SetPrinter(log, TestPrinter);
 
-  ISL_Print("Hello %s", "World");
+  THR_Print("Hello %s", "World");
   EXPECT_STREQ("Hello World", test_output_);
-  ISL_Print("SingleArgument");
+  THR_Print("SingleArgument");
   EXPECT_STREQ("SingleArgument", test_output_);
 }
 
@@ -72,15 +71,13 @@ TEST_CASE(Log_Block) {
   test_output_ = NULL;
   Log* log = new Log(TestPrinter);
 
-  Isolate* isolate = Isolate::Current();
-
   EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
   {
-    LogBlock ba(isolate, log);
+    LogBlock ba(thread, log);
     log->Print("APPLE");
     EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
     {
-      LogBlock ba(isolate, log);
+      LogBlock ba(thread, log);
       log->Print("BANANA");
       EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
     }

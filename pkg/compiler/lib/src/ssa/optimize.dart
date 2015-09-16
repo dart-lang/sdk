@@ -268,9 +268,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
       ClassWorld classWorld = compiler.world;
       TypeMask resultType = backend.positiveIntType;
       // If we already have computed a more specific type, keep that type.
-      if (actualType.satisfies(backend.jsUInt31Class, classWorld)) {
+      if (HInstruction.isInstanceOf(
+              actualType, backend.jsUInt31Class, classWorld)) {
         resultType = backend.uint31Type;
-      } else if (actualType.satisfies(backend.jsUInt32Class, classWorld)) {
+      } else if (HInstruction.isInstanceOf(
+              actualType, backend.jsUInt32Class, classWorld)) {
         resultType = backend.uint32Type;
       }
       HFieldGet result = new HFieldGet(
@@ -1029,8 +1031,13 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     if (node.isInterceptedCall) return;
     if (element != backend.jsArrayRemoveLast) return;
     if (boundsChecked.contains(node)) return;
-    insertBoundsCheck(
+    // `0` is the index we want to check, but we want to report `-1`, as if we
+    // executed `a[a.length-1]`
+    HBoundsCheck check = insertBoundsCheck(
         node, node.receiver, graph.addConstantInt(0, backend.compiler));
+    HInstruction minusOne = graph.addConstantInt(-1, backend.compiler);
+    check.inputs.add(minusOne);
+    minusOne.usedBy.add(check);
   }
 }
 
@@ -1954,15 +1961,55 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
 
   void visitForeignNew(HForeignNew instruction) {
     memorySet.registerAllocation(instruction);
-    int argumentIndex = 0;
-    instruction.element.forEachInstanceField((_, Element member) {
-      if (compiler.elementHasCompileTimeError(member)) return;
-      memorySet.registerFieldValue(
-          member, instruction, instruction.inputs[argumentIndex++]);
-    }, includeSuperAndInjectedMembers: true);
+    if (shouldTrackInitialValues(instruction)) {
+      int argumentIndex = 0;
+      instruction.element.forEachInstanceField((_, Element member) {
+        if (compiler.elementHasCompileTimeError(member)) return;
+        memorySet.registerFieldValue(
+            member, instruction, instruction.inputs[argumentIndex++]);
+      }, includeSuperAndInjectedMembers: true);
+    }
     // In case this instruction has as input non-escaping objects, we
     // need to mark these objects as escaping.
     memorySet.killAffectedBy(instruction);
+  }
+
+  bool shouldTrackInitialValues(HForeignNew instruction) {
+    // Don't track initial field values of an allocation that are
+    // unprofitable. We search the chain of single uses in allocations for a
+    // limited depth.
+
+    const MAX_HEAP_DEPTH = 5;
+
+    bool interestingUse(HInstruction instruction, int heapDepth) {
+      // Heuristic: if the allocation is too deep in heap it is unlikely we will
+      // recover a field by load-elimination.
+      // TODO(sra): We can measure this depth by looking at load chains.
+      if (heapDepth == MAX_HEAP_DEPTH) return false;
+      // There are multiple uses so do the full store analysis.
+      if (instruction.usedBy.length != 1) return true;
+      HInstruction use = instruction.usedBy.single;
+      // When the only use is an allocation, the allocation becomes the only
+      // heap alias for the current instruction.
+      if (use is HForeignNew) return interestingUse(use, heapDepth + 1);
+      if (use is HLiteralList) return interestingUse(use, heapDepth + 1);
+      if (use is HInvokeStatic) {
+        // Assume the argument escapes. All we do with our initial allocation is
+        // have it escape or store it into an object that escapes.
+        return false;
+        // TODO(sra): Handle more functions. `setRuntimeTypeInfo` does not
+        // actually kill it's input, but we don't make use of that elsewhere so
+        // there is not point in checking here.
+      }
+      if (use is HPhi) {
+        // The initial allocation (it's only alias) gets merged out of the model
+        // of the heap before load.
+        return false;
+      }
+      return true;
+    }
+
+    return interestingUse(instruction, 0);
   }
 
   void visitInstruction(HInstruction instruction) {

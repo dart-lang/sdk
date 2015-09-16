@@ -77,7 +77,8 @@ class CodeGenerator {
     try {
       _state = new _CodeGeneratorState();
       callback();
-      var text = _state.buffer.toString().replaceAll(trailingSpacesInLineRegExp, '');
+      var text =
+          _state.buffer.toString().replaceAll(trailingSpacesInLineRegExp, '');
       if (!removeTrailingNewLine) {
         return text;
       } else {
@@ -101,7 +102,7 @@ class CodeGenerator {
     bool javadocStyle = codeGeneratorSettings.languageName == 'java';
     indentBy(codeGeneratorSettings.docCommentLineLeader, () {
       write(nodesToText(docs, width - _state.indent.length, javadocStyle,
-        removeTrailingNewLine: removeTrailingNewLine));
+          removeTrailingNewLine: removeTrailingNewLine));
     });
     writeln(codeGeneratorSettings.docCommentEndMarker);
   }
@@ -110,8 +111,8 @@ class CodeGenerator {
    * Execute [callback], indenting any code it outputs.
    */
   void indent(void callback()) {
-    indentSpecial(codeGeneratorSettings.indent, codeGeneratorSettings.indent,
-      callback);
+    indentSpecial(
+        codeGeneratorSettings.indent, codeGeneratorSettings.indent, callback);
   }
 
   /**
@@ -250,10 +251,14 @@ class CodeGeneratorSettings {
    */
   String indent;
 
-  CodeGeneratorSettings({this.languageName: 'java',
-      this.lineCommentLineLeader: '// ', this.docCommentStartMarker: '/**',
-      this.docCommentLineLeader: ' * ', this.docCommentEndMarker: ' */',
-      this.commentLineLength: 99, this.indent: '  '});
+  CodeGeneratorSettings(
+      {this.languageName: 'java',
+      this.lineCommentLineLeader: '// ',
+      this.docCommentStartMarker: '/**',
+      this.docCommentLineLeader: ' * ',
+      this.docCommentEndMarker: ' */',
+      this.commentLineLength: 99,
+      this.indent: '  '});
 }
 
 abstract class GeneratedContent {
@@ -267,7 +272,6 @@ abstract class GeneratedContent {
  * generated HTML). No other content should exist in the directory.
  */
 class GeneratedDirectory extends GeneratedContent {
-
   /**
    * The path to the directory that will have the generated content.
    */
@@ -308,8 +312,9 @@ class GeneratedDirectory extends GeneratedContent {
         }
       }
       int nonHiddenFileCount = 0;
-      outputFile.listSync(recursive: false, followLinks: false).forEach(
-          (FileSystemEntity fileSystemEntity) {
+      outputFile
+          .listSync(recursive: false, followLinks: false)
+          .forEach((FileSystemEntity fileSystemEntity) {
         if (fileSystemEntity is File &&
             !basename(fileSystemEntity.path).startsWith('.')) {
           nonHiddenFileCount++;

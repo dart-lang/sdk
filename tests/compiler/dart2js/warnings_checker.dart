@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'memory_compiler.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/source_file_provider.dart';
@@ -41,7 +42,7 @@ void checkWarnings(Map<String, dynamic> tests, [List<String> arguments]) {
     await runCompiler(
         entryPoint: uri,
         diagnosticHandler: collector,
-        options: ['--analyze-only'],
+        options: [Flags.analyzeOnly],
         showDiagnostics: verbose);
     Map<String, List<int>> statusMap = tests[test];
     // Line numbers with known unexpected warnings.

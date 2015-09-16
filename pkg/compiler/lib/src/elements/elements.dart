@@ -106,6 +106,10 @@ class ElementKind {
       const ElementKind('abstract_field', ElementCategory.VARIABLE);
   static const ElementKind LIBRARY =
       const ElementKind('library', ElementCategory.NONE);
+  static const ElementKind IMPORT =
+      const ElementKind('import', ElementCategory.NONE);
+  static const ElementKind EXPORT =
+      const ElementKind('export', ElementCategory.NONE);
   static const ElementKind PREFIX =
       const ElementKind('prefix', ElementCategory.PREFIX);
   static const ElementKind TYPEDEF =
@@ -182,10 +186,16 @@ abstract class Element implements Entity {
   String get name;
   ElementKind get kind;
   Element get enclosingElement;
-  Link<MetadataAnnotation> get metadata;
+  Iterable<MetadataAnnotation> get metadata;
 
   /// `true` if this element is a library.
   bool get isLibrary;
+
+  /// `true` if this element is an import declaration.
+  bool get isImport => kind == ElementKind.IMPORT;
+
+  /// `true` if this element is an export declaration.
+  bool get isExport => kind == ElementKind.EXPORT;
 
   /// `true` if this element is a compilation unit.
   bool get isCompilationUnit;
@@ -832,6 +842,22 @@ abstract class CompilationUnitElement extends Element {
   int compareTo(CompilationUnitElement other);
 }
 
+abstract class ImportElement extends Element {
+  Uri get uri;
+  LibraryElement get importedLibrary;
+  bool get isDeferred;
+  PrefixElement get prefix;
+  // TODO(johnniwinther): Remove this when no longer needed in source mirrors.
+  Import get node;
+}
+
+abstract class ExportElement extends Element {
+  Uri get uri;
+  LibraryElement get exportedLibrary;
+  // TODO(johnniwinther): Remove this when no longer needed in source mirrors.
+  Export get node;
+}
+
 abstract class LibraryElement extends Element
     implements ScopeContainerElement, AnalyzableElement {
   /**
@@ -847,9 +873,13 @@ abstract class LibraryElement extends Element
 
   CompilationUnitElement get entryCompilationUnit;
   Link<CompilationUnitElement> get compilationUnits;
-  Iterable<LibraryTag> get tags;
-  LibraryName get libraryTag;
-  Link<Element> get exports;
+
+  /// The import declarations in this library, including the implicit import of
+  /// 'dart:core', if present.
+  Iterable<ImportElement> get imports;
+
+  /// The export declarations in this library.
+  Iterable<ExportElement> get exports;
 
   /**
    * [:true:] if this library is part of the platform, that is, its canonical
@@ -874,9 +904,6 @@ abstract class LibraryElement extends Element
 
   LibraryElement get implementation;
 
-  /// Return the library element corresponding to an import or export.
-  LibraryElement getLibraryFromTag(LibraryDependency tag);
-
   Element find(String elementName);
   Element findLocal(String elementName);
   Element findExported(String elementName);
@@ -886,32 +913,35 @@ abstract class LibraryElement extends Element
   void forEachImport(f(Element element));
 
   /// Returns the imports that import element into this library.
-  Link<Import> getImportsFor(Element element);
+  Iterable<ImportElement> getImportsFor(Element element);
 
-  bool hasLibraryName();
-  String getLibraryName();
+  /// `true` if this library has name as given through a library tag.
+  bool get hasLibraryName;
 
-  /**
-   * Returns the library name (as defined by the library tag) or for script
-   * (which have no library tag) the script file name. The latter case is used
-   * to provide a 'library name' for scripts to use for instance in dartdoc.
-   *
-   * Note: the returned filename is still escaped ("a%20b.dart" instead of
-   * "a b.dart").
-   */
-  String getLibraryOrScriptName();
+  /// The library name, which is either the name given in the library tag
+  /// or the empty string if there is no library tag.
+  String get libraryName;
+
+  /// Returns the library name (as defined by the library tag) or for script
+  /// (which have no library tag) the script file name. The latter case is used
+  /// to provide a 'library name' for scripts to use for instance in dartdoc.
+  ///
+  /// Note: the returned filename is still escaped ("a%20b.dart" instead of
+  /// "a b.dart").
+  String get libraryOrScriptName;
 
   int compareTo(LibraryElement other);
 }
 
 /// The implicit scope defined by a import declaration with a prefix clause.
 abstract class PrefixElement extends Element {
-  void addImport(Element element, Import import, DiagnosticListener listener);
   Element lookupLocalMember(String memberName);
+
   /// Is true if this prefix belongs to a deferred import.
   bool get isDeferred;
-  void markAsDeferred(Import import);
-  Import get deferredImport;
+
+  /// Import that declared this deferred prefix.
+  ImportElement get deferredImport;
 }
 
 /// A type alias definition.

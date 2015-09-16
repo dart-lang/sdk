@@ -284,9 +284,6 @@ class AnalysisServer {
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
-   * If a [contextManager] is provided, then the [packageResolverProvider] will
-   * be ignored.
-   *
    * If [rethrowExceptions] is true, then any exceptions thrown by analysis are
    * propagated up the call stack.  The default is true to allow analysis
    * exceptions to show up in unit tests, but it should be set to false when
@@ -301,17 +298,14 @@ class AnalysisServer {
       this.options,
       this.defaultSdk,
       this.instrumentationService,
-      {ContextManager contextManager: null,
-      ResolverProvider packageResolverProvider: null,
+      {ResolverProvider packageResolverProvider: null,
       this.rethrowExceptions: true})
       : index = _index,
         searchEngine = _index != null ? createSearchEngine(_index) : null {
     _performance = performanceDuringStartup;
     operationQueue = new ServerOperationQueue();
-    if (contextManager == null) {
-      contextManager = new ContextManagerImpl(resourceProvider,
-          packageResolverProvider, packageMapProvider, instrumentationService);
-    }
+    contextManager = new ContextManagerImpl(resourceProvider,
+        packageResolverProvider, packageMapProvider, instrumentationService);
     ServerContextManagerCallbacks contextManagerCallbacks =
         new ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
@@ -321,7 +315,6 @@ class AnalysisServer {
     defaultContextOptions.incrementalValidation =
         options.enableIncrementalResolutionValidation;
     defaultContextOptions.generateImplicitErrors = false;
-    this.contextManager = contextManager;
     _noErrorNotification = options.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger();
     _onAnalysisStartedController = new StreamController.broadcast();
@@ -484,9 +477,9 @@ class AnalysisServer {
    * first context that implicitly analyzes it.
    *
    * If the [path] is not analyzed by any context, a [ContextSourcePair] with
-   * a `null` context and `file` [Source] is returned.
+   * a `null` context and a `file` [Source] is returned.
    *
-   * If the [path] dosn't represent a file, a [ContextSourcePair] with a `null`
+   * If the [path] doesn't represent a file, a [ContextSourcePair] with a `null`
    * context and `null` [Source] is returned.
    *
    * Does not return `null`.
@@ -975,7 +968,7 @@ class AnalysisServer {
                 sendAnalysisNotificationNavigation(this, context, source);
                 break;
               case AnalysisService.OCCURRENCES:
-                sendAnalysisNotificationOccurrences(this, file, dartUnit);
+                sendAnalysisNotificationOccurrences(this, context, source);
                 break;
               case AnalysisService.OUTLINE:
                 AnalysisContext context = dartUnit.element.context;

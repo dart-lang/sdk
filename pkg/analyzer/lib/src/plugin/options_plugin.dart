@@ -11,7 +11,6 @@ import 'package:plugin/plugin.dart';
 /// by applications that want to consume options defined in the analysis
 /// options file.
 class OptionsPlugin implements Plugin {
-
   /// The simple identifier of the extension point that allows plugins to
   /// register new options processors.
   static const String OPTIONS_PROCESSOR_EXTENSION_POINT = 'optionsProcessor';

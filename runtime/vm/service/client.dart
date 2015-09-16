@@ -15,6 +15,9 @@ abstract class Client {
     service._addClient(this);
   }
 
+  // Disconnects the client.
+  disconnect();
+
   /// When implementing, call [close] when the network connection closes.
   void close() {
     service._removeClient(this);

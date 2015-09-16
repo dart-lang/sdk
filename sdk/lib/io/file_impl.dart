@@ -632,8 +632,7 @@ class _RandomAccessFile
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "readByte failed", path);
       }
-      _resourceInfo.readCount++;
-      _resourceInfo.totalRead++;
+      _resourceInfo.addRead(1);
       return response;
     });
   }
@@ -646,8 +645,7 @@ class _RandomAccessFile
     if (result is OSError) {
       throw new FileSystemException("readByte failed", path, result);
     }
-    _resourceInfo.readCount++;
-    _resourceInfo.totalRead++;
+    _resourceInfo.addRead(1);
     return result;
   }
 
@@ -659,8 +657,7 @@ class _RandomAccessFile
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "read failed", path);
       }
-      _resourceInfo.readCount++;
-      _resourceInfo.totalRead += response[1].length;
+      _resourceInfo.addRead(response[1].length);
       return response[1];
     });
   }
@@ -676,8 +673,7 @@ class _RandomAccessFile
     if (result is OSError) {
       throw new FileSystemException("readSync failed", path, result);
     }
-    _resourceInfo.readCount++;
-    _resourceInfo.totalRead += result.length;
+    _resourceInfo.addRead(result.length);
     return result;
   }
 
@@ -697,8 +693,7 @@ class _RandomAccessFile
       var read = response[1];
       var data = response[2];
       buffer.setRange(start, start + read, data);
-      _resourceInfo.readCount++;
-      _resourceInfo.totalRead += read;
+      _resourceInfo.addRead(read);
       return read;
     });
   }
@@ -718,8 +713,7 @@ class _RandomAccessFile
     if (result is OSError) {
       throw new FileSystemException("readInto failed", path, result);
     }
-    _resourceInfo.readCount++;
-    _resourceInfo.totalRead += result;
+    _resourceInfo.addRead(result);
     return result;
   }
 
@@ -731,8 +725,7 @@ class _RandomAccessFile
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "writeByte failed", path);
       }
-      _resourceInfo.writeCount++;
-      _resourceInfo.totalWritten++;
+      _resourceInfo.addWrite(1);
       return this;
     });
   }
@@ -748,8 +741,7 @@ class _RandomAccessFile
     if (result is OSError) {
       throw new FileSystemException("writeByte failed", path, result);
     }
-    _resourceInfo.writeCount++;
-    _resourceInfo.totalWritten++;
+    _resourceInfo.addWrite(1);
     return result;
   }
 
@@ -778,8 +770,7 @@ class _RandomAccessFile
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "writeFrom failed", path);
       }
-      _resourceInfo.writeCount++;
-      _resourceInfo.totalWritten += end - (start - result.start);
+      _resourceInfo.addWrite(end - (start - result.start));
       return this;
     });
   }
@@ -804,8 +795,7 @@ class _RandomAccessFile
     if (result is OSError) {
       throw new FileSystemException("writeFrom failed", path, result);
     }
-    _resourceInfo.writeCount++;
-    _resourceInfo.totalWritten += end - (start - bufferAndStart.start);
+    _resourceInfo.addWrite(end - (start - bufferAndStart.start));
   }
 
   Future<RandomAccessFile> writeString(String string,
