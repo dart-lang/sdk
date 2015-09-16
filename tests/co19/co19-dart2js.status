@@ -849,7 +849,9 @@ LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: Runti
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/location-hash_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: Skip # API not supported.
+LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: Skip # API not supported.
+LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: Skip # API not supported.
 LayoutTests/fast/dom/option-properties_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/partial-layout-overlay-scrollbars_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/set-innerHTML_t01: RuntimeError # Please triage this failure
@@ -922,7 +924,6 @@ LayoutTests/fast/forms/clone-input-with-dirty-value_t01: RuntimeError # Please t
 LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-onblur-setvalue-onfocusremoved_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-valueasdate-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/input-valueasdate-datetimelocal_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/datetimelocal/input-valueasnumber-datetimelocal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/file/file-input-capture_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/focus-style-pending_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/forms/focus_t01: Pass, RuntimeError # Please triage this failure
@@ -2182,9 +2183,9 @@ LayoutTests/fast/dom/javascript-backslash_t01: RuntimeError # Please triage this
 LayoutTests/fast/dom/length-attribute-mapping_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/location-hash_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/navigator-userAgent_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: Skip # API not supported.
+LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: Skip # API not supported.
+LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: Skip # API not supported.
 LayoutTests/fast/dom/object-plugin-hides-properties_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/offset-position-writing-modes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/option-properties_t01: RuntimeError # Please triage this failure
@@ -2405,7 +2406,6 @@ LayoutTests/fast/forms/datetimelocal/ValidityState-typeMismatch-datetimelocal_t0
 LayoutTests/fast/forms/datetimelocal/datetimelocal-input-type_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/datetimelocal-pseudo-classes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/input-valueasdate-datetimelocal_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/datetimelocal/input-valueasnumber-datetimelocal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/delete-text-with-invisible-br_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/fieldset/fieldset-disabled_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/fieldset/fieldset-elements_t01: RuntimeError # Please triage this failure
@@ -3556,9 +3556,9 @@ LayoutTests/fast/dom/implementation-api-args_t01: RuntimeError # Please triage t
 LayoutTests/fast/dom/importNode-unsupported-node-type_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/location-hash_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/location-missing-arguments_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: Skip # API not supported.
+LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: Skip # API not supported.
+LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: Skip # API not supported.
 LayoutTests/fast/dom/object-plugin-hides-properties_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/option-properties_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/partial-layout-overlay-scrollbars_t01: RuntimeError # Please triage this failure
@@ -3743,7 +3743,6 @@ LayoutTests/fast/forms/datetimelocal/datetimelocal-input-type_t01: RuntimeError 
 LayoutTests/fast/forms/datetimelocal/datetimelocal-pseudo-classes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/datetimelocal-setrangetext_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/input-valueasdate-datetimelocal_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/datetimelocal/input-valueasnumber-datetimelocal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/file/file-input-capture_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/form-attribute_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-appearance-elementFromPoint_t01: RuntimeError # Please triage this failure
@@ -4835,9 +4834,9 @@ LayoutTests/fast/dom/importNode-unsupported-node-type_t01: RuntimeError # Please
 LayoutTests/fast/dom/jsDevicePixelRatio_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/location-hash_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/location-missing-arguments_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: Skip # API not supported.
+LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: Skip # API not supported.
+LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: Skip # API not supported.
 LayoutTests/fast/dom/node-iterator-with-doctype-root_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/option-properties_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/partial-layout-non-overlay-scrollbars_t01: RuntimeError # Please triage this failure
@@ -5014,7 +5013,6 @@ LayoutTests/fast/forms/date/input-valueasdate-date_t01: RuntimeError # Please tr
 LayoutTests/fast/forms/date/input-valueasnumber-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal-multiple-fields/datetimelocal-multiple-fields-change-layout-by-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/input-valueasdate-datetimelocal_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/datetimelocal/input-valueasnumber-datetimelocal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/file/file-input-capture_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/focus-style-pending_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/forms/form-attribute_t01: RuntimeError # Please triage this failure
@@ -6457,9 +6455,9 @@ LayoutTests/fast/dom/length-attribute-mapping_t01: RuntimeError # Please triage 
 LayoutTests/fast/dom/location-hash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/navigator-userAgent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/navigator-vendorSub_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: Skip # API not supported.
+LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: Skip # API not supported.
+LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: Skip # API not supported.
 LayoutTests/fast/dom/node-iterator-with-doctype-root_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/noscript-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/offset-position-writing-modes_t01: RuntimeError # Please triage this failure
@@ -6699,7 +6697,6 @@ LayoutTests/fast/forms/datetimelocal/ValidityState-typeMismatch-datetimelocal_t0
 LayoutTests/fast/forms/datetimelocal/datetimelocal-input-type_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/datetimelocal-pseudo-classes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/input-valueasdate-datetimelocal_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/datetimelocal/input-valueasnumber-datetimelocal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/delete-text-with-invisible-br_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/enctype-attribute_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/fieldset/fieldset-disabled_t01: RuntimeError # Please triage this failure
@@ -8442,9 +8439,9 @@ LayoutTests/fast/dom/length-attribute-mapping_t01: RuntimeError # Please triage 
 LayoutTests/fast/dom/location-hash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/navigator-userAgent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/navigator-vendorSub_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: Skip # API not supported.
+LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: Skip # API not supported.
+LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: Skip # API not supported.
 LayoutTests/fast/dom/node-iterator-with-doctype-root_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/noscript-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/offset-position-writing-modes_t01: RuntimeError # Please triage this failure
@@ -8684,7 +8681,6 @@ LayoutTests/fast/forms/datetimelocal/ValidityState-typeMismatch-datetimelocal_t0
 LayoutTests/fast/forms/datetimelocal/datetimelocal-input-type_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/datetimelocal-pseudo-classes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/input-valueasdate-datetimelocal_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/datetimelocal/input-valueasnumber-datetimelocal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/delete-text-with-invisible-br_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/enctype-attribute_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/fieldset/fieldset-disabled_t01: RuntimeError # Please triage this failure
