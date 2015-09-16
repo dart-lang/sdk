@@ -657,6 +657,7 @@ void BaseIsolate::AssertCurrentThreadIsMutator() const {
 Isolate::Isolate(const Dart_IsolateFlags& api_flags)
   :   vm_tag_(0),
       store_buffer_(new StoreBuffer()),
+      heap_(NULL),
       thread_registry_(new ThreadRegistry()),
       message_notify_callback_(NULL),
       name_(NULL),
@@ -667,7 +668,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       pause_capability_(0),
       terminate_capability_(0),
       errors_fatal_(true),
-      heap_(NULL),
       object_store_(NULL),
       top_exit_frame_info_(0),
       init_callback_data_(NULL),

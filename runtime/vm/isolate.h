@@ -821,6 +821,7 @@ class Isolate : public BaseIsolate {
 
   uword vm_tag_;
   StoreBuffer* store_buffer_;
+  Heap* heap_;
   ThreadRegistry* thread_registry_;
   ClassTable class_table_;
   Dart_MessageNotifyCallback message_notify_callback_;
@@ -832,7 +833,6 @@ class Isolate : public BaseIsolate {
   uint64_t pause_capability_;
   uint64_t terminate_capability_;
   bool errors_fatal_;
-  Heap* heap_;
   ObjectStore* object_store_;
   uword top_exit_frame_info_;
   void* init_callback_data_;
