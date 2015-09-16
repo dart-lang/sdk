@@ -53,6 +53,7 @@ BENCHMARK(CorelibCompileAll) {
 }
 
 
+#if 0
 BENCHMARK(CorelibCompilerStats) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
@@ -71,6 +72,7 @@ BENCHMARK(CorelibCompilerStats) {
   int64_t elapsed_time = timer.TotalElapsedTime();
   benchmark->set_score(elapsed_time);
 }
+#endif
 
 
 //
@@ -398,6 +400,7 @@ BENCHMARK(Dart2JSCompileAll) {
 }
 
 
+#if 0
 BENCHMARK(Dart2JSCompilerStats) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
@@ -431,6 +434,7 @@ BENCHMARK(Dart2JSCompilerStats) {
   free(dart_root);
   free(script);
 }
+#endif
 
 
 //
