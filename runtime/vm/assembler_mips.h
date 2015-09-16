@@ -1518,6 +1518,7 @@ class Assembler : public ValueObject {
   void EnterCallRuntimeFrame(intptr_t frame_space);
   void LeaveCallRuntimeFrame();
 
+  bool CanLoadFromObjectPool(const Object& object) const;
   void LoadWordFromPoolOffset(Register rd, int32_t offset);
   void LoadObject(Register rd, const Object& object);
   void LoadUniqueObject(Register rd, const Object& object);

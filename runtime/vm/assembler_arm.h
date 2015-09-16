@@ -760,6 +760,7 @@ class Assembler : public ValueObject {
                            Label* miss);
 
   intptr_t FindImmediate(int32_t imm);
+  bool CanLoadFromObjectPool(const Object& object) const;
   void LoadFromOffset(OperandSize type,
                       Register reg,
                       Register base,

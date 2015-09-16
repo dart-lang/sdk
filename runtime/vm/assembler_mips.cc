@@ -506,34 +506,45 @@ void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
 }
 
 
+bool Assembler::CanLoadFromObjectPool(const Object& object) const {
+  ASSERT(!Thread::CanLoadFromThread(object));
+  if (!constant_pool_allowed()) {
+    return false;
+  }
+
+  ASSERT(object.IsNotTemporaryScopedHandle());
+  ASSERT(object.IsOld());
+  return true;
+}
+
+
 void Assembler::LoadObjectHelper(Register rd,
                                  const Object& object,
                                  bool is_unique) {
-  // Load common VM constants from the thread. This works also in places where
-  // no constant pool is set up (e.g. intrinsic code).
-  if (Thread::CanLoadFromThread(object)) {
-    lw(rd, Address(THR, Thread::OffsetFromThread(object)));
-    return;
-  }
   ASSERT(!in_delay_slot_);
-  // Smis and VM heap objects are never relocated; do not use object pool.
-  if (object.IsSmi()) {
+  if (Thread::CanLoadFromThread(object)) {
+    // Load common VM constants from the thread. This works also in places where
+    // no constant pool is set up (e.g. intrinsic code).
+    lw(rd, Address(THR, Thread::OffsetFromThread(object)));
+  } else if (object.IsSmi()) {
+    // Relocation doesn't apply to Smis.
     LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()));
-  } else if (object.InVMHeap() || !constant_pool_allowed()) {
-    ASSERT(FLAG_allow_absolute_addresses);
-    // Make sure that class CallPattern is able to decode this load immediate.
-    int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
-    const uint16_t object_low = Utils::Low16Bits(object_raw);
-    const uint16_t object_high = Utils::High16Bits(object_raw);
-    lui(rd, Immediate(object_high));
-    ori(rd, rd, Immediate(object_low));
-  } else {
+  } else if (CanLoadFromObjectPool(object)) {
     // Make sure that class CallPattern is able to decode this load from the
     // object pool.
     const int32_t offset = ObjectPool::element_offset(
         is_unique ? object_pool_wrapper_.AddObject(object)
                   : object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(rd, offset - kHeapObjectTag);
+  } else {
+    ASSERT(FLAG_allow_absolute_addresses);
+    ASSERT(object.IsOld());
+    // Make sure that class CallPattern is able to decode this load immediate.
+    int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
+    const uint16_t object_low = Utils::Low16Bits(object_raw);
+    const uint16_t object_high = Utils::High16Bits(object_raw);
+    lui(rd, Immediate(object_high));
+    ori(rd, rd, Immediate(object_low));
   }
 }
 

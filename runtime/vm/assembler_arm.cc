@@ -1570,31 +1570,42 @@ void Assembler::LoadIsolate(Register rd) {
 }
 
 
+bool Assembler::CanLoadFromObjectPool(const Object& object) const {
+  ASSERT(!Thread::CanLoadFromThread(object));
+  if (!constant_pool_allowed()) {
+    return false;
+  }
+
+  ASSERT(object.IsNotTemporaryScopedHandle());
+  ASSERT(object.IsOld());
+  return true;
+}
+
+
 void Assembler::LoadObjectHelper(Register rd,
                                  const Object& object,
                                  Condition cond,
                                  bool is_unique) {
-  // Load common VM constants from the thread. This works also in places where
-  // no constant pool is set up (e.g. intrinsic code).
   if (Thread::CanLoadFromThread(object)) {
+    // Load common VM constants from the thread. This works also in places where
+    // no constant pool is set up (e.g. intrinsic code).
     ldr(rd, Address(THR, Thread::OffsetFromThread(object)), cond);
-    return;
-  }
-  // Smis and VM heap objects are never relocated; do not use object pool.
-  if (object.IsSmi()) {
+  } else if (object.IsSmi()) {
+    // Relocation doesn't apply to Smis.
     LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()), cond);
-  } else if (object.InVMHeap() || !constant_pool_allowed()) {
-    ASSERT(FLAG_allow_absolute_addresses);
-    // Make sure that class CallPattern is able to decode this load immediate.
-    const int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
-    LoadImmediate(rd, object_raw, cond);
-  } else {
+  } else if (CanLoadFromObjectPool(object)) {
     // Make sure that class CallPattern is able to decode this load from the
     // object pool.
     const int32_t offset = ObjectPool::element_offset(
        is_unique ? object_pool_wrapper_.AddObject(object)
                  : object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, cond);
+  } else {
+    ASSERT(FLAG_allow_absolute_addresses);
+    ASSERT(object.IsOld());
+    // Make sure that class CallPattern is able to decode this load immediate.
+    const int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
+    LoadImmediate(rd, object_raw, cond);
   }
 }
 
