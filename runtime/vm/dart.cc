@@ -268,7 +268,6 @@ Isolate* Dart::CreateIsolate(const char* name_prefix,
                              const Dart_IsolateFlags& api_flags) {
   // Create a new isolate.
   Isolate* isolate = Isolate::Init(name_prefix, api_flags);
-  ASSERT(isolate != NULL);
   return isolate;
 }
 
