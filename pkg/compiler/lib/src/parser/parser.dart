@@ -2697,20 +2697,10 @@ class Parser {
 
   Token parseAssertStatement(Token token) {
     Token assertKeyword = token;
-    Token commaToken = null;
     token = expect('assert', token);
-    token = expect('(', token);
-    bool old = mayParseFunctionExpressions;
-    mayParseFunctionExpressions = true;
-    token = parseExpression(token);
-    if (optional(',', token)) {
-      commaToken = token;
-      token = token.next;
-      token = parseExpression(token);
-    }
-    token = expect(')', token);
-    mayParseFunctionExpressions = old;
-    listener.handleAssertStatement(assertKeyword, commaToken, token);
+    expect('(', token);
+    token = parseArguments(token);
+    listener.handleAssertStatement(assertKeyword, token);
     return expectSemicolon(token);
   }
 

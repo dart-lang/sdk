@@ -58,18 +58,6 @@ class Unparser extends Indentation implements Visitor {
     if (node != null) node.accept(this);
   }
 
-  visitAssert(Assert node) {
-    write(node.assertToken.value);
-    write('(');
-    visit(node.condition);
-    if (node.hasMessage) {
-      write(',');
-      space();
-      visit(node.message);
-    }
-    write(');');
-  }
-
   visitBlock(Block node) => unparseBlockStatements(node.statements);
 
   unparseBlockStatements(NodeList statements) {

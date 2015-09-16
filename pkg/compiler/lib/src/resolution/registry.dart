@@ -54,11 +54,6 @@ class EagerRegistry implements Registry {
   Iterable<Element> get otherDependencies => mapping.otherDependencies;
 
   @override
-  void registerAssert(bool hasMessage) {
-    // TODO(johnniwinther): Do something here?
-  }
-
-  @override
   void registerDependency(Element element) {
     mapping.registerDependency(element);
   }
@@ -583,8 +578,13 @@ class ResolutionRegistry implements Registry {
     world.registerInstantiatedType(type, this);
   }
 
-  void registerAssert(bool hasMessage) {
-    backend.resolutionCallbacks.onAssert(hasMessage, this);
+  void registerAssert(Send node) {
+    mapping.setAssert(node);
+    backend.resolutionCallbacks.onAssert(node, this);
+  }
+
+  bool isAssert(Send node) {
+    return mapping.isAssert(node);
   }
 
   void registerSendStructure(Send node, SendStructure sendStructure) {

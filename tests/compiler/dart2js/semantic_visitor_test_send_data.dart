@@ -1742,11 +1742,19 @@ const Map<String, List<Test>> SEND_TESTS = const {
     // Assert
     const Test(
         '''
-        m() { assert(m()); }
+        m() { assert(false); }
         ''',
-        const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INVOKE,
-                    element: 'function(m)',
-                    arguments: '()')),
+        const Visit(VisitKind.VISIT_ASSERT, expression: 'false')),
+    const Test(
+        '''
+        m() { assert(); }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_ASSERT, arguments: '()')),
+    const Test(
+        '''
+        m() { assert(42, true); }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_ASSERT, arguments: '(42,true)')),
   ],
   'Logical and': const [
     // Logical and

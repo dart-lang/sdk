@@ -167,6 +167,9 @@ abstract class Backend {
   void registerTypeVariableBoundsSubtypeCheck(DartType typeArgument,
                                               DartType bound) {}
 
+  /// Returns `true` if [element] represent the assert function.
+  bool isAssertMethod(Element element) => false;
+
   /**
    * Call this to register that an instantiated generic class has a call
    * method.

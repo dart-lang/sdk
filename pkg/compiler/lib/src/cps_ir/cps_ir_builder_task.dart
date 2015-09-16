@@ -648,8 +648,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return receiver;
   }
 
+  // ## Sends ##
   @override
-  ir.Primitive visitAssert(ast.Assert node) {
+  ir.Primitive visitAssert(ast.Send node, ast.Node condition, _) {
     assert(irBuilder.isOpen);
     if (compiler.enableUserAssertions) {
       return giveup(node, 'assert in checked mode not implemented');
@@ -662,7 +663,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     }
   }
 
-  // ## Sends ##
   @override
   void previsitDeferredAccess(ast.Send node, PrefixElement prefix, _) {
     giveup(node, 'deferred access is not implemented');

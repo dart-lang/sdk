@@ -278,9 +278,7 @@ class JavaScriptBackend extends Backend {
 
   ClassElement closureClass;
   ClassElement boundClosureClass;
-  Element assertTestMethod;
-  Element assertThrowMethod;
-  Element assertHelperMethod;
+  Element assertMethod;
   Element invokeOnMethod;
 
   ClassElement jsInterceptorClass;
@@ -1359,6 +1357,8 @@ class JavaScriptBackend extends Backend {
     }
   }
 
+  bool isAssertMethod(Element element) => element == assertMethod;
+
   void registerRequiredType(DartType type, Element enclosingElement) {
     // If [argument] has type variables or is a type variable, this method
     // registers a RTI dependency between the class where the type variable is
@@ -2121,9 +2121,7 @@ class JavaScriptBackend extends Backend {
         jsMutableIndexableClass = findClass('JSMutableIndexable');
       } else if (uri == DART_JS_HELPER) {
         initializeHelperClasses();
-        assertTestMethod = findHelper('assertTest');
-        assertThrowMethod = findHelper('assertThrow');
-        assertHelperMethod = findHelper('assertHelper');
+        assertMethod = findHelper('assertHelper');
 
         typeLiteralClass = findClass('TypeImpl');
         constMapLiteralClass = findClass('ConstantMap');
@@ -2923,13 +2921,8 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     registry.registerInstantiation(element.rawType);
   }
 
-  void onAssert(bool hasMessage, Registry registry) {
-    if (hasMessage) {
-      registerBackendStaticInvocation(backend.assertTestMethod, registry);
-      registerBackendStaticInvocation(backend.assertThrowMethod, registry);
-    } else {
-      registerBackendStaticInvocation(backend.assertHelperMethod, registry);
-    }
+  void onAssert(Send node, Registry registry) {
+    registerBackendStaticInvocation(backend.assertMethod, registry);
   }
 
   void onAsyncForIn(AsyncForIn node, Registry registry) {

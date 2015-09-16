@@ -763,16 +763,11 @@ class NodeListener extends ElementListener {
     }
   }
 
-  void handleAssertStatement(Token assertKeyword,
-                             Token commaToken, Token semicolonToken) {
-    Node message;
-    Node condition;
-    if (commaToken != null) {
-      message = popNode();
-    }
-    condition = popNode();
-    pushNode(new Assert(assertKeyword, condition,
-                        message, semicolonToken));
+  void handleAssertStatement(Token assertKeyword, Token semicolonToken) {
+    NodeList arguments = popNode();
+    Node selector = new Identifier(assertKeyword);
+    Node send = new Send(null, selector, arguments);
+    pushNode(new ExpressionStatement(send, semicolonToken));
   }
 
   void endUnnamedFunction(Token token) {

@@ -587,14 +587,9 @@ class AstBuilder extends Listener {
     push(new ForIn(declaredIdentifier, exp, body));
   }
 
-  handleAssertStatement(Token assertKeyword,
-                        Token commaToken, Token semicolonToken) {
-    Expression message;
-    if (commaToken != null) message = pop();
+  handleAssertStatement(Token assertKeyword, Token semicolonToken) {
     Expression exp = pop();
-    var arguments = [exp];
-    if (message != null) arguments.add(message);
-    Expression call = new CallFunction(new Identifier("assert"), arguments);
+    Expression call = new CallFunction(new Identifier("assert"), [exp]);
     push(new ExpressionStatement(call));
   }
 

@@ -39,10 +39,6 @@ class PrettyPrinter extends Indentation with Tagging<Node> implements Visitor {
     closeNode();
   }
 
-  visitAssert(Assert node) {
-    visitNodeWithChildren(node, "Assert");
-  }
-
   visitAsyncModifier(AsyncModifier node) {
     openAndCloseNode(node, "AsyncModifier",
         {'asyncToken': node.asyncToken,

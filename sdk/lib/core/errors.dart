@@ -96,8 +96,6 @@ class Error {
  * Error thrown by the runtime system when an assert statement fails.
  */
 class AssertionError extends Error {
-  AssertionError();
-  String toString() => "Assertion failed";
 }
 
 /**

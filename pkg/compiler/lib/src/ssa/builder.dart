@@ -2608,37 +2608,6 @@ class SsaBuilder extends ast.Visitor
     return pop();
   }
 
-  visitAssert(ast.Assert node) {
-    if (!compiler.enableUserAssertions) return;
-
-    if (!node.hasMessage) {
-      // Generate:
-      //
-      //     assertHelper(condition);
-      //
-      visit(node.condition);
-      pushInvokeStatic(node, backend.assertHelperMethod, [pop()]);
-      pop();
-      return;
-    }
-    // Assert has message. Generate:
-    //
-    //     if (assertTest(condition)) assertThrow(message);
-    //
-    void buildCondition() {
-      visit(node.condition);
-      pushInvokeStatic(node, backend.assertTestMethod, [pop()]);
-    }
-    void fail() {
-      visit(node.message);
-      pushInvokeStatic(node, backend.assertThrowMethod, [pop()]);
-      pop();
-    }
-    handleIf(node,
-             visitCondition: buildCondition,
-             visitThen: fail);
-  }
-
   visitBlock(ast.Block node) {
     assert(!isAborted());
     if (!isReachable) return;  // This can only happen when inlining.
@@ -5212,6 +5181,18 @@ class SsaBuilder extends ast.Visitor
       }
     }
     return false;
+  }
+
+  @override
+  visitAssert(ast.Send node, ast.Node expression, _) {
+    if (!compiler.enableUserAssertions) {
+      stack.add(graph.addConstantNull(compiler));
+      return;
+    }
+    assert(invariant(node, node.arguments.tail.isEmpty,
+        message: "Invalid assertion: $node"));
+    generateStaticFunctionInvoke(
+        node, backend.assertMethod, CallStructure.ONE_ARG);
   }
 
   visitStaticSend(ast.Send node) {
@@ -8326,6 +8307,14 @@ class SsaBuilder extends ast.Visitor
     ast.NodeList arguments,
     CallStructure callStreucture,
     _) {
+    visitNode(node);
+  }
+
+  @override
+  void errorInvalidAssert(
+      ast.Send node,
+      ast.NodeList arguments,
+      _) {
     visitNode(node);
   }
 

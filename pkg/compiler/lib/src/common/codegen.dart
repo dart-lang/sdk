@@ -57,11 +57,6 @@ class CodegenRegistry extends Registry {
   CodegenEnqueuer get world => compiler.enqueuer.codegen;
   JavaScriptBackend get backend => compiler.backend;
 
-  void registerAssert(bool hasMessage) {
-    // Codegen does not register asserts.  They have been lowered to calls.
-    assert(false);
-  }
-
   void registerDependency(Element element) {
     treeElements.registerDependency(element);
   }

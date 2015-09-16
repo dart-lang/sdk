@@ -200,6 +200,9 @@ class Selector {
   bool get isOperator => kind == SelectorKind.OPERATOR;
   bool get isUnaryOperator => isOperator && argumentCount == 0;
 
+  /** Check whether this is a call to 'assert'. */
+  bool get isAssert => isCall && identical(name, "assert");
+
   /**
    * The member name for invocation mirrors created from this selector.
    */
@@ -252,7 +255,9 @@ class Selector {
 
   bool sameNameHack(Element element, World world) {
     // TODO(ngeoffray): Remove workaround checks.
-    return element.isConstructor || name == element.name;
+    return element.isConstructor ||
+           name == element.name ||
+           name == 'assert' && world.isAssertMethod(element);
   }
 
   bool applies(Element element, World world) {

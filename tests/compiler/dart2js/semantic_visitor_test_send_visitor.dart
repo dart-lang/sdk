@@ -20,6 +20,24 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
+  visitAssert(
+      Send node,
+      Node expression,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_ASSERT, expression: expression));
+    super.visitAssert(node, expression, arg);
+  }
+
+  @override
+  errorInvalidAssert(
+      Send node,
+      NodeList arguments,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_INVALID_ASSERT, arguments: arguments));
+    super.errorInvalidAssert(node, arguments, arg);
+  }
+
+  @override
   errorInvalidCompound(
       Send node,
       ErroneousElement error,

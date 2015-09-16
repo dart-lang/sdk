@@ -43,8 +43,8 @@ class ResolutionWorkItem extends WorkItem {
 
 /// Backend callbacks function specific to the resolution phase.
 class ResolutionCallbacks {
-  /// Register that an assert has been seen.
-  void onAssert(bool hasMessage, Registry registry) {}
+  /// Register that [node] is a call to `assert`.
+  void onAssert(Send node, Registry registry) {}
 
   /// Register that an 'await for' has been seen.
   void onAsyncForIn(AsyncForIn node, Registry registry) {}

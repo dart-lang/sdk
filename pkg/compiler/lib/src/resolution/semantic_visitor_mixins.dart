@@ -27,6 +27,14 @@ abstract class ErrorBulkMixin<R, A>
   }
 
   @override
+  R errorInvalidAssert(
+      Send node,
+      NodeList arguments,
+      A arg) {
+    return bulkHandleError(node, null, arg);
+  }
+
+  @override
   R errorNonConstantConstructorInvoke(
       NewExpression node,
       Element element,
@@ -2935,6 +2943,14 @@ abstract class BaseBulkMixin<R, A>
   }
 
   @override
+  R visitAssert(
+      Send node,
+      Node expression,
+      A arg) {
+    return bulkHandleNode(node, 'Assert `#` unhandled.', arg);
+  }
+
+  @override
   R visitIs(
       Send node,
       Node expression,
@@ -4513,6 +4529,15 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       Node expression,
       DartType type,
+      A arg) {
+    apply(expression, arg);
+    return null;
+  }
+
+  @override
+  R visitAssert(
+      Send node,
+      Node expression,
       A arg) {
     apply(expression, arg);
     return null;

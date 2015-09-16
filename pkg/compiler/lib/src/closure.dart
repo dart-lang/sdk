@@ -786,6 +786,8 @@ class ClosureTranslator extends Visitor {
     } else if (node.isTypeCast) {
       DartType type = elements.getType(node.arguments.head);
       analyzeType(type);
+    } else if (elements.isAssert(node) && !compiler.enableUserAssertions) {
+      return;
     }
     node.visitChildren(this);
   }

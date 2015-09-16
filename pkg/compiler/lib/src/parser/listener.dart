@@ -489,8 +489,7 @@ class Listener {
   void handleEmptyStatement(Token token) {
   }
 
-  void handleAssertStatement(Token assertKeyword,
-                             Token commaToken, Token semicolonToken) {
+  void handleAssertStatement(Token assertKeyword, Token semicolonToken) {
   }
 
   /** Called with either the token containing a double literal, or

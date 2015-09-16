@@ -45,7 +45,9 @@ class SendVisitor extends Visitor {
 
   visitSend(Send node) {
     Element element = elements[node];
-    if (elements.isTypeLiteral(node)) {
+    if (elements.isAssert(node)) {
+      return;
+    } else if (elements.isTypeLiteral(node)) {
       DartType type = elements.getTypeLiteralType(node);
       if (!type.isDynamic) {
         if (type is TypeVariableType) {
@@ -137,6 +139,7 @@ class SendVisitor extends Visitor {
         collector.currentElement, element, node);
 
     if (Elements.isUnresolved(element)
+        || elements.isAssert(node)
         || element.isDeferredLoaderGetter) {
       return;
     }

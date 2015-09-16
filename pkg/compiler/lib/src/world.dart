@@ -380,6 +380,11 @@ class World implements ClassWorld {
   bool get isClosed => compiler.phase > Compiler.PHASE_RESOLVING;
 
   // Used by selectors.
+  bool isAssertMethod(Element element) {
+    return compiler.backend.isAssertMethod(element);
+  }
+
+  // Used by selectors.
   bool isForeign(Element element) {
     return compiler.backend.isForeign(element);
   }
