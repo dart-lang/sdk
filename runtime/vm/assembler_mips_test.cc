@@ -2087,7 +2087,8 @@ ASSEMBLER_TEST_RUN(Cop1CvtSD, test) {
 // A1: growable array.
 // A2: current thread.
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ sw(CODE_REG, Address(SP, 2 * kWordSize));
   __ sw(THR, Address(SP, 1 * kWordSize));
   __ sw(RA, Address(SP, 0 * kWordSize));
   __ mov(THR, A2);
@@ -2096,7 +2097,8 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
                      A0);
   __ lw(RA, Address(SP, 0 * kWordSize));
   __ lw(THR, Address(SP, 1 * kWordSize));
-  __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ lw(CODE_REG, Address(SP, 2 * kWordSize));
+  __ addiu(SP, SP, Immediate(3 * kWordSize));
   __ Ret();
 }
 

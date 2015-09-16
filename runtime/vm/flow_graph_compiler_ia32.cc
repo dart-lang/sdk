@@ -102,10 +102,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   Zone* zone = compiler->zone();
 
-  // Callee's PC marker is not used anymore. Pass Code::null() to set to 0.
   builder->AddPcMarker(Function::Handle(zone), slot_ix++);
-
-  // Current FP and PC.
   builder->AddCallerFp(slot_ix++);
   builder->AddReturnAddress(current->function(), deopt_id(), slot_ix++);
 
@@ -121,7 +118,6 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     builder->AddCopy(current->ValueAt(i), current->LocationAt(i), slot_ix++);
   }
 
-  // Current PC marker and caller FP.
   builder->AddPcMarker(current->function(), slot_ix++);
   builder->AddCallerFp(slot_ix++);
 
@@ -152,7 +148,6 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                        slot_ix++);
     }
 
-    // PC marker and caller FP.
     builder->AddPcMarker(current->function(), slot_ix++);
     builder->AddCallerFp(slot_ix++);
 
@@ -188,7 +183,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
   }
 
   ASSERT(deopt_env() != NULL);
-
+  __ pushl(CODE_REG);
   __ Call(*StubCode::Deoptimize_entry());
   set_pc_offset(assem->CodeSize());
   __ int3();
@@ -999,11 +994,8 @@ void FlowGraphCompiler::EmitFrameEntry() {
   if (CanOptimizeFunction() &&
       function.IsOptimizable() &&
       (!is_optimizing() || may_reoptimize())) {
-    const Register function_reg = EDI;
+    const Register function_reg = EBX;
     __ LoadObject(function_reg, function);
-
-    // Patch point is after the eventually inlined function object.
-    entry_patch_pc_offset_ = assembler()->CodeSize();
 
     // Reoptimization of an optimized function is triggered by counting in
     // IC stubs, but not at the entry of the function.
@@ -1012,10 +1004,8 @@ void FlowGraphCompiler::EmitFrameEntry() {
     }
     __ cmpl(FieldAddress(function_reg, Function::usage_counter_offset()),
             Immediate(GetOptimizationThreshold()));
-    ASSERT(function_reg == EDI);
+    ASSERT(function_reg == EBX);
     __ J(GREATER_EQUAL, *StubCode::OptimizeFunction_entry());
-  } else if (!flow_graph().IsCompiledForOsr()) {
-    entry_patch_pc_offset_ = assembler()->CodeSize();
   }
   __ Comment("Enter frame");
   if (flow_graph().IsCompiledForOsr()) {
@@ -1136,10 +1126,6 @@ void FlowGraphCompiler::CompileGraph() {
 
   __ int3();
   GenerateDeferredCode();
-  // Emit function patching code. This will be swapped with the first 5 bytes
-  // at entry point.
-  patch_code_pc_offset_ = assembler()->CodeSize();
-  __ Jmp(*StubCode::FixCallersTarget_entry());
 
   if (is_optimizing()) {
     lazy_deopt_pc_offset_ = assembler()->CodeSize();
@@ -1262,7 +1248,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
   // top-level function (parsed_function().function()) which could be
   // reoptimized and which counter needs to be incremented.
   // Pass the function explicitly, it is used in IC stub.
-  __ LoadObject(EDI, parsed_function().function());
+  __ LoadObject(EBX, parsed_function().function());
   __ LoadObject(ECX, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
@@ -1302,7 +1288,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
       MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
-  const Register receiverR = EDI;
+  const Register receiverR = ECX;
   const Register cacheR = EBX;
   const Register targetR = EBX;
   __ movl(receiverR, Address(ESP, (argument_count - 1) * kWordSize));

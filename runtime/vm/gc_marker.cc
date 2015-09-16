@@ -91,14 +91,14 @@ class SkippedCodeFunctions : public ZoneAllocated {
     intptr_t current_code_count = 0;
     for (int i = 0; i < skipped_code_functions_.length(); i++) {
       RawFunction* func = skipped_code_functions_[i];
-      RawCode* code = func->ptr()->instructions_->ptr()->code_;
+      RawCode* code = func->ptr()->code_;
       if (!code->IsMarked()) {
         // If the code wasn't strongly visited through other references
         // after skipping the function's code pointer, then we disconnect the
         // code from the function.
         func->StorePointer(
-            &(func->ptr()->instructions_),
-            StubCode::LazyCompile_entry()->code()->ptr()->instructions_);
+            &(func->ptr()->code_),
+            StubCode::LazyCompile_entry()->code());
         uword entry_point = StubCode::LazyCompile_entry()->EntryPoint();
         func->ptr()->entry_point_ = entry_point;
         if (FLAG_log_code_drop) {

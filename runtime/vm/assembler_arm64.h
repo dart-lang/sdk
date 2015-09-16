@@ -1152,11 +1152,11 @@ class Assembler : public ValueObject {
     add(TMP, PP, Operand(kHeapObjectTag));
     str(TMP, Address(SP, -1 * kWordSize, Address::PreIndex));
   }
-  void TagAndPushPPAndPcMarker(Register pc_marker_reg) {
-    ASSERT(pc_marker_reg != TMP2);
+  void TagAndPushPPAndPcMarker() {
+    COMPILE_ASSERT(CODE_REG != TMP2);
     // Add the heap object tag back to PP before putting it on the stack.
     add(TMP2, PP, Operand(kHeapObjectTag));
-    stp(TMP2, pc_marker_reg,
+    stp(TMP2, CODE_REG,
         Address(SP, -2 * kWordSize, Address::PairPreIndex));
   }
   void PopAndUntagPP() {
@@ -1198,14 +1198,14 @@ class Assembler : public ValueObject {
     LslImmediate(dst, src, kSmiTagSize);
   }
 
-  void Branch(const StubEntry& stub_entry);
+  void Branch(const StubEntry& stub_entry,
+              Register pp,
+              Patchability patchable = kNotPatchable);
   void BranchPatchable(const StubEntry& stub_entry);
 
-  void BranchLink(const ExternalLabel* label);
-  void BranchLink(const StubEntry& stub_entry);
+  void BranchLink(const StubEntry& stub_entry,
+                  Patchability patchable = kNotPatchable);
 
-  // BranchLinkPatchable must be a fixed-length sequence so we can patch it
-  // with the debugger.
   void BranchLinkPatchable(const StubEntry& stub_entry);
 
   // Macros accepting a pp Register argument may attempt to load values from
@@ -1283,8 +1283,6 @@ class Assembler : public ValueObject {
     constant_pool_allowed_ = b;
   }
 
-  void LoadWordFromPoolOffset(Register dst, uint32_t offset);
-  void LoadWordFromPoolOffsetFixed(Register dst, uint32_t offset);
   intptr_t FindImmediate(int64_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
   void LoadExternalLabel(Register dst, const ExternalLabel* label);
@@ -1340,9 +1338,12 @@ class Assembler : public ValueObject {
     sub(CSP, CSP, Operand(reserved_space));
   }
 
+  void CheckCodePointer();
+  void RestoreCodePointer();
+
   void EnterDartFrame(intptr_t frame_size, Register new_pp = kNoRegister);
   void EnterOsrFrame(intptr_t extra_size, Register new_pp);
-  void LeaveDartFrame();
+  void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
 
   void EnterCallRuntimeFrame(intptr_t frame_size);
   void LeaveCallRuntimeFrame();
@@ -1426,9 +1427,8 @@ class Assembler : public ValueObject {
 
   bool constant_pool_allowed_;
 
-  void Branch(const ExternalLabel* label);
-  void BranchPatchable(const ExternalLabel* label);
-  void BranchLinkPatchable(const ExternalLabel* label);
+  void LoadWordFromPoolOffset(Register dst, uint32_t offset, Register pp = PP);
+  void LoadWordFromPoolOffsetFixed(Register dst, uint32_t offset);
 
   void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
 

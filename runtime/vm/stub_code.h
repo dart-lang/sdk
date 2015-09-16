@@ -165,9 +165,8 @@ class StubCode : public AllStatic {
                            void (*GenerateStub)(Assembler* assembler));
 
   static void GenerateMegamorphicMissStub(Assembler* assembler);
-  static void GenerateAllocationStubForClass(
-      Assembler* assembler, const Class& cls,
-      uword* entry_patch_offset, uword* patch_code_pc_offset);
+  static void GenerateAllocationStubForClass(Assembler* assembler,
+                                             const Class& cls);
   static void GenerateNArgsCheckInlineCacheStub(
       Assembler* assembler,
       intptr_t num_args,
@@ -178,6 +177,12 @@ class StubCode : public AllStatic {
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);
+};
+
+
+enum DeoptStubKind {
+  kLazyDeopt,
+  kEagerDeopt
 };
 
 }  // namespace dart

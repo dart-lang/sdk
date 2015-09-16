@@ -575,6 +575,7 @@ class RawObject {
   friend class Mint;
   friend class Object;
   friend class OneByteString;  // StoreSmi
+  friend class RawCode;
   friend class RawExternalTypedData;
   friend class RawInstructions;
   friend class RawInstance;
@@ -592,6 +593,7 @@ class RawObject {
   friend class TypedDataView;
   friend class WeakProperty;  // StorePointer
   friend class Instance;  // StorePointer
+  friend class StackFrame;  // GetCodeObject assertion.
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -770,7 +772,7 @@ class RawFunction : public RawObject {
   RawObject** to_no_code() {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_array_);
   }
-  RawInstructions* instructions_;  // Instructions of currently active code.
+  RawCode* code_;  // Currently active code.
   RawCode* unoptimized_code_;  // Unoptimized code, keep it after optimization.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->unoptimized_code_);
@@ -1000,10 +1002,14 @@ class RawCode : public RawObject {
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
 
+  uword entry_point_;
+
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->instructions_);
+    return reinterpret_cast<RawObject**>(&ptr()->active_instructions_);
   }
+  RawInstructions* active_instructions_;
   RawInstructions* instructions_;
+  RawObjectPool* object_pool_;
   // If owner_ is Function::null() the owner is a regular stub.
   // If owner_ is a Class the owner is the allocation stub for that class.
   // Else, owner_ is a regular Dart Function.
@@ -1022,7 +1028,6 @@ class RawCode : public RawObject {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->return_address_metadata_);
   }
-  uword entry_point_;
 
   // Compilation timestamp.
   int64_t compile_timestamp_;
@@ -1034,13 +1039,13 @@ class RawCode : public RawObject {
   int32_t state_bits_;
 
   // PC offsets for code patching.
-  int32_t entry_patch_pc_offset_;
-  int32_t patch_code_pc_offset_;
   int32_t lazy_deopt_pc_offset_;
 
   // Variable length data follows here.
   int32_t* data() { OPEN_ARRAY_START(int32_t, int32_t); }
   const int32_t* data() const { OPEN_ARRAY_START(int32_t, int32_t); }
+
+  static bool ContainsPC(RawObject* raw_obj, uword pc);
 
   friend class Function;
   friend class MarkingVisitor;
@@ -1074,14 +1079,6 @@ class RawObjectPool : public RawObject {
 class RawInstructions : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instructions);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->code_);
-  }
-  RawCode* code_;
-  RawObjectPool* object_pool_;
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->object_pool_);
-  }
   int32_t size_;
 
   // Variable length data follows here.
@@ -1090,7 +1087,7 @@ class RawInstructions : public RawObject {
   // Private helper function used while visiting stack frames. The
   // code which iterates over dart frames is also called during GC and
   // is not allowed to create handles.
-  static bool ContainsPC(RawObject* raw_obj, uword pc);
+  static bool ContainsPC(RawInstructions* raw_instr, uword pc);
 
   friend class RawCode;
   friend class RawFunction;

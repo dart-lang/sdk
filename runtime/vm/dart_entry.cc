@@ -100,27 +100,17 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   ScopedIsolateStackLimits stack_limit(isolate);
   SuspendLongJumpScope suspend_long_jump_scope(thread);
 #if defined(USING_SIMULATOR)
-#if defined(ARCH_IS_64_BIT)
-  // TODO(zra): Change to intptr_t so we have only one case.
-    return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
-        reinterpret_cast<int64_t>(entrypoint),
-        static_cast<int64_t>(code.EntryPoint()),
-        reinterpret_cast<int64_t>(&arguments_descriptor),
-        reinterpret_cast<int64_t>(&arguments),
-        reinterpret_cast<int64_t>(thread)));
+  return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
+      reinterpret_cast<intptr_t>(entrypoint),
+      reinterpret_cast<intptr_t>(&code),
+      reinterpret_cast<intptr_t>(&arguments_descriptor),
+      reinterpret_cast<intptr_t>(&arguments),
+      reinterpret_cast<intptr_t>(thread)));
 #else
-    return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
-        reinterpret_cast<int32_t>(entrypoint),
-        static_cast<int32_t>(code.EntryPoint()),
-        reinterpret_cast<int32_t>(&arguments_descriptor),
-        reinterpret_cast<int32_t>(&arguments),
-        reinterpret_cast<int32_t>(thread)));
-#endif
-#else
-    return entrypoint(code.EntryPoint(),
-                      arguments_descriptor,
-                      arguments,
-                      thread);
+  return entrypoint(code,
+                    arguments_descriptor,
+                    arguments,
+                    thread);
 #endif
 }
 

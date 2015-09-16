@@ -439,9 +439,9 @@ intptr_t RawFunction::VisitFunctionPointers(RawFunction* raw_obj,
   }
   visitor->VisitPointers(raw_obj->from(), raw_obj->to_no_code());
 
-  if (ShouldVisitCode(raw_obj->ptr()->instructions_->ptr()->code_)) {
+  if (ShouldVisitCode(raw_obj->ptr()->code_)) {
     visitor->VisitPointer(
-        reinterpret_cast<RawObject**>(&raw_obj->ptr()->instructions_));
+        reinterpret_cast<RawObject**>(&raw_obj->ptr()->code_));
   } else {
     visitor->add_skipped_code_function(raw_obj);
   }
@@ -505,6 +505,16 @@ intptr_t RawNamespace::VisitNamespacePointers(
 }
 
 
+bool RawCode::ContainsPC(RawObject* raw_obj, uword pc) {
+  uword tags = raw_obj->ptr()->tags_;
+  if (RawObject::ClassIdTag::decode(tags) == kCodeCid) {
+    RawCode* raw_code = reinterpret_cast<RawCode*>(raw_obj);
+    return RawInstructions::ContainsPC(raw_code->ptr()->instructions_, pc);
+  }
+  return false;
+}
+
+
 intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
                                     ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
@@ -546,24 +556,16 @@ intptr_t RawObjectPool::VisitObjectPoolPointers(
 intptr_t RawInstructions::VisitInstructionsPointers(
     RawInstructions* raw_obj, ObjectPointerVisitor* visitor) {
   RawInstructions* obj = raw_obj->ptr();
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return Instructions::InstanceSize(obj->size_);
 }
 
 
-bool RawInstructions::ContainsPC(RawObject* raw_obj, uword pc) {
-  uword tags = raw_obj->ptr()->tags_;
-  if (RawObject::ClassIdTag::decode(tags) == kInstructionsCid) {
-    RawInstructions* raw_instr = reinterpret_cast<RawInstructions*>(raw_obj);
-    uword start_pc =
-        reinterpret_cast<uword>(raw_instr->ptr()) + Instructions::HeaderSize();
-    uword end_pc = start_pc + raw_instr->ptr()->size_;
-    ASSERT(end_pc > start_pc);
-    if ((pc >= start_pc) && (pc < end_pc)) {
-      return true;
-    }
-  }
-  return false;
+bool RawInstructions::ContainsPC(RawInstructions* raw_instr, uword pc) {
+  uword start_pc =
+      reinterpret_cast<uword>(raw_instr->ptr()) + Instructions::HeaderSize();
+  uword end_pc = start_pc + raw_instr->ptr()->size_;
+  ASSERT(end_pc > start_pc);
+  return (pc >= start_pc) && (pc < end_pc);
 }
 
 

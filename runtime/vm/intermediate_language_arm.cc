@@ -223,6 +223,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // R4: Arguments descriptor.
   // R0: Function.
   ASSERT(locs()->in(0).reg() == R0);
+  __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
   __ ldr(R2, FieldAddress(R0, Function::entry_point_offset()));
 
   // R2: instructions entry point.
@@ -2329,7 +2330,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
                       R0,  // instance
                       R3,  // end address
                       R6,
-                      R9);
+                      R10);
   // R0: new object start as a tagged pointer.
   // R3: new object end address.
 
@@ -2346,7 +2347,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // Initialize all array elements to raw_null.
   // R0: new object start as a tagged pointer.
   // R3: new object end address.
-  // R9: iterator which initially points to the start of the variable
+  // R10: iterator which initially points to the start of the variable
   // data area to be initialized.
   // R6: null
   if (num_elements > 0) {
@@ -2360,12 +2361,12 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
       __ LoadImmediate(R7, 0x1);
 #endif  // DEBUG
     }
-    __ AddImmediate(R9, R0, sizeof(RawArray) - kHeapObjectTag);
+    __ AddImmediate(R10, R0, sizeof(RawArray) - kHeapObjectTag);
     if (array_size < (kInlineArraySize * kWordSize)) {
-      __ InitializeFieldsNoBarrierUnrolled(R0, R9, 0, num_elements * kWordSize,
+      __ InitializeFieldsNoBarrierUnrolled(R0, R10, 0, num_elements * kWordSize,
                                            R6, R7);
     } else {
-      __ InitializeFieldsNoBarrier(R0, R9, R3, R6, R7);
+      __ InitializeFieldsNoBarrier(R0, R10, R3, R6, R7);
     }
   }
   __ b(done);
@@ -2837,8 +2838,8 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 compiler->assembler()->CodeSize(),
                                 catch_handler_types_,
                                 needs_stacktrace());
-
   // Restore the pool pointer.
+  __ RestoreCodePointer();
   __ LoadPoolPointer();
 
   if (HasParallelMove()) {
@@ -6686,9 +6687,10 @@ LocationSummary* IndirectGotoInstr::MakeLocationSummary(Zone* zone,
 void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register target_address_reg = locs()->temp_slot(0)->reg();
 
-  // Load from [current frame pointer] + kPcMarkerSlotFromFp.
-  __ ldr(target_address_reg, Address(FP, kPcMarkerSlotFromFp * kWordSize));
-
+  // Offset is relative to entry pc.
+  const intptr_t entry_to_pc_offset = __ CodeSize() + Instr::kPCReadOffset;
+  __ mov(target_address_reg, Operand(PC));
+  __ AddImmediate(target_address_reg, target_address_reg, -entry_to_pc_offset);
   // Add the offset.
   Register offset_reg = locs()->in(0).reg();
   Operand offset_opr =

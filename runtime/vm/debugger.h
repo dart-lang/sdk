@@ -191,7 +191,7 @@ class CodeBreakpoint {
   void Disable();
   bool IsEnabled() const { return is_enabled_; }
 
-  uword OrigStubAddress() const;
+  RawCode* OrigStubAddress() const;
 
  private:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
@@ -215,7 +215,7 @@ class CodeBreakpoint {
   CodeBreakpoint* next_;
 
   RawPcDescriptors::Kind breakpoint_kind_;
-  uword saved_value_;
+  RawCode* saved_value_;
 
   friend class Debugger;
   DISALLOW_COPY_AND_ASSIGN(CodeBreakpoint);
@@ -565,7 +565,7 @@ class Debugger {
   void SignalIsolateEvent(DebuggerEvent::EventType type);
   static void SignalIsolateInterrupted();
 
-  uword GetPatchedStubAddress(uword breakpoint_address);
+  RawCode* GetPatchedStubAddress(uword breakpoint_address);
 
   void PrintBreakpointsToJSONArray(JSONArray* jsarr) const;
   void PrintSettingsToJSONObject(JSONObject* jsobj) const;

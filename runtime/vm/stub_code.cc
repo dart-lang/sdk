@@ -104,10 +104,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
   if (stub.IsNull()) {
     Assembler assembler;
     const char* name = cls.ToCString();
-    uword patch_code_offset = 0;
-    uword entry_patch_offset = 0;
-    StubCode::GenerateAllocationStubForClass(
-        &assembler, cls, &entry_patch_offset, &patch_code_offset);
+    StubCode::GenerateAllocationStubForClass(&assembler, cls);
     stub ^= Code::FinalizeCode(name, &assembler);
     stub.set_owner(cls);
     cls.set_allocation_stub(stub);
@@ -117,12 +114,9 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
       DisassembleToStdout formatter;
       stub.Disassemble(&formatter);
       THR_Print("}\n");
-      const ObjectPool& object_pool = ObjectPool::Handle(
-          Instructions::Handle(stub.instructions()).object_pool());
+      const ObjectPool& object_pool = ObjectPool::Handle(stub.object_pool());
       object_pool.DebugPrint();
     }
-    stub.set_entry_patch_pc_offset(entry_patch_offset);
-    stub.set_patch_code_pc_offset(patch_code_offset);
   }
   return stub.raw();
 }
@@ -155,8 +149,7 @@ RawCode* StubCode::Generate(const char* name,
     DisassembleToStdout formatter;
     code.Disassemble(&formatter);
     THR_Print("}\n");
-    const ObjectPool& object_pool = ObjectPool::Handle(
-        Instructions::Handle(code.instructions()).object_pool());
+    const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
     object_pool.DebugPrint();
   }
   return code.raw();

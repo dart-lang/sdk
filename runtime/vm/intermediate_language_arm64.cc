@@ -219,11 +219,13 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // R4: Arguments descriptor.
   // R0: Function.
   ASSERT(locs()->in(0).reg() == R0);
+  __ LoadFieldFromOffset(CODE_REG, R0, Function::code_offset());
   __ LoadFieldFromOffset(R2, R0, Function::entry_point_offset());
 
   // R2: instructions.
   // R5: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
   __ LoadImmediate(R5, 0);
+  //??
   __ blr(R2);
   compiler->RecordSafepoint(locs());
   // Marks either the continuation point in unoptimized code or the
@@ -2555,6 +2557,7 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 needs_stacktrace());
 
   // Restore the pool pointer.
+  __ RestoreCodePointer();
   __ LoadPoolPointer();
 
   if (HasParallelMove()) {
@@ -5456,8 +5459,14 @@ LocationSummary* IndirectGotoInstr::MakeLocationSummary(Zone* zone,
 void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register target_address_reg = locs()->temp_slot(0)->reg();
 
-  // Load from [current frame pointer] + kPcMarkerSlotFromFp.
-  __ ldr(target_address_reg, Address(FP, kPcMarkerSlotFromFp * kWordSize));
+  // Load code entry point.
+  const intptr_t entry_offset = __ CodeSize();
+  if (Utils::IsInt(21, -entry_offset)) {
+    __ adr(target_address_reg, Immediate(-entry_offset));
+  } else {
+    __ adr(target_address_reg, Immediate(0));
+    __ AddImmediate(target_address_reg, target_address_reg, -entry_offset);
+  }
 
   // Add the offset.
   Register offset_reg = locs()->in(0).reg();

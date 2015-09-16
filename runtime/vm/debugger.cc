@@ -220,6 +220,7 @@ void Breakpoint::PrintJSON(JSONStream* stream) {
 
 void CodeBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&code_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&saved_value_));
 }
 
 
@@ -1113,7 +1114,7 @@ CodeBreakpoint::CodeBreakpoint(const Code& code,
       bpt_location_(NULL),
       next_(NULL),
       breakpoint_kind_(kind),
-      saved_value_(0) {
+      saved_value_(Code::null()) {
   ASSERT(!code.IsNull());
   ASSERT(token_pos_ > 0);
   ASSERT(pc_ != 0);
@@ -1397,7 +1398,9 @@ RawArray* Debugger::DeoptimizeToArray(Isolate* isolate,
   DeoptContext* deopt_context =
       new DeoptContext(frame, code,
                        DeoptContext::kDestIsAllocated,
-                       NULL, NULL);
+                       NULL,
+                       NULL,
+                       true);
   isolate->set_deopt_context(deopt_context);
 
   deopt_context->FillDestFrame();
@@ -3006,13 +3009,13 @@ CodeBreakpoint* Debugger::GetCodeBreakpoint(uword breakpoint_address) {
 }
 
 
-uword Debugger::GetPatchedStubAddress(uword breakpoint_address) {
+RawCode* Debugger::GetPatchedStubAddress(uword breakpoint_address) {
   CodeBreakpoint* bpt = GetCodeBreakpoint(breakpoint_address);
   if (bpt != NULL) {
     return bpt->OrigStubAddress();
   }
   UNREACHABLE();
-  return 0L;
+  return Code::null();
 }
 
 

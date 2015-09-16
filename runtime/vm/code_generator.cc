@@ -674,16 +674,12 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   const Code& target_code = Code::Handle(target_function.CurrentCode());
   // Before patching verify that we are not repeatedly patching to the same
   // target.
-  ASSERT(target_code.EntryPoint() !=
+  ASSERT(target_code.raw() !=
          CodePatcher::GetStaticCallTargetAt(caller_frame->pc(), caller_code));
-  const Instructions& instrs =
-      Instructions::Handle(caller_code.instructions());
-  {
-    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
-    CodePatcher::PatchStaticCallAt(caller_frame->pc(), caller_code,
-                                   target_code.EntryPoint());
-    caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
-  }
+  CodePatcher::PatchStaticCallAt(caller_frame->pc(),
+                                 caller_code,
+                                 target_code);
+  caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
   if (FLAG_trace_patching) {
     OS::PrintErr("PatchStaticCall: patching caller pc %#" Px ""
         " to '%s' new entry point %#" Px " (%s)\n",
@@ -711,11 +707,10 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
-  uword orig_stub =
-      isolate->debugger()->GetPatchedStubAddress(caller_frame->pc());
+  const Code& orig_stub = Code::Handle(
+      isolate->debugger()->GetPatchedStubAddress(caller_frame->pc()));
   isolate->debugger()->SignalBpReached();
-  ASSERT((orig_stub & kSmiTagMask) == kSmiTag);
-  arguments.SetReturn(Smi::Handle(reinterpret_cast<RawSmi*>(orig_stub)));
+  arguments.SetReturn(orig_stub);
 }
 
 
@@ -1440,6 +1435,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
           Instructions::Handle(optimized_code.instructions()).EntryPoint();
       function.AttachCode(original_code);
       frame->set_pc(optimized_entry);
+      frame->set_pc_marker(optimized_code.raw());
     }
   }
 }
@@ -1527,14 +1523,10 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
 
   const Code& current_target_code = Code::Handle(
       isolate, target_function.CurrentCode());
-  const Instructions& instrs = Instructions::Handle(
-      isolate, caller_code.instructions());
-  {
-    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
-    CodePatcher::PatchStaticCallAt(frame->pc(), caller_code,
-                                   current_target_code.EntryPoint());
-    caller_code.SetStaticCallTargetCodeAt(frame->pc(), current_target_code);
-  }
+  CodePatcher::PatchStaticCallAt(frame->pc(),
+                                 caller_code,
+                                 current_target_code);
+  caller_code.SetStaticCallTargetCodeAt(frame->pc(), current_target_code);
   if (FLAG_trace_patching) {
     OS::PrintErr("FixCallersTarget: caller %#" Px " "
         "target '%s' %#" Px " -> %#" Px "\n",
@@ -1564,9 +1556,8 @@ DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
   ASSERT(frame->IsDartFrame());
   const Code& caller_code = Code::Handle(isolate, frame->LookupDartCode());
   ASSERT(!caller_code.IsNull());
-  const uword target =
-      CodePatcher::GetStaticCallTargetAt(frame->pc(), caller_code);
-  const Code& stub = Code::Handle(isolate, Code::LookupCode(target));
+  const Code& stub = Code::Handle(
+      CodePatcher::GetStaticCallTargetAt(frame->pc(), caller_code));
   Class& alloc_class = Class::ZoneHandle(zone);
   alloc_class ^= stub.owner();
   Code& alloc_stub = Code::Handle(isolate, alloc_class.allocation_stub());
@@ -1574,15 +1565,10 @@ DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
     alloc_stub = StubCode::GetAllocationStubForClass(alloc_class);
     ASSERT(!CodePatcher::IsEntryPatched(alloc_stub));
   }
-  const Instructions& instrs =
-      Instructions::Handle(isolate, caller_code.instructions());
-  {
-    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
-    CodePatcher::PatchStaticCallAt(frame->pc(),
-                                   caller_code,
-                                   alloc_stub.EntryPoint());
-    caller_code.SetStubCallTargetCodeAt(frame->pc(), alloc_stub);
-  }
+  CodePatcher::PatchStaticCallAt(frame->pc(),
+                                 caller_code,
+                                 alloc_stub);
+  caller_code.SetStubCallTargetCodeAt(frame->pc(), alloc_stub);
   if (FLAG_trace_patching) {
     OS::PrintErr("FixAllocationStubTarget: caller %#" Px " alloc-class %s "
         " -> %#" Px "\n",
@@ -1636,11 +1622,11 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
       Instructions::Handle(zone, optimized_code.instructions());
   {
     WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
-    CodePatcher::InsertCallAt(pc, lazy_deopt_jump);
+    CodePatcher::InsertDeoptimizationCallAt(pc, lazy_deopt_jump);
   }
   if (FLAG_trace_patching) {
     const String& name = String::Handle(function.name());
-    OS::PrintErr("InsertCallAt: %" Px " to %" Px " for %s\n", pc,
+    OS::PrintErr("InsertDeoptimizationCallAt: %" Px " to %" Px " for %s\n", pc,
                  lazy_deopt_jump, name.ToCString());
   }
   // Mark code as dead (do not GC its embedded objects).
@@ -1693,7 +1679,9 @@ static void CopySavedRegisters(uword saved_registers_address,
 // Copies saved registers and caller's frame into temporary buffers.
 // Returns the stack size of unoptimized frame.
 DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
-                          1, uword saved_registers_address) {
+                          2,
+                          uword saved_registers_address,
+                          uword is_lazy_deopt) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   StackZone zone(thread);
@@ -1719,9 +1707,12 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
 
   // Create the DeoptContext.
   DeoptContext* deopt_context =
-      new DeoptContext(caller_frame, optimized_code,
+      new DeoptContext(caller_frame,
+                       optimized_code,
                        DeoptContext::kDestIsOriginalFrame,
-                       fpu_registers, cpu_registers);
+                       fpu_registers,
+                       cpu_registers,
+                       is_lazy_deopt != 0);
   isolate->set_deopt_context(deopt_context);
 
   // Stack size (FP - SP) in bytes.

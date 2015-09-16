@@ -13,21 +13,21 @@
 
 namespace dart {
 
-uword CodeBreakpoint::OrigStubAddress() const {
+RawCode* CodeBreakpoint::OrigStubAddress() const {
   return saved_value_;
 }
 
 
 void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
-  uword stub_target = 0;
+  Code& stub_target = Code::Handle();
   switch (breakpoint_kind_) {
     case RawPcDescriptors::kIcCall:
     case RawPcDescriptors::kUnoptStaticCall:
-      stub_target = StubCode::ICCallBreakpoint_entry()->EntryPoint();
+      stub_target = StubCode::ICCallBreakpoint_entry()->code();
       break;
     case RawPcDescriptors::kRuntimeCall: {
-      stub_target = StubCode::RuntimeCallBreakpoint_entry()->EntryPoint();
+      stub_target = StubCode::RuntimeCallBreakpoint_entry()->code();
       break;
     }
     default:
@@ -47,7 +47,8 @@ void CodeBreakpoint::RestoreCode() {
     case RawPcDescriptors::kIcCall:
     case RawPcDescriptors::kUnoptStaticCall:
     case RawPcDescriptors::kRuntimeCall: {
-      CodePatcher::PatchPoolPointerCallAt(pc_, code, saved_value_);
+      CodePatcher::PatchPoolPointerCallAt(
+          pc_, code, Code::Handle(saved_value_));
       break;
     }
     default:

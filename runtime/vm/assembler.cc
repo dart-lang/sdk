@@ -242,8 +242,9 @@ const Code::Comments& Assembler::GetCodeComments() const {
 }
 
 
-intptr_t ObjectPoolWrapper::AddObject(const Object& obj) {
-  return AddObject(ObjectPool::Entry(&obj), kNotPatchable);
+intptr_t ObjectPoolWrapper::AddObject(const Object& obj,
+                                      Patchability patchable) {
+  return AddObject(ObjectPool::Entry(&obj), patchable);
 }
 
 
@@ -287,8 +288,9 @@ intptr_t ObjectPoolWrapper::FindObject(ObjectPool::Entry entry,
 }
 
 
-intptr_t ObjectPoolWrapper::FindObject(const Object& obj) {
-  return FindObject(ObjectPool::Entry(&obj), kNotPatchable);
+intptr_t ObjectPoolWrapper::FindObject(const Object& obj,
+                                       Patchability patchable) {
+  return FindObject(ObjectPool::Entry(&obj), patchable);
 }
 
 

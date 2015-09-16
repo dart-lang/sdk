@@ -22,9 +22,7 @@ namespace dart {
 
 bool StackFrame::IsStubFrame() const {
   ASSERT(!(IsEntryFrame() || IsExitFrame()));
-  uword saved_pc =
-      *(reinterpret_cast<uword*>(fp() + (kPcMarkerSlotFromFp * kWordSize)));
-  return (saved_pc == 0);
+  return (LookupDartCode() == Code::null());
 }
 
 
@@ -175,8 +173,11 @@ RawCode* StackFrame::LookupDartCode() const {
   // that the code is called while a GC is in progress, that is ok.
   NoSafepointScope no_safepoint;
   RawCode* code = GetCodeObject();
-  ASSERT(code == Code::null() || code->ptr()->owner_ != Function::null());
-  return code;
+  if ((code != Code::null()) &&
+      (code->ptr()->owner_->GetClassId() == kFunctionCid)) {
+    return code;
+  }
+  return Code::null();
 }
 
 
@@ -187,15 +188,10 @@ RawCode* StackFrame::GetCodeObject() const {
   NoSafepointScope no_safepoint;
   const uword pc_marker =
       *(reinterpret_cast<uword*>(fp() + (kPcMarkerSlotFromFp * kWordSize)));
-  if (pc_marker != 0) {
-    const uword entry_point =
-        (pc_marker - Assembler::EntryPointToPcMarkerOffset());
-    RawInstructions* instr = Instructions::FromEntryPoint(entry_point);
-    if (instr != Instructions::null()) {
-      return instr->ptr()->code_;
-    }
-  }
-  return Code::null();
+  ASSERT(pc_marker != 0);
+  ASSERT(reinterpret_cast<RawObject*>(pc_marker)->GetClassId() == kCodeCid ||
+         reinterpret_cast<RawObject*>(pc_marker) == Object::null());
+  return reinterpret_cast<RawCode*>(pc_marker);
 }
 
 
