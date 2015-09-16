@@ -42,7 +42,7 @@ class HeapPage {
   }
 
   uword object_start() const {
-    return (reinterpret_cast<uword>(this) + ObjectStartOffset());
+    return memory_->start() + ObjectStartOffset();
   }
   uword object_end() const {
     return object_end_;
@@ -339,6 +339,8 @@ class PageSpace {
   uword* EndAddress() { return &bump_end_; }
   static intptr_t top_offset() { return OFFSET_OF(PageSpace, bump_top_); }
   static intptr_t end_offset() { return OFFSET_OF(PageSpace, bump_end_); }
+
+  void SetupInstructionsSnapshotPage(void* pointer, uword size);
 
  private:
   // Ids for time and data records in Heap::GCStats.

@@ -654,7 +654,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
          func.raw()->to_snapshot());
     READ_OBJECT_FIELDS(func,
                        func.raw()->from(), toobj,
-                       kAsReference);
+                       kAsInlinedObject);
     if (!reader->snapshot_code()) {
       // Initialize all fields that are not part of the snapshot.
       if (!is_optimized) {
@@ -662,7 +662,11 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
       }
       func.ClearCode();
     } else {
-      // TODO(rmacnak): Fix entry_point_.
+      // Fix entry point.
+      (*reader->CodeHandle()) = func.CurrentCode();
+      uword new_entry = (*reader->CodeHandle()).EntryPoint();
+      ASSERT(Dart::vm_isolate()->heap()->CodeContains(new_entry));
+      func.StoreNonPointer(&func.raw_ptr()->entry_point_, new_entry);
     }
     return func.raw();
   } else {
@@ -722,7 +726,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
     RawObject** toobj =
         writer->snapshot_code() ? to() :
         (is_optimized ? to_optimized_snapshot() : to_snapshot());
-    SnapshotWriterVisitor visitor(writer);
+    SnapshotWriterVisitor visitor(writer, kAsInlinedObject);
     visitor.VisitPointers(from(), toobj);
   } else {
     writer->WriteFunctionId(this, owner_is_class);
@@ -1198,9 +1202,12 @@ RawCode* Code::ReadFrom(SnapshotReader* reader,
   // Set all the object fields.
   READ_OBJECT_FIELDS(result,
                      result.raw()->from(), result.raw()->to(),
-                     kAsReference);
+                     kAsInlinedObject);
 
-  // TODO(rmacnak): Fix entry_point_.
+  // Fix entry point.
+  uword new_entry = result.EntryPoint();
+  ASSERT(Dart::vm_isolate()->heap()->CodeContains(new_entry));
+  result.StoreNonPointer(&result.raw_ptr()->entry_point_, new_entry);
 
   return result.raw();
 }
@@ -1234,7 +1241,7 @@ void RawCode::WriteTo(SnapshotWriter* writer,
   writer->Write<int32_t>(ptr()->lazy_deopt_pc_offset_);
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsInlinedObject);
   visitor.VisitPointers(from(), to());
 
   writer->SetInstructionsCode(ptr()->instructions_, this);
@@ -1255,12 +1262,6 @@ RawInstructions* Instructions::ReadFrom(SnapshotReader* reader,
                                reader->GetInstructionsAt(offset, full_tags));
   reader->AddBackRef(object_id, &result, kIsDeserialized);
 
-  {
-    // TODO(rmacnak): Drop after calling convention change.
-    Code::CheckedHandle(reader->ReadObjectImpl(kAsReference));
-    ObjectPool::CheckedHandle(reader->ReadObjectImpl(kAsReference));
-  }
-
   return result.raw();
 }
 
@@ -1271,22 +1272,19 @@ void RawInstructions::WriteTo(SnapshotWriter* writer,
   ASSERT(writer->snapshot_code());
   ASSERT(kind == Snapshot::kFull);
 
-  {
-    // TODO(rmacnak): Drop after calling convention change.
-    writer->WriteInlinedObjectHeader(object_id);
-    writer->WriteVMIsolateObject(kInstructionsCid);
-    writer->WriteTags(writer->GetObjectTags(this));
-  }
+  writer->WriteInlinedObjectHeader(object_id);
+  writer->WriteVMIsolateObject(kInstructionsCid);
+  writer->WriteTags(writer->GetObjectTags(this));
 
-  writer->Write<intptr_t>(writer->GetObjectTags(this));  // For sanity check.
+  // Instructions will be written pre-marked and in the VM heap. Write out
+  // the tags we expect to find when reading the snapshot for a sanity check
+  // that our offsets/alignment didn't get out of sync.
+  uword written_tags = writer->GetObjectTags(this);
+  written_tags = RawObject::VMHeapObjectTag::update(true, written_tags);
+  written_tags = RawObject::MarkBit::update(true, written_tags);
+  writer->Write<intptr_t>(written_tags);
 
-  // Temporarily restore the object header for writing to the text section.
-  // TODO(asiva): Don't mutate object headers during serialization.
-  uword object_tags = writer->GetObjectTags(this);
-  uword snapshot_tags = ptr()->tags_;
-  ptr()->tags_ = object_tags;
   writer->Write<int32_t>(writer->GetInstructionsId(this));
-  ptr()->tags_ = snapshot_tags;
 
   {
     // TODO(rmacnak): Drop after calling convention change.

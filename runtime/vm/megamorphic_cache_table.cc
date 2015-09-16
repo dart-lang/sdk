@@ -57,6 +57,10 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
   const Code& code =
       Code::Handle(StubCode::Generate("_stub_MegamorphicMiss",
                                       StubCode::GenerateMegamorphicMissStub));
+  // When FLAG_lazy_dispatchers=false, this stub can be on the stack during
+  // exceptions, but it has a corresponding function so IsStubCode is false and
+  // it is considered in the search for an exception handler.
+  code.set_exception_handlers(Object::empty_exception_handlers());
   const Class& cls =
       Class::Handle(Type::Handle(Type::Function()).type_class());
   const Function& function =

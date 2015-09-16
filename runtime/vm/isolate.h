@@ -261,6 +261,9 @@ class Isolate : public BaseIsolate {
   // TODO(koda): Move to Thread.
   static uword GetCurrentStackPointer();
 
+  void SetupInstructionsSnapshotPage(
+      const uint8_t* instructions_snapshot_buffer);
+
   // Returns true if any of the interrupts specified by 'interrupt_bits' are
   // currently scheduled for this isolate, but leaves them unchanged.
   //

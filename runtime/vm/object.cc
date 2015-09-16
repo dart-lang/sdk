@@ -115,7 +115,6 @@ Smi* Object::smi_illegal_cid_ = NULL;
 LanguageError* Object::snapshot_writer_error_ = NULL;
 LanguageError* Object::branch_offset_error_ = NULL;
 Array* Object::vm_isolate_snapshot_object_table_ = NULL;
-const uint8_t* Object::instructions_snapshot_buffer_ = NULL;
 
 RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -832,11 +831,16 @@ class PremarkingVisitor : public ObjectVisitor {
   explicit PremarkingVisitor(Isolate* isolate) : ObjectVisitor(isolate) {}
 
   void VisitObject(RawObject* obj) {
-    ASSERT(!obj->IsMarked());
     // Free list elements should never be marked.
     if (!obj->IsFreeListElement()) {
       ASSERT(obj->IsVMHeapObject());
-      obj->SetMarkBitUnsynchronized();
+      if (obj->IsMarked()) {
+        // Precompiled instructions are loaded pre-marked.
+        ASSERT(Dart::IsRunningPrecompiledCode());
+        ASSERT(obj->IsInstructions());
+      } else {
+        obj->SetMarkBitUnsynchronized();
+      }
     }
   }
 };

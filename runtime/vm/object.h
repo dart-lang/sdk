@@ -488,12 +488,6 @@ class Object {
     return *vm_isolate_snapshot_object_table_;
   }
   static void InitVmIsolateSnapshotObjectTable(intptr_t len);
-  static const uint8_t* instructions_snapshot_buffer() {
-    return instructions_snapshot_buffer_;
-  }
-  static void set_instructions_snapshot_buffer(const uint8_t* buffer) {
-    instructions_snapshot_buffer_ = buffer;
-  }
 
   static RawClass* class_class() { return class_class_; }
   static RawClass* dynamic_class() { return dynamic_class_; }
@@ -819,7 +813,6 @@ class Object {
   static LanguageError* snapshot_writer_error_;
   static LanguageError* branch_offset_error_;
   static Array* vm_isolate_snapshot_object_table_;
-  static const uint8_t* instructions_snapshot_buffer_;
 
   friend void ClassTable::Register(const Class& cls);
   friend void RawObject::Validate(Isolate* isolate) const;
@@ -3776,6 +3769,7 @@ class Instructions : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Instructions, Object);
   friend class Class;
   friend class Code;
+  friend class InstructionsWriter;
 };
 
 

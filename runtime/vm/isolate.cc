@@ -892,6 +892,20 @@ uword Isolate::GetCurrentStackPointer() {
 }
 
 
+void Isolate::SetupInstructionsSnapshotPage(
+    const uint8_t* instructions_snapshot_buffer) {
+  InstructionsSnapshot snapshot(instructions_snapshot_buffer);
+#if defined(DEBUG)
+  OS::Print("Precompiled instructions are at [0x%" Px ", 0x%" Px ")\n",
+            reinterpret_cast<uword>(snapshot.instructions_start()),
+            reinterpret_cast<uword>(snapshot.instructions_start()) +
+            snapshot.instructions_size());
+#endif
+  heap_->SetupInstructionsSnapshotPage(snapshot.instructions_start(),
+                                       snapshot.instructions_size());
+}
+
+
 void Isolate::set_debugger_name(const char* name) {
   free(debugger_name_);
   debugger_name_ = strdup(name);

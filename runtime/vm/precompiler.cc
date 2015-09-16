@@ -211,11 +211,13 @@ void Precompiler::AddRoots() {
     { "dart:_builtin", "::", "_getUriBaseClosure" },
     { "dart:_builtin", "::", "_resolveUri" },
     { "dart:_builtin", "::", "_setWorkingDirectory" },
+    { "dart:_builtin", "::", "_loadDataAsync" },
     { "dart:async", "::", "_setScheduleImmediateClosure" },
     { "dart:core", "_InternalError", "_InternalError." },
     { "dart:core", "_InvocationMirror", "_allocateInvocationMirror" },
     { "dart:io", "::", "_makeUint8ListView" },
     { "dart:io", "::", "_makeDatagram" },
+    { "dart:io", "::", "_setupHooks" },
     { "dart:io", "CertificateException", "CertificateException." },
     { "dart:io", "HandshakeException", "HandshakeException." },
     { "dart:io", "TlsException", "TlsException." },
@@ -228,6 +230,7 @@ void Precompiler::AddRoots() {
     { "dart:io", "_SecureFilterImpl", "get:SIZE" },
     { "dart:isolate", "::", "_getIsolateScheduleImmediateClosure" },
     { "dart:isolate", "::", "_startMainIsolate" },
+    { "dart:isolate", "::", "_setupHooks" },
     { "dart:isolate", "_RawReceivePortImpl", "_handleMessage" },
     { "dart:isolate", "_RawReceivePortImpl", "_lookupHandler" },
     { "dart:vmservice", "::", "_registerIsolate" },
@@ -444,7 +447,7 @@ void Precompiler::AddField(const Field& field) {
       if (FLAG_trace_precompiler) {
         THR_Print("Precompiling initializer for %s\n", field.ToCString());
       }
-      ASSERT(Object::instructions_snapshot_buffer() == NULL);
+      ASSERT(!Dart::IsRunningPrecompiledCode());
       field.SetStaticValue(Instance::Handle(field.SavedInitialStaticValue()));
       Compiler::CompileStaticInitializer(field);
 

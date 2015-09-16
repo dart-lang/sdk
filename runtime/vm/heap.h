@@ -236,6 +236,10 @@ class Heap {
 
   bool ShouldPretenure(intptr_t class_id) const;
 
+  void SetupInstructionsSnapshotPage(void* pointer, uword size) {
+    old_space_.SetupInstructionsSnapshotPage(pointer, size);
+  }
+
  private:
   class GCStats : public ValueObject {
    public:

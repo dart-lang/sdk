@@ -44,6 +44,7 @@ Isolate* Dart::vm_isolate_ = NULL;
 ThreadPool* Dart::thread_pool_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 ReadOnlyHandles* Dart::predefined_handles_ = NULL;
+const uint8_t* Dart::instructions_snapshot_buffer_ = NULL;
 
 // Structure for managing read-only global handles allocation used for
 // creating global read-only handles that are pre created and initialized
@@ -144,6 +145,9 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       StubCode::InitOnce();
     }
     if (vm_isolate_snapshot != NULL) {
+      if (instructions_snapshot != NULL) {
+        vm_isolate_->SetupInstructionsSnapshotPage(instructions_snapshot);
+      }
       const Snapshot* snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
       if (snapshot == NULL) {
         return "Invalid vm isolate snapshot seen.";
@@ -313,7 +317,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     }
     IsolateSnapshotReader reader(snapshot->content(),
                                  snapshot->length(),
-                                 Object::instructions_snapshot_buffer(),
+                                 Dart::instructions_snapshot_buffer(),
                                  T);
     const Error& error = Error::Handle(reader.ReadFullSnapshot());
     if (!error.IsNull()) {
@@ -332,13 +336,20 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   }
 
   Object::VerifyBuiltinVtables();
+#if defined(DEBUG)
+  I->heap()->Verify(kForbidMarked);
+#endif
 
   {
     TimelineDurationScope tds(I, I->GetIsolateStream(), "StubCode::Init");
     StubCode::Init(I);
   }
 
-  MegamorphicCacheTable::InitMissHandler(I);
+  // When running precompiled, the megamorphic miss function/code comes from the
+  // snapshot.
+  if (!Dart::IsRunningPrecompiledCode()) {
+    MegamorphicCacheTable::InitMissHandler(I);
+  }
   if (snapshot_buffer == NULL) {
     if (!I->object_store()->PreallocateObjects()) {
       return I->object_store()->sticky_error();

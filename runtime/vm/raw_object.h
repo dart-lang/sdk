@@ -410,6 +410,9 @@ class RawObject {
   bool IsFunction() {
     return ((GetClassId() == kFunctionCid));
   }
+  bool IsInstructions() {
+    return ((GetClassId() == kInstructionsCid));
+  }
 
   intptr_t Size() const {
     uword tags = ptr()->tags_;
@@ -585,6 +588,7 @@ class RawObject {
   friend class RetainingPathVisitor;  // GetClassId
   friend class SkippedCodeFunctions;  // StorePointer
   friend class InstructionsReader;  // tags_ check
+  friend class InstructionsWriter;
   friend class SnapshotReader;
   friend class SnapshotWriter;
   friend class String;
@@ -1100,6 +1104,7 @@ class RawInstructions : public RawObject {
   friend class SkippedCodeFunctions;
   friend class Function;
   friend class InstructionsReader;
+  friend class InstructionsWriter;
 };
 
 
