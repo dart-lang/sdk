@@ -501,6 +501,20 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
   }
 
+  ResolutionResult visitAssert(Assert node) {
+    if (!compiler.enableAssertMessage) {
+      if (node.hasMessage) {
+        compiler.reportError(node, MessageKind.EXPERIMENTAL_ASSERT_MESSAGE);
+      }
+    }
+    // TODO(sra): We could completely ignore the assert in production mode if we
+    // didn't need it to be resolved for type checking.
+    registry.registerAssert(node.hasMessage);
+    visit(node.condition);
+    visit(node.message);
+    return const NoneResult();
+  }
+
   ResolutionResult visitCascade(Cascade node) {
     visit(node.expression);
     return const NoneResult();
@@ -1526,34 +1540,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     registry.registerSendStructure(node,
         new InvokeStructure(const DynamicAccess.expression(), selector));
     return const NoneResult();
-  }
-
-  /// Handle a, possibly invalid, assertion, like `assert(cond)` or `assert()`.
-  ResolutionResult handleAssert(Send node) {
-    assert(invariant(node, node.isCall,
-        message: "Unexpected assert: $node"));
-    // If this send is of the form "assert(expr);", then
-    // this is an assertion.
-
-    CallStructure callStructure =
-        resolveArguments(node.argumentsNode).callStructure;
-    SendStructure sendStructure = const AssertStructure();
-    if (callStructure.argumentCount != 1) {
-      compiler.reportError(
-          node.selector,
-          MessageKind.WRONG_NUMBER_OF_ARGUMENTS_FOR_ASSERT,
-          {'argumentCount': callStructure.argumentCount});
-      sendStructure = const InvalidAssertStructure();
-    } else if (callStructure.namedArgumentCount != 0) {
-      compiler.reportError(
-          node.selector,
-          MessageKind.ASSERT_IS_GIVEN_NAMED_ARGUMENTS,
-          {'argumentCount': callStructure.namedArgumentCount});
-      sendStructure = const InvalidAssertStructure();
-    }
-    registry.registerAssert(node);
-    registry.registerSendStructure(node, sendStructure);
-    return const AssertResult();
   }
 
   /// Handle access of a property of [name] on `this`, like `this.name` and
@@ -3033,10 +3019,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       return handleExpressionInvoke(node);
     }
     String text = selector.source;
-    if (text == 'assert') {
-      // `assert()`.
-      return handleAssert(node);
-    } else if (text == 'this') {
+    if (text == 'this') {
       // `this()`.
       return handleThisAccess(node);
     }

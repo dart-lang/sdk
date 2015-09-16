@@ -35,35 +35,6 @@ abstract class SendStructure<R, A> extends SemanticSendStructure<R, A> {
   R dispatch(SemanticSendVisitor<R, A> visitor, Send send, A arg);
 }
 
-/// The structure for a [Send] of the form `assert(e)`.
-class AssertStructure<R, A> implements SendStructure<R, A> {
-  const AssertStructure();
-
-  R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
-    return visitor.visitAssert(
-        node,
-        node.arguments.single,
-        arg);
-  }
-
-  String toString() => 'assert';
-}
-
-/// The structure for a [Send] of the form an `assert` with less or more than
-/// one argument.
-class InvalidAssertStructure<R, A> implements SendStructure<R, A> {
-  const InvalidAssertStructure();
-
-  R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
-    return visitor.errorInvalidAssert(
-        node,
-        node.argumentsNode,
-        arg);
-  }
-
-  String toString() => 'invalid assert';
-}
-
 /// The structure for a [Send] of the form `a ?? b`.
 class IfNullStructure<R, A> implements SendStructure<R, A> {
   const IfNullStructure();

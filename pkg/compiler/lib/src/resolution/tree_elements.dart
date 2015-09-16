@@ -72,7 +72,6 @@ abstract class TreeElements {
   void setCurrentTypeMask(ForIn node, TypeMask mask);
   void setConstant(Node node, ConstantExpression constant);
   ConstantExpression getConstant(Node node);
-  bool isAssert(Send send);
 
   /// Returns the [FunctionElement] defined by [node].
   FunctionElement getFunctionDefinition(FunctionExpression node);
@@ -141,7 +140,6 @@ class TreeElementMapping extends TreeElements {
   Map<VariableElement, List<Node>> _potentiallyMutatedInClosure;
   Map<Node, Map<VariableElement, List<Node>>> _accessedByClosureIn;
   Setlet<Element> _elements;
-  Setlet<Send> _asserts;
   Maplet<Send, SendStructure> _sendStructureMap;
   Setlet<DartType> _requiredTypes;
   bool containsTryStatement = false;
@@ -411,17 +409,6 @@ class TreeElementMapping extends TreeElements {
     if (_constants != null) {
       _constants.forEach(f);
     }
-  }
-
-  void setAssert(Send node) {
-    if (_asserts == null) {
-      _asserts = new Setlet<Send>();
-    }
-    _asserts.add(node);
-  }
-
-  bool isAssert(Send node) {
-    return _asserts != null && _asserts.contains(node);
   }
 
   FunctionElement getFunctionDefinition(FunctionExpression node) {

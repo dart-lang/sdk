@@ -79,8 +79,9 @@ runTests(List<TestEntry> tests) {
             Expect.fail('Expected:\n$expected\nbut found\n$found');
           }
         }
-      } catch (e) {
+      } catch (e, st) {
         print(e);
+        print(st);
         Expect.fail('The following test failed to compile:\n'
                     '${formatTest(files)}');
       }

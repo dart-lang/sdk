@@ -191,6 +191,7 @@ abstract class Compiler implements DiagnosticListener {
   final bool dumpInfo;
   final bool useContentSecurityPolicy;
   final bool enableExperimentalMirrors;
+  final bool enableAssertMessage;
 
   /**
    * The maximum size of a concrete type before it widens to dynamic during
@@ -524,6 +525,7 @@ abstract class Compiler implements DiagnosticListener {
             this.fatalWarnings: false,
             bool hasIncrementalSupport: false,
             this.enableExperimentalMirrors: false,
+            this.enableAssertMessage: false,
             this.allowNativeExtensions: false,
             this.generateCodeWithCompileTimeErrors: false,
             this.testMode: false,

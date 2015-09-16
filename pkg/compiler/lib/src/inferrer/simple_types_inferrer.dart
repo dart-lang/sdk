@@ -1574,20 +1574,6 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   @override
-  T handleAssert(ast.Send node, ast.Node expression) {
-    js.JavaScriptBackend backend = compiler.backend;
-    Element element = backend.assertMethod;
-    ArgumentsTypes<T> arguments =
-        new ArgumentsTypes<T>(<T>[expression.accept(this)], null);
-    return handleStaticSend(
-        node,
-        new Selector.fromElement(element),
-        null,
-        element,
-        arguments);
-  }
-
-  @override
   T handleTypeLiteralInvoke(ast.NodeList arguments) {
     // This is reached when users forget to put a `new` in front of a type
     // literal. The emitter will generate an actual call (even though it is
