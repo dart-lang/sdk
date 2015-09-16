@@ -6,6 +6,7 @@ library test.src.task.html_test;
 
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/html.dart';
+import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:unittest/unittest.dart';
@@ -294,9 +295,7 @@ class ParseHtmlTaskTest extends AbstractContextTest {
   }
 
   test_perform() {
-    AnalysisTarget target = newSource(
-        '/test.html',
-        r'''
+    String code = r'''
 <!DOCTYPE html>
 <html>
   <head>
@@ -306,10 +305,34 @@ class ParseHtmlTaskTest extends AbstractContextTest {
     <h1 Test>
   </body>
 </html>
-''');
+''';
+    AnalysisTarget target = newSource('/test.html', code);
     computeResult(target, HTML_DOCUMENT);
     expect(task, isParseHtmlTask);
     expect(outputs[HTML_DOCUMENT], isNotNull);
     expect(outputs[HTML_DOCUMENT_ERRORS], isNotEmpty);
+    // LINE_INFO
+    {
+      LineInfo lineInfo = outputs[LINE_INFO];
+      expect(lineInfo, isNotNull);
+      {
+        int offset = code.indexOf('<!DOCTYPE');
+        LineInfo_Location location = lineInfo.getLocation(offset);
+        expect(location.lineNumber, 1);
+        expect(location.columnNumber, 1);
+      }
+      {
+        int offset = code.indexOf('<html>');
+        LineInfo_Location location = lineInfo.getLocation(offset);
+        expect(location.lineNumber, 2);
+        expect(location.columnNumber, 1);
+      }
+      {
+        int offset = code.indexOf('<title>');
+        LineInfo_Location location = lineInfo.getLocation(offset);
+        expect(location.lineNumber, 4);
+        expect(location.columnNumber, 5);
+      }
+    }
   }
 }

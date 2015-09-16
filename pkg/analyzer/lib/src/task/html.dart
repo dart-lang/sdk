@@ -13,7 +13,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
-import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
@@ -280,7 +279,7 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
       'ParseHtmlTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[HTML_DOCUMENT, HTML_DOCUMENT_ERRORS]);
+      <ResultDescriptor>[HTML_DOCUMENT, HTML_DOCUMENT_ERRORS, LINE_INFO]);
 
   /**
    * Initialize a newly created task to access the content of the source
@@ -312,10 +311,14 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
         new AnalysisError(
             target.source, 0, 0, ScannerErrorCode.UNABLE_GET_CONTENT, [message])
       ];
+      outputs[LINE_INFO] = new LineInfo(<int>[0]);
     } else {
       HtmlParser parser = new HtmlParser(content, generateSpans: true);
       parser.compatMode = 'quirks';
       Document document = parser.parse();
+      //
+      // Convert errors.
+      //
       List<ParseError> parseErrors = parser.errors;
       List<AnalysisError> errors = <AnalysisError>[];
       for (ParseError parseError in parseErrors) {
@@ -323,9 +326,12 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
         errors.add(new AnalysisError(target.source, span.start.offset,
             span.length, HtmlErrorCode.PARSE_ERROR, [parseError.message]));
       }
-
+      //
+      // Record outputs.
+      //
       outputs[HTML_DOCUMENT] = document;
       outputs[HTML_DOCUMENT_ERRORS] = errors;
+      outputs[LINE_INFO] = _computeLineInfo(content);
     }
   }
 
@@ -344,6 +350,19 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
   static ParseHtmlTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ParseHtmlTask(context, target);
+  }
+
+  /**
+   * Compute [LineInfo] for the given [content].
+   */
+  static LineInfo _computeLineInfo(String content) {
+    List<int> lineStarts = <int>[0];
+    for (int index = 0; index < content.length; index++) {
+      if (content.codeUnitAt(index) == 0x0A) {
+        lineStarts.add(index + 1);
+      }
+    }
+    return new LineInfo(lineStarts);
   }
 }
 
