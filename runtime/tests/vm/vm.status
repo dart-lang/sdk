@@ -29,6 +29,9 @@ cc/ThreadInterrupterHigh: Skip
 cc/ThreadInterrupterMedium: Skip
 cc/ThreadInterrupterLow: Skip
 cc/Service_Profile: Skip
+cc/Dart2JSCompilerStats: Skip
+cc/CorelibCompilerStats: Skip
+
 
 [ $system == linux ]
 cc/ThreadInterrupterHigh: Skip
