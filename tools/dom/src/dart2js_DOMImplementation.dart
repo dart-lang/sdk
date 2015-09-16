@@ -83,7 +83,7 @@ class _LocationCrossFrame implements LocationBase {
   // properly.  Its fields and methods can only be accessed via JavaScript.
   var _location;
 
-  void set href(String val) => _setHref(_location, val);
+  set href(String val) => _setHref(_location, val);
   static void _setHref(location, val) {
     JS('void', '#.href = #', location, val);
   }

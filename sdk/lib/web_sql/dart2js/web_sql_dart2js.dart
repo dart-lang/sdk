@@ -228,7 +228,7 @@ class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableList
   // Map is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 

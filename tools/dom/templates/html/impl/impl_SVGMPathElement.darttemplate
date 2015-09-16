@@ -1,0 +1,15 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+@DocsEditable()
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$!MEMBERS
+$if DARTIUM
+  // Override these methods for Dartium _SVGMPathElement can't be abstract.
+  AnimatedString get href => wrap_jso(_blink.BlinkSVGMPathElement.instance.href_Getter_(unwrap_jso(this)));
+$endif
+}
+

@@ -568,7 +568,7 @@ LayoutTests/fast/canvas/alpha_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-arc-negative-radius_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-as-image-incremental-repaint_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/canvas-blending-text_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/canvas-currentTransform_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-currentTransform_t01: RuntimeError # Feature is behind a flag.
 LayoutTests/fast/canvas/canvas-empty-image-pattern_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-getImageData-invalid_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-getImageData-large-crash_t01: RuntimeError # Please triage this failure
@@ -778,7 +778,6 @@ LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-port_t01: RuntimeError
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-protocol_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-search_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-autofocus_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLDialogElement/dialog-return-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unfocusable_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unselectable_t01: RuntimeError # Please triage this failure
@@ -824,7 +823,6 @@ LayoutTests/fast/dom/Range/range-expand_t01: RuntimeError # Please triage this f
 LayoutTests/fast/dom/Range/range-insertNode-separate-endContainer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/range-insertNode-splittext_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/SelectorAPI/dumpNodeList-almost-strict_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/TreeWalker/TreeWalker-basic_t01: RuntimeError # Please triage this failure
@@ -1254,7 +1252,6 @@ WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-th
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/dom/documents/dom-tree-accessors/Document.getElementsByClassName-null_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-getter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-setter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-namespace_t01: RuntimeError # Please triage this failure
@@ -1586,7 +1583,7 @@ LayoutTests/fast/canvas/canvas-composite-image_t01: Pass, RuntimeError # Please 
 LayoutTests/fast/canvas/canvas-composite-text-alpha_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-css-crazy_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-currentColor_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/canvas-currentTransform_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-currentTransform_t01: RuntimeError # Feature is not implemented.
 LayoutTests/fast/canvas/canvas-drawImage-incomplete_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-ellipse-360-winding_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-ellipse-negative-radius_t01: RuntimeError # Please triage this failure
@@ -2010,7 +2007,6 @@ LayoutTests/fast/dom/HTMLDialogElement/dialog-autofocus_t01: RuntimeError # Plea
 LayoutTests/fast/dom/HTMLDialogElement/dialog-close-event_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-enabled_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-open_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLDialogElement/dialog-return-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-show-modal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-does-not-match-disabled-selector_t01: RuntimeError # Please triage this failure
@@ -2115,7 +2111,6 @@ LayoutTests/fast/dom/Range/range-insertNode-separate-endContainer_t01: RuntimeEr
 LayoutTests/fast/dom/Range/range-insertNode-splittext_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/caseTagX_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/SelectorAPI/dumpNodeList-almost-strict_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-insert-import-rule-to-shadow-stylesheets_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Please triage this failure
@@ -2887,7 +2882,6 @@ WebPlatformTest/html-templates/template-element/template-content_t01: RuntimeErr
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/dom/documents/dom-tree-accessors/Document.getElementsByClassName-null_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-getter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-setter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-namespace_t01: RuntimeError # Please triage this failure
@@ -3153,7 +3147,7 @@ LayoutTests/fast/canvas/canvas-blending-pattern-over-pattern_t01: RuntimeError #
 LayoutTests/fast/canvas/canvas-blending-shadow_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-blending-text_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-blending-transforms_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/canvas-currentTransform_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-currentTransform_t01: RuntimeError # Feature is not implemented
 LayoutTests/fast/canvas/canvas-drawImage-scaled-copy-to-self_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-ellipse-360-winding_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-ellipse-negative-radius_t01: RuntimeError # Please triage this failure
@@ -3457,7 +3451,6 @@ LayoutTests/fast/dom/HTMLDialogElement/dialog-autofocus_t01: RuntimeError # Plea
 LayoutTests/fast/dom/HTMLDialogElement/dialog-close-event_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-enabled_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-open_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLDialogElement/dialog-return-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-show-modal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-does-not-match-disabled-selector_t01: RuntimeError # Please triage this failure
@@ -3520,7 +3513,6 @@ LayoutTests/fast/dom/Range/range-isPointInRange_t01: RuntimeError # Please triag
 LayoutTests/fast/dom/Range/range-on-detached-node_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/surroundContents-for-detached-node_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/SelectorAPI/dumpNodeList-almost-strict_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-insert-import-rule-to-shadow-stylesheets_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Please triage this failure
@@ -4171,7 +4163,6 @@ WebPlatformTest/html-templates/template-element/node-document-changes_t01: Runti
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/dom/documents/dom-tree-accessors/Document.getElementsByClassName-null_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-getter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-setter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-namespace_t01: RuntimeError # Please triage this failure
@@ -4402,7 +4393,7 @@ LayoutTests/fast/canvas/canvas-blending-transforms_t01: RuntimeError # Please tr
 LayoutTests/fast/canvas/canvas-composite-canvas_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-composite-stroke-alpha_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-composite-text-alpha_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/canvas-currentTransform_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-currentTransform_t01: RuntimeError # Feature is not implemented
 LayoutTests/fast/canvas/canvas-drawImage-scaled-copy-to-self_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-ellipse-360-winding_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-ellipse-negative-radius_t01: RuntimeError # Please triage this failure
@@ -4715,7 +4706,6 @@ LayoutTests/fast/dom/HTMLDialogElement/dialog-autofocus_t01: RuntimeError # Plea
 LayoutTests/fast/dom/HTMLDialogElement/dialog-close-event_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-enabled_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-open_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLDialogElement/dialog-return-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-show-modal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-does-not-match-disabled-selector_t01: RuntimeError # Please triage this failure
@@ -4792,7 +4782,6 @@ LayoutTests/fast/dom/Range/surroundContents-for-detached-node_t01: RuntimeError 
 LayoutTests/fast/dom/SelectorAPI/caseID-almost-strict_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/caseID_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/SelectorAPI/dumpNodeList-almost-strict_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/id-fastpath-almost-strict_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/id-fastpath-strict_t01: RuntimeError # Please triage this failure
@@ -5493,7 +5482,6 @@ WebPlatformTest/html-templates/template-element/template-content_t01: RuntimeErr
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/dom/documents/dom-tree-accessors/Document.getElementsByClassName-null_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-getter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-setter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-namespace_t01: RuntimeError # Please triage this failure
@@ -5741,7 +5729,7 @@ LayoutTests/fast/canvas/canvas-clip-rule_t01: RuntimeError # Please triage this 
 LayoutTests/fast/canvas/canvas-composite-canvas_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-css-crazy_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-currentColor_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/canvas-currentTransform_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-currentTransform_t01: RuntimeError # Feature is not implemented
 LayoutTests/fast/canvas/canvas-ellipse-360-winding_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-ellipse-negative-radius_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-ellipse-zero-lineto_t01: RuntimeError # Please triage this failure
@@ -6200,7 +6188,6 @@ LayoutTests/fast/dom/HTMLDialogElement/dialog-autofocus_t01: RuntimeError # Plea
 LayoutTests/fast/dom/HTMLDialogElement/dialog-close-event_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-enabled_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-open_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLDialogElement/dialog-return-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-show-modal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-does-not-match-disabled-selector_t01: RuntimeError # Please triage this failure
@@ -6375,7 +6362,6 @@ LayoutTests/fast/dom/Selection/getRangeAt_t01: RuntimeError # Please triage this
 LayoutTests/fast/dom/SelectorAPI/caseID_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/caseTagX_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/SelectorAPI/dumpNodeList-almost-strict_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-insert-import-rule-to-shadow-stylesheets_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Please triage this failure
@@ -7499,7 +7485,6 @@ WebPlatformTest/html-templates/template-element/template-content_t01: RuntimeErr
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/dom/documents/dom-tree-accessors/Document.getElementsByClassName-null_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-getter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-setter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-namespace_t01: RuntimeError # Please triage this failure
@@ -7770,7 +7755,7 @@ LayoutTests/fast/canvas/canvas-composite-alpha_t01: Pass, RuntimeError # Please 
 LayoutTests/fast/canvas/canvas-composite-text-alpha_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-css-crazy_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-currentColor_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/canvas-currentTransform_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-currentTransform_t01: RuntimeError # Feature is not implemented
 LayoutTests/fast/canvas/canvas-ellipse-360-winding_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-ellipse-negative-radius_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-ellipse-zero-lineto_t01: RuntimeError # Please triage this failure
@@ -8213,7 +8198,6 @@ LayoutTests/fast/dom/HTMLDialogElement/dialog-autofocus_t01: RuntimeError # Plea
 LayoutTests/fast/dom/HTMLDialogElement/dialog-close-event_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-enabled_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-open_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLDialogElement/dialog-return-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-show-modal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-does-not-match-disabled-selector_t01: RuntimeError # Please triage this failure
@@ -8369,7 +8353,6 @@ LayoutTests/fast/dom/Selection/getRangeAt_t01: RuntimeError # Please triage this
 LayoutTests/fast/dom/SelectorAPI/caseID_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/caseTagX_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/SelectorAPI/dumpNodeList-almost-strict_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-insert-import-rule-to-shadow-stylesheets_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Please triage this failure
@@ -9366,7 +9349,6 @@ WebPlatformTest/html-templates/template-element/template-content_t01: RuntimeErr
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/dom/documents/dom-tree-accessors/Document.getElementsByClassName-null_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-getter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-setter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-namespace_t01: RuntimeError # Please triage this failure

@@ -187,9 +187,7 @@ class _Utils {
     return element;
   }
 
-  // TODO(terry): Enable below for Dartium w/ interop and remove other static window().
-  // static window() => wrap_jso(_blink.Blink_Utils.window()['window']);
-  static window() => _blink.Blink_Utils.window();
+  static window() => wrap_jso(js.context['window']);
 
   static forwardingPrint(String message) => _blink.Blink_Utils.forwardingPrint(message);
   static void spawnDomHelper(Function f, int replyTo) =>
@@ -806,15 +804,19 @@ class _Utils {
   static Element createElement(Document document, String tagName) =>
     wrap_jso(_blink.Blink_Utils.createElement(unwrap_jso(document), tagName));
 
-  static void initializeCustomElement(HtmlElement element) =>
-    _blink.Blink_Utils.initializeCustomElement(unwrap_jso(element));
-
   static Element changeElementWrapper(HtmlElement element, Type type) =>
     _blink.Blink_Utils.changeElementWrapper(unwrap_jso(element), type);
 }
 
 class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements
     WindowBase {
+  /** Needed because KeyboardEvent is implements.
+   *  TODO(terry): Consider making blink_jsObject private (add underscore) for
+   *               all blink_jsObject.  Then needed private wrap/unwrap_jso
+   *               functions that delegate to a public wrap/unwrap_jso.
+   */
+  js.JsObject blink_jsObject;
+
   _DOMWindowCrossFrame.internal();
 
   // Fields.
@@ -873,7 +875,7 @@ class _LocationCrossFrame extends NativeFieldWrapperClass2 implements LocationBa
   _LocationCrossFrame.internal();
 
   // Fields.
-  void set href(String h) => _blink.Blink_LocationCrossFrame.set_href(this, h);
+  set href(String h) => _blink.Blink_LocationCrossFrame.set_href(this, h);
 
   // Implementation support.
   String get typeName => "Location";
@@ -1108,10 +1110,6 @@ get _scheduleImmediateClosure => (void callback()) {
 get _pureIsolateScheduleImmediateClosure => ((void callback()) =>
   throw new UnimplementedError("scheduleMicrotask in background isolates "
                                "are not supported in the browser"));
-
-void _initializeCustomElement(Element e) {
-  _Utils.initializeCustomElement(e);
-}
 
 // Class for unsupported native browser 'DOM' objects.
 class _UnsupportedBrowserObject extends NativeFieldWrapperClass2 {

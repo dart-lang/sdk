@@ -37,7 +37,7 @@ class FilesystemAcceptOption extends ChromeObject {
   /// *.htm").
   String get description => JS('String', '#.description', this._jsObject);
 
-  void set description(String description) {
+  set description(String description) {
     JS('void', '#.description = #', this._jsObject, description);
   }
 
@@ -45,14 +45,14 @@ class FilesystemAcceptOption extends ChromeObject {
   /// extensions must contain at least one valid element.
   List<String> get mimeTypes => JS('List<String>', '#.mimeTypes', this._jsObject);
 
-  void set mimeTypes(List<String> mimeTypes) {
+  set mimeTypes(List<String> mimeTypes) {
     JS('void', '#.mimeTypes = #', this._jsObject, mimeTypes);
   }
 
   /// Extensions to accept, e.g. "jpg", "gif", "crx".
   List<String> get extensions => JS('List<String>', '#.extensions', this._jsObject);
 
-  void set extensions(List<String> extensions) {
+  set extensions(List<String> extensions) {
     JS('void', '#.extensions = #', this._jsObject, extensions);
   }
 
@@ -84,7 +84,7 @@ class FilesystemChooseEntryOptions extends ChromeObject {
   /// Type of the prompt to show. The default is 'openFile'.
   String get type => JS('String', '#.type', this._jsObject);
 
-  void set type(String type) {
+  set type(String type) {
     JS('void', '#.type = #', this._jsObject, type);
   }
 
@@ -92,7 +92,7 @@ class FilesystemChooseEntryOptions extends ChromeObject {
   /// name to read or write. This is optional.
   String get suggestedName => JS('String', '#.suggestedName', this._jsObject);
 
-  void set suggestedName(String suggestedName) {
+  set suggestedName(String suggestedName) {
     JS('void', '#.suggestedName = #', this._jsObject, suggestedName);
   }
 
@@ -108,7 +108,7 @@ class FilesystemChooseEntryOptions extends ChromeObject {
     return __proxy_accepts;
   }
 
-  void set accepts(List<FilesystemAcceptOption> accepts) {
+  set accepts(List<FilesystemAcceptOption> accepts) {
     JS('void', '#.accepts = #', this._jsObject, convertArgument(accepts));
   }
 
@@ -117,7 +117,7 @@ class FilesystemChooseEntryOptions extends ChromeObject {
   /// contains no valid entries, this will always be reset to true.
   bool get acceptsAllTypes => JS('bool', '#.acceptsAllTypes', this._jsObject);
 
-  void set acceptsAllTypes(bool acceptsAllTypes) {
+  set acceptsAllTypes(bool acceptsAllTypes) {
     JS('void', '#.acceptsAllTypes = #', this._jsObject, acceptsAllTypes);
   }
 
