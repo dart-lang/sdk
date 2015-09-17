@@ -1094,6 +1094,58 @@ class A<T> {
     });
   }
 
+  test_UNRESOLVED_INSTANCE_MEMBER_REFERENCE_dynamicVarTarget() {
+    addTestFile('''
+main(p) {
+  p.aaa;
+  p.aaa++;
+  p.aaa += 0;
+  ++p.aaa; // ++
+  p.aaa = 0;
+  p.bbb(0);
+  ''.length.ccc().ddd();
+}
+''');
+    return prepareHighlights().then((_) {
+      HighlightRegionType type =
+          HighlightRegionType.UNRESOLVED_INSTANCE_MEMBER_REFERENCE;
+      assertHasRegion(type, 'aaa');
+      assertHasRegion(type, 'aaa++');
+      assertHasRegion(type, 'aaa += 0');
+      assertHasRegion(type, 'aaa; // ++');
+      assertHasRegion(type, 'aaa =');
+      assertHasRegion(type, 'bbb(');
+      assertHasRegion(type, 'ddd()');
+    });
+  }
+
+  test_UNRESOLVED_INSTANCE_MEMBER_REFERENCE_nonDynamicTarget() {
+    addTestFile('''
+import 'dart:math' as math;
+main(String str) {
+  new Object().aaa();
+  math.bbb();
+  str.ccc();
+}
+class A {
+  m() {
+    unresolved(1);
+    this.unresolved(2);
+    super.unresolved(3);
+  }
+}
+''');
+    return prepareHighlights().then((_) {
+      HighlightRegionType type = HighlightRegionType.IDENTIFIER_DEFAULT;
+      assertHasRegion(type, 'aaa()');
+      assertHasRegion(type, 'bbb()');
+      assertHasRegion(type, 'ccc()');
+      assertHasRegion(type, 'unresolved(1)');
+      assertHasRegion(type, 'unresolved(2)');
+      assertHasRegion(type, 'unresolved(3)');
+    });
+  }
+
   void _addLibraryForTestPart() {
     addFile(
         '$testFolder/my_lib.dart',
