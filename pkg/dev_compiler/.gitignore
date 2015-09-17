@@ -12,6 +12,7 @@ packages
 .idea/
 .pub/
 node_modules
+doc/api/
 
 # Ignore test output
 test/codegen/expect/dev_compiler/

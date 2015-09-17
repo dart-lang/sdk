@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// The main library for the Dart Dev Compiler.
 library dev_compiler.devc;
 
 export 'src/analysis_context.dart'
