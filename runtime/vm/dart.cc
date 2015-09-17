@@ -104,6 +104,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   SemiSpace::InitOnce();
   Metric::InitOnce();
   StoreBuffer::InitOnce();
+  MarkingStack::InitOnce();
   Thread::EnsureInit();
 
 #if defined(USING_SIMULATOR)

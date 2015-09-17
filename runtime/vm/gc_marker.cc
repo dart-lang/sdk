@@ -27,9 +27,6 @@ DEFINE_FLAG(int, marker_tasks, 1,
             "The number of tasks to spawn during old gen GC marking (0 means "
             "perform all marking on main thread).");
 
-typedef StoreBufferBlock PointerBlock;  // TODO(koda): Rename to PointerBlock.
-typedef StoreBuffer MarkingStack;  // TODO(koda): Create shared base class.
-
 class DelaySet {
  private:
   typedef std::multimap<RawObject*, RawWeakProperty*> Map;
@@ -288,11 +285,11 @@ class MarkingVisitor : public ObjectPointerVisitor {
       if (work_->IsEmpty()) {
         // TODO(koda): Track over/underflow events and use in heuristics to
         // distribute work and prevent degenerate flip-flopping.
-        PointerBlock* new_work = marking_stack_->PopNonEmptyBlock();
+        MarkingStack::Block* new_work = marking_stack_->PopNonEmptyBlock();
         if (new_work == NULL) {
           return NULL;
         }
-        marking_stack_->PushBlock(work_, false);
+        marking_stack_->PushBlock(work_);
         work_ = new_work;
       }
       return work_->Pop();
@@ -302,7 +299,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
       if (work_->IsFull()) {
         // TODO(koda): Track over/underflow events and use in heuristics to
         // distribute work and prevent degenerate flip-flopping.
-        marking_stack_->PushBlock(work_, false);
+        marking_stack_->PushBlock(work_);
         work_ = marking_stack_->PopEmptyBlock();
       }
       work_->Push(raw_obj);
@@ -310,14 +307,14 @@ class MarkingVisitor : public ObjectPointerVisitor {
 
     void Finalize() {
       ASSERT(work_->IsEmpty());
-      marking_stack_->PushBlock(work_, false);
+      marking_stack_->PushBlock(work_);
       work_ = NULL;
       // Fail fast on attempts to mark after finalizing.
       marking_stack_ = NULL;
     }
 
    private:
-    PointerBlock* work_;
+    MarkingStack::Block* work_;
     MarkingStack* marking_stack_;
   };
 

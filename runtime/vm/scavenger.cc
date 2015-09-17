@@ -526,7 +526,8 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
       raw_object->VisitPointers(visitor);
     }
     pending->Reset();
-    isolate->store_buffer()->PushBlock(pending);
+    // Return the emptied block for recycling (no need to check threshold).
+    isolate->store_buffer()->PushBlock(pending, StoreBuffer::kIgnoreThreshold);
     pending = next;
   }
   heap_->RecordData(kStoreBufferEntries, total_count);

@@ -129,7 +129,7 @@ class Thread {
     return store_buffer_block_->Contains(obj);
   }
 #endif
-  void StoreBufferBlockProcess(bool check_threshold);
+  void StoreBufferBlockProcess(StoreBuffer::ThresholdPolicy policy);
   static intptr_t store_buffer_block_offset() {
     return OFFSET_OF(Thread, store_buffer_block_);
   }
@@ -309,7 +309,8 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
     memset(&state_, 0, sizeof(state_));
   }
 
-  void StoreBufferRelease(bool check_threshold = true);
+  void StoreBufferRelease(
+      StoreBuffer::ThresholdPolicy policy = StoreBuffer::kCheckThreshold);
   void StoreBufferAcquire();
 
   void set_zone(Zone* zone) {
