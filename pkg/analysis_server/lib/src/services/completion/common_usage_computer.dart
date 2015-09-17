@@ -7,6 +7,7 @@ library services.completion.computer.dart.relevance;
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
+import 'package:analysis_server/src/services/completion/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -15,9 +16,10 @@ part 'common_usage_generated.dart';
 
 /**
  * A computer for adjusting the relevance of completions computed by others
- * based upon common Dart usage patterns.
+ * based upon common Dart usage patterns. This is a long-lived object
+ * that should not maintain state between calls to it's [sort] method.
  */
-class CommonUsageComputer {
+class CommonUsageComputer implements ContributionSorter {
   /**
    * A map of <library>.<classname> to an ordered list of method names,
    * field names, getter names, and named constructors.
@@ -28,22 +30,8 @@ class CommonUsageComputer {
 
   CommonUsageComputer([this.selectorRelevance = defaultSelectorRelevance]);
 
-  /**
-   * Adjusts the relevance based on the given completion context.
-   * The compilation unit and completion node
-   * in the given completion context may not be resolved.
-   * This method should execute quickly and not block waiting for any analysis.
-   */
-  void computeFast(DartCompletionRequest request) {
-    _update(request);
-  }
-
-  /**
-   * Adjusts the relevance based on the given completion context.
-   * The compilation unit and completion node
-   * in the given completion context are resolved.
-   */
-  void computeFull(DartCompletionRequest request) {
+  @override
+  void sort(DartCompletionRequest request) {
     _update(request);
   }
 

@@ -15,13 +15,14 @@ import 'package:analysis_server/src/services/completion/combinator_contributor.d
 import 'package:analysis_server/src/services/completion/common_usage_computer.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/completion_target.dart';
+import 'package:analysis_server/src/services/completion/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
-import 'package:analysis_server/src/services/completion/uri_contributor.dart';
 import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/keyword_contributor.dart';
 import 'package:analysis_server/src/services/completion/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/completion/prefixed_element_contributor.dart';
+import 'package:analysis_server/src/services/completion/uri_contributor.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -72,14 +73,21 @@ abstract class DartCompletionContributor {
  * Manages code completion for a given Dart file completion request.
  */
 class DartCompletionManager extends CompletionManager {
+
+  /**
+   * The [defaultContributionSorter] is a long-lived object that isn't allowed
+   * to maintain state between calls to [ContributionSorter#sort(...)].
+   */
+  static ContributionSorter defaultContributionSorter = new CommonUsageComputer();
+
   final SearchEngine searchEngine;
   final DartCompletionCache cache;
   List<DartCompletionContributor> contributors;
-  CommonUsageComputer commonUsageComputer;
+  ContributionSorter contributionSorter;
 
   DartCompletionManager(
       AnalysisContext context, this.searchEngine, Source source, this.cache,
-      [this.contributors, this.commonUsageComputer])
+      [this.contributors, this.contributionSorter])
       : super(context, source) {
     if (contributors == null) {
       contributors = [
@@ -95,8 +103,8 @@ class DartCompletionManager extends CompletionManager {
         new UriContributor(),
       ];
     }
-    if (commonUsageComputer == null) {
-      commonUsageComputer = new CommonUsageComputer();
+    if (contributionSorter == null) {
+      contributionSorter = defaultContributionSorter;
     }
   }
 
@@ -167,7 +175,7 @@ class DartCompletionManager extends CompletionManager {
           return c.computeFast(request);
         });
       });
-      commonUsageComputer.computeFast(request);
+      contributionSorter.sort(request);
       sendResults(request, todo.isEmpty);
       return todo;
     });
@@ -205,7 +213,7 @@ class DartCompletionManager extends CompletionManager {
               performance.logElapseTime(completeTag);
               bool last = --count == 0;
               if (changed || last) {
-                commonUsageComputer.computeFull(request);
+                contributionSorter.sort(request);
                 sendResults(request, last);
               }
             });
