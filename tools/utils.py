@@ -75,14 +75,18 @@ def GuessArchitecture():
 
 # Try to guess the number of cpus on this machine.
 def GuessCpus():
+  if os.getenv("DART_NUMBER_OF_CORES") is not None:
+    return int(os.getenv("DART_NUMBER_OF_CORES"))
   if os.path.exists("/proc/cpuinfo"):
     return int(commands.getoutput("grep -E '^processor' /proc/cpuinfo | wc -l"))
   if os.path.exists("/usr/bin/hostinfo"):
-    return int(commands.getoutput('/usr/bin/hostinfo | grep "processors are logically available." | awk "{ print \$1 }"'))
+    return int(commands.getoutput('/usr/bin/hostinfo |'
+        ' grep "processors are logically available." |'
+        ' awk "{ print \$1 }"'))
   win_cpu_count = os.getenv("NUMBER_OF_PROCESSORS")
   if win_cpu_count:
     return int(win_cpu_count)
-  return int(os.getenv("DART_NUMBER_OF_CORES", 2))
+  return 2
 
 def GetWindowsRegistryKeyName(name):
   import win32process
