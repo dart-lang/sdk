@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Types needed to implement "strong" checking in the Dart analyzer.
-/// This is intended to be used by analyzer_cli and analysis_server packages.
+/// Types needed to implement "strong" checking in the Dart analyzer. This is
+/// intended to be used by `analyzer_cli` and `analysis_server` packages.
 library dev_compiler.strong_mode;
 
 import 'package:analyzer/src/generated/engine.dart'

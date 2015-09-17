@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// This library provides a single function called injectLogs which when called
-/// will request a logs json file and build a small widget out of them which
-/// groups the logs by level.
-library polymer.build.log_injector;
+/// This library displays [MessageSummary]s from the Dart Dev Compiler.
+library dev_compiler.messages;
 
 import 'dart:convert';
 import 'dart:html';
 
-import 'package:source_span/source_span.dart';
 import 'package:dev_compiler/src/summary.dart';
+import 'package:source_span/source_span.dart';
 
 main() async {
   await window.animationFrame;
