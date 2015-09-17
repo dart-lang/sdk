@@ -731,6 +731,19 @@ main(A a) {
     });
   }
 
+  test_INSTANCE_FIELD_dynamic() {
+    addTestFile('''
+class A {
+  var f;
+  A(this.f);
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasRegion(HighlightRegionType.INSTANCE_FIELD_DECLARATION, 'f;');
+      assertHasRegion(HighlightRegionType.INSTANCE_FIELD_REFERENCE, 'f);');
+    });
+  }
+
   test_KEYWORD() {
     addTestFile('''
 main() {

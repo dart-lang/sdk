@@ -63,13 +63,13 @@ class DartUnitHighlightsComputer2 {
     if (_addIdentifierRegion_constructor(node)) {
       return;
     }
-    if (_addIdentifierRegion_dynamicLocal(node)) {
-      return;
-    }
     if (_addIdentifierRegion_getterSetterDeclaration(node)) {
       return;
     }
     if (_addIdentifierRegion_field(node)) {
+      return;
+    }
+    if (_addIdentifierRegion_dynamicLocal(node)) {
       return;
     }
     if (_addIdentifierRegion_function(node)) {
