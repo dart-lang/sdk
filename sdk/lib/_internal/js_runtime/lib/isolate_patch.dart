@@ -6,9 +6,7 @@
 
 import 'dart:_js_helper' show patch;
 import 'dart:_isolate_helper' show CapabilityImpl,
-                                   CloseToken,
                                    IsolateNatives,
-                                   JsIsolateSink,
                                    ReceivePortImpl,
                                    RawReceivePortImpl;
 

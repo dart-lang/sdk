@@ -11,10 +11,7 @@ import 'common/backend_api.dart' show
 import 'common/registry.dart' show
     Registry;
 import 'compiler.dart' show
-    invariant,
-    Backend,
-    Compiler,
-    Registry;
+    Compiler;
 import 'dart_types.dart';
 import 'diagnostics/invariant.dart' show
     invariant;

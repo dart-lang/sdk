@@ -874,7 +874,14 @@ class LibraryDependencyNode {
     }
   }
 
-  void registerHandledExports(LibraryElement exportedLibraryElement,
+  /// Register the already computed export scope of [exportedLibraryElement] to
+  /// export from the library of this node through the [export]  declaration
+  /// with the given combination [filter].
+  ///
+  /// Additionally, check that all names in the show/hide combinators are in the
+  /// export scope of [exportedLibraryElement].
+  void registerHandledExports(DiagnosticListener listener,
+                              LibraryElement exportedLibraryElement,
                               ExportElementX export,
                               CombinatorFilter filter) {
     assert(invariant(library, exportedLibraryElement.exportsHandled));
@@ -885,6 +892,9 @@ class LibraryDependencyNode {
                                          () => const Link<ExportElement>());
         pendingExportMap[exportedElement] = exports.prepend(export);
       }
+    });
+    listener.withCurrentElement(library, () {
+      checkLibraryDependency(listener, export.node, exportedLibraryElement);
     });
   }
 
@@ -1011,6 +1021,45 @@ class LibraryDependencyNode {
     }
     return changed;
   }
+
+  /// Check that all names in the show/hide combinators of imports and exports
+  /// are in the export scope of the imported/exported libraries.
+  void checkCombinators(DiagnosticListener listener) {
+    listener.withCurrentElement(library, () {
+      for (ImportLink importLink in imports) {
+        checkLibraryDependency(
+            listener, importLink.import.node, importLink.importedLibrary);
+      }
+    });
+    for (ExportLink exportLink in dependencies) {
+      listener.withCurrentElement(exportLink.exportNode.library, () {
+        checkLibraryDependency(listener, exportLink.export.node, library);
+      });
+    }
+  }
+
+  /// Check that all names in the show/hide combinators of [tag] are in the
+  /// export scope of [library].
+  void checkLibraryDependency(DiagnosticListener listener,
+                              LibraryDependency tag,
+                              LibraryElement library) {
+    if (tag == null || tag.combinators == null) return;
+    for (Combinator combinator in tag.combinators) {
+      for (Identifier identifier in combinator.identifiers) {
+        String name = identifier.source;
+        Element element = library.findExported(name);
+        if (element == null) {
+          listener.reportHint(
+              identifier,
+              combinator.isHide
+                  ? MessageKind.EMPTY_HIDE : MessageKind.EMPTY_SHOW,
+              {'uri': library.canonicalUri,
+               'name': name});
+        }
+      }
+    }
+  }
+
 }
 
 /**
@@ -1084,6 +1133,10 @@ class LibraryDependencyHandler implements LibraryLoader {
     nodeMap.forEach((LibraryElement library, LibraryDependencyNode node) {
       node.registerImports(compiler);
     });
+
+    nodeMap.forEach((LibraryElement library, LibraryDependencyNode node) {
+      node.checkCombinators(compiler);
+    });
   }
 
   /// Registers that [library] depends on [loadedLibrary] through
@@ -1099,7 +1152,7 @@ class LibraryDependencyHandler implements LibraryLoader {
         CombinatorFilter combinatorFilter =
             new CombinatorFilter.fromTag(libraryDependency.node);
         exportingNode.registerHandledExports(
-            loadedLibrary, libraryDependency, combinatorFilter);
+            compiler, loadedLibrary, libraryDependency, combinatorFilter);
         return;
       }
       LibraryDependencyNode exportedNode = nodeMap[loadedLibrary];

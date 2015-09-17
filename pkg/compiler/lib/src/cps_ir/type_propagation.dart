@@ -6,7 +6,7 @@ library dart2js.cps_ir.type_propagation;
 import 'optimizers.dart';
 
 import '../closure.dart' show
-    ClosureClassElement, Identifiers;
+    ClosureClassElement;
 import '../common/names.dart' show
     Identifiers,
     Selectors;

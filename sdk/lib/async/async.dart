@@ -91,7 +91,7 @@
 library dart.async;
 
 import "dart:collection";
-import "dart:_internal" show deprecated, printToZone, printToConsole,
+import "dart:_internal" show printToZone, printToConsole,
                              IterableElementError;
 
 part 'async_error.dart';

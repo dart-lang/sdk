@@ -8,7 +8,7 @@ import 'optimizers.dart';
 import 'dart:collection' show Queue;
 
 import '../closure.dart' show
-    ClosureClassElement, Identifiers;
+    ClosureClassElement;
 import '../common/names.dart' show
     Selectors, Identifiers;
 import '../compiler.dart' as dart2js show

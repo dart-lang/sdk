@@ -18,8 +18,7 @@ import 'dart:_js_embedded_names' show
     JsGetName,
     LEAF_TAGS,
     NATIVE_SUPERCLASS_TAG_NAME,
-    STATIC_FUNCTION_NAME_PROPERTY_NAME,
-    TRACE_BUFFER;
+    STATIC_FUNCTION_NAME_PROPERTY_NAME;
 
 import 'dart:collection';
 
@@ -45,13 +44,11 @@ import 'dart:_foreign_helper' show
     JS_BUILTIN,
     JS_CALL_IN_ISOLATE,
     JS_CONST,
-    JS_GET_STATIC_STATEC,
     JS_CURRENT_ISOLATE_CONTEXT,
     JS_EFFECT,
     JS_EMBEDDED_GLOBAL,
     JS_GET_FLAG,
     JS_GET_NAME,
-    JS_HAS_EQUALS,
     JS_STRING_CONCAT,
     RAW_DART_FUNCTION_REF;
 
@@ -1566,7 +1563,7 @@ ioore(receiver, index) {
  */
 @NoInline()
 Error diagnoseIndexError(indexable, index) {
-  if (index is! int) return new ArgumentError.value(index, 'index');
+  if (index is !int) return new ArgumentError.value(index, 'index');
   int length = indexable.length;
   // The following returns the same error that would be thrown by calling
   // [RangeError.checkValidIndex] with no optional parameters provided.

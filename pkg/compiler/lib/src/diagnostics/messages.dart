@@ -184,7 +184,9 @@ enum MessageKind {
   DUPLICATED_RESOURCE,
   EMPTY_CATCH_DECLARATION,
   EMPTY_ENUM_DECLARATION,
+  EMPTY_HIDE,
   EQUAL_MAP_ENTRY_KEY,
+  EMPTY_SHOW,
   EXISTING_DEFINITION,
   EXISTING_LABEL,
   EXPECTED_IDENTIFIER_NOT_RESERVED_WORD,
@@ -823,7 +825,7 @@ main() {
       MessageKind.DUPLICATE_EXPORT:
         const MessageTemplate(MessageKind.DUPLICATE_EXPORT,
           "Duplicate export of '#{name}'.",
-          howToFix: "Trying adding 'hide #{name}' to one of the exports.",
+          howToFix: "Try adding 'hide #{name}' to one of the exports.",
           examples: const [const {
 'main.dart': """
 export 'decl1.dart';
@@ -840,6 +842,40 @@ main() {}""",
       MessageKind.DUPLICATE_EXPORT_DECL:
         const MessageTemplate(MessageKind.DUPLICATE_EXPORT_DECL,
           "The exported '#{name}' from export #{uriString} is defined here."),
+
+      MessageKind.EMPTY_HIDE:
+        const MessageTemplate(MessageKind.EMPTY_HIDE,
+            "Library '#{uri}' doesn't export a '#{name}' declaration.",
+      howToFix: "Try removing '#{name}' the 'hide' clause.",
+      examples: const [
+        const {
+            'main.dart': """
+import 'dart:core' hide Foo;
+
+main() {}"""},
+        const {
+'main.dart': """
+export 'dart:core' hide Foo;
+
+main() {}"""},
+]),
+
+      MessageKind.EMPTY_SHOW:
+        const MessageTemplate(MessageKind.EMPTY_SHOW,
+            "Library '#{uri}' doesn't export a '#{name}' declaration.",
+      howToFix: "Try removing '#{name}' from the 'show' clause.",
+      examples: const [
+        const {
+            'main.dart': """
+import 'dart:core' show Foo;
+
+main() {}"""},
+        const {
+'main.dart': """
+export 'dart:core' show Foo;
+
+main() {}"""},
+]),
 
       MessageKind.NOT_A_TYPE:
         const MessageTemplate(MessageKind.NOT_A_TYPE,

@@ -26,7 +26,7 @@ library dart.dom.html;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:_internal' hide Symbol, deprecated;
+import 'dart:_internal' hide Symbol;
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
@@ -55,7 +55,7 @@ import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT, JS_CONST;
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:_js_helper' show
     convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
-    JSName, Native, Null, Returns, Inline, ForceInline,
+    JSName, Native, Returns, ForceInline,
     findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord,
     makeLeafDispatchRecord;
 import 'dart:_interceptors' show

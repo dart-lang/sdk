@@ -16,8 +16,6 @@ import '../elements/elements.dart' show
     Name,
     LibraryElement,
     PublicName;
-import '../universe/universe.dart' show
-    CallStructure;
 import '../util/util.dart' show
     Hashing;
 import '../world.dart' show

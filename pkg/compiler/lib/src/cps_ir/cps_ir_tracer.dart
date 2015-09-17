@@ -5,7 +5,7 @@
 library dart2js.ir_tracer;
 
 import 'dart:async' show EventSink;
-import 'cps_ir_nodes.dart' as cps_ir hide Function;
+import 'cps_ir_nodes.dart' as cps_ir;
 import '../tracer.dart';
 
 /**
@@ -119,7 +119,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
         String name = names.name(cont);
         return cont.isRecursive ? '$name*' : name;
       }
-      
+
       String ids = node.continuations.map(nameContinuation).join(', ');
       printStmt(dummy, "LetCont $ids");
     }

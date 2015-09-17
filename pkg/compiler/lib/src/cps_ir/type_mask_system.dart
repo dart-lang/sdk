@@ -4,7 +4,7 @@
 
 library dart2js.type_mask_system;
 
-import '../closure.dart' show ClosureClassElement, Identifiers;
+import '../closure.dart' show ClosureClassElement;
 import '../common/names.dart' show Selectors, Identifiers;
 import '../compiler.dart' as dart2js show Compiler;
 import '../constants/constant_system.dart';

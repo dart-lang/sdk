@@ -12,7 +12,7 @@ import 'dart:collection';
 import 'dart:_internal';
 import 'dart:_interceptors' show JSIndexable, JSUInt32, JSUInt31;
 import 'dart:_js_helper' show
-    Creates, JavaScriptIndexingBehavior, JSName, Native, Null, Returns,
+    Creates, JavaScriptIndexingBehavior, JSName, Native, Returns,
     diagnoseIndexError, diagnoseRangeError;
 import 'dart:_foreign_helper' show JS;
 import 'dart:math' as Math;

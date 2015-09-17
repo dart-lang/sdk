@@ -35,10 +35,7 @@ import '../types/types.dart' show
     FlatTypeMask,
     TypeMask,
     ContainerTypeMask,
-    ElementTypeMask,
-    ValueTypeMask,
-    TypeSystem,
-    MinimalInferrerEngine;
+    ValueTypeMask;
 import '../util/util.dart' show
     Link,
     Setlet;

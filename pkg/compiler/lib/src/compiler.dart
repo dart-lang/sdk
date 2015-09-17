@@ -69,8 +69,7 @@ import 'elements/modelx.dart' show
     DeferredLoaderGetterElementX,
     MethodElementX,
     LibraryElementX,
-    PrefixElementX,
-    VoidElementX;
+    PrefixElementX;
 import 'enqueue.dart' show
     CodegenEnqueuer,
     Enqueuer,
@@ -94,7 +93,6 @@ import 'null_compiler_output.dart' show
 import 'parser/diet_parser_task.dart' show
     DietParserTask;
 import 'parser/parser_task.dart' show
-    DietParserTask,
     ParserTask;
 import 'patch_parser.dart' show
     PatchParserTask;

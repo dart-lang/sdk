@@ -35,7 +35,6 @@ export 'diagnostics/spannable.dart' show
 
 export 'elements/elements.dart' show
     ClassElement,
-    ClosureFieldElement,
     CompilationUnitElement,
     Element,
     Elements,
@@ -46,9 +45,6 @@ export 'elements/elements.dart' show
     MixinApplicationElement,
     TypedefElement,
     VariableElement;
-
-export 'resolution/resolution.dart' show
-    TreeElements;
 
 export 'tree/tree.dart' show
     Node;
