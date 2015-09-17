@@ -598,6 +598,12 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitLibraryIdentifier(LibraryIdentifier node) {
+    computer._addRegion_node(node, HighlightRegionType.LIBRARY_NAME);
+    return null;
+  }
+
+  @override
   Object visitListLiteral(ListLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_LIST);
     computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);

@@ -821,6 +821,25 @@ myLabel:
     });
   }
 
+  test_LIBRARY_NAME_libraryDirective() {
+    addTestFile('''
+library my.lib.name;
+''');
+    return prepareHighlights().then((_) {
+      assertHasStringRegion(HighlightRegionType.LIBRARY_NAME, 'my.lib.name');
+    });
+  }
+
+  test_LIBRARY_NAME_partOfDirective() {
+    _addLibraryForTestPart();
+    addTestFile('''
+part of my.lib.name;
+''');
+    return prepareHighlights().then((_) {
+      assertHasStringRegion(HighlightRegionType.LIBRARY_NAME, 'my.lib.name');
+    });
+  }
+
   test_LITERAL_BOOLEAN() {
     addTestFile('var V = true;');
     return prepareHighlights().then((_) {
