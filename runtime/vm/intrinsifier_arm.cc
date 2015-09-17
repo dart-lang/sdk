@@ -1575,14 +1575,10 @@ void Intrinsifier::ObjectEquals(Assembler* assembler) {
 // Return type quickly for simple types (not parameterized and not signature).
 void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   Label fall_through;
-  static const intptr_t kSmiCidSource = kSmiCid << RawObject::kClassIdTagPos;
   __ ldr(R0, Address(SP, 0 * kWordSize));
-
-  __ LoadImmediate(TMP, reinterpret_cast<int32_t>(&kSmiCidSource) + 1);
-  __ tst(R0, Operand(kSmiTagMask));
-  __ mov(TMP, Operand(R0), NE);
-  __ LoadClassId(R1, TMP);
+  __ LoadClassIdMayBeSmi(R1, R0);
   __ LoadClassById(R2, R1);
+
   // R2: class of instance (R0).
   __ ldr(R3, FieldAddress(R2, Class::signature_function_offset()));
   __ CompareObject(R3, Object::null_object());
@@ -1760,7 +1756,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* failure) {
   const Register length_reg = R2;
   Label fail;
-  __ MaybeTraceAllocation(kOneByteStringCid, R0, failure);
+  __ MaybeTraceAllocation(kOneByteStringCid, R0, failure,
+                          /* inline_isolate = */ false);
   __ mov(R6, Operand(length_reg));  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);

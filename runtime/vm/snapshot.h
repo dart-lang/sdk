@@ -855,7 +855,7 @@ class InstructionsWriter : public ZoneAllocated {
 #if defined(ARCH_IS_64_BIT)
     stream_.Print(".quad 0x%0.16" Px "\n", value);
 #else
-    stream_.Print(".word 0x%0.8" Px "\n", value);
+    stream_.Print(".long 0x%0.8" Px "\n", value);
 #endif
   }
 

@@ -1038,7 +1038,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cid, temp1, failure);
+    MaybeTraceAllocation(cid, temp1, failure, /* inline_isolate = */ false);
     Isolate* isolate = Isolate::Current();
     Heap* heap = isolate->heap();
     Heap::Space space = heap->SpaceForAllocation(cid);

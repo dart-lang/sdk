@@ -945,14 +945,8 @@ LocationSummary* LoadClassIdInstr::MakeLocationSummary(Zone* zone,
 void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register object = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  static const intptr_t kSmiCidSource =
-      static_cast<intptr_t>(kSmiCid) << RawObject::kClassIdTagPos;
 
-  __ LoadImmediate(TMP, reinterpret_cast<int64_t>(&kSmiCidSource) + 1);
-  __ tsti(object, Immediate(kSmiTagMask));
-  __ csel(TMP, TMP, object, EQ);
-  __ LoadClassId(result, TMP);
-  __ SmiTag(result);
+  __ LoadTaggedClassIdMayBeSmi(result, object);
 }
 
 
