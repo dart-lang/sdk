@@ -6,10 +6,10 @@ library dev_compiler.src.closure.closure_codegen;
 
 import 'package:analyzer/analyzer.dart' show ParameterKind;
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 
 import 'closure_annotation.dart';
 import 'closure_type.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 
 /// Mixin that can generate [ClosureAnnotation]s for Dart elements and types.
 abstract class ClosureAnnotator {

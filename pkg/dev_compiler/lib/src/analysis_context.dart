@@ -10,7 +10,7 @@ import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 import 'package:analyzer/src/generated/source_io.dart';
 
-import 'package:dev_compiler/strong_mode.dart' show StrongModeOptions;
+import '../strong_mode.dart' show StrongModeOptions;
 
 import 'checker/resolver.dart';
 import 'dart_sdk.dart';

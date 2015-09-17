@@ -15,21 +15,19 @@ import 'package:analyzer/src/generated/scanner.dart'
     show StringToken, Token, TokenType;
 import 'package:analyzer/src/task/dart.dart' show PublicNamespaceBuilder;
 
-import 'package:dev_compiler/src/codegen/ast_builder.dart' show AstBuilder;
-import 'package:dev_compiler/src/codegen/reify_coercions.dart'
-    show CoercionReifier;
+import 'ast_builder.dart' show AstBuilder;
+import 'reify_coercions.dart' show CoercionReifier;
 
 // TODO(jmesserly): import from its own package
-import 'package:dev_compiler/src/js/js_ast.dart' as JS;
-import 'package:dev_compiler/src/js/js_ast.dart' show js;
+import '../js/js_ast.dart' as JS;
+import '../js/js_ast.dart' show js;
 
-import 'package:dev_compiler/src/closure/closure_annotator.dart'
-    show ClosureAnnotator;
-import 'package:dev_compiler/src/compiler.dart' show AbstractCompiler;
-import 'package:dev_compiler/src/checker/rules.dart';
-import 'package:dev_compiler/src/info.dart';
-import 'package:dev_compiler/src/options.dart' show CodegenOptions;
-import 'package:dev_compiler/src/utils.dart';
+import '../closure/closure_annotator.dart' show ClosureAnnotator;
+import '../compiler.dart' show AbstractCompiler;
+import '../checker/rules.dart';
+import '../info.dart';
+import '../options.dart' show CodegenOptions;
+import '../utils.dart';
 
 import 'code_generator.dart';
 import 'js_field_storage.dart';

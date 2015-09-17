@@ -5,15 +5,15 @@
 library dev_compiler.src.codegen.js_printer;
 
 import 'dart:io' show Directory, File, Platform, Process;
+
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart' as srcmaps show Printer;
 import 'package:source_maps/source_maps.dart' show SourceMapSpan;
 import 'package:source_span/source_span.dart' show SourceLocation;
 
-import 'package:dev_compiler/src/js/js_ast.dart' as JS;
-import 'package:dev_compiler/src/utils.dart'
-    show computeHash, locationForOffset;
+import '../js/js_ast.dart' as JS;
+import '../utils.dart' show computeHash, locationForOffset;
 
 import 'js_names.dart' show TemporaryNamer;
 

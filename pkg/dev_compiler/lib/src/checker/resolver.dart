@@ -17,8 +17,8 @@ import 'package:analyzer/src/generated/utilities_collection.dart'
     show DirectedGraph;
 import 'package:logging/logging.dart' as logger;
 
-import 'package:dev_compiler/src/utils.dart';
-import 'package:dev_compiler/strong_mode.dart' show StrongModeOptions;
+import '../../strong_mode.dart' show StrongModeOptions;
+import '../utils.dart';
 
 final _log = new logger.Logger('dev_compiler.src.resolver');
 

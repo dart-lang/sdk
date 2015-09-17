@@ -5,12 +5,13 @@
 /// V8 runner support used by dartdevrun.
 library dev_compiler.src.runner.v8_utils;
 
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
+
 import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart' show Version;
-import '../../src/options.dart' show CompilerOptions;
 
+import '../options.dart' show CompilerOptions;
 import 'runtime_utils.dart' show getRuntimeFileAlias;
 
 _parseV8Version(String version) =>

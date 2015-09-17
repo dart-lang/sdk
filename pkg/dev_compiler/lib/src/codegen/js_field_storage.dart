@@ -8,7 +8,7 @@ import 'dart:collection' show HashMap, HashSet;
 import 'package:analyzer/src/generated/ast.dart' show Identifier;
 import 'package:analyzer/src/generated/element.dart';
 
-import 'package:dev_compiler/src/info.dart' show LibraryUnit;
+import '../info.dart' show LibraryUnit;
 
 /// We use a storage slot for fields that override or can be overridden by
 /// getter/setter pairs.

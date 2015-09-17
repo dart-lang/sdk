@@ -8,9 +8,9 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
-import 'package:dev_compiler/src/info.dart';
-import 'package:dev_compiler/src/utils.dart' as utils;
-import 'package:dev_compiler/strong_mode.dart' show StrongModeOptions;
+import '../../strong_mode.dart' show StrongModeOptions;
+import '../info.dart';
+import '../utils.dart' as utils;
 
 abstract class TypeRules {
   final TypeProvider provider;
