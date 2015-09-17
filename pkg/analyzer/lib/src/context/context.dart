@@ -303,6 +303,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     for (WorkManager workManager in workManagers) {
       workManager.applyPriorityTargets(_priorityOrder);
     }
+    driver.reset();
   }
 
   @override
