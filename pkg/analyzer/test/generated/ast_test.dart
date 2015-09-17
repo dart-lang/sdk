@@ -1697,7 +1697,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitAwaitExpression() {
     _assertSource(
-        "await e;", AstFactory.awaitExpression(AstFactory.identifier3("e")));
+        "await e", AstFactory.awaitExpression(AstFactory.identifier3("e")));
   }
 
   void test_visitBinaryExpression() {

@@ -18051,7 +18051,6 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitAwaitExpression(AwaitExpression node) {
     _writer.print("await ");
     _visitNode(node.expression);
-    _writer.print(";");
     return null;
   }
 
