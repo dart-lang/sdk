@@ -741,8 +741,6 @@ void main() {
     });
     compiler.enqueuer.resolution.registerInstantiatedType(
         compiler.coreTypes.mapType(), compiler.globalDependencies);
-    compiler.enqueuer.resolution.registerInstantiatedType(
-        compiler.coreTypes.functionType, compiler.globalDependencies);
     compiler.world.populate();
 
     // Grab hold of a supertype for String so we can produce potential

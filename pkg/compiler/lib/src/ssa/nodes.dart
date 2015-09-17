@@ -905,7 +905,7 @@ abstract class HInstruction implements Spannable {
       TypeMask typeMask,
       ClassElement cls,
       ClassWorld classWorld) {
-    return classWorld.isImplemented(cls) &&
+    return classWorld.isInstantiated(cls) &&
         typeMask.satisfies(cls, classWorld);
   }
 

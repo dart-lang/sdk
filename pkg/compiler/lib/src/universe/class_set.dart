@@ -101,48 +101,25 @@ class ClassHierarchyNode {
         includeUninstantiated: includeUninstantiated);
   }
 
-  void printOn(StringBuffer sb, String indentation,
-               {bool instantiatedOnly: false}) {
-    sb.write('$indentation$cls');
-    if (isDirectlyInstantiated) {
-      sb.write(' directly');
-    }
-    if (isIndirectlyInstantiated) {
-      sb.write(' indirectly');
-    }
-    sb.write(' [');
+  void dump(StringBuffer sb, String indentation) {
+    sb.write('$indentation$cls:[');
     if (_directSubclasses.isEmpty) {
       sb.write(']');
     } else {
+      sb.write('\n');
       bool needsComma = false;
       for (Link<ClassHierarchyNode> link = _directSubclasses;
            !link.isEmpty;
            link = link.tail) {
-        if (instantiatedOnly && !link.head.isInstantiated) {
-          continue;
-        }
         if (needsComma) {
           sb.write(',\n');
-        } else {
-          sb.write('\n');
         }
-        link.head.printOn(
-            sb, '$indentation  ', instantiatedOnly: instantiatedOnly);
+        link.head.dump(sb, '$indentation  ');
         needsComma = true;
       }
-      if (needsComma) {
-        sb.write('\n');
-        sb.write('$indentation]');
-      } else {
-        sb.write(']');
-      }
+      sb.write('\n');
+      sb.write('$indentation]');
     }
-  }
-
-  String dump({String indentation: '', bool instantiatedOnly: false}) {
-    StringBuffer sb = new StringBuffer();
-    printOn(sb, indentation, instantiatedOnly: instantiatedOnly);
-    return sb.toString();
   }
 
   String toString() => cls.toString();
@@ -297,11 +274,11 @@ class ClassSet {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('[\n');
-    node.printOn(sb, '  ');
+    node.dump(sb, '  ');
     sb.write('\n');
     if (_directSubtypes != null) {
       for (ClassHierarchyNode node in _directSubtypes) {
-        node.printOn(sb, '  ');
+        node.dump(sb, '  ');
         sb.write('\n');
       }
     }

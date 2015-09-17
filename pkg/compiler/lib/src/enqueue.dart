@@ -196,13 +196,7 @@ abstract class Enqueuer {
       ClassElement cls = type.element;
       registry.registerDependency(cls);
       cls.ensureResolved(compiler);
-      universe.registerTypeInstantiation(
-          type,
-          byMirrors: mirrorUsage,
-          onImplemented: (ClassElement cls) {
-        compiler.backend.registerImplementedClass(
-                    cls, this, compiler.globalDependencies);
-      });
+      universe.registerTypeInstantiation(type, byMirrors: mirrorUsage);
       processInstantiatedClass(cls);
       compiler.backend.registerInstantiatedType(type, registry);
     });
@@ -344,9 +338,10 @@ abstract class Enqueuer {
         compiler.backend.registerInstantiatedClass(
             cls, this, compiler.globalDependencies);
       }
-      while (cls != null) {
-        processClass(cls);
-        cls = cls.superclass;
+      processClass(cls);
+      for (Link<DartType> supertypes = cls.allSupertypes;
+           !supertypes.isEmpty; supertypes = supertypes.tail) {
+        processClass(supertypes.head.element);
       }
     });
   }

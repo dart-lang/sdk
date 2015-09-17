@@ -27,12 +27,7 @@ main(List<String> arguments) {
         || name == 'PLEASE_REPORT_THE_CRASH'
         // We cannot provide examples for patch errors.
         || name.startsWith('PATCH_')
-        || name == 'LIBRARY_NOT_SUPPORTED'
-        // TODO(johnniwinther): Remove these when [Compiler.reportUnusedCode] is
-        // reenabled.
-        || name == 'UNUSED_METHOD'
-        || name == 'UNUSED_CLASS'
-        || name == 'UNUSED_TYPEDEF') continue;
+        || name == 'LIBRARY_NOT_SUPPORTED') continue;
     if (template.examples != null) {
       examples.add(template);
     } else {

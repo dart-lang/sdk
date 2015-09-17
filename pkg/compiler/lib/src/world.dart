@@ -66,9 +66,6 @@ abstract class ClassWorld {
   /// Returns `true` if [cls] is instantiated.
   bool isInstantiated(ClassElement cls);
 
-  /// Returns `true` if [cls] is implemented by an instantiated class.
-  bool isImplemented(ClassElement cls);
-
   /// Returns `true` if the class world is closed.
   bool get isClosed;
 
@@ -126,9 +123,6 @@ abstract class ClassWorld {
   /// Returns `true` if closed-world assumptions can be made, that is,
   /// incremental compilation isn't enabled.
   bool get hasClosedWorldAssumption;
-
-  /// Returns a string representation of the closed world.
-  String dump();
 }
 
 class World implements ClassWorld {
@@ -151,11 +145,10 @@ class World implements ClassWorld {
       invariant(cls, cls.isDeclaration,
                 message: '$cls must be the declaration.') &&
       invariant(cls, cls.isResolved,
-                message: '$cls must be resolved.')/* &&
-      // TODO(johnniwinther): Reinsert this or similar invariant.
+                message: '$cls must be resolved.') &&
       (!mustBeInstantiated ||
        invariant(cls, isInstantiated(cls),
-                 message: '$cls is not instantiated.'))*/;
+                 message: '$cls is not instantiated.'));
  }
 
   /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
@@ -185,15 +178,9 @@ class World implements ClassWorld {
     return false;
   }
 
-  /// Returns `true` if [cls] is instantiated either directly or through a
-  /// subclass.
+  /// Returns `true` if [cls] is instantiated.
   bool isInstantiated(ClassElement cls) {
     return compiler.resolverWorld.isInstantiated(cls);
-  }
-
-  /// Returns `true` if [cls] is implemented by an instantiated class.
-  bool isImplemented(ClassElement cls) {
-    return compiler.resolverWorld.isImplemented(cls);
   }
 
   /// Returns an iterable over the directly instantiated classes that extend
@@ -321,23 +308,9 @@ class World implements ClassWorld {
     if (_liveMixinUses == null) {
       _liveMixinUses = new Map<ClassElement, List<MixinApplicationElement>>();
       for (ClassElement mixin in _mixinUses.keys) {
-        List<MixinApplicationElement> uses = <MixinApplicationElement>[];
-
-        void addLiveUse(MixinApplicationElement mixinApplication) {
-          if (isInstantiated(mixinApplication)) {
-            uses.add(mixinApplication);
-          } else if (mixinApplication.isNamedMixinApplication) {
-            List<MixinApplicationElement> next = _mixinUses[mixinApplication];
-            if (next != null) {
-              next.forEach(addLiveUse);
-            }
-          }
-        }
-
-        _mixinUses[mixin].forEach(addLiveUse);
-        if (uses.isNotEmpty) {
-          _liveMixinUses[mixin] = uses;
-        }
+        Iterable<MixinApplicationElement> uses =
+            _mixinUses[mixin].where(isInstantiated);
+        if (uses.isNotEmpty) _liveMixinUses[mixin] = uses.toList();
       }
     }
     Iterable<MixinApplicationElement> uses = _liveMixinUses[cls];
@@ -524,15 +497,6 @@ class World implements ClassWorld {
     // they also need RTI, so that a constructor passes the type
     // variables to the super constructor.
     compiler.resolverWorld.directlyInstantiatedClasses.forEach(addSubtypes);
-  }
-
-  @override
-  String dump() {
-    StringBuffer sb = new StringBuffer();
-    sb.write("Instantiated classes in the closed world:\n");
-    getClassHierarchyNode(compiler.objectClass)
-        .printOn(sb, ' ', instantiatedOnly: true);
-    return sb.toString();
   }
 
   void registerMixinUse(MixinApplicationElement mixinApplication,

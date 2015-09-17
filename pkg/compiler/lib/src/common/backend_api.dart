@@ -153,12 +153,6 @@ abstract class Backend {
                                  Enqueuer enqueuer,
                                  Registry registry) {}
 
-  /// Called to notify to the backend that a class is implemented by an
-  /// instantiated class.
-  void registerImplementedClass(ClassElement cls,
-                                Enqueuer enqueuer,
-                                Registry registry) {}
-
   /// Called to notify to the backend that an interface type has been
   /// instantiated.
   void registerInstantiatedType(InterfaceType type, Registry registry) {}

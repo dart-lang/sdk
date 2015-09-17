@@ -436,11 +436,6 @@ abstract class ClassElementCommon implements ClassElement {
     MemberSignature member = lookupInterfaceMember(Names.call);
     return member != null && member.isMethod ? member.type : null;
   }
-
-  @override
-  bool get isNamedMixinApplication {
-    return isMixinApplication && !isUnnamedMixinApplication;
-  }
 }
 
 abstract class FunctionSignatureCommon implements FunctionSignature {

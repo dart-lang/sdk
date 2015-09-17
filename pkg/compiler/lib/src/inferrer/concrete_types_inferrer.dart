@@ -454,8 +454,6 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
       } else if (element == compiler.backend.intImplementation) {
         return new TypeMask.nonNullSubclass(compiler.backend.intImplementation,
                                             compiler.world);
-      } else if (!compiler.world.isInstantiated(element.declaration)) {
-        return new TypeMask.nonNullSubtype(element.declaration, compiler.world);
       } else {
         return new TypeMask.nonNullExact(element.declaration, compiler.world);
       }
