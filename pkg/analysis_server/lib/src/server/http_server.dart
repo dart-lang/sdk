@@ -76,8 +76,13 @@ class HttpAnalysisServer {
    * Begin serving HTTP requests over the given port.
    */
   void serveHttp(int port) {
-    _server = HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port);
-    _server.then(_handleServer);
+    try {
+      _server = HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port);
+      _server.then(_handleServer);
+    } catch (exception) {
+      // We were unable to start the server, and there's nothing we can do about
+      // it.
+    }
   }
 
   /**
