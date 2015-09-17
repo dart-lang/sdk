@@ -61,7 +61,7 @@ import 'lazy_emitter/emitter.dart' as lazy_js_emitter;
 import 'startup_emitter/emitter.dart' as startup_js_emitter;
 
 import '../universe/universe.dart' show
-    ReceiverMaskSet;
+    SelectorConstraints;
 
 import '../util/util.dart' show
     Setlet;

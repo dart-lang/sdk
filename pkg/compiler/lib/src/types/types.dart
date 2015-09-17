@@ -24,10 +24,9 @@ import '../util/util.dart';
 import '../universe/selector.dart' show
     Selector;
 import '../universe/universe.dart' show
-    ReceiverMask,
-    ReceiverMaskSet,
-    UniverseReceiverMaskSet,
-    ReceiverMaskStrategy;
+    ReceiverConstraint,
+    UniverseSelectorConstraints,
+    SelectorConstraintsStrategy;
 import '../world.dart' show
     ClassWorld,
     World;

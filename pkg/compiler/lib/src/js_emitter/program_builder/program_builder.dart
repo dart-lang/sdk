@@ -30,7 +30,7 @@ import '../../elements/elements.dart' show
     MethodElement,
     ParameterElement;
 
-import '../../universe/universe.dart' show Universe, ReceiverMaskSet;
+import '../../universe/universe.dart' show Universe, SelectorConstraints;
 import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 
 part 'collector.dart';
@@ -385,7 +385,7 @@ class ProgramBuilder {
         if (method != null) methods.add(method);
       }
       if (member.isGetter || member.isField) {
-        Map<Selector, ReceiverMaskSet> selectors =
+        Map<Selector, SelectorConstraints> selectors =
             _compiler.codegenWorld.invocationsByName(member.name);
         if (selectors != null && !selectors.isEmpty) {
 

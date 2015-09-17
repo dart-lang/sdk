@@ -33,7 +33,7 @@ import 'side_effects.dart';
 
 class UniverseSelector {
   final Selector selector;
-  final ReceiverMask mask;
+  final ReceiverConstraint mask;
 
   UniverseSelector(this.selector, this.mask);
 
@@ -45,31 +45,62 @@ class UniverseSelector {
   String toString() => '$selector,$mask';
 }
 
-/// A potential receiver for a dynamic call site.
-abstract class ReceiverMask {
+/// The known constraint on receiver for a dynamic call site.
+///
+/// This can for instance be used to constrain this dynamic call to `foo` to
+/// 'receivers of the exact instance `Bar`':
+///
+///     class Bar {
+///        void foo() {}
+///     }
+///     main() => new Bar().foo();
+///
+abstract class ReceiverConstraint {
   /// Returns whether [element] is a potential target when being
-  /// invoked on this receiver mask. [selector] is used to ensure library
-  /// privacy is taken into account.
+  /// invoked on a receiver with this constraint. [selector] is used to ensure
+  /// library privacy is taken into account.
   bool canHit(Element element, Selector selector, ClassWorld classWorld);
 }
 
-/// A set of potential receivers for the dynamic call sites of the same
+/// The combined constraints on receivers all the dynamic call sites of the same
 /// selector.
 ///
 /// For instance for these calls
 ///
+///     class A {
+///        foo(a, b) {}
+///     }
+///     class B {
+///        foo(a, b) {}
+///     }
+///     class C {
+///        foo(a, b) {}
+///     }
 ///     new A().foo(a, b);
 ///     new B().foo(0, 42);
 ///
-/// the receiver mask set for dynamic calls to 'foo' with to positional
-/// arguments will contain receiver masks abstracting `new A()` and `new B()`.
-abstract class ReceiverMaskSet {
-  /// Returns `true` if [selector] applies to any of the potential receivers
-  /// in this set given the closed [world].
+/// the selector constaints for dynamic calls to 'foo' with two positional
+/// arguments could be 'receiver of exact instance `A` or `B`'.
+abstract class SelectorConstraints {
+  /// Returns `true` if [selector] applies to [element] under these constraints
+  /// given the closed [world].
+  ///
+  /// Consider for instance in this world:
+  ///
+  ///     class A {
+  ///        foo(a, b) {}
+  ///     }
+  ///     class B {
+  ///        foo(a, b) {}
+  ///     }
+  ///     new A().foo(a, b);
+  ///
+  /// Ideally the selector constraints for calls `foo` with two positional
+  /// arguments apply to `A.foo` but `B.foo`.
   bool applies(Element element, Selector selector, ClassWorld world);
 
-  /// Returns `true` if any potential receivers in this set given the closed
-  /// [world] have no implementation matching [selector].
+  /// Returns `true` if at least one of the receivers matching these constraints
+  /// in the closed [world] have no implementation matching [selector].
   ///
   /// For instance for this code snippet
   ///
@@ -77,23 +108,24 @@ abstract class ReceiverMaskSet {
   ///     class B { foo() {} }
   ///     m(b) => (b ? new A() : new B()).foo();
   ///
-  /// the potential receiver `new A()` have no implementation of `foo` and thus
-  /// needs to handle the call though its `noSuchMethod` handler.
+  /// the potential receiver `new A()` has no implementation of `foo` and thus
+  /// needs to handle the call through its `noSuchMethod` handler.
   bool needsNoSuchMethodHandling(Selector selector, ClassWorld world);
 }
 
-/// A mutable [ReceiverMaskSet] used in [Universe].
-abstract class UniverseReceiverMaskSet extends ReceiverMaskSet {
-  /// Adds [mask] to this set of potential receivers. Return `true` if the
-  /// set expanded due to the new mask.
-  bool addReceiverMask(ReceiverMask mask);
+/// A mutable [SelectorConstraints] used in [Universe].
+abstract class UniverseSelectorConstraints extends SelectorConstraints {
+  /// Adds [constraint] to these selector constraints. Return `true` if the set
+  /// of potential receivers expanded due to the new constraint.
+  bool addReceiverConstraint(ReceiverConstraint constraint);
 }
 
-/// Strategy for computing potential receivers of dynamic call sites.
-abstract class ReceiverMaskStrategy {
-  /// Create a [UniverseReceiverMaskSet] to represent the potential receiver for
-  /// a dynamic call site with [selector].
-  UniverseReceiverMaskSet createReceiverMaskSet(Selector selector);
+/// Strategy for computing the constraints on potential receivers of dynamic
+/// call sites.
+abstract class SelectorConstraintsStrategy {
+  /// Create a [UniverseSelectorConstraints] to represent the global receiver
+  /// constraints for dynamic call sites with [selector].
+  UniverseSelectorConstraints createSelectorConstraints(Selector selector);
 }
 
 class Universe {
@@ -133,12 +165,12 @@ class Universe {
       new Set<FunctionElement>();
   final Set<FunctionElement> methodsNeedingSuperGetter =
       new Set<FunctionElement>();
-  final Map<String, Map<Selector, ReceiverMaskSet>> _invokedNames =
-      <String, Map<Selector, ReceiverMaskSet>>{};
-  final Map<String, Map<Selector, ReceiverMaskSet>> _invokedGetters =
-      <String, Map<Selector, ReceiverMaskSet>>{};
-  final Map<String, Map<Selector, ReceiverMaskSet>> _invokedSetters =
-      <String, Map<Selector, ReceiverMaskSet>>{};
+  final Map<String, Map<Selector, SelectorConstraints>> _invokedNames =
+      <String, Map<Selector, SelectorConstraints>>{};
+  final Map<String, Map<Selector, SelectorConstraints>> _invokedGetters =
+      <String, Map<Selector, SelectorConstraints>>{};
+  final Map<String, Map<Selector, SelectorConstraints>> _invokedSetters =
+      <String, Map<Selector, SelectorConstraints>>{};
 
   /**
    * Fields accessed. Currently only the codegen knows this
@@ -180,9 +212,9 @@ class Universe {
    */
   final Set<Element> closurizedMembers = new Set<Element>();
 
-  final ReceiverMaskStrategy receiverMaskStrategy;
+  final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
-  Universe(this.receiverMaskStrategy);
+  Universe(this.selectorConstraintsStrategy);
 
   /// All directly instantiated classes, that is, classes with a generative
   /// constructor that has been called directly and not only through a
@@ -245,13 +277,13 @@ class Universe {
     });
   }
 
-  bool _hasMatchingSelector(Map<Selector, ReceiverMaskSet> selectors,
+  bool _hasMatchingSelector(Map<Selector, SelectorConstraints> selectors,
                             Element member,
                             World world) {
     if (selectors == null) return false;
     for (Selector selector in selectors.keys) {
       if (selector.appliesUnnamed(member, world)) {
-        ReceiverMaskSet masks = selectors[selector];
+        SelectorConstraints masks = selectors[selector];
         if (masks.applies(member, selector, world)) {
           return true;
         }
@@ -286,47 +318,47 @@ class Universe {
 
   bool _registerNewSelector(
       UniverseSelector universeSelector,
-      Map<String, Map<Selector, ReceiverMaskSet>> selectorMap) {
+      Map<String, Map<Selector, SelectorConstraints>> selectorMap) {
     Selector selector = universeSelector.selector;
     String name = selector.name;
-    ReceiverMask mask = universeSelector.mask;
-    Map<Selector, ReceiverMaskSet> selectors = selectorMap.putIfAbsent(
-        name, () => new Maplet<Selector, ReceiverMaskSet>());
-    UniverseReceiverMaskSet masks = selectors.putIfAbsent(
-        selector, () => receiverMaskStrategy.createReceiverMaskSet(selector));
-    return masks.addReceiverMask(mask);
+    ReceiverConstraint mask = universeSelector.mask;
+    Map<Selector, SelectorConstraints> selectors = selectorMap.putIfAbsent(
+        name, () => new Maplet<Selector, SelectorConstraints>());
+    UniverseSelectorConstraints constraints = selectors.putIfAbsent(
+        selector, () => selectorConstraintsStrategy.createSelectorConstraints(selector));
+    return constraints.addReceiverConstraint(mask);
   }
 
-  Map<Selector, ReceiverMaskSet> _asUnmodifiable(
-      Map<Selector, ReceiverMaskSet> map) {
+  Map<Selector, SelectorConstraints> _asUnmodifiable(
+      Map<Selector, SelectorConstraints> map) {
     if (map == null) return null;
     return new UnmodifiableMapView(map);
   }
 
-  Map<Selector, ReceiverMaskSet> invocationsByName(String name) {
+  Map<Selector, SelectorConstraints> invocationsByName(String name) {
     return _asUnmodifiable(_invokedNames[name]);
   }
 
-  Map<Selector, ReceiverMaskSet> getterInvocationsByName(String name) {
+  Map<Selector, SelectorConstraints> getterInvocationsByName(String name) {
     return _asUnmodifiable(_invokedGetters[name]);
   }
 
-  Map<Selector, ReceiverMaskSet> setterInvocationsByName(String name) {
+  Map<Selector, SelectorConstraints> setterInvocationsByName(String name) {
     return _asUnmodifiable(_invokedSetters[name]);
   }
 
   void forEachInvokedName(
-      f(String name, Map<Selector, ReceiverMaskSet> selectors)) {
+      f(String name, Map<Selector, SelectorConstraints> selectors)) {
     _invokedNames.forEach(f);
   }
 
   void forEachInvokedGetter(
-      f(String name, Map<Selector, ReceiverMaskSet> selectors)) {
+      f(String name, Map<Selector, SelectorConstraints> selectors)) {
     _invokedGetters.forEach(f);
   }
 
   void forEachInvokedSetter(
-      f(String name, Map<Selector, ReceiverMaskSet> selectors)) {
+      f(String name, Map<Selector, SelectorConstraints> selectors)) {
     _invokedSetters.forEach(f);
   }
 

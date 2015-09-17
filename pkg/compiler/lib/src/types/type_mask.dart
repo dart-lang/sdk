@@ -4,10 +4,10 @@
 
 part of types;
 
-/// An implementation of a [UniverseReceiverMaskSet] that is consists if an only
+/// An implementation of a [UniverseSelectorConstraints] that is consists if an only
 /// increasing set of [TypeMask]s, that is, once a mask is added it cannot be
 /// removed.
-class IncreasingTypeMaskSet extends UniverseReceiverMaskSet {
+class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
   bool isAll = false;
   Set<TypeMask> _masks;
 
@@ -37,7 +37,7 @@ class IncreasingTypeMaskSet extends UniverseReceiverMaskSet {
   }
 
   @override
-  bool addReceiverMask(TypeMask mask) {
+  bool addReceiverConstraint(TypeMask mask) {
     if (isAll) return false;
     if (mask == null) {
       isAll = true;
@@ -61,11 +61,11 @@ class IncreasingTypeMaskSet extends UniverseReceiverMaskSet {
   }
 }
 
-class TypeMaskStrategy implements ReceiverMaskStrategy {
+class TypeMaskStrategy implements SelectorConstraintsStrategy {
   const TypeMaskStrategy();
 
   @override
-  UniverseReceiverMaskSet createReceiverMaskSet(Selector selector) {
+  UniverseSelectorConstraints createSelectorConstraints(Selector selector) {
     return new IncreasingTypeMaskSet();
   }
 }
@@ -75,7 +75,7 @@ class TypeMaskStrategy implements ReceiverMaskStrategy {
  * operations on it are not guaranteed to be precise and they may
  * yield conservative answers that contain too many classes.
  */
-abstract class TypeMask implements ReceiverMask {
+abstract class TypeMask implements ReceiverConstraint {
   factory TypeMask(ClassElement base,
                    int kind,
                    bool isNullable,
