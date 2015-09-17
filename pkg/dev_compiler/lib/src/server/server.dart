@@ -21,18 +21,16 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf;
 import 'package:shelf_static/shelf_static.dart' as shelf_static;
 
-import 'package:dev_compiler/src/codegen/code_generator.dart'
-    show CodeGenerator;
-import 'package:dev_compiler/src/codegen/html_codegen.dart'
-    show generateEntryHtml;
-import 'package:dev_compiler/src/codegen/js_codegen.dart';
-import 'package:dev_compiler/src/analysis_context.dart';
-import 'package:dev_compiler/src/compiler.dart' show AbstractCompiler;
-import 'package:dev_compiler/src/info.dart'
+import '../codegen/code_generator.dart' show CodeGenerator;
+import '../codegen/html_codegen.dart' show generateEntryHtml;
+import '../codegen/js_codegen.dart';
+import '../analysis_context.dart';
+import '../compiler.dart' show AbstractCompiler;
+import '../info.dart'
     show AnalyzerMessage, CheckerResults, LibraryInfo, LibraryUnit;
-import 'package:dev_compiler/src/options.dart';
-import 'package:dev_compiler/src/report.dart';
-import 'package:dev_compiler/src/utils.dart';
+import '../options.dart';
+import '../report.dart';
+import '../utils.dart';
 
 import 'dependency_graph.dart';
 

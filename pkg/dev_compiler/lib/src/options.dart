@@ -13,7 +13,7 @@ import 'package:logging/logging.dart' show Level;
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
-import 'package:dev_compiler/strong_mode.dart' show StrongModeOptions;
+import '../strong_mode.dart' show StrongModeOptions;
 
 const bool _CLOSURE_DEFAULT = false;
 

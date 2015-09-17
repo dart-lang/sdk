@@ -11,8 +11,8 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 
-import 'package:dev_compiler/src/checker/rules.dart';
-import 'package:dev_compiler/src/utils.dart' as utils;
+import 'checker/rules.dart';
+import 'utils.dart' as utils;
 
 /// Represents a summary of the results collected by running the program
 /// checker.

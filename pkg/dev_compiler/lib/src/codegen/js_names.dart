@@ -5,7 +5,8 @@
 library dev_compiler.src.codegen.js_names;
 
 import 'dart:collection';
-import 'package:dev_compiler/src/js/js_ast.dart';
+
+import '../js/js_ast.dart';
 
 /// Unique instance for temporary variables. Will be renamed consistently
 /// across the entire file. Different instances will be named differently

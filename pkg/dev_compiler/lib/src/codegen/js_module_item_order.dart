@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection' show HashMap;
+
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:dev_compiler/src/compiler.dart' show corelibOrder;
+
+import '../compiler.dart' show corelibOrder;
 
 typedef void ModuleItemEmitter(AstNode item);
 

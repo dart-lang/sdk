@@ -28,10 +28,10 @@ import 'package:html/parser.dart' as html;
 import 'package:logging/logging.dart' show Logger, Level;
 import 'package:path/path.dart' as path;
 
-import 'package:dev_compiler/src/compiler.dart' show defaultRuntimeFiles;
-import 'package:dev_compiler/src/info.dart';
-import 'package:dev_compiler/src/options.dart';
-import 'package:dev_compiler/src/report.dart';
+import '../compiler.dart' show defaultRuntimeFiles;
+import '../info.dart';
+import '../options.dart';
+import '../report.dart';
 
 /// Holds references to all source nodes in the import graph. This is mainly
 /// used as a level of indirection to ensure that each source has a canonical

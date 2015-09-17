@@ -8,10 +8,10 @@ library dev_compiler.src.runner.runtime_utils;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dev_compiler/src/compiler.dart' show defaultRuntimeFiles;
-import 'package:dev_compiler/src/options.dart';
 import 'package:path/path.dart';
 
+import '../compiler.dart' show defaultRuntimeFiles;
+import '../options.dart';
 import 'file_utils.dart';
 
 /// In node.js / io.js, these modules need to be aliased globally

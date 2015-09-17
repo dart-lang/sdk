@@ -5,8 +5,8 @@
 library dev_compiler.src.codegen.js_metalet;
 
 // TODO(jmesserly): import from its own package
-import 'package:dev_compiler/src/js/js_ast.dart';
-import 'package:dev_compiler/src/js/precedence.dart';
+import '../js/js_ast.dart';
+import '../js/precedence.dart';
 
 import 'js_names.dart' show TemporaryId;
 

@@ -9,11 +9,11 @@ import 'package:analyzer/src/generated/element.dart'
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:path/path.dart' as path;
 
-import 'package:dev_compiler/src/compiler.dart' show AbstractCompiler;
-import 'package:dev_compiler/src/info.dart';
-import 'package:dev_compiler/src/utils.dart' show canonicalLibraryName;
-import 'package:dev_compiler/src/checker/rules.dart';
-import 'package:dev_compiler/src/options.dart' show CodegenOptions;
+import '../compiler.dart' show AbstractCompiler;
+import '../info.dart';
+import '../utils.dart' show canonicalLibraryName;
+import '../checker/rules.dart';
+import '../options.dart' show CodegenOptions;
 
 abstract class CodeGenerator {
   final AbstractCompiler compiler;

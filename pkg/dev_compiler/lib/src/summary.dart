@@ -6,6 +6,7 @@
 library dev_compiler.src.summary;
 
 import 'dart:collection' show HashSet;
+
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:source_span/source_span.dart';
