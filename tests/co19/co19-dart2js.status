@@ -836,6 +836,7 @@ LayoutTests/fast/dom/blur-contenteditable_t01: Pass, RuntimeError # Please triag
 LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-selectorText_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/custom/document-register-basic_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/dom/custom/document-register-svg-extends_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/element-names_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/dataset-xhtml_t01: RuntimeError # Please triage this failure
@@ -1105,6 +1106,7 @@ LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t01: RuntimeError # Pleas
 LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Core/test_node_test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Core/test_node_test_t02: RuntimeError # Please triage this failure
+LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/ambiguous-operators_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/attr-namespace_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/ensure-null-namespace_t01: RuntimeError # Please triage this failure
@@ -1113,6 +1115,7 @@ LayoutTests/fast/xpath/invalid-resolver_t01: RuntimeError # Please triage this f
 LayoutTests/fast/xpath/node-name-case-sensitivity_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/node-name-case-sensitivity_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/position_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/xpath/py-dom-xpath/axes_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/data_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/py-dom-xpath/expressions_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/py-dom-xpath/paths_t01: RuntimeError # Please triage this failure
@@ -1424,6 +1427,8 @@ LayoutTests/fast/table/table-width-exceeding-max-width_t01: RuntimeError # Pleas
 LayoutTests/fast/text/line-break-after-inline-latin1_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-bad-mimetype_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-invalid-values_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
+LayoutTests/fast/xpath/py-dom-xpath/axes_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/xpath-result-eventlistener-crash_t01: RuntimeError # Please triage this failure
 LibTest/html/Node/ownerDocument_A01_t01: RuntimeError # Issue 18251
 WebPlatformTest/DOMEvents/approved/Propagation.path.target.removed_t01: RuntimeError # Please triage this failure
@@ -2176,6 +2181,7 @@ LayoutTests/fast/dom/getelementsbyname-invalidation-cache_t01: RuntimeError # Pl
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLDialogElement/dialog-return-value_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/dom/importNode-unsupported-node-type_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/insert-span-into-long-text-bug-28245_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/insertBefore-refChild-crash_t01: RuntimeError # Please triage this failure
@@ -2399,6 +2405,7 @@ LayoutTests/fast/forms/date/input-date-validation-message_t01: RuntimeError # Pl
 LayoutTests/fast/forms/date/input-valueasdate-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-valueasnumber-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal-multiple-fields/datetimelocal-multiple-fields-change-layout-by-value_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/datetimelocal/input-valueasnumber-datetimelocal_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/forms/datetimelocal/ValidityState-rangeOverflow-datetimelocal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/ValidityState-rangeUnderflow-datetimelocal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/ValidityState-stepMismatch-datetimelocal_t01: RuntimeError # Please triage this failure
@@ -2698,6 +2705,7 @@ LayoutTests/fast/xpath/invalid-resolver_t01: RuntimeError # Please triage this f
 LayoutTests/fast/xpath/node-name-case-sensitivity_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/node-name-case-sensitivity_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/position_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/data_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/py-dom-xpath/expressions_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/py-dom-xpath/paths_t01: RuntimeError # Please triage this failure
@@ -3551,6 +3559,7 @@ LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: Runti
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/html-collections-named-getter-mandatory-arg_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLDialogElement/dialog-return-value_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/dom/implementation-api-args_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/importNode-unsupported-node-type_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/location-hash_t01: Skip # Times out. Please triage this failure
@@ -3719,6 +3728,7 @@ LayoutTests/fast/forms/color/color-setrangetext_t01: RuntimeError # Please triag
 LayoutTests/fast/forms/color/input-value-sanitization-color_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datalist/datalist_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datalist/input-list_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/datetimelocal/input-valueasnumber-datetimelocal_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-change-layout-by-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-onblur-setvalue-onfocusremoved_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/ValidityState-rangeOverflow-date_t01: RuntimeError # Please triage this failure
@@ -3962,6 +3972,7 @@ LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t01: RuntimeError # Pleas
 LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Core/test_node_test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Core/test_node_test_t02: RuntimeError # Please triage this failure
+LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/ambiguous-operators_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/attr-namespace_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/ensure-null-namespace_t01: RuntimeError # Please triage this failure
@@ -3970,6 +3981,7 @@ LayoutTests/fast/xpath/invalid-resolver_t01: RuntimeError # Please triage this f
 LayoutTests/fast/xpath/node-name-case-sensitivity_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/node-name-case-sensitivity_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/position_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/axes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/py-dom-xpath/data_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/py-dom-xpath/expressions_t01: RuntimeError # Please triage this failure
@@ -4769,6 +4781,7 @@ LayoutTests/fast/dom/Range/surroundContents-for-detached-node_t01: RuntimeError 
 LayoutTests/fast/dom/SelectorAPI/caseID-almost-strict_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/caseID_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/SelectorAPI/dumpNodeList-almost-strict_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/id-fastpath-almost-strict_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/id-fastpath-strict_t01: RuntimeError # Please triage this failure
@@ -4826,6 +4839,7 @@ LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: Runti
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/html-collections-named-getter-mandatory-arg_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLDialogElement/dialog-return-value_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/dom/implementation-api-args_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/importNode-unsupported-node-type_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/jsDevicePixelRatio_t01: RuntimeError # Please triage this failure
@@ -5009,6 +5023,7 @@ LayoutTests/fast/forms/date/input-valueasdate-date_t01: RuntimeError # Please tr
 LayoutTests/fast/forms/date/input-valueasnumber-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal-multiple-fields/datetimelocal-multiple-fields-change-layout-by-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/input-valueasdate-datetimelocal_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/datetimelocal/input-valueasnumber-datetimelocal_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/forms/file/file-input-capture_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/focus-style-pending_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/forms/form-attribute_t01: RuntimeError # Please triage this failure
@@ -5247,6 +5262,7 @@ LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t01: RuntimeError # Pleas
 LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Core/test_node_test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Core/test_node_test_t02: RuntimeError # Please triage this failure
+LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/ambiguous-operators_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/attr-namespace_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/ensure-null-namespace_t01: RuntimeError # Please triage this failure
@@ -5255,6 +5271,7 @@ LayoutTests/fast/xpath/invalid-resolver_t01: RuntimeError # Please triage this f
 LayoutTests/fast/xpath/node-name-case-sensitivity_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/node-name-case-sensitivity_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/position_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/axes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/py-dom-xpath/data_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/py-dom-xpath/expressions_t01: RuntimeError # Please triage this failure

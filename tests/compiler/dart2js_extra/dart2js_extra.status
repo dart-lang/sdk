@@ -32,6 +32,7 @@ no_such_method_mirrors_test: Pass, Slow # TODO(kasperl): Please triage.
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dart2js && $minified ]
+assert_with_message_test: RuntimeError # Dartium JSInterop failure
 to_string_test: Fail # Issue 7179.
 runtime_type_test: Fail, OK # Tests extected output of Type.toString().
 code_motion_exception_test: Skip  # Requires unminified operator names.
