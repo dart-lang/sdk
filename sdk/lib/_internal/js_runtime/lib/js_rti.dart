@@ -85,9 +85,17 @@ getMangledTypeName(TypeImpl type) => type._typeName;
  * representation of type 4 or 5, that is, either a JavaScript array or
  * `null`.
  */
+// Don't inline.  Let the JS engine inline this.  The call expression is much
+// more compact that the inlined expansion.
+// TODO(sra): For most objects it would be better to initialize the type info as
+// a field in the constructor: http://dartbug.com/22676 .
+@NoInline()
 Object setRuntimeTypeInfo(Object target, var rti) {
   assert(rti == null || isJsArray(rti));
   // We have to check for null because factories may return null.
+  // TODO(sra): How is this true? The factory should be executing some code that
+  // creates an object that already has the correct info. There should not be a
+  // second setRuntimeTypeInfo on the possibly null value.
   if (target != null) JS('var', r'#.$builtinTypeInfo = #', target, rti);
   return target;
 }

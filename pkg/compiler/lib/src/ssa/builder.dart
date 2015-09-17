@@ -1363,14 +1363,16 @@ class SsaBuilder extends ast.Visitor
 
     bool doesNotContainCode() {
       // A function with size 1 does not contain any code.
-      return InlineWeeder.canBeInlined(function, 1, true);
+      return InlineWeeder.canBeInlined(function, 1, true,
+          enableUserAssertions: compiler.enableUserAssertions);
     }
 
     bool reductiveHeuristic() {
       // The call is on a path which is executed rarely, so inline only if it
       // does not make the program larger.
       if (isCalledOnce(element)) {
-        return InlineWeeder.canBeInlined(function, -1, false);
+        return InlineWeeder.canBeInlined(function, -1, false,
+            enableUserAssertions: compiler.enableUserAssertions);
       }
       // TODO(sra): Measure if inlining would 'reduce' the size.  One desirable
       // case we miss by doing nothing is inlining very simple constructors
@@ -1408,7 +1410,8 @@ class SsaBuilder extends ast.Visitor
         // We may have forced the inlining of some methods. Therefore check
         // if we can inline this method regardless of size.
         assert(InlineWeeder.canBeInlined(function, -1, false,
-                                         allowLoops: true));
+                allowLoops: true,
+                enableUserAssertions: compiler.enableUserAssertions));
         return true;
       }
 
@@ -1431,7 +1434,8 @@ class SsaBuilder extends ast.Visitor
       }
       bool canInline;
       canInline = InlineWeeder.canBeInlined(
-          function, maxInliningNodes, useMaxInliningNodes);
+          function, maxInliningNodes, useMaxInliningNodes,
+          enableUserAssertions: compiler.enableUserAssertions);
       if (canInline) {
         backend.inlineCache.markAsInlinable(element, insideLoop: insideLoop);
       } else {
@@ -8468,19 +8472,24 @@ class InlineWeeder extends ast.Visitor {
   final int maxInliningNodes;
   final bool useMaxInliningNodes;
   final bool allowLoops;
+  final bool enableUserAssertions;
 
   InlineWeeder(this.maxInliningNodes,
                this.useMaxInliningNodes,
-               this.allowLoops);
+               this.allowLoops,
+               this.enableUserAssertions);
 
   static bool canBeInlined(FunctionElement function,
                            int maxInliningNodes,
                            bool useMaxInliningNodes,
-                           {bool allowLoops: false}) {
+                           {bool allowLoops: false,
+                            bool enableUserAssertions: null}) {
+    assert(enableUserAssertions is bool); // Ensure we passed it.
     if (function.resolvedAst.elements.containsTryStatement) return false;
 
     InlineWeeder weeder =
-        new InlineWeeder(maxInliningNodes, useMaxInliningNodes, allowLoops);
+        new InlineWeeder(maxInliningNodes, useMaxInliningNodes, allowLoops,
+            enableUserAssertions);
     ast.FunctionExpression functionExpression = function.node;
     weeder.visit(functionExpression.initializers);
     weeder.visit(functionExpression.body);
@@ -8508,6 +8517,13 @@ class InlineWeeder extends ast.Visitor {
       tooDifficult = true;
     } else {
       node.visitChildren(this);
+    }
+  }
+
+  @override
+  void visitAssert(ast.Assert node) {
+    if (enableUserAssertions) {
+      visitNode(node);
     }
   }
 
