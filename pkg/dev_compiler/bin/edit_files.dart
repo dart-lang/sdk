@@ -5,7 +5,7 @@
 
 /// Command line tool to write checker errors as inline comments in the source
 /// code of the program. This tool requires the info.json file created by
-/// running devc.dart passing the arguments
+/// running dartdevc.dart passing the arguments
 /// --dump-info --dump-info-file info.json
 
 library dev_compiler.bin.edit_files;
