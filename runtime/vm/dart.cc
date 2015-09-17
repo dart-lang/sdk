@@ -38,7 +38,7 @@ DECLARE_FLAG(bool, trace_isolates);
 DECLARE_FLAG(bool, trace_time_all);
 DEFINE_FLAG(bool, keep_code, false,
             "Keep deoptimized code for profiling.");
-DEFINE_FLAG(bool, shutdown, true, "Do a clean shutdown of the VM");
+DEFINE_FLAG(bool, shutdown, false, "Do a clean shutdown of the VM");
 
 Isolate* Dart::vm_isolate_ = NULL;
 ThreadPool* Dart::thread_pool_ = NULL;
@@ -268,7 +268,6 @@ Isolate* Dart::CreateIsolate(const char* name_prefix,
                              const Dart_IsolateFlags& api_flags) {
   // Create a new isolate.
   Isolate* isolate = Isolate::Init(name_prefix, api_flags);
-  ASSERT(isolate != NULL);
   return isolate;
 }
 
