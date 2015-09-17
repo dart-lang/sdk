@@ -1392,8 +1392,23 @@ abstract class ClassElement extends TypeDeclarationElement
 
   /// `true` if this class is an enum declaration.
   bool get isEnumClass;
+
+  /// `true` if this class is a mixin application, either named or unnamed.
   bool get isMixinApplication;
+
+  /// `true` if this class is a named mixin application, e.g.
+  ///
+  ///     class NamedMixinApplication = SuperClass with MixinClass;
+  ///
+  bool get isNamedMixinApplication;
+
+  /// `true` if this class is an unnamed mixin application, e.g. the synthesized
+  /// `SuperClass+MixinClass` mixin application class in:
+  ///
+  ///     class Class extends SuperClass with MixinClass {}
+  ///
   bool get isUnnamedMixinApplication;
+
   bool get hasBackendMembers;
   bool get hasLocalScopeMembers;
 

@@ -1598,8 +1598,18 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // type because our optimizations might end up in a state where the
       // invoke dynamic knows more than the receiver.
       ClassElement enclosing = node.element.enclosingClass;
-      return
-          new TypeMask.nonNullExact(enclosing.declaration, compiler.world);
+      if (compiler.world.isInstantiated(enclosing)) {
+        return new TypeMask.nonNullExact(
+            enclosing.declaration, compiler.world);
+      } else {
+        // The element is mixed in so a non-null subtype mask is the most
+        // precise we have.
+        assert(invariant(node, compiler.world.isUsedAsMixin(enclosing),
+            message: "Element ${node.element} from $enclosing expected "
+                     "to be mixed in."));
+        return new TypeMask.nonNullSubtype(
+            enclosing.declaration, compiler.world);
+      }
     }
     // If [JSInvocationMirror._invokeOn] is enabled, and this call
     // might hit a `noSuchMethod`, we register an untyped selector.

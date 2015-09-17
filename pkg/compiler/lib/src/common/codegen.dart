@@ -50,6 +50,8 @@ class CodegenRegistry extends Registry {
 
   Element get currentElement => treeElements.analyzedElement;
 
+  String toString() => 'CodegenRegistry for $currentElement';
+
   // TODO(johnniwinther): Remove this getter when [Registry] creates a
   // dependency node.
   Setlet<Element> get otherDependencies => treeElements.otherDependencies;

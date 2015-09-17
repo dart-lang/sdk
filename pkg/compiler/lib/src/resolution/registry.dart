@@ -94,6 +94,8 @@ class EagerRegistry implements Registry {
     registerDependency(element);
     world.registerStaticUse(element);
   }
+
+  String toString() => 'EagerRegistry for ${mapping.analyzedElement}';
 }
 
 class ResolutionWorldImpact implements WorldImpact {
@@ -221,6 +223,8 @@ class ResolutionRegistry implements Registry {
   World get universe => compiler.world;
 
   Backend get backend => compiler.backend;
+
+  String toString() => 'ResolutionRegistry for ${mapping.analyzedElement}';
 
   //////////////////////////////////////////////////////////////////////////////
   //  Node-to-Element mapping functionality.

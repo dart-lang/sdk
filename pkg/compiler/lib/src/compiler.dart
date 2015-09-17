@@ -1177,7 +1177,9 @@ abstract class Compiler implements DiagnosticListener {
         // code is artificially used.
         // If compilation failed, it is possible that the error prevents the
         // compiler from analyzing all the code.
-        reportUnusedCode();
+        // TODO(johnniwinther): Reenable this when the reporting is more
+        // precise.
+        //reportUnusedCode();
       }
       return;
     }
