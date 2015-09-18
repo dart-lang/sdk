@@ -4014,3 +4014,17 @@ class _AssertionError extends AssertionError {
 
   String toString() => "Assertion failed: " + Error.safeToString(_message);
 }
+
+
+// [_UnreachableError] is a separate class because we always resolve
+// [assertUnreachable] and want to reduce the impact of resolving possibly
+// unneeded code.
+class _UnreachableError extends AssertionError {
+  _UnreachableError();
+  String toString() => "Assertion failed: Reached dead code";
+}
+
+@NoInline()
+void assertUnreachable() {
+  throw new _UnreachableError();
+}

@@ -1632,20 +1632,27 @@ class SsaBuilder extends ast.Visitor
       var emptyParameters = parameters.values.where((p) =>
           p.instructionType.isEmpty && !p.instructionType.isNullable);
       if (emptyParameters.length > 0) {
-        String message = compiler.enableMinification
-            ? 'unreachable'
-            : 'unreachable: ${functionElement} because: ${emptyParameters}';
-        // TODO(sra): Use a library function that throws a proper error object.
-        push(new HForeignCode(
-            js.js.parseForeignJS('throw "$message"'),
-            backend.dynamicType,
-            <HInstruction>[],
-            isStatement: true));
+        addComment('${emptyParameters} inferred as [empty]');
+        pushInvokeStatic(function.body, backend.assertUnreachableMethod, []);
+        pop();
         return closeFunction();
       }
     }
     function.body.accept(this);
     return closeFunction();
+  }
+
+  /// Adds a JavaScript comment to the output. The comment will be omitted in
+  /// minified mode.  Each line in [text] is preceded with `//` and indented.
+  /// Use sparingly. In order for the comment to be retained it is modeled as
+  /// having side effects which will inhibit code motion.
+  // TODO(sra): Figure out how to keep comment anchored without effects.
+  void addComment(String text) {
+    add(new HForeignCode(
+        js.js.statementTemplateYielding(new js.Comment(text)),
+        backend.dynamicType,
+        <HInstruction>[],
+        isStatement: true));
   }
 
   HGraph buildCheckedSetter(VariableElement field) {

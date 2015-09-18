@@ -281,6 +281,7 @@ class JavaScriptBackend extends Backend {
   Element assertTestMethod;
   Element assertThrowMethod;
   Element assertHelperMethod;
+  Element assertUnreachableMethod;
   Element invokeOnMethod;
 
   ClassElement jsInterceptorClass;
@@ -1197,6 +1198,7 @@ class JavaScriptBackend extends Backend {
       assert(traceHelper != null);
       enqueueInResolution(traceHelper, registry);
     }
+    enqueueInResolution(assertUnreachableMethod, registry);
     registerCheckedModeHelpers(registry);
   }
 
@@ -2124,6 +2126,7 @@ class JavaScriptBackend extends Backend {
         assertTestMethod = findHelper('assertTest');
         assertThrowMethod = findHelper('assertThrow');
         assertHelperMethod = findHelper('assertHelper');
+        assertUnreachableMethod = findHelper('assertUnreachable');
 
         typeLiteralClass = findClass('TypeImpl');
         constMapLiteralClass = findClass('ConstantMap');

@@ -41,7 +41,11 @@
 
 part of _js_helper;
 
-Type createRuntimeType(String name) => new TypeImpl(name);
+Type createRuntimeType(String name) {
+  // Use a 'JS' cast to String.  Since this is registered as used by the
+  // backend, type inference assumes the worst (name is dynamic).
+  return new TypeImpl(JS('String', '#', name));
+}
 
 class TypeImpl implements Type {
   final String _typeName;
