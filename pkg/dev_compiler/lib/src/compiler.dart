@@ -288,9 +288,7 @@ abstract class AbstractCompiler {
       : context = context,
         options = options,
         checker = createChecker(context.typeProvider, options.strongOptions,
-            reporter ?? AnalysisErrorListener.NULL_LISTENER) {
-    enableDevCompilerInference(context, options.strongOptions);
-  }
+            reporter ?? AnalysisErrorListener.NULL_LISTENER);
 
   static CodeChecker createChecker(TypeProvider typeProvider,
       StrongModeOptions options, AnalysisErrorListener reporter) {

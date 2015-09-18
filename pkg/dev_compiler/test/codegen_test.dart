@@ -114,7 +114,7 @@ main(arguments) {
 
   for (var dir in [null, 'language']) {
     if (codeCoverage && dir == 'language') continue;
-    
+
     group('dartdevc ' + path.join('test', 'codegen', dir), () {
       var outDir = new Directory(path.join(expectDir, dir));
       if (!outDir.existsSync()) outDir.createSync(recursive: true);
