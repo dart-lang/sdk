@@ -82,9 +82,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param errorReporter the error reporter
    */
-  BestPracticesVerifier(
-      this._errorReporter, TypeProvider typeProvider, this._typeSystem)
-      : _futureNullType = typeProvider.futureNullType;
+  BestPracticesVerifier(this._errorReporter, TypeProvider typeProvider,
+      {TypeSystem typeSystem})
+      : _futureNullType = typeProvider.futureNullType,
+        _typeSystem = (typeSystem != null) ? typeSystem : new TypeSystemImpl();
 
   @override
   Object visitArgumentList(ArgumentList node) {
@@ -885,8 +886,10 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param errorReporter the error reporter by which errors will be reported
    */
-  ConstantVerifier(this._errorReporter, this._currentLibrary,
-      this._typeProvider, this._typeSystem, this.declaredVariables) {
+  ConstantVerifier(this._errorReporter, LibraryElement currentLibrary,
+      this._typeProvider, this.declaredVariables)
+      : _currentLibrary = currentLibrary,
+        _typeSystem = currentLibrary.context.typeSystem {
     this._boolType = _typeProvider.boolType;
     this._intType = _typeProvider.intType;
     this._numType = _typeProvider.numType;
@@ -944,8 +947,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
       ConstructorElement constructor = node.staticElement;
       if (constructor != null) {
         ConstantEvaluationEngine evaluationEngine =
-            new ConstantEvaluationEngine(
-                _typeProvider, _typeSystem, declaredVariables);
+            new ConstantEvaluationEngine(_typeProvider, declaredVariables,
+                typeSystem: _typeSystem);
         ConstantVisitor constantVisitor =
             new ConstantVisitor(evaluationEngine, _errorReporter);
         evaluationEngine.evaluateConstructorCall(
@@ -1019,8 +1022,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         ErrorReporter subErrorReporter =
             new ErrorReporter(errorListener, _errorReporter.source);
         DartObjectImpl result = key.accept(new ConstantVisitor(
-            new ConstantEvaluationEngine(
-                _typeProvider, _typeSystem, declaredVariables),
+            new ConstantEvaluationEngine(_typeProvider, declaredVariables,
+                typeSystem: _typeSystem),
             subErrorReporter));
         if (result != null) {
           if (keys.contains(result)) {
@@ -1226,8 +1229,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     ErrorReporter subErrorReporter =
         new ErrorReporter(errorListener, _errorReporter.source);
     DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(
-            _typeProvider, _typeSystem, declaredVariables),
+        new ConstantEvaluationEngine(_typeProvider, declaredVariables,
+            typeSystem: _typeSystem),
         subErrorReporter));
     _reportErrors(errorListener.errors, errorCode);
     return result;
@@ -1335,8 +1338,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
               ErrorReporter subErrorReporter =
                   new ErrorReporter(errorListener, _errorReporter.source);
               DartObjectImpl result = initializer.accept(new ConstantVisitor(
-                  new ConstantEvaluationEngine(
-                      _typeProvider, _typeSystem, declaredVariables),
+                  new ConstantEvaluationEngine(_typeProvider, declaredVariables,
+                      typeSystem: _typeSystem),
                   subErrorReporter));
               if (result == null) {
                 _errorReporter.reportErrorForNode(
@@ -1364,13 +1367,9 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     ErrorReporter subErrorReporter =
         new ErrorReporter(errorListener, _errorReporter.source);
     DartObjectImpl result = expression.accept(
-        new _ConstantVerifier_validateInitializerExpression(
-            _typeProvider,
-            _typeSystem,
-            subErrorReporter,
-            this,
-            parameterElements,
-            declaredVariables));
+        new _ConstantVerifier_validateInitializerExpression(_typeProvider,
+            subErrorReporter, this, parameterElements, declaredVariables,
+            typeSystem: _typeSystem));
     _reportErrors(errorListener.errors,
         CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
     if (result != null) {
@@ -1504,7 +1503,9 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param errorReporter the error reporter
    */
-  DeadCodeVerifier(this._errorReporter, this._typeSystem);
+  DeadCodeVerifier(this._errorReporter, {TypeSystem typeSystem})
+      : this._typeSystem =
+            (typeSystem != null) ? typeSystem : new TypeSystemImpl();
 
   @override
   Object visitBinaryExpression(BinaryExpression node) {
@@ -4824,15 +4825,16 @@ class HintGenerator {
     ErrorReporter errorReporter = new ErrorReporter(_errorListener, source);
     unit.accept(_usedImportedElementsVisitor);
     // dead code analysis
-    unit.accept(new DeadCodeVerifier(errorReporter, _context.typeSystem));
+    unit.accept(
+        new DeadCodeVerifier(errorReporter, typeSystem: _context.typeSystem));
     unit.accept(_usedLocalElementsVisitor);
     // dart2js analysis
     if (_enableDart2JSHints) {
       unit.accept(new Dart2JSVerifier(errorReporter));
     }
     // Dart best practices
-    unit.accept(new BestPracticesVerifier(
-        errorReporter, _context.typeProvider, _context.typeSystem));
+    unit.accept(new BestPracticesVerifier(errorReporter, _context.typeProvider,
+        typeSystem: _context.typeSystem));
     unit.accept(new OverrideVerifier(errorReporter, _manager));
     // Find to-do comments
     new ToDoFinder(errorReporter).findIn(unit);
@@ -8327,8 +8329,9 @@ class LibraryResolver {
       ConstantValueComputer computer = new ConstantValueComputer(
           analysisContext,
           _typeProvider,
-          _typeSystem,
-          analysisContext.declaredVariables);
+          analysisContext.declaredVariables,
+          null,
+          _typeSystem);
       for (Library library in _librariesInCycles) {
         for (Source source in library.compilationUnitSources) {
           try {
@@ -8356,7 +8359,6 @@ class LibraryResolver {
                 errorReporter,
                 library.libraryElement,
                 _typeProvider,
-                _typeSystem,
                 analysisContext.declaredVariables);
             unit.accept(constantVerifier);
           } on AnalysisException catch (exception, stackTrace) {
@@ -8389,7 +8391,7 @@ class LibraryResolver {
         ResolverVisitor visitor = visitorFactory != null
             ? visitorFactory(library, source, _typeProvider)
             : new ResolverVisitor(library.libraryElement, source, _typeProvider,
-                _typeSystem, library.errorListener,
+                library.errorListener,
                 nameScope: library.libraryScope,
                 inheritanceManager: library.inheritanceManager);
         ast.accept(visitor);
@@ -8832,8 +8834,9 @@ class LibraryResolver2 {
       ConstantValueComputer computer = new ConstantValueComputer(
           analysisContext,
           _typeProvider,
-          _typeSystem,
-          analysisContext.declaredVariables);
+          analysisContext.declaredVariables,
+          null,
+          _typeSystem);
       for (ResolvableLibrary library in _librariesInCycle) {
         for (ResolvableCompilationUnit unit
             in library.resolvableCompilationUnits) {
@@ -8856,7 +8859,6 @@ class LibraryResolver2 {
               errorReporter,
               library.libraryElement,
               _typeProvider,
-              _typeSystem,
               analysisContext.declaredVariables);
           ast.accept(constantVerifier);
         }
@@ -8892,12 +8894,8 @@ class LibraryResolver2 {
         ast.accept(new VariableResolverVisitor(library.libraryElement, source,
             _typeProvider, library.libraryScope.errorListener,
             nameScope: library.libraryScope));
-        ResolverVisitor visitor = new ResolverVisitor(
-            library.libraryElement,
-            source,
-            _typeProvider,
-            _typeSystem,
-            library._libraryScope.errorListener,
+        ResolverVisitor visitor = new ResolverVisitor(library.libraryElement,
+            source, _typeProvider, library._libraryScope.errorListener,
             nameScope: library._libraryScope,
             inheritanceManager: library.inheritanceManager);
         ast.accept(visitor);
@@ -9646,17 +9644,13 @@ class PartialResolverVisitor extends ResolverVisitor {
    * create the type analyzer.  If `null` or unspecified, a type analyzer of
    * type [StaticTypeAnalyzer] will be created.
    */
-  PartialResolverVisitor(
-      LibraryElement definingLibrary,
-      Source source,
-      TypeProvider typeProvider,
-      TypeSystem typeSystem,
-      AnalysisErrorListener errorListener,
+  PartialResolverVisitor(LibraryElement definingLibrary, Source source,
+      TypeProvider typeProvider, AnalysisErrorListener errorListener,
       {Scope nameScope,
       InheritanceManager inheritanceManager,
       StaticTypeAnalyzerFactory typeAnalyzerFactory})
       : strongMode = definingLibrary.context.analysisOptions.strongMode,
-        super(definingLibrary, source, typeProvider, typeSystem,
+        super(definingLibrary, source, typeProvider,
             new DisablableErrorListener(errorListener));
 
   @override
@@ -10288,6 +10282,11 @@ class ResolverVisitor extends ScopedVisitor {
    */
   StaticTypeAnalyzer typeAnalyzer;
 
+  /*
+  * The type system in use during resolution.
+  */
+  TypeSystem typeSystem;
+
   /**
    * The class element representing the class containing the current node,
    * or `null` if the current node is not contained in a class.
@@ -10355,12 +10354,8 @@ class ResolverVisitor extends ScopedVisitor {
    * create the type analyzer.  If `null` or unspecified, a type analyzer of
    * type [StaticTypeAnalyzer] will be created.
    */
-  ResolverVisitor(
-      LibraryElement definingLibrary,
-      Source source,
-      TypeProvider typeProvider,
-      TypeSystem typeSystem,
-      AnalysisErrorListener errorListener,
+  ResolverVisitor(LibraryElement definingLibrary, Source source,
+      TypeProvider typeProvider, AnalysisErrorListener errorListener,
       {Scope nameScope,
       InheritanceManager inheritanceManager,
       StaticTypeAnalyzerFactory typeAnalyzerFactory})
@@ -10372,8 +10367,9 @@ class ResolverVisitor extends ScopedVisitor {
       this._inheritanceManager = inheritanceManager;
     }
     this.elementResolver = new ElementResolver(this);
+    this.typeSystem = definingLibrary.context.typeSystem;
     if (typeAnalyzerFactory == null) {
-      this.typeAnalyzer = new StaticTypeAnalyzer(this, typeSystem);
+      this.typeAnalyzer = new StaticTypeAnalyzer(this);
     } else {
       this.typeAnalyzer = typeAnalyzerFactory(this);
     }
@@ -10389,11 +10385,11 @@ class ResolverVisitor extends ScopedVisitor {
    * Deprecated.  Please use unnamed constructor instead.
    */
   @deprecated
-  ResolverVisitor.con1(Library library, Source source,
-      TypeProvider typeProvider, TypeSystem typeSystem,
+  ResolverVisitor.con1(
+      Library library, Source source, TypeProvider typeProvider,
       {StaticTypeAnalyzerFactory typeAnalyzerFactory})
-      : this(library.libraryElement, source, typeProvider, typeSystem,
-            library.errorListener,
+      : this(
+            library.libraryElement, source, typeProvider, library.errorListener,
             nameScope: library.libraryScope,
             inheritanceManager: library.inheritanceManager,
             typeAnalyzerFactory: typeAnalyzerFactory);
@@ -15799,15 +15795,15 @@ class _ConstantVerifier_validateInitializerExpression extends ConstantVisitor {
 
   _ConstantVerifier_validateInitializerExpression(
       TypeProvider typeProvider,
-      TypeSystem typeSystem,
       ErrorReporter errorReporter,
       this.verifier,
       this.parameterElements,
-      DeclaredVariables declaredVariables)
-      : _typeSystem = typeSystem,
+      DeclaredVariables declaredVariables,
+      {TypeSystem typeSystem})
+      : _typeSystem = (typeSystem != null) ? typeSystem : new TypeSystemImpl(),
         super(
-            new ConstantEvaluationEngine(
-                typeProvider, typeSystem, declaredVariables),
+            new ConstantEvaluationEngine(typeProvider, declaredVariables,
+                typeSystem: typeSystem),
             errorReporter);
 
   @override

@@ -242,12 +242,12 @@ class ConstantEvaluationEngine {
    * given, is used to verify correct dependency analysis when running unit
    * tests.
    */
-  ConstantEvaluationEngine(
-      this.typeProvider, this.typeSystem, this._declaredVariables,
-      {ConstantEvaluationValidator validator})
+  ConstantEvaluationEngine(this.typeProvider, this._declaredVariables,
+      {ConstantEvaluationValidator validator, TypeSystem typeSystem})
       : validator = validator != null
             ? validator
-            : new ConstantEvaluationValidator_ForProduction();
+            : new ConstantEvaluationValidator_ForProduction(),
+        typeSystem = typeSystem != null ? typeSystem : new TypeSystemImpl();
 
   /**
    * Check that the arguments to a call to fromEnvironment() are correct. The
@@ -1159,14 +1159,15 @@ class ConstantEvaluator {
    * [source]. The [typeProvider] is the type provider used to access known
    * types.
    */
-  ConstantEvaluator(this._source, this._typeProvider, this._typeSystem);
+  ConstantEvaluator(this._source, this._typeProvider, {TypeSystem typeSystem})
+      : _typeSystem = typeSystem != null ? typeSystem : new TypeSystemImpl();
 
   EvaluationResult evaluate(Expression expression) {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
     DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(
-            _typeProvider, _typeSystem, new DeclaredVariables()),
+        new ConstantEvaluationEngine(_typeProvider, new DeclaredVariables(),
+            typeSystem: _typeSystem),
         errorReporter));
     if (result != null) {
       return EvaluationResult.forValue(result);
@@ -1309,11 +1310,11 @@ class ConstantValueComputer {
    * the set of variables declared on the command line using '-D'.
    */
   ConstantValueComputer(this._context, TypeProvider typeProvider,
-      TypeSystem typeSystem, DeclaredVariables declaredVariables,
-      [ConstantEvaluationValidator validator])
+      DeclaredVariables declaredVariables,
+      [ConstantEvaluationValidator validator, TypeSystem typeSystem])
       : evaluationEngine = new ConstantEvaluationEngine(
-            typeProvider, typeSystem, declaredVariables,
-            validator: validator);
+            typeProvider, declaredVariables,
+            validator: validator, typeSystem: typeSystem);
 
   /**
    * Add the constants in the given compilation [unit] to the list of constants

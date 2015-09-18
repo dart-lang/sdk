@@ -8490,7 +8490,6 @@ class GenerateDartErrorsTask extends AnalysisTask {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
       TypeProvider typeProvider = context.typeProvider;
-      TypeSystem typeSystem = context.typeSystem;
       //
       // Validate the directives
       //
@@ -8513,7 +8512,6 @@ class GenerateDartErrorsTask extends AnalysisTask {
           errorReporter,
           libraryElement,
           typeProvider,
-          typeSystem,
           new InheritanceManager(libraryElement),
           context.analysisOptions.enableSuperMixins);
       _unit.accept(errorVerifier);
@@ -10950,7 +10948,6 @@ class ResolveDartUnitTask extends AnalysisTask {
   @override
   void internalPerform() {
     TypeProvider typeProvider = _libraryElement.context.typeProvider;
-    TypeSystem typeSystem = _libraryElement.context.typeSystem;
     CompilationUnit unit = context.computeResolvableCompilationUnit(source);
     if (unit == null) {
       throw new AnalysisException(
@@ -10973,7 +10970,7 @@ class ResolveDartUnitTask extends AnalysisTask {
     InheritanceManager inheritanceManager =
         new InheritanceManager(_libraryElement);
     ResolverVisitor resolverVisitor = new ResolverVisitor(
-        _libraryElement, source, typeProvider, typeSystem, errorListener,
+        _libraryElement, source, typeProvider, errorListener,
         inheritanceManager: inheritanceManager);
     unit.accept(resolverVisitor);
     //
@@ -10985,7 +10982,6 @@ class ResolveDartUnitTask extends AnalysisTask {
           errorReporter,
           _libraryElement,
           typeProvider,
-          typeSystem,
           inheritanceManager,
           context.analysisOptions.enableSuperMixins);
       unit.accept(errorVerifier);

@@ -78,8 +78,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    *
    * @param resolver the resolver driving this participant
    */
-  StaticTypeAnalyzer(this._resolver, this._typeSystem) {
+  StaticTypeAnalyzer(this._resolver) {
     _typeProvider = _resolver.typeProvider;
+    _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
     _overrideManager = _resolver.overrideManager;
     _promoteManager = _resolver.promoteManager;

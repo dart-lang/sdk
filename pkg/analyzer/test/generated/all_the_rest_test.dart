@@ -869,7 +869,8 @@ class ConstantEvaluatorTest extends ResolverTestCase {
         (declaration as TopLevelVariableDeclaration).variables.variables;
     expect(variables, hasLength(1));
     ConstantEvaluator evaluator = new ConstantEvaluator(
-        source, analysisContext.typeProvider, analysisContext.typeSystem);
+        source, analysisContext.typeProvider,
+        typeSystem: analysisContext.typeSystem);
     return evaluator.evaluate(variables[0].initializer);
   }
 }
@@ -2361,9 +2362,9 @@ class A {
     validator.computer = new ConstantValueComputer(
         analysisContext2,
         analysisContext2.typeProvider,
-        analysisContext2.typeSystem,
         analysisContext2.declaredVariables,
-        validator);
+        validator,
+        analysisContext2.typeSystem);
     return validator.computer;
   }
 
@@ -2394,8 +2395,9 @@ class ConstantVisitorTest extends ResolverTestCase {
     _assertValue(
         0,
         expression.accept(new ConstantVisitor(
-            new ConstantEvaluationEngine(new TestTypeProvider(),
-                new TypeSystemImpl(), new DeclaredVariables()),
+            new ConstantEvaluationEngine(
+                new TestTypeProvider(), new DeclaredVariables(),
+                typeSystem: new TypeSystemImpl()),
             errorReporter)));
     errorListener.assertNoErrors();
   }
@@ -2410,8 +2412,9 @@ class ConstantVisitorTest extends ResolverTestCase {
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
     DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(new TestTypeProvider(),
-            new TypeSystemImpl(), new DeclaredVariables()),
+        new ConstantEvaluationEngine(
+            new TestTypeProvider(), new DeclaredVariables(),
+            typeSystem: new TypeSystemImpl()),
         errorReporter));
     expect(result, isNull);
     errorListener
@@ -2427,8 +2430,9 @@ class ConstantVisitorTest extends ResolverTestCase {
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
     DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(new TestTypeProvider(),
-            new TypeSystemImpl(), new DeclaredVariables()),
+        new ConstantEvaluationEngine(
+            new TestTypeProvider(), new DeclaredVariables(),
+            typeSystem: new TypeSystemImpl()),
         errorReporter));
     expect(result, isNull);
     errorListener
@@ -2444,8 +2448,9 @@ class ConstantVisitorTest extends ResolverTestCase {
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
     DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(new TestTypeProvider(),
-            new TypeSystemImpl(), new DeclaredVariables()),
+        new ConstantEvaluationEngine(
+            new TestTypeProvider(), new DeclaredVariables(),
+            typeSystem: new TypeSystemImpl()),
         errorReporter));
     expect(result, isNull);
     errorListener
@@ -2463,8 +2468,9 @@ class ConstantVisitorTest extends ResolverTestCase {
     _assertValue(
         1,
         expression.accept(new ConstantVisitor(
-            new ConstantEvaluationEngine(new TestTypeProvider(),
-                new TypeSystemImpl(), new DeclaredVariables()),
+            new ConstantEvaluationEngine(
+                new TestTypeProvider(), new DeclaredVariables(),
+                typeSystem: new TypeSystemImpl()),
             errorReporter)));
     errorListener.assertNoErrors();
   }
@@ -2537,8 +2543,8 @@ const b = 3;''');
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
     DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(
-            typeProvider, typeSystem, new DeclaredVariables()),
+        new ConstantEvaluationEngine(typeProvider, new DeclaredVariables(),
+            typeSystem: typeSystem),
         errorReporter,
         lexicalEnvironment: lexicalEnvironment));
     errorListener.assertNoErrors();

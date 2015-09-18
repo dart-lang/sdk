@@ -269,7 +269,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * Initialize a newly created error verifier.
    */
   ErrorVerifier(this._errorReporter, this._currentLibrary, this._typeProvider,
-      this._typeSystem, this._inheritanceManager, this.enableSuperMixins) {
+      this._inheritanceManager, this.enableSuperMixins) {
     this._isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
     this._hasExtUri = _currentLibrary.hasExtUri;
     _isEnclosingConstructorConst = false;
@@ -282,6 +282,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _boolType = _typeProvider.boolType;
     _intType = _typeProvider.intType;
     _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = _typeProvider.nonSubtypableTypes;
+    _typeSystem = _currentLibrary.context.typeSystem;
   }
 
   @override

@@ -25,7 +25,8 @@ main() {
 @reflectiveTest
 class InstanceMemberInferrerTest extends AbstractContextTest {
   InstanceMemberInferrer get createInferrer =>
-      new InstanceMemberInferrer(context.typeProvider, context.typeSystem);
+      new InstanceMemberInferrer(context.typeProvider,
+          typeSystem: context.typeSystem);
 
   /**
    * Add a source with the given [content] and return the result of resolving

@@ -1987,8 +1987,8 @@ class ElementResolverTest extends EngineTestCase {
     _definingLibrary.definingCompilationUnit = definingCompilationUnit;
     Library library = new Library(context, _listener, source);
     library.libraryElement = _definingLibrary;
-    _visitor = new ResolverVisitor(library.libraryElement, source,
-        _typeProvider, context.typeSystem, library.errorListener,
+    _visitor = new ResolverVisitor(
+        library.libraryElement, source, _typeProvider, library.errorListener,
         nameScope: library.libraryScope,
         inheritanceManager: library.inheritanceManager);
     try {
@@ -11386,8 +11386,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     definingLibrary.definingCompilationUnit = definingCompilationUnit;
     Library library = new Library(context, _listener, source);
     library.libraryElement = definingLibrary;
-    _visitor = new ResolverVisitor(library.libraryElement, source,
-        _typeProvider, context.typeSystem, library.errorListener,
+    _visitor = new ResolverVisitor(
+        library.libraryElement, source, _typeProvider, library.errorListener,
         nameScope: library.libraryScope,
         inheritanceManager: library.inheritanceManager);
     _visitor.overrideManager.enterScope();
