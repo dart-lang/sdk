@@ -71,8 +71,8 @@ void main() {
     checkArgument('foo2', compiler.typesTask.functionType);   /// 02: ok
     checkArgument('foo3', compiler.typesTask.functionType);   /// 03: ok
     checkArgument('foo4', compiler.typesTask.functionType);   /// 04: ok
-    checkArgument('foo5', compiler.typesTask.functionType);   /// 05: ok
-    checkArgument('foo6', compiler.typesTask.functionType);   /// 06: ok
+    checkArgument('foo5', compiler.typesTask.dynamicType);    /// 05: ok
+    checkArgument('foo6', compiler.typesTask.dynamicType);    /// 06: ok
 
     checkArgument('defaultFn1', compiler.typesTask.uint31Type);   /// 07: ok
     checkArgument('defaultFn2', compiler.typesTask.uint31Type);   /// 08: ok

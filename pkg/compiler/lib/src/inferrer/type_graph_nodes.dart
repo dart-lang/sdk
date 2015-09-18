@@ -88,6 +88,10 @@ abstract class TypeInformation {
     users.add(user);
   }
 
+  void addUsersOf(TypeInformation other) {
+    users.addAll(other.users);
+  }
+
   void removeUser(TypeInformation user) {
     assert(!user.isConcrete);
     users.remove(user);
@@ -524,6 +528,10 @@ class ParameterTypeInformation extends ElementTypeInformation {
   void tagAsTearOffClosureParameter(TypeGraphInferrerEngine inferrer) {
     assert(element.isParameter);
     isTearOffClosureParameter = true;
+    // We have to add a flow-edge for the default value (if it exists), as we
+    // might not see all call-sites and thus miss the use of it.
+    TypeInformation defaultType = inferrer.getDefaultTypeOfParameter(element);
+    if (defaultType != null) defaultType.addUser(this);
   }
 
   // TODO(herhut): Cleanup into one conditional.
@@ -540,8 +548,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     // initializing formals.
     if (element.isInitializingFormal) return null;
 
-    FunctionElement function = element.functionDeclaration;
-    if ((isTearOffClosureParameter || function.isLocal) &&
+    if ((isTearOffClosureParameter || declaration.isLocal) &&
         disableInferenceForClosures) {
       // Do not infer types for parameters of closures. We do not
       // clear the assignments in case the closure is successfully
@@ -549,16 +556,20 @@ class ParameterTypeInformation extends ElementTypeInformation {
       giveUp(inferrer, clearAssignments: false);
       return safeType(inferrer);
     }
-    if (function.isInstanceMember &&
-        (function.name == Identifiers.noSuchMethod_ ||
-        (function.name == Identifiers.call &&
+    if (declaration.isInstanceMember &&
+        (declaration.name == Identifiers.noSuchMethod_ ||
+        (declaration.name == Identifiers.call &&
          disableInferenceForClosures))) {
       // Do not infer types for parameters of [noSuchMethod] and
       // [call] instance methods.
       giveUp(inferrer);
       return safeType(inferrer);
     }
-    if (function == inferrer.mainElement) {
+    if (inferrer.compiler.world.getMightBePassedToApply(declaration)) {
+      giveUp(inferrer);
+      return safeType(inferrer);
+    }
+    if (declaration == inferrer.mainElement) {
       // The implicit call to main is not seen by the inferrer,
       // therefore we explicitly set the type of its parameters as
       // dynamic.
@@ -1066,6 +1077,11 @@ class ConcreteTypeInformation extends TypeInformation {
   bool get isConcrete => true;
 
   void addUser(TypeInformation user) {
+    // Nothing to do, a concrete type does not get updated so never
+    // needs to notify its users.
+  }
+
+  void addUsersOf(TypeInformation other) {
     // Nothing to do, a concrete type does not get updated so never
     // needs to notify its users.
   }

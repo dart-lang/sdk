@@ -1037,16 +1037,16 @@ class TypeGraphInferrerEngine
       if (parameter.functionDeclaration.isInstanceMember) {
         ParameterAssignments assignments = info.assignments;
         assignments.replace(existing, type);
-        type.addUser(info);
       } else {
         List<TypeInformation> assignments = info.assignments;
         for (int i = 0; i < assignments.length; i++) {
           if (assignments[i] == existing) {
             assignments[i] = type;
-            type.addUser(info);
           }
         }
       }
+      // Also forward all users.
+      type.addUsersOf(existing);
     } else {
       assert(existing == null);
     }
