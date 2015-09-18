@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/completion/completion_core.dart'
     show CompletionRequest;
+import 'package:analysis_server/completion/completion_dart.dart' as newApi;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/arglist_contributor.dart';
@@ -24,6 +25,7 @@ import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/completion/prefixed_element_contributor.dart';
 import 'package:analysis_server/src/services/completion/uri_contributor.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -73,12 +75,12 @@ abstract class DartCompletionContributor {
  * Manages code completion for a given Dart file completion request.
  */
 class DartCompletionManager extends CompletionManager {
-
   /**
    * The [defaultContributionSorter] is a long-lived object that isn't allowed
    * to maintain state between calls to [ContributionSorter#sort(...)].
    */
-  static ContributionSorter defaultContributionSorter = new CommonUsageComputer();
+  static ContributionSorter defaultContributionSorter =
+      new CommonUsageComputer();
 
   final SearchEngine searchEngine;
   final DartCompletionCache cache;
@@ -101,6 +103,9 @@ class DartCompletionManager extends CompletionManager {
         new CombinatorContributor(),
         new PrefixedElementContributor(),
         new UriContributor(),
+        // TODO(brianwilkerson) Use the completion contributor extension point
+        // to add the contributor below (and eventually, all the contributors).
+//        new NewCompletionWrapper(new InheritedContributor())
       ];
     }
     if (contributionSorter == null) {
@@ -406,4 +411,80 @@ class DartCompletionRequest extends CompletionRequestImpl {
       }
     }
   }
+}
+
+/**
+ * A wrapper around a new dart completion contributor that makes it usable where
+ * an old dart completion contributor is expected.
+ */
+class NewCompletionWrapper implements DartCompletionContributor {
+  /**
+   * The new-style contributor that is being wrapped.
+   */
+  final newApi.DartCompletionContributor contributor;
+
+  /**
+   * Initialize a newly created wrapper for the given [contributor].
+   */
+  NewCompletionWrapper(this.contributor);
+
+  @override
+  bool computeFast(DartCompletionRequest request) {
+    List<CompletionSuggestion> suggestions =
+        contributor.computeSuggestions(new OldRequestWrapper(request));
+    if (suggestions == null) {
+      return false;
+    }
+    for (CompletionSuggestion suggestion in suggestions) {
+      request.addSuggestion(suggestion);
+    }
+    return true;
+  }
+
+  @override
+  Future<bool> computeFull(DartCompletionRequest request) async {
+    List<CompletionSuggestion> suggestions =
+        contributor.computeSuggestions(new OldRequestWrapper(request));
+    if (suggestions != null) {
+      for (CompletionSuggestion suggestion in suggestions) {
+        request.addSuggestion(suggestion);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  String toString() => 'wrapped $contributor';
+}
+
+/**
+ * A wrapper around an old dart completion request that makes it usable where a
+ * new dart completion request is expected.
+ */
+class OldRequestWrapper implements newApi.DartCompletionRequest {
+  final DartCompletionRequest request;
+
+  OldRequestWrapper(this.request);
+
+  @override
+  AnalysisContext get context => request.context;
+
+  @override
+  bool get isResolved => request.unit.element != null;
+
+  @override
+  int get offset => request.offset;
+
+  @override
+  ResourceProvider get resourceProvider => request.resourceProvider;
+
+  @override
+  Source get source => request.source;
+
+  @override
+  CompilationUnit get unit => request.unit;
+
+  @override
+  String toString() => 'wrapped $request';
 }
