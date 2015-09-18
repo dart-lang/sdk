@@ -1079,7 +1079,7 @@ class TransformingVisitor extends LeafVisitor {
             !node.selector.isCall) return false;
         assert(node.selector.positionalArgumentCount == 1);
         assert(node.selector.namedArgumentCount == 0);
-        FunctionDefinition target = functionCompiler.compileToCpsIR(element);
+        FunctionDefinition target = functionCompiler.compileToCpsIr(element);
 
         node.receiver.definition.substituteFor(target.thisParameter);
         for (int i = 0; i < node.arguments.length; ++i) {
@@ -1425,7 +1425,7 @@ class TransformingVisitor extends LeafVisitor {
     if (functionElement.resolvedAst.elements.containsTryStatement) return false;
 
     FunctionDefinition target =
-        functionCompiler.compileToCpsIR(functionElement);
+        functionCompiler.compileToCpsIr(functionElement);
 
     // Accesses to closed-over values are field access primitives.  We we don't
     // inline if there are other uses of 'this' since that could be an escape or
@@ -1650,7 +1650,7 @@ class TransformingVisitor extends LeafVisitor {
 
     if (!shouldInline()) return false;
 
-    FunctionDefinition target = functionCompiler.compileToCpsIR(node.target);
+    FunctionDefinition target = functionCompiler.compileToCpsIr(node.target);
     for (int i = 0; i < node.arguments.length; ++i) {
       node.arguments[i].definition.substituteFor(target.parameters[i]);
     }
