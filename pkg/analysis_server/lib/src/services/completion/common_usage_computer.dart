@@ -4,11 +4,13 @@
 
 library services.completion.computer.dart.relevance;
 
+import 'package:analysis_server/completion/completion_dart.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/services/completion/contribution_sorter.dart';
-import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart_completion_manager.dart'
+    show DART_RELEVANCE_COMMON_USAGE;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -31,8 +33,9 @@ class CommonUsageComputer implements ContributionSorter {
   CommonUsageComputer([this.selectorRelevance = defaultSelectorRelevance]);
 
   @override
-  void sort(DartCompletionRequest request) {
-    _update(request);
+  void sort(DartCompletionRequest request,
+      Iterable<CompletionSuggestion> suggestions) {
+    _update(request, suggestions);
   }
 
   /**
@@ -40,7 +43,8 @@ class CommonUsageComputer implements ContributionSorter {
    * The compilation unit and completion node
    * in the given completion context may not be resolved.
    */
-  void _update(DartCompletionRequest request) {
+  void _update(DartCompletionRequest request,
+      Iterable<CompletionSuggestion> suggestions) {
     var visitor = new _BestTypeVisitor(request.target.entity);
     DartType type = request.target.containingNode.accept(visitor);
     if (type != null) {
@@ -48,7 +52,7 @@ class CommonUsageComputer implements ContributionSorter {
       if (typeElem != null) {
         LibraryElement libElem = typeElem.library;
         if (libElem != null) {
-          _updateInvocationRelevance(request, type, libElem);
+          _updateInvocationRelevance(request, type, libElem, suggestions);
         }
       }
     }
@@ -58,12 +62,12 @@ class CommonUsageComputer implements ContributionSorter {
    * Adjusts the relevance of all method suggestions based upon the given
    * target type and library.
    */
-  void _updateInvocationRelevance(
-      DartCompletionRequest request, DartType type, LibraryElement libElem) {
+  void _updateInvocationRelevance(DartCompletionRequest request, DartType type,
+      LibraryElement libElem, Iterable<CompletionSuggestion> suggestions) {
     String typeName = type.name;
     List<String> selectors = selectorRelevance['${libElem.name}.${typeName}'];
     if (selectors != null) {
-      for (CompletionSuggestion suggestion in request.suggestions) {
+      for (CompletionSuggestion suggestion in suggestions) {
         protocol.Element element = suggestion.element;
         if (element != null &&
             (element.kind == protocol.ElementKind.CONSTRUCTOR ||

@@ -4,8 +4,8 @@
 
 library services.completion.sorter;
 
+import 'package:analysis_server/completion/completion_dart.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 
 /**
  * The abstract class `ContributionSorter` defines the behavior of objects
@@ -21,5 +21,6 @@ abstract class ContributionSorter {
    * in the given completion context may not be resolved.
    * This method should execute quickly and not block.
    */
-  void sort(DartCompletionRequest request);
+  void sort(DartCompletionRequest request,
+      Iterable<CompletionSuggestion> suggestions);
 }

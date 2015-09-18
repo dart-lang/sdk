@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/completion/completion_core.dart'
     show CompletionRequest, CompletionResult;
+import 'package:analysis_server/completion/completion_dart.dart' as newApi;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/constants.dart';
@@ -481,7 +482,7 @@ class CompletionTest extends AbstractAnalysisTest {
       expect(suggestions.any((s) => s.relevance == DART_RELEVANCE_COMMON_USAGE),
           isFalse);
       DartCompletionManager.defaultContributionSorter = originalSorter;
-      expect(mockSorter.count, 2);
+      mockSorter.enabled = false;
     });
   }
 
@@ -715,11 +716,12 @@ class MockContext implements AnalysisContext {
 }
 
 class MockRelevancySorter implements ContributionSorter {
-  int count = 0;
+  bool enabled = true;
 
   @override
-  void sort(DartCompletionRequest request) {
-    if (++count > 2) {
+  void sort(newApi.DartCompletionRequest request,
+      List<CompletionSuggestion> suggestions) {
+    if (!enabled) {
       throw 'unexpected sort';
     }
   }

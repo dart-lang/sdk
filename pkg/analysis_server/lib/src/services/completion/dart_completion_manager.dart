@@ -9,13 +9,13 @@ import 'dart:async';
 import 'package:analysis_server/completion/completion_core.dart'
     show CompletionRequest;
 import 'package:analysis_server/completion/completion_dart.dart' as newApi;
+import 'package:analysis_server/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/common_usage_computer.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/completion_target.dart';
 import 'package:analysis_server/src/services/completion/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
@@ -180,7 +180,8 @@ class DartCompletionManager extends CompletionManager {
           return c.computeFast(request);
         });
       });
-      contributionSorter.sort(request);
+      contributionSorter.sort(
+          new OldRequestWrapper(request), request.suggestions);
       sendResults(request, todo.isEmpty);
       return todo;
     });
@@ -218,7 +219,8 @@ class DartCompletionManager extends CompletionManager {
               performance.logElapseTime(completeTag);
               bool last = --count == 0;
               if (changed || last) {
-                contributionSorter.sort(request);
+                contributionSorter.sort(
+                    new OldRequestWrapper(request), request.suggestions);
                 sendResults(request, last);
               }
             });
@@ -481,6 +483,9 @@ class OldRequestWrapper implements newApi.DartCompletionRequest {
 
   @override
   Source get source => request.source;
+
+  @override
+  CompletionTarget get target => request.target;
 
   @override
   CompilationUnit get unit => request.unit;

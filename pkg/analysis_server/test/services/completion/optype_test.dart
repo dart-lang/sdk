@@ -4,7 +4,7 @@
 
 library test.services.completion.contributor.dart.optype;
 
-import 'package:analysis_server/src/services/completion/completion_target.dart';
+import 'package:analysis_server/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
