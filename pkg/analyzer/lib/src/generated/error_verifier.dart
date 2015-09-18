@@ -3199,6 +3199,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (typeName.isSynthetic) {
       return false;
     }
+    // The SDK implementation may implement disallowed types. For example,
+    // JSNumber in dart2js and _Smi in Dart VM both implement int.
+    if (_currentLibrary.source.isInSystemLibrary) {
+      return false;
+    }
     DartType superType = typeName.type;
     for (InterfaceType disallowedType
         in _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT) {
