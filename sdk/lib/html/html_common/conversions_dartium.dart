@@ -44,7 +44,7 @@ _getProto(object) {
 final _objectProto = js.context["Object"]["prototype"];
 
 bool isJavaScriptSimpleObject(value) {
-  if (!value is js.JsObject) return false;
+  if (value is! js.JsObject) return false;
   var proto = _getProto(value);
   return proto == _objectProto || proto == null;
 }
