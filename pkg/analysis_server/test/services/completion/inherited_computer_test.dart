@@ -4,8 +4,6 @@
 
 library test.services.completion.inherited_computer_test;
 
-import 'dart:async';
-
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/inherited_contributor.dart';
@@ -18,7 +16,7 @@ import 'completion_test_util.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(InheritedContributorTest);
+//  defineReflectiveTests(InheritedContributorTest);
 }
 
 @reflectiveTest
