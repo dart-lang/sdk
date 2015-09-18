@@ -99,8 +99,6 @@ def CreateUploadAPIDocs():
   dartdoc_zip =  os.path.join(bot_utils.DART_DIR,
                               utils.GetBuildRoot(BUILD_OS, 'release', 'ia32'),
                               'dartdocs-api.zip')
-  shutil.rmtree(api_path, ignore_errors=True)
-  FileDelete(api_zip)
   UploadApiLatestFile()
   BuildDartdocAPIDocs(dartdoc_dir) 
   UploadDartdocApiDocs(dartdoc_dir)  
