@@ -11,6 +11,21 @@ LayoutTests/fast/css-generated-content/pseudo-animation-before-onload_t01: Skip 
 LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeError # Issue 21605
 LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow_t01: Pass, RuntimeError # Issue 21605
 
+[ $compiler == none && $runtime == dartium ]
+LayoutTests/fast/canvas/canvas-lineDash-input-sequence_t01: RuntimeError # Dartium JSInterop failure
+LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Dartium JSInterop failure
+LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: RuntimeError # Dartium JSInterop failure
+LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: RuntimeError # Dartium JSInterop failure
+LayoutTests/fast/events/remove-event-listener_t01: RuntimeError # Dartium JSInterop failure
+LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
+LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
+LayoutTests/fast/xpath/py-dom-xpath/axes_t01: RuntimeError # Dartium JSInterop failure
+LibTest/html/Element/offsetParent_A01_t01: RuntimeError # Dartium JSInterop failure
+LibTest/html/Event/currentTarget_A01_t01: RuntimeError # Dartium JSInterop failure
+LibTest/html/Event/matchingTarget_A01_t01: RuntimeError # Dartium JSInterop failure
+LibTest/html/Event/target_A01_t01: RuntimeError # Dartium JSInterop failure
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: RuntimeError # Dartium JSInterop failure
+
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01: Skip # Issue 20540
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgb565_t01: Skip # Issue 20540
