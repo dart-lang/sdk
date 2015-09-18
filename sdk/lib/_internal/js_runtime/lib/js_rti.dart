@@ -92,11 +92,7 @@ getMangledTypeName(TypeImpl type) => type._typeName;
 @NoInline()
 Object setRuntimeTypeInfo(Object target, var rti) {
   assert(rti == null || isJsArray(rti));
-  // We have to check for null because factories may return null.
-  // TODO(sra): How is this true? The factory should be executing some code that
-  // creates an object that already has the correct info. There should not be a
-  // second setRuntimeTypeInfo on the possibly null value.
-  if (target != null) JS('var', r'#.$builtinTypeInfo = #', target, rti);
+  JS('var', r'#.$builtinTypeInfo = #', target, rti);
   return target;
 }
 
