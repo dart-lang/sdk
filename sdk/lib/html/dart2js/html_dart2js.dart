@@ -23770,6 +23770,8 @@ class Node extends EventTarget {
    */
   @DomName('Node.childNodes')
   @DocsEditable()
+  @Returns('NodeList')
+  @Creates('NodeList')
   final List<Node> childNodes;
 
   // To suppress missing implicit constructor warnings.

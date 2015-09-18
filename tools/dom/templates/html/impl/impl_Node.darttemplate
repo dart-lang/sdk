@@ -307,6 +307,8 @@ $else
    */
   @DomName('Node.childNodes')
   @DocsEditable()
+  @Returns('NodeList')
+  @Creates('NodeList')
   final List<Node> childNodes;
 
 $endif
