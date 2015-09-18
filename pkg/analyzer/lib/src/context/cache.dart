@@ -252,6 +252,11 @@ class CacheEntry {
   static int _EXPLICITLY_ADDED_FLAG = 0;
 
   /**
+   * The next invalidation process identifier.
+   */
+  static int nextInvalidateId = 0;
+
+  /**
    * The target this entry is about.
    */
   final AnalysisTarget target;
@@ -440,7 +445,7 @@ class CacheEntry {
     if (state == CacheState.INVALID) {
       ResultData data = _resultMap[descriptor];
       if (data != null) {
-        _invalidate(descriptor, delta);
+        _invalidate(nextInvalidateId++, descriptor, delta, 0);
       }
     } else {
       ResultData data = getResultData(descriptor);
@@ -490,7 +495,7 @@ class CacheEntry {
    */
   void setValueIncremental(ResultDescriptor descriptor, dynamic value) {
     ResultData data = getResultData(descriptor);
-    _invalidateDependentResults(data, null);
+    _invalidateDependentResults(null, data, null, 0);
     data.state = CacheState.VALID;
     data.value = value;
   }
@@ -511,25 +516,33 @@ class CacheEntry {
    * Invalidate the result represented by the given [descriptor] and propagate
    * invalidation to other results that depend on it.
    */
-  void _invalidate(ResultDescriptor descriptor, Delta delta) {
+  void _invalidate(
+      int id, ResultDescriptor descriptor, Delta delta, int level) {
+    ResultData thisData = _resultMap[descriptor];
+    if (thisData == null) {
+      return;
+    }
+    // Stop if already validated.
+    if (delta != null) {
+      if (thisData.invalidateId == id) {
+        return;
+      }
+      thisData.invalidateId = id;
+    }
+    // Ask the delta to validate.
     DeltaResult deltaResult = null;
     if (delta != null) {
       deltaResult = delta.validate(_partition.context, target, descriptor);
       if (deltaResult == DeltaResult.STOP) {
-//        print('not-invalidate $descriptor for $target');
         return;
       }
     }
-//    print('invalidate $descriptor for $target');
-    ResultData thisData;
     if (deltaResult == null || deltaResult == DeltaResult.INVALIDATE) {
-      thisData = _resultMap.remove(descriptor);
-    }
-    if (deltaResult == DeltaResult.KEEP_CONTINUE) {
-      thisData = _resultMap[descriptor];
-    }
-    if (thisData == null) {
-      return;
+      _resultMap.remove(descriptor);
+//      {
+//        String indent = '  ' * level;
+//        print('[$id]$indent invalidate $descriptor for $target');
+//      }
     }
     // Stop depending on other results.
     TargetedResult thisResult = new TargetedResult(target, descriptor);
@@ -540,7 +553,7 @@ class CacheEntry {
       }
     }
     // Invalidate results that depend on this result.
-    _invalidateDependentResults(thisData, delta);
+    _invalidateDependentResults(id, thisData, delta, level + 1);
     // If empty, remove the entry altogether.
     if (_resultMap.isEmpty) {
       _partition._targetMap.remove(target);
@@ -557,19 +570,20 @@ class CacheEntry {
   void _invalidateAll() {
     List<ResultDescriptor> results = _resultMap.keys.toList();
     for (ResultDescriptor result in results) {
-      _invalidate(result, null);
+      _invalidate(null, result, null, 0);
     }
   }
 
   /**
    * Invalidate results that depend on [thisData].
    */
-  void _invalidateDependentResults(ResultData thisData, Delta delta) {
+  void _invalidateDependentResults(
+      int id, ResultData thisData, Delta delta, int level) {
     List<TargetedResult> dependentResults = thisData.dependentResults.toList();
     for (TargetedResult dependentResult in dependentResults) {
       CacheEntry entry = _partition.get(dependentResult.target);
       if (entry != null) {
-        entry._invalidate(dependentResult.result, delta);
+        entry._invalidate(id, dependentResult.result, delta, level);
       }
     }
   }
@@ -1098,6 +1112,13 @@ class ResultData {
    * value (for example, when the [state] is [CacheState.INVALID]).
    */
   Object value;
+
+  /**
+   * The identifier of the invalidation process that most recently checked
+   * this value. If it is the same as the current invalidation identifier,
+   * then there is no reason to check it (and its subtree again).
+   */
+  int invalidateId = -1;
 
   /**
    * A list of the results on which this result depends.

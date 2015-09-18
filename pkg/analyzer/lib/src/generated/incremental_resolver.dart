@@ -864,6 +864,22 @@ class IncrementalBodyDelta extends Delta {
     if (descriptor == CONTENT) {
       return DeltaResult.KEEP_CONTINUE;
     }
+    if (target is Source && target != source) {
+      if (isByTask(DartErrorsTask.DESCRIPTOR) ||
+          isByTask(LibraryErrorsReadyTask.DESCRIPTOR)) {
+        return DeltaResult.KEEP_CONTINUE;
+      }
+    }
+    if (target is LibrarySpecificUnit &&
+        target.unit != source &&
+        target.library != source) {
+      if (isByTask(GatherUsedLocalElementsTask.DESCRIPTOR) ||
+          isByTask(GatherUsedImportedElementsTask.DESCRIPTOR) ||
+          isByTask(GenerateHintsTask.DESCRIPTOR) ||
+          isByTask(LibraryUnitErrorsTask.DESCRIPTOR)) {
+        return DeltaResult.KEEP_CONTINUE;
+      }
+    }
     if (isByTask(BuildCompilationUnitElementTask.DESCRIPTOR) ||
         isByTask(BuildDirectiveElementsTask.DESCRIPTOR) ||
         isByTask(BuildEnumMemberElementsTask.DESCRIPTOR) ||
@@ -1247,9 +1263,14 @@ class IncrementalResolver {
 
   void _updateCache() {
     if (newSourceEntry != null) {
-      newSourceEntry.setState(CONTENT, CacheState.INVALID,
-          delta: new IncrementalBodyDelta(_source, _updateOffset, _updateEndOld,
-              _updateEndNew, _updateDelta));
+      LoggingTimer timer = logger.startTimer();
+      try {
+        newSourceEntry.setState(CONTENT, CacheState.INVALID,
+            delta: new IncrementalBodyDelta(_source, _updateOffset,
+                _updateEndOld, _updateEndNew, _updateDelta));
+      } finally {
+        timer.stop('invalidate cache with delta');
+      }
     }
   }
 
