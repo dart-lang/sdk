@@ -14,7 +14,7 @@ dependencies:
   source_span: ^1.0.2
   yaml: ^2.1.2
 dev_dependencies:
-  markdown: ^0.7.1+2
+  markdown: ^0.8.0
   matcher: ^0.11.0
   mockito: ^0.8.2
   unittest: ^0.11.0
