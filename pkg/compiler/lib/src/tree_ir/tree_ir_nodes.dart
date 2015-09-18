@@ -1432,6 +1432,7 @@ class RecursiveTransformer extends Transformer {
 
   visitCreateInstance(CreateInstance node) {
     _replaceExpressions(node.arguments);
+    _replaceExpressions(node.typeInformation);
     return node;
   }
 
