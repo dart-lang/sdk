@@ -3435,9 +3435,17 @@ class A {
 ''');
   }
 
+  @override
   void setUp() {
+    AnalysisEngine.instance.useTaskModel = true;
     super.setUp();
     _resetWithIncremental(true);
+  }
+
+  @override
+  void tearDown() {
+    super.tearDown();
+    AnalysisEngine.instance.useTaskModel = false;
   }
 
   void test_computeConstants() {
@@ -4158,6 +4166,28 @@ class A {
   }
 }
 ''');
+  }
+
+  void test_true_todoHint() {
+    _resolveUnit(r'''
+main() {
+  print(1);
+}
+foo() {
+ // TODO
+}
+''');
+    List<AnalysisError> oldErrors = analysisContext.computeErrors(source);
+    _updateAndValidate(r'''
+main() {
+  print(2);
+}
+foo() {
+ // TODO
+}
+''');
+    List<AnalysisError> newErrors = analysisContext.computeErrors(source);
+    _assertEqualErrors(newErrors, oldErrors);
   }
 
   void test_unusedHint_add_wasUsedOnlyInPart() {

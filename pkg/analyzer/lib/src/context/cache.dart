@@ -493,11 +493,14 @@ class CacheEntry {
    * Set the value of the result represented by the given [descriptor] to the
    * given [value], keep its dependency, invalidate all the dependent result.
    */
-  void setValueIncremental(ResultDescriptor descriptor, dynamic value) {
+  void setValueIncremental(
+      ResultDescriptor descriptor, dynamic value, bool invalidateDependent) {
     ResultData data = getResultData(descriptor);
-    _invalidateDependentResults(null, data, null, 0);
     data.state = CacheState.VALID;
     data.value = value;
+    if (invalidateDependent) {
+      _invalidateDependentResults(nextInvalidateId++, data, null, 0);
+    }
   }
 
   @override
@@ -537,7 +540,12 @@ class CacheEntry {
         return;
       }
     }
-    if (deltaResult == null || deltaResult == DeltaResult.INVALIDATE) {
+    if (deltaResult == DeltaResult.INVALIDATE_NO_DELTA) {
+      delta = null;
+    }
+    if (deltaResult == null ||
+        deltaResult == DeltaResult.INVALIDATE ||
+        deltaResult == DeltaResult.INVALIDATE_NO_DELTA) {
       _resultMap.remove(descriptor);
 //      {
 //        String indent = '  ' * level;
@@ -570,7 +578,7 @@ class CacheEntry {
   void _invalidateAll() {
     List<ResultDescriptor> results = _resultMap.keys.toList();
     for (ResultDescriptor result in results) {
-      _invalidate(null, result, null, 0);
+      _invalidate(nextInvalidateId++, result, null, 0);
     }
   }
 
@@ -1035,7 +1043,30 @@ class Delta {
 /**
  * The possible results of validating analysis results againt a [Delta].
  */
-enum DeltaResult { INVALIDATE, KEEP_CONTINUE, STOP }
+enum DeltaResult {
+  /**
+   * Invalidate this result and continue visiting dependent results
+   * with this [Delta].
+   */
+  INVALIDATE,
+
+  /**
+   * Invalidate this result and stop using this [Delta], so unconditionally
+   * invalidate all the dependent results.
+   */
+  INVALIDATE_NO_DELTA,
+
+  /**
+   * Keep this result and continue validating dependent results
+   * with this [Delta].
+   */
+  KEEP_CONTINUE,
+
+  /**
+   * Keep this result and stop visiting results that depend on this one.
+   */
+  STOP
+}
 
 /**
  * [InvalidatedResult] describes an invalidated result.

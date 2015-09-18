@@ -864,19 +864,9 @@ class IncrementalBodyDelta extends Delta {
     if (descriptor == CONTENT) {
       return DeltaResult.KEEP_CONTINUE;
     }
-    if (target is Source && target != source) {
-      if (isByTask(DartErrorsTask.DESCRIPTOR) ||
-          isByTask(LibraryErrorsReadyTask.DESCRIPTOR)) {
-        return DeltaResult.KEEP_CONTINUE;
-      }
-    }
-    if (target is LibrarySpecificUnit &&
-        target.unit != source &&
-        target.library != source) {
+    if (target is LibrarySpecificUnit && target.unit != source) {
       if (isByTask(GatherUsedLocalElementsTask.DESCRIPTOR) ||
-          isByTask(GatherUsedImportedElementsTask.DESCRIPTOR) ||
-          isByTask(GenerateHintsTask.DESCRIPTOR) ||
-          isByTask(LibraryUnitErrorsTask.DESCRIPTOR)) {
+          isByTask(GatherUsedImportedElementsTask.DESCRIPTOR)) {
         return DeltaResult.KEEP_CONTINUE;
       }
     }
@@ -890,9 +880,13 @@ class IncrementalBodyDelta extends Delta {
         isByTask(BuildSourceImportExportClosureTask.DESCRIPTOR) ||
         isByTask(ComputeConstantDependenciesTask.DESCRIPTOR) ||
         isByTask(ComputeConstantValueTask.DESCRIPTOR) ||
+        isByTask(DartErrorsTask.DESCRIPTOR) ||
         isByTask(EvaluateUnitConstantsTask.DESCRIPTOR) ||
+        isByTask(GenerateHintsTask.DESCRIPTOR) ||
         isByTask(InferInstanceMembersInUnitTask.DESCRIPTOR) ||
         isByTask(InferStaticVariableTypesInUnitTask.DESCRIPTOR) ||
+        isByTask(LibraryErrorsReadyTask.DESCRIPTOR) ||
+        isByTask(LibraryUnitErrorsTask.DESCRIPTOR) ||
         isByTask(ParseDartTask.DESCRIPTOR) ||
         isByTask(PartiallyResolveUnitReferencesTask.DESCRIPTOR) ||
         isByTask(ScanDartTask.DESCRIPTOR) ||
@@ -905,7 +899,7 @@ class IncrementalBodyDelta extends Delta {
       return DeltaResult.KEEP_CONTINUE;
     }
     // invalidate all the other results
-    return DeltaResult.INVALIDATE;
+    return DeltaResult.INVALIDATE_NO_DELTA;
   }
 }
 
@@ -1294,7 +1288,6 @@ class IncrementalResolver {
 
   void _updateEntry_NEW() {
     _updateErrors_NEW(INFER_STATIC_VARIABLE_TYPES_ERRORS, _resolveErrors);
-    _updateErrors_NEW(LIBRARY_UNIT_ERRORS, _resolveErrors);
     _updateErrors_NEW(PARTIALLY_RESOLVE_REFERENCES_ERRORS, _resolveErrors);
     _updateErrors_NEW(RESOLVE_FUNCTION_BODIES_ERRORS, _resolveErrors);
     _updateErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS, []);
@@ -1339,7 +1332,7 @@ class IncrementalResolver {
       List<AnalysisError> newErrors) {
     List<AnalysisError> oldErrors = newUnitEntry.getValue(descriptor);
     List<AnalysisError> errors = _updateErrors(oldErrors, newErrors);
-    newUnitEntry.setValueIncremental(descriptor, errors);
+    newUnitEntry.setValueIncremental(descriptor, errors, true);
   }
 
   void _updateErrors_OLD(DataDescriptor<List<AnalysisError>> descriptor,
@@ -1712,21 +1705,12 @@ class PoorMansIncrementalResolver {
   }
 
   void _updateEntry_NEW() {
-    _newSourceEntry.setState(DART_ERRORS, CacheState.INVALID);
     // scan results
-    List<TargetedResult> scanDeps = <TargetedResult>[
-      new TargetedResult(_unitSource, CONTENT)
-    ];
-    _newSourceEntry.setState(SCAN_ERRORS, CacheState.INVALID);
-    _newSourceEntry.setValue(SCAN_ERRORS, _newScanErrors, scanDeps);
-    _newSourceEntry.setValue(LINE_INFO, _newLineInfo, scanDeps);
+    _newSourceEntry.setValueIncremental(SCAN_ERRORS, _newScanErrors, true);
+    _newSourceEntry.setValueIncremental(LINE_INFO, _newLineInfo, false);
     // parse results
-    List<TargetedResult> parseDeps = <TargetedResult>[
-      new TargetedResult(_unitSource, TOKEN_STREAM)
-    ];
-    _newSourceEntry.setState(PARSE_ERRORS, CacheState.INVALID);
-    _newSourceEntry.setValue(PARSE_ERRORS, _newParseErrors, parseDeps);
-    _newSourceEntry.setValue(PARSED_UNIT, _oldUnit, parseDeps);
+    _newSourceEntry.setValueIncremental(PARSE_ERRORS, _newScanErrors, true);
+    _newSourceEntry.setValueIncremental(PARSED_UNIT, _newScanErrors, false);
   }
 
   void _updateEntry_OLD() {
