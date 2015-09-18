@@ -32,8 +32,3 @@ source_mirrors_test: Pass, RuntimeError # Issue 17662
 dummy_compiler_test: Crash # (switch (function.na...  continue to a labeled switch case
 recursive_import_test: Crash # (switch (function.na...  continue to a labeled switch case
 source_mirrors_test: Crash, Slow # (switch (function.na...  continue to a labeled switch case
-
-[ $compiler == none && $runtime == dartium ]
-dummy_compiler_test: RuntimeError # Dartium JSInterop failure
-source_mirrors_test: RuntimeError # Dartium JSInterop failure
-dummy_compiler_test: RuntimeError # Dartium JSInterop failure

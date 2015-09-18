@@ -9,11 +9,6 @@ cross_frame_test: Skip # Test reloads itself. Issue 18558
 js_array_test: Skip # Issue 23676, 23677
 js_typed_interop_test: Skip # Issue 23676, 23677
 
-[ $compiler == none && $runtime == dartium ]
-html/custom/created_callback_test: RuntimeError # Dartium JSInterop failure
-html/indexeddb_2_test: RuntimeError # Dartium JSInterop failure
-html/native_gc_test: RuntimeError # Dartium JSInterop failure
-
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 form_data_test/functional: Skip # Issue 19726
 indexeddb_1_test/functional: Skip # Issue 19512 (timing out)
@@ -377,8 +372,6 @@ request_animation_frame_test: Skip # Async test hangs.
 
 [ $compiler == dart2js && $runtime == ff ]
 history_test/history: Skip # Issue 22050
-html/svgelement_test/innerHtml: RuntimeError # Dartium JSInterop failure
-html/svgelement_test/outerHtml: RuntimeError # Dartium JSInterop failure
 
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 # Note: these tests are all injecting scripts by design.  This is not allowed under CSP.

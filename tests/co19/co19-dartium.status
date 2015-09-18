@@ -1305,15 +1305,5 @@ LayoutTests/fast/files/blob-close-revoke_t01: RuntimeError # Experimental featur
 LayoutTests/fast/forms/file/file-input-capture_t01: RuntimeError # Experimental feature not exposed in Chrome yet
 LayoutTests/fast/forms/input-inputmode_t01: RuntimeError # Experimental feature not exposed in Chrome yet
 
-LibTest/collection/ListBase/ListBase_class_A01_t02: RuntimeError # Dartium JSInterop failure
-WebPlatformTest/custom-elements/concepts/type_A07_t01: RuntimeError # Dartium JSInterop failure
-WebPlatformTest/custom-elements/instantiating/isAttribute_A02_t01: RuntimeError # Dartium JSInterop failure
-Language/03_Overview/1_Scoping_A02_t16: RuntimeError # Dartium JSInterop failure
-Language/03_Overview/1_Scoping_A02_t19: RuntimeError # Dartium JSInterop failure
-Language/03_Overview/1_Scoping_A02_t15: RuntimeError # Dartium JSInterop failure
-Language/03_Overview/1_Scoping_A02_t14: RuntimeError # Dartium JSInterop failure
-Language/03_Overview/03_Overview_A01_t01: RuntimeError # Dartium JSInterop failure
-LayoutTests/fast/events/onerror-bubbling_t01: RuntimeError # Dartium JSInterop failure
-
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $system != windows ]
 LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # co19-roll r761: Please triage this failure.
