@@ -385,8 +385,6 @@ class TypePropagator extends Pass {
         _internalError);
     transformer.transform(root);
   }
-
-  getType(Node node) => _values[node];
 }
 
 final Map<String, BuiltinOperator> NumBinaryBuiltins =

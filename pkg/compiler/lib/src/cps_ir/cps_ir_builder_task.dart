@@ -3370,9 +3370,9 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
             'Isolate library and compiler mismatch.');
       }
       List<ir.Primitive> arguments = translateStaticArguments(argumentList,
-          element, CallStructure.TWO_ARGS);
+          element, callStructure);
       return irBuilder.buildStaticFunctionInvocation(element,
-          CallStructure.TWO_ARGS, arguments,
+          callStructure, arguments,
           sourceInformation:
                 sourceInformationBuilder.buildCall(node, node.selector));
     }
@@ -3521,12 +3521,12 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         if (!compiler.hasIsolateSupport) {
           // If the isolate library is not used, we just generate code
           // to fetch the current isolate.
-          continue GET_STATIC_STATE;
+          continue getStaticState;
         }
         return buildIsolateHelperInvocation('_currentIsolate',
             CallStructure.NO_ARGS);
 
-      GET_STATIC_STATE: case 'JS_GET_STATIC_STATE':
+      getStaticState: case 'JS_GET_STATIC_STATE':
         validateArgumentCount(exactly: 0);
 
         return irBuilder.buildForeignCode(

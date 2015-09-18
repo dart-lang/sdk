@@ -151,8 +151,9 @@ class CpsFunctionCompiler implements FunctionCompiler {
         cps.Node node = nodeOrRef is cps.Reference
             ? nodeOrRef.definition
             : nodeOrRef;
-        var type = typePropagator.getType(node);
-        return type == null ? s : "$s:${formatTypeMask(type.type)}";
+        return node is cps.Variable && node.type != null
+            ? '$s:${formatTypeMask(node.type)}'
+            : s;
       }
       DEBUG_MODE = true;
       print(new SExpressionStringifier(printType).visit(cpsNode));
