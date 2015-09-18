@@ -41,7 +41,7 @@ vars = {
   "analyzer_cli_rev" : "@0b89a16c0566f36676fa8f2016eb2c332178f616",
   "args_tag": "@0.13.0",
   "async_tag": "@1.2.0",
-  "barback_tag" : "@0.15.2+6",
+  "barback_tag" : "@0.15.2+7",
   "boringssl_rev" : "@daeafc22c66ad48f6b32fc8d3362eb9ba31b774e",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
