@@ -81,7 +81,8 @@ bool isJavaScriptSimpleObject(value) {
 }
 bool isImmutableJavaScriptArray(value) =>
     JS('bool', r'!!(#.immutable$list)', value);
-bool isJavaScriptPromise(value) => JS('bool', r'# instanceof Promise', value);
+bool isJavaScriptPromise(value) =>
+    JS('bool', r'typeof Promise != "undefined" && # instanceof Promise', value);
 
 Future convertNativePromiseToDartFuture(promise) {
   var completer = new Completer();
