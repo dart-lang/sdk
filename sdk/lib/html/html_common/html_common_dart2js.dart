@@ -4,6 +4,7 @@
 
 library html_common;
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
 import 'dart:_internal' show WhereIterable;
