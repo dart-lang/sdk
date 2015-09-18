@@ -9,7 +9,7 @@ import 'dart:html';
 import 'dart:_internal' show WhereIterable;
 import 'dart:web_gl' as gl;
 import 'dart:_native_typed_data';
-import 'dart:_js_helper' show Creates, Returns;
+import 'dart:_js_helper' show Creates, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor, JSExtendableArray;
 
@@ -18,6 +18,7 @@ export 'dart:_metadata';
 
 part 'css_class_set.dart';
 part 'conversions.dart';
+part 'conversions_dart2js.dart';
 part 'device.dart';
 part 'filtered_element_list.dart';
 part 'lists.dart';

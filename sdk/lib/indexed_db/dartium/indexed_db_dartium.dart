@@ -222,7 +222,7 @@ class Cursor extends NativeFieldWrapperClass2 {
 
   @DomName('IDBCursor.update')
   @DocsEditable()
-  Request _update(Object value) => wrap_jso(_blink.BlinkIDBCursor.instance.update_Callback_1_(unwrap_jso(this), value));
+  Request _update(Object value) => wrap_jso(_blink.BlinkIDBCursor.instance.update_Callback_1_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(value)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -364,7 +364,7 @@ class Database extends EventTarget {
   
   ObjectStore _createObjectStore(String name, [Map options]) {
     if (options != null) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.createObjectStore_Callback_2_(unwrap_jso(this), name, options != null ? new js.JsObject.jsify(options) : options));
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.createObjectStore_Callback_2_(unwrap_jso(this), name, convertDartToNative_Dictionary(options)));
     }
     return wrap_jso(_blink.BlinkIDBDatabase.instance.createObjectStore_Callback_1_(unwrap_jso(this), name));
   }
@@ -397,9 +397,9 @@ class Database extends EventTarget {
 
   Transaction transactionList(List<String> storeNames, [String mode]) {
     if (mode != null) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), storeNames, mode));
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), convertDartToNative_StringArray(storeNames), mode));
     }
-    return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), storeNames));
+    return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), convertDartToNative_StringArray(storeNames)));
   }
 
   Transaction transactionStore(String storeName, [String mode]) {
@@ -1008,9 +1008,9 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   
   Request _add(Object value, [Object key]) {
     if (key != null) {
-      return wrap_jso(_blink.BlinkIDBObjectStore.instance.add_Callback_2_(unwrap_jso(this), value, key));
+      return wrap_jso(_blink.BlinkIDBObjectStore.instance.add_Callback_2_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(value), convertDartToNative_SerializedScriptValue(key)));
     }
-    return wrap_jso(_blink.BlinkIDBObjectStore.instance.add_Callback_1_(unwrap_jso(this), value));
+    return wrap_jso(_blink.BlinkIDBObjectStore.instance.add_Callback_1_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(value)));
   }
 
   @DomName('IDBObjectStore.clear')
@@ -1026,13 +1026,13 @@ class ObjectStore extends NativeFieldWrapperClass2 {
       return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(unwrap_jso(this), name, unwrap_jso(keyPath)));
     }
     if ((options is Map || options == null) && (keyPath is String || keyPath == null) && (name is String || name == null)) {
-      return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), options != null ? new js.JsObject.jsify(options) : options));
+      return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), convertDartToNative_Dictionary(options)));
     }
     if ((keyPath is List<String> || keyPath == null) && (name is String || name == null) && options == null) {
       return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(unwrap_jso(this), name, unwrap_jso(keyPath)));
     }
     if ((options is Map || options == null) && (keyPath is List<String> || keyPath == null) && (name is String || name == null)) {
-      return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), options != null ? new js.JsObject.jsify(options) : options));
+      return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), convertDartToNative_Dictionary(options)));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -1069,9 +1069,9 @@ class ObjectStore extends NativeFieldWrapperClass2 {
 
   Request _put(Object value, [Object key]) {
     if (key != null) {
-      return wrap_jso(_blink.BlinkIDBObjectStore.instance.put_Callback_2_(unwrap_jso(this), value, key));
+      return wrap_jso(_blink.BlinkIDBObjectStore.instance.put_Callback_2_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(value), convertDartToNative_SerializedScriptValue(key)));
     }
-    return wrap_jso(_blink.BlinkIDBObjectStore.instance.put_Callback_1_(unwrap_jso(this), value));
+    return wrap_jso(_blink.BlinkIDBObjectStore.instance.put_Callback_1_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(value)));
   }
 
 

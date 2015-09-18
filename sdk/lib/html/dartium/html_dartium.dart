@@ -1149,19 +1149,17 @@ wrap_jso(jsObject) {
       // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
       return jsObject;
     }
+    // Try the most general type conversions on it.
+    // TODO(alanknight): We may be able to do better. This maintains identity,
+    // which is useful, but expensive. And if we nest something that only
+    // this conversion handles, how does that work? e.g. a list of maps of elements.
+    var converted = convertNativeToDart_SerializedScriptValue(jsObject);
+    if (!identical(converted, jsObject)) {
+      return converted;
+    }
     var constructor = jsObject['constructor'];
     if (__interop_checks) {
-      if (jsObject is js.JsArray) {
-        return jsObject;
-      }
-
       debug_or_assert("constructor != null", constructor != null);
-    }
-    if (constructor == js.context['Object']) {
-      return convertNativeObjectToDartMap(jsObject);
-    }
-    if (constructor == js.context['Promise']) {
-      return convertNativePromiseToDartFuture(jsObject);
     }
     var jsTypeName = constructor['name'];
     if (__interop_checks) {
@@ -1193,7 +1191,7 @@ wrap_jso(jsObject) {
 }
 
 /**
- * Create Dart class that maps to the JS Type that is the JS type being 
+ * Create Dart class that maps to the JS Type that is the JS type being
  * extended using JS interop createCallback (we need the base type of the
  * custom element) not the Dart created constructor.
  */
@@ -1270,6 +1268,8 @@ Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
 
 // Converts a flat Dart map into a JavaScript object with properties this is
 // is the Dartium only version it uses dart:js.
+// TODO(alanknight): This could probably be unified with the dart2js conversions
+// code in html_common and be more general.
 convertDartToNative_Dictionary(Map dict) {
   if (dict == null) return null;
   var jsObject = new js.JsObject(js.context['Object']);
@@ -1292,14 +1292,6 @@ convertDartToNative_List(List input) => new js.JsArray()..addAll(input);
 
 // Conversion function place holder (currently not used in dart2js or dartium).
 List convertDartToNative_StringArray(List<String> input) => input;
-
-Future convertNativePromiseToDartFuture(js.JsObject promise) {
-  var completer = new Completer();
-  var newPromise = promise
-      .callMethod("then", [(result) => completer.complete(result)])
-      .callMethod("catch", [(result) => completer.completeError(result)]);
-  return completer.future;
-}
 
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3378,7 +3370,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   
   @DomName('HTMLCanvasElement.getContext')
   @DocsEditable()
-  Object getContext(String contextId, [Map attrs]) => wrap_jso(_blink.BlinkHTMLCanvasElement.instance.getContext_Callback_2_(unwrap_jso(this), contextId, attrs != null ? new js.JsObject.jsify(attrs) : attrs));
+  Object getContext(String contextId, [Map attrs]) => wrap_jso(_blink.BlinkHTMLCanvasElement.instance.getContext_Callback_2_(unwrap_jso(this), contextId, convertDartToNative_Dictionary(attrs)));
   
   @DomName('HTMLCanvasElement.toDataURL')
   @DocsEditable()
@@ -3818,7 +3810,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   void addHitRegion([Map options]) {
     if (options != null) {
-      _blink.BlinkCanvasRenderingContext2D.instance.addHitRegion_Callback_1_(unwrap_jso(this), options != null ? new js.JsObject.jsify(options) : options);
+      _blink.BlinkCanvasRenderingContext2D.instance.addHitRegion_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(options));
       return;
     }
     _blink.BlinkCanvasRenderingContext2D.instance.addHitRegion_Callback_0_(unwrap_jso(this));
@@ -5058,7 +5050,7 @@ class CredentialsContainer extends NativeFieldWrapperClass2 {
   
   Future request([Map options]) {
     if (options != null) {
-      return wrap_jso(_blink.BlinkCredentialsContainer.instance.request_Callback_1_(unwrap_jso(this), options != null ? new js.JsObject.jsify(options) : options));
+      return wrap_jso(_blink.BlinkCredentialsContainer.instance.request_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(options)));
     }
     return wrap_jso(_blink.BlinkCredentialsContainer.instance.request_Callback_0_(unwrap_jso(this)));
   }
@@ -10037,15 +10029,15 @@ class DirectoryEntry extends Entry {
   
   void __getDirectory(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (errorCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_4_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso((entry) => successCallback(wrap_jso(entry))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_4_(unwrap_jso(this), path, convertDartToNative_Dictionary(options), unwrap_jso((entry) => successCallback(wrap_jso(entry))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (successCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_3_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso((entry) => successCallback(wrap_jso(entry))));
+      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_3_(unwrap_jso(this), path, convertDartToNative_Dictionary(options), unwrap_jso((entry) => successCallback(wrap_jso(entry))));
       return;
     }
     if (options != null) {
-      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_2_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options);
+      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_2_(unwrap_jso(this), path, convertDartToNative_Dictionary(options));
       return;
     }
     _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_1_(unwrap_jso(this), path);
@@ -10062,15 +10054,15 @@ class DirectoryEntry extends Entry {
 
   void __getFile(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (errorCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getFile_Callback_4_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso((entry) => successCallback(wrap_jso(entry))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkDirectoryEntry.instance.getFile_Callback_4_(unwrap_jso(this), path, convertDartToNative_Dictionary(options), unwrap_jso((entry) => successCallback(wrap_jso(entry))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (successCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getFile_Callback_3_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso((entry) => successCallback(wrap_jso(entry))));
+      _blink.BlinkDirectoryEntry.instance.getFile_Callback_3_(unwrap_jso(this), path, convertDartToNative_Dictionary(options), unwrap_jso((entry) => successCallback(wrap_jso(entry))));
       return;
     }
     if (options != null) {
-      _blink.BlinkDirectoryEntry.instance.getFile_Callback_2_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options);
+      _blink.BlinkDirectoryEntry.instance.getFile_Callback_2_(unwrap_jso(this), path, convertDartToNative_Dictionary(options));
       return;
     }
     _blink.BlinkDirectoryEntry.instance.getFile_Callback_1_(unwrap_jso(this), path);
@@ -18619,7 +18611,7 @@ class FormElement extends HtmlElement {
   @DocsEditable()
   // http://lists.whatwg.org/htdig.cgi/whatwg-whatwg.org/2012-October/037711.html
   @Experimental()
-  void requestAutocomplete(Map details) => _blink.BlinkHTMLFormElement.instance.requestAutocomplete_Callback_1_(unwrap_jso(this), details != null ? new js.JsObject.jsify(details) : details);
+  void requestAutocomplete(Map details) => _blink.BlinkHTMLFormElement.instance.requestAutocomplete_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(details));
   
   @DomName('HTMLFormElement.reset')
   @DocsEditable()
@@ -18943,7 +18935,7 @@ class Geolocation extends NativeFieldWrapperClass2 {
   
   void _getCurrentPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Map options]) {
     if (options != null) {
-      _blink.BlinkGeolocation.instance.getCurrentPosition_Callback_3_(unwrap_jso(this), unwrap_jso((position) => successCallback(wrap_jso(position))), unwrap_jso((error) => errorCallback(wrap_jso(error))), options != null ? new js.JsObject.jsify(options) : options);
+      _blink.BlinkGeolocation.instance.getCurrentPosition_Callback_3_(unwrap_jso(this), unwrap_jso((position) => successCallback(wrap_jso(position))), unwrap_jso((error) => errorCallback(wrap_jso(error))), convertDartToNative_Dictionary(options));
       return;
     }
     if (errorCallback != null) {
@@ -18956,7 +18948,7 @@ class Geolocation extends NativeFieldWrapperClass2 {
 
   int _watchPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Map options]) {
     if (options != null) {
-      return _blink.BlinkGeolocation.instance.watchPosition_Callback_3_(unwrap_jso(this), unwrap_jso((position) => successCallback(wrap_jso(position))), unwrap_jso((error) => errorCallback(wrap_jso(error))), options != null ? new js.JsObject.jsify(options) : options);
+      return _blink.BlinkGeolocation.instance.watchPosition_Callback_3_(unwrap_jso(this), unwrap_jso((position) => successCallback(wrap_jso(position))), unwrap_jso((error) => errorCallback(wrap_jso(error))), convertDartToNative_Dictionary(options));
     }
     if (errorCallback != null) {
       return _blink.BlinkGeolocation.instance.watchPosition_Callback_2_(unwrap_jso(this), unwrap_jso((position) => successCallback(wrap_jso(position))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
@@ -26083,7 +26075,7 @@ class MessagePort extends EventTarget {
   
   @DomName('MessagePort.postMessage')
   @DocsEditable()
-  void postMessage(Object message, [List<MessagePort> transfer]) => _blink.BlinkMessagePort.instance.postMessage_Callback_2_(unwrap_jso(this), message, transfer);
+  void postMessage(Object message, [List<MessagePort> transfer]) => _blink.BlinkMessagePort.instance.postMessage_Callback_2_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(message), transfer);
   
   @DomName('MessagePort.start')
   @DocsEditable()
@@ -27129,7 +27121,7 @@ class MutationObserver extends NativeFieldWrapperClass2 {
   
   @DomName('MutationObserver.observe')
   @DocsEditable()
-  void _observe(Node target, Map options) => _blink.BlinkMutationObserver.instance.observe_Callback_2_(unwrap_jso(this), unwrap_jso(target), options != null ? new js.JsObject.jsify(options) : options);
+  void _observe(Node target, Map options) => _blink.BlinkMutationObserver.instance.observe_Callback_2_(unwrap_jso(this), unwrap_jso(target), convertDartToNative_Dictionary(options));
   
   @DomName('MutationObserver.takeRecords')
   @DocsEditable()
@@ -27487,7 +27479,7 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, Naviga
   @DocsEditable()
   // http://dev.w3.org/2011/webrtc/editor/getusermedia.html#navigatorusermedia
   @Experimental()
-  void _getUserMedia(Map options, _NavigatorUserMediaSuccessCallback successCallback, _NavigatorUserMediaErrorCallback errorCallback) => _blink.BlinkNavigator.instance.webkitGetUserMedia_Callback_3_(unwrap_jso(this), options != null ? new js.JsObject.jsify(options) : options, unwrap_jso((stream) => successCallback(wrap_jso(stream))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
+  void _getUserMedia(Map options, _NavigatorUserMediaSuccessCallback successCallback, _NavigatorUserMediaErrorCallback errorCallback) => _blink.BlinkNavigator.instance.webkitGetUserMedia_Callback_3_(unwrap_jso(this), convertDartToNative_Dictionary(options), unwrap_jso((stream) => successCallback(wrap_jso(stream))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
   
   @DomName('Navigator.hardwareConcurrency')
   @DocsEditable()
@@ -31608,7 +31600,7 @@ class RtcPeerConnection extends EventTarget {
   
   void addStream(MediaStream stream, [Map mediaConstraints]) {
     if (mediaConstraints != null) {
-      _blink.BlinkRTCPeerConnection.instance.addStream_Callback_2_(unwrap_jso(this), unwrap_jso(stream), mediaConstraints != null ? new js.JsObject.jsify(mediaConstraints) : mediaConstraints);
+      _blink.BlinkRTCPeerConnection.instance.addStream_Callback_2_(unwrap_jso(this), unwrap_jso(stream), convertDartToNative_Dictionary(mediaConstraints));
       return;
     }
     _blink.BlinkRTCPeerConnection.instance.addStream_Callback_1_(unwrap_jso(this), unwrap_jso(stream));
@@ -31621,7 +31613,7 @@ class RtcPeerConnection extends EventTarget {
   
   void _createAnswer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) {
     if (mediaConstraints != null) {
-      _blink.BlinkRTCPeerConnection.instance.createAnswer_Callback_3_(unwrap_jso(this), unwrap_jso((sdp) => successCallback(wrap_jso(sdp))), unwrap_jso((errorInformation) => failureCallback(errorInformation)), mediaConstraints != null ? new js.JsObject.jsify(mediaConstraints) : mediaConstraints);
+      _blink.BlinkRTCPeerConnection.instance.createAnswer_Callback_3_(unwrap_jso(this), unwrap_jso((sdp) => successCallback(wrap_jso(sdp))), unwrap_jso((errorInformation) => failureCallback(errorInformation)), convertDartToNative_Dictionary(mediaConstraints));
       return;
     }
     _blink.BlinkRTCPeerConnection.instance.createAnswer_Callback_2_(unwrap_jso(this), unwrap_jso((sdp) => successCallback(wrap_jso(sdp))), unwrap_jso((errorInformation) => failureCallback(errorInformation)));
@@ -31634,14 +31626,14 @@ class RtcPeerConnection extends EventTarget {
   
   RtcDataChannel createDataChannel(String label, [Map options]) {
     if (options != null) {
-      return wrap_jso(_blink.BlinkRTCPeerConnection.instance.createDataChannel_Callback_2_(unwrap_jso(this), label, options != null ? new js.JsObject.jsify(options) : options));
+      return wrap_jso(_blink.BlinkRTCPeerConnection.instance.createDataChannel_Callback_2_(unwrap_jso(this), label, convertDartToNative_Dictionary(options)));
     }
     return wrap_jso(_blink.BlinkRTCPeerConnection.instance.createDataChannel_Callback_1_(unwrap_jso(this), label));
   }
 
   void _createOffer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map rtcOfferOptions]) {
     if (rtcOfferOptions != null) {
-      _blink.BlinkRTCPeerConnection.instance.createOffer_Callback_3_(unwrap_jso(this), unwrap_jso((sdp) => successCallback(wrap_jso(sdp))), unwrap_jso((errorInformation) => failureCallback(errorInformation)), rtcOfferOptions != null ? new js.JsObject.jsify(rtcOfferOptions) : rtcOfferOptions);
+      _blink.BlinkRTCPeerConnection.instance.createOffer_Callback_3_(unwrap_jso(this), unwrap_jso((sdp) => successCallback(wrap_jso(sdp))), unwrap_jso((errorInformation) => failureCallback(errorInformation)), convertDartToNative_Dictionary(rtcOfferOptions));
       return;
     }
     _blink.BlinkRTCPeerConnection.instance.createOffer_Callback_2_(unwrap_jso(this), unwrap_jso((sdp) => successCallback(wrap_jso(sdp))), unwrap_jso((errorInformation) => failureCallback(errorInformation)));
@@ -31694,11 +31686,11 @@ class RtcPeerConnection extends EventTarget {
 
   void updateIce([Map configuration, Map mediaConstraints]) {
     if (mediaConstraints != null) {
-      _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_2_(unwrap_jso(this), configuration != null ? new js.JsObject.jsify(configuration) : configuration, mediaConstraints != null ? new js.JsObject.jsify(mediaConstraints) : mediaConstraints);
+      _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_2_(unwrap_jso(this), convertDartToNative_Dictionary(configuration), convertDartToNative_Dictionary(mediaConstraints));
       return;
     }
     if (configuration != null) {
-      _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_1_(unwrap_jso(this), configuration != null ? new js.JsObject.jsify(configuration) : configuration);
+      _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(configuration));
       return;
     }
     _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_0_(unwrap_jso(this));
@@ -32606,7 +32598,7 @@ class ServiceWorkerClients extends NativeFieldWrapperClass2 {
 
   Future getAll([Map options]) {
     if (options != null) {
-      return wrap_jso(_blink.BlinkServiceWorkerClients.instance.getAll_Callback_1_(unwrap_jso(this), options != null ? new js.JsObject.jsify(options) : options));
+      return wrap_jso(_blink.BlinkServiceWorkerClients.instance.getAll_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(options)));
     }
     return wrap_jso(_blink.BlinkServiceWorkerClients.instance.getAll_Callback_0_(unwrap_jso(this)));
   }
@@ -32660,7 +32652,7 @@ class ServiceWorkerContainer extends NativeFieldWrapperClass2 {
 
   Future register(String url, [Map options]) {
     if (options != null) {
-      return wrap_jso(_blink.BlinkServiceWorkerContainer.instance.register_Callback_2_(unwrap_jso(this), url, options != null ? new js.JsObject.jsify(options) : options));
+      return wrap_jso(_blink.BlinkServiceWorkerContainer.instance.register_Callback_2_(unwrap_jso(this), url, convertDartToNative_Dictionary(options)));
     }
     return wrap_jso(_blink.BlinkServiceWorkerContainer.instance.register_Callback_1_(unwrap_jso(this), url));
   }
@@ -32722,13 +32714,13 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
       return wrap_jso(_blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_1_(unwrap_jso(this), unwrap_jso(request)));
     }
     if ((requestInitDict is Map || requestInitDict == null) && (request is String || request == null)) {
-      return wrap_jso(_blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), requestInitDict != null ? new js.JsObject.jsify(requestInitDict) : requestInitDict));
+      return wrap_jso(_blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), convertDartToNative_Dictionary(requestInitDict)));
     }
     if ((request is _Request || request == null) && requestInitDict == null) {
       return wrap_jso(_blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_1_(unwrap_jso(this), unwrap_jso(request)));
     }
     if ((requestInitDict is Map || requestInitDict == null) && (request is _Request || request == null)) {
-      return wrap_jso(_blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), requestInitDict != null ? new js.JsObject.jsify(requestInitDict) : requestInitDict));
+      return wrap_jso(_blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), convertDartToNative_Dictionary(requestInitDict)));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -37076,10 +37068,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -39344,7 +39336,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
 
   @DomName('Window.postMessage')
   @DocsEditable()
-  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List<MessagePort> transfer]) => _blink.BlinkWindow.instance.postMessage_Callback_3_(unwrap_jso(this), message, targetOrigin, transfer);
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List<MessagePort> transfer]) => _blink.BlinkWindow.instance.postMessage_Callback_3_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(message), targetOrigin, transfer);
   
   /**
    * Opens the print dialog for this window.
@@ -39392,7 +39384,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is num) && (x is num)) {
-      _blink.BlinkWindow.instance.scroll_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions != null ? new js.JsObject.jsify(scrollOptions) : scrollOptions);
+      _blink.BlinkWindow.instance.scroll_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), convertDartToNative_Dictionary(scrollOptions));
       return;
     }
     if ((y is int) && (x is int) && scrollOptions == null) {
@@ -39400,7 +39392,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is int) && (x is int)) {
-      _blink.BlinkWindow.instance.scroll_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions != null ? new js.JsObject.jsify(scrollOptions) : scrollOptions);
+      _blink.BlinkWindow.instance.scroll_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), convertDartToNative_Dictionary(scrollOptions));
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -39412,7 +39404,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is num) && (x is num)) {
-      _blink.BlinkWindow.instance.scrollBy_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions != null ? new js.JsObject.jsify(scrollOptions) : scrollOptions);
+      _blink.BlinkWindow.instance.scrollBy_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), convertDartToNative_Dictionary(scrollOptions));
       return;
     }
     if ((y is int) && (x is int) && scrollOptions == null) {
@@ -39420,7 +39412,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is int) && (x is int)) {
-      _blink.BlinkWindow.instance.scrollBy_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions != null ? new js.JsObject.jsify(scrollOptions) : scrollOptions);
+      _blink.BlinkWindow.instance.scrollBy_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), convertDartToNative_Dictionary(scrollOptions));
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -39432,7 +39424,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is num) && (x is num)) {
-      _blink.BlinkWindow.instance.scrollTo_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions != null ? new js.JsObject.jsify(scrollOptions) : scrollOptions);
+      _blink.BlinkWindow.instance.scrollTo_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), convertDartToNative_Dictionary(scrollOptions));
       return;
     }
     if ((y is int) && (x is int) && scrollOptions == null) {
@@ -39440,7 +39432,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is int) && (x is int)) {
-      _blink.BlinkWindow.instance.scrollTo_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions != null ? new js.JsObject.jsify(scrollOptions) : scrollOptions);
+      _blink.BlinkWindow.instance.scrollTo_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), convertDartToNative_Dictionary(scrollOptions));
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");

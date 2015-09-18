@@ -1195,7 +1195,8 @@ class DartiumBackend(HtmlDartGenerator):
 
     parameters = info.ParametersAsListOfVariables(None,
                                                   self._type_registry if self._dart_use_blink else None,
-                                                  dart_js_interop)
+                                                  dart_js_interop,
+                                                  self)
     dart_declaration = '%s%s %s(%s)' % (
         'static ' if info.IsStatic() else '',
         return_type,
@@ -1258,7 +1259,8 @@ class DartiumBackend(HtmlDartGenerator):
       native_suffix = 'Callback'
       actuals = info.ParametersAsListOfVariables(argument_count,
                                                  self._type_registry if self._dart_use_blink else None,
-                                                 self._dart_js_interop)
+                                                 self._dart_js_interop,
+                                                 self)
       actuals_s = ", ".join(actuals)
       formals=actuals
       return_type = self.SecureOutputType(operation.type.id)

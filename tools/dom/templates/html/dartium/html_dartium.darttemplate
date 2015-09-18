@@ -394,19 +394,17 @@ wrap_jso(jsObject) {
       // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
       return jsObject;
     }
+    // Try the most general type conversions on it.
+    // TODO(alanknight): We may be able to do better. This maintains identity,
+    // which is useful, but expensive. And if we nest something that only
+    // this conversion handles, how does that work? e.g. a list of maps of elements.
+    var converted = convertNativeToDart_SerializedScriptValue(jsObject);
+    if (!identical(converted, jsObject)) {
+      return converted;
+    }
     var constructor = jsObject['constructor'];
     if (__interop_checks) {
-      if (jsObject is js.JsArray) {
-        return jsObject;
-      }
-
       debug_or_assert("constructor != null", constructor != null);
-    }
-    if (constructor == js.context['Object']) {
-      return convertNativeObjectToDartMap(jsObject);
-    }
-    if (constructor == js.context['Promise']) {
-      return convertNativePromiseToDartFuture(jsObject);
     }
     var jsTypeName = constructor['name'];
     if (__interop_checks) {
@@ -438,7 +436,7 @@ wrap_jso(jsObject) {
 }
 
 /**
- * Create Dart class that maps to the JS Type that is the JS type being 
+ * Create Dart class that maps to the JS Type that is the JS type being
  * extended using JS interop createCallback (we need the base type of the
  * custom element) not the Dart created constructor.
  */
@@ -515,6 +513,8 @@ Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
 
 // Converts a flat Dart map into a JavaScript object with properties this is
 // is the Dartium only version it uses dart:js.
+// TODO(alanknight): This could probably be unified with the dart2js conversions
+// code in html_common and be more general.
 convertDartToNative_Dictionary(Map dict) {
   if (dict == null) return null;
   var jsObject = new js.JsObject(js.context['Object']);
@@ -538,21 +538,13 @@ convertDartToNative_List(List input) => new js.JsArray()..addAll(input);
 // Conversion function place holder (currently not used in dart2js or dartium).
 List convertDartToNative_StringArray(List<String> input) => input;
 
-Future convertNativePromiseToDartFuture(js.JsObject promise) {
-  var completer = new Completer();
-  var newPromise = promise
-      .callMethod("then", [(result) => completer.complete(result)])
-      .callMethod("catch", [(result) => completer.completeError(result)]);
-  return completer.future;
-}
-
 $else
 class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
 
 unwrap_jso(dartClass_instance) => dartClass_instance;
 wrap_jso(jsObject) => jsObject;
 make_dart_rectangle(r) => r;
-convertDartToNative_Dictionary(Map dict) =>  dict;
+convertDartToNative_Dictionary(Map dict) => dict;
 List convertDartToNative_StringArray(List<String> input) => input;
 convertDartToNative_List(List input) => input;
 

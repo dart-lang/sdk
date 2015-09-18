@@ -521,7 +521,7 @@ class OperationInfo(object):
     else:
       return False
 
-  def ParametersAsListOfVariables(self, parameter_count=None, type_registry=None, dart_js_interop=False):
+  def ParametersAsListOfVariables(self, parameter_count=None, type_registry=None, dart_js_interop=False, backend = None):
     """Returns a list of the first parameter_count parameter names
     as raw variables.
     """
@@ -588,10 +588,11 @@ class OperationInfo(object):
             parameters.append('unwrap_jso(%s)' % p.name)
         else:
           if dart_js_interop:
+            conversion = backend._InputConversion(p.type_id, self.declared_name)
             passParam = p.name
-            if type_id == 'Dictionary':
+            if conversion:
               # Need to pass the IDL Dictionary from Dart Map to JavaScript object.
-              passParam = '{0} != null ? new js.JsObject.jsify({0}) : {0}'.format(p.name)
+              passParam = '{0}({1})'.format(conversion.function_name, p.name)
           else:
             passParam = p.name
           parameters.append(passParam)
