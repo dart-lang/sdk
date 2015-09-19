@@ -9,10 +9,13 @@ library dev_compiler.bin.dartdevc;
 
 import 'dart:io';
 
+import 'package:dev_compiler/devc.dart' show devCompilerVersion;
 import 'package:dev_compiler/src/compiler.dart'
     show validateOptions, compile, setupLogger;
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/server/server.dart' show DevServer;
+
+const String _appName = 'dartdevc';
 
 void _showUsageAndExit() {
   print('usage: dartdevc [<options>] <file.dart>...\n');
@@ -33,6 +36,10 @@ main(List<String> args) async {
   }
 
   if (options == null || options.help) _showUsageAndExit();
+  if (options.version) {
+    print('${_appName} version ${devCompilerVersion}');
+    exit(0);
+  }
 
   setupLogger(options.logLevel, print);
 

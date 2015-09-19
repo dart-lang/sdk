@@ -8,6 +8,7 @@ library dev_compiler.bin.devrun;
 
 import 'dart:io';
 
+import 'package:dev_compiler/devc.dart' show devCompilerVersion;
 import 'package:dev_compiler/src/compiler.dart' show validateOptions, compile;
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/runner/runtime_utils.dart'
@@ -16,8 +17,10 @@ import 'package:dev_compiler/src/runner/v8_runner.dart' show V8Runner;
 
 import 'package:path/path.dart';
 
+const String _appName = 'dartdevrun';
+
 void _showUsageAndExit() {
-  print('usage: dartdevrun [<options>] <file.dart>\n');
+  print('usage: ${_appName} [<options>] <file.dart>\n');
   print('<file.dart> is a single Dart file to run.\n');
   print('<options> include:\n');
   print(argParser.usage);
@@ -39,6 +42,10 @@ main(List<String> args) async {
   }
 
   if (options == null || options.help) _showUsageAndExit();
+  if (options.version) {
+    print('${_appName} version ${devCompilerVersion}');
+    exit(0);
+  }
 
   if (options.inputs.length != 1) {
     stderr.writeln("Please only specify one input to run");

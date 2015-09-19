@@ -48,7 +48,7 @@ StreamSubscription setupLogger(Level level, printFn) {
 
 CompilerOptions validateOptions(List<String> args, {bool forceOutDir: false}) {
   var options = parseOptions(args, forceOutDir: forceOutDir);
-  if (!options.help) {
+  if (!options.help && !options.version) {
     var srcOpts = options.sourceOptions;
     if (!srcOpts.useMockSdk && srcOpts.dartSdkPath == null) {
       print('Could not automatically find dart sdk path.');
