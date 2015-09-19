@@ -3839,7 +3839,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       }
       toSet() {
         let setOrMap = this[_tree];
-        let set = new (SplayTreeSet$(K))(dart.as(setOrMap[_comparator], __CastType0), dart.as(setOrMap[_validKey], __CastType3));
+        let set = new (SplayTreeSet$(K))(setOrMap[_comparator], setOrMap[_validKey]);
         set[_count] = this[_tree][_count];
         set[_root] = set[_copyNode](this[_tree][_root]);
         return set;
@@ -4126,12 +4126,6 @@ dart_library.library('dart/collection', null, /* Imports */[
     return SplayTreeSet;
   });
   let SplayTreeSet = SplayTreeSet$();
-  let __CastType0$ = dart.generic(function(K) {
-    let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.int, [K, K]));
-    return __CastType0;
-  });
-  let __CastType0 = __CastType0$();
-  let __CastType3 = dart.typedef('__CastType3', () => dart.functionType(core.bool, [core.Object]));
   let _strings = Symbol('_strings');
   let _nums = Symbol('_nums');
   let _rest = Symbol('_rest');

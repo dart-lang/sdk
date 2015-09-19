@@ -317,7 +317,7 @@ abstract class Stream<T> {
       final add = controller.add;
       assert(controller is _StreamController ||
              controller is _BroadcastStreamController);
-      final eventSink = controller;
+      final eventSink = controller as _EventSink<T>;
       final addError = eventSink._addError;
       subscription = this.listen(
           (T event) {
@@ -377,7 +377,7 @@ abstract class Stream<T> {
     void onListen() {
       assert(controller is _StreamController ||
              controller is _BroadcastStreamController);
-      final eventSink = controller;
+      final eventSink = controller as _EventSink<T>;
       subscription = this.listen(
           (T event) {
             Stream newStream;
@@ -1223,7 +1223,7 @@ abstract class Stream<T> {
       timer.cancel();
       assert(controller is _StreamController ||
              controller is _BroadcastStreamController);
-      var eventSink = controller;
+      var eventSink = controller as _EventSink<T>;
       eventSink._addError(error, stackTrace);  // Avoid Zone error replacement.
       timer = zone.createTimer(timeLimit, timeout);
     }

@@ -12,9 +12,6 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   class NativeByteBuffer extends core.Object {
-    NativeByteBuffer() {
-      this.lengthInBytes = null;
-    }
     get runtimeType() {
       return typed_data.ByteBuffer;
     }
@@ -474,17 +471,10 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
   });
   dart.defineExtensionMembers(NativeFloat64x2List, ['get', 'set', 'sublist', 'length']);
   class NativeTypedData extends core.Object {
-    NativeTypedData() {
-      this.buffer = null;
-      this.lengthInBytes = null;
-      this.offsetInBytes = null;
-      this.elementSizeInBytes = null;
-    }
     [_invalidIndex](index, length) {
       if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(length)) {
         if (dart.is(this, core.List)) {
-          let list = this;
-          if (dart.equals(length, list.length)) {
+          if (dart.equals(length, dart.dload(this, 'length'))) {
             dart.throw(core.RangeError.index(index, this));
           }
         }
@@ -711,9 +701,6 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
   NativeByteData[dart.metadata] = () => [dart.const(new _js_helper.Native("DataView"))];
   let _setRangeFast = Symbol('_setRangeFast');
   class NativeTypedArray extends NativeTypedData {
-    NativeTypedArray() {
-      super.NativeTypedData();
-    }
     [_setRangeFast](start, end, source, skipCount) {
       let targetLength = this.length;
       this[_checkIndex](start, dart.notNull(targetLength) + 1);

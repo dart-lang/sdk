@@ -21,7 +21,7 @@ import 'dart:typed_data';
 @Native("ArrayBuffer")
 class NativeByteBuffer implements ByteBuffer {
   @JSName('byteLength')
-  final int lengthInBytes;
+  external int get lengthInBytes;
 
   Type get runtimeType => ByteBuffer;
 
@@ -424,32 +424,32 @@ class NativeTypedData implements TypedData {
   @Creates('NativeByteBuffer')
   // May be Null for IE's CanvasPixelArray.
   @Returns('NativeByteBuffer|Null')
-  final ByteBuffer buffer;
+  external ByteBuffer get buffer;
 
   /**
    * Returns the length of this view, in bytes.
    */
   @JSName('byteLength')
-  final int lengthInBytes;
+  external int get lengthInBytes;
 
   /**
    * Returns the offset in bytes into the underlying byte buffer of this view.
    */
   @JSName('byteOffset')
-  final int offsetInBytes;
+  external int get offsetInBytes;
 
   /**
    * Returns the number of bytes in the representation of each element in this
    * list.
    */
   @JSName('BYTES_PER_ELEMENT')
-  final int elementSizeInBytes;
+  external int get elementSizeInBytes;
 
   void _invalidIndex(int index, int length) {
     if (index < 0 || index >= length) {
       if (this is List) {
-        var list = this;  // Typed as dynamic to avoid warning.
-        if (length == list.length) {
+        // Typed as dynamic to avoid warning.
+        if (length == (this as dynamic).length) {
           throw new RangeError.index(index, this);
         }
       }

@@ -164,8 +164,8 @@ dart_library.library('dart/async', null, /* Imports */[
         let onListen = (function() {
           let add = dart.bind(controller, 'add');
           dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
-          let eventSink = controller;
-          let addError = eventSink[_addError];
+          let eventSink = dart.as(controller, _EventSink$(T));
+          let addError = dart.bind(eventSink, _addError);
           subscription = this.listen(dart.fn(event => {
             dart.as(event, T);
             let newValue = null;
@@ -183,7 +183,7 @@ dart_library.library('dart/async', null, /* Imports */[
             } else {
               controller.add(newValue);
             }
-          }, dart.dynamic, [T]), {onError: dart.as(addError, core.Function), onDone: dart.bind(controller, 'close')});
+          }, dart.dynamic, [T]), {onError: addError, onDone: dart.bind(controller, 'close')});
         }).bind(this);
         dart.fn(onListen, dart.void, []);
         if (dart.notNull(this.isBroadcast)) {
@@ -207,7 +207,7 @@ dart_library.library('dart/async', null, /* Imports */[
         let subscription = null;
         let onListen = (function() {
           dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
-          let eventSink = controller;
+          let eventSink = dart.as(controller, _EventSink$(T));
           subscription = this.listen(dart.fn(event => {
             dart.as(event, T);
             let newStream = null;
@@ -223,7 +223,7 @@ dart_library.library('dart/async', null, /* Imports */[
               subscription.pause();
               controller.addStream(newStream).whenComplete(dart.bind(subscription, 'resume'));
             }
-          }, dart.dynamic, [T]), {onError: dart.as(eventSink[_addError], core.Function), onDone: dart.bind(controller, 'close')});
+          }, dart.dynamic, [T]), {onError: dart.bind(eventSink, _addError), onDone: dart.bind(controller, 'close')});
         }).bind(this);
         dart.fn(onListen, dart.void, []);
         if (dart.notNull(this.isBroadcast)) {
@@ -674,8 +674,8 @@ dart_library.library('dart/async', null, /* Imports */[
         function onError(error, stackTrace) {
           timer.cancel();
           dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
-          let eventSink = controller;
-          dart.dcall(eventSink[_addError], error, stackTrace);
+          let eventSink = dart.as(controller, _EventSink$(T));
+          eventSink[_addError](error, stackTrace);
           timer = zone.createTimer(timeLimit, dart.as(timeout, dart.functionType(dart.void, [])));
         }
         dart.fn(onError, dart.void, [dart.dynamic, core.StackTrace]);
@@ -1393,16 +1393,17 @@ dart_library.library('dart/async', null, /* Imports */[
         }
         return dart.as(subscription, StreamSubscription$(T));
       }
-      [_recordCancel](subscription) {
-        dart.as(subscription, StreamSubscription$(T));
+      [_recordCancel](sub) {
+        dart.as(sub, StreamSubscription$(T));
+        let subscription = dart.as(sub, _BroadcastSubscription$(T));
         if (dart.notNull(core.identical(subscription[_next], subscription)))
           return null;
         dart.assert(!dart.notNull(core.identical(subscription[_next], subscription)));
-        if (dart.notNull(dart.as(subscription[_isFiring], core.bool))) {
-          dart.dcall(subscription[_setRemoveAfterFiring]);
+        if (dart.notNull(subscription[_isFiring])) {
+          subscription[_setRemoveAfterFiring]();
         } else {
           dart.assert(!dart.notNull(core.identical(subscription[_next], subscription)));
-          this[_removeListener](dart.as(subscription, _BroadcastSubscription$(T)));
+          this[_removeListener](subscription);
           if (!dart.notNull(this[_isFiring]) && dart.notNull(this[_isEmpty])) {
             this[_callOnCancel]();
           }

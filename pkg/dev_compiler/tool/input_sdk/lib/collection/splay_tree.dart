@@ -66,6 +66,10 @@ abstract class _SplayTree<K> {
   /** Comparison used to compare keys. */
   int _compare(K key1, K key2);
 
+  Comparator<K> get _comparator;
+
+  _Predicate<Object> get _validKey;
+
   /**
    * Perform the splay operation for the given key. Moves the node with
    * the given key to the top of the tree.  If no node has the given
