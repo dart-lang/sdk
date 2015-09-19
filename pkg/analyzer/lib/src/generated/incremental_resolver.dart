@@ -8,7 +8,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:analyzer/src/context/cache.dart'
-    show CacheEntry, Delta, DeltaResult, TargetedResult;
+    show CacheEntry, Delta, DeltaResult;
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
@@ -857,6 +857,12 @@ class IncrementalBodyDelta extends Delta {
   @override
   DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
       ResultDescriptor descriptor) {
+    // A body change delta should never leak outside its source.
+    // It can cause invalidation of results (e.g. hints) in other sources,
+    // but only when a result in the updated source is INVALIDATE_NO_DELTA.
+    if (target.source != source) {
+      return DeltaResult.STOP;
+    }
     // don't invalidate results of standard Dart tasks
     bool isByTask(TaskDescriptor taskDescriptor) {
       return taskDescriptor.results.contains(descriptor);
