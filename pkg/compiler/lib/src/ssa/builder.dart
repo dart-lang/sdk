@@ -4074,6 +4074,7 @@ class SsaBuilder extends ast.Visitor
     // Don't visit the first argument, which is the type, and the second
     // argument, which is the foreign code.
     if (link.isEmpty || link.tail.isEmpty) {
+      // We should not get here because the call should be compiled to NSM.
       compiler.internalError(node.argumentsNode,
           'At least two arguments expected.');
     }
@@ -4082,6 +4083,16 @@ class SsaBuilder extends ast.Visitor
 
     List<HInstruction> inputs = <HInstruction>[];
     addGenericSendArgumentsToList(link.tail.tail, inputs);
+
+    if (nativeBehavior.codeTemplate.positionalArgumentCount != inputs.length) {
+      compiler.reportError(
+          node, MessageKind.GENERIC,
+          {'text':
+            'Mismatch between number of placeholders'
+            ' and number of arguments.'});
+      stack.add(graph.addConstantNull(compiler));  // Result expected on stack.
+      return;
+    }
 
     TypeMask ssaType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
