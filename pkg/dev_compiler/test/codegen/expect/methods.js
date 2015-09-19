@@ -19,7 +19,7 @@ dart_library.library('methods', null, /* Imports */[
     z(b) {
       if (b === void 0)
         b = null;
-      return b;
+      return dart.asInt(b);
     }
     zz(b) {
       if (b === void 0)
@@ -28,7 +28,7 @@ dart_library.library('methods', null, /* Imports */[
     }
     w(a, opts) {
       let b = opts && 'b' in opts ? opts.b : null;
-      return dart.notNull(a) + dart.notNull(b);
+      return dart.asInt(dart.notNull(a) + dart.notNull(b));
     }
     ww(a, opts) {
       let b = opts && 'b' in opts ? opts.b : 0;

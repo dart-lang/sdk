@@ -739,7 +739,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
   });
   class NativeTypedArrayOfDouble extends dart.mixin(NativeTypedArray, collection.ListMixin$(core.double), _internal.FixedLengthListMixin$(core.double)) {
     get length() {
-      return dart.as(this.length, core.int);
+      return this.length;
     }
     get(index) {
       this[_checkIndex](index, this.length);
@@ -770,7 +770,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
   dart.defineExtensionMembers(NativeTypedArrayOfDouble, ['get', 'set', 'setRange', 'length']);
   class NativeTypedArrayOfInt extends dart.mixin(NativeTypedArray, collection.ListMixin$(core.int), _internal.FixedLengthListMixin$(core.int)) {
     get length() {
-      return dart.as(this.length, core.int);
+      return this.length;
     }
     set(index, value) {
       this[_checkIndex](index, this.length);
@@ -1072,7 +1072,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     }
     get(index) {
       this[_checkIndex](index, this.length);
-      return dart.as(this[index], core.int);
+      return this[index];
     }
     sublist(start, end) {
       if (end === void 0)
@@ -1127,7 +1127,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     }
     get(index) {
       this[_checkIndex](index, this.length);
-      return dart.as(this[index], core.int);
+      return this[index];
     }
     sublist(start, end) {
       if (end === void 0)
@@ -1181,11 +1181,11 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
       return typed_data.Uint8ClampedList;
     }
     get length() {
-      return dart.as(this.length, core.int);
+      return this.length;
     }
     get(index) {
       this[_checkIndex](index, this.length);
-      return dart.as(this[index], core.int);
+      return this[index];
     }
     sublist(start, end) {
       if (end === void 0)
@@ -1239,11 +1239,11 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
       return typed_data.Uint8List;
     }
     get length() {
-      return dart.as(this.length, core.int);
+      return this.length;
     }
     get(index) {
       this[_checkIndex](index, this.length);
-      return dart.as(this[index], core.int);
+      return this[index];
     }
     sublist(start, end) {
       if (end === void 0)
@@ -1292,13 +1292,13 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
       this.y = dart.as(NativeFloat32x4._truncate(y), core.double);
       this.z = dart.as(NativeFloat32x4._truncate(z), core.double);
       this.w = dart.as(NativeFloat32x4._truncate(w), core.double);
-      if (!dart.is(x, core.num))
+      if (!(typeof x == 'number'))
         dart.throw(new core.ArgumentError(x));
-      if (!dart.is(y, core.num))
+      if (!(typeof y == 'number'))
         dart.throw(new core.ArgumentError(y));
-      if (!dart.is(z, core.num))
+      if (!(typeof z == 'number'))
         dart.throw(new core.ArgumentError(z));
-      if (!dart.is(w, core.num))
+      if (!(typeof w == 'number'))
         dart.throw(new core.ArgumentError(w));
     }
     splat(v) {
@@ -1804,9 +1804,9 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     NativeFloat64x2(x, y) {
       this.x = x;
       this.y = y;
-      if (!dart.is(this.x, core.num))
+      if (!(typeof this.x == 'number'))
         dart.throw(new core.ArgumentError(this.x));
-      if (!dart.is(this.y, core.num))
+      if (!(typeof this.y == 'number'))
         dart.throw(new core.ArgumentError(this.y));
     }
     splat(v) {
@@ -1868,12 +1868,12 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
       return dart.notNull(mx) | dart.notNull(my) << 1;
     }
     withX(x) {
-      if (!dart.is(x, core.num))
+      if (!(typeof x == 'number'))
         dart.throw(new core.ArgumentError(x));
       return new NativeFloat64x2._doubles(x, this.y);
     }
     withY(y) {
-      if (!dart.is(y, core.num))
+      if (!(typeof y == 'number'))
         dart.throw(new core.ArgumentError(y));
       return new NativeFloat64x2._doubles(this.x, y);
     }

@@ -311,32 +311,34 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var from = getStaticType(node.expression);
     var to = node.type.type;
 
+    var fromExpr = _visit(node.expression);
+
     // Skip the cast if it's not needed.
-    if (rules.isSubTypeOf(from, to)) return _visit(node.expression);
+    if (rules.isSubTypeOf(from, to)) return fromExpr;
 
     // All Dart number types map to a JS double.
-    if (rules.isNumType(from) &&
-        (rules.isIntType(to) || rules.isDoubleType(to))) {
-      // TODO(jmesserly): a lot of these checks are meaningless, as people use
-      // `num` to mean "any kind of number" rather than "could be null".
-      // The core libraries especially suffer from this problem, with many of
-      // the `num` methods returning `num`.
+    if (rules.isNumberInJS(from) && rules.isNumberInJS(to)) {
+      // Make sure to check when converting to int.
+      if (!rules.isIntType(from) && rules.isIntType(to)) {
+        return js.call('dart.asInt(#)', [fromExpr]);
+      }
+
       if (!rules.isNonNullableType(from) && rules.isNonNullableType(to)) {
         // Converting from a nullable number to a non-nullable number
         // only requires a null check.
-        return js.call('dart.notNull(#)', _visit(node.expression));
+        // TODO(jmesserly): a lot of these checks are meaningless, as people use
+        // `num` to mean "any kind of number" rather than "could be null".
+        // The core libraries especially suffer from this problem, with many of
+        // the `num` methods returning `num`.
+        return js.call('dart.notNull(#)', fromExpr);
       } else {
         // A no-op in JavaScript.
-        return _visit(node.expression);
+        return fromExpr;
       }
     }
 
-    return _emitCast(node.expression, to);
+    return js.call('dart.as(#, #)', [fromExpr, _emitTypeName(to)]);
   }
-
-  _emitCast(Expression node, DartType type) => js.call('dart.as(#)', [
-        [_visit(node), _emitTypeName(type)]
-      ]);
 
   @override
   visitIsExpression(IsExpression node) {
@@ -359,7 +361,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   }
 
   String _jsTypeofName(DartType t) {
-    if (rules.isIntType(t) || rules.isDoubleType(t)) return 'number';
+    if (rules.isNumberInJS(t)) return 'number';
     if (rules.isStringType(t)) return 'string';
     if (rules.isBoolType(t)) return 'boolean';
     return null;
@@ -2166,10 +2168,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   bool _isJSBuiltinType(DartType t) =>
       typeIsPrimitiveInJS(t) || rules.isStringType(t);
 
-  bool typeIsPrimitiveInJS(DartType t) => rules.isIntType(t) ||
-      rules.isDoubleType(t) ||
-      rules.isBoolType(t) ||
-      rules.isNumType(t);
+  bool typeIsPrimitiveInJS(DartType t) =>
+      rules.isNumberInJS(t) || rules.isBoolType(t);
 
   bool typeIsNonNullablePrimitiveInJS(DartType t) =>
       typeIsPrimitiveInJS(t) && rules.isNonNullableType(t);
@@ -3263,9 +3263,15 @@ class JSGenerator extends CodeGenerator {
     var context = compiler.context;
     var src = context.sourceFactory.forUri('dart:_interceptors');
     var interceptors = context.computeLibraryElement(src);
-    for (var t in ['JSArray', 'JSString', 'JSInt', 'JSDouble', 'JSBool']) {
+    for (var t in ['JSArray', 'JSString', 'JSNumber', 'JSBool']) {
       _addExtensionType(interceptors.getType(t).type);
     }
+    // TODO(jmesserly): manually add `int` and `double`
+    // Unfortunately our current analyzer rejects "implements int".
+    // Fix was landed, so we can remove this hack once we're updated:
+    // https://github.com/dart-lang/sdk/commit/d7cd11f86a02f55269fc8d9843e7758ebeeb81c8
+    _addExtensionType(context.typeProvider.intType);
+    _addExtensionType(context.typeProvider.doubleType);
   }
 
   void _addExtensionType(InterfaceType t) {

@@ -298,7 +298,7 @@ class JSArray<E> implements List<E>, JSIndexable {
 
   int get hashCode => Primitives.objectHashCode(this);
 
-  int get length => JS('JSUInt32', r'#.length', this);
+  int get length => JS('int', r'#.length', this);
 
   void set length(int newLength) {
     if (newLength is !int) throw new ArgumentError(newLength);

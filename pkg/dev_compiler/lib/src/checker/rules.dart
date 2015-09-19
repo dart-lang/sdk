@@ -37,7 +37,16 @@ abstract class TypeRules {
   bool isBoolType(DartType t) => t == provider.boolType;
   bool isDoubleType(DartType t) => t == provider.doubleType;
   bool isIntType(DartType t) => t == provider.intType;
-  bool isNumType(DartType t) => t == provider.intType.superclass;
+  bool isNumType(DartType t) => t == provider.numType;
+
+  /// Returns true if this is any kind of object represented by `Number` in JS.
+  ///
+  /// In practice, this is 4 types: num, int, double, and JSNumber.
+  ///
+  /// JSNumber is the type that actually "implements" all numbers, hence it's
+  /// a subtype of int and double (and num). It's in our "dart:_interceptors".
+  bool isNumberInJS(DartType t) => isSubTypeOf(t, provider.numType);
+
   bool isStringType(DartType t) => t == provider.stringType;
   bool isNonNullableType(DartType t) => false;
   bool maybeNonNullableType(DartType t) => false;

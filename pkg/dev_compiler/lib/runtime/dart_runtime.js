@@ -74,6 +74,7 @@ dart_library.library('dart_runtime/dart', null, /* Imports */[
   exportFrom(operations, [
     'JsIterator',
     'arity',
+    'asInt',
     'assert',
     'const',
     'dcall',

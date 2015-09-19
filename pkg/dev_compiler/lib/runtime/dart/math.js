@@ -52,29 +52,29 @@ dart_library.library('dart/math', null, /* Imports */[
       }
       ['+'](other) {
         dart.as(other, Point$(T));
-        return new (Point$(T))(dart.as(this.x['+'](other.x), T), dart.as(this.y['+'](other.y), T));
+        return new (Point$(T))(dart.notNull(this.x) + dart.notNull(other.x), dart.notNull(this.y) + dart.notNull(other.y));
       }
       ['-'](other) {
         dart.as(other, Point$(T));
-        return new (Point$(T))(dart.as(this.x['-'](other.x), T), dart.as(this.y['-'](other.y), T));
+        return new (Point$(T))(dart.notNull(this.x) - dart.notNull(other.x), dart.notNull(this.y) - dart.notNull(other.y));
       }
       ['*'](factor) {
-        return new (Point$(T))(dart.as(this.x['*'](factor), T), dart.as(this.y['*'](factor), T));
+        return new (Point$(T))(dart.notNull(this.x) * dart.notNull(factor), dart.notNull(this.y) * dart.notNull(factor));
       }
       get magnitude() {
-        return sqrt(dart.notNull(this.x['*'](this.x)) + dart.notNull(this.y['*'](this.y)));
+        return sqrt(dart.notNull(this.x) * dart.notNull(this.x) + dart.notNull(this.y) * dart.notNull(this.y));
       }
       distanceTo(other) {
         dart.as(other, Point$(T));
-        let dx = this.x['-'](other.x);
-        let dy = this.y['-'](other.y);
+        let dx = dart.notNull(this.x) - dart.notNull(other.x);
+        let dy = dart.notNull(this.y) - dart.notNull(other.y);
         return sqrt(dart.notNull(dx) * dart.notNull(dx) + dart.notNull(dy) * dart.notNull(dy));
       }
       squaredDistanceTo(other) {
         dart.as(other, Point$(T));
-        let dx = this.x['-'](other.x);
-        let dy = this.y['-'](other.y);
-        return dart.as(dart.notNull(dx) * dart.notNull(dx) + dart.notNull(dy) * dart.notNull(dy), T);
+        let dx = dart.notNull(this.x) - dart.notNull(other.x);
+        let dy = dart.notNull(this.y) - dart.notNull(other.y);
+        return dart.notNull(dx) * dart.notNull(dx) + dart.notNull(dy) * dart.notNull(dy);
       }
     }
     dart.setSignature(Point, {
@@ -105,10 +105,10 @@ dart_library.library('dart/math', null, /* Imports */[
       _RectangleBase() {
       }
       get right() {
-        return dart.as(this.left['+'](this.width), T);
+        return dart.notNull(this.left) + dart.notNull(this.width);
       }
       get bottom() {
-        return dart.as(this.top['+'](this.height), T);
+        return dart.notNull(this.top) + dart.notNull(this.height);
       }
       toString() {
         return `Rectangle (${this.left}, ${this.top}) ${this.width} x ${this.height}`;
@@ -124,44 +124,44 @@ dart_library.library('dart/math', null, /* Imports */[
       intersection(other) {
         dart.as(other, Rectangle$(T));
         let x0 = max(this.left, other.left);
-        let x1 = min(this.left['+'](this.width), other.left['+'](other.width));
+        let x1 = min(dart.notNull(this.left) + dart.notNull(this.width), dart.notNull(other.left) + dart.notNull(other.width));
         if (dart.notNull(x0) <= dart.notNull(x1)) {
           let y0 = max(this.top, other.top);
-          let y1 = min(this.top['+'](this.height), other.top['+'](other.height));
+          let y1 = min(dart.notNull(this.top) + dart.notNull(this.height), dart.notNull(other.top) + dart.notNull(other.height));
           if (dart.notNull(y0) <= dart.notNull(y1)) {
-            return new (Rectangle$(T))(dart.as(x0, T), dart.as(y0, T), dart.as(dart.notNull(x1) - dart.notNull(x0), T), dart.as(dart.notNull(y1) - dart.notNull(y0), T));
+            return new (Rectangle$(T))(x0, y0, dart.notNull(x1) - dart.notNull(x0), dart.notNull(y1) - dart.notNull(y0));
           }
         }
         return null;
       }
       intersects(other) {
-        return dart.notNull(this.left['<='](dart.notNull(other.left) + dart.notNull(other.width))) && dart.notNull(other.left) <= dart.notNull(this.left['+'](this.width)) && dart.notNull(this.top['<='](dart.notNull(other.top) + dart.notNull(other.height))) && dart.notNull(other.top) <= dart.notNull(this.top['+'](this.height));
+        return dart.notNull(this.left) <= dart.notNull(other.left) + dart.notNull(other.width) && dart.notNull(other.left) <= dart.notNull(this.left) + dart.notNull(this.width) && dart.notNull(this.top) <= dart.notNull(other.top) + dart.notNull(other.height) && dart.notNull(other.top) <= dart.notNull(this.top) + dart.notNull(this.height);
       }
       boundingBox(other) {
         dart.as(other, Rectangle$(T));
-        let right = max(this.left['+'](this.width), other.left['+'](other.width));
-        let bottom = max(this.top['+'](this.height), other.top['+'](other.height));
+        let right = max(dart.notNull(this.left) + dart.notNull(this.width), dart.notNull(other.left) + dart.notNull(other.width));
+        let bottom = max(dart.notNull(this.top) + dart.notNull(this.height), dart.notNull(other.top) + dart.notNull(other.height));
         let left = min(this.left, other.left);
         let top = min(this.top, other.top);
-        return new (Rectangle$(T))(dart.as(left, T), dart.as(top, T), dart.as(dart.notNull(right) - dart.notNull(left), T), dart.as(dart.notNull(bottom) - dart.notNull(top), T));
+        return new (Rectangle$(T))(left, top, dart.notNull(right) - dart.notNull(left), dart.notNull(bottom) - dart.notNull(top));
       }
       containsRectangle(another) {
-        return dart.notNull(this.left['<='](another.left)) && dart.notNull(this.left['+'](this.width)) >= dart.notNull(another.left) + dart.notNull(another.width) && dart.notNull(this.top['<='](another.top)) && dart.notNull(this.top['+'](this.height)) >= dart.notNull(another.top) + dart.notNull(another.height);
+        return dart.notNull(this.left) <= dart.notNull(another.left) && dart.notNull(this.left) + dart.notNull(this.width) >= dart.notNull(another.left) + dart.notNull(another.width) && dart.notNull(this.top) <= dart.notNull(another.top) && dart.notNull(this.top) + dart.notNull(this.height) >= dart.notNull(another.top) + dart.notNull(another.height);
       }
       containsPoint(another) {
-        return another.x[dartx['>=']](this.left) && dart.notNull(another.x) <= dart.notNull(this.left['+'](this.width)) && another.y[dartx['>=']](this.top) && dart.notNull(another.y) <= dart.notNull(this.top['+'](this.height));
+        return dart.notNull(another.x) >= dart.notNull(this.left) && dart.notNull(another.x) <= dart.notNull(this.left) + dart.notNull(this.width) && dart.notNull(another.y) >= dart.notNull(this.top) && dart.notNull(another.y) <= dart.notNull(this.top) + dart.notNull(this.height);
       }
       get topLeft() {
         return new (Point$(T))(this.left, this.top);
       }
       get topRight() {
-        return new (Point$(T))(dart.as(this.left['+'](this.width), T), this.top);
+        return new (Point$(T))(dart.notNull(this.left) + dart.notNull(this.width), this.top);
       }
       get bottomRight() {
-        return new (Point$(T))(dart.as(this.left['+'](this.width), T), dart.as(this.top['+'](this.height), T));
+        return new (Point$(T))(dart.notNull(this.left) + dart.notNull(this.width), dart.notNull(this.top) + dart.notNull(this.height));
       }
       get bottomLeft() {
-        return new (Point$(T))(this.left, dart.as(this.top['+'](this.height), T));
+        return new (Point$(T))(this.left, dart.notNull(this.top) + dart.notNull(this.height));
       }
     }
     dart.setSignature(_RectangleBase, {
@@ -182,15 +182,15 @@ dart_library.library('dart/math', null, /* Imports */[
       Rectangle(left, top, width, height) {
         this.left = left;
         this.top = top;
-        this.width = dart.as(dart.notNull(width['<'](0)) ? dart.notNull(width['unary-']()) * 0 : width, T);
-        this.height = dart.as(dart.notNull(height['<'](0)) ? dart.notNull(height['unary-']()) * 0 : height, T);
+        this.width = dart.notNull(width) < 0 ? -dart.notNull(width) * 0 : width;
+        this.height = dart.notNull(height) < 0 ? -dart.notNull(height) * 0 : height;
         super._RectangleBase();
       }
       static fromPoints(a, b) {
-        let left = dart.as(min(a.x, b.x), T);
-        let width = dart.as(max(a.x, b.x)[dartx['-']](left), T);
-        let top = dart.as(min(a.y, b.y), T);
-        let height = dart.as(max(a.y, b.y)[dartx['-']](top), T);
+        let left = min(a.x, b.x);
+        let width = dart.notNull(max(a.x, b.x)) - dart.notNull(left);
+        let top = min(a.y, b.y);
+        let height = dart.notNull(max(a.y, b.y)) - dart.notNull(top);
         return new (Rectangle$(T))(left, top, width, height);
       }
     }
@@ -210,15 +210,15 @@ dart_library.library('dart/math', null, /* Imports */[
       MutableRectangle(left, top, width, height) {
         this.left = left;
         this.top = top;
-        this[_width] = dart.as(dart.notNull(width['<'](0)) ? _clampToZero(width) : width, T);
-        this[_height] = dart.as(dart.notNull(height['<'](0)) ? _clampToZero(height) : height, T);
+        this[_width] = dart.notNull(width) < 0 ? _clampToZero(width) : width;
+        this[_height] = dart.notNull(height) < 0 ? _clampToZero(height) : height;
         super._RectangleBase();
       }
       static fromPoints(a, b) {
-        let left = dart.as(min(a.x, b.x), T);
-        let width = dart.as(max(a.x, b.x)[dartx['-']](left), T);
-        let top = dart.as(min(a.y, b.y), T);
-        let height = dart.as(max(a.y, b.y)[dartx['-']](top), T);
+        let left = min(a.x, b.x);
+        let width = dart.notNull(max(a.x, b.x)) - dart.notNull(left);
+        let top = min(a.y, b.y);
+        let height = dart.notNull(max(a.y, b.y)) - dart.notNull(top);
         return new (MutableRectangle$(T))(left, top, width, height);
       }
       get width() {
@@ -226,8 +226,8 @@ dart_library.library('dart/math', null, /* Imports */[
       }
       set width(width) {
         dart.as(width, T);
-        if (dart.notNull(width['<'](0)))
-          width = dart.as(_clampToZero(width), T);
+        if (dart.notNull(width) < 0)
+          width = _clampToZero(width);
         this[_width] = width;
       }
       get height() {
@@ -235,8 +235,8 @@ dart_library.library('dart/math', null, /* Imports */[
       }
       set height(height) {
         dart.as(height, T);
-        if (dart.notNull(height['<'](0)))
-          height = dart.as(_clampToZero(height), T);
+        if (dart.notNull(height) < 0)
+          height = _clampToZero(height);
         this[_height] = height;
       }
     }
@@ -264,9 +264,9 @@ dart_library.library('dart/math', null, /* Imports */[
   let SQRT1_2 = 0.7071067811865476;
   let SQRT2 = 1.4142135623730951;
   function min(a, b) {
-    if (!dart.is(a, core.num))
+    if (!(typeof a == 'number'))
       dart.throw(new core.ArgumentError(a));
-    if (!dart.is(b, core.num))
+    if (!(typeof b == 'number'))
       dart.throw(new core.ArgumentError(b));
     if (dart.notNull(a) > dart.notNull(b))
       return b;
@@ -286,9 +286,9 @@ dart_library.library('dart/math', null, /* Imports */[
   }
   dart.fn(min, core.num, [core.num, core.num]);
   function max(a, b) {
-    if (!dart.is(a, core.num))
+    if (!(typeof a == 'number'))
       dart.throw(new core.ArgumentError(a));
-    if (!dart.is(b, core.num))
+    if (!(typeof b == 'number'))
       dart.throw(new core.ArgumentError(b));
     if (dart.notNull(a) > dart.notNull(b))
       return a;
@@ -466,7 +466,7 @@ dart_library.library('dart/math', null, /* Imports */[
       do {
         this[_nextState]();
         rnd32 = this[_lo];
-        result = rnd32[dartx.remainder](max);
+        result = dart.asInt(rnd32[dartx.remainder](max));
       } while (dart.notNull(rnd32) - dart.notNull(result) + dart.notNull(max) >= dart.notNull(_POW2_32));
       return result;
     }

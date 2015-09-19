@@ -550,9 +550,9 @@ dart_library.library('dart/core', null, /* Imports */[
       if (dart.notNull(this.inMicroseconds) < 0) {
         return `-${this['unary-']()}`;
       }
-      let twoDigitMinutes = twoDigits(this.inMinutes[dartx.remainder](Duration.MINUTES_PER_HOUR));
-      let twoDigitSeconds = twoDigits(this.inSeconds[dartx.remainder](Duration.SECONDS_PER_MINUTE));
-      let sixDigitUs = sixDigits(this.inMicroseconds[dartx.remainder](Duration.MICROSECONDS_PER_SECOND));
+      let twoDigitMinutes = twoDigits(dart.asInt(this.inMinutes[dartx.remainder](Duration.MINUTES_PER_HOUR)));
+      let twoDigitSeconds = twoDigits(dart.asInt(this.inSeconds[dartx.remainder](Duration.SECONDS_PER_MINUTE)));
+      let sixDigitUs = sixDigits(dart.asInt(this.inMicroseconds[dartx.remainder](Duration.MICROSECONDS_PER_SECOND)));
       return `${this.inHours}:${twoDigitMinutes}:${twoDigitSeconds}.${sixDigitUs}`;
     }
     get isNegative() {
@@ -607,7 +607,7 @@ dart_library.library('dart/core', null, /* Imports */[
     Error() {
     }
     static safeToString(object) {
-      if (dart.is(object, num) || typeof object == 'boolean' || null == object) {
+      if (typeof object == 'number' || typeof object == 'boolean' || null == object) {
         return dart.toString(object);
       }
       if (typeof object == 'string') {
@@ -1599,7 +1599,7 @@ dart_library.library('dart/core', null, /* Imports */[
       if (this[_start] == null) {
         return 0;
       }
-      return this[_stop] == null ? dart.notNull(Stopwatch._now()) - dart.notNull(this[_start]) : dart.notNull(this[_stop]) - dart.notNull(this[_start]);
+      return dart.asInt(this[_stop] == null ? dart.notNull(Stopwatch._now()) - dart.notNull(this[_start]) : dart.notNull(this[_stop]) - dart.notNull(this[_start]));
     }
     get elapsed() {
       return new Duration({microseconds: this.elapsedMicroseconds});
@@ -1788,7 +1788,7 @@ dart_library.library('dart/core', null, /* Imports */[
       this[_currentCodePoint] = null;
     }
     get current() {
-      return this[_currentCodePoint];
+      return dart.asInt(this[_currentCodePoint]);
     }
     get currentSize() {
       return dart.notNull(this[_nextPosition]) - dart.notNull(this[_position]);
@@ -1971,7 +1971,7 @@ dart_library.library('dart/core', null, /* Imports */[
     get port() {
       if (this[_port] == null)
         return Uri._defaultPort(this.scheme);
-      return this[_port];
+      return dart.asInt(this[_port]);
     }
     static _defaultPort(scheme) {
       if (scheme == "http")
@@ -2370,7 +2370,7 @@ dart_library.library('dart/core', null, /* Imports */[
       if (port != null) {
         port = Uri._makePort(port, scheme);
       } else {
-        port = this[_port];
+        port = dart.asInt(this[_port]);
         if (dart.notNull(schemeChanged)) {
           port = Uri._makePort(port, scheme);
         }
@@ -2831,7 +2831,7 @@ dart_library.library('dart/core', null, /* Imports */[
           }
           targetUserInfo = this[_userInfo];
           targetHost = this[_host];
-          targetPort = this[_port];
+          targetPort = dart.asInt(this[_port]);
         }
       }
       let fragment = dart.notNull(reference.hasFragment) ? reference.fragment : null;

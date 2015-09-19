@@ -7,7 +7,7 @@ import 'dart:_internal' show FixedLengthListMixin;
 import 'dart:_foreign_helper' show JS;
 import 'dart:math' as Math;
 import 'dart:_internal';
-import 'dart:_interceptors' show JSIndexable, JSUInt32, JSUInt31;
+import 'dart:_interceptors' show JSIndexable;
 import 'dart:_js_helper'
     show Creates, JavaScriptIndexingBehavior, JSName, Null, Returns, patch;
 import 'dart:_native_typed_data';

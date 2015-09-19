@@ -232,6 +232,15 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
   }
   exports.cast = cast;
 
+  function asInt(obj) {
+    if (Math.floor(obj) != obj) {
+      // Note: null will also be caught by this check
+      errors.throwCastError(rtti.realRuntimeType(obj), core.int);
+    }
+    return obj;
+  }
+  exports.asInt = asInt;
+
   function arity(f) {
     // TODO(jmesserly): need to parse optional params.
     // In ES6, length is the number of required arguments.

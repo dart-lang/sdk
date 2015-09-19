@@ -81,7 +81,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       return ["ref", serializationId];
     }
     isPrimitive(x) {
-      return x == null || typeof x == 'string' || dart.is(x, core.num) || typeof x == 'boolean';
+      return x == null || typeof x == 'string' || typeof x == 'number' || typeof x == 'boolean';
     }
     serializePrimitive(primitive) {
       return primitive;
@@ -261,7 +261,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       }
     }
     isPrimitive(x) {
-      return x == null || typeof x == 'string' || dart.is(x, core.num) || typeof x == 'boolean';
+      return x == null || typeof x == 'string' || typeof x == 'number' || typeof x == 'boolean';
     }
     deserializePrimitive(x) {
       return x;

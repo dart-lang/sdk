@@ -18,7 +18,7 @@ class JSString extends Interceptor implements String, JSIndexable {
     if (index is !int) throw new ArgumentError(index);
     if (index < 0) throw new RangeError.value(index);
     if (index >= length) throw new RangeError.value(index);
-    return JS('JSUInt31', r'#.charCodeAt(#)', this, index);
+    return JS('int', r'#.charCodeAt(#)', this, index);
   }
 
   Iterable<Match> allMatches(String string, [int start = 0]) {
@@ -333,15 +333,15 @@ class JSString extends Interceptor implements String, JSIndexable {
   String operator*(int times) {
     if (0 >= times) return '';  // Unnecessary but hoists argument type check.
     if (times == 1 || this.length == 0) return this;
-    if (times != JS('JSUInt32', '# >>> 0', times)) {
+    if (times != JS('int', '# >>> 0', times)) {
       // times >= 2^32. We can't create a string that big.
       throw const OutOfMemoryError();
     }
     var result = '';
-    var s = this;
+    String s = this;
     while (true) {
       if (times & 1 == 1) result = s + result;
-      times = JS('JSUInt31', '# >>> 1', times);
+      times = JS('int', '# >>> 1', times);
       if (times == 0) break;
       s += s;
     }

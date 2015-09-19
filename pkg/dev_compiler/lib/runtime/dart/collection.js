@@ -4371,7 +4371,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         return typeof key == 'string' && !dart.equals(key, '__proto__');
       }
       static _isNumericKey(key) {
-        return dart.is(key, core.num) && (key & 0x3ffffff) === key;
+        return typeof key == 'number' && (key & 0x3ffffff) === key;
       }
       [_computeHashCode](key) {
         return dart.hashCode(key) & 0x3ffffff;
@@ -4858,7 +4858,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         return typeof key == 'string' && !dart.equals(key, '__proto__');
       }
       static _isNumericKey(key) {
-        return dart.is(key, core.num) && (key & 0x3ffffff) === key;
+        return typeof key == 'number' && (key & 0x3ffffff) === key;
       }
       [_computeHashCode](key) {
         return dart.hashCode(key) & 0x3ffffff;
@@ -5303,7 +5303,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         return typeof element == 'string' && !dart.equals(element, '__proto__');
       }
       static _isNumericElement(element) {
-        return dart.is(element, core.num) && (element & 0x3ffffff) === element;
+        return typeof element == 'number' && (element & 0x3ffffff) === element;
       }
       [_computeHashCode](element) {
         return dart.hashCode(element) & 0x3ffffff;
@@ -5739,7 +5739,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         return typeof element == 'string' && !dart.equals(element, '__proto__');
       }
       static _isNumericElement(element) {
-        return dart.is(element, core.num) && (element & 0x3ffffff) === element;
+        return typeof element == 'number' && (element & 0x3ffffff) === element;
       }
       [_computeHashCode](element) {
         return dart.hashCode(element) & 0x3ffffff;

@@ -5,19 +5,14 @@
 part of dart._interceptors;
 
 /**
- * The super interceptor class for [JSInt] and [JSDouble]. The compiler
- * recognizes this class as an interceptor, and changes references to
- * [:this:] to actually use the receiver of the method, which is
- * generated as an extra argument added to each member.
- *
- * Note that none of the methods here delegate to a method defined on JSInt or
- * JSDouble.  This is exploited in [tryComputeConstantInterceptor].
+ * The implementation of Dart's int & double methods.
+ * These are made available as extension methods on `Number` in JS.
  */
-class JSNumber extends Interceptor implements num {
+@JsPeerInterface(name: 'Number')
+class JSNumber extends Interceptor implements int, double {
   const JSNumber();
 
   int compareTo(num b) {
-    if (b is! num) throw new ArgumentError(b);
     if (this < b) {
       return -1;
     } else if (this > b) {
@@ -51,15 +46,14 @@ class JSNumber extends Interceptor implements num {
 
   bool get isFinite => JS('bool', r'isFinite(#)', this);
 
-  num remainder(num b) {
+  JSNumber remainder(num b) {
     checkNull(b); // TODO(ngeoffray): This is not specified but co19 tests it.
-    if (b is! num) throw new ArgumentError(b);
     return JS('num', r'# % #', this, b);
   }
 
-  num abs() => JS('num', r'Math.abs(#)', this);
+  JSNumber abs() => JS('num', r'Math.abs(#)', this);
 
-  num get sign => this > 0 ? 1 : this < 0 ? -1 : this;
+  JSNumber get sign => this > 0 ? 1 : this < 0 ? -1 : this;
 
   static const int _MIN_INT32 = -0x80000000;
   static const int _MAX_INT32 = 0x7FFFFFFF;
@@ -95,8 +89,6 @@ class JSNumber extends Interceptor implements num {
   double truncateToDouble() => this < 0 ? ceilToDouble() : floorToDouble();
 
   num clamp(num lowerLimit, num upperLimit) {
-    if (lowerLimit is! num) throw new ArgumentError(lowerLimit);
-    if (upperLimit is! num) throw new ArgumentError(upperLimit);
     if (lowerLimit.compareTo(upperLimit) > 0) {
       throw new ArgumentError(lowerLimit);
     }
@@ -105,9 +97,7 @@ class JSNumber extends Interceptor implements num {
     return this;
   }
 
-  // The return type is intentionally omitted to avoid type checker warnings
-  // from assigning JSNumber to double.
-  toDouble() => this;
+  double toDouble() => this;
 
   String toStringAsFixed(int fractionDigits) {
     checkInt(fractionDigits);
@@ -186,33 +176,33 @@ class JSNumber extends Interceptor implements num {
 
   int get hashCode => JS('int', '# & 0x1FFFFFFF', this);
 
-  num operator -() => JS('num', r'-#', this);
+  JSNumber operator -() => JS('num', r'-#', this);
 
-  num operator +(num other) {
-    if (other is !num) throw new ArgumentError(other);
+  JSNumber operator +(num other) {
+    checkNull(other);
     return JS('num', '# + #', this, other);
   }
 
-  num operator -(num other) {
-    if (other is !num) throw new ArgumentError(other);
+  JSNumber operator -(num other) {
+    checkNull(other);
     return JS('num', '# - #', this, other);
   }
 
   double operator /(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    checkNull(other);
     return JS('double', '# / #', this, other);
   }
 
-  num operator *(num other) {
-    if (other is !num) throw new ArgumentError(other);
+  JSNumber operator *(num other) {
+    checkNull(other);
     return JS('num', '# * #', this, other);
   }
 
-  num operator %(num other) {
-    if (other is !num) throw new ArgumentError(other);
+  JSNumber operator %(num other) {
+    checkNull(other);
     // Euclidean Modulo.
     num result = JS('num', r'# % #', this, other);
-    if (result == 0) return 0;  // Make sure we don't return -0.0.
+    if (result == 0) return (0 as JSNumber);  // Make sure we don't return -0.0.
     if (result > 0) return result;
     if (JS('num', '#', other) < 0) {
       return result - JS('num', '#', other);
@@ -224,7 +214,6 @@ class JSNumber extends Interceptor implements num {
   bool _isInt32(value) => JS('bool', '(# | 0) === #', value, value);
 
   int operator ~/(num other) {
-    if (false) _tdivFast(other); // Ensure resolution.
     if (_isInt32(this) && _isInt32(other) && 0 != other && -1 != other) {
       return JS('int', r'(# / #) | 0', this, other);
     } else {
@@ -232,14 +221,8 @@ class JSNumber extends Interceptor implements num {
     }
   }
 
-  int _tdivFast(num other) {
-    return _isInt32(this)
-        ? JS('int', r'(# / #) | 0', this, other)
-        : (JS('num', r'# / #', this, other)).toInt();
-  }
-
   int _tdivSlow(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    checkNull(other);
     return (JS('num', r'# / #', this, other)).toInt();
   }
 
@@ -248,43 +231,35 @@ class JSNumber extends Interceptor implements num {
   // we define these methods on number for now but we need to decide
   // the grain at which we do the type checks.
 
-  num operator <<(num other) {
-    if (other is !num) throw new ArgumentError(other);
-    if (JS('num', '#', other) < 0) throw new ArgumentError(other);
+  int operator <<(num other) {
+    if (other < 0) throw new ArgumentError(other);
     return _shlPositive(other);
   }
 
-  num _shlPositive(num other) {
+  int _shlPositive(num other) {
     // JavaScript only looks at the last 5 bits of the shift-amount. Shifting
     // by 33 is hence equivalent to a shift by 1.
     return JS('bool', r'# > 31', other)
         ? 0
-        : JS('JSUInt32', r'(# << #) >>> 0', this, other);
+        : JS('int', r'(# << #) >>> 0', this, other);
   }
 
-  num operator >>(num other) {
-    if (false) _shrReceiverPositive(other);
-    if (other is !num) throw new ArgumentError(other);
-    if (JS('num', '#', other) < 0) throw new ArgumentError(other);
+  int operator >>(num other) {
+    if (other < 0) throw new ArgumentError(other);
     return _shrOtherPositive(other);
   }
 
-  num _shrOtherPositive(num other) {
+  int _shrOtherPositive(num other) {
     return JS('num', '#', this) > 0
         ? _shrBothPositive(other)
         // For negative numbers we just clamp the shift-by amount.
         // `this` could be negative but not have its 31st bit set.
         // The ">>" would then shift in 0s instead of 1s. Therefore
         // we cannot simply return 0xFFFFFFFF.
-        : JS('JSUInt32', r'(# >> #) >>> 0', this, other > 31 ? 31 : other);
+        : JS('int', r'(# >> #) >>> 0', this, other > 31 ? 31 : other);
   }
 
-  num _shrReceiverPositive(num other) {
-    if (JS('num', '#', other) < 0) throw new ArgumentError(other);
-    return _shrBothPositive(other);
-  }
-
-  num _shrBothPositive(num other) {
+  int _shrBothPositive(num other) {
     return JS('bool', r'# > 31', other)
         // JavaScript only looks at the last 5 bits of the shift-amount. In JS
         // shifting by 33 is hence equivalent to a shift by 1. Shortcut the
@@ -293,61 +268,48 @@ class JSNumber extends Interceptor implements num {
         // Given that `this` is positive we must not use '>>'. Otherwise a
         // number that has the 31st bit set would be treated as negative and
         // shift in ones.
-        : JS('JSUInt32', r'# >>> #', this, other);
+        : JS('int', r'# >>> #', this, other);
   }
 
-  num operator &(num other) {
-    if (other is !num) throw new ArgumentError(other);
-    return JS('JSUInt32', r'(# & #) >>> 0', this, other);
+  int operator &(num other) {
+    checkNull(other);
+    return JS('int', r'(# & #) >>> 0', this, other);
   }
 
-  num operator |(num other) {
-    if (other is !num) throw new ArgumentError(other);
-    return JS('JSUInt32', r'(# | #) >>> 0', this, other);
+  int operator |(num other) {
+    checkNull(other);
+    return JS('int', r'(# | #) >>> 0', this, other);
   }
 
-  num operator ^(num other) {
-    if (other is !num) throw new ArgumentError(other);
-    return JS('JSUInt32', r'(# ^ #) >>> 0', this, other);
+  int operator ^(num other) {
+    checkNull(other);
+    return JS('int', r'(# ^ #) >>> 0', this, other);
   }
 
   bool operator <(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    checkNull(other);
     return JS('bool', '# < #', this, other);
   }
 
   bool operator >(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    checkNull(other);
     return JS('bool', '# > #', this, other);
   }
 
   bool operator <=(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    checkNull(other);
     return JS('bool', '# <= #', this, other);
   }
 
   bool operator >=(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    checkNull(other);
     return JS('bool', '# >= #', this, other);
   }
 
-  Type get runtimeType => num;
-}
-
-/**
- * The interceptor class for [int]s.
- *
- * This class implements double since in JavaScript all numbers are doubles, so
- * while we want to treat `2.0` as an integer for some operations, its
- * interceptor should answer `true` to `is double`.
- */
-// TODO(jmesserly): for dev_compiler all numbers will get `int` members at
-// runtime for dynamic dispatch. We can fix by checking it at dispatch time.
-// TODO(jmesserly): merge with JSNumber? That would simplify generated code,
-// and dart_runtime's extension mechanism.
-@JsPeerInterface(name: 'Number')
-class JSInt extends JSNumber implements int, double {
-  const JSInt();
+  // int members.
+  // TODO(jmesserly): all numbers will have these in dynamic dispatch.
+  // We can fix by checking it at dispatch time but we'd need to structure them
+  // differently.
 
   bool get isEven => (this & 1) == 0;
 
@@ -412,16 +374,5 @@ class JSInt extends JSNumber implements int, double {
     return i;
   }
 
-  Type get runtimeType => int;
-
-  int operator ~() => JS('JSUInt32', r'(~#) >>> 0', this);
+  int operator ~() => JS('int', r'(~#) >>> 0', this);
 }
-
-class JSDouble extends JSNumber implements double {
-  const JSDouble();
-  Type get runtimeType => double;
-}
-
-class JSPositiveInt extends JSInt {}
-class JSUInt32 extends JSPositiveInt {}
-class JSUInt31 extends JSUInt32 {}

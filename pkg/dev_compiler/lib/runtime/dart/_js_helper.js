@@ -694,8 +694,8 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
         if (dart.notNull(dart.as(dart.dsend(i, '<=', 65535), core.bool))) {
           a[dartx.add](dart.as(i, core.int));
         } else if (dart.notNull(dart.as(dart.dsend(i, '<=', 1114111), core.bool))) {
-          a[dartx.add]((55296)[dartx['+']](dart.as(dart.dsend(dart.dsend(dart.dsend(i, '-', 65536), '>>', 10), '&', 1023), core.num)));
-          a[dartx.add]((56320)[dartx['+']](dart.as(dart.dsend(i, '&', 1023), core.num)));
+          a[dartx.add](dart.asInt((55296)[dartx['+']](dart.as(dart.dsend(dart.dsend(dart.dsend(i, '-', 65536), '>>', 10), '&', 1023), core.num))));
+          a[dartx.add](dart.asInt((56320)[dartx['+']](dart.as(dart.dsend(i, '&', 1023), core.num))));
         } else {
           dart.throw(new core.ArgumentError(i));
         }
@@ -822,13 +822,13 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       return value;
     }
     static getProperty(object, key) {
-      if (object == null || typeof object == 'boolean' || dart.is(object, core.num) || typeof object == 'string') {
+      if (object == null || typeof object == 'boolean' || typeof object == 'number' || typeof object == 'string') {
         dart.throw(new core.ArgumentError(object));
       }
       return object[key];
     }
     static setProperty(object, key, value) {
-      if (object == null || typeof object == 'boolean' || dart.is(object, core.num) || typeof object == 'string') {
+      if (object == null || typeof object == 'boolean' || typeof object == 'number' || typeof object == 'string') {
         dart.throw(new core.ArgumentError(object));
       }
       object[key] = value;
@@ -849,7 +849,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       parseDouble: [core.double, [core.String, dart.functionType(core.double, [core.String])]],
       objectTypeName: [core.String, [core.Object]],
       objectToString: [core.String, [core.Object]],
-      dateNow: [core.num, []],
+      dateNow: [core.int, []],
       initTicker: [dart.void, []],
       currentUri: [core.String, []],
       _fromCharCodeApply: [core.String, [core.List$(core.int)]],
@@ -895,7 +895,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   }
   dart.fn(checkNull);
   function checkNum(value) {
-    if (!dart.is(value, core.num)) {
+    if (!(typeof value == 'number')) {
       dart.throw(new core.ArgumentError(value));
     }
     return value;

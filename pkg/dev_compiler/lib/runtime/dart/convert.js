@@ -1206,7 +1206,7 @@ dart_library.library('dart/convert', null, /* Imports */[
 
     }
     writeJsonValue(object) {
-      if (dart.is(object, core.num)) {
+      if (typeof object == 'number') {
         if (!dart.notNull(dart.as(dart.dload(object, 'isFinite'), core.bool)))
           return false;
         this.writeNumber(dart.as(object, core.num));

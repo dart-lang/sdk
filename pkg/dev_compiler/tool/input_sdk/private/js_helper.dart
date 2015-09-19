@@ -84,11 +84,11 @@ class Primitives {
       if (match != null) {
         if (match[hexIndex] != null) {
           // Cannot fail because we know that the digits are all hex.
-          return JS('num', r'parseInt(#, 16)', source);
+          return JS('int', r'parseInt(#, 16)', source);
         }
         if (match[decimalIndex] != null) {
           // Cannot fail because we know that the digits are all decimal.
-          return JS('num', r'parseInt(#, 10)', source);
+          return JS('int', r'parseInt(#, 10)', source);
         }
         return handleError(source);
       }
@@ -100,7 +100,7 @@ class Primitives {
       if (match != null) {
         if (radix == 10 && match[decimalIndex] != null) {
           // Cannot fail because we know that the digits are all decimal.
-          return JS('num', r'parseInt(#, 10)', source);
+          return JS('int', r'parseInt(#, 10)', source);
         }
         if (radix < 10 || match[decimalIndex] == null) {
           // We know that the characters must be ASCII as otherwise the
@@ -132,7 +132,7 @@ class Primitives {
       }
     }
     if (match == null) return handleError(source);
-    return JS('num', r'parseInt(#, #)', source, radix);
+    return JS('int', r'parseInt(#, #)', source, radix);
   }
 
   static double parseDouble(String source, double handleError(String source)) {
@@ -180,7 +180,7 @@ class Primitives {
     return "Instance of '$name'";
   }
 
-  static num dateNow() => JS('int', r'Date.now()');
+  static int dateNow() => JS('int', r'Date.now()');
 
   static void initTicker() {
     if (timerFrequency != null) return;

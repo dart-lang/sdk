@@ -362,7 +362,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
         return _js_helper.Primitives.objectHashCode(this);
       }
       get [dartx.length]() {
-        return dart.as(this.length, core.int);
+        return this.length;
       }
       set [dartx.length](newLength) {
         if (!(typeof newLength == 'number'))
@@ -484,10 +484,8 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
     constructors: () => ({Interceptor: [Interceptor, []]})
   });
   let _isInt32 = Symbol('_isInt32');
-  let _tdivFast = Symbol('_tdivFast');
   let _tdivSlow = Symbol('_tdivSlow');
   let _shlPositive = Symbol('_shlPositive');
-  let _shrReceiverPositive = Symbol('_shrReceiverPositive');
   let _shrOtherPositive = Symbol('_shrOtherPositive');
   let _shrBothPositive = Symbol('_shrBothPositive');
   dart.defineExtensionNames([
@@ -532,18 +530,21 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
     '>',
     '<=',
     '>=',
-    'runtimeType'
+    'isEven',
+    'isOdd',
+    'toUnsigned',
+    'toSigned',
+    'bitLength',
+    '~'
   ]);
   class JSNumber extends Interceptor {
     JSNumber() {
       super.Interceptor();
     }
     [dartx.compareTo](b) {
-      if (!dart.is(b, core.num))
-        dart.throw(new core.ArgumentError(b));
-      if (dart.notNull(this[dartx['<']](b))) {
+      if (this < dart.notNull(b)) {
         return -1;
-      } else if (dart.notNull(this[dartx['>']](b))) {
+      } else if (this > dart.notNull(b)) {
         return 1;
       } else if (dart.equals(this, b)) {
         if (dart.equals(this, 0)) {
@@ -565,7 +566,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
       }
     }
     get [dartx.isNegative]() {
-      return dart.equals(this, 0) ? (1)[dartx['/']](this) < 0 : this[dartx['<']](0);
+      return dart.equals(this, 0) ? 1 / this < 0 : this < 0;
     }
     get [dartx.isNaN]() {
       return isNaN(this);
@@ -578,18 +579,16 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
     }
     [dartx.remainder](b) {
       _js_helper.checkNull(b);
-      if (!dart.is(b, core.num))
-        dart.throw(new core.ArgumentError(b));
       return this % b;
     }
     [dartx.abs]() {
       return Math.abs(this);
     }
     get [dartx.sign]() {
-      return dart.notNull(this[dartx['>']](0)) ? 1 : dart.notNull(this[dartx['<']](0)) ? -1 : this;
+      return this > 0 ? 1 : this < 0 ? -1 : this;
     }
     [dartx.toInt]() {
-      if (dart.notNull(this[dartx['>=']](JSNumber._MIN_INT32)) && dart.notNull(this[dartx['<=']](JSNumber._MAX_INT32))) {
+      if (this >= dart.notNull(JSNumber._MIN_INT32) && this <= dart.notNull(JSNumber._MAX_INT32)) {
         return this | 0;
       }
       if (isFinite(this)) {
@@ -616,20 +615,16 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
       return Math.floor(this);
     }
     [dartx.roundToDouble]() {
-      if (dart.notNull(this[dartx['<']](0))) {
+      if (this < 0) {
         return -Math.round(-this);
       } else {
         return Math.round(this);
       }
     }
     [dartx.truncateToDouble]() {
-      return dart.notNull(this[dartx['<']](0)) ? this[dartx.ceilToDouble]() : this[dartx.floorToDouble]();
+      return this < 0 ? this[dartx.ceilToDouble]() : this[dartx.floorToDouble]();
     }
     [dartx.clamp](lowerLimit, upperLimit) {
-      if (!dart.is(lowerLimit, core.num))
-        dart.throw(new core.ArgumentError(lowerLimit));
-      if (!dart.is(upperLimit, core.num))
-        dart.throw(new core.ArgumentError(upperLimit));
       if (dart.notNull(lowerLimit[dartx.compareTo](upperLimit)) > 0) {
         dart.throw(new core.ArgumentError(lowerLimit));
       }
@@ -717,28 +712,23 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
       return -this;
     }
     [dartx['+']](other) {
-      if (!dart.is(other, core.num))
-        dart.throw(new core.ArgumentError(other));
+      _js_helper.checkNull(other);
       return this + other;
     }
     [dartx['-']](other) {
-      if (!dart.is(other, core.num))
-        dart.throw(new core.ArgumentError(other));
+      _js_helper.checkNull(other);
       return this - other;
     }
     [dartx['/']](other) {
-      if (!dart.is(other, core.num))
-        dart.throw(new core.ArgumentError(other));
+      _js_helper.checkNull(other);
       return this / other;
     }
     [dartx['*']](other) {
-      if (!dart.is(other, core.num))
-        dart.throw(new core.ArgumentError(other));
+      _js_helper.checkNull(other);
       return this * other;
     }
     [dartx['%']](other) {
-      if (!dart.is(other, core.num))
-        dart.throw(new core.ArgumentError(other));
+      _js_helper.checkNull(other);
       let result = this % other;
       if (result == 0)
         return 0;
@@ -754,98 +744,120 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
       return (value | 0) === value;
     }
     [dartx['~/']](other) {
-      if (false)
-        this[_tdivFast](other);
       if (dart.notNull(this[_isInt32](this)) && dart.notNull(this[_isInt32](other)) && 0 != other && -1 != other) {
         return this / other | 0;
       } else {
         return this[_tdivSlow](other);
       }
     }
-    [_tdivFast](other) {
-      return dart.notNull(this[_isInt32](this)) ? this / other | 0 : (this / other)[dartx.toInt]();
-    }
     [_tdivSlow](other) {
-      if (!dart.is(other, core.num))
-        dart.throw(new core.ArgumentError(other));
+      _js_helper.checkNull(other);
       return (this / other)[dartx.toInt]();
     }
     [dartx['<<']](other) {
-      if (!dart.is(other, core.num))
-        dart.throw(new core.ArgumentError(other));
-      if (other < 0)
+      if (dart.notNull(other) < 0)
         dart.throw(new core.ArgumentError(other));
       return this[_shlPositive](other);
     }
     [_shlPositive](other) {
-      return other > 31 ? 0 : dart.as(this << other >>> 0, core.num);
+      return other > 31 ? 0 : this << other >>> 0;
     }
     [dartx['>>']](other) {
-      if (false)
-        this[_shrReceiverPositive](other);
-      if (!dart.is(other, core.num))
-        dart.throw(new core.ArgumentError(other));
-      if (other < 0)
+      if (dart.notNull(other) < 0)
         dart.throw(new core.ArgumentError(other));
       return this[_shrOtherPositive](other);
     }
     [_shrOtherPositive](other) {
-      return this > 0 ? this[_shrBothPositive](other) : dart.as(this >> (dart.notNull(other) > 31 ? 31 : other) >>> 0, core.num);
-    }
-    [_shrReceiverPositive](other) {
-      if (other < 0)
-        dart.throw(new core.ArgumentError(other));
-      return this[_shrBothPositive](other);
+      return this > 0 ? this[_shrBothPositive](other) : this >> (dart.notNull(other) > 31 ? 31 : other) >>> 0;
     }
     [_shrBothPositive](other) {
-      return other > 31 ? 0 : dart.as(this >>> other, core.num);
+      return other > 31 ? 0 : this >>> other;
     }
     [dartx['&']](other) {
-      if (!dart.is(other, core.num))
-        dart.throw(new core.ArgumentError(other));
-      return dart.as((this & other) >>> 0, core.num);
+      _js_helper.checkNull(other);
+      return (this & other) >>> 0;
     }
     [dartx['|']](other) {
-      if (!dart.is(other, core.num))
-        dart.throw(new core.ArgumentError(other));
-      return dart.as((this | other) >>> 0, core.num);
+      _js_helper.checkNull(other);
+      return (this | other) >>> 0;
     }
     [dartx['^']](other) {
-      if (!dart.is(other, core.num))
-        dart.throw(new core.ArgumentError(other));
-      return dart.as((this ^ other) >>> 0, core.num);
+      _js_helper.checkNull(other);
+      return (this ^ other) >>> 0;
     }
     [dartx['<']](other) {
-      if (!dart.is(other, core.num))
-        dart.throw(new core.ArgumentError(other));
+      _js_helper.checkNull(other);
       return this < other;
     }
     [dartx['>']](other) {
-      if (!dart.is(other, core.num))
-        dart.throw(new core.ArgumentError(other));
+      _js_helper.checkNull(other);
       return this > other;
     }
     [dartx['<=']](other) {
-      if (!dart.is(other, core.num))
-        dart.throw(new core.ArgumentError(other));
+      _js_helper.checkNull(other);
       return this <= other;
     }
     [dartx['>=']](other) {
-      if (!dart.is(other, core.num))
-        dart.throw(new core.ArgumentError(other));
+      _js_helper.checkNull(other);
       return this >= other;
     }
-    get runtimeType() {
-      return core.num;
+    get [dartx.isEven]() {
+      return (this & 1) == 0;
+    }
+    get [dartx.isOdd]() {
+      return (this & 1) == 1;
+    }
+    [dartx.toUnsigned](width) {
+      return this & (1 << dart.notNull(width)) - 1;
+    }
+    [dartx.toSigned](width) {
+      let signMask = 1 << dart.notNull(width) - 1;
+      return (this & dart.notNull(signMask) - 1) - (this & dart.notNull(signMask));
+    }
+    get [dartx.bitLength]() {
+      let nonneg = this < 0 ? -this - 1 : this;
+      if (dart.notNull(nonneg) >= 4294967296) {
+        nonneg = (dart.notNull(nonneg) / 4294967296)[dartx.truncate]();
+        return dart.notNull(JSNumber._bitCount(JSNumber._spread(nonneg))) + 32;
+      }
+      return JSNumber._bitCount(JSNumber._spread(nonneg));
+    }
+    static _bitCount(i) {
+      i = dart.notNull(JSNumber._shru(i, 0)) - (dart.notNull(JSNumber._shru(i, 1)) & 1431655765);
+      i = (dart.notNull(i) & 858993459) + (dart.notNull(JSNumber._shru(i, 2)) & 858993459);
+      i = 252645135 & dart.notNull(i) + dart.notNull(JSNumber._shru(i, 4));
+      i = dart.notNull(i) + dart.notNull(JSNumber._shru(i, 8));
+      i = dart.notNull(i) + dart.notNull(JSNumber._shru(i, 16));
+      return dart.notNull(i) & 63;
+    }
+    static _shru(value, shift) {
+      return value >>> shift;
+    }
+    static _shrs(value, shift) {
+      return value >> shift;
+    }
+    static _ors(a, b) {
+      return a | b;
+    }
+    static _spread(i) {
+      i = JSNumber._ors(i, JSNumber._shrs(i, 1));
+      i = JSNumber._ors(i, JSNumber._shrs(i, 2));
+      i = JSNumber._ors(i, JSNumber._shrs(i, 4));
+      i = JSNumber._ors(i, JSNumber._shrs(i, 8));
+      i = JSNumber._shru(JSNumber._ors(i, JSNumber._shrs(i, 16)), 0);
+      return i;
+    }
+    [dartx['~']]() {
+      return ~this >>> 0;
     }
   }
-  JSNumber[dart.implements] = () => [core.num];
+  JSNumber[dart.implements] = () => [core.int, core.double];
   dart.setSignature(JSNumber, {
     constructors: () => ({JSNumber: [JSNumber, []]}),
     methods: () => ({
       [dartx.compareTo]: [core.int, [core.num]],
-      [dartx.remainder]: [core.num, [core.num]],
-      [dartx.abs]: [core.num, []],
+      [dartx.remainder]: [JSNumber, [core.num]],
+      [dartx.abs]: [JSNumber, []],
       [dartx.toInt]: [core.int, []],
       [dartx.truncate]: [core.int, []],
       [dartx.ceil]: [core.int, []],
@@ -861,142 +873,45 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
       [dartx.toStringAsExponential]: [core.String, [], [core.int]],
       [dartx.toStringAsPrecision]: [core.String, [core.int]],
       [dartx.toRadixString]: [core.String, [core.int]],
-      [dartx['unary-']]: [core.num, []],
-      [dartx['+']]: [core.num, [core.num]],
-      [dartx['-']]: [core.num, [core.num]],
+      [dartx['unary-']]: [JSNumber, []],
+      [dartx['+']]: [JSNumber, [core.num]],
+      [dartx['-']]: [JSNumber, [core.num]],
       [dartx['/']]: [core.double, [core.num]],
-      [dartx['*']]: [core.num, [core.num]],
-      [dartx['%']]: [core.num, [core.num]],
+      [dartx['*']]: [JSNumber, [core.num]],
+      [dartx['%']]: [JSNumber, [core.num]],
       [_isInt32]: [core.bool, [dart.dynamic]],
       [dartx['~/']]: [core.int, [core.num]],
-      [_tdivFast]: [core.int, [core.num]],
       [_tdivSlow]: [core.int, [core.num]],
-      [dartx['<<']]: [core.num, [core.num]],
-      [_shlPositive]: [core.num, [core.num]],
-      [dartx['>>']]: [core.num, [core.num]],
-      [_shrOtherPositive]: [core.num, [core.num]],
-      [_shrReceiverPositive]: [core.num, [core.num]],
-      [_shrBothPositive]: [core.num, [core.num]],
-      [dartx['&']]: [core.num, [core.num]],
-      [dartx['|']]: [core.num, [core.num]],
-      [dartx['^']]: [core.num, [core.num]],
+      [dartx['<<']]: [core.int, [core.num]],
+      [_shlPositive]: [core.int, [core.num]],
+      [dartx['>>']]: [core.int, [core.num]],
+      [_shrOtherPositive]: [core.int, [core.num]],
+      [_shrBothPositive]: [core.int, [core.num]],
+      [dartx['&']]: [core.int, [core.num]],
+      [dartx['|']]: [core.int, [core.num]],
+      [dartx['^']]: [core.int, [core.num]],
       [dartx['<']]: [core.bool, [core.num]],
       [dartx['>']]: [core.bool, [core.num]],
       [dartx['<=']]: [core.bool, [core.num]],
-      [dartx['>=']]: [core.bool, [core.num]]
-    }),
-    statics: () => ({_handleIEtoString: [core.String, [core.String]]}),
-    names: ['_handleIEtoString']
-  });
-  JSNumber._MIN_INT32 = -2147483648;
-  JSNumber._MAX_INT32 = 2147483647;
-  dart.defineExtensionNames([
-    'isEven',
-    'isOdd',
-    'toUnsigned',
-    'toSigned',
-    'bitLength',
-    'runtimeType',
-    '~'
-  ]);
-  class JSInt extends JSNumber {
-    JSInt() {
-      super.JSNumber();
-    }
-    get [dartx.isEven]() {
-      return this[dartx['&']](1) == 0;
-    }
-    get [dartx.isOdd]() {
-      return this[dartx['&']](1) == 1;
-    }
-    [dartx.toUnsigned](width) {
-      return this[dartx['&']]((1 << dart.notNull(width)) - 1);
-    }
-    [dartx.toSigned](width) {
-      let signMask = 1 << dart.notNull(width) - 1;
-      return dart.notNull(this[dartx['&']](dart.notNull(signMask) - 1)) - dart.notNull(this[dartx['&']](signMask));
-    }
-    get [dartx.bitLength]() {
-      let nonneg = dart.notNull(this[dartx['<']](0)) ? dart.notNull(this[dartx['unary-']]()) - 1 : this;
-      if (dart.notNull(nonneg) >= 4294967296) {
-        nonneg = (dart.notNull(nonneg) / 4294967296)[dartx.truncate]();
-        return dart.notNull(JSInt._bitCount(JSInt._spread(nonneg))) + 32;
-      }
-      return JSInt._bitCount(JSInt._spread(nonneg));
-    }
-    static _bitCount(i) {
-      i = dart.notNull(JSInt._shru(i, 0)) - (dart.notNull(JSInt._shru(i, 1)) & 1431655765);
-      i = (dart.notNull(i) & 858993459) + (dart.notNull(JSInt._shru(i, 2)) & 858993459);
-      i = 252645135 & dart.notNull(i) + dart.notNull(JSInt._shru(i, 4));
-      i = dart.notNull(i) + dart.notNull(JSInt._shru(i, 8));
-      i = dart.notNull(i) + dart.notNull(JSInt._shru(i, 16));
-      return dart.notNull(i) & 63;
-    }
-    static _shru(value, shift) {
-      return value >>> shift;
-    }
-    static _shrs(value, shift) {
-      return value >> shift;
-    }
-    static _ors(a, b) {
-      return a | b;
-    }
-    static _spread(i) {
-      i = JSInt._ors(i, JSInt._shrs(i, 1));
-      i = JSInt._ors(i, JSInt._shrs(i, 2));
-      i = JSInt._ors(i, JSInt._shrs(i, 4));
-      i = JSInt._ors(i, JSInt._shrs(i, 8));
-      i = JSInt._shru(JSInt._ors(i, JSInt._shrs(i, 16)), 0);
-      return i;
-    }
-    get runtimeType() {
-      return core.int;
-    }
-    [dartx['~']]() {
-      return dart.as(~this >>> 0, core.int);
-    }
-  }
-  JSInt[dart.implements] = () => [core.int, core.double];
-  dart.setSignature(JSInt, {
-    constructors: () => ({JSInt: [JSInt, []]}),
-    methods: () => ({
+      [dartx['>=']]: [core.bool, [core.num]],
       [dartx.toUnsigned]: [core.int, [core.int]],
       [dartx.toSigned]: [core.int, [core.int]],
       [dartx['~']]: [core.int, []]
     }),
     statics: () => ({
+      _handleIEtoString: [core.String, [core.String]],
       _bitCount: [core.int, [core.int]],
       _shru: [core.int, [core.int, core.int]],
       _shrs: [core.int, [core.int, core.int]],
       _ors: [core.int, [core.int, core.int]],
       _spread: [core.int, [core.int]]
     }),
-    names: ['_bitCount', '_shru', '_shrs', '_ors', '_spread']
+    names: ['_handleIEtoString', '_bitCount', '_shru', '_shrs', '_ors', '_spread']
   });
-  JSInt[dart.metadata] = () => [dart.const(new _js_helper.JsPeerInterface({name: 'Number'}))];
-  dart.registerExtension(dart.global.Number, JSInt);
-  dart.defineExtensionNames([
-    'runtimeType'
-  ]);
-  class JSDouble extends JSNumber {
-    JSDouble() {
-      super.JSNumber();
-    }
-    get runtimeType() {
-      return core.double;
-    }
-  }
-  JSDouble[dart.implements] = () => [core.double];
-  dart.setSignature(JSDouble, {
-    constructors: () => ({JSDouble: [JSDouble, []]})
-  });
-  class JSPositiveInt extends JSInt {
-    JSPositiveInt() {
-      super.JSInt();
-    }
-  }
-  class JSUInt32 extends JSPositiveInt {}
-  class JSUInt31 extends JSUInt32 {}
+  JSNumber[dart.metadata] = () => [dart.const(new _js_helper.JsPeerInterface({name: 'Number'}))];
+  dart.registerExtension(dart.global.Number, JSNumber);
+  JSNumber._MIN_INT32 = -2147483648;
+  JSNumber._MAX_INT32 = 2147483647;
   let _defaultSplit = Symbol('_defaultSplit');
   dart.defineExtensionNames([
     'codeUnitAt',
@@ -1044,7 +959,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
         dart.throw(new core.RangeError.value(index));
       if (dart.notNull(index) >= dart.notNull(this[dartx.length]))
         dart.throw(new core.RangeError.value(index));
-      return dart.as(this.charCodeAt(index), core.int);
+      return this.charCodeAt(index);
     }
     [dartx.allMatches](string, start) {
       if (start === void 0)
@@ -1318,18 +1233,18 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
         return '';
       if (times == 1 || this[dartx.length] == 0)
         return this;
-      if (!dart.equals(times, times >>> 0)) {
+      if (times != times >>> 0) {
         dart.throw(dart.const(new core.OutOfMemoryError()));
       }
       let result = '';
       let s = this;
       while (true) {
         if ((dart.notNull(times) & 1) == 1)
-          result = s[dartx['+']](result);
-        times = dart.as(times >>> 1, core.int);
+          result = dart.notNull(s) + dart.notNull(result);
+        times = times >>> 1;
         if (times == 0)
           break;
-        s = s[dartx['+']](s);
+        s = dart.notNull(s) + dart.notNull(s);
       }
       return result;
     }
@@ -1584,11 +1499,6 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
   exports.JSExtendableArray = JSExtendableArray;
   exports.Interceptor = Interceptor;
   exports.JSNumber = JSNumber;
-  exports.JSInt = JSInt;
-  exports.JSDouble = JSDouble;
-  exports.JSPositiveInt = JSPositiveInt;
-  exports.JSUInt32 = JSUInt32;
-  exports.JSUInt31 = JSUInt31;
   exports.JSString = JSString;
   exports.getInterceptor = getInterceptor;
   exports.JSBool = JSBool;

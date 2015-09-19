@@ -28,7 +28,7 @@ dart_library.library('dart/js', null, /* Imports */[
       return dart.as(_wrapToDart(new ctor(...arguments$)), JsObject);
     }
     static fromBrowserObject(object) {
-      if (dart.is(object, core.num) || typeof object == 'string' || typeof object == 'boolean' || object == null) {
+      if (typeof object == 'number' || typeof object == 'string' || typeof object == 'boolean' || object == null) {
         dart.throw(new core.ArgumentError("object cannot be a num, string, bool, or null"));
       }
       return dart.as(_wrapToDart(_convertToJS(object)), JsObject);
@@ -65,13 +65,13 @@ dart_library.library('dart/js', null, /* Imports */[
       return _convert(data);
     }
     get(property) {
-      if (!(typeof property == 'string') && !dart.is(property, core.num)) {
+      if (!(typeof property == 'string') && !(typeof property == 'number')) {
         dart.throw(new core.ArgumentError("property is not a String or num"));
       }
       return _convertToDart(this[_jsObject][property]);
     }
     set(property, value) {
-      if (!(typeof property == 'string') && !dart.is(property, core.num)) {
+      if (!(typeof property == 'string') && !(typeof property == 'number')) {
         dart.throw(new core.ArgumentError("property is not a String or num"));
       }
       this[_jsObject][property] = _convertToJS(value);
@@ -84,13 +84,13 @@ dart_library.library('dart/js', null, /* Imports */[
       return dart.is(other, JsObject) && this[_jsObject] === dart.dload(other, _jsObject);
     }
     hasProperty(property) {
-      if (!(typeof property == 'string') && !dart.is(property, core.num)) {
+      if (!(typeof property == 'string') && !(typeof property == 'number')) {
         dart.throw(new core.ArgumentError("property is not a String or num"));
       }
       return property in this[_jsObject];
     }
     deleteProperty(property) {
-      if (!(typeof property == 'string') && !dart.is(property, core.num)) {
+      if (!(typeof property == 'string') && !(typeof property == 'number')) {
         dart.throw(new core.ArgumentError("property is not a String or num"));
       }
       delete this[_jsObject][property];
@@ -109,7 +109,7 @@ dart_library.library('dart/js', null, /* Imports */[
     callMethod(method, args) {
       if (args === void 0)
         args = null;
-      if (!(typeof method == 'string') && !dart.is(method, core.num)) {
+      if (!(typeof method == 'string') && !(typeof method == 'number')) {
         dart.throw(new core.ArgumentError("method is not a String or num"));
       }
       if (args != null)
@@ -202,14 +202,14 @@ dart_library.library('dart/js', null, /* Imports */[
         }
       }
       get(index) {
-        if (dart.is(index, core.num) && index == index[dartx.toInt]()) {
+        if (typeof index == 'number' && index == index[dartx.toInt]()) {
           this[_checkIndex](index);
         }
         return dart.as(super.get(index), E);
       }
       set(index, value) {
         dart.as(value, E);
-        if (dart.is(index, core.num) && index == index[dartx.toInt]()) {
+        if (typeof index == 'number' && index == index[dartx.toInt]()) {
           this[_checkIndex](index);
         }
         super.set(index, value);
@@ -328,7 +328,7 @@ dart_library.library('dart/js', null, /* Imports */[
     constructors: () => ({_DartObject: [_DartObject, [dart.dynamic]]})
   });
   function _convertToJS(o) {
-    if (o == null || typeof o == 'string' || dart.is(o, core.num) || typeof o == 'boolean' || dart.notNull(_isBrowserType(o))) {
+    if (o == null || typeof o == 'string' || typeof o == 'number' || typeof o == 'boolean' || dart.notNull(_isBrowserType(o))) {
       return o;
     } else if (dart.is(o, core.DateTime)) {
       return _js_helper.Primitives.lazyAsJsDate(o);
@@ -355,7 +355,7 @@ dart_library.library('dart/js', null, /* Imports */[
       return o;
     } else if (o instanceof Date) {
       let ms = o.getTime();
-      return new core.DateTime.fromMillisecondsSinceEpoch(ms);
+      return new core.DateTime.fromMillisecondsSinceEpoch(dart.asInt(ms));
     } else if (dart.is(o, _DartObject) && dart.jsobject != dart.realRuntimeType(o)) {
       return dart.dload(o, _dartObj);
     } else {
