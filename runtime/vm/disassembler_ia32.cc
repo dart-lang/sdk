@@ -473,7 +473,8 @@ static const char* ObjectToCStringNoGC(const Object& obj) {
       obj.IsClass() ||
       obj.IsFunction() ||
       obj.IsICData() ||
-      obj.IsField()) {
+      obj.IsField() ||
+      obj.IsCode()) {
     return obj.ToCString();
   }
 

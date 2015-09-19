@@ -705,7 +705,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   writer->Write<bool>(is_in_fullsnapshot);
 
   if (kind == Snapshot::kFull || !is_in_fullsnapshot) {
-    bool is_optimized = Code::IsOptimized(ptr()->instructions_->ptr()->code_);
+    bool is_optimized = Code::IsOptimized(ptr()->code_);
 
     // Write out all the non object fields.
     writer->Write<int32_t>(ptr()->token_pos_);
@@ -1195,8 +1195,6 @@ RawCode* Code::ReadFrom(SnapshotReader* reader,
 
   result.set_compile_timestamp(reader->Read<int64_t>());
   result.set_state_bits(reader->Read<int32_t>());
-  result.set_entry_patch_pc_offset(reader->Read<int32_t>());
-  result.set_patch_code_pc_offset(reader->Read<int32_t>());
   result.set_lazy_deopt_pc_offset(reader->Read<int32_t>());
 
   // Set all the object fields.
@@ -1236,8 +1234,6 @@ void RawCode::WriteTo(SnapshotWriter* writer,
   // Write out all the non object fields.
   writer->Write<int64_t>(ptr()->compile_timestamp_);
   writer->Write<int32_t>(ptr()->state_bits_);
-  writer->Write<int32_t>(ptr()->entry_patch_pc_offset_);
-  writer->Write<int32_t>(ptr()->patch_code_pc_offset_);
   writer->Write<int32_t>(ptr()->lazy_deopt_pc_offset_);
 
   // Write out all the object pointer fields.
@@ -1285,12 +1281,6 @@ void RawInstructions::WriteTo(SnapshotWriter* writer,
   writer->Write<intptr_t>(written_tags);
 
   writer->Write<int32_t>(writer->GetInstructionsId(this));
-
-  {
-    // TODO(rmacnak): Drop after calling convention change.
-    writer->WriteObjectImpl(ptr()->code_, kAsReference);
-    writer->WriteObjectImpl(ptr()->object_pool_, kAsReference);
-  }
 }
 
 

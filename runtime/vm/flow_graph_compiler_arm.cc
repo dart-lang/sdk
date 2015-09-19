@@ -100,13 +100,10 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   Zone* zone = compiler->zone();
 
-  // Current PP, FP, and PC.
   builder->AddPp(current->function(), slot_ix++);
+  builder->AddPcMarker(Function::Handle(zone), slot_ix++);
   builder->AddCallerFp(slot_ix++);
   builder->AddReturnAddress(current->function(), deopt_id(), slot_ix++);
-
-  // Callee's PC marker is not used anymore. Pass Function::null() to set to 0.
-  builder->AddPcMarker(Function::Handle(zone), slot_ix++);
 
   // Emit all values that are needed for materialization as a part of the
   // expression stack for the bottom-most frame. This guarantees that GC
@@ -123,8 +120,8 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   Environment* previous = current;
   current = current->outer();
   while (current != NULL) {
-    // PP, FP, and PC.
     builder->AddPp(current->function(), slot_ix++);
+    builder->AddPcMarker(previous->function(), slot_ix++);
     builder->AddCallerFp(slot_ix++);
 
     // For any outer environment the deopt id is that of the call instruction
@@ -133,9 +130,6 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
         current->function(),
         Isolate::ToDeoptAfter(current->deopt_id()),
         slot_ix++);
-
-    // PC marker.
-    builder->AddPcMarker(previous->function(), slot_ix++);
 
     // The values of outgoing arguments can be changed from the inlined call so
     // we must read them from the previous environment.
@@ -161,13 +155,11 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   // The previous pointer is now the outermost environment.
   ASSERT(previous != NULL);
 
-  // For the outermost environment, set caller PC, caller PP, and caller FP.
+  // Set slots for the outermost environment.
   builder->AddCallerPp(slot_ix++);
+  builder->AddPcMarker(previous->function(), slot_ix++);
   builder->AddCallerFp(slot_ix++);
   builder->AddCallerPc(slot_ix++);
-
-  // PC marker.
-  builder->AddPcMarker(previous->function(), slot_ix++);
 
   // For the outermost environment, set the incoming arguments.
   for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
@@ -195,6 +187,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
   // LR may be live. It will be clobbered by BranchLink, so cache it in IP.
   // It will be restored at the top of the deoptimization stub, specifically in
   // GenerateDeoptimizationSequence in stub_code_arm.cc.
+  __ Push(CODE_REG);
   __ mov(IP, Operand(LR));
   __ BranchLink(*StubCode::Deoptimize_entry());
   set_pc_offset(assem->CodeSize());
@@ -759,13 +752,13 @@ void FlowGraphCompiler::CopyParameters() {
   const int min_num_pos_args = num_fixed_params;
   const int max_num_pos_args = num_fixed_params + num_opt_pos_params;
 
-  __ ldr(R9, FieldAddress(R4, ArgumentsDescriptor::positional_count_offset()));
+  __ ldr(R10, FieldAddress(R4, ArgumentsDescriptor::positional_count_offset()));
   // Check that min_num_pos_args <= num_pos_args.
   Label wrong_num_arguments;
-  __ CompareImmediate(R9, Smi::RawValue(min_num_pos_args));
+  __ CompareImmediate(R10, Smi::RawValue(min_num_pos_args));
   __ b(&wrong_num_arguments, LT);
   // Check that num_pos_args <= max_num_pos_args.
-  __ CompareImmediate(R9, Smi::RawValue(max_num_pos_args));
+  __ CompareImmediate(R10, Smi::RawValue(max_num_pos_args));
   __ b(&wrong_num_arguments, GT);
 
   // Copy positional arguments.
@@ -773,30 +766,30 @@ void FlowGraphCompiler::CopyParameters() {
   // to fp[kFirstLocalSlotFromFp - i].
 
   __ ldr(R7, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
-  // Since R7 and R9 are Smi, use LSL 1 instead of LSL 2.
+  // Since R7 and R10 are Smi, use LSL 1 instead of LSL 2.
   // Let R7 point to the last passed positional argument, i.e. to
   // fp[kParamEndSlotFromFp + num_args - (num_pos_args - 1)].
-  __ sub(R7, R7, Operand(R9));
+  __ sub(R7, R7, Operand(R10));
   __ add(R7, FP, Operand(R7, LSL, 1));
   __ add(R7, R7, Operand((kParamEndSlotFromFp + 1) * kWordSize));
 
   // Let R6 point to the last copied positional argument, i.e. to
   // fp[kFirstLocalSlotFromFp - (num_pos_args - 1)].
   __ AddImmediate(R6, FP, (kFirstLocalSlotFromFp + 1) * kWordSize);
-  __ sub(R6, R6, Operand(R9, LSL, 1));  // R9 is a Smi.
-  __ SmiUntag(R9);
+  __ sub(R6, R6, Operand(R10, LSL, 1));  // R10 is a Smi.
+  __ SmiUntag(R10);
   Label loop, loop_condition;
   __ b(&loop_condition);
   // We do not use the final allocation index of the variable here, i.e.
   // scope->VariableAt(i)->index(), because captured variables still need
   // to be copied to the context that is not yet allocated.
-  const Address argument_addr(R7, R9, LSL, 2);
-  const Address copy_addr(R6, R9, LSL, 2);
+  const Address argument_addr(R7, R10, LSL, 2);
+  const Address copy_addr(R6, R10, LSL, 2);
   __ Bind(&loop);
   __ ldr(IP, argument_addr);
   __ str(IP, copy_addr);
   __ Bind(&loop_condition);
-  __ subs(R9, R9, Operand(1));
+  __ subs(R10, R10, Operand(1));
   __ b(&loop, PL);
 
   // Copy or initialize optional named arguments.
@@ -827,9 +820,9 @@ void FlowGraphCompiler::CopyParameters() {
     }
     // Generate code handling each optional parameter in alphabetical order.
     __ ldr(R7, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
-    __ ldr(R9,
+    __ ldr(R10,
            FieldAddress(R4, ArgumentsDescriptor::positional_count_offset()));
-    __ SmiUntag(R9);
+    __ SmiUntag(R10);
     // Let R7 point to the first passed argument, i.e. to
     // fp[kParamEndSlotFromFp + num_args - 0]; num_args (R7) is Smi.
     __ add(R7, FP, Operand(R7, LSL, 1));
@@ -881,16 +874,16 @@ void FlowGraphCompiler::CopyParameters() {
     }
   } else {
     ASSERT(num_opt_pos_params > 0);
-    __ ldr(R9,
+    __ ldr(R10,
            FieldAddress(R4, ArgumentsDescriptor::positional_count_offset()));
-    __ SmiUntag(R9);
+    __ SmiUntag(R10);
     for (int i = 0; i < num_opt_pos_params; i++) {
       Label next_parameter;
       // Handle this optional positional parameter only if k or fewer positional
       // arguments have been passed, where k is param_pos, the position of this
       // optional parameter in the formal parameter list.
       const int param_pos = num_fixed_params + i;
-      __ CompareImmediate(R9, param_pos);
+      __ CompareImmediate(R10, param_pos);
       __ b(&next_parameter, GT);
       // Load R5 with default argument.
       const Object& value = parsed_function().DefaultParameterValueAt(i);
@@ -907,20 +900,16 @@ void FlowGraphCompiler::CopyParameters() {
     if (check_correct_named_args) {
       __ ldr(R7, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
       __ SmiUntag(R7);
-      // Check that R9 equals R7, i.e. no named arguments passed.
-      __ cmp(R9, Operand(R7));
+      // Check that R10 equals R7, i.e. no named arguments passed.
+      __ cmp(R10, Operand(R7));
       __ b(&all_arguments_processed, EQ);
     }
   }
 
   __ Bind(&wrong_num_arguments);
   if (function.IsClosureFunction()) {
-    ASSERT(assembler()->constant_pool_allowed());
-    __ LeaveDartFrame();  // The arguments are still on the stack.
-    // Do not use caller's pool ptr in branch.
-    ASSERT(!assembler()->constant_pool_allowed());
+    __ LeaveDartFrame(kKeepCalleePP);  // The arguments are still on the stack.
     __ Branch(*StubCode::CallClosureNoSuchMethod_entry());
-    __ set_constant_pool_allowed(true);
     // The noSuchMethod call may return to the caller, but not here.
   } else if (check_correct_named_args) {
     __ Stop("Wrong arguments");
@@ -934,17 +923,17 @@ void FlowGraphCompiler::CopyParameters() {
   // an issue anymore.
 
   // R4 : arguments descriptor array.
-  __ ldr(R9, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
-  __ SmiUntag(R9);
+  __ ldr(R10, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+  __ SmiUntag(R10);
   __ add(R7, FP, Operand((kParamEndSlotFromFp + 1) * kWordSize));
-  const Address original_argument_addr(R7, R9, LSL, 2);
+  const Address original_argument_addr(R7, R10, LSL, 2);
   __ LoadObject(IP, Object::null_object());
   Label null_args_loop, null_args_loop_condition;
   __ b(&null_args_loop_condition);
   __ Bind(&null_args_loop);
   __ str(IP, original_argument_addr);
   __ Bind(&null_args_loop_condition);
-  __ subs(R9, R9, Operand(1));
+  __ subs(R10, R10, Operand(1));
   __ b(&null_args_loop, PL);
 }
 
@@ -974,6 +963,9 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 }
 
 
+static const Register new_pp = R7;
+
+
 void FlowGraphCompiler::EmitFrameEntry() {
   const Function& function = parsed_function().function();
   if (CanOptimizeFunction() &&
@@ -982,33 +974,23 @@ void FlowGraphCompiler::EmitFrameEntry() {
     const Register function_reg = R6;
 
     // The pool pointer is not setup before entering the Dart frame.
-    // Preserve PP of caller.
-    __ mov(R7, Operand(PP));
     // Temporarily setup pool pointer for this dart function.
-    __ LoadPoolPointer();
+    __ LoadPoolPointer(new_pp);
     // Load function object from object pool.
-    __ LoadObject(function_reg, function);  // Uses PP.
-    // Restore PP of caller.
-    __ mov(PP, Operand(R7));
-    __ set_constant_pool_allowed(false);
+    __ LoadFunctionFromCalleePool(function_reg, function, new_pp);
 
-    // Patch point is after the eventually inlined function object.
-    entry_patch_pc_offset_ = assembler()->CodeSize();
-
-    __ ldr(R7, FieldAddress(function_reg,
+    __ ldr(R3, FieldAddress(function_reg,
                             Function::usage_counter_offset()));
     // Reoptimization of an optimized function is triggered by counting in
     // IC stubs, but not at the entry of the function.
     if (!is_optimizing()) {
-      __ add(R7, R7, Operand(1));
-      __ str(R7, FieldAddress(function_reg,
+      __ add(R3, R3, Operand(1));
+      __ str(R3, FieldAddress(function_reg,
                               Function::usage_counter_offset()));
     }
-    __ CompareImmediate(R7, GetOptimizationThreshold());
+    __ CompareImmediate(R3, GetOptimizationThreshold());
     ASSERT(function_reg == R6);
-    __ Branch(*StubCode::OptimizeFunction_entry(), GE);
-  } else if (!flow_graph().IsCompiledForOsr()) {
-    entry_patch_pc_offset_ = assembler()->CodeSize();
+    __ Branch(*StubCode::OptimizeFunction_entry(), kNotPatchable, new_pp, GE);
   }
   __ Comment("Enter frame");
   if (flow_graph().IsCompiledForOsr()) {
@@ -1071,11 +1053,8 @@ void FlowGraphCompiler::CompileGraph() {
       __ Bind(&wrong_num_arguments);
       if (function.IsClosureFunction()) {
         ASSERT(assembler()->constant_pool_allowed());
-        __ LeaveDartFrame();  // The arguments are still on the stack.
-        // Do not use caller's pool ptr in branch.
-        ASSERT(!assembler()->constant_pool_allowed());
+        __ LeaveDartFrame(kKeepCalleePP);  // Arguments are still on the stack.
         __ Branch(*StubCode::CallClosureNoSuchMethod_entry());
-        __ set_constant_pool_allowed(true);
         // The noSuchMethod call may return to the caller, but not here.
       } else {
         __ Stop("Wrong number of arguments");
@@ -1128,10 +1107,6 @@ void FlowGraphCompiler::CompileGraph() {
   __ bkpt(0);
   ASSERT(assembler()->constant_pool_allowed());
   GenerateDeferredCode();
-  // Emit function patching code. This will be swapped with the first 3
-  // instructions at entry point.
-  patch_code_pc_offset_ = assembler()->CodeSize();
-  __ BranchPatchable(*StubCode::FixCallersTarget_entry());
 
   if (is_optimizing()) {
     lazy_deopt_pc_offset_ = assembler()->CodeSize();

@@ -304,11 +304,8 @@ bool Operand::IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op) {
 
 
 void Assembler::LoadPoolPointer(Register pp) {
-  const intptr_t object_pool_pc_dist =
-    Instructions::HeaderSize() - Instructions::object_pool_offset() +
-    CodeSize();
-  // PP <- Read(PC - object_pool_pc_dist).
-  ldr(pp, Address::PC(-object_pool_pc_dist));
+  CheckCodePointer();
+  ldr(pp, FieldAddress(CODE_REG, Code::object_pool_offset()));
 
   // When in the PP register, the pool pointer is untagged. When we
   // push it on the stack with TagAndPushPP it is tagged again. PopAndUntagPP
@@ -321,18 +318,20 @@ void Assembler::LoadPoolPointer(Register pp) {
 }
 
 
-void Assembler::LoadWordFromPoolOffset(Register dst, uint32_t offset) {
-  ASSERT(constant_pool_allowed());
-  ASSERT(dst != PP);
+void Assembler::LoadWordFromPoolOffset(Register dst,
+                                       uint32_t offset,
+                                       Register pp) {
+  ASSERT((pp != PP) || constant_pool_allowed());
+  ASSERT(dst != pp);
   Operand op;
   const uint32_t upper20 = offset & 0xfffff000;
   if (Address::CanHoldOffset(offset)) {
-    ldr(dst, Address(PP, offset));
+    ldr(dst, Address(pp, offset));
   } else if (Operand::CanHold(upper20, kXRegSizeInBits, &op) ==
              Operand::Immediate) {
     const uint32_t lower12 = offset & 0x00000fff;
     ASSERT(Address::CanHoldOffset(lower12));
-    add(dst, PP, op);
+    add(dst, pp, op);
     ldr(dst, Address(dst, lower12));
   } else {
     const uint16_t offset_low = Utils::Low16Bits(offset);
@@ -341,7 +340,7 @@ void Assembler::LoadWordFromPoolOffset(Register dst, uint32_t offset) {
     if (offset_high != 0) {
       movk(dst, Immediate(offset_high), 1);
     }
-    ldr(dst, Address(PP, dst));
+    ldr(dst, Address(pp, dst));
   }
 }
 
@@ -595,48 +594,35 @@ void Assembler::LoadDImmediate(VRegister vd, double immd) {
 }
 
 
-void Assembler::Branch(const ExternalLabel* label) {
-  LoadExternalLabel(TMP, label);
-  br(TMP);
-}
-
-
-void Assembler::Branch(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  Branch(&label);
-}
-
-
-void Assembler::BranchPatchable(const ExternalLabel* label) {
-  // TODO(zra): Use LoadExternalLabelFixed if possible.
-  LoadImmediateFixed(TMP, label->address());
+void Assembler::Branch(const StubEntry& stub_entry,
+                       Register pp,
+                       Patchability patchable) {
+  const Code& target = Code::Handle(stub_entry.code());
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindObject(target, patchable));
+  LoadWordFromPoolOffset(CODE_REG, offset, pp);
+  ldr(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
   br(TMP);
 }
 
 void Assembler::BranchPatchable(const StubEntry& stub_entry) {
-  BranchPatchable(&stub_entry.label());
+  Branch(stub_entry, PP, kPatchable);
 }
 
 
-void Assembler::BranchLink(const ExternalLabel* label) {
-  LoadExternalLabel(TMP, label);
-  blr(TMP);
-}
-
-
-void Assembler::BranchLink(const StubEntry& stub_entry) {
-  BranchLink(&stub_entry.label());
-}
-
-
-void Assembler::BranchLinkPatchable(const ExternalLabel* label) {
-  LoadExternalLabelFixed(TMP, label, kPatchable);
+void Assembler::BranchLink(const StubEntry& stub_entry,
+                           Patchability patchable) {
+  const Code& target = Code::Handle(stub_entry.code());
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindObject(target, patchable));
+  LoadWordFromPoolOffset(CODE_REG, offset);
+  ldr(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
   blr(TMP);
 }
 
 
 void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
-  BranchLinkPatchable(&stub_entry.label());
+  BranchLink(stub_entry, kPatchable);
 }
 
 
@@ -926,6 +912,7 @@ void Assembler::StoreIntoObject(Register object,
   if (object != R0) {
     mov(R0, object);
   }
+  ldr(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
   ldr(TMP, Address(THR, Thread::update_store_buffer_entry_point_offset()));
   blr(TMP);
   Pop(LR);
@@ -1102,6 +1089,34 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 }
 
 
+void Assembler::RestoreCodePointer() {
+  ldr(CODE_REG, Address(FP, kPcMarkerSlotFromFp * kWordSize));
+  CheckCodePointer();
+}
+
+
+void Assembler::CheckCodePointer() {
+#ifdef DEBUG
+  Label cid_ok, instructions_ok;
+  Push(R0);
+  CompareClassId(CODE_REG, kCodeCid);
+  b(&cid_ok, EQ);
+  brk(0);
+  Bind(&cid_ok);
+
+  const intptr_t entry_offset =
+      CodeSize() + Instructions::HeaderSize() - kHeapObjectTag;
+  adr(R0, Immediate(-entry_offset));
+  ldr(TMP, FieldAddress(CODE_REG, Code::saved_instructions_offset()));
+  cmp(R0, Operand(TMP));
+  b(&instructions_ok, EQ);
+  brk(1);
+  Bind(&instructions_ok);
+  Pop(R0);
+#endif
+}
+
+
 void Assembler::EnterFrame(intptr_t frame_size) {
   PushPair(LR, FP);
   mov(FP, SP);
@@ -1121,9 +1136,8 @@ void Assembler::LeaveFrame() {
 void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
   ASSERT(!constant_pool_allowed());
   // Setup the frame.
-  adr(TMP, Immediate(-CodeSize()));  // TMP gets PC marker.
   EnterFrame(0);
-  TagAndPushPPAndPcMarker(TMP);  // Save PP and PC marker.
+  TagAndPushPPAndPcMarker();  // Save PP and PC marker.
 
   // Load the pool pointer.
   if (new_pp == kNoRegister) {
@@ -1148,17 +1162,8 @@ void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
 void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
   ASSERT(!constant_pool_allowed());
   Comment("EnterOsrFrame");
-  adr(TMP, Immediate(-CodeSize()));
-
-  StoreToOffset(TMP, FP, kPcMarkerSlotFromFp * kWordSize);
-
-  // Setup pool pointer for this dart function.
-  if (new_pp == kNoRegister) {
-    LoadPoolPointer();
-  } else {
-    mov(PP, new_pp);
-    set_constant_pool_allowed(true);
-  }
+  RestoreCodePointer();
+  LoadPoolPointer();
 
   if (extra_size > 0) {
     AddImmediate(SP, SP, -extra_size);
@@ -1166,11 +1171,13 @@ void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
 }
 
 
-void Assembler::LeaveDartFrame() {
-  set_constant_pool_allowed(false);
-  // Restore and untag PP.
-  LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize);
-  sub(PP, PP, Operand(kHeapObjectTag));
+void Assembler::LeaveDartFrame(RestorePP restore_pp) {
+  if (restore_pp == kRestoreCallerPP) {
+    set_constant_pool_allowed(false);
+    // Restore and untag PP.
+    LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize);
+    sub(PP, PP, Operand(kHeapObjectTag));
+  }
   LeaveFrame();
 }
 
@@ -1236,11 +1243,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 
 
 void Assembler::EnterStubFrame() {
-  set_constant_pool_allowed(false);
-  EnterFrame(0);
-  // Save caller's pool pointer. Push 0 in the saved PC area for stub frames.
-  TagAndPushPPAndPcMarker(ZR);
-  LoadPoolPointer();
+  EnterDartFrame(0);
 }
 
 

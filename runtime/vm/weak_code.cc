@@ -117,15 +117,15 @@ void WeakCodeReferences::DisableCode() {
       // Invalidate the old code object so existing references to it
       // (from optimized code) will fail when invoked.
       if (!CodePatcher::IsEntryPatched(code)) {
-        CodePatcher::PatchEntry(code);
+        CodePatcher::PatchEntry(
+            code, Code::Handle(StubCode::FixCallersTarget_entry()->code()));
       }
     } else {
       // Make non-OSR code non-entrant.
-      if (code.GetEntryPatchPc() != 0) {
-        if (!CodePatcher::IsEntryPatched(code)) {
-          ReportSwitchingCode(code);
-          CodePatcher::PatchEntry(code);
-        }
+      if (!CodePatcher::IsEntryPatched(code)) {
+        ReportSwitchingCode(code);
+        CodePatcher::PatchEntry(
+            code, Code::Handle(StubCode::FixCallersTarget_entry()->code()));
       }
     }
   }

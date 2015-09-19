@@ -3711,7 +3711,9 @@ void Class::DisableAllocationStub() const {
   }
   ASSERT(!CodePatcher::IsEntryPatched(existing_stub));
   // Patch the stub so that the next caller will regenerate the stub.
-  CodePatcher::PatchEntry(existing_stub);
+  CodePatcher::PatchEntry(
+      existing_stub,
+      Code::Handle(StubCode::FixAllocationStubTarget_entry()->code()));
   // Disassociate the existing stub from class.
   StorePointer(&raw_ptr()->allocation_stub_, Code::null());
 }
@@ -5229,7 +5231,7 @@ bool Function::HasBreakpoint() const {
 
 
 void Function::SetInstructions(const Code& value) const {
-  StorePointer(&raw_ptr()->instructions_, value.instructions());
+  StorePointer(&raw_ptr()->code_, value.raw());
   StoreNonPointer(&raw_ptr()->entry_point_, value.EntryPoint());
 }
 
@@ -5242,9 +5244,8 @@ void Function::AttachCode(const Code& value) const {
 
 
 bool Function::HasCode() const {
-  ASSERT(raw_ptr()->instructions_ != Instructions::null());
-  return raw_ptr()->instructions_ !=
-      StubCode::LazyCompile_entry()->code()->ptr()->instructions_;
+  ASSERT(raw_ptr()->code_ != Code::null());
+  return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code();
 }
 
 
@@ -5268,7 +5269,8 @@ void Function::SwitchToUnoptimizedCode() const {
       current_code.EntryPoint());
   }
   // Patch entry of the optimized code.
-  CodePatcher::PatchEntry(current_code);
+  CodePatcher::PatchEntry(
+      current_code, Code::Handle(StubCode::FixCallersTarget_entry()->code()));
   const Error& error = Error::Handle(zone,
       Compiler::EnsureUnoptimizedCode(thread, *this));
   if (!error.IsNull()) {
@@ -6732,8 +6734,7 @@ RawScript* Function::script() const {
 
 
 bool Function::HasOptimizedCode() const {
-  return HasCode() &&  Code::Handle(Instructions::Handle(
-      raw_ptr()->instructions_).code()).is_optimized();
+  return HasCode() && Code::Handle(CurrentCode()).is_optimized();
 }
 
 
@@ -10924,11 +10925,9 @@ void Instructions::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);
   jsobj.AddServiceId(*this);
-  jsobj.AddProperty("_code", Code::Handle(code()));
   if (ref) {
     return;
   }
-  jsobj.AddProperty("_objectPool", ObjectPool::Handle(object_pool()));
 }
 
 
@@ -12862,23 +12861,12 @@ void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
 
 
 void Code::Disassemble(DisassemblyFormatter* formatter) const {
-  const bool fix_patch = CodePatcher::CodeIsPatchable(*this) &&
-                         CodePatcher::IsEntryPatched(*this);
-  if (fix_patch) {
-    // The disassembler may choke on illegal instructions if the code has been
-    // patched, un-patch the code before disassembling and re-patch after.
-    CodePatcher::RestoreEntry(*this);
-  }
   const Instructions& instr = Instructions::Handle(instructions());
   uword start = instr.EntryPoint();
   if (formatter == NULL) {
     Disassembler::Disassemble(start, start + instr.size(), *this);
   } else {
     Disassembler::Disassemble(start, start + instr.size(), formatter, *this);
-  }
-  if (fix_patch) {
-    // Redo the patch.
-    CodePatcher::PatchEntry(*this);
   }
 }
 
@@ -13001,8 +12989,6 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result.set_is_alive(false);
     result.set_comments(Comments::New(0));
     result.set_compile_timestamp(0);
-    result.set_entry_patch_pc_offset(kInvalidPc);
-    result.set_patch_code_pc_offset(kInvalidPc);
     result.set_lazy_deopt_pc_offset(kInvalidPc);
     result.set_pc_descriptors(Object::empty_descriptors());
   }
@@ -13027,6 +13013,9 @@ RawCode* Code::FinalizeCode(const char* name,
   // pages read-only.
   intptr_t pointer_offset_count = assembler->CountPointerOffsets();
   Code& code = Code::ZoneHandle(Code::New(pointer_offset_count));
+#ifdef TARGET_ARCH_IA32
+  assembler->set_code_object(code);
+#endif
   Instructions& instrs =
       Instructions::ZoneHandle(Instructions::New(assembler->CodeSize()));
   INC_STAT(Thread::Current(), total_instr_size, assembler->CodeSize());
@@ -13065,14 +13054,14 @@ RawCode* Code::FinalizeCode(const char* name,
     }
 
     // Hook up Code and Instructions objects.
-    instrs.set_code(code.raw());
+    code.set_active_instructions(instrs.raw());
     code.set_instructions(instrs.raw());
     code.set_is_alive(true);
 
     // Set object pool in Instructions object.
     INC_STAT(Thread::Current(),
              total_code_size, object_pool.Length() * sizeof(uintptr_t));
-    instrs.set_object_pool(object_pool.raw());
+    code.set_object_pool(object_pool.raw());
 
     if (FLAG_write_protect_code) {
       uword address = RawObject::ToAddr(instrs.raw());
@@ -13114,7 +13103,7 @@ RawCode* Code::FinalizeCode(const Function& function,
 
 // Check if object matches find condition.
 bool Code::FindRawCodeVisitor::FindObject(RawObject* obj) const {
-  return RawInstructions::ContainsPC(obj, pc_);
+  return RawCode::ContainsPC(obj, pc_);
 }
 
 
@@ -13122,13 +13111,13 @@ RawCode* Code::LookupCodeInIsolate(Isolate* isolate, uword pc) {
   ASSERT((isolate == Isolate::Current()) || (isolate == Dart::vm_isolate()));
   NoSafepointScope no_safepoint;
   FindRawCodeVisitor visitor(pc);
-  RawInstructions* instr;
+  RawObject* instr;
   if (isolate->heap() == NULL) {
     return Code::null();
   }
-  instr = isolate->heap()->FindObjectInCodeSpace(&visitor);
-  if (instr != Instructions::null()) {
-    return instr->ptr()->code_;
+  instr = isolate->heap()->FindOldObject(&visitor);
+  if (instr != Code::null()) {
+    return static_cast<RawCode*>(instr);
   }
   return Code::null();
 }
@@ -13366,18 +13355,6 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
       }
     }
   }
-}
-
-
-uword Code::GetEntryPatchPc() const {
-  return (entry_patch_pc_offset() != kInvalidPc)
-      ? EntryPoint() + entry_patch_pc_offset() : 0;
-}
-
-
-uword Code::GetPatchCodePc() const {
-  return (patch_code_pc_offset() != kInvalidPc)
-      ? EntryPoint() + patch_code_pc_offset() : 0;
 }
 
 

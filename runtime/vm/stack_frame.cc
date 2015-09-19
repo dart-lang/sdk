@@ -22,9 +22,15 @@ namespace dart {
 
 bool StackFrame::IsStubFrame() const {
   ASSERT(!(IsEntryFrame() || IsExitFrame()));
-  uword saved_pc =
-      *(reinterpret_cast<uword*>(fp() + (kPcMarkerSlotFromFp * kWordSize)));
-  return (saved_pc == 0);
+#if !defined(TARGET_OS_WINDOWS)
+  // On Windows, the profiler calls this from a separate thread where
+  // Thread::Current() is NULL, so we cannot create a NoSafepointScope.
+  NoSafepointScope no_safepoint;
+#endif
+  RawCode* code = GetCodeObject();
+  intptr_t cid = code->ptr()->owner_->GetClassId();
+  ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
+  return cid == kNullCid || cid == kClassCid;
 }
 
 
@@ -173,29 +179,27 @@ RawCode* StackFrame::LookupDartCode() const {
   // We add a no gc scope to ensure that the code below does not trigger
   // a GC as we are handling raw object references here. It is possible
   // that the code is called while a GC is in progress, that is ok.
+#if !defined(TARGET_OS_WINDOWS)
+  // On Windows, the profiler calls this from a separate thread where
+  // Thread::Current() is NULL, so we cannot create a NoSafepointScope.
   NoSafepointScope no_safepoint;
+#endif
   RawCode* code = GetCodeObject();
-  ASSERT(code == Code::null() || code->ptr()->owner_ != Function::null());
-  return code;
+  if ((code != Code::null()) &&
+      (code->ptr()->owner_->GetClassId() == kFunctionCid)) {
+    return code;
+  }
+  return Code::null();
 }
 
 
 RawCode* StackFrame::GetCodeObject() const {
-  // We add a no gc scope to ensure that the code below does not trigger
-  // a GC as we are handling raw object references here. It is possible
-  // that the code is called while a GC is in progress, that is ok.
-  NoSafepointScope no_safepoint;
   const uword pc_marker =
       *(reinterpret_cast<uword*>(fp() + (kPcMarkerSlotFromFp * kWordSize)));
-  if (pc_marker != 0) {
-    const uword entry_point =
-        (pc_marker - Assembler::EntryPointToPcMarkerOffset());
-    RawInstructions* instr = Instructions::FromEntryPoint(entry_point);
-    if (instr != Instructions::null()) {
-      return instr->ptr()->code_;
-    }
-  }
-  return Code::null();
+  ASSERT(pc_marker != 0);
+  ASSERT(reinterpret_cast<RawObject*>(pc_marker)->GetClassId() == kCodeCid ||
+         reinterpret_cast<RawObject*>(pc_marker) == Object::null());
+  return reinterpret_cast<RawCode*>(pc_marker);
 }
 
 

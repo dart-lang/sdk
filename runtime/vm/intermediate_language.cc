@@ -2769,7 +2769,6 @@ void IndirectGotoInstr::ComputeOffsetTable() {
     }
 
     ASSERT(offset > 0);
-    offset -= Assembler::EntryPointToPcMarkerOffset();
     offsets_.SetInt32(i * element_size, offset);
   }
 }

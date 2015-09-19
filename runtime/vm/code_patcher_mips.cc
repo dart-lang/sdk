@@ -12,48 +12,39 @@
 
 namespace dart {
 
-uword CodePatcher::GetStaticCallTargetAt(uword return_address,
-                                         const Code& code) {
+RawCode* CodePatcher::GetStaticCallTargetAt(uword return_address,
+                                            const Code& code) {
   ASSERT(code.ContainsInstructionAt(return_address));
   CallPattern call(return_address, code);
-  return call.TargetAddress();
+  return call.TargetCode();
 }
 
 
 void CodePatcher::PatchStaticCallAt(uword return_address,
                                     const Code& code,
-                                    uword new_target) {
+                                    const Code& new_target) {
   ASSERT(code.ContainsInstructionAt(return_address));
   CallPattern call(return_address, code);
-  call.SetTargetAddress(new_target);
+  call.SetTargetCode(new_target);
 }
 
 
-void CodePatcher::PatchInstanceCallAt(uword return_address,
-                                      const Code& code,
-                                      uword new_target) {
-  ASSERT(code.ContainsInstructionAt(return_address));
-  CallPattern call(return_address, code);
-  call.SetTargetAddress(new_target);
-}
-
-
-void CodePatcher::InsertCallAt(uword start, uword target) {
+void CodePatcher::InsertDeoptimizationCallAt(uword start, uword target) {
   // The inserted call should not overlap the lazy deopt jump code.
-  ASSERT(start + CallPattern::kFixedLengthInBytes <= target);
-  CallPattern::InsertAt(start, target);
+  ASSERT(start + CallPattern::kDeoptCallLengthInBytes <= target);
+  CallPattern::InsertDeoptCallAt(start, target);
 }
 
 
-uword CodePatcher::GetInstanceCallAt(uword return_address,
-                                     const Code& code,
-                                     ICData* ic_data) {
+RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
+                                        const Code& code,
+                                        ICData* ic_data) {
   ASSERT(code.ContainsInstructionAt(return_address));
   CallPattern call(return_address, code);
   if (ic_data != NULL) {
     *ic_data = call.IcData();
   }
-  return call.TargetAddress();
+  return call.TargetCode();
 }
 
 
@@ -83,14 +74,14 @@ void CodePatcher::PatchNativeCallAt(uword return_address,
                                     const Code& trampoline) {
   ASSERT(code.ContainsInstructionAt(return_address));
   NativeCallPattern call(return_address, code);
-  call.set_target(trampoline.EntryPoint());
+  call.set_target(trampoline);
   call.set_native_function(target);
 }
 
 
-uword CodePatcher::GetNativeCallAt(uword return_address,
-                                   const Code& code,
-                                   NativeFunction* target) {
+RawCode* CodePatcher::GetNativeCallAt(uword return_address,
+                                      const Code& code,
+                                      NativeFunction* target) {
   ASSERT(code.ContainsInstructionAt(return_address));
   NativeCallPattern call(return_address, code);
   *target = call.native_function();

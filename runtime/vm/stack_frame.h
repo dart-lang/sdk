@@ -50,7 +50,12 @@ class StackFrame : public ValueObject {
   }
 
   void set_pc(uword value) {
-    *reinterpret_cast<uword*>(sp_ + (kSavedPcSlotFromSp * kWordSize)) = value;
+    *reinterpret_cast<uword*>(sp() + (kSavedPcSlotFromSp * kWordSize)) = value;
+  }
+
+  void set_pc_marker(RawCode* code) {
+    *reinterpret_cast<RawCode**>(fp() + (kPcMarkerSlotFromFp * kWordSize)) =
+        code;
   }
 
   // Visit objects in the frame.

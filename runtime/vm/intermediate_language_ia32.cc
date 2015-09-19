@@ -6581,20 +6581,22 @@ LocationSummary* IndirectGotoInstr::MakeLocationSummary(Zone* zone,
 
 
 void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register target_address_reg = locs()->temp_slot(0)->reg();
+  Register target_reg = locs()->temp_slot(0)->reg();
 
-  // Load from [current frame pointer] + kPcMarkerSlotFromFp.
-  __ movl(target_address_reg, Address(EBP, kPcMarkerSlotFromFp * kWordSize));
+  // Load code object from frame.
+  __ movl(target_reg, Address(EBP, kPcMarkerSlotFromFp * kWordSize));
+  // Load instructions entry point.
+  __ movl(target_reg, FieldAddress(target_reg, Code::entry_point_offset()));
 
   // Add the offset.
   Register offset_reg = locs()->in(0).reg();
   if (offset()->definition()->representation() == kTagged) {
     __ SmiUntag(offset_reg);
   }
-  __ addl(target_address_reg, offset_reg);
+  __ addl(target_reg, offset_reg);
 
   // Jump to the absolute address.
-  __ jmp(target_address_reg);
+  __ jmp(target_reg);
 }
 
 

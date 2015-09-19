@@ -17,7 +17,7 @@ namespace dart {
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(Call, assembler) {
-  __ Call(*StubCode::InvokeDartCode_entry());
+  __ call(&StubCode::InvokeDartCode_entry()->label());
   __ ret();
 }
 
@@ -28,41 +28,6 @@ ASSEMBLER_TEST_RUN(Call, test) {
             call.TargetAddress());
 }
 
-
-ASSEMBLER_TEST_GENERATE(Jump, assembler) {
-  __ Jmp(*StubCode::InvokeDartCode_entry());
-  const ExternalLabel label(StubCode::AllocateArray_entry()->EntryPoint());
-  __ jmp(&label);
-  __ ret();
-}
-
-
-ASSEMBLER_TEST_RUN(Jump, test) {
-  const Code& code = test->code();
-  const Instructions& instrs = Instructions::Handle(code.instructions());
-  bool status =
-      VirtualMemory::Protect(reinterpret_cast<void*>(instrs.EntryPoint()),
-                             instrs.size(),
-                             VirtualMemory::kReadWrite);
-  EXPECT(status);
-  JumpPattern jump1(test->entry(), test->code());
-  EXPECT_EQ(StubCode::InvokeDartCode_entry()->EntryPoint(),
-            jump1.TargetAddress());
-  JumpPattern jump2(test->entry() + jump1.pattern_length_in_bytes(),
-                    test->code());
-  const Code& array_stub =
-      Code::Handle(StubCode::AllocateArray_entry()->code());
-  EXPECT_EQ(array_stub.EntryPoint(),
-            jump2.TargetAddress());
-  uword target1 = jump1.TargetAddress();
-  uword target2 = jump2.TargetAddress();
-  jump1.SetTargetAddress(target2);
-  jump2.SetTargetAddress(target1);
-  EXPECT_EQ(array_stub.EntryPoint(),
-            jump1.TargetAddress());
-  EXPECT_EQ(StubCode::InvokeDartCode_entry()->EntryPoint(),
-            jump2.TargetAddress());
-}
 
 }  // namespace dart
 

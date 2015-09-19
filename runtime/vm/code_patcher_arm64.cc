@@ -12,15 +12,6 @@
 
 namespace dart {
 
-void CodePatcher::PatchInstanceCallAt(uword return_address,
-                                      const Code& code,
-                                      uword new_target) {
-  ASSERT(code.ContainsInstructionAt(return_address));
-  CallPattern call(return_address, code);
-  call.SetTargetAddress(new_target);
-}
-
-
 class PoolPointerCall : public ValueObject {
  public:
   PoolPointerCall(uword pc, const Code& code)
@@ -29,19 +20,19 @@ class PoolPointerCall : public ValueObject {
     // Last instruction: blr ip0.
     ASSERT(*(reinterpret_cast<uint32_t*>(end_) - 1) == 0xd63f0200);
     InstructionPattern::DecodeLoadWordFromPool(
-        end_ - Instr::kInstrSize, &reg_, &index_);
+        end_ - 2 * Instr::kInstrSize, &reg_, &index_);
   }
 
   intptr_t pp_index() const {
     return index_;
   }
 
-  uword Target() const {
-    return object_pool_.RawValueAt(pp_index());
+  RawCode* Target() const {
+    return reinterpret_cast<RawCode*>(object_pool_.ObjectAt(pp_index()));
   }
 
-  void SetTarget(uword target) const {
-    object_pool_.SetRawValueAt(pp_index(), target);
+  void SetTarget(const Code& target) const {
+    object_pool_.SetObjectAt(pp_index(), target);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
@@ -55,8 +46,8 @@ class PoolPointerCall : public ValueObject {
 };
 
 
-uword CodePatcher::GetStaticCallTargetAt(uword return_address,
-                                         const Code& code) {
+RawCode* CodePatcher::GetStaticCallTargetAt(uword return_address,
+                                            const Code& code) {
   ASSERT(code.ContainsInstructionAt(return_address));
   PoolPointerCall call(return_address, code);
   return call.Target();
@@ -65,36 +56,36 @@ uword CodePatcher::GetStaticCallTargetAt(uword return_address,
 
 void CodePatcher::PatchStaticCallAt(uword return_address,
                                     const Code& code,
-                                    uword new_target) {
+                                    const Code& new_target) {
   PatchPoolPointerCallAt(return_address, code, new_target);
 }
 
 
 void CodePatcher::PatchPoolPointerCallAt(uword return_address,
                                          const Code& code,
-                                         uword new_target) {
+                                         const Code& new_target) {
   ASSERT(code.ContainsInstructionAt(return_address));
   PoolPointerCall call(return_address, code);
   call.SetTarget(new_target);
 }
 
 
-void CodePatcher::InsertCallAt(uword start, uword target) {
+void CodePatcher::InsertDeoptimizationCallAt(uword start, uword target) {
   // The inserted call should not overlap the lazy deopt jump code.
-  ASSERT(start + CallPattern::kLengthInBytes <= target);
-  CallPattern::InsertAt(start, target);
+  ASSERT(start + CallPattern::kDeoptCallLengthInBytes <= target);
+  CallPattern::InsertDeoptCallAt(start, target);
 }
 
 
-uword CodePatcher::GetInstanceCallAt(uword return_address,
-                                     const Code& code,
-                                     ICData* ic_data) {
+RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
+                                        const Code& code,
+                                        ICData* ic_data) {
   ASSERT(code.ContainsInstructionAt(return_address));
   CallPattern call(return_address, code);
   if (ic_data != NULL) {
     *ic_data = call.IcData();
   }
-  return call.TargetAddress();
+  return call.TargetCode();
 }
 
 
@@ -124,14 +115,14 @@ void CodePatcher::PatchNativeCallAt(uword return_address,
                                     const Code& trampoline) {
   ASSERT(code.ContainsInstructionAt(return_address));
   NativeCallPattern call(return_address, code);
-  call.set_target(trampoline.EntryPoint());
+  call.set_target(trampoline);
   call.set_native_function(target);
 }
 
 
-uword CodePatcher::GetNativeCallAt(uword return_address,
-                                   const Code& code,
-                                   NativeFunction* target) {
+RawCode* CodePatcher::GetNativeCallAt(uword return_address,
+                                      const Code& code,
+                                      NativeFunction* target) {
   ASSERT(code.ContainsInstructionAt(return_address));
   NativeCallPattern call(return_address, code);
   *target = call.native_function();

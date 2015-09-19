@@ -102,7 +102,7 @@ class ArgumentsDescriptor : public ValueObject {
 class DartEntry : public AllStatic {
  public:
   // On success, returns a RawInstance.  On failure, a RawError.
-  typedef RawObject* (*invokestub)(uword entry_point,
+  typedef RawObject* (*invokestub)(const Code& target_code,
                                    const Array& arguments_descriptor,
                                    const Array& arguments,
                                    Thread* thread);

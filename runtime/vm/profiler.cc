@@ -759,35 +759,8 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
 };
 
 
-static void CopyPCMarkerIfSafe(Sample* sample, uword fp_addr, uword sp_addr) {
-  ASSERT(sample != NULL);
-
-  if (sample->vm_tag() != VMTag::kDartTagId) {
-    // We can only trust the stack pointer if we are executing Dart code.
-    // See http://dartbug.com/20421 for details.
-    return;
-  }
-  uword* fp = reinterpret_cast<uword*>(fp_addr);
-  uword* sp = reinterpret_cast<uword*>(sp_addr);
-
-  // If FP == SP, the pc marker hasn't been pushed.
-  if (fp > sp) {
-    uword* pc_marker_ptr = fp + kPcMarkerSlotFromFp;
-    // MSan/ASan are unaware of frames initialized by generated code.
-    MSAN_UNPOISON(pc_marker_ptr, kWordSize);
-    ASAN_UNPOISON(pc_marker_ptr, kWordSize);
-    sample->set_pc_marker(*pc_marker_ptr);
-  }
-}
-
-
 static void CopyStackBuffer(Sample* sample, uword sp_addr) {
   ASSERT(sample != NULL);
-  if (sample->vm_tag() != VMTag::kDartTagId) {
-    // We can only trust the stack pointer if we are executing Dart code.
-    // See http://dartbug.com/20421 for details.
-    return;
-  }
   uword* sp = reinterpret_cast<uword*>(sp_addr);
   uword* buffer = sample->GetStackBuffer();
   if (sp != NULL) {
@@ -834,8 +807,11 @@ static void CollectSample(Isolate* isolate,
   __try {
 #endif
 
-  CopyStackBuffer(sample, sp);
-  CopyPCMarkerIfSafe(sample, fp, sp);
+  if (in_dart_code) {
+    // We can only trust the stack pointer if we are executing Dart code.
+    // See http://dartbug.com/20421 for details.
+    CopyStackBuffer(sample, sp);
+  }
 
   if (FLAG_profile_vm) {
     // Always walk the native stack collecting both native and Dart frames.

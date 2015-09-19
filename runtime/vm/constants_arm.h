@@ -45,11 +45,11 @@ enum Register {
   R14 = 14,
   kLastFreeCpuRegister = 14,
   R15 = 15,
-  FP  = 11,
-  IP  = 12,
-  SP  = 13,
-  LR  = 14,
-  PC  = 15,
+  FP  = R11,
+  IP  = R12,
+  SP  = R13,
+  LR  = R14,
+  PC  = R15,
   kNumberOfCpuRegisters = 16,
 };
 
@@ -231,13 +231,14 @@ const FpuRegister kNoFpuRegister = kNoQRegister;
 // Register aliases.
 const Register TMP = IP;  // Used as scratch register by assembler.
 const Register TMP2 = kNoRegister;  // There is no second assembler temporary.
-const Register CTX = R9;  // Location of current context at method entry.
-const Register PP = R10;  // Caches object pool pointer in generated code.
+const Register CTX = R10;  // Location of current context at method entry.
+const Register PP = R9;  // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
 const Register LRREG = LR;  // Link register.
 const Register ICREG = R5;  // IC data register.
 const Register ARGS_DESC_REG = R4;
+const Register CODE_REG = R10;
 const Register THR = R8;  // Caches current thread in generated code.
 
 // R15 encodes APSR in the vmrs instruction.
