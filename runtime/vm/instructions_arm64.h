@@ -66,7 +66,9 @@ class CallPattern : public ValueObject {
 
   // This constant length is only valid for inserted call patterns used for
   // lazy deoptimization. Regular call pattern may vary in length.
-  static const int kDeoptCallLengthInBytes = 5 * Instr::kInstrSize;
+  static const int kDeoptCallLengthInInstructions = 5;
+  static const int kDeoptCallLengthInBytes =
+      kDeoptCallLengthInInstructions * Instr::kInstrSize;
 
   static void InsertDeoptCallAt(uword pc, uword target_address);
 

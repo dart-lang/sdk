@@ -60,6 +60,7 @@ class CallPattern : public ValueObject {
   // This constant length is only valid for inserted call patterns used for
   // lazy deoptimization. Regular call pattern may vary in length.
   static int DeoptCallPatternLengthInBytes();
+  static int DeoptCallPatternLengthInInstructions();
 
   static void InsertDeoptCallAt(uword pc, uword target_address);
 

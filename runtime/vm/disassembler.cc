@@ -104,7 +104,8 @@ class FindAddrVisitor : public FindObjectVisitor {
 bool Disassembler::CanFindOldObject(uword addr) {
   FindAddrVisitor visitor(addr);
   NoSafepointScope no_safepoint;
-  return Isolate::Current()->heap()->FindOldObject(&visitor) != Object::null();
+  return Dart::vm_isolate()->heap()->FindOldObject(&visitor) != Object::null()
+      || Isolate::Current()->heap()->FindOldObject(&visitor) != Object::null();
 }
 
 

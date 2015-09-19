@@ -494,6 +494,7 @@ void X86Decoder::PrintAddress(uword addr) {
       reinterpret_cast<RawObject*>(addr)->IsWellFormed() &&
       reinterpret_cast<RawObject*>(addr)->IsOldObject() &&
       !Isolate::Current()->heap()->CodeContains(addr) &&
+      !Dart::vm_isolate()->heap()->CodeContains(addr) &&
       Disassembler::CanFindOldObject(addr)) {
     NoSafepointScope no_safepoint;
     const Object& obj = Object::Handle(reinterpret_cast<RawObject*>(addr));
@@ -524,16 +525,6 @@ void X86Decoder::PrintAddress(uword addr) {
       Print("  [stub: ");
       Print(name_of_stub);
       Print("]");
-    } else {
-      // Print only if jumping to entry point.
-      const Code& code = Code::Handle(Code::LookupCode(addr));
-      if (!code.IsNull() && (code.EntryPoint() == addr)) {
-        const String& name = String::Handle(code.PrettyName());
-        const char* name_c = name.ToCString();
-        Print(" [");
-        Print(name_c);
-        Print("]");
-      }
     }
   }
 }

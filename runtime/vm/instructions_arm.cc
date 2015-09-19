@@ -32,14 +32,18 @@ CallPattern::CallPattern(uword pc, const Code& code)
 }
 
 
-int CallPattern::DeoptCallPatternLengthInBytes() {
+int CallPattern::DeoptCallPatternLengthInInstructions() {
   const ARMVersion version = TargetCPUFeatures::arm_version();
   if ((version == ARMv5TE) || (version == ARMv6)) {
-    return 5 * Instr::kInstrSize;
+    return 5;
   } else {
     ASSERT(version == ARMv7);
-    return 3 * Instr::kInstrSize;
+    return 3;
   }
+}
+
+int CallPattern::DeoptCallPatternLengthInBytes() {
+  return DeoptCallPatternLengthInInstructions() * Instr::kInstrSize;
 }
 
 

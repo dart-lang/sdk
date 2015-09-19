@@ -57,7 +57,9 @@ class CallPattern : public ValueObject {
   RawCode* TargetCode() const;
   void SetTargetCode(const Code& target) const;
 
-  static const int kDeoptCallLengthInBytes = 4 * Instr::kInstrSize;
+  static const int kDeoptCallLengthInInstructions = 4;
+  static const int kDeoptCallLengthInBytes =
+      kDeoptCallLengthInInstructions * Instr::kInstrSize;
 
   static void InsertDeoptCallAt(uword pc, uword target_address);
 

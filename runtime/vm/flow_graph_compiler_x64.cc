@@ -12,6 +12,7 @@
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
+#include "vm/instructions.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -1128,6 +1129,9 @@ void FlowGraphCompiler::CompileGraph() {
   // at entry point.
 
   if (is_optimizing()) {
+    // Leave enough space for patching in case of lazy deoptimization from
+    // deferred code.
+    __ nop(ShortCallPattern::pattern_length_in_bytes());
     lazy_deopt_pc_offset_ = assembler()->CodeSize();
     __ Jmp(*StubCode::DeoptimizeLazy_entry(), PP);
   }
