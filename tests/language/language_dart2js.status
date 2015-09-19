@@ -23,6 +23,7 @@ await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
 
 [ $compiler == dart2js ]
+invocation_mirror_empty_arguments_test: Fail # Issue 24331
 nan_identical_test: Fail # Issue 11551
 symbol_literal_test/*: Fail # Issue 21825
 constructor_duplicate_final_test/01: Fail # Issue 13363
