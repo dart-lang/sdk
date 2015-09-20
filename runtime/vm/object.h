@@ -3606,7 +3606,6 @@ class ObjectPool : public Object {
   enum EntryType {
     kTaggedObject,
     kImmediate,
-    kExternalLabel,
     kNativeEntry,
   };
 

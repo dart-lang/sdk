@@ -1318,20 +1318,10 @@ RawObjectPool* ObjectPool::ReadFrom(SnapshotReader* reader,
         result.SetRawValueAt(i, raw_value);
         break;
       }
-      case ObjectPool::kExternalLabel: {
-        // TODO(rmacnak): Relocate.
-        intptr_t raw_value = reader->Read<intptr_t>();
-        result.SetRawValueAt(i, raw_value);
-        break;
-      }
       case ObjectPool::kNativeEntry: {
         // Read nothing. Initialize with the lazy link entry.
-        uword entry = reinterpret_cast<uword>(&NativeEntry::LinkNativeCall);
-#if defined(USING_SIMULATOR)
-        entry = Simulator::RedirectExternalReference(
-            entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
-#endif
-        result.SetRawValueAt(i, entry);
+        uword new_entry = NativeEntry::LinkNativeCallEntry();
+        result.SetRawValueAt(i, static_cast<intptr_t>(new_entry));
         break;
       }
       default:
@@ -1367,19 +1357,18 @@ void RawObjectPool::WriteTo(SnapshotWriter* writer,
     writer->Write<int8_t>(entry_type);
     Entry& entry = ptr()->data()[i];
     switch (entry_type) {
-      case ObjectPool::kTaggedObject:
+      case ObjectPool::kTaggedObject: {
         writer->WriteObjectImpl(entry.raw_obj_, kAsReference);
         break;
-      case ObjectPool::kImmediate:
+      }
+      case ObjectPool::kImmediate: {
         writer->Write<intptr_t>(entry.raw_value_);
         break;
-      case ObjectPool::kExternalLabel:
-        // TODO(rmacnak): Write symbolically.
-        writer->Write<intptr_t>(entry.raw_value_);
-        break;
-      case ObjectPool::kNativeEntry:
+      }
+      case ObjectPool::kNativeEntry: {
         // Write nothing. Will initialize with the lazy link entry.
         break;
+      }
       default:
         UNREACHABLE();
     }

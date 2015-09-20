@@ -185,8 +185,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ movq(CallingConventions::kArg1Reg, RSP);
   // Pass pointer to function entrypoint.
   __ movq(CallingConventions::kArg2Reg, RBX);
-  __ LoadExternalLabel(
-      RAX, &NativeEntry::NativeCallWrapperLabel(), kNotPatchable);
+
+  __ movq(RAX, Address(THR, Thread::native_call_wrapper_entry_point_offset()));
   __ CallCFunction(RAX);
 
   // Mark that the isolate is executing Dart code.

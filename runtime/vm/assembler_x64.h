@@ -760,9 +760,6 @@ class Assembler : public ValueObject {
   void LoadIsolate(Register dst);
   void LoadObject(Register dst, const Object& obj);
   void LoadUniqueObject(Register dst, const Object& obj);
-  void LoadExternalLabel(Register dst,
-                         const ExternalLabel* label,
-                         Patchability patchable);
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
                        Patchability patchable);

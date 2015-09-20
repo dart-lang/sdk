@@ -1655,16 +1655,6 @@ void Assembler::LoadUniqueObject(Register rd,
 }
 
 
-void Assembler::LoadExternalLabel(Register rd,
-                                  const ExternalLabel* label,
-                                  Patchability patchable,
-                                  Condition cond) {
-  const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindExternalLabel(label, patchable));
-  LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, PP, cond);
-}
-
-
 void Assembler::LoadFunctionFromCalleePool(Register dst,
                                            const Function& function,
                                            Register new_pp) {

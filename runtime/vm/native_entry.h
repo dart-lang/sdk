@@ -114,11 +114,11 @@ class NativeEntry : public AllStatic {
                                                uword pc);
   static const uint8_t* ResolveSymbol(uword pc);
 
-  static const ExternalLabel& NativeCallWrapperLabel();
+  static uword NativeCallWrapperEntry();
   static void NativeCallWrapper(Dart_NativeArguments args,
                                 Dart_NativeFunction func);
 
-  static const ExternalLabel& LinkNativeCallLabel();
+  static uword LinkNativeCallEntry();
   static void LinkNativeCall(Dart_NativeArguments args);
 };
 

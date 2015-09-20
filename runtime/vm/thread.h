@@ -46,6 +46,8 @@ class Zone;
 #define CACHED_ADDRESSES_LIST(V)                                               \
   V(uword, update_store_buffer_entry_point_,                                   \
     StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
+  V(uword, native_call_wrapper_entry_point_,                                   \
+    NativeEntry::NativeCallWrapperEntry(), 0)                                  \
   V(RawString**, predefined_symbols_address_,                                  \
     Symbols::PredefinedAddress(), NULL)                                        \
 

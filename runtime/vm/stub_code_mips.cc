@@ -199,16 +199,10 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   __ mov(A1, T5);  // Pass the function entrypoint.
   __ ReserveAlignedFrameSpace(2 * kWordSize);  // Just passing A0, A1.
+
   // Call native wrapper function or redirection via simulator.
-#if defined(USING_SIMULATOR)
-  uword entry = reinterpret_cast<uword>(NativeEntry::NativeCallWrapper);
-  entry = Simulator::RedirectExternalReference(
-      entry, Simulator::kNativeCall, NativeEntry::kNumCallWrapperArguments);
-  __ LoadImmediate(T9, entry);
+  __ lw(T9, Address(THR, Thread::native_call_wrapper_entry_point_offset()));
   __ jalr(T9);
-#else
-  __ BranchLink(&NativeEntry::NativeCallWrapperLabel(), kNotPatchable);
-#endif
   __ Comment("CallNativeCFunctionStub return");
 
   // Mark that the isolate is executing Dart code.

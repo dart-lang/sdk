@@ -265,14 +265,6 @@ intptr_t ObjectPoolWrapper::AddObject(ObjectPool::Entry entry,
 }
 
 
-intptr_t ObjectPoolWrapper::AddExternalLabel(const ExternalLabel* label,
-                                             Patchability patchable) {
-  return AddObject(ObjectPool::Entry(label->address(),
-                                     ObjectPool::kExternalLabel),
-                   patchable);
-}
-
-
 intptr_t ObjectPoolWrapper::FindObject(ObjectPool::Entry entry,
                                        Patchability patchable) {
   // If the object is not patchable, check if we've already got it in the
@@ -297,14 +289,6 @@ intptr_t ObjectPoolWrapper::FindObject(const Object& obj,
 intptr_t ObjectPoolWrapper::FindImmediate(uword imm) {
   return FindObject(ObjectPool::Entry(imm, ObjectPool::kImmediate),
                     kNotPatchable);
-}
-
-
-intptr_t ObjectPoolWrapper::FindExternalLabel(const ExternalLabel* label,
-                                              Patchability patchable) {
-  return FindObject(ObjectPool::Entry(label->address(),
-                                      ObjectPool::kExternalLabel),
-                    patchable);
 }
 
 

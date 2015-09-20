@@ -800,11 +800,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const StubEntry* stub_entry;
   if (link_lazily()) {
     stub_entry = StubCode::CallBootstrapCFunction_entry();
-    entry = reinterpret_cast<uword>(&NativeEntry::LinkNativeCall);
-#if defined(USING_SIMULATOR)
-    entry = Simulator::RedirectExternalReference(
-        entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
-#endif
+    entry = NativeEntry::LinkNativeCallEntry();
   } else {
     entry = reinterpret_cast<uword>(native_c_function());
     if (is_bootstrap_native() || is_leaf_call) {

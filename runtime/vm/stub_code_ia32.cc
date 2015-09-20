@@ -179,7 +179,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ movl(Address(ESP, 0), EAX);  // Pass the pointer to the NativeArguments.
 
   __ movl(Address(ESP, kWordSize), ECX);  // Function to call.
-  __ call(&NativeEntry::NativeCallWrapperLabel());
+  ExternalLabel label(NativeEntry::NativeCallWrapperEntry());
+  __ call(&label);
 
   // Mark that the isolate is executing Dart code. EDI is callee saved.
   __ movl(Address(EDI, Isolate::vm_tag_offset()),

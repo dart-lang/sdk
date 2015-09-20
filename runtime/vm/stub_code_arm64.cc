@@ -214,16 +214,10 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ mov(CSP, SP);
 
   __ mov(R1, R5);  // Pass the function entrypoint to call.
+
   // Call native function invocation wrapper or redirection via simulator.
-#if defined(USING_SIMULATOR)
-  uword entry = reinterpret_cast<uword>(NativeEntry::NativeCallWrapper);
-  entry = Simulator::RedirectExternalReference(
-      entry, Simulator::kNativeCall, NativeEntry::kNumCallWrapperArguments);
-  __ LoadImmediate(R2, entry);
-  __ blr(R2);
-#else
-  __ BranchLink(&NativeEntry::NativeCallWrapperLabel());
-#endif
+  __ ldr(LR, Address(THR, Thread::native_call_wrapper_entry_point_offset()));
+  __ blr(LR);
 
   // Restore SP and CSP.
   __ mov(SP, CSP);

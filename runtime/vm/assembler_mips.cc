@@ -506,19 +506,6 @@ void Assembler::BranchLink(const ExternalLabel* label) {
 }
 
 
-void Assembler::BranchLink(const ExternalLabel* label, Patchability patchable) {
-  ASSERT(!in_delay_slot_);
-  const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindExternalLabel(label, patchable));
-  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
-  lw(T9, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  jalr(T9);
-  if (patchable == kPatchable) {
-    delay_slot_available_ = false;  // CodePatcher expects a nop.
-  }
-}
-
-
 void Assembler::BranchLink(const Code& target, Patchability patchable) {
   ASSERT(!in_delay_slot_);
   const int32_t offset = ObjectPool::element_offset(
@@ -593,15 +580,6 @@ void Assembler::LoadObject(Register rd, const Object& object) {
 
 void Assembler::LoadUniqueObject(Register rd, const Object& object) {
   LoadObjectHelper(rd, object, true);
-}
-
-
-void Assembler::LoadExternalLabel(Register rd,
-                                  const ExternalLabel* label,
-                                  Patchability patchable) {
-  const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindExternalLabel(label, patchable));
-  LoadWordFromPoolOffset(rd, offset - kHeapObjectTag);
 }
 
 

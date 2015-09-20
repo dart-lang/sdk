@@ -905,8 +905,6 @@ class Assembler : public ValueObject {
 
   void Branch(const StubEntry& stub_entry, Register pp = PP);
 
-  void BranchLink(const ExternalLabel* label, Patchability patchable);
-
   void BranchLink(const StubEntry& stub_entry,
                   Patchability patchable = kNotPatchable);
 
@@ -1512,9 +1510,6 @@ class Assembler : public ValueObject {
 
   void LoadObject(Register rd, const Object& object);
   void LoadUniqueObject(Register rd, const Object& object);
-  void LoadExternalLabel(Register rd,
-                         const ExternalLabel* label,
-                         Patchability patchable);
   void LoadFunctionFromCalleePool(Register dst,
                                   const Function& function,
                                   Register new_pp);

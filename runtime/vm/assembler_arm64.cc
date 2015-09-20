@@ -384,32 +384,11 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
 }
 
 
-void Assembler::LoadExternalLabel(Register dst, const ExternalLabel* label) {
-  if (constant_pool_allowed()) {
-    const int32_t offset = ObjectPool::element_offset(
-        object_pool_wrapper_.FindExternalLabel(label, kNotPatchable));
-    LoadWordFromPoolOffset(dst, offset);
-  } else {
-    const int64_t target = static_cast<int64_t>(label->address());
-    LoadImmediate(dst, target);
-  }
-}
-
-
 void Assembler::LoadNativeEntry(Register dst,
                                 const ExternalLabel* label) {
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindNativeEntry(label, kNotPatchable));
   LoadWordFromPoolOffset(dst, offset);
-}
-
-
-void Assembler::LoadExternalLabelFixed(Register dst,
-                                       const ExternalLabel* label,
-                                       Patchability patchable) {
-  const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindExternalLabel(label, patchable));
-  LoadWordFromPoolOffsetFixed(dst, offset);
 }
 
 

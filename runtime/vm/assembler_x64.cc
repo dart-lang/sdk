@@ -62,15 +62,6 @@ void Assembler::call(Label* label) {
 }
 
 
-void Assembler::LoadExternalLabel(Register dst,
-                                  const ExternalLabel* label,
-                                  Patchability patchable) {
-  const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindExternalLabel(label, patchable));
-  LoadWordFromPoolOffset(dst, offset - kHeapObjectTag);
-}
-
-
 void Assembler::LoadNativeEntry(Register dst,
                                 const ExternalLabel* label,
                                 Patchability patchable) {

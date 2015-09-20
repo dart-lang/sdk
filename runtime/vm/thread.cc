@@ -8,6 +8,7 @@
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/log.h"
+#include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/os_thread.h"
 #include "vm/profiler.h"

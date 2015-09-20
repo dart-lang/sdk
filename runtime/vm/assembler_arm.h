@@ -667,10 +667,6 @@ class Assembler : public ValueObject {
 
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
   void LoadUniqueObject(Register rd, const Object& object, Condition cond = AL);
-  void LoadExternalLabel(Register dst,
-                         const ExternalLabel* label,
-                         Patchability patchable,
-                         Condition cond = AL);
   void LoadFunctionFromCalleePool(Register dst,
                                   const Function& function,
                                   Register new_pp);

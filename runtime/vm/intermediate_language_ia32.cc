@@ -833,7 +833,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const StubEntry* stub_entry;
   if (link_lazily()) {
     stub_entry = StubCode::CallBootstrapCFunction_entry();
-    __ movl(ECX, Immediate(NativeEntry::LinkNativeCallLabel().address()));
+    __ movl(ECX, Immediate(NativeEntry::LinkNativeCallEntry()));
   } else {
     stub_entry = (is_bootstrap_native() || is_leaf_call) ?
         StubCode::CallBootstrapCFunction_entry() :
