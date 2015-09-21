@@ -4498,8 +4498,10 @@ f3() {
       expect(newUnit.element, isNot(same(oldUnitElement)));
       return;
     }
-    // The existing CompilationUnitElement should be updated.
+    // The existing CompilationUnit[Element] should be updated.
+    expect(newUnit, same(oldUnit));
     expect(newUnit.element, same(oldUnitElement));
+    expect(analysisContext.parseCompilationUnit(source), same(oldUnit));
     // The only expected pending task should return the same resolved
     // "newUnit", so all clients will get it using the usual way.
     AnalysisResult analysisResult = analysisContext.performAnalysisTask();

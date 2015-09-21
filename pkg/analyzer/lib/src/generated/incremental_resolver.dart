@@ -1715,8 +1715,8 @@ class PoorMansIncrementalResolver {
     _newSourceEntry.setValueIncremental(SCAN_ERRORS, _newScanErrors, true);
     _newSourceEntry.setValueIncremental(LINE_INFO, _newLineInfo, false);
     // parse results
-    _newSourceEntry.setValueIncremental(PARSE_ERRORS, _newScanErrors, true);
-    _newSourceEntry.setValueIncremental(PARSED_UNIT, _newScanErrors, false);
+    _newSourceEntry.setValueIncremental(PARSE_ERRORS, _newParseErrors, true);
+    _newSourceEntry.setValueIncremental(PARSED_UNIT, _oldUnit, false);
   }
 
   void _updateEntry_OLD() {
