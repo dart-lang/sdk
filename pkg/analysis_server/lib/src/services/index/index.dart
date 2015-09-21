@@ -78,8 +78,6 @@ abstract class Index implements IndexStore {
  * a concrete kind of this name - field, method or something else.
  */
 class IndexableName implements IndexableObject {
-  // TODO(brianwilkerson) Replace NameElement with this class. This will require
-  // generalizing the search engine to use IndexableObject rather than Element.
   /**
    * The name to be indexed.
    */
@@ -103,6 +101,10 @@ class IndexableName implements IndexableObject {
 
   @override
   Source get source => null;
+
+  @override
+  bool operator ==(Object object) =>
+      object is IndexableName && object.name == name;
 
   @override
   String toString() => name;
@@ -317,20 +319,6 @@ class LocationWithData<D> extends LocationImpl {
 
   LocationWithData(LocationImpl location, this.data)
       : super(location.indexable, location.offset, location.length);
-}
-
-/**
- * An [Element] which is used to index references to the name without specifying
- * a concrete kind of this name - field, method or something else.
- */
-class NameElement extends ElementImpl {
-  NameElement(String name) : super(name, -1);
-
-  @override
-  ElementKind get kind => ElementKind.NAME;
-
-  @override
-  accept(ElementVisitor visitor) => null;
 }
 
 /**
