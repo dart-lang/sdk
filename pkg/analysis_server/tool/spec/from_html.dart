@@ -293,7 +293,9 @@ Api readApi() {
   File htmlFile = new File('spec_input.html');
   String htmlContents = htmlFile.readAsStringSync();
   dom.Document document = parser.parse(htmlContents);
-  return apiFromHtml(document.firstChild);
+  dom.Element htmlElement = document.children
+      .singleWhere((element) => element.localName.toLowerCase() == 'html');
+  return apiFromHtml(htmlElement);
 }
 
 void recurse(dom.Element parent, String context,

@@ -84,6 +84,7 @@ dt.typeDefinition {
 final GeneratedFile target = new GeneratedFile('../../doc/api.html', () {
   ToHtmlVisitor visitor = new ToHtmlVisitor(readApi());
   dom.Document document = new dom.Document();
+  document.append(new dom.DocumentType('html', null, null));
   for (dom.Node node in visitor.collectHtml(visitor.visitApi)) {
     document.append(node);
   }
