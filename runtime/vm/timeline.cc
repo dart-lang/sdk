@@ -39,7 +39,12 @@ void Timeline::InitOnce() {
     recorder_ = new TimelineEventRingRecorder();
   }
   vm_stream_ = new TimelineStream();
-  vm_stream_->Init("VM", EnableStreamByDefault("VM"));
+  vm_stream_->Init("VM", EnableStreamByDefault("VM"), NULL);
+  // Global overrides.
+#define ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT(name, not_used)                   \
+  stream_##name##_enabled_ = false;
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT)
+#undef ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT
 }
 
 
@@ -74,6 +79,11 @@ TimelineStream* Timeline::GetVMStream() {
 
 TimelineEventRecorder* Timeline::recorder_ = NULL;
 TimelineStream* Timeline::vm_stream_ = NULL;
+
+#define ISOLATE_TIMELINE_STREAM_DEFINE_FLAG(name, enabled_by_default)          \
+  bool Timeline::stream_##name##_enabled_ = false;
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_DEFINE_FLAG)
+#undef ISOLATE_TIMELINE_STREAM_DEFINE_FLAG
 
 TimelineEvent::TimelineEvent()
     : timestamp0_(0),
@@ -311,19 +321,23 @@ int64_t TimelineEvent::TimeDuration() const {
 
 TimelineStream::TimelineStream()
     : name_(NULL),
-      enabled_(false) {
+      enabled_(false),
+      globally_enabled_(NULL) {
 }
 
 
-void TimelineStream::Init(const char* name, bool enabled) {
+void TimelineStream::Init(const char* name,
+                          bool enabled,
+                          const bool* globally_enabled) {
   name_ = name;
   enabled_ = enabled;
+  globally_enabled_ = globally_enabled;
 }
 
 
 TimelineEvent* TimelineStream::StartEvent() {
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (!enabled_ || (recorder == NULL)) {
+  if (!Enabled() || (recorder == NULL)) {
     return NULL;
   }
   ASSERT(name_ != NULL);

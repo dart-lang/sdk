@@ -22,6 +22,13 @@ class TimelineEventBlock;
 class TimelineEventRecorder;
 class TimelineStream;
 
+// (name, enabled by default for isolate).
+#define ISOLATE_TIMELINE_STREAM_LIST(V)                                        \
+  V(API, false)                                                                \
+  V(Compiler, false)                                                           \
+  V(Embedder, false)                                                           \
+  V(GC, false)                                                                 \
+  V(Isolate, false)                                                            \
 
 class Timeline : public AllStatic {
  public:
@@ -38,9 +45,24 @@ class Timeline : public AllStatic {
 
   static TimelineStream* GetVMStream();
 
+#define ISOLATE_TIMELINE_STREAM_FLAGS(name, not_used)                          \
+  static const bool* Stream##name##EnabledFlag() {                             \
+    return &stream_##name##_enabled_;                                          \
+  }                                                                            \
+  static void SetStream##name##Enabled(bool enabled) {                         \
+    stream_##name##_enabled_ = enabled;                                        \
+  }
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_FLAGS)
+#undef ISOLATE_TIMELINE_STREAM_FLAGS
+
  private:
   static TimelineEventRecorder* recorder_;
   static TimelineStream* vm_stream_;
+
+#define ISOLATE_TIMELINE_STREAM_DECLARE_FLAG(name, not_used)                   \
+  static bool stream_##name##_enabled_;
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_DECLARE_FLAG)
+#undef ISOLATE_TIMELINE_STREAM_DECLARE_FLAG
 
   friend class TimelineRecorderOverride;
 };
@@ -190,15 +212,22 @@ class TimelineEvent {
 
 
 // A stream of timeline events. A stream has a name and can be enabled or
-// disabled.
+// disabled (globally and per isolate).
 class TimelineStream {
  public:
   TimelineStream();
 
-  void Init(const char* name, bool enabled);
+  void Init(const char* name,
+            bool enabled,
+            const bool* globally_enabled = NULL);
 
   const char* name() const {
     return name_;
+  }
+
+  bool Enabled() const {
+    return ((globally_enabled_ != NULL) && *globally_enabled_) ||
+           enabled();
   }
 
   bool enabled() const {
@@ -216,17 +245,8 @@ class TimelineStream {
  private:
   const char* name_;
   bool enabled_;
+  const bool* globally_enabled_;
 };
-
-
-// (name, enabled by default).
-#define ISOLATE_TIMELINE_STREAM_LIST(V)                                        \
-  V(API, false)                                                                \
-  V(Compiler, false)                                                           \
-  V(Embedder, false)                                                           \
-  V(GC, false)                                                                 \
-  V(Isolate, false)                                                            \
-
 
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, suffix, function)       \
   TimelineDurationScope tds(thread,                                            \

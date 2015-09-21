@@ -666,7 +666,7 @@ class Isolate : public BaseIsolate {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_ACCESSOR);
 #undef ISOLATE_METRIC_ACCESSOR
 
-#define ISOLATE_TIMELINE_STREAM_ACCESSOR(name, enabled_by_default)             \
+#define ISOLATE_TIMELINE_STREAM_ACCESSOR(name, not_used)                       \
   TimelineStream* Get##name##Stream() { return &stream_##name##_; }
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_ACCESSOR)
 #undef ISOLATE_TIMELINE_STREAM_ACCESSOR
@@ -945,7 +945,7 @@ class Isolate : public BaseIsolate {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
 
-#define ISOLATE_TIMELINE_STREAM_VARIABLE(name, enabled_by_default)             \
+#define ISOLATE_TIMELINE_STREAM_VARIABLE(name, not_used)                       \
   TimelineStream stream_##name##_;
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_VARIABLE)
 #undef ISOLATE_TIMELINE_STREAM_VARIABLE

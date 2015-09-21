@@ -5692,6 +5692,28 @@ DART_EXPORT void Dart_TimelineSetRecordedStreams(int64_t stream_mask) {
 }
 
 
+DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
+  // Per isolate overrides.
+  const bool api_enabled = (stream_mask & DART_TIMELINE_STREAM_API) != 0;
+  const bool compiler_enabled =
+      (stream_mask & DART_TIMELINE_STREAM_COMPILER) != 0;
+  const bool embedder_enabled =
+      (stream_mask & DART_TIMELINE_STREAM_EMBEDDER) != 0;
+  const bool gc_enabled = (stream_mask & DART_TIMELINE_STREAM_GC) != 0;
+  const bool isolate_enabled =
+      (stream_mask & DART_TIMELINE_STREAM_ISOLATE) != 0;
+  Timeline::SetStreamAPIEnabled(api_enabled);
+  Timeline::SetStreamCompilerEnabled(compiler_enabled);
+  Timeline::SetStreamEmbedderEnabled(embedder_enabled);
+  Timeline::SetStreamGCEnabled(gc_enabled);
+  Timeline::SetStreamIsolateEnabled(isolate_enabled);
+  // VM wide.
+  const bool vm_enabled =
+      (stream_mask & DART_TIMELINE_STREAM_VM) != 0;
+  Timeline::GetVMStream()->set_enabled(vm_enabled);
+}
+
+
 DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
                                        void* user_data) {
   Isolate* isolate = Isolate::Current();

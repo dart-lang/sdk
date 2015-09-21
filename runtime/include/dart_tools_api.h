@@ -890,7 +890,10 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
 /** Timeline stream for isolate events */
 #define DART_TIMELINE_STREAM_ISOLATE (1 << 4)
 
-/** Enable all timeline stream recording */
+/** Timeline stream for VM events */
+#define DART_TIMELINE_STREAM_VM (1 << 5)
+
+/** Enable all timeline stream recording for an isolate */
 #define DART_TIMELINE_STREAM_ALL (DART_TIMELINE_STREAM_API |                   \
                                   DART_TIMELINE_STREAM_COMPILER |              \
                                   DART_TIMELINE_STREAM_EMBEDDER |              \
@@ -908,6 +911,19 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
  * NOTE: Calling with 0 disables recording of all streams.
  */
 DART_EXPORT void Dart_TimelineSetRecordedStreams(int64_t stream_mask);
+
+
+/**
+ * Start recording timeline events for the entire VM (including all isolates).
+ *
+ * NOTE: When enabled, the global flag, will override the per-isolate flag.
+ *
+ * \param stream_mask A bitmask of streams that should be recorded.
+ *
+ * NOTE: Calling with 0 disables recording of all streams.
+ */
+DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask);
+
 
 typedef enum {
   /** Indicates a new stream is being output */

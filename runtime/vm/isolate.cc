@@ -790,7 +790,8 @@ Isolate* Isolate::Init(const char* name_prefix,
 #define ISOLATE_TIMELINE_STREAM_INIT(name, enabled_by_default)                 \
   result->stream_##name##_.Init(#name,                                         \
                                 Timeline::EnableStreamByDefault(#name) ||      \
-                                enabled_by_default);
+                                enabled_by_default,                            \
+                                Timeline::Stream##name##EnabledFlag());
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_INIT);
 #undef ISOLATE_TIMELINE_STREAM_INIT
 
