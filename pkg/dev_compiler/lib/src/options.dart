@@ -115,6 +115,9 @@ class CompilerOptions {
   /// Whether the user asked for help.
   final bool help;
 
+  /// Whether the user asked for the app version.
+  final bool version;
+
   /// Minimum log-level reported on the command-line.
   final Level logLevel;
 
@@ -155,6 +158,7 @@ class CompilerOptions {
       this.dumpInfoFile,
       this.useColors: true,
       this.help: false,
+      this.version: false,
       this.logLevel: Level.SEVERE,
       this.serverMode: false,
       this.enableHashing: false,
@@ -170,6 +174,7 @@ class CompilerOptions {
 CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
   ArgResults args = argParser.parse(argv);
   bool showUsage = args['help'];
+  bool showVersion = args['version'];
 
   var serverMode = args['server'];
   var enableHashing = args['hashing'];
@@ -241,6 +246,7 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
       dumpInfoFile: args['dump-info-file'],
       useColors: useColors,
       help: showUsage,
+      version: showVersion,
       logLevel: logLevel,
       serverMode: serverMode,
       enableHashing: enableHashing,
@@ -288,6 +294,7 @@ final ArgParser argParser = StrongModeOptions.addArguments(new ArgParser()
 
   // general options
   ..addFlag('help', abbr: 'h', help: 'Display this message')
+  ..addFlag('version', help: 'Display the Dev Compiler verion')
   ..addFlag('server', help: 'Run as a development server.', defaultsTo: false)
   ..addFlag('hashing',
       help: 'Enable hash-based file caching.', defaultsTo: null)
