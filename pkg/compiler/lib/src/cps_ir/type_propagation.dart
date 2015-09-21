@@ -982,8 +982,7 @@ class TransformingVisitor extends LeafVisitor {
         CpsFragment cps = new CpsFragment(sourceInfo);
         cps.invokeBuiltin(BuiltinMethod.Push,
             list,
-            <Primitive>[addedItem],
-            receiverIsNotNull: listValue.isDefinitelyNotNull);
+            <Primitive>[addedItem]);
         cps.invokeContinuation(cont, [cps.makeNull()]);
         replaceSubtree(node, cps.result);
         push(cps.result);
@@ -1006,8 +1005,7 @@ class TransformingVisitor extends LeafVisitor {
             [list, fail.makeConstant(new IntConstantValue(-1))]);
         Primitive removedItem = cps.invokeBuiltin(BuiltinMethod.Pop,
             list,
-            <Primitive>[],
-            receiverIsNotNull: listValue.isDefinitelyNotNull);
+            <Primitive>[]);
         cps.invokeContinuation(cont, [removedItem]);
         replaceSubtree(node, cps.result);
         push(cps.result);
@@ -1031,8 +1029,7 @@ class TransformingVisitor extends LeafVisitor {
         CpsFragment cps = new CpsFragment(sourceInfo);
         cps.invokeBuiltin(BuiltinMethod.Push,
             list,
-            addedLiteral.values.map((ref) => ref.definition).toList(),
-            receiverIsNotNull: listValue.isDefinitelyNotNull);
+            addedLiteral.values.map((ref) => ref.definition).toList());
         cps.invokeContinuation(cont, [cps.makeNull()]);
         replaceSubtree(node, cps.result);
         push(cps.result);
@@ -1480,7 +1477,6 @@ class TransformingVisitor extends LeafVisitor {
     if (specializeClosureCall(node)) return;
 
     AbstractValue receiver = getValue(node.receiver.definition);
-    node.receiverIsNotNull = receiver.isDefinitelyNotNull;
 
     if (node.receiverIsIntercepted &&
         node.receiver.definition.sameValue(node.arguments[0].definition)) {
@@ -1837,14 +1833,6 @@ class TransformingVisitor extends LeafVisitor {
     return null;
   }
 
-  void visitGetField(GetField node) {
-    node.objectIsNotNull = getValue(node.object.definition).isDefinitelyNotNull;
-  }
-
-  void visitGetLength(GetLength node) {
-    node.objectIsNotNull = getValue(node.object.definition).isDefinitelyNotNull;
-  }
-
   Primitive visitInterceptor(Interceptor node) {
     AbstractValue value = getValue(node.input.definition);
     // If the exact class of the input is known, replace with a constant
@@ -2143,6 +2131,7 @@ class TypePropagationVisitor implements Visitor {
 
   void visitInvokeMethod(InvokeMethod node) {
     AbstractValue receiver = getValue(node.receiver.definition);
+    node.receiverIsNotNull = receiver.isDefinitelyNotNull;
     if (receiver.isNothing) {
       return;  // And come back later.
     }
@@ -2447,6 +2436,7 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitGetField(GetField node) {
+    node.objectIsNotNull = getValue(node.object.definition).isDefinitelyNotNull;
     setValue(node, nonConstant(typeSystem.getFieldType(node.field)));
   }
 
@@ -2492,6 +2482,7 @@ class TypePropagationVisitor implements Visitor {
   @override
   void visitGetLength(GetLength node) {
     AbstractValue input = getValue(node.object.definition);
+    node.objectIsNotNull = getValue(node.object.definition).isDefinitelyNotNull;
     int length = typeSystem.getContainerLength(input.type);
     if (length != null) {
       // TODO(asgerf): Constant-folding the length might degrade the VM's
