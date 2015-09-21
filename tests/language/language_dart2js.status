@@ -269,7 +269,6 @@ async_await_test/02: Crash # (switch (v){label:ca...  continue to a labeled swit
 async_await_test/03: Crash # (switch (v){label:ca...  continue to a labeled switch case
 async_await_test/none: Crash # (switch (v){label:ca...  continue to a labeled switch case
 async_continue_label_test/await_in_init: RuntimeError # Please triage this failure.
-async_continue_label_test/await_in_update: RuntimeError # Please triage this failure.
 async_or_generator_return_type_stacktrace_test/02: Crash # (void badReturnTypeAsyncStar()async*{}): cannot handle sync*/async* functions
 async_or_generator_return_type_stacktrace_test/03: Crash # (void badReturnTypeSyncStar()sync*{}): cannot handle sync*/async* functions
 async_star_await_pauses_test: Crash # (await for(var i in ...  await for
@@ -281,8 +280,6 @@ async_star_regression_fisk_test: Crash # (fisk()async*{res.ad...  cannot handle 
 async_star_stream_take_test: Crash # (await for(var v in s.take(5))r+= v;): await for
 async_star_take_reyield_test: Crash # (fivePartialSums(Str...  cannot handle sync*/async* functions
 async_star_test: Crash # (f()async*{}): cannot handle sync*/async* functions
-async_switch_test/none: RuntimeError # Uncaught Error: Expect.equals(expected: <1>, actual: <null>) fails.
-async_switch_test/withDefault: RuntimeError # Uncaught Error: Expect.equals(expected: <1>, actual: <null>) fails.
 asyncstar_concat_test: Crash # (concat(a,b)async*{yield* a;yield* b;}): cannot handle sync*/async* functions
 asyncstar_throw_in_catch_test: Crash # (foo4(Tracer tracer)...  cannot handle sync*/async* functions
 asyncstar_yield_test: Crash # (Stream<int> foo4()a...  cannot handle sync*/async* functions
@@ -290,8 +287,10 @@ asyncstar_yieldstar_test: Crash # (foo2(Stream subStream)async*{yield* subStream
 await_for_cancel_test: Crash # (await for(var x in controller.stream){for(int j=0;j<10;j++ ){if(j==5)continue outer;}}): await for
 await_for_test: Crash # (await for(var x in infiniteStream()){i++ ;if(i>10)break;t4.record(x);}): await for
 await_for_use_local_test: Crash # (await for(var v in s){accum+= v;}): await for
-await_future_test: Timeout
+await_future_test: RuntimeError # Uncaught Error: NullError: method not found: '_await_future_test$_box_0' on null
+await_postfix_expr_test: RuntimeError # Uncaught Error: NullError: method not found: '$add' on null
 await_regression_test: RuntimeError # "Obelix".then$1 is not a function
+await_test: RuntimeError # Uncaught Error: NullError: method not found: '$add' on null
 cha_deopt1_test: Crash # (d.make_u()): deferred access is not implemented
 cha_deopt2_test: Crash # (d.make_u()): deferred access is not implemented
 cha_deopt3_test: Crash # (d.make_u()): deferred access is not implemented

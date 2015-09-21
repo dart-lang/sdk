@@ -2515,8 +2515,7 @@ class TypePropagationVisitor implements Visitor {
 
   @override
   void visitAwait(Await node) {
-    Continuation continuation = node.continuation.definition;
-    setReachable(continuation);
+    setResult(node, nonConstant());
   }
 
   @override
