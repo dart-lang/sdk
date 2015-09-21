@@ -12,18 +12,15 @@ js_typed_interop_test: Skip # Issue 23676, 23677
 [ $compiler == none && $runtime == dartium ]
 cross_domain_iframe_test: RuntimeError # Dartium JSInterop failure
 crypto_test/functional: RuntimeError # Dartium JSInterop failure
-custom/created_callback_test: RuntimeError # Dartium JSInterop failure
+custom/created_callback_test: Skip # Dartium JSInterop failure
 custom/document_register_basic_test: RuntimeError # Dartium JSInterop failure
 custom/document_register_type_extensions_test/registration: RuntimeError # Dartium JSInterop failure
 custom/element_upgrade_test: RuntimeError # Dartium JSInterop failure
 custom/js_custom_test: RuntimeError # Dartium JSInterop failure
 custom_elements_test/register: RuntimeError # Dartium JSInterop failure
-indexeddb_2_test: RuntimeError # Dartium JSInterop failure
-indexeddb_5_test: RuntimeError # Dartium JSInterop failure
+indexeddb_2_test: Skip # Dartium JSInterop failure
 js_test: RuntimeError # Dartium JSInterop failure
-native_gc_test: RuntimeError # Dartium JSInterop failure
-postmessage_structured_test/iframe: RuntimeError # Dartium JSInterop failure
-postmessage_structured_test/primitives: RuntimeError # Dartium JSInterop failure
+native_gc_test: Skip # Dartium JSInterop failure
 speechrecognition_test/types: RuntimeError # Dartium JSInterop failure
 storage_quota_test/missingenumcheck: RuntimeError # Dartium JSInterop failure
 storage_quota_test/none: RuntimeError # Dartium JSInterop failure
@@ -64,7 +61,6 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
 # Dartium seems to lose the data from the dispatchEvent.
-postmessage_structured_test/more_primitives: Fail
 async_test: Fail # Uses spawn, not implemented from a DOM isolate in Dartium
 keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
