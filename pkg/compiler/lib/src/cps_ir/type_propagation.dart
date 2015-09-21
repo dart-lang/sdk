@@ -43,12 +43,15 @@ class ConstantPropagationLattice {
   final ConstantSystem constantSystem;
   final types.DartTypes dartTypes;
   final AbstractValue anything;
+  final AbstractValue nullValue;
 
   ConstantPropagationLattice(TypeMaskSystem typeSystem,
                              this.constantSystem,
                              this.dartTypes)
     : this.typeSystem = typeSystem,
-      anything = new AbstractValue.nonConstant(typeSystem.dynamicType);
+      anything = new AbstractValue.nonConstant(typeSystem.dynamicType),
+      nullValue = new AbstractValue.constantValue(
+          new NullConstantValue(), new TypeMask.empty());
 
   final AbstractValue nothing = new AbstractValue.nothing();
 
@@ -1828,6 +1831,23 @@ class TransformingVisitor extends LeafVisitor {
       return new ApplyBuiltinOperator(
           BuiltinOperator.IsNumber,
           <Primitive>[prim],
+          node.sourceInformation);
+    }
+    AbstractBool isNullableSubtype =
+        lattice.isSubtypeOf(value, node.dartType, allowNull: true);
+    AbstractBool isNullPassingTest =
+        lattice.isSubtypeOf(lattice.nullValue, node.dartType);
+    if (isNullableSubtype == AbstractBool.True &&
+        isNullPassingTest == AbstractBool.False) {
+      // Null is the only value not satisfying the type test.
+      // Replace the type test with a null-check.
+      // This has lower priority than the 'typeof'-based tests because
+      // 'typeof' expressions might give the VM some more useful information.
+      Primitive nullConst = makeConstantPrimitive(new NullConstantValue());
+      insertLetPrim(node.parent, nullConst);
+      return new ApplyBuiltinOperator(
+          BuiltinOperator.LooseNeq,
+          <Primitive>[prim, nullConst],
           node.sourceInformation);
     }
     return null;
