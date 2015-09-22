@@ -1548,6 +1548,7 @@ LayoutTests/fast/multicol/balance-short-trailing-empty-block_t01: Pass
 LayoutTests/fast/multicol/balance-trailing-border_t01: Pass
 LayoutTests/fast/multicol/columns-shorthand-parsing_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/widows_t02: Pass
+LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Issue 24398
 
 [ $compiler == dart2js && $runtime == ff && $system == linux]
 LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
@@ -6198,6 +6199,7 @@ LayoutTests/fast/dom/HTMLDialogElement/dialog-autofocus_t01: RuntimeError # Plea
 LayoutTests/fast/dom/HTMLDialogElement/dialog-close-event_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-enabled_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-open_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLDialogElement/dialog-return-value_t01: RuntimeError # Issue 24396
 LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-show-modal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-does-not-match-disabled-selector_t01: RuntimeError # Please triage this failure
@@ -6720,6 +6722,7 @@ LayoutTests/fast/forms/datetimelocal/ValidityState-typeMismatch-datetimelocal_t0
 LayoutTests/fast/forms/datetimelocal/datetimelocal-input-type_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/datetimelocal-pseudo-classes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/input-valueasdate-datetimelocal_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/datetimelocal/input-valueasnumber-datetimelocal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/delete-text-with-invisible-br_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/enctype-attribute_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/fieldset/fieldset-disabled_t01: RuntimeError # Please triage this failure
@@ -7697,7 +7700,6 @@ WebPlatformTest/webstorage/event_session_storageeventinit_t01: Pass, RuntimeErro
 WebPlatformTest/webstorage/event_session_url_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_builtins_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
-WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == ie11 ]
 Language/05_Variables/05_Variables_A14_t07: Skip # Times out. Please triage this failure
@@ -8205,6 +8207,7 @@ LayoutTests/fast/dom/HTMLDialogElement/dialog-autofocus_t01: RuntimeError # Plea
 LayoutTests/fast/dom/HTMLDialogElement/dialog-close-event_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-enabled_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-open_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLDialogElement/dialog-return-value_t01: RuntimeError # Issue 24396
 LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-show-modal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-does-not-match-disabled-selector_t01: RuntimeError # Please triage this failure
@@ -8704,6 +8707,7 @@ LayoutTests/fast/forms/datetimelocal/ValidityState-typeMismatch-datetimelocal_t0
 LayoutTests/fast/forms/datetimelocal/datetimelocal-input-type_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/datetimelocal-pseudo-classes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/input-valueasdate-datetimelocal_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/datetimelocal/input-valueasnumber-datetimelocal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/delete-text-with-invisible-br_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/enctype-attribute_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/fieldset/fieldset-disabled_t01: RuntimeError # Please triage this failure
@@ -9556,7 +9560,6 @@ WebPlatformTest/webstorage/event_session_storagearea_t01: RuntimeError # Please 
 WebPlatformTest/webstorage/event_session_url_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_builtins_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
-WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $cps_ir ]
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: RuntimeError # Please triage this failure.
