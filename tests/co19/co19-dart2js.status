@@ -1553,6 +1553,7 @@ LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Issue 2439
 [ $compiler == dart2js && $runtime == ff && $system == linux]
 LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
+LayoutTests/fast/forms/change-form-element-document-crash_t01: RuntimeError # Dartium JSInterop failure, or else Firefox roll error. Issue 24409
 
 [ $compiler == dart2js && $runtime == chrome && $system == linux]
 LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
