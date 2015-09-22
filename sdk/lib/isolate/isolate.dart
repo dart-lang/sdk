@@ -237,6 +237,15 @@ class Isolate {
    * WARNING: The [packageRoot] and [packages] parameters are not implemented
    * on all platforms yet.
    *
+   * The [environment] is a mapping from strings to strings which the
+   * spawned isolate uses when looking up [String.fromEnvironment] values.
+   * The system may add its own entries to environment as well.
+   * If `environment` is omitted, the spawned isolate has the same environment
+   * declarations as the spawning isolate.
+   *
+   * WARNING: The [environment] parameter is not implemented on all
+   * platforms yet.
+   *
    * Returns a future that will complete with an [Isolate] instance if the
    * spawning succeeded. It will complete with an error otherwise.
    */
@@ -245,12 +254,13 @@ class Isolate {
       List<String> args,
       var message,
       {bool paused: false,
-       bool checked,
-       Uri packageRoot,
-       Map<String, Uri> packages,
-       bool errorsAreFatal,
        SendPort onExit,
-       SendPort onError});
+       SendPort onError,
+       bool errorsAreFatal,
+       bool checked,
+       Map<String, String> environment,
+       Uri packageRoot,
+       Map<String, Uri> packages});
 
   /**
    * Requests the isolate to pause.

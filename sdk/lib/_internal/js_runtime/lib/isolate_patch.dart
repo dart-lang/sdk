@@ -61,12 +61,14 @@ class Isolate {
   static Future<Isolate> spawnUri(
       Uri uri, List<String> args, var message,
       {bool paused: false,
-       bool checked,
-       Uri packageRoot,
-       Map<String, Uri> packages,
-       bool errorsAreFatal,
        SendPort onExit,
-       SendPort onError}) {
+       SendPort onError,
+       bool errorsAreFatal,
+       bool checked,
+       Map<String, String> environment,
+       Uri packageRoot,
+       Map<String, Uri> packages}) {
+    if (environment != null) throw new UnimplementedError("environment");
     if (packageRoot != null) throw new UnimplementedError("packageRoot");
     if (packages != null) throw new UnimplementedError("packages");
     bool forcePause = (errorsAreFatal != null) ||
