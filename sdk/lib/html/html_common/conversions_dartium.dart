@@ -9,7 +9,7 @@ convertNativeToDart_AcceptStructuredClone(object, {mustCopy: false}) =>
 class _StructuredCloneDartium extends _StructuredClone {
   newJsMap() => new js.JsObject(js.context["Object"]);
   putIntoMap(map, key, value) => map[key] = value;
-  newJSList(length) => new js.JsArray();
+  newJsList(length) => new js.JsArray();
   cloneNotRequired(e) => e is js.JsObject;
 }
 
