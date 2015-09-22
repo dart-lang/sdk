@@ -69,7 +69,7 @@ class DartUnitContributorTest extends AbstractSingleUnitTest {
 
   void setUp() {
     super.setUp();
-    when(store.aboutToIndexDart(context, anyObject)).thenReturn(true);
+    when(store.aboutToIndex(context, anyObject)).thenReturn(true);
     when(store.recordRelationship(anyObject, anyObject, anyObject)).thenInvoke(
         (IndexableObject indexable, RelationshipImpl relationship,
             LocationImpl location) {

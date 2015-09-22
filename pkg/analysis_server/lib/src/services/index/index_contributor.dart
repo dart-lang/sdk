@@ -35,7 +35,7 @@ void indexDartUnit(
     return;
   }
   // about to index
-  bool mayIndex = store.aboutToIndexDart(context, unitElement);
+  bool mayIndex = store.aboutToIndex(context, unitElement);
   if (!mayIndex) {
     return;
   }
@@ -44,7 +44,7 @@ void indexDartUnit(
     unit.accept(new _IndexContributor(store));
     store.doneIndex();
   } catch (e) {
-    store.cancelIndexDart();
+    store.cancelIndex();
     rethrow;
   }
 }
@@ -54,22 +54,23 @@ void indexDartUnit(
  */
 void indexHtmlUnit(
     InternalIndexStore store, AnalysisContext context, ht.HtmlUnit unit) {
-  // check unit
-  if (unit == null) {
-    return;
-  }
-  // prepare unit element
-  HtmlElement unitElement = unit.element;
-  if (unitElement == null) {
-    return;
-  }
-  // about to index
-  bool mayIndex = store.aboutToIndexHtml(context, unitElement);
-  if (!mayIndex) {
-    return;
-  }
-  // do index
-  store.doneIndex();
+  // TODO(scheglov) remove or implement
+//  // check unit
+//  if (unit == null) {
+//    return;
+//  }
+//  // prepare unit element
+//  HtmlElement unitElement = unit.element;
+//  if (unitElement == null) {
+//    return;
+//  }
+//  // about to index
+//  bool mayIndex = store.aboutToIndexHtml(context, unitElement);
+//  if (!mayIndex) {
+//    return;
+//  }
+//  // do index
+//  store.doneIndex();
 }
 
 /**
