@@ -37,10 +37,12 @@ def BuildDartdocAPIDocs(dirname):
                               'packages')
   footer_file = os.path.join(bot_utils.DART_DIR,
                               'tools', 'bots', 'dartdoc_footer.html')
+  url = 'https://api.dartlang.org/stable'
   with bot.BuildStep('Build API docs by dartdoc'):
     subprocess.call([dart_exe, '--package-root=' + packages_dir, dartdoc_dart, 
                     '--sdk-docs','--output', dirname, '--dart-sdk', dart_sdk, 
-                    '--footer' , footer_file], 
+                    '--footer' , footer_file,
+                    '--rel-canonical-prefix=' + url], 
                      stdout=open(os.devnull, 'wb'))
 
 def CreateUploadVersionFile():
