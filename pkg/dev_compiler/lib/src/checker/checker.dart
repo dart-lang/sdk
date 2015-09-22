@@ -526,7 +526,8 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   visitMethodInvocation(MethodInvocation node) {
     var target = node.realTarget;
-    if (rules.isDynamicTarget(target)) {
+    if (rules.isDynamicTarget(target) &&
+        !_isObjectMethod(node, node.methodName)) {
       _recordDynamicInvoke(node, target);
 
       // Mark the tear-off as being dynamic, too. This lets us distinguish
@@ -610,7 +611,8 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitPropertyAccess(PropertyAccess node) {
     var target = node.realTarget;
-    if (rules.isDynamicTarget(target)) {
+    if (rules.isDynamicTarget(target) &&
+        !_isObjectProperty(target, node.propertyName)) {
       _recordDynamicInvoke(node, target);
     }
     node.visitChildren(this);
@@ -619,7 +621,8 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     final target = node.prefix;
-    if (rules.isDynamicTarget(target)) {
+    if (rules.isDynamicTarget(target) &&
+        !_isObjectProperty(target, node.identifier)) {
       _recordDynamicInvoke(node, target);
     }
     node.visitChildren(this);
@@ -918,6 +921,22 @@ class CodeChecker extends RecursiveAstVisitor {
         _recordMessage(staticInfo);
       }
     }
+  }
+
+  bool _isObjectGetter(Expression target, SimpleIdentifier id) {
+    PropertyAccessorElement element =
+        rules.provider.objectType.element.getGetter(id.name);
+    return (element != null && !element.isStatic);
+  }
+
+  bool _isObjectMethod(Expression target, SimpleIdentifier id) {
+    MethodElement element =
+        rules.provider.objectType.element.getMethod(id.name);
+    return (element != null && !element.isStatic);
+  }
+
+  bool _isObjectProperty(Expression target, SimpleIdentifier id) {
+    return _isObjectGetter(target, id) || _isObjectMethod(target, id);
   }
 
   void _recordDynamicInvoke(AstNode node, AstNode target) {

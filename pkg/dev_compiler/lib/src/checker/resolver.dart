@@ -696,7 +696,6 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
       if (type is FunctionType &&
           type.parameters.isEmpty &&
           node.argumentList.arguments.isEmpty) {
-        node.target.staticType = _typeProvider.objectType;
         node.methodName.staticType = type;
         // Only infer the type of the overall expression if we have an exact
         // type - e.g., a sealed type.  Otherwise, it may be too strict.
@@ -757,7 +756,6 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
     if (node.staticType.isDynamic &&
         _objectMembers.containsKey(name) &&
         isDynamicTarget(target)) {
-      target.staticType = _typeProvider.objectType;
       var type = _objectMembers[name];
       id.staticType = type;
       // Only infer the type of the overall expression if we have an exact
