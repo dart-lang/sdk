@@ -765,7 +765,6 @@ class InterpolatedNodeAnalysis extends BaseVisitor {
     int before = count;
     node.visitChildren(this);
     if (count != before) containsInterpolatedNode.add(node);
-    return null;
   }
 
   visitInterpolatedNode(InterpolatedNode node) {

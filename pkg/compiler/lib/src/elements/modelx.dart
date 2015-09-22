@@ -1403,7 +1403,7 @@ abstract class ConstantVariableMixin implements VariableElement {
     if (isPatch) {
       ConstantVariableMixin originVariable = origin;
       originVariable.constant = value;
-      return null;
+      return;
     }
     assert(invariant(
         this, constantCache == null || constantCache == value,
