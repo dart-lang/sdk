@@ -976,6 +976,23 @@ typedef void (*Dart_StreamConsumer)(
 DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
                                        void* user_data);
 
+
+/**
+ * Get the timeline for entire VM (including all isolates).
+ *
+ * NOTE: The timeline retrieved from this API call may not include the most
+ * recent events.
+ *
+ * \param consumer A Dart_StreamConsumer.
+ * \param user_data User data passed into consumer.
+ *
+ * NOTE: The trace-event format is documented here: https://goo.gl/hDZw5M
+ *
+ * \return True if a stream was output.
+ */
+DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
+                                             void* user_data);
+
 /**
  * Add a duration timeline event to the embedder stream for the current isolate.
  *

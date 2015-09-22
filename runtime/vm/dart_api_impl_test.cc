@@ -9483,4 +9483,58 @@ TEST_CASE(Timeline_Dart_TimelineGetTraceGlobalOverride) {
   free(data.buffer);
 }
 
+
+UNIT_TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
+  const char* buffer = NULL;
+  intptr_t buffer_length = 0;
+  bool success = false;
+
+  // Enable all streams.
+  Dart_GlobalTimelineSetRecordedStreams(DART_TIMELINE_STREAM_ALL |
+                                        DART_TIMELINE_STREAM_VM);
+  {
+    // Create isolate.
+    TestIsolateScope __test_isolate__;
+    Thread* __thread__ = Thread::Current();
+    ASSERT(__thread__->isolate() == __test_isolate__.isolate());
+    StackZone __zone__(__thread__);
+    HandleScope __hs__(__thread__);
+
+    // Load test script.
+    const char* kScriptChars =
+      "foo() => 'a';\n"
+      "main() => foo();\n";
+
+    Dart_Handle lib =
+        TestCase::LoadTestScript(kScriptChars, NULL);
+
+    // Invoke main, which will be compiled resulting in a compiler event in
+    // the timeline.
+    Dart_Handle result = Dart_Invoke(lib,
+                                     NewString("main"),
+                                     0,
+                                     NULL);
+    EXPECT_VALID(result);
+  }
+
+  // Isolate is shutdown now.
+  // Grab the global trace.
+  AppendData data;
+  success = Dart_GlobalTimelineGetTrace(AppendStreamConsumer, &data);
+  EXPECT(success);
+  buffer = reinterpret_cast<char*>(data.buffer);
+  buffer_length = data.buffer_length;
+  EXPECT(buffer_length > 0);
+  EXPECT(buffer != NULL);
+
+  // Heartbeat test.
+  EXPECT_SUBSTRING("\"name\":\"InitializeIsolate\"", buffer);
+  EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
+  EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
+  EXPECT_SUBSTRING("\"function\":\"::_main\"", buffer);
+
+  // Free buffer allocated by AppendStreamConsumer
+  free(data.buffer);
+}
+
 }  // namespace dart

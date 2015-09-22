@@ -5714,34 +5714,10 @@ DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
 }
 
 
-DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
-                                       void* user_data) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  if (consumer == NULL) {
-    return false;
-  }
-  TimelineEventRecorder* timeline_recorder = Timeline::recorder();
-  if (timeline_recorder == NULL) {
-    // Nothing has been recorded.
-    return false;
-  }
-  // Suspend execution of other threads while serializing to JSON.
-  isolate->thread_registry()->SafepointThreads();
-  JSONStream js;
-  IsolateTimelineEventFilter filter(isolate);
-  timeline_recorder->PrintJSON(&js, &filter);
-  // Resume execution of other threads.
-  isolate->thread_registry()->ResumeAllThreads();
-
-  // Copy output.
-  char* output = NULL;
-  intptr_t output_length = 0;
-  js.Steal(const_cast<const char**>(&output), &output_length);
-  if (output != NULL) {
-    // Add one for the '\0' character.
-    output_length++;
-  }
+static void StreamToConsumer(Dart_StreamConsumer consumer,
+                             void* user_data,
+                             char* output,
+                             intptr_t output_length) {
   // Start stream.
   const char* kStreamName = "timeline";
   const intptr_t kDataSize = 64 * KB;
@@ -5775,8 +5751,6 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
   }
   ASSERT(cursor == output_length);
   ASSERT(remaining == 0);
-  // We stole the JSONStream's output buffer, free it.
-  free(output);
 
   // Finish stream.
   consumer(Dart_StreamConsumer_kFinish,
@@ -5784,6 +5758,76 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
            NULL,
            0,
            user_data);
+}
+
+
+DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
+                                       void* user_data) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (consumer == NULL) {
+    return false;
+  }
+  TimelineEventRecorder* timeline_recorder = Timeline::recorder();
+  if (timeline_recorder == NULL) {
+    // Nothing has been recorded.
+    return false;
+  }
+  // Suspend execution of other threads while serializing to JSON.
+  isolate->thread_registry()->SafepointThreads();
+  // TODO(johnmccutchan): Reclaim open blocks from isolate so we have a complete
+  // timeline.
+  JSONStream js;
+  IsolateTimelineEventFilter filter(isolate);
+  timeline_recorder->PrintJSON(&js, &filter);
+  // Resume execution of other threads.
+  isolate->thread_registry()->ResumeAllThreads();
+
+  // Copy output.
+  char* output = NULL;
+  intptr_t output_length = 0;
+  js.Steal(const_cast<const char**>(&output), &output_length);
+  if (output != NULL) {
+    // Add one for the '\0' character.
+    output_length++;
+  }
+  StreamToConsumer(consumer, user_data, output, output_length);
+
+  // We stole the JSONStream's output buffer, free it.
+  free(output);
+  return true;
+}
+
+
+DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
+                                             void* user_data) {
+  if (consumer == NULL) {
+    return false;
+  }
+  TimelineEventRecorder* timeline_recorder = Timeline::recorder();
+  if (timeline_recorder == NULL) {
+    // Nothing has been recorded.
+    return false;
+  }
+
+  // TODO(johnmccutchan): Reclaim all open blocks from the system so we have
+  // a complete timeline.
+  JSONStream js;
+  TimelineEventFilter filter;
+  timeline_recorder->PrintJSON(&js, &filter);
+
+  // Copy output.
+  char* output = NULL;
+  intptr_t output_length = 0;
+  js.Steal(const_cast<const char**>(&output), &output_length);
+  if (output != NULL) {
+    // Add one for the '\0' character.
+    output_length++;
+  }
+  StreamToConsumer(consumer, user_data, output, output_length);
+
+  // We stole the JSONStream's output buffer, free it.
+  free(output);
   return true;
 }
 
