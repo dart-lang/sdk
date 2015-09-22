@@ -36,7 +36,6 @@
             'create_snapshot.dart',
             '--output_dir=<(SHARED_INTERMEDIATE_DIR)',
             '--dart2js_main=pkg/compiler/lib/src/dart2js.dart',
-            '--docgen_main=pkg/docgen/bin/docgen.dart',
             '--package_root=<(PRODUCT_DIR)/packages/',
           ],
         },
