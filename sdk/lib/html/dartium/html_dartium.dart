@@ -11065,9 +11065,9 @@ class Document extends Node
     var newElement = (typeExtension == null) ?
       _blink.BlinkDocument.instance.createElementNS_Callback_2_(unwrap_jso(this), namespaceURI, qualifiedName) :
       _blink.BlinkDocument.instance.createElementNS_Callback_3_(unwrap_jso(this), namespaceURI, qualifiedName, typeExtension);
-  
+
     var wrapped;
-  
+
     if (newElement['dart_class'] != null) {
       wrapped = newElement['dart_class'];         // Here's our Dart class.
       wrapped.blink_jsObject = newElement;
@@ -11077,7 +11077,7 @@ class Document extends Node
         wrapped = wrap_jso_custom_element(newElement);
       }
     }
-  
+
     return wrapped;
   }
 
