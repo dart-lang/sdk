@@ -166,14 +166,17 @@ class AnalysisCache {
 
   /**
    * Return an iterator returning all of the map entries mapping targets to
-   * cache entries.
+   * cache entries. If the [context] is not `null`, then only entries that are
+   * owned by the given context will be returned.
    */
-  MapIterator<AnalysisTarget, CacheEntry> iterator() {
-    int count = _partitions.length;
+  MapIterator<AnalysisTarget, CacheEntry> iterator(
+      {InternalAnalysisContext context: null}) {
     List<Map<AnalysisTarget, CacheEntry>> maps =
-        new List<Map<AnalysisTarget, CacheEntry>>(count);
-    for (int i = 0; i < count; i++) {
-      maps[i] = _partitions[i].map;
+        <Map<AnalysisTarget, CacheEntry>>[];
+    for (CachePartition partition in _partitions) {
+      if (context == null || partition.context == context) {
+        maps.add(partition.map);
+      }
     }
     return new MultipleMapIterator<AnalysisTarget, CacheEntry>(maps);
   }
@@ -972,10 +975,8 @@ abstract class CachePartition {
   void _addIfSource(AnalysisTarget target) {
     if (target is Source) {
       _sources.add(target);
-      {
-        String fullName = target.fullName;
-        _pathToSources.putIfAbsent(fullName, () => <Source>[]).add(target);
-      }
+      String fullName = target.fullName;
+      _pathToSources.putIfAbsent(fullName, () => <Source>[]).add(target);
     }
   }
 

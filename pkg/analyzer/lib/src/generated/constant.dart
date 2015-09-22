@@ -1018,6 +1018,9 @@ class ConstantEvaluationTarget_Annotation implements ConstantEvaluationTarget {
       return false;
     }
   }
+
+  @override
+  String toString() => 'Constant: $annotation';
 }
 
 /**
