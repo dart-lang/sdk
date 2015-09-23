@@ -1068,6 +1068,24 @@ main() {
     expect(refactoring.returnType, 'int');
   }
 
+  test_returnType_mixInterfaceFunction() async {
+    indexTestUnit('''
+main() {
+// start
+  if (true) {
+    return 1;
+  } else {
+    return () {};
+  }
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // do check
+    await refactoring.checkInitialConditions();
+    expect(refactoring.returnType, 'Object');
+  }
+
   test_returnType_statements() async {
     indexTestUnit('''
 main() {
@@ -2577,6 +2595,35 @@ int res() {
     return 'abc';
   }
   return 42;
+}
+''');
+  }
+
+  test_statements_return_multiple_interfaceFunction() {
+    indexTestUnit('''
+main(bool b) {
+// start
+  if (b) {
+    return 1;
+  }
+  return () {};
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main(bool b) {
+// start
+  return res(b);
+// end
+}
+
+Object res(bool b) {
+  if (b) {
+    return 1;
+  }
+  return () {};
 }
 ''');
   }

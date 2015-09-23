@@ -18,8 +18,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:plugin/manager.dart';
 
 int findIdentifierLength(String search) {
   int length = 0;
