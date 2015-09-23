@@ -1128,7 +1128,7 @@ void FlowGraphCompiler::CompileGraph() {
   __ int3();
   GenerateDeferredCode();
 
-  if (is_optimizing()) {
+  if (is_optimizing() && Compiler::allow_recompilation()) {
     // Leave enough space for patching in case of lazy deoptimization from
     // deferred code.
     __ nop(CallPattern::pattern_length_in_bytes());
