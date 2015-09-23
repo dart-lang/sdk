@@ -30,15 +30,6 @@ PluginInfo _processPluginMapping(dynamic name, dynamic details) {
   return null;
 }
 
-PluginInfo _processPluginNode(dynamic node) {
-  if (node is YamlMap) {
-    if (node.length == 1) {
-      return new PluginInfo(name: node.keys.first, version: node.values.first);
-    }
-  }
-  return null;
-}
-
 typedef ErrorHandler(Exception);
 
 /// Describes plugin configuration information as extracted from an

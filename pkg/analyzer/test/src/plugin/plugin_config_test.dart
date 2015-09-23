@@ -45,7 +45,7 @@ analyzer:
 ''';
         var config = parseConfig(optionsSrc);
         // Commented out plugins shouldn't cause a parse failure.
-        expect(config.plugins.toList(), hasLength(0));
+        expect(config.plugins, hasLength(0));
       });
       group('errors', () {
         test('bad format', () {
