@@ -18,6 +18,8 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
+import 'package:analysis_server/src/plugin/server_plugin.dart';
+import 'package:plugin/manager.dart';
 
 int findIdentifierLength(String search) {
   int length = 0;
@@ -148,13 +150,13 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
 
   void indexTestUnit(String code) {
     resolveTestUnit(code);
-    index.indexUnit(context, testUnit);
+    index.index(context, testUnit);
   }
 
   void indexUnit(String file, String code) {
     Source source = addSource(file, code);
     CompilationUnit unit = resolveLibraryUnit(source);
-    index.indexUnit(context, unit);
+    index.index(context, unit);
   }
 
   void setUp() {

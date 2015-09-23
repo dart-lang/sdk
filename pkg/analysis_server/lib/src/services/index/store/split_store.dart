@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 
-import 'package:analysis_server/analysis/index/index_core.dart';
+import 'package:analysis_server/analysis/index_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_store.dart';
@@ -20,6 +20,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/generated/ast.dart' show CompilationUnit;
 
 /**
  * The implementation of [IndexObjectManager] for indexing
@@ -40,10 +41,12 @@ class DartUnitIndexObjectManager extends IndexObjectManager {
 
   @override
   String aboutToIndex(AnalysisContext context, Object object) {
-    if (object is! CompilationUnitElement) {
-      return null;
+    CompilationUnitElement unitElement;
+    if (object is CompilationUnit) {
+      unitElement = object.element;
+    } else if (object is CompilationUnitElement) {
+      unitElement = object;
     }
-    CompilationUnitElement unitElement = object;
     // validate unit
     if (unitElement == null) {
       return null;

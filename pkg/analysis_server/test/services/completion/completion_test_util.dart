@@ -52,7 +52,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   void addResolvedUnit(String file, String code) {
     Source source = addSource(file, code);
     CompilationUnit unit = resolveLibraryUnit(source);
-    index.indexUnit(context, unit);
+    index.index(context, unit);
   }
 
   void addTestSource(String content) {
@@ -518,7 +518,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
       CompilationUnit unit =
           context.getResolvedCompilationUnit2(librarySource, librarySource);
       if (unit != null) {
-        index.indexUnit(context, unit);
+        index.index(context, unit);
       }
     }
 
@@ -529,7 +529,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
       result.changeNotices.forEach((ChangeNotice notice) {
         CompilationUnit unit = notice.resolvedDartUnit;
         if (unit != null) {
-          index.indexUnit(context, unit);
+          index.index(context, unit);
         }
       });
 

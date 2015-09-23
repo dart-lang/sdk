@@ -291,7 +291,7 @@ export 'package:newName/myLib.dart';
       }
       for (ChangeNotice notice in result.changeNotices) {
         if (notice.source.fullName.startsWith('/project/')) {
-          index.indexUnit(context, notice.resolvedDartUnit);
+          index.index(context, notice.resolvedDartUnit);
         }
       }
     }

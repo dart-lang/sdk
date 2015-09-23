@@ -4,13 +4,14 @@
 
 library test.services.src.index.dart_index_contributor;
 
-import 'package:analysis_server/analysis/index/index_core.dart';
+import 'package:analysis_server/analysis/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_contributor.dart';
 import 'package:analysis_server/src/services/index/index_store.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
@@ -22,6 +23,11 @@ import '../../utils.dart';
 main() {
   initializeTestEnvironment();
   defineReflectiveTests(DartUnitContributorTest);
+}
+
+void indexDartUnit(
+    InternalIndexStore store, AnalysisContext context, CompilationUnit unit) {
+  new DartIndexContributor().contributeTo(store, context, unit);
 }
 
 /**

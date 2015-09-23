@@ -52,7 +52,7 @@ part of my.app;
 library my.app;
 part 'part.dart';
 ''');
-    index.indexUnit(
+    index.index(
         context, context.resolveCompilationUnit2(unitSource, testSource));
     // configure refactoring
     _createRenameRefactoring();

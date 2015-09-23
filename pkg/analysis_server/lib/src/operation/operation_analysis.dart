@@ -411,7 +411,7 @@ class _DartIndexOperation extends _SingleFileOperation {
     ServerPerformanceStatistics.indexOperation.makeCurrentWhile(() {
       try {
         Index index = server.index;
-        index.indexUnit(context, unit);
+        index.index(context, unit);
       } catch (exception, stackTrace) {
         server.sendServerErrorNotification(exception, stackTrace);
       }
@@ -469,7 +469,7 @@ class _HtmlIndexOperation extends _SingleFileOperation {
   @override
   void perform(AnalysisServer server) {
     Index index = server.index;
-    index.indexHtmlUnit(context, unit);
+    index.index(context, unit);
   }
 }
 
