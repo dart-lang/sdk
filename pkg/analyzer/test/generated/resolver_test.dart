@@ -12025,6 +12025,22 @@ main() {
     expect(declaration.initializer.propagatedType, isNull);
   }
 
+  void test_pseudoGeneric_max_doubleInt() {
+    String code = r'''
+import 'dart:math';
+main() {
+  var foo = max(1.0, 2);
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'num');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
   void test_pseudoGeneric_then() {
     String code = r'''
 import 'dart:async';

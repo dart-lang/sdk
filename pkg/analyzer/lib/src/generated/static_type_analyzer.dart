@@ -1740,8 +1740,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     if (e is FunctionElement &&
         e.library.source.uri.toString() == 'dart:_foreign_helper' &&
         e.name == 'JS') {
-      DartType returnType = _getFirstArgumentAsType(
-          _typeProvider.objectType.element.library, node.argumentList);
+      String typeStr = _getFirstArgumentAsString(node.argumentList);
+      DartType returnType = null;
+      if (typeStr == '-dynamic') {
+        returnType = _typeProvider.bottomType;
+      } else {
+        returnType = _getElementNameAsType(
+            _typeProvider.objectType.element.library, typeStr, null);
+      }
       if (returnType != null) {
         _recordStaticType(node, returnType);
         return true;
@@ -1760,8 +1766,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     String name = node.methodName.name;
     MethodElement inferredElement =
         _typeProvider.objectType.element.getMethod(name);
-    DartType inferredType = (inferredElement != null &&
-        !inferredElement.isStatic) ? inferredElement.type : null;
+    if (inferredElement == null || inferredElement.isStatic) {
+      return false;
+    }
+    DartType inferredType = inferredElement.type;
     DartType nodeType = node.staticType;
     if (nodeType != null &&
         nodeType.isDynamic &&
@@ -1769,8 +1777,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         inferredType.parameters.isEmpty &&
         node.argumentList.arguments.isEmpty &&
         _typeProvider.nonSubtypableTypes.contains(inferredType.returnType)) {
-      //TODO(leafp): When we start marking dynamic calls for the backend, be
-      // sure that this does not get marked as dynamic.
       _recordStaticType(node.methodName, inferredType);
       _recordStaticType(node, inferredType.returnType);
       return true;
@@ -1798,7 +1804,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given a property access [node], where [target] is the target of the access
+   * Given a property access [node] with static type [nodeType],
    * and [id] is the property name being accessed, infer a type for the
    * access itself and its constituent components if the access is to one of the
    * methods or getters of the built in 'Object' type, and if the result type is
@@ -1810,15 +1816,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     String name = id.name;
     PropertyAccessorElement inferredElement =
         _typeProvider.objectType.element.getGetter(name);
-    DartType inferredType = (inferredElement != null &&
-        !inferredElement.isStatic) ? inferredElement.type.returnType : null;
+    if (inferredElement == null || inferredElement.isStatic) {
+      return false;
+    }
+    DartType inferredType = inferredElement.type.returnType;
     if (nodeType != null &&
         nodeType.isDynamic &&
         inferredType != null &&
         _typeProvider.nonSubtypableTypes.contains(inferredType)) {
-      // TODO(leafp): Eliminate the dynamic call here once we start
-      // annotating dynamic calls from this code.  Even if the type is not
-      // sealed we can eliminate the dynamic call.
       _recordStaticType(id, inferredType);
       _recordStaticType(node, inferredType);
       return true;
@@ -1872,7 +1877,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
 
   /**
    * Return a more specialized type for a method invocation based on
-   * an ad-hoc list of pseudo-generic methids.
+   * an ad-hoc list of pseudo-generic methods.
    */
   DartType _matchGeneric(MethodInvocation node) {
     Element e = node.methodName.staticElement;
@@ -1897,8 +1902,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
             arguments.length == 2) {
           DartType tx = arguments[0];
           DartType ty = arguments[1];
-          if (tx == ty && tx == _typeProvider.intType ||
-              tx == _typeProvider.doubleType) {
+          if (tx == ty &&
+              (tx == _typeProvider.intType || tx == _typeProvider.doubleType)) {
             return tx;
           }
         }
