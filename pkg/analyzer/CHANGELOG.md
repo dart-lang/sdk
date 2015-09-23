@@ -1,3 +1,6 @@
+## 0.26.1+4
+* Provisional (internal) support for plugin configuration via `.analysis_options`.
+
 ## 0.26.1+2
 
 * Extension point for WorkManagerFactory(s).
