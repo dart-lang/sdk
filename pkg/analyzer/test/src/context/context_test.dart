@@ -1772,14 +1772,14 @@ void g() { f(null); }''');
     TestSource source = _addSourceWithException2("/test.dart", "library test;");
     source.generateExceptionOnRead = false;
     _analyzeAll_assertFinished();
-    expect(source.readCount, 1);
+    expect(source.readCount, 2);
     _changeSource(source, "");
     source.generateExceptionOnRead = true;
     _analyzeAll_assertFinished();
     if (AnalysisEngine.instance.limitInvalidationInTaskModel) {
-      expect(source.readCount, 5);
+      expect(source.readCount, 7);
     } else {
-      expect(source.readCount, 3);
+      expect(source.readCount, 5);
     }
   }
 
@@ -1869,6 +1869,15 @@ void g() { f(null); }''');
         ["dart.core", "dart.async", "dart.math", "libA", "libB"]);
   }
 
+  void test_resolveCompilationUnit_library() {
+    Source source = addSource("/lib.dart", "library lib;");
+    LibraryElement library = context.computeLibraryElement(source);
+    CompilationUnit compilationUnit =
+        context.resolveCompilationUnit(source, library);
+    expect(compilationUnit, isNotNull);
+    expect(compilationUnit.element, isNotNull);
+  }
+
 //  void test_resolveCompilationUnit_sourceChangeDuringResolution() {
 //    _context = new _AnalysisContext_sourceChangeDuringResolution();
 //    AnalysisContextFactory.initContextWithCore(_context);
@@ -1879,15 +1888,6 @@ void g() { f(null); }''');
 //    expect(compilationUnit, isNotNull);
 //    expect(_context.getLineInfo(source), isNotNull);
 //  }
-
-  void test_resolveCompilationUnit_library() {
-    Source source = addSource("/lib.dart", "library lib;");
-    LibraryElement library = context.computeLibraryElement(source);
-    CompilationUnit compilationUnit =
-        context.resolveCompilationUnit(source, library);
-    expect(compilationUnit, isNotNull);
-    expect(compilationUnit.element, isNotNull);
-  }
 
   void test_resolveCompilationUnit_source() {
     Source source = addSource("/lib.dart", "library lib;");
@@ -2073,6 +2073,22 @@ int a = 0;''');
     expect(context.sourcesNeedingProcessing.contains(source), isFalse);
   }
 
+  void test_validateCacheConsistency_deletedSource() {
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    var fileA = resourceProvider.newFile('/a.dart', "");
+    var fileB = resourceProvider.newFile('/b.dart', "import 'a.dart';");
+    Source sourceA = fileA.createSource();
+    Source sourceB = fileB.createSource();
+    context.applyChanges(
+        new ChangeSet()..addedSource(sourceA)..addedSource(sourceB));
+    // analyze everything
+    _analyzeAll_assertFinished();
+    // delete a.dart
+    resourceProvider.deleteFile('/a.dart');
+    // analysis should eventually stop
+    _analyzeAll_assertFinished();
+  }
+
   void xtest_performAnalysisTask_stress() {
     int maxCacheSize = 4;
     AnalysisOptionsImpl options =
@@ -2123,7 +2139,10 @@ int a = 0;''');
     for (int i = 0; i < maxIterations; i++) {
       List<ChangeNotice> notice = context.performAnalysisTask().changeNotices;
       if (notice == null) {
-        return;
+        bool inconsistent = context.validateCacheConsistency();
+        if (!inconsistent) {
+          return;
+        }
       }
     }
     fail("performAnalysisTask failed to terminate after analyzing all sources");

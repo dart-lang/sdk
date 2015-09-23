@@ -1772,7 +1772,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           }
           return;
         }
-      } catch (e) {}
+      } catch (e) {
+        entry.modificationTime = -1;
+      }
     }
     // We need to invalidate the cache.
     {
