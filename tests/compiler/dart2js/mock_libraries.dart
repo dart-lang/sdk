@@ -404,9 +404,6 @@ const Map<String, String> DEFAULT_ASYNC_LIBRARY = const <String, String>{
   'Stream': 'class Stream<T> {}',
   'Completer': 'class Completer<T> {}',
   'StreamIterator': 'class StreamIterator<T> {}',
-  '_SyncStarIterable': 'class _SyncStarIterable {}',
-  '_IterationMarker': 'class _IterationMarker {}',
-  '_AsyncStarStreamController': 'class _AsyncStarStreamController {}',
 };
 
 /// These members are only needed when async/await is used.
