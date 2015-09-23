@@ -8,7 +8,7 @@ import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
+import 'dart:isolate' show ReceivePort;
 
 var receivePort;
 
