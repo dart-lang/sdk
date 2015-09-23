@@ -30,7 +30,8 @@ PluginInfo _processPluginMapping(dynamic name, dynamic details) {
   return null;
 }
 
-typedef ErrorHandler(Exception);
+/// A callback for error handling.
+typedef ErrorHandler(Exception e);
 
 /// Describes plugin configuration information as extracted from an
 /// analysis options map.

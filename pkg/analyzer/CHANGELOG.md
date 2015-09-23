@@ -1,3 +1,6 @@
+## 0.26.1+5
+* Plugin configuration `ErrorHandler` typedef API fix.
+
 ## 0.26.1+4
 * Provisional (internal) support for plugin configuration via `.analysis_options`.
 
