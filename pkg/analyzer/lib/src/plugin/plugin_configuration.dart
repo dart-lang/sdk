@@ -31,9 +31,6 @@ PluginInfo _processPluginMapping(dynamic name, dynamic details) {
 }
 
 PluginInfo _processPluginNode(dynamic node) {
-  if (node is String) {
-    return new PluginInfo(name: node);
-  }
   if (node is YamlMap) {
     if (node.length == 1) {
       return new PluginInfo(name: node.keys.first, version: node.values.first);
@@ -65,9 +62,11 @@ class PluginConfig {
             }
           });
         } else {
-          var plugin = _processPluginNode(pluginConfig);
-          if (plugin != null) {
-            plugins.add(plugin);
+          // Anything but an empty list of plugins is treated as a format error.
+          if (pluginConfig != null) {
+            throw new PluginConfigFormatException(
+                'Unrecognized plugin config format (expected `YamlMap`, got `${pluginConfig.runtimeType}`)',
+                pluginConfig);
           }
         }
       }
@@ -75,6 +74,16 @@ class PluginConfig {
 
     return new PluginConfig(plugins);
   }
+}
+
+/// Thrown on bad plugin config format.
+class PluginConfigFormatException implements Exception {
+  /// Descriptive message.
+  final message;
+
+  /// The `plugin:` yaml node for generating detailed error feedback.
+  final yamlNode;
+  PluginConfigFormatException(this.message, this.yamlNode);
 }
 
 /// Extracts plugin config details from analysis options.

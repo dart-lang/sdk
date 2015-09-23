@@ -7,9 +7,10 @@ library test.src.plugin.plugin_config_test;
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/src/plugin/plugin_configuration.dart';
 import 'package:unittest/unittest.dart';
+import 'package:yaml/yaml.dart';
 
 main() {
-  group('PluginConfig', () {
+  group('plugin config tests', () {
     group('parsing', () {
       test('plugin map', () {
         const optionsSrc = '''
@@ -35,6 +36,36 @@ analyzer:
         expect(plugins[2].path, equals('/u/disk/src/'));
         expect(plugins[2].libraryUri, equals('myplugin/myplugin.dart'));
         expect(plugins[2].className, equals('MyPlugin'));
+      });
+      test('plugin map (empty)', () {
+        const optionsSrc = '''
+analyzer:
+  plugins:
+    # my_plugin1: ^0.1.0 #shorthand 
+''';
+        var config = parseConfig(optionsSrc);
+        // Commented out plugins shouldn't cause a parse failure.
+        expect(config.plugins.toList(), hasLength(0));
+      });
+      group('errors', () {
+        test('bad format', () {
+          const optionsSrc = '''
+analyzer:
+  plugins:
+    - my_plugin1
+    - my_plugin2
+''';
+          try {
+            parseConfig(optionsSrc);
+            fail('expected PluginConfigFormatException');
+          } on PluginConfigFormatException catch (e) {
+            expect(
+                e.message,
+                equals(
+                    'Unrecognized plugin config format (expected `YamlMap`, got `YamlList`)'));
+            expect(e.yamlNode, new isInstanceOf<YamlList>());
+          }
+        });
       });
     });
   });
