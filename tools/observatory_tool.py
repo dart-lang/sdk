@@ -44,6 +44,10 @@ def ProcessOptions(options, args):
   # Required options.
   if options.command is None or options.directory is None:
     return False
+
+  # Set a default value for pub_snapshot.
+  options.pub_snapshot = None
+
   # If we have a working pub executable, try and use that.
   # TODO(whesse): Drop the pub-executable option if it isn't used.
   if options.pub_executable is not None:
