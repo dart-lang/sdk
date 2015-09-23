@@ -2806,8 +2806,13 @@ class IrBuilder {
   ir.Node buildAwait(ir.Primitive value) {
     return _continueWithExpression((k) => new ir.Await(value, k));
   }
-}
 
+  void buildYield(ir.Primitive value, bool hasStar) {
+    _continueWithExpression((k) {
+      return new ir.Yield(value, hasStar, k);
+    });
+  }
+}
 
 /// Location of a variable relative to a given closure.
 class ClosureLocation {

@@ -938,6 +938,22 @@ class Await extends Expression {
   }
 }
 
+class Yield extends Statement {
+  Statement next;
+  Expression input;
+  final bool hasStar;
+
+  Yield(this.input, this.hasStar, this.next);
+
+  accept(StatementVisitor visitor) {
+    return visitor.visitYield(this);
+  }
+
+  accept1(StatementVisitor1 visitor, arg) {
+    return visitor.visitYield(this, arg);
+  }
+}
+
 abstract class ExpressionVisitor<E> {
   E visitExpression(Expression node) => node.accept(this);
   E visitVariableUse(VariableUse node);
@@ -1027,6 +1043,7 @@ abstract class StatementVisitor<S> {
   S visitTry(Try node);
   S visitUnreachable(Unreachable node);
   S visitForeignStatement(ForeignStatement node);
+  S visitYield(Yield node);
 }
 
 abstract class StatementVisitor1<S, A> {
@@ -1044,6 +1061,7 @@ abstract class StatementVisitor1<S, A> {
   S visitTry(Try node, A arg);
   S visitUnreachable(Unreachable node, A arg);
   S visitForeignStatement(ForeignStatement node, A arg);
+  S visitYield(Yield node, A arg);
 }
 
 abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
@@ -1252,6 +1270,11 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
 
   visitAwait(Await node) {
     visitExpression(node.input);
+  }
+
+  visitYield(Yield node) {
+    visitExpression(node.input);
+    visitStatement(node.next);
   }
 }
 
@@ -1505,6 +1528,11 @@ class RecursiveTransformer extends Transformer {
   }
 
   visitAwait(Await node) {
+    node.input = visitExpression(node.input);
+    return node;
+  }
+
+  visitYield(Yield node) {
     node.input = visitExpression(node.input);
     return node;
   }

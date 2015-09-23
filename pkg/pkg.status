@@ -170,30 +170,4 @@ third_party/di_tests/di_test: Pass, Slow # Issue 22896
 analyzer/test/*: PubGetError
 
 [ $compiler == dart2js && $cps_ir ]
-analyzer/test/enum_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/generated/all_the_rest_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/generated/ast_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/generated/compile_time_error_code_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/generated/element_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/generated/incremental_resolver_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/generated/incremental_scanner_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/generated/non_error_resolver_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/generated/parser_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/generated/resolver_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/generated/scanner_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/generated/source_factory_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/generated/static_type_warning_code_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/generated/static_warning_code_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/generated/utilities_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/source/package_map_provider_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/src/context/cache_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/src/context/context_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/src/task/dart_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/src/task/dart_work_manager_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/src/task/driver_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/src/task/general_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/src/task/html_work_manager_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/src/task/inputs_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/src/task/manager_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-analyzer/test/src/task/model_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
 lookup_map/test/lookup_map_test: RuntimeError # $async$temp1.get$tests is not a function

@@ -379,6 +379,11 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return irBuilder.buildAwait(value);
   }
 
+  visitYield(ast.Yield node) {
+    ir.Primitive value = visit(node.expression);
+    return irBuilder.buildYield(value, node.hasStar);
+  }
+
   visitSyncForIn(ast.SyncForIn node) {
     // [node.declaredIdentifier] can be either an [ast.VariableDefinitions]
     // (defining a new local variable) or a send designating some existing
@@ -2399,6 +2404,7 @@ class DartCapturedVariables extends ast.Visitor {
     currentFunction = elements[node];
 
     if (currentFunction.asyncMarker != AsyncMarker.SYNC &&
+        currentFunction.asyncMarker != AsyncMarker.SYNC_STAR &&
         currentFunction.asyncMarker != AsyncMarker.ASYNC) {
       giveup(node, "cannot handle sync*/async* functions");
     }

@@ -436,6 +436,19 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     return makeCallExpression(node, value);
   }
 
+  @override
+  NodeCallback visitYield(cps_ir.Yield node) {
+    return (Statement next) {
+      return new Yield(getVariableUse(node.input), node.hasStar, next);
+    };
+  }
+
+  @override
+  NodeCallback visitAwait(cps_ir.Await node) {
+    Expression value = new Await(getVariableUse(node.input));
+    return makeCallExpression(node, value);
+  }
+
 
   /************************** TAIL EXPRESSIONS  **************************/
   //
@@ -667,12 +680,6 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     return new SetIndex(getVariableUse(node.object),
                         getVariableUse(node.index),
                         getVariableUse(node.value));
-  }
-
-  @override
-  NodeCallback visitAwait(cps_ir.Await node) {
-    Expression value = new Await(getVariableUse(node.input));
-    return makeCallExpression(node, value);
   }
 
   @override

@@ -2103,7 +2103,7 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitInvokeStatic(InvokeStatic node) {
-    if (node.target.library.isInternalLibrary) {
+    if (node.target.library != null && node.target.library.isInternalLibrary) {
       switch (node.target.name) {
         case InternalMethod.Stringify:
           AbstractValue argValue = getValue(node.arguments[0].definition);
@@ -2507,6 +2507,11 @@ class TypePropagationVisitor implements Visitor {
   @override
   void visitAwait(Await node) {
     setResult(node, nonConstant());
+  }
+
+  @override
+  visitYield(Yield node) {
+    setReachable(node.continuation.definition);
   }
 
   @override

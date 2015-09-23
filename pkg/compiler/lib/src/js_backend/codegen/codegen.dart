@@ -838,6 +838,12 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
+  void visitYield(tree_ir.Yield node) {
+    js.Expression value = visitExpression(node.input);
+    accumulator.add(new js.DartYield(value, node.hasStar));
+  }
+
+  @override
   js.Expression visitApplyBuiltinOperator(tree_ir.ApplyBuiltinOperator node) {
     List<js.Expression> args = visitExpressionList(node.arguments);
     switch (node.operator) {

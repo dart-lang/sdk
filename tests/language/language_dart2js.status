@@ -232,54 +232,37 @@ issue23244_test: RuntimeError # 23244
 [ $compiler == dart2js && $cps_ir ]
 async_await_syntax_test/a03a: Crash # (a03a()async*{}): cannot handle sync*/async* functions
 async_await_syntax_test/a03b: Crash # (a03b()async*{}): cannot handle sync*/async* functions
-async_await_syntax_test/a04a: Crash # (a04a()sync*{}): cannot handle sync*/async* functions
-async_await_syntax_test/a04c: Crash # (a04c()sync*{}): cannot handle sync*/async* functions
 async_await_syntax_test/a06a: Crash # (await for(var o in st){}): await for
-async_await_syntax_test/a07a: Crash # (a07a()sync*{yield 0;}): cannot handle sync*/async* functions
-async_await_syntax_test/a08a: Crash # (a08a()sync*{yield* [] ;}): cannot handle sync*/async* functions
 async_await_syntax_test/a09a: Crash # (a09a()async*{yield 0;}): cannot handle sync*/async* functions
 async_await_syntax_test/a10a: Crash # (a10a()async*{yield* [] ;}): cannot handle sync*/async* functions
-async_await_syntax_test/a11b: Crash # (get sync sync*{}): cannot handle sync*/async* functions
 async_await_syntax_test/a11d: Crash # (get async async*{}): cannot handle sync*/async* functions
 async_await_syntax_test/b03a: Crash # (b03a()async*{}): cannot handle sync*/async* functions
-async_await_syntax_test/b04a: Crash # (b04a()sync*{}): cannot handle sync*/async* functions
 async_await_syntax_test/b06a: Crash # (await for(var o in st){}): await for
-async_await_syntax_test/b07a: Crash # (b07a()sync*{yield 0;}): cannot handle sync*/async* functions
-async_await_syntax_test/b08a: Crash # (b08a()sync*{yield* [] ;}): cannot handle sync*/async* functions
 async_await_syntax_test/b09a: Crash # (b09a()async*{yield 0;}): cannot handle sync*/async* functions
 async_await_syntax_test/b10a: Crash # (b10a()async*{yield* [] ;}): cannot handle sync*/async* functions
-async_await_syntax_test/b11b: Crash # (get sync sync*{}): cannot handle sync*/async* functions
 async_await_syntax_test/b11d: Crash # (get async async*{}): cannot handle sync*/async* functions
 async_await_syntax_test/c03a: Crash # (c03a()async*{}): cannot handle sync*/async* functions
-async_await_syntax_test/c04a: Crash # (c04a()sync*{}): cannot handle sync*/async* functions
 async_await_syntax_test/c06a: Crash # (await for(var o in st){}): await for
-async_await_syntax_test/c07a: Crash # (c07a()sync*{yield 0;}): cannot handle sync*/async* functions
-async_await_syntax_test/c08a: Crash # (c08a()sync*{yield* [] ;}): cannot handle sync*/async* functions
 async_await_syntax_test/c09a: Crash # (c09a()async*{yield 0;}): cannot handle sync*/async* functions
 async_await_syntax_test/c10a: Crash # (c10a()async*{yield* [] ;}): cannot handle sync*/async* functions
 async_await_syntax_test/d03a: Crash # (()async*{}): cannot handle sync*/async* functions
-async_await_syntax_test/d04a: Crash # (()sync*{}): cannot handle sync*/async* functions
 async_await_syntax_test/d06a: Crash # (await for(var o in st){}): await for
-async_await_syntax_test/d07a: Crash # (()sync*{yield 0;}): cannot handle sync*/async* functions
-async_await_syntax_test/d08a: Crash # (()sync*{yield* [] ;}): cannot handle sync*/async* functions
-async_await_syntax_test/d08b: Crash # (()sync*{yield* 0+1;}): cannot handle sync*/async* functions
 async_await_syntax_test/d09a: Crash # (()async*{yield 0;}): cannot handle sync*/async* functions
 async_await_syntax_test/d10a: Crash # (()async*{yield* [] ;}): cannot handle sync*/async* functions
 async_await_test/02: Crash # (switch (v){label:ca...  continue to a labeled switch case
 async_await_test/03: Crash # (switch (v){label:ca...  continue to a labeled switch case
 async_await_test/none: Crash # (switch (v){label:ca...  continue to a labeled switch case
-async_continue_label_test/await_in_init: RuntimeError # Please triage this failure.
 async_or_generator_return_type_stacktrace_test/02: Crash # (void badReturnTypeAsyncStar()async*{}): cannot handle sync*/async* functions
-async_or_generator_return_type_stacktrace_test/03: Crash # (void badReturnTypeSyncStar()sync*{}): cannot handle sync*/async* functions
 async_star_await_pauses_test: Crash # (await for(var i in ...  await for
 async_star_cancel_and_throw_in_finally_test: Crash # (foo()async*{try {in...  cannot handle sync*/async* functions
 async_star_cancel_while_paused_test: Crash # (f()async*{list.add(...  cannot handle sync*/async* functions
 async_star_regression_2238_test: Crash # (f()async*{label1:label2:yield 0;}): cannot handle sync*/async* functions
 async_star_regression_23116_test: Crash # (Stream<int> foo(Com...  cannot handle sync*/async* functions
 async_star_regression_fisk_test: Crash # (fisk()async*{res.ad...  cannot handle sync*/async* functions
-async_star_stream_take_test: Crash # (await for(var v in s.take(5))r+= v;): await for
+async_star_stream_take_test: Crash # (Stream makeStream(i...  cannot handle sync*/async* functions
 async_star_take_reyield_test: Crash # (fivePartialSums(Str...  cannot handle sync*/async* functions
 async_star_test: Crash # (f()async*{}): cannot handle sync*/async* functions
+async_this_bound_test: RuntimeError # Cannot read property 'set$f' of undefined
 asyncstar_concat_test: Crash # (concat(a,b)async*{yield* a;yield* b;}): cannot handle sync*/async* functions
 asyncstar_throw_in_catch_test: Crash # (foo4(Tracer tracer)...  cannot handle sync*/async* functions
 asyncstar_yield_test: Crash # (Stream<int> foo4()a...  cannot handle sync*/async* functions
@@ -287,64 +270,62 @@ asyncstar_yieldstar_test: Crash # (foo2(Stream subStream)async*{yield* subStream
 await_for_cancel_test: Crash # (await for(var x in controller.stream){for(int j=0;j<10;j++ ){if(j==5)continue outer;}}): await for
 await_for_test: Crash # (await for(var x in infiniteStream()){i++ ;if(i>10)break;t4.record(x);}): await for
 await_for_use_local_test: Crash # (await for(var v in s){accum+= v;}): await for
-await_future_test: RuntimeError # Uncaught Error: NullError: method not found: '_await_future_test$_box_0' on null
-await_postfix_expr_test: RuntimeError # Uncaught Error: NullError: method not found: '$add' on null
+await_future_test: RuntimeError # Cannot read property '_await_future_test$_box_0' of undefined
+await_postfix_expr_test: RuntimeError # Please triage this failure.
 await_regression_test: RuntimeError # "Obelix".then$1 is not a function
-await_test: RuntimeError # Uncaught Error: NullError: method not found: '$add' on null
+await_test: RuntimeError # Cannot read property '$add' of undefined
 cha_deopt1_test: Crash # (d.make_u()): deferred access is not implemented
 cha_deopt2_test: Crash # (d.make_u()): deferred access is not implemented
 cha_deopt3_test: Crash # (d.make_u()): deferred access is not implemented
-closure_in_constructor_test: RuntimeError # Typed lists.
+closure_in_constructor_test: RuntimeError # Please triage this failure.
 closures_initializer_test: RuntimeError # Please triage this failure.
-const_evaluation_test/01: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 constructor12_test: RuntimeError # Please triage this failure.
 crash_6725_test/01: Crash # unsupported operation on erroneous element
 cyclic_default_values_test: RuntimeError # Z.cyclic_default_values_test__foo$closure is not a function
 deferred_call_empty_before_load_test: Crash # (lib1.thefun()): deferred access is not implemented
-deferred_closurize_load_library_test: RuntimeError # TypeError: D.loadLibrary is not a function
-deferred_constant_list_test: RuntimeError # TypeError: K.loadLibrary is not a function
-deferred_constraints_constants_test/none: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_constants_test/reference_after_load: Crash # (lib.constantInstance): deferred access is not implemented
-deferred_constraints_type_annotation_test/as_operation: RuntimeError # TypeError: Z.loadLibrary is not a function
-deferred_constraints_type_annotation_test/catch_check: RuntimeError # TypeError: D.loadLibrary is not a function
-deferred_constraints_type_annotation_test/is_check: RuntimeError # TypeError: L.loadLibrary is not a function
-deferred_constraints_type_annotation_test/new: RuntimeError # TypeError: R.loadLibrary is not a function
-deferred_constraints_type_annotation_test/new_before_load: RuntimeError # TypeError: K.loadLibrary is not a function
-deferred_constraints_type_annotation_test/new_generic1: RuntimeError # TypeError: R.loadLibrary is not a function
-deferred_constraints_type_annotation_test/new_generic2: RuntimeError # TypeError: X.loadLibrary is not a function
-deferred_constraints_type_annotation_test/new_generic3: RuntimeError # TypeError: K.loadLibrary is not a function
-deferred_constraints_type_annotation_test/none: RuntimeError # TypeError: D.loadLibrary is not a function
-deferred_constraints_type_annotation_test/static_method: RuntimeError # TypeError: F.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation1: RuntimeError # TypeError: K.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic1: RuntimeError # TypeError: T.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic2: RuntimeError # TypeError: Q.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic3: RuntimeError # TypeError: Z.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic4: RuntimeError # TypeError: Q.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError # TypeError: R.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_null: RuntimeError # TypeError: Z.loadLibrary is not a function
-deferred_constraints_type_annotation_test/type_annotation_top_level: RuntimeError # TypeError: U.loadLibrary is not a function
-deferred_function_type_test: RuntimeError # TypeError: N.loadLibrary is not a function
-deferred_global_test: RuntimeError # TypeError: Y.loadLibrary is not a function
+deferred_closurize_load_library_test: RuntimeError # D.loadLibrary is not a function
+deferred_constant_list_test: RuntimeError # K.loadLibrary is not a function
+deferred_constraints_constants_test/none: RuntimeError # S.loadLibrary is not a function
+deferred_constraints_constants_test/reference_after_load: RuntimeError # G.loadLibrary is not a function
+deferred_constraints_type_annotation_test/as_operation: RuntimeError # Z.loadLibrary is not a function
+deferred_constraints_type_annotation_test/catch_check: RuntimeError # D.loadLibrary is not a function
+deferred_constraints_type_annotation_test/is_check: RuntimeError # L.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new: RuntimeError # R.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new_before_load: RuntimeError # K.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new_generic1: RuntimeError # R.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new_generic2: RuntimeError # X.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new_generic3: RuntimeError # K.loadLibrary is not a function
+deferred_constraints_type_annotation_test/none: RuntimeError # D.loadLibrary is not a function
+deferred_constraints_type_annotation_test/static_method: RuntimeError # F.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation1: RuntimeError # K.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic1: RuntimeError # T.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic2: RuntimeError # Q.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic3: RuntimeError # Z.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic4: RuntimeError # Q.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError # R.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_null: RuntimeError # Z.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_top_level: RuntimeError # U.loadLibrary is not a function
+deferred_function_type_test: RuntimeError # N.loadLibrary is not a function
+deferred_global_test: RuntimeError # Y.loadLibrary is not a function
 deferred_inlined_test: Crash # (lib.foo()): deferred access is not implemented
-deferred_load_constants_test/none: Crash # (foo.c): deferred access is not implemented
+deferred_load_constants_test/none: Crash # (foo.toplevel): deferred access is not implemented
 deferred_load_inval_code_test: Crash # (d.foo()): deferred access is not implemented
 deferred_load_library_wrong_args_test/none: RuntimeError # Y.loadLibrary is not a function
 deferred_mixin_test: RuntimeError # X.loadLibrary is not a function
 deferred_no_such_method_test: RuntimeError # D.loadLibrary is not a function
 deferred_not_loaded_check_test: Crash # (lib.closure(sideEffect())): deferred access is not implemented
-deferred_only_constant_test: RuntimeError # TypeError: O.loadLibrary is not a function
+deferred_only_constant_test: RuntimeError # O.loadLibrary is not a function
 deferred_optimized_test: Crash # (lib.foo()): deferred access is not implemented
 deferred_redirecting_factory_test: Crash # (lib1.loadLib2()): deferred access is not implemented
-deferred_regression_22995_test: RuntimeError # TypeError: U.loadLibrary is not a function
-deferred_shadow_load_library_test: RuntimeError # TypeError: Y.loadLibrary is not a function
-deferred_shared_and_unshared_classes_test: RuntimeError # TypeError: U.loadLibrary is not a function
-deferred_static_seperate_test: RuntimeError # TypeError: L.loadLibrary is not a function
-deferred_super_dependency_test/01: RuntimeError # Uncaught Error: NoSuchMethodError: method not found: 'loadLibrary' ($async$temp1.loadLibrary is not a function)
+deferred_regression_22995_test: RuntimeError # U.loadLibrary is not a function
+deferred_shadow_load_library_test: RuntimeError # Y.loadLibrary is not a function
+deferred_shared_and_unshared_classes_test: RuntimeError # U.loadLibrary is not a function
+deferred_static_seperate_test: RuntimeError # L.loadLibrary is not a function
+deferred_super_dependency_test/01: RuntimeError # $async$temp1.loadLibrary is not a function
 deferred_type_dependency_test/as: Crash # (lib1.fooAs("string")): deferred access is not implemented
 deferred_type_dependency_test/is: Crash # (lib1.fooIs("string")): deferred access is not implemented
 deferred_type_dependency_test/none: Crash # (lib2.getInstance()): deferred access is not implemented
 deferred_type_dependency_test/type_annotation: Crash # (lib1.fooAnnotation("string")): deferred access is not implemented
-enum_mirror_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 field3a_negative_test: Fail # Bogus result from type inference in case of invalid program.
 first_class_types_test: RuntimeError # Please triage this failure.
 for2_test: Crash # The null object does not have a getter 'field'.
@@ -354,12 +335,10 @@ generic_field_mixin3_test: RuntimeError # Please triage this failure.
 generic_instanceof_test: RuntimeError # Please triage this failure.
 generic_native_test: RuntimeError # Please triage this failure.
 infinite_switch_label_test: Crash # (switch (target){l0:...  continue to a labeled switch case
-instance_creation_in_function_annotation_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 instanceof2_test: RuntimeError # Please triage this failure.
 instanceof4_test/01: RuntimeError # Please triage this failure.
 invocation_mirror_invoke_on_test: RuntimeError # Please triage this failure.
 invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
-issue21079_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 issue_1751477_test: RuntimeError # O.loadLibrary is not a function
 list_is_test: RuntimeError # Please triage this failure.
 list_test: RuntimeError # Please triage this failure.
@@ -367,10 +346,7 @@ many_generic_instanceof_test: RuntimeError # Please triage this failure.
 many_overridden_no_such_method_test: RuntimeError # Please triage this failure.
 nested_switch_label_test: Crash # (switch (target){out...  continue to a labeled switch case
 no_such_method_test: RuntimeError # Please triage this failure.
-null_test/none: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 overridden_no_such_method_test: RuntimeError # Please triage this failure.
-redirecting_factory_reflection_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-regress_18535_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 regress_22443_test: RuntimeError # M.loadLibrary is not a function
 regress_23408_test: RuntimeError # G.loadLibrary is not a function
 regress_23500_test/01: Crash # (await for(var c in new Stream.fromIterable([] )){}): await for
@@ -387,18 +363,13 @@ super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSe
 switch_label2_test: Crash # (switch (target){cas...  continue to a labeled switch case
 switch_label_test: Crash # (switch (animal){cas...  continue to a labeled switch case
 switch_try_catch_test: Crash # (switch (0){_0:case ...  continue to a labeled switch case
-sync_generator1_test/01: Crash # (dreiVier()sync*{yield* 3;}): cannot handle sync*/async* functions
-sync_generator1_test/none: Crash # (einsZwei()sync*{yie...  cannot handle sync*/async* functions
-sync_generator2_test/07: Crash # (sync()sync*{yield sync;}): cannot handle sync*/async* functions
-sync_generator2_test/08: Crash # (sync()sync*{yield sync;}): cannot handle sync*/async* functions
-sync_generator2_test/10: Crash # (sync()sync*{yield sync;}): cannot handle sync*/async* functions
-sync_generator2_test/none: Crash # (sync()sync*{yield sync;}): cannot handle sync*/async* functions
-sync_generator3_test/test1: Crash # (f()sync*{try {yield...  cannot handle sync*/async* functions
-sync_generator3_test/test2: Crash # (g()sync*{try {yield "a";throw "pow!";}finally {yield "b";}}): cannot handle sync*/async* functions
-syncstar_less_than_test: Crash # (Iterable<int> foo()...  cannot handle sync*/async* functions
-syncstar_yield_test/copyParameters: Crash # (Iterable<int> foo3(int p)sync*{int i=0;i++ ;p++ ;yield p+i;}): cannot handle sync*/async* functions
-syncstar_yield_test/none: Crash # (Iterable<int> foo3(int p)sync*{int i=0;i++ ;p++ ;yield p+i;}): cannot handle sync*/async* functions
-syncstar_yieldstar_test: Crash # (foo()sync*{yield* [1,2,3];yield null;yield* bar();}): cannot handle sync*/async* functions
+sync_generator1_test/01: Timeout # Please triage this failure.
+sync_generator1_test/none: Timeout # Please triage this failure.
+sync_generator3_test/test1: RuntimeError # Please triage this failure.
+sync_generator3_test/test2: RuntimeError # Please triage this failure.
+syncstar_yield_test/copyParameters: RuntimeError # Please triage this failure.
+syncstar_yield_test/none: RuntimeError # Please triage this failure.
+syncstar_yieldstar_test: RuntimeError # Please triage this failure.
 type_variable_closure2_test: RuntimeError # Please triage this failure.
 type_variable_field_initializer_closure_test: RuntimeError # Please triage this failure.
 type_variable_field_initializer_test: RuntimeError # Please triage this failure.

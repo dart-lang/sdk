@@ -1135,6 +1135,13 @@ class StatementRewriter extends Transformer implements Pass {
 
   @override
   Expression visitAwait(Await node) {
+    node.input = visitExpression(node.input);
+    return node;
+  }
+
+  @override
+  Statement visitYield(Yield node) {
+    node.input = visitExpression(node.input);
     return node;
   }
 }

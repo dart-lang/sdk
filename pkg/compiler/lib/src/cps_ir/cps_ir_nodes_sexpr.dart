@@ -368,6 +368,12 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   }
 
   @override
+  String visitYield(Yield node) {
+    String value = access(node.input);
+    String continuation = access(node.continuation);
+    return '(Yield $value $continuation)';
+  }
+
   String visitRefinement(Refinement node) {
     String value = access(node.value);
     return '(Refinement $value ${node.type})';
