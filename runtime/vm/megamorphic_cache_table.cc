@@ -22,7 +22,7 @@ RawMegamorphicCache* MegamorphicCacheTable::Lookup(Isolate* isolate,
   GrowableObjectArray& table = GrowableObjectArray::Handle(
       isolate->object_store()->megamorphic_cache_table());
   if (table.IsNull()) {
-    table = GrowableObjectArray::New();
+    table = GrowableObjectArray::New(Heap::kOld);
     ASSERT((table.Length() % kEntrySize) == 0);
     isolate->object_store()->set_megamorphic_cache_table(table);
   } else {
@@ -36,9 +36,9 @@ RawMegamorphicCache* MegamorphicCacheTable::Lookup(Isolate* isolate,
 
   const MegamorphicCache& cache =
       MegamorphicCache::Handle(MegamorphicCache::New());
-  table.Add(name);
-  table.Add(descriptor);
-  table.Add(cache);
+  table.Add(name, Heap::kOld);
+  table.Add(descriptor, Heap::kOld);
+  table.Add(cache, Heap::kOld);
   ASSERT((table.Length() % kEntrySize) == 0);
   return cache.raw();
 }

@@ -323,7 +323,7 @@ static bool ProcessGenPrecompiledSnapshotOption(
   // Ensure that we are not already running using a full snapshot.
   if (isolate_snapshot_buffer != NULL) {
     Log::PrintErr("Precompiled snapshots must be generated with"
-                  " dart_no_snapshot.");
+                  " dart_no_snapshot.\n");
     return false;
   }
   has_gen_precompiled_snapshot = true;

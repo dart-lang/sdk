@@ -117,6 +117,10 @@ DECLARE_FLAG(bool, link_natives_lazily);
 
 static void PrecompileModeHandler(bool value) {
   if (value) {
+#if defined(TARGET_ARCH_IA32)
+    FATAL("Precompilation not supported on IA32");
+#endif
+
     NooptModeHandler(true);
     FLAG_lazy_dispatchers = false;
     FLAG_interpret_irregexp = true;
