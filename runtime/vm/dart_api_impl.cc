@@ -5930,26 +5930,19 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
 }
 
 
-static void Precompile(Isolate* isolate, Dart_Handle* result) {
-  ASSERT(isolate != NULL);
-  const Error& error = Error::Handle(isolate, Precompiler::CompileAll());
-  if (error.IsNull()) {
-    *result = Api::Success();
-  } else {
-    *result = Api::NewHandle(isolate, error.raw());
-  }
-}
-
-
-DART_EXPORT Dart_Handle Dart_Precompile() {
+DART_EXPORT Dart_Handle Dart_Precompile(
+    Dart_QualifiedFunctionName entry_points[]) {
   DARTSCOPE(Thread::Current());
   Dart_Handle result = Api::CheckAndFinalizePendingClasses(I);
   if (::Dart_IsError(result)) {
     return result;
   }
   CHECK_CALLBACK_STATE(I);
-  Precompile(I, &result);
-  return result;
+  const Error& error = Error::Handle(Precompiler::CompileAll(entry_points));
+  if (!error.IsNull()) {
+    return Api::NewHandle(I, error.raw());
+  }
+  return Api::Success();
 }
 
 

@@ -1259,7 +1259,32 @@ void main(int argc, char** argv) {
     result = Dart_LibraryImportLibrary(builtin_lib, root_lib, Dart_Null());
 
     if (has_gen_precompiled_snapshot) {
-      result = Dart_Precompile();
+      Dart_QualifiedFunctionName standalone_entry_points[] = {
+        { "dart:_builtin", "::", "_getMainClosure" },
+        { "dart:_builtin", "::", "_getPrintClosure" },
+        { "dart:_builtin", "::", "_getUriBaseClosure" },
+        { "dart:_builtin", "::", "_resolveUri" },
+        { "dart:_builtin", "::", "_setWorkingDirectory" },
+        { "dart:_builtin", "::", "_loadDataAsync" },
+        { "dart:io", "::", "_makeUint8ListView" },
+        { "dart:io", "::", "_makeDatagram" },
+        { "dart:io", "::", "_setupHooks" },
+        { "dart:io", "CertificateException", "CertificateException." },
+        { "dart:io", "HandshakeException", "HandshakeException." },
+        { "dart:io", "TlsException", "TlsException." },
+        { "dart:io", "X509Certificate", "X509Certificate." },
+        { "dart:io", "_ExternalBuffer", "set:data" },
+        { "dart:io", "_Platform", "set:_nativeScript" },
+        { "dart:io", "_ProcessStartStatus", "set:_errorCode" },
+        { "dart:io", "_ProcessStartStatus", "set:_errorMessage" },
+        { "dart:io", "_SecureFilterImpl", "get:ENCRYPTED_SIZE" },
+        { "dart:io", "_SecureFilterImpl", "get:SIZE" },
+        { "dart:vmservice_io", "::", "_addResource" },
+        { "dart:vmservice_io", "::", "main" },
+        { NULL, NULL, NULL }  // Must be terminated with NULL entries.
+      };
+
+      result = Dart_Precompile(standalone_entry_points);
       DartExitOnError(result);
 
       uint8_t* vm_isolate_buffer = NULL;

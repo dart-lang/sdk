@@ -78,14 +78,16 @@ class SymbolSet : public ValueObject {
 
 class Precompiler : public ValueObject {
  public:
-  static RawError* CompileAll();
+  static RawError* CompileAll(
+      Dart_QualifiedFunctionName embedder_entry_points[]);
 
  private:
   explicit Precompiler(Thread* thread);
 
-  void DoCompileAll();
+  void DoCompileAll(Dart_QualifiedFunctionName embedder_entry_points[]);
   void ClearAllCode();
-  void AddRoots();
+  void AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]);
+  void AddEntryPoints(Dart_QualifiedFunctionName entry_points[]);
   void Iterate();
   void CleanUp();
 

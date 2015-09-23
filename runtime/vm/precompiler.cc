@@ -28,11 +28,12 @@ static void Jump(const Error& error) {
 }
 
 
-RawError* Precompiler::CompileAll() {
+RawError* Precompiler::CompileAll(
+    Dart_QualifiedFunctionName embedder_entry_points[]) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Precompiler precompiler(Thread::Current());
-    precompiler.DoCompileAll();
+    precompiler.DoCompileAll(embedder_entry_points);
     return Error::null();
   } else {
     Isolate* isolate = Isolate::Current();
@@ -61,7 +62,8 @@ Precompiler::Precompiler(Thread* thread) :
 }
 
 
-void Precompiler::DoCompileAll() {
+void Precompiler::DoCompileAll(
+    Dart_QualifiedFunctionName embedder_entry_points[]) {
   LogBlock lb;
 
   // Drop all existing code so we can use the presence of code as an indicator
@@ -69,7 +71,7 @@ void Precompiler::DoCompileAll() {
   ClearAllCode();
 
   // Start with the allocations and invocations that happen from C++.
-  AddRoots();
+  AddRoots(embedder_entry_points);
 
   // TODO(rmacnak): Eagerly add field-invocation functions to all signature
   // classes so closure calls don't go through the runtime.
@@ -126,7 +128,7 @@ void Precompiler::ClearAllCode() {
 }
 
 
-void Precompiler::AddRoots() {
+void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   // Note that <rootlibrary>.main is not a root. The appropriate main will be
   // discovered through _getMainClosure.
 
@@ -201,85 +203,66 @@ void Precompiler::AddRoots() {
     AddClass(cls);
   }
 
-  static const struct {
-    const char* library_;
-    const char* class_;
-    const char* function_;
-  } kExternallyCalled[] = {
-    { "dart:_builtin", "::", "_getMainClosure" },
-    { "dart:_builtin", "::", "_getPrintClosure" },
-    { "dart:_builtin", "::", "_getUriBaseClosure" },
-    { "dart:_builtin", "::", "_resolveUri" },
-    { "dart:_builtin", "::", "_setWorkingDirectory" },
-    { "dart:_builtin", "::", "_loadDataAsync" },
+  Dart_QualifiedFunctionName vm_entry_points[] = {
     { "dart:async", "::", "_setScheduleImmediateClosure" },
+    { "dart:core", "AbstractClassInstantiationError",
+                   "AbstractClassInstantiationError._create" },
+    { "dart:core", "ArgumentError", "ArgumentError." },
+    { "dart:core", "AssertionError", "AssertionError." },
+    { "dart:core", "CyclicInitializationError",
+                   "CyclicInitializationError." },
+    { "dart:core", "FallThroughError", "FallThroughError._create" },
+    { "dart:core", "FormatException", "FormatException." },
+    { "dart:core", "NoSuchMethodError", "NoSuchMethodError._withType" },
+    { "dart:core", "NullThrownError", "NullThrownError." },
+    { "dart:core", "OutOfMemoryError", "OutOfMemoryError." },
+    { "dart:core", "RangeError", "RangeError." },
+    { "dart:core", "RangeError", "RangeError.range" },
+    { "dart:core", "StackOverflowError", "StackOverflowError." },
+    { "dart:core", "UnsupportedError", "UnsupportedError." },
+    { "dart:core", "_CastError", "_CastError._create" },
     { "dart:core", "_InternalError", "_InternalError." },
     { "dart:core", "_InvocationMirror", "_allocateInvocationMirror" },
-    { "dart:io", "::", "_makeUint8ListView" },
-    { "dart:io", "::", "_makeDatagram" },
-    { "dart:io", "::", "_setupHooks" },
-    { "dart:io", "CertificateException", "CertificateException." },
-    { "dart:io", "HandshakeException", "HandshakeException." },
-    { "dart:io", "TlsException", "TlsException." },
-    { "dart:io", "X509Certificate", "X509Certificate." },
-    { "dart:io", "_ExternalBuffer", "set:data" },
-    { "dart:io", "_Platform", "set:_nativeScript" },
-    { "dart:io", "_ProcessStartStatus", "set:_errorCode" },
-    { "dart:io", "_ProcessStartStatus", "set:_errorMessage" },
-    { "dart:io", "_SecureFilterImpl", "get:ENCRYPTED_SIZE" },
-    { "dart:io", "_SecureFilterImpl", "get:SIZE" },
+    { "dart:core", "_JavascriptCompatibilityError",
+                   "_JavascriptCompatibilityError." },
+    { "dart:core", "_JavascriptIntegerOverflowError",
+                   "_JavascriptIntegerOverflowError." },
+    { "dart:core", "_TypeError", "_TypeError._create" },
+    { "dart:isolate", "IsolateSpawnException", "IsolateSpawnException." },
+    { "dart:isolate", "_IsolateUnhandledException",
+                      "_IsolateUnhandledException." },
     { "dart:isolate", "::", "_getIsolateScheduleImmediateClosure" },
-    { "dart:isolate", "::", "_startMainIsolate" },
     { "dart:isolate", "::", "_setupHooks" },
+    { "dart:isolate", "::", "_startMainIsolate" },
     { "dart:isolate", "_RawReceivePortImpl", "_handleMessage" },
     { "dart:isolate", "_RawReceivePortImpl", "_lookupHandler" },
     { "dart:vmservice", "::", "_registerIsolate" },
     { "dart:vmservice", "::", "boot" },
-    { "dart:vmservice_io", "::", "_addResource" },
-    { "dart:vmservice_io", "::", "main" },
-
-    // Cf. Exceptions::Create
-    { "dart:core", "RangeError", "RangeError." },
-    { "dart:core", "RangeError", "RangeError.range" },
-    { "dart:core", "ArgumentError", "ArgumentError." },
-    { "dart:core", "NoSuchMethodError", "NoSuchMethodError._withType" },
-    { "dart:core", "FormatException", "FormatException." },
-    { "dart:core", "UnsupportedError", "UnsupportedError." },
-    { "dart:core", "NullThrownError", "NullThrownError." },
-    { "dart:isolate", "IsolateSpawnException", "IsolateSpawnException." },
-    { "dart:isolate", "_IsolateUnhandledException",
-                      "_IsolateUnhandledException." },
-    { "dart:core", "_JavascriptIntegerOverflowError",
-                   "_JavascriptIntegerOverflowError." },
-    { "dart:core", "_JavascriptCompatibilityError",
-                   "_JavascriptCompatibilityError." },
-    { "dart:core", "AssertionError", "AssertionError." },
-    { "dart:core", "_CastError", "_CastError._create" },
-    { "dart:core", "_TypeError", "_TypeError._create" },
-    { "dart:core", "FallThroughError", "FallThroughError._create" },
-    { "dart:core", "AbstractClassInstantiationError",
-                   "AbstractClassInstantiationError._create" },
-    { "dart:core", "CyclicInitializationError",
-                   "CyclicInitializationError." },
-    { "dart:core", "StackOverflowError", "StackOverflowError." },
-    { "dart:core", "OutOfMemoryError", "OutOfMemoryError." },
-    { NULL, NULL, NULL }
+    { NULL, NULL, NULL }  // Must be terminated with NULL entries.
   };
 
+  AddEntryPoints(vm_entry_points);
+  AddEntryPoints(embedder_entry_points);
+}
+
+
+void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
   Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
   Function& func = Function::Handle(Z);
-  String& library_name = String::Handle(Z);
+  String& library_uri = String::Handle(Z);
   String& class_name = String::Handle(Z);
   String& function_name = String::Handle(Z);
-  for (intptr_t i = 0; kExternallyCalled[i].library_ != NULL; i++) {
-    library_name = Symbols::New(kExternallyCalled[i].library_);
-    class_name = Symbols::New(kExternallyCalled[i].class_);
-    function_name = Symbols::New(kExternallyCalled[i].function_);
 
-    lib = Library::LookupLibrary(library_name);
+  for (intptr_t i = 0; entry_points[i].library_uri != NULL; i++) {
+    library_uri = Symbols::New(entry_points[i].library_uri);
+    class_name = Symbols::New(entry_points[i].class_name);
+    function_name = Symbols::New(entry_points[i].function_name);
+
+    lib = Library::LookupLibrary(library_uri);
     if (lib.IsNull()) {
       if (FLAG_trace_precompiler) {
-        THR_Print("WARNING: Missing %s\n", kExternallyCalled[i].library_);
+        THR_Print("WARNING: Missing %s\n", entry_points[i].library_uri);
       }
       continue;
     }
@@ -291,8 +274,8 @@ void Precompiler::AddRoots() {
       if (cls.IsNull()) {
         if (FLAG_trace_precompiler) {
           THR_Print("WARNING: Missing %s %s\n",
-                    kExternallyCalled[i].library_,
-                    kExternallyCalled[i].class_);
+                    entry_points[i].library_uri,
+                    entry_points[i].class_name);
         }
         continue;
       }
@@ -304,9 +287,9 @@ void Precompiler::AddRoots() {
     if (func.IsNull()) {
       if (FLAG_trace_precompiler) {
         THR_Print("WARNING: Missing %s %s %s\n",
-                  kExternallyCalled[i].library_,
-                  kExternallyCalled[i].class_,
-                  kExternallyCalled[i].function_);
+                  entry_points[i].library_uri,
+                  entry_points[i].class_name,
+                  entry_points[i].function_name);
       }
       continue;
     }
