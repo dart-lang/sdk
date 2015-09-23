@@ -1115,11 +1115,6 @@ class MessageWriter : public SnapshotWriter {
 // objects to a snap shot.
 class SnapshotWriterVisitor : public ObjectPointerVisitor {
  public:
-  explicit SnapshotWriterVisitor(SnapshotWriter* writer)
-      : ObjectPointerVisitor(Isolate::Current()),
-        writer_(writer),
-        as_references_(true) {}
-
   SnapshotWriterVisitor(SnapshotWriter* writer, bool as_references)
       : ObjectPointerVisitor(Isolate::Current()),
         writer_(writer),
