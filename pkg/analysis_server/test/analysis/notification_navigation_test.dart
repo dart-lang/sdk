@@ -664,7 +664,7 @@ main() {
     var libFile = addFile('$projectPath/bin/lib.dart', libCode);
     addTestFile('part of lib;');
     return prepareNavigation().then((_) {
-      assertHasRegionString('part of lib');
+      assertHasRegionString('lib');
       assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
     });
   }

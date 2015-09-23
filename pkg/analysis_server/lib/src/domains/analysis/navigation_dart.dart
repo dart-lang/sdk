@@ -137,8 +137,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
 
   @override
   visitPartOfDirective(PartOfDirective node) {
-    computer._addRegion_tokenStart_nodeEnd(
-        node.keyword, node.libraryName, node.element);
+    computer._addRegionForNode(node.libraryName, node.element);
     super.visitPartOfDirective(node);
   }
 
@@ -251,12 +250,6 @@ class _DartNavigationCollector {
   }
 
   void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {
-    int offset = a.offset;
-    int length = b.end - offset;
-    _addRegion(offset, length, element);
-  }
-
-  void _addRegion_tokenStart_nodeEnd(Token a, AstNode b, Element element) {
     int offset = a.offset;
     int length = b.end - offset;
     _addRegion(offset, length, element);
