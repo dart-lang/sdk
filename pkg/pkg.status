@@ -14,9 +14,6 @@
 # Analyzer2dart is not maintained anymore.
 analyzer2dart/test/*: Skip
 
-[ $compiler != dartanalyzer && $compiler != dart2analyzer ]
-docgen/test/inherited_comments_test: Fail # issue 22233
-
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 mutation_observer: Skip # Issue 21149
 unittest/*: Skip # Issue 21949
@@ -31,7 +28,6 @@ analysis_server/test/integration/*: SkipSlow # Times out
 analysis_server/tool/spec/check_all_test: SkipSlow # Times out
 analyzer/test/generated/element_test: SkipSlow  # Times out
 analyzer/test/generated/parser_test: SkipSlow  # Times out
-docgen/test/*: SkipSlow
 
 [ $runtime == vm && $system == windows]
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
@@ -43,7 +39,6 @@ collection/test/equality_test/03: Fail # Issue 1533
 collection/test/equality_test/04: Fail # Issue 1533
 collection/test/equality_test/05: Fail # Issue 1533
 collection/test/equality_test/none: Pass, Fail # Issue 14348
-docgen/test/*: SkipSlow # Far too slow
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 analyzer/test/generated/engine_test: SkipSlow
 analyzer/test/generated/static_type_warning_code_test: Pass, Slow
@@ -149,7 +144,6 @@ analysis_server/test/*: SkipByDesign # Uses dart:io.
 analysis_server/tool/spec/check_all_test: SkipByDesign # Uses dart:io.
 analyzer/test/*: SkipByDesign # Uses dart:io.
 analyzer2dart/*: SkipByDesign # Uses dart:io.
-docgen/test/*: SkipByDesign # Uses dart:io.
 http_server/test/*: Fail, OK # Uses dart:io.
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 observe/test/unique_message_test: SkipByDesign  # Uses dart:io.

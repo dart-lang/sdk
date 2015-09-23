@@ -4,7 +4,6 @@
 
 samples/third_party/dromaeo: Pass, Slow
 samples/searchable_list: Pass, Slow
-pkg/docgen: Pass, Slow
 
 [ $use_repository_packages ]
 pkg/analyzer: PubGetError
