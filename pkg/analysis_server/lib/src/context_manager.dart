@@ -14,6 +14,7 @@ import 'package:analysis_server/src/server_options.dart';
 import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -466,6 +467,12 @@ class ContextManagerImpl implements ContextManager {
    */
   void processOptionsForContext(
       ContextInfo info, Map<String, YamlNode> options) {
+    //TODO(pquitslund): push handling into an options processor plugin contributed to engine.
+    //AnalysisEngine.instance.optionsPlugin.optionsProcessors
+    //    .forEach((OptionsProcessor p) => p.optionsProcessed(options));
+    if (options == null) {
+      return;
+    }
     YamlMap analyzer = options['analyzer'];
     if (analyzer == null) {
       // No options for analyzer.
@@ -808,8 +815,18 @@ class ContextManagerImpl implements ContextManager {
       ContextInfo parent, Folder folder, File packagespecFile) {
     ContextInfo info = new ContextInfo(this, parent, folder, packagespecFile,
         normalizedPackageRoots[folder.path]);
-    Map<String, YamlNode> options = analysisOptionsProvider.getOptions(folder);
-    processOptionsForContext(info, options);
+
+    try {
+      Map<String, YamlNode> options =
+          analysisOptionsProvider.getOptions(folder);
+      processOptionsForContext(info, options);
+    } on Exception catch (e) {
+      // TODO(pquitslund): contribute plugin that sends error notification on options file.
+      // Related test: context_manager_test.test_analysis_options_parse_failure()
+      // AnalysisEngine.instance.optionsPlugin.optionsProcessors
+      //      .forEach((OptionsProcessor p) => p.onError(e));
+    }
+
     FolderDisposition disposition;
     List<String> dependencies = <String>[];
 
