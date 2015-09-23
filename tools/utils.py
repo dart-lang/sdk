@@ -240,6 +240,7 @@ ARCH_FAMILY = {
 ARCH_GUESS = GuessArchitecture()
 BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
 DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
+VERSION_FILE = os.path.join(DART_DIR, 'tools', 'VERSION')
 
 def GetBuildbotGSUtilPath():
   gsutil = '/b/build/scripts/slave/gsutil'
@@ -341,13 +342,12 @@ def ReadVersionFile():
       return match.group(1)
     return None
 
-  version_file = os.path.join(DART_DIR, 'tools', 'VERSION')
   try:
-    fd = open(version_file)
+    fd = open(VERSION_FILE)
     content = fd.read()
     fd.close()
   except:
-    print "Warning: Couldn't read VERSION file (%s)" % version_file
+    print "Warning: Couldn't read VERSION file (%s)" % VERSION_FILE
     return None
 
   channel = match_against('^CHANNEL ([A-Za-z0-9]+)$', content)
@@ -361,7 +361,7 @@ def ReadVersionFile():
     return Version(
         channel, major, minor, patch, prerelease, prerelease_patch)
   else:
-    print "Warning: VERSION file (%s) has wrong format" % version_file
+    print "Warning: VERSION file (%s) has wrong format" % VERSION_FILE
     return None
 
 
