@@ -35,7 +35,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart';
-import 'package:path/path.dart' as ppp;
 
 /**
  * A predicate is a one-argument function that returns a boolean value.
