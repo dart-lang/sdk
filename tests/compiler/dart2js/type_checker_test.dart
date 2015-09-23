@@ -2385,6 +2385,8 @@ testAsyncReturn(MockCompiler compiler) {
     check("int foo() async => 0;", NOT_ASSIGNABLE),
     check("int foo() async => new Future<int>.value();",
           NOT_ASSIGNABLE),
+    check("Iterable<int> foo() sync* { return; }"),
+    check("Stream<int> foo() async* { return; }"),
   ]);
 }
 
