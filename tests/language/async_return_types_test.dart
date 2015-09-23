@@ -40,6 +40,23 @@ foo7() async {
   return new Future<int>.value(3);
 }
 
+
+Iterable<int> foo8() sync* {
+  yield 1;
+  // Can only have valueless return in sync* functions.
+  return
+      8 /// return_value_sync_star: compile-time error
+       ;
+}
+
+Stream<int> foo9() async* {
+  yield 1;
+  // Can only have valueless return in async* functions.
+  return
+      8 /// return_value_sync_star: compile-time error
+       ;
+}
+
 test() async {
   Expect.equals(3, await foo1());
   Expect.equals(3, await foo2());
@@ -48,6 +65,8 @@ test() async {
   Expect.equals(3, await foo5());
   Expect.equals(3, await await foo6());
   Expect.equals(3, await await foo7());
+  Expect.listEquals([1], foo8().toList());
+  Expect.listEquals([1], await foo9().toList());
 }
 
 main() {
