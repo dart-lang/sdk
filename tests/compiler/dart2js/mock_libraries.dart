@@ -107,7 +107,10 @@ import 'dart:async';
 ''';
 
 const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
+  'assertTest': 'assertTest(a) {}',
+  'assertThrow': 'assertThrow(a) {}',
   'assertHelper': 'assertHelper(a) {}',
+  'assertUnreachable': 'assertUnreachable() {}',
   'assertIsSubtype': 'assertIsSubtype(subtype, supertype, message) {}',
   'assertSubtype': 'assertSubtype(object, isField, checks, asField) {}',
   'assertSubtypeOfRuntimeType': 'assertSubtypeOfRuntimeType(object, type) {}',
@@ -368,8 +371,8 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
       }''',
   'JSString': r'''
       class JSString extends Interceptor implements String, JSIndexable {
-        var split;
-        var length;
+        split(pattern) => [];
+        int get length => 42;
         operator[](index) {}
         toString() {}
         operator+(other) => this;

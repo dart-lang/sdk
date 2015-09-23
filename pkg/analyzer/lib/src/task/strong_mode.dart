@@ -112,9 +112,8 @@ class InstanceMemberInferrer {
   /**
    * Initialize a newly create inferrer.
    */
-  InstanceMemberInferrer(this.typeProvider) {
-    typeSystem = new TypeSystemImpl(typeProvider);
-  }
+  InstanceMemberInferrer(this.typeProvider, {TypeSystem typeSystem})
+      : typeSystem = (typeSystem != null) ? typeSystem : new TypeSystemImpl();
 
   /**
    * Infer type information for all of the instance members in the given

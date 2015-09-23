@@ -28,7 +28,8 @@ bool MethodRecognizer::PolymorphicTarget(const Function& function) {
 #define KIND_TO_STRING(class_name, function_name, enum_name, fp)               \
   #enum_name,
 static const char* recognized_list_method_name[] = {
-RECOGNIZED_LIST(KIND_TO_STRING)
+  "Unknown",
+  RECOGNIZED_LIST(KIND_TO_STRING)
 };
 #undef KIND_TO_STRING
 

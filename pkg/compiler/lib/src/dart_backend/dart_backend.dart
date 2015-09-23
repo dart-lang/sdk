@@ -52,8 +52,9 @@ import '../resolution/tree_elements.dart' show
 import '../tokens/keyword.dart' show
     Keyword;
 import '../tree/tree.dart';
+import '../universe/selector.dart' show
+    Selector;
 import '../universe/universe.dart' show
-    Selector,
     UniverseSelector;
 import '../util/util.dart';
 import 'backend_ast_to_frontend_ast.dart' as backend2frontend;

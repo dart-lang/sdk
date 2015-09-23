@@ -1519,7 +1519,8 @@ class ComputeConstantDependenciesTask extends ConstantEvaluationAnalysisTask {
     // Compute dependencies.
     //
     List<ConstantEvaluationTarget> dependencies = <ConstantEvaluationTarget>[];
-    new ConstantEvaluationEngine(typeProvider, context.declaredVariables)
+    new ConstantEvaluationEngine(typeProvider, context.declaredVariables,
+            typeSystem: context.typeSystem)
         .computeDependencies(constant, dependencies.add);
     //
     // Record outputs.
@@ -1610,7 +1611,8 @@ class ComputeConstantValueTask extends ConstantEvaluationAnalysisTask {
     // cycle.
     //
     ConstantEvaluationEngine constantEvaluationEngine =
-        new ConstantEvaluationEngine(typeProvider, context.declaredVariables);
+        new ConstantEvaluationEngine(typeProvider, context.declaredVariables,
+            typeSystem: context.typeSystem);
     if (dependencyCycle == null) {
       constantEvaluationEngine.computeConstantValue(constant);
     } else {
@@ -2342,10 +2344,12 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
         getRequiredInput(USED_LOCAL_ELEMENTS_INPUT);
     CompilationUnitElement unitElement = unit.element;
     LibraryElement libraryElement = unitElement.library;
+    TypeSystem typeSystem = context.typeSystem;
+
     //
     // Generate errors.
     //
-    unit.accept(new DeadCodeVerifier(errorReporter));
+    unit.accept(new DeadCodeVerifier(errorReporter, typeSystem: typeSystem));
     // Verify imports.
     {
       ImportsVerifier verifier = new ImportsVerifier();
@@ -2370,7 +2374,9 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     InheritanceManager inheritanceManager =
         new InheritanceManager(libraryElement);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
-    unit.accept(new BestPracticesVerifier(errorReporter, typeProvider));
+
+    unit.accept(new BestPracticesVerifier(errorReporter, typeProvider,
+        typeSystem: typeSystem));
     unit.accept(new OverrideVerifier(errorReporter, inheritanceManager));
     // Find to-do comments.
     new ToDoFinder(errorReporter).findIn(unit);
@@ -2459,8 +2465,8 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
     // Infer instance members.
     //
     if (context.analysisOptions.strongMode) {
-      InstanceMemberInferrer inferrer =
-          new InstanceMemberInferrer(typeProvider);
+      InstanceMemberInferrer inferrer = new InstanceMemberInferrer(typeProvider,
+          typeSystem: context.typeSystem);
       inferrer.inferCompilationUnit(unit.element);
     }
     //

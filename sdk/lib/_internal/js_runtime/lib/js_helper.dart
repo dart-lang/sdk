@@ -18,8 +18,7 @@ import 'dart:_js_embedded_names' show
     JsGetName,
     LEAF_TAGS,
     NATIVE_SUPERCLASS_TAG_NAME,
-    STATIC_FUNCTION_NAME_PROPERTY_NAME,
-    TRACE_BUFFER;
+    STATIC_FUNCTION_NAME_PROPERTY_NAME;
 
 import 'dart:collection';
 
@@ -45,13 +44,12 @@ import 'dart:_foreign_helper' show
     JS_BUILTIN,
     JS_CALL_IN_ISOLATE,
     JS_CONST,
-    JS_GET_STATIC_STATEC,
     JS_CURRENT_ISOLATE_CONTEXT,
     JS_EFFECT,
     JS_EMBEDDED_GLOBAL,
     JS_GET_FLAG,
     JS_GET_NAME,
-    JS_HAS_EQUALS,
+    JS_INTERCEPTOR_CONSTANT,
     JS_STRING_CONCAT,
     RAW_DART_FUNCTION_REF;
 
@@ -848,24 +846,71 @@ class Primitives {
   ///
   /// In minified mode, uses the unminified names if available.
   static String objectTypeName(Object object) {
-    String name = constructorNameFallback(getInterceptor(object));
-    if (name == 'Object') {
-      // Try to decompile the constructor by turning it into a string and get
-      // the name out of that. If the decompiled name is a string containing an
-      // identifier, we use that instead of the very generic 'Object'.
-      var decompiled =
-          JS('var', r'#.match(/^\s*function\s*([\w$]*)\s*\(/)[1]',
-              JS('var', r'String(#.constructor)', object));
-      if (decompiled is String)
-        if (JS('bool', r'/^\w+$/.test(#)', decompiled))
-          name = decompiled;
+    return formatType(_objectRawTypeName(object), getRuntimeTypeInfo(object));
+  }
+
+  static String _objectRawTypeName(Object object) {
+    var interceptor = getInterceptor(object);
+    // The interceptor is either an object (self-intercepting plain Dart class),
+    // the prototype of the constructor for an Interceptor class (like
+    // `JSString.prototype`, `JSNull.prototype`), or an Interceptor object
+    // instance (`const JSString()`, should use `JSString.prototype`).
+    //
+    // These all should have a `constructor` property with a `name` property.
+    String name;
+    var interceptorConstructor = JS('', '#.constructor', interceptor);
+    if (JS('bool', 'typeof # == "function"', interceptorConstructor)) {
+      var interceptorConstructorName = JS('', '#.name', interceptorConstructor);
+      if (interceptorConstructorName is String) {
+        name = interceptorConstructorName;
+      }
     }
+
+    if (name == null ||
+        identical(interceptor,
+            JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject)) ||
+        identical(interceptor, JS_INTERCEPTOR_CONSTANT(Interceptor))) {
+      // Try to do better.  If we do not find something better, leave the name
+      // as 'UnknownJavaScriptObject' or 'Interceptor' (or the minified name).
+      //
+      // When we get here via the UnknownJavaScriptObject test (for JavaScript
+      // objects from outside the program), the object's constructor has a
+      // better name that 'UnknownJavaScriptObject'.
+      //
+      // When we get here the Interceptor test (for Native classes that are
+      // declared in the Dart program but have been 'folded' into Interceptor),
+      // the native class's constructor name is better than the generic
+      // 'Interceptor' (an abstract class).
+
+      // Try the [constructorNameFallback]. This gets the constructor name for
+      // any browser (used by [getNativeInterceptor]).
+      String dispatchName = constructorNameFallback(object);
+      if (name == null) name = dispatchName;
+      if (dispatchName == 'Object') {
+        // Try to decompile the constructor by turning it into a string and get
+        // the name out of that. If the decompiled name is a string containing
+        // an identifier, we use that instead of the very generic 'Object'.
+        var objectConstructor = JS('', '#.constructor', object);
+        if (JS('bool', 'typeof # == "function"', objectConstructor)) {
+          var decompiledName =
+              JS('var', r'#.match(/^\s*function\s*([\w$]*)\s*\(/)[1]',
+                  JS('var', r'String(#)', objectConstructor));
+          if (decompiledName is String &&
+              JS('bool', r'/^\w+$/.test(#)', decompiledName)) {
+            name = decompiledName;
+          }
+        }
+      } else {
+        name = dispatchName;
+      }
+    }
+
     // TODO(kasperl): If the namer gave us a fresh global name, we may
     // want to remove the numeric suffix that makes it unique too.
     if (name.length > 1 && identical(name.codeUnitAt(0), DOLLAR_CHAR_VALUE)) {
       name = name.substring(1);
     }
-    return formatType(name, getRuntimeTypeInfo(object));
+    return name;
   }
 
   /// In minified mode, uses the unminified names if available.
@@ -1566,7 +1611,7 @@ ioore(receiver, index) {
  */
 @NoInline()
 Error diagnoseIndexError(indexable, index) {
-  if (index is! int) return new ArgumentError.value(index, 'index');
+  if (index is !int) return new ArgumentError.value(index, 'index');
   int length = indexable.length;
   // The following returns the same error that would be thrown by calling
   // [RangeError.checkValidIndex] with no optional parameters provided.
@@ -3321,18 +3366,33 @@ class FallThroughErrorImplementation extends FallThroughError {
 
 /**
  * Helper function for implementing asserts. The compiler treats this specially.
+ *
+ * Returns the negation of the condition. That is: `true` if the assert should
+ * fail.
  */
+bool assertTest(condition) {
+  // Do bool success check first, it is common and faster than 'is Function'.
+  if (true == condition) return false;
+  if (condition is Function) condition = condition();
+  if (condition is bool) return !condition;
+  throw new TypeErrorImplementation(condition, 'bool');
+}
+
+/**
+ * Helper function for implementing asserts with messages.
+ * The compiler treats this specially.
+ */
+void assertThrow(Object message) {
+  throw new _AssertionError(message);
+}
+
+/**
+ * Helper function for implementing asserts without messages.
+ * The compiler treats this specially.
+ */
+@NoInline()
 void assertHelper(condition) {
-  // Do a bool check first because it is common and faster than 'is Function'.
-  if (condition is !bool) {
-    if (condition is Function) condition = condition();
-    if (condition is !bool) {
-      throw new TypeErrorImplementation(condition, 'bool');
-    }
-  }
-  // Compare to true to avoid boolean conversion check in checked
-  // mode.
-  if (true != condition) throw new AssertionError();
+  if (assertTest(condition)) throw new AssertionError();
 }
 
 /**
@@ -3994,4 +4054,25 @@ void badMain() {
 
 void mainHasTooManyParameters() {
   throw new MainError("'main' expects too many parameters.");
+}
+
+class _AssertionError extends AssertionError {
+  final _message;
+  _AssertionError(this._message);
+
+  String toString() => "Assertion failed: " + Error.safeToString(_message);
+}
+
+
+// [_UnreachableError] is a separate class because we always resolve
+// [assertUnreachable] and want to reduce the impact of resolving possibly
+// unneeded code.
+class _UnreachableError extends AssertionError {
+  _UnreachableError();
+  String toString() => "Assertion failed: Reached dead code";
+}
+
+@NoInline()
+void assertUnreachable() {
+  throw new _UnreachableError();
 }

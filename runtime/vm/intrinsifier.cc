@@ -211,6 +211,19 @@ void Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
 }
 
 
+static intptr_t CidForRepresentation(Representation rep) {
+  switch (rep) {
+    case kUnboxedDouble:
+      return kDoubleCid;
+    case kUnboxedFloat32x4:
+      return kFloat32x4Cid;
+    default:
+      UNREACHABLE();
+      return kIllegalCid;
+  }
+}
+
+
 class BlockBuilder : public ValueObject {
  public:
   BlockBuilder(FlowGraph* flow_graph, TargetEntryInstr* entry)
@@ -254,6 +267,16 @@ class BlockBuilder : public ValueObject {
   Definition* AddNullDefinition() {
     return AddDefinition(
         new ConstantInstr(Object::ZoneHandle(Object::null())));
+  }
+
+  Definition* AddUnboxInstr(Representation rep, Value* value) {
+    Definition* unboxed_value = AddDefinition(
+        UnboxInstr::Create(rep, value, Isolate::kNoDeoptId));
+    // Manually adjust reaching type because there is no type propagation
+    // when building intrinsics.
+    unboxed_value->AsUnbox()->value()->SetReachingType(ZoneCompileType::Wrap(
+        CompileType::FromCid(CidForRepresentation(rep))));
+    return unboxed_value;
   }
 
  private:
@@ -450,14 +473,8 @@ bool Intrinsifier::Build_Float64ArraySetIndexed(FlowGraph* flow_graph) {
                           Isolate::kNoDeoptId,
                           value_check,
                           builder.TokenPos()));
-  Definition* double_value = builder.AddDefinition(
-      UnboxInstr::Create(kUnboxedDouble,
-                         new Value(value),
-                         Isolate::kNoDeoptId));
-  // Manually adjust reaching type because there is no type propagation
-  // when building intrinsics.
-  double_value->AsUnbox()->value()->SetReachingType(
-      ZoneCompileType::Wrap(CompileType::FromCid(kDoubleCid)));
+  Definition* double_value =
+      builder.AddUnboxInstr(kUnboxedDouble, new Value(value));
 
   builder.AddInstruction(
       new StoreIndexedInstr(new Value(array),
@@ -498,6 +515,111 @@ bool Intrinsifier::Build_Float64ArrayGetIndexed(FlowGraph* flow_graph) {
       BoxInstr::Create(kUnboxedDouble, new Value(unboxed_value)));
   builder.AddIntrinsicReturn(new Value(result));
   return true;
+}
+
+
+static bool BuildBinaryFloat32x4Op(FlowGraph* flow_graph, Token::Kind kind) {
+  if (!FlowGraphCompiler::SupportsUnboxedSimd128()) return false;
+
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  Definition* right = builder.AddParameter(1);
+  Definition* left = builder.AddParameter(2);
+
+  const ICData& value_check = ICData::ZoneHandle(ICData::New(
+      flow_graph->function(),
+      String::Handle(flow_graph->function().name()),
+      Object::empty_array(),  // Dummy args. descr.
+      Isolate::kNoDeoptId,
+      1));
+  value_check.AddReceiverCheck(kFloat32x4Cid, flow_graph->function());
+  // Check argument. Receiver (left) is known to be a Float32x4.
+  builder.AddInstruction(
+      new CheckClassInstr(new Value(right),
+                          Isolate::kNoDeoptId,
+                          value_check,
+                          builder.TokenPos()));
+  Definition* left_simd =
+      builder.AddUnboxInstr(kUnboxedFloat32x4, new Value(left));
+
+  Definition* right_simd =
+      builder.AddUnboxInstr(kUnboxedFloat32x4, new Value(right));
+
+  Definition* unboxed_result = builder.AddDefinition(
+      new BinaryFloat32x4OpInstr(kind,
+                                 new Value(left_simd),
+                                 new Value(right_simd),
+                                 Isolate::kNoDeoptId));
+  Definition* result = builder.AddDefinition(
+      BoxInstr::Create(kUnboxedFloat32x4, new Value(unboxed_result)));
+  builder.AddIntrinsicReturn(new Value(result));
+  return true;
+}
+
+
+bool Intrinsifier::Build_Float32x4Mul(FlowGraph* flow_graph) {
+  return BuildBinaryFloat32x4Op(flow_graph, Token::kMUL);
+}
+
+
+bool Intrinsifier::Build_Float32x4Sub(FlowGraph* flow_graph) {
+  return BuildBinaryFloat32x4Op(flow_graph, Token::kSUB);
+}
+
+
+bool Intrinsifier::Build_Float32x4Add(FlowGraph* flow_graph) {
+  return BuildBinaryFloat32x4Op(flow_graph, Token::kADD);
+}
+
+
+static bool BuildFloat32x4Shuffle(FlowGraph* flow_graph,
+                                  MethodRecognizer::Kind kind) {
+  if (!FlowGraphCompiler::SupportsUnboxedSimd128()) return false;
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  Definition* receiver = builder.AddParameter(1);
+
+  Definition* unboxed_receiver =
+      builder.AddUnboxInstr(kUnboxedFloat32x4, new Value(receiver));
+
+  Definition* unboxed_result = builder.AddDefinition(
+      new Simd32x4ShuffleInstr(kind,
+                               new Value(unboxed_receiver),
+                               0,
+                               Isolate::kNoDeoptId));
+
+  Definition* result = builder.AddDefinition(
+      BoxInstr::Create(kUnboxedDouble, new Value(unboxed_result)));
+  builder.AddIntrinsicReturn(new Value(result));
+  return true;
+}
+
+
+bool Intrinsifier::Build_Float32x4ShuffleX(FlowGraph* flow_graph) {
+  return BuildFloat32x4Shuffle(flow_graph,
+                               MethodRecognizer::kFloat32x4ShuffleX);
+}
+
+
+bool Intrinsifier::Build_Float32x4ShuffleY(FlowGraph* flow_graph) {
+  return BuildFloat32x4Shuffle(flow_graph,
+                               MethodRecognizer::kFloat32x4ShuffleY);
+}
+
+
+bool Intrinsifier::Build_Float32x4ShuffleZ(FlowGraph* flow_graph) {
+  return BuildFloat32x4Shuffle(flow_graph,
+                               MethodRecognizer::kFloat32x4ShuffleZ);
+}
+
+
+bool Intrinsifier::Build_Float32x4ShuffleW(FlowGraph* flow_graph) {
+  return BuildFloat32x4Shuffle(flow_graph,
+                               MethodRecognizer::kFloat32x4ShuffleW);
 }
 
 

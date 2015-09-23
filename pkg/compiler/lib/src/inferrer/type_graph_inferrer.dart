@@ -47,11 +47,12 @@ import '../types/types.dart' show
     ValueTypeMask;
 import '../types/constants.dart' show
     computeTypeMask;
-import '../universe/universe.dart' show
-    CallStructure,
-    Selector,
-    SideEffects,
-    TypedSelector;
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
+import '../universe/side_effects.dart' show
+    SideEffects;
 import '../util/util.dart' show
     ImmutableEmptySet,
     Setlet;
@@ -1036,16 +1037,16 @@ class TypeGraphInferrerEngine
       if (parameter.functionDeclaration.isInstanceMember) {
         ParameterAssignments assignments = info.assignments;
         assignments.replace(existing, type);
-        type.addUser(info);
       } else {
         List<TypeInformation> assignments = info.assignments;
         for (int i = 0; i < assignments.length; i++) {
           if (assignments[i] == existing) {
             assignments[i] = type;
-            type.addUser(info);
           }
         }
       }
+      // Also forward all users.
+      type.addUsersOf(existing);
     } else {
       assert(existing == null);
     }

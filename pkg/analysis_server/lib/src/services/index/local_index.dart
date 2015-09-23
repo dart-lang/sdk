@@ -29,7 +29,9 @@ class LocalIndex extends Index {
   SplitIndexStore _store;
 
   LocalIndex(NodeManager nodeManager) {
-    _store = new SplitIndexStore(nodeManager);
+    // TODO(scheglov) get IndexObjectManager(s) as a parameter
+    _store = new SplitIndexStore(nodeManager,
+        <IndexObjectManager>[new DartUnitIndexObjectManager()]);
   }
 
   @override

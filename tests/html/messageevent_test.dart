@@ -17,7 +17,7 @@ main() {
       expect(event.origin, equals('origin'));
       // IE allows setting this but just ignores it.
       // expect(event.lastEventId, equals('lastEventId'));
-      expect(event.source, same(window));
+      expect(event.source, window);
       // TODO(antonm): accessing ports is not supported yet.
   });
 }

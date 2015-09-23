@@ -27,7 +27,7 @@ class _ContentCssRect extends CssRect {
    * `height` function in jQuery and the calculated `height` CSS value,
    * converted to a num in pixels.
    */
-  void set height(newHeight) {
+  set height(newHeight) {
     if (newHeight is Dimension) {
       if (newHeight.value < 0) newHeight = new Dimension.px(0);
       _element.style.height = newHeight.toString();
@@ -45,7 +45,7 @@ class _ContentCssRect extends CssRect {
    * and the calculated
    * `width` CSS value, converted to a dimensionless num in pixels.
    */
-  void set width(newWidth) {
+  set width(newWidth) {
     if (newWidth is Dimension) {
       if (newWidth.value < 0) newWidth = new Dimension.px(0);
       _element.style.width = newWidth.toString();
@@ -80,7 +80,7 @@ class _ContentCssListRect extends _ContentCssRect {
    * function in jQuery and the calculated `height` CSS value, converted to a
    * num in pixels.
    */
-  void set height(newHeight) {
+  set height(newHeight) {
     _elementList.forEach((e) => e.contentEdge.height = newHeight);
   }
 
@@ -90,7 +90,7 @@ class _ContentCssListRect extends _ContentCssRect {
    * This is equivalent to the `width` function in jQuery and the calculated
    * `width` CSS value, converted to a dimensionless num in pixels.
    */
-  void set width(newWidth) {
+  set width(newWidth) {
     _elementList.forEach((e) => e.contentEdge.width = newWidth);
   }
 }
@@ -197,7 +197,7 @@ abstract class CssRect extends MutableRectangle<num> {
    *
    * Note that only the content height can actually be set via this method.
    */
-  void set height(newHeight) {
+  set height(newHeight) {
     throw new UnsupportedError("Can only set height for content rect.");
   }
 
@@ -211,7 +211,7 @@ abstract class CssRect extends MutableRectangle<num> {
    *
    * Note that only the content width can be set via this method.
    */
-  void set width(newWidth) {
+  set width(newWidth) {
     throw new UnsupportedError("Can only set width for content rect.");
   }
 

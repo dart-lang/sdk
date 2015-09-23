@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/completion/completion_core.dart'
     show CompletionRequest, CompletionResult;
+import 'package:analysis_server/completion/completion_dart.dart' as newApi;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/constants.dart';
@@ -17,6 +18,7 @@ import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/index/index.dart' show Index;
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
@@ -470,6 +472,29 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
+  test_invocation_sdk_relevancy_off() {
+    var originalSorter = DartCompletionManager.defaultContributionSorter;
+    var mockSorter = new MockRelevancySorter();
+    DartCompletionManager.defaultContributionSorter = mockSorter;
+    addTestFile('main() {Map m; m.^}');
+    return getSuggestions().then((_) {
+      // Assert that the CommonUsageComputer has been replaced
+      expect(suggestions.any((s) => s.relevance == DART_RELEVANCE_COMMON_USAGE),
+          isFalse);
+      DartCompletionManager.defaultContributionSorter = originalSorter;
+      mockSorter.enabled = false;
+    });
+  }
+
+  test_invocation_sdk_relevancy_on() {
+    addTestFile('main() {Map m; m.^}');
+    return getSuggestions().then((_) {
+      // Assert that the CommonUsageComputer is working
+      expect(suggestions.any((s) => s.relevance == DART_RELEVANCE_COMMON_USAGE),
+          isTrue);
+    });
+  }
+
   test_invocation_withTrailingStmt() {
     addTestFile('class A {b() {}} main() {A a; a.^ int x = 7;}');
     return getSuggestions().then((_) {
@@ -688,6 +713,18 @@ class MockContext implements AnalysisContext {
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockRelevancySorter implements ContributionSorter {
+  bool enabled = true;
+
+  @override
+  void sort(newApi.DartCompletionRequest request,
+      List<CompletionSuggestion> suggestions) {
+    if (!enabled) {
+      throw 'unexpected sort';
+    }
+  }
 }
 
 /**

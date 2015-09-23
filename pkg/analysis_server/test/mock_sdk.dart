@@ -97,6 +97,7 @@ abstract class List<E> implements Iterable<E> {
 }
 
 abstract class Map<K, V> extends Object {
+  bool containsKey(Object key);
   Iterable<K> get keys;
 }
 

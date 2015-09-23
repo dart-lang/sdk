@@ -41,7 +41,11 @@
 
 part of _js_helper;
 
-Type createRuntimeType(String name) => new TypeImpl(name);
+Type createRuntimeType(String name) {
+  // Use a 'JS' cast to String.  Since this is registered as used by the
+  // backend, type inference assumes the worst (name is dynamic).
+  return new TypeImpl(JS('String', '#', name));
+}
 
 class TypeImpl implements Type {
   final String _typeName;
@@ -85,10 +89,14 @@ getMangledTypeName(TypeImpl type) => type._typeName;
  * representation of type 4 or 5, that is, either a JavaScript array or
  * `null`.
  */
+// Don't inline.  Let the JS engine inline this.  The call expression is much
+// more compact that the inlined expansion.
+// TODO(sra): For most objects it would be better to initialize the type info as
+// a field in the constructor: http://dartbug.com/22676 .
+@NoInline()
 Object setRuntimeTypeInfo(Object target, var rti) {
   assert(rti == null || isJsArray(rti));
-  // We have to check for null because factories may return null.
-  if (target != null) JS('var', r'#.$builtinTypeInfo = #', target, rti);
+  JS('var', r'#.$builtinTypeInfo = #', target, rti);
   return target;
 }
 

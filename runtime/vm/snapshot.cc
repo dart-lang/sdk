@@ -1179,8 +1179,12 @@ RawStacktrace* SnapshotReader::NewStacktrace() {
 
 
 int32_t InstructionsWriter::GetOffsetFor(RawInstructions* instructions) {
+  // Can't use instructions->Size() because the header was mutated by the
+  // snapshot writer.
+  intptr_t heap_size =
+      Instructions::InstanceSize(instructions->ptr()->size_);
   intptr_t offset = next_offset_;
-  next_offset_ += instructions->Size();
+  next_offset_ += heap_size;
   instructions_.Add(InstructionsData(instructions));
   return offset;
 }
@@ -1212,8 +1216,17 @@ void InstructionsWriter::WriteAssembly() {
 
   stream_.Print(".text\n");
   stream_.Print(".globl _kInstructionsSnapshot\n");
-  stream_.Print(".balign %" Pd ", 0\n", OS::PreferredCodeAlignment());
+  stream_.Print(".balign %" Pd ", 0\n", OS::kMaxPreferredCodeAlignment);
   stream_.Print("_kInstructionsSnapshot:\n");
+
+  // This head also provides the gap to make the instructions snapshot
+  // look like a HeapPage.
+  intptr_t instructions_length = next_offset_;
+  WriteWordLiteral(instructions_length);
+  intptr_t header_words = InstructionsSnapshot::kHeaderSize / sizeof(uword);
+  for (intptr_t i = 1; i < header_words; i++) {
+    WriteWordLiteral(0);
+  }
 
   Object& owner = Object::Handle(Z);
   String& str = String::Handle(Z);
@@ -1227,16 +1240,25 @@ void InstructionsWriter::WriteAssembly() {
     {
       // 1. Write from the header to the entry point.
       NoSafepointScope no_safepoint;
-      uword beginning = reinterpret_cast<uword>(insns.raw()) - kHeapObjectTag;
+
+      uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
       uword entry = beginning + Instructions::HeaderSize();
 
       ASSERT(Utils::IsAligned(beginning, sizeof(uint64_t)));
       ASSERT(Utils::IsAligned(entry, sizeof(uint64_t)));
 
-      for (uint64_t* cursor = reinterpret_cast<uint64_t*>(beginning);
-           cursor < reinterpret_cast<uint64_t*>(entry);
+      // Write Instructions with the mark and VM heap bits set.
+      uword marked_tags = insns.raw_ptr()->tags_;
+      marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
+      marked_tags = RawObject::MarkBit::update(true, marked_tags);
+
+      WriteWordLiteral(marked_tags);
+      beginning += sizeof(uword);
+
+      for (uword* cursor = reinterpret_cast<uword*>(beginning);
+           cursor < reinterpret_cast<uword*>(entry);
            cursor++) {
-        stream_.Print(".quad 0x%0.16" Px64 "\n", *cursor);
+        WriteWordLiteral(*cursor);
       }
     }
 
@@ -1269,10 +1291,10 @@ void InstructionsWriter::WriteAssembly() {
       ASSERT(Utils::IsAligned(entry, sizeof(uint64_t)));
       ASSERT(Utils::IsAligned(end, sizeof(uint64_t)));
 
-      for (uint64_t* cursor = reinterpret_cast<uint64_t*>(entry);
-           cursor < reinterpret_cast<uint64_t*>(end);
+      for (uword* cursor = reinterpret_cast<uword*>(entry);
+           cursor < reinterpret_cast<uword*>(end);
            cursor++) {
-        stream_.Print(".quad 0x%0.16" Px64 "\n", *cursor);
+        WriteWordLiteral(*cursor);
       }
     }
   }
@@ -1294,9 +1316,9 @@ RawInstructions* InstructionsReader::GetInstructionsAt(int32_t offset,
            actual_tags);
   }
 
-  // TODO(rmacnak): The above contains stale pointers to a Code and an
-  // ObjectPool. Return the actual result after calling convention change.
-  return Instructions::null();
+  ASSERT(result->IsMarked());
+
+  return result;
 }
 
 
@@ -1533,7 +1555,7 @@ VmIsolateSnapshotReader::~VmIsolateSnapshotReader() {
         i, *(backrefs->At(i).reference()));
   }
   ResetBackwardReferenceTable();
-  Object::set_instructions_snapshot_buffer(instructions_buffer_);
+  Dart::set_instructions_snapshot_buffer(instructions_buffer_);
 }
 
 
@@ -2646,7 +2668,9 @@ void SnapshotWriter::WriteInstanceRef(RawObject* raw, RawClass* cls) {
 
 
 bool SnapshotWriter::AllowObjectsInDartLibrary(RawLibrary* library) {
-  return library == object_store()->typed_data_library();
+  return (library == object_store()->collection_library() ||
+          library == object_store()->core_library() ||
+          library == object_store()->typed_data_library());
 }
 
 

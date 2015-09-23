@@ -5,6 +5,9 @@
 library dart2js.common;
 
 
+export 'common/names.dart' show
+    Names;
+
 export 'common/tasks.dart' show
     CompilerTask;
 
@@ -32,7 +35,6 @@ export 'diagnostics/spannable.dart' show
 
 export 'elements/elements.dart' show
     ClassElement,
-    ClosureFieldElement,
     CompilationUnitElement,
     Element,
     Elements,
@@ -44,19 +46,17 @@ export 'elements/elements.dart' show
     TypedefElement,
     VariableElement;
 
-export 'resolution/resolution.dart' show
-    TreeElements;
-
 export 'tree/tree.dart' show
     Node;
 
 export 'types/types.dart' show
     TypeMask;
 
-export 'universe/universe.dart' show
-    CallStructure,
-    Selector,
-    SelectorKind;
+export 'universe/call_structure.dart' show
+    CallStructure;
+
+export 'universe/selector.dart' show
+    Selector;
 
 export 'util/util.dart' show
     Link;

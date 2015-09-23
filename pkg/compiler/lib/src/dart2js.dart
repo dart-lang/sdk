@@ -356,6 +356,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(Flags.showPackageWarnings, passThrough),
     new OptionHandler(Flags.useContentSecurityPolicy, passThrough),
     new OptionHandler(Flags.enableExperimentalMirrors, passThrough),
+    new OptionHandler(Flags.enableAssertMessage, passThrough),
     new OptionHandler('--enable-async', (_) {
       diagnosticHandler.info(
           "Option '--enable-async' is no longer needed. "

@@ -9,6 +9,7 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analysis_server/completion/dart/completion_target.dart';
 
 /**
  * An object used to produce completions for a specific error within a Dart
@@ -78,7 +79,7 @@ abstract class DartCompletionRequest extends CompletionRequest {
    * Return the completion target.  This determines what part of the parse tree
    * will receive the newly inserted text.
    */
-  //CompletionTarget get target;
+  CompletionTarget get target;
 
   /**
    * Information about the types of suggestions that should be included.

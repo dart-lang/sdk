@@ -110,7 +110,7 @@ import 'package:compiler/src/elements/modelx.dart' show
     FieldElementX,
     LibraryElementX;
 
-import 'package:compiler/src/universe/universe.dart' show
+import 'package:compiler/src/universe/selector.dart' show
     Selector;
 
 import 'package:compiler/src/constants/values.dart' show

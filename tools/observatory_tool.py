@@ -139,7 +139,9 @@ def ExecuteCommand(options, args):
                       options.pub_executable,
                       options.pub_snapshot,
                       options.package_root,
-                      ['build', '--output', args[0]],
+                      ['build',
+                       '-DOBS_VER=' + utils.GetVersion(),
+                       '--output', args[0]],
                       options.silent)
   elif (cmd == 'deploy'):
     Deploy('build', 'deployed')

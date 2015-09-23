@@ -6,7 +6,7 @@ library cps_ir.cps_fragment;
 
 import 'cps_ir_nodes.dart';
 import '../constants/values.dart';
-import '../universe/universe.dart' show Selector;
+import '../universe/selector.dart' show Selector;
 import '../types/types.dart' show TypeMask;
 import '../io/source_information.dart';
 import '../elements/elements.dart';
@@ -112,11 +112,11 @@ class CpsFragment {
     return letPrim(new ApplyBuiltinOperator(op, args, sourceInformation));
   }
 
-  Primitive invokeBuiltin(BuiltinMethod method, 
-                          Primitive receiver, 
+  Primitive invokeBuiltin(BuiltinMethod method,
+                          Primitive receiver,
                           List<Primitive> arguments,
                           {bool receiverIsNotNull: false}) {
-    ApplyBuiltinMethod apply = 
+    ApplyBuiltinMethod apply =
         new ApplyBuiltinMethod(method, receiver, arguments, sourceInformation);
     apply.receiverIsNotNull = receiverIsNotNull;
     return letPrim(apply);

@@ -33,4 +33,6 @@ abstract class Registry {
   void registerInstantiation(InterfaceType type);
 
   void registerGetOfStaticFunction(FunctionElement element);
+
+  void registerAssert(bool hasMessage);
 }

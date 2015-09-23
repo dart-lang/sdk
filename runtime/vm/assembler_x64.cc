@@ -62,15 +62,6 @@ void Assembler::call(Label* label) {
 }
 
 
-void Assembler::LoadExternalLabel(Register dst,
-                                  const ExternalLabel* label,
-                                  Patchability patchable) {
-  const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindExternalLabel(label, patchable));
-  LoadWordFromPoolOffset(dst, offset - kHeapObjectTag);
-}
-
-
 void Assembler::LoadNativeEntry(Register dst,
                                 const ExternalLabel* label,
                                 Patchability patchable) {
@@ -93,20 +84,25 @@ void Assembler::call(const ExternalLabel* label) {
 
 void Assembler::CallPatchable(const StubEntry& stub_entry) {
   ASSERT(constant_pool_allowed());
+  const Code& target = Code::Handle(stub_entry.code());
   intptr_t call_start = buffer_.GetPosition();
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindExternalLabel(&stub_entry.label(), kPatchable));
-  call(Address::AddressBaseImm32(PP, offset - kHeapObjectTag));
+      object_pool_wrapper_.FindObject(target, kPatchable));
+  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
+  movq(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  call(TMP);
   ASSERT((buffer_.GetPosition() - call_start) == kCallExternalLabelSize);
 }
 
 
 void Assembler::Call(const StubEntry& stub_entry) {
   ASSERT(constant_pool_allowed());
+  const Code& target = Code::Handle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindExternalLabel(&stub_entry.label(),
-                                             kNotPatchable));
-  call(Address::AddressBaseImm32(PP, offset - kHeapObjectTag));
+      object_pool_wrapper_.FindObject(target, kNotPatchable));
+  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
+  movq(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  call(TMP);
 }
 
 
@@ -2543,11 +2539,12 @@ void Assembler::j(Condition condition, Label* label, bool near) {
 }
 
 
-void Assembler::J(Condition condition, const StubEntry& stub_entry,
+void Assembler::J(Condition condition,
+                  const StubEntry& stub_entry,
                   Register pp) {
   Label no_jump;
   // Negate condition.
-  j(static_cast<Condition>(condition ^ 1), &no_jump, Assembler::kNearJump);
+  j(static_cast<Condition>(condition ^ 1), &no_jump, kNearJump);
   Jmp(stub_entry, pp);
   Bind(&no_jump);
 }
@@ -2608,28 +2605,25 @@ void Assembler::jmp(const ExternalLabel* label) {
 }
 
 
-void Assembler::jmp(const StubEntry& stub_entry) {
-  jmp(&stub_entry.label());
-}
-
-
 void Assembler::JmpPatchable(const StubEntry& stub_entry, Register pp) {
   ASSERT((pp != PP) || constant_pool_allowed());
-  intptr_t call_start = buffer_.GetPosition();
+  const Code& target = Code::Handle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindExternalLabel(&stub_entry.label(), kPatchable));
-  // Patchable jumps always use a 32-bit immediate encoding.
-  jmp(Address::AddressBaseImm32(pp, offset - kHeapObjectTag));
-  ASSERT((buffer_.GetPosition() - call_start) == JumpPattern::kLengthInBytes);
+      object_pool_wrapper_.FindObject(target, kPatchable));
+  movq(CODE_REG, Address::AddressBaseImm32(pp, offset - kHeapObjectTag));
+  movq(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  jmp(TMP);
 }
 
 
 void Assembler::Jmp(const StubEntry& stub_entry, Register pp) {
   ASSERT((pp != PP) || constant_pool_allowed());
+  const Code& target = Code::Handle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindExternalLabel(&stub_entry.label(),
-                                             kNotPatchable));
-  jmp(Address(pp, offset - kHeapObjectTag));
+      object_pool_wrapper_.FindObject(target, kNotPatchable));
+  movq(CODE_REG, FieldAddress(pp, offset));
+  movq(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  jmp(TMP);
 }
 
 
@@ -3077,8 +3071,12 @@ void Assembler::StoreIntoObject(Register object,
   if (object != RDX) {
     movq(RDX, object);
   }
+  pushq(CODE_REG);
+  movq(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
   movq(TMP, Address(THR, Thread::update_store_buffer_entry_point_offset()));
   call(TMP);
+
+  popq(CODE_REG);
   if (value != RDX) popq(RDX);
   Bind(&done);
 }
@@ -3379,27 +3377,29 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 }
 
 
+void Assembler::RestoreCodePointer() {
+  movq(CODE_REG, Address(RBP, kPcMarkerSlotFromFp * kWordSize));
+}
+
+
 void Assembler::LoadPoolPointer(Register pp) {
   // Load new pool pointer.
-  const intptr_t kRIPRelativeMovqSize = 7;
-  const intptr_t entry_to_rip_offset = CodeSize() + kRIPRelativeMovqSize;
-  const intptr_t object_pool_pc_dist =
-      Instructions::HeaderSize() - Instructions::object_pool_offset();
-  movq(pp, Address::AddressRIPRelative(
-      -entry_to_rip_offset - object_pool_pc_dist));
-  ASSERT(CodeSize() == entry_to_rip_offset);
+  CheckCodePointer();
+  movq(pp, FieldAddress(CODE_REG, Code::object_pool_offset()));
   set_constant_pool_allowed(pp == PP);
 }
 
 
-void Assembler::EnterDartFrame(intptr_t frame_size,
-                               Register new_pp,
-                               Register pc_marker_override) {
+void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
   ASSERT(!constant_pool_allowed());
   EnterFrame(0);
-  pushq(pc_marker_override);
+  pushq(CODE_REG);
   pushq(PP);
-  movq(PP, new_pp);
+  if (new_pp == kNoRegister) {
+    LoadPoolPointer(PP);
+  } else {
+    movq(PP, new_pp);
+  }
   set_constant_pool_allowed(true);
   if (frame_size != 0) {
     subq(RSP, Immediate(frame_size));
@@ -3407,11 +3407,40 @@ void Assembler::EnterDartFrame(intptr_t frame_size,
 }
 
 
-void Assembler::LeaveDartFrame() {
-  set_constant_pool_allowed(false);
+void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   // Restore caller's PP register that was pushed in EnterDartFrame.
-  movq(PP, Address(RBP, (kSavedCallerPpSlotFromFp * kWordSize)));
+  if (restore_pp == kRestoreCallerPP) {
+    movq(PP, Address(RBP, (kSavedCallerPpSlotFromFp * kWordSize)));
+    set_constant_pool_allowed(false);
+  }
   LeaveFrame();
+}
+
+
+void Assembler::CheckCodePointer() {
+#ifdef DEBUG
+  Label cid_ok, instructions_ok;
+  pushq(RAX);
+  LoadClassId(RAX, CODE_REG);
+  cmpq(RAX, Immediate(kCodeCid));
+  j(EQUAL, &cid_ok);
+  int3();
+  Bind(&cid_ok);
+  {
+    const intptr_t kRIPRelativeLeaqSize = 7;
+    const intptr_t header_to_entry_offset =
+        (Instructions::HeaderSize() - kHeapObjectTag);
+    const intptr_t header_to_rip_offset =
+        CodeSize() + kRIPRelativeLeaqSize + header_to_entry_offset;
+    leaq(RAX, Address::AddressRIPRelative(-header_to_rip_offset));
+    ASSERT(CodeSize() == (header_to_rip_offset - header_to_entry_offset));
+  }
+  cmpq(RAX, FieldAddress(CODE_REG, Code::saved_instructions_offset()));
+  j(EQUAL, &instructions_ok);
+  int3();
+  Bind(&instructions_ok);
+  popq(RAX);
+#endif
 }
 
 
@@ -3420,17 +3449,15 @@ void Assembler::LeaveDartFrame() {
 // pointer is already set up.  The PC marker is not correct for the
 // optimized function and there may be extra space for spill slots to
 // allocate.
-void Assembler::EnterOsrFrame(intptr_t extra_size,
-                              Register new_pp,
-                              Register pc_marker_override) {
+void Assembler::EnterOsrFrame(intptr_t extra_size) {
   ASSERT(!constant_pool_allowed());
   if (prologue_offset_ == -1) {
     Comment("PrologueOffset = %" Pd "", CodeSize());
     prologue_offset_ = CodeSize();
   }
-  movq(Address(RBP, kPcMarkerSlotFromFp * kWordSize), pc_marker_override);
-  movq(PP, new_pp);
-  set_constant_pool_allowed(true);
+  RestoreCodePointer();
+  LoadPoolPointer();
+
   if (extra_size != 0) {
     subq(RSP, Immediate(extra_size));
   }
@@ -3438,11 +3465,7 @@ void Assembler::EnterOsrFrame(intptr_t extra_size,
 
 
 void Assembler::EnterStubFrame() {
-  set_constant_pool_allowed(false);
-  EnterFrame(0);
-  pushq(Immediate(0));  // Push 0 in the saved PC area for stub frames.
-  pushq(PP);  // Save caller's pool pointer
-  LoadPoolPointer();
+  EnterDartFrame(0, kNoRegister);
 }
 
 

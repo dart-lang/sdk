@@ -951,9 +951,23 @@ class AnalysisServer {
         if (context == null) {
           continue;
         }
+        Source source = contextSource.source;
+        // Ensure that if the AST is flushed / not ready, it will be
+        // computed eventually.
+        if (AnalysisEngine.isDartFileName(file)) {
+          (context as InternalAnalysisContext).ensureResolvedDartUnits(source);
+        }
+        // Send notifications that don't directly take an AST.
+        switch (service) {
+          case AnalysisService.NAVIGATION:
+            sendAnalysisNotificationNavigation(this, context, source);
+            continue;
+          case AnalysisService.OCCURRENCES:
+            sendAnalysisNotificationOccurrences(this, context, source);
+            continue;
+        }
         // Dart unit notifications.
         if (AnalysisEngine.isDartFileName(file)) {
-          Source source = contextSource.source;
           // TODO(scheglov) This way to get resolved information is very Dart
           // specific. OTOH as it is planned now Angular results are not
           // flushable.
@@ -963,12 +977,6 @@ class AnalysisServer {
             switch (service) {
               case AnalysisService.HIGHLIGHTS:
                 sendAnalysisNotificationHighlights(this, file, dartUnit);
-                break;
-              case AnalysisService.NAVIGATION:
-                sendAnalysisNotificationNavigation(this, context, source);
-                break;
-              case AnalysisService.OCCURRENCES:
-                sendAnalysisNotificationOccurrences(this, context, source);
                 break;
               case AnalysisService.OUTLINE:
                 AnalysisContext context = dartUnit.element.context;

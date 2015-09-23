@@ -80,7 +80,7 @@ class _InvocationMirror implements Invocation {
       int numPositionalArguments = _argumentsDescriptor[1] - 1;
       int numNamedArguments = numArguments - numPositionalArguments;
       if (numNamedArguments == 0) {
-        return _namedArguments = const <Symbol, dynamic>{};
+        return _namedArguments = const {};
       }
       _namedArguments = new Map<Symbol, dynamic>();
       for (int i = 0; i < numNamedArguments; i++) {

@@ -75,14 +75,18 @@ def GuessArchitecture():
 
 # Try to guess the number of cpus on this machine.
 def GuessCpus():
+  if os.getenv("DART_NUMBER_OF_CORES") is not None:
+    return int(os.getenv("DART_NUMBER_OF_CORES"))
   if os.path.exists("/proc/cpuinfo"):
     return int(commands.getoutput("grep -E '^processor' /proc/cpuinfo | wc -l"))
   if os.path.exists("/usr/bin/hostinfo"):
-    return int(commands.getoutput('/usr/bin/hostinfo | grep "processors are logically available." | awk "{ print \$1 }"'))
+    return int(commands.getoutput('/usr/bin/hostinfo |'
+        ' grep "processors are logically available." |'
+        ' awk "{ print \$1 }"'))
   win_cpu_count = os.getenv("NUMBER_OF_PROCESSORS")
   if win_cpu_count:
     return int(win_cpu_count)
-  return int(os.getenv("DART_NUMBER_OF_CORES", 2))
+  return 2
 
 def GetWindowsRegistryKeyName(name):
   import win32process
@@ -236,6 +240,7 @@ ARCH_FAMILY = {
 ARCH_GUESS = GuessArchitecture()
 BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
 DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
+VERSION_FILE = os.path.join(DART_DIR, 'tools', 'VERSION')
 
 def GetBuildbotGSUtilPath():
   gsutil = '/b/build/scripts/slave/gsutil'
@@ -337,13 +342,12 @@ def ReadVersionFile():
       return match.group(1)
     return None
 
-  version_file = os.path.join(DART_DIR, 'tools', 'VERSION')
   try:
-    fd = open(version_file)
+    fd = open(VERSION_FILE)
     content = fd.read()
     fd.close()
   except:
-    print "Warning: Couldn't read VERSION file (%s)" % version_file
+    print "Warning: Couldn't read VERSION file (%s)" % VERSION_FILE
     return None
 
   channel = match_against('^CHANNEL ([A-Za-z0-9]+)$', content)
@@ -357,7 +361,7 @@ def ReadVersionFile():
     return Version(
         channel, major, minor, patch, prerelease, prerelease_patch)
   else:
-    print "Warning: VERSION file (%s) has wrong format" % version_file
+    print "Warning: VERSION file (%s) has wrong format" % VERSION_FILE
     return None
 
 

@@ -18,9 +18,10 @@ const Map<String, List<String>> WHITE_LIST = const {
   // Helper methods for debugging should never be called from production code:
   "lib/src/helpers/": const [" is never "],
 
-  // Node.asLiteralBool is never used.
+  // Node.asAssert, Node.asLiteralBool is never used.
   "lib/src/tree/nodes.dart": const [
-      "The method 'asLiteralBool' is never called"],
+      "The method 'asAssert' is never called.",
+      "The method 'asLiteralBool' is never called."],
 
   // Some things in dart_printer are not yet used
   "lib/src/dart_backend/backend_ast_nodes.dart": const [" is never "],

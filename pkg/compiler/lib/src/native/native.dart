@@ -48,7 +48,8 @@ import '../tokens/token_constants.dart' as Tokens show
     EOF_TOKEN,
     STRING_TOKEN;
 import '../tree/tree.dart';
-import '../universe/universe.dart' show SideEffects;
+import '../universe/side_effects.dart' show
+    SideEffects;
 import '../util/util.dart';
 
 part 'behavior.dart';

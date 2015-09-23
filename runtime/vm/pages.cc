@@ -212,6 +212,10 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
     }
     pages_tail_ = page;
   } else {
+    // Should not allocate executable pages when running from a precompiled
+    // snapshot.
+    ASSERT(!Dart::IsRunningPrecompiledCode());
+
     if (exec_pages_ == NULL) {
       exec_pages_ = page;
     } else {
@@ -1019,6 +1023,40 @@ uword PageSpace::TryAllocateSmiInitializedLocked(intptr_t size,
   }
 #endif
   return result;
+}
+
+
+void PageSpace::SetupInstructionsSnapshotPage(void* pointer, uword size) {
+  // Setup a HeapPage so precompiled Instructions can be traversed.
+  // Instructions are contiguous at [pointer, pointer + size). HeapPage
+  // expects to find objects at [memory->start() + ObjectStartOffset,
+  // memory->end()).
+  uword offset = HeapPage::ObjectStartOffset();
+  pointer = reinterpret_cast<void*>(reinterpret_cast<uword>(pointer) - offset);
+  size += offset;
+
+  ASSERT(Utils::IsAligned(pointer, OS::PreferredCodeAlignment()));
+
+  VirtualMemory* memory = VirtualMemory::ForInstructionsSnapshot(pointer, size);
+  ASSERT(memory != NULL);
+  HeapPage* page = reinterpret_cast<HeapPage*>(malloc(sizeof(HeapPage)));
+  page->memory_ = memory;
+  page->next_ = NULL;
+  page->object_end_ = memory->end();
+  page->executable_ = true;
+
+#if defined(DEBUG)
+  OS::Print("Precompiled instructions page at [0x%" Px ", 0x%" Px ")\n",
+            page->object_start(), page->object_end());
+#endif
+
+  MutexLocker ml(pages_lock_);
+  if (exec_pages_ == NULL) {
+    exec_pages_ = page;
+  } else {
+    exec_pages_tail_->set_next(page);
+  }
+  exec_pages_tail_ = page;
 }
 
 

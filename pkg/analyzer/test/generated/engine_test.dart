@@ -5818,6 +5818,12 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
+  TypeSystem get typeSystem {
+    fail("Unexpected invocation of getTypeSystem");
+    return null;
+  }
+
+  @override
   TypeResolverVisitorFactory get typeResolverVisitorFactory {
     fail("Unexpected invocation of getTypeResolverVisitorFactory");
     return null;

@@ -1534,34 +1534,64 @@ intptr_t Assembler::FindImmediate(int32_t imm) {
 // Uses a code sequence that can easily be decoded.
 void Assembler::LoadWordFromPoolOffset(Register rd,
                                        int32_t offset,
+                                       Register pp,
                                        Condition cond) {
-  ASSERT(constant_pool_allowed());
-  ASSERT(rd != PP);
+  ASSERT((pp != PP) || constant_pool_allowed());
+  ASSERT(rd != pp);
   int32_t offset_mask = 0;
   if (Address::CanHoldLoadOffset(kWord, offset, &offset_mask)) {
-    ldr(rd, Address(PP, offset), cond);
+    ldr(rd, Address(pp, offset), cond);
   } else {
     int32_t offset_hi = offset & ~offset_mask;  // signed
     uint32_t offset_lo = offset & offset_mask;  // unsigned
-    // Inline a simplified version of AddImmediate(rd, PP, offset_hi).
+    // Inline a simplified version of AddImmediate(rd, pp, offset_hi).
     Operand o;
     if (Operand::CanHold(offset_hi, &o)) {
-      add(rd, PP, o, cond);
+      add(rd, pp, o, cond);
     } else {
       LoadImmediate(rd, offset_hi, cond);
-      add(rd, PP, Operand(rd), cond);
+      add(rd, pp, Operand(rd), cond);
     }
     ldr(rd, Address(rd, offset_lo), cond);
   }
 }
 
+void Assembler::CheckCodePointer() {
+#ifdef DEBUG
+  Label cid_ok, instructions_ok;
+  Push(R0);
+  Push(IP);
+  CompareClassId(CODE_REG, kCodeCid, R0);
+  b(&cid_ok, EQ);
+  bkpt(0);
+  Bind(&cid_ok);
 
-void Assembler::LoadPoolPointer() {
-  const intptr_t object_pool_pc_dist =
-     Instructions::HeaderSize() - Instructions::object_pool_offset() +
-     CodeSize() + Instr::kPCReadOffset;
-  LoadFromOffset(kWord, PP, PC, -object_pool_pc_dist);
-  set_constant_pool_allowed(true);
+  const intptr_t offset = CodeSize() + Instr::kPCReadOffset +
+      Instructions::HeaderSize() - kHeapObjectTag;
+  mov(R0, Operand(PC));
+  AddImmediate(R0, R0, -offset);
+  ldr(IP, FieldAddress(CODE_REG, Code::saved_instructions_offset()));
+  cmp(R0, Operand(IP));
+  b(&instructions_ok, EQ);
+  bkpt(1);
+  Bind(&instructions_ok);
+  Pop(IP);
+  Pop(R0);
+#endif
+}
+
+
+void Assembler::RestoreCodePointer() {
+  ldr(CODE_REG, Address(FP, kPcMarkerSlotFromFp * kWordSize));
+  CheckCodePointer();
+}
+
+
+void Assembler::LoadPoolPointer(Register reg) {
+  // Load new pool pointer.
+  CheckCodePointer();
+  ldr(reg, FieldAddress(CODE_REG, Code::object_pool_offset()));
+  set_constant_pool_allowed(reg == PP);
 }
 
 
@@ -1570,54 +1600,67 @@ void Assembler::LoadIsolate(Register rd) {
 }
 
 
+bool Assembler::CanLoadFromObjectPool(const Object& object) const {
+  ASSERT(!Thread::CanLoadFromThread(object));
+  if (!constant_pool_allowed()) {
+    return false;
+  }
+
+  ASSERT(object.IsNotTemporaryScopedHandle());
+  ASSERT(object.IsOld());
+  return true;
+}
+
+
 void Assembler::LoadObjectHelper(Register rd,
                                  const Object& object,
                                  Condition cond,
-                                 bool is_unique) {
+                                 bool is_unique,
+                                 Register pp) {
   // Load common VM constants from the thread. This works also in places where
   // no constant pool is set up (e.g. intrinsic code).
   if (Thread::CanLoadFromThread(object)) {
+    // Load common VM constants from the thread. This works also in places where
+    // no constant pool is set up (e.g. intrinsic code).
     ldr(rd, Address(THR, Thread::OffsetFromThread(object)), cond);
-    return;
-  }
-  // Smis and VM heap objects are never relocated; do not use object pool.
-  if (object.IsSmi()) {
+  } else if (object.IsSmi()) {
+    // Relocation doesn't apply to Smis.
     LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()), cond);
-  } else if (object.InVMHeap() || !constant_pool_allowed()) {
-    ASSERT(FLAG_allow_absolute_addresses);
-    // Make sure that class CallPattern is able to decode this load immediate.
-    const int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
-    LoadImmediate(rd, object_raw, cond);
-  } else {
+  } else if (CanLoadFromObjectPool(object)) {
     // Make sure that class CallPattern is able to decode this load from the
     // object pool.
     const int32_t offset = ObjectPool::element_offset(
        is_unique ? object_pool_wrapper_.AddObject(object)
                  : object_pool_wrapper_.FindObject(object));
-    LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, cond);
+    LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, pp, cond);
+  } else {
+    ASSERT(FLAG_allow_absolute_addresses);
+    ASSERT(object.IsOld());
+    // Make sure that class CallPattern is able to decode this load immediate.
+    const int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
+    LoadImmediate(rd, object_raw, cond);
   }
 }
 
 
 void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
-  LoadObjectHelper(rd, object, cond, false);
+  LoadObjectHelper(rd, object, cond, /* is_unique = */ false, PP);
 }
 
 
 void Assembler::LoadUniqueObject(Register rd,
                                  const Object& object,
                                  Condition cond) {
-  LoadObjectHelper(rd, object, cond, true);
+  LoadObjectHelper(rd, object, cond, /* is_unique = */ true, PP);
 }
 
 
-void Assembler::LoadExternalLabel(Register rd,
-                                  const ExternalLabel* label,
-                                  Patchability patchable,
-                                  Condition cond) {
-  const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindExternalLabel(label, patchable));
-  LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, cond);
+void Assembler::LoadFunctionFromCalleePool(Register dst,
+                                           const Function& function,
+                                           Register new_pp) {
+  const int32_t offset =
+      ObjectPool::element_offset(object_pool_wrapper_.FindObject(function));
+  LoadWordFromPoolOffset(dst, offset - kHeapObjectTag, new_pp, AL);
 }
 
 
@@ -1627,7 +1670,7 @@ void Assembler::LoadNativeEntry(Register rd,
                                 Condition cond) {
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindNativeEntry(label, patchable));
-  LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, cond);
+  LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, PP, cond);
 }
 
 
@@ -1824,7 +1867,7 @@ void Assembler::StoreIntoObject(Register object,
     StoreIntoObjectFilterNoSmi(object, value, &done);
   }
   // A store buffer update is required.
-  RegList regs = (1 << LR);
+  RegList regs = (1 << CODE_REG) | (1 << LR);
   if (value != R0) {
     regs |= (1 << R0);  // Preserve R0.
   }
@@ -1832,6 +1875,7 @@ void Assembler::StoreIntoObject(Register object,
   if (object != R0) {
     mov(R0, Operand(object));
   }
+  ldr(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
   ldr(LR, Address(THR, Thread::update_store_buffer_entry_point_offset()));
   blx(LR);
   PopList(regs);
@@ -2687,20 +2731,41 @@ void Assembler::Vdivqs(QRegister qd, QRegister qn, QRegister qm) {
 }
 
 
-void Assembler::Branch(const StubEntry& stub_entry, Condition cond) {
-  // Address is never patched.
-  LoadImmediate(IP, stub_entry.label().address(), cond);
+void Assembler::Branch(const StubEntry& stub_entry,
+                       Patchability patchable,
+                       Register pp,
+                       Condition cond) {
+  const Code& target_code = Code::Handle(stub_entry.code());
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindObject(target_code, patchable));
+  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, pp, cond);
+  ldr(IP, FieldAddress(CODE_REG, Code::entry_point_offset()), cond);
   bx(IP, cond);
 }
 
 
-void Assembler::BranchPatchable(const StubEntry& stub_entry) {
-  // Use a fixed size code sequence, since a function prologue may be patched
-  // with this branch sequence.
-  // Contrarily to BranchLinkPatchable, BranchPatchable requires an instruction
-  // cache flush upon patching.
-  LoadPatchableImmediate(IP, stub_entry.label().address());
-  bx(IP);
+void Assembler::BranchLink(const Code& target, Patchability patchable) {
+  // Make sure that class CallPattern is able to patch the label referred
+  // to by this code sequence.
+  // For added code robustness, use 'blx lr' in a patchable sequence and
+  // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindObject(target, patchable));
+  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, PP, AL);
+  ldr(LR, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  blx(LR);  // Use blx instruction so that the return branch prediction works.
+}
+
+
+void Assembler::BranchLink(const StubEntry& stub_entry,
+                           Patchability patchable) {
+  const Code& code = Code::Handle(stub_entry.code());
+  BranchLink(code, patchable);
+}
+
+
+void Assembler::BranchLinkPatchable(const Code& target) {
+  BranchLink(target, kPatchable);
 }
 
 
@@ -2710,26 +2775,8 @@ void Assembler::BranchLink(const ExternalLabel* label) {
 }
 
 
-void Assembler::BranchLink(const ExternalLabel* label, Patchability patchable) {
-  // Make sure that class CallPattern is able to patch the label referred
-  // to by this code sequence.
-  // For added code robustness, use 'blx lr' in a patchable sequence and
-  // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
-  const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindExternalLabel(label, patchable));
-  LoadWordFromPoolOffset(LR, offset - kHeapObjectTag, AL);
-  blx(LR);  // Use blx instruction so that the return branch prediction works.
-}
-
-
-void Assembler::BranchLink(const StubEntry& stub_entry,
-                           Patchability patchable) {
-  BranchLink(&stub_entry.label(), patchable);
-}
-
-
 void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
-  BranchLink(&stub_entry.label(), kPatchable);
+  BranchLinkPatchable(Code::Handle(stub_entry.code()));
 }
 
 
@@ -2770,7 +2817,7 @@ void Assembler::LoadDecodableImmediate(
   if ((version == ARMv5TE) || (version == ARMv6)) {
     if (constant_pool_allowed()) {
       const int32_t offset = Array::element_offset(FindImmediate(value));
-      LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, cond);
+      LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, PP, cond);
     } else {
       LoadPatchableImmediate(rd, value, cond);
     }
@@ -3306,19 +3353,9 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 
 void Assembler::EnterDartFrame(intptr_t frame_size) {
   ASSERT(!constant_pool_allowed());
-  const intptr_t offset = CodeSize();
 
-  // Save PC in frame for fast identification of corresponding code.
-  // Note that callee-saved registers can be added to the register list.
-  EnterFrame((1 << PP) | (1 << FP) | (1 << LR) | (1 << PC), 0);
-
-  if (offset != 0) {
-    // Adjust saved PC for any intrinsic code that could have been generated
-    // before a frame is created. Use PP as temp register.
-    ldr(PP, Address(FP, 2 * kWordSize));
-    AddImmediate(PP, PP, -offset);
-    str(PP, Address(FP, 2 * kWordSize));
-  }
+  // Registers are pushed in descending order: R9 | R10 | R11 | R14.
+  EnterFrame((1 << PP) | (1 << CODE_REG) | (1 << FP) | (1 << LR), 0);
 
   // Setup pool pointer for this dart function.
   LoadPoolPointer();
@@ -3335,41 +3372,26 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 // allocate. We must also set up the pool pointer for the function.
 void Assembler::EnterOsrFrame(intptr_t extra_size) {
   ASSERT(!constant_pool_allowed());
-  // mov(IP, Operand(PC)) loads PC + Instr::kPCReadOffset (8). This may be
-  // different from EntryPointToPcMarkerOffset().
-  const intptr_t offset =
-      CodeSize() + Instr::kPCReadOffset - EntryPointToPcMarkerOffset();
-
   Comment("EnterOsrFrame");
-  mov(IP, Operand(PC));
-
-  AddImmediate(IP, -offset);
-  str(IP, Address(FP, kPcMarkerSlotFromFp * kWordSize));
-
-  // Setup pool pointer for this dart function.
+  RestoreCodePointer();
   LoadPoolPointer();
 
   AddImmediate(SP, -extra_size);
 }
 
 
-void Assembler::LeaveDartFrame() {
-  set_constant_pool_allowed(false);
-  LeaveFrame((1 << PP) | (1 << FP) | (1 << LR));
-  // Adjust SP for PC pushed in EnterDartFrame.
-  AddImmediate(SP, kWordSize);
+void Assembler::LeaveDartFrame(RestorePP restore_pp) {
+  if (restore_pp == kRestoreCallerPP) {
+    ldr(PP, Address(FP, kSavedCallerPpSlotFromFp * kWordSize));
+    set_constant_pool_allowed(false);
+  }
+  Drop(2);  // Drop saved PP, PC marker.
+  LeaveFrame((1 << FP) | (1 << LR));
 }
 
 
 void Assembler::EnterStubFrame() {
-  set_constant_pool_allowed(false);
-  // Push 0 as saved PC for stub frames.
-  mov(IP, Operand(LR));
-  mov(LR, Operand(0));
-  RegList regs = (1 << PP) | (1 << FP) | (1 << IP) | (1 << LR);
-  EnterFrame(regs, 0);
-  // Setup pool pointer for this stub.
-  LoadPoolPointer();
+  EnterDartFrame(0);
 }
 
 

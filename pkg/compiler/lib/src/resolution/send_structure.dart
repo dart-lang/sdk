@@ -10,7 +10,10 @@ import '../diagnostics/spannable.dart' show
 import '../constants/expressions.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart';
-import '../universe/universe.dart';
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
 
 import 'access_semantics.dart';
 import 'operators.dart';
@@ -30,35 +33,6 @@ abstract class SemanticSendStructure<R, A> {
 abstract class SendStructure<R, A> extends SemanticSendStructure<R, A> {
   /// Calls the matching visit method on [visitor] with [send] and [arg].
   R dispatch(SemanticSendVisitor<R, A> visitor, Send send, A arg);
-}
-
-/// The structure for a [Send] of the form `assert(e)`.
-class AssertStructure<R, A> implements SendStructure<R, A> {
-  const AssertStructure();
-
-  R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
-    return visitor.visitAssert(
-        node,
-        node.arguments.single,
-        arg);
-  }
-
-  String toString() => 'assert';
-}
-
-/// The structure for a [Send] of the form an `assert` with less or more than
-/// one argument.
-class InvalidAssertStructure<R, A> implements SendStructure<R, A> {
-  const InvalidAssertStructure();
-
-  R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
-    return visitor.errorInvalidAssert(
-        node,
-        node.argumentsNode,
-        arg);
-  }
-
-  String toString() => 'invalid assert';
 }
 
 /// The structure for a [Send] of the form `a ?? b`.

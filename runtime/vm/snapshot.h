@@ -196,6 +196,32 @@ class Snapshot {
 };
 
 
+class InstructionsSnapshot : ValueObject {
+ public:
+  explicit InstructionsSnapshot(const void* raw_memory)
+    : raw_memory_(raw_memory) {
+    ASSERT(Utils::IsAligned(raw_memory, OS::kMaxPreferredCodeAlignment));
+  }
+
+  void* instructions_start() {
+    return reinterpret_cast<void*>(
+        reinterpret_cast<uword>(raw_memory_) + kHeaderSize);
+  }
+
+  uword instructions_size() {
+    uword snapshot_size = *reinterpret_cast<const uword*>(raw_memory_);
+    return snapshot_size - kHeaderSize;
+  }
+
+  static const intptr_t kHeaderSize = OS::kMaxPreferredCodeAlignment;
+
+ private:
+  const void* raw_memory_;  // The symbol kInstructionsSnapshot.
+
+  DISALLOW_COPY_AND_ASSIGN(InstructionsSnapshot);
+};
+
+
 class BaseReader {
  public:
   BaseReader(const uint8_t* buffer, intptr_t size) : stream_(buffer, size) {}
@@ -786,7 +812,7 @@ class InstructionsWriter : public ZoneAllocated {
                      ReAlloc alloc,
                      intptr_t initial_size)
     : stream_(buffer, alloc, initial_size),
-      next_offset_(0),
+      next_offset_(InstructionsSnapshot::kHeaderSize),
       instructions_() {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
@@ -824,6 +850,14 @@ class InstructionsWriter : public ZoneAllocated {
     };
   };
 
+  void WriteWordLiteral(uword value) {
+    // Padding is helpful for comparing the .S with --disassemble.
+#if defined(ARCH_IS_64_BIT)
+    stream_.Print(".quad 0x%0.16" Px "\n", value);
+#else
+    stream_.Print(".long 0x%0.8" Px "\n", value);
+#endif
+  }
 
   WriteStream stream_;
   intptr_t next_offset_;

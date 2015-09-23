@@ -35,10 +35,10 @@ import '../resolution/operators.dart' as op;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart' show
     TypeMask;
-import '../universe/universe.dart' show
-    CallStructure,
-    Selector,
-    SelectorKind;
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
 import '../constants/values.dart' show
     ConstantValue;
 import 'cps_ir_nodes.dart' as ir;
@@ -379,6 +379,11 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return irBuilder.buildAwait(value);
   }
 
+  visitYield(ast.Yield node) {
+    ir.Primitive value = visit(node.expression);
+    return irBuilder.buildYield(value, node.hasStar);
+  }
+
   visitSyncForIn(ast.SyncForIn node) {
     // [node.declaredIdentifier] can be either an [ast.VariableDefinitions]
     // (defining a new local variable) or a send designating some existing
@@ -648,9 +653,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return receiver;
   }
 
-  // ## Sends ##
   @override
-  ir.Primitive visitAssert(ast.Send node, ast.Node condition, _) {
+  ir.Primitive visitAssert(ast.Assert node) {
     assert(irBuilder.isOpen);
     if (compiler.enableUserAssertions) {
       return giveup(node, 'assert in checked mode not implemented');
@@ -663,6 +667,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     }
   }
 
+  // ## Sends ##
   @override
   void previsitDeferredAccess(ast.Send node, PrefixElement prefix, _) {
     giveup(node, 'deferred access is not implemented');
@@ -2011,7 +2016,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     String nameString = Elements.reconstructConstructorName(constructor);
     Name name = new Name(nameString, constructor.library);
     return buildStaticNoSuchMethod(
-        new Selector(SelectorKind.CALL, name, callStructure),
+        new Selector.call(name, callStructure),
         translateDynamicArguments(arguments, callStructure));
   }
 
@@ -2190,7 +2195,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     // Translate as a method call.
     List<ir.Primitive> args = arguments.nodes.mapToList(visit);
     return buildStaticNoSuchMethod(
-        new Selector(SelectorKind.CALL, setter.memberName, callStructure),
+        new Selector.call(setter.memberName, callStructure),
         args);
   }
 
@@ -2237,7 +2242,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     List<ir.Primitive> args =
         translateDynamicArguments(arguments, callStructure);
     return buildInstanceNoSuchMethod(
-        new Selector(SelectorKind.CALL, setter.memberName, callStructure),
+        new Selector.call(setter.memberName, callStructure),
         elements.getTypeMask(node),
         args);
   }
@@ -2399,6 +2404,7 @@ class DartCapturedVariables extends ast.Visitor {
     currentFunction = elements[node];
 
     if (currentFunction.asyncMarker != AsyncMarker.SYNC &&
+        currentFunction.asyncMarker != AsyncMarker.SYNC_STAR &&
         currentFunction.asyncMarker != AsyncMarker.ASYNC) {
       giveup(node, "cannot handle sync*/async* functions");
     }
@@ -3370,9 +3376,9 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
             'Isolate library and compiler mismatch.');
       }
       List<ir.Primitive> arguments = translateStaticArguments(argumentList,
-          element, CallStructure.TWO_ARGS);
+          element, callStructure);
       return irBuilder.buildStaticFunctionInvocation(element,
-          CallStructure.TWO_ARGS, arguments,
+          callStructure, arguments,
           sourceInformation:
                 sourceInformationBuilder.buildCall(node, node.selector));
     }
@@ -3521,12 +3527,12 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         if (!compiler.hasIsolateSupport) {
           // If the isolate library is not used, we just generate code
           // to fetch the current isolate.
-          continue GET_STATIC_STATE;
+          continue getStaticState;
         }
         return buildIsolateHelperInvocation('_currentIsolate',
             CallStructure.NO_ARGS);
 
-      GET_STATIC_STATE: case 'JS_GET_STATIC_STATE':
+      getStaticState: case 'JS_GET_STATIC_STATE':
         validateArgumentCount(exactly: 0);
 
         return irBuilder.buildForeignCode(

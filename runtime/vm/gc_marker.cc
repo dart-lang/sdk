@@ -16,6 +16,7 @@
 #include "vm/raw_object.h"
 #include "vm/stack_frame.h"
 #include "vm/store_buffer.h"
+#include "vm/thread_barrier.h"
 #include "vm/thread_pool.h"
 #include "vm/visitor.h"
 #include "vm/object_id_ring.h"
@@ -25,9 +26,6 @@ namespace dart {
 DEFINE_FLAG(int, marker_tasks, 1,
             "The number of tasks to spawn during old gen GC marking (0 means "
             "perform all marking on main thread).");
-
-typedef StoreBufferBlock PointerBlock;  // TODO(koda): Rename to PointerBlock.
-typedef StoreBuffer MarkingStack;  // TODO(koda): Create shared base class.
 
 class DelaySet {
  private:
@@ -91,14 +89,14 @@ class SkippedCodeFunctions : public ZoneAllocated {
     intptr_t current_code_count = 0;
     for (int i = 0; i < skipped_code_functions_.length(); i++) {
       RawFunction* func = skipped_code_functions_[i];
-      RawCode* code = func->ptr()->instructions_->ptr()->code_;
+      RawCode* code = func->ptr()->code_;
       if (!code->IsMarked()) {
         // If the code wasn't strongly visited through other references
         // after skipping the function's code pointer, then we disconnect the
         // code from the function.
         func->StorePointer(
-            &(func->ptr()->instructions_),
-            StubCode::LazyCompile_entry()->code()->ptr()->instructions_);
+            &(func->ptr()->code_),
+            StubCode::LazyCompile_entry()->code());
         uword entry_point = StubCode::LazyCompile_entry()->EntryPoint();
         func->ptr()->entry_point_ = entry_point;
         if (FLAG_log_code_drop) {
@@ -154,7 +152,8 @@ class MarkingVisitor : public ObjectPointerVisitor {
         thread_(Thread::Current()),
         heap_(heap),
         vm_heap_(Dart::vm_isolate()->heap()),
-        class_table_(isolate->class_table()),
+        class_stats_count_(isolate->class_table()->NumCids()),
+        class_stats_size_(isolate->class_table()->NumCids()),
         page_space_(page_space),
         work_list_(marking_stack),
         delay_set_(delay_set),
@@ -163,9 +162,23 @@ class MarkingVisitor : public ObjectPointerVisitor {
         marked_bytes_(0) {
     ASSERT(heap_ != vm_heap_);
     ASSERT(thread_->isolate() == isolate);
+    class_stats_count_.SetLength(isolate->class_table()->NumCids());
+    class_stats_size_.SetLength(isolate->class_table()->NumCids());
+    for (intptr_t i = 0; i < class_stats_count_.length(); ++i) {
+      class_stats_count_[i] = 0;
+      class_stats_size_[i] = 0;
+    }
   }
 
   uintptr_t marked_bytes() const { return marked_bytes_; }
+
+  intptr_t live_count(intptr_t class_id) {
+    return class_stats_count_[class_id];
+  }
+
+  intptr_t live_size(intptr_t class_id) {
+    return class_stats_size_[class_id];
+  }
 
   // Returns true if some non-zero amount of work was performed.
   bool DrainMarkingStack() {
@@ -272,11 +285,11 @@ class MarkingVisitor : public ObjectPointerVisitor {
       if (work_->IsEmpty()) {
         // TODO(koda): Track over/underflow events and use in heuristics to
         // distribute work and prevent degenerate flip-flopping.
-        PointerBlock* new_work = marking_stack_->PopNonEmptyBlock();
+        MarkingStack::Block* new_work = marking_stack_->PopNonEmptyBlock();
         if (new_work == NULL) {
           return NULL;
         }
-        marking_stack_->PushBlock(work_, false);
+        marking_stack_->PushBlock(work_);
         work_ = new_work;
       }
       return work_->Pop();
@@ -286,7 +299,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
       if (work_->IsFull()) {
         // TODO(koda): Track over/underflow events and use in heuristics to
         // distribute work and prevent degenerate flip-flopping.
-        marking_stack_->PushBlock(work_, false);
+        marking_stack_->PushBlock(work_);
         work_ = marking_stack_->PopEmptyBlock();
       }
       work_->Push(raw_obj);
@@ -294,14 +307,14 @@ class MarkingVisitor : public ObjectPointerVisitor {
 
     void Finalize() {
       ASSERT(work_->IsEmpty());
-      marking_stack_->PushBlock(work_, false);
+      marking_stack_->PushBlock(work_);
       work_ = NULL;
       // Fail fast on attempts to mark after finalizing.
       marking_stack_ = NULL;
     }
 
    private:
-    PointerBlock* work_;
+    MarkingStack::Block* work_;
     MarkingStack* marking_stack_;
   };
 
@@ -346,18 +359,26 @@ class MarkingVisitor : public ObjectPointerVisitor {
       return;
     }
     if (RawObject::IsVariableSizeClassId(raw_obj->GetClassId())) {
-      class_table_->UpdateLiveOld(raw_obj->GetClassId(), raw_obj->Size());
+      UpdateLiveOld(raw_obj->GetClassId(), raw_obj->Size());
     } else {
-      class_table_->UpdateLiveOld(raw_obj->GetClassId(), 0);
+      UpdateLiveOld(raw_obj->GetClassId(), 0);
     }
 
     MarkAndPush(raw_obj);
   }
 
+  void UpdateLiveOld(intptr_t class_id, intptr_t size) {
+    // TODO(koda): Support growing the array once mutator runs concurrently.
+    ASSERT(class_id < class_stats_count_.length());
+    class_stats_count_[class_id] += 1;
+    class_stats_size_[class_id] += size;
+  }
+
   Thread* thread_;
   Heap* heap_;
   Heap* vm_heap_;
-  ClassTable* class_table_;
+  GrowableArray<intptr_t> class_stats_count_;
+  GrowableArray<intptr_t> class_stats_size_;
   PageSpace* page_space_;
   WorkList work_list_;
   DelaySet* delay_set_;
@@ -553,6 +574,7 @@ class MarkTask : public ThreadPool::Task {
            PageSpace* page_space,
            MarkingStack* marking_stack,
            DelaySet* delay_set,
+           ThreadBarrier* barrier,
            bool collect_code,
            bool visit_prologue_weak_persistent_handles)
       : marker_(marker),
@@ -561,6 +583,7 @@ class MarkTask : public ThreadPool::Task {
         page_space_(page_space),
         marking_stack_(marking_stack),
         delay_set_(delay_set),
+        barrier_(barrier),
         collect_code_(collect_code),
         visit_prologue_weak_persistent_handles_(
             visit_prologue_weak_persistent_handles) {
@@ -580,15 +603,15 @@ class MarkTask : public ThreadPool::Task {
       marker_->IterateRoots(isolate_, &visitor,
                             visit_prologue_weak_persistent_handles_);
       visitor.DrainMarkingStack();
-      marker_->TaskSync();
+      barrier_->Sync();
       // Phase 2: Weak processing and follow-up marking on main thread.
-      marker_->TaskSync();
+      barrier_->Sync();
       // Phase 3: Finalize results from all markers (detach code, etc.).
       marker_->FinalizeResultsFrom(&visitor);
     }
     Thread::ExitIsolateAsHelper(true);
     // This task is done. Notify the original thread.
-    marker_->TaskNotifyDone();
+    barrier_->Exit();
   }
 
  private:
@@ -598,6 +621,7 @@ class MarkTask : public ThreadPool::Task {
   PageSpace* page_space_;
   MarkingStack* marking_stack_;
   DelaySet* delay_set_;
+  ThreadBarrier* barrier_;
   bool collect_code_;
   bool visit_prologue_weak_persistent_handles_;
 
@@ -605,43 +629,20 @@ class MarkTask : public ThreadPool::Task {
 };
 
 
-void GCMarker::MainSync(intptr_t num_tasks) {
-  MonitorLocker ml(&monitor_);
-  while (done_count_ < num_tasks) {
-    ml.Wait();
-  }
-  done_count_ = 0;  // Tasks may now resume.
-  // TODO(koda): Add barrier utility with two condition variables to allow for
-  // Notify rather than NotifyAll. Also use it for safepoints.
-  ml.NotifyAll();
-}
-
-
-void GCMarker::TaskNotifyDone() {
-  MonitorLocker ml(&monitor_);
-  ++done_count_;
-  // TODO(koda): Add barrier utility with two condition variables to allow for
-  // Notify rather than NotifyAll. Also use it for safepoints.
-  ml.NotifyAll();
-}
-
-
-void GCMarker::TaskSync() {
-  MonitorLocker ml(&monitor_);
-  ++done_count_;
-  ml.NotifyAll();  // Notify controller that this thread reached end of phase.
-  ASSERT(done_count_ > 0);
-  while (done_count_ > 0) {
-    // Wait for the controller to release into next phase.
-    ml.Wait();
-  }
-}
-
-
 void GCMarker::FinalizeResultsFrom(MarkingVisitor* visitor) {
   {
-    MonitorLocker ml(&monitor_);
+    MutexLocker ml(&stats_mutex_);
     marked_bytes_ += visitor->marked_bytes();
+    // Class heap stats are not themselves thread-safe yet, so we update the
+    // stats while holding stats_mutex_.
+    ClassTable* table = heap_->isolate()->class_table();
+    for (intptr_t i = 0; i < table->NumCids(); ++i) {
+      const intptr_t count = visitor->live_count(i);
+      if (count > 0) {
+        const intptr_t size = visitor->live_size(i);
+        table->UpdateLiveOld(i, size, count);
+      }
+    }
   }
   visitor->Finalize();
 }
@@ -683,14 +684,15 @@ void GCMarker::MarkObjects(Isolate* isolate,
         // 2. concurrent tasks, after synchronizing headers.
         FATAL("Multiple marking tasks not yet supported");
       }
+      ThreadBarrier barrier(num_tasks + 1);  // +1 for the main thread.
       // Phase 1: Populate and drain marking stack in task.
       MarkTask* mark_task =
           new MarkTask(this, isolate, heap_, page_space, &marking_stack,
-                       &delay_set, collect_code,
+                       &delay_set, &barrier, collect_code,
                        visit_prologue_weak_persistent_handles);
       ThreadPool* pool = Dart::thread_pool();
       pool->Run(mark_task);
-      MainSync(num_tasks);
+      barrier.Sync();
       // Phase 2: Weak processing and follow-up marking on main thread.
       SkippedCodeFunctions* skipped_code_functions =
           collect_code ? new(zone) SkippedCodeFunctions() : NULL;
@@ -700,11 +702,10 @@ void GCMarker::MarkObjects(Isolate* isolate,
       MarkingWeakVisitor mark_weak;
       IterateWeakRoots(isolate, &mark_weak,
                        !visit_prologue_weak_persistent_handles);
-      MainSync(num_tasks);
+      barrier.Sync();
       // Phase 3: Finalize results from all markers (detach code, etc.).
       FinalizeResultsFrom(&mark);
-      MainSync(num_tasks);
-      // Finalization complete and all tasks exited.
+      barrier.Exit();
     }
     delay_set.ClearReferences();
     ProcessWeakTables(page_space);

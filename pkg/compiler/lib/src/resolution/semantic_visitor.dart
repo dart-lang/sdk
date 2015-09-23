@@ -11,7 +11,10 @@ import '../diagnostics/spannable.dart' show
     SpannableAssertionFailure;
 import '../tree/tree.dart';
 import '../elements/elements.dart';
-import '../universe/universe.dart';
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
 
 import 'operators.dart';
 import 'send_resolver.dart';
@@ -1295,32 +1298,6 @@ abstract class SemanticSendVisitor<R, A> {
       SendSet node,
       ConstantExpression constant,
       Node rhs,
-      A arg);
-
-  /// Call to `assert` with [expression] as the condition.
-  ///
-  /// For instance:
-  ///
-  ///     m() { assert(expression); }
-  ///
-  R visitAssert(
-      Send node,
-      Node expression,
-      A arg);
-
-  /// Call to `assert` with the wrong number of [arguments].
-  ///
-  /// For instance:
-  ///
-  ///     m() { assert(); }
-  ///
-  /// or
-  ///
-  ///     m() { assert(expression1, expression2); }
-  ///
-  R errorInvalidAssert(
-      Send node,
-      NodeList arguments,
       A arg);
 
   /// Binary expression `left operator right` where [operator] is a user

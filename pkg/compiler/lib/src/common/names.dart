@@ -9,8 +9,9 @@ library dart2js.common.names;
 import '../elements/elements.dart' show
     Name,
     PublicName;
-import '../universe/universe.dart' show
-    CallStructure,
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
     Selector;
 
 /// [String]s commonly used.
@@ -62,6 +63,10 @@ class Names {
 
   /// The name of the to-string method on 'Object'.
   static const Name toString_ = const PublicName('toString');
+
+  static const Name INDEX_NAME = const PublicName("[]");
+  static const Name INDEX_SET_NAME = const PublicName("[]=");
+  static const Name CALL_NAME = Names.call;
 }
 
 /// [Selector]s commonly used.

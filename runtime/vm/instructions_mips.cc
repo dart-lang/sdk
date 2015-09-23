@@ -16,7 +16,7 @@ CallPattern::CallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       end_(pc),
       ic_data_load_end_(0),
-      target_address_pool_index_(-1),
+      target_code_pool_index_(-1),
       ic_data_(ICData::Handle()) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: jalr RA, T9(=R25).
@@ -24,10 +24,10 @@ CallPattern::CallPattern(uword pc, const Code& code)
   Register reg;
   // The end of the pattern is the instruction after the delay slot of the jalr.
   ic_data_load_end_ =
-      InstructionPattern::DecodeLoadWordFromPool(end_ - (2 * Instr::kInstrSize),
+      InstructionPattern::DecodeLoadWordFromPool(end_ - (3 * Instr::kInstrSize),
                                                  &reg,
-                                                 &target_address_pool_index_);
-  ASSERT(reg == T9);
+                                                 &target_code_pool_index_);
+  ASSERT(reg == CODE_REG);
 }
 
 
@@ -134,13 +134,14 @@ RawICData* CallPattern::IcData() {
 }
 
 
-uword CallPattern::TargetAddress() const {
-  return object_pool_.RawValueAt(target_address_pool_index_);
+RawCode* CallPattern::TargetCode() const {
+  return reinterpret_cast<RawCode*>(
+      object_pool_.ObjectAt(target_code_pool_index_));
 }
 
 
-void CallPattern::SetTargetAddress(uword target_address) const {
-  object_pool_.SetRawValueAt(target_address_pool_index_, target_address);
+void CallPattern::SetTargetCode(const Code& target) const {
+  object_pool_.SetObjectAt(target_code_pool_index_, target);
   // No need to flush the instruction cache, since the code is not modified.
 }
 
@@ -149,17 +150,17 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       end_(pc),
       native_function_pool_index_(-1),
-      target_address_pool_index_(-1) {
+      target_code_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: jalr RA, T9(=R25).
   ASSERT(*(reinterpret_cast<uword*>(end_) - 2) == 0x0320f809);
 
   Register reg;
   uword native_function_load_end =
-      InstructionPattern::DecodeLoadWordFromPool(end_ - 2 * Instr::kInstrSize,
+      InstructionPattern::DecodeLoadWordFromPool(end_ - 3 * Instr::kInstrSize,
                                                  &reg,
-                                                 &target_address_pool_index_);
-  ASSERT(reg == T9);
+                                                 &target_code_pool_index_);
+  ASSERT(reg == CODE_REG);
   InstructionPattern::DecodeLoadWordFromPool(native_function_load_end,
                                              &reg,
                                              &native_function_pool_index_);
@@ -167,13 +168,14 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
 }
 
 
-uword NativeCallPattern::target() const {
-  return object_pool_.RawValueAt(target_address_pool_index_);
+RawCode* NativeCallPattern::target() const {
+  return reinterpret_cast<RawCode*>(
+      object_pool_.ObjectAt(target_code_pool_index_));
 }
 
 
-void NativeCallPattern::set_target(uword target_address) const {
-  object_pool_.SetRawValueAt(target_address_pool_index_, target_address);
+void NativeCallPattern::set_target(const Code& target) const {
+  object_pool_.SetObjectAt(target_code_pool_index_, target);
   // No need to flush the instruction cache, since the code is not modified.
 }
 
@@ -190,7 +192,7 @@ void NativeCallPattern::set_native_function(NativeFunction func) const {
 }
 
 
-void CallPattern::InsertAt(uword pc, uword target_address) {
+void CallPattern::InsertDeoptCallAt(uword pc, uword target_address) {
   Instr* lui = Instr::At(pc + (0 * Instr::kInstrSize));
   Instr* ori = Instr::At(pc + (1 * Instr::kInstrSize));
   Instr* jr = Instr::At(pc + (2 * Instr::kInstrSize));
@@ -203,46 +205,8 @@ void CallPattern::InsertAt(uword pc, uword target_address) {
   jr->SetSpecialInstrBits(JALR, T9, ZR, RA);
   nop->SetInstructionBits(Instr::kNopInstruction);
 
-  ASSERT(kFixedLengthInBytes == 4 * Instr::kInstrSize);
-  CPU::FlushICache(pc, kFixedLengthInBytes);
-}
-
-
-JumpPattern::JumpPattern(uword pc, const Code& code) : pc_(pc) { }
-
-
-bool JumpPattern::IsValid() const {
-  Instr* lui = Instr::At(pc_ + (0 * Instr::kInstrSize));
-  Instr* ori = Instr::At(pc_ + (1 * Instr::kInstrSize));
-  Instr* jr = Instr::At(pc_ + (2 * Instr::kInstrSize));
-  Instr* nop = Instr::At(pc_ + (3 * Instr::kInstrSize));
-  return (lui->OpcodeField() == LUI) &&
-         (ori->OpcodeField() == ORI) &&
-         (jr->OpcodeField() == SPECIAL) &&
-         (jr->FunctionField() == JR) &&
-         (nop->InstructionBits() == Instr::kNopInstruction);
-}
-
-
-uword JumpPattern::TargetAddress() const {
-  Instr* lui = Instr::At(pc_ + (0 * Instr::kInstrSize));
-  Instr* ori = Instr::At(pc_ + (1 * Instr::kInstrSize));
-  const uint16_t target_lo = ori->UImmField();
-  const uint16_t target_hi = lui->UImmField();
-  return (target_hi << 16) | target_lo;
-}
-
-
-void JumpPattern::SetTargetAddress(uword target_address) const {
-  Instr* lui = Instr::At(pc_ + (0 * Instr::kInstrSize));
-  Instr* ori = Instr::At(pc_ + (1 * Instr::kInstrSize));
-  const int32_t lui_bits = lui->InstructionBits();
-  const int32_t ori_bits = ori->InstructionBits();
-  const uint16_t target_lo = target_address & 0xffff;
-  const uint16_t target_hi = target_address >> 16;
-
-  lui->SetInstructionBits((lui_bits & 0xffff0000) | target_hi);
-  ori->SetInstructionBits((ori_bits & 0xffff0000) | target_lo);
+  ASSERT(kDeoptCallLengthInBytes == 4 * Instr::kInstrSize);
+  CPU::FlushICache(pc, kDeoptCallLengthInBytes);
 }
 
 

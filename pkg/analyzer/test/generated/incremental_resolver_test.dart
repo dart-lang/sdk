@@ -3435,9 +3435,17 @@ class A {
 ''');
   }
 
+  @override
   void setUp() {
+    AnalysisEngine.instance.useTaskModel = true;
     super.setUp();
     _resetWithIncremental(true);
+  }
+
+  @override
+  void tearDown() {
+    super.tearDown();
+    AnalysisEngine.instance.useTaskModel = false;
   }
 
   void test_computeConstants() {
@@ -4160,6 +4168,28 @@ class A {
 ''');
   }
 
+  void test_true_todoHint() {
+    _resolveUnit(r'''
+main() {
+  print(1);
+}
+foo() {
+ // TODO
+}
+''');
+    List<AnalysisError> oldErrors = analysisContext.computeErrors(source);
+    _updateAndValidate(r'''
+main() {
+  print(2);
+}
+foo() {
+ // TODO
+}
+''');
+    List<AnalysisError> newErrors = analysisContext.computeErrors(source);
+    _assertEqualErrors(newErrors, oldErrors);
+  }
+
   void test_unusedHint_add_wasUsedOnlyInPart() {
     Source partSource = addNamedSource(
         '/my_unit.dart',
@@ -4468,8 +4498,10 @@ f3() {
       expect(newUnit.element, isNot(same(oldUnitElement)));
       return;
     }
-    // The existing CompilationUnitElement should be updated.
+    // The existing CompilationUnit[Element] should be updated.
+    expect(newUnit, same(oldUnit));
     expect(newUnit.element, same(oldUnitElement));
+    expect(analysisContext.parseCompilationUnit(source), same(oldUnit));
     // The only expected pending task should return the same resolved
     // "newUnit", so all clients will get it using the usual way.
     AnalysisResult analysisResult = analysisContext.performAnalysisTask();

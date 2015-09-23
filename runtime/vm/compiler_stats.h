@@ -15,6 +15,7 @@ namespace dart {
 
 
 DECLARE_FLAG(bool, compiler_stats);
+DECLARE_FLAG(bool, compiler_benchmark);
 
 class CompilerStats {
  public:
@@ -23,8 +24,6 @@ class CompilerStats {
 
   Isolate* isolate_;
 
-  // TODO(hausner): add these timers to the timer list maintained
-  // in the isolate?
   Timer parser_timer;         // Cumulative runtime of parser.
   Timer scanner_timer;        // Cumulative runtime of scanner.
   Timer codegen_timer;        // Cumulative runtime of code generator.
@@ -44,6 +43,7 @@ class CompilerStats {
   int64_t num_tokens_total;    // Isolate + VM isolate
   int64_t num_literal_tokens_total;
   int64_t num_ident_tokens_total;
+  int64_t num_tokens_scanned;
   int64_t num_tokens_consumed;
   int64_t num_cached_consts;
   int64_t num_const_cache_hits;
@@ -63,7 +63,13 @@ class CompilerStats {
   int64_t pc_desc_size;
   int64_t vardesc_size;
   char* text;
+  bool use_benchmark_output;
 
+  // Update stats that are computed, e.g. token count.
+  void Update();
+
+  void EnableBenchmark();
+  char* BenchmarkOutput();
   char* PrintToZone();
 };
 

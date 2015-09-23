@@ -22,8 +22,9 @@ import '../tree/tree.dart' as ast;
 import '../types/types.dart' show
     TypeMask;
 import '../closure.dart' hide ClosureScope;
-import '../universe/universe.dart' show
-    CallStructure,
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
     Selector,
     SelectorKind;
 import 'cps_ir_nodes.dart' as ir;
@@ -2805,8 +2806,13 @@ class IrBuilder {
   ir.Node buildAwait(ir.Primitive value) {
     return _continueWithExpression((k) => new ir.Await(value, k));
   }
-}
 
+  void buildYield(ir.Primitive value, bool hasStar) {
+    _continueWithExpression((k) {
+      return new ir.Yield(value, hasStar, k);
+    });
+  }
+}
 
 /// Location of a variable relative to a given closure.
 class ClosureLocation {

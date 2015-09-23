@@ -21,10 +21,9 @@ import '../elements/elements.dart';
 import '../tree/tree.dart';
 import '../util/util.dart' show
     Setlet;
+import '../universe/selector.dart' show
+    Selector;
 import '../universe/universe.dart' show
-    CallStructure,
-    Selector,
-    SelectorKind,
     UniverseSelector;
 import '../world.dart' show World;
 
@@ -53,6 +52,11 @@ class EagerRegistry implements Registry {
 
   @override
   Iterable<Element> get otherDependencies => mapping.otherDependencies;
+
+  @override
+  void registerAssert(bool hasMessage) {
+    // TODO(johnniwinther): Do something here?
+  }
 
   @override
   void registerDependency(Element element) {
@@ -579,13 +583,8 @@ class ResolutionRegistry implements Registry {
     world.registerInstantiatedType(type, this);
   }
 
-  void registerAssert(Send node) {
-    mapping.setAssert(node);
-    backend.resolutionCallbacks.onAssert(node, this);
-  }
-
-  bool isAssert(Send node) {
-    return mapping.isAssert(node);
+  void registerAssert(bool hasMessage) {
+    backend.resolutionCallbacks.onAssert(hasMessage, this);
   }
 
   void registerSendStructure(Send node, SendStructure sendStructure) {

@@ -60,8 +60,8 @@ class ParameterStubGenerator {
     // If the method is intercepted, we need to also pass the actual receiver.
     int extraArgumentCount = isInterceptedMethod ? 1 : 0;
     // Use '$receiver' to avoid clashes with other parameter names. Using
-    // '$receiver' works because namer.safeVariableName used for getting parameter
-    // names never returns a name beginning with a single '$'.
+    // '$receiver' works because namer.safeVariableName used for getting
+    // parameter names never returns a name beginning with a single '$'.
     String receiverArgumentName = r'$receiver';
 
     // The parameters that this stub takes.
@@ -200,14 +200,14 @@ class ParameterStubGenerator {
     // The set of selectors that apply to `member`. For example, for
     // a member `foo(x, [y])` the following selectors may apply:
     // `foo(x)`, and `foo(x, y)`.
-    Map<Selector, ReceiverMaskSet> selectors;
+    Map<Selector, SelectorConstraints> selectors;
     // The set of selectors that apply to `member` if it's name was `call`.
     // This happens when a member is torn off. In that case calls to the
     // function use the name `call`, and we must be able to handle every
     // `call` invocation that matches the signature. For example, for
     // a member `foo(x, [y])` the following selectors would be possible
     // call-selectors: `call(x)`, and `call(x, y)`.
-    Map<Selector, ReceiverMaskSet> callSelectors;
+    Map<Selector, SelectorConstraints> callSelectors;
 
     // Only instance members (not static methods) need stubs.
     if (member.isInstanceMember) {
@@ -220,9 +220,9 @@ class ParameterStubGenerator {
     }
 
     assert(emptySelectorSet.isEmpty);
-    if (selectors == null) selectors = const <Selector, ReceiverMaskSet>{};
+    if (selectors == null) selectors = const <Selector, SelectorConstraints>{};
     if (callSelectors == null) callSelectors =
-        const <Selector, ReceiverMaskSet>{};
+        const <Selector, SelectorConstraints>{};
 
     List<ParameterStubMethod> stubs = <ParameterStubMethod>[];
 
@@ -243,8 +243,7 @@ class ParameterStubGenerator {
     // Start with the callSelectors since they imply the generation of the
     // non-call version.
     for (Selector selector in callSelectors.keys) {
-      Selector renamedSelector = new Selector(
-          SelectorKind.CALL,
+      Selector renamedSelector = new Selector.call(
           member.memberName,
           selector.callStructure);
       renamedCallSelectors.add(renamedSelector);

@@ -2,7 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of universe;
+library universe.side_effects;
+
+import 'dart:collection';
+
+import '../common/names.dart' show
+    Identifiers,
+    Names,
+    Selectors;
+import '../compiler.dart' show
+    Compiler;
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/spannable.dart' show
+    SpannableAssertionFailure;
+import '../elements/elements.dart';
+import '../dart_types.dart';
+import '../tree/tree.dart';
+import '../types/types.dart';
+import '../util/util.dart';
+import '../world.dart' show
+    ClassWorld,
+    World;
+
+import 'selector.dart' show
+    Selector;
 
 class SideEffects {
   // Changes flags.

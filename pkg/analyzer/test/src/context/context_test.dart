@@ -1795,7 +1795,7 @@ void g() { f(null); }''');
     // TODO(scheglov) no threads in Dart
 //    Source source = _addSource("/test.dart", "library lib;");
 //    int initialTime = _context.getModificationStamp(source);
-//    List<Source> sources = new List<Source>();
+//    List<Source> sources = <Source>[];
 //    sources.add(source);
 //    _context.analysisPriorityOrder = sources;
 //    _context.parseCompilationUnit(source);
@@ -1910,7 +1910,7 @@ void g() { f(null); }''');
 
   void test_setAnalysisPriorityOrder() {
     int priorityCount = 4;
-    List<Source> sources = new List<Source>();
+    List<Source> sources = <Source>[];
     for (int index = 0; index < priorityCount; index++) {
       sources.add(addSource("/lib.dart$index", ""));
     }
@@ -1919,13 +1919,26 @@ void g() { f(null); }''');
   }
 
   void test_setAnalysisPriorityOrder_empty() {
-    context.analysisPriorityOrder = new List<Source>();
+    context.analysisPriorityOrder = <Source>[];
   }
 
   void test_setAnalysisPriorityOrder_nonEmpty() {
-    List<Source> sources = new List<Source>();
+    List<Source> sources = <Source>[];
     sources.add(addSource("/lib.dart", "library lib;"));
     context.analysisPriorityOrder = sources;
+  }
+
+  void test_setAnalysisPriorityOrder_resetAnalysisDriver() {
+    Source source = addSource('/lib.dart', 'library lib;');
+    // start analysis
+    context.performAnalysisTask();
+    expect(context.driver.currentWorkOrder, isNotNull);
+    // set priority sources, AnalysisDriver is reset
+    context.analysisPriorityOrder = <Source>[source];
+    expect(context.driver.currentWorkOrder, isNull);
+    // analysis continues
+    context.performAnalysisTask();
+    expect(context.driver.currentWorkOrder, isNotNull);
   }
 
   Future test_setChangedContents_libraryWithPart() {
@@ -2067,7 +2080,7 @@ int a = 0;''');
     options.cacheSize = maxCacheSize;
     context.analysisOptions = options;
     int sourceCount = maxCacheSize + 2;
-    List<Source> sources = new List<Source>();
+    List<Source> sources = <Source>[];
     ChangeSet changeSet = new ChangeSet();
     for (int i = 0; i < sourceCount; i++) {
       Source source = addSource("/lib$i.dart", "library lib$i;");
@@ -2146,8 +2159,8 @@ int a = 0;''');
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
   }
 
-  List<Source> _getPriorityOrder(AnalysisContextImpl context2) {
-    return context2.test_priorityOrder;
+  List<Source> _getPriorityOrder(AnalysisContextImpl context) {
+    return context.test_priorityOrder;
   }
 
   void _performPendingAnalysisTasks([int maxTasks = 512]) {

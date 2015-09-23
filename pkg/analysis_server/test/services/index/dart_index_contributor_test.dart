@@ -69,7 +69,7 @@ class DartUnitContributorTest extends AbstractSingleUnitTest {
 
   void setUp() {
     super.setUp();
-    when(store.aboutToIndexDart(context, anyObject)).thenReturn(true);
+    when(store.aboutToIndex(context, anyObject)).thenReturn(true);
     when(store.recordRelationship(anyObject, anyObject, anyObject)).thenInvoke(
         (IndexableObject indexable, RelationshipImpl relationship,
             LocationImpl location) {
@@ -155,32 +155,185 @@ main() {
         IndexConstants.IS_READ_BY, _expectedLocation(mainElement, 'v in []'));
   }
 
-  void test_isDefinedBy_NameElement_method() {
+  void test_IndexableName_field() {
+    _indexTestUnit('''
+class A {
+  int field;
+}
+main(A a, p) {
+  print(a.field); // r
+  print(p.field); // ur
+  {
+    var field = 42;
+    print(field); // not a member
+  }
+}
+''');
+    // prepare elements
+    Element mainElement = findElement('main');
+    FieldElement fieldElement = findElement('field');
+    IndexableName indexable = new IndexableName('field');
+    // verify
+    _assertRecordedRelation(indexable, IndexConstants.NAME_IS_DEFINED_BY,
+        _expectedLocation(fieldElement, 'field;'));
+    _assertRecordedRelation(indexable, IndexConstants.IS_READ_BY,
+        _expectedLocationQ(mainElement, 'field); // r'));
+    _assertRecordedRelation(indexable, IndexConstants.IS_READ_BY,
+        _expectedLocationQU(mainElement, 'field); // ur'));
+    _assertNoRecordedRelation(indexable, IndexConstants.IS_READ_BY,
+        _expectedLocation(mainElement, 'field); // not a member'));
+  }
+
+  void test_IndexableName_isDefinedBy_localVariable_inForEach() {
+    _indexTestUnit('''
+class A {
+  main() {
+    for (int test in []) {
+    }
+  }
+}
+''');
+    // prepare elements
+    LocalVariableElement testElement = findElement('test');
+    IndexableName indexable = new IndexableName('test');
+    // verify
+    _assertRecordedRelation(indexable, IndexConstants.NAME_IS_DEFINED_BY,
+        _expectedLocation(testElement, 'test in []'));
+  }
+
+  void test_IndexableName_method() {
+    _indexTestUnit('''
+class A {
+  method() {}
+}
+main(A a, p) {
+  a.method(); // r
+  p.method(); // ur
+}
+''');
+    // prepare elements
+    Element mainElement = findElement('main');
+    MethodElement methodElement = findElement('method');
+    IndexableName indexable = new IndexableName('method');
+    // verify
+    _assertRecordedRelation(indexable, IndexConstants.NAME_IS_DEFINED_BY,
+        _expectedLocation(methodElement, 'method() {}'));
+    _assertRecordedRelation(indexable, IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, 'method(); // r'));
+    _assertRecordedRelation(indexable, IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, 'method(); // ur'));
+  }
+
+  void test_IndexableName_operator_resolved() {
+    _indexTestUnit('''
+class A {
+  operator +(o) {}
+  operator -(o) {}
+  operator ~() {}
+  operator ==(o) {}
+}
+main(A a) {
+  a + 5;
+  a += 5;
+  a == 5;
+  ++a;
+  --a;
+  ~a;
+  a++;
+  a--;
+}
+''');
+    // prepare elements
+    Element mainElement = findElement('main');
+    // binary
+    _assertRecordedRelationForName('+', IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '+ 5', length: 1));
+    _assertRecordedRelationForName('+', IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '+= 5', length: 2));
+    _assertRecordedRelationForName('==', IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '== 5', length: 2));
+    // prefix
+    _assertRecordedRelationForName('+', IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '++a', length: 2));
+    _assertRecordedRelationForName('-', IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '--a', length: 2));
+    _assertRecordedRelationForName('~', IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '~a', length: 1));
+    // postfix
+    _assertRecordedRelationForName('+', IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '++;', length: 2));
+    _assertRecordedRelationForName('-', IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '--;', length: 2));
+  }
+
+  void test_IndexableName_operator_unresolved() {
+    _indexTestUnit('''
+class A {
+  operator +(o) {}
+  operator -(o) {}
+  operator ~() {}
+  operator ==(o) {}
+}
+main(a) {
+  a + 5;
+  a += 5;
+  a == 5;
+  ++a;
+  --a;
+  ~a;
+  a++;
+  a--;
+}
+''');
+    // prepare elements
+    Element mainElement = findElement('main');
+    // binary
+    _assertRecordedRelationForName('+', IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '+ 5', length: 1));
+    _assertRecordedRelationForName('+', IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '+= 5', length: 2));
+    _assertRecordedRelationForName('==', IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '== 5', length: 2));
+    // prefix
+    _assertRecordedRelationForName('+', IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '++a', length: 2));
+    _assertRecordedRelationForName('-', IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '--a', length: 2));
+    _assertRecordedRelationForName('~', IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '~a', length: 1));
+    // postfix
+    _assertRecordedRelationForName('+', IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '++;', length: 2));
+    _assertRecordedRelationForName('-', IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '--;', length: 2));
+  }
+
+  void test_isDefinedBy_IndexableName_method() {
     _indexTestUnit('''
 class A {
   m() {}
 }''');
     // prepare elements
     Element methodElement = findElement("m");
-    Element nameElement = new NameElement("m");
+    IndexableName nameIndexable = new IndexableName("m");
     // verify
-    _assertRecordedRelationForElement(
-        nameElement,
+    _assertRecordedRelationForIndexable(
+        nameIndexable,
         IndexConstants.NAME_IS_DEFINED_BY,
         _expectedLocation(methodElement, 'm() {}'));
   }
 
-  void test_isDefinedBy_NameElement_operator() {
+  void test_isDefinedBy_IndexableName_operator() {
     _indexTestUnit('''
 class A {
   operator +(o) {}
 }''');
     // prepare elements
     Element methodElement = findElement("+");
-    Element nameElement = new NameElement("+");
+    IndexableName nameIndexable = new IndexableName("+");
     // verify
-    _assertRecordedRelationForElement(
-        nameElement,
+    _assertRecordedRelationForIndexable(
+        nameIndexable,
         IndexConstants.NAME_IS_DEFINED_BY,
         _expectedLocation(methodElement, '+(o) {}', length: 1));
   }
@@ -1254,160 +1407,6 @@ main() {
         _expectedLocation(mainElement, 'v = 1'));
   }
 
-  void test_NameElement_field() {
-    _indexTestUnit('''
-class A {
-  int field;
-}
-main(A a, p) {
-  print(a.field); // r
-  print(p.field); // ur
-  {
-    var field = 42;
-    print(field); // not a member
-  }
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    FieldElement fieldElement = findElement('field');
-    IndexableElement indexable = new IndexableElement(new NameElement('field'));
-    // verify
-    _assertRecordedRelation(indexable, IndexConstants.NAME_IS_DEFINED_BY,
-        _expectedLocation(fieldElement, 'field;'));
-    _assertRecordedRelation(indexable, IndexConstants.IS_READ_BY,
-        _expectedLocationQ(mainElement, 'field); // r'));
-    _assertRecordedRelation(indexable, IndexConstants.IS_READ_BY,
-        _expectedLocationQU(mainElement, 'field); // ur'));
-    _assertNoRecordedRelation(indexable, IndexConstants.IS_READ_BY,
-        _expectedLocation(mainElement, 'field); // not a member'));
-  }
-
-  void test_NameElement_isDefinedBy_localVariable_inForEach() {
-    _indexTestUnit('''
-class A {
-  main() {
-    for (int test in []) {
-    }
-  }
-}
-''');
-    // prepare elements
-    LocalVariableElement testElement = findElement('test');
-    IndexableElement indexable = new IndexableElement(new NameElement('test'));
-    // verify
-    _assertRecordedRelation(indexable, IndexConstants.NAME_IS_DEFINED_BY,
-        _expectedLocation(testElement, 'test in []'));
-  }
-
-  void test_NameElement_method() {
-    _indexTestUnit('''
-class A {
-  method() {}
-}
-main(A a, p) {
-  a.method(); // r
-  p.method(); // ur
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    MethodElement methodElement = findElement('method');
-    IndexableElement indexable =
-        new IndexableElement(new NameElement('method'));
-    // verify
-    _assertRecordedRelation(indexable, IndexConstants.NAME_IS_DEFINED_BY,
-        _expectedLocation(methodElement, 'method() {}'));
-    _assertRecordedRelation(indexable, IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQ(mainElement, 'method(); // r'));
-    _assertRecordedRelation(indexable, IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQU(mainElement, 'method(); // ur'));
-  }
-
-  void test_NameElement_operator_resolved() {
-    _indexTestUnit('''
-class A {
-  operator +(o) {}
-  operator -(o) {}
-  operator ~() {}
-  operator ==(o) {}
-}
-main(A a) {
-  a + 5;
-  a += 5;
-  a == 5;
-  ++a;
-  --a;
-  ~a;
-  a++;
-  a--;
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    // binary
-    _assertRecordedRelationForName('+', IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQ(mainElement, '+ 5', length: 1));
-    _assertRecordedRelationForName('+', IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQ(mainElement, '+= 5', length: 2));
-    _assertRecordedRelationForName('==', IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQ(mainElement, '== 5', length: 2));
-    // prefix
-    _assertRecordedRelationForName('+', IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQ(mainElement, '++a', length: 2));
-    _assertRecordedRelationForName('-', IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQ(mainElement, '--a', length: 2));
-    _assertRecordedRelationForName('~', IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQ(mainElement, '~a', length: 1));
-    // postfix
-    _assertRecordedRelationForName('+', IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQ(mainElement, '++;', length: 2));
-    _assertRecordedRelationForName('-', IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQ(mainElement, '--;', length: 2));
-  }
-
-  void test_NameElement_operator_unresolved() {
-    _indexTestUnit('''
-class A {
-  operator +(o) {}
-  operator -(o) {}
-  operator ~() {}
-  operator ==(o) {}
-}
-main(a) {
-  a + 5;
-  a += 5;
-  a == 5;
-  ++a;
-  --a;
-  ~a;
-  a++;
-  a--;
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    // binary
-    _assertRecordedRelationForName('+', IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQU(mainElement, '+ 5', length: 1));
-    _assertRecordedRelationForName('+', IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQU(mainElement, '+= 5', length: 2));
-    _assertRecordedRelationForName('==', IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQU(mainElement, '== 5', length: 2));
-    // prefix
-    _assertRecordedRelationForName('+', IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQU(mainElement, '++a', length: 2));
-    _assertRecordedRelationForName('-', IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQU(mainElement, '--a', length: 2));
-    _assertRecordedRelationForName('~', IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQU(mainElement, '~a', length: 1));
-    // postfix
-    _assertRecordedRelationForName('+', IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQU(mainElement, '++;', length: 2));
-    _assertRecordedRelationForName('-', IndexConstants.IS_INVOKED_BY,
-        _expectedLocationQU(mainElement, '--;', length: 2));
-  }
-
   void test_nameIsInvokedBy() {
     _indexTestUnit('''
 class A {
@@ -1419,7 +1418,7 @@ main(A a, p) {
 }''');
     // prepare elements
     Element mainElement = findElement("main");
-    IndexableElement indexable = new IndexableElement(new NameElement('test'));
+    IndexableName indexable = new IndexableName('test');
     // verify
     _assertRecordedRelation(indexable, IndexConstants.IS_INVOKED_BY,
         _expectedLocationQ(mainElement, 'test(1)'));
@@ -1440,7 +1439,7 @@ main(A a, p) {
 }''');
     // prepare elements
     Element mainElement = findElement("main");
-    IndexableElement indexable = new IndexableElement(new NameElement('test'));
+    IndexableName indexable = new IndexableName('test');
     // verify
     _assertRecordedRelation(indexable, IndexConstants.IS_READ_BY,
         _expectedLocationQ(mainElement, 'test); // a'));
@@ -1459,7 +1458,7 @@ main(A a, p) {
 }''');
     // prepare elements
     Element mainElement = findElement("main");
-    IndexableElement indexable = new IndexableElement(new NameElement('test'));
+    IndexableName indexable = new IndexableName('test');
     // verify
     _assertRecordedRelation(indexable, IndexConstants.IS_READ_WRITTEN_BY,
         _expectedLocationQ(mainElement, 'test += 1'));
@@ -1478,7 +1477,7 @@ main(A a, p) {
 }''');
     // prepare elements
     Element mainElement = findElement("main");
-    IndexableElement indexable = new IndexableElement(new NameElement('test'));
+    IndexableName indexable = new IndexableName('test');
     // verify
     _assertRecordedRelation(indexable, IndexConstants.IS_WRITTEN_BY,
         _expectedLocationQ(mainElement, 'test = 1'));
@@ -1552,8 +1551,21 @@ main(A a, p) {
       Element expectedElement,
       RelationshipImpl expectedRelationship,
       ExpectedLocation expectedLocation) {
-    return _assertRecordedRelation(new IndexableElement(expectedElement),
-        expectedRelationship, expectedLocation);
+    return _assertRecordedRelationForIndexable(
+        new IndexableElement(expectedElement),
+        expectedRelationship,
+        expectedLocation);
+  }
+
+  /**
+   * Asserts that [recordedRelations] has an item with the expected properties.
+   */
+  LocationImpl _assertRecordedRelationForIndexable(
+      IndexableObject expectedIndexable,
+      RelationshipImpl expectedRelationship,
+      ExpectedLocation expectedLocation) {
+    return _assertRecordedRelation(
+        expectedIndexable, expectedRelationship, expectedLocation);
   }
 
   /**
@@ -1563,8 +1575,8 @@ main(A a, p) {
       String expectedName,
       RelationshipImpl expectedRelationship,
       ExpectedLocation expectedLocation) {
-    return _assertRecordedRelationForElement(
-        new NameElement(expectedName), expectedRelationship, expectedLocation);
+    return _assertRecordedRelationForIndexable(new IndexableName(expectedName),
+        expectedRelationship, expectedLocation);
   }
 
   ExpectedLocation _expectedLocation(Element element, String search,

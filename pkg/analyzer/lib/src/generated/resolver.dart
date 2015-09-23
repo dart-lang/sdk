@@ -73,12 +73,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   final InterfaceType _futureNullType;
 
   /**
+   * The type system primitives
+   */
+  TypeSystem _typeSystem;
+
+  /**
    * Create a new instance of the [BestPracticesVerifier].
    *
    * @param errorReporter the error reporter
    */
-  BestPracticesVerifier(this._errorReporter, TypeProvider typeProvider)
-      : _futureNullType = typeProvider.futureNullType;
+  BestPracticesVerifier(this._errorReporter, TypeProvider typeProvider,
+      {TypeSystem typeSystem})
+      : _futureNullType = typeProvider.futureNullType,
+        _typeSystem = (typeSystem != null) ? typeSystem : new TypeSystemImpl();
 
   @override
   Object visitArgumentList(ArgumentList node) {
@@ -304,7 +311,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     // Warning case: test static type information
     //
     if (actualStaticType != null && expectedStaticType != null) {
-      if (!actualStaticType.isAssignableTo(expectedStaticType)) {
+      if (!_typeSystem.isAssignableTo(actualStaticType, expectedStaticType)) {
         // A warning was created in the ErrorVerifier, return false, don't
         // create a hint when a warning has already been created.
         return false;
@@ -320,7 +327,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     DartType actualBestType =
         actualPropagatedType != null ? actualPropagatedType : actualStaticType;
     if (actualBestType != null && expectedBestType != null) {
-      if (!actualBestType.isAssignableTo(expectedBestType)) {
+      if (!_typeSystem.isAssignableTo(actualBestType, expectedBestType)) {
         _errorReporter.reportTypeErrorForNode(
             hintCode, expression, [actualBestType, expectedBestType]);
         return true;
@@ -519,14 +526,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         ? ErrorVerifier.getStaticType(lhs)
         : leftVariableElement.type;
     DartType staticRightType = ErrorVerifier.getStaticType(rhs);
-    if (!staticRightType.isAssignableTo(leftType)) {
+    if (!_typeSystem.isAssignableTo(staticRightType, leftType)) {
       // The warning was generated on this rhs
       return false;
     }
     // Test for, and then generate the hint
     DartType bestRightType = rhs.bestType;
     if (leftType != null && bestRightType != null) {
-      if (!bestRightType.isAssignableTo(leftType)) {
+      if (!_typeSystem.isAssignableTo(bestRightType, leftType)) {
         _errorReporter.reportTypeErrorForNode(
             HintCode.INVALID_ASSIGNMENT, rhs, [bestRightType, leftType]);
         return true;
@@ -593,7 +600,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
     // For async, give no hint if Future<Null> is assignable to the return
     // type.
-    if (body.isAsynchronous && _futureNullType.isAssignableTo(returnTypeType)) {
+    if (body.isAsynchronous &&
+        _typeSystem.isAssignableTo(_futureNullType, returnTypeType)) {
       return false;
     }
     // Check the block for a return statement, if not, create the hint
@@ -839,6 +847,11 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   final TypeProvider _typeProvider;
 
   /**
+   * The type system in use.
+   */
+  final TypeSystem _typeSystem;
+
+  /**
    * The set of variables declared using '-D' on the command line.
    */
   final DeclaredVariables declaredVariables;
@@ -873,8 +886,10 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param errorReporter the error reporter by which errors will be reported
    */
-  ConstantVerifier(this._errorReporter, this._currentLibrary,
-      this._typeProvider, this.declaredVariables) {
+  ConstantVerifier(this._errorReporter, LibraryElement currentLibrary,
+      this._typeProvider, this.declaredVariables)
+      : _currentLibrary = currentLibrary,
+        _typeSystem = currentLibrary.context.typeSystem {
     this._boolType = _typeProvider.boolType;
     this._intType = _typeProvider.intType;
     this._numType = _typeProvider.numType;
@@ -932,7 +947,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
       ConstructorElement constructor = node.staticElement;
       if (constructor != null) {
         ConstantEvaluationEngine evaluationEngine =
-            new ConstantEvaluationEngine(_typeProvider, declaredVariables);
+            new ConstantEvaluationEngine(_typeProvider, declaredVariables,
+                typeSystem: _typeSystem);
         ConstantVisitor constantVisitor =
             new ConstantVisitor(evaluationEngine, _errorReporter);
         evaluationEngine.evaluateConstructorCall(
@@ -1006,7 +1022,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         ErrorReporter subErrorReporter =
             new ErrorReporter(errorListener, _errorReporter.source);
         DartObjectImpl result = key.accept(new ConstantVisitor(
-            new ConstantEvaluationEngine(_typeProvider, declaredVariables),
+            new ConstantEvaluationEngine(_typeProvider, declaredVariables,
+                typeSystem: _typeSystem),
             subErrorReporter));
         if (result != null) {
           if (keys.contains(result)) {
@@ -1212,7 +1229,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     ErrorReporter subErrorReporter =
         new ErrorReporter(errorListener, _errorReporter.source);
     DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(_typeProvider, declaredVariables),
+        new ConstantEvaluationEngine(_typeProvider, declaredVariables,
+            typeSystem: _typeSystem),
         subErrorReporter));
     _reportErrors(errorListener.errors, errorCode);
     return result;
@@ -1320,8 +1338,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
               ErrorReporter subErrorReporter =
                   new ErrorReporter(errorListener, _errorReporter.source);
               DartObjectImpl result = initializer.accept(new ConstantVisitor(
-                  new ConstantEvaluationEngine(
-                      _typeProvider, declaredVariables),
+                  new ConstantEvaluationEngine(_typeProvider, declaredVariables,
+                      typeSystem: _typeSystem),
                   subErrorReporter));
               if (result == null) {
                 _errorReporter.reportErrorForNode(
@@ -1350,7 +1368,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         new ErrorReporter(errorListener, _errorReporter.source);
     DartObjectImpl result = expression.accept(
         new _ConstantVerifier_validateInitializerExpression(_typeProvider,
-            subErrorReporter, this, parameterElements, declaredVariables));
+            subErrorReporter, this, parameterElements, declaredVariables,
+            typeSystem: _typeSystem));
     _reportErrors(errorListener.errors,
         CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
     if (result != null) {
@@ -1475,11 +1494,18 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   final ErrorReporter _errorReporter;
 
   /**
+   *  The type system for this visitor
+   */
+  final TypeSystem _typeSystem;
+
+  /**
    * Create a new instance of the [DeadCodeVerifier].
    *
    * @param errorReporter the error reporter
    */
-  DeadCodeVerifier(this._errorReporter);
+  DeadCodeVerifier(this._errorReporter, {TypeSystem typeSystem})
+      : this._typeSystem =
+            (typeSystem != null) ? typeSystem : new TypeSystemImpl();
 
   @override
   Object visitBinaryExpression(BinaryExpression node) {
@@ -1644,7 +1670,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
             }
           }
           for (DartType type in visitedTypes) {
-            if (currentType.isSubtypeOf(type)) {
+            if (_typeSystem.isSubtypeOf(currentType, type)) {
               CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
               int offset = catchClause.offset;
               int length = lastCatchClause.end - offset;
@@ -4799,15 +4825,16 @@ class HintGenerator {
     ErrorReporter errorReporter = new ErrorReporter(_errorListener, source);
     unit.accept(_usedImportedElementsVisitor);
     // dead code analysis
-    unit.accept(new DeadCodeVerifier(errorReporter));
+    unit.accept(
+        new DeadCodeVerifier(errorReporter, typeSystem: _context.typeSystem));
     unit.accept(_usedLocalElementsVisitor);
     // dart2js analysis
     if (_enableDart2JSHints) {
       unit.accept(new Dart2JSVerifier(errorReporter));
     }
     // Dart best practices
-    unit.accept(
-        new BestPracticesVerifier(errorReporter, _context.typeProvider));
+    unit.accept(new BestPracticesVerifier(errorReporter, _context.typeProvider,
+        typeSystem: _context.typeSystem));
     unit.accept(new OverrideVerifier(errorReporter, _manager));
     // Find to-do comments
     new ToDoFinder(errorReporter).findIn(unit);
@@ -6268,11 +6295,13 @@ class InheritanceManager {
               continue;
             }
             bool subtypeOfAllTypes = true;
+            TypeSystem typeSystem = _library.context.typeSystem;
             for (int j = 0;
                 j < numOfEltsWithMatchingNames && subtypeOfAllTypes;
                 j++) {
               if (i != j) {
-                if (!subtype.isSubtypeOf(executableElementTypes[j])) {
+                if (!typeSystem.isSubtypeOf(
+                    subtype, executableElementTypes[j])) {
                   subtypeOfAllTypes = false;
                   break;
                 }
@@ -7570,6 +7599,11 @@ class LibraryResolver {
   TypeProvider _typeProvider;
 
   /**
+   * The type system in use for the library
+   */
+  TypeSystem _typeSystem;
+
+  /**
    * A table mapping library sources to the information being maintained for those libraries.
    */
   HashMap<Source, Library> _libraryMap = new HashMap<Source, Library>();
@@ -7610,6 +7644,11 @@ class LibraryResolver {
    * The object used to access the types from the core library.
    */
   TypeProvider get typeProvider => _typeProvider;
+
+  /**
+   * The type system in use.
+   */
+  TypeSystem get typeSystem => _typeSystem;
 
   /**
    * Create an object to represent the information about the library defined by the compilation unit
@@ -7696,6 +7735,7 @@ class LibraryResolver {
     }
     _buildDirectiveModels();
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
+    _typeSystem = TypeSystem.create(analysisContext);
     _buildTypeHierarchies();
     //
     // Perform resolution and type analysis.
@@ -7774,6 +7814,7 @@ class LibraryResolver {
     }
     _buildDirectiveModels();
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
+    _typeSystem = TypeSystem.create(analysisContext);
     _buildEnumMembers();
     _buildTypeHierarchies();
     //
@@ -8286,7 +8327,11 @@ class LibraryResolver {
   void _performConstantEvaluation() {
     PerformanceStatistics.resolve.makeCurrentWhile(() {
       ConstantValueComputer computer = new ConstantValueComputer(
-          analysisContext, _typeProvider, analysisContext.declaredVariables);
+          analysisContext,
+          _typeProvider,
+          analysisContext.declaredVariables,
+          null,
+          _typeSystem);
       for (Library library in _librariesInCycles) {
         for (Source source in library.compilationUnitSources) {
           try {
@@ -8419,6 +8464,11 @@ class LibraryResolver2 {
   TypeProvider _typeProvider;
 
   /**
+   * The type system in use for the library
+   */
+  TypeSystem _typeSystem;
+
+  /**
    * A table mapping library sources to the information being maintained for those libraries.
    */
   HashMap<Source, ResolvableLibrary> _libraryMap =
@@ -8508,6 +8558,7 @@ class LibraryResolver2 {
     }
     _buildDirectiveModels();
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
+    _typeSystem = TypeSystem.create(analysisContext);
     _buildEnumMembers();
     _buildTypeHierarchies();
     //
@@ -8781,7 +8832,11 @@ class LibraryResolver2 {
   void _performConstantEvaluation() {
     PerformanceStatistics.resolve.makeCurrentWhile(() {
       ConstantValueComputer computer = new ConstantValueComputer(
-          analysisContext, _typeProvider, analysisContext.declaredVariables);
+          analysisContext,
+          _typeProvider,
+          analysisContext.declaredVariables,
+          null,
+          _typeSystem);
       for (ResolvableLibrary library in _librariesInCycle) {
         for (ResolvableCompilationUnit unit
             in library.resolvableCompilationUnits) {
@@ -10227,6 +10282,11 @@ class ResolverVisitor extends ScopedVisitor {
    */
   StaticTypeAnalyzer typeAnalyzer;
 
+  /*
+  * The type system in use during resolution.
+  */
+  TypeSystem typeSystem;
+
   /**
    * The class element representing the class containing the current node,
    * or `null` if the current node is not contained in a class.
@@ -10307,6 +10367,7 @@ class ResolverVisitor extends ScopedVisitor {
       this._inheritanceManager = inheritanceManager;
     }
     this.elementResolver = new ElementResolver(this);
+    this.typeSystem = definingLibrary.context.typeSystem;
     if (typeAnalyzerFactory == null) {
       this.typeAnalyzer = new StaticTypeAnalyzer(this);
     } else {
@@ -14897,14 +14958,25 @@ class TypeResolverVisitor extends ScopedVisitor {
  */
 abstract class TypeSystem {
   /**
-   * Return the [TypeProvider] associated with this [TypeSystem].
+   * Create either a strong mode or regular type system based on context.
    */
-  TypeProvider get typeProvider;
+  static TypeSystem create(AnalysisContext context) {
+    return (context.analysisOptions.strongMode)
+        ? new StrongTypeSystemImpl()
+        : new TypeSystemImpl();
+  }
 
   /**
    * Compute the least upper bound of two types.
    */
-  DartType getLeastUpperBound(DartType type1, DartType type2);
+  DartType getLeastUpperBound(
+      TypeProvider typeProvider, DartType type1, DartType type2);
+
+  /**
+   * Return `true` if the [leftType] is assignable to the [rightType] (that is,
+   * if leftType <==> rightType).
+   */
+  bool isAssignableTo(DartType leftType, DartType rightType);
 
   /**
    * Return `true` if the [leftType] is a subtype of the [rightType] (that is,
@@ -14917,13 +14989,11 @@ abstract class TypeSystem {
  * Implementation of [TypeSystem] using the rules in the Dart specification.
  */
 class TypeSystemImpl implements TypeSystem {
-  @override
-  final TypeProvider typeProvider;
-
-  TypeSystemImpl(this.typeProvider);
+  TypeSystemImpl();
 
   @override
-  DartType getLeastUpperBound(DartType type1, DartType type2) {
+  DartType getLeastUpperBound(
+      TypeProvider typeProvider, DartType type1, DartType type2) {
     // The least upper bound relation is reflexive.
     if (identical(type1, type2)) {
       return type1;
@@ -15002,8 +15072,320 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
+  bool isAssignableTo(DartType leftType, DartType rightType) {
+    return leftType.isAssignableTo(rightType);
+  }
+
+  @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return leftType.isSubtypeOf(rightType);
+  }
+}
+
+typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<Element> visited);
+typedef bool _SubtypeChecker<T>(T t1, T t2);
+
+/**
+ * Implementation of [TypeSystem] using the strong mode rules.
+ * https://github.com/dart-lang/dev_compiler/blob/master/STRONG_MODE.md
+ */
+class StrongTypeSystemImpl implements TypeSystem {
+  StrongTypeSystemImpl();
+
+  final _specTypeSystem = new TypeSystemImpl();
+
+  @override
+  DartType getLeastUpperBound(
+      TypeProvider typeProvider, DartType type1, DartType type2) {
+    // TODO(leafp): Implement a strong mode version of this.
+    return _specTypeSystem.getLeastUpperBound(typeProvider, type1, type2);
+  }
+
+  // TODO(leafp): Document the rules in play here
+  @override
+  bool isAssignableTo(DartType toType, DartType fromType) {
+    // An actual subtype
+    if (isSubtypeOf(fromType, toType)) {
+      return true;
+    }
+
+    // Don't allow implicit downcasts between function types
+    // and call method objects, as these will almost always fail.
+    if ((fromType is FunctionType && _getCallMethodType(toType) != null) ||
+        (toType is FunctionType && _getCallMethodType(fromType) != null)) {
+      return false;
+    }
+
+    // If the subtype relation goes the other way, allow the implicit downcast.
+    // TODO(leafp): Emit warnings and hints for these in some way.
+    // TODO(leafp): Consider adding a flag to disable these?  Or just rely on
+    //   --warnings-as-errors?
+    if (isSubtypeOf(toType, fromType) ||
+        _specTypeSystem.isAssignableTo(toType, fromType)) {
+      // TODO(leafp): error if type is known to be exact (literal,
+      //  instance creation).
+      // TODO(leafp): Warn on composite downcast.
+      // TODO(leafp): hint on object/dynamic downcast.
+      // TODO(leafp): Consider allowing assignment casts.
+      return true;
+    }
+
+    return false;
+  }
+
+  bool _isBottom(DartType t, {bool dynamicIsBottom: false}) {
+    return (t.isDynamic && dynamicIsBottom) || t.isBottom;
+  }
+
+  bool _isTop(DartType t, {bool dynamicIsBottom: false}) {
+    return (t.isDynamic && !dynamicIsBottom) || t.isObject;
+  }
+
+  // Given a type t, if t is an interface type with a call method
+  // defined, return the function type for the call method, otherwise
+  // return null.
+  FunctionType _getCallMethodType(DartType t) {
+    if (t is InterfaceType) {
+      ClassElement element = t.element;
+      InheritanceManager manager = new InheritanceManager(element.library);
+      FunctionType callType = manager.lookupMemberType(t, "call");
+      return callType;
+    }
+    return null;
+  }
+
+  /**
+   * Check that [f1] is a subtype of [f2]. 
+   * [fuzzyArrows] indicates whether or not the f1 and f2 should be
+   * treated as fuzzy arrow types (and hence dynamic parameters to f2 treated
+   * as bottom).
+   */
+  bool _isFunctionSubtypeOf(FunctionType f1, FunctionType f2,
+      {bool fuzzyArrows: true}) {
+    final r1s = f1.normalParameterTypes;
+    final o1s = f1.optionalParameterTypes;
+    final n1s = f1.namedParameterTypes;
+    final r2s = f2.normalParameterTypes;
+    final o2s = f2.optionalParameterTypes;
+    final n2s = f2.namedParameterTypes;
+    final ret1 = f1.returnType;
+    final ret2 = f2.returnType;
+
+    // A -> B <: C -> D if C <: A and
+    // either D is void or B <: D
+    if (!ret2.isVoid && !isSubtypeOf(ret1, ret2)) {
+      return false;
+    }
+
+    // Reject if one has named and the other has optional
+    if (n1s.length > 0 && o2s.length > 0) {
+      return false;
+    }
+    if (n2s.length > 0 && o1s.length > 0) {
+      return false;
+    }
+
+    // Rebind _isSubtypeOf for convenience
+    _SubtypeChecker<DartType> parameterSubtype = (DartType t1, DartType t2) =>
+        _isSubtypeOf(t1, t2, null, dynamicIsBottom: fuzzyArrows);
+
+    // f2 has named parameters
+    if (n2s.length > 0) {
+      // Check that every named parameter in f2 has a match in f1
+      for (String k2 in n2s.keys) {
+        if (!n1s.containsKey(k2)) {
+          return false;
+        }
+        if (!parameterSubtype(n2s[k2], n1s[k2])) {
+          return false;
+        }
+      }
+    }
+    // If we get here, we either have no named parameters,
+    // or else the named parameters match and we have no optional
+    // parameters
+
+    // If f1 has more required parameters, reject
+    if (r1s.length > r2s.length) {
+      return false;
+    }
+
+    // If f2 has more required + optional parameters, reject
+    if (r2s.length + o2s.length > r1s.length + o1s.length) {
+      return false;
+    }
+
+    // The parameter lists must look like the following at this point
+    // where rrr is a region of required, and ooo is a region of optionals.
+    // f1: rrr ooo ooo ooo
+    // f2: rrr rrr ooo
+    int rr = r1s.length; // required in both
+    int or = r2s.length - r1s.length; // optional in f1, required in f2
+    int oo = o2s.length; // optional in both
+
+    for (int i = 0; i < rr; ++i) {
+      if (!parameterSubtype(r2s[i], r1s[i])) {
+        return false;
+      }
+    }
+    for (int i = 0, j = rr; i < or; ++i, ++j) {
+      if (!parameterSubtype(r2s[j], o1s[i])) {
+        return false;
+      }
+    }
+    for (int i = or, j = 0; i < oo; ++i, ++j) {
+      if (!parameterSubtype(o2s[j], o1s[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Guard against loops in the class hierarchy
+  _GuardedSubtypeChecker<DartType> _guard(
+      _GuardedSubtypeChecker<DartType> check) {
+    return (DartType t1, DartType t2, Set<Element> visited) {
+      Element element = t1.element;
+      if (visited == null) {
+        visited = new HashSet<Element>();
+      }
+      if (element == null || !visited.add(element)) {
+        return false;
+      }
+      try {
+        return check(t1, t2, visited);
+      } finally {
+        visited.remove(element);
+      }
+    };
+  }
+
+  bool _isInterfaceSubtypeOf(
+      InterfaceType i1, InterfaceType i2, Set<Element> visited) {
+    // Guard recursive calls
+    _GuardedSubtypeChecker<InterfaceType> guardedInterfaceSubtype =
+        _guard(_isInterfaceSubtypeOf);
+
+    if (i1 == i2) {
+      return true;
+    }
+
+    if (i1.element == i2.element) {
+      List<DartType> tArgs1 = i1.typeArguments;
+      List<DartType> tArgs2 = i2.typeArguments;
+
+      assert(tArgs1.length == tArgs2.length);
+
+      for (int i = 0; i < tArgs1.length; i++) {
+        DartType t1 = tArgs1[i];
+        DartType t2 = tArgs2[i];
+        if (!isSubtypeOf(t1, t2)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    if (i2.isDartCoreFunction && i1.element.getMethod("call") != null) {
+      return true;
+    }
+
+    if (i1.isObject) {
+      return false;
+    }
+
+    if (guardedInterfaceSubtype(i1.superclass, i2, visited)) {
+      return true;
+    }
+
+    for (final parent in i1.interfaces) {
+      if (guardedInterfaceSubtype(parent, i2, visited)) {
+        return true;
+      }
+    }
+
+    for (final parent in i1.mixins) {
+      if (guardedInterfaceSubtype(parent, i2, visited)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  bool _isSubtypeOf(DartType t1, DartType t2, Set<Element> visited,
+      {bool dynamicIsBottom: false}) {
+    // Guard recursive calls
+    _GuardedSubtypeChecker<DartType> guardedSubtype = _guard(_isSubtypeOf);
+
+    if (t1 == t2) {
+      return true;
+    }
+
+    // The types are void, dynamic, bottom, interface types, function types
+    // and type parameters.  We proceed by eliminating these different classes
+    // from consideration.
+
+    // Trivially true.
+    if (_isTop(t2, dynamicIsBottom: dynamicIsBottom) ||
+        _isBottom(t1, dynamicIsBottom: dynamicIsBottom)) {
+      return true;
+    }
+
+    // Trivially false.
+    if (_isTop(t1, dynamicIsBottom: dynamicIsBottom) ||
+        _isBottom(t2, dynamicIsBottom: dynamicIsBottom)) {
+      return false;
+    }
+
+    // S <: T where S is a type variable
+    //  T is not dynamic or object (handled above)
+    //  S != T (handled above)
+    //  So only true if bound of S is S' and
+    //  S' <: T
+    if (t1 is TypeParameterType) {
+      DartType bound = t1.element.bound;
+      if (bound == null) return false;
+      return guardedSubtype(bound, t2, visited);
+    }
+
+    if (t2 is TypeParameterType) {
+      return false;
+    }
+
+    if (t1.isVoid || t2.isVoid) {
+      return false;
+    }
+
+    // We've eliminated void, dynamic, bottom, and type parameters.  The only
+    // cases are the combinations of interface type and function type.
+
+    // A function type can only subtype an interface type if
+    // the interface type is Function
+    if (t1 is FunctionType && t2 is InterfaceType) {
+      return t2.isDartCoreFunction;
+    }
+
+    // An interface type can only subtype a function type if
+    // the interface type declares a call method with a type
+    // which is a super type of the function type.
+    if (t1 is InterfaceType && t2 is FunctionType) {
+      var callType = _getCallMethodType(t1);
+      return (callType != null) && _isFunctionSubtypeOf(callType, t2);
+    }
+
+    // Two interface types
+    if (t1 is InterfaceType && t2 is InterfaceType) {
+      return _isInterfaceSubtypeOf(t1, t2, visited);
+    }
+
+    return _isFunctionSubtypeOf(t1 as FunctionType, t2 as FunctionType);
+  }
+
+  // TODO(leafp): Document the rules in play here
+  @override
+  bool isSubtypeOf(DartType leftType, DartType rightType) {
+    return _isSubtypeOf(leftType, rightType, null);
   }
 }
 
@@ -15409,13 +15791,19 @@ class _ConstantVerifier_validateInitializerExpression extends ConstantVisitor {
 
   List<ParameterElement> parameterElements;
 
+  TypeSystem _typeSystem;
+
   _ConstantVerifier_validateInitializerExpression(
       TypeProvider typeProvider,
       ErrorReporter errorReporter,
       this.verifier,
       this.parameterElements,
-      DeclaredVariables declaredVariables)
-      : super(new ConstantEvaluationEngine(typeProvider, declaredVariables),
+      DeclaredVariables declaredVariables,
+      {TypeSystem typeSystem})
+      : _typeSystem = (typeSystem != null) ? typeSystem : new TypeSystemImpl(),
+        super(
+            new ConstantEvaluationEngine(typeProvider, declaredVariables,
+                typeSystem: typeSystem),
             errorReporter);
 
   @override
@@ -15428,19 +15816,20 @@ class _ConstantVerifier_validateInitializerExpression extends ConstantVisitor {
           if (type.isDynamic) {
             return new DartObjectImpl(
                 verifier._typeProvider.objectType, DynamicState.DYNAMIC_STATE);
-          } else if (type.isSubtypeOf(verifier._boolType)) {
+          } else if (_typeSystem.isSubtypeOf(type, verifier._boolType)) {
             return new DartObjectImpl(
                 verifier._typeProvider.boolType, BoolState.UNKNOWN_VALUE);
-          } else if (type.isSubtypeOf(verifier._typeProvider.doubleType)) {
+          } else if (_typeSystem.isSubtypeOf(
+              type, verifier._typeProvider.doubleType)) {
             return new DartObjectImpl(
                 verifier._typeProvider.doubleType, DoubleState.UNKNOWN_VALUE);
-          } else if (type.isSubtypeOf(verifier._intType)) {
+          } else if (_typeSystem.isSubtypeOf(type, verifier._intType)) {
             return new DartObjectImpl(
                 verifier._typeProvider.intType, IntState.UNKNOWN_VALUE);
-          } else if (type.isSubtypeOf(verifier._numType)) {
+          } else if (_typeSystem.isSubtypeOf(type, verifier._numType)) {
             return new DartObjectImpl(
                 verifier._typeProvider.numType, NumState.UNKNOWN_VALUE);
-          } else if (type.isSubtypeOf(verifier._stringType)) {
+          } else if (_typeSystem.isSubtypeOf(type, verifier._stringType)) {
             return new DartObjectImpl(
                 verifier._typeProvider.stringType, StringState.UNKNOWN_VALUE);
           }

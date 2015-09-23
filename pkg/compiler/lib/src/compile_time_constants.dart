@@ -29,7 +29,7 @@ import 'resolution/operators.dart';
 import 'tree/tree.dart';
 import 'util/util.dart' show
     Link;
-import 'universe/universe.dart' show
+import 'universe/call_structure.dart' show
     CallStructure;
 
 /// A [ConstantEnvironment] provides access for constants compiled for variable

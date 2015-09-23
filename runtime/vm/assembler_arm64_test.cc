@@ -1622,81 +1622,100 @@ ASSEMBLER_TEST_RUN(LoadImmediateMedNeg4, test) {
 }
 
 
+static void EnterTestFrame(Assembler* assembler) {
+  __ EnterFrame(0);
+  __ Push(CODE_REG);
+  __ TagAndPushPP();
+  __ ldr(CODE_REG, Address(R0, VMHandles::kOffsetOfRawPtrInHandle));
+  __ LoadPoolPointer(PP);
+}
+
+
+static void LeaveTestFrame(Assembler* assembler) {
+  __ PopAndUntagPP();
+  __ Pop(CODE_REG);
+  __ LeaveFrame();
+}
+
+
+
+
 // Loading immediate values with the object pool.
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPSmall, assembler) {
   __ SetupDartSP(kTestStackSpace);
-  __ EnterStubFrame();
+  EnterTestFrame(assembler);
   __ LoadImmediate(R0, 42);
-  __ LeaveStubFrame();
+  LeaveTestFrame(assembler);
   __ mov(CSP, SP);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(LoadImmediatePPSmall, test) {
-  EXPECT_EQ(42, test->Invoke<int64_t>());
+  EXPECT_EQ(42, test->InvokeWithCode<int64_t>());
 }
 
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed, assembler) {
   __ SetupDartSP(kTestStackSpace);
-  __ EnterStubFrame();
+  EnterTestFrame(assembler);
   __ LoadImmediate(R0, 0xf1234123);
-  __ LeaveStubFrame();
+  LeaveTestFrame(assembler);
   __ mov(CSP, SP);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(LoadImmediatePPMed, test) {
-  EXPECT_EQ(0xf1234123, test->Invoke<int64_t>());
+  EXPECT_EQ(0xf1234123, test->InvokeWithCode<int64_t>());
 }
 
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed2, assembler) {
   __ SetupDartSP(kTestStackSpace);
-  __ EnterStubFrame();
+  EnterTestFrame(assembler);
   __ LoadImmediate(R0, 0x4321f1234124);
-  __ LeaveStubFrame();
+  LeaveTestFrame(assembler);
   __ mov(CSP, SP);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(LoadImmediatePPMed2, test) {
-  EXPECT_EQ(0x4321f1234124, test->Invoke<int64_t>());
+  EXPECT_EQ(0x4321f1234124, test->InvokeWithCode<int64_t>());
 }
 
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPLarge, assembler) {
   __ SetupDartSP(kTestStackSpace);
-  __ EnterStubFrame();
+  EnterTestFrame(assembler);
   __ LoadImmediate(R0, 0x9287436598237465);
-  __ LeaveStubFrame();
+  LeaveTestFrame(assembler);
   __ mov(CSP, SP);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(LoadImmediatePPLarge, test) {
-  EXPECT_EQ(static_cast<int64_t>(0x9287436598237465), test->Invoke<int64_t>());
+  EXPECT_EQ(static_cast<int64_t>(0x9287436598237465),
+            test->InvokeWithCode<int64_t>());
 }
 
 
 #define ASSEMBLER_TEST_RUN_WITH_THREAD(result_type, var_name) \
   Thread* thread = Thread::Current(); \
-  result_type var_name = test->Invoke<result_type>(thread);
+  result_type var_name = test->InvokeWithCode<result_type>(thread);
 
 
 // LoadObject null.
 ASSEMBLER_TEST_GENERATE(LoadObjectNull, assembler) {
   __ SetupDartSP(kTestStackSpace);
-  __ EnterStubFrame();
+  EnterTestFrame(assembler);
   __ Push(THR);
-  __ mov(THR, R0);
+  __ mov(THR, R1);
   __ LoadObject(R0, Object::null_object());
   __ Pop(THR);
-  __ LeaveStubFrame();
+  LeaveTestFrame(assembler);
   __ mov(CSP, SP);
   __ ret();
 }
@@ -1710,12 +1729,12 @@ ASSEMBLER_TEST_RUN(LoadObjectNull, test) {
 
 ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
   __ SetupDartSP(kTestStackSpace);
-  __ EnterStubFrame();
+  EnterTestFrame(assembler);
   __ Push(THR);
-  __ mov(THR, R0);
+  __ mov(THR, R1);
   __ LoadObject(R0, Bool::True());
   __ Pop(THR);
-  __ LeaveDartFrame();
+  LeaveTestFrame(assembler);
   __ mov(CSP, SP);
   __ ret();
 }
@@ -1729,12 +1748,12 @@ ASSEMBLER_TEST_RUN(LoadObjectTrue, test) {
 
 ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
   __ SetupDartSP(kTestStackSpace);
-  __ EnterStubFrame();
+  EnterTestFrame(assembler);
   __ Push(THR);
-  __ mov(THR, R0);
+  __ mov(THR, R1);
   __ LoadObject(R0, Bool::False());
   __ Pop(THR);
-  __ LeaveStubFrame();
+  LeaveTestFrame(assembler);
   __ mov(CSP, SP);
   __ ret();
 }
@@ -3553,6 +3572,7 @@ ASSEMBLER_TEST_RUN(ReciprocalSqrt, test) {
 // R2: current thread.
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ SetupDartSP(kTestStackSpace);
+  __ Push(CODE_REG);
   __ Push(THR);
   __ Push(LR);
   __ mov(THR, R2);
@@ -3561,6 +3581,7 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
                      R0);
   __ Pop(LR);
   __ Pop(THR);
+  __ Pop(CODE_REG);
   __ mov(CSP, SP);
   __ ret();
 }
@@ -3568,9 +3589,8 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
 
 ASSEMBLER_TEST_GENERATE(ComputeRange, assembler) {
   __ SetupDartSP(kTestStackSpace);
-  __ EnterStubFrame();
+  EnterTestFrame(assembler);
   Label miss, done;
-  __ mov(R1, R0);
   __ ComputeRange(R0, R1, R2, &miss);
   __ b(&done);
 
@@ -3578,14 +3598,14 @@ ASSEMBLER_TEST_GENERATE(ComputeRange, assembler) {
   __ LoadImmediate(R0, -1);
 
   __ Bind(&done);
-  __ LeaveStubFrame();
+  LeaveTestFrame(assembler);
   __ mov(CSP, SP);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(ComputeRange, test) {
-#define RANGE_OF(arg_type, v) test->Invoke<intptr_t, arg_type>(v)
+#define RANGE_OF(arg_type, v) test->InvokeWithCode<intptr_t, arg_type>(v)
 
   EXPECT_EQ(ICData::kInt32RangeBit, RANGE_OF(RawSmi*, Smi::New(0)));
   EXPECT_EQ(ICData::kInt32RangeBit, RANGE_OF(RawSmi*, Smi::New(1)));

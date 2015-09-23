@@ -52,7 +52,14 @@ import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../types/constants.dart' show
     computeTypeMask;
-import '../universe/universe.dart';
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
+import '../universe/side_effects.dart' show
+    SideEffects;
+import '../universe/universe.dart' show
+    UniverseSelector;
 import '../util/util.dart';
 import '../world.dart' show
     ClassWorld,

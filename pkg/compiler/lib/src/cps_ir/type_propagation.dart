@@ -6,9 +6,10 @@ library dart2js.cps_ir.type_propagation;
 import 'optimizers.dart';
 
 import '../closure.dart' show
-    ClosureClassElement, Identifiers;
+    ClosureClassElement;
 import '../common/names.dart' show
-    Selectors, Identifiers;
+    Identifiers,
+    Selectors;
 import '../compiler.dart' as dart2js show
     Compiler;
 import '../constants/constant_system.dart';
@@ -17,16 +18,21 @@ import '../dart_types.dart' as types;
 import '../diagnostics/invariant.dart' as dart2js show
     InternalErrorFunction;
 import '../elements/elements.dart';
-import '../io/source_information.dart' show SourceInformation;
-import '../js_backend/js_backend.dart' show JavaScriptBackend;
-import '../js_backend/codegen/task.dart' show CpsFunctionCompiler;
+import '../io/source_information.dart' show
+    SourceInformation;
+import '../js_backend/js_backend.dart' show
+    JavaScriptBackend;
+import '../js_backend/codegen/task.dart' show
+    CpsFunctionCompiler;
 import '../resolution/access_semantics.dart';
 import '../resolution/operators.dart';
 import '../resolution/send_structure.dart';
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
-import '../types/constants.dart' show computeTypeMask;
-import '../universe/universe.dart';
+import '../types/constants.dart' show
+    computeTypeMask;
+import '../universe/selector.dart' show
+    Selector;
 import '../world.dart' show World;
 import 'cps_fragment.dart';
 import 'cps_ir_nodes.dart';
@@ -379,8 +385,6 @@ class TypePropagator extends Pass {
         _internalError);
     transformer.transform(root);
   }
-
-  getType(Node node) => _values[node];
 }
 
 final Map<String, BuiltinOperator> NumBinaryBuiltins =
@@ -978,8 +982,7 @@ class TransformingVisitor extends LeafVisitor {
         CpsFragment cps = new CpsFragment(sourceInfo);
         cps.invokeBuiltin(BuiltinMethod.Push,
             list,
-            <Primitive>[addedItem],
-            receiverIsNotNull: listValue.isDefinitelyNotNull);
+            <Primitive>[addedItem]);
         cps.invokeContinuation(cont, [cps.makeNull()]);
         replaceSubtree(node, cps.result);
         push(cps.result);
@@ -1002,8 +1005,7 @@ class TransformingVisitor extends LeafVisitor {
             [list, fail.makeConstant(new IntConstantValue(-1))]);
         Primitive removedItem = cps.invokeBuiltin(BuiltinMethod.Pop,
             list,
-            <Primitive>[],
-            receiverIsNotNull: listValue.isDefinitelyNotNull);
+            <Primitive>[]);
         cps.invokeContinuation(cont, [removedItem]);
         replaceSubtree(node, cps.result);
         push(cps.result);
@@ -1027,8 +1029,7 @@ class TransformingVisitor extends LeafVisitor {
         CpsFragment cps = new CpsFragment(sourceInfo);
         cps.invokeBuiltin(BuiltinMethod.Push,
             list,
-            addedLiteral.values.map((ref) => ref.definition).toList(),
-            receiverIsNotNull: listValue.isDefinitelyNotNull);
+            addedLiteral.values.map((ref) => ref.definition).toList());
         cps.invokeContinuation(cont, [cps.makeNull()]);
         replaceSubtree(node, cps.result);
         push(cps.result);
@@ -1075,7 +1076,7 @@ class TransformingVisitor extends LeafVisitor {
             !node.selector.isCall) return false;
         assert(node.selector.positionalArgumentCount == 1);
         assert(node.selector.namedArgumentCount == 0);
-        FunctionDefinition target = functionCompiler.compileToCpsIR(element);
+        FunctionDefinition target = functionCompiler.compileToCpsIr(element);
 
         node.receiver.definition.substituteFor(target.thisParameter);
         for (int i = 0; i < node.arguments.length; ++i) {
@@ -1344,7 +1345,7 @@ class TransformingVisitor extends LeafVisitor {
 
       InvokeMethod invoke = new InvokeMethod.byReference(
         new Reference<Primitive>(object),
-        new Selector(SelectorKind.CALL, getter.memberName, call.callStructure),
+        new Selector.call(getter.memberName, call.callStructure),
         type,
         node.arguments,
         node.continuation,
@@ -1421,7 +1422,7 @@ class TransformingVisitor extends LeafVisitor {
     if (functionElement.resolvedAst.elements.containsTryStatement) return false;
 
     FunctionDefinition target =
-        functionCompiler.compileToCpsIR(functionElement);
+        functionCompiler.compileToCpsIr(functionElement);
 
     // Accesses to closed-over values are field access primitives.  We we don't
     // inline if there are other uses of 'this' since that could be an escape or
@@ -1476,7 +1477,6 @@ class TransformingVisitor extends LeafVisitor {
     if (specializeClosureCall(node)) return;
 
     AbstractValue receiver = getValue(node.receiver.definition);
-    node.receiverIsNotNull = receiver.isDefinitelyNotNull;
 
     if (node.receiverIsIntercepted &&
         node.receiver.definition.sameValue(node.arguments[0].definition)) {
@@ -1646,7 +1646,7 @@ class TransformingVisitor extends LeafVisitor {
 
     if (!shouldInline()) return false;
 
-    FunctionDefinition target = functionCompiler.compileToCpsIR(node.target);
+    FunctionDefinition target = functionCompiler.compileToCpsIr(node.target);
     for (int i = 0; i < node.arguments.length; ++i) {
       node.arguments[i].definition.substituteFor(target.parameters[i]);
     }
@@ -1831,14 +1831,6 @@ class TransformingVisitor extends LeafVisitor {
           node.sourceInformation);
     }
     return null;
-  }
-
-  void visitGetField(GetField node) {
-    node.objectIsNotNull = getValue(node.object.definition).isDefinitelyNotNull;
-  }
-
-  void visitGetLength(GetLength node) {
-    node.objectIsNotNull = getValue(node.object.definition).isDefinitelyNotNull;
   }
 
   Primitive visitInterceptor(Interceptor node) {
@@ -2111,7 +2103,7 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitInvokeStatic(InvokeStatic node) {
-    if (node.target.library.isInternalLibrary) {
+    if (node.target.library != null && node.target.library.isInternalLibrary) {
       switch (node.target.name) {
         case InternalMethod.Stringify:
           AbstractValue argValue = getValue(node.arguments[0].definition);
@@ -2139,6 +2131,7 @@ class TypePropagationVisitor implements Visitor {
 
   void visitInvokeMethod(InvokeMethod node) {
     AbstractValue receiver = getValue(node.receiver.definition);
+    node.receiverIsNotNull = receiver.isDefinitelyNotNull;
     if (receiver.isNothing) {
       return;  // And come back later.
     }
@@ -2443,6 +2436,7 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitGetField(GetField node) {
+    node.objectIsNotNull = getValue(node.object.definition).isDefinitelyNotNull;
     setValue(node, nonConstant(typeSystem.getFieldType(node.field)));
   }
 
@@ -2488,6 +2482,7 @@ class TypePropagationVisitor implements Visitor {
   @override
   void visitGetLength(GetLength node) {
     AbstractValue input = getValue(node.object.definition);
+    node.objectIsNotNull = getValue(node.object.definition).isDefinitelyNotNull;
     int length = typeSystem.getContainerLength(input.type);
     if (length != null) {
       // TODO(asgerf): Constant-folding the length might degrade the VM's
@@ -2511,8 +2506,12 @@ class TypePropagationVisitor implements Visitor {
 
   @override
   void visitAwait(Await node) {
-    Continuation continuation = node.continuation.definition;
-    setReachable(continuation);
+    setResult(node, nonConstant());
+  }
+
+  @override
+  visitYield(Yield node) {
+    setReachable(node.continuation.definition);
   }
 
   @override

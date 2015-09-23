@@ -65,30 +65,6 @@ template<class P> class InstructionPattern : public ValueObject {
 };
 
 
-class JumpPattern : public InstructionPattern<JumpPattern> {
- public:
-  JumpPattern(uword pc, const Code& code)
-      : InstructionPattern(pc),
-        object_pool_(ObjectPool::Handle(code.GetObjectPool())) {}
-
-  uword TargetAddress() const;
-  void SetTargetAddress(uword new_target) const;
-
-  static const int kLengthInBytes = 7;
-  static int pattern_length_in_bytes() { return kLengthInBytes; }
-  static const int* pattern() {
-    //  07: 41 ff a7 imm32  jmpq [reg + off]
-    static const int kJumpPattern[kLengthInBytes] =
-        {0x41, 0xFF, -1, -1, -1, -1, -1};
-    return kJumpPattern;
-  }
- private:
-  const ObjectPool& object_pool_;
-
-  DISALLOW_COPY_AND_ASSIGN(JumpPattern);
-};
-
-
 // 5 byte call instruction.
 class ShortCallPattern : public InstructionPattern<ShortCallPattern> {
  public:

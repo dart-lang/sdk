@@ -21,6 +21,7 @@ class LongJumpScope;
 class Object;
 class RawBool;
 class RawObject;
+class RawCode;
 class RawString;
 class RuntimeEntry;
 class StackResource;
@@ -32,10 +33,21 @@ class Zone;
   V(RawObject*, object_null_, Object::null(), NULL)                            \
   V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
   V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
+  V(RawCode*, update_store_buffer_code_,                                       \
+    StubCode::UpdateStoreBuffer_entry()->code(), NULL)                         \
+  V(RawCode*, fix_callers_target_code_,                                        \
+    StubCode::FixCallersTarget_entry()->code(), NULL)                          \
+  V(RawCode*, fix_allocation_stub_code_,                                       \
+    StubCode::FixAllocationStubTarget_entry()->code(), NULL)                   \
+  V(RawCode*, invoke_dart_code_stub_,                                          \
+    StubCode::InvokeDartCode_entry()->code(), NULL)                            \
+
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
   V(uword, update_store_buffer_entry_point_,                                   \
     StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
+  V(uword, native_call_wrapper_entry_point_,                                   \
+    NativeEntry::NativeCallWrapperEntry(), 0)                                  \
   V(RawString**, predefined_symbols_address_,                                  \
     Symbols::PredefinedAddress(), NULL)                                        \
 
@@ -129,7 +141,7 @@ class Thread {
     return store_buffer_block_->Contains(obj);
   }
 #endif
-  void StoreBufferBlockProcess(bool check_threshold);
+  void StoreBufferBlockProcess(StoreBuffer::ThresholdPolicy policy);
   static intptr_t store_buffer_block_offset() {
     return OFFSET_OF(Thread, store_buffer_block_);
   }
@@ -309,7 +321,8 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
     memset(&state_, 0, sizeof(state_));
   }
 
-  void StoreBufferRelease(bool check_threshold = true);
+  void StoreBufferRelease(
+      StoreBuffer::ThresholdPolicy policy = StoreBuffer::kCheckThreshold);
   void StoreBufferAcquire();
 
   void set_zone(Zone* zone) {

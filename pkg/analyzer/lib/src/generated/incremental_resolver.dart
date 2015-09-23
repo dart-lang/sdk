@@ -8,7 +8,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:analyzer/src/context/cache.dart'
-    show CacheEntry, Delta, DeltaResult, TargetedResult;
+    show CacheEntry, Delta, DeltaResult;
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
@@ -857,12 +857,24 @@ class IncrementalBodyDelta extends Delta {
   @override
   DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
       ResultDescriptor descriptor) {
+    // A body change delta should never leak outside its source.
+    // It can cause invalidation of results (e.g. hints) in other sources,
+    // but only when a result in the updated source is INVALIDATE_NO_DELTA.
+    if (target.source != source) {
+      return DeltaResult.STOP;
+    }
     // don't invalidate results of standard Dart tasks
     bool isByTask(TaskDescriptor taskDescriptor) {
       return taskDescriptor.results.contains(descriptor);
     }
     if (descriptor == CONTENT) {
       return DeltaResult.KEEP_CONTINUE;
+    }
+    if (target is LibrarySpecificUnit && target.unit != source) {
+      if (isByTask(GatherUsedLocalElementsTask.DESCRIPTOR) ||
+          isByTask(GatherUsedImportedElementsTask.DESCRIPTOR)) {
+        return DeltaResult.KEEP_CONTINUE;
+      }
     }
     if (isByTask(BuildCompilationUnitElementTask.DESCRIPTOR) ||
         isByTask(BuildDirectiveElementsTask.DESCRIPTOR) ||
@@ -874,9 +886,13 @@ class IncrementalBodyDelta extends Delta {
         isByTask(BuildSourceImportExportClosureTask.DESCRIPTOR) ||
         isByTask(ComputeConstantDependenciesTask.DESCRIPTOR) ||
         isByTask(ComputeConstantValueTask.DESCRIPTOR) ||
+        isByTask(DartErrorsTask.DESCRIPTOR) ||
         isByTask(EvaluateUnitConstantsTask.DESCRIPTOR) ||
+        isByTask(GenerateHintsTask.DESCRIPTOR) ||
         isByTask(InferInstanceMembersInUnitTask.DESCRIPTOR) ||
         isByTask(InferStaticVariableTypesInUnitTask.DESCRIPTOR) ||
+        isByTask(LibraryErrorsReadyTask.DESCRIPTOR) ||
+        isByTask(LibraryUnitErrorsTask.DESCRIPTOR) ||
         isByTask(ParseDartTask.DESCRIPTOR) ||
         isByTask(PartiallyResolveUnitReferencesTask.DESCRIPTOR) ||
         isByTask(ScanDartTask.DESCRIPTOR) ||
@@ -889,7 +905,7 @@ class IncrementalBodyDelta extends Delta {
       return DeltaResult.KEEP_CONTINUE;
     }
     // invalidate all the other results
-    return DeltaResult.INVALIDATE;
+    return DeltaResult.INVALIDATE_NO_DELTA;
   }
 }
 
@@ -912,6 +928,11 @@ class IncrementalResolver {
    * The object used to access the types from the core library.
    */
   TypeProvider _typeProvider;
+
+  /**
+   * The type system primitives.
+   */
+  TypeSystem _typeSystem;
 
   /**
    * The element for the library containing the compilation unit being resolved.
@@ -992,6 +1013,7 @@ class IncrementalResolver {
     _source = _definingUnit.source;
     _context = _definingUnit.context;
     _typeProvider = _context.typeProvider;
+    _typeSystem = _context.typeSystem;
   }
 
   /**
@@ -1099,8 +1121,8 @@ class IncrementalResolver {
     // compute values
     {
       CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
-      ConstantValueComputer computer = new ConstantValueComputer(
-          _context, _typeProvider, _context.declaredVariables);
+      ConstantValueComputer computer = new ConstantValueComputer(_context,
+          _typeProvider, _context.declaredVariables, null, _typeSystem);
       computer.add(unit, _source, _librarySource);
       computer.computeValues();
     }
@@ -1241,9 +1263,14 @@ class IncrementalResolver {
 
   void _updateCache() {
     if (newSourceEntry != null) {
-      newSourceEntry.setState(CONTENT, CacheState.INVALID,
-          delta: new IncrementalBodyDelta(_source, _updateOffset, _updateEndOld,
-              _updateEndNew, _updateDelta));
+      LoggingTimer timer = logger.startTimer();
+      try {
+        newSourceEntry.setState(CONTENT, CacheState.INVALID,
+            delta: new IncrementalBodyDelta(_source, _updateOffset,
+                _updateEndOld, _updateEndNew, _updateDelta));
+      } finally {
+        timer.stop('invalidate cache with delta');
+      }
     }
   }
 
@@ -1267,7 +1294,6 @@ class IncrementalResolver {
 
   void _updateEntry_NEW() {
     _updateErrors_NEW(INFER_STATIC_VARIABLE_TYPES_ERRORS, _resolveErrors);
-    _updateErrors_NEW(LIBRARY_UNIT_ERRORS, _resolveErrors);
     _updateErrors_NEW(PARTIALLY_RESOLVE_REFERENCES_ERRORS, _resolveErrors);
     _updateErrors_NEW(RESOLVE_FUNCTION_BODIES_ERRORS, _resolveErrors);
     _updateErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS, []);
@@ -1312,7 +1338,7 @@ class IncrementalResolver {
       List<AnalysisError> newErrors) {
     List<AnalysisError> oldErrors = newUnitEntry.getValue(descriptor);
     List<AnalysisError> errors = _updateErrors(oldErrors, newErrors);
-    newUnitEntry.setValueIncremental(descriptor, errors);
+    newUnitEntry.setValueIncremental(descriptor, errors, true);
   }
 
   void _updateErrors_OLD(DataDescriptor<List<AnalysisError>> descriptor,
@@ -1685,21 +1711,12 @@ class PoorMansIncrementalResolver {
   }
 
   void _updateEntry_NEW() {
-    _newSourceEntry.setState(DART_ERRORS, CacheState.INVALID);
     // scan results
-    List<TargetedResult> scanDeps = <TargetedResult>[
-      new TargetedResult(_unitSource, CONTENT)
-    ];
-    _newSourceEntry.setState(SCAN_ERRORS, CacheState.INVALID);
-    _newSourceEntry.setValue(SCAN_ERRORS, _newScanErrors, scanDeps);
-    _newSourceEntry.setValue(LINE_INFO, _newLineInfo, scanDeps);
+    _newSourceEntry.setValueIncremental(SCAN_ERRORS, _newScanErrors, true);
+    _newSourceEntry.setValueIncremental(LINE_INFO, _newLineInfo, false);
     // parse results
-    List<TargetedResult> parseDeps = <TargetedResult>[
-      new TargetedResult(_unitSource, TOKEN_STREAM)
-    ];
-    _newSourceEntry.setState(PARSE_ERRORS, CacheState.INVALID);
-    _newSourceEntry.setValue(PARSE_ERRORS, _newParseErrors, parseDeps);
-    _newSourceEntry.setValue(PARSED_UNIT, _oldUnit, parseDeps);
+    _newSourceEntry.setValueIncremental(PARSE_ERRORS, _newParseErrors, true);
+    _newSourceEntry.setValueIncremental(PARSED_UNIT, _oldUnit, false);
   }
 
   void _updateEntry_OLD() {

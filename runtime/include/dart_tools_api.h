@@ -890,7 +890,10 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
 /** Timeline stream for isolate events */
 #define DART_TIMELINE_STREAM_ISOLATE (1 << 4)
 
-/** Enable all timeline stream recording */
+/** Timeline stream for VM events */
+#define DART_TIMELINE_STREAM_VM (1 << 5)
+
+/** Enable all timeline stream recording for an isolate */
 #define DART_TIMELINE_STREAM_ALL (DART_TIMELINE_STREAM_API |                   \
                                   DART_TIMELINE_STREAM_COMPILER |              \
                                   DART_TIMELINE_STREAM_EMBEDDER |              \
@@ -908,6 +911,19 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
  * NOTE: Calling with 0 disables recording of all streams.
  */
 DART_EXPORT void Dart_TimelineSetRecordedStreams(int64_t stream_mask);
+
+
+/**
+ * Start recording timeline events for the entire VM (including all isolates).
+ *
+ * NOTE: When enabled, the global flag, will override the per-isolate flag.
+ *
+ * \param stream_mask A bitmask of streams that should be recorded.
+ *
+ * NOTE: Calling with 0 disables recording of all streams.
+ */
+DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask);
+
 
 typedef enum {
   /** Indicates a new stream is being output */
@@ -959,6 +975,23 @@ typedef void (*Dart_StreamConsumer)(
  */
 DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
                                        void* user_data);
+
+
+/**
+ * Get the timeline for entire VM (including all isolates).
+ *
+ * NOTE: The timeline retrieved from this API call may not include the most
+ * recent events.
+ *
+ * \param consumer A Dart_StreamConsumer.
+ * \param user_data User data passed into consumer.
+ *
+ * NOTE: The trace-event format is documented here: https://goo.gl/hDZw5M
+ *
+ * \return True if a stream was output.
+ */
+DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
+                                             void* user_data);
 
 /**
  * Add a duration timeline event to the embedder stream for the current isolate.

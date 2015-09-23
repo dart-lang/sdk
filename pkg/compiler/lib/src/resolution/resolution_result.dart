@@ -8,7 +8,7 @@ import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart';
-import '../universe/universe.dart' show
+import '../universe/call_structure.dart' show
     CallStructure;
 
 enum ResultKind {
@@ -81,15 +81,6 @@ class TypeResult extends ResolutionResult {
   Element get element => type.element;
 
   String toString() => 'TypeResult($type)';
-}
-
-/// The result for the resolution of the `assert` method.
-class AssertResult extends ResolutionResult {
-  const AssertResult();
-
-  ResultKind get kind => ResultKind.ASSERT;
-
-  String toString() => 'AssertResult()';
 }
 
 /// The result for resolving a constant expression.

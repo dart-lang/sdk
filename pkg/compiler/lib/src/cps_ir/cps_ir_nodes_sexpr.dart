@@ -7,7 +7,10 @@ library dart2js.ir_nodes_sexpr;
 import '../constants/values.dart';
 import '../util/util.dart';
 import 'cps_ir_nodes.dart';
-import '../universe/universe.dart' show Selector, CallStructure;
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
 
 /// A [Decorator] is a function used by [SExpressionStringifier] to augment the
 /// output produced for a node or reference.  It can be provided to the
@@ -73,24 +76,14 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     String conts;
     bool first = true;
     for (Continuation continuation in node.continuations) {
-      String name = newContinuationName(continuation);
-      if (continuation.isRecursive) name = 'rec $name';
-      // TODO(karlklose): this should be changed to `.map(visit).join(' ')`  and
-      // should recurse to [visit].  Currently we can't do that, because the
-      // unstringifier_test produces [LetConts] with dummy arguments on them.
-      String parameters = continuation.parameters
-          .map((p) => '${decorator(p, newValueName(p))}')
-          .join(' ');
-      String body =
-          indentBlock(() => indentBlock(() => visit(continuation.body)));
       if (first) {
         first = false;
-        conts = '($name ($parameters)\n$body)';
+        conts = visit(continuation);
       } else {
         // Each subsequent line is indented additional spaces to align it
         // with the previous continuation.
         String indent = '$indentation${' ' * '(LetCont ('.length}';
-        conts = '$conts\n$indent($name ($parameters)\n$body)';
+        conts = '$conts\n$indent${visit(continuation)}';
       }
     }
     String body = indentBlock(() => visit(node.body));
@@ -117,10 +110,12 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   }
 
   String formatArguments(CallStructure call,
-                         List<Reference<Primitive>> arguments) {
+                         List<Reference<Primitive>> arguments,
+                         {bool isIntercepted: false}) {
     int positionalArgumentCount = call.positionalArgumentCount;
-    List<String> args = new List<String>();
-    args.addAll(arguments.getRange(0, positionalArgumentCount).map(access));
+    if (isIntercepted) ++positionalArgumentCount;
+    List<String> args =
+        arguments.getRange(0, positionalArgumentCount).map(access).toList();
     List<String> argumentNames = call.getOrderedNamedArguments();
     for (int i = 0; i < argumentNames.length; ++i) {
       String name = argumentNames[i];
@@ -141,7 +136,8 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     String name = node.selector.name;
     String rcv = access(node.receiver);
     String cont = access(node.continuation);
-    String args = formatArguments(node.selector.callStructure, node.arguments);
+    String args = formatArguments(node.selector.callStructure, node.arguments,
+        isIntercepted: node.receiverIsIntercepted);
     return '$indentation(InvokeMethod $rcv $name $args $cont)';
   }
 
@@ -215,8 +211,16 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   }
 
   String visitContinuation(Continuation node) {
-    // Continuations are visited directly in visitLetCont.
-    return '(Unexpected Continuation)';
+    String name = newContinuationName(node);
+    if (node.isRecursive) name = 'rec $name';
+    // TODO(karlklose): this should be changed to `.map(visit).join(' ')`  and
+    // should recurse to [visit].  Currently we can't do that, because the
+    // unstringifier_test produces [LetConts] with dummy arguments on them.
+    String parameters = node.parameters
+        .map((p) => '${decorator(p, newValueName(p))}')
+        .join(' ');
+    String body = indentBlock(() => indentBlock(() => visit(node.body)));
+    return '($name ($parameters)\n$body)';
   }
 
   String visitGetMutable(GetMutable node) {
@@ -291,7 +295,7 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     String className = node.classElement.name;
     String arguments = node.arguments.map(access).join(' ');
     String typeInformation = node.typeInformation.map(access).join(' ');
-    return '(CreateInstance $className ($arguments)$typeInformation)';
+    return '(CreateInstance $className ($arguments) ($typeInformation))';
   }
 
   String visitInterceptor(Interceptor node) {
@@ -364,6 +368,12 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   }
 
   @override
+  String visitYield(Yield node) {
+    String value = access(node.input);
+    String continuation = access(node.continuation);
+    return '(Yield $value $continuation)';
+  }
+
   String visitRefinement(Refinement node) {
     String value = access(node.value);
     return '(Refinement $value ${node.type})';

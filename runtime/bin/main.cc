@@ -751,22 +751,24 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   result = Dart_SetEnvironmentCallback(EnvironmentCallback);
   CHECK_RESULT(result);
 
-  // Load the script.
-  result = DartUtils::LoadScript(script_uri, builtin_lib);
-  CHECK_RESULT(result);
+  if (!has_run_precompiled_snapshot) {
+    // Load the script.
+    result = DartUtils::LoadScript(script_uri, builtin_lib);
+    CHECK_RESULT(result);
 
-  // Run event-loop and wait for script loading to complete.
-  result = Dart_RunLoop();
-  CHECK_RESULT(result);
+    // Run event-loop and wait for script loading to complete.
+    result = Dart_RunLoop();
+    CHECK_RESULT(result);
 
-  if (isolate_data->load_async_id >= 0) {
-    Dart_TimelineAsyncEnd("LoadScript", isolate_data->load_async_id);
+    if (isolate_data->load_async_id >= 0) {
+      Dart_TimelineAsyncEnd("LoadScript", isolate_data->load_async_id);
+    }
+
+    Platform::SetPackageRoot(package_root);
+
+    result = DartUtils::SetupIOLibrary(script_uri);
+    CHECK_RESULT(result);
   }
-
-  Platform::SetPackageRoot(package_root);
-
-  result = DartUtils::SetupIOLibrary(script_uri);
-  CHECK_RESULT(result);
 
   // Make the isolate runnable so that it is ready to handle messages.
   Dart_ExitScope();

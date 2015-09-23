@@ -9,7 +9,6 @@ import '../io/source_file.dart' show
 import '../tokens/precedence.dart' show
     PrecedenceInfo;
 import '../tokens/token.dart' show
-    PrecedenceInfo,
     StringToken,
     Token;
 

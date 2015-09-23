@@ -30,7 +30,6 @@ import 'js_emitter/full_emitter/emitter.dart' as full show
     Emitter;
 import 'js/js.dart' as jsAst;
 import 'universe/universe.dart' show
-    Selector,
     UniverseSelector;
 
 class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {

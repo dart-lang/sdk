@@ -63,12 +63,10 @@ import '../js/js_source_mapping.dart' show
     JavaScriptSourceInformationStrategy;
 import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show
-    ClassBuilder,
     CodeEmitterTask,
     Emitter,
     MetadataCollector,
     Placeholder,
-    TokenFinalizer,
     USE_LAZY_EMITTER;
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
@@ -79,6 +77,11 @@ import '../resolution/tree_elements.dart' show
 import '../ssa/ssa.dart';
 import '../tree/tree.dart';
 import '../types/types.dart';
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector,
+    SelectorKind;
 import '../universe/universe.dart';
 import '../util/characters.dart';
 import '../util/util.dart';

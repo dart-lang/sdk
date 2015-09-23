@@ -116,6 +116,8 @@ class Compiler extends leg.Compiler {
             fatalWarnings: hasOption(options, Flags.fatalWarnings),
             enableExperimentalMirrors:
                 hasOption(options, Flags.enableExperimentalMirrors),
+            enableAssertMessage:
+                hasOption(options, Flags.enableAssertMessage),
             generateCodeWithCompileTimeErrors:
                 hasOption(options, Flags.generateCodeWithCompileTimeErrors),
             testMode: hasOption(options, Flags.testMode),

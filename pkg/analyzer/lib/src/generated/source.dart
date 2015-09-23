@@ -272,6 +272,9 @@ class LineInfo_Location {
    * @param columnNumber the one-based index of the column containing the character
    */
   LineInfo_Location(this.lineNumber, this.columnNumber);
+
+  @override
+  String toString() => '$lineNumber:$columnNumber';
 }
 
 /**

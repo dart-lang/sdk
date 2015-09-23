@@ -10,7 +10,7 @@ import '../constants/values.dart' show ConstantValue;
 
 import '../deferred_load.dart' show OutputUnit;
 
-import 'js_emitter.dart' show MetadataCollector, TokenFinalizer;
+import 'js_emitter.dart' show MetadataCollector;
 
 import '../common.dart';
 

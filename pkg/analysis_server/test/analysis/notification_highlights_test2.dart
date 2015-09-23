@@ -731,6 +731,19 @@ main(A a) {
     });
   }
 
+  test_INSTANCE_FIELD_dynamic() {
+    addTestFile('''
+class A {
+  var f;
+  A(this.f);
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasRegion(HighlightRegionType.INSTANCE_FIELD_DECLARATION, 'f;');
+      assertHasRegion(HighlightRegionType.INSTANCE_FIELD_REFERENCE, 'f);');
+    });
+  }
+
   test_KEYWORD() {
     addTestFile('''
 main() {
@@ -818,6 +831,25 @@ myLabel:
     return prepareHighlights().then((_) {
       assertHasRegion(HighlightRegionType.LABEL, 'myLabel:');
       assertHasRegion(HighlightRegionType.LABEL, 'myLabel;');
+    });
+  }
+
+  test_LIBRARY_NAME_libraryDirective() {
+    addTestFile('''
+library my.lib.name;
+''');
+    return prepareHighlights().then((_) {
+      assertHasStringRegion(HighlightRegionType.LIBRARY_NAME, 'my.lib.name');
+    });
+  }
+
+  test_LIBRARY_NAME_partOfDirective() {
+    _addLibraryForTestPart();
+    addTestFile('''
+part of my.lib.name;
+''');
+    return prepareHighlights().then((_) {
+      assertHasStringRegion(HighlightRegionType.LIBRARY_NAME, 'my.lib.name');
     });
   }
 
@@ -1059,6 +1091,58 @@ class A<T> {
       assertHasRegion(HighlightRegionType.TYPE_PARAMETER, 'T fff;');
       assertHasRegion(HighlightRegionType.TYPE_PARAMETER, 'T mmm(');
       assertHasRegion(HighlightRegionType.TYPE_PARAMETER, 'T p)');
+    });
+  }
+
+  test_UNRESOLVED_INSTANCE_MEMBER_REFERENCE_dynamicVarTarget() {
+    addTestFile('''
+main(p) {
+  p.aaa;
+  p.aaa++;
+  p.aaa += 0;
+  ++p.aaa; // ++
+  p.aaa = 0;
+  p.bbb(0);
+  ''.length.ccc().ddd();
+}
+''');
+    return prepareHighlights().then((_) {
+      HighlightRegionType type =
+          HighlightRegionType.UNRESOLVED_INSTANCE_MEMBER_REFERENCE;
+      assertHasRegion(type, 'aaa');
+      assertHasRegion(type, 'aaa++');
+      assertHasRegion(type, 'aaa += 0');
+      assertHasRegion(type, 'aaa; // ++');
+      assertHasRegion(type, 'aaa =');
+      assertHasRegion(type, 'bbb(');
+      assertHasRegion(type, 'ddd()');
+    });
+  }
+
+  test_UNRESOLVED_INSTANCE_MEMBER_REFERENCE_nonDynamicTarget() {
+    addTestFile('''
+import 'dart:math' as math;
+main(String str) {
+  new Object().aaa();
+  math.bbb();
+  str.ccc();
+}
+class A {
+  m() {
+    unresolved(1);
+    this.unresolved(2);
+    super.unresolved(3);
+  }
+}
+''');
+    return prepareHighlights().then((_) {
+      HighlightRegionType type = HighlightRegionType.IDENTIFIER_DEFAULT;
+      assertHasRegion(type, 'aaa()');
+      assertHasRegion(type, 'bbb()');
+      assertHasRegion(type, 'ccc()');
+      assertHasRegion(type, 'unresolved(1)');
+      assertHasRegion(type, 'unresolved(2)');
+      assertHasRegion(type, 'unresolved(3)');
     });
   }
 

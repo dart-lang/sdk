@@ -51,8 +51,7 @@ def cross_compiling_builder(arch, mode):
 
       with bot.BuildStep('Upload build tarball'):
         uri = "%s/%s" % (GCS_BUCKET, tarball)
-        run([GSUTIL, 'cp', tarball, uri])
-        run([GSUTIL, 'setacl', 'public-read', uri])
+        run([GSUTIL, 'cp', '-a', 'public-read', tarball, uri])
 
     elif num_run == 2:
       with bot.BuildStep('tests'):

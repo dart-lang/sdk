@@ -13,7 +13,8 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/resolution/semantic_visitor.dart';
 import 'package:compiler/src/tree/tree.dart';
-import 'package:compiler/src/universe/universe.dart';
+import 'package:compiler/src/universe/call_structure.dart';
+import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/world.dart';
 import 'memory_compiler.dart';
 

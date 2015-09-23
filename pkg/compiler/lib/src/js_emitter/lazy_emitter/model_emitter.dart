@@ -18,7 +18,7 @@ import '../../js_backend/js_backend.dart' show
     Namer,
     ConstantEmitter;
 
-import '../js_emitter.dart' show AstContainer, NativeEmitter;
+import '../js_emitter.dart' show NativeEmitter;
 
 import 'package:js_runtime/shared/embedded_names.dart' show
     CREATE_NEW_ISOLATE,

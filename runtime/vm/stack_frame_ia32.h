@@ -16,7 +16,7 @@ Callee frame   | ...                |
                +--------------------+
 Current frame  | ...               T| <- ESP of current frame
                | first local       T|
-               | PC marker          |    (current frame's code entry + offset)
+               | code object       T|    (current frame's code object)
                | caller's EBP       | <- EBP of current frame
                | caller's ret addr  |    (PC of caller frame)
                +--------------------+
@@ -29,7 +29,7 @@ Caller frame   | last parameter     | <- ESP of caller frame
 static const int kDartFrameFixedSize = 3;  // PC marker, EBP, PC.
 static const int kSavedPcSlotFromSp = -1;
 
-static const int kFirstObjectSlotFromFp = -2;  // Used by GC to traverse stack.
+static const int kFirstObjectSlotFromFp = -1;  // Used by GC to traverse stack.
 
 static const int kFirstLocalSlotFromFp = -2;
 static const int kPcMarkerSlotFromFp = -1;
@@ -42,7 +42,7 @@ static const int kCallerSpSlotFromFp = 2;
 static const int kSavedCallerPpSlotFromFp = kSavedCallerFpSlotFromFp;
 
 // Entry and exit frame layout.
-static const int kExitLinkSlotFromEntryFp = -6;
+static const int kExitLinkSlotFromEntryFp = -7;
 
 }  // namespace dart
 

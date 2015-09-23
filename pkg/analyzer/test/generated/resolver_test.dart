@@ -68,6 +68,7 @@ main() {
   runReflectiveTests(SimpleResolverTest);
   runReflectiveTests(StrictModeTest);
   runReflectiveTests(TypePropagationTest);
+  runReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
   runReflectiveTests(StrongModeTypePropagationTest);
 }
 
@@ -193,7 +194,6 @@ class AnalysisContextFactory {
     // Future
     ClassElementImpl futureElement =
         ElementFactory.classElement2("Future", ["T"]);
-    InterfaceType futureType = futureElement.type;
     //   factory Future.value([value])
     ConstructorElementImpl futureConstructor =
         ElementFactory.constructorElement2(futureElement, "value");
@@ -218,8 +218,10 @@ class AnalysisContextFactory {
     FunctionTypeImpl aliasType = new FunctionTypeImpl.forTypedef(aliasElement);
     aliasElement.shareTypeParameters(futureElement.typeParameters);
     aliasType.typeArguments = futureElement.type.typeArguments;
+    DartType futureDynamicType =
+        futureElement.type.substitute4([provider.dynamicType]);
     MethodElement thenMethod = ElementFactory.methodElementWithParameters(
-        "then", futureElement.type.typeArguments, futureType, [
+        "then", futureElement.type.typeArguments, futureDynamicType, [
       ElementFactory.requiredParameter2("onValue", aliasType),
       ElementFactory.namedParameter2("onError", provider.functionType)
     ]);
@@ -338,6 +340,11 @@ class AnalysisContextFactory {
         ClassElement.EMPTY_LIST);
     TopLevelVariableElement ln10Element = ElementFactory
         .topLevelVariableElement3("LN10", true, false, provider.doubleType);
+    FunctionElement maxElement = ElementFactory.functionElement3(
+        "max",
+        provider.numType.element,
+        <ClassElement>[provider.numType.element, provider.numType.element],
+        ClassElement.EMPTY_LIST);
     TopLevelVariableElement piElement = ElementFactory.topLevelVariableElement3(
         "PI", true, false, provider.doubleType);
     ClassElementImpl randomElement = ElementFactory.classElement2("Random");
@@ -364,7 +371,12 @@ class AnalysisContextFactory {
       ln10Element.getter,
       piElement.getter
     ];
-    mathUnit.functions = <FunctionElement>[cosElement, sinElement, sqrtElement];
+    mathUnit.functions = <FunctionElement>[
+      cosElement,
+      maxElement,
+      sinElement,
+      sqrtElement
+    ];
     mathUnit.topLevelVariables = <TopLevelVariableElement>[
       ln10Element,
       piElement
@@ -7894,6 +7906,13 @@ class ResolverTestCase extends EngineTestCase {
   TypeProvider get typeProvider => analysisContext2.typeProvider;
 
   /**
+   * Return a type system that can be used to test the results of resolution.
+   *
+   * @return a type system
+   */
+  TypeSystem get typeSystem => analysisContext2.typeSystem;
+
+  /**
    * Add a source file to the content provider. The file path should be absolute.
    *
    * @param filePath the path of the file being added
@@ -9955,14 +9974,35 @@ class SourceContainer_ChangeSetTest_test_toString implements SourceContainer {
 }
 
 /**
- * Like [StaticTypeAnalyzerTest], but as end-to-end tests.
+ * Shared infrastructure for [StaticTypeAnalyzer2Test] and
+ * [StrongModeStaticTypeAnalyzer2Test].
  */
-@reflectiveTest
-class StaticTypeAnalyzer2Test extends ResolverTestCase {
+class _StaticTypeAnalyzer2TestShared extends ResolverTestCase {
   String testCode;
   Source testSource;
   CompilationUnit testUnit;
 
+  SimpleIdentifier _findIdentifier(String search) {
+    SimpleIdentifier identifier = EngineTestCase.findNode(
+        testUnit, testCode, search, (node) => node is SimpleIdentifier);
+    return identifier;
+  }
+
+  void _resolveTestUnit(String code) {
+    testCode = code;
+    testSource = addSource(testCode);
+    LibraryElement library = resolve2(testSource);
+    assertNoErrors(testSource);
+    verify([testSource]);
+    testUnit = resolveCompilationUnit(testSource, library);
+  }
+}
+
+/**
+ * Like [StaticTypeAnalyzerTest], but as end-to-end tests.
+ */
+@reflectiveTest
+class StaticTypeAnalyzer2Test extends _StaticTypeAnalyzer2TestShared {
   void test_FunctionExpressionInvocation_block() {
     String code = r'''
 main() {
@@ -10053,21 +10093,6 @@ main(p) {
       expect(type, isNotNull);
       expect(type.name, 'Foo');
     }
-  }
-
-  SimpleIdentifier _findIdentifier(String search) {
-    SimpleIdentifier identifier = EngineTestCase.findNode(
-        testUnit, testCode, search, (node) => node is SimpleIdentifier);
-    return identifier;
-  }
-
-  void _resolveTestUnit(String code) {
-    testCode = code;
-    testSource = addSource(testCode);
-    LibraryElement library = resolve2(testSource);
-    assertNoErrors(testSource);
-    verify([testSource]);
-    testUnit = resolveCompilationUnit(testSource, library);
   }
 }
 
@@ -11879,6 +11904,151 @@ int f() {
   }
 }
 
+/**
+ * Strong mode static analyzer end to end tests
+ */
+@reflectiveTest
+class StrongModeStaticTypeAnalyzer2Test extends _StaticTypeAnalyzer2TestShared {
+  void setUp() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.strongMode = true;
+    resetWithOptions(options);
+  }
+
+  void test_ternaryOperator_null_right() {
+    String code = r'''
+main() {
+  var foo = (true) ? 3 : null;
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'int');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_ternaryOperator_null_left() {
+    String code = r'''
+main() {
+  var foo = (true) ? null : 3;
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'int');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_dynamicObjectMethod_toString() {
+    String code = r'''
+main() {
+  dynamic a = null;
+  var foo = a.toString();
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'String');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_dynamicObjectGetter_hashCode() {
+    String code = r'''
+main() {
+  dynamic a = null;
+  var foo = a.hashCode;
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'int');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_pseudoGeneric_max_intInt() {
+    String code = r'''
+import 'dart:math';
+main() {
+  var foo = max(1, 2);
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'int');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_pseudoGeneric_max_doubleDouble() {
+    String code = r'''
+import 'dart:math';
+main() {
+  var foo = max(1.0, 2.0);
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'double');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_pseudoGeneric_max_intDouble() {
+    String code = r'''
+import 'dart:math';
+main() {
+  var foo = max(1, 2.0);
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'num');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_pseudoGeneric_then() {
+    String code = r'''
+import 'dart:async';
+String toString(int x) => x.toString();
+main() {
+  Future<int> bar = null;
+  var foo = bar.then(toString);
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    InterfaceType stringType = typeProvider.stringType;
+    InterfaceType futureType = typeProvider.futureType;
+    InterfaceType futureOfStringType =
+        futureType.substitute4(<DartType>[stringType]);
+
+    expect(declaration.initializer.staticType.toString(), "Future<String>");
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+}
+
 @reflectiveTest
 class StrongModeTypePropagationTest extends ResolverTestCase {
   @override
@@ -11958,7 +12128,7 @@ main() async {
     String code = r'''
 main() {
   var v = null;
-  return v; // marker
+  v; // marker
 }''';
     _assertPropagatedAssignedType(code, typeProvider.dynamicType, null);
     _assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
@@ -11968,7 +12138,7 @@ main() {
     String code = r'''
 main() {
   var v = 3;
-  return v; // marker
+  v; // marker
 }''';
     _assertPropagatedAssignedType(code, typeProvider.intType, null);
     _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
@@ -11978,7 +12148,7 @@ main() {
     String code = r'''
 main() {
   dynamic v = 3;
-  return v; // marker
+  v; // marker
 }''';
     _assertPropagatedAssignedType(
         code, typeProvider.dynamicType, typeProvider.intType);
@@ -11991,7 +12161,7 @@ main() {
 main() {
   var v;
   v = 3;
-  return v; // marker
+  v; // marker
 }''';
     _assertPropagatedAssignedType(
         code, typeProvider.dynamicType, typeProvider.intType);
@@ -12074,7 +12244,7 @@ main() {
 main() {
   var x = <int>[3];
   var v = x[0];
-  return v; // marker
+  v; // marker
 }''';
     _assertPropagatedAssignedType(code, typeProvider.intType, null);
     _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
@@ -12085,7 +12255,7 @@ main() {
 main() {
   var x = 3;
   var v = x;
-  return v; // marker
+  v; // marker
 }''';
     _assertPropagatedAssignedType(code, typeProvider.intType, null);
     _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
@@ -12099,7 +12269,7 @@ main() {
 final x = 3;
 main() {
   var v = x;
-  return v; // marker
+  v; // marker
 }
 ''';
     _assertPropagatedAssignedType(code, typeProvider.intType, null);
@@ -12113,7 +12283,7 @@ main() {
     String code = r'''
 main() {
   var v = x;
-  return v; // marker
+  v; // marker
 }
 final x = 3;
 ''';
@@ -12126,7 +12296,7 @@ final x = 3;
 int x = 3;
 main() {
   var v = x;
-  return v; // marker
+  v; // marker
 }
 ''';
     _assertPropagatedAssignedType(code, typeProvider.intType, null);
@@ -12137,7 +12307,7 @@ main() {
     String code = r'''
 main() {
   var v = x;
-  return v; // marker
+  v; // marker
 }
 int x = 3;
 ''';

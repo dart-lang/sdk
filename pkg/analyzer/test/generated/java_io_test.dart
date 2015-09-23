@@ -4,8 +4,6 @@
 
 library engine.java_io_test;
 
-import 'dart:io';
-
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:unittest/unittest.dart';
 

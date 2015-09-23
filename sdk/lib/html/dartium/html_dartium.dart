@@ -26,7 +26,7 @@ library dart.dom.html;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:_internal' hide Symbol, deprecated;
+import 'dart:_internal' hide Symbol;
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:indexed_db' show indexed_dbBlinkMap;
@@ -89,7 +89,7 @@ Window get window {
   if (_window != null) {
     return _window;
   }
-  _window = _Utils.window();
+  _window = wrap_jso(js.context['window']);
   return _window;
 }
 
@@ -619,11 +619,680 @@ Type _getSvgType(String key) {
   return null;
 }
 
+// FIXME: Can we make this private?
+final htmlBlinkFunctionMap = {
+  'Animation': () => Animation.internalCreateAnimation,
+  'AnimationEffect': () => AnimationEffect.internalCreateAnimationEffect,
+  'AnimationNode': () => AnimationNode.internalCreateAnimationNode,
+  'AnimationPlayer': () => AnimationPlayer.internalCreateAnimationPlayer,
+  'AnimationPlayerEvent': () => AnimationPlayerEvent.internalCreateAnimationPlayerEvent,
+  'AnimationTimeline': () => AnimationTimeline.internalCreateAnimationTimeline,
+  'ApplicationCache': () => ApplicationCache.internalCreateApplicationCache,
+  'ApplicationCacheErrorEvent': () => ApplicationCacheErrorEvent.internalCreateApplicationCacheErrorEvent,
+  'Attr': () => _Attr.internalCreate_Attr,
+  'AudioTrack': () => AudioTrack.internalCreateAudioTrack,
+  'AudioTrackList': () => AudioTrackList.internalCreateAudioTrackList,
+  'AutocompleteErrorEvent': () => AutocompleteErrorEvent.internalCreateAutocompleteErrorEvent,
+  'BarProp': () => BarProp.internalCreateBarProp,
+  'BatteryManager': () => BatteryManager.internalCreateBatteryManager,
+  'BeforeUnloadEvent': () => BeforeUnloadEvent.internalCreateBeforeUnloadEvent,
+  'Blob': () => Blob.internalCreateBlob,
+  'Body': () => Body.internalCreateBody,
+  'CDATASection': () => CDataSection.internalCreateCDataSection,
+  'CSS': () => Css.internalCreateCss,
+  'CSSCharsetRule': () => CssCharsetRule.internalCreateCssCharsetRule,
+  'CSSFontFaceRule': () => CssFontFaceRule.internalCreateCssFontFaceRule,
+  'CSSImportRule': () => CssImportRule.internalCreateCssImportRule,
+  'CSSKeyframeRule': () => CssKeyframeRule.internalCreateCssKeyframeRule,
+  'CSSKeyframesRule': () => CssKeyframesRule.internalCreateCssKeyframesRule,
+  'CSSMediaRule': () => CssMediaRule.internalCreateCssMediaRule,
+  'CSSPageRule': () => CssPageRule.internalCreateCssPageRule,
+  'CSSPrimitiveValue': () => _CSSPrimitiveValue.internalCreate_CSSPrimitiveValue,
+  'CSSRule': () => CssRule.internalCreateCssRule,
+  'CSSRuleList': () => _CssRuleList.internalCreate_CssRuleList,
+  'CSSStyleDeclaration': () => CssStyleDeclaration.internalCreateCssStyleDeclaration,
+  'CSSStyleRule': () => CssStyleRule.internalCreateCssStyleRule,
+  'CSSStyleSheet': () => CssStyleSheet.internalCreateCssStyleSheet,
+  'CSSSupportsRule': () => CssSupportsRule.internalCreateCssSupportsRule,
+  'CSSUnknownRule': () => _CSSUnknownRule.internalCreate_CSSUnknownRule,
+  'CSSValue': () => _CSSValue.internalCreate_CSSValue,
+  'CSSValueList': () => _CssValueList.internalCreate_CssValueList,
+  'CSSViewportRule': () => CssViewportRule.internalCreateCssViewportRule,
+  'Cache': () => _Cache.internalCreate_Cache,
+  'CacheStorage': () => CacheStorage.internalCreateCacheStorage,
+  'Canvas2DContextAttributes': () => Canvas2DContextAttributes.internalCreateCanvas2DContextAttributes,
+  'CanvasGradient': () => CanvasGradient.internalCreateCanvasGradient,
+  'CanvasPattern': () => CanvasPattern.internalCreateCanvasPattern,
+  'CanvasRenderingContext2D': () => CanvasRenderingContext2D.internalCreateCanvasRenderingContext2D,
+  'CharacterData': () => CharacterData.internalCreateCharacterData,
+  'CircularGeofencingRegion': () => CircularGeofencingRegion.internalCreateCircularGeofencingRegion,
+  'ClientRect': () => _ClientRect.internalCreate_ClientRect,
+  'ClientRectList': () => _ClientRectList.internalCreate_ClientRectList,
+  'CloseEvent': () => CloseEvent.internalCreateCloseEvent,
+  'Comment': () => Comment.internalCreateComment,
+  'CompositionEvent': () => CompositionEvent.internalCreateCompositionEvent,
+  'Console': () => Console.internalCreateConsole,
+  'ConsoleBase': () => ConsoleBase.internalCreateConsoleBase,
+  'Coordinates': () => Coordinates.internalCreateCoordinates,
+  'Counter': () => _Counter.internalCreate_Counter,
+  'Credential': () => Credential.internalCreateCredential,
+  'CredentialsContainer': () => CredentialsContainer.internalCreateCredentialsContainer,
+  'Crypto': () => Crypto.internalCreateCrypto,
+  'CryptoKey': () => CryptoKey.internalCreateCryptoKey,
+  'CustomEvent': () => CustomEvent.internalCreateCustomEvent,
+  'DOMError': () => DomError.internalCreateDomError,
+  'DOMException': () => DomException.internalCreateDomException,
+  'DOMFileSystem': () => FileSystem.internalCreateFileSystem,
+  'DOMFileSystemSync': () => _DOMFileSystemSync.internalCreate_DOMFileSystemSync,
+  'DOMImplementation': () => DomImplementation.internalCreateDomImplementation,
+  'DOMMatrix': () => DomMatrix.internalCreateDomMatrix,
+  'DOMMatrixReadOnly': () => DomMatrixReadOnly.internalCreateDomMatrixReadOnly,
+  'DOMParser': () => DomParser.internalCreateDomParser,
+  'DOMPoint': () => DomPoint.internalCreateDomPoint,
+  'DOMPointReadOnly': () => DomPointReadOnly.internalCreateDomPointReadOnly,
+  'DOMRect': () => _DomRect.internalCreate_DomRect,
+  'DOMRectReadOnly': () => DomRectReadOnly.internalCreateDomRectReadOnly,
+  'DOMSettableTokenList': () => DomSettableTokenList.internalCreateDomSettableTokenList,
+  'DOMStringList': () => DomStringList.internalCreateDomStringList,
+  'DOMTokenList': () => DomTokenList.internalCreateDomTokenList,
+  'DataTransfer': () => DataTransfer.internalCreateDataTransfer,
+  'DataTransferItem': () => DataTransferItem.internalCreateDataTransferItem,
+  'DataTransferItemList': () => DataTransferItemList.internalCreateDataTransferItemList,
+  'DedicatedWorkerGlobalScope': () => DedicatedWorkerGlobalScope.internalCreateDedicatedWorkerGlobalScope,
+  'DeprecatedStorageInfo': () => DeprecatedStorageInfo.internalCreateDeprecatedStorageInfo,
+  'DeprecatedStorageQuota': () => DeprecatedStorageQuota.internalCreateDeprecatedStorageQuota,
+  'DeviceAcceleration': () => DeviceAcceleration.internalCreateDeviceAcceleration,
+  'DeviceLightEvent': () => DeviceLightEvent.internalCreateDeviceLightEvent,
+  'DeviceMotionEvent': () => DeviceMotionEvent.internalCreateDeviceMotionEvent,
+  'DeviceOrientationEvent': () => DeviceOrientationEvent.internalCreateDeviceOrientationEvent,
+  'DeviceRotationRate': () => DeviceRotationRate.internalCreateDeviceRotationRate,
+  'DirectoryEntry': () => DirectoryEntry.internalCreateDirectoryEntry,
+  'DirectoryEntrySync': () => _DirectoryEntrySync.internalCreate_DirectoryEntrySync,
+  'DirectoryReader': () => DirectoryReader.internalCreateDirectoryReader,
+  'DirectoryReaderSync': () => _DirectoryReaderSync.internalCreate_DirectoryReaderSync,
+  'Document': () => Document.internalCreateDocument,
+  'DocumentFragment': () => DocumentFragment.internalCreateDocumentFragment,
+  'DocumentType': () => _DocumentType.internalCreate_DocumentType,
+  'Element': () => Element.internalCreateElement,
+  'Entry': () => Entry.internalCreateEntry,
+  'EntrySync': () => _EntrySync.internalCreate_EntrySync,
+  'ErrorEvent': () => ErrorEvent.internalCreateErrorEvent,
+  'Event': () => Event.internalCreateEvent,
+  'EventSource': () => EventSource.internalCreateEventSource,
+  'EventTarget': () => EventTarget.internalCreateEventTarget,
+  'ExtendableEvent': () => ExtendableEvent.internalCreateExtendableEvent,
+  'FederatedCredential': () => FederatedCredential.internalCreateFederatedCredential,
+  'FetchEvent': () => FetchEvent.internalCreateFetchEvent,
+  'File': () => File.internalCreateFile,
+  'FileEntry': () => FileEntry.internalCreateFileEntry,
+  'FileEntrySync': () => _FileEntrySync.internalCreate_FileEntrySync,
+  'FileError': () => FileError.internalCreateFileError,
+  'FileList': () => FileList.internalCreateFileList,
+  'FileReader': () => FileReader.internalCreateFileReader,
+  'FileReaderSync': () => _FileReaderSync.internalCreate_FileReaderSync,
+  'FileWriter': () => FileWriter.internalCreateFileWriter,
+  'FileWriterSync': () => _FileWriterSync.internalCreate_FileWriterSync,
+  'FocusEvent': () => FocusEvent.internalCreateFocusEvent,
+  'FontFace': () => FontFace.internalCreateFontFace,
+  'FontFaceSet': () => FontFaceSet.internalCreateFontFaceSet,
+  'FontFaceSetLoadEvent': () => FontFaceSetLoadEvent.internalCreateFontFaceSetLoadEvent,
+  'FormData': () => FormData.internalCreateFormData,
+  'Gamepad': () => Gamepad.internalCreateGamepad,
+  'GamepadButton': () => GamepadButton.internalCreateGamepadButton,
+  'GamepadEvent': () => GamepadEvent.internalCreateGamepadEvent,
+  'GamepadList': () => _GamepadList.internalCreate_GamepadList,
+  'Geofencing': () => Geofencing.internalCreateGeofencing,
+  'GeofencingRegion': () => GeofencingRegion.internalCreateGeofencingRegion,
+  'Geolocation': () => Geolocation.internalCreateGeolocation,
+  'Geoposition': () => Geoposition.internalCreateGeoposition,
+  'HTMLAllCollection': () => _HTMLAllCollection.internalCreate_HTMLAllCollection,
+  'HTMLAnchorElement': () => AnchorElement.internalCreateAnchorElement,
+  'HTMLAppletElement': () => _HTMLAppletElement.internalCreate_HTMLAppletElement,
+  'HTMLAreaElement': () => AreaElement.internalCreateAreaElement,
+  'HTMLAudioElement': () => AudioElement.internalCreateAudioElement,
+  'HTMLBRElement': () => BRElement.internalCreateBRElement,
+  'HTMLBaseElement': () => BaseElement.internalCreateBaseElement,
+  'HTMLBodyElement': () => BodyElement.internalCreateBodyElement,
+  'HTMLButtonElement': () => ButtonElement.internalCreateButtonElement,
+  'HTMLCanvasElement': () => CanvasElement.internalCreateCanvasElement,
+  'HTMLCollection': () => HtmlCollection.internalCreateHtmlCollection,
+  'HTMLContentElement': () => ContentElement.internalCreateContentElement,
+  'HTMLDListElement': () => DListElement.internalCreateDListElement,
+  'HTMLDataListElement': () => DataListElement.internalCreateDataListElement,
+  'HTMLDetailsElement': () => DetailsElement.internalCreateDetailsElement,
+  'HTMLDialogElement': () => DialogElement.internalCreateDialogElement,
+  'HTMLDirectoryElement': () => _HTMLDirectoryElement.internalCreate_HTMLDirectoryElement,
+  'HTMLDivElement': () => DivElement.internalCreateDivElement,
+  'HTMLDocument': () => HtmlDocument.internalCreateHtmlDocument,
+  'HTMLElement': () => HtmlElement.internalCreateHtmlElement,
+  'HTMLEmbedElement': () => EmbedElement.internalCreateEmbedElement,
+  'HTMLFieldSetElement': () => FieldSetElement.internalCreateFieldSetElement,
+  'HTMLFontElement': () => _HTMLFontElement.internalCreate_HTMLFontElement,
+  'HTMLFormControlsCollection': () => HtmlFormControlsCollection.internalCreateHtmlFormControlsCollection,
+  'HTMLFormElement': () => FormElement.internalCreateFormElement,
+  'HTMLFrameElement': () => _HTMLFrameElement.internalCreate_HTMLFrameElement,
+  'HTMLFrameSetElement': () => _HTMLFrameSetElement.internalCreate_HTMLFrameSetElement,
+  'HTMLHRElement': () => HRElement.internalCreateHRElement,
+  'HTMLHeadElement': () => HeadElement.internalCreateHeadElement,
+  'HTMLHeadingElement': () => HeadingElement.internalCreateHeadingElement,
+  'HTMLHtmlElement': () => HtmlHtmlElement.internalCreateHtmlHtmlElement,
+  'HTMLIFrameElement': () => IFrameElement.internalCreateIFrameElement,
+  'HTMLImageElement': () => ImageElement.internalCreateImageElement,
+  'HTMLInputElement': () => InputElement.internalCreateInputElement,
+  'HTMLKeygenElement': () => KeygenElement.internalCreateKeygenElement,
+  'HTMLLIElement': () => LIElement.internalCreateLIElement,
+  'HTMLLabelElement': () => LabelElement.internalCreateLabelElement,
+  'HTMLLegendElement': () => LegendElement.internalCreateLegendElement,
+  'HTMLLinkElement': () => LinkElement.internalCreateLinkElement,
+  'HTMLMapElement': () => MapElement.internalCreateMapElement,
+  'HTMLMarqueeElement': () => _HTMLMarqueeElement.internalCreate_HTMLMarqueeElement,
+  'HTMLMediaElement': () => MediaElement.internalCreateMediaElement,
+  'HTMLMenuElement': () => MenuElement.internalCreateMenuElement,
+  'HTMLMenuItemElement': () => MenuItemElement.internalCreateMenuItemElement,
+  'HTMLMetaElement': () => MetaElement.internalCreateMetaElement,
+  'HTMLMeterElement': () => MeterElement.internalCreateMeterElement,
+  'HTMLModElement': () => ModElement.internalCreateModElement,
+  'HTMLOListElement': () => OListElement.internalCreateOListElement,
+  'HTMLObjectElement': () => ObjectElement.internalCreateObjectElement,
+  'HTMLOptGroupElement': () => OptGroupElement.internalCreateOptGroupElement,
+  'HTMLOptionElement': () => OptionElement.internalCreateOptionElement,
+  'HTMLOptionsCollection': () => HtmlOptionsCollection.internalCreateHtmlOptionsCollection,
+  'HTMLOutputElement': () => OutputElement.internalCreateOutputElement,
+  'HTMLParagraphElement': () => ParagraphElement.internalCreateParagraphElement,
+  'HTMLParamElement': () => ParamElement.internalCreateParamElement,
+  'HTMLPictureElement': () => PictureElement.internalCreatePictureElement,
+  'HTMLPreElement': () => PreElement.internalCreatePreElement,
+  'HTMLProgressElement': () => ProgressElement.internalCreateProgressElement,
+  'HTMLQuoteElement': () => QuoteElement.internalCreateQuoteElement,
+  'HTMLScriptElement': () => ScriptElement.internalCreateScriptElement,
+  'HTMLSelectElement': () => SelectElement.internalCreateSelectElement,
+  'HTMLShadowElement': () => ShadowElement.internalCreateShadowElement,
+  'HTMLSourceElement': () => SourceElement.internalCreateSourceElement,
+  'HTMLSpanElement': () => SpanElement.internalCreateSpanElement,
+  'HTMLStyleElement': () => StyleElement.internalCreateStyleElement,
+  'HTMLTableCaptionElement': () => TableCaptionElement.internalCreateTableCaptionElement,
+  'HTMLTableCellElement': () => TableCellElement.internalCreateTableCellElement,
+  'HTMLTableColElement': () => TableColElement.internalCreateTableColElement,
+  'HTMLTableElement': () => TableElement.internalCreateTableElement,
+  'HTMLTableRowElement': () => TableRowElement.internalCreateTableRowElement,
+  'HTMLTableSectionElement': () => TableSectionElement.internalCreateTableSectionElement,
+  'HTMLTemplateElement': () => TemplateElement.internalCreateTemplateElement,
+  'HTMLTextAreaElement': () => TextAreaElement.internalCreateTextAreaElement,
+  'HTMLTitleElement': () => TitleElement.internalCreateTitleElement,
+  'HTMLTrackElement': () => TrackElement.internalCreateTrackElement,
+  'HTMLUListElement': () => UListElement.internalCreateUListElement,
+  'HTMLUnknownElement': () => UnknownElement.internalCreateUnknownElement,
+  'HTMLVideoElement': () => VideoElement.internalCreateVideoElement,
+  'HashChangeEvent': () => HashChangeEvent.internalCreateHashChangeEvent,
+  'Headers': () => Headers.internalCreateHeaders,
+  'History': () => History.internalCreateHistory,
+  'ImageBitmap': () => ImageBitmap.internalCreateImageBitmap,
+  'ImageData': () => ImageData.internalCreateImageData,
+  'InjectedScriptHost': () => InjectedScriptHost.internalCreateInjectedScriptHost,
+  'InputMethodContext': () => InputMethodContext.internalCreateInputMethodContext,
+  'InstallEvent': () => InstallEvent.internalCreateInstallEvent,
+  'Iterator': () => DomIterator.internalCreateDomIterator,
+  'KeyboardEvent': () => KeyboardEvent.internalCreateKeyboardEvent,
+  'LocalCredential': () => LocalCredential.internalCreateLocalCredential,
+  'Location': () => Location.internalCreateLocation,
+  'MIDIAccess': () => MidiAccess.internalCreateMidiAccess,
+  'MIDIConnectionEvent': () => MidiConnectionEvent.internalCreateMidiConnectionEvent,
+  'MIDIInput': () => MidiInput.internalCreateMidiInput,
+  'MIDIInputMap': () => MidiInputMap.internalCreateMidiInputMap,
+  'MIDIMessageEvent': () => MidiMessageEvent.internalCreateMidiMessageEvent,
+  'MIDIOutput': () => MidiOutput.internalCreateMidiOutput,
+  'MIDIOutputMap': () => MidiOutputMap.internalCreateMidiOutputMap,
+  'MIDIPort': () => MidiPort.internalCreateMidiPort,
+  'MediaController': () => MediaController.internalCreateMediaController,
+  'MediaDeviceInfo': () => MediaDeviceInfo.internalCreateMediaDeviceInfo,
+  'MediaError': () => MediaError.internalCreateMediaError,
+  'MediaKeyError': () => MediaKeyError.internalCreateMediaKeyError,
+  'MediaKeyEvent': () => MediaKeyEvent.internalCreateMediaKeyEvent,
+  'MediaKeyMessageEvent': () => MediaKeyMessageEvent.internalCreateMediaKeyMessageEvent,
+  'MediaKeyNeededEvent': () => MediaKeyNeededEvent.internalCreateMediaKeyNeededEvent,
+  'MediaKeySession': () => MediaKeySession.internalCreateMediaKeySession,
+  'MediaKeys': () => MediaKeys.internalCreateMediaKeys,
+  'MediaList': () => MediaList.internalCreateMediaList,
+  'MediaQueryList': () => MediaQueryList.internalCreateMediaQueryList,
+  'MediaQueryListEvent': () => MediaQueryListEvent.internalCreateMediaQueryListEvent,
+  'MediaSource': () => MediaSource.internalCreateMediaSource,
+  'MediaStream': () => MediaStream.internalCreateMediaStream,
+  'MediaStreamEvent': () => MediaStreamEvent.internalCreateMediaStreamEvent,
+  'MediaStreamTrack': () => MediaStreamTrack.internalCreateMediaStreamTrack,
+  'MediaStreamTrackEvent': () => MediaStreamTrackEvent.internalCreateMediaStreamTrackEvent,
+  'MemoryInfo': () => MemoryInfo.internalCreateMemoryInfo,
+  'MessageChannel': () => MessageChannel.internalCreateMessageChannel,
+  'MessageEvent': () => MessageEvent.internalCreateMessageEvent,
+  'MessagePort': () => MessagePort.internalCreateMessagePort,
+  'Metadata': () => Metadata.internalCreateMetadata,
+  'MimeType': () => MimeType.internalCreateMimeType,
+  'MimeTypeArray': () => MimeTypeArray.internalCreateMimeTypeArray,
+  'MouseEvent': () => MouseEvent.internalCreateMouseEvent,
+  'MutationEvent': () => _MutationEvent.internalCreate_MutationEvent,
+  'MutationObserver': () => MutationObserver.internalCreateMutationObserver,
+  'MutationRecord': () => MutationRecord.internalCreateMutationRecord,
+  'NamedNodeMap': () => _NamedNodeMap.internalCreate_NamedNodeMap,
+  'Navigator': () => Navigator.internalCreateNavigator,
+  'NavigatorUserMediaError': () => NavigatorUserMediaError.internalCreateNavigatorUserMediaError,
+  'NetworkInformation': () => NetworkInformation.internalCreateNetworkInformation,
+  'Node': () => Node.internalCreateNode,
+  'NodeFilter': () => NodeFilter.internalCreateNodeFilter,
+  'NodeIterator': () => NodeIterator.internalCreateNodeIterator,
+  'NodeList': () => NodeList.internalCreateNodeList,
+  'Notification': () => Notification.internalCreateNotification,
+  'OverflowEvent': () => OverflowEvent.internalCreateOverflowEvent,
+  'PagePopupController': () => _PagePopupController.internalCreate_PagePopupController,
+  'PageTransitionEvent': () => PageTransitionEvent.internalCreatePageTransitionEvent,
+  'Path2D': () => Path2D.internalCreatePath2D,
+  'Performance': () => Performance.internalCreatePerformance,
+  'PerformanceEntry': () => PerformanceEntry.internalCreatePerformanceEntry,
+  'PerformanceMark': () => PerformanceMark.internalCreatePerformanceMark,
+  'PerformanceMeasure': () => PerformanceMeasure.internalCreatePerformanceMeasure,
+  'PerformanceNavigation': () => PerformanceNavigation.internalCreatePerformanceNavigation,
+  'PerformanceResourceTiming': () => PerformanceResourceTiming.internalCreatePerformanceResourceTiming,
+  'PerformanceTiming': () => PerformanceTiming.internalCreatePerformanceTiming,
+  'Plugin': () => Plugin.internalCreatePlugin,
+  'PluginArray': () => PluginArray.internalCreatePluginArray,
+  'PluginPlaceholderElement': () => PluginPlaceholderElement.internalCreatePluginPlaceholderElement,
+  'PopStateEvent': () => PopStateEvent.internalCreatePopStateEvent,
+  'PositionError': () => PositionError.internalCreatePositionError,
+  'Presentation': () => Presentation.internalCreatePresentation,
+  'ProcessingInstruction': () => ProcessingInstruction.internalCreateProcessingInstruction,
+  'ProgressEvent': () => ProgressEvent.internalCreateProgressEvent,
+  'PushEvent': () => PushEvent.internalCreatePushEvent,
+  'PushManager': () => PushManager.internalCreatePushManager,
+  'PushRegistration': () => PushRegistration.internalCreatePushRegistration,
+  'RGBColor': () => _RGBColor.internalCreate_RGBColor,
+  'RTCDTMFSender': () => RtcDtmfSender.internalCreateRtcDtmfSender,
+  'RTCDTMFToneChangeEvent': () => RtcDtmfToneChangeEvent.internalCreateRtcDtmfToneChangeEvent,
+  'RTCDataChannel': () => RtcDataChannel.internalCreateRtcDataChannel,
+  'RTCDataChannelEvent': () => RtcDataChannelEvent.internalCreateRtcDataChannelEvent,
+  'RTCIceCandidate': () => RtcIceCandidate.internalCreateRtcIceCandidate,
+  'RTCIceCandidateEvent': () => RtcIceCandidateEvent.internalCreateRtcIceCandidateEvent,
+  'RTCPeerConnection': () => RtcPeerConnection.internalCreateRtcPeerConnection,
+  'RTCSessionDescription': () => RtcSessionDescription.internalCreateRtcSessionDescription,
+  'RTCStatsReport': () => RtcStatsReport.internalCreateRtcStatsReport,
+  'RTCStatsResponse': () => RtcStatsResponse.internalCreateRtcStatsResponse,
+  'RadioNodeList': () => _RadioNodeList.internalCreate_RadioNodeList,
+  'Range': () => Range.internalCreateRange,
+  'ReadableStream': () => ReadableStream.internalCreateReadableStream,
+  'Rect': () => _Rect.internalCreate_Rect,
+  'RelatedEvent': () => RelatedEvent.internalCreateRelatedEvent,
+  'Request': () => _Request.internalCreate_Request,
+  'ResourceProgressEvent': () => ResourceProgressEvent.internalCreateResourceProgressEvent,
+  'Response': () => _Response.internalCreate_Response,
+  'Screen': () => Screen.internalCreateScreen,
+  'ScreenOrientation': () => ScreenOrientation.internalCreateScreenOrientation,
+  'SecurityPolicyViolationEvent': () => SecurityPolicyViolationEvent.internalCreateSecurityPolicyViolationEvent,
+  'Selection': () => Selection.internalCreateSelection,
+  'ServiceWorker': () => _ServiceWorker.internalCreate_ServiceWorker,
+  'ServiceWorkerClient': () => ServiceWorkerClient.internalCreateServiceWorkerClient,
+  'ServiceWorkerClients': () => ServiceWorkerClients.internalCreateServiceWorkerClients,
+  'ServiceWorkerContainer': () => ServiceWorkerContainer.internalCreateServiceWorkerContainer,
+  'ServiceWorkerGlobalScope': () => ServiceWorkerGlobalScope.internalCreateServiceWorkerGlobalScope,
+  'ServiceWorkerRegistration': () => ServiceWorkerRegistration.internalCreateServiceWorkerRegistration,
+  'ShadowRoot': () => ShadowRoot.internalCreateShadowRoot,
+  'SharedWorker': () => SharedWorker.internalCreateSharedWorker,
+  'SharedWorkerGlobalScope': () => SharedWorkerGlobalScope.internalCreateSharedWorkerGlobalScope,
+  'SourceBuffer': () => SourceBuffer.internalCreateSourceBuffer,
+  'SourceBufferList': () => SourceBufferList.internalCreateSourceBufferList,
+  'SourceInfo': () => SourceInfo.internalCreateSourceInfo,
+  'SpeechGrammar': () => SpeechGrammar.internalCreateSpeechGrammar,
+  'SpeechGrammarList': () => SpeechGrammarList.internalCreateSpeechGrammarList,
+  'SpeechRecognition': () => SpeechRecognition.internalCreateSpeechRecognition,
+  'SpeechRecognitionAlternative': () => SpeechRecognitionAlternative.internalCreateSpeechRecognitionAlternative,
+  'SpeechRecognitionError': () => SpeechRecognitionError.internalCreateSpeechRecognitionError,
+  'SpeechRecognitionEvent': () => SpeechRecognitionEvent.internalCreateSpeechRecognitionEvent,
+  'SpeechRecognitionResult': () => SpeechRecognitionResult.internalCreateSpeechRecognitionResult,
+  'SpeechRecognitionResultList': () => _SpeechRecognitionResultList.internalCreate_SpeechRecognitionResultList,
+  'SpeechSynthesis': () => SpeechSynthesis.internalCreateSpeechSynthesis,
+  'SpeechSynthesisEvent': () => SpeechSynthesisEvent.internalCreateSpeechSynthesisEvent,
+  'SpeechSynthesisUtterance': () => SpeechSynthesisUtterance.internalCreateSpeechSynthesisUtterance,
+  'SpeechSynthesisVoice': () => SpeechSynthesisVoice.internalCreateSpeechSynthesisVoice,
+  'Storage': () => Storage.internalCreateStorage,
+  'StorageEvent': () => StorageEvent.internalCreateStorageEvent,
+  'StorageInfo': () => StorageInfo.internalCreateStorageInfo,
+  'StorageQuota': () => StorageQuota.internalCreateStorageQuota,
+  'Stream': () => FileStream.internalCreateFileStream,
+  'StyleMedia': () => StyleMedia.internalCreateStyleMedia,
+  'StyleSheet': () => StyleSheet.internalCreateStyleSheet,
+  'StyleSheetList': () => _StyleSheetList.internalCreate_StyleSheetList,
+  'SubtleCrypto': () => _SubtleCrypto.internalCreate_SubtleCrypto,
+  'Text': () => Text.internalCreateText,
+  'TextEvent': () => TextEvent.internalCreateTextEvent,
+  'TextMetrics': () => TextMetrics.internalCreateTextMetrics,
+  'TextTrack': () => TextTrack.internalCreateTextTrack,
+  'TextTrackCue': () => TextTrackCue.internalCreateTextTrackCue,
+  'TextTrackCueList': () => TextTrackCueList.internalCreateTextTrackCueList,
+  'TextTrackList': () => TextTrackList.internalCreateTextTrackList,
+  'TimeRanges': () => TimeRanges.internalCreateTimeRanges,
+  'Timing': () => Timing.internalCreateTiming,
+  'Touch': () => Touch.internalCreateTouch,
+  'TouchEvent': () => TouchEvent.internalCreateTouchEvent,
+  'TouchList': () => TouchList.internalCreateTouchList,
+  'TrackEvent': () => TrackEvent.internalCreateTrackEvent,
+  'TransitionEvent': () => TransitionEvent.internalCreateTransitionEvent,
+  'TreeWalker': () => TreeWalker.internalCreateTreeWalker,
+  'UIEvent': () => UIEvent.internalCreateUIEvent,
+  'URL': () => Url.internalCreateUrl,
+  'VTTCue': () => VttCue.internalCreateVttCue,
+  'VTTRegion': () => VttRegion.internalCreateVttRegion,
+  'VTTRegionList': () => VttRegionList.internalCreateVttRegionList,
+  'ValidityState': () => ValidityState.internalCreateValidityState,
+  'VideoPlaybackQuality': () => VideoPlaybackQuality.internalCreateVideoPlaybackQuality,
+  'VideoTrack': () => VideoTrack.internalCreateVideoTrack,
+  'VideoTrackList': () => VideoTrackList.internalCreateVideoTrackList,
+  'WebKitAnimationEvent': () => AnimationEvent.internalCreateAnimationEvent,
+  'WebKitCSSFilterRule': () => CssFilterRule.internalCreateCssFilterRule,
+  'WebKitCSSFilterValue': () => _WebKitCSSFilterValue.internalCreate_WebKitCSSFilterValue,
+  'WebKitCSSMatrix': () => _WebKitCSSMatrix.internalCreate_WebKitCSSMatrix,
+  'WebKitCSSTransformValue': () => _WebKitCSSTransformValue.internalCreate_WebKitCSSTransformValue,
+  'WebSocket': () => WebSocket.internalCreateWebSocket,
+  'WheelEvent': () => WheelEvent.internalCreateWheelEvent,
+  'Window': () => Window.internalCreateWindow,
+  'Worker': () => Worker.internalCreateWorker,
+  'WorkerConsole': () => WorkerConsole.internalCreateWorkerConsole,
+  'WorkerGlobalScope': () => WorkerGlobalScope.internalCreateWorkerGlobalScope,
+  'WorkerLocation': () => _WorkerLocation.internalCreate_WorkerLocation,
+  'WorkerNavigator': () => _WorkerNavigator.internalCreate_WorkerNavigator,
+  'WorkerPerformance': () => WorkerPerformance.internalCreateWorkerPerformance,
+  'XMLDocument': () => XmlDocument.internalCreateXmlDocument,
+  'XMLHttpRequest': () => HttpRequest.internalCreateHttpRequest,
+  'XMLHttpRequestEventTarget': () => HttpRequestEventTarget.internalCreateHttpRequestEventTarget,
+  'XMLHttpRequestProgressEvent': () => _XMLHttpRequestProgressEvent.internalCreate_XMLHttpRequestProgressEvent,
+  'XMLHttpRequestUpload': () => HttpRequestUpload.internalCreateHttpRequestUpload,
+  'XMLSerializer': () => XmlSerializer.internalCreateXmlSerializer,
+  'XPathEvaluator': () => XPathEvaluator.internalCreateXPathEvaluator,
+  'XPathExpression': () => XPathExpression.internalCreateXPathExpression,
+  'XPathNSResolver': () => XPathNSResolver.internalCreateXPathNSResolver,
+  'XPathResult': () => XPathResult.internalCreateXPathResult,
+  'XSLTProcessor': () => XsltProcessor.internalCreateXsltProcessor,
+  'polymer-element': () => HtmlElement.internalCreateHtmlElement,
 
-unwrap_jso(dartClass_instance) => dartClass_instance;
-wrap_jso(jsObject) => jsObject;
-wrap_jso_list(jso_nodes) => jso_nodes;
-make_dart_rectangle(r) => r;
+};
+
+// TODO(terry): We may want to move this elsewhere if html becomes
+// a package to avoid dartium depending on pkg:html.
+getHtmlCreateFunction(String key) {
+  var result;
+
+  // TODO(vsm): Add Cross Frame and JS types here as well.
+
+  // Check the html library.
+  result = _getHtmlFunction(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the web gl library.
+  result = _getWebGlFunction(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the indexed db library.
+  result = _getIndexDbFunction(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the web audio library.
+  result = _getWebAudioFunction(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the web sql library.
+  result = _getWebSqlFunction(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the svg library.
+  result = _getSvgFunction(key);
+  if (result != null) {
+    return result;
+  }
+
+  return null;
+}
+
+Function _getHtmlFunction(String key) {
+  if (htmlBlinkFunctionMap.containsKey(key)) {
+    return htmlBlinkFunctionMap[key]();
+  }
+  return null;
+}
+
+Function _getWebGlFunction(String key) {
+  if (web_glBlinkFunctionMap.containsKey(key)) {
+    return web_glBlinkFunctionMap[key]();
+  }
+  return null;
+}
+
+Function _getIndexDbFunction(String key) {
+  if (indexed_dbBlinkFunctionMap.containsKey(key)) {
+    return indexed_dbBlinkFunctionMap[key]();
+  }
+  return null;
+}
+
+Function _getWebAudioFunction(String key) {
+  if (web_audioBlinkFunctionMap.containsKey(key)) {
+    return web_audioBlinkFunctionMap[key]();
+  }
+  return null;
+}
+
+Function _getWebSqlFunction(String key) {
+  if (web_sqlBlinkFunctionMap.containsKey(key)) {
+    return web_sqlBlinkFunctionMap[key]();
+  }
+  return null;
+}
+
+Function _getSvgFunction(String key) {
+  if (svgBlinkFunctionMap.containsKey(key)) {
+    return svgBlinkFunctionMap[key]();
+  }
+  return null;
+}
+
+
+/******************************************************************************
+ **********                                                          **********
+ **********                    JS Interop Support                    **********
+ **********                                                          **********
+ ******************************************************************************/
+
+Rectangle make_dart_rectangle(r) =>
+    r == null ? null : new Rectangle(r['left'], r['top'], r['width'], r['height']);
+
+// Need a default constructor for constructing classes with mixins that are
+// also extending NativeFieldWrapperClass2.  Defining JsoNativeFieldWrapper
+// extending NativeFieldWrapperClass2 creates a default constructor.
+class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
+
+// Flag to disable JS interop asserts.  Setting to false will speed up the
+// wrap_jso calls.
+bool __interop_checks = true;
+
+/** Expando for JsObject, used by every Dart class associated with a Javascript
+ *  class (e.g., DOM, WebAudio, etc.).
+ */
+
+/**
+ * Return the JsObject associated with a Dart class [dartClass_instance].
+ */
+unwrap_jso(dartClass_instance) {
+  try {
+    if (dartClass_instance != null)
+      return dartClass_instance is NativeFieldWrapperClass2 ?
+          dartClass_instance.blink_jsObject : dartClass_instance;
+    else
+      return null;
+  } catch(NoSuchMethodException) {
+    // No blink_jsObject then return the dartClass_instance is probably an
+    // array that was already converted to a Dart class e.g., Uint8ClampedList.
+    return dartClass_instance;
+  }
+}
+
+/**
+ * Create Dart class that maps to the JS Type, add the JsObject as an expando
+ * on the Dart class and return the created Dart class.
+ */
+wrap_jso(jsObject) {
+  try {
+    if (jsObject is! js.JsObject) {
+      // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
+      return jsObject;
+    }
+    // Try the most general type conversions on it.
+    // TODO(alanknight): We may be able to do better. This maintains identity,
+    // which is useful, but expensive. And if we nest something that only
+    // this conversion handles, how does that work? e.g. a list of maps of elements.
+    var converted = convertNativeToDart_SerializedScriptValue(jsObject);
+    if (!identical(converted, jsObject)) {
+      return converted;
+    }
+    var constructor = jsObject['constructor'];
+    if (__interop_checks) {
+      debug_or_assert("constructor != null", constructor != null);
+    }
+    var jsTypeName = constructor['name'];
+    if (__interop_checks) {
+      debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
+    }
+
+    var dartClass_instance;
+    if (jsObject.hasProperty('dart_class')) {
+      // Got a dart_class (it's a custom element) use it it's already set up.
+      dartClass_instance = jsObject['dart_class'];
+    } else {
+      var func = getHtmlCreateFunction(jsTypeName);
+      if (func != null) {
+        dartClass_instance = func();
+        dartClass_instance.blink_jsObject = jsObject;
+      }
+    }
+    return dartClass_instance;
+  } catch(e, stacktrace){
+    if (__interop_checks) {
+      if (e is DebugAssertException)
+        window.console.log("${e.message}\n ${stacktrace}");
+      else
+        window.console.log("${stacktrace}");
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Create Dart class that maps to the JS Type that is the JS type being
+ * extended using JS interop createCallback (we need the base type of the
+ * custom element) not the Dart created constructor.
+ */
+wrap_jso_custom_element(jsObject) {
+  try {
+    if (jsObject is! js.JsObject) {
+      // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
+      return jsObject;
+    }
+
+    // Find out what object we're extending.
+    var objectName = jsObject.toString();
+    // Expect to see something like '[object HTMLElement]'.
+    if (!objectName.startsWith('[object ')) {
+      return jsObject;
+    }
+
+    var extendsClass = objectName.substring(8, objectName.length - 1);
+    var func = getHtmlCreateFunction(extendsClass);
+    if (__interop_checks)
+      debug_or_assert("func != null name = ${extendsClass}", func != null);
+    var dartClass_instance = func();
+    dartClass_instance.blink_jsObject = jsObject;
+    return dartClass_instance;
+  } catch(e, stacktrace){
+    if (__interop_checks) {
+      if (e is DebugAssertException)
+        window.console.log("${e.message}\n ${stacktrace}");
+      else
+        window.console.log("${stacktrace}");
+    }
+
+    // Problem?
+    return null;
+  }
+}
+
+class DebugAssertException implements Exception {
+  String message;
+  DebugAssertException(this.message);
+}
+
+debug_or_assert(message, expression) {
+  if (!expression) {
+    throw new DebugAssertException("$message");
+  }
+}
+
+// TODO(terry): Manage JS interop JsFunctions for each listener used for add/
+//              removeEventListener.  These JsFunctions will leak look at
+//              fixing with weak-refs in C++.  The key are the hashcodes of the
+//              user's this (this is needed for futures) and listener function.
+Map<int, Map<int, js.JsFunction>> _knownListeners = {};
+
+js.JsFunction wrap_event_listener(theObject, Function listener) {
+  var thisHashCode = theObject.hashCode;
+  var listenerHashCode = identityHashCode(listener);
+
+  _knownListeners.putIfAbsent(thisHashCode, () => new Map<int, js.JsFunction>());
+  _knownListeners[thisHashCode].putIfAbsent(listenerHashCode, () =>
+    new js.JsFunction.withThis((theObject, event) => listener(wrap_jso(event))));
+
+  return _knownListeners[thisHashCode][listenerHashCode];
+}
+
+Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
+  var result = new Map();
+  var keys = js.context['Object'].callMethod('keys', [jsObject]);
+  for (var key in keys) {
+    result[key] = wrap_jso(jsObject[key]);
+  }
+  return result;
+}
+
+// Converts a flat Dart map into a JavaScript object with properties this is
+// is the Dartium only version it uses dart:js.
+// TODO(alanknight): This could probably be unified with the dart2js conversions
+// code in html_common and be more general.
+convertDartToNative_Dictionary(Map dict) {
+  if (dict == null) return null;
+  var jsObject = new js.JsObject(js.context['Object']);
+  dict.forEach((String key, value) {
+    if (value is List) {
+      var jsArray = new js.JsArray();
+      value.forEach((elem) {
+        jsArray.add(elem is Map ? convertDartToNative_Dictionary(elem): elem);
+      });
+      jsObject[key] = jsArray;
+    } else {
+      jsObject[key] = value;
+    }
+  });
+  return jsObject;
+}
+
+// Converts a Dart list into a JsArray. For the Dartium version only.
+convertDartToNative_List(List input) => new js.JsArray()..addAll(input);
+
+// Conversion function place holder (currently not used in dart2js or dartium).
+List convertDartToNative_StringArray(List<String> input) => input;
+
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -670,6 +1339,18 @@ class AnchorElement extends HtmlElement implements UrlUtils {
     if (href != null) e.href = href;
     return e;
   }
+
+
+  static AnchorElement internalCreateAnchorElement() {
+    return new AnchorElement._internalWrap();
+  }
+
+  factory AnchorElement._internalWrap() {
+    return new AnchorElement.internal_();
+  }
+
+  AnchorElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -683,7 +1364,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.download')
   @DocsEditable()
-  void set download(String value) => _blink.BlinkHTMLAnchorElement.instance.download_Setter_(unwrap_jso(this), value);
+  set download(String value) => _blink.BlinkHTMLAnchorElement.instance.download_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.hreflang')
   @DocsEditable()
@@ -691,7 +1372,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.hreflang')
   @DocsEditable()
-  void set hreflang(String value) => _blink.BlinkHTMLAnchorElement.instance.hreflang_Setter_(unwrap_jso(this), value);
+  set hreflang(String value) => _blink.BlinkHTMLAnchorElement.instance.hreflang_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.integrity')
   @DocsEditable()
@@ -701,7 +1382,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   @DomName('HTMLAnchorElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLAnchorElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLAnchorElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.rel')
   @DocsEditable()
@@ -709,7 +1390,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.rel')
   @DocsEditable()
-  void set rel(String value) => _blink.BlinkHTMLAnchorElement.instance.rel_Setter_(unwrap_jso(this), value);
+  set rel(String value) => _blink.BlinkHTMLAnchorElement.instance.rel_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.target')
   @DocsEditable()
@@ -717,7 +1398,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.target')
   @DocsEditable()
-  void set target(String value) => _blink.BlinkHTMLAnchorElement.instance.target_Setter_(unwrap_jso(this), value);
+  set target(String value) => _blink.BlinkHTMLAnchorElement.instance.target_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.type')
   @DocsEditable()
@@ -725,7 +1406,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLAnchorElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLAnchorElement.instance.type_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.hash')
   @DocsEditable()
@@ -733,7 +1414,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.hash')
   @DocsEditable()
-  void set hash(String value) => _blink.BlinkHTMLAnchorElement.instance.hash_Setter_(unwrap_jso(this), value);
+  set hash(String value) => _blink.BlinkHTMLAnchorElement.instance.hash_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.host')
   @DocsEditable()
@@ -741,7 +1422,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.host')
   @DocsEditable()
-  void set host(String value) => _blink.BlinkHTMLAnchorElement.instance.host_Setter_(unwrap_jso(this), value);
+  set host(String value) => _blink.BlinkHTMLAnchorElement.instance.host_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.hostname')
   @DocsEditable()
@@ -749,7 +1430,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.hostname')
   @DocsEditable()
-  void set hostname(String value) => _blink.BlinkHTMLAnchorElement.instance.hostname_Setter_(unwrap_jso(this), value);
+  set hostname(String value) => _blink.BlinkHTMLAnchorElement.instance.hostname_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.href')
   @DocsEditable()
@@ -757,7 +1438,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.href')
   @DocsEditable()
-  void set href(String value) => _blink.BlinkHTMLAnchorElement.instance.href_Setter_(unwrap_jso(this), value);
+  set href(String value) => _blink.BlinkHTMLAnchorElement.instance.href_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.origin')
   @DocsEditable()
@@ -773,7 +1454,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   @DomName('HTMLAnchorElement.password')
   @DocsEditable()
   @Experimental() // untriaged
-  void set password(String value) => _blink.BlinkHTMLAnchorElement.instance.password_Setter_(unwrap_jso(this), value);
+  set password(String value) => _blink.BlinkHTMLAnchorElement.instance.password_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.pathname')
   @DocsEditable()
@@ -781,7 +1462,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.pathname')
   @DocsEditable()
-  void set pathname(String value) => _blink.BlinkHTMLAnchorElement.instance.pathname_Setter_(unwrap_jso(this), value);
+  set pathname(String value) => _blink.BlinkHTMLAnchorElement.instance.pathname_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.port')
   @DocsEditable()
@@ -789,7 +1470,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.port')
   @DocsEditable()
-  void set port(String value) => _blink.BlinkHTMLAnchorElement.instance.port_Setter_(unwrap_jso(this), value);
+  set port(String value) => _blink.BlinkHTMLAnchorElement.instance.port_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.protocol')
   @DocsEditable()
@@ -797,7 +1478,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.protocol')
   @DocsEditable()
-  void set protocol(String value) => _blink.BlinkHTMLAnchorElement.instance.protocol_Setter_(unwrap_jso(this), value);
+  set protocol(String value) => _blink.BlinkHTMLAnchorElement.instance.protocol_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.search')
   @DocsEditable()
@@ -805,7 +1486,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.search')
   @DocsEditable()
-  void set search(String value) => _blink.BlinkHTMLAnchorElement.instance.search_Setter_(unwrap_jso(this), value);
+  set search(String value) => _blink.BlinkHTMLAnchorElement.instance.search_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.username')
   @DocsEditable()
@@ -815,7 +1496,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   @DomName('HTMLAnchorElement.username')
   @DocsEditable()
   @Experimental() // untriaged
-  void set username(String value) => _blink.BlinkHTMLAnchorElement.instance.username_Setter_(unwrap_jso(this), value);
+  set username(String value) => _blink.BlinkHTMLAnchorElement.instance.username_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.toString')
   @DocsEditable()
@@ -840,16 +1521,29 @@ class Animation extends AnimationNode {
   @DocsEditable()
   factory Animation(Element target, List<Map> keyframes, [timingInput]) {
     if ((keyframes is List<Map> || keyframes == null) && (target is Element || target == null) && timingInput == null) {
-      return _blink.BlinkAnimation.instance.constructorCallback_2_(target, keyframes);
+      return wrap_jso(_blink.BlinkAnimation.instance.constructorCallback_2_(target, keyframes));
     }
     if ((timingInput is num || timingInput == null) && (keyframes is List<Map> || keyframes == null) && (target is Element || target == null)) {
-      return _blink.BlinkAnimation.instance.constructorCallback_3_(target, keyframes, timingInput);
+      return wrap_jso(_blink.BlinkAnimation.instance.constructorCallback_3_(target, keyframes, timingInput));
     }
     if ((timingInput is Map || timingInput == null) && (keyframes is List<Map> || keyframes == null) && (target is Element || target == null)) {
-      return _blink.BlinkAnimation.instance.constructorCallback_3_(target, keyframes, timingInput);
+      var timingInput_1 = convertDartToNative_Dictionary(timingInput);
+      return wrap_jso(_blink.BlinkAnimation.instance.constructorCallback_3_(target, keyframes, timingInput_1));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+
+
+  static Animation internalCreateAnimation() {
+    return new Animation._internalWrap();
+  }
+
+  factory Animation._internalWrap() {
+    return new Animation.internal_();
+  }
+
+  Animation.internal_() : super.internal_();
+
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -865,6 +1559,21 @@ class Animation extends AnimationNode {
 class AnimationEffect extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AnimationEffect._() { throw new UnsupportedError("Not supported"); }
+
+  static AnimationEffect internalCreateAnimationEffect() {
+    return new AnimationEffect._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory AnimationEffect._internalWrap() {
+    return new AnimationEffect.internal_();
+  }
+
+  AnimationEffect.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -883,13 +1592,25 @@ class AnimationEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory AnimationEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static AnimationEvent internalCreateAnimationEvent() {
+    return new AnimationEvent._internalWrap();
+  }
+
+  factory AnimationEvent._internalWrap() {
+    return new AnimationEvent.internal_();
+  }
+
+  AnimationEvent.internal_() : super.internal_();
+
+
   @DomName('WebKitAnimationEvent.animationName')
   @DocsEditable()
   String get animationName => _blink.BlinkWebKitAnimationEvent.instance.animationName_Getter_(unwrap_jso(this));
   
   @DomName('WebKitAnimationEvent.elapsedTime')
   @DocsEditable()
-  double get elapsedTime => _blink.BlinkWebKitAnimationEvent.instance.elapsedTime_Getter_(unwrap_jso(this));
+  num get elapsedTime => _blink.BlinkWebKitAnimationEvent.instance.elapsedTime_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -906,10 +1627,25 @@ class AnimationNode extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AnimationNode._() { throw new UnsupportedError("Not supported"); }
 
+  static AnimationNode internalCreateAnimationNode() {
+    return new AnimationNode._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory AnimationNode._internalWrap() {
+    return new AnimationNode.internal_();
+  }
+
+  AnimationNode.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('AnimationNode.activeDuration')
   @DocsEditable()
   @Experimental() // untriaged
-  double get activeDuration => _blink.BlinkAnimationNode.instance.activeDuration_Getter_(unwrap_jso(this));
+  num get activeDuration => _blink.BlinkAnimationNode.instance.activeDuration_Getter_(unwrap_jso(this));
   
   @DomName('AnimationNode.currentIteration')
   @DocsEditable()
@@ -919,17 +1655,17 @@ class AnimationNode extends NativeFieldWrapperClass2 {
   @DomName('AnimationNode.duration')
   @DocsEditable()
   @Experimental() // untriaged
-  double get duration => _blink.BlinkAnimationNode.instance.duration_Getter_(unwrap_jso(this));
+  num get duration => _blink.BlinkAnimationNode.instance.duration_Getter_(unwrap_jso(this));
   
   @DomName('AnimationNode.endTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get endTime => _blink.BlinkAnimationNode.instance.endTime_Getter_(unwrap_jso(this));
+  num get endTime => _blink.BlinkAnimationNode.instance.endTime_Getter_(unwrap_jso(this));
   
   @DomName('AnimationNode.localTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get localTime => _blink.BlinkAnimationNode.instance.localTime_Getter_(unwrap_jso(this));
+  num get localTime => _blink.BlinkAnimationNode.instance.localTime_Getter_(unwrap_jso(this));
   
   @DomName('AnimationNode.player')
   @DocsEditable()
@@ -939,7 +1675,7 @@ class AnimationNode extends NativeFieldWrapperClass2 {
   @DomName('AnimationNode.startTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get startTime => _blink.BlinkAnimationNode.instance.startTime_Getter_(unwrap_jso(this));
+  num get startTime => _blink.BlinkAnimationNode.instance.startTime_Getter_(unwrap_jso(this));
   
   @DomName('AnimationNode.timing')
   @DocsEditable()
@@ -961,6 +1697,18 @@ class AnimationPlayer extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory AnimationPlayer._() { throw new UnsupportedError("Not supported"); }
 
+
+  static AnimationPlayer internalCreateAnimationPlayer() {
+    return new AnimationPlayer._internalWrap();
+  }
+
+  factory AnimationPlayer._internalWrap() {
+    return new AnimationPlayer.internal_();
+  }
+
+  AnimationPlayer.internal_() : super.internal_();
+
+
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
@@ -972,7 +1720,7 @@ class AnimationPlayer extends EventTarget {
   @DomName('AnimationPlayer.currentTime')
   @DocsEditable()
   @Experimental() // untriaged
-  void set currentTime(num value) => _blink.BlinkAnimationPlayer.instance.currentTime_Setter_(unwrap_jso(this), value);
+  set currentTime(num value) => _blink.BlinkAnimationPlayer.instance.currentTime_Setter_(unwrap_jso(this), value);
   
   @DomName('AnimationPlayer.playState')
   @DocsEditable()
@@ -987,7 +1735,7 @@ class AnimationPlayer extends EventTarget {
   @DomName('AnimationPlayer.playbackRate')
   @DocsEditable()
   @Experimental() // untriaged
-  void set playbackRate(num value) => _blink.BlinkAnimationPlayer.instance.playbackRate_Setter_(unwrap_jso(this), value);
+  set playbackRate(num value) => _blink.BlinkAnimationPlayer.instance.playbackRate_Setter_(unwrap_jso(this), value);
   
   @DomName('AnimationPlayer.source')
   @DocsEditable()
@@ -997,7 +1745,7 @@ class AnimationPlayer extends EventTarget {
   @DomName('AnimationPlayer.source')
   @DocsEditable()
   @Experimental() // untriaged
-  void set source(AnimationNode value) => _blink.BlinkAnimationPlayer.instance.source_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set source(AnimationNode value) => _blink.BlinkAnimationPlayer.instance.source_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('AnimationPlayer.startTime')
   @DocsEditable()
@@ -1007,7 +1755,7 @@ class AnimationPlayer extends EventTarget {
   @DomName('AnimationPlayer.startTime')
   @DocsEditable()
   @Experimental() // untriaged
-  void set startTime(num value) => _blink.BlinkAnimationPlayer.instance.startTime_Setter_(unwrap_jso(this), value);
+  set startTime(num value) => _blink.BlinkAnimationPlayer.instance.startTime_Setter_(unwrap_jso(this), value);
   
   @DomName('AnimationPlayer.cancel')
   @DocsEditable()
@@ -1049,15 +1797,27 @@ class AnimationPlayerEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory AnimationPlayerEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static AnimationPlayerEvent internalCreateAnimationPlayerEvent() {
+    return new AnimationPlayerEvent._internalWrap();
+  }
+
+  factory AnimationPlayerEvent._internalWrap() {
+    return new AnimationPlayerEvent.internal_();
+  }
+
+  AnimationPlayerEvent.internal_() : super.internal_();
+
+
   @DomName('AnimationPlayerEvent.currentTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get currentTime => _blink.BlinkAnimationPlayerEvent.instance.currentTime_Getter_(unwrap_jso(this));
+  num get currentTime => _blink.BlinkAnimationPlayerEvent.instance.currentTime_Getter_(unwrap_jso(this));
   
   @DomName('AnimationPlayerEvent.timelineTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get timelineTime => _blink.BlinkAnimationPlayerEvent.instance.timelineTime_Getter_(unwrap_jso(this));
+  num get timelineTime => _blink.BlinkAnimationPlayerEvent.instance.timelineTime_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1074,15 +1834,30 @@ class AnimationTimeline extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AnimationTimeline._() { throw new UnsupportedError("Not supported"); }
 
+  static AnimationTimeline internalCreateAnimationTimeline() {
+    return new AnimationTimeline._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory AnimationTimeline._internalWrap() {
+    return new AnimationTimeline.internal_();
+  }
+
+  AnimationTimeline.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('AnimationTimeline.currentTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get currentTime => _blink.BlinkAnimationTimeline.instance.currentTime_Getter_(unwrap_jso(this));
+  num get currentTime => _blink.BlinkAnimationTimeline.instance.currentTime_Getter_(unwrap_jso(this));
   
   @DomName('AnimationTimeline.getAnimationPlayers')
   @DocsEditable()
   @Experimental() // untriaged
-  List<AnimationPlayer> getAnimationPlayers() => _blink.BlinkAnimationTimeline.instance.getAnimationPlayers_Callback_0_(unwrap_jso(this));
+  List<AnimationPlayer> getAnimationPlayers() => wrap_jso(_blink.BlinkAnimationTimeline.instance.getAnimationPlayers_Callback_0_(unwrap_jso(this)));
   
   @DomName('AnimationTimeline.play')
   @DocsEditable()
@@ -1192,6 +1967,18 @@ class ApplicationCache extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<Event> updateReadyEvent = const EventStreamProvider<Event>('updateready');
 
+
+  static ApplicationCache internalCreateApplicationCache() {
+    return new ApplicationCache._internalWrap();
+  }
+
+  factory ApplicationCache._internalWrap() {
+    return new ApplicationCache.internal_();
+  }
+
+  ApplicationCache.internal_() : super.internal_();
+
+
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
@@ -1290,6 +2077,18 @@ class ApplicationCacheErrorEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory ApplicationCacheErrorEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static ApplicationCacheErrorEvent internalCreateApplicationCacheErrorEvent() {
+    return new ApplicationCacheErrorEvent._internalWrap();
+  }
+
+  factory ApplicationCacheErrorEvent._internalWrap() {
+    return new ApplicationCacheErrorEvent.internal_();
+  }
+
+  ApplicationCacheErrorEvent.internal_() : super.internal_();
+
+
   @DomName('ApplicationCacheErrorEvent.message')
   @DocsEditable()
   @Experimental() // untriaged
@@ -1337,6 +2136,18 @@ class AreaElement extends HtmlElement implements UrlUtils {
   @DomName('HTMLAreaElement.HTMLAreaElement')
   @DocsEditable()
   factory AreaElement() => document.createElement("area");
+
+
+  static AreaElement internalCreateAreaElement() {
+    return new AreaElement._internalWrap();
+  }
+
+  factory AreaElement._internalWrap() {
+    return new AreaElement.internal_();
+  }
+
+  AreaElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1350,7 +2161,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.alt')
   @DocsEditable()
-  void set alt(String value) => _blink.BlinkHTMLAreaElement.instance.alt_Setter_(unwrap_jso(this), value);
+  set alt(String value) => _blink.BlinkHTMLAreaElement.instance.alt_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.coords')
   @DocsEditable()
@@ -1358,7 +2169,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.coords')
   @DocsEditable()
-  void set coords(String value) => _blink.BlinkHTMLAreaElement.instance.coords_Setter_(unwrap_jso(this), value);
+  set coords(String value) => _blink.BlinkHTMLAreaElement.instance.coords_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.shape')
   @DocsEditable()
@@ -1366,7 +2177,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.shape')
   @DocsEditable()
-  void set shape(String value) => _blink.BlinkHTMLAreaElement.instance.shape_Setter_(unwrap_jso(this), value);
+  set shape(String value) => _blink.BlinkHTMLAreaElement.instance.shape_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.target')
   @DocsEditable()
@@ -1374,7 +2185,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.target')
   @DocsEditable()
-  void set target(String value) => _blink.BlinkHTMLAreaElement.instance.target_Setter_(unwrap_jso(this), value);
+  set target(String value) => _blink.BlinkHTMLAreaElement.instance.target_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.hash')
   @DocsEditable()
@@ -1382,7 +2193,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.hash')
   @DocsEditable()
-  void set hash(String value) => _blink.BlinkHTMLAreaElement.instance.hash_Setter_(unwrap_jso(this), value);
+  set hash(String value) => _blink.BlinkHTMLAreaElement.instance.hash_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.host')
   @DocsEditable()
@@ -1390,7 +2201,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.host')
   @DocsEditable()
-  void set host(String value) => _blink.BlinkHTMLAreaElement.instance.host_Setter_(unwrap_jso(this), value);
+  set host(String value) => _blink.BlinkHTMLAreaElement.instance.host_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.hostname')
   @DocsEditable()
@@ -1398,7 +2209,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.hostname')
   @DocsEditable()
-  void set hostname(String value) => _blink.BlinkHTMLAreaElement.instance.hostname_Setter_(unwrap_jso(this), value);
+  set hostname(String value) => _blink.BlinkHTMLAreaElement.instance.hostname_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.href')
   @DocsEditable()
@@ -1406,7 +2217,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.href')
   @DocsEditable()
-  void set href(String value) => _blink.BlinkHTMLAreaElement.instance.href_Setter_(unwrap_jso(this), value);
+  set href(String value) => _blink.BlinkHTMLAreaElement.instance.href_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.origin')
   @DocsEditable()
@@ -1421,7 +2232,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   @DomName('HTMLAreaElement.password')
   @DocsEditable()
   @Experimental() // untriaged
-  void set password(String value) => _blink.BlinkHTMLAreaElement.instance.password_Setter_(unwrap_jso(this), value);
+  set password(String value) => _blink.BlinkHTMLAreaElement.instance.password_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.pathname')
   @DocsEditable()
@@ -1429,7 +2240,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.pathname')
   @DocsEditable()
-  void set pathname(String value) => _blink.BlinkHTMLAreaElement.instance.pathname_Setter_(unwrap_jso(this), value);
+  set pathname(String value) => _blink.BlinkHTMLAreaElement.instance.pathname_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.port')
   @DocsEditable()
@@ -1437,7 +2248,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.port')
   @DocsEditable()
-  void set port(String value) => _blink.BlinkHTMLAreaElement.instance.port_Setter_(unwrap_jso(this), value);
+  set port(String value) => _blink.BlinkHTMLAreaElement.instance.port_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.protocol')
   @DocsEditable()
@@ -1445,7 +2256,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.protocol')
   @DocsEditable()
-  void set protocol(String value) => _blink.BlinkHTMLAreaElement.instance.protocol_Setter_(unwrap_jso(this), value);
+  set protocol(String value) => _blink.BlinkHTMLAreaElement.instance.protocol_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.search')
   @DocsEditable()
@@ -1453,7 +2264,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.search')
   @DocsEditable()
-  void set search(String value) => _blink.BlinkHTMLAreaElement.instance.search_Setter_(unwrap_jso(this), value);
+  set search(String value) => _blink.BlinkHTMLAreaElement.instance.search_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.username')
   @DocsEditable()
@@ -1463,7 +2274,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   @DomName('HTMLAreaElement.username')
   @DocsEditable()
   @Experimental() // untriaged
-  void set username(String value) => _blink.BlinkHTMLAreaElement.instance.username_Setter_(unwrap_jso(this), value);
+  set username(String value) => _blink.BlinkHTMLAreaElement.instance.username_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.toString')
   @DocsEditable()
@@ -1475,20 +2286,28 @@ class AreaElement extends HtmlElement implements UrlUtils {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable()
 @DomName('HTMLAudioElement')
 class AudioElement extends MediaElement {
-  // To suppress missing implicit constructor warnings.
-  factory AudioElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('HTMLAudioElement.HTMLAudioElement')
   @DocsEditable()
-  factory AudioElement([String src]) {
-    return _blink.BlinkHTMLAudioElement.instance.constructorCallback_1_(src);
+  factory AudioElement._([String src]) {
+    return wrap_jso(_blink.BlinkHTMLAudioElement.instance.constructorCallback_1_(src));
   }
+
+
+  static AudioElement internalCreateAudioElement() {
+    return new AudioElement._internalWrap();
+  }
+
+  factory AudioElement._internalWrap() {
+    return new AudioElement.internal_();
+  }
+
+  AudioElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1496,6 +2315,12 @@ class AudioElement extends MediaElement {
    */
   AudioElement.created() : super.created();
 
+  factory AudioElement([String src]) {
+    if (src == null)
+      return wrap_jso(_blink.BlinkHTMLAudioElement.instance.constructorCallback_0_());
+    else
+      return wrap_jso(_blink.BlinkHTMLAudioElement.instance.constructorCallback_1_(src));
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1511,6 +2336,21 @@ class AudioTrack extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AudioTrack._() { throw new UnsupportedError("Not supported"); }
 
+  static AudioTrack internalCreateAudioTrack() {
+    return new AudioTrack._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory AudioTrack._internalWrap() {
+    return new AudioTrack.internal_();
+  }
+
+  AudioTrack.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('AudioTrack.enabled')
   @DocsEditable()
   @Experimental() // untriaged
@@ -1519,7 +2359,7 @@ class AudioTrack extends NativeFieldWrapperClass2 {
   @DomName('AudioTrack.enabled')
   @DocsEditable()
   @Experimental() // untriaged
-  void set enabled(bool value) => _blink.BlinkAudioTrack.instance.enabled_Setter_(unwrap_jso(this), value);
+  set enabled(bool value) => _blink.BlinkAudioTrack.instance.enabled_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioTrack.id')
   @DocsEditable()
@@ -1561,6 +2401,18 @@ class AudioTrackList extends EventTarget {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
+
+  static AudioTrackList internalCreateAudioTrackList() {
+    return new AudioTrackList._internalWrap();
+  }
+
+  factory AudioTrackList._internalWrap() {
+    return new AudioTrackList.internal_();
+  }
+
+  AudioTrackList.internal_() : super.internal_();
+
+
   @DomName('AudioTrackList.length')
   @DocsEditable()
   @Experimental() // untriaged
@@ -1597,6 +2449,18 @@ class AutocompleteErrorEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory AutocompleteErrorEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static AutocompleteErrorEvent internalCreateAutocompleteErrorEvent() {
+    return new AutocompleteErrorEvent._internalWrap();
+  }
+
+  factory AutocompleteErrorEvent._internalWrap() {
+    return new AutocompleteErrorEvent.internal_();
+  }
+
+  AutocompleteErrorEvent.internal_() : super.internal_();
+
+
   @DomName('AutocompleteErrorEvent.reason')
   @DocsEditable()
   String get reason => _blink.BlinkAutocompleteErrorEvent.instance.reason_Getter_(unwrap_jso(this));
@@ -1618,6 +2482,18 @@ class BRElement extends HtmlElement {
   @DomName('HTMLBRElement.HTMLBRElement')
   @DocsEditable()
   factory BRElement() => document.createElement("br");
+
+
+  static BRElement internalCreateBRElement() {
+    return new BRElement._internalWrap();
+  }
+
+  factory BRElement._internalWrap() {
+    return new BRElement.internal_();
+  }
+
+  BRElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1641,6 +2517,21 @@ class BarProp extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory BarProp._() { throw new UnsupportedError("Not supported"); }
 
+  static BarProp internalCreateBarProp() {
+    return new BarProp._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory BarProp._internalWrap() {
+    return new BarProp.internal_();
+  }
+
+  BarProp.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('BarProp.visible')
   @DocsEditable()
   bool get visible => _blink.BlinkBarProp.instance.visible_Getter_(unwrap_jso(this));
@@ -1662,6 +2553,18 @@ class BaseElement extends HtmlElement {
   @DomName('HTMLBaseElement.HTMLBaseElement')
   @DocsEditable()
   factory BaseElement() => document.createElement("base");
+
+
+  static BaseElement internalCreateBaseElement() {
+    return new BaseElement._internalWrap();
+  }
+
+  factory BaseElement._internalWrap() {
+    return new BaseElement.internal_();
+  }
+
+  BaseElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1675,7 +2578,7 @@ class BaseElement extends HtmlElement {
   
   @DomName('HTMLBaseElement.href')
   @DocsEditable()
-  void set href(String value) => _blink.BlinkHTMLBaseElement.instance.href_Setter_(unwrap_jso(this), value);
+  set href(String value) => _blink.BlinkHTMLBaseElement.instance.href_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLBaseElement.target')
   @DocsEditable()
@@ -1683,7 +2586,7 @@ class BaseElement extends HtmlElement {
   
   @DomName('HTMLBaseElement.target')
   @DocsEditable()
-  void set target(String value) => _blink.BlinkHTMLBaseElement.instance.target_Setter_(unwrap_jso(this), value);
+  set target(String value) => _blink.BlinkHTMLBaseElement.instance.target_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1701,21 +2604,33 @@ class BatteryManager extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory BatteryManager._() { throw new UnsupportedError("Not supported"); }
 
+
+  static BatteryManager internalCreateBatteryManager() {
+    return new BatteryManager._internalWrap();
+  }
+
+  factory BatteryManager._internalWrap() {
+    return new BatteryManager.internal_();
+  }
+
+  BatteryManager.internal_() : super.internal_();
+
+
   @DomName('BatteryManager.charging')
   @DocsEditable()
   bool get charging => _blink.BlinkBatteryManager.instance.charging_Getter_(unwrap_jso(this));
   
   @DomName('BatteryManager.chargingTime')
   @DocsEditable()
-  double get chargingTime => _blink.BlinkBatteryManager.instance.chargingTime_Getter_(unwrap_jso(this));
+  num get chargingTime => _blink.BlinkBatteryManager.instance.chargingTime_Getter_(unwrap_jso(this));
   
   @DomName('BatteryManager.dischargingTime')
   @DocsEditable()
-  double get dischargingTime => _blink.BlinkBatteryManager.instance.dischargingTime_Getter_(unwrap_jso(this));
+  num get dischargingTime => _blink.BlinkBatteryManager.instance.dischargingTime_Getter_(unwrap_jso(this));
   
   @DomName('BatteryManager.level')
   @DocsEditable()
-  double get level => _blink.BlinkBatteryManager.instance.level_Getter_(unwrap_jso(this));
+  num get level => _blink.BlinkBatteryManager.instance.level_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1731,13 +2646,25 @@ class BeforeUnloadEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory BeforeUnloadEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static BeforeUnloadEvent internalCreateBeforeUnloadEvent() {
+    return new BeforeUnloadEvent._internalWrap();
+  }
+
+  factory BeforeUnloadEvent._internalWrap() {
+    return new BeforeUnloadEvent.internal_();
+  }
+
+  BeforeUnloadEvent.internal_() : super.internal_();
+
+
   @DomName('BeforeUnloadEvent.returnValue')
   @DocsEditable()
   String get returnValue => _blink.BlinkBeforeUnloadEvent.instance.returnValue_Getter_(unwrap_jso(this));
   
   @DomName('BeforeUnloadEvent.returnValue')
   @DocsEditable()
-  void set returnValue(String value) => _blink.BlinkBeforeUnloadEvent.instance.returnValue_Setter_(unwrap_jso(this), value);
+  set returnValue(String value) => _blink.BlinkBeforeUnloadEvent.instance.returnValue_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1750,12 +2677,20 @@ class Blob extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Blob._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('Blob.Blob')
-  @DocsEditable()
-  factory Blob(List blobParts, [String type, String endings]) => wrap_jso(_create(blobParts, type, endings));
+  static Blob internalCreateBlob() {
+    return new Blob._internalWrap();
+  }
 
-  @DocsEditable()
-  static Blob _create(blobParts, type, endings) => _blink.BlinkBlob.instance.constructorCallback_3_(blobParts, type, endings);
+  js.JsObject blink_jsObject;
+
+  factory Blob._internalWrap() {
+    return new Blob.internal_();
+  }
+
+  Blob.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Blob.size')
   @DocsEditable()
@@ -1783,6 +2718,20 @@ class Blob extends NativeFieldWrapperClass2 {
     return wrap_jso(_blink.BlinkBlob.instance.slice_Callback_0_(unwrap_jso(this)));
   }
 
+  factory Blob(List blobParts, [String type, String endings]) {
+    // TODO: any coercions on the elements of blobParts, e.g. coerce a typed
+    // array to ArrayBuffer if it is a total view.
+
+    var parts = convertDartToNative_List(blobParts.map(unwrap_jso).toList());
+    if (type == null && endings == null) {
+      return wrap_jso(_blink.BlinkBlob.instance.constructorCallback_1_(parts));
+    }
+    var bag = {};
+    if (type != null) bag['type'] = type;
+    if (endings != null) bag['endings'] = endings;
+    return wrap_jso(_blink.BlinkBlob.instance.constructorCallback_2_(parts,
+        convertDartToNative_Dictionary(bag)));
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1798,6 +2747,21 @@ class Body extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Body._() { throw new UnsupportedError("Not supported"); }
 
+  static Body internalCreateBody() {
+    return new Body._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Body._internalWrap() {
+    return new Body.internal_();
+  }
+
+  Body.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('Body.bodyUsed')
   @DocsEditable()
   @Experimental() // untriaged
@@ -1806,22 +2770,22 @@ class Body extends NativeFieldWrapperClass2 {
   @DomName('Body.arrayBuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  Future arrayBuffer() => _blink.BlinkBody.instance.arrayBuffer_Callback_0_(unwrap_jso(this));
+  Future arrayBuffer() => wrap_jso(_blink.BlinkBody.instance.arrayBuffer_Callback_0_(unwrap_jso(this)));
   
   @DomName('Body.blob')
   @DocsEditable()
   @Experimental() // untriaged
-  Future blob() => _blink.BlinkBody.instance.blob_Callback_0_(unwrap_jso(this));
+  Future blob() => wrap_jso(_blink.BlinkBody.instance.blob_Callback_0_(unwrap_jso(this)));
   
   @DomName('Body.json')
   @DocsEditable()
   @Experimental() // untriaged
-  Future json() => _blink.BlinkBody.instance.json_Callback_0_(unwrap_jso(this));
+  Future json() => wrap_jso(_blink.BlinkBody.instance.json_Callback_0_(unwrap_jso(this)));
   
   @DomName('Body.text')
   @DocsEditable()
   @Experimental() // untriaged
-  Future text() => _blink.BlinkBody.instance.text_Callback_0_(unwrap_jso(this));
+  Future text() => wrap_jso(_blink.BlinkBody.instance.text_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1965,6 +2929,18 @@ class BodyElement extends HtmlElement implements WindowEventHandlers {
   @DomName('HTMLBodyElement.HTMLBodyElement')
   @DocsEditable()
   factory BodyElement() => document.createElement("body");
+
+
+  static BodyElement internalCreateBodyElement() {
+    return new BodyElement._internalWrap();
+  }
+
+  factory BodyElement._internalWrap() {
+    return new BodyElement.internal_();
+  }
+
+  BodyElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2054,6 +3030,18 @@ class ButtonElement extends HtmlElement {
   @DomName('HTMLButtonElement.HTMLButtonElement')
   @DocsEditable()
   factory ButtonElement() => document.createElement("button");
+
+
+  static ButtonElement internalCreateButtonElement() {
+    return new ButtonElement._internalWrap();
+  }
+
+  factory ButtonElement._internalWrap() {
+    return new ButtonElement.internal_();
+  }
+
+  ButtonElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2067,7 +3055,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.autofocus')
   @DocsEditable()
-  void set autofocus(bool value) => _blink.BlinkHTMLButtonElement.instance.autofocus_Setter_(unwrap_jso(this), value);
+  set autofocus(bool value) => _blink.BlinkHTMLButtonElement.instance.autofocus_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.disabled')
   @DocsEditable()
@@ -2075,7 +3063,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLButtonElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLButtonElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.form')
   @DocsEditable()
@@ -2087,7 +3075,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.formAction')
   @DocsEditable()
-  void set formAction(String value) => _blink.BlinkHTMLButtonElement.instance.formAction_Setter_(unwrap_jso(this), value);
+  set formAction(String value) => _blink.BlinkHTMLButtonElement.instance.formAction_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.formEnctype')
   @DocsEditable()
@@ -2095,7 +3083,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.formEnctype')
   @DocsEditable()
-  void set formEnctype(String value) => _blink.BlinkHTMLButtonElement.instance.formEnctype_Setter_(unwrap_jso(this), value);
+  set formEnctype(String value) => _blink.BlinkHTMLButtonElement.instance.formEnctype_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.formMethod')
   @DocsEditable()
@@ -2103,7 +3091,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.formMethod')
   @DocsEditable()
-  void set formMethod(String value) => _blink.BlinkHTMLButtonElement.instance.formMethod_Setter_(unwrap_jso(this), value);
+  set formMethod(String value) => _blink.BlinkHTMLButtonElement.instance.formMethod_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.formNoValidate')
   @DocsEditable()
@@ -2111,7 +3099,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.formNoValidate')
   @DocsEditable()
-  void set formNoValidate(bool value) => _blink.BlinkHTMLButtonElement.instance.formNoValidate_Setter_(unwrap_jso(this), value);
+  set formNoValidate(bool value) => _blink.BlinkHTMLButtonElement.instance.formNoValidate_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.formTarget')
   @DocsEditable()
@@ -2119,12 +3107,12 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.formTarget')
   @DocsEditable()
-  void set formTarget(String value) => _blink.BlinkHTMLButtonElement.instance.formTarget_Setter_(unwrap_jso(this), value);
+  set formTarget(String value) => _blink.BlinkHTMLButtonElement.instance.formTarget_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => wrap_jso_list(_blink.BlinkHTMLButtonElement.instance.labels_Getter_(unwrap_jso(this)));
+  List<Node> get labels => wrap_jso(_blink.BlinkHTMLButtonElement.instance.labels_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLButtonElement.name')
   @DocsEditable()
@@ -2132,7 +3120,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLButtonElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLButtonElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.type')
   @DocsEditable()
@@ -2140,7 +3128,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLButtonElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLButtonElement.instance.type_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.validationMessage')
   @DocsEditable()
@@ -2156,7 +3144,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.value')
   @DocsEditable()
-  void set value(String value) => _blink.BlinkHTMLButtonElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(String value) => _blink.BlinkHTMLButtonElement.instance.value_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.willValidate')
   @DocsEditable()
@@ -2186,6 +3174,18 @@ class CDataSection extends Text {
   // To suppress missing implicit constructor warnings.
   factory CDataSection._() { throw new UnsupportedError("Not supported"); }
 
+
+  static CDataSection internalCreateCDataSection() {
+    return new CDataSection._internalWrap();
+  }
+
+  factory CDataSection._internalWrap() {
+    return new CDataSection.internal_();
+  }
+
+  CDataSection.internal_() : super.internal_();
+
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2201,30 +3201,45 @@ class CacheStorage extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory CacheStorage._() { throw new UnsupportedError("Not supported"); }
 
+  static CacheStorage internalCreateCacheStorage() {
+    return new CacheStorage._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory CacheStorage._internalWrap() {
+    return new CacheStorage.internal_();
+  }
+
+  CacheStorage.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('CacheStorage.create')
   @DocsEditable()
   @Experimental() // untriaged
-  Future create(String cacheName) => _blink.BlinkCacheStorage.instance.create_Callback_1_(unwrap_jso(this), cacheName);
+  Future create(String cacheName) => wrap_jso(_blink.BlinkCacheStorage.instance.create_Callback_1_(unwrap_jso(this), cacheName));
   
   @DomName('CacheStorage.delete')
   @DocsEditable()
   @Experimental() // untriaged
-  Future delete(String cacheName) => _blink.BlinkCacheStorage.instance.delete_Callback_1_(unwrap_jso(this), cacheName);
+  Future delete(String cacheName) => wrap_jso(_blink.BlinkCacheStorage.instance.delete_Callback_1_(unwrap_jso(this), cacheName));
   
   @DomName('CacheStorage.get')
   @DocsEditable()
   @Experimental() // untriaged
-  Future get(String cacheName) => _blink.BlinkCacheStorage.instance.get_Callback_1_(unwrap_jso(this), cacheName);
+  Future get(String cacheName) => wrap_jso(_blink.BlinkCacheStorage.instance.get_Callback_1_(unwrap_jso(this), cacheName));
   
   @DomName('CacheStorage.has')
   @DocsEditable()
   @Experimental() // untriaged
-  Future has(String cacheName) => _blink.BlinkCacheStorage.instance.has_Callback_1_(unwrap_jso(this), cacheName);
+  Future has(String cacheName) => wrap_jso(_blink.BlinkCacheStorage.instance.has_Callback_1_(unwrap_jso(this), cacheName));
   
   @DomName('CacheStorage.keys')
   @DocsEditable()
   @Experimental() // untriaged
-  Future keys() => _blink.BlinkCacheStorage.instance.keys_Callback_0_(unwrap_jso(this));
+  Future keys() => wrap_jso(_blink.BlinkCacheStorage.instance.keys_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2242,13 +3257,28 @@ class Canvas2DContextAttributes extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Canvas2DContextAttributes._() { throw new UnsupportedError("Not supported"); }
 
+  static Canvas2DContextAttributes internalCreateCanvas2DContextAttributes() {
+    return new Canvas2DContextAttributes._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Canvas2DContextAttributes._internalWrap() {
+    return new Canvas2DContextAttributes.internal_();
+  }
+
+  Canvas2DContextAttributes.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('Canvas2DContextAttributes.alpha')
   @DocsEditable()
   bool get alpha => _blink.BlinkCanvas2DContextAttributes.instance.alpha_Getter_(unwrap_jso(this));
   
   @DomName('Canvas2DContextAttributes.alpha')
   @DocsEditable()
-  void set alpha(bool value) => _blink.BlinkCanvas2DContextAttributes.instance.alpha_Setter_(unwrap_jso(this), value);
+  set alpha(bool value) => _blink.BlinkCanvas2DContextAttributes.instance.alpha_Setter_(unwrap_jso(this), value);
   
   @DomName('Canvas2DContextAttributes.storage')
   @DocsEditable()
@@ -2258,7 +3288,7 @@ class Canvas2DContextAttributes extends NativeFieldWrapperClass2 {
   @DomName('Canvas2DContextAttributes.storage')
   @DocsEditable()
   @Experimental() // untriaged
-  void set storage(String value) => _blink.BlinkCanvas2DContextAttributes.instance.storage_Setter_(unwrap_jso(this), value);
+  set storage(String value) => _blink.BlinkCanvas2DContextAttributes.instance.storage_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2299,6 +3329,18 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
     if (height != null) e.height = height;
     return e;
   }
+
+
+  static CanvasElement internalCreateCanvasElement() {
+    return new CanvasElement._internalWrap();
+  }
+
+  factory CanvasElement._internalWrap() {
+    return new CanvasElement.internal_();
+  }
+
+  CanvasElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2314,7 +3356,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   /// The height of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.height')
   @DocsEditable()
-  void set height(int value) => _blink.BlinkHTMLCanvasElement.instance.height_Setter_(unwrap_jso(this), value);
+  set height(int value) => _blink.BlinkHTMLCanvasElement.instance.height_Setter_(unwrap_jso(this), value);
   
   /// The width of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.width')
@@ -2324,11 +3366,11 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   /// The width of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.width')
   @DocsEditable()
-  void set width(int value) => _blink.BlinkHTMLCanvasElement.instance.width_Setter_(unwrap_jso(this), value);
+  set width(int value) => _blink.BlinkHTMLCanvasElement.instance.width_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLCanvasElement.getContext')
   @DocsEditable()
-  Object getContext(String contextId, [Map attrs]) => wrap_jso(_blink.BlinkHTMLCanvasElement.instance.getContext_Callback_2_(unwrap_jso(this), contextId, attrs));
+  Object getContext(String contextId, [Map attrs]) => wrap_jso(_blink.BlinkHTMLCanvasElement.instance.getContext_Callback_2_(unwrap_jso(this), contextId, convertDartToNative_Dictionary(attrs)));
   
   @DomName('HTMLCanvasElement.toDataURL')
   @DocsEditable()
@@ -2464,6 +3506,21 @@ class CanvasGradient extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory CanvasGradient._() { throw new UnsupportedError("Not supported"); }
 
+  static CanvasGradient internalCreateCanvasGradient() {
+    return new CanvasGradient._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory CanvasGradient._internalWrap() {
+    return new CanvasGradient.internal_();
+  }
+
+  CanvasGradient.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   /**
    * Adds a color stop to this gradient at the offset.
    *
@@ -2518,6 +3575,21 @@ class CanvasPattern extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory CanvasPattern._() { throw new UnsupportedError("Not supported"); }
 
+  static CanvasPattern internalCreateCanvasPattern() {
+    return new CanvasPattern._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory CanvasPattern._internalWrap() {
+    return new CanvasPattern.internal_();
+  }
+
+  CanvasPattern.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('CanvasPattern.setTransform')
   @DocsEditable()
   @Experimental() // untriaged
@@ -2538,6 +3610,21 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   // To suppress missing implicit constructor warnings.
   factory CanvasRenderingContext2D._() { throw new UnsupportedError("Not supported"); }
 
+  static CanvasRenderingContext2D internalCreateCanvasRenderingContext2D() {
+    return new CanvasRenderingContext2D._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory CanvasRenderingContext2D._internalWrap() {
+    return new CanvasRenderingContext2D.internal_();
+  }
+
+  CanvasRenderingContext2D.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('CanvasRenderingContext2D.canvas')
   @DocsEditable()
   @Experimental() // untriaged
@@ -2551,7 +3638,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   @DomName('CanvasRenderingContext2D.currentTransform')
   @DocsEditable()
   @Experimental() // untriaged
-  void set currentTransform(Matrix value) => _blink.BlinkCanvasRenderingContext2D.instance.currentTransform_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set currentTransform(Matrix value) => _blink.BlinkCanvasRenderingContext2D.instance.currentTransform_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('CanvasRenderingContext2D.direction')
   @DocsEditable()
@@ -2561,15 +3648,15 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   @DomName('CanvasRenderingContext2D.direction')
   @DocsEditable()
   @Experimental() // untriaged
-  void set direction(String value) => _blink.BlinkCanvasRenderingContext2D.instance.direction_Setter_(unwrap_jso(this), value);
+  set direction(String value) => _blink.BlinkCanvasRenderingContext2D.instance.direction_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.fillStyle')
   @DocsEditable()
-  Object get fillStyle => _blink.BlinkCanvasRenderingContext2D.instance.fillStyle_Getter_(unwrap_jso(this));
+  Object get fillStyle => wrap_jso(_blink.BlinkCanvasRenderingContext2D.instance.fillStyle_Getter_(unwrap_jso(this)));
   
   @DomName('CanvasRenderingContext2D.fillStyle')
   @DocsEditable()
-  void set fillStyle(Object value) => _blink.BlinkCanvasRenderingContext2D.instance.fillStyle_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set fillStyle(Object value) => _blink.BlinkCanvasRenderingContext2D.instance.fillStyle_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('CanvasRenderingContext2D.font')
   @DocsEditable()
@@ -2577,7 +3664,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.font')
   @DocsEditable()
-  void set font(String value) => _blink.BlinkCanvasRenderingContext2D.instance.font_Setter_(unwrap_jso(this), value);
+  set font(String value) => _blink.BlinkCanvasRenderingContext2D.instance.font_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.globalAlpha')
   @DocsEditable()
@@ -2585,7 +3672,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.globalAlpha')
   @DocsEditable()
-  void set globalAlpha(num value) => _blink.BlinkCanvasRenderingContext2D.instance.globalAlpha_Setter_(unwrap_jso(this), value);
+  set globalAlpha(num value) => _blink.BlinkCanvasRenderingContext2D.instance.globalAlpha_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.globalCompositeOperation')
   @DocsEditable()
@@ -2593,7 +3680,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.globalCompositeOperation')
   @DocsEditable()
-  void set globalCompositeOperation(String value) => _blink.BlinkCanvasRenderingContext2D.instance.globalCompositeOperation_Setter_(unwrap_jso(this), value);
+  set globalCompositeOperation(String value) => _blink.BlinkCanvasRenderingContext2D.instance.globalCompositeOperation_Setter_(unwrap_jso(this), value);
   
   /**
    * Whether images and patterns on this canvas will be smoothed when this
@@ -2623,7 +3710,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   @DomName('CanvasRenderingContext2D.imageSmoothingEnabled')
   @DocsEditable()
   @Experimental() // untriaged
-  void set imageSmoothingEnabled(bool value) => _blink.BlinkCanvasRenderingContext2D.instance.imageSmoothingEnabled_Setter_(unwrap_jso(this), value);
+  set imageSmoothingEnabled(bool value) => _blink.BlinkCanvasRenderingContext2D.instance.imageSmoothingEnabled_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.lineCap')
   @DocsEditable()
@@ -2631,7 +3718,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.lineCap')
   @DocsEditable()
-  void set lineCap(String value) => _blink.BlinkCanvasRenderingContext2D.instance.lineCap_Setter_(unwrap_jso(this), value);
+  set lineCap(String value) => _blink.BlinkCanvasRenderingContext2D.instance.lineCap_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.lineDashOffset')
   @DocsEditable()
@@ -2639,7 +3726,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.lineDashOffset')
   @DocsEditable()
-  void set lineDashOffset(num value) => _blink.BlinkCanvasRenderingContext2D.instance.lineDashOffset_Setter_(unwrap_jso(this), value);
+  set lineDashOffset(num value) => _blink.BlinkCanvasRenderingContext2D.instance.lineDashOffset_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.lineJoin')
   @DocsEditable()
@@ -2647,7 +3734,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.lineJoin')
   @DocsEditable()
-  void set lineJoin(String value) => _blink.BlinkCanvasRenderingContext2D.instance.lineJoin_Setter_(unwrap_jso(this), value);
+  set lineJoin(String value) => _blink.BlinkCanvasRenderingContext2D.instance.lineJoin_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.lineWidth')
   @DocsEditable()
@@ -2655,7 +3742,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.lineWidth')
   @DocsEditable()
-  void set lineWidth(num value) => _blink.BlinkCanvasRenderingContext2D.instance.lineWidth_Setter_(unwrap_jso(this), value);
+  set lineWidth(num value) => _blink.BlinkCanvasRenderingContext2D.instance.lineWidth_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.miterLimit')
   @DocsEditable()
@@ -2663,7 +3750,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.miterLimit')
   @DocsEditable()
-  void set miterLimit(num value) => _blink.BlinkCanvasRenderingContext2D.instance.miterLimit_Setter_(unwrap_jso(this), value);
+  set miterLimit(num value) => _blink.BlinkCanvasRenderingContext2D.instance.miterLimit_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.shadowBlur')
   @DocsEditable()
@@ -2671,7 +3758,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.shadowBlur')
   @DocsEditable()
-  void set shadowBlur(num value) => _blink.BlinkCanvasRenderingContext2D.instance.shadowBlur_Setter_(unwrap_jso(this), value);
+  set shadowBlur(num value) => _blink.BlinkCanvasRenderingContext2D.instance.shadowBlur_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.shadowColor')
   @DocsEditable()
@@ -2679,7 +3766,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.shadowColor')
   @DocsEditable()
-  void set shadowColor(String value) => _blink.BlinkCanvasRenderingContext2D.instance.shadowColor_Setter_(unwrap_jso(this), value);
+  set shadowColor(String value) => _blink.BlinkCanvasRenderingContext2D.instance.shadowColor_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.shadowOffsetX')
   @DocsEditable()
@@ -2687,7 +3774,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.shadowOffsetX')
   @DocsEditable()
-  void set shadowOffsetX(num value) => _blink.BlinkCanvasRenderingContext2D.instance.shadowOffsetX_Setter_(unwrap_jso(this), value);
+  set shadowOffsetX(num value) => _blink.BlinkCanvasRenderingContext2D.instance.shadowOffsetX_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.shadowOffsetY')
   @DocsEditable()
@@ -2695,15 +3782,15 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.shadowOffsetY')
   @DocsEditable()
-  void set shadowOffsetY(num value) => _blink.BlinkCanvasRenderingContext2D.instance.shadowOffsetY_Setter_(unwrap_jso(this), value);
+  set shadowOffsetY(num value) => _blink.BlinkCanvasRenderingContext2D.instance.shadowOffsetY_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.strokeStyle')
   @DocsEditable()
-  Object get strokeStyle => _blink.BlinkCanvasRenderingContext2D.instance.strokeStyle_Getter_(unwrap_jso(this));
+  Object get strokeStyle => wrap_jso(_blink.BlinkCanvasRenderingContext2D.instance.strokeStyle_Getter_(unwrap_jso(this)));
   
   @DomName('CanvasRenderingContext2D.strokeStyle')
   @DocsEditable()
-  void set strokeStyle(Object value) => _blink.BlinkCanvasRenderingContext2D.instance.strokeStyle_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set strokeStyle(Object value) => _blink.BlinkCanvasRenderingContext2D.instance.strokeStyle_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('CanvasRenderingContext2D.textAlign')
   @DocsEditable()
@@ -2711,7 +3798,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.textAlign')
   @DocsEditable()
-  void set textAlign(String value) => _blink.BlinkCanvasRenderingContext2D.instance.textAlign_Setter_(unwrap_jso(this), value);
+  set textAlign(String value) => _blink.BlinkCanvasRenderingContext2D.instance.textAlign_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.textBaseline')
   @DocsEditable()
@@ -2719,11 +3806,11 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.textBaseline')
   @DocsEditable()
-  void set textBaseline(String value) => _blink.BlinkCanvasRenderingContext2D.instance.textBaseline_Setter_(unwrap_jso(this), value);
+  set textBaseline(String value) => _blink.BlinkCanvasRenderingContext2D.instance.textBaseline_Setter_(unwrap_jso(this), value);
   
   void addHitRegion([Map options]) {
     if (options != null) {
-      _blink.BlinkCanvasRenderingContext2D.instance.addHitRegion_Callback_1_(unwrap_jso(this), options);
+      _blink.BlinkCanvasRenderingContext2D.instance.addHitRegion_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(options));
       return;
     }
     _blink.BlinkCanvasRenderingContext2D.instance.addHitRegion_Callback_0_(unwrap_jso(this));
@@ -3312,13 +4399,25 @@ class CharacterData extends Node implements ChildNode {
   // To suppress missing implicit constructor warnings.
   factory CharacterData._() { throw new UnsupportedError("Not supported"); }
 
+
+  static CharacterData internalCreateCharacterData() {
+    return new CharacterData._internalWrap();
+  }
+
+  factory CharacterData._internalWrap() {
+    return new CharacterData.internal_();
+  }
+
+  CharacterData.internal_() : super.internal_();
+
+
   @DomName('CharacterData.data')
   @DocsEditable()
   String get data => _blink.BlinkCharacterData.instance.data_Getter_(unwrap_jso(this));
   
   @DomName('CharacterData.data')
   @DocsEditable()
-  void set data(String value) => _blink.BlinkCharacterData.instance.data_Setter_(unwrap_jso(this), value);
+  set data(String value) => _blink.BlinkCharacterData.instance.data_Setter_(unwrap_jso(this), value);
   
   @DomName('CharacterData.length')
   @DocsEditable()
@@ -3400,8 +4499,21 @@ class CircularGeofencingRegion extends GeofencingRegion {
   @DomName('CircularGeofencingRegion.CircularGeofencingRegion')
   @DocsEditable()
   factory CircularGeofencingRegion(Map init) {
-    return _blink.BlinkCircularGeofencingRegion.instance.constructorCallback_1_(init);
+    var init_1 = convertDartToNative_Dictionary(init);
+    return wrap_jso(_blink.BlinkCircularGeofencingRegion.instance.constructorCallback_1_(init_1));
   }
+
+
+  static CircularGeofencingRegion internalCreateCircularGeofencingRegion() {
+    return new CircularGeofencingRegion._internalWrap();
+  }
+
+  factory CircularGeofencingRegion._internalWrap() {
+    return new CircularGeofencingRegion.internal_();
+  }
+
+  CircularGeofencingRegion.internal_() : super.internal_();
+
 
   @DomName('CircularGeofencingRegion.MAX_RADIUS')
   @DocsEditable()
@@ -3416,17 +4528,17 @@ class CircularGeofencingRegion extends GeofencingRegion {
   @DomName('CircularGeofencingRegion.latitude')
   @DocsEditable()
   @Experimental() // untriaged
-  double get latitude => _blink.BlinkCircularGeofencingRegion.instance.latitude_Getter_(unwrap_jso(this));
+  num get latitude => _blink.BlinkCircularGeofencingRegion.instance.latitude_Getter_(unwrap_jso(this));
   
   @DomName('CircularGeofencingRegion.longitude')
   @DocsEditable()
   @Experimental() // untriaged
-  double get longitude => _blink.BlinkCircularGeofencingRegion.instance.longitude_Getter_(unwrap_jso(this));
+  num get longitude => _blink.BlinkCircularGeofencingRegion.instance.longitude_Getter_(unwrap_jso(this));
   
   @DomName('CircularGeofencingRegion.radius')
   @DocsEditable()
   @Experimental() // untriaged
-  double get radius => _blink.BlinkCircularGeofencingRegion.instance.radius_Getter_(unwrap_jso(this));
+  num get radius => _blink.BlinkCircularGeofencingRegion.instance.radius_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3441,6 +4553,18 @@ class CircularGeofencingRegion extends GeofencingRegion {
 class CloseEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory CloseEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static CloseEvent internalCreateCloseEvent() {
+    return new CloseEvent._internalWrap();
+  }
+
+  factory CloseEvent._internalWrap() {
+    return new CloseEvent.internal_();
+  }
+
+  CloseEvent.internal_() : super.internal_();
+
 
   @DomName('CloseEvent.code')
   @DocsEditable()
@@ -3470,10 +4594,22 @@ class Comment extends CharacterData {
   @DocsEditable()
   factory Comment([String data]) {
     if (data != null) {
-      return _blink.BlinkComment.instance.constructorCallback_1_(data);
+      return wrap_jso(_blink.BlinkComment.instance.constructorCallback_1_(data));
     }
-    return _blink.BlinkComment.instance.constructorCallback_0_();
+    return wrap_jso(_blink.BlinkComment.instance.constructorCallback_0_());
   }
+
+
+  static Comment internalCreateComment() {
+    return new Comment._internalWrap();
+  }
+
+  factory Comment._internalWrap() {
+    return new Comment.internal_();
+  }
+
+  Comment.internal_() : super.internal_();
+
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3499,6 +4635,18 @@ class CompositionEvent extends UIEvent {
 
   // To suppress missing implicit constructor warnings.
   factory CompositionEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static CompositionEvent internalCreateCompositionEvent() {
+    return new CompositionEvent._internalWrap();
+  }
+
+  factory CompositionEvent._internalWrap() {
+    return new CompositionEvent.internal_();
+  }
+
+  CompositionEvent.internal_() : super.internal_();
+
 
   @DomName('CompositionEvent.activeSegmentEnd')
   @DocsEditable()
@@ -3537,6 +4685,18 @@ class Console extends ConsoleBase {
   // To suppress missing implicit constructor warnings.
   factory Console._() { throw new UnsupportedError("Not supported"); }
 
+
+  static Console internalCreateConsole() {
+    return new Console._internalWrap();
+  }
+
+  factory Console._internalWrap() {
+    return new Console.internal_();
+  }
+
+  Console.internal_() : super.internal_();
+
+
   @DomName('Console.memory')
   @DocsEditable()
   @Experimental()
@@ -3556,6 +4716,21 @@ class Console extends ConsoleBase {
 class ConsoleBase extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ConsoleBase._() { throw new UnsupportedError("Not supported"); }
+
+  static ConsoleBase internalCreateConsoleBase() {
+    return new ConsoleBase._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory ConsoleBase._internalWrap() {
+    return new ConsoleBase.internal_();
+  }
+
+  ConsoleBase.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('ConsoleBase.assertCondition')
   @DocsEditable()
@@ -3692,6 +4867,18 @@ class ContentElement extends HtmlElement {
   @DomName('HTMLContentElement.HTMLContentElement')
   @DocsEditable()
   factory ContentElement() => document.createElement("content");
+
+
+  static ContentElement internalCreateContentElement() {
+    return new ContentElement._internalWrap();
+  }
+
+  factory ContentElement._internalWrap() {
+    return new ContentElement.internal_();
+  }
+
+  ContentElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -3708,11 +4895,11 @@ class ContentElement extends HtmlElement {
   
   @DomName('HTMLContentElement.select')
   @DocsEditable()
-  void set select(String value) => _blink.BlinkHTMLContentElement.instance.select_Setter_(unwrap_jso(this), value);
+  set select(String value) => _blink.BlinkHTMLContentElement.instance.select_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLContentElement.getDistributedNodes')
   @DocsEditable()
-  List<Node> getDistributedNodes() => wrap_jso_list(_blink.BlinkHTMLContentElement.instance.getDistributedNodes_Callback_0_(unwrap_jso(this)));
+  List<Node> getDistributedNodes() => wrap_jso(_blink.BlinkHTMLContentElement.instance.getDistributedNodes_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3728,33 +4915,48 @@ class Coordinates extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Coordinates._() { throw new UnsupportedError("Not supported"); }
 
+  static Coordinates internalCreateCoordinates() {
+    return new Coordinates._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Coordinates._internalWrap() {
+    return new Coordinates.internal_();
+  }
+
+  Coordinates.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('Coordinates.accuracy')
   @DocsEditable()
-  double get accuracy => _blink.BlinkCoordinates.instance.accuracy_Getter_(unwrap_jso(this));
+  num get accuracy => _blink.BlinkCoordinates.instance.accuracy_Getter_(unwrap_jso(this));
   
   @DomName('Coordinates.altitude')
   @DocsEditable()
-  double get altitude => _blink.BlinkCoordinates.instance.altitude_Getter_(unwrap_jso(this));
+  num get altitude => _blink.BlinkCoordinates.instance.altitude_Getter_(unwrap_jso(this));
   
   @DomName('Coordinates.altitudeAccuracy')
   @DocsEditable()
-  double get altitudeAccuracy => _blink.BlinkCoordinates.instance.altitudeAccuracy_Getter_(unwrap_jso(this));
+  num get altitudeAccuracy => _blink.BlinkCoordinates.instance.altitudeAccuracy_Getter_(unwrap_jso(this));
   
   @DomName('Coordinates.heading')
   @DocsEditable()
-  double get heading => _blink.BlinkCoordinates.instance.heading_Getter_(unwrap_jso(this));
+  num get heading => _blink.BlinkCoordinates.instance.heading_Getter_(unwrap_jso(this));
   
   @DomName('Coordinates.latitude')
   @DocsEditable()
-  double get latitude => _blink.BlinkCoordinates.instance.latitude_Getter_(unwrap_jso(this));
+  num get latitude => _blink.BlinkCoordinates.instance.latitude_Getter_(unwrap_jso(this));
   
   @DomName('Coordinates.longitude')
   @DocsEditable()
-  double get longitude => _blink.BlinkCoordinates.instance.longitude_Getter_(unwrap_jso(this));
+  num get longitude => _blink.BlinkCoordinates.instance.longitude_Getter_(unwrap_jso(this));
   
   @DomName('Coordinates.speed')
   @DocsEditable()
-  double get speed => _blink.BlinkCoordinates.instance.speed_Getter_(unwrap_jso(this));
+  num get speed => _blink.BlinkCoordinates.instance.speed_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3770,6 +4972,21 @@ class Coordinates extends NativeFieldWrapperClass2 {
 class Credential extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Credential._() { throw new UnsupportedError("Not supported"); }
+
+  static Credential internalCreateCredential() {
+    return new Credential._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Credential._internalWrap() {
+    return new Credential.internal_();
+  }
+
+  Credential.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Credential.avatarURL')
   @DocsEditable()
@@ -3801,26 +5018,41 @@ class CredentialsContainer extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory CredentialsContainer._() { throw new UnsupportedError("Not supported"); }
 
+  static CredentialsContainer internalCreateCredentialsContainer() {
+    return new CredentialsContainer._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory CredentialsContainer._internalWrap() {
+    return new CredentialsContainer.internal_();
+  }
+
+  CredentialsContainer.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('CredentialsContainer.notifyFailedSignIn')
   @DocsEditable()
   @Experimental() // untriaged
-  Future notifyFailedSignIn(Credential credential) => _blink.BlinkCredentialsContainer.instance.notifyFailedSignIn_Callback_1_(unwrap_jso(this), unwrap_jso(credential));
+  Future notifyFailedSignIn(Credential credential) => wrap_jso(_blink.BlinkCredentialsContainer.instance.notifyFailedSignIn_Callback_1_(unwrap_jso(this), unwrap_jso(credential)));
   
   @DomName('CredentialsContainer.notifySignedIn')
   @DocsEditable()
   @Experimental() // untriaged
-  Future notifySignedIn(Credential credential) => _blink.BlinkCredentialsContainer.instance.notifySignedIn_Callback_1_(unwrap_jso(this), unwrap_jso(credential));
+  Future notifySignedIn(Credential credential) => wrap_jso(_blink.BlinkCredentialsContainer.instance.notifySignedIn_Callback_1_(unwrap_jso(this), unwrap_jso(credential)));
   
   @DomName('CredentialsContainer.notifySignedOut')
   @DocsEditable()
   @Experimental() // untriaged
-  Future notifySignedOut() => _blink.BlinkCredentialsContainer.instance.notifySignedOut_Callback_0_(unwrap_jso(this));
+  Future notifySignedOut() => wrap_jso(_blink.BlinkCredentialsContainer.instance.notifySignedOut_Callback_0_(unwrap_jso(this)));
   
   Future request([Map options]) {
     if (options != null) {
-      return _blink.BlinkCredentialsContainer.instance.request_Callback_1_(unwrap_jso(this), options);
+      return wrap_jso(_blink.BlinkCredentialsContainer.instance.request_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(options)));
     }
-    return _blink.BlinkCredentialsContainer.instance.request_Callback_0_(unwrap_jso(this));
+    return wrap_jso(_blink.BlinkCredentialsContainer.instance.request_Callback_0_(unwrap_jso(this)));
   }
 
 }
@@ -3841,6 +5073,21 @@ class Crypto extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Crypto._() { throw new UnsupportedError("Not supported"); }
 
+  static Crypto internalCreateCrypto() {
+    return new Crypto._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Crypto._internalWrap() {
+    return new Crypto.internal_();
+  }
+
+  Crypto.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
@@ -3851,7 +5098,7 @@ class Crypto extends NativeFieldWrapperClass2 {
   
   @DomName('Crypto.getRandomValues')
   @DocsEditable()
-  TypedData getRandomValues(TypedData array) => _blink.BlinkCrypto.instance.getRandomValues_Callback_1_(unwrap_jso(this), unwrap_jso(array));
+  TypedData getRandomValues(TypedData array) => wrap_jso(_blink.BlinkCrypto.instance.getRandomValues_Callback_1_(unwrap_jso(this), unwrap_jso(array)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3868,10 +5115,25 @@ class CryptoKey extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory CryptoKey._() { throw new UnsupportedError("Not supported"); }
 
+  static CryptoKey internalCreateCryptoKey() {
+    return new CryptoKey._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory CryptoKey._internalWrap() {
+    return new CryptoKey.internal_();
+  }
+
+  CryptoKey.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('CryptoKey.algorithm')
   @DocsEditable()
   @Experimental() // untriaged
-  Object get algorithm => _blink.BlinkCryptoKey.instance.algorithm_Getter_(unwrap_jso(this));
+  Object get algorithm => wrap_jso(_blink.BlinkCryptoKey.instance.algorithm_Getter_(unwrap_jso(this)));
   
   @DomName('CryptoKey.extractable')
   @DocsEditable()
@@ -3904,6 +5166,21 @@ class Css extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Css._() { throw new UnsupportedError("Not supported"); }
 
+  static Css internalCreateCss() {
+    return new Css._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Css._internalWrap() {
+    return new Css.internal_();
+  }
+
+  Css.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('CSS.supports')
   @DocsEditable()
   bool supports(String property, String value) => _blink.BlinkCSS.instance.supports_Callback_2_(unwrap_jso(this), property, value);
@@ -3928,13 +5205,25 @@ class CssCharsetRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssCharsetRule._() { throw new UnsupportedError("Not supported"); }
 
+
+  static CssCharsetRule internalCreateCssCharsetRule() {
+    return new CssCharsetRule._internalWrap();
+  }
+
+  factory CssCharsetRule._internalWrap() {
+    return new CssCharsetRule.internal_();
+  }
+
+  CssCharsetRule.internal_() : super.internal_();
+
+
   @DomName('CSSCharsetRule.encoding')
   @DocsEditable()
   String get encoding => _blink.BlinkCSSCharsetRule.instance.encoding_Getter_(unwrap_jso(this));
   
   @DomName('CSSCharsetRule.encoding')
   @DocsEditable()
-  void set encoding(String value) => _blink.BlinkCSSCharsetRule.instance.encoding_Setter_(unwrap_jso(this), value);
+  set encoding(String value) => _blink.BlinkCSSCharsetRule.instance.encoding_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3954,6 +5243,18 @@ class CssFilterRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssFilterRule._() { throw new UnsupportedError("Not supported"); }
 
+
+  static CssFilterRule internalCreateCssFilterRule() {
+    return new CssFilterRule._internalWrap();
+  }
+
+  factory CssFilterRule._internalWrap() {
+    return new CssFilterRule.internal_();
+  }
+
+  CssFilterRule.internal_() : super.internal_();
+
+
   @DomName('WebKitCSSFilterRule.style')
   @DocsEditable()
   CssStyleDeclaration get style => wrap_jso(_blink.BlinkWebKitCSSFilterRule.instance.style_Getter_(unwrap_jso(this)));
@@ -3972,6 +5273,18 @@ class CssFontFaceRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssFontFaceRule._() { throw new UnsupportedError("Not supported"); }
 
+
+  static CssFontFaceRule internalCreateCssFontFaceRule() {
+    return new CssFontFaceRule._internalWrap();
+  }
+
+  factory CssFontFaceRule._internalWrap() {
+    return new CssFontFaceRule.internal_();
+  }
+
+  CssFontFaceRule.internal_() : super.internal_();
+
+
   @DomName('CSSFontFaceRule.style')
   @DocsEditable()
   CssStyleDeclaration get style => wrap_jso(_blink.BlinkCSSFontFaceRule.instance.style_Getter_(unwrap_jso(this)));
@@ -3989,6 +5302,18 @@ class CssFontFaceRule extends CssRule {
 class CssImportRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssImportRule._() { throw new UnsupportedError("Not supported"); }
+
+
+  static CssImportRule internalCreateCssImportRule() {
+    return new CssImportRule._internalWrap();
+  }
+
+  factory CssImportRule._internalWrap() {
+    return new CssImportRule.internal_();
+  }
+
+  CssImportRule.internal_() : super.internal_();
+
 
   @DomName('CSSImportRule.href')
   @DocsEditable()
@@ -4017,6 +5342,18 @@ class CssKeyframeRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssKeyframeRule._() { throw new UnsupportedError("Not supported"); }
 
+
+  static CssKeyframeRule internalCreateCssKeyframeRule() {
+    return new CssKeyframeRule._internalWrap();
+  }
+
+  factory CssKeyframeRule._internalWrap() {
+    return new CssKeyframeRule.internal_();
+  }
+
+  CssKeyframeRule.internal_() : super.internal_();
+
+
   @DomName('CSSKeyframeRule.keyText')
   @DocsEditable()
   @Experimental() // untriaged
@@ -4025,7 +5362,7 @@ class CssKeyframeRule extends CssRule {
   @DomName('CSSKeyframeRule.keyText')
   @DocsEditable()
   @Experimental() // untriaged
-  void set keyText(String value) => _blink.BlinkCSSKeyframeRule.instance.keyText_Setter_(unwrap_jso(this), value);
+  set keyText(String value) => _blink.BlinkCSSKeyframeRule.instance.keyText_Setter_(unwrap_jso(this), value);
   
   @DomName('CSSKeyframeRule.style')
   @DocsEditable()
@@ -4047,10 +5384,22 @@ class CssKeyframesRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssKeyframesRule._() { throw new UnsupportedError("Not supported"); }
 
+
+  static CssKeyframesRule internalCreateCssKeyframesRule() {
+    return new CssKeyframesRule._internalWrap();
+  }
+
+  factory CssKeyframesRule._internalWrap() {
+    return new CssKeyframesRule.internal_();
+  }
+
+  CssKeyframesRule.internal_() : super.internal_();
+
+
   @DomName('CSSKeyframesRule.cssRules')
   @DocsEditable()
   @Experimental() // untriaged
-  List<CssRule> get cssRules => wrap_jso_list(_blink.BlinkCSSKeyframesRule.instance.cssRules_Getter_(unwrap_jso(this)));
+  List<CssRule> get cssRules => wrap_jso(_blink.BlinkCSSKeyframesRule.instance.cssRules_Getter_(unwrap_jso(this)));
   
   @DomName('CSSKeyframesRule.name')
   @DocsEditable()
@@ -4060,12 +5409,12 @@ class CssKeyframesRule extends CssRule {
   @DomName('CSSKeyframesRule.name')
   @DocsEditable()
   @Experimental() // untriaged
-  void set name(String value) => _blink.BlinkCSSKeyframesRule.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkCSSKeyframesRule.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('CSSKeyframesRule.__getter__')
   @DocsEditable()
   @Experimental() // untriaged
-  CssKeyframeRule __getter__(int index) => _blink.BlinkCSSKeyframesRule.instance.$__getter___Callback_1_(unwrap_jso(this), index);
+  CssKeyframeRule __getter__(int index) => wrap_jso(_blink.BlinkCSSKeyframesRule.instance.$__getter___Callback_1_(unwrap_jso(this), index));
   
   @DomName('CSSKeyframesRule.deleteRule')
   @DocsEditable()
@@ -4075,7 +5424,7 @@ class CssKeyframesRule extends CssRule {
   @DomName('CSSKeyframesRule.findRule')
   @DocsEditable()
   @Experimental() // untriaged
-  CssKeyframeRule findRule(String key) => _blink.BlinkCSSKeyframesRule.instance.findRule_Callback_1_(unwrap_jso(this), key);
+  CssKeyframeRule findRule(String key) => wrap_jso(_blink.BlinkCSSKeyframesRule.instance.findRule_Callback_1_(unwrap_jso(this), key));
   
   @DomName('CSSKeyframesRule.insertRule')
   @DocsEditable()
@@ -4096,9 +5445,21 @@ class CssMediaRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssMediaRule._() { throw new UnsupportedError("Not supported"); }
 
+
+  static CssMediaRule internalCreateCssMediaRule() {
+    return new CssMediaRule._internalWrap();
+  }
+
+  factory CssMediaRule._internalWrap() {
+    return new CssMediaRule.internal_();
+  }
+
+  CssMediaRule.internal_() : super.internal_();
+
+
   @DomName('CSSMediaRule.cssRules')
   @DocsEditable()
-  List<CssRule> get cssRules => wrap_jso_list(_blink.BlinkCSSMediaRule.instance.cssRules_Getter_(unwrap_jso(this)));
+  List<CssRule> get cssRules => wrap_jso(_blink.BlinkCSSMediaRule.instance.cssRules_Getter_(unwrap_jso(this)));
   
   @DomName('CSSMediaRule.media')
   @DocsEditable()
@@ -4126,13 +5487,25 @@ class CssPageRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssPageRule._() { throw new UnsupportedError("Not supported"); }
 
+
+  static CssPageRule internalCreateCssPageRule() {
+    return new CssPageRule._internalWrap();
+  }
+
+  factory CssPageRule._internalWrap() {
+    return new CssPageRule.internal_();
+  }
+
+  CssPageRule.internal_() : super.internal_();
+
+
   @DomName('CSSPageRule.selectorText')
   @DocsEditable()
   String get selectorText => _blink.BlinkCSSPageRule.instance.selectorText_Getter_(unwrap_jso(this));
   
   @DomName('CSSPageRule.selectorText')
   @DocsEditable()
-  void set selectorText(String value) => _blink.BlinkCSSPageRule.instance.selectorText_Setter_(unwrap_jso(this), value);
+  set selectorText(String value) => _blink.BlinkCSSPageRule.instance.selectorText_Setter_(unwrap_jso(this), value);
   
   @DomName('CSSPageRule.style')
   @DocsEditable()
@@ -4151,6 +5524,21 @@ class CssPageRule extends CssRule {
 class CssRule extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory CssRule._() { throw new UnsupportedError("Not supported"); }
+
+  static CssRule internalCreateCssRule() {
+    return new CssRule._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory CssRule._internalWrap() {
+    return new CssRule.internal_();
+  }
+
+  CssRule.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('CSSRule.CHARSET_RULE')
   @DocsEditable()
@@ -4219,7 +5607,7 @@ class CssRule extends NativeFieldWrapperClass2 {
   
   @DomName('CSSRule.cssText')
   @DocsEditable()
-  void set cssText(String value) => _blink.BlinkCSSRule.instance.cssText_Setter_(unwrap_jso(this), value);
+  set cssText(String value) => _blink.BlinkCSSRule.instance.cssText_Setter_(unwrap_jso(this), value);
   
   @DomName('CSSRule.parentRule')
   @DocsEditable()
@@ -4247,7 +5635,7 @@ class CssRule extends NativeFieldWrapperClass2 {
 
 
 @DomName('CSSStyleDeclaration')
-class CssStyleDeclaration  extends NativeFieldWrapperClass2 with
+class CssStyleDeclaration  extends JsoNativeFieldWrapper with
     CssStyleDeclarationBase  {
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
@@ -4293,7 +5681,7 @@ class CssStyleDeclaration  extends NativeFieldWrapperClass2 with
   }
 
   bool _hasProperty(String propertyName) =>
-      _blink.BlinkCSSStyleDeclaration.$__propertyQuery___Callback_1(this, propertyName);
+      _blink.BlinkCSSStyleDeclaration.instance.$__propertyQuery___Callback_1_(unwrap_jso(this), propertyName) != null;
 
   @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) {
@@ -4337,13 +5725,28 @@ class CssStyleDeclaration  extends NativeFieldWrapperClass2 with
   // To suppress missing implicit constructor warnings.
   factory CssStyleDeclaration._() { throw new UnsupportedError("Not supported"); }
 
+  static CssStyleDeclaration internalCreateCssStyleDeclaration() {
+    return new CssStyleDeclaration._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory CssStyleDeclaration._internalWrap() {
+    return new CssStyleDeclaration.internal_();
+  }
+
+  CssStyleDeclaration.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('CSSStyleDeclaration.cssText')
   @DocsEditable()
   String get cssText => _blink.BlinkCSSStyleDeclaration.instance.cssText_Getter_(unwrap_jso(this));
   
   @DomName('CSSStyleDeclaration.cssText')
   @DocsEditable()
-  void set cssText(String value) => _blink.BlinkCSSStyleDeclaration.instance.cssText_Setter_(unwrap_jso(this), value);
+  set cssText(String value) => _blink.BlinkCSSStyleDeclaration.instance.cssText_Setter_(unwrap_jso(this), value);
   
   @DomName('CSSStyleDeclaration.length')
   @DocsEditable()
@@ -4416,16 +5819,18 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   // items in the MEMBERS set if you want that functionality.
 }
 
-abstract class CssStyleDeclarationBase {
-  String getPropertyValue(String propertyName);
-  void setProperty(String propertyName, String value, [String priority]);
+class CssStyleDeclarationBase {
+  String getPropertyValue(String propertyName) =>
+    throw new StateError('getProperty not overridden in dart:html');
+  void setProperty(String propertyName, String value, [String priority]) =>
+    throw new StateError('setProperty not overridden in dart:html');
 
   /** Gets the value of "align-content" */
   String get alignContent =>
     getPropertyValue('align-content');
 
   /** Sets the value of "align-content" */
-  void set alignContent(String value) {
+  set alignContent(String value) {
     setProperty('align-content', value, '');
   }
 
@@ -4434,7 +5839,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('align-items');
 
   /** Sets the value of "align-items" */
-  void set alignItems(String value) {
+  set alignItems(String value) {
     setProperty('align-items', value, '');
   }
 
@@ -4443,7 +5848,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('align-self');
 
   /** Sets the value of "align-self" */
-  void set alignSelf(String value) {
+  set alignSelf(String value) {
     setProperty('align-self', value, '');
   }
 
@@ -4452,7 +5857,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation');
 
   /** Sets the value of "animation" */
-  void set animation(String value) {
+  set animation(String value) {
     setProperty('animation', value, '');
   }
 
@@ -4461,7 +5866,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-delay');
 
   /** Sets the value of "animation-delay" */
-  void set animationDelay(String value) {
+  set animationDelay(String value) {
     setProperty('animation-delay', value, '');
   }
 
@@ -4470,7 +5875,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-direction');
 
   /** Sets the value of "animation-direction" */
-  void set animationDirection(String value) {
+  set animationDirection(String value) {
     setProperty('animation-direction', value, '');
   }
 
@@ -4479,7 +5884,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-duration');
 
   /** Sets the value of "animation-duration" */
-  void set animationDuration(String value) {
+  set animationDuration(String value) {
     setProperty('animation-duration', value, '');
   }
 
@@ -4488,7 +5893,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-fill-mode');
 
   /** Sets the value of "animation-fill-mode" */
-  void set animationFillMode(String value) {
+  set animationFillMode(String value) {
     setProperty('animation-fill-mode', value, '');
   }
 
@@ -4497,7 +5902,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-iteration-count');
 
   /** Sets the value of "animation-iteration-count" */
-  void set animationIterationCount(String value) {
+  set animationIterationCount(String value) {
     setProperty('animation-iteration-count', value, '');
   }
 
@@ -4506,7 +5911,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-name');
 
   /** Sets the value of "animation-name" */
-  void set animationName(String value) {
+  set animationName(String value) {
     setProperty('animation-name', value, '');
   }
 
@@ -4515,7 +5920,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-play-state');
 
   /** Sets the value of "animation-play-state" */
-  void set animationPlayState(String value) {
+  set animationPlayState(String value) {
     setProperty('animation-play-state', value, '');
   }
 
@@ -4524,7 +5929,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-timing-function');
 
   /** Sets the value of "animation-timing-function" */
-  void set animationTimingFunction(String value) {
+  set animationTimingFunction(String value) {
     setProperty('animation-timing-function', value, '');
   }
 
@@ -4533,7 +5938,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('app-region');
 
   /** Sets the value of "app-region" */
-  void set appRegion(String value) {
+  set appRegion(String value) {
     setProperty('app-region', value, '');
   }
 
@@ -4542,7 +5947,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('appearance');
 
   /** Sets the value of "appearance" */
-  void set appearance(String value) {
+  set appearance(String value) {
     setProperty('appearance', value, '');
   }
 
@@ -4551,7 +5956,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('aspect-ratio');
 
   /** Sets the value of "aspect-ratio" */
-  void set aspectRatio(String value) {
+  set aspectRatio(String value) {
     setProperty('aspect-ratio', value, '');
   }
 
@@ -4560,7 +5965,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('backface-visibility');
 
   /** Sets the value of "backface-visibility" */
-  void set backfaceVisibility(String value) {
+  set backfaceVisibility(String value) {
     setProperty('backface-visibility', value, '');
   }
 
@@ -4569,7 +5974,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background');
 
   /** Sets the value of "background" */
-  void set background(String value) {
+  set background(String value) {
     setProperty('background', value, '');
   }
 
@@ -4578,7 +5983,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-attachment');
 
   /** Sets the value of "background-attachment" */
-  void set backgroundAttachment(String value) {
+  set backgroundAttachment(String value) {
     setProperty('background-attachment', value, '');
   }
 
@@ -4587,7 +5992,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-blend-mode');
 
   /** Sets the value of "background-blend-mode" */
-  void set backgroundBlendMode(String value) {
+  set backgroundBlendMode(String value) {
     setProperty('background-blend-mode', value, '');
   }
 
@@ -4596,7 +6001,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-clip');
 
   /** Sets the value of "background-clip" */
-  void set backgroundClip(String value) {
+  set backgroundClip(String value) {
     setProperty('background-clip', value, '');
   }
 
@@ -4605,7 +6010,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-color');
 
   /** Sets the value of "background-color" */
-  void set backgroundColor(String value) {
+  set backgroundColor(String value) {
     setProperty('background-color', value, '');
   }
 
@@ -4614,7 +6019,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-composite');
 
   /** Sets the value of "background-composite" */
-  void set backgroundComposite(String value) {
+  set backgroundComposite(String value) {
     setProperty('background-composite', value, '');
   }
 
@@ -4623,7 +6028,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-image');
 
   /** Sets the value of "background-image" */
-  void set backgroundImage(String value) {
+  set backgroundImage(String value) {
     setProperty('background-image', value, '');
   }
 
@@ -4632,7 +6037,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-origin');
 
   /** Sets the value of "background-origin" */
-  void set backgroundOrigin(String value) {
+  set backgroundOrigin(String value) {
     setProperty('background-origin', value, '');
   }
 
@@ -4641,7 +6046,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-position');
 
   /** Sets the value of "background-position" */
-  void set backgroundPosition(String value) {
+  set backgroundPosition(String value) {
     setProperty('background-position', value, '');
   }
 
@@ -4650,7 +6055,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-position-x');
 
   /** Sets the value of "background-position-x" */
-  void set backgroundPositionX(String value) {
+  set backgroundPositionX(String value) {
     setProperty('background-position-x', value, '');
   }
 
@@ -4659,7 +6064,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-position-y');
 
   /** Sets the value of "background-position-y" */
-  void set backgroundPositionY(String value) {
+  set backgroundPositionY(String value) {
     setProperty('background-position-y', value, '');
   }
 
@@ -4668,7 +6073,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-repeat');
 
   /** Sets the value of "background-repeat" */
-  void set backgroundRepeat(String value) {
+  set backgroundRepeat(String value) {
     setProperty('background-repeat', value, '');
   }
 
@@ -4677,7 +6082,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-repeat-x');
 
   /** Sets the value of "background-repeat-x" */
-  void set backgroundRepeatX(String value) {
+  set backgroundRepeatX(String value) {
     setProperty('background-repeat-x', value, '');
   }
 
@@ -4686,7 +6091,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-repeat-y');
 
   /** Sets the value of "background-repeat-y" */
-  void set backgroundRepeatY(String value) {
+  set backgroundRepeatY(String value) {
     setProperty('background-repeat-y', value, '');
   }
 
@@ -4695,7 +6100,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-size');
 
   /** Sets the value of "background-size" */
-  void set backgroundSize(String value) {
+  set backgroundSize(String value) {
     setProperty('background-size', value, '');
   }
 
@@ -4704,7 +6109,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border');
 
   /** Sets the value of "border" */
-  void set border(String value) {
+  set border(String value) {
     setProperty('border', value, '');
   }
 
@@ -4713,7 +6118,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-after');
 
   /** Sets the value of "border-after" */
-  void set borderAfter(String value) {
+  set borderAfter(String value) {
     setProperty('border-after', value, '');
   }
 
@@ -4722,7 +6127,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-after-color');
 
   /** Sets the value of "border-after-color" */
-  void set borderAfterColor(String value) {
+  set borderAfterColor(String value) {
     setProperty('border-after-color', value, '');
   }
 
@@ -4731,7 +6136,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-after-style');
 
   /** Sets the value of "border-after-style" */
-  void set borderAfterStyle(String value) {
+  set borderAfterStyle(String value) {
     setProperty('border-after-style', value, '');
   }
 
@@ -4740,7 +6145,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-after-width');
 
   /** Sets the value of "border-after-width" */
-  void set borderAfterWidth(String value) {
+  set borderAfterWidth(String value) {
     setProperty('border-after-width', value, '');
   }
 
@@ -4749,7 +6154,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-before');
 
   /** Sets the value of "border-before" */
-  void set borderBefore(String value) {
+  set borderBefore(String value) {
     setProperty('border-before', value, '');
   }
 
@@ -4758,7 +6163,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-before-color');
 
   /** Sets the value of "border-before-color" */
-  void set borderBeforeColor(String value) {
+  set borderBeforeColor(String value) {
     setProperty('border-before-color', value, '');
   }
 
@@ -4767,7 +6172,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-before-style');
 
   /** Sets the value of "border-before-style" */
-  void set borderBeforeStyle(String value) {
+  set borderBeforeStyle(String value) {
     setProperty('border-before-style', value, '');
   }
 
@@ -4776,7 +6181,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-before-width');
 
   /** Sets the value of "border-before-width" */
-  void set borderBeforeWidth(String value) {
+  set borderBeforeWidth(String value) {
     setProperty('border-before-width', value, '');
   }
 
@@ -4785,7 +6190,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-bottom');
 
   /** Sets the value of "border-bottom" */
-  void set borderBottom(String value) {
+  set borderBottom(String value) {
     setProperty('border-bottom', value, '');
   }
 
@@ -4794,7 +6199,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-bottom-color');
 
   /** Sets the value of "border-bottom-color" */
-  void set borderBottomColor(String value) {
+  set borderBottomColor(String value) {
     setProperty('border-bottom-color', value, '');
   }
 
@@ -4803,7 +6208,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-bottom-left-radius');
 
   /** Sets the value of "border-bottom-left-radius" */
-  void set borderBottomLeftRadius(String value) {
+  set borderBottomLeftRadius(String value) {
     setProperty('border-bottom-left-radius', value, '');
   }
 
@@ -4812,7 +6217,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-bottom-right-radius');
 
   /** Sets the value of "border-bottom-right-radius" */
-  void set borderBottomRightRadius(String value) {
+  set borderBottomRightRadius(String value) {
     setProperty('border-bottom-right-radius', value, '');
   }
 
@@ -4821,7 +6226,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-bottom-style');
 
   /** Sets the value of "border-bottom-style" */
-  void set borderBottomStyle(String value) {
+  set borderBottomStyle(String value) {
     setProperty('border-bottom-style', value, '');
   }
 
@@ -4830,7 +6235,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-bottom-width');
 
   /** Sets the value of "border-bottom-width" */
-  void set borderBottomWidth(String value) {
+  set borderBottomWidth(String value) {
     setProperty('border-bottom-width', value, '');
   }
 
@@ -4839,7 +6244,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-collapse');
 
   /** Sets the value of "border-collapse" */
-  void set borderCollapse(String value) {
+  set borderCollapse(String value) {
     setProperty('border-collapse', value, '');
   }
 
@@ -4848,7 +6253,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-color');
 
   /** Sets the value of "border-color" */
-  void set borderColor(String value) {
+  set borderColor(String value) {
     setProperty('border-color', value, '');
   }
 
@@ -4857,7 +6262,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-end');
 
   /** Sets the value of "border-end" */
-  void set borderEnd(String value) {
+  set borderEnd(String value) {
     setProperty('border-end', value, '');
   }
 
@@ -4866,7 +6271,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-end-color');
 
   /** Sets the value of "border-end-color" */
-  void set borderEndColor(String value) {
+  set borderEndColor(String value) {
     setProperty('border-end-color', value, '');
   }
 
@@ -4875,7 +6280,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-end-style');
 
   /** Sets the value of "border-end-style" */
-  void set borderEndStyle(String value) {
+  set borderEndStyle(String value) {
     setProperty('border-end-style', value, '');
   }
 
@@ -4884,7 +6289,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-end-width');
 
   /** Sets the value of "border-end-width" */
-  void set borderEndWidth(String value) {
+  set borderEndWidth(String value) {
     setProperty('border-end-width', value, '');
   }
 
@@ -4893,7 +6298,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-fit');
 
   /** Sets the value of "border-fit" */
-  void set borderFit(String value) {
+  set borderFit(String value) {
     setProperty('border-fit', value, '');
   }
 
@@ -4902,7 +6307,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-horizontal-spacing');
 
   /** Sets the value of "border-horizontal-spacing" */
-  void set borderHorizontalSpacing(String value) {
+  set borderHorizontalSpacing(String value) {
     setProperty('border-horizontal-spacing', value, '');
   }
 
@@ -4911,7 +6316,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-image');
 
   /** Sets the value of "border-image" */
-  void set borderImage(String value) {
+  set borderImage(String value) {
     setProperty('border-image', value, '');
   }
 
@@ -4920,7 +6325,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-image-outset');
 
   /** Sets the value of "border-image-outset" */
-  void set borderImageOutset(String value) {
+  set borderImageOutset(String value) {
     setProperty('border-image-outset', value, '');
   }
 
@@ -4929,7 +6334,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-image-repeat');
 
   /** Sets the value of "border-image-repeat" */
-  void set borderImageRepeat(String value) {
+  set borderImageRepeat(String value) {
     setProperty('border-image-repeat', value, '');
   }
 
@@ -4938,7 +6343,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-image-slice');
 
   /** Sets the value of "border-image-slice" */
-  void set borderImageSlice(String value) {
+  set borderImageSlice(String value) {
     setProperty('border-image-slice', value, '');
   }
 
@@ -4947,7 +6352,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-image-source');
 
   /** Sets the value of "border-image-source" */
-  void set borderImageSource(String value) {
+  set borderImageSource(String value) {
     setProperty('border-image-source', value, '');
   }
 
@@ -4956,7 +6361,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-image-width');
 
   /** Sets the value of "border-image-width" */
-  void set borderImageWidth(String value) {
+  set borderImageWidth(String value) {
     setProperty('border-image-width', value, '');
   }
 
@@ -4965,7 +6370,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-left');
 
   /** Sets the value of "border-left" */
-  void set borderLeft(String value) {
+  set borderLeft(String value) {
     setProperty('border-left', value, '');
   }
 
@@ -4974,7 +6379,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-left-color');
 
   /** Sets the value of "border-left-color" */
-  void set borderLeftColor(String value) {
+  set borderLeftColor(String value) {
     setProperty('border-left-color', value, '');
   }
 
@@ -4983,7 +6388,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-left-style');
 
   /** Sets the value of "border-left-style" */
-  void set borderLeftStyle(String value) {
+  set borderLeftStyle(String value) {
     setProperty('border-left-style', value, '');
   }
 
@@ -4992,7 +6397,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-left-width');
 
   /** Sets the value of "border-left-width" */
-  void set borderLeftWidth(String value) {
+  set borderLeftWidth(String value) {
     setProperty('border-left-width', value, '');
   }
 
@@ -5001,7 +6406,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-radius');
 
   /** Sets the value of "border-radius" */
-  void set borderRadius(String value) {
+  set borderRadius(String value) {
     setProperty('border-radius', value, '');
   }
 
@@ -5010,7 +6415,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-right');
 
   /** Sets the value of "border-right" */
-  void set borderRight(String value) {
+  set borderRight(String value) {
     setProperty('border-right', value, '');
   }
 
@@ -5019,7 +6424,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-right-color');
 
   /** Sets the value of "border-right-color" */
-  void set borderRightColor(String value) {
+  set borderRightColor(String value) {
     setProperty('border-right-color', value, '');
   }
 
@@ -5028,7 +6433,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-right-style');
 
   /** Sets the value of "border-right-style" */
-  void set borderRightStyle(String value) {
+  set borderRightStyle(String value) {
     setProperty('border-right-style', value, '');
   }
 
@@ -5037,7 +6442,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-right-width');
 
   /** Sets the value of "border-right-width" */
-  void set borderRightWidth(String value) {
+  set borderRightWidth(String value) {
     setProperty('border-right-width', value, '');
   }
 
@@ -5046,7 +6451,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-spacing');
 
   /** Sets the value of "border-spacing" */
-  void set borderSpacing(String value) {
+  set borderSpacing(String value) {
     setProperty('border-spacing', value, '');
   }
 
@@ -5055,7 +6460,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-start');
 
   /** Sets the value of "border-start" */
-  void set borderStart(String value) {
+  set borderStart(String value) {
     setProperty('border-start', value, '');
   }
 
@@ -5064,7 +6469,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-start-color');
 
   /** Sets the value of "border-start-color" */
-  void set borderStartColor(String value) {
+  set borderStartColor(String value) {
     setProperty('border-start-color', value, '');
   }
 
@@ -5073,7 +6478,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-start-style');
 
   /** Sets the value of "border-start-style" */
-  void set borderStartStyle(String value) {
+  set borderStartStyle(String value) {
     setProperty('border-start-style', value, '');
   }
 
@@ -5082,7 +6487,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-start-width');
 
   /** Sets the value of "border-start-width" */
-  void set borderStartWidth(String value) {
+  set borderStartWidth(String value) {
     setProperty('border-start-width', value, '');
   }
 
@@ -5091,7 +6496,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-style');
 
   /** Sets the value of "border-style" */
-  void set borderStyle(String value) {
+  set borderStyle(String value) {
     setProperty('border-style', value, '');
   }
 
@@ -5100,7 +6505,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-top');
 
   /** Sets the value of "border-top" */
-  void set borderTop(String value) {
+  set borderTop(String value) {
     setProperty('border-top', value, '');
   }
 
@@ -5109,7 +6514,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-top-color');
 
   /** Sets the value of "border-top-color" */
-  void set borderTopColor(String value) {
+  set borderTopColor(String value) {
     setProperty('border-top-color', value, '');
   }
 
@@ -5118,7 +6523,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-top-left-radius');
 
   /** Sets the value of "border-top-left-radius" */
-  void set borderTopLeftRadius(String value) {
+  set borderTopLeftRadius(String value) {
     setProperty('border-top-left-radius', value, '');
   }
 
@@ -5127,7 +6532,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-top-right-radius');
 
   /** Sets the value of "border-top-right-radius" */
-  void set borderTopRightRadius(String value) {
+  set borderTopRightRadius(String value) {
     setProperty('border-top-right-radius', value, '');
   }
 
@@ -5136,7 +6541,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-top-style');
 
   /** Sets the value of "border-top-style" */
-  void set borderTopStyle(String value) {
+  set borderTopStyle(String value) {
     setProperty('border-top-style', value, '');
   }
 
@@ -5145,7 +6550,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-top-width');
 
   /** Sets the value of "border-top-width" */
-  void set borderTopWidth(String value) {
+  set borderTopWidth(String value) {
     setProperty('border-top-width', value, '');
   }
 
@@ -5154,7 +6559,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-vertical-spacing');
 
   /** Sets the value of "border-vertical-spacing" */
-  void set borderVerticalSpacing(String value) {
+  set borderVerticalSpacing(String value) {
     setProperty('border-vertical-spacing', value, '');
   }
 
@@ -5163,7 +6568,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-width');
 
   /** Sets the value of "border-width" */
-  void set borderWidth(String value) {
+  set borderWidth(String value) {
     setProperty('border-width', value, '');
   }
 
@@ -5172,7 +6577,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('bottom');
 
   /** Sets the value of "bottom" */
-  void set bottom(String value) {
+  set bottom(String value) {
     setProperty('bottom', value, '');
   }
 
@@ -5181,7 +6586,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-align');
 
   /** Sets the value of "box-align" */
-  void set boxAlign(String value) {
+  set boxAlign(String value) {
     setProperty('box-align', value, '');
   }
 
@@ -5190,7 +6595,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-decoration-break');
 
   /** Sets the value of "box-decoration-break" */
-  void set boxDecorationBreak(String value) {
+  set boxDecorationBreak(String value) {
     setProperty('box-decoration-break', value, '');
   }
 
@@ -5199,7 +6604,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-direction');
 
   /** Sets the value of "box-direction" */
-  void set boxDirection(String value) {
+  set boxDirection(String value) {
     setProperty('box-direction', value, '');
   }
 
@@ -5208,7 +6613,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-flex');
 
   /** Sets the value of "box-flex" */
-  void set boxFlex(String value) {
+  set boxFlex(String value) {
     setProperty('box-flex', value, '');
   }
 
@@ -5217,7 +6622,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-flex-group');
 
   /** Sets the value of "box-flex-group" */
-  void set boxFlexGroup(String value) {
+  set boxFlexGroup(String value) {
     setProperty('box-flex-group', value, '');
   }
 
@@ -5226,7 +6631,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-lines');
 
   /** Sets the value of "box-lines" */
-  void set boxLines(String value) {
+  set boxLines(String value) {
     setProperty('box-lines', value, '');
   }
 
@@ -5235,7 +6640,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-ordinal-group');
 
   /** Sets the value of "box-ordinal-group" */
-  void set boxOrdinalGroup(String value) {
+  set boxOrdinalGroup(String value) {
     setProperty('box-ordinal-group', value, '');
   }
 
@@ -5244,7 +6649,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-orient');
 
   /** Sets the value of "box-orient" */
-  void set boxOrient(String value) {
+  set boxOrient(String value) {
     setProperty('box-orient', value, '');
   }
 
@@ -5253,7 +6658,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-pack');
 
   /** Sets the value of "box-pack" */
-  void set boxPack(String value) {
+  set boxPack(String value) {
     setProperty('box-pack', value, '');
   }
 
@@ -5262,7 +6667,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-reflect');
 
   /** Sets the value of "box-reflect" */
-  void set boxReflect(String value) {
+  set boxReflect(String value) {
     setProperty('box-reflect', value, '');
   }
 
@@ -5271,7 +6676,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-shadow');
 
   /** Sets the value of "box-shadow" */
-  void set boxShadow(String value) {
+  set boxShadow(String value) {
     setProperty('box-shadow', value, '');
   }
 
@@ -5280,7 +6685,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-sizing');
 
   /** Sets the value of "box-sizing" */
-  void set boxSizing(String value) {
+  set boxSizing(String value) {
     setProperty('box-sizing', value, '');
   }
 
@@ -5289,7 +6694,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('caption-side');
 
   /** Sets the value of "caption-side" */
-  void set captionSide(String value) {
+  set captionSide(String value) {
     setProperty('caption-side', value, '');
   }
 
@@ -5298,7 +6703,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('clear');
 
   /** Sets the value of "clear" */
-  void set clear(String value) {
+  set clear(String value) {
     setProperty('clear', value, '');
   }
 
@@ -5307,7 +6712,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('clip');
 
   /** Sets the value of "clip" */
-  void set clip(String value) {
+  set clip(String value) {
     setProperty('clip', value, '');
   }
 
@@ -5316,7 +6721,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('clip-path');
 
   /** Sets the value of "clip-path" */
-  void set clipPath(String value) {
+  set clipPath(String value) {
     setProperty('clip-path', value, '');
   }
 
@@ -5325,7 +6730,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('color');
 
   /** Sets the value of "color" */
-  void set color(String value) {
+  set color(String value) {
     setProperty('color', value, '');
   }
 
@@ -5334,7 +6739,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-break-after');
 
   /** Sets the value of "column-break-after" */
-  void set columnBreakAfter(String value) {
+  set columnBreakAfter(String value) {
     setProperty('column-break-after', value, '');
   }
 
@@ -5343,7 +6748,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-break-before');
 
   /** Sets the value of "column-break-before" */
-  void set columnBreakBefore(String value) {
+  set columnBreakBefore(String value) {
     setProperty('column-break-before', value, '');
   }
 
@@ -5352,7 +6757,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-break-inside');
 
   /** Sets the value of "column-break-inside" */
-  void set columnBreakInside(String value) {
+  set columnBreakInside(String value) {
     setProperty('column-break-inside', value, '');
   }
 
@@ -5361,7 +6766,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-count');
 
   /** Sets the value of "column-count" */
-  void set columnCount(String value) {
+  set columnCount(String value) {
     setProperty('column-count', value, '');
   }
 
@@ -5370,7 +6775,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-fill');
 
   /** Sets the value of "column-fill" */
-  void set columnFill(String value) {
+  set columnFill(String value) {
     setProperty('column-fill', value, '');
   }
 
@@ -5379,7 +6784,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-gap');
 
   /** Sets the value of "column-gap" */
-  void set columnGap(String value) {
+  set columnGap(String value) {
     setProperty('column-gap', value, '');
   }
 
@@ -5388,7 +6793,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-rule');
 
   /** Sets the value of "column-rule" */
-  void set columnRule(String value) {
+  set columnRule(String value) {
     setProperty('column-rule', value, '');
   }
 
@@ -5397,7 +6802,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-rule-color');
 
   /** Sets the value of "column-rule-color" */
-  void set columnRuleColor(String value) {
+  set columnRuleColor(String value) {
     setProperty('column-rule-color', value, '');
   }
 
@@ -5406,7 +6811,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-rule-style');
 
   /** Sets the value of "column-rule-style" */
-  void set columnRuleStyle(String value) {
+  set columnRuleStyle(String value) {
     setProperty('column-rule-style', value, '');
   }
 
@@ -5415,7 +6820,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-rule-width');
 
   /** Sets the value of "column-rule-width" */
-  void set columnRuleWidth(String value) {
+  set columnRuleWidth(String value) {
     setProperty('column-rule-width', value, '');
   }
 
@@ -5424,7 +6829,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-span');
 
   /** Sets the value of "column-span" */
-  void set columnSpan(String value) {
+  set columnSpan(String value) {
     setProperty('column-span', value, '');
   }
 
@@ -5433,7 +6838,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-width');
 
   /** Sets the value of "column-width" */
-  void set columnWidth(String value) {
+  set columnWidth(String value) {
     setProperty('column-width', value, '');
   }
 
@@ -5442,7 +6847,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('columns');
 
   /** Sets the value of "columns" */
-  void set columns(String value) {
+  set columns(String value) {
     setProperty('columns', value, '');
   }
 
@@ -5451,7 +6856,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('content');
 
   /** Sets the value of "content" */
-  void set content(String value) {
+  set content(String value) {
     setProperty('content', value, '');
   }
 
@@ -5460,7 +6865,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('counter-increment');
 
   /** Sets the value of "counter-increment" */
-  void set counterIncrement(String value) {
+  set counterIncrement(String value) {
     setProperty('counter-increment', value, '');
   }
 
@@ -5469,7 +6874,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('counter-reset');
 
   /** Sets the value of "counter-reset" */
-  void set counterReset(String value) {
+  set counterReset(String value) {
     setProperty('counter-reset', value, '');
   }
 
@@ -5478,7 +6883,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('cursor');
 
   /** Sets the value of "cursor" */
-  void set cursor(String value) {
+  set cursor(String value) {
     setProperty('cursor', value, '');
   }
 
@@ -5487,7 +6892,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('direction');
 
   /** Sets the value of "direction" */
-  void set direction(String value) {
+  set direction(String value) {
     setProperty('direction', value, '');
   }
 
@@ -5496,7 +6901,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('display');
 
   /** Sets the value of "display" */
-  void set display(String value) {
+  set display(String value) {
     setProperty('display', value, '');
   }
 
@@ -5505,7 +6910,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('empty-cells');
 
   /** Sets the value of "empty-cells" */
-  void set emptyCells(String value) {
+  set emptyCells(String value) {
     setProperty('empty-cells', value, '');
   }
 
@@ -5514,7 +6919,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('filter');
 
   /** Sets the value of "filter" */
-  void set filter(String value) {
+  set filter(String value) {
     setProperty('filter', value, '');
   }
 
@@ -5523,7 +6928,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex');
 
   /** Sets the value of "flex" */
-  void set flex(String value) {
+  set flex(String value) {
     setProperty('flex', value, '');
   }
 
@@ -5532,7 +6937,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex-basis');
 
   /** Sets the value of "flex-basis" */
-  void set flexBasis(String value) {
+  set flexBasis(String value) {
     setProperty('flex-basis', value, '');
   }
 
@@ -5541,7 +6946,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex-direction');
 
   /** Sets the value of "flex-direction" */
-  void set flexDirection(String value) {
+  set flexDirection(String value) {
     setProperty('flex-direction', value, '');
   }
 
@@ -5550,7 +6955,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex-flow');
 
   /** Sets the value of "flex-flow" */
-  void set flexFlow(String value) {
+  set flexFlow(String value) {
     setProperty('flex-flow', value, '');
   }
 
@@ -5559,7 +6964,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex-grow');
 
   /** Sets the value of "flex-grow" */
-  void set flexGrow(String value) {
+  set flexGrow(String value) {
     setProperty('flex-grow', value, '');
   }
 
@@ -5568,7 +6973,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex-shrink');
 
   /** Sets the value of "flex-shrink" */
-  void set flexShrink(String value) {
+  set flexShrink(String value) {
     setProperty('flex-shrink', value, '');
   }
 
@@ -5577,7 +6982,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex-wrap');
 
   /** Sets the value of "flex-wrap" */
-  void set flexWrap(String value) {
+  set flexWrap(String value) {
     setProperty('flex-wrap', value, '');
   }
 
@@ -5586,7 +6991,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('float');
 
   /** Sets the value of "float" */
-  void set float(String value) {
+  set float(String value) {
     setProperty('float', value, '');
   }
 
@@ -5595,7 +7000,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font');
 
   /** Sets the value of "font" */
-  void set font(String value) {
+  set font(String value) {
     setProperty('font', value, '');
   }
 
@@ -5604,7 +7009,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-family');
 
   /** Sets the value of "font-family" */
-  void set fontFamily(String value) {
+  set fontFamily(String value) {
     setProperty('font-family', value, '');
   }
 
@@ -5613,7 +7018,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-feature-settings');
 
   /** Sets the value of "font-feature-settings" */
-  void set fontFeatureSettings(String value) {
+  set fontFeatureSettings(String value) {
     setProperty('font-feature-settings', value, '');
   }
 
@@ -5622,7 +7027,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-kerning');
 
   /** Sets the value of "font-kerning" */
-  void set fontKerning(String value) {
+  set fontKerning(String value) {
     setProperty('font-kerning', value, '');
   }
 
@@ -5631,7 +7036,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-size');
 
   /** Sets the value of "font-size" */
-  void set fontSize(String value) {
+  set fontSize(String value) {
     setProperty('font-size', value, '');
   }
 
@@ -5640,7 +7045,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-size-delta');
 
   /** Sets the value of "font-size-delta" */
-  void set fontSizeDelta(String value) {
+  set fontSizeDelta(String value) {
     setProperty('font-size-delta', value, '');
   }
 
@@ -5649,7 +7054,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-smoothing');
 
   /** Sets the value of "font-smoothing" */
-  void set fontSmoothing(String value) {
+  set fontSmoothing(String value) {
     setProperty('font-smoothing', value, '');
   }
 
@@ -5658,7 +7063,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-stretch');
 
   /** Sets the value of "font-stretch" */
-  void set fontStretch(String value) {
+  set fontStretch(String value) {
     setProperty('font-stretch', value, '');
   }
 
@@ -5667,7 +7072,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-style');
 
   /** Sets the value of "font-style" */
-  void set fontStyle(String value) {
+  set fontStyle(String value) {
     setProperty('font-style', value, '');
   }
 
@@ -5676,7 +7081,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-variant');
 
   /** Sets the value of "font-variant" */
-  void set fontVariant(String value) {
+  set fontVariant(String value) {
     setProperty('font-variant', value, '');
   }
 
@@ -5685,7 +7090,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-variant-ligatures');
 
   /** Sets the value of "font-variant-ligatures" */
-  void set fontVariantLigatures(String value) {
+  set fontVariantLigatures(String value) {
     setProperty('font-variant-ligatures', value, '');
   }
 
@@ -5694,7 +7099,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-weight');
 
   /** Sets the value of "font-weight" */
-  void set fontWeight(String value) {
+  set fontWeight(String value) {
     setProperty('font-weight', value, '');
   }
 
@@ -5703,7 +7108,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid');
 
   /** Sets the value of "grid" */
-  void set grid(String value) {
+  set grid(String value) {
     setProperty('grid', value, '');
   }
 
@@ -5712,7 +7117,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-area');
 
   /** Sets the value of "grid-area" */
-  void set gridArea(String value) {
+  set gridArea(String value) {
     setProperty('grid-area', value, '');
   }
 
@@ -5721,7 +7126,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-auto-columns');
 
   /** Sets the value of "grid-auto-columns" */
-  void set gridAutoColumns(String value) {
+  set gridAutoColumns(String value) {
     setProperty('grid-auto-columns', value, '');
   }
 
@@ -5730,7 +7135,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-auto-flow');
 
   /** Sets the value of "grid-auto-flow" */
-  void set gridAutoFlow(String value) {
+  set gridAutoFlow(String value) {
     setProperty('grid-auto-flow', value, '');
   }
 
@@ -5739,7 +7144,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-auto-rows');
 
   /** Sets the value of "grid-auto-rows" */
-  void set gridAutoRows(String value) {
+  set gridAutoRows(String value) {
     setProperty('grid-auto-rows', value, '');
   }
 
@@ -5748,7 +7153,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-column');
 
   /** Sets the value of "grid-column" */
-  void set gridColumn(String value) {
+  set gridColumn(String value) {
     setProperty('grid-column', value, '');
   }
 
@@ -5757,7 +7162,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-column-end');
 
   /** Sets the value of "grid-column-end" */
-  void set gridColumnEnd(String value) {
+  set gridColumnEnd(String value) {
     setProperty('grid-column-end', value, '');
   }
 
@@ -5766,7 +7171,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-column-start');
 
   /** Sets the value of "grid-column-start" */
-  void set gridColumnStart(String value) {
+  set gridColumnStart(String value) {
     setProperty('grid-column-start', value, '');
   }
 
@@ -5775,7 +7180,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-row');
 
   /** Sets the value of "grid-row" */
-  void set gridRow(String value) {
+  set gridRow(String value) {
     setProperty('grid-row', value, '');
   }
 
@@ -5784,7 +7189,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-row-end');
 
   /** Sets the value of "grid-row-end" */
-  void set gridRowEnd(String value) {
+  set gridRowEnd(String value) {
     setProperty('grid-row-end', value, '');
   }
 
@@ -5793,7 +7198,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-row-start');
 
   /** Sets the value of "grid-row-start" */
-  void set gridRowStart(String value) {
+  set gridRowStart(String value) {
     setProperty('grid-row-start', value, '');
   }
 
@@ -5802,7 +7207,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-template');
 
   /** Sets the value of "grid-template" */
-  void set gridTemplate(String value) {
+  set gridTemplate(String value) {
     setProperty('grid-template', value, '');
   }
 
@@ -5811,7 +7216,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-template-areas');
 
   /** Sets the value of "grid-template-areas" */
-  void set gridTemplateAreas(String value) {
+  set gridTemplateAreas(String value) {
     setProperty('grid-template-areas', value, '');
   }
 
@@ -5820,7 +7225,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-template-columns');
 
   /** Sets the value of "grid-template-columns" */
-  void set gridTemplateColumns(String value) {
+  set gridTemplateColumns(String value) {
     setProperty('grid-template-columns', value, '');
   }
 
@@ -5829,7 +7234,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-template-rows');
 
   /** Sets the value of "grid-template-rows" */
-  void set gridTemplateRows(String value) {
+  set gridTemplateRows(String value) {
     setProperty('grid-template-rows', value, '');
   }
 
@@ -5838,7 +7243,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('height');
 
   /** Sets the value of "height" */
-  void set height(String value) {
+  set height(String value) {
     setProperty('height', value, '');
   }
 
@@ -5847,7 +7252,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('highlight');
 
   /** Sets the value of "highlight" */
-  void set highlight(String value) {
+  set highlight(String value) {
     setProperty('highlight', value, '');
   }
 
@@ -5856,7 +7261,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('hyphenate-character');
 
   /** Sets the value of "hyphenate-character" */
-  void set hyphenateCharacter(String value) {
+  set hyphenateCharacter(String value) {
     setProperty('hyphenate-character', value, '');
   }
 
@@ -5865,7 +7270,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('image-rendering');
 
   /** Sets the value of "image-rendering" */
-  void set imageRendering(String value) {
+  set imageRendering(String value) {
     setProperty('image-rendering', value, '');
   }
 
@@ -5874,7 +7279,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('isolation');
 
   /** Sets the value of "isolation" */
-  void set isolation(String value) {
+  set isolation(String value) {
     setProperty('isolation', value, '');
   }
 
@@ -5883,7 +7288,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('justify-content');
 
   /** Sets the value of "justify-content" */
-  void set justifyContent(String value) {
+  set justifyContent(String value) {
     setProperty('justify-content', value, '');
   }
 
@@ -5892,7 +7297,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('justify-self');
 
   /** Sets the value of "justify-self" */
-  void set justifySelf(String value) {
+  set justifySelf(String value) {
     setProperty('justify-self', value, '');
   }
 
@@ -5901,7 +7306,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('left');
 
   /** Sets the value of "left" */
-  void set left(String value) {
+  set left(String value) {
     setProperty('left', value, '');
   }
 
@@ -5910,7 +7315,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('letter-spacing');
 
   /** Sets the value of "letter-spacing" */
-  void set letterSpacing(String value) {
+  set letterSpacing(String value) {
     setProperty('letter-spacing', value, '');
   }
 
@@ -5919,7 +7324,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('line-box-contain');
 
   /** Sets the value of "line-box-contain" */
-  void set lineBoxContain(String value) {
+  set lineBoxContain(String value) {
     setProperty('line-box-contain', value, '');
   }
 
@@ -5928,7 +7333,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('line-break');
 
   /** Sets the value of "line-break" */
-  void set lineBreak(String value) {
+  set lineBreak(String value) {
     setProperty('line-break', value, '');
   }
 
@@ -5937,7 +7342,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('line-clamp');
 
   /** Sets the value of "line-clamp" */
-  void set lineClamp(String value) {
+  set lineClamp(String value) {
     setProperty('line-clamp', value, '');
   }
 
@@ -5946,7 +7351,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('line-height');
 
   /** Sets the value of "line-height" */
-  void set lineHeight(String value) {
+  set lineHeight(String value) {
     setProperty('line-height', value, '');
   }
 
@@ -5955,7 +7360,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('list-style');
 
   /** Sets the value of "list-style" */
-  void set listStyle(String value) {
+  set listStyle(String value) {
     setProperty('list-style', value, '');
   }
 
@@ -5964,7 +7369,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('list-style-image');
 
   /** Sets the value of "list-style-image" */
-  void set listStyleImage(String value) {
+  set listStyleImage(String value) {
     setProperty('list-style-image', value, '');
   }
 
@@ -5973,7 +7378,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('list-style-position');
 
   /** Sets the value of "list-style-position" */
-  void set listStylePosition(String value) {
+  set listStylePosition(String value) {
     setProperty('list-style-position', value, '');
   }
 
@@ -5982,7 +7387,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('list-style-type');
 
   /** Sets the value of "list-style-type" */
-  void set listStyleType(String value) {
+  set listStyleType(String value) {
     setProperty('list-style-type', value, '');
   }
 
@@ -5991,7 +7396,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('locale');
 
   /** Sets the value of "locale" */
-  void set locale(String value) {
+  set locale(String value) {
     setProperty('locale', value, '');
   }
 
@@ -6000,7 +7405,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('logical-height');
 
   /** Sets the value of "logical-height" */
-  void set logicalHeight(String value) {
+  set logicalHeight(String value) {
     setProperty('logical-height', value, '');
   }
 
@@ -6009,7 +7414,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('logical-width');
 
   /** Sets the value of "logical-width" */
-  void set logicalWidth(String value) {
+  set logicalWidth(String value) {
     setProperty('logical-width', value, '');
   }
 
@@ -6018,7 +7423,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin');
 
   /** Sets the value of "margin" */
-  void set margin(String value) {
+  set margin(String value) {
     setProperty('margin', value, '');
   }
 
@@ -6027,7 +7432,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-after');
 
   /** Sets the value of "margin-after" */
-  void set marginAfter(String value) {
+  set marginAfter(String value) {
     setProperty('margin-after', value, '');
   }
 
@@ -6036,7 +7441,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-after-collapse');
 
   /** Sets the value of "margin-after-collapse" */
-  void set marginAfterCollapse(String value) {
+  set marginAfterCollapse(String value) {
     setProperty('margin-after-collapse', value, '');
   }
 
@@ -6045,7 +7450,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-before');
 
   /** Sets the value of "margin-before" */
-  void set marginBefore(String value) {
+  set marginBefore(String value) {
     setProperty('margin-before', value, '');
   }
 
@@ -6054,7 +7459,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-before-collapse');
 
   /** Sets the value of "margin-before-collapse" */
-  void set marginBeforeCollapse(String value) {
+  set marginBeforeCollapse(String value) {
     setProperty('margin-before-collapse', value, '');
   }
 
@@ -6063,7 +7468,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-bottom');
 
   /** Sets the value of "margin-bottom" */
-  void set marginBottom(String value) {
+  set marginBottom(String value) {
     setProperty('margin-bottom', value, '');
   }
 
@@ -6072,7 +7477,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-bottom-collapse');
 
   /** Sets the value of "margin-bottom-collapse" */
-  void set marginBottomCollapse(String value) {
+  set marginBottomCollapse(String value) {
     setProperty('margin-bottom-collapse', value, '');
   }
 
@@ -6081,7 +7486,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-collapse');
 
   /** Sets the value of "margin-collapse" */
-  void set marginCollapse(String value) {
+  set marginCollapse(String value) {
     setProperty('margin-collapse', value, '');
   }
 
@@ -6090,7 +7495,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-end');
 
   /** Sets the value of "margin-end" */
-  void set marginEnd(String value) {
+  set marginEnd(String value) {
     setProperty('margin-end', value, '');
   }
 
@@ -6099,7 +7504,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-left');
 
   /** Sets the value of "margin-left" */
-  void set marginLeft(String value) {
+  set marginLeft(String value) {
     setProperty('margin-left', value, '');
   }
 
@@ -6108,7 +7513,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-right');
 
   /** Sets the value of "margin-right" */
-  void set marginRight(String value) {
+  set marginRight(String value) {
     setProperty('margin-right', value, '');
   }
 
@@ -6117,7 +7522,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-start');
 
   /** Sets the value of "margin-start" */
-  void set marginStart(String value) {
+  set marginStart(String value) {
     setProperty('margin-start', value, '');
   }
 
@@ -6126,7 +7531,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-top');
 
   /** Sets the value of "margin-top" */
-  void set marginTop(String value) {
+  set marginTop(String value) {
     setProperty('margin-top', value, '');
   }
 
@@ -6135,7 +7540,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-top-collapse');
 
   /** Sets the value of "margin-top-collapse" */
-  void set marginTopCollapse(String value) {
+  set marginTopCollapse(String value) {
     setProperty('margin-top-collapse', value, '');
   }
 
@@ -6144,7 +7549,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask');
 
   /** Sets the value of "mask" */
-  void set mask(String value) {
+  set mask(String value) {
     setProperty('mask', value, '');
   }
 
@@ -6153,7 +7558,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-box-image');
 
   /** Sets the value of "mask-box-image" */
-  void set maskBoxImage(String value) {
+  set maskBoxImage(String value) {
     setProperty('mask-box-image', value, '');
   }
 
@@ -6162,7 +7567,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-box-image-outset');
 
   /** Sets the value of "mask-box-image-outset" */
-  void set maskBoxImageOutset(String value) {
+  set maskBoxImageOutset(String value) {
     setProperty('mask-box-image-outset', value, '');
   }
 
@@ -6171,7 +7576,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-box-image-repeat');
 
   /** Sets the value of "mask-box-image-repeat" */
-  void set maskBoxImageRepeat(String value) {
+  set maskBoxImageRepeat(String value) {
     setProperty('mask-box-image-repeat', value, '');
   }
 
@@ -6180,7 +7585,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-box-image-slice');
 
   /** Sets the value of "mask-box-image-slice" */
-  void set maskBoxImageSlice(String value) {
+  set maskBoxImageSlice(String value) {
     setProperty('mask-box-image-slice', value, '');
   }
 
@@ -6189,7 +7594,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-box-image-source');
 
   /** Sets the value of "mask-box-image-source" */
-  void set maskBoxImageSource(String value) {
+  set maskBoxImageSource(String value) {
     setProperty('mask-box-image-source', value, '');
   }
 
@@ -6198,7 +7603,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-box-image-width');
 
   /** Sets the value of "mask-box-image-width" */
-  void set maskBoxImageWidth(String value) {
+  set maskBoxImageWidth(String value) {
     setProperty('mask-box-image-width', value, '');
   }
 
@@ -6207,7 +7612,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-clip');
 
   /** Sets the value of "mask-clip" */
-  void set maskClip(String value) {
+  set maskClip(String value) {
     setProperty('mask-clip', value, '');
   }
 
@@ -6216,7 +7621,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-composite');
 
   /** Sets the value of "mask-composite" */
-  void set maskComposite(String value) {
+  set maskComposite(String value) {
     setProperty('mask-composite', value, '');
   }
 
@@ -6225,7 +7630,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-image');
 
   /** Sets the value of "mask-image" */
-  void set maskImage(String value) {
+  set maskImage(String value) {
     setProperty('mask-image', value, '');
   }
 
@@ -6234,7 +7639,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-origin');
 
   /** Sets the value of "mask-origin" */
-  void set maskOrigin(String value) {
+  set maskOrigin(String value) {
     setProperty('mask-origin', value, '');
   }
 
@@ -6243,7 +7648,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-position');
 
   /** Sets the value of "mask-position" */
-  void set maskPosition(String value) {
+  set maskPosition(String value) {
     setProperty('mask-position', value, '');
   }
 
@@ -6252,7 +7657,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-position-x');
 
   /** Sets the value of "mask-position-x" */
-  void set maskPositionX(String value) {
+  set maskPositionX(String value) {
     setProperty('mask-position-x', value, '');
   }
 
@@ -6261,7 +7666,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-position-y');
 
   /** Sets the value of "mask-position-y" */
-  void set maskPositionY(String value) {
+  set maskPositionY(String value) {
     setProperty('mask-position-y', value, '');
   }
 
@@ -6270,7 +7675,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-repeat');
 
   /** Sets the value of "mask-repeat" */
-  void set maskRepeat(String value) {
+  set maskRepeat(String value) {
     setProperty('mask-repeat', value, '');
   }
 
@@ -6279,7 +7684,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-repeat-x');
 
   /** Sets the value of "mask-repeat-x" */
-  void set maskRepeatX(String value) {
+  set maskRepeatX(String value) {
     setProperty('mask-repeat-x', value, '');
   }
 
@@ -6288,7 +7693,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-repeat-y');
 
   /** Sets the value of "mask-repeat-y" */
-  void set maskRepeatY(String value) {
+  set maskRepeatY(String value) {
     setProperty('mask-repeat-y', value, '');
   }
 
@@ -6297,7 +7702,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-size');
 
   /** Sets the value of "mask-size" */
-  void set maskSize(String value) {
+  set maskSize(String value) {
     setProperty('mask-size', value, '');
   }
 
@@ -6306,7 +7711,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-source-type');
 
   /** Sets the value of "mask-source-type" */
-  void set maskSourceType(String value) {
+  set maskSourceType(String value) {
     setProperty('mask-source-type', value, '');
   }
 
@@ -6315,7 +7720,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('max-height');
 
   /** Sets the value of "max-height" */
-  void set maxHeight(String value) {
+  set maxHeight(String value) {
     setProperty('max-height', value, '');
   }
 
@@ -6324,7 +7729,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('max-logical-height');
 
   /** Sets the value of "max-logical-height" */
-  void set maxLogicalHeight(String value) {
+  set maxLogicalHeight(String value) {
     setProperty('max-logical-height', value, '');
   }
 
@@ -6333,7 +7738,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('max-logical-width');
 
   /** Sets the value of "max-logical-width" */
-  void set maxLogicalWidth(String value) {
+  set maxLogicalWidth(String value) {
     setProperty('max-logical-width', value, '');
   }
 
@@ -6342,7 +7747,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('max-width');
 
   /** Sets the value of "max-width" */
-  void set maxWidth(String value) {
+  set maxWidth(String value) {
     setProperty('max-width', value, '');
   }
 
@@ -6351,7 +7756,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('max-zoom');
 
   /** Sets the value of "max-zoom" */
-  void set maxZoom(String value) {
+  set maxZoom(String value) {
     setProperty('max-zoom', value, '');
   }
 
@@ -6360,7 +7765,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('min-height');
 
   /** Sets the value of "min-height" */
-  void set minHeight(String value) {
+  set minHeight(String value) {
     setProperty('min-height', value, '');
   }
 
@@ -6369,7 +7774,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('min-logical-height');
 
   /** Sets the value of "min-logical-height" */
-  void set minLogicalHeight(String value) {
+  set minLogicalHeight(String value) {
     setProperty('min-logical-height', value, '');
   }
 
@@ -6378,7 +7783,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('min-logical-width');
 
   /** Sets the value of "min-logical-width" */
-  void set minLogicalWidth(String value) {
+  set minLogicalWidth(String value) {
     setProperty('min-logical-width', value, '');
   }
 
@@ -6387,7 +7792,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('min-width');
 
   /** Sets the value of "min-width" */
-  void set minWidth(String value) {
+  set minWidth(String value) {
     setProperty('min-width', value, '');
   }
 
@@ -6396,7 +7801,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('min-zoom');
 
   /** Sets the value of "min-zoom" */
-  void set minZoom(String value) {
+  set minZoom(String value) {
     setProperty('min-zoom', value, '');
   }
 
@@ -6405,7 +7810,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mix-blend-mode');
 
   /** Sets the value of "mix-blend-mode" */
-  void set mixBlendMode(String value) {
+  set mixBlendMode(String value) {
     setProperty('mix-blend-mode', value, '');
   }
 
@@ -6414,7 +7819,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('object-fit');
 
   /** Sets the value of "object-fit" */
-  void set objectFit(String value) {
+  set objectFit(String value) {
     setProperty('object-fit', value, '');
   }
 
@@ -6423,7 +7828,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('object-position');
 
   /** Sets the value of "object-position" */
-  void set objectPosition(String value) {
+  set objectPosition(String value) {
     setProperty('object-position', value, '');
   }
 
@@ -6432,7 +7837,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('opacity');
 
   /** Sets the value of "opacity" */
-  void set opacity(String value) {
+  set opacity(String value) {
     setProperty('opacity', value, '');
   }
 
@@ -6441,7 +7846,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('order');
 
   /** Sets the value of "order" */
-  void set order(String value) {
+  set order(String value) {
     setProperty('order', value, '');
   }
 
@@ -6450,7 +7855,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('orientation');
 
   /** Sets the value of "orientation" */
-  void set orientation(String value) {
+  set orientation(String value) {
     setProperty('orientation', value, '');
   }
 
@@ -6459,7 +7864,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('orphans');
 
   /** Sets the value of "orphans" */
-  void set orphans(String value) {
+  set orphans(String value) {
     setProperty('orphans', value, '');
   }
 
@@ -6468,7 +7873,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('outline');
 
   /** Sets the value of "outline" */
-  void set outline(String value) {
+  set outline(String value) {
     setProperty('outline', value, '');
   }
 
@@ -6477,7 +7882,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('outline-color');
 
   /** Sets the value of "outline-color" */
-  void set outlineColor(String value) {
+  set outlineColor(String value) {
     setProperty('outline-color', value, '');
   }
 
@@ -6486,7 +7891,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('outline-offset');
 
   /** Sets the value of "outline-offset" */
-  void set outlineOffset(String value) {
+  set outlineOffset(String value) {
     setProperty('outline-offset', value, '');
   }
 
@@ -6495,7 +7900,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('outline-style');
 
   /** Sets the value of "outline-style" */
-  void set outlineStyle(String value) {
+  set outlineStyle(String value) {
     setProperty('outline-style', value, '');
   }
 
@@ -6504,7 +7909,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('outline-width');
 
   /** Sets the value of "outline-width" */
-  void set outlineWidth(String value) {
+  set outlineWidth(String value) {
     setProperty('outline-width', value, '');
   }
 
@@ -6513,7 +7918,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('overflow');
 
   /** Sets the value of "overflow" */
-  void set overflow(String value) {
+  set overflow(String value) {
     setProperty('overflow', value, '');
   }
 
@@ -6522,7 +7927,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('overflow-wrap');
 
   /** Sets the value of "overflow-wrap" */
-  void set overflowWrap(String value) {
+  set overflowWrap(String value) {
     setProperty('overflow-wrap', value, '');
   }
 
@@ -6531,7 +7936,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('overflow-x');
 
   /** Sets the value of "overflow-x" */
-  void set overflowX(String value) {
+  set overflowX(String value) {
     setProperty('overflow-x', value, '');
   }
 
@@ -6540,7 +7945,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('overflow-y');
 
   /** Sets the value of "overflow-y" */
-  void set overflowY(String value) {
+  set overflowY(String value) {
     setProperty('overflow-y', value, '');
   }
 
@@ -6549,7 +7954,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding');
 
   /** Sets the value of "padding" */
-  void set padding(String value) {
+  set padding(String value) {
     setProperty('padding', value, '');
   }
 
@@ -6558,7 +7963,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-after');
 
   /** Sets the value of "padding-after" */
-  void set paddingAfter(String value) {
+  set paddingAfter(String value) {
     setProperty('padding-after', value, '');
   }
 
@@ -6567,7 +7972,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-before');
 
   /** Sets the value of "padding-before" */
-  void set paddingBefore(String value) {
+  set paddingBefore(String value) {
     setProperty('padding-before', value, '');
   }
 
@@ -6576,7 +7981,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-bottom');
 
   /** Sets the value of "padding-bottom" */
-  void set paddingBottom(String value) {
+  set paddingBottom(String value) {
     setProperty('padding-bottom', value, '');
   }
 
@@ -6585,7 +7990,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-end');
 
   /** Sets the value of "padding-end" */
-  void set paddingEnd(String value) {
+  set paddingEnd(String value) {
     setProperty('padding-end', value, '');
   }
 
@@ -6594,7 +7999,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-left');
 
   /** Sets the value of "padding-left" */
-  void set paddingLeft(String value) {
+  set paddingLeft(String value) {
     setProperty('padding-left', value, '');
   }
 
@@ -6603,7 +8008,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-right');
 
   /** Sets the value of "padding-right" */
-  void set paddingRight(String value) {
+  set paddingRight(String value) {
     setProperty('padding-right', value, '');
   }
 
@@ -6612,7 +8017,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-start');
 
   /** Sets the value of "padding-start" */
-  void set paddingStart(String value) {
+  set paddingStart(String value) {
     setProperty('padding-start', value, '');
   }
 
@@ -6621,7 +8026,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-top');
 
   /** Sets the value of "padding-top" */
-  void set paddingTop(String value) {
+  set paddingTop(String value) {
     setProperty('padding-top', value, '');
   }
 
@@ -6630,7 +8035,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('page');
 
   /** Sets the value of "page" */
-  void set page(String value) {
+  set page(String value) {
     setProperty('page', value, '');
   }
 
@@ -6639,7 +8044,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('page-break-after');
 
   /** Sets the value of "page-break-after" */
-  void set pageBreakAfter(String value) {
+  set pageBreakAfter(String value) {
     setProperty('page-break-after', value, '');
   }
 
@@ -6648,7 +8053,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('page-break-before');
 
   /** Sets the value of "page-break-before" */
-  void set pageBreakBefore(String value) {
+  set pageBreakBefore(String value) {
     setProperty('page-break-before', value, '');
   }
 
@@ -6657,7 +8062,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('page-break-inside');
 
   /** Sets the value of "page-break-inside" */
-  void set pageBreakInside(String value) {
+  set pageBreakInside(String value) {
     setProperty('page-break-inside', value, '');
   }
 
@@ -6666,7 +8071,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('perspective');
 
   /** Sets the value of "perspective" */
-  void set perspective(String value) {
+  set perspective(String value) {
     setProperty('perspective', value, '');
   }
 
@@ -6675,7 +8080,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('perspective-origin');
 
   /** Sets the value of "perspective-origin" */
-  void set perspectiveOrigin(String value) {
+  set perspectiveOrigin(String value) {
     setProperty('perspective-origin', value, '');
   }
 
@@ -6684,7 +8089,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('perspective-origin-x');
 
   /** Sets the value of "perspective-origin-x" */
-  void set perspectiveOriginX(String value) {
+  set perspectiveOriginX(String value) {
     setProperty('perspective-origin-x', value, '');
   }
 
@@ -6693,7 +8098,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('perspective-origin-y');
 
   /** Sets the value of "perspective-origin-y" */
-  void set perspectiveOriginY(String value) {
+  set perspectiveOriginY(String value) {
     setProperty('perspective-origin-y', value, '');
   }
 
@@ -6702,7 +8107,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('pointer-events');
 
   /** Sets the value of "pointer-events" */
-  void set pointerEvents(String value) {
+  set pointerEvents(String value) {
     setProperty('pointer-events', value, '');
   }
 
@@ -6711,7 +8116,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('position');
 
   /** Sets the value of "position" */
-  void set position(String value) {
+  set position(String value) {
     setProperty('position', value, '');
   }
 
@@ -6720,7 +8125,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('print-color-adjust');
 
   /** Sets the value of "print-color-adjust" */
-  void set printColorAdjust(String value) {
+  set printColorAdjust(String value) {
     setProperty('print-color-adjust', value, '');
   }
 
@@ -6729,7 +8134,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('quotes');
 
   /** Sets the value of "quotes" */
-  void set quotes(String value) {
+  set quotes(String value) {
     setProperty('quotes', value, '');
   }
 
@@ -6738,7 +8143,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('resize');
 
   /** Sets the value of "resize" */
-  void set resize(String value) {
+  set resize(String value) {
     setProperty('resize', value, '');
   }
 
@@ -6747,7 +8152,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('right');
 
   /** Sets the value of "right" */
-  void set right(String value) {
+  set right(String value) {
     setProperty('right', value, '');
   }
 
@@ -6756,7 +8161,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('rtl-ordering');
 
   /** Sets the value of "rtl-ordering" */
-  void set rtlOrdering(String value) {
+  set rtlOrdering(String value) {
     setProperty('rtl-ordering', value, '');
   }
 
@@ -6765,7 +8170,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('ruby-position');
 
   /** Sets the value of "ruby-position" */
-  void set rubyPosition(String value) {
+  set rubyPosition(String value) {
     setProperty('ruby-position', value, '');
   }
 
@@ -6774,7 +8179,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('scroll-behavior');
 
   /** Sets the value of "scroll-behavior" */
-  void set scrollBehavior(String value) {
+  set scrollBehavior(String value) {
     setProperty('scroll-behavior', value, '');
   }
 
@@ -6783,7 +8188,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('shape-image-threshold');
 
   /** Sets the value of "shape-image-threshold" */
-  void set shapeImageThreshold(String value) {
+  set shapeImageThreshold(String value) {
     setProperty('shape-image-threshold', value, '');
   }
 
@@ -6792,7 +8197,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('shape-margin');
 
   /** Sets the value of "shape-margin" */
-  void set shapeMargin(String value) {
+  set shapeMargin(String value) {
     setProperty('shape-margin', value, '');
   }
 
@@ -6801,7 +8206,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('shape-outside');
 
   /** Sets the value of "shape-outside" */
-  void set shapeOutside(String value) {
+  set shapeOutside(String value) {
     setProperty('shape-outside', value, '');
   }
 
@@ -6810,7 +8215,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('size');
 
   /** Sets the value of "size" */
-  void set size(String value) {
+  set size(String value) {
     setProperty('size', value, '');
   }
 
@@ -6819,7 +8224,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('speak');
 
   /** Sets the value of "speak" */
-  void set speak(String value) {
+  set speak(String value) {
     setProperty('speak', value, '');
   }
 
@@ -6828,7 +8233,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('src');
 
   /** Sets the value of "src" */
-  void set src(String value) {
+  set src(String value) {
     setProperty('src', value, '');
   }
 
@@ -6837,7 +8242,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('tab-size');
 
   /** Sets the value of "tab-size" */
-  void set tabSize(String value) {
+  set tabSize(String value) {
     setProperty('tab-size', value, '');
   }
 
@@ -6846,7 +8251,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('table-layout');
 
   /** Sets the value of "table-layout" */
-  void set tableLayout(String value) {
+  set tableLayout(String value) {
     setProperty('table-layout', value, '');
   }
 
@@ -6855,7 +8260,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('tap-highlight-color');
 
   /** Sets the value of "tap-highlight-color" */
-  void set tapHighlightColor(String value) {
+  set tapHighlightColor(String value) {
     setProperty('tap-highlight-color', value, '');
   }
 
@@ -6864,7 +8269,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-align');
 
   /** Sets the value of "text-align" */
-  void set textAlign(String value) {
+  set textAlign(String value) {
     setProperty('text-align', value, '');
   }
 
@@ -6873,7 +8278,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-align-last');
 
   /** Sets the value of "text-align-last" */
-  void set textAlignLast(String value) {
+  set textAlignLast(String value) {
     setProperty('text-align-last', value, '');
   }
 
@@ -6882,7 +8287,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-combine');
 
   /** Sets the value of "text-combine" */
-  void set textCombine(String value) {
+  set textCombine(String value) {
     setProperty('text-combine', value, '');
   }
 
@@ -6891,7 +8296,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-decoration');
 
   /** Sets the value of "text-decoration" */
-  void set textDecoration(String value) {
+  set textDecoration(String value) {
     setProperty('text-decoration', value, '');
   }
 
@@ -6900,7 +8305,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-decoration-color');
 
   /** Sets the value of "text-decoration-color" */
-  void set textDecorationColor(String value) {
+  set textDecorationColor(String value) {
     setProperty('text-decoration-color', value, '');
   }
 
@@ -6909,7 +8314,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-decoration-line');
 
   /** Sets the value of "text-decoration-line" */
-  void set textDecorationLine(String value) {
+  set textDecorationLine(String value) {
     setProperty('text-decoration-line', value, '');
   }
 
@@ -6918,7 +8323,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-decoration-style');
 
   /** Sets the value of "text-decoration-style" */
-  void set textDecorationStyle(String value) {
+  set textDecorationStyle(String value) {
     setProperty('text-decoration-style', value, '');
   }
 
@@ -6927,7 +8332,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-decorations-in-effect');
 
   /** Sets the value of "text-decorations-in-effect" */
-  void set textDecorationsInEffect(String value) {
+  set textDecorationsInEffect(String value) {
     setProperty('text-decorations-in-effect', value, '');
   }
 
@@ -6936,7 +8341,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-emphasis');
 
   /** Sets the value of "text-emphasis" */
-  void set textEmphasis(String value) {
+  set textEmphasis(String value) {
     setProperty('text-emphasis', value, '');
   }
 
@@ -6945,7 +8350,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-emphasis-color');
 
   /** Sets the value of "text-emphasis-color" */
-  void set textEmphasisColor(String value) {
+  set textEmphasisColor(String value) {
     setProperty('text-emphasis-color', value, '');
   }
 
@@ -6954,7 +8359,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-emphasis-position');
 
   /** Sets the value of "text-emphasis-position" */
-  void set textEmphasisPosition(String value) {
+  set textEmphasisPosition(String value) {
     setProperty('text-emphasis-position', value, '');
   }
 
@@ -6963,7 +8368,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-emphasis-style');
 
   /** Sets the value of "text-emphasis-style" */
-  void set textEmphasisStyle(String value) {
+  set textEmphasisStyle(String value) {
     setProperty('text-emphasis-style', value, '');
   }
 
@@ -6972,7 +8377,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-fill-color');
 
   /** Sets the value of "text-fill-color" */
-  void set textFillColor(String value) {
+  set textFillColor(String value) {
     setProperty('text-fill-color', value, '');
   }
 
@@ -6981,7 +8386,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-indent');
 
   /** Sets the value of "text-indent" */
-  void set textIndent(String value) {
+  set textIndent(String value) {
     setProperty('text-indent', value, '');
   }
 
@@ -6990,7 +8395,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-justify');
 
   /** Sets the value of "text-justify" */
-  void set textJustify(String value) {
+  set textJustify(String value) {
     setProperty('text-justify', value, '');
   }
 
@@ -6999,7 +8404,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-line-through-color');
 
   /** Sets the value of "text-line-through-color" */
-  void set textLineThroughColor(String value) {
+  set textLineThroughColor(String value) {
     setProperty('text-line-through-color', value, '');
   }
 
@@ -7008,7 +8413,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-line-through-mode');
 
   /** Sets the value of "text-line-through-mode" */
-  void set textLineThroughMode(String value) {
+  set textLineThroughMode(String value) {
     setProperty('text-line-through-mode', value, '');
   }
 
@@ -7017,7 +8422,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-line-through-style');
 
   /** Sets the value of "text-line-through-style" */
-  void set textLineThroughStyle(String value) {
+  set textLineThroughStyle(String value) {
     setProperty('text-line-through-style', value, '');
   }
 
@@ -7026,7 +8431,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-line-through-width');
 
   /** Sets the value of "text-line-through-width" */
-  void set textLineThroughWidth(String value) {
+  set textLineThroughWidth(String value) {
     setProperty('text-line-through-width', value, '');
   }
 
@@ -7035,7 +8440,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-orientation');
 
   /** Sets the value of "text-orientation" */
-  void set textOrientation(String value) {
+  set textOrientation(String value) {
     setProperty('text-orientation', value, '');
   }
 
@@ -7044,7 +8449,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-overflow');
 
   /** Sets the value of "text-overflow" */
-  void set textOverflow(String value) {
+  set textOverflow(String value) {
     setProperty('text-overflow', value, '');
   }
 
@@ -7053,7 +8458,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-overline-color');
 
   /** Sets the value of "text-overline-color" */
-  void set textOverlineColor(String value) {
+  set textOverlineColor(String value) {
     setProperty('text-overline-color', value, '');
   }
 
@@ -7062,7 +8467,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-overline-mode');
 
   /** Sets the value of "text-overline-mode" */
-  void set textOverlineMode(String value) {
+  set textOverlineMode(String value) {
     setProperty('text-overline-mode', value, '');
   }
 
@@ -7071,7 +8476,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-overline-style');
 
   /** Sets the value of "text-overline-style" */
-  void set textOverlineStyle(String value) {
+  set textOverlineStyle(String value) {
     setProperty('text-overline-style', value, '');
   }
 
@@ -7080,7 +8485,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-overline-width');
 
   /** Sets the value of "text-overline-width" */
-  void set textOverlineWidth(String value) {
+  set textOverlineWidth(String value) {
     setProperty('text-overline-width', value, '');
   }
 
@@ -7089,7 +8494,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-rendering');
 
   /** Sets the value of "text-rendering" */
-  void set textRendering(String value) {
+  set textRendering(String value) {
     setProperty('text-rendering', value, '');
   }
 
@@ -7098,7 +8503,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-security');
 
   /** Sets the value of "text-security" */
-  void set textSecurity(String value) {
+  set textSecurity(String value) {
     setProperty('text-security', value, '');
   }
 
@@ -7107,7 +8512,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-shadow');
 
   /** Sets the value of "text-shadow" */
-  void set textShadow(String value) {
+  set textShadow(String value) {
     setProperty('text-shadow', value, '');
   }
 
@@ -7116,7 +8521,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-stroke');
 
   /** Sets the value of "text-stroke" */
-  void set textStroke(String value) {
+  set textStroke(String value) {
     setProperty('text-stroke', value, '');
   }
 
@@ -7125,7 +8530,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-stroke-color');
 
   /** Sets the value of "text-stroke-color" */
-  void set textStrokeColor(String value) {
+  set textStrokeColor(String value) {
     setProperty('text-stroke-color', value, '');
   }
 
@@ -7134,7 +8539,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-stroke-width');
 
   /** Sets the value of "text-stroke-width" */
-  void set textStrokeWidth(String value) {
+  set textStrokeWidth(String value) {
     setProperty('text-stroke-width', value, '');
   }
 
@@ -7143,7 +8548,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-transform');
 
   /** Sets the value of "text-transform" */
-  void set textTransform(String value) {
+  set textTransform(String value) {
     setProperty('text-transform', value, '');
   }
 
@@ -7152,7 +8557,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-underline-color');
 
   /** Sets the value of "text-underline-color" */
-  void set textUnderlineColor(String value) {
+  set textUnderlineColor(String value) {
     setProperty('text-underline-color', value, '');
   }
 
@@ -7161,7 +8566,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-underline-mode');
 
   /** Sets the value of "text-underline-mode" */
-  void set textUnderlineMode(String value) {
+  set textUnderlineMode(String value) {
     setProperty('text-underline-mode', value, '');
   }
 
@@ -7170,7 +8575,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-underline-position');
 
   /** Sets the value of "text-underline-position" */
-  void set textUnderlinePosition(String value) {
+  set textUnderlinePosition(String value) {
     setProperty('text-underline-position', value, '');
   }
 
@@ -7179,7 +8584,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-underline-style');
 
   /** Sets the value of "text-underline-style" */
-  void set textUnderlineStyle(String value) {
+  set textUnderlineStyle(String value) {
     setProperty('text-underline-style', value, '');
   }
 
@@ -7188,7 +8593,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-underline-width');
 
   /** Sets the value of "text-underline-width" */
-  void set textUnderlineWidth(String value) {
+  set textUnderlineWidth(String value) {
     setProperty('text-underline-width', value, '');
   }
 
@@ -7197,7 +8602,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('top');
 
   /** Sets the value of "top" */
-  void set top(String value) {
+  set top(String value) {
     setProperty('top', value, '');
   }
 
@@ -7206,7 +8611,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('touch-action');
 
   /** Sets the value of "touch-action" */
-  void set touchAction(String value) {
+  set touchAction(String value) {
     setProperty('touch-action', value, '');
   }
 
@@ -7215,7 +8620,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('touch-action-delay');
 
   /** Sets the value of "touch-action-delay" */
-  void set touchActionDelay(String value) {
+  set touchActionDelay(String value) {
     setProperty('touch-action-delay', value, '');
   }
 
@@ -7224,7 +8629,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transform');
 
   /** Sets the value of "transform" */
-  void set transform(String value) {
+  set transform(String value) {
     setProperty('transform', value, '');
   }
 
@@ -7233,7 +8638,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transform-origin');
 
   /** Sets the value of "transform-origin" */
-  void set transformOrigin(String value) {
+  set transformOrigin(String value) {
     setProperty('transform-origin', value, '');
   }
 
@@ -7242,7 +8647,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transform-origin-x');
 
   /** Sets the value of "transform-origin-x" */
-  void set transformOriginX(String value) {
+  set transformOriginX(String value) {
     setProperty('transform-origin-x', value, '');
   }
 
@@ -7251,7 +8656,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transform-origin-y');
 
   /** Sets the value of "transform-origin-y" */
-  void set transformOriginY(String value) {
+  set transformOriginY(String value) {
     setProperty('transform-origin-y', value, '');
   }
 
@@ -7260,7 +8665,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transform-origin-z');
 
   /** Sets the value of "transform-origin-z" */
-  void set transformOriginZ(String value) {
+  set transformOriginZ(String value) {
     setProperty('transform-origin-z', value, '');
   }
 
@@ -7269,7 +8674,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transform-style');
 
   /** Sets the value of "transform-style" */
-  void set transformStyle(String value) {
+  set transformStyle(String value) {
     setProperty('transform-style', value, '');
   }
 
@@ -7284,7 +8689,7 @@ abstract class CssStyleDeclarationBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void set transition(String value) {
+  set transition(String value) {
     setProperty('transition', value, '');
   }
 
@@ -7293,7 +8698,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transition-delay');
 
   /** Sets the value of "transition-delay" */
-  void set transitionDelay(String value) {
+  set transitionDelay(String value) {
     setProperty('transition-delay', value, '');
   }
 
@@ -7302,7 +8707,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transition-duration');
 
   /** Sets the value of "transition-duration" */
-  void set transitionDuration(String value) {
+  set transitionDuration(String value) {
     setProperty('transition-duration', value, '');
   }
 
@@ -7311,7 +8716,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transition-property');
 
   /** Sets the value of "transition-property" */
-  void set transitionProperty(String value) {
+  set transitionProperty(String value) {
     setProperty('transition-property', value, '');
   }
 
@@ -7320,7 +8725,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transition-timing-function');
 
   /** Sets the value of "transition-timing-function" */
-  void set transitionTimingFunction(String value) {
+  set transitionTimingFunction(String value) {
     setProperty('transition-timing-function', value, '');
   }
 
@@ -7329,7 +8734,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('unicode-bidi');
 
   /** Sets the value of "unicode-bidi" */
-  void set unicodeBidi(String value) {
+  set unicodeBidi(String value) {
     setProperty('unicode-bidi', value, '');
   }
 
@@ -7338,7 +8743,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('unicode-range');
 
   /** Sets the value of "unicode-range" */
-  void set unicodeRange(String value) {
+  set unicodeRange(String value) {
     setProperty('unicode-range', value, '');
   }
 
@@ -7347,7 +8752,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('user-drag');
 
   /** Sets the value of "user-drag" */
-  void set userDrag(String value) {
+  set userDrag(String value) {
     setProperty('user-drag', value, '');
   }
 
@@ -7356,7 +8761,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('user-modify');
 
   /** Sets the value of "user-modify" */
-  void set userModify(String value) {
+  set userModify(String value) {
     setProperty('user-modify', value, '');
   }
 
@@ -7365,7 +8770,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('user-select');
 
   /** Sets the value of "user-select" */
-  void set userSelect(String value) {
+  set userSelect(String value) {
     setProperty('user-select', value, '');
   }
 
@@ -7374,7 +8779,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('user-zoom');
 
   /** Sets the value of "user-zoom" */
-  void set userZoom(String value) {
+  set userZoom(String value) {
     setProperty('user-zoom', value, '');
   }
 
@@ -7383,7 +8788,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('vertical-align');
 
   /** Sets the value of "vertical-align" */
-  void set verticalAlign(String value) {
+  set verticalAlign(String value) {
     setProperty('vertical-align', value, '');
   }
 
@@ -7392,7 +8797,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('visibility');
 
   /** Sets the value of "visibility" */
-  void set visibility(String value) {
+  set visibility(String value) {
     setProperty('visibility', value, '');
   }
 
@@ -7401,7 +8806,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('white-space');
 
   /** Sets the value of "white-space" */
-  void set whiteSpace(String value) {
+  set whiteSpace(String value) {
     setProperty('white-space', value, '');
   }
 
@@ -7410,7 +8815,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('widows');
 
   /** Sets the value of "widows" */
-  void set widows(String value) {
+  set widows(String value) {
     setProperty('widows', value, '');
   }
 
@@ -7419,7 +8824,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('width');
 
   /** Sets the value of "width" */
-  void set width(String value) {
+  set width(String value) {
     setProperty('width', value, '');
   }
 
@@ -7428,7 +8833,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('will-change');
 
   /** Sets the value of "will-change" */
-  void set willChange(String value) {
+  set willChange(String value) {
     setProperty('will-change', value, '');
   }
 
@@ -7437,7 +8842,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('word-break');
 
   /** Sets the value of "word-break" */
-  void set wordBreak(String value) {
+  set wordBreak(String value) {
     setProperty('word-break', value, '');
   }
 
@@ -7446,7 +8851,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('word-spacing');
 
   /** Sets the value of "word-spacing" */
-  void set wordSpacing(String value) {
+  set wordSpacing(String value) {
     setProperty('word-spacing', value, '');
   }
 
@@ -7455,7 +8860,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('word-wrap');
 
   /** Sets the value of "word-wrap" */
-  void set wordWrap(String value) {
+  set wordWrap(String value) {
     setProperty('word-wrap', value, '');
   }
 
@@ -7464,7 +8869,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('wrap-flow');
 
   /** Sets the value of "wrap-flow" */
-  void set wrapFlow(String value) {
+  set wrapFlow(String value) {
     setProperty('wrap-flow', value, '');
   }
 
@@ -7473,7 +8878,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('wrap-through');
 
   /** Sets the value of "wrap-through" */
-  void set wrapThrough(String value) {
+  set wrapThrough(String value) {
     setProperty('wrap-through', value, '');
   }
 
@@ -7482,7 +8887,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('writing-mode');
 
   /** Sets the value of "writing-mode" */
-  void set writingMode(String value) {
+  set writingMode(String value) {
     setProperty('writing-mode', value, '');
   }
 
@@ -7491,7 +8896,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('z-index');
 
   /** Sets the value of "z-index" */
-  void set zIndex(String value) {
+  set zIndex(String value) {
     setProperty('z-index', value, '');
   }
 
@@ -7500,7 +8905,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('zoom');
 
   /** Sets the value of "zoom" */
-  void set zoom(String value) {
+  set zoom(String value) {
     setProperty('zoom', value, '');
   }
 }
@@ -7517,13 +8922,25 @@ class CssStyleRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssStyleRule._() { throw new UnsupportedError("Not supported"); }
 
+
+  static CssStyleRule internalCreateCssStyleRule() {
+    return new CssStyleRule._internalWrap();
+  }
+
+  factory CssStyleRule._internalWrap() {
+    return new CssStyleRule.internal_();
+  }
+
+  CssStyleRule.internal_() : super.internal_();
+
+
   @DomName('CSSStyleRule.selectorText')
   @DocsEditable()
   String get selectorText => _blink.BlinkCSSStyleRule.instance.selectorText_Getter_(unwrap_jso(this));
   
   @DomName('CSSStyleRule.selectorText')
   @DocsEditable()
-  void set selectorText(String value) => _blink.BlinkCSSStyleRule.instance.selectorText_Setter_(unwrap_jso(this), value);
+  set selectorText(String value) => _blink.BlinkCSSStyleRule.instance.selectorText_Setter_(unwrap_jso(this), value);
   
   @DomName('CSSStyleRule.style')
   @DocsEditable()
@@ -7543,9 +8960,21 @@ class CssStyleSheet extends StyleSheet {
   // To suppress missing implicit constructor warnings.
   factory CssStyleSheet._() { throw new UnsupportedError("Not supported"); }
 
+
+  static CssStyleSheet internalCreateCssStyleSheet() {
+    return new CssStyleSheet._internalWrap();
+  }
+
+  factory CssStyleSheet._internalWrap() {
+    return new CssStyleSheet.internal_();
+  }
+
+  CssStyleSheet.internal_() : super.internal_();
+
+
   @DomName('CSSStyleSheet.cssRules')
   @DocsEditable()
-  List<CssRule> get cssRules => wrap_jso_list(_blink.BlinkCSSStyleSheet.instance.cssRules_Getter_(unwrap_jso(this)));
+  List<CssRule> get cssRules => wrap_jso(_blink.BlinkCSSStyleSheet.instance.cssRules_Getter_(unwrap_jso(this)));
   
   @DomName('CSSStyleSheet.ownerRule')
   @DocsEditable()
@@ -7554,7 +8983,7 @@ class CssStyleSheet extends StyleSheet {
   @DomName('CSSStyleSheet.rules')
   @DocsEditable()
   @Experimental() // non-standard
-  List<CssRule> get rules => wrap_jso_list(_blink.BlinkCSSStyleSheet.instance.rules_Getter_(unwrap_jso(this)));
+  List<CssRule> get rules => wrap_jso(_blink.BlinkCSSStyleSheet.instance.rules_Getter_(unwrap_jso(this)));
   
   int addRule(String selector, String style, [int index]) {
     if (index != null) {
@@ -7593,13 +9022,25 @@ class CssSupportsRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssSupportsRule._() { throw new UnsupportedError("Not supported"); }
 
+
+  static CssSupportsRule internalCreateCssSupportsRule() {
+    return new CssSupportsRule._internalWrap();
+  }
+
+  factory CssSupportsRule._internalWrap() {
+    return new CssSupportsRule.internal_();
+  }
+
+  CssSupportsRule.internal_() : super.internal_();
+
+
   @DomName('CSSSupportsRule.conditionText')
   @DocsEditable()
   String get conditionText => _blink.BlinkCSSSupportsRule.instance.conditionText_Getter_(unwrap_jso(this));
   
   @DomName('CSSSupportsRule.cssRules')
   @DocsEditable()
-  List<CssRule> get cssRules => wrap_jso_list(_blink.BlinkCSSSupportsRule.instance.cssRules_Getter_(unwrap_jso(this)));
+  List<CssRule> get cssRules => wrap_jso(_blink.BlinkCSSSupportsRule.instance.cssRules_Getter_(unwrap_jso(this)));
   
   @DomName('CSSSupportsRule.deleteRule')
   @DocsEditable()
@@ -7623,6 +9064,18 @@ class CssSupportsRule extends CssRule {
 class CssViewportRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssViewportRule._() { throw new UnsupportedError("Not supported"); }
+
+
+  static CssViewportRule internalCreateCssViewportRule() {
+    return new CssViewportRule._internalWrap();
+  }
+
+  factory CssViewportRule._internalWrap() {
+    return new CssViewportRule.internal_();
+  }
+
+  CssViewportRule.internal_() : super.internal_();
+
 
   @DomName('CSSViewportRule.style')
   @DocsEditable()
@@ -7673,9 +9126,21 @@ class CustomEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory CustomEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static CustomEvent internalCreateCustomEvent() {
+    return new CustomEvent._internalWrap();
+  }
+
+  factory CustomEvent._internalWrap() {
+    return new CustomEvent.internal_();
+  }
+
+  CustomEvent.internal_() : super.internal_();
+
+
   @DomName('CustomEvent.detail')
   @DocsEditable()
-  Object get _detail => _blink.BlinkCustomEvent.instance.detail_Getter_(unwrap_jso(this));
+  Object get _detail => wrap_jso(_blink.BlinkCustomEvent.instance.detail_Getter_(unwrap_jso(this)));
   
   @DomName('CustomEvent.initCustomEvent')
   @DocsEditable()
@@ -7698,6 +9163,18 @@ class DListElement extends HtmlElement {
   @DomName('HTMLDListElement.HTMLDListElement')
   @DocsEditable()
   factory DListElement() => document.createElement("dl");
+
+
+  static DListElement internalCreateDListElement() {
+    return new DListElement._internalWrap();
+  }
+
+  factory DListElement._internalWrap() {
+    return new DListElement.internal_();
+  }
+
+  DListElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -7726,6 +9203,18 @@ class DataListElement extends HtmlElement {
   @DomName('HTMLDataListElement.HTMLDataListElement')
   @DocsEditable()
   factory DataListElement() => document.createElement("datalist");
+
+
+  static DataListElement internalCreateDataListElement() {
+    return new DataListElement._internalWrap();
+  }
+
+  factory DataListElement._internalWrap() {
+    return new DataListElement.internal_();
+  }
+
+  DataListElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -7738,7 +9227,7 @@ class DataListElement extends HtmlElement {
 
   @DomName('HTMLDataListElement.options')
   @DocsEditable()
-  List<Node> get options => wrap_jso_list(_blink.BlinkHTMLDataListElement.instance.options_Getter_(unwrap_jso(this)));
+  List<Node> get options => wrap_jso(_blink.BlinkHTMLDataListElement.instance.options_Getter_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7755,6 +9244,21 @@ class DataTransfer extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DataTransfer._() { throw new UnsupportedError("Not supported"); }
 
+  static DataTransfer internalCreateDataTransfer() {
+    return new DataTransfer._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DataTransfer._internalWrap() {
+    return new DataTransfer.internal_();
+  }
+
+  DataTransfer.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('DataTransfer.dropEffect')
   @DocsEditable()
   @Experimental() // untriaged
@@ -7763,7 +9267,7 @@ class DataTransfer extends NativeFieldWrapperClass2 {
   @DomName('DataTransfer.dropEffect')
   @DocsEditable()
   @Experimental() // untriaged
-  void set dropEffect(String value) => _blink.BlinkDataTransfer.instance.dropEffect_Setter_(unwrap_jso(this), value);
+  set dropEffect(String value) => _blink.BlinkDataTransfer.instance.dropEffect_Setter_(unwrap_jso(this), value);
   
   @DomName('DataTransfer.effectAllowed')
   @DocsEditable()
@@ -7773,12 +9277,12 @@ class DataTransfer extends NativeFieldWrapperClass2 {
   @DomName('DataTransfer.effectAllowed')
   @DocsEditable()
   @Experimental() // untriaged
-  void set effectAllowed(String value) => _blink.BlinkDataTransfer.instance.effectAllowed_Setter_(unwrap_jso(this), value);
+  set effectAllowed(String value) => _blink.BlinkDataTransfer.instance.effectAllowed_Setter_(unwrap_jso(this), value);
   
   @DomName('DataTransfer.files')
   @DocsEditable()
   @Experimental() // untriaged
-  List<File> get files => wrap_jso_list(_blink.BlinkDataTransfer.instance.files_Getter_(unwrap_jso(this)));
+  List<File> get files => wrap_jso(_blink.BlinkDataTransfer.instance.files_Getter_(unwrap_jso(this)));
   
   @DomName('DataTransfer.items')
   @DocsEditable()
@@ -7830,6 +9334,21 @@ class DataTransferItem extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DataTransferItem._() { throw new UnsupportedError("Not supported"); }
 
+  static DataTransferItem internalCreateDataTransferItem() {
+    return new DataTransferItem._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DataTransferItem._internalWrap() {
+    return new DataTransferItem.internal_();
+  }
+
+  DataTransferItem.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('DataTransferItem.kind')
   @DocsEditable()
   String get kind => _blink.BlinkDataTransferItem.instance.kind_Getter_(unwrap_jso(this));
@@ -7844,7 +9363,7 @@ class DataTransferItem extends NativeFieldWrapperClass2 {
   
   @DomName('DataTransferItem.getAsString')
   @DocsEditable()
-  void _getAsString(_StringCallback callback) => _blink.BlinkDataTransferItem.instance.getAsString_Callback_1_(unwrap_jso(this), unwrap_jso(callback));
+  void _getAsString(_StringCallback callback) => _blink.BlinkDataTransferItem.instance.getAsString_Callback_1_(unwrap_jso(this), unwrap_jso((data) => callback(data)));
   
   Future<String> getAsString() {
     var completer = new Completer<String>();
@@ -7873,6 +9392,21 @@ class DataTransferItem extends NativeFieldWrapperClass2 {
 class DataTransferItemList extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DataTransferItemList._() { throw new UnsupportedError("Not supported"); }
+
+  static DataTransferItemList internalCreateDataTransferItemList() {
+    return new DataTransferItemList._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DataTransferItemList._internalWrap() {
+    return new DataTransferItemList.internal_();
+  }
+
+  DataTransferItemList.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DataTransferItemList.length')
   @DocsEditable()
@@ -7952,6 +9486,18 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   @Experimental() // untriaged
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
+
+  static DedicatedWorkerGlobalScope internalCreateDedicatedWorkerGlobalScope() {
+    return new DedicatedWorkerGlobalScope._internalWrap();
+  }
+
+  factory DedicatedWorkerGlobalScope._internalWrap() {
+    return new DedicatedWorkerGlobalScope.internal_();
+  }
+
+  DedicatedWorkerGlobalScope.internal_() : super.internal_();
+
+
   @DomName('DedicatedWorkerGlobalScope.postMessage')
   @DocsEditable()
   @Experimental() // untriaged
@@ -7978,6 +9524,21 @@ class DeprecatedStorageInfo extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DeprecatedStorageInfo._() { throw new UnsupportedError("Not supported"); }
 
+  static DeprecatedStorageInfo internalCreateDeprecatedStorageInfo() {
+    return new DeprecatedStorageInfo._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DeprecatedStorageInfo._internalWrap() {
+    return new DeprecatedStorageInfo.internal_();
+  }
+
+  DeprecatedStorageInfo.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('DeprecatedStorageInfo.PERSISTENT')
   @DocsEditable()
   @Experimental() // untriaged
@@ -7990,11 +9551,11 @@ class DeprecatedStorageInfo extends NativeFieldWrapperClass2 {
 
   void queryUsageAndQuota(int storageType, [StorageUsageCallback usageCallback, StorageErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkDeprecatedStorageInfo.instance.queryUsageAndQuota_Callback_3_(unwrap_jso(this), storageType, unwrap_jso(usageCallback), unwrap_jso(errorCallback));
+      _blink.BlinkDeprecatedStorageInfo.instance.queryUsageAndQuota_Callback_3_(unwrap_jso(this), storageType, unwrap_jso((currentUsageInBytes, currentQuotaInBytes) => usageCallback(currentUsageInBytes, currentQuotaInBytes)), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (usageCallback != null) {
-      _blink.BlinkDeprecatedStorageInfo.instance.queryUsageAndQuota_Callback_2_(unwrap_jso(this), storageType, unwrap_jso(usageCallback));
+      _blink.BlinkDeprecatedStorageInfo.instance.queryUsageAndQuota_Callback_2_(unwrap_jso(this), storageType, unwrap_jso((currentUsageInBytes, currentQuotaInBytes) => usageCallback(currentUsageInBytes, currentQuotaInBytes)));
       return;
     }
     _blink.BlinkDeprecatedStorageInfo.instance.queryUsageAndQuota_Callback_1_(unwrap_jso(this), storageType);
@@ -8003,11 +9564,11 @@ class DeprecatedStorageInfo extends NativeFieldWrapperClass2 {
 
   void requestQuota(int storageType, int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkDeprecatedStorageInfo.instance.requestQuota_Callback_4_(unwrap_jso(this), storageType, newQuotaInBytes, unwrap_jso(quotaCallback), unwrap_jso(errorCallback));
+      _blink.BlinkDeprecatedStorageInfo.instance.requestQuota_Callback_4_(unwrap_jso(this), storageType, newQuotaInBytes, unwrap_jso((grantedQuotaInBytes) => quotaCallback(grantedQuotaInBytes)), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (quotaCallback != null) {
-      _blink.BlinkDeprecatedStorageInfo.instance.requestQuota_Callback_3_(unwrap_jso(this), storageType, newQuotaInBytes, unwrap_jso(quotaCallback));
+      _blink.BlinkDeprecatedStorageInfo.instance.requestQuota_Callback_3_(unwrap_jso(this), storageType, newQuotaInBytes, unwrap_jso((grantedQuotaInBytes) => quotaCallback(grantedQuotaInBytes)));
       return;
     }
     _blink.BlinkDeprecatedStorageInfo.instance.requestQuota_Callback_2_(unwrap_jso(this), storageType, newQuotaInBytes);
@@ -8029,22 +9590,37 @@ class DeprecatedStorageQuota extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DeprecatedStorageQuota._() { throw new UnsupportedError("Not supported"); }
 
+  static DeprecatedStorageQuota internalCreateDeprecatedStorageQuota() {
+    return new DeprecatedStorageQuota._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DeprecatedStorageQuota._internalWrap() {
+    return new DeprecatedStorageQuota.internal_();
+  }
+
+  DeprecatedStorageQuota.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   void queryUsageAndQuota(StorageUsageCallback usageCallback, [StorageErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkDeprecatedStorageQuota.instance.queryUsageAndQuota_Callback_2_(unwrap_jso(this), unwrap_jso(usageCallback), unwrap_jso(errorCallback));
+      _blink.BlinkDeprecatedStorageQuota.instance.queryUsageAndQuota_Callback_2_(unwrap_jso(this), unwrap_jso((currentUsageInBytes, currentQuotaInBytes) => usageCallback(currentUsageInBytes, currentQuotaInBytes)), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkDeprecatedStorageQuota.instance.queryUsageAndQuota_Callback_1_(unwrap_jso(this), unwrap_jso(usageCallback));
+    _blink.BlinkDeprecatedStorageQuota.instance.queryUsageAndQuota_Callback_1_(unwrap_jso(this), unwrap_jso((currentUsageInBytes, currentQuotaInBytes) => usageCallback(currentUsageInBytes, currentQuotaInBytes)));
     return;
   }
 
   void requestQuota(int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkDeprecatedStorageQuota.instance.requestQuota_Callback_3_(unwrap_jso(this), newQuotaInBytes, unwrap_jso(quotaCallback), unwrap_jso(errorCallback));
+      _blink.BlinkDeprecatedStorageQuota.instance.requestQuota_Callback_3_(unwrap_jso(this), newQuotaInBytes, unwrap_jso((grantedQuotaInBytes) => quotaCallback(grantedQuotaInBytes)), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (quotaCallback != null) {
-      _blink.BlinkDeprecatedStorageQuota.instance.requestQuota_Callback_2_(unwrap_jso(this), newQuotaInBytes, unwrap_jso(quotaCallback));
+      _blink.BlinkDeprecatedStorageQuota.instance.requestQuota_Callback_2_(unwrap_jso(this), newQuotaInBytes, unwrap_jso((grantedQuotaInBytes) => quotaCallback(grantedQuotaInBytes)));
       return;
     }
     _blink.BlinkDeprecatedStorageQuota.instance.requestQuota_Callback_1_(unwrap_jso(this), newQuotaInBytes);
@@ -8071,6 +9647,18 @@ class DetailsElement extends HtmlElement {
   @DomName('HTMLDetailsElement.HTMLDetailsElement')
   @DocsEditable()
   factory DetailsElement() => document.createElement("details");
+
+
+  static DetailsElement internalCreateDetailsElement() {
+    return new DetailsElement._internalWrap();
+  }
+
+  factory DetailsElement._internalWrap() {
+    return new DetailsElement.internal_();
+  }
+
+  DetailsElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -8087,7 +9675,7 @@ class DetailsElement extends HtmlElement {
   
   @DomName('HTMLDetailsElement.open')
   @DocsEditable()
-  void set open(bool value) => _blink.BlinkHTMLDetailsElement.instance.open_Setter_(unwrap_jso(this), value);
+  set open(bool value) => _blink.BlinkHTMLDetailsElement.instance.open_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8105,17 +9693,32 @@ class DeviceAcceleration extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DeviceAcceleration._() { throw new UnsupportedError("Not supported"); }
 
+  static DeviceAcceleration internalCreateDeviceAcceleration() {
+    return new DeviceAcceleration._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DeviceAcceleration._internalWrap() {
+    return new DeviceAcceleration.internal_();
+  }
+
+  DeviceAcceleration.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('DeviceAcceleration.x')
   @DocsEditable()
-  double get x => _blink.BlinkDeviceAcceleration.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkDeviceAcceleration.instance.x_Getter_(unwrap_jso(this));
   
   @DomName('DeviceAcceleration.y')
   @DocsEditable()
-  double get y => _blink.BlinkDeviceAcceleration.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkDeviceAcceleration.instance.y_Getter_(unwrap_jso(this));
   
   @DomName('DeviceAcceleration.z')
   @DocsEditable()
-  double get z => _blink.BlinkDeviceAcceleration.instance.z_Getter_(unwrap_jso(this));
+  num get z => _blink.BlinkDeviceAcceleration.instance.z_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8132,10 +9735,22 @@ class DeviceLightEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory DeviceLightEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static DeviceLightEvent internalCreateDeviceLightEvent() {
+    return new DeviceLightEvent._internalWrap();
+  }
+
+  factory DeviceLightEvent._internalWrap() {
+    return new DeviceLightEvent.internal_();
+  }
+
+  DeviceLightEvent.internal_() : super.internal_();
+
+
   @DomName('DeviceLightEvent.value')
   @DocsEditable()
   @Experimental() // untriaged
-  double get value => _blink.BlinkDeviceLightEvent.instance.value_Getter_(unwrap_jso(this));
+  num get value => _blink.BlinkDeviceLightEvent.instance.value_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8153,6 +9768,18 @@ class DeviceMotionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory DeviceMotionEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static DeviceMotionEvent internalCreateDeviceMotionEvent() {
+    return new DeviceMotionEvent._internalWrap();
+  }
+
+  factory DeviceMotionEvent._internalWrap() {
+    return new DeviceMotionEvent.internal_();
+  }
+
+  DeviceMotionEvent.internal_() : super.internal_();
+
+
   @DomName('DeviceMotionEvent.acceleration')
   @DocsEditable()
   DeviceAcceleration get acceleration => wrap_jso(_blink.BlinkDeviceMotionEvent.instance.acceleration_Getter_(unwrap_jso(this)));
@@ -8163,7 +9790,7 @@ class DeviceMotionEvent extends Event {
   
   @DomName('DeviceMotionEvent.interval')
   @DocsEditable()
-  double get interval => _blink.BlinkDeviceMotionEvent.instance.interval_Getter_(unwrap_jso(this));
+  num get interval => _blink.BlinkDeviceMotionEvent.instance.interval_Getter_(unwrap_jso(this));
   
   @DomName('DeviceMotionEvent.rotationRate')
   @DocsEditable()
@@ -8196,21 +9823,33 @@ class DeviceOrientationEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory DeviceOrientationEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static DeviceOrientationEvent internalCreateDeviceOrientationEvent() {
+    return new DeviceOrientationEvent._internalWrap();
+  }
+
+  factory DeviceOrientationEvent._internalWrap() {
+    return new DeviceOrientationEvent.internal_();
+  }
+
+  DeviceOrientationEvent.internal_() : super.internal_();
+
+
   @DomName('DeviceOrientationEvent.absolute')
   @DocsEditable()
   bool get absolute => _blink.BlinkDeviceOrientationEvent.instance.absolute_Getter_(unwrap_jso(this));
   
   @DomName('DeviceOrientationEvent.alpha')
   @DocsEditable()
-  double get alpha => _blink.BlinkDeviceOrientationEvent.instance.alpha_Getter_(unwrap_jso(this));
+  num get alpha => _blink.BlinkDeviceOrientationEvent.instance.alpha_Getter_(unwrap_jso(this));
   
   @DomName('DeviceOrientationEvent.beta')
   @DocsEditable()
-  double get beta => _blink.BlinkDeviceOrientationEvent.instance.beta_Getter_(unwrap_jso(this));
+  num get beta => _blink.BlinkDeviceOrientationEvent.instance.beta_Getter_(unwrap_jso(this));
   
   @DomName('DeviceOrientationEvent.gamma')
   @DocsEditable()
-  double get gamma => _blink.BlinkDeviceOrientationEvent.instance.gamma_Getter_(unwrap_jso(this));
+  num get gamma => _blink.BlinkDeviceOrientationEvent.instance.gamma_Getter_(unwrap_jso(this));
   
   @DomName('DeviceOrientationEvent.initDeviceOrientationEvent')
   @DocsEditable()
@@ -8232,17 +9871,32 @@ class DeviceRotationRate extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DeviceRotationRate._() { throw new UnsupportedError("Not supported"); }
 
+  static DeviceRotationRate internalCreateDeviceRotationRate() {
+    return new DeviceRotationRate._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DeviceRotationRate._internalWrap() {
+    return new DeviceRotationRate.internal_();
+  }
+
+  DeviceRotationRate.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('DeviceRotationRate.alpha')
   @DocsEditable()
-  double get alpha => _blink.BlinkDeviceRotationRate.instance.alpha_Getter_(unwrap_jso(this));
+  num get alpha => _blink.BlinkDeviceRotationRate.instance.alpha_Getter_(unwrap_jso(this));
   
   @DomName('DeviceRotationRate.beta')
   @DocsEditable()
-  double get beta => _blink.BlinkDeviceRotationRate.instance.beta_Getter_(unwrap_jso(this));
+  num get beta => _blink.BlinkDeviceRotationRate.instance.beta_Getter_(unwrap_jso(this));
   
   @DomName('DeviceRotationRate.gamma')
   @DocsEditable()
-  double get gamma => _blink.BlinkDeviceRotationRate.instance.gamma_Getter_(unwrap_jso(this));
+  num get gamma => _blink.BlinkDeviceRotationRate.instance.gamma_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8258,6 +9912,18 @@ class DeviceRotationRate extends NativeFieldWrapperClass2 {
 class DialogElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory DialogElement._() { throw new UnsupportedError("Not supported"); }
+
+
+  static DialogElement internalCreateDialogElement() {
+    return new DialogElement._internalWrap();
+  }
+
+  factory DialogElement._internalWrap() {
+    return new DialogElement.internal_();
+  }
+
+  DialogElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -8271,7 +9937,7 @@ class DialogElement extends HtmlElement {
   
   @DomName('HTMLDialogElement.open')
   @DocsEditable()
-  void set open(bool value) => _blink.BlinkHTMLDialogElement.instance.open_Setter_(unwrap_jso(this), value);
+  set open(bool value) => _blink.BlinkHTMLDialogElement.instance.open_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLDialogElement.returnValue')
   @DocsEditable()
@@ -8281,7 +9947,7 @@ class DialogElement extends HtmlElement {
   @DomName('HTMLDialogElement.returnValue')
   @DocsEditable()
   @Experimental() // untriaged
-  void set returnValue(String value) => _blink.BlinkHTMLDialogElement.instance.returnValue_Setter_(unwrap_jso(this), value);
+  set returnValue(String value) => _blink.BlinkHTMLDialogElement.instance.returnValue_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLDialogElement.close')
   @DocsEditable()
@@ -8345,21 +10011,33 @@ class DirectoryEntry extends Entry {
   // To suppress missing implicit constructor warnings.
   factory DirectoryEntry._() { throw new UnsupportedError("Not supported"); }
 
+
+  static DirectoryEntry internalCreateDirectoryEntry() {
+    return new DirectoryEntry._internalWrap();
+  }
+
+  factory DirectoryEntry._internalWrap() {
+    return new DirectoryEntry.internal_();
+  }
+
+  DirectoryEntry.internal_() : super.internal_();
+
+
   @DomName('DirectoryEntry.createReader')
   @DocsEditable()
   DirectoryReader createReader() => wrap_jso(_blink.BlinkDirectoryEntry.instance.createReader_Callback_0_(unwrap_jso(this)));
   
   void __getDirectory(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (errorCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_4_(unwrap_jso(this), path, options, unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_4_(unwrap_jso(this), path, convertDartToNative_Dictionary(options), unwrap_jso((entry) => successCallback(wrap_jso(entry))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (successCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_3_(unwrap_jso(this), path, options, unwrap_jso(successCallback));
+      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_3_(unwrap_jso(this), path, convertDartToNative_Dictionary(options), unwrap_jso((entry) => successCallback(wrap_jso(entry))));
       return;
     }
     if (options != null) {
-      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_2_(unwrap_jso(this), path, options);
+      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_2_(unwrap_jso(this), path, convertDartToNative_Dictionary(options));
       return;
     }
     _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_1_(unwrap_jso(this), path);
@@ -8376,15 +10054,15 @@ class DirectoryEntry extends Entry {
 
   void __getFile(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (errorCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getFile_Callback_4_(unwrap_jso(this), path, options, unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkDirectoryEntry.instance.getFile_Callback_4_(unwrap_jso(this), path, convertDartToNative_Dictionary(options), unwrap_jso((entry) => successCallback(wrap_jso(entry))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (successCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getFile_Callback_3_(unwrap_jso(this), path, options, unwrap_jso(successCallback));
+      _blink.BlinkDirectoryEntry.instance.getFile_Callback_3_(unwrap_jso(this), path, convertDartToNative_Dictionary(options), unwrap_jso((entry) => successCallback(wrap_jso(entry))));
       return;
     }
     if (options != null) {
-      _blink.BlinkDirectoryEntry.instance.getFile_Callback_2_(unwrap_jso(this), path, options);
+      _blink.BlinkDirectoryEntry.instance.getFile_Callback_2_(unwrap_jso(this), path, convertDartToNative_Dictionary(options));
       return;
     }
     _blink.BlinkDirectoryEntry.instance.getFile_Callback_1_(unwrap_jso(this), path);
@@ -8401,10 +10079,10 @@ class DirectoryEntry extends Entry {
 
   void _removeRecursively(VoidCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.removeRecursively_Callback_2_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkDirectoryEntry.instance.removeRecursively_Callback_2_(unwrap_jso(this), unwrap_jso(() => successCallback()), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkDirectoryEntry.instance.removeRecursively_Callback_1_(unwrap_jso(this), unwrap_jso(successCallback));
+    _blink.BlinkDirectoryEntry.instance.removeRecursively_Callback_1_(unwrap_jso(this), unwrap_jso(() => successCallback()));
     return;
   }
 
@@ -8432,12 +10110,27 @@ class DirectoryReader extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DirectoryReader._() { throw new UnsupportedError("Not supported"); }
 
+  static DirectoryReader internalCreateDirectoryReader() {
+    return new DirectoryReader._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DirectoryReader._internalWrap() {
+    return new DirectoryReader.internal_();
+  }
+
+  DirectoryReader.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   void _readEntries(_EntriesCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkDirectoryReader.instance.readEntries_Callback_2_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkDirectoryReader.instance.readEntries_Callback_2_(unwrap_jso(this), unwrap_jso((entries) => successCallback(entries)), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkDirectoryReader.instance.readEntries_Callback_1_(unwrap_jso(this), unwrap_jso(successCallback));
+    _blink.BlinkDirectoryReader.instance.readEntries_Callback_1_(unwrap_jso(this), unwrap_jso((entries) => successCallback(entries)));
     return;
   }
 
@@ -8488,6 +10181,18 @@ class DivElement extends HtmlElement {
   @DomName('HTMLDivElement.HTMLDivElement')
   @DocsEditable()
   factory DivElement() => document.createElement("div");
+
+
+  static DivElement internalCreateDivElement() {
+    return new DivElement._internalWrap();
+  }
+
+  factory DivElement._internalWrap() {
+    return new DivElement.internal_();
+  }
+
+  DivElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -8560,6 +10265,18 @@ class Document extends Node
   @DocsEditable()
   static const EventStreamProvider<Event> selectionChangeEvent = const EventStreamProvider<Event>('selectionchange');
 
+
+  static Document internalCreateDocument() {
+    return new Document._internalWrap();
+  }
+
+  factory Document._internalWrap() {
+    return new Document.internal_();
+  }
+
+  Document.internal_() : super.internal_();
+
+
   @DomName('Document.activeElement')
   @DocsEditable()
   @Experimental() // untriaged
@@ -8571,7 +10288,7 @@ class Document extends Node
   
   @DomName('Document.body')
   @DocsEditable()
-  void set _body(HtmlElement value) => _blink.BlinkDocument.instance.body_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set _body(HtmlElement value) => _blink.BlinkDocument.instance.body_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('Document.contentType')
   @DocsEditable()
@@ -8584,7 +10301,7 @@ class Document extends Node
   
   @DomName('Document.cookie')
   @DocsEditable()
-  void set cookie(String value) => _blink.BlinkDocument.instance.cookie_Setter_(unwrap_jso(this), value);
+  set cookie(String value) => _blink.BlinkDocument.instance.cookie_Setter_(unwrap_jso(this), value);
   
   @DomName('Document.currentScript')
   @DocsEditable()
@@ -8663,11 +10380,11 @@ class Document extends Node
   
   @DomName('Document.selectedStylesheetSet')
   @DocsEditable()
-  void set _selectedStylesheetSet(String value) => _blink.BlinkDocument.instance.selectedStylesheetSet_Setter_(unwrap_jso(this), value);
+  set _selectedStylesheetSet(String value) => _blink.BlinkDocument.instance.selectedStylesheetSet_Setter_(unwrap_jso(this), value);
   
   @DomName('Document.styleSheets')
   @DocsEditable()
-  List<StyleSheet> get _styleSheets => wrap_jso_list(_blink.BlinkDocument.instance.styleSheets_Getter_(unwrap_jso(this)));
+  List<StyleSheet> get _styleSheets => wrap_jso(_blink.BlinkDocument.instance.styleSheets_Getter_(unwrap_jso(this)));
   
   @DomName('Document.timeline')
   @DocsEditable()
@@ -8680,7 +10397,7 @@ class Document extends Node
   
   @DomName('Document.title')
   @DocsEditable()
-  void set _title(String value) => _blink.BlinkDocument.instance.title_Setter_(unwrap_jso(this), value);
+  set _title(String value) => _blink.BlinkDocument.instance.title_Setter_(unwrap_jso(this), value);
   
   @DomName('Document.visibilityState')
   @DocsEditable()
@@ -8739,7 +10456,7 @@ class Document extends Node
   
   @DomName('Document.createElementNS')
   @DocsEditable()
-  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) => wrap_jso(_blink.BlinkDocument.instance.createElementNS_Callback_3_(unwrap_jso(this), namespaceURI, qualifiedName, typeExtension));
+  Element _createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) => wrap_jso(_blink.BlinkDocument.instance.createElementNS_Callback_3_(unwrap_jso(this), namespaceURI, qualifiedName, typeExtension));
   
   @DomName('Document.createEvent')
   @DocsEditable()
@@ -8809,15 +10526,15 @@ class Document extends Node
   
   @DomName('Document.getElementsByClassName')
   @DocsEditable()
-  List<Node> getElementsByClassName(String classNames) => wrap_jso_list(_blink.BlinkDocument.instance.getElementsByClassName_Callback_1_(unwrap_jso(this), classNames));
+  List<Node> getElementsByClassName(String classNames) => wrap_jso(_blink.BlinkDocument.instance.getElementsByClassName_Callback_1_(unwrap_jso(this), classNames));
   
   @DomName('Document.getElementsByName')
   @DocsEditable()
-  List<Node> getElementsByName(String elementName) => wrap_jso_list(_blink.BlinkDocument.instance.getElementsByName_Callback_1_(unwrap_jso(this), elementName));
+  List<Node> getElementsByName(String elementName) => wrap_jso(_blink.BlinkDocument.instance.getElementsByName_Callback_1_(unwrap_jso(this), elementName));
   
   @DomName('Document.getElementsByTagName')
   @DocsEditable()
-  List<Node> getElementsByTagName(String localName) => wrap_jso_list(_blink.BlinkDocument.instance.getElementsByTagName_Callback_1_(unwrap_jso(this), localName));
+  List<Node> getElementsByTagName(String localName) => wrap_jso(_blink.BlinkDocument.instance.getElementsByTagName_Callback_1_(unwrap_jso(this), localName));
   
   Node importNode(Node node, [bool deep]) {
     if (deep != null) {
@@ -8865,7 +10582,7 @@ class Document extends Node
   
   @DomName('Document.children')
   @DocsEditable()
-  List<Node> get _children => wrap_jso_list(_blink.BlinkDocument.instance.children_Getter_(unwrap_jso(this)));
+  List<Node> get _children => wrap_jso(_blink.BlinkDocument.instance.children_Getter_(unwrap_jso(this)));
   
   @DomName('Document.firstElementChild')
   @DocsEditable()
@@ -8898,7 +10615,7 @@ class Document extends Node
   
   @DomName('Document.querySelectorAll')
   @DocsEditable()
-  List<Node> _querySelectorAll(String selectors) => wrap_jso_list(_blink.BlinkDocument.instance.querySelectorAll_Callback_1_(unwrap_jso(this), selectors));
+  List<Node> _querySelectorAll(String selectors) => wrap_jso(_blink.BlinkDocument.instance.querySelectorAll_Callback_1_(unwrap_jso(this), selectors));
   
   /// Stream of `abort` events handled by this [Document].
   @DomName('Document.onabort')
@@ -9323,12 +11040,45 @@ class Document extends Node
 
   @DomName('Document.createElement')
   Element createElement(String tagName, [String typeExtension]) {
-    if (typeExtension != null) {  
-      return _createElement(tagName, typeExtension);  
-    } else {  
-      // Fast-path for Dartium when typeExtension is not needed.  
-      return _Utils.createElement(this, tagName); 
-    } 
+    var newElement = (typeExtension == null) ?
+      _blink.BlinkDocument.instance.createElement_Callback_1_(unwrap_jso(this), tagName) :
+      _blink.BlinkDocument.instance.createElement_Callback_2_(unwrap_jso(this), tagName, typeExtension);
+
+    var wrapped;
+
+    if (newElement['dart_class'] != null) {
+      wrapped = newElement['dart_class'];         // Here's our Dart class.
+      wrapped.blink_jsObject = newElement;
+    } else {
+      wrapped = wrap_jso(newElement);
+      if (wrapped == null) {
+        wrapped = wrap_jso_custom_element(newElement);
+      }
+    }
+
+    return wrapped;
+  }
+
+  @DomName('Document.createElementNS')
+  @DocsEditable()
+  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) {
+    var newElement = (typeExtension == null) ?
+      _blink.BlinkDocument.instance.createElementNS_Callback_2_(unwrap_jso(this), namespaceURI, qualifiedName) :
+      _blink.BlinkDocument.instance.createElementNS_Callback_3_(unwrap_jso(this), namespaceURI, qualifiedName, typeExtension);
+
+    var wrapped;
+
+    if (newElement['dart_class'] != null) {
+      wrapped = newElement['dart_class'];         // Here's our Dart class.
+      wrapped.blink_jsObject = newElement;
+    } else {
+      wrapped = wrap_jso(newElement);
+      if (wrapped == null) {
+        wrapped = wrap_jso_custom_element(newElement);
+      }
+    }
+
+    return wrapped;
   }
 
 }
@@ -9367,7 +11117,7 @@ class DocumentFragment extends Node implements ParentNode {
     return _docChildren;
   }
 
-  void set children(List<Element> value) {
+  set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;
@@ -9389,14 +11139,13 @@ class DocumentFragment extends Node implements ParentNode {
   ElementList<Element> querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
-
   String get innerHtml {
     final e = new Element.tag("div");
     e.append(this.clone(true));
     return e.innerHtml;
   }
 
-  void set innerHtml(String value) {
+  set innerHtml(String value) {
     this.setInnerHtml(value);
   }
 
@@ -9451,6 +11200,18 @@ class DocumentFragment extends Node implements ParentNode {
   // To suppress missing implicit constructor warnings.
   factory DocumentFragment._() { throw new UnsupportedError("Not supported"); }
 
+
+  static DocumentFragment internalCreateDocumentFragment() {
+    return new DocumentFragment._internalWrap();
+  }
+
+  factory DocumentFragment._internalWrap() {
+    return new DocumentFragment.internal_();
+  }
+
+  DocumentFragment.internal_() : super.internal_();
+
+
   @DomName('DocumentFragment.getElementById')
   @DocsEditable()
   @Experimental() // untriaged
@@ -9486,7 +11247,7 @@ class DocumentFragment extends Node implements ParentNode {
   
   @DomName('DocumentFragment.querySelectorAll')
   @DocsEditable()
-  List<Node> _querySelectorAll(String selectors) => wrap_jso_list(_blink.BlinkDocumentFragment.instance.querySelectorAll_Callback_1_(unwrap_jso(this), selectors));
+  List<Node> _querySelectorAll(String selectors) => wrap_jso(_blink.BlinkDocumentFragment.instance.querySelectorAll_Callback_1_(unwrap_jso(this), selectors));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9505,8 +11266,23 @@ class DomError extends NativeFieldWrapperClass2 {
   @DomName('DOMError.DOMError')
   @DocsEditable()
   factory DomError(String name, [String message]) {
-    return _blink.BlinkDOMError.instance.constructorCallback_2_(name, message);
+    return wrap_jso(_blink.BlinkDOMError.instance.constructorCallback_2_(name, message));
   }
+
+  static DomError internalCreateDomError() {
+    return new DomError._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DomError._internalWrap() {
+    return new DomError.internal_();
+  }
+
+  DomError.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DOMError.message')
   @DocsEditable()
@@ -9549,21 +11325,47 @@ class DomException extends NativeFieldWrapperClass2 {
   static const String INVALID_NODE_TYPE = 'InvalidNodeTypeError';
   static const String DATA_CLONE = 'DataCloneError';
 
+  String _name;
+  String _message;
+
   // To suppress missing implicit constructor warnings.
   factory DomException._() { throw new UnsupportedError("Not supported"); }
 
+  static DomException internalCreateDomException() {
+    return new DomException._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DomException._internalWrap() {
+    return new DomException.internal_();
+  }
+
+  DomException.internal_() { }
+
+  DomException.jsInterop(String m) {
+    var name_index = m.indexOf(': ');
+    if (name_index < 0) {
+      _name = "";
+      _message = m;
+    } else {
+      _name = m.substring(0, name_index);
+      _message = m.substring(name_index + 1).trim();
+    }
+  }
+
   @DomName('DOMException.message')
   @DocsEditable()
-  String get message => _blink.BlinkDOMException.instance.message_Getter_(unwrap_jso(this));
-  
+  String get message => _message;
+
   @DomName('DOMException.name')
   @DocsEditable()
-  String get name => _blink.BlinkDOMException.instance.name_Getter_(unwrap_jso(this));
-  
+  String get name => _name;
+
   @DomName('DOMException.toString')
   @DocsEditable()
-  String toString() => _blink.BlinkDOMException.instance.toString_Callback_0_(unwrap_jso(this));
-  
+  String toString() => "${_name}: $_message";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9578,13 +11380,28 @@ class DomImplementation extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DomImplementation._() { throw new UnsupportedError("Not supported"); }
 
+  static DomImplementation internalCreateDomImplementation() {
+    return new DomImplementation._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DomImplementation._internalWrap() {
+    return new DomImplementation.internal_();
+  }
+
+  DomImplementation.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('DOMImplementation.createDocument')
   @DocsEditable()
-  XmlDocument createDocument(String namespaceURI, String qualifiedName, _DocumentType doctype) => _blink.BlinkDOMImplementation.instance.createDocument_Callback_3_(unwrap_jso(this), namespaceURI, qualifiedName, unwrap_jso(doctype));
+  XmlDocument createDocument(String namespaceURI, String qualifiedName, _DocumentType doctype) => wrap_jso(_blink.BlinkDOMImplementation.instance.createDocument_Callback_3_(unwrap_jso(this), namespaceURI, qualifiedName, unwrap_jso(doctype)));
   
   @DomName('DOMImplementation.createDocumentType')
   @DocsEditable()
-  _DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) => _blink.BlinkDOMImplementation.instance.createDocumentType_Callback_3_(unwrap_jso(this), qualifiedName, publicId, systemId);
+  _DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) => wrap_jso(_blink.BlinkDOMImplementation.instance.createDocumentType_Callback_3_(unwrap_jso(this), qualifiedName, publicId, systemId));
   
   @DomName('DOMImplementation.createHTMLDocument')
   @DocsEditable()
@@ -9609,11 +11426,26 @@ class DomIterator extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DomIterator._() { throw new UnsupportedError("Not supported"); }
 
+  static DomIterator internalCreateDomIterator() {
+    return new DomIterator._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DomIterator._internalWrap() {
+    return new DomIterator.internal_();
+  }
+
+  DomIterator.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   Object next([Object value]) {
     if (value != null) {
-      return _blink.BlinkIterator.instance.next_Callback_1_(unwrap_jso(this), value);
+      return wrap_jso(_blink.BlinkIterator.instance.next_Callback_1_(unwrap_jso(this), value));
     }
-    return _blink.BlinkIterator.instance.next_Callback_0_(unwrap_jso(this));
+    return wrap_jso(_blink.BlinkIterator.instance.next_Callback_0_(unwrap_jso(this)));
   }
 
 }
@@ -9635,13 +11467,25 @@ class DomMatrix extends DomMatrixReadOnly {
   @DocsEditable()
   factory DomMatrix([DomMatrixReadOnly other]) {
     if (other == null) {
-      return _blink.BlinkDOMMatrix.instance.constructorCallback_0_();
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.constructorCallback_0_());
     }
     if ((other is DomMatrixReadOnly || other == null)) {
-      return _blink.BlinkDOMMatrix.instance.constructorCallback_1_(other);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.constructorCallback_1_(other));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+
+
+  static DomMatrix internalCreateDomMatrix() {
+    return new DomMatrix._internalWrap();
+  }
+
+  factory DomMatrix._internalWrap() {
+    return new DomMatrix.internal_();
+  }
+
+  DomMatrix.internal_() : super.internal_();
+
 
   @DomName('DOMMatrix.a')
   @DocsEditable()
@@ -9651,7 +11495,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.a')
   @DocsEditable()
   @Experimental() // untriaged
-  void set a(num value) => _blink.BlinkDOMMatrix.instance.a_Setter_(unwrap_jso(this), value);
+  set a(num value) => _blink.BlinkDOMMatrix.instance.a_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.b')
   @DocsEditable()
@@ -9661,7 +11505,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.b')
   @DocsEditable()
   @Experimental() // untriaged
-  void set b(num value) => _blink.BlinkDOMMatrix.instance.b_Setter_(unwrap_jso(this), value);
+  set b(num value) => _blink.BlinkDOMMatrix.instance.b_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.c')
   @DocsEditable()
@@ -9671,7 +11515,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.c')
   @DocsEditable()
   @Experimental() // untriaged
-  void set c(num value) => _blink.BlinkDOMMatrix.instance.c_Setter_(unwrap_jso(this), value);
+  set c(num value) => _blink.BlinkDOMMatrix.instance.c_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.d')
   @DocsEditable()
@@ -9681,7 +11525,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.d')
   @DocsEditable()
   @Experimental() // untriaged
-  void set d(num value) => _blink.BlinkDOMMatrix.instance.d_Setter_(unwrap_jso(this), value);
+  set d(num value) => _blink.BlinkDOMMatrix.instance.d_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.e')
   @DocsEditable()
@@ -9691,7 +11535,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.e')
   @DocsEditable()
   @Experimental() // untriaged
-  void set e(num value) => _blink.BlinkDOMMatrix.instance.e_Setter_(unwrap_jso(this), value);
+  set e(num value) => _blink.BlinkDOMMatrix.instance.e_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.f')
   @DocsEditable()
@@ -9701,7 +11545,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.f')
   @DocsEditable()
   @Experimental() // untriaged
-  void set f(num value) => _blink.BlinkDOMMatrix.instance.f_Setter_(unwrap_jso(this), value);
+  set f(num value) => _blink.BlinkDOMMatrix.instance.f_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m11')
   @DocsEditable()
@@ -9711,7 +11555,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m11')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m11(num value) => _blink.BlinkDOMMatrix.instance.m11_Setter_(unwrap_jso(this), value);
+  set m11(num value) => _blink.BlinkDOMMatrix.instance.m11_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m12')
   @DocsEditable()
@@ -9721,7 +11565,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m12')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m12(num value) => _blink.BlinkDOMMatrix.instance.m12_Setter_(unwrap_jso(this), value);
+  set m12(num value) => _blink.BlinkDOMMatrix.instance.m12_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m13')
   @DocsEditable()
@@ -9731,7 +11575,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m13')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m13(num value) => _blink.BlinkDOMMatrix.instance.m13_Setter_(unwrap_jso(this), value);
+  set m13(num value) => _blink.BlinkDOMMatrix.instance.m13_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m14')
   @DocsEditable()
@@ -9741,7 +11585,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m14')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m14(num value) => _blink.BlinkDOMMatrix.instance.m14_Setter_(unwrap_jso(this), value);
+  set m14(num value) => _blink.BlinkDOMMatrix.instance.m14_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m21')
   @DocsEditable()
@@ -9751,7 +11595,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m21')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m21(num value) => _blink.BlinkDOMMatrix.instance.m21_Setter_(unwrap_jso(this), value);
+  set m21(num value) => _blink.BlinkDOMMatrix.instance.m21_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m22')
   @DocsEditable()
@@ -9761,7 +11605,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m22')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m22(num value) => _blink.BlinkDOMMatrix.instance.m22_Setter_(unwrap_jso(this), value);
+  set m22(num value) => _blink.BlinkDOMMatrix.instance.m22_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m23')
   @DocsEditable()
@@ -9771,7 +11615,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m23')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m23(num value) => _blink.BlinkDOMMatrix.instance.m23_Setter_(unwrap_jso(this), value);
+  set m23(num value) => _blink.BlinkDOMMatrix.instance.m23_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m24')
   @DocsEditable()
@@ -9781,7 +11625,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m24')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m24(num value) => _blink.BlinkDOMMatrix.instance.m24_Setter_(unwrap_jso(this), value);
+  set m24(num value) => _blink.BlinkDOMMatrix.instance.m24_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m31')
   @DocsEditable()
@@ -9791,7 +11635,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m31')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m31(num value) => _blink.BlinkDOMMatrix.instance.m31_Setter_(unwrap_jso(this), value);
+  set m31(num value) => _blink.BlinkDOMMatrix.instance.m31_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m32')
   @DocsEditable()
@@ -9801,7 +11645,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m32')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m32(num value) => _blink.BlinkDOMMatrix.instance.m32_Setter_(unwrap_jso(this), value);
+  set m32(num value) => _blink.BlinkDOMMatrix.instance.m32_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m33')
   @DocsEditable()
@@ -9811,7 +11655,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m33')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m33(num value) => _blink.BlinkDOMMatrix.instance.m33_Setter_(unwrap_jso(this), value);
+  set m33(num value) => _blink.BlinkDOMMatrix.instance.m33_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m34')
   @DocsEditable()
@@ -9821,7 +11665,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m34')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m34(num value) => _blink.BlinkDOMMatrix.instance.m34_Setter_(unwrap_jso(this), value);
+  set m34(num value) => _blink.BlinkDOMMatrix.instance.m34_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m41')
   @DocsEditable()
@@ -9831,7 +11675,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m41')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m41(num value) => _blink.BlinkDOMMatrix.instance.m41_Setter_(unwrap_jso(this), value);
+  set m41(num value) => _blink.BlinkDOMMatrix.instance.m41_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m42')
   @DocsEditable()
@@ -9841,7 +11685,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m42')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m42(num value) => _blink.BlinkDOMMatrix.instance.m42_Setter_(unwrap_jso(this), value);
+  set m42(num value) => _blink.BlinkDOMMatrix.instance.m42_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m43')
   @DocsEditable()
@@ -9851,7 +11695,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m43')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m43(num value) => _blink.BlinkDOMMatrix.instance.m43_Setter_(unwrap_jso(this), value);
+  set m43(num value) => _blink.BlinkDOMMatrix.instance.m43_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m44')
   @DocsEditable()
@@ -9861,65 +11705,65 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m44')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m44(num value) => _blink.BlinkDOMMatrix.instance.m44_Setter_(unwrap_jso(this), value);
+  set m44(num value) => _blink.BlinkDOMMatrix.instance.m44_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.multiplySelf')
   @DocsEditable()
   @Experimental() // untriaged
-  DomMatrix multiplySelf(DomMatrix other) => _blink.BlinkDOMMatrix.instance.multiplySelf_Callback_1_(unwrap_jso(this), unwrap_jso(other));
+  DomMatrix multiplySelf(DomMatrix other) => wrap_jso(_blink.BlinkDOMMatrix.instance.multiplySelf_Callback_1_(unwrap_jso(this), unwrap_jso(other)));
   
   @DomName('DOMMatrix.preMultiplySelf')
   @DocsEditable()
   @Experimental() // untriaged
-  DomMatrix preMultiplySelf(DomMatrix other) => _blink.BlinkDOMMatrix.instance.preMultiplySelf_Callback_1_(unwrap_jso(this), unwrap_jso(other));
+  DomMatrix preMultiplySelf(DomMatrix other) => wrap_jso(_blink.BlinkDOMMatrix.instance.preMultiplySelf_Callback_1_(unwrap_jso(this), unwrap_jso(other)));
   
   DomMatrix scale3dSelf(num scale, [num ox, num oy, num oz]) {
     if (oz != null) {
-      return _blink.BlinkDOMMatrix.instance.scale3dSelf_Callback_4_(unwrap_jso(this), scale, ox, oy, oz);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scale3dSelf_Callback_4_(unwrap_jso(this), scale, ox, oy, oz));
     }
     if (oy != null) {
-      return _blink.BlinkDOMMatrix.instance.scale3dSelf_Callback_3_(unwrap_jso(this), scale, ox, oy);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scale3dSelf_Callback_3_(unwrap_jso(this), scale, ox, oy));
     }
     if (ox != null) {
-      return _blink.BlinkDOMMatrix.instance.scale3dSelf_Callback_2_(unwrap_jso(this), scale, ox);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scale3dSelf_Callback_2_(unwrap_jso(this), scale, ox));
     }
-    return _blink.BlinkDOMMatrix.instance.scale3dSelf_Callback_1_(unwrap_jso(this), scale);
+    return wrap_jso(_blink.BlinkDOMMatrix.instance.scale3dSelf_Callback_1_(unwrap_jso(this), scale));
   }
 
   DomMatrix scaleNonUniformSelf(num sx, [num sy, num sz, num ox, num oy, num oz]) {
     if (oz != null) {
-      return _blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_6_(unwrap_jso(this), sx, sy, sz, ox, oy, oz);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_6_(unwrap_jso(this), sx, sy, sz, ox, oy, oz));
     }
     if (oy != null) {
-      return _blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_5_(unwrap_jso(this), sx, sy, sz, ox, oy);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_5_(unwrap_jso(this), sx, sy, sz, ox, oy));
     }
     if (ox != null) {
-      return _blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_4_(unwrap_jso(this), sx, sy, sz, ox);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_4_(unwrap_jso(this), sx, sy, sz, ox));
     }
     if (sz != null) {
-      return _blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_3_(unwrap_jso(this), sx, sy, sz);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_3_(unwrap_jso(this), sx, sy, sz));
     }
     if (sy != null) {
-      return _blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_2_(unwrap_jso(this), sx, sy);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_2_(unwrap_jso(this), sx, sy));
     }
-    return _blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_1_(unwrap_jso(this), sx);
+    return wrap_jso(_blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_1_(unwrap_jso(this), sx));
   }
 
   DomMatrix scaleSelf(num scale, [num ox, num oy]) {
     if (oy != null) {
-      return _blink.BlinkDOMMatrix.instance.scaleSelf_Callback_3_(unwrap_jso(this), scale, ox, oy);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scaleSelf_Callback_3_(unwrap_jso(this), scale, ox, oy));
     }
     if (ox != null) {
-      return _blink.BlinkDOMMatrix.instance.scaleSelf_Callback_2_(unwrap_jso(this), scale, ox);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scaleSelf_Callback_2_(unwrap_jso(this), scale, ox));
     }
-    return _blink.BlinkDOMMatrix.instance.scaleSelf_Callback_1_(unwrap_jso(this), scale);
+    return wrap_jso(_blink.BlinkDOMMatrix.instance.scaleSelf_Callback_1_(unwrap_jso(this), scale));
   }
 
   DomMatrix translateSelf(num tx, num ty, [num tz]) {
     if (tz != null) {
-      return _blink.BlinkDOMMatrix.instance.translateSelf_Callback_3_(unwrap_jso(this), tx, ty, tz);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.translateSelf_Callback_3_(unwrap_jso(this), tx, ty, tz));
     }
-    return _blink.BlinkDOMMatrix.instance.translateSelf_Callback_2_(unwrap_jso(this), tx, ty);
+    return wrap_jso(_blink.BlinkDOMMatrix.instance.translateSelf_Callback_2_(unwrap_jso(this), tx, ty));
   }
 
 }
@@ -9937,35 +11781,50 @@ class DomMatrixReadOnly extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DomMatrixReadOnly._() { throw new UnsupportedError("Not supported"); }
 
+  static DomMatrixReadOnly internalCreateDomMatrixReadOnly() {
+    return new DomMatrixReadOnly._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DomMatrixReadOnly._internalWrap() {
+    return new DomMatrixReadOnly.internal_();
+  }
+
+  DomMatrixReadOnly.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('DOMMatrixReadOnly.a')
   @DocsEditable()
   @Experimental() // untriaged
-  double get a => _blink.BlinkDOMMatrixReadOnly.instance.a_Getter_(unwrap_jso(this));
+  num get a => _blink.BlinkDOMMatrixReadOnly.instance.a_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.b')
   @DocsEditable()
   @Experimental() // untriaged
-  double get b => _blink.BlinkDOMMatrixReadOnly.instance.b_Getter_(unwrap_jso(this));
+  num get b => _blink.BlinkDOMMatrixReadOnly.instance.b_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.c')
   @DocsEditable()
   @Experimental() // untriaged
-  double get c => _blink.BlinkDOMMatrixReadOnly.instance.c_Getter_(unwrap_jso(this));
+  num get c => _blink.BlinkDOMMatrixReadOnly.instance.c_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.d')
   @DocsEditable()
   @Experimental() // untriaged
-  double get d => _blink.BlinkDOMMatrixReadOnly.instance.d_Getter_(unwrap_jso(this));
+  num get d => _blink.BlinkDOMMatrixReadOnly.instance.d_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.e')
   @DocsEditable()
   @Experimental() // untriaged
-  double get e => _blink.BlinkDOMMatrixReadOnly.instance.e_Getter_(unwrap_jso(this));
+  num get e => _blink.BlinkDOMMatrixReadOnly.instance.e_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.f')
   @DocsEditable()
   @Experimental() // untriaged
-  double get f => _blink.BlinkDOMMatrixReadOnly.instance.f_Getter_(unwrap_jso(this));
+  num get f => _blink.BlinkDOMMatrixReadOnly.instance.f_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.is2D')
   @DocsEditable()
@@ -9980,128 +11839,128 @@ class DomMatrixReadOnly extends NativeFieldWrapperClass2 {
   @DomName('DOMMatrixReadOnly.m11')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m11 => _blink.BlinkDOMMatrixReadOnly.instance.m11_Getter_(unwrap_jso(this));
+  num get m11 => _blink.BlinkDOMMatrixReadOnly.instance.m11_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m12')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m12 => _blink.BlinkDOMMatrixReadOnly.instance.m12_Getter_(unwrap_jso(this));
+  num get m12 => _blink.BlinkDOMMatrixReadOnly.instance.m12_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m13')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m13 => _blink.BlinkDOMMatrixReadOnly.instance.m13_Getter_(unwrap_jso(this));
+  num get m13 => _blink.BlinkDOMMatrixReadOnly.instance.m13_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m14')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m14 => _blink.BlinkDOMMatrixReadOnly.instance.m14_Getter_(unwrap_jso(this));
+  num get m14 => _blink.BlinkDOMMatrixReadOnly.instance.m14_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m21')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m21 => _blink.BlinkDOMMatrixReadOnly.instance.m21_Getter_(unwrap_jso(this));
+  num get m21 => _blink.BlinkDOMMatrixReadOnly.instance.m21_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m22')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m22 => _blink.BlinkDOMMatrixReadOnly.instance.m22_Getter_(unwrap_jso(this));
+  num get m22 => _blink.BlinkDOMMatrixReadOnly.instance.m22_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m23')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m23 => _blink.BlinkDOMMatrixReadOnly.instance.m23_Getter_(unwrap_jso(this));
+  num get m23 => _blink.BlinkDOMMatrixReadOnly.instance.m23_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m24')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m24 => _blink.BlinkDOMMatrixReadOnly.instance.m24_Getter_(unwrap_jso(this));
+  num get m24 => _blink.BlinkDOMMatrixReadOnly.instance.m24_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m31')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m31 => _blink.BlinkDOMMatrixReadOnly.instance.m31_Getter_(unwrap_jso(this));
+  num get m31 => _blink.BlinkDOMMatrixReadOnly.instance.m31_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m32')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m32 => _blink.BlinkDOMMatrixReadOnly.instance.m32_Getter_(unwrap_jso(this));
+  num get m32 => _blink.BlinkDOMMatrixReadOnly.instance.m32_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m33')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m33 => _blink.BlinkDOMMatrixReadOnly.instance.m33_Getter_(unwrap_jso(this));
+  num get m33 => _blink.BlinkDOMMatrixReadOnly.instance.m33_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m34')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m34 => _blink.BlinkDOMMatrixReadOnly.instance.m34_Getter_(unwrap_jso(this));
+  num get m34 => _blink.BlinkDOMMatrixReadOnly.instance.m34_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m41')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m41 => _blink.BlinkDOMMatrixReadOnly.instance.m41_Getter_(unwrap_jso(this));
+  num get m41 => _blink.BlinkDOMMatrixReadOnly.instance.m41_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m42')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m42 => _blink.BlinkDOMMatrixReadOnly.instance.m42_Getter_(unwrap_jso(this));
+  num get m42 => _blink.BlinkDOMMatrixReadOnly.instance.m42_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m43')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m43 => _blink.BlinkDOMMatrixReadOnly.instance.m43_Getter_(unwrap_jso(this));
+  num get m43 => _blink.BlinkDOMMatrixReadOnly.instance.m43_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m44')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m44 => _blink.BlinkDOMMatrixReadOnly.instance.m44_Getter_(unwrap_jso(this));
+  num get m44 => _blink.BlinkDOMMatrixReadOnly.instance.m44_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.multiply')
   @DocsEditable()
   @Experimental() // untriaged
-  DomMatrix multiply(DomMatrix other) => _blink.BlinkDOMMatrixReadOnly.instance.multiply_Callback_1_(unwrap_jso(this), unwrap_jso(other));
+  DomMatrix multiply(DomMatrix other) => wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.multiply_Callback_1_(unwrap_jso(this), unwrap_jso(other)));
   
   DomMatrix scale(num scale, [num ox, num oy]) {
     if (oy != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scale_Callback_3_(unwrap_jso(this), scale, ox, oy);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scale_Callback_3_(unwrap_jso(this), scale, ox, oy));
     }
     if (ox != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scale_Callback_2_(unwrap_jso(this), scale, ox);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scale_Callback_2_(unwrap_jso(this), scale, ox));
     }
-    return _blink.BlinkDOMMatrixReadOnly.instance.scale_Callback_1_(unwrap_jso(this), scale);
+    return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scale_Callback_1_(unwrap_jso(this), scale));
   }
 
   DomMatrix scale3d(num scale, [num ox, num oy, num oz]) {
     if (oz != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scale3d_Callback_4_(unwrap_jso(this), scale, ox, oy, oz);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scale3d_Callback_4_(unwrap_jso(this), scale, ox, oy, oz));
     }
     if (oy != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scale3d_Callback_3_(unwrap_jso(this), scale, ox, oy);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scale3d_Callback_3_(unwrap_jso(this), scale, ox, oy));
     }
     if (ox != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scale3d_Callback_2_(unwrap_jso(this), scale, ox);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scale3d_Callback_2_(unwrap_jso(this), scale, ox));
     }
-    return _blink.BlinkDOMMatrixReadOnly.instance.scale3d_Callback_1_(unwrap_jso(this), scale);
+    return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scale3d_Callback_1_(unwrap_jso(this), scale));
   }
 
   DomMatrix scaleNonUniform(num sx, [num sy, num sz, num ox, num oy, num oz]) {
     if (oz != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_6_(unwrap_jso(this), sx, sy, sz, ox, oy, oz);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_6_(unwrap_jso(this), sx, sy, sz, ox, oy, oz));
     }
     if (oy != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_5_(unwrap_jso(this), sx, sy, sz, ox, oy);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_5_(unwrap_jso(this), sx, sy, sz, ox, oy));
     }
     if (ox != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_4_(unwrap_jso(this), sx, sy, sz, ox);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_4_(unwrap_jso(this), sx, sy, sz, ox));
     }
     if (sz != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_3_(unwrap_jso(this), sx, sy, sz);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_3_(unwrap_jso(this), sx, sy, sz));
     }
     if (sy != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_2_(unwrap_jso(this), sx, sy);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_2_(unwrap_jso(this), sx, sy));
     }
-    return _blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_1_(unwrap_jso(this), sx);
+    return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_1_(unwrap_jso(this), sx));
   }
 
   @DomName('DOMMatrixReadOnly.toFloat32Array')
@@ -10116,9 +11975,9 @@ class DomMatrixReadOnly extends NativeFieldWrapperClass2 {
   
   DomMatrix translate(num tx, num ty, [num tz]) {
     if (tz != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.translate_Callback_3_(unwrap_jso(this), tx, ty, tz);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.translate_Callback_3_(unwrap_jso(this), tx, ty, tz));
     }
-    return _blink.BlinkDOMMatrixReadOnly.instance.translate_Callback_2_(unwrap_jso(this), tx, ty);
+    return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.translate_Callback_2_(unwrap_jso(this), tx, ty));
   }
 
 }
@@ -10138,8 +11997,23 @@ class DomParser extends NativeFieldWrapperClass2 {
   @DomName('DOMParser.DOMParser')
   @DocsEditable()
   factory DomParser() {
-    return _blink.BlinkDOMParser.instance.constructorCallback_0_();
+    return wrap_jso(_blink.BlinkDOMParser.instance.constructorCallback_0_());
   }
+
+  static DomParser internalCreateDomParser() {
+    return new DomParser._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DomParser._internalWrap() {
+    return new DomParser.internal_();
+  }
+
+  DomParser.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DOMParser.parseFromString')
   @DocsEditable()
@@ -10164,22 +12038,35 @@ class DomPoint extends DomPointReadOnly {
   @DocsEditable()
   factory DomPoint([point_OR_x, num y, num z, num w]) {
     if (point_OR_x == null && y == null && z == null && w == null) {
-      return _blink.BlinkDOMPoint.instance.constructorCallback_0_();
+      return wrap_jso(_blink.BlinkDOMPoint.instance.constructorCallback_0_());
     }
     if ((point_OR_x is Map || point_OR_x == null) && y == null && z == null && w == null) {
-      return _blink.BlinkDOMPoint.instance.constructorCallback_1_(point_OR_x);
+      var point_1 = convertDartToNative_Dictionary(point_OR_x);
+      return wrap_jso(_blink.BlinkDOMPoint.instance.constructorCallback_1_(point_1));
     }
     if ((y is num || y == null) && (point_OR_x is num || point_OR_x == null) && z == null && w == null) {
-      return _blink.BlinkDOMPoint.instance.constructorCallback_2_(point_OR_x, y);
+      return wrap_jso(_blink.BlinkDOMPoint.instance.constructorCallback_2_(point_OR_x, y));
     }
     if ((z is num || z == null) && (y is num || y == null) && (point_OR_x is num || point_OR_x == null) && w == null) {
-      return _blink.BlinkDOMPoint.instance.constructorCallback_3_(point_OR_x, y, z);
+      return wrap_jso(_blink.BlinkDOMPoint.instance.constructorCallback_3_(point_OR_x, y, z));
     }
     if ((w is num || w == null) && (z is num || z == null) && (y is num || y == null) && (point_OR_x is num || point_OR_x == null)) {
-      return _blink.BlinkDOMPoint.instance.constructorCallback_4_(point_OR_x, y, z, w);
+      return wrap_jso(_blink.BlinkDOMPoint.instance.constructorCallback_4_(point_OR_x, y, z, w));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+
+
+  static DomPoint internalCreateDomPoint() {
+    return new DomPoint._internalWrap();
+  }
+
+  factory DomPoint._internalWrap() {
+    return new DomPoint.internal_();
+  }
+
+  DomPoint.internal_() : super.internal_();
+
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -10192,7 +12079,7 @@ class DomPoint extends DomPointReadOnly {
   @DomName('DOMPoint.w')
   @DocsEditable()
   @Experimental() // untriaged
-  void set w(num value) => _blink.BlinkDOMPoint.instance.w_Setter_(unwrap_jso(this), value);
+  set w(num value) => _blink.BlinkDOMPoint.instance.w_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMPoint.x')
   @DocsEditable()
@@ -10202,7 +12089,7 @@ class DomPoint extends DomPointReadOnly {
   @DomName('DOMPoint.x')
   @DocsEditable()
   @Experimental() // untriaged
-  void set x(num value) => _blink.BlinkDOMPoint.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkDOMPoint.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMPoint.y')
   @DocsEditable()
@@ -10212,7 +12099,7 @@ class DomPoint extends DomPointReadOnly {
   @DomName('DOMPoint.y')
   @DocsEditable()
   @Experimental() // untriaged
-  void set y(num value) => _blink.BlinkDOMPoint.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkDOMPoint.instance.y_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMPoint.z')
   @DocsEditable()
@@ -10222,7 +12109,7 @@ class DomPoint extends DomPointReadOnly {
   @DomName('DOMPoint.z')
   @DocsEditable()
   @Experimental() // untriaged
-  void set z(num value) => _blink.BlinkDOMPoint.instance.z_Setter_(unwrap_jso(this), value);
+  set z(num value) => _blink.BlinkDOMPoint.instance.z_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10242,28 +12129,43 @@ class DomPointReadOnly extends NativeFieldWrapperClass2 {
   @DomName('DOMPointReadOnly.DOMPointReadOnly')
   @DocsEditable()
   factory DomPointReadOnly(num x, num y, num z, num w) {
-    return _blink.BlinkDOMPointReadOnly.instance.constructorCallback_4_(x, y, z, w);
+    return wrap_jso(_blink.BlinkDOMPointReadOnly.instance.constructorCallback_4_(x, y, z, w));
   }
+
+  static DomPointReadOnly internalCreateDomPointReadOnly() {
+    return new DomPointReadOnly._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DomPointReadOnly._internalWrap() {
+    return new DomPointReadOnly.internal_();
+  }
+
+  DomPointReadOnly.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DOMPointReadOnly.w')
   @DocsEditable()
   @Experimental() // untriaged
-  double get w => _blink.BlinkDOMPointReadOnly.instance.w_Getter_(unwrap_jso(this));
+  num get w => _blink.BlinkDOMPointReadOnly.instance.w_Getter_(unwrap_jso(this));
   
   @DomName('DOMPointReadOnly.x')
   @DocsEditable()
   @Experimental() // untriaged
-  double get x => _blink.BlinkDOMPointReadOnly.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkDOMPointReadOnly.instance.x_Getter_(unwrap_jso(this));
   
   @DomName('DOMPointReadOnly.y')
   @DocsEditable()
   @Experimental() // untriaged
-  double get y => _blink.BlinkDOMPointReadOnly.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkDOMPointReadOnly.instance.y_Getter_(unwrap_jso(this));
   
   @DomName('DOMPointReadOnly.z')
   @DocsEditable()
   @Experimental() // untriaged
-  double get z => _blink.BlinkDOMPointReadOnly.instance.z_Getter_(unwrap_jso(this));
+  num get z => _blink.BlinkDOMPointReadOnly.instance.z_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -10371,48 +12273,61 @@ class DomRectReadOnly extends NativeFieldWrapperClass2 implements Rectangle {
   @DomName('DOMRectReadOnly.DOMRectReadOnly')
   @DocsEditable()
   factory DomRectReadOnly(num x, num y, num width, num height) {
-    return _blink.BlinkDOMRectReadOnly.instance.constructorCallback_4_(x, y, width, height);
+    return wrap_jso(_blink.BlinkDOMRectReadOnly.instance.constructorCallback_4_(x, y, width, height));
   }
+
+  static DomRectReadOnly internalCreateDomRectReadOnly() {
+    return new DomRectReadOnly._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DomRectReadOnly._internalWrap() {
+    return new DomRectReadOnly.internal_();
+  }
+
+  DomRectReadOnly.internal_() { }
+
 
   @DomName('DOMRectReadOnly.bottom')
   @DocsEditable()
   @Experimental() // untriaged
-  double get bottom => _blink.BlinkDOMRectReadOnly.instance.bottom_Getter_(unwrap_jso(this));
+  num get bottom => _blink.BlinkDOMRectReadOnly.instance.bottom_Getter_(unwrap_jso(this));
   
   @DomName('DOMRectReadOnly.height')
   @DocsEditable()
   @Experimental() // untriaged
-  double get height => _blink.BlinkDOMRectReadOnly.instance.height_Getter_(unwrap_jso(this));
+  num get height => _blink.BlinkDOMRectReadOnly.instance.height_Getter_(unwrap_jso(this));
   
   @DomName('DOMRectReadOnly.left')
   @DocsEditable()
   @Experimental() // untriaged
-  double get left => _blink.BlinkDOMRectReadOnly.instance.left_Getter_(unwrap_jso(this));
+  num get left => _blink.BlinkDOMRectReadOnly.instance.left_Getter_(unwrap_jso(this));
   
   @DomName('DOMRectReadOnly.right')
   @DocsEditable()
   @Experimental() // untriaged
-  double get right => _blink.BlinkDOMRectReadOnly.instance.right_Getter_(unwrap_jso(this));
+  num get right => _blink.BlinkDOMRectReadOnly.instance.right_Getter_(unwrap_jso(this));
   
   @DomName('DOMRectReadOnly.top')
   @DocsEditable()
   @Experimental() // untriaged
-  double get top => _blink.BlinkDOMRectReadOnly.instance.top_Getter_(unwrap_jso(this));
+  num get top => _blink.BlinkDOMRectReadOnly.instance.top_Getter_(unwrap_jso(this));
   
   @DomName('DOMRectReadOnly.width')
   @DocsEditable()
   @Experimental() // untriaged
-  double get width => _blink.BlinkDOMRectReadOnly.instance.width_Getter_(unwrap_jso(this));
+  num get width => _blink.BlinkDOMRectReadOnly.instance.width_Getter_(unwrap_jso(this));
   
   @DomName('DOMRectReadOnly.x')
   @DocsEditable()
   @Experimental() // untriaged
-  double get x => _blink.BlinkDOMRectReadOnly.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkDOMRectReadOnly.instance.x_Getter_(unwrap_jso(this));
   
   @DomName('DOMRectReadOnly.y')
   @DocsEditable()
   @Experimental() // untriaged
-  double get y => _blink.BlinkDOMRectReadOnly.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkDOMRectReadOnly.instance.y_Getter_(unwrap_jso(this));
   }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10428,13 +12343,25 @@ class DomSettableTokenList extends DomTokenList {
   // To suppress missing implicit constructor warnings.
   factory DomSettableTokenList._() { throw new UnsupportedError("Not supported"); }
 
+
+  static DomSettableTokenList internalCreateDomSettableTokenList() {
+    return new DomSettableTokenList._internalWrap();
+  }
+
+  factory DomSettableTokenList._internalWrap() {
+    return new DomSettableTokenList.internal_();
+  }
+
+  DomSettableTokenList.internal_() : super.internal_();
+
+
   @DomName('DOMSettableTokenList.value')
   @DocsEditable()
   String get value => _blink.BlinkDOMSettableTokenList.instance.value_Getter_(unwrap_jso(this));
   
   @DomName('DOMSettableTokenList.value')
   @DocsEditable()
-  void set value(String value) => _blink.BlinkDOMSettableTokenList.instance.value_Setter_(unwrap_jso(this), value);
+  set value(String value) => _blink.BlinkDOMSettableTokenList.instance.value_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMSettableTokenList.__getter__')
   @DocsEditable()
@@ -10450,9 +12377,24 @@ class DomSettableTokenList extends DomTokenList {
 
 @DocsEditable()
 @DomName('DOMStringList')
-class DomStringList extends NativeFieldWrapperClass2 with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
+class DomStringList extends JsoNativeFieldWrapper with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
   // To suppress missing implicit constructor warnings.
   factory DomStringList._() { throw new UnsupportedError("Not supported"); }
+
+  static DomStringList internalCreateDomStringList() {
+    return new DomStringList._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DomStringList._internalWrap() {
+    return new DomStringList.internal_();
+  }
+
+  DomStringList.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DOMStringList.length')
   @DocsEditable()
@@ -10465,7 +12407,7 @@ class DomStringList extends NativeFieldWrapperClass2 with ListMixin<String>, Imm
   }
 
   String _nativeIndexedGetter(int index) => _blink.BlinkDOMStringList.instance.item_Callback_1_(unwrap_jso(this), index);
- 
+
   void operator[]=(int index, String value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -10473,7 +12415,7 @@ class DomStringList extends NativeFieldWrapperClass2 with ListMixin<String>, Imm
   // String is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -10522,7 +12464,7 @@ class DomStringList extends NativeFieldWrapperClass2 with ListMixin<String>, Imm
 
 @DocsEditable()
 @DomName('DOMStringMap')
-abstract class DomStringMap extends NativeFieldWrapperClass2 {
+class DomStringMap extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DomStringMap._() { throw new UnsupportedError("Not supported"); }
 
@@ -10571,6 +12513,21 @@ abstract class DomStringMap extends NativeFieldWrapperClass2 {
 class DomTokenList extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DomTokenList._() { throw new UnsupportedError("Not supported"); }
+
+  static DomTokenList internalCreateDomTokenList() {
+    return new DomTokenList._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DomTokenList._internalWrap() {
+    return new DomTokenList.internal_();
+  }
+
+  DomTokenList.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DOMTokenList.length')
   @DocsEditable()
@@ -10636,7 +12593,7 @@ class _ChildrenElementList extends ListBase<Element>
     _element._replaceChild(value, _childElements[index]);
   }
 
-  void set length(int newLength) {
+  set length(int newLength) {
     // TODO(jacobr): remove children when length is reduced.
     throw new UnsupportedError('Cannot resize element lists');
   }
@@ -10700,7 +12657,8 @@ class _ChildrenElementList extends ListBase<Element>
   bool remove(Object object) {
     if (object is Element) {
       Element element = object;
-      if (identical(element.parentNode, _element)) {
+      // We aren't preserving identity of nodes in JSINTEROP mode
+      if (element.parentNode == _element) {
         _element._removeChild(element);
         return true;
       }
@@ -11332,7 +13290,11 @@ class _FrozenElementList extends ListBase
     implements ElementList, NodeListWrapper {
   final List<Node> _nodeList;
 
-  _FrozenElementList._wrap(this._nodeList);
+  var dartClass_instance;
+
+  _FrozenElementList._wrap(this._nodeList) {
+      this.dartClass_instance = this._nodeList;
+  }
 
   int get length => _nodeList.length;
 
@@ -11342,7 +13304,7 @@ class _FrozenElementList extends ListBase
     throw new UnsupportedError('Cannot modify list');
   }
 
-  void set length(int newLength) {
+  set length(int newLength) {
     throw new UnsupportedError('Cannot modify list');
   }
 
@@ -11365,7 +13327,7 @@ class _FrozenElementList extends ListBase
   CssStyleDeclarationBase get style =>
       new _CssStyleDeclarationSet(this);
 
-  void set classes(Iterable<String> value) {
+  set classes(Iterable<String> value) {
     // TODO(sra): This might be faster for Sets:
     //
     //     new _MultiElementCssClassSet(this).writeClasses(value)
@@ -11859,7 +13821,7 @@ class _FrozenElementList extends ListBase
  * An abstract class, which all HTML elements extend.
  */
 @DomName('Element')
-abstract class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode {
+class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode {
 
   /**
    * Creates an HTML element from a valid fragment of HTML.
@@ -11906,11 +13868,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *     }
    *     document.registerElement('x-custom', CustomElement);
    */
-  Element.created() : super._created() {
-    // Validate that this is a custom element & perform any additional
-    // initialization.
-    _initializeCustomElement(this);
-  }
+  Element.created() : super._created();
 
   /**
    * Creates the HTML element specified by the tag name.
@@ -12091,7 +14049,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   Map<String, String> get attributes => new _ElementAttributeMap(this);
 
-  void set attributes(Map<String, String> value) {
+  set attributes(Map<String, String> value) {
     Map<String, String> attributes = this.attributes;
     attributes.clear();
     for (String key in value.keys) {
@@ -12113,7 +14071,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   List<Element> get children => new _ChildrenElementList._wrap(this);
 
-  void set children(List<Element> value) {
+  set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;
@@ -12167,7 +14125,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   CssClassSet get classes => new _ElementCssClassSet(this);
 
-  void set classes(Iterable<String> value) {
+  set classes(Iterable<String> value) {
     // TODO(sra): Do this without reading the classes in clear() and addAll(),
     // or writing the classes in clear().
     CssClassSet classSet = classes;
@@ -12201,7 +14159,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   Map<String, String> get dataset =>
     new _DataAttributeMap(attributes);
 
-  void set dataset(Map<String, String> value) {
+  set dataset(Map<String, String> value) {
     final data = this.dataset;
     data.clear();
     for (String key in value.keys) {
@@ -12321,6 +14279,49 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   void leftView() {}
 
   /**
+   * Creates a new AnimationEffect object whose target element is the object
+   * on which the method is called, and calls the play() method of the
+   * AnimationTimeline object of the document timeline of the node document
+   * of the element, passing the newly created AnimationEffect as the argument
+   * to the method. Returns an AnimationPlayer for the effect.
+   *
+   * Examples
+   *
+   *     var animation = elem.animate([{"opacity": 75}, {"opacity": 0}], 200);
+   *
+   *     var animation = elem.animate([
+   *       {"transform": "translate(100px, -100%)"},
+   *       {"transform" : "translate(400px, 500px)"}
+   *     ], 1500);
+   *
+   * The [frames] parameter is an Iterable<Map>, where the
+   * map entries specify CSS animation effects. The
+   * [timing] paramter can be a double, representing the number of milliseconds
+   * for the transition, or a Map with fields corresponding to those
+   * of the [Timing] object.
+  **/
+  @Experimental()
+  @SupportedBrowser(SupportedBrowser.CHROME, '36')
+  AnimationPlayer animate(Iterable<Map<String, dynamic>> frames, [timing]) {
+    if (frames is! Iterable || !(frames.every((x) => x is Map))) {
+      throw new ArgumentError("The frames parameter should be a List of Maps "
+          "with frame information");
+    }
+    var convertedFrames = frames;
+    if (convertedFrames is Iterable) {
+      convertedFrames = convertDartToNative_List(
+          frames.map(convertDartToNative_Dictionary).toList());
+    }
+    var convertedTiming = timing;
+    if (convertedTiming is Map) {
+      convertedTiming = convertDartToNative_Dictionary(convertedTiming);
+    }
+    return convertedTiming == null
+      ? _animate(convertedFrames)
+      : _animate(convertedFrames, convertedTiming);
+  }
+
+  /**
    * Called by the DOM whenever an attribute on this has been changed.
    */
   void attributeChanged(String name, String oldValue, String newValue) {}
@@ -12345,7 +14346,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   // members of the component are used. The actual type is a subtype of Element.
   get xtag => _xtag != null ? _xtag : this;
 
-  void set xtag(Element value) {
+  set xtag(Element value) {
     _xtag = value;
   }
 
@@ -12579,8 +14580,9 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
     // offsetParent, "tops out" at BODY. But people could conceivably pass in
     // the document.documentElement and I want it to return an absolute offset,
     // so we have the special case checking for HTML.
-    bool foundAsParent = identical(current, parent) || parent.tagName == 'HTML';
-    if (current == null || identical(current, parent)) {
+    bool sameAsParent = current == parent;
+    bool foundAsParent = sameAsParent || parent.tagName == 'HTML';
+    if (current == null || sameAsParent) {
       if (foundAsParent) return new Point(0, 0);
       throw new ArgumentError("Specified element is not a transitive offset "
           "parent of this element.");
@@ -12638,11 +14640,11 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
     if (_parseDocument == null) {
       _parseDocument = document.implementation.createHtmlDocument('');
       _parseRange = _parseDocument.createRange();
-	
+
       // Workaround for Safari bug. Was also previously Chrome bug 229142
-      // - URIs are not resolved in new doc.	
-      var base = _parseDocument.createElement('base');	
-      base.href = document.baseUri;	
+      // - URIs are not resolved in new doc.
+      var base = _parseDocument.createElement('base');
+      base.href = document.baseUri;
       _parseDocument.head.append(base);
     }
     var contextElement;
@@ -12700,7 +14702,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    * This uses the default sanitization behavior to sanitize the HTML fragment,
    * use [setInnerHtml] to override the default behavior.
    */
-  void set innerHtml(String html) {
+  set innerHtml(String html) {
     this.setInnerHtml(html);
   }
 
@@ -12742,71 +14744,109 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    * used when an explicit accessor is not available.
    */
   ElementEvents get on => new ElementEvents(this);
-  
+
   /**
    * Verify if any of the attributes that we use in the sanitizer look unexpected,
    * possibly indicating DOM clobbering attacks.
    *
    * Those attributes are: attributes, lastChild, children, previousNode and tagName.
    */
-  // Dartium isn't affected by these attacks, because it goes directly to the C++ API.
-  static bool _hasCorruptedAttributes(Element element) => false;
+
+  static var _namedNodeMap = js.context["NamedNodeMap"];
+  static var _htmlCollection = js.context["HTMLCollection"];
+  static var _nodeList = js.context["NodeList"];
+
+  static bool _hasCorruptedAttributes(Element element) {
+    var attributes = unwrap_jso(element)["attributes"];
+    if (!attributes.instanceof(_namedNodeMap)) {
+      return true;
+    }
+    var childNodes = unwrap_jso(element.childNodes);
+    var length = childNodes["length"];
+    var lastChild = unwrap_jso(element.lastChild);
+    if (null != lastChild &&
+        lastChild != childNodes[length - 1]) {
+      return true;
+    }
+    var children = unwrap_jso(element._children);
+    if (null != children) { // On Safari, children can apparently be null.
+      if (!children.instanceof(_htmlCollection) ||
+          children.instanceof(_nodeList)) {
+	return true;
+      }
+    }
+    return false;
+  }
+
+  String get _safeTagName {
+    String result = 'element tag unavailable';
+    try {
+      if (tagName is String) {
+        result = tagName;
+      }
+    } catch (e) {}
+    return result;
+  }
+
+  // Need to explicitly delegate because Element is no longer abstract for Dartium.
+  bool get isContentEditable => _blink.BlinkHTMLElement.instance.isContentEditable_Getter_(unwrap_jso(this));
+  void click() => _blink.BlinkHTMLElement.instance.click_Callback_0_(unwrap_jso(this));
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
-  int get offsetHeight => _blink.BlinkElement.offsetHeight_Getter(this).round();
+  int get offsetHeight => _blink.BlinkElement.instance.offsetHeight_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.offsetLeft')
   @DocsEditable()
-  int get offsetLeft => _blink.BlinkElement.offsetLeft_Getter(this).round();
+  int get offsetLeft => _blink.BlinkElement.instance.offsetLeft_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.offsetTop')
   @DocsEditable()
-  int get offsetTop => _blink.BlinkElement.offsetTop_Getter(this).round();
+  int get offsetTop => _blink.BlinkElement.instance.offsetTop_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.offsetWidth')
   @DocsEditable()
-  int get offsetWidth => _blink.BlinkElement.offsetWidth_Getter(this).round();
+  int get offsetWidth => _blink.BlinkElement.instance.offsetWidth_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.clientHeight')
   @DocsEditable()
-  int get clientHeight => _blink.BlinkElement.clientHeight_Getter(this).round();
+  int get clientHeight => _blink.BlinkElement.instance.clientHeight_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.clientLeft')
   @DocsEditable()
-  int get clientLeft => _blink.BlinkElement.clientLeft_Getter(this).round();
+  int get clientLeft => _blink.BlinkElement.instance.clientLeft_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.clientTop')
   @DocsEditable()
-  int get clientTop => _blink.BlinkElement.clientTop_Getter(this).round();
+  int get clientTop => _blink.BlinkElement.instance.clientTop_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.clientWidth')
   @DocsEditable()
-  int get clientWidth => _blink.BlinkElement.clientWidth_Getter(this).round();
+  int get clientWidth => _blink.BlinkElement.instance.clientWidth_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.scrollHeight')
   @DocsEditable()
-  int get scrollHeight => _blink.BlinkElement.scrollHeight_Getter(this).round();
+  int get scrollHeight => _blink.BlinkElement.instance.scrollHeight_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  int get scrollLeft => _blink.BlinkElement.scrollLeft_Getter(this).round();
+  int get scrollLeft => _blink.BlinkElement.instance.scrollLeft_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(int value) => _blink.BlinkElement.scrollLeft_Setter(this, value.round());
+  set scrollLeft(int value) => _blink.BlinkElement.instance.scrollLeft_Setter_(unwrap_jso(this), value.round());
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  int get scrollTop => _blink.BlinkElement.scrollTop_Getter(this).round();
+  int get scrollTop => _blink.BlinkElement.instance.scrollTop_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(int value) => _blink.BlinkElement.scrollTop_Setter(this, value.round());
+  set scrollTop(int value) => _blink.BlinkElement.instance.scrollTop_Setter_(unwrap_jso(this), value.round());
 
   @DomName('Element.scrollWidth')
   @DocsEditable()
-  int get scrollWidth => _blink.BlinkElement.scrollWidth_Getter(this).round();
+  int get scrollWidth => _blink.BlinkElement.instance.scrollWidth_Getter_(unwrap_jso(this)).round();
 
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
@@ -13479,6 +15519,18 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
 
+
+  static Element internalCreateElement() {
+    return new Element._internalWrap();
+  }
+
+  factory Element._internalWrap() {
+    return new Element.internal_();
+  }
+
+  Element.internal_() : super.internal_();
+
+
   String contentEditable;
 
   MenuElement contextMenu;
@@ -13488,8 +15540,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   bool draggable;
 
   bool hidden;
-
-  bool get isContentEditable;
 
   String lang;
 
@@ -13503,8 +15553,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   String dropzone;
 
-  void click();
-
   @DomName('Element.attributes')
   @DocsEditable()
   _NamedNodeMap get _attributes => wrap_jso(_blink.BlinkElement.instance.attributes_Getter_(unwrap_jso(this)));
@@ -13515,7 +15563,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   
   @DomName('Element.className')
   @DocsEditable()
-  void set className(String value) => _blink.BlinkElement.instance.className_Setter_(unwrap_jso(this), value);
+  set className(String value) => _blink.BlinkElement.instance.className_Setter_(unwrap_jso(this), value);
   
   @DomName('Element.clientHeight')
   @DocsEditable()
@@ -13539,7 +15587,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   
   @DomName('Element.id')
   @DocsEditable()
-  void set id(String value) => _blink.BlinkElement.instance.id_Setter_(unwrap_jso(this), value);
+  set id(String value) => _blink.BlinkElement.instance.id_Setter_(unwrap_jso(this), value);
   
   @DomName('Element.innerHTML')
   @DocsEditable()
@@ -13547,7 +15595,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   
   @DomName('Element.innerHTML')
   @DocsEditable()
-  void set _innerHtml(String value) => _blink.BlinkElement.instance.innerHTML_Setter_(unwrap_jso(this), value);
+  set _innerHtml(String value) => _blink.BlinkElement.instance.innerHTML_Setter_(unwrap_jso(this), value);
   
   @DomName('Element.localName')
   @DocsEditable()
@@ -13593,7 +15641,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set _scrollLeft(num value) => _blink.BlinkElement.instance.scrollLeft_Setter_(unwrap_jso(this), value);
+  set _scrollLeft(num value) => _blink.BlinkElement.instance.scrollLeft_Setter_(unwrap_jso(this), value);
   
   @DomName('Element.scrollTop')
   @DocsEditable()
@@ -13601,7 +15649,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set _scrollTop(num value) => _blink.BlinkElement.instance.scrollTop_Setter_(unwrap_jso(this), value);
+  set _scrollTop(num value) => _blink.BlinkElement.instance.scrollTop_Setter_(unwrap_jso(this), value);
   
   @DomName('Element.scrollWidth')
   @DocsEditable()
@@ -13624,7 +15672,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DomName('Element.animate')
   @DocsEditable()
   @Experimental() // untriaged
-  AnimationPlayer animate(Object effect, [Object timing]) => wrap_jso(_blink.BlinkElement.instance.animate_Callback_2_(unwrap_jso(this), effect, timing));
+  AnimationPlayer _animate(Object effect, [Object timing]) => wrap_jso(_blink.BlinkElement.instance.animate_Callback_2_(unwrap_jso(this), effect, timing));
   
   @DomName('Element.blur')
   @DocsEditable()
@@ -13644,7 +15692,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DomName('Element.getAnimationPlayers')
   @DocsEditable()
   @Experimental() // untriaged
-  List<AnimationPlayer> getAnimationPlayers() => _blink.BlinkElement.instance.getAnimationPlayers_Callback_0_(unwrap_jso(this));
+  List<AnimationPlayer> getAnimationPlayers() => wrap_jso(_blink.BlinkElement.instance.getAnimationPlayers_Callback_0_(unwrap_jso(this)));
   
   @DomName('Element.getAttribute')
   @DocsEditable()
@@ -13688,7 +15736,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   @DomName('Element.getClientRects')
   @DocsEditable()
-  List<Rectangle> getClientRects() => _blink.BlinkElement.instance.getClientRects_Callback_0_(unwrap_jso(this));
+  List<Rectangle> getClientRects() => wrap_jso(_blink.BlinkElement.instance.getClientRects_Callback_0_(unwrap_jso(this)));
   
   /**
    * Returns a list of shadow DOM insertion points to which this element is
@@ -13703,7 +15751,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DomName('Element.getDestinationInsertionPoints')
   @DocsEditable()
   @Experimental() // untriaged
-  List<Node> getDestinationInsertionPoints() => wrap_jso_list(_blink.BlinkElement.instance.getDestinationInsertionPoints_Callback_0_(unwrap_jso(this)));
+  List<Node> getDestinationInsertionPoints() => wrap_jso(_blink.BlinkElement.instance.getDestinationInsertionPoints_Callback_0_(unwrap_jso(this)));
   
   /**
    * Returns a list of nodes with the given class name inside this element.
@@ -13718,11 +15766,11 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   @DomName('Element.getElementsByClassName')
   @DocsEditable()
-  List<Node> getElementsByClassName(String classNames) => wrap_jso_list(_blink.BlinkElement.instance.getElementsByClassName_Callback_1_(unwrap_jso(this), classNames));
+  List<Node> getElementsByClassName(String classNames) => wrap_jso(_blink.BlinkElement.instance.getElementsByClassName_Callback_1_(unwrap_jso(this), classNames));
   
   @DomName('Element.getElementsByTagName')
   @DocsEditable()
-  List<Node> _getElementsByTagName(String name) => wrap_jso_list(_blink.BlinkElement.instance.getElementsByTagName_Callback_1_(unwrap_jso(this), name));
+  List<Node> _getElementsByTagName(String name) => wrap_jso(_blink.BlinkElement.instance.getElementsByTagName_Callback_1_(unwrap_jso(this), name));
   
   @DomName('Element.hasAttribute')
   @DocsEditable()
@@ -13814,7 +15862,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   
   @DomName('Element.children')
   @DocsEditable()
-  List<Node> get _children => wrap_jso_list(_blink.BlinkElement.instance.children_Getter_(unwrap_jso(this)));
+  List<Node> get _children => wrap_jso(_blink.BlinkElement.instance.children_Getter_(unwrap_jso(this)));
   
   @DomName('Element.firstElementChild')
   @DocsEditable()
@@ -13846,7 +15894,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   
   @DomName('Element.querySelectorAll')
   @DocsEditable()
-  List<Node> _querySelectorAll(String selectors) => wrap_jso_list(_blink.BlinkElement.instance.querySelectorAll_Callback_1_(unwrap_jso(this), selectors));
+  List<Node> _querySelectorAll(String selectors) => wrap_jso(_blink.BlinkElement.instance.querySelectorAll_Callback_1_(unwrap_jso(this), selectors));
   
   /// Stream of `abort` events handled by this [Element].
   @DomName('Element.onabort')
@@ -14360,6 +16408,18 @@ class EmbedElement extends HtmlElement {
   @DomName('HTMLEmbedElement.HTMLEmbedElement')
   @DocsEditable()
   factory EmbedElement() => document.createElement("embed");
+
+
+  static EmbedElement internalCreateEmbedElement() {
+    return new EmbedElement._internalWrap();
+  }
+
+  factory EmbedElement._internalWrap() {
+    return new EmbedElement.internal_();
+  }
+
+  EmbedElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -14376,7 +16436,7 @@ class EmbedElement extends HtmlElement {
   
   @DomName('HTMLEmbedElement.height')
   @DocsEditable()
-  void set height(String value) => _blink.BlinkHTMLEmbedElement.instance.height_Setter_(unwrap_jso(this), value);
+  set height(String value) => _blink.BlinkHTMLEmbedElement.instance.height_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLEmbedElement.integrity')
   @DocsEditable()
@@ -14386,7 +16446,7 @@ class EmbedElement extends HtmlElement {
   @DomName('HTMLEmbedElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLEmbedElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLEmbedElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLEmbedElement.name')
   @DocsEditable()
@@ -14394,7 +16454,7 @@ class EmbedElement extends HtmlElement {
   
   @DomName('HTMLEmbedElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLEmbedElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLEmbedElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLEmbedElement.src')
   @DocsEditable()
@@ -14402,7 +16462,7 @@ class EmbedElement extends HtmlElement {
   
   @DomName('HTMLEmbedElement.src')
   @DocsEditable()
-  void set src(String value) => _blink.BlinkHTMLEmbedElement.instance.src_Setter_(unwrap_jso(this), value);
+  set src(String value) => _blink.BlinkHTMLEmbedElement.instance.src_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLEmbedElement.type')
   @DocsEditable()
@@ -14410,7 +16470,7 @@ class EmbedElement extends HtmlElement {
   
   @DomName('HTMLEmbedElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLEmbedElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLEmbedElement.instance.type_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLEmbedElement.width')
   @DocsEditable()
@@ -14418,7 +16478,7 @@ class EmbedElement extends HtmlElement {
   
   @DomName('HTMLEmbedElement.width')
   @DocsEditable()
-  void set width(String value) => _blink.BlinkHTMLEmbedElement.instance.width_Setter_(unwrap_jso(this), value);
+  set width(String value) => _blink.BlinkHTMLEmbedElement.instance.width_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLEmbedElement.__getter__')
   @DocsEditable()
@@ -14455,6 +16515,21 @@ class Entry extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Entry._() { throw new UnsupportedError("Not supported"); }
 
+  static Entry internalCreateEntry() {
+    return new Entry._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Entry._internalWrap() {
+    return new Entry.internal_();
+  }
+
+  Entry.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('Entry.filesystem')
   @DocsEditable()
   FileSystem get filesystem => wrap_jso(_blink.BlinkEntry.instance.filesystem_Getter_(unwrap_jso(this)));
@@ -14477,11 +16552,11 @@ class Entry extends NativeFieldWrapperClass2 {
   
   void _copyTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (errorCallback != null) {
-      _blink.BlinkEntry.instance.copyTo_Callback_4_(unwrap_jso(this), unwrap_jso(parent), name, unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkEntry.instance.copyTo_Callback_4_(unwrap_jso(this), unwrap_jso(parent), name, unwrap_jso((entry) => successCallback(wrap_jso(entry))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (successCallback != null) {
-      _blink.BlinkEntry.instance.copyTo_Callback_3_(unwrap_jso(this), unwrap_jso(parent), name, unwrap_jso(successCallback));
+      _blink.BlinkEntry.instance.copyTo_Callback_3_(unwrap_jso(this), unwrap_jso(parent), name, unwrap_jso((entry) => successCallback(wrap_jso(entry))));
       return;
     }
     if (name != null) {
@@ -14502,10 +16577,10 @@ class Entry extends NativeFieldWrapperClass2 {
 
   void _getMetadata(MetadataCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkEntry.instance.getMetadata_Callback_2_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkEntry.instance.getMetadata_Callback_2_(unwrap_jso(this), unwrap_jso((metadata) => successCallback(wrap_jso(metadata))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkEntry.instance.getMetadata_Callback_1_(unwrap_jso(this), unwrap_jso(successCallback));
+    _blink.BlinkEntry.instance.getMetadata_Callback_1_(unwrap_jso(this), unwrap_jso((metadata) => successCallback(wrap_jso(metadata))));
     return;
   }
 
@@ -14519,11 +16594,11 @@ class Entry extends NativeFieldWrapperClass2 {
 
   void _getParent([_EntryCallback successCallback, _ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkEntry.instance.getParent_Callback_2_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkEntry.instance.getParent_Callback_2_(unwrap_jso(this), unwrap_jso((entry) => successCallback(wrap_jso(entry))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (successCallback != null) {
-      _blink.BlinkEntry.instance.getParent_Callback_1_(unwrap_jso(this), unwrap_jso(successCallback));
+      _blink.BlinkEntry.instance.getParent_Callback_1_(unwrap_jso(this), unwrap_jso((entry) => successCallback(wrap_jso(entry))));
       return;
     }
     _blink.BlinkEntry.instance.getParent_Callback_0_(unwrap_jso(this));
@@ -14540,11 +16615,11 @@ class Entry extends NativeFieldWrapperClass2 {
 
   void _moveTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (errorCallback != null) {
-      _blink.BlinkEntry.instance.moveTo_Callback_4_(unwrap_jso(this), unwrap_jso(parent), name, unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkEntry.instance.moveTo_Callback_4_(unwrap_jso(this), unwrap_jso(parent), name, unwrap_jso((entry) => successCallback(wrap_jso(entry))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (successCallback != null) {
-      _blink.BlinkEntry.instance.moveTo_Callback_3_(unwrap_jso(this), unwrap_jso(parent), name, unwrap_jso(successCallback));
+      _blink.BlinkEntry.instance.moveTo_Callback_3_(unwrap_jso(this), unwrap_jso(parent), name, unwrap_jso((entry) => successCallback(wrap_jso(entry))));
       return;
     }
     if (name != null) {
@@ -14565,10 +16640,10 @@ class Entry extends NativeFieldWrapperClass2 {
 
   void _remove(VoidCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkEntry.instance.remove_Callback_2_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkEntry.instance.remove_Callback_2_(unwrap_jso(this), unwrap_jso(() => successCallback()), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkEntry.instance.remove_Callback_1_(unwrap_jso(this), unwrap_jso(successCallback));
+    _blink.BlinkEntry.instance.remove_Callback_1_(unwrap_jso(this), unwrap_jso(() => successCallback()));
     return;
   }
 
@@ -14621,6 +16696,18 @@ class ErrorEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory ErrorEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static ErrorEvent internalCreateErrorEvent() {
+    return new ErrorEvent._internalWrap();
+  }
+
+  factory ErrorEvent._internalWrap() {
+    return new ErrorEvent.internal_();
+  }
+
+  ErrorEvent.internal_() : super.internal_();
+
+
   @DomName('ErrorEvent.colno')
   @DocsEditable()
   @Experimental() // untriaged
@@ -14629,7 +16716,7 @@ class ErrorEvent extends Event {
   @DomName('ErrorEvent.error')
   @DocsEditable()
   @Experimental() // untriaged
-  Object get error => _blink.BlinkErrorEvent.instance.error_Getter_(unwrap_jso(this));
+  Object get error => wrap_jso(_blink.BlinkErrorEvent.instance.error_Getter_(unwrap_jso(this)));
   
   @DomName('ErrorEvent.filename')
   @DocsEditable()
@@ -14704,6 +16791,21 @@ class Event extends NativeFieldWrapperClass2 {
   }
   // To suppress missing implicit constructor warnings.
   factory Event._() { throw new UnsupportedError("Not supported"); }
+
+  static Event internalCreateEvent() {
+    return new Event._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Event._internalWrap() {
+    return new Event.internal_();
+  }
+
+  Event.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   /**
    * This event is being handled by the event target.
@@ -14793,7 +16895,7 @@ class Event extends NativeFieldWrapperClass2 {
   @DocsEditable()
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
   @Experimental()
-  List<Node> get path => wrap_jso_list(_blink.BlinkEvent.instance.path_Getter_(unwrap_jso(this)));
+  List<Node> get path => wrap_jso(_blink.BlinkEvent.instance.path_Getter_(unwrap_jso(this)));
   
   @DomName('Event.target')
   @DocsEditable()
@@ -14876,10 +16978,23 @@ class EventSource extends EventTarget {
   @DocsEditable()
   static EventSource _factoryEventSource(String url, [Map eventSourceInit]) {
     if (eventSourceInit != null) {
-      return _blink.BlinkEventSource.instance.constructorCallback_2_(url, eventSourceInit);
+      var eventSourceInit_1 = convertDartToNative_Dictionary(eventSourceInit);
+      return wrap_jso(_blink.BlinkEventSource.instance.constructorCallback_2_(url, eventSourceInit_1));
     }
-    return _blink.BlinkEventSource.instance.constructorCallback_1_(url);
+    return wrap_jso(_blink.BlinkEventSource.instance.constructorCallback_1_(url));
   }
+
+
+  static EventSource internalCreateEventSource() {
+    return new EventSource._internalWrap();
+  }
+
+  factory EventSource._internalWrap() {
+    return new EventSource.internal_();
+  }
+
+  EventSource.internal_() : super.internal_();
+
 
   @DomName('EventSource.CLOSED')
   @DocsEditable()
@@ -15019,6 +17134,10 @@ class ElementEvents extends Events {
 @DomName('EventTarget')
 class EventTarget extends NativeFieldWrapperClass2 {
 
+  // Default constructor to allow other classes e.g. GlobalEventHandlers to be
+  // constructed using _internalWrap when mapping Blink object to Dart class.
+  EventTarget();
+
   // Custom element created callback.
   EventTarget._created();
 
@@ -15049,13 +17168,28 @@ class EventTarget extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory EventTarget._() { throw new UnsupportedError("Not supported"); }
 
+  static EventTarget internalCreateEventTarget() {
+    return new EventTarget._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory EventTarget._internalWrap() {
+    return new EventTarget.internal_();
+  }
+
+  EventTarget.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   void _addEventListener([String type, EventListener listener, bool useCapture]) {
     if (useCapture != null) {
-      _blink.BlinkEventTarget.instance.addEventListener_Callback_3_(unwrap_jso(this), type, unwrap_jso(listener), useCapture);
+      _blink.BlinkEventTarget.instance.addEventListener_Callback_3_(unwrap_jso(this), type, wrap_event_listener(this, listener), useCapture);
       return;
     }
     if (listener != null) {
-      _blink.BlinkEventTarget.instance.addEventListener_Callback_2_(unwrap_jso(this), type, unwrap_jso(listener));
+      _blink.BlinkEventTarget.instance.addEventListener_Callback_2_(unwrap_jso(this), type, wrap_event_listener(this, listener));
       return;
     }
     if (type != null) {
@@ -15072,11 +17206,11 @@ class EventTarget extends NativeFieldWrapperClass2 {
   
   void _removeEventListener([String type, EventListener listener, bool useCapture]) {
     if (useCapture != null) {
-      _blink.BlinkEventTarget.instance.removeEventListener_Callback_3_(unwrap_jso(this), type, unwrap_jso(listener), useCapture);
+      _blink.BlinkEventTarget.instance.removeEventListener_Callback_3_(unwrap_jso(this), type, _knownListeners[this.hashCode][identityHashCode(listener)], useCapture);
       return;
     }
     if (listener != null) {
-      _blink.BlinkEventTarget.instance.removeEventListener_Callback_2_(unwrap_jso(this), type, unwrap_jso(listener));
+      _blink.BlinkEventTarget.instance.removeEventListener_Callback_2_(unwrap_jso(this), type, _knownListeners[this.hashCode][identityHashCode(listener)]);
       return;
     }
     if (type != null) {
@@ -15102,6 +17236,18 @@ class ExtendableEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory ExtendableEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static ExtendableEvent internalCreateExtendableEvent() {
+    return new ExtendableEvent._internalWrap();
+  }
+
+  factory ExtendableEvent._internalWrap() {
+    return new ExtendableEvent.internal_();
+  }
+
+  ExtendableEvent.internal_() : super.internal_();
+
+
   @DomName('ExtendableEvent.waitUntil')
   @DocsEditable()
   @Experimental() // untriaged
@@ -15125,8 +17271,20 @@ class FederatedCredential extends Credential {
   @DomName('FederatedCredential.FederatedCredential')
   @DocsEditable()
   factory FederatedCredential(String id, String name, String avatarURL, String federation) {
-    return _blink.BlinkFederatedCredential.instance.constructorCallback_4_(id, name, avatarURL, federation);
+    return wrap_jso(_blink.BlinkFederatedCredential.instance.constructorCallback_4_(id, name, avatarURL, federation));
   }
+
+
+  static FederatedCredential internalCreateFederatedCredential() {
+    return new FederatedCredential._internalWrap();
+  }
+
+  factory FederatedCredential._internalWrap() {
+    return new FederatedCredential.internal_();
+  }
+
+  FederatedCredential.internal_() : super.internal_();
+
 
   @DomName('FederatedCredential.federation')
   @DocsEditable()
@@ -15147,6 +17305,18 @@ class FederatedCredential extends Credential {
 class FetchEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory FetchEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static FetchEvent internalCreateFetchEvent() {
+    return new FetchEvent._internalWrap();
+  }
+
+  factory FetchEvent._internalWrap() {
+    return new FetchEvent.internal_();
+  }
+
+  FetchEvent.internal_() : super.internal_();
+
 
   @DomName('FetchEvent.isReload')
   @DocsEditable()
@@ -15181,6 +17351,18 @@ class FieldSetElement extends HtmlElement {
   @DomName('HTMLFieldSetElement.HTMLFieldSetElement')
   @DocsEditable()
   factory FieldSetElement() => document.createElement("fieldset");
+
+
+  static FieldSetElement internalCreateFieldSetElement() {
+    return new FieldSetElement._internalWrap();
+  }
+
+  factory FieldSetElement._internalWrap() {
+    return new FieldSetElement.internal_();
+  }
+
+  FieldSetElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -15194,11 +17376,11 @@ class FieldSetElement extends HtmlElement {
   
   @DomName('HTMLFieldSetElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLFieldSetElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLFieldSetElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFieldSetElement.elements')
   @DocsEditable()
-  List<Node> get elements => wrap_jso_list(_blink.BlinkHTMLFieldSetElement.instance.elements_Getter_(unwrap_jso(this)));
+  List<Node> get elements => wrap_jso(_blink.BlinkHTMLFieldSetElement.instance.elements_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLFieldSetElement.form')
   @DocsEditable()
@@ -15210,7 +17392,7 @@ class FieldSetElement extends HtmlElement {
   
   @DomName('HTMLFieldSetElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLFieldSetElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLFieldSetElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFieldSetElement.type')
   @DocsEditable()
@@ -15249,6 +17431,18 @@ class FieldSetElement extends HtmlElement {
 class File extends Blob {
   // To suppress missing implicit constructor warnings.
   factory File._() { throw new UnsupportedError("Not supported"); }
+
+
+  static File internalCreateFile() {
+    return new File._internalWrap();
+  }
+
+  factory File._internalWrap() {
+    return new File.internal_();
+  }
+
+  File.internal_() : super.internal_();
+
 
   @DomName('File.lastModified')
   @DocsEditable()
@@ -15298,12 +17492,24 @@ class FileEntry extends Entry {
   // To suppress missing implicit constructor warnings.
   factory FileEntry._() { throw new UnsupportedError("Not supported"); }
 
+
+  static FileEntry internalCreateFileEntry() {
+    return new FileEntry._internalWrap();
+  }
+
+  factory FileEntry._internalWrap() {
+    return new FileEntry.internal_();
+  }
+
+  FileEntry.internal_() : super.internal_();
+
+
   void _createWriter(_FileWriterCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkFileEntry.instance.createWriter_Callback_2_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkFileEntry.instance.createWriter_Callback_2_(unwrap_jso(this), unwrap_jso((fileWriter) => successCallback(wrap_jso(fileWriter))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkFileEntry.instance.createWriter_Callback_1_(unwrap_jso(this), unwrap_jso(successCallback));
+    _blink.BlinkFileEntry.instance.createWriter_Callback_1_(unwrap_jso(this), unwrap_jso((fileWriter) => successCallback(wrap_jso(fileWriter))));
     return;
   }
 
@@ -15317,10 +17523,10 @@ class FileEntry extends Entry {
 
   void _file(_FileCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkFileEntry.instance.file_Callback_2_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkFileEntry.instance.file_Callback_2_(unwrap_jso(this), unwrap_jso((file) => successCallback(wrap_jso(file))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkFileEntry.instance.file_Callback_1_(unwrap_jso(this), unwrap_jso(successCallback));
+    _blink.BlinkFileEntry.instance.file_Callback_1_(unwrap_jso(this), unwrap_jso((file) => successCallback(wrap_jso(file))));
     return;
   }
 
@@ -15347,6 +17553,18 @@ class FileEntry extends Entry {
 class FileError extends DomError {
   // To suppress missing implicit constructor warnings.
   factory FileError._() { throw new UnsupportedError("Not supported"); }
+
+
+  static FileError internalCreateFileError() {
+    return new FileError._internalWrap();
+  }
+
+  factory FileError._internalWrap() {
+    return new FileError.internal_();
+  }
+
+  FileError.internal_() : super.internal_();
+
 
   @DomName('FileError.ABORT_ERR')
   @DocsEditable()
@@ -15410,9 +17628,24 @@ class FileError extends DomError {
 
 @DocsEditable()
 @DomName('FileList')
-class FileList extends NativeFieldWrapperClass2 with ListMixin<File>, ImmutableListMixin<File> implements List<File> {
+class FileList extends JsoNativeFieldWrapper with ListMixin<File>, ImmutableListMixin<File> implements List<File> {
   // To suppress missing implicit constructor warnings.
   factory FileList._() { throw new UnsupportedError("Not supported"); }
+
+  static FileList internalCreateFileList() {
+    return new FileList._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory FileList._internalWrap() {
+    return new FileList.internal_();
+  }
+
+  FileList.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('FileList.length')
   @DocsEditable()
@@ -15425,7 +17658,7 @@ class FileList extends NativeFieldWrapperClass2 with ListMixin<File>, ImmutableL
   }
 
   File _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkFileList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, File value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -15433,7 +17666,7 @@ class FileList extends NativeFieldWrapperClass2 with ListMixin<File>, ImmutableL
   // File is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -15481,7 +17714,7 @@ class FileReader extends EventTarget {
   @DomName('FileReader.result')
   @DocsEditable()
   Object get result {
-    var res = _blink.BlinkFileReader.result_Getter(unwrap_jso(this));
+    var res = _blink.BlinkFileReader.instance.result_Getter_(unwrap_jso(this));
     if (res is ByteBuffer) {
       return new Uint8List.view(res);
     }
@@ -15554,8 +17787,20 @@ class FileReader extends EventTarget {
   @DomName('FileReader.FileReader')
   @DocsEditable()
   factory FileReader() {
-    return _blink.BlinkFileReader.instance.constructorCallback_0_();
+    return wrap_jso(_blink.BlinkFileReader.instance.constructorCallback_0_());
   }
+
+
+  static FileReader internalCreateFileReader() {
+    return new FileReader._internalWrap();
+  }
+
+  factory FileReader._internalWrap() {
+    return new FileReader.internal_();
+  }
+
+  FileReader.internal_() : super.internal_();
+
 
   @DomName('FileReader.DONE')
   @DocsEditable()
@@ -15579,7 +17824,7 @@ class FileReader extends EventTarget {
   
   @DomName('FileReader.result')
   @DocsEditable()
-  Object get _result => _blink.BlinkFileReader.instance.result_Getter_(unwrap_jso(this));
+  Object get _result => wrap_jso(_blink.BlinkFileReader.instance.result_Getter_(unwrap_jso(this)));
   
   @DomName('FileReader.abort')
   @DocsEditable()
@@ -15647,6 +17892,21 @@ class FileStream extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory FileStream._() { throw new UnsupportedError("Not supported"); }
 
+  static FileStream internalCreateFileStream() {
+    return new FileStream._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory FileStream._internalWrap() {
+    return new FileStream.internal_();
+  }
+
+  FileStream.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('Stream.type')
   @DocsEditable()
   @Experimental() // untriaged
@@ -15668,6 +17928,21 @@ class FileStream extends NativeFieldWrapperClass2 {
 class FileSystem extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory FileSystem._() { throw new UnsupportedError("Not supported"); }
+
+  static FileSystem internalCreateFileSystem() {
+    return new FileSystem._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory FileSystem._internalWrap() {
+    return new FileSystem.internal_();
+  }
+
+  FileSystem.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -15766,6 +18041,18 @@ class FileWriter extends EventTarget {
   @DomName('FileWriter.writestartEvent')
   @DocsEditable()
   static const EventStreamProvider<ProgressEvent> writeStartEvent = const EventStreamProvider<ProgressEvent>('writestart');
+
+
+  static FileWriter internalCreateFileWriter() {
+    return new FileWriter._internalWrap();
+  }
+
+  factory FileWriter._internalWrap() {
+    return new FileWriter.internal_();
+  }
+
+  FileWriter.internal_() : super.internal_();
+
 
   @DomName('FileWriter.DONE')
   @DocsEditable()
@@ -15866,6 +18153,18 @@ class FocusEvent extends UIEvent {
   // To suppress missing implicit constructor warnings.
   factory FocusEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static FocusEvent internalCreateFocusEvent() {
+    return new FocusEvent._internalWrap();
+  }
+
+  factory FocusEvent._internalWrap() {
+    return new FocusEvent.internal_();
+  }
+
+  FocusEvent.internal_() : super.internal_();
+
+
   @DomName('FocusEvent.relatedTarget')
   @DocsEditable()
   EventTarget get relatedTarget => wrap_jso(_blink.BlinkFocusEvent.instance.relatedTarget_Getter_(unwrap_jso(this)));
@@ -15889,25 +18188,43 @@ class FontFace extends NativeFieldWrapperClass2 {
   @DocsEditable()
   factory FontFace(String family, source, [Map descriptors]) {
     if ((source is String || source == null) && (family is String || family == null) && descriptors == null) {
-      return _blink.BlinkFontFace.instance.constructorCallback_2_(family, source);
+      return wrap_jso(_blink.BlinkFontFace.instance.constructorCallback_2_(family, source));
     }
     if ((descriptors is Map || descriptors == null) && (source is String || source == null) && (family is String || family == null)) {
-      return _blink.BlinkFontFace.instance.constructorCallback_3_(family, source, descriptors);
+      var descriptors_1 = convertDartToNative_Dictionary(descriptors);
+      return wrap_jso(_blink.BlinkFontFace.instance.constructorCallback_3_(family, source, descriptors_1));
     }
     if ((source is TypedData || source == null) && (family is String || family == null) && descriptors == null) {
-      return _blink.BlinkFontFace.instance.constructorCallback_2_(family, source);
+      return wrap_jso(_blink.BlinkFontFace.instance.constructorCallback_2_(family, source));
     }
     if ((descriptors is Map || descriptors == null) && (source is TypedData || source == null) && (family is String || family == null)) {
-      return _blink.BlinkFontFace.instance.constructorCallback_3_(family, source, descriptors);
+      var descriptors_1 = convertDartToNative_Dictionary(descriptors);
+      return wrap_jso(_blink.BlinkFontFace.instance.constructorCallback_3_(family, source, descriptors_1));
     }
     if ((source is ByteBuffer || source == null) && (family is String || family == null) && descriptors == null) {
-      return _blink.BlinkFontFace.instance.constructorCallback_2_(family, source);
+      return wrap_jso(_blink.BlinkFontFace.instance.constructorCallback_2_(family, source));
     }
     if ((descriptors is Map || descriptors == null) && (source is ByteBuffer || source == null) && (family is String || family == null)) {
-      return _blink.BlinkFontFace.instance.constructorCallback_3_(family, source, descriptors);
+      var descriptors_1 = convertDartToNative_Dictionary(descriptors);
+      return wrap_jso(_blink.BlinkFontFace.instance.constructorCallback_3_(family, source, descriptors_1));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+
+  static FontFace internalCreateFontFace() {
+    return new FontFace._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory FontFace._internalWrap() {
+    return new FontFace.internal_();
+  }
+
+  FontFace.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('FontFace.family')
   @DocsEditable()
@@ -15917,7 +18234,7 @@ class FontFace extends NativeFieldWrapperClass2 {
   @DomName('FontFace.family')
   @DocsEditable()
   @Experimental() // untriaged
-  void set family(String value) => _blink.BlinkFontFace.instance.family_Setter_(unwrap_jso(this), value);
+  set family(String value) => _blink.BlinkFontFace.instance.family_Setter_(unwrap_jso(this), value);
   
   @DomName('FontFace.featureSettings')
   @DocsEditable()
@@ -15927,12 +18244,12 @@ class FontFace extends NativeFieldWrapperClass2 {
   @DomName('FontFace.featureSettings')
   @DocsEditable()
   @Experimental() // untriaged
-  void set featureSettings(String value) => _blink.BlinkFontFace.instance.featureSettings_Setter_(unwrap_jso(this), value);
+  set featureSettings(String value) => _blink.BlinkFontFace.instance.featureSettings_Setter_(unwrap_jso(this), value);
   
   @DomName('FontFace.loaded')
   @DocsEditable()
   @Experimental() // untriaged
-  Future get loaded => _blink.BlinkFontFace.instance.loaded_Getter_(unwrap_jso(this));
+  Future get loaded => wrap_jso(_blink.BlinkFontFace.instance.loaded_Getter_(unwrap_jso(this)));
   
   @DomName('FontFace.status')
   @DocsEditable()
@@ -15947,7 +18264,7 @@ class FontFace extends NativeFieldWrapperClass2 {
   @DomName('FontFace.stretch')
   @DocsEditable()
   @Experimental() // untriaged
-  void set stretch(String value) => _blink.BlinkFontFace.instance.stretch_Setter_(unwrap_jso(this), value);
+  set stretch(String value) => _blink.BlinkFontFace.instance.stretch_Setter_(unwrap_jso(this), value);
   
   @DomName('FontFace.style')
   @DocsEditable()
@@ -15957,7 +18274,7 @@ class FontFace extends NativeFieldWrapperClass2 {
   @DomName('FontFace.style')
   @DocsEditable()
   @Experimental() // untriaged
-  void set style(String value) => _blink.BlinkFontFace.instance.style_Setter_(unwrap_jso(this), value);
+  set style(String value) => _blink.BlinkFontFace.instance.style_Setter_(unwrap_jso(this), value);
   
   @DomName('FontFace.unicodeRange')
   @DocsEditable()
@@ -15967,7 +18284,7 @@ class FontFace extends NativeFieldWrapperClass2 {
   @DomName('FontFace.unicodeRange')
   @DocsEditable()
   @Experimental() // untriaged
-  void set unicodeRange(String value) => _blink.BlinkFontFace.instance.unicodeRange_Setter_(unwrap_jso(this), value);
+  set unicodeRange(String value) => _blink.BlinkFontFace.instance.unicodeRange_Setter_(unwrap_jso(this), value);
   
   @DomName('FontFace.variant')
   @DocsEditable()
@@ -15977,7 +18294,7 @@ class FontFace extends NativeFieldWrapperClass2 {
   @DomName('FontFace.variant')
   @DocsEditable()
   @Experimental() // untriaged
-  void set variant(String value) => _blink.BlinkFontFace.instance.variant_Setter_(unwrap_jso(this), value);
+  set variant(String value) => _blink.BlinkFontFace.instance.variant_Setter_(unwrap_jso(this), value);
   
   @DomName('FontFace.weight')
   @DocsEditable()
@@ -15987,12 +18304,12 @@ class FontFace extends NativeFieldWrapperClass2 {
   @DomName('FontFace.weight')
   @DocsEditable()
   @Experimental() // untriaged
-  void set weight(String value) => _blink.BlinkFontFace.instance.weight_Setter_(unwrap_jso(this), value);
+  set weight(String value) => _blink.BlinkFontFace.instance.weight_Setter_(unwrap_jso(this), value);
   
   @DomName('FontFace.load')
   @DocsEditable()
   @Experimental() // untriaged
-  Future load() => _blink.BlinkFontFace.instance.load_Callback_0_(unwrap_jso(this));
+  Future load() => wrap_jso(_blink.BlinkFontFace.instance.load_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16008,6 +18325,18 @@ class FontFace extends NativeFieldWrapperClass2 {
 class FontFaceSet extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory FontFaceSet._() { throw new UnsupportedError("Not supported"); }
+
+
+  static FontFaceSet internalCreateFontFaceSet() {
+    return new FontFaceSet._internalWrap();
+  }
+
+  factory FontFaceSet._internalWrap() {
+    return new FontFaceSet.internal_();
+  }
+
+  FontFaceSet.internal_() : super.internal_();
+
 
   @DomName('FontFaceSet.size')
   @DocsEditable()
@@ -16043,10 +18372,10 @@ class FontFaceSet extends EventTarget {
   
   void forEach(FontFaceSetForEachCallback callback, [Object thisArg]) {
     if (thisArg != null) {
-      _blink.BlinkFontFaceSet.instance.forEach_Callback_2_(unwrap_jso(this), unwrap_jso(callback), thisArg);
+      _blink.BlinkFontFaceSet.instance.forEach_Callback_2_(unwrap_jso(this), unwrap_jso((fontFace, fontFaceAgain, set) => callback(wrap_jso(fontFace), wrap_jso(fontFaceAgain), wrap_jso(set))), thisArg);
       return;
     }
-    _blink.BlinkFontFaceSet.instance.forEach_Callback_1_(unwrap_jso(this), unwrap_jso(callback));
+    _blink.BlinkFontFaceSet.instance.forEach_Callback_1_(unwrap_jso(this), unwrap_jso((fontFace, fontFaceAgain, set) => callback(wrap_jso(fontFace), wrap_jso(fontFaceAgain), wrap_jso(set))));
     return;
   }
 
@@ -16080,6 +18409,18 @@ class FontFaceSetLoadEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory FontFaceSetLoadEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static FontFaceSetLoadEvent internalCreateFontFaceSetLoadEvent() {
+    return new FontFaceSetLoadEvent._internalWrap();
+  }
+
+  factory FontFaceSetLoadEvent._internalWrap() {
+    return new FontFaceSetLoadEvent.internal_();
+  }
+
+  FontFaceSetLoadEvent.internal_() : super.internal_();
+
+
   @DomName('FontFaceSetLoadEvent.fontfaces')
   @DocsEditable()
   @Experimental() // untriaged
@@ -16108,7 +18449,22 @@ class FormData extends NativeFieldWrapperClass2 {
   factory FormData([FormElement form]) => wrap_jso(_create(form));
 
   @DocsEditable()
-  static FormData _create(form) => _blink.BlinkFormData.instance.constructorCallback_1_(form);
+  static FormData _create(form) => wrap_jso(_blink.BlinkFormData.instance.constructorCallback_1_(form));
+
+  static FormData internalCreateFormData() {
+    return new FormData._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory FormData._internalWrap() {
+    return new FormData.internal_();
+  }
+
+  FormData.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -16138,6 +18494,18 @@ class FormElement extends HtmlElement {
   @DomName('HTMLFormElement.HTMLFormElement')
   @DocsEditable()
   factory FormElement() => document.createElement("form");
+
+
+  static FormElement internalCreateFormElement() {
+    return new FormElement._internalWrap();
+  }
+
+  factory FormElement._internalWrap() {
+    return new FormElement.internal_();
+  }
+
+  FormElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -16151,7 +18519,7 @@ class FormElement extends HtmlElement {
   
   @DomName('HTMLFormElement.acceptCharset')
   @DocsEditable()
-  void set acceptCharset(String value) => _blink.BlinkHTMLFormElement.instance.acceptCharset_Setter_(unwrap_jso(this), value);
+  set acceptCharset(String value) => _blink.BlinkHTMLFormElement.instance.acceptCharset_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFormElement.action')
   @DocsEditable()
@@ -16159,7 +18527,7 @@ class FormElement extends HtmlElement {
   
   @DomName('HTMLFormElement.action')
   @DocsEditable()
-  void set action(String value) => _blink.BlinkHTMLFormElement.instance.action_Setter_(unwrap_jso(this), value);
+  set action(String value) => _blink.BlinkHTMLFormElement.instance.action_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFormElement.autocomplete')
   @DocsEditable()
@@ -16171,7 +18539,7 @@ class FormElement extends HtmlElement {
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute
   @Experimental()
-  void set autocomplete(String value) => _blink.BlinkHTMLFormElement.instance.autocomplete_Setter_(unwrap_jso(this), value);
+  set autocomplete(String value) => _blink.BlinkHTMLFormElement.instance.autocomplete_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFormElement.encoding')
   @DocsEditable()
@@ -16179,7 +18547,7 @@ class FormElement extends HtmlElement {
   
   @DomName('HTMLFormElement.encoding')
   @DocsEditable()
-  void set encoding(String value) => _blink.BlinkHTMLFormElement.instance.encoding_Setter_(unwrap_jso(this), value);
+  set encoding(String value) => _blink.BlinkHTMLFormElement.instance.encoding_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFormElement.enctype')
   @DocsEditable()
@@ -16187,7 +18555,7 @@ class FormElement extends HtmlElement {
   
   @DomName('HTMLFormElement.enctype')
   @DocsEditable()
-  void set enctype(String value) => _blink.BlinkHTMLFormElement.instance.enctype_Setter_(unwrap_jso(this), value);
+  set enctype(String value) => _blink.BlinkHTMLFormElement.instance.enctype_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFormElement.length')
   @DocsEditable()
@@ -16199,7 +18567,7 @@ class FormElement extends HtmlElement {
   
   @DomName('HTMLFormElement.method')
   @DocsEditable()
-  void set method(String value) => _blink.BlinkHTMLFormElement.instance.method_Setter_(unwrap_jso(this), value);
+  set method(String value) => _blink.BlinkHTMLFormElement.instance.method_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFormElement.name')
   @DocsEditable()
@@ -16207,7 +18575,7 @@ class FormElement extends HtmlElement {
   
   @DomName('HTMLFormElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLFormElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLFormElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFormElement.noValidate')
   @DocsEditable()
@@ -16215,7 +18583,7 @@ class FormElement extends HtmlElement {
   
   @DomName('HTMLFormElement.noValidate')
   @DocsEditable()
-  void set noValidate(bool value) => _blink.BlinkHTMLFormElement.instance.noValidate_Setter_(unwrap_jso(this), value);
+  set noValidate(bool value) => _blink.BlinkHTMLFormElement.instance.noValidate_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFormElement.target')
   @DocsEditable()
@@ -16223,14 +18591,14 @@ class FormElement extends HtmlElement {
   
   @DomName('HTMLFormElement.target')
   @DocsEditable()
-  void set target(String value) => _blink.BlinkHTMLFormElement.instance.target_Setter_(unwrap_jso(this), value);
+  set target(String value) => _blink.BlinkHTMLFormElement.instance.target_Setter_(unwrap_jso(this), value);
   
   Element __getter__(index_OR_name) {
     if ((index_OR_name is int || index_OR_name == null)) {
       return wrap_jso(_blink.BlinkHTMLFormElement.instance.$__getter___Callback_1_(unwrap_jso(this), unwrap_jso(index_OR_name)));
     }
     if ((index_OR_name is String || index_OR_name == null)) {
-      return _blink.BlinkHTMLFormElement.instance.$__getter___Callback_1_(unwrap_jso(this), unwrap_jso(index_OR_name));
+      return wrap_jso(_blink.BlinkHTMLFormElement.instance.$__getter___Callback_1_(unwrap_jso(this), unwrap_jso(index_OR_name)));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -16243,7 +18611,7 @@ class FormElement extends HtmlElement {
   @DocsEditable()
   // http://lists.whatwg.org/htdig.cgi/whatwg-whatwg.org/2012-October/037711.html
   @Experimental()
-  void requestAutocomplete(Map details) => _blink.BlinkHTMLFormElement.instance.requestAutocomplete_Callback_1_(unwrap_jso(this), details);
+  void requestAutocomplete(Map details) => _blink.BlinkHTMLFormElement.instance.requestAutocomplete_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(details));
   
   @DomName('HTMLFormElement.reset')
   @DocsEditable()
@@ -16268,6 +18636,21 @@ class FormElement extends HtmlElement {
 class Gamepad extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Gamepad._() { throw new UnsupportedError("Not supported"); }
+
+  static Gamepad internalCreateGamepad() {
+    return new Gamepad._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Gamepad._internalWrap() {
+    return new Gamepad.internal_();
+  }
+
+  Gamepad.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Gamepad.axes')
   @DocsEditable()
@@ -16310,6 +18693,21 @@ class GamepadButton extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory GamepadButton._() { throw new UnsupportedError("Not supported"); }
 
+  static GamepadButton internalCreateGamepadButton() {
+    return new GamepadButton._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory GamepadButton._internalWrap() {
+    return new GamepadButton.internal_();
+  }
+
+  GamepadButton.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('GamepadButton.pressed')
   @DocsEditable()
   @Experimental() // untriaged
@@ -16318,7 +18716,7 @@ class GamepadButton extends NativeFieldWrapperClass2 {
   @DomName('GamepadButton.value')
   @DocsEditable()
   @Experimental() // untriaged
-  double get value => _blink.BlinkGamepadButton.instance.value_Getter_(unwrap_jso(this));
+  num get value => _blink.BlinkGamepadButton.instance.value_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16334,6 +18732,18 @@ class GamepadButton extends NativeFieldWrapperClass2 {
 class GamepadEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory GamepadEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static GamepadEvent internalCreateGamepadEvent() {
+    return new GamepadEvent._internalWrap();
+  }
+
+  factory GamepadEvent._internalWrap() {
+    return new GamepadEvent.internal_();
+  }
+
+  GamepadEvent.internal_() : super.internal_();
+
 
   @DomName('GamepadEvent.gamepad')
   @DocsEditable()
@@ -16355,20 +18765,35 @@ class Geofencing extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Geofencing._() { throw new UnsupportedError("Not supported"); }
 
+  static Geofencing internalCreateGeofencing() {
+    return new Geofencing._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Geofencing._internalWrap() {
+    return new Geofencing.internal_();
+  }
+
+  Geofencing.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('Geofencing.getRegisteredRegions')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getRegisteredRegions() => _blink.BlinkGeofencing.instance.getRegisteredRegions_Callback_0_(unwrap_jso(this));
+  Future getRegisteredRegions() => wrap_jso(_blink.BlinkGeofencing.instance.getRegisteredRegions_Callback_0_(unwrap_jso(this)));
   
   @DomName('Geofencing.registerRegion')
   @DocsEditable()
   @Experimental() // untriaged
-  Future registerRegion(GeofencingRegion region) => _blink.BlinkGeofencing.instance.registerRegion_Callback_1_(unwrap_jso(this), unwrap_jso(region));
+  Future registerRegion(GeofencingRegion region) => wrap_jso(_blink.BlinkGeofencing.instance.registerRegion_Callback_1_(unwrap_jso(this), unwrap_jso(region)));
   
   @DomName('Geofencing.unregisterRegion')
   @DocsEditable()
   @Experimental() // untriaged
-  Future unregisterRegion(String regionId) => _blink.BlinkGeofencing.instance.unregisterRegion_Callback_1_(unwrap_jso(this), regionId);
+  Future unregisterRegion(String regionId) => wrap_jso(_blink.BlinkGeofencing.instance.unregisterRegion_Callback_1_(unwrap_jso(this), regionId));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16384,6 +18809,21 @@ class Geofencing extends NativeFieldWrapperClass2 {
 class GeofencingRegion extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory GeofencingRegion._() { throw new UnsupportedError("Not supported"); }
+
+  static GeofencingRegion internalCreateGeofencingRegion() {
+    return new GeofencingRegion._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory GeofencingRegion._internalWrap() {
+    return new GeofencingRegion.internal_();
+  }
+
+  GeofencingRegion.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('GeofencingRegion.id')
   @DocsEditable()
@@ -16474,31 +18914,46 @@ class Geolocation extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Geolocation._() { throw new UnsupportedError("Not supported"); }
 
+  static Geolocation internalCreateGeolocation() {
+    return new Geolocation._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Geolocation._internalWrap() {
+    return new Geolocation.internal_();
+  }
+
+  Geolocation.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('Geolocation.clearWatch')
   @DocsEditable()
   void _clearWatch(int watchID) => _blink.BlinkGeolocation.instance.clearWatch_Callback_1_(unwrap_jso(this), watchID);
   
   void _getCurrentPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Map options]) {
     if (options != null) {
-      _blink.BlinkGeolocation.instance.getCurrentPosition_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback), options);
+      _blink.BlinkGeolocation.instance.getCurrentPosition_Callback_3_(unwrap_jso(this), unwrap_jso((position) => successCallback(wrap_jso(position))), unwrap_jso((error) => errorCallback(wrap_jso(error))), convertDartToNative_Dictionary(options));
       return;
     }
     if (errorCallback != null) {
-      _blink.BlinkGeolocation.instance.getCurrentPosition_Callback_2_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkGeolocation.instance.getCurrentPosition_Callback_2_(unwrap_jso(this), unwrap_jso((position) => successCallback(wrap_jso(position))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkGeolocation.instance.getCurrentPosition_Callback_1_(unwrap_jso(this), unwrap_jso(successCallback));
+    _blink.BlinkGeolocation.instance.getCurrentPosition_Callback_1_(unwrap_jso(this), unwrap_jso((position) => successCallback(wrap_jso(position))));
     return;
   }
 
   int _watchPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Map options]) {
     if (options != null) {
-      return _blink.BlinkGeolocation.instance.watchPosition_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback), options);
+      return _blink.BlinkGeolocation.instance.watchPosition_Callback_3_(unwrap_jso(this), unwrap_jso((position) => successCallback(wrap_jso(position))), unwrap_jso((error) => errorCallback(wrap_jso(error))), convertDartToNative_Dictionary(options));
     }
     if (errorCallback != null) {
-      return _blink.BlinkGeolocation.instance.watchPosition_Callback_2_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      return _blink.BlinkGeolocation.instance.watchPosition_Callback_2_(unwrap_jso(this), unwrap_jso((position) => successCallback(wrap_jso(position))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
     }
-    return _blink.BlinkGeolocation.instance.watchPosition_Callback_1_(unwrap_jso(this), unwrap_jso(successCallback));
+    return _blink.BlinkGeolocation.instance.watchPosition_Callback_1_(unwrap_jso(this), unwrap_jso((position) => successCallback(wrap_jso(position))));
   }
 }
 
@@ -16515,6 +18970,21 @@ class Geolocation extends NativeFieldWrapperClass2 {
 class Geoposition extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Geoposition._() { throw new UnsupportedError("Not supported"); }
+
+  static Geoposition internalCreateGeoposition() {
+    return new Geoposition._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Geoposition._internalWrap() {
+    return new Geoposition.internal_();
+  }
+
+  Geoposition.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Geoposition.coords')
   @DocsEditable()
@@ -17076,6 +19546,18 @@ class HRElement extends HtmlElement {
   @DomName('HTMLHRElement.HTMLHRElement')
   @DocsEditable()
   factory HRElement() => document.createElement("hr");
+
+
+  static HRElement internalCreateHRElement() {
+    return new HRElement._internalWrap();
+  }
+
+  factory HRElement._internalWrap() {
+    return new HRElement.internal_();
+  }
+
+  HRElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -17091,7 +19573,7 @@ class HRElement extends HtmlElement {
   @DomName('HTMLHRElement.color')
   @DocsEditable()
   @Experimental() // untriaged
-  void set color(String value) => _blink.BlinkHTMLHRElement.instance.color_Setter_(unwrap_jso(this), value);
+  set color(String value) => _blink.BlinkHTMLHRElement.instance.color_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -17115,6 +19597,18 @@ class HashChangeEvent extends Event {
   }
   // To suppress missing implicit constructor warnings.
   factory HashChangeEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static HashChangeEvent internalCreateHashChangeEvent() {
+    return new HashChangeEvent._internalWrap();
+  }
+
+  factory HashChangeEvent._internalWrap() {
+    return new HashChangeEvent.internal_();
+  }
+
+  HashChangeEvent.internal_() : super.internal_();
+
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -17148,6 +19642,18 @@ class HeadElement extends HtmlElement {
   @DomName('HTMLHeadElement.HTMLHeadElement')
   @DocsEditable()
   factory HeadElement() => document.createElement("head");
+
+
+  static HeadElement internalCreateHeadElement() {
+    return new HeadElement._internalWrap();
+  }
+
+  factory HeadElement._internalWrap() {
+    return new HeadElement.internal_();
+  }
+
+  HeadElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -17174,16 +19680,32 @@ class Headers extends NativeFieldWrapperClass2 {
   @DocsEditable()
   factory Headers([input]) {
     if (input == null) {
-      return _blink.BlinkHeaders.instance.constructorCallback_0_();
+      return wrap_jso(_blink.BlinkHeaders.instance.constructorCallback_0_());
     }
     if ((input is Headers || input == null)) {
-      return _blink.BlinkHeaders.instance.constructorCallback_1_(input);
+      return wrap_jso(_blink.BlinkHeaders.instance.constructorCallback_1_(input));
     }
     if ((input is Map || input == null)) {
-      return _blink.BlinkHeaders.instance.constructorCallback_1_(input);
+      var input_1 = convertDartToNative_Dictionary(input);
+      return wrap_jso(_blink.BlinkHeaders.instance.constructorCallback_1_(input_1));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+
+  static Headers internalCreateHeaders() {
+    return new Headers._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Headers._internalWrap() {
+    return new Headers.internal_();
+  }
+
+  Headers.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Headers.size')
   @DocsEditable()
@@ -17192,10 +19714,10 @@ class Headers extends NativeFieldWrapperClass2 {
   
   void forEach(HeadersForEachCallback callback, [Object thisArg]) {
     if (thisArg != null) {
-      _blink.BlinkHeaders.instance.forEach_Callback_2_(unwrap_jso(this), unwrap_jso(callback), thisArg);
+      _blink.BlinkHeaders.instance.forEach_Callback_2_(unwrap_jso(this), unwrap_jso((String value, String key, map) => callback(value, key, wrap_jso(map))), thisArg);
       return;
     }
-    _blink.BlinkHeaders.instance.forEach_Callback_1_(unwrap_jso(this), unwrap_jso(callback));
+    _blink.BlinkHeaders.instance.forEach_Callback_1_(unwrap_jso(this), unwrap_jso((String value, String key, map) => callback(value, key, wrap_jso(map))));
     return;
   }
 
@@ -17246,6 +19768,18 @@ class HeadingElement extends HtmlElement {
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
   factory HeadingElement.h6() => document.createElement("h6");
+
+
+  static HeadingElement internalCreateHeadingElement() {
+    return new HeadingElement._internalWrap();
+  }
+
+  factory HeadingElement._internalWrap() {
+    return new HeadingElement.internal_();
+  }
+
+  HeadingElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -17274,6 +19808,21 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
   static bool get supportsState => true;
   // To suppress missing implicit constructor warnings.
   factory History._() { throw new UnsupportedError("Not supported"); }
+
+  static History internalCreateHistory() {
+    return new History._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory History._internalWrap() {
+    return new History.internal_();
+  }
+
+  History.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('History.length')
   @DocsEditable()
@@ -17320,9 +19869,24 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
 
 @DocsEditable()
 @DomName('HTMLCollection')
-class HtmlCollection extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class HtmlCollection extends JsoNativeFieldWrapper with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   // To suppress missing implicit constructor warnings.
   factory HtmlCollection._() { throw new UnsupportedError("Not supported"); }
+
+  static HtmlCollection internalCreateHtmlCollection() {
+    return new HtmlCollection._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory HtmlCollection._internalWrap() {
+    return new HtmlCollection.internal_();
+  }
+
+  HtmlCollection.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('HTMLCollection.length')
   @DocsEditable()
@@ -17335,7 +19899,7 @@ class HtmlCollection extends NativeFieldWrapperClass2 with ListMixin<Node>, Immu
   }
 
   Node _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkHTMLCollection.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -17343,7 +19907,7 @@ class HtmlCollection extends NativeFieldWrapperClass2 with ListMixin<Node>, Immu
   // Node is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -17396,11 +19960,23 @@ class HtmlDocument extends Document {
   factory HtmlDocument._() { throw new UnsupportedError("Not supported"); }
 
 
+  static HtmlDocument internalCreateHtmlDocument() {
+    return new HtmlDocument._internalWrap();
+  }
+
+  factory HtmlDocument._internalWrap() {
+    return new HtmlDocument.internal_();
+  }
+
+  HtmlDocument.internal_() : super.internal_();
+
+
+
   @DomName('Document.body')
   BodyElement get body => _body;
 
   @DomName('Document.body')
-  void set body(BodyElement value) {
+  set body(BodyElement value) {
     _body = value;
   }
 
@@ -17467,7 +20043,7 @@ class HtmlDocument extends Document {
 
   @DomName('Document.selectedStylesheetSet')
   String get selectedStylesheetSet => _selectedStylesheetSet;
-  void set selectedStylesheetSet(String value) {
+  set selectedStylesheetSet(String value) {
     _selectedStylesheetSet = value;
   }
 
@@ -17478,7 +20054,7 @@ class HtmlDocument extends Document {
   String get title => _title;
 
   @DomName('Document.title')
-  void set title(String value) {
+  set title(String value) {
     _title = value;
   }
 
@@ -17559,6 +20135,39 @@ class HtmlDocument extends Document {
   @Experimental()
   String get visibilityState => _webkitVisibilityState;
 
+  /**
+   * Internal routine to find the DOM JS class name being extended for custom
+   * elements.
+   */
+  String _getJSClassName(ClassMirror classMirror) {
+    var jsClassName = null;
+    var isElement = false;
+
+    while (classMirror.superclass != null) {
+      var fullName = classMirror.superclass.qualifiedName;
+      isElement = isElement || (fullName == #dart.dom.html.Element);
+
+      var domLibrary = MirrorSystem.getName(fullName).startsWith('dart.dom.');
+      if (jsClassName == null && domLibrary) {
+        // Lookup JS class name (if not found).
+        var metadatas = classMirror.metadata;
+        for (var metadata in metadatas) {
+          var metaDataMirror = metadata.reflectee;
+          var metaType = reflectClass(metaDataMirror.runtimeType);
+          if (MirrorSystem.getName(metaType.simpleName) == 'DomName' &&
+              metaDataMirror.name.startsWith('HTML')) {
+            jsClassName = metadata.reflectee.name;
+          }
+        }
+      }
+
+      classMirror = classMirror.superclass;
+    }
+
+    // If we're an element then everything is okay.
+    return isElement ? jsClassName : null;
+  }
+
   @Experimental()
   /**
    * Register a custom subclass of Element to be instantiatable by the DOM.
@@ -17603,7 +20212,73 @@ class HtmlDocument extends Document {
    */
   void registerElement(String tag, Type customElementClass,
       {String extendsTag}) {
-    _Utils.register(this, tag, customElementClass, extendsTag);
+    // TODO(terry): Need to handle the extendsTag.
+
+    // Figure out which DOM class is being extended from the user's Dart class.
+    var classMirror = reflectClass(customElementClass);
+    var jsClassName = _getJSClassName(classMirror);
+    if (jsClassName == null) {
+      // Only components derived from HTML* can be extended.
+      throw new DomException.jsInterop("HierarchyRequestError: Only HTML elements can be customized.");
+    }
+
+    // Start the hookup the JS way create an <x-foo> element that extends the
+    // <x-base> custom element. Inherit its prototype and signal what tag is
+    // inherited:
+    //
+    //     var myProto = Object.create(HTMLElement.prototype);
+    //     var myElement = document.registerElement('x-foo', {prototype: myProto});
+    var baseElement = js.context[jsClassName];
+    if (baseElement == null) {
+      // Couldn't find the HTML element so use a generic one.
+      baseElement = js.context['HTMLElement'];
+    }
+    var elemProto = js.context['Object'].callMethod("create", [baseElement['prototype']]);
+
+    // TODO(terry): Hack to stop recursion re-creating custom element when the
+    //              created() constructor of the custom element does e.g.,
+    //
+    //                  MyElement.created() : super.created() {
+    //                    this.innerHtml = "<b>I'm an x-foo-with-markup!</b>";
+    //                  }
+    //
+    //              sanitizing causes custom element to created recursively
+    //              until stack overflow.
+    //
+    //              See https://github.com/dart-lang/sdk/issues/23666
+    int creating = 0;
+    elemProto['createdCallback'] = new js.JsFunction.withThis(($this) {
+      if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
+        creating++;
+
+        var dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
+
+        // Need to remember the Dart class that was created for this custom so
+        // return it and setup the blink_jsObject to the $this that we'll be working
+        // with as we talk to blink. 
+        $this['dart_class'] = dartClass;
+
+        creating--;
+      }
+    });
+    elemProto['attributeChangedCallback'] = new js.JsFunction.withThis(($this, attrName, oldVal, newVal) {
+      if ($this["dart_class"] != null && $this['dart_class'].attributeChanged != null) {
+        $this['dart_class'].attributeChanged(attrName, oldVal, newVal);
+      }
+    });
+    elemProto['attachedCallback'] = new js.JsFunction.withThis(($this) {
+      if ($this["dart_class"] != null && $this['dart_class'].attached != null) {
+        $this['dart_class'].attached();
+      }
+    });
+    elemProto['detachedCallback'] = new js.JsFunction.withThis(($this) {
+      if ($this["dart_class"] != null && $this['dart_class'].detached != null) {
+        $this['dart_class'].detached();
+      }
+    });
+    // document.registerElement('x-foo', {prototype: elemProto, extends: extendsTag});
+    var jsMap = new js.JsObject.jsify({'prototype': elemProto, 'extends': extendsTag});
+    js.context['document'].callMethod('registerElement', [tag, jsMap]);
   }
 
   /** *Deprecated*: use [registerElement] instead. */
@@ -17924,6 +20599,18 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
+
+
+  static HtmlElement internalCreateHtmlElement() {
+    return new HtmlElement._internalWrap();
+  }
+
+  factory HtmlElement._internalWrap() {
+    return new HtmlElement.internal_();
+  }
+
+  HtmlElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -17937,7 +20624,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   
   @DomName('HTMLElement.contentEditable')
   @DocsEditable()
-  void set contentEditable(String value) => _blink.BlinkHTMLElement.instance.contentEditable_Setter_(unwrap_jso(this), value);
+  set contentEditable(String value) => _blink.BlinkHTMLElement.instance.contentEditable_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.contextMenu')
   @DocsEditable()
@@ -17947,7 +20634,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   @DomName('HTMLElement.contextMenu')
   @DocsEditable()
   @Experimental() // untriaged
-  void set contextMenu(MenuElement value) => _blink.BlinkHTMLElement.instance.contextMenu_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set contextMenu(MenuElement value) => _blink.BlinkHTMLElement.instance.contextMenu_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('HTMLElement.dir')
   @DocsEditable()
@@ -17955,7 +20642,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   
   @DomName('HTMLElement.dir')
   @DocsEditable()
-  void set dir(String value) => _blink.BlinkHTMLElement.instance.dir_Setter_(unwrap_jso(this), value);
+  set dir(String value) => _blink.BlinkHTMLElement.instance.dir_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.draggable')
   @DocsEditable()
@@ -17963,7 +20650,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   
   @DomName('HTMLElement.draggable')
   @DocsEditable()
-  void set draggable(bool value) => _blink.BlinkHTMLElement.instance.draggable_Setter_(unwrap_jso(this), value);
+  set draggable(bool value) => _blink.BlinkHTMLElement.instance.draggable_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.hidden')
   @DocsEditable()
@@ -17971,7 +20658,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   
   @DomName('HTMLElement.hidden')
   @DocsEditable()
-  void set hidden(bool value) => _blink.BlinkHTMLElement.instance.hidden_Setter_(unwrap_jso(this), value);
+  set hidden(bool value) => _blink.BlinkHTMLElement.instance.hidden_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.inputMethodContext')
   @DocsEditable()
@@ -17988,7 +20675,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   
   @DomName('HTMLElement.lang')
   @DocsEditable()
-  void set lang(String value) => _blink.BlinkHTMLElement.instance.lang_Setter_(unwrap_jso(this), value);
+  set lang(String value) => _blink.BlinkHTMLElement.instance.lang_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.spellcheck')
   @DocsEditable()
@@ -18000,7 +20687,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   @DocsEditable()
   // http://blog.whatwg.org/the-road-to-html-5-spellchecking
   @Experimental() // nonstandard
-  void set spellcheck(bool value) => _blink.BlinkHTMLElement.instance.spellcheck_Setter_(unwrap_jso(this), value);
+  set spellcheck(bool value) => _blink.BlinkHTMLElement.instance.spellcheck_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.tabIndex')
   @DocsEditable()
@@ -18008,7 +20695,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   
   @DomName('HTMLElement.tabIndex')
   @DocsEditable()
-  void set tabIndex(int value) => _blink.BlinkHTMLElement.instance.tabIndex_Setter_(unwrap_jso(this), value);
+  set tabIndex(int value) => _blink.BlinkHTMLElement.instance.tabIndex_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.title')
   @DocsEditable()
@@ -18016,7 +20703,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   
   @DomName('HTMLElement.title')
   @DocsEditable()
-  void set title(String value) => _blink.BlinkHTMLElement.instance.title_Setter_(unwrap_jso(this), value);
+  set title(String value) => _blink.BlinkHTMLElement.instance.title_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.translate')
   @DocsEditable()
@@ -18024,7 +20711,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   
   @DomName('HTMLElement.translate')
   @DocsEditable()
-  void set translate(bool value) => _blink.BlinkHTMLElement.instance.translate_Setter_(unwrap_jso(this), value);
+  set translate(bool value) => _blink.BlinkHTMLElement.instance.translate_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.webkitdropzone')
   @DocsEditable()
@@ -18040,7 +20727,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-dropzone-attribute
-  void set dropzone(String value) => _blink.BlinkHTMLElement.instance.webkitdropzone_Setter_(unwrap_jso(this), value);
+  set dropzone(String value) => _blink.BlinkHTMLElement.instance.webkitdropzone_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.click')
   @DocsEditable()
@@ -18320,6 +21007,18 @@ class HtmlFormControlsCollection extends HtmlCollection {
   // To suppress missing implicit constructor warnings.
   factory HtmlFormControlsCollection._() { throw new UnsupportedError("Not supported"); }
 
+
+  static HtmlFormControlsCollection internalCreateHtmlFormControlsCollection() {
+    return new HtmlFormControlsCollection._internalWrap();
+  }
+
+  factory HtmlFormControlsCollection._internalWrap() {
+    return new HtmlFormControlsCollection.internal_();
+  }
+
+  HtmlFormControlsCollection.internal_() : super.internal_();
+
+
   @DomName('HTMLFormControlsCollection.namedItem')
   @DocsEditable()
   Object namedItem(String name) => wrap_jso(_blink.BlinkHTMLFormControlsCollection.instance.namedItem_Callback_1_(unwrap_jso(this), name));
@@ -18341,6 +21040,18 @@ class HtmlHtmlElement extends HtmlElement {
   @DomName('HTMLHtmlElement.HTMLHtmlElement')
   @DocsEditable()
   factory HtmlHtmlElement() => document.createElement("html");
+
+
+  static HtmlHtmlElement internalCreateHtmlHtmlElement() {
+    return new HtmlHtmlElement._internalWrap();
+  }
+
+  factory HtmlHtmlElement._internalWrap() {
+    return new HtmlHtmlElement.internal_();
+  }
+
+  HtmlHtmlElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -18361,6 +21072,18 @@ class HtmlHtmlElement extends HtmlElement {
 class HtmlOptionsCollection extends HtmlCollection {
   // To suppress missing implicit constructor warnings.
   factory HtmlOptionsCollection._() { throw new UnsupportedError("Not supported"); }
+
+
+  static HtmlOptionsCollection internalCreateHtmlOptionsCollection() {
+    return new HtmlOptionsCollection._internalWrap();
+  }
+
+  factory HtmlOptionsCollection._internalWrap() {
+    return new HtmlOptionsCollection.internal_();
+  }
+
+  HtmlOptionsCollection.internal_() : super.internal_();
+
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18699,6 +21422,31 @@ class HttpRequest extends HttpRequestEventTarget {
     return headers;
   }
 
+  /**
+   * Specify the desired `url`, and `method` to use in making the request.
+   *
+   * By default the request is done asyncronously, with no user or password
+   * authentication information. If `async` is false, the request will be send
+   * synchronously.
+   *
+   * Calling `open` again on a currently active request is equivalent to
+   * calling `abort`.
+   *
+   * Note: Most simple HTTP requests can be accomplished using the [getString],
+   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
+   * `open` method is intended only for more complext HTTP requests where
+   * finer-grained control is needed.
+   */
+  @DomName('XMLHttpRequest.open')
+  @DocsEditable()
+  void open(String method, String url, {bool async, String user, String password}) {
+    if (async == null && user == null && password == null) {
+      _blink.BlinkXMLHttpRequest.instance.open_Callback_2_(unwrap_jso(this), method, url);
+    } else {
+      _blink.BlinkXMLHttpRequest.instance.open_Callback_5_(unwrap_jso(this), method, url, async, user, password);
+    }
+  }
+
   // To suppress missing implicit constructor warnings.
   factory HttpRequest._() { throw new UnsupportedError("Not supported"); }
 
@@ -18733,7 +21481,19 @@ class HttpRequest extends HttpRequestEventTarget {
   factory HttpRequest() => wrap_jso(_create());
 
   @DocsEditable()
-  static HttpRequest _create() => _blink.BlinkXMLHttpRequest.instance.constructorCallback_0_();
+  static HttpRequest _create() => wrap_jso(_blink.BlinkXMLHttpRequest.instance.constructorCallback_0_());
+
+
+  static HttpRequest internalCreateHttpRequest() {
+    return new HttpRequest._internalWrap();
+  }
+
+  factory HttpRequest._internalWrap() {
+    return new HttpRequest.internal_();
+  }
+
+  HttpRequest.internal_() : super.internal_();
+
 
   @DomName('XMLHttpRequest.DONE')
   @DocsEditable()
@@ -18804,7 +21564,7 @@ class HttpRequest extends HttpRequestEventTarget {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  Object get response => _blink.BlinkXMLHttpRequest.instance.response_Getter_(unwrap_jso(this));
+  Object get response => wrap_jso(_blink.BlinkXMLHttpRequest.instance.response_Getter_(unwrap_jso(this)));
   
   /**
    * The response in String form or empty String on failure.
@@ -18839,7 +21599,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.responseType')
   @DocsEditable()
-  void set responseType(String value) => _blink.BlinkXMLHttpRequest.instance.responseType_Setter_(unwrap_jso(this), value);
+  set responseType(String value) => _blink.BlinkXMLHttpRequest.instance.responseType_Setter_(unwrap_jso(this), value);
   
   @DomName('XMLHttpRequest.responseURL')
   @DocsEditable()
@@ -18913,7 +21673,7 @@ class HttpRequest extends HttpRequestEventTarget {
   @DomName('XMLHttpRequest.timeout')
   @DocsEditable()
   @Experimental() // untriaged
-  void set timeout(int value) => _blink.BlinkXMLHttpRequest.instance.timeout_Setter_(unwrap_jso(this), value);
+  set timeout(int value) => _blink.BlinkXMLHttpRequest.instance.timeout_Setter_(unwrap_jso(this), value);
   
   /**
    * [EventTarget] that can hold listeners to track the progress of the request.
@@ -18942,7 +21702,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.withCredentials')
   @DocsEditable()
-  void set withCredentials(bool value) => _blink.BlinkXMLHttpRequest.instance.withCredentials_Setter_(unwrap_jso(this), value);
+  set withCredentials(bool value) => _blink.BlinkXMLHttpRequest.instance.withCredentials_Setter_(unwrap_jso(this), value);
   
   /**
    * Stop the current request.
@@ -18980,25 +21740,6 @@ class HttpRequest extends HttpRequestEventTarget {
   @DocsEditable()
   @Unstable()
   String getResponseHeader(String header) => _blink.BlinkXMLHttpRequest.instance.getResponseHeader_Callback_1_(unwrap_jso(this), header);
-  
-  /**
-   * Specify the desired `url`, and `method` to use in making the request.
-   *
-   * By default the request is done asyncronously, with no user or password
-   * authentication information. If `async` is false, the request will be send
-   * synchronously.
-   *
-   * Calling `open` again on a currently active request is equivalent to
-   * calling `abort`.
-   *
-   * Note: Most simple HTTP requests can be accomplished using the [getString],
-   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
-   * `open` method is intended only for more complext HTTP requests where
-   * finer-grained control is needed.
-   */
-  @DomName('XMLHttpRequest.open')
-  @DocsEditable()
-  void open(String method, String url, {bool async, String user, String password}) => _blink.BlinkXMLHttpRequest.instance.open_Callback_5_(unwrap_jso(this), method, url, async, user, password);
   
   /**
    * Specify a particular MIME type (such as `text/xml`) desired for the
@@ -19155,6 +21896,18 @@ class HttpRequestEventTarget extends EventTarget {
   @Experimental() // untriaged
   static const EventStreamProvider<ProgressEvent> timeoutEvent = const EventStreamProvider<ProgressEvent>('timeout');
 
+
+  static HttpRequestEventTarget internalCreateHttpRequestEventTarget() {
+    return new HttpRequestEventTarget._internalWrap();
+  }
+
+  factory HttpRequestEventTarget._internalWrap() {
+    return new HttpRequestEventTarget.internal_();
+  }
+
+  HttpRequestEventTarget.internal_() : super.internal_();
+
+
   /// Stream of `abort` events handled by this [HttpRequestEventTarget].
   @DomName('XMLHttpRequestEventTarget.onabort')
   @DocsEditable()
@@ -19221,6 +21974,18 @@ class HttpRequestUpload extends HttpRequestEventTarget {
   // To suppress missing implicit constructor warnings.
   factory HttpRequestUpload._() { throw new UnsupportedError("Not supported"); }
 
+
+  static HttpRequestUpload internalCreateHttpRequestUpload() {
+    return new HttpRequestUpload._internalWrap();
+  }
+
+  factory HttpRequestUpload._internalWrap() {
+    return new HttpRequestUpload.internal_();
+  }
+
+  HttpRequestUpload.internal_() : super.internal_();
+
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19238,6 +22003,18 @@ class IFrameElement extends HtmlElement {
   @DomName('HTMLIFrameElement.HTMLIFrameElement')
   @DocsEditable()
   factory IFrameElement() => document.createElement("iframe");
+
+
+  static IFrameElement internalCreateIFrameElement() {
+    return new IFrameElement._internalWrap();
+  }
+
+  factory IFrameElement._internalWrap() {
+    return new IFrameElement.internal_();
+  }
+
+  IFrameElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -19253,7 +22030,7 @@ class IFrameElement extends HtmlElement {
   @DomName('HTMLIFrameElement.allowFullscreen')
   @DocsEditable()
   @Experimental() // untriaged
-  void set allowFullscreen(bool value) => _blink.BlinkHTMLIFrameElement.instance.allowFullscreen_Setter_(unwrap_jso(this), value);
+  set allowFullscreen(bool value) => _blink.BlinkHTMLIFrameElement.instance.allowFullscreen_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLIFrameElement.contentWindow')
   @DocsEditable()
@@ -19265,7 +22042,7 @@ class IFrameElement extends HtmlElement {
   
   @DomName('HTMLIFrameElement.height')
   @DocsEditable()
-  void set height(String value) => _blink.BlinkHTMLIFrameElement.instance.height_Setter_(unwrap_jso(this), value);
+  set height(String value) => _blink.BlinkHTMLIFrameElement.instance.height_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLIFrameElement.integrity')
   @DocsEditable()
@@ -19275,7 +22052,7 @@ class IFrameElement extends HtmlElement {
   @DomName('HTMLIFrameElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLIFrameElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLIFrameElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLIFrameElement.name')
   @DocsEditable()
@@ -19283,7 +22060,7 @@ class IFrameElement extends HtmlElement {
   
   @DomName('HTMLIFrameElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLIFrameElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLIFrameElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLIFrameElement.sandbox')
   @DocsEditable()
@@ -19291,7 +22068,7 @@ class IFrameElement extends HtmlElement {
   
   @DomName('HTMLIFrameElement.sandbox')
   @DocsEditable()
-  void set sandbox(String value) => _blink.BlinkHTMLIFrameElement.instance.sandbox_Setter_(unwrap_jso(this), value);
+  set sandbox(String value) => _blink.BlinkHTMLIFrameElement.instance.sandbox_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLIFrameElement.src')
   @DocsEditable()
@@ -19299,7 +22076,7 @@ class IFrameElement extends HtmlElement {
   
   @DomName('HTMLIFrameElement.src')
   @DocsEditable()
-  void set src(String value) => _blink.BlinkHTMLIFrameElement.instance.src_Setter_(unwrap_jso(this), value);
+  set src(String value) => _blink.BlinkHTMLIFrameElement.instance.src_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLIFrameElement.srcdoc')
   @DocsEditable()
@@ -19307,7 +22084,7 @@ class IFrameElement extends HtmlElement {
   
   @DomName('HTMLIFrameElement.srcdoc')
   @DocsEditable()
-  void set srcdoc(String value) => _blink.BlinkHTMLIFrameElement.instance.srcdoc_Setter_(unwrap_jso(this), value);
+  set srcdoc(String value) => _blink.BlinkHTMLIFrameElement.instance.srcdoc_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLIFrameElement.width')
   @DocsEditable()
@@ -19315,7 +22092,7 @@ class IFrameElement extends HtmlElement {
   
   @DomName('HTMLIFrameElement.width')
   @DocsEditable()
-  void set width(String value) => _blink.BlinkHTMLIFrameElement.instance.width_Setter_(unwrap_jso(this), value);
+  set width(String value) => _blink.BlinkHTMLIFrameElement.instance.width_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19331,6 +22108,21 @@ class IFrameElement extends HtmlElement {
 class ImageBitmap extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ImageBitmap._() { throw new UnsupportedError("Not supported"); }
+
+  static ImageBitmap internalCreateImageBitmap() {
+    return new ImageBitmap._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory ImageBitmap._internalWrap() {
+    return new ImageBitmap.internal_();
+  }
+
+  ImageBitmap.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('ImageBitmap.height')
   @DocsEditable()
@@ -19365,17 +22157,32 @@ class ImageData extends NativeFieldWrapperClass2 {
   @DocsEditable()
   factory ImageData(data_OR_width, int height_OR_width, [int height]) {
     if ((height_OR_width is int || height_OR_width == null) && (data_OR_width is int || data_OR_width == null) && height == null) {
-      return _blink.BlinkImageData.instance.constructorCallback_2_(data_OR_width, height_OR_width);
+      return wrap_jso(_blink.BlinkImageData.instance.constructorCallback_2_(data_OR_width, height_OR_width));
     }
     if ((height is int || height == null) && (height_OR_width is int || height_OR_width == null) && (data_OR_width is Uint8ClampedList || data_OR_width == null)) {
-      return _blink.BlinkImageData.instance.constructorCallback_3_(data_OR_width, height_OR_width, height);
+      return wrap_jso(_blink.BlinkImageData.instance.constructorCallback_3_(data_OR_width, height_OR_width, height));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  static ImageData internalCreateImageData() {
+    return new ImageData._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory ImageData._internalWrap() {
+    return new ImageData.internal_();
+  }
+
+  ImageData.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('ImageData.data')
   @DocsEditable()
-  Uint8ClampedList get _data => wrap_jso(_blink.BlinkImageData.instance.data_Getter_(unwrap_jso(this)));
+  Uint8ClampedList get _data => _blink.BlinkImageData.instance.data_Getter_(unwrap_jso(this));
   
   @DomName('ImageData.height')
   @DocsEditable()
@@ -19405,6 +22212,18 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
     if (height != null) e.height = height;
     return e;
   }
+
+
+  static ImageElement internalCreateImageElement() {
+    return new ImageElement._internalWrap();
+  }
+
+  factory ImageElement._internalWrap() {
+    return new ImageElement.internal_();
+  }
+
+  ImageElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -19418,7 +22237,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   
   @DomName('HTMLImageElement.alt')
   @DocsEditable()
-  void set alt(String value) => _blink.BlinkHTMLImageElement.instance.alt_Setter_(unwrap_jso(this), value);
+  set alt(String value) => _blink.BlinkHTMLImageElement.instance.alt_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLImageElement.complete')
   @DocsEditable()
@@ -19430,7 +22249,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   
   @DomName('HTMLImageElement.crossOrigin')
   @DocsEditable()
-  void set crossOrigin(String value) => _blink.BlinkHTMLImageElement.instance.crossOrigin_Setter_(unwrap_jso(this), value);
+  set crossOrigin(String value) => _blink.BlinkHTMLImageElement.instance.crossOrigin_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLImageElement.currentSrc')
   @DocsEditable()
@@ -19443,7 +22262,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   
   @DomName('HTMLImageElement.height')
   @DocsEditable()
-  void set height(int value) => _blink.BlinkHTMLImageElement.instance.height_Setter_(unwrap_jso(this), value);
+  set height(int value) => _blink.BlinkHTMLImageElement.instance.height_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLImageElement.integrity')
   @DocsEditable()
@@ -19453,7 +22272,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLImageElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLImageElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLImageElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLImageElement.isMap')
   @DocsEditable()
@@ -19461,7 +22280,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   
   @DomName('HTMLImageElement.isMap')
   @DocsEditable()
-  void set isMap(bool value) => _blink.BlinkHTMLImageElement.instance.isMap_Setter_(unwrap_jso(this), value);
+  set isMap(bool value) => _blink.BlinkHTMLImageElement.instance.isMap_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLImageElement.naturalHeight')
   @DocsEditable()
@@ -19479,7 +22298,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLImageElement.sizes')
   @DocsEditable()
   @Experimental() // untriaged
-  void set sizes(String value) => _blink.BlinkHTMLImageElement.instance.sizes_Setter_(unwrap_jso(this), value);
+  set sizes(String value) => _blink.BlinkHTMLImageElement.instance.sizes_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLImageElement.src')
   @DocsEditable()
@@ -19487,7 +22306,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   
   @DomName('HTMLImageElement.src')
   @DocsEditable()
-  void set src(String value) => _blink.BlinkHTMLImageElement.instance.src_Setter_(unwrap_jso(this), value);
+  set src(String value) => _blink.BlinkHTMLImageElement.instance.src_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLImageElement.srcset')
   @DocsEditable()
@@ -19497,7 +22316,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLImageElement.srcset')
   @DocsEditable()
   @Experimental() // untriaged
-  void set srcset(String value) => _blink.BlinkHTMLImageElement.instance.srcset_Setter_(unwrap_jso(this), value);
+  set srcset(String value) => _blink.BlinkHTMLImageElement.instance.srcset_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLImageElement.useMap')
   @DocsEditable()
@@ -19505,7 +22324,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   
   @DomName('HTMLImageElement.useMap')
   @DocsEditable()
-  void set useMap(String value) => _blink.BlinkHTMLImageElement.instance.useMap_Setter_(unwrap_jso(this), value);
+  set useMap(String value) => _blink.BlinkHTMLImageElement.instance.useMap_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLImageElement.width')
   @DocsEditable()
@@ -19513,7 +22332,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   
   @DomName('HTMLImageElement.width')
   @DocsEditable()
-  void set width(int value) => _blink.BlinkHTMLImageElement.instance.width_Setter_(unwrap_jso(this), value);
+  set width(int value) => _blink.BlinkHTMLImageElement.instance.width_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19529,6 +22348,21 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
 class InjectedScriptHost extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory InjectedScriptHost._() { throw new UnsupportedError("Not supported"); }
+
+  static InjectedScriptHost internalCreateInjectedScriptHost() {
+    return new InjectedScriptHost._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory InjectedScriptHost._internalWrap() {
+    return new InjectedScriptHost.internal_();
+  }
+
+  InjectedScriptHost.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('InjectedScriptHost.inspect')
   @DocsEditable()
@@ -19578,6 +22412,18 @@ class InputElement extends HtmlElement implements
 
   // To suppress missing implicit constructor warnings.
   factory InputElement._() { throw new UnsupportedError("Not supported"); }
+
+
+  static InputElement internalCreateInputElement() {
+    return new InputElement._internalWrap();
+  }
+
+  factory InputElement._internalWrap() {
+    return new InputElement.internal_();
+  }
+
+  InputElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -19591,7 +22437,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.accept')
   @DocsEditable()
-  void set accept(String value) => _blink.BlinkHTMLInputElement.instance.accept_Setter_(unwrap_jso(this), value);
+  set accept(String value) => _blink.BlinkHTMLInputElement.instance.accept_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.alt')
   @DocsEditable()
@@ -19599,7 +22445,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.alt')
   @DocsEditable()
-  void set alt(String value) => _blink.BlinkHTMLInputElement.instance.alt_Setter_(unwrap_jso(this), value);
+  set alt(String value) => _blink.BlinkHTMLInputElement.instance.alt_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.autocomplete')
   @DocsEditable()
@@ -19607,7 +22453,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.autocomplete')
   @DocsEditable()
-  void set autocomplete(String value) => _blink.BlinkHTMLInputElement.instance.autocomplete_Setter_(unwrap_jso(this), value);
+  set autocomplete(String value) => _blink.BlinkHTMLInputElement.instance.autocomplete_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.autofocus')
   @DocsEditable()
@@ -19615,7 +22461,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.autofocus')
   @DocsEditable()
-  void set autofocus(bool value) => _blink.BlinkHTMLInputElement.instance.autofocus_Setter_(unwrap_jso(this), value);
+  set autofocus(bool value) => _blink.BlinkHTMLInputElement.instance.autofocus_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.capture')
   @DocsEditable()
@@ -19625,7 +22471,7 @@ class InputElement extends HtmlElement implements
   @DomName('HTMLInputElement.capture')
   @DocsEditable()
   @Experimental() // untriaged
-  void set capture(bool value) => _blink.BlinkHTMLInputElement.instance.capture_Setter_(unwrap_jso(this), value);
+  set capture(bool value) => _blink.BlinkHTMLInputElement.instance.capture_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.checked')
   @DocsEditable()
@@ -19633,7 +22479,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.checked')
   @DocsEditable()
-  void set checked(bool value) => _blink.BlinkHTMLInputElement.instance.checked_Setter_(unwrap_jso(this), value);
+  set checked(bool value) => _blink.BlinkHTMLInputElement.instance.checked_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.defaultChecked')
   @DocsEditable()
@@ -19641,7 +22487,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.defaultChecked')
   @DocsEditable()
-  void set defaultChecked(bool value) => _blink.BlinkHTMLInputElement.instance.defaultChecked_Setter_(unwrap_jso(this), value);
+  set defaultChecked(bool value) => _blink.BlinkHTMLInputElement.instance.defaultChecked_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.defaultValue')
   @DocsEditable()
@@ -19649,7 +22495,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.defaultValue')
   @DocsEditable()
-  void set defaultValue(String value) => _blink.BlinkHTMLInputElement.instance.defaultValue_Setter_(unwrap_jso(this), value);
+  set defaultValue(String value) => _blink.BlinkHTMLInputElement.instance.defaultValue_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.dirName')
   @DocsEditable()
@@ -19657,7 +22503,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.dirName')
   @DocsEditable()
-  void set dirName(String value) => _blink.BlinkHTMLInputElement.instance.dirName_Setter_(unwrap_jso(this), value);
+  set dirName(String value) => _blink.BlinkHTMLInputElement.instance.dirName_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.disabled')
   @DocsEditable()
@@ -19665,15 +22511,15 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLInputElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLInputElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.files')
   @DocsEditable()
-  List<File> get files => wrap_jso_list(_blink.BlinkHTMLInputElement.instance.files_Getter_(unwrap_jso(this)));
+  List<File> get files => wrap_jso(_blink.BlinkHTMLInputElement.instance.files_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLInputElement.files')
   @DocsEditable()
-  void set files(List<File> value) => _blink.BlinkHTMLInputElement.instance.files_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set files(List<File> value) => _blink.BlinkHTMLInputElement.instance.files_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('HTMLInputElement.form')
   @DocsEditable()
@@ -19685,7 +22531,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.formAction')
   @DocsEditable()
-  void set formAction(String value) => _blink.BlinkHTMLInputElement.instance.formAction_Setter_(unwrap_jso(this), value);
+  set formAction(String value) => _blink.BlinkHTMLInputElement.instance.formAction_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.formEnctype')
   @DocsEditable()
@@ -19693,7 +22539,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.formEnctype')
   @DocsEditable()
-  void set formEnctype(String value) => _blink.BlinkHTMLInputElement.instance.formEnctype_Setter_(unwrap_jso(this), value);
+  set formEnctype(String value) => _blink.BlinkHTMLInputElement.instance.formEnctype_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.formMethod')
   @DocsEditable()
@@ -19701,7 +22547,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.formMethod')
   @DocsEditable()
-  void set formMethod(String value) => _blink.BlinkHTMLInputElement.instance.formMethod_Setter_(unwrap_jso(this), value);
+  set formMethod(String value) => _blink.BlinkHTMLInputElement.instance.formMethod_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.formNoValidate')
   @DocsEditable()
@@ -19709,7 +22555,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.formNoValidate')
   @DocsEditable()
-  void set formNoValidate(bool value) => _blink.BlinkHTMLInputElement.instance.formNoValidate_Setter_(unwrap_jso(this), value);
+  set formNoValidate(bool value) => _blink.BlinkHTMLInputElement.instance.formNoValidate_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.formTarget')
   @DocsEditable()
@@ -19717,7 +22563,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.formTarget')
   @DocsEditable()
-  void set formTarget(String value) => _blink.BlinkHTMLInputElement.instance.formTarget_Setter_(unwrap_jso(this), value);
+  set formTarget(String value) => _blink.BlinkHTMLInputElement.instance.formTarget_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.height')
   @DocsEditable()
@@ -19725,7 +22571,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.height')
   @DocsEditable()
-  void set height(int value) => _blink.BlinkHTMLInputElement.instance.height_Setter_(unwrap_jso(this), value);
+  set height(int value) => _blink.BlinkHTMLInputElement.instance.height_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.incremental')
   @DocsEditable()
@@ -19737,7 +22583,7 @@ class InputElement extends HtmlElement implements
   @DocsEditable()
   // http://www.w3.org/TR/html-markup/input.search.html
   @Experimental()
-  void set incremental(bool value) => _blink.BlinkHTMLInputElement.instance.incremental_Setter_(unwrap_jso(this), value);
+  set incremental(bool value) => _blink.BlinkHTMLInputElement.instance.incremental_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.indeterminate')
   @DocsEditable()
@@ -19745,7 +22591,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.indeterminate')
   @DocsEditable()
-  void set indeterminate(bool value) => _blink.BlinkHTMLInputElement.instance.indeterminate_Setter_(unwrap_jso(this), value);
+  set indeterminate(bool value) => _blink.BlinkHTMLInputElement.instance.indeterminate_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.inputMode')
   @DocsEditable()
@@ -19755,11 +22601,11 @@ class InputElement extends HtmlElement implements
   @DomName('HTMLInputElement.inputMode')
   @DocsEditable()
   @Experimental() // untriaged
-  void set inputMode(String value) => _blink.BlinkHTMLInputElement.instance.inputMode_Setter_(unwrap_jso(this), value);
+  set inputMode(String value) => _blink.BlinkHTMLInputElement.instance.inputMode_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.labels')
   @DocsEditable()
-  List<Node> get labels => wrap_jso_list(_blink.BlinkHTMLInputElement.instance.labels_Getter_(unwrap_jso(this)));
+  List<Node> get labels => wrap_jso(_blink.BlinkHTMLInputElement.instance.labels_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLInputElement.list')
   @DocsEditable()
@@ -19771,7 +22617,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.max')
   @DocsEditable()
-  void set max(String value) => _blink.BlinkHTMLInputElement.instance.max_Setter_(unwrap_jso(this), value);
+  set max(String value) => _blink.BlinkHTMLInputElement.instance.max_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.maxLength')
   @DocsEditable()
@@ -19779,7 +22625,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.maxLength')
   @DocsEditable()
-  void set maxLength(int value) => _blink.BlinkHTMLInputElement.instance.maxLength_Setter_(unwrap_jso(this), value);
+  set maxLength(int value) => _blink.BlinkHTMLInputElement.instance.maxLength_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.min')
   @DocsEditable()
@@ -19787,7 +22633,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.min')
   @DocsEditable()
-  void set min(String value) => _blink.BlinkHTMLInputElement.instance.min_Setter_(unwrap_jso(this), value);
+  set min(String value) => _blink.BlinkHTMLInputElement.instance.min_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.multiple')
   @DocsEditable()
@@ -19795,7 +22641,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.multiple')
   @DocsEditable()
-  void set multiple(bool value) => _blink.BlinkHTMLInputElement.instance.multiple_Setter_(unwrap_jso(this), value);
+  set multiple(bool value) => _blink.BlinkHTMLInputElement.instance.multiple_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.name')
   @DocsEditable()
@@ -19803,7 +22649,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLInputElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLInputElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.pattern')
   @DocsEditable()
@@ -19811,7 +22657,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.pattern')
   @DocsEditable()
-  void set pattern(String value) => _blink.BlinkHTMLInputElement.instance.pattern_Setter_(unwrap_jso(this), value);
+  set pattern(String value) => _blink.BlinkHTMLInputElement.instance.pattern_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.placeholder')
   @DocsEditable()
@@ -19819,7 +22665,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.placeholder')
   @DocsEditable()
-  void set placeholder(String value) => _blink.BlinkHTMLInputElement.instance.placeholder_Setter_(unwrap_jso(this), value);
+  set placeholder(String value) => _blink.BlinkHTMLInputElement.instance.placeholder_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.readOnly')
   @DocsEditable()
@@ -19827,7 +22673,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.readOnly')
   @DocsEditable()
-  void set readOnly(bool value) => _blink.BlinkHTMLInputElement.instance.readOnly_Setter_(unwrap_jso(this), value);
+  set readOnly(bool value) => _blink.BlinkHTMLInputElement.instance.readOnly_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.required')
   @DocsEditable()
@@ -19835,7 +22681,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.required')
   @DocsEditable()
-  void set required(bool value) => _blink.BlinkHTMLInputElement.instance.required_Setter_(unwrap_jso(this), value);
+  set required(bool value) => _blink.BlinkHTMLInputElement.instance.required_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.selectionDirection')
   @DocsEditable()
@@ -19843,7 +22689,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.selectionDirection')
   @DocsEditable()
-  void set selectionDirection(String value) => _blink.BlinkHTMLInputElement.instance.selectionDirection_Setter_(unwrap_jso(this), value);
+  set selectionDirection(String value) => _blink.BlinkHTMLInputElement.instance.selectionDirection_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.selectionEnd')
   @DocsEditable()
@@ -19851,7 +22697,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.selectionEnd')
   @DocsEditable()
-  void set selectionEnd(int value) => _blink.BlinkHTMLInputElement.instance.selectionEnd_Setter_(unwrap_jso(this), value);
+  set selectionEnd(int value) => _blink.BlinkHTMLInputElement.instance.selectionEnd_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.selectionStart')
   @DocsEditable()
@@ -19859,7 +22705,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.selectionStart')
   @DocsEditable()
-  void set selectionStart(int value) => _blink.BlinkHTMLInputElement.instance.selectionStart_Setter_(unwrap_jso(this), value);
+  set selectionStart(int value) => _blink.BlinkHTMLInputElement.instance.selectionStart_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.size')
   @DocsEditable()
@@ -19867,7 +22713,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.size')
   @DocsEditable()
-  void set size(int value) => _blink.BlinkHTMLInputElement.instance.size_Setter_(unwrap_jso(this), value);
+  set size(int value) => _blink.BlinkHTMLInputElement.instance.size_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.src')
   @DocsEditable()
@@ -19875,7 +22721,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.src')
   @DocsEditable()
-  void set src(String value) => _blink.BlinkHTMLInputElement.instance.src_Setter_(unwrap_jso(this), value);
+  set src(String value) => _blink.BlinkHTMLInputElement.instance.src_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.step')
   @DocsEditable()
@@ -19883,7 +22729,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.step')
   @DocsEditable()
-  void set step(String value) => _blink.BlinkHTMLInputElement.instance.step_Setter_(unwrap_jso(this), value);
+  set step(String value) => _blink.BlinkHTMLInputElement.instance.step_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.type')
   @DocsEditable()
@@ -19891,7 +22737,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLInputElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLInputElement.instance.type_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.validationMessage')
   @DocsEditable()
@@ -19907,7 +22753,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.value')
   @DocsEditable()
-  void set value(String value) => _blink.BlinkHTMLInputElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(String value) => _blink.BlinkHTMLInputElement.instance.value_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.valueAsDate')
   @DocsEditable()
@@ -19915,7 +22761,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.valueAsDate')
   @DocsEditable()
-  void set valueAsDate(DateTime value) => _blink.BlinkHTMLInputElement.instance.valueAsDate_Setter_(unwrap_jso(this), value);
+  set valueAsDate(DateTime value) => _blink.BlinkHTMLInputElement.instance.valueAsDate_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.valueAsNumber')
   @DocsEditable()
@@ -19923,7 +22769,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.valueAsNumber')
   @DocsEditable()
-  void set valueAsNumber(num value) => _blink.BlinkHTMLInputElement.instance.valueAsNumber_Setter_(unwrap_jso(this), value);
+  set valueAsNumber(num value) => _blink.BlinkHTMLInputElement.instance.valueAsNumber_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.webkitEntries')
   @DocsEditable()
@@ -19947,7 +22793,7 @@ class InputElement extends HtmlElement implements
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://plus.sandbox.google.com/+AddyOsmani/posts/Dk5UhZ6zfF3
-  void set directory(bool value) => _blink.BlinkHTMLInputElement.instance.webkitdirectory_Setter_(unwrap_jso(this), value);
+  set directory(bool value) => _blink.BlinkHTMLInputElement.instance.webkitdirectory_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.width')
   @DocsEditable()
@@ -19955,7 +22801,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.width')
   @DocsEditable()
-  void set width(int value) => _blink.BlinkHTMLInputElement.instance.width_Setter_(unwrap_jso(this), value);
+  set width(int value) => _blink.BlinkHTMLInputElement.instance.width_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.willValidate')
   @DocsEditable()
@@ -20587,6 +23433,18 @@ class InputMethodContext extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory InputMethodContext._() { throw new UnsupportedError("Not supported"); }
 
+
+  static InputMethodContext internalCreateInputMethodContext() {
+    return new InputMethodContext._internalWrap();
+  }
+
+  factory InputMethodContext._internalWrap() {
+    return new InputMethodContext.internal_();
+  }
+
+  InputMethodContext.internal_() : super.internal_();
+
+
   @DomName('InputMethodContext.compositionEndOffset')
   @DocsEditable()
   @Experimental() // untriaged
@@ -20625,10 +23483,22 @@ class InstallEvent extends ExtendableEvent {
   // To suppress missing implicit constructor warnings.
   factory InstallEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static InstallEvent internalCreateInstallEvent() {
+    return new InstallEvent._internalWrap();
+  }
+
+  factory InstallEvent._internalWrap() {
+    return new InstallEvent.internal_();
+  }
+
+  InstallEvent.internal_() : super.internal_();
+
+
   @DomName('InstallEvent.reloadAll')
   @DocsEditable()
   @Experimental() // untriaged
-  Future reloadAll() => _blink.BlinkInstallEvent.instance.reloadAll_Callback_0_(unwrap_jso(this));
+  Future reloadAll() => wrap_jso(_blink.BlinkInstallEvent.instance.reloadAll_Callback_0_(unwrap_jso(this)));
   
   @DomName('InstallEvent.replace')
   @DocsEditable()
@@ -20664,6 +23534,18 @@ class KeyboardEvent extends UIEvent {
   int get charCode => _charCode;
   // To suppress missing implicit constructor warnings.
   factory KeyboardEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static KeyboardEvent internalCreateKeyboardEvent() {
+    return new KeyboardEvent._internalWrap();
+  }
+
+  factory KeyboardEvent._internalWrap() {
+    return new KeyboardEvent.internal_();
+  }
+
+  KeyboardEvent.internal_() : super.internal_();
+
 
   @DomName('KeyboardEvent.DOM_KEY_LOCATION_LEFT')
   @DocsEditable()
@@ -20751,6 +23633,18 @@ class KeygenElement extends HtmlElement {
   @DomName('HTMLKeygenElement.HTMLKeygenElement')
   @DocsEditable()
   factory KeygenElement() => document.createElement("keygen");
+
+
+  static KeygenElement internalCreateKeygenElement() {
+    return new KeygenElement._internalWrap();
+  }
+
+  factory KeygenElement._internalWrap() {
+    return new KeygenElement.internal_();
+  }
+
+  KeygenElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20767,7 +23661,7 @@ class KeygenElement extends HtmlElement {
   
   @DomName('HTMLKeygenElement.autofocus')
   @DocsEditable()
-  void set autofocus(bool value) => _blink.BlinkHTMLKeygenElement.instance.autofocus_Setter_(unwrap_jso(this), value);
+  set autofocus(bool value) => _blink.BlinkHTMLKeygenElement.instance.autofocus_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLKeygenElement.challenge')
   @DocsEditable()
@@ -20775,7 +23669,7 @@ class KeygenElement extends HtmlElement {
   
   @DomName('HTMLKeygenElement.challenge')
   @DocsEditable()
-  void set challenge(String value) => _blink.BlinkHTMLKeygenElement.instance.challenge_Setter_(unwrap_jso(this), value);
+  set challenge(String value) => _blink.BlinkHTMLKeygenElement.instance.challenge_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLKeygenElement.disabled')
   @DocsEditable()
@@ -20783,7 +23677,7 @@ class KeygenElement extends HtmlElement {
   
   @DomName('HTMLKeygenElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLKeygenElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLKeygenElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLKeygenElement.form')
   @DocsEditable()
@@ -20795,12 +23689,12 @@ class KeygenElement extends HtmlElement {
   
   @DomName('HTMLKeygenElement.keytype')
   @DocsEditable()
-  void set keytype(String value) => _blink.BlinkHTMLKeygenElement.instance.keytype_Setter_(unwrap_jso(this), value);
+  set keytype(String value) => _blink.BlinkHTMLKeygenElement.instance.keytype_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLKeygenElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => wrap_jso_list(_blink.BlinkHTMLKeygenElement.instance.labels_Getter_(unwrap_jso(this)));
+  List<Node> get labels => wrap_jso(_blink.BlinkHTMLKeygenElement.instance.labels_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLKeygenElement.name')
   @DocsEditable()
@@ -20808,7 +23702,7 @@ class KeygenElement extends HtmlElement {
   
   @DomName('HTMLKeygenElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLKeygenElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLKeygenElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLKeygenElement.type')
   @DocsEditable()
@@ -20851,6 +23745,18 @@ class LIElement extends HtmlElement {
   @DomName('HTMLLIElement.HTMLLIElement')
   @DocsEditable()
   factory LIElement() => document.createElement("li");
+
+
+  static LIElement internalCreateLIElement() {
+    return new LIElement._internalWrap();
+  }
+
+  factory LIElement._internalWrap() {
+    return new LIElement.internal_();
+  }
+
+  LIElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20864,7 +23770,7 @@ class LIElement extends HtmlElement {
   
   @DomName('HTMLLIElement.value')
   @DocsEditable()
-  void set value(int value) => _blink.BlinkHTMLLIElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(int value) => _blink.BlinkHTMLLIElement.instance.value_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20883,6 +23789,18 @@ class LabelElement extends HtmlElement {
   @DomName('HTMLLabelElement.HTMLLabelElement')
   @DocsEditable()
   factory LabelElement() => document.createElement("label");
+
+
+  static LabelElement internalCreateLabelElement() {
+    return new LabelElement._internalWrap();
+  }
+
+  factory LabelElement._internalWrap() {
+    return new LabelElement.internal_();
+  }
+
+  LabelElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20904,7 +23822,7 @@ class LabelElement extends HtmlElement {
   
   @DomName('HTMLLabelElement.htmlFor')
   @DocsEditable()
-  void set htmlFor(String value) => _blink.BlinkHTMLLabelElement.instance.htmlFor_Setter_(unwrap_jso(this), value);
+  set htmlFor(String value) => _blink.BlinkHTMLLabelElement.instance.htmlFor_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20923,6 +23841,18 @@ class LegendElement extends HtmlElement {
   @DomName('HTMLLegendElement.HTMLLegendElement')
   @DocsEditable()
   factory LegendElement() => document.createElement("legend");
+
+
+  static LegendElement internalCreateLegendElement() {
+    return new LegendElement._internalWrap();
+  }
+
+  factory LegendElement._internalWrap() {
+    return new LegendElement.internal_();
+  }
+
+  LegendElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20949,6 +23879,18 @@ class LinkElement extends HtmlElement {
   @DomName('HTMLLinkElement.HTMLLinkElement')
   @DocsEditable()
   factory LinkElement() => document.createElement("link");
+
+
+  static LinkElement internalCreateLinkElement() {
+    return new LinkElement._internalWrap();
+  }
+
+  factory LinkElement._internalWrap() {
+    return new LinkElement.internal_();
+  }
+
+  LinkElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20964,7 +23906,7 @@ class LinkElement extends HtmlElement {
   @DomName('HTMLLinkElement.crossOrigin')
   @DocsEditable()
   @Experimental() // untriaged
-  void set crossOrigin(String value) => _blink.BlinkHTMLLinkElement.instance.crossOrigin_Setter_(unwrap_jso(this), value);
+  set crossOrigin(String value) => _blink.BlinkHTMLLinkElement.instance.crossOrigin_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLLinkElement.disabled')
   @DocsEditable()
@@ -20972,7 +23914,7 @@ class LinkElement extends HtmlElement {
   
   @DomName('HTMLLinkElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLLinkElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLLinkElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLLinkElement.href')
   @DocsEditable()
@@ -20980,7 +23922,7 @@ class LinkElement extends HtmlElement {
   
   @DomName('HTMLLinkElement.href')
   @DocsEditable()
-  void set href(String value) => _blink.BlinkHTMLLinkElement.instance.href_Setter_(unwrap_jso(this), value);
+  set href(String value) => _blink.BlinkHTMLLinkElement.instance.href_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLLinkElement.hreflang')
   @DocsEditable()
@@ -20988,7 +23930,7 @@ class LinkElement extends HtmlElement {
   
   @DomName('HTMLLinkElement.hreflang')
   @DocsEditable()
-  void set hreflang(String value) => _blink.BlinkHTMLLinkElement.instance.hreflang_Setter_(unwrap_jso(this), value);
+  set hreflang(String value) => _blink.BlinkHTMLLinkElement.instance.hreflang_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLLinkElement.import')
   @DocsEditable()
@@ -21004,7 +23946,7 @@ class LinkElement extends HtmlElement {
   @DomName('HTMLLinkElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLLinkElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLLinkElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLLinkElement.media')
   @DocsEditable()
@@ -21012,7 +23954,7 @@ class LinkElement extends HtmlElement {
   
   @DomName('HTMLLinkElement.media')
   @DocsEditable()
-  void set media(String value) => _blink.BlinkHTMLLinkElement.instance.media_Setter_(unwrap_jso(this), value);
+  set media(String value) => _blink.BlinkHTMLLinkElement.instance.media_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLLinkElement.rel')
   @DocsEditable()
@@ -21020,7 +23962,7 @@ class LinkElement extends HtmlElement {
   
   @DomName('HTMLLinkElement.rel')
   @DocsEditable()
-  void set rel(String value) => _blink.BlinkHTMLLinkElement.instance.rel_Setter_(unwrap_jso(this), value);
+  set rel(String value) => _blink.BlinkHTMLLinkElement.instance.rel_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLLinkElement.sheet')
   @DocsEditable()
@@ -21036,7 +23978,7 @@ class LinkElement extends HtmlElement {
   
   @DomName('HTMLLinkElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLLinkElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLLinkElement.instance.type_Setter_(unwrap_jso(this), value);
   
 
     /// Checks if HTML imports are supported on the current platform.
@@ -21061,8 +24003,20 @@ class LocalCredential extends Credential {
   @DomName('LocalCredential.LocalCredential')
   @DocsEditable()
   factory LocalCredential(String id, String name, String avatarURL, String password) {
-    return _blink.BlinkLocalCredential.instance.constructorCallback_4_(id, name, avatarURL, password);
+    return wrap_jso(_blink.BlinkLocalCredential.instance.constructorCallback_4_(id, name, avatarURL, password));
   }
+
+
+  static LocalCredential internalCreateLocalCredential() {
+    return new LocalCredential._internalWrap();
+  }
+
+  factory LocalCredential._internalWrap() {
+    return new LocalCredential.internal_();
+  }
+
+  LocalCredential.internal_() : super.internal_();
+
 
   @DomName('LocalCredential.password')
   @DocsEditable()
@@ -21081,6 +24035,21 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   // To suppress missing implicit constructor warnings.
   factory Location._() { throw new UnsupportedError("Not supported"); }
 
+  static Location internalCreateLocation() {
+    return new Location._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Location._internalWrap() {
+    return new Location.internal_();
+  }
+
+  Location.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('Location.ancestorOrigins')
   @DocsEditable()
   @Experimental() // nonstandard
@@ -21092,7 +24061,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   
   @DomName('Location.hash')
   @DocsEditable()
-  void set hash(String value) => _blink.BlinkLocation.instance.hash_Setter_(unwrap_jso(this), value);
+  set hash(String value) => _blink.BlinkLocation.instance.hash_Setter_(unwrap_jso(this), value);
   
   @DomName('Location.host')
   @DocsEditable()
@@ -21100,7 +24069,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   
   @DomName('Location.host')
   @DocsEditable()
-  void set host(String value) => _blink.BlinkLocation.instance.host_Setter_(unwrap_jso(this), value);
+  set host(String value) => _blink.BlinkLocation.instance.host_Setter_(unwrap_jso(this), value);
   
   @DomName('Location.hostname')
   @DocsEditable()
@@ -21108,7 +24077,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   
   @DomName('Location.hostname')
   @DocsEditable()
-  void set hostname(String value) => _blink.BlinkLocation.instance.hostname_Setter_(unwrap_jso(this), value);
+  set hostname(String value) => _blink.BlinkLocation.instance.hostname_Setter_(unwrap_jso(this), value);
   
   @DomName('Location.href')
   @DocsEditable()
@@ -21116,7 +24085,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   
   @DomName('Location.href')
   @DocsEditable()
-  void set href(String value) => _blink.BlinkLocation.instance.href_Setter_(unwrap_jso(this), value);
+  set href(String value) => _blink.BlinkLocation.instance.href_Setter_(unwrap_jso(this), value);
   
   @DomName('Location.origin')
   @DocsEditable()
@@ -21130,7 +24099,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   
   @DomName('Location.pathname')
   @DocsEditable()
-  void set pathname(String value) => _blink.BlinkLocation.instance.pathname_Setter_(unwrap_jso(this), value);
+  set pathname(String value) => _blink.BlinkLocation.instance.pathname_Setter_(unwrap_jso(this), value);
   
   @DomName('Location.port')
   @DocsEditable()
@@ -21138,7 +24107,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   
   @DomName('Location.port')
   @DocsEditable()
-  void set port(String value) => _blink.BlinkLocation.instance.port_Setter_(unwrap_jso(this), value);
+  set port(String value) => _blink.BlinkLocation.instance.port_Setter_(unwrap_jso(this), value);
   
   @DomName('Location.protocol')
   @DocsEditable()
@@ -21146,7 +24115,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   
   @DomName('Location.protocol')
   @DocsEditable()
-  void set protocol(String value) => _blink.BlinkLocation.instance.protocol_Setter_(unwrap_jso(this), value);
+  set protocol(String value) => _blink.BlinkLocation.instance.protocol_Setter_(unwrap_jso(this), value);
   
   @DomName('Location.search')
   @DocsEditable()
@@ -21154,7 +24123,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   
   @DomName('Location.search')
   @DocsEditable()
-  void set search(String value) => _blink.BlinkLocation.instance.search_Setter_(unwrap_jso(this), value);
+  set search(String value) => _blink.BlinkLocation.instance.search_Setter_(unwrap_jso(this), value);
   
   @DomName('Location.assign')
   @DocsEditable()
@@ -21212,6 +24181,18 @@ class MapElement extends HtmlElement {
   @DomName('HTMLMapElement.HTMLMapElement')
   @DocsEditable()
   factory MapElement() => document.createElement("map");
+
+
+  static MapElement internalCreateMapElement() {
+    return new MapElement._internalWrap();
+  }
+
+  factory MapElement._internalWrap() {
+    return new MapElement.internal_();
+  }
+
+  MapElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -21221,7 +24202,7 @@ class MapElement extends HtmlElement {
 
   @DomName('HTMLMapElement.areas')
   @DocsEditable()
-  List<Node> get areas => wrap_jso_list(_blink.BlinkHTMLMapElement.instance.areas_Getter_(unwrap_jso(this)));
+  List<Node> get areas => wrap_jso(_blink.BlinkHTMLMapElement.instance.areas_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLMapElement.name')
   @DocsEditable()
@@ -21229,7 +24210,7 @@ class MapElement extends HtmlElement {
   
   @DomName('HTMLMapElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLMapElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLMapElement.instance.name_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21250,8 +24231,20 @@ class MediaController extends EventTarget {
   @DomName('MediaController.MediaController')
   @DocsEditable()
   factory MediaController() {
-    return _blink.BlinkMediaController.instance.constructorCallback_0_();
+    return wrap_jso(_blink.BlinkMediaController.instance.constructorCallback_0_());
   }
+
+
+  static MediaController internalCreateMediaController() {
+    return new MediaController._internalWrap();
+  }
+
+  factory MediaController._internalWrap() {
+    return new MediaController.internal_();
+  }
+
+  MediaController.internal_() : super.internal_();
+
 
   @DomName('MediaController.buffered')
   @DocsEditable()
@@ -21263,7 +24256,7 @@ class MediaController extends EventTarget {
   
   @DomName('MediaController.currentTime')
   @DocsEditable()
-  void set currentTime(num value) => _blink.BlinkMediaController.instance.currentTime_Setter_(unwrap_jso(this), value);
+  set currentTime(num value) => _blink.BlinkMediaController.instance.currentTime_Setter_(unwrap_jso(this), value);
   
   @DomName('MediaController.defaultPlaybackRate')
   @DocsEditable()
@@ -21271,11 +24264,11 @@ class MediaController extends EventTarget {
   
   @DomName('MediaController.defaultPlaybackRate')
   @DocsEditable()
-  void set defaultPlaybackRate(num value) => _blink.BlinkMediaController.instance.defaultPlaybackRate_Setter_(unwrap_jso(this), value);
+  set defaultPlaybackRate(num value) => _blink.BlinkMediaController.instance.defaultPlaybackRate_Setter_(unwrap_jso(this), value);
   
   @DomName('MediaController.duration')
   @DocsEditable()
-  double get duration => _blink.BlinkMediaController.instance.duration_Getter_(unwrap_jso(this));
+  num get duration => _blink.BlinkMediaController.instance.duration_Getter_(unwrap_jso(this));
   
   @DomName('MediaController.muted')
   @DocsEditable()
@@ -21283,7 +24276,7 @@ class MediaController extends EventTarget {
   
   @DomName('MediaController.muted')
   @DocsEditable()
-  void set muted(bool value) => _blink.BlinkMediaController.instance.muted_Setter_(unwrap_jso(this), value);
+  set muted(bool value) => _blink.BlinkMediaController.instance.muted_Setter_(unwrap_jso(this), value);
   
   @DomName('MediaController.paused')
   @DocsEditable()
@@ -21295,7 +24288,7 @@ class MediaController extends EventTarget {
   
   @DomName('MediaController.playbackRate')
   @DocsEditable()
-  void set playbackRate(num value) => _blink.BlinkMediaController.instance.playbackRate_Setter_(unwrap_jso(this), value);
+  set playbackRate(num value) => _blink.BlinkMediaController.instance.playbackRate_Setter_(unwrap_jso(this), value);
   
   @DomName('MediaController.playbackState')
   @DocsEditable()
@@ -21315,7 +24308,7 @@ class MediaController extends EventTarget {
   
   @DomName('MediaController.volume')
   @DocsEditable()
-  void set volume(num value) => _blink.BlinkMediaController.instance.volume_Setter_(unwrap_jso(this), value);
+  set volume(num value) => _blink.BlinkMediaController.instance.volume_Setter_(unwrap_jso(this), value);
   
   @DomName('MediaController.pause')
   @DocsEditable()
@@ -21343,6 +24336,21 @@ class MediaController extends EventTarget {
 class MediaDeviceInfo extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MediaDeviceInfo._() { throw new UnsupportedError("Not supported"); }
+
+  static MediaDeviceInfo internalCreateMediaDeviceInfo() {
+    return new MediaDeviceInfo._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory MediaDeviceInfo._internalWrap() {
+    return new MediaDeviceInfo.internal_();
+  }
+
+  MediaDeviceInfo.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('MediaDeviceInfo.deviceId')
   @DocsEditable()
@@ -21444,6 +24452,18 @@ class MediaElement extends HtmlElement {
   @Experimental()
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
+
+
+  static MediaElement internalCreateMediaElement() {
+    return new MediaElement._internalWrap();
+  }
+
+  factory MediaElement._internalWrap() {
+    return new MediaElement.internal_();
+  }
+
+  MediaElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -21498,7 +24518,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.autoplay')
   @DocsEditable()
-  void set autoplay(bool value) => _blink.BlinkHTMLMediaElement.instance.autoplay_Setter_(unwrap_jso(this), value);
+  set autoplay(bool value) => _blink.BlinkHTMLMediaElement.instance.autoplay_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.buffered')
   @DocsEditable()
@@ -21510,7 +24530,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.controller')
   @DocsEditable()
-  void set controller(MediaController value) => _blink.BlinkHTMLMediaElement.instance.controller_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set controller(MediaController value) => _blink.BlinkHTMLMediaElement.instance.controller_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('HTMLMediaElement.controls')
   @DocsEditable()
@@ -21518,7 +24538,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.controls')
   @DocsEditable()
-  void set controls(bool value) => _blink.BlinkHTMLMediaElement.instance.controls_Setter_(unwrap_jso(this), value);
+  set controls(bool value) => _blink.BlinkHTMLMediaElement.instance.controls_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.crossOrigin')
   @DocsEditable()
@@ -21528,7 +24548,7 @@ class MediaElement extends HtmlElement {
   @DomName('HTMLMediaElement.crossOrigin')
   @DocsEditable()
   @Experimental() // untriaged
-  void set crossOrigin(String value) => _blink.BlinkHTMLMediaElement.instance.crossOrigin_Setter_(unwrap_jso(this), value);
+  set crossOrigin(String value) => _blink.BlinkHTMLMediaElement.instance.crossOrigin_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.currentSrc')
   @DocsEditable()
@@ -21540,7 +24560,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.currentTime')
   @DocsEditable()
-  void set currentTime(num value) => _blink.BlinkHTMLMediaElement.instance.currentTime_Setter_(unwrap_jso(this), value);
+  set currentTime(num value) => _blink.BlinkHTMLMediaElement.instance.currentTime_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.defaultMuted')
   @DocsEditable()
@@ -21548,7 +24568,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.defaultMuted')
   @DocsEditable()
-  void set defaultMuted(bool value) => _blink.BlinkHTMLMediaElement.instance.defaultMuted_Setter_(unwrap_jso(this), value);
+  set defaultMuted(bool value) => _blink.BlinkHTMLMediaElement.instance.defaultMuted_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.defaultPlaybackRate')
   @DocsEditable()
@@ -21556,11 +24576,11 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.defaultPlaybackRate')
   @DocsEditable()
-  void set defaultPlaybackRate(num value) => _blink.BlinkHTMLMediaElement.instance.defaultPlaybackRate_Setter_(unwrap_jso(this), value);
+  set defaultPlaybackRate(num value) => _blink.BlinkHTMLMediaElement.instance.defaultPlaybackRate_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.duration')
   @DocsEditable()
-  double get duration => _blink.BlinkHTMLMediaElement.instance.duration_Getter_(unwrap_jso(this));
+  num get duration => _blink.BlinkHTMLMediaElement.instance.duration_Getter_(unwrap_jso(this));
   
   @DomName('HTMLMediaElement.ended')
   @DocsEditable()
@@ -21578,7 +24598,7 @@ class MediaElement extends HtmlElement {
   @DomName('HTMLMediaElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLMediaElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLMediaElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.loop')
   @DocsEditable()
@@ -21586,7 +24606,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.loop')
   @DocsEditable()
-  void set loop(bool value) => _blink.BlinkHTMLMediaElement.instance.loop_Setter_(unwrap_jso(this), value);
+  set loop(bool value) => _blink.BlinkHTMLMediaElement.instance.loop_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.mediaGroup')
   @DocsEditable()
@@ -21594,7 +24614,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.mediaGroup')
   @DocsEditable()
-  void set mediaGroup(String value) => _blink.BlinkHTMLMediaElement.instance.mediaGroup_Setter_(unwrap_jso(this), value);
+  set mediaGroup(String value) => _blink.BlinkHTMLMediaElement.instance.mediaGroup_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.mediaKeys')
   @DocsEditable()
@@ -21608,7 +24628,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.muted')
   @DocsEditable()
-  void set muted(bool value) => _blink.BlinkHTMLMediaElement.instance.muted_Setter_(unwrap_jso(this), value);
+  set muted(bool value) => _blink.BlinkHTMLMediaElement.instance.muted_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.networkState')
   @DocsEditable()
@@ -21624,7 +24644,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.playbackRate')
   @DocsEditable()
-  void set playbackRate(num value) => _blink.BlinkHTMLMediaElement.instance.playbackRate_Setter_(unwrap_jso(this), value);
+  set playbackRate(num value) => _blink.BlinkHTMLMediaElement.instance.playbackRate_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.played')
   @DocsEditable()
@@ -21636,7 +24656,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.preload')
   @DocsEditable()
-  void set preload(String value) => _blink.BlinkHTMLMediaElement.instance.preload_Setter_(unwrap_jso(this), value);
+  set preload(String value) => _blink.BlinkHTMLMediaElement.instance.preload_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.readyState')
   @DocsEditable()
@@ -21656,7 +24676,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.src')
   @DocsEditable()
-  void set src(String value) => _blink.BlinkHTMLMediaElement.instance.src_Setter_(unwrap_jso(this), value);
+  set src(String value) => _blink.BlinkHTMLMediaElement.instance.src_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.textTracks')
   @DocsEditable()
@@ -21675,7 +24695,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.volume')
   @DocsEditable()
-  void set volume(num value) => _blink.BlinkHTMLMediaElement.instance.volume_Setter_(unwrap_jso(this), value);
+  set volume(num value) => _blink.BlinkHTMLMediaElement.instance.volume_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.webkitAudioDecodedByteCount')
   @DocsEditable()
@@ -21725,7 +24745,7 @@ class MediaElement extends HtmlElement {
   @DomName('HTMLMediaElement.setMediaKeys')
   @DocsEditable()
   @Experimental() // untriaged
-  Future setMediaKeys(MediaKeys mediaKeys) => _blink.BlinkHTMLMediaElement.instance.setMediaKeys_Callback_1_(unwrap_jso(this), unwrap_jso(mediaKeys));
+  Future setMediaKeys(MediaKeys mediaKeys) => wrap_jso(_blink.BlinkHTMLMediaElement.instance.setMediaKeys_Callback_1_(unwrap_jso(this), unwrap_jso(mediaKeys)));
   
   void addKey(String keySystem, Uint8List key, [Uint8List initData, String sessionId]) {
     if (initData != null) {
@@ -21796,6 +24816,21 @@ class MediaError extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MediaError._() { throw new UnsupportedError("Not supported"); }
 
+  static MediaError internalCreateMediaError() {
+    return new MediaError._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory MediaError._internalWrap() {
+    return new MediaError.internal_();
+  }
+
+  MediaError.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('MediaError.MEDIA_ERR_ABORTED')
   @DocsEditable()
   static const int MEDIA_ERR_ABORTED = 1;
@@ -21837,6 +24872,21 @@ class MediaError extends NativeFieldWrapperClass2 {
 class MediaKeyError extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MediaKeyError._() { throw new UnsupportedError("Not supported"); }
+
+  static MediaKeyError internalCreateMediaKeyError() {
+    return new MediaKeyError._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory MediaKeyError._internalWrap() {
+    return new MediaKeyError.internal_();
+  }
+
+  MediaKeyError.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('MediaKeyError.MEDIA_KEYERR_CLIENT')
   @DocsEditable()
@@ -21887,6 +24937,18 @@ class MediaKeyEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaKeyEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static MediaKeyEvent internalCreateMediaKeyEvent() {
+    return new MediaKeyEvent._internalWrap();
+  }
+
+  factory MediaKeyEvent._internalWrap() {
+    return new MediaKeyEvent.internal_();
+  }
+
+  MediaKeyEvent.internal_() : super.internal_();
+
+
   @DomName('MediaKeyEvent.defaultURL')
   @DocsEditable()
   String get defaultUrl => _blink.BlinkMediaKeyEvent.instance.defaultURL_Getter_(unwrap_jso(this));
@@ -21897,7 +24959,7 @@ class MediaKeyEvent extends Event {
   
   @DomName('MediaKeyEvent.initData')
   @DocsEditable()
-  Uint8List get initData => wrap_jso(_blink.BlinkMediaKeyEvent.instance.initData_Getter_(unwrap_jso(this)));
+  Uint8List get initData => _blink.BlinkMediaKeyEvent.instance.initData_Getter_(unwrap_jso(this));
   
   @DomName('MediaKeyEvent.keySystem')
   @DocsEditable()
@@ -21905,7 +24967,7 @@ class MediaKeyEvent extends Event {
   
   @DomName('MediaKeyEvent.message')
   @DocsEditable()
-  Uint8List get message => wrap_jso(_blink.BlinkMediaKeyEvent.instance.message_Getter_(unwrap_jso(this)));
+  Uint8List get message => _blink.BlinkMediaKeyEvent.instance.message_Getter_(unwrap_jso(this));
   
   @DomName('MediaKeyEvent.sessionId')
   @DocsEditable()
@@ -21931,13 +24993,25 @@ class MediaKeyMessageEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaKeyMessageEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static MediaKeyMessageEvent internalCreateMediaKeyMessageEvent() {
+    return new MediaKeyMessageEvent._internalWrap();
+  }
+
+  factory MediaKeyMessageEvent._internalWrap() {
+    return new MediaKeyMessageEvent.internal_();
+  }
+
+  MediaKeyMessageEvent.internal_() : super.internal_();
+
+
   @DomName('MediaKeyMessageEvent.destinationURL')
   @DocsEditable()
   String get destinationUrl => _blink.BlinkMediaKeyMessageEvent.instance.destinationURL_Getter_(unwrap_jso(this));
   
   @DomName('MediaKeyMessageEvent.message')
   @DocsEditable()
-  ByteBuffer get message => wrap_jso(_blink.BlinkMediaKeyMessageEvent.instance.message_Getter_(unwrap_jso(this)));
+  ByteBuffer get message => _blink.BlinkMediaKeyMessageEvent.instance.message_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21955,6 +25029,18 @@ class MediaKeyNeededEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaKeyNeededEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static MediaKeyNeededEvent internalCreateMediaKeyNeededEvent() {
+    return new MediaKeyNeededEvent._internalWrap();
+  }
+
+  factory MediaKeyNeededEvent._internalWrap() {
+    return new MediaKeyNeededEvent.internal_();
+  }
+
+  MediaKeyNeededEvent.internal_() : super.internal_();
+
+
   @DomName('MediaKeyNeededEvent.contentType')
   @DocsEditable()
   @Experimental() // untriaged
@@ -21962,7 +25048,7 @@ class MediaKeyNeededEvent extends Event {
   
   @DomName('MediaKeyNeededEvent.initData')
   @DocsEditable()
-  Uint8List get initData => wrap_jso(_blink.BlinkMediaKeyNeededEvent.instance.initData_Getter_(unwrap_jso(this)));
+  Uint8List get initData => _blink.BlinkMediaKeyNeededEvent.instance.initData_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21980,10 +25066,22 @@ class MediaKeySession extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory MediaKeySession._() { throw new UnsupportedError("Not supported"); }
 
+
+  static MediaKeySession internalCreateMediaKeySession() {
+    return new MediaKeySession._internalWrap();
+  }
+
+  factory MediaKeySession._internalWrap() {
+    return new MediaKeySession.internal_();
+  }
+
+  MediaKeySession.internal_() : super.internal_();
+
+
   @DomName('MediaKeySession.closed')
   @DocsEditable()
   @Experimental() // untriaged
-  Future get closed => _blink.BlinkMediaKeySession.instance.closed_Getter_(unwrap_jso(this));
+  Future get closed => wrap_jso(_blink.BlinkMediaKeySession.instance.closed_Getter_(unwrap_jso(this)));
   
   @DomName('MediaKeySession.error')
   @DocsEditable()
@@ -21999,10 +25097,10 @@ class MediaKeySession extends EventTarget {
   
   Future generateRequest(String initDataType, initData) {
     if ((initData is TypedData) && (initDataType is String)) {
-      return _blink.BlinkMediaKeySession.instance.generateRequest_Callback_2_(unwrap_jso(this), initDataType, unwrap_jso(initData));
+      return wrap_jso(_blink.BlinkMediaKeySession.instance.generateRequest_Callback_2_(unwrap_jso(this), initDataType, unwrap_jso(initData)));
     }
     if ((initData is ByteBuffer) && (initDataType is String)) {
-      return _blink.BlinkMediaKeySession.instance.generateRequest_Callback_2_(unwrap_jso(this), initDataType, unwrap_jso(initData));
+      return wrap_jso(_blink.BlinkMediaKeySession.instance.generateRequest_Callback_2_(unwrap_jso(this), initDataType, unwrap_jso(initData)));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -22010,14 +25108,14 @@ class MediaKeySession extends EventTarget {
   @DomName('MediaKeySession.release')
   @DocsEditable()
   @Experimental() // untriaged
-  Future release() => _blink.BlinkMediaKeySession.instance.release_Callback_0_(unwrap_jso(this));
+  Future release() => wrap_jso(_blink.BlinkMediaKeySession.instance.release_Callback_0_(unwrap_jso(this)));
   
   Future _update(response) {
     if ((response is TypedData)) {
-      return _blink.BlinkMediaKeySession.instance.update_Callback_1_(unwrap_jso(this), unwrap_jso(response));
+      return wrap_jso(_blink.BlinkMediaKeySession.instance.update_Callback_1_(unwrap_jso(this), unwrap_jso(response)));
     }
     if ((response is ByteBuffer)) {
-      return _blink.BlinkMediaKeySession.instance.update_Callback_1_(unwrap_jso(this), unwrap_jso(response));
+      return wrap_jso(_blink.BlinkMediaKeySession.instance.update_Callback_1_(unwrap_jso(this), unwrap_jso(response)));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -22038,6 +25136,21 @@ class MediaKeys extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MediaKeys._() { throw new UnsupportedError("Not supported"); }
 
+  static MediaKeys internalCreateMediaKeys() {
+    return new MediaKeys._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory MediaKeys._internalWrap() {
+    return new MediaKeys.internal_();
+  }
+
+  MediaKeys.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('MediaKeys.keySystem')
   @DocsEditable()
   String get keySystem => _blink.BlinkMediaKeys.instance.keySystem_Getter_(unwrap_jso(this));
@@ -22045,7 +25158,7 @@ class MediaKeys extends NativeFieldWrapperClass2 {
   @DomName('MediaKeys.create')
   @DocsEditable()
   @Experimental() // untriaged
-  static Future create(String keySystem) => _blink.BlinkMediaKeys.instance.create_Callback_1_(keySystem);
+  static Future create(String keySystem) => wrap_jso(_blink.BlinkMediaKeys.instance.create_Callback_1_(keySystem));
   
   MediaKeySession _createSession([String sessionType]) {
     if (sessionType != null) {
@@ -22074,6 +25187,21 @@ class MediaList extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MediaList._() { throw new UnsupportedError("Not supported"); }
 
+  static MediaList internalCreateMediaList() {
+    return new MediaList._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory MediaList._internalWrap() {
+    return new MediaList.internal_();
+  }
+
+  MediaList.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('MediaList.length')
   @DocsEditable()
   int get length => _blink.BlinkMediaList.instance.length_Getter_(unwrap_jso(this));
@@ -22084,7 +25212,7 @@ class MediaList extends NativeFieldWrapperClass2 {
   
   @DomName('MediaList.mediaText')
   @DocsEditable()
-  void set mediaText(String value) => _blink.BlinkMediaList.instance.mediaText_Setter_(unwrap_jso(this), value);
+  set mediaText(String value) => _blink.BlinkMediaList.instance.mediaText_Setter_(unwrap_jso(this), value);
   
   @DomName('MediaList.appendMedium')
   @DocsEditable()
@@ -22118,6 +25246,18 @@ class MediaQueryList extends EventTarget {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
+
+  static MediaQueryList internalCreateMediaQueryList() {
+    return new MediaQueryList._internalWrap();
+  }
+
+  factory MediaQueryList._internalWrap() {
+    return new MediaQueryList.internal_();
+  }
+
+  MediaQueryList.internal_() : super.internal_();
+
+
   @DomName('MediaQueryList.matches')
   @DocsEditable()
   bool get matches => _blink.BlinkMediaQueryList.instance.matches_Getter_(unwrap_jso(this));
@@ -22128,7 +25268,7 @@ class MediaQueryList extends EventTarget {
   
   @DomName('MediaQueryList.addListener')
   @DocsEditable()
-  void addListener(EventListener listener) => _blink.BlinkMediaQueryList.instance.addListener_Callback_1_(unwrap_jso(this), unwrap_jso(listener));
+  void addListener(EventListener listener) => _blink.BlinkMediaQueryList.instance.addListener_Callback_1_(unwrap_jso(this), unwrap_jso((event) => listener(wrap_jso(event))));
   
   @DomName('MediaQueryList.removeListener')
   @DocsEditable()
@@ -22153,6 +25293,18 @@ class MediaQueryList extends EventTarget {
 class MediaQueryListEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaQueryListEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static MediaQueryListEvent internalCreateMediaQueryListEvent() {
+    return new MediaQueryListEvent._internalWrap();
+  }
+
+  factory MediaQueryListEvent._internalWrap() {
+    return new MediaQueryListEvent.internal_();
+  }
+
+  MediaQueryListEvent.internal_() : super.internal_();
+
 
   @DomName('MediaQueryListEvent.matches')
   @DocsEditable()
@@ -22185,8 +25337,20 @@ class MediaSource extends EventTarget {
   @DomName('MediaSource.MediaSource')
   @DocsEditable()
   factory MediaSource() {
-    return _blink.BlinkMediaSource.instance.constructorCallback_0_();
+    return wrap_jso(_blink.BlinkMediaSource.instance.constructorCallback_0_());
   }
+
+
+  static MediaSource internalCreateMediaSource() {
+    return new MediaSource._internalWrap();
+  }
+
+  factory MediaSource._internalWrap() {
+    return new MediaSource.internal_();
+  }
+
+  MediaSource.internal_() : super.internal_();
+
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -22201,7 +25365,7 @@ class MediaSource extends EventTarget {
   
   @DomName('MediaSource.duration')
   @DocsEditable()
-  void set duration(num value) => _blink.BlinkMediaSource.instance.duration_Setter_(unwrap_jso(this), value);
+  set duration(num value) => _blink.BlinkMediaSource.instance.duration_Setter_(unwrap_jso(this), value);
   
   @DomName('MediaSource.readyState')
   @DocsEditable()
@@ -22280,16 +25444,28 @@ class MediaStream extends EventTarget {
   @DocsEditable()
   factory MediaStream([stream_OR_tracks]) {
     if (stream_OR_tracks == null) {
-      return _blink.BlinkMediaStream.instance.constructorCallback_0_();
+      return wrap_jso(_blink.BlinkMediaStream.instance.constructorCallback_0_());
     }
     if ((stream_OR_tracks is MediaStream || stream_OR_tracks == null)) {
-      return _blink.BlinkMediaStream.instance.constructorCallback_1_(stream_OR_tracks);
+      return wrap_jso(_blink.BlinkMediaStream.instance.constructorCallback_1_(stream_OR_tracks));
     }
     if ((stream_OR_tracks is List<MediaStreamTrack> || stream_OR_tracks == null)) {
-      return _blink.BlinkMediaStream.instance.constructorCallback_1_(stream_OR_tracks);
+      return wrap_jso(_blink.BlinkMediaStream.instance.constructorCallback_1_(stream_OR_tracks));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+
+
+  static MediaStream internalCreateMediaStream() {
+    return new MediaStream._internalWrap();
+  }
+
+  factory MediaStream._internalWrap() {
+    return new MediaStream.internal_();
+  }
+
+  MediaStream.internal_() : super.internal_();
+
 
   @DomName('MediaStream.ended')
   @DocsEditable()
@@ -22315,7 +25491,7 @@ class MediaStream extends EventTarget {
   
   @DomName('MediaStream.getAudioTracks')
   @DocsEditable()
-  List<MediaStreamTrack> getAudioTracks() => _blink.BlinkMediaStream.instance.getAudioTracks_Callback_0_(unwrap_jso(this));
+  List<MediaStreamTrack> getAudioTracks() => wrap_jso(_blink.BlinkMediaStream.instance.getAudioTracks_Callback_0_(unwrap_jso(this)));
   
   @DomName('MediaStream.getTrackById')
   @DocsEditable()
@@ -22324,11 +25500,11 @@ class MediaStream extends EventTarget {
   @DomName('MediaStream.getTracks')
   @DocsEditable()
   @Experimental() // untriaged
-  List<MediaStreamTrack> getTracks() => _blink.BlinkMediaStream.instance.getTracks_Callback_0_(unwrap_jso(this));
+  List<MediaStreamTrack> getTracks() => wrap_jso(_blink.BlinkMediaStream.instance.getTracks_Callback_0_(unwrap_jso(this)));
   
   @DomName('MediaStream.getVideoTracks')
   @DocsEditable()
-  List<MediaStreamTrack> getVideoTracks() => _blink.BlinkMediaStream.instance.getVideoTracks_Callback_0_(unwrap_jso(this));
+  List<MediaStreamTrack> getVideoTracks() => wrap_jso(_blink.BlinkMediaStream.instance.getVideoTracks_Callback_0_(unwrap_jso(this)));
   
   @DomName('MediaStream.removeTrack')
   @DocsEditable()
@@ -22378,6 +25554,18 @@ class MediaStream extends EventTarget {
 class MediaStreamEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaStreamEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static MediaStreamEvent internalCreateMediaStreamEvent() {
+    return new MediaStreamEvent._internalWrap();
+  }
+
+  factory MediaStreamEvent._internalWrap() {
+    return new MediaStreamEvent.internal_();
+  }
+
+  MediaStreamEvent.internal_() : super.internal_();
+
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -22433,13 +25621,25 @@ class MediaStreamTrack extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<Event> unmuteEvent = const EventStreamProvider<Event>('unmute');
 
+
+  static MediaStreamTrack internalCreateMediaStreamTrack() {
+    return new MediaStreamTrack._internalWrap();
+  }
+
+  factory MediaStreamTrack._internalWrap() {
+    return new MediaStreamTrack.internal_();
+  }
+
+  MediaStreamTrack.internal_() : super.internal_();
+
+
   @DomName('MediaStreamTrack.enabled')
   @DocsEditable()
   bool get enabled => _blink.BlinkMediaStreamTrack.instance.enabled_Getter_(unwrap_jso(this));
   
   @DomName('MediaStreamTrack.enabled')
   @DocsEditable()
-  void set enabled(bool value) => _blink.BlinkMediaStreamTrack.instance.enabled_Setter_(unwrap_jso(this), value);
+  set enabled(bool value) => _blink.BlinkMediaStreamTrack.instance.enabled_Setter_(unwrap_jso(this), value);
   
   @DomName('MediaStreamTrack.id')
   @DocsEditable()
@@ -22470,7 +25670,7 @@ class MediaStreamTrack extends EventTarget {
   @DomName('MediaStreamTrack.getSources')
   @DocsEditable()
   @Experimental() // untriaged
-  static void _getSources(MediaStreamTrackSourcesCallback callback) => _blink.BlinkMediaStreamTrack.instance.getSources_Callback_1_(unwrap_jso(callback));
+  static void _getSources(MediaStreamTrackSourcesCallback callback) => _blink.BlinkMediaStreamTrack.instance.getSources_Callback_1_(unwrap_jso((sources) => callback(sources)));
   
   static Future<List<SourceInfo>> getSources() {
     var completer = new Completer<List<SourceInfo>>();
@@ -22516,6 +25716,18 @@ class MediaStreamTrackEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaStreamTrackEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static MediaStreamTrackEvent internalCreateMediaStreamTrackEvent() {
+    return new MediaStreamTrackEvent._internalWrap();
+  }
+
+  factory MediaStreamTrackEvent._internalWrap() {
+    return new MediaStreamTrackEvent.internal_();
+  }
+
+  MediaStreamTrackEvent.internal_() : super.internal_();
+
+
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
@@ -22547,6 +25759,21 @@ typedef void MediaStreamTrackSourcesCallback(List<SourceInfo> sources);
 class MemoryInfo extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MemoryInfo._() { throw new UnsupportedError("Not supported"); }
+
+  static MemoryInfo internalCreateMemoryInfo() {
+    return new MemoryInfo._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory MemoryInfo._internalWrap() {
+    return new MemoryInfo.internal_();
+  }
+
+  MemoryInfo.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('MemoryInfo.jsHeapSizeLimit')
   @DocsEditable()
@@ -22587,6 +25814,18 @@ class MenuElement extends HtmlElement {
   @DomName('HTMLMenuElement.HTMLMenuElement')
   @DocsEditable()
   factory MenuElement() => document.createElement("menu");
+
+
+  static MenuElement internalCreateMenuElement() {
+    return new MenuElement._internalWrap();
+  }
+
+  factory MenuElement._internalWrap() {
+    return new MenuElement.internal_();
+  }
+
+  MenuElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -22602,7 +25841,7 @@ class MenuElement extends HtmlElement {
   @DomName('HTMLMenuElement.label')
   @DocsEditable()
   @Experimental() // untriaged
-  void set label(String value) => _blink.BlinkHTMLMenuElement.instance.label_Setter_(unwrap_jso(this), value);
+  set label(String value) => _blink.BlinkHTMLMenuElement.instance.label_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMenuElement.type')
   @DocsEditable()
@@ -22612,7 +25851,7 @@ class MenuElement extends HtmlElement {
   @DomName('HTMLMenuElement.type')
   @DocsEditable()
   @Experimental() // untriaged
-  void set type(String value) => _blink.BlinkHTMLMenuElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLMenuElement.instance.type_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22628,6 +25867,18 @@ class MenuElement extends HtmlElement {
 class MenuItemElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory MenuItemElement._() { throw new UnsupportedError("Not supported"); }
+
+
+  static MenuItemElement internalCreateMenuItemElement() {
+    return new MenuItemElement._internalWrap();
+  }
+
+  factory MenuItemElement._internalWrap() {
+    return new MenuItemElement.internal_();
+  }
+
+  MenuItemElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -22643,7 +25894,7 @@ class MenuItemElement extends HtmlElement {
   @DomName('HTMLMenuItemElement.checked')
   @DocsEditable()
   @Experimental() // untriaged
-  void set checked(bool value) => _blink.BlinkHTMLMenuItemElement.instance.checked_Setter_(unwrap_jso(this), value);
+  set checked(bool value) => _blink.BlinkHTMLMenuItemElement.instance.checked_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMenuItemElement.default')
   @DocsEditable()
@@ -22653,7 +25904,7 @@ class MenuItemElement extends HtmlElement {
   @DomName('HTMLMenuItemElement.default')
   @DocsEditable()
   @Experimental() // untriaged
-  void set defaultValue(bool value) => _blink.BlinkHTMLMenuItemElement.instance.default_Setter_(unwrap_jso(this), value);
+  set defaultValue(bool value) => _blink.BlinkHTMLMenuItemElement.instance.default_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMenuItemElement.disabled')
   @DocsEditable()
@@ -22663,7 +25914,7 @@ class MenuItemElement extends HtmlElement {
   @DomName('HTMLMenuItemElement.disabled')
   @DocsEditable()
   @Experimental() // untriaged
-  void set disabled(bool value) => _blink.BlinkHTMLMenuItemElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLMenuItemElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMenuItemElement.label')
   @DocsEditable()
@@ -22673,7 +25924,7 @@ class MenuItemElement extends HtmlElement {
   @DomName('HTMLMenuItemElement.label')
   @DocsEditable()
   @Experimental() // untriaged
-  void set label(String value) => _blink.BlinkHTMLMenuItemElement.instance.label_Setter_(unwrap_jso(this), value);
+  set label(String value) => _blink.BlinkHTMLMenuItemElement.instance.label_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMenuItemElement.type')
   @DocsEditable()
@@ -22683,7 +25934,7 @@ class MenuItemElement extends HtmlElement {
   @DomName('HTMLMenuItemElement.type')
   @DocsEditable()
   @Experimental() // untriaged
-  void set type(String value) => _blink.BlinkHTMLMenuItemElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLMenuItemElement.instance.type_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22699,6 +25950,21 @@ class MenuItemElement extends HtmlElement {
 class MessageChannel extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MessageChannel._() { throw new UnsupportedError("Not supported"); }
+
+  static MessageChannel internalCreateMessageChannel() {
+    return new MessageChannel._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory MessageChannel._internalWrap() {
+    return new MessageChannel.internal_();
+  }
+
+  MessageChannel.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('MessageChannel.port1')
   @DocsEditable()
@@ -22733,9 +25999,21 @@ class MessageEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MessageEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static MessageEvent internalCreateMessageEvent() {
+    return new MessageEvent._internalWrap();
+  }
+
+  factory MessageEvent._internalWrap() {
+    return new MessageEvent.internal_();
+  }
+
+  MessageEvent.internal_() : super.internal_();
+
+
   @DomName('MessageEvent.data')
   @DocsEditable()
-  Object get data => _blink.BlinkMessageEvent.instance.data_Getter_(unwrap_jso(this));
+  Object get data => wrap_jso(_blink.BlinkMessageEvent.instance.data_Getter_(unwrap_jso(this)));
   
   @DomName('MessageEvent.lastEventId')
   @DocsEditable()
@@ -22779,13 +26057,25 @@ class MessagePort extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
+
+  static MessagePort internalCreateMessagePort() {
+    return new MessagePort._internalWrap();
+  }
+
+  factory MessagePort._internalWrap() {
+    return new MessagePort.internal_();
+  }
+
+  MessagePort.internal_() : super.internal_();
+
+
   @DomName('MessagePort.close')
   @DocsEditable()
   void close() => _blink.BlinkMessagePort.instance.close_Callback_0_(unwrap_jso(this));
   
   @DomName('MessagePort.postMessage')
   @DocsEditable()
-  void postMessage(Object message, [List<MessagePort> transfer]) => _blink.BlinkMessagePort.instance.postMessage_Callback_2_(unwrap_jso(this), message, transfer);
+  void postMessage(Object message, [List<MessagePort> transfer]) => _blink.BlinkMessagePort.instance.postMessage_Callback_2_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(message), transfer);
   
   @DomName('MessagePort.start')
   @DocsEditable()
@@ -22813,6 +26103,18 @@ class MetaElement extends HtmlElement {
   @DomName('HTMLMetaElement.HTMLMetaElement')
   @DocsEditable()
   factory MetaElement() => document.createElement("meta");
+
+
+  static MetaElement internalCreateMetaElement() {
+    return new MetaElement._internalWrap();
+  }
+
+  factory MetaElement._internalWrap() {
+    return new MetaElement.internal_();
+  }
+
+  MetaElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -22826,7 +26128,7 @@ class MetaElement extends HtmlElement {
   
   @DomName('HTMLMetaElement.content')
   @DocsEditable()
-  void set content(String value) => _blink.BlinkHTMLMetaElement.instance.content_Setter_(unwrap_jso(this), value);
+  set content(String value) => _blink.BlinkHTMLMetaElement.instance.content_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMetaElement.httpEquiv')
   @DocsEditable()
@@ -22834,7 +26136,7 @@ class MetaElement extends HtmlElement {
   
   @DomName('HTMLMetaElement.httpEquiv')
   @DocsEditable()
-  void set httpEquiv(String value) => _blink.BlinkHTMLMetaElement.instance.httpEquiv_Setter_(unwrap_jso(this), value);
+  set httpEquiv(String value) => _blink.BlinkHTMLMetaElement.instance.httpEquiv_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMetaElement.name')
   @DocsEditable()
@@ -22842,7 +26144,7 @@ class MetaElement extends HtmlElement {
   
   @DomName('HTMLMetaElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLMetaElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLMetaElement.instance.name_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22859,6 +26161,21 @@ class MetaElement extends HtmlElement {
 class Metadata extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Metadata._() { throw new UnsupportedError("Not supported"); }
+
+  static Metadata internalCreateMetadata() {
+    return new Metadata._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Metadata._internalWrap() {
+    return new Metadata.internal_();
+  }
+
+  Metadata.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Metadata.modificationTime')
   @DocsEditable()
@@ -22900,6 +26217,18 @@ class MeterElement extends HtmlElement {
   @DomName('HTMLMeterElement.HTMLMeterElement')
   @DocsEditable()
   factory MeterElement() => document.createElement("meter");
+
+
+  static MeterElement internalCreateMeterElement() {
+    return new MeterElement._internalWrap();
+  }
+
+  factory MeterElement._internalWrap() {
+    return new MeterElement.internal_();
+  }
+
+  MeterElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -22916,12 +26245,12 @@ class MeterElement extends HtmlElement {
   
   @DomName('HTMLMeterElement.high')
   @DocsEditable()
-  void set high(num value) => _blink.BlinkHTMLMeterElement.instance.high_Setter_(unwrap_jso(this), value);
+  set high(num value) => _blink.BlinkHTMLMeterElement.instance.high_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMeterElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => wrap_jso_list(_blink.BlinkHTMLMeterElement.instance.labels_Getter_(unwrap_jso(this)));
+  List<Node> get labels => wrap_jso(_blink.BlinkHTMLMeterElement.instance.labels_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLMeterElement.low')
   @DocsEditable()
@@ -22929,7 +26258,7 @@ class MeterElement extends HtmlElement {
   
   @DomName('HTMLMeterElement.low')
   @DocsEditable()
-  void set low(num value) => _blink.BlinkHTMLMeterElement.instance.low_Setter_(unwrap_jso(this), value);
+  set low(num value) => _blink.BlinkHTMLMeterElement.instance.low_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMeterElement.max')
   @DocsEditable()
@@ -22937,7 +26266,7 @@ class MeterElement extends HtmlElement {
   
   @DomName('HTMLMeterElement.max')
   @DocsEditable()
-  void set max(num value) => _blink.BlinkHTMLMeterElement.instance.max_Setter_(unwrap_jso(this), value);
+  set max(num value) => _blink.BlinkHTMLMeterElement.instance.max_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMeterElement.min')
   @DocsEditable()
@@ -22945,7 +26274,7 @@ class MeterElement extends HtmlElement {
   
   @DomName('HTMLMeterElement.min')
   @DocsEditable()
-  void set min(num value) => _blink.BlinkHTMLMeterElement.instance.min_Setter_(unwrap_jso(this), value);
+  set min(num value) => _blink.BlinkHTMLMeterElement.instance.min_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMeterElement.optimum')
   @DocsEditable()
@@ -22953,7 +26282,7 @@ class MeterElement extends HtmlElement {
   
   @DomName('HTMLMeterElement.optimum')
   @DocsEditable()
-  void set optimum(num value) => _blink.BlinkHTMLMeterElement.instance.optimum_Setter_(unwrap_jso(this), value);
+  set optimum(num value) => _blink.BlinkHTMLMeterElement.instance.optimum_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMeterElement.value')
   @DocsEditable()
@@ -22961,7 +26290,7 @@ class MeterElement extends HtmlElement {
   
   @DomName('HTMLMeterElement.value')
   @DocsEditable()
-  void set value(num value) => _blink.BlinkHTMLMeterElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(num value) => _blink.BlinkHTMLMeterElement.instance.value_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22998,6 +26327,18 @@ class MidiAccess extends EventTarget {
   @DomName('MIDIAccess.disconnectEvent')
   @DocsEditable()
   static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
+
+
+  static MidiAccess internalCreateMidiAccess() {
+    return new MidiAccess._internalWrap();
+  }
+
+  factory MidiAccess._internalWrap() {
+    return new MidiAccess.internal_();
+  }
+
+  MidiAccess.internal_() : super.internal_();
+
 
   @DomName('MIDIAccess.inputs')
   @DocsEditable()
@@ -23038,6 +26379,18 @@ class MidiConnectionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MidiConnectionEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static MidiConnectionEvent internalCreateMidiConnectionEvent() {
+    return new MidiConnectionEvent._internalWrap();
+  }
+
+  factory MidiConnectionEvent._internalWrap() {
+    return new MidiConnectionEvent.internal_();
+  }
+
+  MidiConnectionEvent.internal_() : super.internal_();
+
+
   @DomName('MIDIConnectionEvent.port')
   @DocsEditable()
   MidiPort get port => wrap_jso(_blink.BlinkMIDIConnectionEvent.instance.port_Getter_(unwrap_jso(this)));
@@ -23068,6 +26421,18 @@ class MidiInput extends MidiPort {
   @DocsEditable()
   static const EventStreamProvider<MidiMessageEvent> midiMessageEvent = const EventStreamProvider<MidiMessageEvent>('midimessage');
 
+
+  static MidiInput internalCreateMidiInput() {
+    return new MidiInput._internalWrap();
+  }
+
+  factory MidiInput._internalWrap() {
+    return new MidiInput.internal_();
+  }
+
+  MidiInput.internal_() : super.internal_();
+
+
   /// Stream of `midimessage` events handled by this [MidiInput].
   @DomName('MIDIInput.onmidimessage')
   @DocsEditable()
@@ -23088,6 +26453,21 @@ class MidiInputMap extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MidiInputMap._() { throw new UnsupportedError("Not supported"); }
 
+  static MidiInputMap internalCreateMidiInputMap() {
+    return new MidiInputMap._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory MidiInputMap._internalWrap() {
+    return new MidiInputMap.internal_();
+  }
+
+  MidiInputMap.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('MIDIInputMap.size')
   @DocsEditable()
   @Experimental() // untriaged
@@ -23096,7 +26476,7 @@ class MidiInputMap extends NativeFieldWrapperClass2 {
   @DomName('MIDIInputMap.entries')
   @DocsEditable()
   @Experimental() // untriaged
-  DomIterator entries() => _blink.BlinkMIDIInputMap.instance.entries_Callback_0_(unwrap_jso(this));
+  DomIterator entries() => wrap_jso(_blink.BlinkMIDIInputMap.instance.entries_Callback_0_(unwrap_jso(this)));
   
   @DomName('MIDIInputMap.get')
   @DocsEditable()
@@ -23111,12 +26491,12 @@ class MidiInputMap extends NativeFieldWrapperClass2 {
   @DomName('MIDIInputMap.keys')
   @DocsEditable()
   @Experimental() // untriaged
-  DomIterator keys() => _blink.BlinkMIDIInputMap.instance.keys_Callback_0_(unwrap_jso(this));
+  DomIterator keys() => wrap_jso(_blink.BlinkMIDIInputMap.instance.keys_Callback_0_(unwrap_jso(this)));
   
   @DomName('MIDIInputMap.values')
   @DocsEditable()
   @Experimental() // untriaged
-  DomIterator values() => _blink.BlinkMIDIInputMap.instance.values_Callback_0_(unwrap_jso(this));
+  DomIterator values() => wrap_jso(_blink.BlinkMIDIInputMap.instance.values_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23134,13 +26514,25 @@ class MidiMessageEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MidiMessageEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static MidiMessageEvent internalCreateMidiMessageEvent() {
+    return new MidiMessageEvent._internalWrap();
+  }
+
+  factory MidiMessageEvent._internalWrap() {
+    return new MidiMessageEvent.internal_();
+  }
+
+  MidiMessageEvent.internal_() : super.internal_();
+
+
   @DomName('MIDIMessageEvent.data')
   @DocsEditable()
-  Uint8List get data => wrap_jso(_blink.BlinkMIDIMessageEvent.instance.data_Getter_(unwrap_jso(this)));
+  Uint8List get data => _blink.BlinkMIDIMessageEvent.instance.data_Getter_(unwrap_jso(this));
   
   @DomName('MIDIMessageEvent.receivedTime')
   @DocsEditable()
-  double get receivedTime => _blink.BlinkMIDIMessageEvent.instance.receivedTime_Getter_(unwrap_jso(this));
+  num get receivedTime => _blink.BlinkMIDIMessageEvent.instance.receivedTime_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23157,6 +26549,18 @@ class MidiMessageEvent extends Event {
 class MidiOutput extends MidiPort {
   // To suppress missing implicit constructor warnings.
   factory MidiOutput._() { throw new UnsupportedError("Not supported"); }
+
+
+  static MidiOutput internalCreateMidiOutput() {
+    return new MidiOutput._internalWrap();
+  }
+
+  factory MidiOutput._internalWrap() {
+    return new MidiOutput.internal_();
+  }
+
+  MidiOutput.internal_() : super.internal_();
+
 
   void send(Uint8List data, [num timestamp]) {
     if (timestamp != null) {
@@ -23182,6 +26586,21 @@ class MidiOutputMap extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MidiOutputMap._() { throw new UnsupportedError("Not supported"); }
 
+  static MidiOutputMap internalCreateMidiOutputMap() {
+    return new MidiOutputMap._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory MidiOutputMap._internalWrap() {
+    return new MidiOutputMap.internal_();
+  }
+
+  MidiOutputMap.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('MIDIOutputMap.size')
   @DocsEditable()
   @Experimental() // untriaged
@@ -23190,7 +26609,7 @@ class MidiOutputMap extends NativeFieldWrapperClass2 {
   @DomName('MIDIOutputMap.entries')
   @DocsEditable()
   @Experimental() // untriaged
-  DomIterator entries() => _blink.BlinkMIDIOutputMap.instance.entries_Callback_0_(unwrap_jso(this));
+  DomIterator entries() => wrap_jso(_blink.BlinkMIDIOutputMap.instance.entries_Callback_0_(unwrap_jso(this)));
   
   @DomName('MIDIOutputMap.get')
   @DocsEditable()
@@ -23205,12 +26624,12 @@ class MidiOutputMap extends NativeFieldWrapperClass2 {
   @DomName('MIDIOutputMap.keys')
   @DocsEditable()
   @Experimental() // untriaged
-  DomIterator keys() => _blink.BlinkMIDIOutputMap.instance.keys_Callback_0_(unwrap_jso(this));
+  DomIterator keys() => wrap_jso(_blink.BlinkMIDIOutputMap.instance.keys_Callback_0_(unwrap_jso(this)));
   
   @DomName('MIDIOutputMap.values')
   @DocsEditable()
   @Experimental() // untriaged
-  DomIterator values() => _blink.BlinkMIDIOutputMap.instance.values_Callback_0_(unwrap_jso(this));
+  DomIterator values() => wrap_jso(_blink.BlinkMIDIOutputMap.instance.values_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23237,6 +26656,18 @@ class MidiPort extends EventTarget {
   @DomName('MIDIPort.disconnectEvent')
   @DocsEditable()
   static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
+
+
+  static MidiPort internalCreateMidiPort() {
+    return new MidiPort._internalWrap();
+  }
+
+  factory MidiPort._internalWrap() {
+    return new MidiPort.internal_();
+  }
+
+  MidiPort.internal_() : super.internal_();
+
 
   @DomName('MIDIPort.id')
   @DocsEditable()
@@ -23278,6 +26709,21 @@ class MimeType extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MimeType._() { throw new UnsupportedError("Not supported"); }
 
+  static MimeType internalCreateMimeType() {
+    return new MimeType._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory MimeType._internalWrap() {
+    return new MimeType.internal_();
+  }
+
+  MimeType.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('MimeType.description')
   @DocsEditable()
   String get description => _blink.BlinkMimeType.instance.description_Getter_(unwrap_jso(this));
@@ -23305,9 +26751,24 @@ class MimeType extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('MimeTypeArray')
 @Experimental() // non-standard
-class MimeTypeArray extends NativeFieldWrapperClass2 with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements List<MimeType> {
+class MimeTypeArray extends JsoNativeFieldWrapper with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements List<MimeType> {
   // To suppress missing implicit constructor warnings.
   factory MimeTypeArray._() { throw new UnsupportedError("Not supported"); }
+
+  static MimeTypeArray internalCreateMimeTypeArray() {
+    return new MimeTypeArray._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory MimeTypeArray._internalWrap() {
+    return new MimeTypeArray.internal_();
+  }
+
+  MimeTypeArray.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('MimeTypeArray.length')
   @DocsEditable()
@@ -23320,7 +26781,7 @@ class MimeTypeArray extends NativeFieldWrapperClass2 with ListMixin<MimeType>, I
   }
 
   MimeType _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkMimeTypeArray.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, MimeType value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -23328,7 +26789,7 @@ class MimeTypeArray extends NativeFieldWrapperClass2 with ListMixin<MimeType>, I
   // MimeType is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -23385,6 +26846,18 @@ class MimeTypeArray extends NativeFieldWrapperClass2 with ListMixin<MimeType>, I
 class ModElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory ModElement._() { throw new UnsupportedError("Not supported"); }
+
+
+  static ModElement internalCreateModElement() {
+    return new ModElement._internalWrap();
+  }
+
+  factory ModElement._internalWrap() {
+    return new ModElement.internal_();
+  }
+
+  ModElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -23398,7 +26871,7 @@ class ModElement extends HtmlElement {
   
   @DomName('HTMLModElement.cite')
   @DocsEditable()
-  void set cite(String value) => _blink.BlinkHTMLModElement.instance.cite_Setter_(unwrap_jso(this), value);
+  set cite(String value) => _blink.BlinkHTMLModElement.instance.cite_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLModElement.dateTime')
   @DocsEditable()
@@ -23406,7 +26879,7 @@ class ModElement extends HtmlElement {
   
   @DomName('HTMLModElement.dateTime')
   @DocsEditable()
-  void set dateTime(String value) => _blink.BlinkHTMLModElement.instance.dateTime_Setter_(unwrap_jso(this), value);
+  set dateTime(String value) => _blink.BlinkHTMLModElement.instance.dateTime_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23435,6 +26908,18 @@ class MouseEvent extends UIEvent {
   }
   // To suppress missing implicit constructor warnings.
   factory MouseEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static MouseEvent internalCreateMouseEvent() {
+    return new MouseEvent._internalWrap();
+  }
+
+  factory MouseEvent._internalWrap() {
+    return new MouseEvent.internal_();
+  }
+
+  MouseEvent.internal_() : super.internal_();
+
 
   @DomName('MouseEvent.altKey')
   @DocsEditable()
@@ -23615,17 +27100,32 @@ class MutationObserver extends NativeFieldWrapperClass2 {
   @DocsEditable()
   factory MutationObserver._(MutationCallback callback) => wrap_jso(_create(callback));
 
+  static MutationObserver internalCreateMutationObserver() {
+    return new MutationObserver._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory MutationObserver._internalWrap() {
+    return new MutationObserver.internal_();
+  }
+
+  MutationObserver.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('MutationObserver.disconnect')
   @DocsEditable()
   void disconnect() => _blink.BlinkMutationObserver.instance.disconnect_Callback_0_(unwrap_jso(this));
   
   @DomName('MutationObserver.observe')
   @DocsEditable()
-  void _observe(Node target, Map options) => _blink.BlinkMutationObserver.instance.observe_Callback_2_(unwrap_jso(this), unwrap_jso(target), options);
+  void _observe(Node target, Map options) => _blink.BlinkMutationObserver.instance.observe_Callback_2_(unwrap_jso(this), unwrap_jso(target), convertDartToNative_Dictionary(options));
   
   @DomName('MutationObserver.takeRecords')
   @DocsEditable()
-  List<MutationRecord> takeRecords() => _blink.BlinkMutationObserver.instance.takeRecords_Callback_0_(unwrap_jso(this));
+  List<MutationRecord> takeRecords() => wrap_jso(_blink.BlinkMutationObserver.instance.takeRecords_Callback_0_(unwrap_jso(this)));
   
   /**
    * Checks to see if the mutation observer API is supported on the current
@@ -23635,7 +27135,9 @@ class MutationObserver extends NativeFieldWrapperClass2 {
     return true;
   }
   @DocsEditable()
-  static MutationObserver _create(callback) => _blink.BlinkMutationObserver.instance.constructorCallback_1_(callback);
+  static MutationObserver _create(callback) => wrap_jso(_blink.BlinkMutationObserver.instance.constructorCallback_1_((mutations, observer) {
+    callback(mutations, wrap_jso(observer));
+  }));
 
   /**
    * Observes the target for the specified changes.
@@ -23710,9 +27212,24 @@ class MutationRecord extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MutationRecord._() { throw new UnsupportedError("Not supported"); }
 
+  static MutationRecord internalCreateMutationRecord() {
+    return new MutationRecord._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory MutationRecord._internalWrap() {
+    return new MutationRecord.internal_();
+  }
+
+  MutationRecord.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('MutationRecord.addedNodes')
   @DocsEditable()
-  List<Node> get addedNodes => wrap_jso_list(_blink.BlinkMutationRecord.instance.addedNodes_Getter_(unwrap_jso(this)));
+  List<Node> get addedNodes => wrap_jso(_blink.BlinkMutationRecord.instance.addedNodes_Getter_(unwrap_jso(this)));
   
   @DomName('MutationRecord.attributeName')
   @DocsEditable()
@@ -23736,7 +27253,7 @@ class MutationRecord extends NativeFieldWrapperClass2 {
   
   @DomName('MutationRecord.removedNodes')
   @DocsEditable()
-  List<Node> get removedNodes => wrap_jso_list(_blink.BlinkMutationRecord.instance.removedNodes_Getter_(unwrap_jso(this)));
+  List<Node> get removedNodes => wrap_jso(_blink.BlinkMutationRecord.instance.removedNodes_Getter_(unwrap_jso(this)));
   
   @DomName('MutationRecord.target')
   @DocsEditable()
@@ -23813,6 +27330,21 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, Naviga
 
   // To suppress missing implicit constructor warnings.
   factory Navigator._() { throw new UnsupportedError("Not supported"); }
+
+  static Navigator internalCreateNavigator() {
+    return new Navigator._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Navigator._internalWrap() {
+    return new Navigator.internal_();
+  }
+
+  Navigator.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Navigator.connection')
   @DocsEditable()
@@ -23909,23 +27441,18 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, Naviga
   @DomName('Navigator.getBattery')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getBattery() => _blink.BlinkNavigator.instance.getBattery_Callback_0_(unwrap_jso(this));
+  Future getBattery() => wrap_jso(_blink.BlinkNavigator.instance.getBattery_Callback_0_(unwrap_jso(this)));
   
   @DomName('Navigator.getGamepads')
   @DocsEditable()
   @Experimental() // untriaged
-  List<Gamepad> getGamepads() => _blink.BlinkNavigator.instance.getGamepads_Callback_0_(unwrap_jso(this));
+  List<Gamepad> getGamepads() => wrap_jso(_blink.BlinkNavigator.instance.getGamepads_Callback_0_(unwrap_jso(this)));
   
   @DomName('Navigator.getStorageUpdates')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#navigatorstorageutils
   @Experimental()
   void getStorageUpdates() => _blink.BlinkNavigator.instance.getStorageUpdates_Callback_0_(unwrap_jso(this));
-  
-  @DomName('Navigator.isProtocolHandlerRegistered')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String isProtocolHandlerRegistered(String scheme, String url) => _blink.BlinkNavigator.instance.isProtocolHandlerRegistered_Callback_2_(unwrap_jso(this), scheme, url);
   
   @DomName('Navigator.registerProtocolHandler')
   @DocsEditable()
@@ -23948,16 +27475,11 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, Naviga
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('Navigator.unregisterProtocolHandler')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void unregisterProtocolHandler(String scheme, String url) => _blink.BlinkNavigator.instance.unregisterProtocolHandler_Callback_2_(unwrap_jso(this), scheme, url);
-  
   @DomName('Navigator.webkitGetUserMedia')
   @DocsEditable()
   // http://dev.w3.org/2011/webrtc/editor/getusermedia.html#navigatorusermedia
   @Experimental()
-  void _getUserMedia(Map options, _NavigatorUserMediaSuccessCallback successCallback, _NavigatorUserMediaErrorCallback errorCallback) => _blink.BlinkNavigator.instance.webkitGetUserMedia_Callback_3_(unwrap_jso(this), options, unwrap_jso(successCallback), unwrap_jso(errorCallback));
+  void _getUserMedia(Map options, _NavigatorUserMediaSuccessCallback successCallback, _NavigatorUserMediaErrorCallback errorCallback) => _blink.BlinkNavigator.instance.webkitGetUserMedia_Callback_3_(unwrap_jso(this), convertDartToNative_Dictionary(options), unwrap_jso((stream) => successCallback(wrap_jso(stream))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
   
   @DomName('Navigator.hardwareConcurrency')
   @DocsEditable()
@@ -24140,6 +27662,21 @@ class NavigatorUserMediaError extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory NavigatorUserMediaError._() { throw new UnsupportedError("Not supported"); }
 
+  static NavigatorUserMediaError internalCreateNavigatorUserMediaError() {
+    return new NavigatorUserMediaError._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory NavigatorUserMediaError._internalWrap() {
+    return new NavigatorUserMediaError.internal_();
+  }
+
+  NavigatorUserMediaError.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('NavigatorUserMediaError.constraintName')
   @DocsEditable()
   String get constraintName => _blink.BlinkNavigatorUserMediaError.instance.constraintName_Getter_(unwrap_jso(this));
@@ -24188,6 +27725,18 @@ typedef void _NavigatorUserMediaSuccessCallback(MediaStream stream);
 class NetworkInformation extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory NetworkInformation._() { throw new UnsupportedError("Not supported"); }
+
+
+  static NetworkInformation internalCreateNetworkInformation() {
+    return new NetworkInformation._internalWrap();
+  }
+
+  factory NetworkInformation._internalWrap() {
+    return new NetworkInformation.internal_();
+  }
+
+  NetworkInformation.internal_() : super.internal_();
+
 
   @DomName('NetworkInformation.type')
   @DocsEditable()
@@ -24291,7 +27840,8 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
   bool remove(Object object) {
     if (object is! Node) return false;
     Node node = object;
-    if (!identical(_this, node.parentNode)) return false;
+    // We aren't preserving identity of nodes in JSINTEROP mode
+    if (_this != node.parentNode) return false;
     _this._removeChild(node);
     return true;
   }
@@ -24355,7 +27905,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
   // a local copy of childNodes is more efficient.
   int get length => _this.childNodes.length;
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError(
         "Cannot set length on immutable List.");
   }
@@ -24379,7 +27929,7 @@ class Node extends EventTarget {
     return new _ChildNodeListLazy(this);
   }
 
-  void set nodes(Iterable<Node> value) {
+  set nodes(Iterable<Node> value) {
     // Copy list first since we don't want liveness during iteration.
     // TODO(jacobr): there is a better way to do this.
     List copy = new List.from(value);
@@ -24466,9 +28016,21 @@ class Node extends EventTarget {
    */
   @DomName('Node.childNodes')
   @DocsEditable()
-  List<Node> get childNodes => _blink.BlinkNode.instance.childNodes_Getter_(this);
+  List<Node> get childNodes => wrap_jso(_blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this)));
   // To suppress missing implicit constructor warnings.
   factory Node._() { throw new UnsupportedError("Not supported"); }
+
+
+  static Node internalCreateNode() {
+    return new Node._internalWrap();
+  }
+
+  factory Node._internalWrap() {
+    return new Node.internal_();
+  }
+
+  Node.internal_() : super.internal_();
+
 
   @DomName('Node.ATTRIBUTE_NODE')
   @DocsEditable()
@@ -24709,7 +28271,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.textContent')
   @DocsEditable()
-  void set text(String value) => _blink.BlinkNode.instance.textContent_Setter_(unwrap_jso(this), value);
+  set text(String value) => _blink.BlinkNode.instance.textContent_Setter_(unwrap_jso(this), value);
   
   /**
    * Adds a node to the end of the child [nodes] list of this node.
@@ -24801,6 +28363,21 @@ class NodeFilter extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory NodeFilter._() { throw new UnsupportedError("Not supported"); }
 
+  static NodeFilter internalCreateNodeFilter() {
+    return new NodeFilter._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory NodeFilter._internalWrap() {
+    return new NodeFilter.internal_();
+  }
+
+  NodeFilter.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('NodeFilter.FILTER_ACCEPT')
   @DocsEditable()
   static const int FILTER_ACCEPT = 1;
@@ -24860,6 +28437,21 @@ class NodeIterator extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory NodeIterator._() { throw new UnsupportedError("Not supported"); }
 
+  static NodeIterator internalCreateNodeIterator() {
+    return new NodeIterator._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory NodeIterator._internalWrap() {
+    return new NodeIterator.internal_();
+  }
+
+  NodeIterator.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('NodeIterator.pointerBeforeReferenceNode')
   @DocsEditable()
   bool get pointerBeforeReferenceNode => _blink.BlinkNodeIterator.instance.pointerBeforeReferenceNode_Getter_(unwrap_jso(this));
@@ -24898,9 +28490,24 @@ class NodeIterator extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('NodeList')
-class NodeList extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class NodeList extends JsoNativeFieldWrapper with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   // To suppress missing implicit constructor warnings.
   factory NodeList._() { throw new UnsupportedError("Not supported"); }
+
+  static NodeList internalCreateNodeList() {
+    return new NodeList._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory NodeList._internalWrap() {
+    return new NodeList.internal_();
+  }
+
+  NodeList.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('NodeList.length')
   @DocsEditable()
@@ -24913,7 +28520,7 @@ class NodeList extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableL
   }
 
   Node _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkNodeList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -24921,7 +28528,7 @@ class NodeList extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableL
   // Node is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -25025,10 +28632,23 @@ class Notification extends EventTarget {
   @DocsEditable()
   static Notification _factoryNotification(String title, [Map options]) {
     if (options != null) {
-      return _blink.BlinkNotification.instance.constructorCallback_2_(title, options);
+      var options_1 = convertDartToNative_Dictionary(options);
+      return wrap_jso(_blink.BlinkNotification.instance.constructorCallback_2_(title, options_1));
     }
-    return _blink.BlinkNotification.instance.constructorCallback_1_(title);
+    return wrap_jso(_blink.BlinkNotification.instance.constructorCallback_1_(title));
   }
+
+
+  static Notification internalCreateNotification() {
+    return new Notification._internalWrap();
+  }
+
+  factory Notification._internalWrap() {
+    return new Notification.internal_();
+  }
+
+  Notification.internal_() : super.internal_();
+
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -25073,7 +28693,7 @@ class Notification extends EventTarget {
   
   static void _requestPermission([_NotificationPermissionCallback callback]) {
     if (callback != null) {
-      _blink.BlinkNotification.instance.requestPermission_Callback_1_(unwrap_jso(callback));
+      _blink.BlinkNotification.instance.requestPermission_Callback_1_(unwrap_jso((permission) => callback(permission)));
       return;
     }
     _blink.BlinkNotification.instance.requestPermission_Callback_0_();
@@ -25135,6 +28755,18 @@ class OListElement extends HtmlElement {
   @DomName('HTMLOListElement.HTMLOListElement')
   @DocsEditable()
   factory OListElement() => document.createElement("ol");
+
+
+  static OListElement internalCreateOListElement() {
+    return new OListElement._internalWrap();
+  }
+
+  factory OListElement._internalWrap() {
+    return new OListElement.internal_();
+  }
+
+  OListElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25148,7 +28780,7 @@ class OListElement extends HtmlElement {
   
   @DomName('HTMLOListElement.reversed')
   @DocsEditable()
-  void set reversed(bool value) => _blink.BlinkHTMLOListElement.instance.reversed_Setter_(unwrap_jso(this), value);
+  set reversed(bool value) => _blink.BlinkHTMLOListElement.instance.reversed_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOListElement.start')
   @DocsEditable()
@@ -25156,7 +28788,7 @@ class OListElement extends HtmlElement {
   
   @DomName('HTMLOListElement.start')
   @DocsEditable()
-  void set start(int value) => _blink.BlinkHTMLOListElement.instance.start_Setter_(unwrap_jso(this), value);
+  set start(int value) => _blink.BlinkHTMLOListElement.instance.start_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOListElement.type')
   @DocsEditable()
@@ -25164,7 +28796,7 @@ class OListElement extends HtmlElement {
   
   @DomName('HTMLOListElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLOListElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLOListElement.instance.type_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25187,6 +28819,18 @@ class ObjectElement extends HtmlElement {
   @DomName('HTMLObjectElement.HTMLObjectElement')
   @DocsEditable()
   factory ObjectElement() => document.createElement("object");
+
+
+  static ObjectElement internalCreateObjectElement() {
+    return new ObjectElement._internalWrap();
+  }
+
+  factory ObjectElement._internalWrap() {
+    return new ObjectElement.internal_();
+  }
+
+  ObjectElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25203,7 +28847,7 @@ class ObjectElement extends HtmlElement {
   
   @DomName('HTMLObjectElement.data')
   @DocsEditable()
-  void set data(String value) => _blink.BlinkHTMLObjectElement.instance.data_Setter_(unwrap_jso(this), value);
+  set data(String value) => _blink.BlinkHTMLObjectElement.instance.data_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLObjectElement.form')
   @DocsEditable()
@@ -25215,7 +28859,7 @@ class ObjectElement extends HtmlElement {
   
   @DomName('HTMLObjectElement.height')
   @DocsEditable()
-  void set height(String value) => _blink.BlinkHTMLObjectElement.instance.height_Setter_(unwrap_jso(this), value);
+  set height(String value) => _blink.BlinkHTMLObjectElement.instance.height_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLObjectElement.integrity')
   @DocsEditable()
@@ -25225,7 +28869,7 @@ class ObjectElement extends HtmlElement {
   @DomName('HTMLObjectElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLObjectElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLObjectElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLObjectElement.name')
   @DocsEditable()
@@ -25233,7 +28877,7 @@ class ObjectElement extends HtmlElement {
   
   @DomName('HTMLObjectElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLObjectElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLObjectElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLObjectElement.type')
   @DocsEditable()
@@ -25241,7 +28885,7 @@ class ObjectElement extends HtmlElement {
   
   @DomName('HTMLObjectElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLObjectElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLObjectElement.instance.type_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLObjectElement.useMap')
   @DocsEditable()
@@ -25249,7 +28893,7 @@ class ObjectElement extends HtmlElement {
   
   @DomName('HTMLObjectElement.useMap')
   @DocsEditable()
-  void set useMap(String value) => _blink.BlinkHTMLObjectElement.instance.useMap_Setter_(unwrap_jso(this), value);
+  set useMap(String value) => _blink.BlinkHTMLObjectElement.instance.useMap_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLObjectElement.validationMessage')
   @DocsEditable()
@@ -25265,7 +28909,7 @@ class ObjectElement extends HtmlElement {
   
   @DomName('HTMLObjectElement.width')
   @DocsEditable()
-  void set width(String value) => _blink.BlinkHTMLObjectElement.instance.width_Setter_(unwrap_jso(this), value);
+  set width(String value) => _blink.BlinkHTMLObjectElement.instance.width_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLObjectElement.willValidate')
   @DocsEditable()
@@ -25304,6 +28948,18 @@ class OptGroupElement extends HtmlElement {
   @DomName('HTMLOptGroupElement.HTMLOptGroupElement')
   @DocsEditable()
   factory OptGroupElement() => document.createElement("optgroup");
+
+
+  static OptGroupElement internalCreateOptGroupElement() {
+    return new OptGroupElement._internalWrap();
+  }
+
+  factory OptGroupElement._internalWrap() {
+    return new OptGroupElement.internal_();
+  }
+
+  OptGroupElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25317,7 +28973,7 @@ class OptGroupElement extends HtmlElement {
   
   @DomName('HTMLOptGroupElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLOptGroupElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLOptGroupElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOptGroupElement.label')
   @DocsEditable()
@@ -25325,7 +28981,7 @@ class OptGroupElement extends HtmlElement {
   
   @DomName('HTMLOptGroupElement.label')
   @DocsEditable()
-  void set label(String value) => _blink.BlinkHTMLOptGroupElement.instance.label_Setter_(unwrap_jso(this), value);
+  set label(String value) => _blink.BlinkHTMLOptGroupElement.instance.label_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -25342,8 +28998,20 @@ class OptionElement extends HtmlElement {
   @DomName('HTMLOptionElement.HTMLOptionElement')
   @DocsEditable()
   factory OptionElement._([String data, String value, bool defaultSelected, bool selected]) {
-    return _blink.BlinkHTMLOptionElement.instance.constructorCallback_4_(data, value, defaultSelected, selected);
+    return wrap_jso(_blink.BlinkHTMLOptionElement.instance.constructorCallback_4_(data, value, defaultSelected, selected));
   }
+
+
+  static OptionElement internalCreateOptionElement() {
+    return new OptionElement._internalWrap();
+  }
+
+  factory OptionElement._internalWrap() {
+    return new OptionElement.internal_();
+  }
+
+  OptionElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25357,7 +29025,7 @@ class OptionElement extends HtmlElement {
   
   @DomName('HTMLOptionElement.defaultSelected')
   @DocsEditable()
-  void set defaultSelected(bool value) => _blink.BlinkHTMLOptionElement.instance.defaultSelected_Setter_(unwrap_jso(this), value);
+  set defaultSelected(bool value) => _blink.BlinkHTMLOptionElement.instance.defaultSelected_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOptionElement.disabled')
   @DocsEditable()
@@ -25365,7 +29033,7 @@ class OptionElement extends HtmlElement {
   
   @DomName('HTMLOptionElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLOptionElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLOptionElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOptionElement.form')
   @DocsEditable()
@@ -25381,7 +29049,7 @@ class OptionElement extends HtmlElement {
   
   @DomName('HTMLOptionElement.label')
   @DocsEditable()
-  void set label(String value) => _blink.BlinkHTMLOptionElement.instance.label_Setter_(unwrap_jso(this), value);
+  set label(String value) => _blink.BlinkHTMLOptionElement.instance.label_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOptionElement.selected')
   @DocsEditable()
@@ -25389,7 +29057,7 @@ class OptionElement extends HtmlElement {
   
   @DomName('HTMLOptionElement.selected')
   @DocsEditable()
-  void set selected(bool value) => _blink.BlinkHTMLOptionElement.instance.selected_Setter_(unwrap_jso(this), value);
+  set selected(bool value) => _blink.BlinkHTMLOptionElement.instance.selected_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOptionElement.value')
   @DocsEditable()
@@ -25397,7 +29065,7 @@ class OptionElement extends HtmlElement {
   
   @DomName('HTMLOptionElement.value')
   @DocsEditable()
-  void set value(String value) => _blink.BlinkHTMLOptionElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(String value) => _blink.BlinkHTMLOptionElement.instance.value_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25419,6 +29087,18 @@ class OutputElement extends HtmlElement {
   @DomName('HTMLOutputElement.HTMLOutputElement')
   @DocsEditable()
   factory OutputElement() => document.createElement("output");
+
+
+  static OutputElement internalCreateOutputElement() {
+    return new OutputElement._internalWrap();
+  }
+
+  factory OutputElement._internalWrap() {
+    return new OutputElement.internal_();
+  }
+
+  OutputElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25435,7 +29115,7 @@ class OutputElement extends HtmlElement {
   
   @DomName('HTMLOutputElement.defaultValue')
   @DocsEditable()
-  void set defaultValue(String value) => _blink.BlinkHTMLOutputElement.instance.defaultValue_Setter_(unwrap_jso(this), value);
+  set defaultValue(String value) => _blink.BlinkHTMLOutputElement.instance.defaultValue_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOutputElement.form')
   @DocsEditable()
@@ -25448,7 +29128,7 @@ class OutputElement extends HtmlElement {
   @DomName('HTMLOutputElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => wrap_jso_list(_blink.BlinkHTMLOutputElement.instance.labels_Getter_(unwrap_jso(this)));
+  List<Node> get labels => wrap_jso(_blink.BlinkHTMLOutputElement.instance.labels_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLOutputElement.name')
   @DocsEditable()
@@ -25456,7 +29136,7 @@ class OutputElement extends HtmlElement {
   
   @DomName('HTMLOutputElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLOutputElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLOutputElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOutputElement.type')
   @DocsEditable()
@@ -25476,7 +29156,7 @@ class OutputElement extends HtmlElement {
   
   @DomName('HTMLOutputElement.value')
   @DocsEditable()
-  void set value(String value) => _blink.BlinkHTMLOutputElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(String value) => _blink.BlinkHTMLOutputElement.instance.value_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOutputElement.willValidate')
   @DocsEditable()
@@ -25504,6 +29184,18 @@ class OutputElement extends HtmlElement {
 class OverflowEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory OverflowEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static OverflowEvent internalCreateOverflowEvent() {
+    return new OverflowEvent._internalWrap();
+  }
+
+  factory OverflowEvent._internalWrap() {
+    return new OverflowEvent.internal_();
+  }
+
+  OverflowEvent.internal_() : super.internal_();
+
 
   @DomName('OverflowEvent.BOTH')
   @DocsEditable()
@@ -25545,6 +29237,18 @@ class PageTransitionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory PageTransitionEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static PageTransitionEvent internalCreatePageTransitionEvent() {
+    return new PageTransitionEvent._internalWrap();
+  }
+
+  factory PageTransitionEvent._internalWrap() {
+    return new PageTransitionEvent.internal_();
+  }
+
+  PageTransitionEvent.internal_() : super.internal_();
+
+
   @DomName('PageTransitionEvent.persisted')
   @DocsEditable()
   bool get persisted => _blink.BlinkPageTransitionEvent.instance.persisted_Getter_(unwrap_jso(this));
@@ -25566,6 +29270,18 @@ class ParagraphElement extends HtmlElement {
   @DomName('HTMLParagraphElement.HTMLParagraphElement')
   @DocsEditable()
   factory ParagraphElement() => document.createElement("p");
+
+
+  static ParagraphElement internalCreateParagraphElement() {
+    return new ParagraphElement._internalWrap();
+  }
+
+  factory ParagraphElement._internalWrap() {
+    return new ParagraphElement.internal_();
+  }
+
+  ParagraphElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25591,6 +29307,18 @@ class ParamElement extends HtmlElement {
   @DomName('HTMLParamElement.HTMLParamElement')
   @DocsEditable()
   factory ParamElement() => document.createElement("param");
+
+
+  static ParamElement internalCreateParamElement() {
+    return new ParamElement._internalWrap();
+  }
+
+  factory ParamElement._internalWrap() {
+    return new ParamElement.internal_();
+  }
+
+  ParamElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25604,7 +29332,7 @@ class ParamElement extends HtmlElement {
   
   @DomName('HTMLParamElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLParamElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLParamElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLParamElement.value')
   @DocsEditable()
@@ -25612,7 +29340,7 @@ class ParamElement extends HtmlElement {
   
   @DomName('HTMLParamElement.value')
   @DocsEditable()
-  void set value(String value) => _blink.BlinkHTMLParamElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(String value) => _blink.BlinkHTMLParamElement.instance.value_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25678,16 +29406,31 @@ class Path2D extends NativeFieldWrapperClass2 implements _CanvasPathMethods {
   @DocsEditable()
   factory Path2D([path_OR_text]) {
     if (path_OR_text == null) {
-      return _blink.BlinkPath2D.instance.constructorCallback_0_();
+      return wrap_jso(_blink.BlinkPath2D.instance.constructorCallback_0_());
     }
     if ((path_OR_text is Path2D || path_OR_text == null)) {
-      return _blink.BlinkPath2D.instance.constructorCallback_1_(path_OR_text);
+      return wrap_jso(_blink.BlinkPath2D.instance.constructorCallback_1_(path_OR_text));
     }
     if ((path_OR_text is String || path_OR_text == null)) {
-      return _blink.BlinkPath2D.instance.constructorCallback_1_(path_OR_text);
+      return wrap_jso(_blink.BlinkPath2D.instance.constructorCallback_1_(path_OR_text));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+
+  static Path2D internalCreatePath2D() {
+    return new Path2D._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Path2D._internalWrap() {
+    return new Path2D.internal_();
+  }
+
+  Path2D.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   void addPath(Path2D path, [Matrix transform]) {
     if (transform != null) {
@@ -25774,6 +29517,18 @@ class Performance extends EventTarget {
   // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
   static const EventStreamProvider<Event> resourceTimingBufferFullEvent = const EventStreamProvider<Event>('webkitresourcetimingbufferfull');
 
+
+  static Performance internalCreatePerformance() {
+    return new Performance._internalWrap();
+  }
+
+  factory Performance._internalWrap() {
+    return new Performance.internal_();
+  }
+
+  Performance.internal_() : super.internal_();
+
+
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
@@ -25806,19 +29561,19 @@ class Performance extends EventTarget {
   @DocsEditable()
   // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
   @Experimental()
-  List<PerformanceEntry> getEntries() => _blink.BlinkPerformance.instance.getEntries_Callback_0_(unwrap_jso(this));
+  List<PerformanceEntry> getEntries() => wrap_jso(_blink.BlinkPerformance.instance.getEntries_Callback_0_(unwrap_jso(this)));
   
   @DomName('Performance.getEntriesByName')
   @DocsEditable()
   // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
   @Experimental()
-  List<PerformanceEntry> getEntriesByName(String name, String entryType) => _blink.BlinkPerformance.instance.getEntriesByName_Callback_2_(unwrap_jso(this), name, entryType);
+  List<PerformanceEntry> getEntriesByName(String name, String entryType) => wrap_jso(_blink.BlinkPerformance.instance.getEntriesByName_Callback_2_(unwrap_jso(this), name, entryType));
   
   @DomName('Performance.getEntriesByType')
   @DocsEditable()
   // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
   @Experimental()
-  List<PerformanceEntry> getEntriesByType(String entryType) => _blink.BlinkPerformance.instance.getEntriesByType_Callback_1_(unwrap_jso(this), entryType);
+  List<PerformanceEntry> getEntriesByType(String entryType) => wrap_jso(_blink.BlinkPerformance.instance.getEntriesByType_Callback_1_(unwrap_jso(this), entryType));
   
   @DomName('Performance.mark')
   @DocsEditable()
@@ -25834,7 +29589,7 @@ class Performance extends EventTarget {
   
   @DomName('Performance.now')
   @DocsEditable()
-  double now() => _blink.BlinkPerformance.instance.now_Callback_0_(unwrap_jso(this));
+  num now() => _blink.BlinkPerformance.instance.now_Callback_0_(unwrap_jso(this));
   
   @DomName('Performance.webkitClearResourceTimings')
   @DocsEditable()
@@ -25875,9 +29630,24 @@ class PerformanceEntry extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PerformanceEntry._() { throw new UnsupportedError("Not supported"); }
 
+  static PerformanceEntry internalCreatePerformanceEntry() {
+    return new PerformanceEntry._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory PerformanceEntry._internalWrap() {
+    return new PerformanceEntry.internal_();
+  }
+
+  PerformanceEntry.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('PerformanceEntry.duration')
   @DocsEditable()
-  double get duration => _blink.BlinkPerformanceEntry.instance.duration_Getter_(unwrap_jso(this));
+  num get duration => _blink.BlinkPerformanceEntry.instance.duration_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceEntry.entryType')
   @DocsEditable()
@@ -25889,7 +29659,7 @@ class PerformanceEntry extends NativeFieldWrapperClass2 {
   
   @DomName('PerformanceEntry.startTime')
   @DocsEditable()
-  double get startTime => _blink.BlinkPerformanceEntry.instance.startTime_Getter_(unwrap_jso(this));
+  num get startTime => _blink.BlinkPerformanceEntry.instance.startTime_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25907,6 +29677,18 @@ class PerformanceMark extends PerformanceEntry {
   // To suppress missing implicit constructor warnings.
   factory PerformanceMark._() { throw new UnsupportedError("Not supported"); }
 
+
+  static PerformanceMark internalCreatePerformanceMark() {
+    return new PerformanceMark._internalWrap();
+  }
+
+  factory PerformanceMark._internalWrap() {
+    return new PerformanceMark.internal_();
+  }
+
+  PerformanceMark.internal_() : super.internal_();
+
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25923,6 +29705,18 @@ class PerformanceMeasure extends PerformanceEntry {
   // To suppress missing implicit constructor warnings.
   factory PerformanceMeasure._() { throw new UnsupportedError("Not supported"); }
 
+
+  static PerformanceMeasure internalCreatePerformanceMeasure() {
+    return new PerformanceMeasure._internalWrap();
+  }
+
+  factory PerformanceMeasure._internalWrap() {
+    return new PerformanceMeasure.internal_();
+  }
+
+  PerformanceMeasure.internal_() : super.internal_();
+
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25937,6 +29731,21 @@ class PerformanceMeasure extends PerformanceEntry {
 class PerformanceNavigation extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PerformanceNavigation._() { throw new UnsupportedError("Not supported"); }
+
+  static PerformanceNavigation internalCreatePerformanceNavigation() {
+    return new PerformanceNavigation._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory PerformanceNavigation._internalWrap() {
+    return new PerformanceNavigation.internal_();
+  }
+
+  PerformanceNavigation.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('PerformanceNavigation.TYPE_BACK_FORWARD')
   @DocsEditable()
@@ -25978,25 +29787,37 @@ class PerformanceResourceTiming extends PerformanceEntry {
   // To suppress missing implicit constructor warnings.
   factory PerformanceResourceTiming._() { throw new UnsupportedError("Not supported"); }
 
+
+  static PerformanceResourceTiming internalCreatePerformanceResourceTiming() {
+    return new PerformanceResourceTiming._internalWrap();
+  }
+
+  factory PerformanceResourceTiming._internalWrap() {
+    return new PerformanceResourceTiming.internal_();
+  }
+
+  PerformanceResourceTiming.internal_() : super.internal_();
+
+
   @DomName('PerformanceResourceTiming.connectEnd')
   @DocsEditable()
-  double get connectEnd => _blink.BlinkPerformanceResourceTiming.instance.connectEnd_Getter_(unwrap_jso(this));
+  num get connectEnd => _blink.BlinkPerformanceResourceTiming.instance.connectEnd_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.connectStart')
   @DocsEditable()
-  double get connectStart => _blink.BlinkPerformanceResourceTiming.instance.connectStart_Getter_(unwrap_jso(this));
+  num get connectStart => _blink.BlinkPerformanceResourceTiming.instance.connectStart_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.domainLookupEnd')
   @DocsEditable()
-  double get domainLookupEnd => _blink.BlinkPerformanceResourceTiming.instance.domainLookupEnd_Getter_(unwrap_jso(this));
+  num get domainLookupEnd => _blink.BlinkPerformanceResourceTiming.instance.domainLookupEnd_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.domainLookupStart')
   @DocsEditable()
-  double get domainLookupStart => _blink.BlinkPerformanceResourceTiming.instance.domainLookupStart_Getter_(unwrap_jso(this));
+  num get domainLookupStart => _blink.BlinkPerformanceResourceTiming.instance.domainLookupStart_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.fetchStart')
   @DocsEditable()
-  double get fetchStart => _blink.BlinkPerformanceResourceTiming.instance.fetchStart_Getter_(unwrap_jso(this));
+  num get fetchStart => _blink.BlinkPerformanceResourceTiming.instance.fetchStart_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.initiatorType')
   @DocsEditable()
@@ -26004,30 +29825,30 @@ class PerformanceResourceTiming extends PerformanceEntry {
   
   @DomName('PerformanceResourceTiming.redirectEnd')
   @DocsEditable()
-  double get redirectEnd => _blink.BlinkPerformanceResourceTiming.instance.redirectEnd_Getter_(unwrap_jso(this));
+  num get redirectEnd => _blink.BlinkPerformanceResourceTiming.instance.redirectEnd_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.redirectStart')
   @DocsEditable()
-  double get redirectStart => _blink.BlinkPerformanceResourceTiming.instance.redirectStart_Getter_(unwrap_jso(this));
+  num get redirectStart => _blink.BlinkPerformanceResourceTiming.instance.redirectStart_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.requestStart')
   @DocsEditable()
   @Experimental() // nonstandard
-  double get requestStart => _blink.BlinkPerformanceResourceTiming.instance.requestStart_Getter_(unwrap_jso(this));
+  num get requestStart => _blink.BlinkPerformanceResourceTiming.instance.requestStart_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.responseEnd')
   @DocsEditable()
   @Experimental() // nonstandard
-  double get responseEnd => _blink.BlinkPerformanceResourceTiming.instance.responseEnd_Getter_(unwrap_jso(this));
+  num get responseEnd => _blink.BlinkPerformanceResourceTiming.instance.responseEnd_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.responseStart')
   @DocsEditable()
   @Experimental() // nonstandard
-  double get responseStart => _blink.BlinkPerformanceResourceTiming.instance.responseStart_Getter_(unwrap_jso(this));
+  num get responseStart => _blink.BlinkPerformanceResourceTiming.instance.responseStart_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.secureConnectionStart')
   @DocsEditable()
-  double get secureConnectionStart => _blink.BlinkPerformanceResourceTiming.instance.secureConnectionStart_Getter_(unwrap_jso(this));
+  num get secureConnectionStart => _blink.BlinkPerformanceResourceTiming.instance.secureConnectionStart_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26043,6 +29864,21 @@ class PerformanceResourceTiming extends PerformanceEntry {
 class PerformanceTiming extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PerformanceTiming._() { throw new UnsupportedError("Not supported"); }
+
+  static PerformanceTiming internalCreatePerformanceTiming() {
+    return new PerformanceTiming._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory PerformanceTiming._internalWrap() {
+    return new PerformanceTiming.internal_();
+  }
+
+  PerformanceTiming.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('PerformanceTiming.connectEnd')
   @DocsEditable()
@@ -26142,6 +29978,18 @@ class PerformanceTiming extends NativeFieldWrapperClass2 {
 class PictureElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory PictureElement._() { throw new UnsupportedError("Not supported"); }
+
+
+  static PictureElement internalCreatePictureElement() {
+    return new PictureElement._internalWrap();
+  }
+
+  factory PictureElement._internalWrap() {
+    return new PictureElement.internal_();
+  }
+
+  PictureElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -26163,6 +30011,21 @@ class PictureElement extends HtmlElement {
 class Plugin extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Plugin._() { throw new UnsupportedError("Not supported"); }
+
+  static Plugin internalCreatePlugin() {
+    return new Plugin._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Plugin._internalWrap() {
+    return new Plugin.internal_();
+  }
+
+  Plugin.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Plugin.description')
   @DocsEditable()
@@ -26203,9 +30066,24 @@ class Plugin extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('PluginArray')
 @Experimental() // non-standard
-class PluginArray extends NativeFieldWrapperClass2 with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements List<Plugin> {
+class PluginArray extends JsoNativeFieldWrapper with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements List<Plugin> {
   // To suppress missing implicit constructor warnings.
   factory PluginArray._() { throw new UnsupportedError("Not supported"); }
+
+  static PluginArray internalCreatePluginArray() {
+    return new PluginArray._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory PluginArray._internalWrap() {
+    return new PluginArray.internal_();
+  }
+
+  PluginArray.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('PluginArray.length')
   @DocsEditable()
@@ -26218,7 +30096,7 @@ class PluginArray extends NativeFieldWrapperClass2 with ListMixin<Plugin>, Immut
   }
 
   Plugin _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkPluginArray.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, Plugin value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -26226,7 +30104,7 @@ class PluginArray extends NativeFieldWrapperClass2 with ListMixin<Plugin>, Immut
   // Plugin is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -26287,6 +30165,18 @@ class PluginArray extends NativeFieldWrapperClass2 with ListMixin<Plugin>, Immut
 class PluginPlaceholderElement extends DivElement {
   // To suppress missing implicit constructor warnings.
   factory PluginPlaceholderElement._() { throw new UnsupportedError("Not supported"); }
+
+
+  static PluginPlaceholderElement internalCreatePluginPlaceholderElement() {
+    return new PluginPlaceholderElement._internalWrap();
+  }
+
+  factory PluginPlaceholderElement._internalWrap() {
+    return new PluginPlaceholderElement.internal_();
+  }
+
+  PluginPlaceholderElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -26302,7 +30192,7 @@ class PluginPlaceholderElement extends DivElement {
   @DomName('PluginPlaceholderElement.message')
   @DocsEditable()
   @Experimental() // untriaged
-  void set message(String value) => _blink.BlinkPluginPlaceholderElement.instance.message_Setter_(unwrap_jso(this), value);
+  set message(String value) => _blink.BlinkPluginPlaceholderElement.instance.message_Setter_(unwrap_jso(this), value);
   
   @DomName('PluginPlaceholderElement.createdCallback')
   @DocsEditable()
@@ -26327,9 +30217,21 @@ class PopStateEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory PopStateEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static PopStateEvent internalCreatePopStateEvent() {
+    return new PopStateEvent._internalWrap();
+  }
+
+  factory PopStateEvent._internalWrap() {
+    return new PopStateEvent.internal_();
+  }
+
+  PopStateEvent.internal_() : super.internal_();
+
+
   @DomName('PopStateEvent.state')
   @DocsEditable()
-  Object get state => _blink.BlinkPopStateEvent.instance.state_Getter_(unwrap_jso(this));
+  Object get state => wrap_jso(_blink.BlinkPopStateEvent.instance.state_Getter_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26355,6 +30257,21 @@ typedef void _PositionCallback(Geoposition position);
 class PositionError extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PositionError._() { throw new UnsupportedError("Not supported"); }
+
+  static PositionError internalCreatePositionError() {
+    return new PositionError._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory PositionError._internalWrap() {
+    return new PositionError.internal_();
+  }
+
+  PositionError.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('PositionError.PERMISSION_DENIED')
   @DocsEditable()
@@ -26403,6 +30320,18 @@ class PreElement extends HtmlElement {
   @DomName('HTMLPreElement.HTMLPreElement')
   @DocsEditable()
   factory PreElement() => document.createElement("pre");
+
+
+  static PreElement internalCreatePreElement() {
+    return new PreElement._internalWrap();
+  }
+
+  factory PreElement._internalWrap() {
+    return new PreElement.internal_();
+  }
+
+  PreElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -26425,6 +30354,18 @@ class Presentation extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory Presentation._() { throw new UnsupportedError("Not supported"); }
 
+
+  static Presentation internalCreatePresentation() {
+    return new Presentation._internalWrap();
+  }
+
+  factory Presentation._internalWrap() {
+    return new Presentation.internal_();
+  }
+
+  Presentation.internal_() : super.internal_();
+
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26439,6 +30380,18 @@ class Presentation extends EventTarget {
 class ProcessingInstruction extends CharacterData {
   // To suppress missing implicit constructor warnings.
   factory ProcessingInstruction._() { throw new UnsupportedError("Not supported"); }
+
+
+  static ProcessingInstruction internalCreateProcessingInstruction() {
+    return new ProcessingInstruction._internalWrap();
+  }
+
+  factory ProcessingInstruction._internalWrap() {
+    return new ProcessingInstruction.internal_();
+  }
+
+  ProcessingInstruction.internal_() : super.internal_();
+
 
   @DomName('ProcessingInstruction.sheet')
   @DocsEditable()
@@ -26470,6 +30423,18 @@ class ProgressElement extends HtmlElement {
   @DomName('HTMLProgressElement.HTMLProgressElement')
   @DocsEditable()
   factory ProgressElement() => document.createElement("progress");
+
+
+  static ProgressElement internalCreateProgressElement() {
+    return new ProgressElement._internalWrap();
+  }
+
+  factory ProgressElement._internalWrap() {
+    return new ProgressElement.internal_();
+  }
+
+  ProgressElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -26483,7 +30448,7 @@ class ProgressElement extends HtmlElement {
   @DomName('HTMLProgressElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => wrap_jso_list(_blink.BlinkHTMLProgressElement.instance.labels_Getter_(unwrap_jso(this)));
+  List<Node> get labels => wrap_jso(_blink.BlinkHTMLProgressElement.instance.labels_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLProgressElement.max')
   @DocsEditable()
@@ -26491,11 +30456,11 @@ class ProgressElement extends HtmlElement {
   
   @DomName('HTMLProgressElement.max')
   @DocsEditable()
-  void set max(num value) => _blink.BlinkHTMLProgressElement.instance.max_Setter_(unwrap_jso(this), value);
+  set max(num value) => _blink.BlinkHTMLProgressElement.instance.max_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLProgressElement.position')
   @DocsEditable()
-  double get position => _blink.BlinkHTMLProgressElement.instance.position_Getter_(unwrap_jso(this));
+  num get position => _blink.BlinkHTMLProgressElement.instance.position_Getter_(unwrap_jso(this));
   
   @DomName('HTMLProgressElement.value')
   @DocsEditable()
@@ -26503,7 +30468,7 @@ class ProgressElement extends HtmlElement {
   
   @DomName('HTMLProgressElement.value')
   @DocsEditable()
-  void set value(num value) => _blink.BlinkHTMLProgressElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(num value) => _blink.BlinkHTMLProgressElement.instance.value_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26518,6 +30483,18 @@ class ProgressElement extends HtmlElement {
 class ProgressEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory ProgressEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static ProgressEvent internalCreateProgressEvent() {
+    return new ProgressEvent._internalWrap();
+  }
+
+  factory ProgressEvent._internalWrap() {
+    return new ProgressEvent.internal_();
+  }
+
+  ProgressEvent.internal_() : super.internal_();
+
 
   @DomName('ProgressEvent.lengthComputable')
   @DocsEditable()
@@ -26546,6 +30523,18 @@ class PushEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory PushEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static PushEvent internalCreatePushEvent() {
+    return new PushEvent._internalWrap();
+  }
+
+  factory PushEvent._internalWrap() {
+    return new PushEvent.internal_();
+  }
+
+  PushEvent.internal_() : super.internal_();
+
+
   @DomName('PushEvent.data')
   @DocsEditable()
   @Experimental() // untriaged
@@ -26566,10 +30555,25 @@ class PushManager extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PushManager._() { throw new UnsupportedError("Not supported"); }
 
+  static PushManager internalCreatePushManager() {
+    return new PushManager._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory PushManager._internalWrap() {
+    return new PushManager.internal_();
+  }
+
+  PushManager.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('PushManager.register')
   @DocsEditable()
   @Experimental() // untriaged
-  Future register(String senderId) => _blink.BlinkPushManager.instance.register_Callback_1_(unwrap_jso(this), senderId);
+  Future register(String senderId) => wrap_jso(_blink.BlinkPushManager.instance.register_Callback_1_(unwrap_jso(this), senderId));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26585,6 +30589,21 @@ class PushManager extends NativeFieldWrapperClass2 {
 class PushRegistration extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PushRegistration._() { throw new UnsupportedError("Not supported"); }
+
+  static PushRegistration internalCreatePushRegistration() {
+    return new PushRegistration._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory PushRegistration._internalWrap() {
+    return new PushRegistration.internal_();
+  }
+
+  PushRegistration.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('PushRegistration.pushEndpoint')
   @DocsEditable()
@@ -26613,6 +30632,18 @@ class QuoteElement extends HtmlElement {
   @DomName('HTMLQuoteElement.HTMLQuoteElement')
   @DocsEditable()
   factory QuoteElement() => document.createElement("q");
+
+
+  static QuoteElement internalCreateQuoteElement() {
+    return new QuoteElement._internalWrap();
+  }
+
+  factory QuoteElement._internalWrap() {
+    return new QuoteElement.internal_();
+  }
+
+  QuoteElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -26626,7 +30657,7 @@ class QuoteElement extends HtmlElement {
   
   @DomName('HTMLQuoteElement.cite')
   @DocsEditable()
-  void set cite(String value) => _blink.BlinkHTMLQuoteElement.instance.cite_Setter_(unwrap_jso(this), value);
+  set cite(String value) => _blink.BlinkHTMLQuoteElement.instance.cite_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26678,6 +30709,21 @@ class Range extends NativeFieldWrapperClass2 {
       document._caretRangeFromPoint(point.x, point.y);
   // To suppress missing implicit constructor warnings.
   factory Range._() { throw new UnsupportedError("Not supported"); }
+
+  static Range internalCreateRange() {
+    return new Range._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Range._internalWrap() {
+    return new Range.internal_();
+  }
+
+  Range.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Range.END_TO_END')
   @DocsEditable()
@@ -26792,7 +30838,7 @@ class Range extends NativeFieldWrapperClass2 {
   
   @DomName('Range.getClientRects')
   @DocsEditable()
-  List<Rectangle> getClientRects() => _blink.BlinkRange.instance.getClientRects_Callback_0_(unwrap_jso(this));
+  List<Rectangle> getClientRects() => wrap_jso(_blink.BlinkRange.instance.getClientRects_Callback_0_(unwrap_jso(this)));
   
   @DomName('Range.insertNode')
   @DocsEditable()
@@ -26862,10 +30908,25 @@ class ReadableStream extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ReadableStream._() { throw new UnsupportedError("Not supported"); }
 
+  static ReadableStream internalCreateReadableStream() {
+    return new ReadableStream._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory ReadableStream._internalWrap() {
+    return new ReadableStream.internal_();
+  }
+
+  ReadableStream.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('ReadableStream.closed')
   @DocsEditable()
   @Experimental() // untriaged
-  Future get closed => _blink.BlinkReadableStream.instance.closed_Getter_(unwrap_jso(this));
+  Future get closed => wrap_jso(_blink.BlinkReadableStream.instance.closed_Getter_(unwrap_jso(this)));
   
   @DomName('ReadableStream.state')
   @DocsEditable()
@@ -26875,7 +30936,7 @@ class ReadableStream extends NativeFieldWrapperClass2 {
   @DomName('ReadableStream.cancel')
   @DocsEditable()
   @Experimental() // untriaged
-  Future cancel(Object reason) => _blink.BlinkReadableStream.instance.cancel_Callback_1_(unwrap_jso(this), reason);
+  Future cancel(Object reason) => wrap_jso(_blink.BlinkReadableStream.instance.cancel_Callback_1_(unwrap_jso(this), reason));
   
   @DomName('ReadableStream.read')
   @DocsEditable()
@@ -26885,7 +30946,7 @@ class ReadableStream extends NativeFieldWrapperClass2 {
   @DomName('ReadableStream.wait')
   @DocsEditable()
   @Experimental() // untriaged
-  Future wait() => _blink.BlinkReadableStream.instance.wait_Callback_0_(unwrap_jso(this));
+  Future wait() => wrap_jso(_blink.BlinkReadableStream.instance.wait_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26901,6 +30962,18 @@ class ReadableStream extends NativeFieldWrapperClass2 {
 class RelatedEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory RelatedEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static RelatedEvent internalCreateRelatedEvent() {
+    return new RelatedEvent._internalWrap();
+  }
+
+  factory RelatedEvent._internalWrap() {
+    return new RelatedEvent.internal_();
+  }
+
+  RelatedEvent.internal_() : super.internal_();
+
 
   @DomName('RelatedEvent.relatedTarget')
   @DocsEditable()
@@ -26931,6 +31004,18 @@ typedef void RequestAnimationFrameCallback(num highResTime);
 class ResourceProgressEvent extends ProgressEvent {
   // To suppress missing implicit constructor warnings.
   factory ResourceProgressEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static ResourceProgressEvent internalCreateResourceProgressEvent() {
+    return new ResourceProgressEvent._internalWrap();
+  }
+
+  factory ResourceProgressEvent._internalWrap() {
+    return new ResourceProgressEvent.internal_();
+  }
+
+  ResourceProgressEvent.internal_() : super.internal_();
+
 
   @DomName('ResourceProgressEvent.url')
   @DocsEditable()
@@ -26992,13 +31077,25 @@ class RtcDataChannel extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
+
+  static RtcDataChannel internalCreateRtcDataChannel() {
+    return new RtcDataChannel._internalWrap();
+  }
+
+  factory RtcDataChannel._internalWrap() {
+    return new RtcDataChannel.internal_();
+  }
+
+  RtcDataChannel.internal_() : super.internal_();
+
+
   @DomName('RTCDataChannel.binaryType')
   @DocsEditable()
   String get binaryType => _blink.BlinkRTCDataChannel.instance.binaryType_Getter_(unwrap_jso(this));
   
   @DomName('RTCDataChannel.binaryType')
   @DocsEditable()
-  void set binaryType(String value) => _blink.BlinkRTCDataChannel.instance.binaryType_Setter_(unwrap_jso(this), value);
+  set binaryType(String value) => _blink.BlinkRTCDataChannel.instance.binaryType_Setter_(unwrap_jso(this), value);
   
   @DomName('RTCDataChannel.bufferedAmount')
   @DocsEditable()
@@ -27122,6 +31219,18 @@ class RtcDataChannelEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory RtcDataChannelEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static RtcDataChannelEvent internalCreateRtcDataChannelEvent() {
+    return new RtcDataChannelEvent._internalWrap();
+  }
+
+  factory RtcDataChannelEvent._internalWrap() {
+    return new RtcDataChannelEvent.internal_();
+  }
+
+  RtcDataChannelEvent.internal_() : super.internal_();
+
+
   @DomName('RTCDataChannelEvent.channel')
   @DocsEditable()
   RtcDataChannel get channel => wrap_jso(_blink.BlinkRTCDataChannelEvent.instance.channel_Getter_(unwrap_jso(this)));
@@ -27151,6 +31260,18 @@ class RtcDtmfSender extends EventTarget {
   @DomName('RTCDTMFSender.tonechangeEvent')
   @DocsEditable()
   static const EventStreamProvider<RtcDtmfToneChangeEvent> toneChangeEvent = const EventStreamProvider<RtcDtmfToneChangeEvent>('tonechange');
+
+
+  static RtcDtmfSender internalCreateRtcDtmfSender() {
+    return new RtcDtmfSender._internalWrap();
+  }
+
+  factory RtcDtmfSender._internalWrap() {
+    return new RtcDtmfSender.internal_();
+  }
+
+  RtcDtmfSender.internal_() : super.internal_();
+
 
   @DomName('RTCDTMFSender.canInsertDTMF')
   @DocsEditable()
@@ -27206,6 +31327,18 @@ class RtcDtmfToneChangeEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory RtcDtmfToneChangeEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static RtcDtmfToneChangeEvent internalCreateRtcDtmfToneChangeEvent() {
+    return new RtcDtmfToneChangeEvent._internalWrap();
+  }
+
+  factory RtcDtmfToneChangeEvent._internalWrap() {
+    return new RtcDtmfToneChangeEvent.internal_();
+  }
+
+  RtcDtmfToneChangeEvent.internal_() : super.internal_();
+
+
   @DomName('RTCDTMFToneChangeEvent.tone')
   @DocsEditable()
   String get tone => _blink.BlinkRTCDTMFToneChangeEvent.instance.tone_Getter_(unwrap_jso(this));
@@ -27230,8 +31363,24 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
   @DomName('RTCIceCandidate.RTCIceCandidate')
   @DocsEditable()
   factory RtcIceCandidate(Map dictionary) {
-    return _blink.BlinkRTCIceCandidate.instance.constructorCallback_1_(dictionary);
+    var dictionary_1 = convertDartToNative_Dictionary(dictionary);
+    return wrap_jso(_blink.BlinkRTCIceCandidate.instance.constructorCallback_1_(dictionary_1));
   }
+
+  static RtcIceCandidate internalCreateRtcIceCandidate() {
+    return new RtcIceCandidate._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory RtcIceCandidate._internalWrap() {
+    return new RtcIceCandidate.internal_();
+  }
+
+  RtcIceCandidate.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('RTCIceCandidate.candidate')
   @DocsEditable()
@@ -27239,7 +31388,7 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
   
   @DomName('RTCIceCandidate.candidate')
   @DocsEditable()
-  void set candidate(String value) => _blink.BlinkRTCIceCandidate.instance.candidate_Setter_(unwrap_jso(this), value);
+  set candidate(String value) => _blink.BlinkRTCIceCandidate.instance.candidate_Setter_(unwrap_jso(this), value);
   
   @DomName('RTCIceCandidate.sdpMLineIndex')
   @DocsEditable()
@@ -27247,7 +31396,7 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
   
   @DomName('RTCIceCandidate.sdpMLineIndex')
   @DocsEditable()
-  void set sdpMLineIndex(int value) => _blink.BlinkRTCIceCandidate.instance.sdpMLineIndex_Setter_(unwrap_jso(this), value);
+  set sdpMLineIndex(int value) => _blink.BlinkRTCIceCandidate.instance.sdpMLineIndex_Setter_(unwrap_jso(this), value);
   
   @DomName('RTCIceCandidate.sdpMid')
   @DocsEditable()
@@ -27255,7 +31404,7 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
   
   @DomName('RTCIceCandidate.sdpMid')
   @DocsEditable()
-  void set sdpMid(String value) => _blink.BlinkRTCIceCandidate.instance.sdpMid_Setter_(unwrap_jso(this), value);
+  set sdpMid(String value) => _blink.BlinkRTCIceCandidate.instance.sdpMid_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27272,6 +31421,18 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
 class RtcIceCandidateEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory RtcIceCandidateEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static RtcIceCandidateEvent internalCreateRtcIceCandidateEvent() {
+    return new RtcIceCandidateEvent._internalWrap();
+  }
+
+  factory RtcIceCandidateEvent._internalWrap() {
+    return new RtcIceCandidateEvent.internal_();
+  }
+
+  RtcIceCandidateEvent.internal_() : super.internal_();
+
 
   @DomName('RTCIceCandidateEvent.candidate')
   @DocsEditable()
@@ -27393,10 +31554,25 @@ class RtcPeerConnection extends EventTarget {
   @DocsEditable()
   factory RtcPeerConnection(Map rtcConfiguration, [Map mediaConstraints]) {
     if (mediaConstraints != null) {
-      return _blink.BlinkRTCPeerConnection.instance.constructorCallback_2_(rtcConfiguration, mediaConstraints);
+      var rtcConfiguration_1 = convertDartToNative_Dictionary(rtcConfiguration);
+      var mediaConstraints_2 = convertDartToNative_Dictionary(mediaConstraints);
+      return wrap_jso(_blink.BlinkRTCPeerConnection.instance.constructorCallback_2_(rtcConfiguration_1, mediaConstraints_2));
     }
-    return _blink.BlinkRTCPeerConnection.instance.constructorCallback_1_(rtcConfiguration);
+    var rtcConfiguration_1 = convertDartToNative_Dictionary(rtcConfiguration);
+    return wrap_jso(_blink.BlinkRTCPeerConnection.instance.constructorCallback_1_(rtcConfiguration_1));
   }
+
+
+  static RtcPeerConnection internalCreateRtcPeerConnection() {
+    return new RtcPeerConnection._internalWrap();
+  }
+
+  factory RtcPeerConnection._internalWrap() {
+    return new RtcPeerConnection.internal_();
+  }
+
+  RtcPeerConnection.internal_() : super.internal_();
+
 
   @DomName('RTCPeerConnection.iceConnectionState')
   @DocsEditable()
@@ -27420,11 +31596,11 @@ class RtcPeerConnection extends EventTarget {
   
   @DomName('RTCPeerConnection.addIceCandidate')
   @DocsEditable()
-  void addIceCandidate(RtcIceCandidate candidate, VoidCallback successCallback, _RtcErrorCallback failureCallback) => _blink.BlinkRTCPeerConnection.instance.addIceCandidate_Callback_3_(unwrap_jso(this), unwrap_jso(candidate), unwrap_jso(successCallback), unwrap_jso(failureCallback));
+  void addIceCandidate(RtcIceCandidate candidate, VoidCallback successCallback, _RtcErrorCallback failureCallback) => _blink.BlinkRTCPeerConnection.instance.addIceCandidate_Callback_3_(unwrap_jso(this), unwrap_jso(candidate), unwrap_jso(() => successCallback()), unwrap_jso((errorInformation) => failureCallback(errorInformation)));
   
   void addStream(MediaStream stream, [Map mediaConstraints]) {
     if (mediaConstraints != null) {
-      _blink.BlinkRTCPeerConnection.instance.addStream_Callback_2_(unwrap_jso(this), unwrap_jso(stream), mediaConstraints);
+      _blink.BlinkRTCPeerConnection.instance.addStream_Callback_2_(unwrap_jso(this), unwrap_jso(stream), convertDartToNative_Dictionary(mediaConstraints));
       return;
     }
     _blink.BlinkRTCPeerConnection.instance.addStream_Callback_1_(unwrap_jso(this), unwrap_jso(stream));
@@ -27437,44 +31613,44 @@ class RtcPeerConnection extends EventTarget {
   
   void _createAnswer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) {
     if (mediaConstraints != null) {
-      _blink.BlinkRTCPeerConnection.instance.createAnswer_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(failureCallback), mediaConstraints);
+      _blink.BlinkRTCPeerConnection.instance.createAnswer_Callback_3_(unwrap_jso(this), unwrap_jso((sdp) => successCallback(wrap_jso(sdp))), unwrap_jso((errorInformation) => failureCallback(errorInformation)), convertDartToNative_Dictionary(mediaConstraints));
       return;
     }
-    _blink.BlinkRTCPeerConnection.instance.createAnswer_Callback_2_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(failureCallback));
+    _blink.BlinkRTCPeerConnection.instance.createAnswer_Callback_2_(unwrap_jso(this), unwrap_jso((sdp) => successCallback(wrap_jso(sdp))), unwrap_jso((errorInformation) => failureCallback(errorInformation)));
     return;
   }
 
   @DomName('RTCPeerConnection.createDTMFSender')
   @DocsEditable()
-  RtcDtmfSender createDtmfSender(MediaStreamTrack track) => _blink.BlinkRTCPeerConnection.instance.createDTMFSender_Callback_1_(unwrap_jso(this), unwrap_jso(track));
+  RtcDtmfSender createDtmfSender(MediaStreamTrack track) => wrap_jso(_blink.BlinkRTCPeerConnection.instance.createDTMFSender_Callback_1_(unwrap_jso(this), unwrap_jso(track)));
   
   RtcDataChannel createDataChannel(String label, [Map options]) {
     if (options != null) {
-      return _blink.BlinkRTCPeerConnection.instance.createDataChannel_Callback_2_(unwrap_jso(this), label, options);
+      return wrap_jso(_blink.BlinkRTCPeerConnection.instance.createDataChannel_Callback_2_(unwrap_jso(this), label, convertDartToNative_Dictionary(options)));
     }
-    return _blink.BlinkRTCPeerConnection.instance.createDataChannel_Callback_1_(unwrap_jso(this), label);
+    return wrap_jso(_blink.BlinkRTCPeerConnection.instance.createDataChannel_Callback_1_(unwrap_jso(this), label));
   }
 
   void _createOffer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map rtcOfferOptions]) {
     if (rtcOfferOptions != null) {
-      _blink.BlinkRTCPeerConnection.instance.createOffer_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(failureCallback), rtcOfferOptions);
+      _blink.BlinkRTCPeerConnection.instance.createOffer_Callback_3_(unwrap_jso(this), unwrap_jso((sdp) => successCallback(wrap_jso(sdp))), unwrap_jso((errorInformation) => failureCallback(errorInformation)), convertDartToNative_Dictionary(rtcOfferOptions));
       return;
     }
-    _blink.BlinkRTCPeerConnection.instance.createOffer_Callback_2_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(failureCallback));
+    _blink.BlinkRTCPeerConnection.instance.createOffer_Callback_2_(unwrap_jso(this), unwrap_jso((sdp) => successCallback(wrap_jso(sdp))), unwrap_jso((errorInformation) => failureCallback(errorInformation)));
     return;
   }
 
   @DomName('RTCPeerConnection.getLocalStreams')
   @DocsEditable()
-  List<MediaStream> getLocalStreams() => _blink.BlinkRTCPeerConnection.instance.getLocalStreams_Callback_0_(unwrap_jso(this));
+  List<MediaStream> getLocalStreams() => wrap_jso(_blink.BlinkRTCPeerConnection.instance.getLocalStreams_Callback_0_(unwrap_jso(this)));
   
   @DomName('RTCPeerConnection.getRemoteStreams')
   @DocsEditable()
-  List<MediaStream> getRemoteStreams() => _blink.BlinkRTCPeerConnection.instance.getRemoteStreams_Callback_0_(unwrap_jso(this));
+  List<MediaStream> getRemoteStreams() => wrap_jso(_blink.BlinkRTCPeerConnection.instance.getRemoteStreams_Callback_0_(unwrap_jso(this)));
   
   @DomName('RTCPeerConnection.getStats')
   @DocsEditable()
-  void _getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) => _blink.BlinkRTCPeerConnection.instance.getStats_Callback_2_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(selector));
+  void _getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) => _blink.BlinkRTCPeerConnection.instance.getStats_Callback_2_(unwrap_jso(this), unwrap_jso((response) => successCallback(wrap_jso(response))), unwrap_jso(selector));
   
   @DomName('RTCPeerConnection.getStreamById')
   @DocsEditable()
@@ -27486,7 +31662,7 @@ class RtcPeerConnection extends EventTarget {
   
   @DomName('RTCPeerConnection.setLocalDescription')
   @DocsEditable()
-  void _setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, _RtcErrorCallback failureCallback]) => _blink.BlinkRTCPeerConnection.instance.setLocalDescription_Callback_3_(unwrap_jso(this), unwrap_jso(description), unwrap_jso(successCallback), unwrap_jso(failureCallback));
+  void _setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, _RtcErrorCallback failureCallback]) => _blink.BlinkRTCPeerConnection.instance.setLocalDescription_Callback_3_(unwrap_jso(this), unwrap_jso(description), unwrap_jso(() => successCallback()), unwrap_jso((errorInformation) => failureCallback(errorInformation)));
   
   Future setLocalDescription(RtcSessionDescription description) {
     var completer = new Completer();
@@ -27498,7 +31674,7 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.setRemoteDescription')
   @DocsEditable()
-  void _setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, _RtcErrorCallback failureCallback]) => _blink.BlinkRTCPeerConnection.instance.setRemoteDescription_Callback_3_(unwrap_jso(this), unwrap_jso(description), unwrap_jso(successCallback), unwrap_jso(failureCallback));
+  void _setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, _RtcErrorCallback failureCallback]) => _blink.BlinkRTCPeerConnection.instance.setRemoteDescription_Callback_3_(unwrap_jso(this), unwrap_jso(description), unwrap_jso(() => successCallback()), unwrap_jso((errorInformation) => failureCallback(errorInformation)));
   
   Future setRemoteDescription(RtcSessionDescription description) {
     var completer = new Completer();
@@ -27510,11 +31686,11 @@ class RtcPeerConnection extends EventTarget {
 
   void updateIce([Map configuration, Map mediaConstraints]) {
     if (mediaConstraints != null) {
-      _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_2_(unwrap_jso(this), configuration, mediaConstraints);
+      _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_2_(unwrap_jso(this), convertDartToNative_Dictionary(configuration), convertDartToNative_Dictionary(mediaConstraints));
       return;
     }
     if (configuration != null) {
-      _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_1_(unwrap_jso(this), configuration);
+      _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(configuration));
       return;
     }
     _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_0_(unwrap_jso(this));
@@ -27577,10 +31753,26 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
   @DocsEditable()
   factory RtcSessionDescription([Map descriptionInitDict]) {
     if (descriptionInitDict != null) {
-      return _blink.BlinkRTCSessionDescription.instance.constructorCallback_1_(descriptionInitDict);
+      var descriptionInitDict_1 = convertDartToNative_Dictionary(descriptionInitDict);
+      return wrap_jso(_blink.BlinkRTCSessionDescription.instance.constructorCallback_1_(descriptionInitDict_1));
     }
-    return _blink.BlinkRTCSessionDescription.instance.constructorCallback_0_();
+    return wrap_jso(_blink.BlinkRTCSessionDescription.instance.constructorCallback_0_());
   }
+
+  static RtcSessionDescription internalCreateRtcSessionDescription() {
+    return new RtcSessionDescription._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory RtcSessionDescription._internalWrap() {
+    return new RtcSessionDescription.internal_();
+  }
+
+  RtcSessionDescription.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('RTCSessionDescription.sdp')
   @DocsEditable()
@@ -27588,7 +31780,7 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
   
   @DomName('RTCSessionDescription.sdp')
   @DocsEditable()
-  void set sdp(String value) => _blink.BlinkRTCSessionDescription.instance.sdp_Setter_(unwrap_jso(this), value);
+  set sdp(String value) => _blink.BlinkRTCSessionDescription.instance.sdp_Setter_(unwrap_jso(this), value);
   
   @DomName('RTCSessionDescription.type')
   @DocsEditable()
@@ -27596,7 +31788,7 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
   
   @DomName('RTCSessionDescription.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkRTCSessionDescription.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkRTCSessionDescription.instance.type_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27613,6 +31805,21 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
 class RtcStatsReport extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory RtcStatsReport._() { throw new UnsupportedError("Not supported"); }
+
+  static RtcStatsReport internalCreateRtcStatsReport() {
+    return new RtcStatsReport._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory RtcStatsReport._internalWrap() {
+    return new RtcStatsReport.internal_();
+  }
+
+  RtcStatsReport.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('RTCStatsReport.id')
   @DocsEditable()
@@ -27658,17 +31865,32 @@ class RtcStatsResponse extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory RtcStatsResponse._() { throw new UnsupportedError("Not supported"); }
 
+  static RtcStatsResponse internalCreateRtcStatsResponse() {
+    return new RtcStatsResponse._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory RtcStatsResponse._internalWrap() {
+    return new RtcStatsResponse.internal_();
+  }
+
+  RtcStatsResponse.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('RTCStatsResponse.__getter__')
   @DocsEditable()
-  RtcStatsReport __getter__(String name) => _blink.BlinkRTCStatsResponse.instance.$__getter___Callback_1_(unwrap_jso(this), name);
+  RtcStatsReport __getter__(String name) => wrap_jso(_blink.BlinkRTCStatsResponse.instance.$__getter___Callback_1_(unwrap_jso(this), name));
   
   @DomName('RTCStatsResponse.namedItem')
   @DocsEditable()
-  RtcStatsReport namedItem(String name) => _blink.BlinkRTCStatsResponse.instance.namedItem_Callback_1_(unwrap_jso(this), name);
+  RtcStatsReport namedItem(String name) => wrap_jso(_blink.BlinkRTCStatsResponse.instance.namedItem_Callback_1_(unwrap_jso(this), name));
   
   @DomName('RTCStatsResponse.result')
   @DocsEditable()
-  List<RtcStatsReport> result() => _blink.BlinkRTCStatsResponse.instance.result_Callback_0_(unwrap_jso(this));
+  List<RtcStatsReport> result() => wrap_jso(_blink.BlinkRTCStatsResponse.instance.result_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -27688,6 +31910,21 @@ class Screen extends NativeFieldWrapperClass2 {
       _availHeight);
   // To suppress missing implicit constructor warnings.
   factory Screen._() { throw new UnsupportedError("Not supported"); }
+
+  static Screen internalCreateScreen() {
+    return new Screen._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Screen._internalWrap() {
+    return new Screen.internal_();
+  }
+
+  Screen.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Screen.availHeight')
   @DocsEditable()
@@ -27747,6 +31984,18 @@ class ScreenOrientation extends EventTarget {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
+
+  static ScreenOrientation internalCreateScreenOrientation() {
+    return new ScreenOrientation._internalWrap();
+  }
+
+  factory ScreenOrientation._internalWrap() {
+    return new ScreenOrientation.internal_();
+  }
+
+  ScreenOrientation.internal_() : super.internal_();
+
+
   @DomName('ScreenOrientation.angle')
   @DocsEditable()
   @Experimental() // untriaged
@@ -27760,7 +32009,7 @@ class ScreenOrientation extends EventTarget {
   @DomName('ScreenOrientation.lock')
   @DocsEditable()
   @Experimental() // untriaged
-  Future lock(String orientation) => _blink.BlinkScreenOrientation.instance.lock_Callback_1_(unwrap_jso(this), orientation);
+  Future lock(String orientation) => wrap_jso(_blink.BlinkScreenOrientation.instance.lock_Callback_1_(unwrap_jso(this), orientation));
   
   @DomName('ScreenOrientation.unlock')
   @DocsEditable()
@@ -27789,6 +32038,18 @@ class ScriptElement extends HtmlElement {
   @DomName('HTMLScriptElement.HTMLScriptElement')
   @DocsEditable()
   factory ScriptElement() => document.createElement("script");
+
+
+  static ScriptElement internalCreateScriptElement() {
+    return new ScriptElement._internalWrap();
+  }
+
+  factory ScriptElement._internalWrap() {
+    return new ScriptElement.internal_();
+  }
+
+  ScriptElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -27802,7 +32063,7 @@ class ScriptElement extends HtmlElement {
   
   @DomName('HTMLScriptElement.async')
   @DocsEditable()
-  void set async(bool value) => _blink.BlinkHTMLScriptElement.instance.async_Setter_(unwrap_jso(this), value);
+  set async(bool value) => _blink.BlinkHTMLScriptElement.instance.async_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLScriptElement.charset')
   @DocsEditable()
@@ -27810,7 +32071,7 @@ class ScriptElement extends HtmlElement {
   
   @DomName('HTMLScriptElement.charset')
   @DocsEditable()
-  void set charset(String value) => _blink.BlinkHTMLScriptElement.instance.charset_Setter_(unwrap_jso(this), value);
+  set charset(String value) => _blink.BlinkHTMLScriptElement.instance.charset_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLScriptElement.crossOrigin')
   @DocsEditable()
@@ -27822,7 +32083,7 @@ class ScriptElement extends HtmlElement {
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/scripting-1.html#attr-script-crossorigin
   @Experimental()
-  void set crossOrigin(String value) => _blink.BlinkHTMLScriptElement.instance.crossOrigin_Setter_(unwrap_jso(this), value);
+  set crossOrigin(String value) => _blink.BlinkHTMLScriptElement.instance.crossOrigin_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLScriptElement.defer')
   @DocsEditable()
@@ -27830,7 +32091,7 @@ class ScriptElement extends HtmlElement {
   
   @DomName('HTMLScriptElement.defer')
   @DocsEditable()
-  void set defer(bool value) => _blink.BlinkHTMLScriptElement.instance.defer_Setter_(unwrap_jso(this), value);
+  set defer(bool value) => _blink.BlinkHTMLScriptElement.instance.defer_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLScriptElement.integrity')
   @DocsEditable()
@@ -27840,7 +32101,7 @@ class ScriptElement extends HtmlElement {
   @DomName('HTMLScriptElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLScriptElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLScriptElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLScriptElement.nonce')
   @DocsEditable()
@@ -27852,7 +32113,7 @@ class ScriptElement extends HtmlElement {
   @DocsEditable()
   // https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#interaction-with-the-script-src-directive
   @Experimental()
-  void set nonce(String value) => _blink.BlinkHTMLScriptElement.instance.nonce_Setter_(unwrap_jso(this), value);
+  set nonce(String value) => _blink.BlinkHTMLScriptElement.instance.nonce_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLScriptElement.src')
   @DocsEditable()
@@ -27860,7 +32121,7 @@ class ScriptElement extends HtmlElement {
   
   @DomName('HTMLScriptElement.src')
   @DocsEditable()
-  void set src(String value) => _blink.BlinkHTMLScriptElement.instance.src_Setter_(unwrap_jso(this), value);
+  set src(String value) => _blink.BlinkHTMLScriptElement.instance.src_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLScriptElement.type')
   @DocsEditable()
@@ -27868,7 +32129,7 @@ class ScriptElement extends HtmlElement {
   
   @DomName('HTMLScriptElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLScriptElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLScriptElement.instance.type_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27885,6 +32146,18 @@ class ScriptElement extends HtmlElement {
 class SecurityPolicyViolationEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory SecurityPolicyViolationEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static SecurityPolicyViolationEvent internalCreateSecurityPolicyViolationEvent() {
+    return new SecurityPolicyViolationEvent._internalWrap();
+  }
+
+  factory SecurityPolicyViolationEvent._internalWrap() {
+    return new SecurityPolicyViolationEvent.internal_();
+  }
+
+  SecurityPolicyViolationEvent.internal_() : super.internal_();
+
 
   @DomName('SecurityPolicyViolationEvent.blockedURI')
   @DocsEditable()
@@ -27941,6 +32214,18 @@ class SelectElement extends HtmlElement {
   @DomName('HTMLSelectElement.HTMLSelectElement')
   @DocsEditable()
   factory SelectElement() => document.createElement("select");
+
+
+  static SelectElement internalCreateSelectElement() {
+    return new SelectElement._internalWrap();
+  }
+
+  factory SelectElement._internalWrap() {
+    return new SelectElement.internal_();
+  }
+
+  SelectElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -27954,7 +32239,7 @@ class SelectElement extends HtmlElement {
   
   @DomName('HTMLSelectElement.autofocus')
   @DocsEditable()
-  void set autofocus(bool value) => _blink.BlinkHTMLSelectElement.instance.autofocus_Setter_(unwrap_jso(this), value);
+  set autofocus(bool value) => _blink.BlinkHTMLSelectElement.instance.autofocus_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSelectElement.disabled')
   @DocsEditable()
@@ -27962,7 +32247,7 @@ class SelectElement extends HtmlElement {
   
   @DomName('HTMLSelectElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLSelectElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLSelectElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSelectElement.form')
   @DocsEditable()
@@ -27971,7 +32256,7 @@ class SelectElement extends HtmlElement {
   @DomName('HTMLSelectElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => wrap_jso_list(_blink.BlinkHTMLSelectElement.instance.labels_Getter_(unwrap_jso(this)));
+  List<Node> get labels => wrap_jso(_blink.BlinkHTMLSelectElement.instance.labels_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLSelectElement.length')
   @DocsEditable()
@@ -27979,7 +32264,7 @@ class SelectElement extends HtmlElement {
   
   @DomName('HTMLSelectElement.length')
   @DocsEditable()
-  void set length(int value) => _blink.BlinkHTMLSelectElement.instance.length_Setter_(unwrap_jso(this), value);
+  set length(int value) => _blink.BlinkHTMLSelectElement.instance.length_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSelectElement.multiple')
   @DocsEditable()
@@ -27987,7 +32272,7 @@ class SelectElement extends HtmlElement {
   
   @DomName('HTMLSelectElement.multiple')
   @DocsEditable()
-  void set multiple(bool value) => _blink.BlinkHTMLSelectElement.instance.multiple_Setter_(unwrap_jso(this), value);
+  set multiple(bool value) => _blink.BlinkHTMLSelectElement.instance.multiple_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSelectElement.name')
   @DocsEditable()
@@ -27995,7 +32280,7 @@ class SelectElement extends HtmlElement {
   
   @DomName('HTMLSelectElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLSelectElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLSelectElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSelectElement.required')
   @DocsEditable()
@@ -28003,7 +32288,7 @@ class SelectElement extends HtmlElement {
   
   @DomName('HTMLSelectElement.required')
   @DocsEditable()
-  void set required(bool value) => _blink.BlinkHTMLSelectElement.instance.required_Setter_(unwrap_jso(this), value);
+  set required(bool value) => _blink.BlinkHTMLSelectElement.instance.required_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSelectElement.selectedIndex')
   @DocsEditable()
@@ -28011,7 +32296,7 @@ class SelectElement extends HtmlElement {
   
   @DomName('HTMLSelectElement.selectedIndex')
   @DocsEditable()
-  void set selectedIndex(int value) => _blink.BlinkHTMLSelectElement.instance.selectedIndex_Setter_(unwrap_jso(this), value);
+  set selectedIndex(int value) => _blink.BlinkHTMLSelectElement.instance.selectedIndex_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSelectElement.size')
   @DocsEditable()
@@ -28019,7 +32304,7 @@ class SelectElement extends HtmlElement {
   
   @DomName('HTMLSelectElement.size')
   @DocsEditable()
-  void set size(int value) => _blink.BlinkHTMLSelectElement.instance.size_Setter_(unwrap_jso(this), value);
+  set size(int value) => _blink.BlinkHTMLSelectElement.instance.size_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSelectElement.type')
   @DocsEditable()
@@ -28039,7 +32324,7 @@ class SelectElement extends HtmlElement {
   
   @DomName('HTMLSelectElement.value')
   @DocsEditable()
-  void set value(String value) => _blink.BlinkHTMLSelectElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(String value) => _blink.BlinkHTMLSelectElement.instance.value_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSelectElement.willValidate')
   @DocsEditable()
@@ -28101,6 +32386,21 @@ class SelectElement extends HtmlElement {
 class Selection extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Selection._() { throw new UnsupportedError("Not supported"); }
+
+  static Selection internalCreateSelection() {
+    return new Selection._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Selection._internalWrap() {
+    return new Selection.internal_();
+  }
+
+  Selection.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Selection.anchorNode')
   @DocsEditable()
@@ -28241,6 +32541,21 @@ class ServiceWorkerClient extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerClient._() { throw new UnsupportedError("Not supported"); }
 
+  static ServiceWorkerClient internalCreateServiceWorkerClient() {
+    return new ServiceWorkerClient._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory ServiceWorkerClient._internalWrap() {
+    return new ServiceWorkerClient.internal_();
+  }
+
+  ServiceWorkerClient.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('ServiceWorkerClient.id')
   @DocsEditable()
   @Experimental() // untriaged
@@ -28266,11 +32581,26 @@ class ServiceWorkerClients extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerClients._() { throw new UnsupportedError("Not supported"); }
 
+  static ServiceWorkerClients internalCreateServiceWorkerClients() {
+    return new ServiceWorkerClients._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory ServiceWorkerClients._internalWrap() {
+    return new ServiceWorkerClients.internal_();
+  }
+
+  ServiceWorkerClients.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   Future getAll([Map options]) {
     if (options != null) {
-      return _blink.BlinkServiceWorkerClients.instance.getAll_Callback_1_(unwrap_jso(this), options);
+      return wrap_jso(_blink.BlinkServiceWorkerClients.instance.getAll_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(options)));
     }
-    return _blink.BlinkServiceWorkerClients.instance.getAll_Callback_0_(unwrap_jso(this));
+    return wrap_jso(_blink.BlinkServiceWorkerClients.instance.getAll_Callback_0_(unwrap_jso(this)));
   }
 
 }
@@ -28288,6 +32618,21 @@ class ServiceWorkerContainer extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerContainer._() { throw new UnsupportedError("Not supported"); }
 
+  static ServiceWorkerContainer internalCreateServiceWorkerContainer() {
+    return new ServiceWorkerContainer._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory ServiceWorkerContainer._internalWrap() {
+    return new ServiceWorkerContainer.internal_();
+  }
+
+  ServiceWorkerContainer.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('ServiceWorkerContainer.controller')
   @DocsEditable()
   @Experimental() // untriaged
@@ -28296,20 +32641,20 @@ class ServiceWorkerContainer extends NativeFieldWrapperClass2 {
   @DomName('ServiceWorkerContainer.ready')
   @DocsEditable()
   @Experimental() // untriaged
-  Future get ready => _blink.BlinkServiceWorkerContainer.instance.ready_Getter_(unwrap_jso(this));
+  Future get ready => wrap_jso(_blink.BlinkServiceWorkerContainer.instance.ready_Getter_(unwrap_jso(this)));
   
   Future getRegistration([String documentURL]) {
     if (documentURL != null) {
-      return _blink.BlinkServiceWorkerContainer.instance.getRegistration_Callback_1_(unwrap_jso(this), documentURL);
+      return wrap_jso(_blink.BlinkServiceWorkerContainer.instance.getRegistration_Callback_1_(unwrap_jso(this), documentURL));
     }
-    return _blink.BlinkServiceWorkerContainer.instance.getRegistration_Callback_0_(unwrap_jso(this));
+    return wrap_jso(_blink.BlinkServiceWorkerContainer.instance.getRegistration_Callback_0_(unwrap_jso(this)));
   }
 
   Future register(String url, [Map options]) {
     if (options != null) {
-      return _blink.BlinkServiceWorkerContainer.instance.register_Callback_2_(unwrap_jso(this), url, options);
+      return wrap_jso(_blink.BlinkServiceWorkerContainer.instance.register_Callback_2_(unwrap_jso(this), url, convertDartToNative_Dictionary(options)));
     }
-    return _blink.BlinkServiceWorkerContainer.instance.register_Callback_1_(unwrap_jso(this), url);
+    return wrap_jso(_blink.BlinkServiceWorkerContainer.instance.register_Callback_1_(unwrap_jso(this), url));
   }
 
 }
@@ -28331,6 +32676,18 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+
+  static ServiceWorkerGlobalScope internalCreateServiceWorkerGlobalScope() {
+    return new ServiceWorkerGlobalScope._internalWrap();
+  }
+
+  factory ServiceWorkerGlobalScope._internalWrap() {
+    return new ServiceWorkerGlobalScope.internal_();
+  }
+
+  ServiceWorkerGlobalScope.internal_() : super.internal_();
+
 
   @DomName('ServiceWorkerGlobalScope.caches')
   @DocsEditable()
@@ -28354,16 +32711,16 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   
   Future _fetch(request, [Map requestInitDict]) {
     if ((request is String || request == null) && requestInitDict == null) {
-      return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_1_(unwrap_jso(this), unwrap_jso(request));
+      return wrap_jso(_blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_1_(unwrap_jso(this), unwrap_jso(request)));
     }
     if ((requestInitDict is Map || requestInitDict == null) && (request is String || request == null)) {
-      return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), requestInitDict);
+      return wrap_jso(_blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), convertDartToNative_Dictionary(requestInitDict)));
     }
     if ((request is _Request || request == null) && requestInitDict == null) {
-      return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_1_(unwrap_jso(this), unwrap_jso(request));
+      return wrap_jso(_blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_1_(unwrap_jso(this), unwrap_jso(request)));
     }
     if ((requestInitDict is Map || requestInitDict == null) && (request is _Request || request == null)) {
-      return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), requestInitDict);
+      return wrap_jso(_blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), convertDartToNative_Dictionary(requestInitDict)));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -28388,6 +32745,18 @@ class ServiceWorkerRegistration extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerRegistration._() { throw new UnsupportedError("Not supported"); }
 
+
+  static ServiceWorkerRegistration internalCreateServiceWorkerRegistration() {
+    return new ServiceWorkerRegistration._internalWrap();
+  }
+
+  factory ServiceWorkerRegistration._internalWrap() {
+    return new ServiceWorkerRegistration.internal_();
+  }
+
+  ServiceWorkerRegistration.internal_() : super.internal_();
+
+
   @DomName('ServiceWorkerRegistration.active')
   @DocsEditable()
   @Experimental() // untriaged
@@ -28411,7 +32780,7 @@ class ServiceWorkerRegistration extends EventTarget {
   @DomName('ServiceWorkerRegistration.unregister')
   @DocsEditable()
   @Experimental() // untriaged
-  Future unregister() => _blink.BlinkServiceWorkerRegistration.instance.unregister_Callback_0_(unwrap_jso(this));
+  Future unregister() => wrap_jso(_blink.BlinkServiceWorkerRegistration.instance.unregister_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28433,6 +32802,18 @@ class ShadowElement extends HtmlElement {
   @DomName('HTMLShadowElement.HTMLShadowElement')
   @DocsEditable()
   factory ShadowElement() => document.createElement("shadow");
+
+
+  static ShadowElement internalCreateShadowElement() {
+    return new ShadowElement._internalWrap();
+  }
+
+  factory ShadowElement._internalWrap() {
+    return new ShadowElement.internal_();
+  }
+
+  ShadowElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -28446,7 +32827,7 @@ class ShadowElement extends HtmlElement {
   @DomName('HTMLShadowElement.getDistributedNodes')
   @DocsEditable()
   @Experimental() // untriaged
-  List<Node> getDistributedNodes() => wrap_jso_list(_blink.BlinkHTMLShadowElement.instance.getDistributedNodes_Callback_0_(unwrap_jso(this)));
+  List<Node> getDistributedNodes() => wrap_jso(_blink.BlinkHTMLShadowElement.instance.getDistributedNodes_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28464,6 +32845,18 @@ class ShadowRoot extends DocumentFragment {
   // To suppress missing implicit constructor warnings.
   factory ShadowRoot._() { throw new UnsupportedError("Not supported"); }
 
+
+  static ShadowRoot internalCreateShadowRoot() {
+    return new ShadowRoot._internalWrap();
+  }
+
+  factory ShadowRoot._internalWrap() {
+    return new ShadowRoot.internal_();
+  }
+
+  ShadowRoot.internal_() : super.internal_();
+
+
   @DomName('ShadowRoot.activeElement')
   @DocsEditable()
   Element get activeElement => wrap_jso(_blink.BlinkShadowRoot.instance.activeElement_Getter_(unwrap_jso(this)));
@@ -28479,7 +32872,7 @@ class ShadowRoot extends DocumentFragment {
   
   @DomName('ShadowRoot.innerHTML')
   @DocsEditable()
-  void set innerHtml(String value) => _blink.BlinkShadowRoot.instance.innerHTML_Setter_(unwrap_jso(this), value);
+  set innerHtml(String value) => _blink.BlinkShadowRoot.instance.innerHTML_Setter_(unwrap_jso(this), value);
   
   @DomName('ShadowRoot.olderShadowRoot')
   @DocsEditable()
@@ -28489,7 +32882,7 @@ class ShadowRoot extends DocumentFragment {
   @DomName('ShadowRoot.styleSheets')
   @DocsEditable()
   @Experimental() // untriaged
-  List<StyleSheet> get styleSheets => wrap_jso_list(_blink.BlinkShadowRoot.instance.styleSheets_Getter_(unwrap_jso(this)));
+  List<StyleSheet> get styleSheets => wrap_jso(_blink.BlinkShadowRoot.instance.styleSheets_Getter_(unwrap_jso(this)));
   
   @DomName('ShadowRoot.cloneNode')
   @DocsEditable()
@@ -28505,11 +32898,11 @@ class ShadowRoot extends DocumentFragment {
   
   @DomName('ShadowRoot.getElementsByClassName')
   @DocsEditable()
-  List<Node> getElementsByClassName(String className) => wrap_jso_list(_blink.BlinkShadowRoot.instance.getElementsByClassName_Callback_1_(unwrap_jso(this), className));
+  List<Node> getElementsByClassName(String className) => wrap_jso(_blink.BlinkShadowRoot.instance.getElementsByClassName_Callback_1_(unwrap_jso(this), className));
   
   @DomName('ShadowRoot.getElementsByTagName')
   @DocsEditable()
-  List<Node> getElementsByTagName(String tagName) => wrap_jso_list(_blink.BlinkShadowRoot.instance.getElementsByTagName_Callback_1_(unwrap_jso(this), tagName));
+  List<Node> getElementsByTagName(String tagName) => wrap_jso(_blink.BlinkShadowRoot.instance.getElementsByTagName_Callback_1_(unwrap_jso(this), tagName));
   
   @DomName('ShadowRoot.getSelection')
   @DocsEditable()
@@ -28536,7 +32929,7 @@ Please remove them from your code.
   }
 
   @deprecated
-  void set resetStyleInheritance(bool value) {
+  set resetStyleInheritance(bool value) {
     _shadowRootDeprecationReport();
   }
 
@@ -28548,7 +32941,7 @@ Please remove them from your code.
   }
 
   @deprecated
-  void set applyAuthorStyles(bool value) {
+  set applyAuthorStyles(bool value) {
     _shadowRootDeprecationReport();
   }
 }
@@ -28575,8 +32968,20 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   @DomName('SharedWorker.SharedWorker')
   @DocsEditable()
   factory SharedWorker(String scriptURL, [String name]) {
-    return _blink.BlinkSharedWorker.instance.constructorCallback_2_(scriptURL, name);
+    return wrap_jso(_blink.BlinkSharedWorker.instance.constructorCallback_2_(scriptURL, name));
   }
+
+
+  static SharedWorker internalCreateSharedWorker() {
+    return new SharedWorker._internalWrap();
+  }
+
+  factory SharedWorker._internalWrap() {
+    return new SharedWorker.internal_();
+  }
+
+  SharedWorker.internal_() : super.internal_();
+
 
   @DomName('SharedWorker.port')
   @DocsEditable()
@@ -28585,7 +32990,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   @DomName('SharedWorker.workerStart')
   @DocsEditable()
   @Experimental() // untriaged
-  double get workerStart => _blink.BlinkSharedWorker.instance.workerStart_Getter_(unwrap_jso(this));
+  num get workerStart => _blink.BlinkSharedWorker.instance.workerStart_Getter_(unwrap_jso(this));
   
   @DomName('SharedWorker.onerror')
   @DocsEditable()
@@ -28618,6 +33023,18 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> connectEvent = const EventStreamProvider<Event>('connect');
 
+
+  static SharedWorkerGlobalScope internalCreateSharedWorkerGlobalScope() {
+    return new SharedWorkerGlobalScope._internalWrap();
+  }
+
+  factory SharedWorkerGlobalScope._internalWrap() {
+    return new SharedWorkerGlobalScope.internal_();
+  }
+
+  SharedWorkerGlobalScope.internal_() : super.internal_();
+
+
   @DomName('SharedWorkerGlobalScope.name')
   @DocsEditable()
   @Experimental() // untriaged
@@ -28645,6 +33062,18 @@ class SourceBuffer extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory SourceBuffer._() { throw new UnsupportedError("Not supported"); }
 
+
+  static SourceBuffer internalCreateSourceBuffer() {
+    return new SourceBuffer._internalWrap();
+  }
+
+  factory SourceBuffer._internalWrap() {
+    return new SourceBuffer.internal_();
+  }
+
+  SourceBuffer.internal_() : super.internal_();
+
+
   @DomName('SourceBuffer.appendWindowEnd')
   @DocsEditable()
   @Experimental() // untriaged
@@ -28653,7 +33082,7 @@ class SourceBuffer extends EventTarget {
   @DomName('SourceBuffer.appendWindowEnd')
   @DocsEditable()
   @Experimental() // untriaged
-  void set appendWindowEnd(num value) => _blink.BlinkSourceBuffer.instance.appendWindowEnd_Setter_(unwrap_jso(this), value);
+  set appendWindowEnd(num value) => _blink.BlinkSourceBuffer.instance.appendWindowEnd_Setter_(unwrap_jso(this), value);
   
   @DomName('SourceBuffer.appendWindowStart')
   @DocsEditable()
@@ -28663,7 +33092,7 @@ class SourceBuffer extends EventTarget {
   @DomName('SourceBuffer.appendWindowStart')
   @DocsEditable()
   @Experimental() // untriaged
-  void set appendWindowStart(num value) => _blink.BlinkSourceBuffer.instance.appendWindowStart_Setter_(unwrap_jso(this), value);
+  set appendWindowStart(num value) => _blink.BlinkSourceBuffer.instance.appendWindowStart_Setter_(unwrap_jso(this), value);
   
   @DomName('SourceBuffer.buffered')
   @DocsEditable()
@@ -28677,7 +33106,7 @@ class SourceBuffer extends EventTarget {
   @DomName('SourceBuffer.mode')
   @DocsEditable()
   @Experimental() // untriaged
-  void set mode(String value) => _blink.BlinkSourceBuffer.instance.mode_Setter_(unwrap_jso(this), value);
+  set mode(String value) => _blink.BlinkSourceBuffer.instance.mode_Setter_(unwrap_jso(this), value);
   
   @DomName('SourceBuffer.timestampOffset')
   @DocsEditable()
@@ -28685,7 +33114,7 @@ class SourceBuffer extends EventTarget {
   
   @DomName('SourceBuffer.timestampOffset')
   @DocsEditable()
-  void set timestampOffset(num value) => _blink.BlinkSourceBuffer.instance.timestampOffset_Setter_(unwrap_jso(this), value);
+  set timestampOffset(num value) => _blink.BlinkSourceBuffer.instance.timestampOffset_Setter_(unwrap_jso(this), value);
   
   @DomName('SourceBuffer.updating')
   @DocsEditable()
@@ -28736,6 +33165,18 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   // To suppress missing implicit constructor warnings.
   factory SourceBufferList._() { throw new UnsupportedError("Not supported"); }
 
+
+  static SourceBufferList internalCreateSourceBufferList() {
+    return new SourceBufferList._internalWrap();
+  }
+
+  factory SourceBufferList._internalWrap() {
+    return new SourceBufferList.internal_();
+  }
+
+  SourceBufferList.internal_() : super.internal_();
+
+
   @DomName('SourceBufferList.length')
   @DocsEditable()
   int get length => _blink.BlinkSourceBufferList.instance.length_Getter_(unwrap_jso(this));
@@ -28747,7 +33188,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   }
 
   SourceBuffer _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkSourceBufferList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, SourceBuffer value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -28755,7 +33196,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   // SourceBuffer is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -28807,6 +33248,18 @@ class SourceElement extends HtmlElement {
   @DomName('HTMLSourceElement.HTMLSourceElement')
   @DocsEditable()
   factory SourceElement() => document.createElement("source");
+
+
+  static SourceElement internalCreateSourceElement() {
+    return new SourceElement._internalWrap();
+  }
+
+  factory SourceElement._internalWrap() {
+    return new SourceElement.internal_();
+  }
+
+  SourceElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -28822,7 +33275,7 @@ class SourceElement extends HtmlElement {
   @DomName('HTMLSourceElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLSourceElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLSourceElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSourceElement.media')
   @DocsEditable()
@@ -28830,7 +33283,7 @@ class SourceElement extends HtmlElement {
   
   @DomName('HTMLSourceElement.media')
   @DocsEditable()
-  void set media(String value) => _blink.BlinkHTMLSourceElement.instance.media_Setter_(unwrap_jso(this), value);
+  set media(String value) => _blink.BlinkHTMLSourceElement.instance.media_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSourceElement.sizes')
   @DocsEditable()
@@ -28840,7 +33293,7 @@ class SourceElement extends HtmlElement {
   @DomName('HTMLSourceElement.sizes')
   @DocsEditable()
   @Experimental() // untriaged
-  void set sizes(String value) => _blink.BlinkHTMLSourceElement.instance.sizes_Setter_(unwrap_jso(this), value);
+  set sizes(String value) => _blink.BlinkHTMLSourceElement.instance.sizes_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSourceElement.src')
   @DocsEditable()
@@ -28848,7 +33301,7 @@ class SourceElement extends HtmlElement {
   
   @DomName('HTMLSourceElement.src')
   @DocsEditable()
-  void set src(String value) => _blink.BlinkHTMLSourceElement.instance.src_Setter_(unwrap_jso(this), value);
+  set src(String value) => _blink.BlinkHTMLSourceElement.instance.src_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSourceElement.srcset')
   @DocsEditable()
@@ -28858,7 +33311,7 @@ class SourceElement extends HtmlElement {
   @DomName('HTMLSourceElement.srcset')
   @DocsEditable()
   @Experimental() // untriaged
-  void set srcset(String value) => _blink.BlinkHTMLSourceElement.instance.srcset_Setter_(unwrap_jso(this), value);
+  set srcset(String value) => _blink.BlinkHTMLSourceElement.instance.srcset_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSourceElement.type')
   @DocsEditable()
@@ -28866,7 +33319,7 @@ class SourceElement extends HtmlElement {
   
   @DomName('HTMLSourceElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLSourceElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLSourceElement.instance.type_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28882,6 +33335,21 @@ class SourceElement extends HtmlElement {
 class SourceInfo extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory SourceInfo._() { throw new UnsupportedError("Not supported"); }
+
+  static SourceInfo internalCreateSourceInfo() {
+    return new SourceInfo._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory SourceInfo._internalWrap() {
+    return new SourceInfo.internal_();
+  }
+
+  SourceInfo.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SourceInfo.facing')
   @DocsEditable()
@@ -28920,6 +33388,18 @@ class SpanElement extends HtmlElement {
   @DomName('HTMLSpanElement.HTMLSpanElement')
   @DocsEditable()
   factory SpanElement() => document.createElement("span");
+
+
+  static SpanElement internalCreateSpanElement() {
+    return new SpanElement._internalWrap();
+  }
+
+  factory SpanElement._internalWrap() {
+    return new SpanElement.internal_();
+  }
+
+  SpanElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -28946,8 +33426,23 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
   @DomName('SpeechGrammar.SpeechGrammar')
   @DocsEditable()
   factory SpeechGrammar() {
-    return _blink.BlinkSpeechGrammar.instance.constructorCallback_0_();
+    return wrap_jso(_blink.BlinkSpeechGrammar.instance.constructorCallback_0_());
   }
+
+  static SpeechGrammar internalCreateSpeechGrammar() {
+    return new SpeechGrammar._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory SpeechGrammar._internalWrap() {
+    return new SpeechGrammar.internal_();
+  }
+
+  SpeechGrammar.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SpeechGrammar.src')
   @DocsEditable()
@@ -28955,7 +33450,7 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
   
   @DomName('SpeechGrammar.src')
   @DocsEditable()
-  void set src(String value) => _blink.BlinkSpeechGrammar.instance.src_Setter_(unwrap_jso(this), value);
+  set src(String value) => _blink.BlinkSpeechGrammar.instance.src_Setter_(unwrap_jso(this), value);
   
   @DomName('SpeechGrammar.weight')
   @DocsEditable()
@@ -28963,7 +33458,7 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
   
   @DomName('SpeechGrammar.weight')
   @DocsEditable()
-  void set weight(num value) => _blink.BlinkSpeechGrammar.instance.weight_Setter_(unwrap_jso(this), value);
+  set weight(num value) => _blink.BlinkSpeechGrammar.instance.weight_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28977,15 +33472,30 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
 @DomName('SpeechGrammarList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#dfn-speechgrammarlist
 @Experimental()
-class SpeechGrammarList extends NativeFieldWrapperClass2 with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements List<SpeechGrammar> {
+class SpeechGrammarList extends JsoNativeFieldWrapper with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements List<SpeechGrammar> {
   // To suppress missing implicit constructor warnings.
   factory SpeechGrammarList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SpeechGrammarList.SpeechGrammarList')
   @DocsEditable()
   factory SpeechGrammarList() {
-    return _blink.BlinkSpeechGrammarList.instance.constructorCallback_0_();
+    return wrap_jso(_blink.BlinkSpeechGrammarList.instance.constructorCallback_0_());
   }
+
+  static SpeechGrammarList internalCreateSpeechGrammarList() {
+    return new SpeechGrammarList._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory SpeechGrammarList._internalWrap() {
+    return new SpeechGrammarList.internal_();
+  }
+
+  SpeechGrammarList.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SpeechGrammarList.length')
   @DocsEditable()
@@ -28998,7 +33508,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass2 with ListMixin<SpeechGr
   }
 
   SpeechGrammar _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkSpeechGrammarList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, SpeechGrammar value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -29006,7 +33516,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass2 with ListMixin<SpeechGr
   // SpeechGrammar is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -29189,8 +33699,20 @@ class SpeechRecognition extends EventTarget {
   @DomName('SpeechRecognition.SpeechRecognition')
   @DocsEditable()
   factory SpeechRecognition() {
-    return _blink.BlinkSpeechRecognition.instance.constructorCallback_0_();
+    return wrap_jso(_blink.BlinkSpeechRecognition.instance.constructorCallback_0_());
   }
+
+
+  static SpeechRecognition internalCreateSpeechRecognition() {
+    return new SpeechRecognition._internalWrap();
+  }
+
+  factory SpeechRecognition._internalWrap() {
+    return new SpeechRecognition.internal_();
+  }
+
+  SpeechRecognition.internal_() : super.internal_();
+
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -29201,7 +33723,7 @@ class SpeechRecognition extends EventTarget {
   
   @DomName('SpeechRecognition.continuous')
   @DocsEditable()
-  void set continuous(bool value) => _blink.BlinkSpeechRecognition.instance.continuous_Setter_(unwrap_jso(this), value);
+  set continuous(bool value) => _blink.BlinkSpeechRecognition.instance.continuous_Setter_(unwrap_jso(this), value);
   
   @DomName('SpeechRecognition.grammars')
   @DocsEditable()
@@ -29209,7 +33731,7 @@ class SpeechRecognition extends EventTarget {
   
   @DomName('SpeechRecognition.grammars')
   @DocsEditable()
-  void set grammars(SpeechGrammarList value) => _blink.BlinkSpeechRecognition.instance.grammars_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set grammars(SpeechGrammarList value) => _blink.BlinkSpeechRecognition.instance.grammars_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('SpeechRecognition.interimResults')
   @DocsEditable()
@@ -29217,7 +33739,7 @@ class SpeechRecognition extends EventTarget {
   
   @DomName('SpeechRecognition.interimResults')
   @DocsEditable()
-  void set interimResults(bool value) => _blink.BlinkSpeechRecognition.instance.interimResults_Setter_(unwrap_jso(this), value);
+  set interimResults(bool value) => _blink.BlinkSpeechRecognition.instance.interimResults_Setter_(unwrap_jso(this), value);
   
   @DomName('SpeechRecognition.lang')
   @DocsEditable()
@@ -29225,7 +33747,7 @@ class SpeechRecognition extends EventTarget {
   
   @DomName('SpeechRecognition.lang')
   @DocsEditable()
-  void set lang(String value) => _blink.BlinkSpeechRecognition.instance.lang_Setter_(unwrap_jso(this), value);
+  set lang(String value) => _blink.BlinkSpeechRecognition.instance.lang_Setter_(unwrap_jso(this), value);
   
   @DomName('SpeechRecognition.maxAlternatives')
   @DocsEditable()
@@ -29233,7 +33755,7 @@ class SpeechRecognition extends EventTarget {
   
   @DomName('SpeechRecognition.maxAlternatives')
   @DocsEditable()
-  void set maxAlternatives(int value) => _blink.BlinkSpeechRecognition.instance.maxAlternatives_Setter_(unwrap_jso(this), value);
+  set maxAlternatives(int value) => _blink.BlinkSpeechRecognition.instance.maxAlternatives_Setter_(unwrap_jso(this), value);
   
   @DomName('SpeechRecognition.abort')
   @DocsEditable()
@@ -29319,9 +33841,24 @@ class SpeechRecognitionAlternative extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionAlternative._() { throw new UnsupportedError("Not supported"); }
 
+  static SpeechRecognitionAlternative internalCreateSpeechRecognitionAlternative() {
+    return new SpeechRecognitionAlternative._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory SpeechRecognitionAlternative._internalWrap() {
+    return new SpeechRecognitionAlternative.internal_();
+  }
+
+  SpeechRecognitionAlternative.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('SpeechRecognitionAlternative.confidence')
   @DocsEditable()
-  double get confidence => _blink.BlinkSpeechRecognitionAlternative.instance.confidence_Getter_(unwrap_jso(this));
+  num get confidence => _blink.BlinkSpeechRecognitionAlternative.instance.confidence_Getter_(unwrap_jso(this));
   
   @DomName('SpeechRecognitionAlternative.transcript')
   @DocsEditable()
@@ -29343,6 +33880,18 @@ class SpeechRecognitionAlternative extends NativeFieldWrapperClass2 {
 class SpeechRecognitionError extends Event {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionError._() { throw new UnsupportedError("Not supported"); }
+
+
+  static SpeechRecognitionError internalCreateSpeechRecognitionError() {
+    return new SpeechRecognitionError._internalWrap();
+  }
+
+  factory SpeechRecognitionError._internalWrap() {
+    return new SpeechRecognitionError.internal_();
+  }
+
+  SpeechRecognitionError.internal_() : super.internal_();
+
 
   @DomName('SpeechRecognitionError.error')
   @DocsEditable()
@@ -29369,6 +33918,18 @@ class SpeechRecognitionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static SpeechRecognitionEvent internalCreateSpeechRecognitionEvent() {
+    return new SpeechRecognitionEvent._internalWrap();
+  }
+
+  factory SpeechRecognitionEvent._internalWrap() {
+    return new SpeechRecognitionEvent.internal_();
+  }
+
+  SpeechRecognitionEvent.internal_() : super.internal_();
+
+
   @DomName('SpeechRecognitionEvent.emma')
   @DocsEditable()
   Document get emma => wrap_jso(_blink.BlinkSpeechRecognitionEvent.instance.emma_Getter_(unwrap_jso(this)));
@@ -29383,7 +33944,7 @@ class SpeechRecognitionEvent extends Event {
   
   @DomName('SpeechRecognitionEvent.results')
   @DocsEditable()
-  List<SpeechRecognitionResult> get results => wrap_jso_list(_blink.BlinkSpeechRecognitionEvent.instance.results_Getter_(unwrap_jso(this)));
+  List<SpeechRecognitionResult> get results => wrap_jso(_blink.BlinkSpeechRecognitionEvent.instance.results_Getter_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29401,6 +33962,21 @@ class SpeechRecognitionEvent extends Event {
 class SpeechRecognitionResult extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionResult._() { throw new UnsupportedError("Not supported"); }
+
+  static SpeechRecognitionResult internalCreateSpeechRecognitionResult() {
+    return new SpeechRecognitionResult._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory SpeechRecognitionResult._internalWrap() {
+    return new SpeechRecognitionResult.internal_();
+  }
+
+  SpeechRecognitionResult.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SpeechRecognitionResult.isFinal')
   @DocsEditable()
@@ -29430,6 +34006,18 @@ class SpeechSynthesis extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory SpeechSynthesis._() { throw new UnsupportedError("Not supported"); }
 
+
+  static SpeechSynthesis internalCreateSpeechSynthesis() {
+    return new SpeechSynthesis._internalWrap();
+  }
+
+  factory SpeechSynthesis._internalWrap() {
+    return new SpeechSynthesis.internal_();
+  }
+
+  SpeechSynthesis.internal_() : super.internal_();
+
+
   @DomName('SpeechSynthesis.paused')
   @DocsEditable()
   bool get paused => _blink.BlinkSpeechSynthesis.instance.paused_Getter_(unwrap_jso(this));
@@ -29448,7 +34036,7 @@ class SpeechSynthesis extends EventTarget {
   
   @DomName('SpeechSynthesis.getVoices')
   @DocsEditable()
-  List<SpeechSynthesisVoice> getVoices() => _blink.BlinkSpeechSynthesis.instance.getVoices_Callback_0_(unwrap_jso(this));
+  List<SpeechSynthesisVoice> getVoices() => wrap_jso(_blink.BlinkSpeechSynthesis.instance.getVoices_Callback_0_(unwrap_jso(this)));
   
   @DomName('SpeechSynthesis.pause')
   @DocsEditable()
@@ -29478,13 +34066,25 @@ class SpeechSynthesisEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory SpeechSynthesisEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static SpeechSynthesisEvent internalCreateSpeechSynthesisEvent() {
+    return new SpeechSynthesisEvent._internalWrap();
+  }
+
+  factory SpeechSynthesisEvent._internalWrap() {
+    return new SpeechSynthesisEvent.internal_();
+  }
+
+  SpeechSynthesisEvent.internal_() : super.internal_();
+
+
   @DomName('SpeechSynthesisEvent.charIndex')
   @DocsEditable()
   int get charIndex => _blink.BlinkSpeechSynthesisEvent.instance.charIndex_Getter_(unwrap_jso(this));
   
   @DomName('SpeechSynthesisEvent.elapsedTime')
   @DocsEditable()
-  double get elapsedTime => _blink.BlinkSpeechSynthesisEvent.instance.elapsedTime_Getter_(unwrap_jso(this));
+  num get elapsedTime => _blink.BlinkSpeechSynthesisEvent.instance.elapsedTime_Getter_(unwrap_jso(this));
   
   @DomName('SpeechSynthesisEvent.name')
   @DocsEditable()
@@ -29579,8 +34179,20 @@ class SpeechSynthesisUtterance extends EventTarget {
   @DomName('SpeechSynthesisUtterance.SpeechSynthesisUtterance')
   @DocsEditable()
   factory SpeechSynthesisUtterance([String text]) {
-    return _blink.BlinkSpeechSynthesisUtterance.instance.constructorCallback_1_(text);
+    return wrap_jso(_blink.BlinkSpeechSynthesisUtterance.instance.constructorCallback_1_(text));
   }
+
+
+  static SpeechSynthesisUtterance internalCreateSpeechSynthesisUtterance() {
+    return new SpeechSynthesisUtterance._internalWrap();
+  }
+
+  factory SpeechSynthesisUtterance._internalWrap() {
+    return new SpeechSynthesisUtterance.internal_();
+  }
+
+  SpeechSynthesisUtterance.internal_() : super.internal_();
+
 
   @DomName('SpeechSynthesisUtterance.lang')
   @DocsEditable()
@@ -29588,7 +34200,7 @@ class SpeechSynthesisUtterance extends EventTarget {
   
   @DomName('SpeechSynthesisUtterance.lang')
   @DocsEditable()
-  void set lang(String value) => _blink.BlinkSpeechSynthesisUtterance.instance.lang_Setter_(unwrap_jso(this), value);
+  set lang(String value) => _blink.BlinkSpeechSynthesisUtterance.instance.lang_Setter_(unwrap_jso(this), value);
   
   @DomName('SpeechSynthesisUtterance.pitch')
   @DocsEditable()
@@ -29596,7 +34208,7 @@ class SpeechSynthesisUtterance extends EventTarget {
   
   @DomName('SpeechSynthesisUtterance.pitch')
   @DocsEditable()
-  void set pitch(num value) => _blink.BlinkSpeechSynthesisUtterance.instance.pitch_Setter_(unwrap_jso(this), value);
+  set pitch(num value) => _blink.BlinkSpeechSynthesisUtterance.instance.pitch_Setter_(unwrap_jso(this), value);
   
   @DomName('SpeechSynthesisUtterance.rate')
   @DocsEditable()
@@ -29604,7 +34216,7 @@ class SpeechSynthesisUtterance extends EventTarget {
   
   @DomName('SpeechSynthesisUtterance.rate')
   @DocsEditable()
-  void set rate(num value) => _blink.BlinkSpeechSynthesisUtterance.instance.rate_Setter_(unwrap_jso(this), value);
+  set rate(num value) => _blink.BlinkSpeechSynthesisUtterance.instance.rate_Setter_(unwrap_jso(this), value);
   
   @DomName('SpeechSynthesisUtterance.text')
   @DocsEditable()
@@ -29612,7 +34224,7 @@ class SpeechSynthesisUtterance extends EventTarget {
   
   @DomName('SpeechSynthesisUtterance.text')
   @DocsEditable()
-  void set text(String value) => _blink.BlinkSpeechSynthesisUtterance.instance.text_Setter_(unwrap_jso(this), value);
+  set text(String value) => _blink.BlinkSpeechSynthesisUtterance.instance.text_Setter_(unwrap_jso(this), value);
   
   @DomName('SpeechSynthesisUtterance.voice')
   @DocsEditable()
@@ -29620,7 +34232,7 @@ class SpeechSynthesisUtterance extends EventTarget {
   
   @DomName('SpeechSynthesisUtterance.voice')
   @DocsEditable()
-  void set voice(SpeechSynthesisVoice value) => _blink.BlinkSpeechSynthesisUtterance.instance.voice_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set voice(SpeechSynthesisVoice value) => _blink.BlinkSpeechSynthesisUtterance.instance.voice_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('SpeechSynthesisUtterance.volume')
   @DocsEditable()
@@ -29628,7 +34240,7 @@ class SpeechSynthesisUtterance extends EventTarget {
   
   @DomName('SpeechSynthesisUtterance.volume')
   @DocsEditable()
-  void set volume(num value) => _blink.BlinkSpeechSynthesisUtterance.instance.volume_Setter_(unwrap_jso(this), value);
+  set volume(num value) => _blink.BlinkSpeechSynthesisUtterance.instance.volume_Setter_(unwrap_jso(this), value);
   
   /// Stream of `boundary` events handled by this [SpeechSynthesisUtterance].
   @DomName('SpeechSynthesisUtterance.onboundary')
@@ -29680,6 +34292,21 @@ class SpeechSynthesisUtterance extends EventTarget {
 class SpeechSynthesisVoice extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory SpeechSynthesisVoice._() { throw new UnsupportedError("Not supported"); }
+
+  static SpeechSynthesisVoice internalCreateSpeechSynthesisVoice() {
+    return new SpeechSynthesisVoice._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory SpeechSynthesisVoice._internalWrap() {
+    return new SpeechSynthesisVoice.internal_();
+  }
+
+  SpeechSynthesisVoice.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SpeechSynthesisVoice.default')
   @DocsEditable()
@@ -29792,6 +34419,21 @@ class Storage extends NativeFieldWrapperClass2
   // To suppress missing implicit constructor warnings.
   factory Storage._() { throw new UnsupportedError("Not supported"); }
 
+  static Storage internalCreateStorage() {
+    return new Storage._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Storage._internalWrap() {
+    return new Storage.internal_();
+  }
+
+  Storage.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('Storage.length')
   @DocsEditable()
   int get _length => _blink.BlinkStorage.instance.length_Getter_(unwrap_jso(this));
@@ -29882,6 +34524,18 @@ class StorageEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory StorageEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static StorageEvent internalCreateStorageEvent() {
+    return new StorageEvent._internalWrap();
+  }
+
+  factory StorageEvent._internalWrap() {
+    return new StorageEvent.internal_();
+  }
+
+  StorageEvent.internal_() : super.internal_();
+
+
   @DomName('StorageEvent.key')
   @DocsEditable()
   String get key => _blink.BlinkStorageEvent.instance.key_Getter_(unwrap_jso(this));
@@ -29922,6 +34576,21 @@ class StorageInfo extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory StorageInfo._() { throw new UnsupportedError("Not supported"); }
 
+  static StorageInfo internalCreateStorageInfo() {
+    return new StorageInfo._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory StorageInfo._internalWrap() {
+    return new StorageInfo.internal_();
+  }
+
+  StorageInfo.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('StorageInfo.quota')
   @DocsEditable()
   @Experimental() // untriaged
@@ -29948,6 +34617,21 @@ class StorageQuota extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory StorageQuota._() { throw new UnsupportedError("Not supported"); }
 
+  static StorageQuota internalCreateStorageQuota() {
+    return new StorageQuota._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory StorageQuota._internalWrap() {
+    return new StorageQuota.internal_();
+  }
+
+  StorageQuota.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('StorageQuota.supportedTypes')
   @DocsEditable()
   @Experimental() // untriaged
@@ -29956,12 +34640,12 @@ class StorageQuota extends NativeFieldWrapperClass2 {
   @DomName('StorageQuota.queryInfo')
   @DocsEditable()
   @Experimental() // untriaged
-  Future queryInfo(String type) => _blink.BlinkStorageQuota.instance.queryInfo_Callback_1_(unwrap_jso(this), type);
+  Future queryInfo(String type) => wrap_jso(_blink.BlinkStorageQuota.instance.queryInfo_Callback_1_(unwrap_jso(this), type));
   
   @DomName('StorageQuota.requestPersistentQuota')
   @DocsEditable()
   @Experimental() // untriaged
-  Future requestPersistentQuota(int newQuota) => _blink.BlinkStorageQuota.instance.requestPersistentQuota_Callback_1_(unwrap_jso(this), newQuota);
+  Future requestPersistentQuota(int newQuota) => wrap_jso(_blink.BlinkStorageQuota.instance.requestPersistentQuota_Callback_1_(unwrap_jso(this), newQuota));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30013,6 +34697,18 @@ class StyleElement extends HtmlElement {
   @DomName('HTMLStyleElement.HTMLStyleElement')
   @DocsEditable()
   factory StyleElement() => document.createElement("style");
+
+
+  static StyleElement internalCreateStyleElement() {
+    return new StyleElement._internalWrap();
+  }
+
+  factory StyleElement._internalWrap() {
+    return new StyleElement.internal_();
+  }
+
+  StyleElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -30026,7 +34722,7 @@ class StyleElement extends HtmlElement {
   
   @DomName('HTMLStyleElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLStyleElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLStyleElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLStyleElement.media')
   @DocsEditable()
@@ -30034,7 +34730,7 @@ class StyleElement extends HtmlElement {
   
   @DomName('HTMLStyleElement.media')
   @DocsEditable()
-  void set media(String value) => _blink.BlinkHTMLStyleElement.instance.media_Setter_(unwrap_jso(this), value);
+  set media(String value) => _blink.BlinkHTMLStyleElement.instance.media_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLStyleElement.sheet')
   @DocsEditable()
@@ -30046,7 +34742,7 @@ class StyleElement extends HtmlElement {
   
   @DomName('HTMLStyleElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLStyleElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLStyleElement.instance.type_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30063,6 +34759,21 @@ class StyleElement extends HtmlElement {
 class StyleMedia extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory StyleMedia._() { throw new UnsupportedError("Not supported"); }
+
+  static StyleMedia internalCreateStyleMedia() {
+    return new StyleMedia._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory StyleMedia._internalWrap() {
+    return new StyleMedia.internal_();
+  }
+
+  StyleMedia.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('StyleMedia.type')
   @DocsEditable()
@@ -30086,13 +34797,28 @@ class StyleSheet extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory StyleSheet._() { throw new UnsupportedError("Not supported"); }
 
+  static StyleSheet internalCreateStyleSheet() {
+    return new StyleSheet._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory StyleSheet._internalWrap() {
+    return new StyleSheet.internal_();
+  }
+
+  StyleSheet.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('StyleSheet.disabled')
   @DocsEditable()
   bool get disabled => _blink.BlinkStyleSheet.instance.disabled_Getter_(unwrap_jso(this));
   
   @DomName('StyleSheet.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkStyleSheet.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkStyleSheet.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('StyleSheet.href')
   @DocsEditable()
@@ -30135,6 +34861,18 @@ class TableCaptionElement extends HtmlElement {
   @DomName('HTMLTableCaptionElement.HTMLTableCaptionElement')
   @DocsEditable()
   factory TableCaptionElement() => document.createElement("caption");
+
+
+  static TableCaptionElement internalCreateTableCaptionElement() {
+    return new TableCaptionElement._internalWrap();
+  }
+
+  factory TableCaptionElement._internalWrap() {
+    return new TableCaptionElement.internal_();
+  }
+
+  TableCaptionElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -30159,6 +34897,18 @@ class TableCellElement extends HtmlElement {
   @DomName('HTMLTableCellElement.HTMLTableCellElement')
   @DocsEditable()
   factory TableCellElement() => document.createElement("td");
+
+
+  static TableCellElement internalCreateTableCellElement() {
+    return new TableCellElement._internalWrap();
+  }
+
+  factory TableCellElement._internalWrap() {
+    return new TableCellElement.internal_();
+  }
+
+  TableCellElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -30176,7 +34926,7 @@ class TableCellElement extends HtmlElement {
   
   @DomName('HTMLTableCellElement.colSpan')
   @DocsEditable()
-  void set colSpan(int value) => _blink.BlinkHTMLTableCellElement.instance.colSpan_Setter_(unwrap_jso(this), value);
+  set colSpan(int value) => _blink.BlinkHTMLTableCellElement.instance.colSpan_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTableCellElement.headers')
   @DocsEditable()
@@ -30184,7 +34934,7 @@ class TableCellElement extends HtmlElement {
   
   @DomName('HTMLTableCellElement.headers')
   @DocsEditable()
-  void set headers(String value) => _blink.BlinkHTMLTableCellElement.instance.headers_Setter_(unwrap_jso(this), value);
+  set headers(String value) => _blink.BlinkHTMLTableCellElement.instance.headers_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTableCellElement.rowSpan')
   @DocsEditable()
@@ -30192,7 +34942,7 @@ class TableCellElement extends HtmlElement {
   
   @DomName('HTMLTableCellElement.rowSpan')
   @DocsEditable()
-  void set rowSpan(int value) => _blink.BlinkHTMLTableCellElement.instance.rowSpan_Setter_(unwrap_jso(this), value);
+  set rowSpan(int value) => _blink.BlinkHTMLTableCellElement.instance.rowSpan_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30211,6 +34961,18 @@ class TableColElement extends HtmlElement {
   @DomName('HTMLTableColElement.HTMLTableColElement')
   @DocsEditable()
   factory TableColElement() => document.createElement("col");
+
+
+  static TableColElement internalCreateTableColElement() {
+    return new TableColElement._internalWrap();
+  }
+
+  factory TableColElement._internalWrap() {
+    return new TableColElement.internal_();
+  }
+
+  TableColElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -30224,7 +34986,7 @@ class TableColElement extends HtmlElement {
   
   @DomName('HTMLTableColElement.span')
   @DocsEditable()
-  void set span(int value) => _blink.BlinkHTMLTableColElement.instance.span_Setter_(unwrap_jso(this), value);
+  set span(int value) => _blink.BlinkHTMLTableColElement.instance.span_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -30261,6 +35023,18 @@ class TableElement extends HtmlElement {
   @DomName('HTMLTableElement.HTMLTableElement')
   @DocsEditable()
   factory TableElement() => document.createElement("table");
+
+
+  static TableElement internalCreateTableElement() {
+    return new TableElement._internalWrap();
+  }
+
+  factory TableElement._internalWrap() {
+    return new TableElement.internal_();
+  }
+
+  TableElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -30274,15 +35048,15 @@ class TableElement extends HtmlElement {
   
   @DomName('HTMLTableElement.caption')
   @DocsEditable()
-  void set caption(TableCaptionElement value) => _blink.BlinkHTMLTableElement.instance.caption_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set caption(TableCaptionElement value) => _blink.BlinkHTMLTableElement.instance.caption_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('HTMLTableElement.rows')
   @DocsEditable()
-  List<Node> get _rows => wrap_jso_list(_blink.BlinkHTMLTableElement.instance.rows_Getter_(unwrap_jso(this)));
+  List<Node> get _rows => wrap_jso(_blink.BlinkHTMLTableElement.instance.rows_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLTableElement.tBodies')
   @DocsEditable()
-  List<Node> get _tBodies => wrap_jso_list(_blink.BlinkHTMLTableElement.instance.tBodies_Getter_(unwrap_jso(this)));
+  List<Node> get _tBodies => wrap_jso(_blink.BlinkHTMLTableElement.instance.tBodies_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLTableElement.tFoot')
   @DocsEditable()
@@ -30290,7 +35064,7 @@ class TableElement extends HtmlElement {
   
   @DomName('HTMLTableElement.tFoot')
   @DocsEditable()
-  void set tFoot(TableSectionElement value) => _blink.BlinkHTMLTableElement.instance.tFoot_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set tFoot(TableSectionElement value) => _blink.BlinkHTMLTableElement.instance.tFoot_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('HTMLTableElement.tHead')
   @DocsEditable()
@@ -30298,7 +35072,7 @@ class TableElement extends HtmlElement {
   
   @DomName('HTMLTableElement.tHead')
   @DocsEditable()
-  void set tHead(TableSectionElement value) => _blink.BlinkHTMLTableElement.instance.tHead_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set tHead(TableSectionElement value) => _blink.BlinkHTMLTableElement.instance.tHead_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('HTMLTableElement.createCaption')
   @DocsEditable()
@@ -30334,9 +35108,9 @@ class TableElement extends HtmlElement {
   
   HtmlElement _insertRow([int index]) {
     if (index != null) {
-      return _blink.BlinkHTMLTableElement.instance.insertRow_Callback_1_(unwrap_jso(this), index);
+      return wrap_jso(_blink.BlinkHTMLTableElement.instance.insertRow_Callback_1_(unwrap_jso(this), index));
     }
-    return _blink.BlinkHTMLTableElement.instance.insertRow_Callback_0_(unwrap_jso(this));
+    return wrap_jso(_blink.BlinkHTMLTableElement.instance.insertRow_Callback_0_(unwrap_jso(this)));
   }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -30365,6 +35139,18 @@ class TableRowElement extends HtmlElement {
   @DomName('HTMLTableRowElement.HTMLTableRowElement')
   @DocsEditable()
   factory TableRowElement() => document.createElement("tr");
+
+
+  static TableRowElement internalCreateTableRowElement() {
+    return new TableRowElement._internalWrap();
+  }
+
+  factory TableRowElement._internalWrap() {
+    return new TableRowElement.internal_();
+  }
+
+  TableRowElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -30374,7 +35160,7 @@ class TableRowElement extends HtmlElement {
 
   @DomName('HTMLTableRowElement.cells')
   @DocsEditable()
-  List<Node> get _cells => wrap_jso_list(_blink.BlinkHTMLTableRowElement.instance.cells_Getter_(unwrap_jso(this)));
+  List<Node> get _cells => wrap_jso(_blink.BlinkHTMLTableRowElement.instance.cells_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLTableRowElement.rowIndex')
   @DocsEditable()
@@ -30390,9 +35176,9 @@ class TableRowElement extends HtmlElement {
   
   HtmlElement _insertCell([int index]) {
     if (index != null) {
-      return _blink.BlinkHTMLTableRowElement.instance.insertCell_Callback_1_(unwrap_jso(this), index);
+      return wrap_jso(_blink.BlinkHTMLTableRowElement.instance.insertCell_Callback_1_(unwrap_jso(this), index));
     }
-    return _blink.BlinkHTMLTableRowElement.instance.insertCell_Callback_0_(unwrap_jso(this));
+    return wrap_jso(_blink.BlinkHTMLTableRowElement.instance.insertCell_Callback_0_(unwrap_jso(this)));
   }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -30417,6 +35203,18 @@ class TableSectionElement extends HtmlElement {
 
   // To suppress missing implicit constructor warnings.
   factory TableSectionElement._() { throw new UnsupportedError("Not supported"); }
+
+
+  static TableSectionElement internalCreateTableSectionElement() {
+    return new TableSectionElement._internalWrap();
+  }
+
+  factory TableSectionElement._internalWrap() {
+    return new TableSectionElement.internal_();
+  }
+
+  TableSectionElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -30426,7 +35224,7 @@ class TableSectionElement extends HtmlElement {
 
   @DomName('HTMLTableSectionElement.rows')
   @DocsEditable()
-  List<Node> get _rows => wrap_jso_list(_blink.BlinkHTMLTableSectionElement.instance.rows_Getter_(unwrap_jso(this)));
+  List<Node> get _rows => wrap_jso(_blink.BlinkHTMLTableSectionElement.instance.rows_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLTableSectionElement.deleteRow')
   @DocsEditable()
@@ -30434,9 +35232,9 @@ class TableSectionElement extends HtmlElement {
   
   HtmlElement _insertRow([int index]) {
     if (index != null) {
-      return _blink.BlinkHTMLTableSectionElement.instance.insertRow_Callback_1_(unwrap_jso(this), index);
+      return wrap_jso(_blink.BlinkHTMLTableSectionElement.instance.insertRow_Callback_1_(unwrap_jso(this), index));
     }
-    return _blink.BlinkHTMLTableSectionElement.instance.insertRow_Callback_0_(unwrap_jso(this));
+    return wrap_jso(_blink.BlinkHTMLTableSectionElement.instance.insertRow_Callback_0_(unwrap_jso(this)));
   }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -30458,6 +35256,18 @@ class TemplateElement extends HtmlElement {
   @DomName('HTMLTemplateElement.HTMLTemplateElement')
   @DocsEditable()
   factory TemplateElement() => document.createElement("template");
+
+
+  static TemplateElement internalCreateTemplateElement() {
+    return new TemplateElement._internalWrap();
+  }
+
+  factory TemplateElement._internalWrap() {
+    return new TemplateElement.internal_();
+  }
+
+  TemplateElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -30502,6 +35312,18 @@ class Text extends CharacterData {
   // To suppress missing implicit constructor warnings.
   factory Text._() { throw new UnsupportedError("Not supported"); }
 
+
+  static Text internalCreateText() {
+    return new Text._internalWrap();
+  }
+
+  factory Text._internalWrap() {
+    return new Text.internal_();
+  }
+
+  Text.internal_() : super.internal_();
+
+
   @DomName('Text.wholeText')
   @DocsEditable()
   String get wholeText => _blink.BlinkText.instance.wholeText_Getter_(unwrap_jso(this));
@@ -30509,7 +35331,7 @@ class Text extends CharacterData {
   @DomName('Text.getDestinationInsertionPoints')
   @DocsEditable()
   @Experimental() // untriaged
-  List<Node> getDestinationInsertionPoints() => wrap_jso_list(_blink.BlinkText.instance.getDestinationInsertionPoints_Callback_0_(unwrap_jso(this)));
+  List<Node> getDestinationInsertionPoints() => wrap_jso(_blink.BlinkText.instance.getDestinationInsertionPoints_Callback_0_(unwrap_jso(this)));
   
   @DomName('Text.splitText')
   @DocsEditable()
@@ -30532,6 +35354,18 @@ class TextAreaElement extends HtmlElement {
   @DomName('HTMLTextAreaElement.HTMLTextAreaElement')
   @DocsEditable()
   factory TextAreaElement() => document.createElement("textarea");
+
+
+  static TextAreaElement internalCreateTextAreaElement() {
+    return new TextAreaElement._internalWrap();
+  }
+
+  factory TextAreaElement._internalWrap() {
+    return new TextAreaElement.internal_();
+  }
+
+  TextAreaElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -30545,7 +35379,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.autofocus')
   @DocsEditable()
-  void set autofocus(bool value) => _blink.BlinkHTMLTextAreaElement.instance.autofocus_Setter_(unwrap_jso(this), value);
+  set autofocus(bool value) => _blink.BlinkHTMLTextAreaElement.instance.autofocus_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.cols')
   @DocsEditable()
@@ -30553,7 +35387,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.cols')
   @DocsEditable()
-  void set cols(int value) => _blink.BlinkHTMLTextAreaElement.instance.cols_Setter_(unwrap_jso(this), value);
+  set cols(int value) => _blink.BlinkHTMLTextAreaElement.instance.cols_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.defaultValue')
   @DocsEditable()
@@ -30561,7 +35395,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.defaultValue')
   @DocsEditable()
-  void set defaultValue(String value) => _blink.BlinkHTMLTextAreaElement.instance.defaultValue_Setter_(unwrap_jso(this), value);
+  set defaultValue(String value) => _blink.BlinkHTMLTextAreaElement.instance.defaultValue_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.dirName')
   @DocsEditable()
@@ -30573,7 +35407,7 @@ class TextAreaElement extends HtmlElement {
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-button-element.html#dom-textarea-dirname
   @Experimental()
-  void set dirName(String value) => _blink.BlinkHTMLTextAreaElement.instance.dirName_Setter_(unwrap_jso(this), value);
+  set dirName(String value) => _blink.BlinkHTMLTextAreaElement.instance.dirName_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.disabled')
   @DocsEditable()
@@ -30581,7 +35415,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLTextAreaElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLTextAreaElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.form')
   @DocsEditable()
@@ -30595,12 +35429,12 @@ class TextAreaElement extends HtmlElement {
   @DomName('HTMLTextAreaElement.inputMode')
   @DocsEditable()
   @Experimental() // untriaged
-  void set inputMode(String value) => _blink.BlinkHTMLTextAreaElement.instance.inputMode_Setter_(unwrap_jso(this), value);
+  set inputMode(String value) => _blink.BlinkHTMLTextAreaElement.instance.inputMode_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => wrap_jso_list(_blink.BlinkHTMLTextAreaElement.instance.labels_Getter_(unwrap_jso(this)));
+  List<Node> get labels => wrap_jso(_blink.BlinkHTMLTextAreaElement.instance.labels_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLTextAreaElement.maxLength')
   @DocsEditable()
@@ -30608,7 +35442,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.maxLength')
   @DocsEditable()
-  void set maxLength(int value) => _blink.BlinkHTMLTextAreaElement.instance.maxLength_Setter_(unwrap_jso(this), value);
+  set maxLength(int value) => _blink.BlinkHTMLTextAreaElement.instance.maxLength_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.name')
   @DocsEditable()
@@ -30616,7 +35450,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLTextAreaElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLTextAreaElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.placeholder')
   @DocsEditable()
@@ -30624,7 +35458,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.placeholder')
   @DocsEditable()
-  void set placeholder(String value) => _blink.BlinkHTMLTextAreaElement.instance.placeholder_Setter_(unwrap_jso(this), value);
+  set placeholder(String value) => _blink.BlinkHTMLTextAreaElement.instance.placeholder_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.readOnly')
   @DocsEditable()
@@ -30632,7 +35466,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.readOnly')
   @DocsEditable()
-  void set readOnly(bool value) => _blink.BlinkHTMLTextAreaElement.instance.readOnly_Setter_(unwrap_jso(this), value);
+  set readOnly(bool value) => _blink.BlinkHTMLTextAreaElement.instance.readOnly_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.required')
   @DocsEditable()
@@ -30640,7 +35474,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.required')
   @DocsEditable()
-  void set required(bool value) => _blink.BlinkHTMLTextAreaElement.instance.required_Setter_(unwrap_jso(this), value);
+  set required(bool value) => _blink.BlinkHTMLTextAreaElement.instance.required_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.rows')
   @DocsEditable()
@@ -30648,7 +35482,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.rows')
   @DocsEditable()
-  void set rows(int value) => _blink.BlinkHTMLTextAreaElement.instance.rows_Setter_(unwrap_jso(this), value);
+  set rows(int value) => _blink.BlinkHTMLTextAreaElement.instance.rows_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.selectionDirection')
   @DocsEditable()
@@ -30656,7 +35490,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.selectionDirection')
   @DocsEditable()
-  void set selectionDirection(String value) => _blink.BlinkHTMLTextAreaElement.instance.selectionDirection_Setter_(unwrap_jso(this), value);
+  set selectionDirection(String value) => _blink.BlinkHTMLTextAreaElement.instance.selectionDirection_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.selectionEnd')
   @DocsEditable()
@@ -30664,7 +35498,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.selectionEnd')
   @DocsEditable()
-  void set selectionEnd(int value) => _blink.BlinkHTMLTextAreaElement.instance.selectionEnd_Setter_(unwrap_jso(this), value);
+  set selectionEnd(int value) => _blink.BlinkHTMLTextAreaElement.instance.selectionEnd_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.selectionStart')
   @DocsEditable()
@@ -30672,7 +35506,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.selectionStart')
   @DocsEditable()
-  void set selectionStart(int value) => _blink.BlinkHTMLTextAreaElement.instance.selectionStart_Setter_(unwrap_jso(this), value);
+  set selectionStart(int value) => _blink.BlinkHTMLTextAreaElement.instance.selectionStart_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.textLength')
   @DocsEditable()
@@ -30696,7 +35530,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.value')
   @DocsEditable()
-  void set value(String value) => _blink.BlinkHTMLTextAreaElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(String value) => _blink.BlinkHTMLTextAreaElement.instance.value_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.willValidate')
   @DocsEditable()
@@ -30708,7 +35542,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.wrap')
   @DocsEditable()
-  void set wrap(String value) => _blink.BlinkHTMLTextAreaElement.instance.wrap_Setter_(unwrap_jso(this), value);
+  set wrap(String value) => _blink.BlinkHTMLTextAreaElement.instance.wrap_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.checkValidity')
   @DocsEditable()
@@ -30766,6 +35600,18 @@ class TextEvent extends UIEvent {
   // To suppress missing implicit constructor warnings.
   factory TextEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static TextEvent internalCreateTextEvent() {
+    return new TextEvent._internalWrap();
+  }
+
+  factory TextEvent._internalWrap() {
+    return new TextEvent.internal_();
+  }
+
+  TextEvent.internal_() : super.internal_();
+
+
   @DomName('TextEvent.data')
   @DocsEditable()
   String get data => _blink.BlinkTextEvent.instance.data_Getter_(unwrap_jso(this));
@@ -30788,64 +35634,79 @@ class TextMetrics extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory TextMetrics._() { throw new UnsupportedError("Not supported"); }
 
+  static TextMetrics internalCreateTextMetrics() {
+    return new TextMetrics._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory TextMetrics._internalWrap() {
+    return new TextMetrics.internal_();
+  }
+
+  TextMetrics.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('TextMetrics.actualBoundingBoxAscent')
   @DocsEditable()
   @Experimental() // untriaged
-  double get actualBoundingBoxAscent => _blink.BlinkTextMetrics.instance.actualBoundingBoxAscent_Getter_(unwrap_jso(this));
+  num get actualBoundingBoxAscent => _blink.BlinkTextMetrics.instance.actualBoundingBoxAscent_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.actualBoundingBoxDescent')
   @DocsEditable()
   @Experimental() // untriaged
-  double get actualBoundingBoxDescent => _blink.BlinkTextMetrics.instance.actualBoundingBoxDescent_Getter_(unwrap_jso(this));
+  num get actualBoundingBoxDescent => _blink.BlinkTextMetrics.instance.actualBoundingBoxDescent_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.actualBoundingBoxLeft')
   @DocsEditable()
   @Experimental() // untriaged
-  double get actualBoundingBoxLeft => _blink.BlinkTextMetrics.instance.actualBoundingBoxLeft_Getter_(unwrap_jso(this));
+  num get actualBoundingBoxLeft => _blink.BlinkTextMetrics.instance.actualBoundingBoxLeft_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.actualBoundingBoxRight')
   @DocsEditable()
   @Experimental() // untriaged
-  double get actualBoundingBoxRight => _blink.BlinkTextMetrics.instance.actualBoundingBoxRight_Getter_(unwrap_jso(this));
+  num get actualBoundingBoxRight => _blink.BlinkTextMetrics.instance.actualBoundingBoxRight_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.alphabeticBaseline')
   @DocsEditable()
   @Experimental() // untriaged
-  double get alphabeticBaseline => _blink.BlinkTextMetrics.instance.alphabeticBaseline_Getter_(unwrap_jso(this));
+  num get alphabeticBaseline => _blink.BlinkTextMetrics.instance.alphabeticBaseline_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.emHeightAscent')
   @DocsEditable()
   @Experimental() // untriaged
-  double get emHeightAscent => _blink.BlinkTextMetrics.instance.emHeightAscent_Getter_(unwrap_jso(this));
+  num get emHeightAscent => _blink.BlinkTextMetrics.instance.emHeightAscent_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.emHeightDescent')
   @DocsEditable()
   @Experimental() // untriaged
-  double get emHeightDescent => _blink.BlinkTextMetrics.instance.emHeightDescent_Getter_(unwrap_jso(this));
+  num get emHeightDescent => _blink.BlinkTextMetrics.instance.emHeightDescent_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.fontBoundingBoxAscent')
   @DocsEditable()
   @Experimental() // untriaged
-  double get fontBoundingBoxAscent => _blink.BlinkTextMetrics.instance.fontBoundingBoxAscent_Getter_(unwrap_jso(this));
+  num get fontBoundingBoxAscent => _blink.BlinkTextMetrics.instance.fontBoundingBoxAscent_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.fontBoundingBoxDescent')
   @DocsEditable()
   @Experimental() // untriaged
-  double get fontBoundingBoxDescent => _blink.BlinkTextMetrics.instance.fontBoundingBoxDescent_Getter_(unwrap_jso(this));
+  num get fontBoundingBoxDescent => _blink.BlinkTextMetrics.instance.fontBoundingBoxDescent_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.hangingBaseline')
   @DocsEditable()
   @Experimental() // untriaged
-  double get hangingBaseline => _blink.BlinkTextMetrics.instance.hangingBaseline_Getter_(unwrap_jso(this));
+  num get hangingBaseline => _blink.BlinkTextMetrics.instance.hangingBaseline_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.ideographicBaseline')
   @DocsEditable()
   @Experimental() // untriaged
-  double get ideographicBaseline => _blink.BlinkTextMetrics.instance.ideographicBaseline_Getter_(unwrap_jso(this));
+  num get ideographicBaseline => _blink.BlinkTextMetrics.instance.ideographicBaseline_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.width')
   @DocsEditable()
-  double get width => _blink.BlinkTextMetrics.instance.width_Getter_(unwrap_jso(this));
+  num get width => _blink.BlinkTextMetrics.instance.width_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30872,6 +35733,18 @@ class TextTrack extends EventTarget {
   @DomName('TextTrack.cuechangeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> cueChangeEvent = const EventStreamProvider<Event>('cuechange');
+
+
+  static TextTrack internalCreateTextTrack() {
+    return new TextTrack._internalWrap();
+  }
+
+  factory TextTrack._internalWrap() {
+    return new TextTrack.internal_();
+  }
+
+  TextTrack.internal_() : super.internal_();
+
 
   @DomName('TextTrack.activeCues')
   @DocsEditable()
@@ -30904,7 +35777,7 @@ class TextTrack extends EventTarget {
   
   @DomName('TextTrack.mode')
   @DocsEditable()
-  void set mode(String value) => _blink.BlinkTextTrack.instance.mode_Setter_(unwrap_jso(this), value);
+  set mode(String value) => _blink.BlinkTextTrack.instance.mode_Setter_(unwrap_jso(this), value);
   
   @DomName('TextTrack.regions')
   @DocsEditable()
@@ -30970,13 +35843,25 @@ class TextTrackCue extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
 
+
+  static TextTrackCue internalCreateTextTrackCue() {
+    return new TextTrackCue._internalWrap();
+  }
+
+  factory TextTrackCue._internalWrap() {
+    return new TextTrackCue.internal_();
+  }
+
+  TextTrackCue.internal_() : super.internal_();
+
+
   @DomName('TextTrackCue.endTime')
   @DocsEditable()
   num get endTime => _blink.BlinkTextTrackCue.instance.endTime_Getter_(unwrap_jso(this));
   
   @DomName('TextTrackCue.endTime')
   @DocsEditable()
-  void set endTime(num value) => _blink.BlinkTextTrackCue.instance.endTime_Setter_(unwrap_jso(this), value);
+  set endTime(num value) => _blink.BlinkTextTrackCue.instance.endTime_Setter_(unwrap_jso(this), value);
   
   @DomName('TextTrackCue.id')
   @DocsEditable()
@@ -30984,7 +35869,7 @@ class TextTrackCue extends EventTarget {
   
   @DomName('TextTrackCue.id')
   @DocsEditable()
-  void set id(String value) => _blink.BlinkTextTrackCue.instance.id_Setter_(unwrap_jso(this), value);
+  set id(String value) => _blink.BlinkTextTrackCue.instance.id_Setter_(unwrap_jso(this), value);
   
   @DomName('TextTrackCue.pauseOnExit')
   @DocsEditable()
@@ -30992,7 +35877,7 @@ class TextTrackCue extends EventTarget {
   
   @DomName('TextTrackCue.pauseOnExit')
   @DocsEditable()
-  void set pauseOnExit(bool value) => _blink.BlinkTextTrackCue.instance.pauseOnExit_Setter_(unwrap_jso(this), value);
+  set pauseOnExit(bool value) => _blink.BlinkTextTrackCue.instance.pauseOnExit_Setter_(unwrap_jso(this), value);
   
   @DomName('TextTrackCue.startTime')
   @DocsEditable()
@@ -31000,7 +35885,7 @@ class TextTrackCue extends EventTarget {
   
   @DomName('TextTrackCue.startTime')
   @DocsEditable()
-  void set startTime(num value) => _blink.BlinkTextTrackCue.instance.startTime_Setter_(unwrap_jso(this), value);
+  set startTime(num value) => _blink.BlinkTextTrackCue.instance.startTime_Setter_(unwrap_jso(this), value);
   
   @DomName('TextTrackCue.track')
   @DocsEditable()
@@ -31028,9 +35913,24 @@ class TextTrackCue extends EventTarget {
 @DomName('TextTrackCueList')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttrackcuelist
 @Experimental()
-class TextTrackCueList extends NativeFieldWrapperClass2 with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue> {
+class TextTrackCueList extends JsoNativeFieldWrapper with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue> {
   // To suppress missing implicit constructor warnings.
   factory TextTrackCueList._() { throw new UnsupportedError("Not supported"); }
+
+  static TextTrackCueList internalCreateTextTrackCueList() {
+    return new TextTrackCueList._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory TextTrackCueList._internalWrap() {
+    return new TextTrackCueList.internal_();
+  }
+
+  TextTrackCueList.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('TextTrackCueList.length')
   @DocsEditable()
@@ -31043,7 +35943,7 @@ class TextTrackCueList extends NativeFieldWrapperClass2 with ListMixin<TextTrack
   }
 
   TextTrackCue _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkTextTrackCueList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, TextTrackCue value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -31051,7 +35951,7 @@ class TextTrackCueList extends NativeFieldWrapperClass2 with ListMixin<TextTrack
   // TextTrackCue is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -31121,6 +36021,18 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   @Experimental() // untriaged
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
+
+  static TextTrackList internalCreateTextTrackList() {
+    return new TextTrackList._internalWrap();
+  }
+
+  factory TextTrackList._internalWrap() {
+    return new TextTrackList.internal_();
+  }
+
+  TextTrackList.internal_() : super.internal_();
+
+
   @DomName('TextTrackList.length')
   @DocsEditable()
   int get length => _blink.BlinkTextTrackList.instance.length_Getter_(unwrap_jso(this));
@@ -31132,7 +36044,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   }
 
   TextTrack _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkTextTrackList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, TextTrack value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -31140,7 +36052,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   // TextTrack is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -31205,17 +36117,32 @@ class TimeRanges extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory TimeRanges._() { throw new UnsupportedError("Not supported"); }
 
+  static TimeRanges internalCreateTimeRanges() {
+    return new TimeRanges._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory TimeRanges._internalWrap() {
+    return new TimeRanges.internal_();
+  }
+
+  TimeRanges.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('TimeRanges.length')
   @DocsEditable()
   int get length => _blink.BlinkTimeRanges.instance.length_Getter_(unwrap_jso(this));
   
   @DomName('TimeRanges.end')
   @DocsEditable()
-  double end(int index) => _blink.BlinkTimeRanges.instance.end_Callback_1_(unwrap_jso(this), index);
+  num end(int index) => _blink.BlinkTimeRanges.instance.end_Callback_1_(unwrap_jso(this), index);
   
   @DomName('TimeRanges.start')
   @DocsEditable()
-  double start(int index) => _blink.BlinkTimeRanges.instance.start_Callback_1_(unwrap_jso(this), index);
+  num start(int index) => _blink.BlinkTimeRanges.instance.start_Callback_1_(unwrap_jso(this), index);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31241,6 +36168,21 @@ class Timing extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Timing._() { throw new UnsupportedError("Not supported"); }
 
+  static Timing internalCreateTiming() {
+    return new Timing._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Timing._internalWrap() {
+    return new Timing.internal_();
+  }
+
+  Timing.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('Timing.delay')
   @DocsEditable()
   @Experimental() // untriaged
@@ -31249,7 +36191,7 @@ class Timing extends NativeFieldWrapperClass2 {
   @DomName('Timing.delay')
   @DocsEditable()
   @Experimental() // untriaged
-  void set delay(num value) => _blink.BlinkTiming.instance.delay_Setter_(unwrap_jso(this), value);
+  set delay(num value) => _blink.BlinkTiming.instance.delay_Setter_(unwrap_jso(this), value);
   
   @DomName('Timing.direction')
   @DocsEditable()
@@ -31259,7 +36201,7 @@ class Timing extends NativeFieldWrapperClass2 {
   @DomName('Timing.direction')
   @DocsEditable()
   @Experimental() // untriaged
-  void set direction(String value) => _blink.BlinkTiming.instance.direction_Setter_(unwrap_jso(this), value);
+  set direction(String value) => _blink.BlinkTiming.instance.direction_Setter_(unwrap_jso(this), value);
   
   @DomName('Timing.easing')
   @DocsEditable()
@@ -31269,7 +36211,7 @@ class Timing extends NativeFieldWrapperClass2 {
   @DomName('Timing.easing')
   @DocsEditable()
   @Experimental() // untriaged
-  void set easing(String value) => _blink.BlinkTiming.instance.easing_Setter_(unwrap_jso(this), value);
+  set easing(String value) => _blink.BlinkTiming.instance.easing_Setter_(unwrap_jso(this), value);
   
   @DomName('Timing.endDelay')
   @DocsEditable()
@@ -31279,7 +36221,7 @@ class Timing extends NativeFieldWrapperClass2 {
   @DomName('Timing.endDelay')
   @DocsEditable()
   @Experimental() // untriaged
-  void set endDelay(num value) => _blink.BlinkTiming.instance.endDelay_Setter_(unwrap_jso(this), value);
+  set endDelay(num value) => _blink.BlinkTiming.instance.endDelay_Setter_(unwrap_jso(this), value);
   
   @DomName('Timing.fill')
   @DocsEditable()
@@ -31289,7 +36231,7 @@ class Timing extends NativeFieldWrapperClass2 {
   @DomName('Timing.fill')
   @DocsEditable()
   @Experimental() // untriaged
-  void set fill(String value) => _blink.BlinkTiming.instance.fill_Setter_(unwrap_jso(this), value);
+  set fill(String value) => _blink.BlinkTiming.instance.fill_Setter_(unwrap_jso(this), value);
   
   @DomName('Timing.iterationStart')
   @DocsEditable()
@@ -31299,7 +36241,7 @@ class Timing extends NativeFieldWrapperClass2 {
   @DomName('Timing.iterationStart')
   @DocsEditable()
   @Experimental() // untriaged
-  void set iterationStart(num value) => _blink.BlinkTiming.instance.iterationStart_Setter_(unwrap_jso(this), value);
+  set iterationStart(num value) => _blink.BlinkTiming.instance.iterationStart_Setter_(unwrap_jso(this), value);
   
   @DomName('Timing.iterations')
   @DocsEditable()
@@ -31309,7 +36251,7 @@ class Timing extends NativeFieldWrapperClass2 {
   @DomName('Timing.iterations')
   @DocsEditable()
   @Experimental() // untriaged
-  void set iterations(num value) => _blink.BlinkTiming.instance.iterations_Setter_(unwrap_jso(this), value);
+  set iterations(num value) => _blink.BlinkTiming.instance.iterations_Setter_(unwrap_jso(this), value);
   
   @DomName('Timing.playbackRate')
   @DocsEditable()
@@ -31319,7 +36261,7 @@ class Timing extends NativeFieldWrapperClass2 {
   @DomName('Timing.playbackRate')
   @DocsEditable()
   @Experimental() // untriaged
-  void set playbackRate(num value) => _blink.BlinkTiming.instance.playbackRate_Setter_(unwrap_jso(this), value);
+  set playbackRate(num value) => _blink.BlinkTiming.instance.playbackRate_Setter_(unwrap_jso(this), value);
   
   @DomName('Timing.__getter__')
   @DocsEditable()
@@ -31348,6 +36290,18 @@ class TitleElement extends HtmlElement {
   @DomName('HTMLTitleElement.HTMLTitleElement')
   @DocsEditable()
   factory TitleElement() => document.createElement("title");
+
+
+  static TitleElement internalCreateTitleElement() {
+    return new TitleElement._internalWrap();
+  }
+
+  factory TitleElement._internalWrap() {
+    return new TitleElement.internal_();
+  }
+
+  TitleElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -31369,18 +36323,33 @@ class Touch extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Touch._() { throw new UnsupportedError("Not supported"); }
 
+  static Touch internalCreateTouch() {
+    return new Touch._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Touch._internalWrap() {
+    return new Touch.internal_();
+  }
+
+  Touch.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('Touch.clientX')
   @DocsEditable()
-  double get _clientX => _blink.BlinkTouch.instance.clientX_Getter_(unwrap_jso(this));
+  num get _clientX => _blink.BlinkTouch.instance.clientX_Getter_(unwrap_jso(this));
   
   @DomName('Touch.clientY')
   @DocsEditable()
-  double get _clientY => _blink.BlinkTouch.instance.clientY_Getter_(unwrap_jso(this));
+  num get _clientY => _blink.BlinkTouch.instance.clientY_Getter_(unwrap_jso(this));
   
   @DomName('Touch.force')
   @DocsEditable()
   @Experimental() // untriaged
-  double get force => _blink.BlinkTouch.instance.force_Getter_(unwrap_jso(this));
+  num get force => _blink.BlinkTouch.instance.force_Getter_(unwrap_jso(this));
   
   @DomName('Touch.identifier')
   @DocsEditable()
@@ -31388,29 +36357,29 @@ class Touch extends NativeFieldWrapperClass2 {
   
   @DomName('Touch.pageX')
   @DocsEditable()
-  double get _pageX => _blink.BlinkTouch.instance.pageX_Getter_(unwrap_jso(this));
+  num get _pageX => _blink.BlinkTouch.instance.pageX_Getter_(unwrap_jso(this));
   
   @DomName('Touch.pageY')
   @DocsEditable()
-  double get _pageY => _blink.BlinkTouch.instance.pageY_Getter_(unwrap_jso(this));
+  num get _pageY => _blink.BlinkTouch.instance.pageY_Getter_(unwrap_jso(this));
   
   @DomName('Touch.radiusX')
   @DocsEditable()
   @Experimental() // untriaged
-  double get _radiusX => _blink.BlinkTouch.instance.radiusX_Getter_(unwrap_jso(this));
+  num get _radiusX => _blink.BlinkTouch.instance.radiusX_Getter_(unwrap_jso(this));
   
   @DomName('Touch.radiusY')
   @DocsEditable()
   @Experimental() // untriaged
-  double get _radiusY => _blink.BlinkTouch.instance.radiusY_Getter_(unwrap_jso(this));
+  num get _radiusY => _blink.BlinkTouch.instance.radiusY_Getter_(unwrap_jso(this));
   
   @DomName('Touch.screenX')
   @DocsEditable()
-  double get _screenX => _blink.BlinkTouch.instance.screenX_Getter_(unwrap_jso(this));
+  num get _screenX => _blink.BlinkTouch.instance.screenX_Getter_(unwrap_jso(this));
   
   @DomName('Touch.screenY')
   @DocsEditable()
-  double get _screenY => _blink.BlinkTouch.instance.screenY_Getter_(unwrap_jso(this));
+  num get _screenY => _blink.BlinkTouch.instance.screenY_Getter_(unwrap_jso(this));
   
   @DomName('Touch.target')
   @DocsEditable()
@@ -31421,19 +36390,19 @@ class Touch extends NativeFieldWrapperClass2 {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  double get rotationAngle => _blink.BlinkTouch.instance.webkitRotationAngle_Getter_(unwrap_jso(this));
+  num get rotationAngle => _blink.BlinkTouch.instance.webkitRotationAngle_Getter_(unwrap_jso(this));
   
 
 // As of Chrome 37, these all changed from long to double.  This code
 // preserves backwards compatability for the time being.
-  int get __clientX => _blink.BlinkTouch.clientX_Getter(unwrap_jso(this)).round();
-  int get __clientY => _blink.BlinkTouch.clientY_Getter(unwrap_jso(this)).round();
-  int get __screenX => _blink.BlinkTouch.screenX_Getter(unwrap_jso(this)).round();
-  int get __screenY => _blink.BlinkTouch.screenY_Getter(unwrap_jso(this)).round();
-  int get __pageX => _blink.BlinkTouch.pageX_Getter(unwrap_jso(this)).round();
-  int get __pageY => _blink.BlinkTouch.pageY_Getter(unwrap_jso(this)).round();
-  int get __radiusX => _blink.BlinkTouch.radiusX_Getter(unwrap_jso(this)).round();
-  int get __radiusY => _blink.BlinkTouch.radiusY_Getter(unwrap_jso(this)).round();
+  int get __clientX => _blink.BlinkTouch.instance.clientX_Getter_(unwrap_jso(this)).round();
+  int get __clientY => _blink.BlinkTouch.instance.clientY_Getter_(unwrap_jso(this)).round();
+  int get __screenX => _blink.BlinkTouch.instance.screenX_Getter_(unwrap_jso(this)).round();
+  int get __screenY => _blink.BlinkTouch.instance.screenY_Getter_(unwrap_jso(this)).round();
+  int get __pageX => _blink.BlinkTouch.instance.pageX_Getter_(unwrap_jso(this)).round();
+  int get __pageY => _blink.BlinkTouch.instance.pageY_Getter_(unwrap_jso(this)).round();
+  int get __radiusX => _blink.BlinkTouch.instance.radiusX_Getter_(unwrap_jso(this)).round();
+  int get __radiusY => _blink.BlinkTouch.instance.radiusY_Getter_(unwrap_jso(this)).round();
 
   @DomName('Touch.clientX')
   @DomName('Touch.clientY')
@@ -31489,6 +36458,18 @@ class TouchEvent extends UIEvent {
   // To suppress missing implicit constructor warnings.
   factory TouchEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static TouchEvent internalCreateTouchEvent() {
+    return new TouchEvent._internalWrap();
+  }
+
+  factory TouchEvent._internalWrap() {
+    return new TouchEvent.internal_();
+  }
+
+  TouchEvent.internal_() : super.internal_();
+
+
   @DomName('TouchEvent.altKey')
   @DocsEditable()
   bool get altKey => _blink.BlinkTouchEvent.instance.altKey_Getter_(unwrap_jso(this));
@@ -31540,7 +36521,7 @@ class TouchEvent extends UIEvent {
 @DomName('TouchList')
 // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
 @Experimental()
-class TouchList extends NativeFieldWrapperClass2 with ListMixin<Touch>, ImmutableListMixin<Touch> implements List<Touch> {
+class TouchList extends JsoNativeFieldWrapper with ListMixin<Touch>, ImmutableListMixin<Touch> implements List<Touch> {
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
   /// with touch enabled. See dartbug.com/8314.
@@ -31548,6 +36529,21 @@ class TouchList extends NativeFieldWrapperClass2 with ListMixin<Touch>, Immutabl
   factory TouchList() => null;//document._createTouchList();
   // To suppress missing implicit constructor warnings.
   factory TouchList._() { throw new UnsupportedError("Not supported"); }
+
+  static TouchList internalCreateTouchList() {
+    return new TouchList._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory TouchList._internalWrap() {
+    return new TouchList.internal_();
+  }
+
+  TouchList.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -31563,7 +36559,7 @@ class TouchList extends NativeFieldWrapperClass2 with ListMixin<Touch>, Immutabl
   }
 
   Touch _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkTouchList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, Touch value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -31571,7 +36567,7 @@ class TouchList extends NativeFieldWrapperClass2 with ListMixin<Touch>, Immutabl
   // Touch is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -31628,6 +36624,18 @@ class TrackElement extends HtmlElement {
   @DomName('HTMLTrackElement.HTMLTrackElement')
   @DocsEditable()
   factory TrackElement() => document.createElement("track");
+
+
+  static TrackElement internalCreateTrackElement() {
+    return new TrackElement._internalWrap();
+  }
+
+  factory TrackElement._internalWrap() {
+    return new TrackElement.internal_();
+  }
+
+  TrackElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -31660,7 +36668,7 @@ class TrackElement extends HtmlElement {
   
   @DomName('HTMLTrackElement.default')
   @DocsEditable()
-  void set defaultValue(bool value) => _blink.BlinkHTMLTrackElement.instance.default_Setter_(unwrap_jso(this), value);
+  set defaultValue(bool value) => _blink.BlinkHTMLTrackElement.instance.default_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTrackElement.integrity')
   @DocsEditable()
@@ -31670,7 +36678,7 @@ class TrackElement extends HtmlElement {
   @DomName('HTMLTrackElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLTrackElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLTrackElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTrackElement.kind')
   @DocsEditable()
@@ -31678,7 +36686,7 @@ class TrackElement extends HtmlElement {
   
   @DomName('HTMLTrackElement.kind')
   @DocsEditable()
-  void set kind(String value) => _blink.BlinkHTMLTrackElement.instance.kind_Setter_(unwrap_jso(this), value);
+  set kind(String value) => _blink.BlinkHTMLTrackElement.instance.kind_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTrackElement.label')
   @DocsEditable()
@@ -31686,7 +36694,7 @@ class TrackElement extends HtmlElement {
   
   @DomName('HTMLTrackElement.label')
   @DocsEditable()
-  void set label(String value) => _blink.BlinkHTMLTrackElement.instance.label_Setter_(unwrap_jso(this), value);
+  set label(String value) => _blink.BlinkHTMLTrackElement.instance.label_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTrackElement.readyState')
   @DocsEditable()
@@ -31698,7 +36706,7 @@ class TrackElement extends HtmlElement {
   
   @DomName('HTMLTrackElement.src')
   @DocsEditable()
-  void set src(String value) => _blink.BlinkHTMLTrackElement.instance.src_Setter_(unwrap_jso(this), value);
+  set src(String value) => _blink.BlinkHTMLTrackElement.instance.src_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTrackElement.srclang')
   @DocsEditable()
@@ -31706,7 +36714,7 @@ class TrackElement extends HtmlElement {
   
   @DomName('HTMLTrackElement.srclang')
   @DocsEditable()
-  void set srclang(String value) => _blink.BlinkHTMLTrackElement.instance.srclang_Setter_(unwrap_jso(this), value);
+  set srclang(String value) => _blink.BlinkHTMLTrackElement.instance.srclang_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTrackElement.track')
   @DocsEditable()
@@ -31727,9 +36735,21 @@ class TrackEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory TrackEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static TrackEvent internalCreateTrackEvent() {
+    return new TrackEvent._internalWrap();
+  }
+
+  factory TrackEvent._internalWrap() {
+    return new TrackEvent.internal_();
+  }
+
+  TrackEvent.internal_() : super.internal_();
+
+
   @DomName('TrackEvent.track')
   @DocsEditable()
-  Object get track => _blink.BlinkTrackEvent.instance.track_Getter_(unwrap_jso(this));
+  Object get track => wrap_jso(_blink.BlinkTrackEvent.instance.track_Getter_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31745,9 +36765,21 @@ class TransitionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory TransitionEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static TransitionEvent internalCreateTransitionEvent() {
+    return new TransitionEvent._internalWrap();
+  }
+
+  factory TransitionEvent._internalWrap() {
+    return new TransitionEvent.internal_();
+  }
+
+  TransitionEvent.internal_() : super.internal_();
+
+
   @DomName('TransitionEvent.elapsedTime')
   @DocsEditable()
-  double get elapsedTime => _blink.BlinkTransitionEvent.instance.elapsedTime_Getter_(unwrap_jso(this));
+  num get elapsedTime => _blink.BlinkTransitionEvent.instance.elapsedTime_Getter_(unwrap_jso(this));
   
   @DomName('TransitionEvent.propertyName')
   @DocsEditable()
@@ -31772,13 +36804,28 @@ class TreeWalker extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory TreeWalker._() { throw new UnsupportedError("Not supported"); }
 
+  static TreeWalker internalCreateTreeWalker() {
+    return new TreeWalker._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory TreeWalker._internalWrap() {
+    return new TreeWalker.internal_();
+  }
+
+  TreeWalker.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('TreeWalker.currentNode')
   @DocsEditable()
   Node get currentNode => wrap_jso(_blink.BlinkTreeWalker.instance.currentNode_Getter_(unwrap_jso(this)));
   
   @DomName('TreeWalker.currentNode')
   @DocsEditable()
-  void set currentNode(Node value) => _blink.BlinkTreeWalker.instance.currentNode_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set currentNode(Node value) => _blink.BlinkTreeWalker.instance.currentNode_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('TreeWalker.filter')
   @DocsEditable()
@@ -31848,6 +36895,18 @@ class UIEvent extends Event {
   }
   // To suppress missing implicit constructor warnings.
   factory UIEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static UIEvent internalCreateUIEvent() {
+    return new UIEvent._internalWrap();
+  }
+
+  factory UIEvent._internalWrap() {
+    return new UIEvent.internal_();
+  }
+
+  UIEvent.internal_() : super.internal_();
+
 
   @DomName('UIEvent.charCode')
   @DocsEditable()
@@ -31925,6 +36984,18 @@ class UListElement extends HtmlElement {
   @DomName('HTMLUListElement.HTMLUListElement')
   @DocsEditable()
   factory UListElement() => document.createElement("ul");
+
+
+  static UListElement internalCreateUListElement() {
+    return new UListElement._internalWrap();
+  }
+
+  factory UListElement._internalWrap() {
+    return new UListElement.internal_();
+  }
+
+  UListElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -31945,6 +37016,18 @@ class UListElement extends HtmlElement {
 class UnknownElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory UnknownElement._() { throw new UnsupportedError("Not supported"); }
+
+
+  static UnknownElement internalCreateUnknownElement() {
+    return new UnknownElement._internalWrap();
+  }
+
+  factory UnknownElement._internalWrap() {
+    return new UnknownElement.internal_();
+  }
+
+  UnknownElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -31965,6 +37048,21 @@ class UnknownElement extends HtmlElement {
 class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   // To suppress missing implicit constructor warnings.
   factory Url._() { throw new UnsupportedError("Not supported"); }
+
+  static Url internalCreateUrl() {
+    return new Url._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory Url._internalWrap() {
+    return new Url.internal_();
+  }
+
+  Url.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   static String createObjectUrl(blob_OR_source_OR_stream) {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
@@ -32003,7 +37101,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.hash')
   @DocsEditable()
   @Experimental() // untriaged
-  void set hash(String value) => _blink.BlinkURL.instance.hash_Setter_(unwrap_jso(this), value);
+  set hash(String value) => _blink.BlinkURL.instance.hash_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.host')
   @DocsEditable()
@@ -32013,7 +37111,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.host')
   @DocsEditable()
   @Experimental() // untriaged
-  void set host(String value) => _blink.BlinkURL.instance.host_Setter_(unwrap_jso(this), value);
+  set host(String value) => _blink.BlinkURL.instance.host_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.hostname')
   @DocsEditable()
@@ -32023,7 +37121,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.hostname')
   @DocsEditable()
   @Experimental() // untriaged
-  void set hostname(String value) => _blink.BlinkURL.instance.hostname_Setter_(unwrap_jso(this), value);
+  set hostname(String value) => _blink.BlinkURL.instance.hostname_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.href')
   @DocsEditable()
@@ -32033,7 +37131,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.href')
   @DocsEditable()
   @Experimental() // untriaged
-  void set href(String value) => _blink.BlinkURL.instance.href_Setter_(unwrap_jso(this), value);
+  set href(String value) => _blink.BlinkURL.instance.href_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.origin')
   @DocsEditable()
@@ -32048,7 +37146,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.password')
   @DocsEditable()
   @Experimental() // untriaged
-  void set password(String value) => _blink.BlinkURL.instance.password_Setter_(unwrap_jso(this), value);
+  set password(String value) => _blink.BlinkURL.instance.password_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.pathname')
   @DocsEditable()
@@ -32058,7 +37156,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.pathname')
   @DocsEditable()
   @Experimental() // untriaged
-  void set pathname(String value) => _blink.BlinkURL.instance.pathname_Setter_(unwrap_jso(this), value);
+  set pathname(String value) => _blink.BlinkURL.instance.pathname_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.port')
   @DocsEditable()
@@ -32068,7 +37166,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.port')
   @DocsEditable()
   @Experimental() // untriaged
-  void set port(String value) => _blink.BlinkURL.instance.port_Setter_(unwrap_jso(this), value);
+  set port(String value) => _blink.BlinkURL.instance.port_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.protocol')
   @DocsEditable()
@@ -32078,7 +37176,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.protocol')
   @DocsEditable()
   @Experimental() // untriaged
-  void set protocol(String value) => _blink.BlinkURL.instance.protocol_Setter_(unwrap_jso(this), value);
+  set protocol(String value) => _blink.BlinkURL.instance.protocol_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.search')
   @DocsEditable()
@@ -32088,7 +37186,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.search')
   @DocsEditable()
   @Experimental() // untriaged
-  void set search(String value) => _blink.BlinkURL.instance.search_Setter_(unwrap_jso(this), value);
+  set search(String value) => _blink.BlinkURL.instance.search_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.username')
   @DocsEditable()
@@ -32098,7 +37196,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.username')
   @DocsEditable()
   @Experimental() // untriaged
-  void set username(String value) => _blink.BlinkURL.instance.username_Setter_(unwrap_jso(this), value);
+  set username(String value) => _blink.BlinkURL.instance.username_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.toString')
   @DocsEditable()
@@ -32128,7 +37226,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.hash')
   @DocsEditable()
   @Experimental() // untriaged
-  void set hash(String value);
+  set hash(String value);
 
   @DomName('URLUtils.host')
   @DocsEditable()
@@ -32138,7 +37236,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.host')
   @DocsEditable()
   @Experimental() // untriaged
-  void set host(String value);
+  set host(String value);
 
   @DomName('URLUtils.hostname')
   @DocsEditable()
@@ -32148,7 +37246,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.hostname')
   @DocsEditable()
   @Experimental() // untriaged
-  void set hostname(String value);
+  set hostname(String value);
 
   @DomName('URLUtils.href')
   @DocsEditable()
@@ -32158,7 +37256,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.href')
   @DocsEditable()
   @Experimental() // untriaged
-  void set href(String value);
+  set href(String value);
 
   @DomName('URLUtils.origin')
   @DocsEditable()
@@ -32173,7 +37271,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.password')
   @DocsEditable()
   @Experimental() // untriaged
-  void set password(String value);
+  set password(String value);
 
   @DomName('URLUtils.pathname')
   @DocsEditable()
@@ -32183,7 +37281,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.pathname')
   @DocsEditable()
   @Experimental() // untriaged
-  void set pathname(String value);
+  set pathname(String value);
 
   @DomName('URLUtils.port')
   @DocsEditable()
@@ -32193,7 +37291,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.port')
   @DocsEditable()
   @Experimental() // untriaged
-  void set port(String value);
+  set port(String value);
 
   @DomName('URLUtils.protocol')
   @DocsEditable()
@@ -32203,7 +37301,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.protocol')
   @DocsEditable()
   @Experimental() // untriaged
-  void set protocol(String value);
+  set protocol(String value);
 
   @DomName('URLUtils.search')
   @DocsEditable()
@@ -32213,7 +37311,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.search')
   @DocsEditable()
   @Experimental() // untriaged
-  void set search(String value);
+  set search(String value);
 
   @DomName('URLUtils.username')
   @DocsEditable()
@@ -32223,7 +37321,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.username')
   @DocsEditable()
   @Experimental() // untriaged
-  void set username(String value);
+  set username(String value);
 
   @DomName('URLUtils.toString')
   @DocsEditable()
@@ -32309,6 +37407,21 @@ class ValidityState extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ValidityState._() { throw new UnsupportedError("Not supported"); }
 
+  static ValidityState internalCreateValidityState() {
+    return new ValidityState._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory ValidityState._internalWrap() {
+    return new ValidityState.internal_();
+  }
+
+  ValidityState.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('ValidityState.badInput')
   @DocsEditable()
   bool get badInput => _blink.BlinkValidityState.instance.badInput_Getter_(unwrap_jso(this));
@@ -32363,6 +37476,18 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   @DomName('HTMLVideoElement.HTMLVideoElement')
   @DocsEditable()
   factory VideoElement() => document.createElement("video");
+
+
+  static VideoElement internalCreateVideoElement() {
+    return new VideoElement._internalWrap();
+  }
+
+  factory VideoElement._internalWrap() {
+    return new VideoElement.internal_();
+  }
+
+  VideoElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -32376,7 +37501,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   
   @DomName('HTMLVideoElement.height')
   @DocsEditable()
-  void set height(int value) => _blink.BlinkHTMLVideoElement.instance.height_Setter_(unwrap_jso(this), value);
+  set height(int value) => _blink.BlinkHTMLVideoElement.instance.height_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLVideoElement.poster')
   @DocsEditable()
@@ -32384,7 +37509,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   
   @DomName('HTMLVideoElement.poster')
   @DocsEditable()
-  void set poster(String value) => _blink.BlinkHTMLVideoElement.instance.poster_Setter_(unwrap_jso(this), value);
+  set poster(String value) => _blink.BlinkHTMLVideoElement.instance.poster_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLVideoElement.videoHeight')
   @DocsEditable()
@@ -32414,7 +37539,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   
   @DomName('HTMLVideoElement.width')
   @DocsEditable()
-  void set width(int value) => _blink.BlinkHTMLVideoElement.instance.width_Setter_(unwrap_jso(this), value);
+  set width(int value) => _blink.BlinkHTMLVideoElement.instance.width_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLVideoElement.getVideoPlaybackQuality')
   @DocsEditable()
@@ -32452,6 +37577,21 @@ class VideoPlaybackQuality extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory VideoPlaybackQuality._() { throw new UnsupportedError("Not supported"); }
 
+  static VideoPlaybackQuality internalCreateVideoPlaybackQuality() {
+    return new VideoPlaybackQuality._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory VideoPlaybackQuality._internalWrap() {
+    return new VideoPlaybackQuality.internal_();
+  }
+
+  VideoPlaybackQuality.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('VideoPlaybackQuality.corruptedVideoFrames')
   @DocsEditable()
   @Experimental() // untriaged
@@ -32460,7 +37600,7 @@ class VideoPlaybackQuality extends NativeFieldWrapperClass2 {
   @DomName('VideoPlaybackQuality.creationTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get creationTime => _blink.BlinkVideoPlaybackQuality.instance.creationTime_Getter_(unwrap_jso(this));
+  num get creationTime => _blink.BlinkVideoPlaybackQuality.instance.creationTime_Getter_(unwrap_jso(this));
   
   @DomName('VideoPlaybackQuality.droppedVideoFrames')
   @DocsEditable()
@@ -32486,6 +37626,21 @@ class VideoPlaybackQuality extends NativeFieldWrapperClass2 {
 class VideoTrack extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory VideoTrack._() { throw new UnsupportedError("Not supported"); }
+
+  static VideoTrack internalCreateVideoTrack() {
+    return new VideoTrack._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory VideoTrack._internalWrap() {
+    return new VideoTrack.internal_();
+  }
+
+  VideoTrack.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('VideoTrack.id')
   @DocsEditable()
@@ -32515,7 +37670,7 @@ class VideoTrack extends NativeFieldWrapperClass2 {
   @DomName('VideoTrack.selected')
   @DocsEditable()
   @Experimental() // untriaged
-  void set selected(bool value) => _blink.BlinkVideoTrack.instance.selected_Setter_(unwrap_jso(this), value);
+  set selected(bool value) => _blink.BlinkVideoTrack.instance.selected_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32536,6 +37691,18 @@ class VideoTrackList extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
+
+
+  static VideoTrackList internalCreateVideoTrackList() {
+    return new VideoTrackList._internalWrap();
+  }
+
+  factory VideoTrackList._internalWrap() {
+    return new VideoTrackList.internal_();
+  }
+
+  VideoTrackList.internal_() : super.internal_();
+
 
   @DomName('VideoTrackList.length')
   @DocsEditable()
@@ -32591,8 +37758,20 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.VTTCue')
   @DocsEditable()
   factory VttCue(num startTime, num endTime, String text) {
-    return _blink.BlinkVTTCue.instance.constructorCallback_3_(startTime, endTime, text);
+    return wrap_jso(_blink.BlinkVTTCue.instance.constructorCallback_3_(startTime, endTime, text));
   }
+
+
+  static VttCue internalCreateVttCue() {
+    return new VttCue._internalWrap();
+  }
+
+  factory VttCue._internalWrap() {
+    return new VttCue.internal_();
+  }
+
+  VttCue.internal_() : super.internal_();
+
 
   @DomName('VTTCue.align')
   @DocsEditable()
@@ -32602,7 +37781,7 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.align')
   @DocsEditable()
   @Experimental() // untriaged
-  void set align(String value) => _blink.BlinkVTTCue.instance.align_Setter_(unwrap_jso(this), value);
+  set align(String value) => _blink.BlinkVTTCue.instance.align_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTCue.line')
   @DocsEditable()
@@ -32612,7 +37791,7 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.line')
   @DocsEditable()
   @Experimental() // untriaged
-  void set line(int value) => _blink.BlinkVTTCue.instance.line_Setter_(unwrap_jso(this), value);
+  set line(int value) => _blink.BlinkVTTCue.instance.line_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTCue.position')
   @DocsEditable()
@@ -32622,7 +37801,7 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.position')
   @DocsEditable()
   @Experimental() // untriaged
-  void set position(int value) => _blink.BlinkVTTCue.instance.position_Setter_(unwrap_jso(this), value);
+  set position(int value) => _blink.BlinkVTTCue.instance.position_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTCue.regionId')
   @DocsEditable()
@@ -32632,7 +37811,7 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.regionId')
   @DocsEditable()
   @Experimental() // untriaged
-  void set regionId(String value) => _blink.BlinkVTTCue.instance.regionId_Setter_(unwrap_jso(this), value);
+  set regionId(String value) => _blink.BlinkVTTCue.instance.regionId_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTCue.size')
   @DocsEditable()
@@ -32642,7 +37821,7 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.size')
   @DocsEditable()
   @Experimental() // untriaged
-  void set size(int value) => _blink.BlinkVTTCue.instance.size_Setter_(unwrap_jso(this), value);
+  set size(int value) => _blink.BlinkVTTCue.instance.size_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTCue.snapToLines')
   @DocsEditable()
@@ -32652,7 +37831,7 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.snapToLines')
   @DocsEditable()
   @Experimental() // untriaged
-  void set snapToLines(bool value) => _blink.BlinkVTTCue.instance.snapToLines_Setter_(unwrap_jso(this), value);
+  set snapToLines(bool value) => _blink.BlinkVTTCue.instance.snapToLines_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTCue.text')
   @DocsEditable()
@@ -32662,7 +37841,7 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.text')
   @DocsEditable()
   @Experimental() // untriaged
-  void set text(String value) => _blink.BlinkVTTCue.instance.text_Setter_(unwrap_jso(this), value);
+  set text(String value) => _blink.BlinkVTTCue.instance.text_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTCue.vertical')
   @DocsEditable()
@@ -32672,7 +37851,7 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.vertical')
   @DocsEditable()
   @Experimental() // untriaged
-  void set vertical(String value) => _blink.BlinkVTTCue.instance.vertical_Setter_(unwrap_jso(this), value);
+  set vertical(String value) => _blink.BlinkVTTCue.instance.vertical_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTCue.getCueAsHTML')
   @DocsEditable()
@@ -32697,8 +37876,23 @@ class VttRegion extends NativeFieldWrapperClass2 {
   @DomName('VTTRegion.VTTRegion')
   @DocsEditable()
   factory VttRegion() {
-    return _blink.BlinkVTTRegion.instance.constructorCallback_0_();
+    return wrap_jso(_blink.BlinkVTTRegion.instance.constructorCallback_0_());
   }
+
+  static VttRegion internalCreateVttRegion() {
+    return new VttRegion._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory VttRegion._internalWrap() {
+    return new VttRegion.internal_();
+  }
+
+  VttRegion.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('VTTRegion.height')
   @DocsEditable()
@@ -32708,7 +37902,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
   @DomName('VTTRegion.height')
   @DocsEditable()
   @Experimental() // untriaged
-  void set height(int value) => _blink.BlinkVTTRegion.instance.height_Setter_(unwrap_jso(this), value);
+  set height(int value) => _blink.BlinkVTTRegion.instance.height_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTRegion.id')
   @DocsEditable()
@@ -32718,7 +37912,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
   @DomName('VTTRegion.id')
   @DocsEditable()
   @Experimental() // untriaged
-  void set id(String value) => _blink.BlinkVTTRegion.instance.id_Setter_(unwrap_jso(this), value);
+  set id(String value) => _blink.BlinkVTTRegion.instance.id_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTRegion.regionAnchorX')
   @DocsEditable()
@@ -32728,7 +37922,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
   @DomName('VTTRegion.regionAnchorX')
   @DocsEditable()
   @Experimental() // untriaged
-  void set regionAnchorX(num value) => _blink.BlinkVTTRegion.instance.regionAnchorX_Setter_(unwrap_jso(this), value);
+  set regionAnchorX(num value) => _blink.BlinkVTTRegion.instance.regionAnchorX_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTRegion.regionAnchorY')
   @DocsEditable()
@@ -32738,7 +37932,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
   @DomName('VTTRegion.regionAnchorY')
   @DocsEditable()
   @Experimental() // untriaged
-  void set regionAnchorY(num value) => _blink.BlinkVTTRegion.instance.regionAnchorY_Setter_(unwrap_jso(this), value);
+  set regionAnchorY(num value) => _blink.BlinkVTTRegion.instance.regionAnchorY_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTRegion.scroll')
   @DocsEditable()
@@ -32748,7 +37942,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
   @DomName('VTTRegion.scroll')
   @DocsEditable()
   @Experimental() // untriaged
-  void set scroll(String value) => _blink.BlinkVTTRegion.instance.scroll_Setter_(unwrap_jso(this), value);
+  set scroll(String value) => _blink.BlinkVTTRegion.instance.scroll_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTRegion.track')
   @DocsEditable()
@@ -32763,7 +37957,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
   @DomName('VTTRegion.viewportAnchorX')
   @DocsEditable()
   @Experimental() // untriaged
-  void set viewportAnchorX(num value) => _blink.BlinkVTTRegion.instance.viewportAnchorX_Setter_(unwrap_jso(this), value);
+  set viewportAnchorX(num value) => _blink.BlinkVTTRegion.instance.viewportAnchorX_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTRegion.viewportAnchorY')
   @DocsEditable()
@@ -32773,7 +37967,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
   @DomName('VTTRegion.viewportAnchorY')
   @DocsEditable()
   @Experimental() // untriaged
-  void set viewportAnchorY(num value) => _blink.BlinkVTTRegion.instance.viewportAnchorY_Setter_(unwrap_jso(this), value);
+  set viewportAnchorY(num value) => _blink.BlinkVTTRegion.instance.viewportAnchorY_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTRegion.width')
   @DocsEditable()
@@ -32783,7 +37977,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
   @DomName('VTTRegion.width')
   @DocsEditable()
   @Experimental() // untriaged
-  void set width(num value) => _blink.BlinkVTTRegion.instance.width_Setter_(unwrap_jso(this), value);
+  set width(num value) => _blink.BlinkVTTRegion.instance.width_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32800,6 +37994,21 @@ class VttRegionList extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory VttRegionList._() { throw new UnsupportedError("Not supported"); }
 
+  static VttRegionList internalCreateVttRegionList() {
+    return new VttRegionList._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory VttRegionList._internalWrap() {
+    return new VttRegionList.internal_();
+  }
+
+  VttRegionList.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('VTTRegionList.length')
   @DocsEditable()
   @Experimental() // untriaged
@@ -32808,12 +38017,12 @@ class VttRegionList extends NativeFieldWrapperClass2 {
   @DomName('VTTRegionList.getRegionById')
   @DocsEditable()
   @Experimental() // untriaged
-  VttRegion getRegionById(String id) => _blink.BlinkVTTRegionList.instance.getRegionById_Callback_1_(unwrap_jso(this), id);
+  VttRegion getRegionById(String id) => wrap_jso(_blink.BlinkVTTRegionList.instance.getRegionById_Callback_1_(unwrap_jso(this), id));
   
   @DomName('VTTRegionList.item')
   @DocsEditable()
   @Experimental() // untriaged
-  VttRegion item(int index) => _blink.BlinkVTTRegionList.instance.item_Callback_1_(unwrap_jso(this), index);
+  VttRegion item(int index) => wrap_jso(_blink.BlinkVTTRegionList.instance.item_Callback_1_(unwrap_jso(this), index));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32912,16 +38121,29 @@ class WebSocket extends EventTarget {
   @DocsEditable()
   factory WebSocket(String url, [protocol_OR_protocols]) {
     if ((url is String || url == null) && protocol_OR_protocols == null) {
-      return _blink.BlinkWebSocket.instance.constructorCallback_1_(url);
+      return wrap_jso(_blink.BlinkWebSocket.instance.constructorCallback_1_(url));
     }
     if ((protocol_OR_protocols is String || protocol_OR_protocols == null) && (url is String || url == null)) {
-      return _blink.BlinkWebSocket.instance.constructorCallback_2_(url, protocol_OR_protocols);
+      return wrap_jso(_blink.BlinkWebSocket.instance.constructorCallback_2_(url, protocol_OR_protocols));
     }
     if ((protocol_OR_protocols is List<String> || protocol_OR_protocols == null) && (url is String || url == null)) {
-      return _blink.BlinkWebSocket.instance.constructorCallback_2_(url, protocol_OR_protocols);
+      List protocols_1 = convertDartToNative_StringArray(protocol_OR_protocols);
+      return wrap_jso(_blink.BlinkWebSocket.instance.constructorCallback_2_(url, protocols_1));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+
+
+  static WebSocket internalCreateWebSocket() {
+    return new WebSocket._internalWrap();
+  }
+
+  factory WebSocket._internalWrap() {
+    return new WebSocket.internal_();
+  }
+
+  WebSocket.internal_() : super.internal_();
+
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -32948,7 +38170,7 @@ class WebSocket extends EventTarget {
   
   @DomName('WebSocket.binaryType')
   @DocsEditable()
-  void set binaryType(String value) => _blink.BlinkWebSocket.instance.binaryType_Setter_(unwrap_jso(this), value);
+  set binaryType(String value) => _blink.BlinkWebSocket.instance.binaryType_Setter_(unwrap_jso(this), value);
   
   @DomName('WebSocket.bufferedAmount')
   @DocsEditable()
@@ -33077,11 +38299,23 @@ class WheelEvent extends MouseEvent {
       'relatedTarget': relatedTarget,
     };
 
-    return _blink.BlinkWheelEvent.constructorCallback_2(type, options);
+    return wrap_jso(_blink.BlinkWheelEvent.instance.constructorCallback_2_(type, convertDartToNative_Dictionary(options)));
   }
 
   // To suppress missing implicit constructor warnings.
   factory WheelEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static WheelEvent internalCreateWheelEvent() {
+    return new WheelEvent._internalWrap();
+  }
+
+  factory WheelEvent._internalWrap() {
+    return new WheelEvent.internal_();
+  }
+
+  WheelEvent.internal_() : super.internal_();
+
 
   @DomName('WheelEvent.DOM_DELTA_LINE')
   @DocsEditable()
@@ -33101,15 +38335,15 @@ class WheelEvent extends MouseEvent {
   
   @DomName('WheelEvent.deltaX')
   @DocsEditable()
-  double get _deltaX => _blink.BlinkWheelEvent.instance.deltaX_Getter_(unwrap_jso(this));
+  num get _deltaX => _blink.BlinkWheelEvent.instance.deltaX_Getter_(unwrap_jso(this));
   
   @DomName('WheelEvent.deltaY')
   @DocsEditable()
-  double get _deltaY => _blink.BlinkWheelEvent.instance.deltaY_Getter_(unwrap_jso(this));
+  num get _deltaY => _blink.BlinkWheelEvent.instance.deltaY_Getter_(unwrap_jso(this));
   
   @DomName('WheelEvent.deltaZ')
   @DocsEditable()
-  double get deltaZ => _blink.BlinkWheelEvent.instance.deltaZ_Getter_(unwrap_jso(this));
+  num get deltaZ => _blink.BlinkWheelEvent.instance.deltaZ_Getter_(unwrap_jso(this));
   
 
   /**
@@ -33411,6 +38645,18 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @Experimental()
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
+
+  static Window internalCreateWindow() {
+    return new Window._internalWrap();
+  }
+
+  factory Window._internalWrap() {
+    return new Window.internal_();
+  }
+
+  Window.internal_() : super.internal_();
+
+
   /**
    * Indicates that file system data cannot be cleared unless given user
    * permission.
@@ -33501,7 +38747,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DomName('Window.defaultStatus')
   @DocsEditable()
   @Experimental() // non-standard
-  void set defaultStatus(String value) => _blink.BlinkWindow.instance.defaultStatus_Setter_(unwrap_jso(this), value);
+  set defaultStatus(String value) => _blink.BlinkWindow.instance.defaultStatus_Setter_(unwrap_jso(this), value);
   
   /// *Deprecated*.
   @DomName('Window.defaultstatus')
@@ -33513,7 +38759,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DomName('Window.defaultstatus')
   @DocsEditable()
   @Experimental() // non-standard
-  void set defaultstatus(String value) => _blink.BlinkWindow.instance.defaultstatus_Setter_(unwrap_jso(this), value);
+  set defaultstatus(String value) => _blink.BlinkWindow.instance.defaultstatus_Setter_(unwrap_jso(this), value);
   
   /**
    * The ratio between physical pixels and logical CSS pixels.
@@ -33531,7 +38777,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DocsEditable()
   // http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html
   @Experimental() // non-standard
-  double get devicePixelRatio => _blink.BlinkWindow.instance.devicePixelRatio_Getter_(unwrap_jso(this));
+  num get devicePixelRatio => _blink.BlinkWindow.instance.devicePixelRatio_Getter_(unwrap_jso(this));
   
   @DomName('Window.document')
   @DocsEditable()
@@ -33655,7 +38901,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkWindow.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkWindow.instance.name_Setter_(unwrap_jso(this), value);
   
   /**
    * The user agent accessing this window.
@@ -33690,7 +38936,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   @DomName('Window.opener')
   @DocsEditable()
-  void set opener(Window value) => _blink.BlinkWindow.instance.opener_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set opener(Window value) => _blink.BlinkWindow.instance.opener_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('Window.orientation')
   @DocsEditable()
@@ -33737,7 +38983,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.pageXOffset')
   @DocsEditable()
-  double get _pageXOffset => _blink.BlinkWindow.instance.pageXOffset_Getter_(unwrap_jso(this));
+  num get _pageXOffset => _blink.BlinkWindow.instance.pageXOffset_Getter_(unwrap_jso(this));
   
   /**
    * The distance this window has been scrolled vertically.
@@ -33753,7 +38999,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.pageYOffset')
   @DocsEditable()
-  double get _pageYOffset => _blink.BlinkWindow.instance.pageYOffset_Getter_(unwrap_jso(this));
+  num get _pageYOffset => _blink.BlinkWindow.instance.pageYOffset_Getter_(unwrap_jso(this));
   
   @DomName('Window.parent')
   @DocsEditable()
@@ -33840,11 +39086,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   @DomName('Window.scrollX')
   @DocsEditable()
-  double get _scrollX => _blink.BlinkWindow.instance.scrollX_Getter_(unwrap_jso(this));
+  num get _scrollX => _blink.BlinkWindow.instance.scrollX_Getter_(unwrap_jso(this));
   
   @DomName('Window.scrollY')
   @DocsEditable()
-  double get _scrollY => _blink.BlinkWindow.instance.scrollY_Getter_(unwrap_jso(this));
+  num get _scrollY => _blink.BlinkWindow.instance.scrollY_Getter_(unwrap_jso(this));
   
   /**
    * This window's scroll bars.
@@ -33911,7 +39157,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   /// *Deprecated*.
   @DomName('Window.status')
   @DocsEditable()
-  void set status(String value) => _blink.BlinkWindow.instance.status_Setter_(unwrap_jso(this), value);
+  set status(String value) => _blink.BlinkWindow.instance.status_Setter_(unwrap_jso(this), value);
   
   /**
    * This window's status bar.
@@ -33972,10 +39218,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   WindowBase __getter__(index_OR_name) {
     if ((index_OR_name is int)) {
-      return _blink.BlinkWindow.instance.$__getter___Callback_1_(unwrap_jso(this), unwrap_jso(index_OR_name));
+      return wrap_jso(_blink.BlinkWindow.instance.$__getter___Callback_1_(unwrap_jso(this), unwrap_jso(index_OR_name)));
     }
     if ((index_OR_name is String)) {
-      return _blink.BlinkWindow.instance.$__getter___Callback_1_(unwrap_jso(this), unwrap_jso(index_OR_name));
+      return wrap_jso(_blink.BlinkWindow.instance.$__getter___Callback_1_(unwrap_jso(this), unwrap_jso(index_OR_name)));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -34019,7 +39265,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   @DomName('Window.getComputedStyle')
   @DocsEditable()
-  CssStyleDeclaration _getComputedStyle(Element element, String pseudoElement) => _blink.BlinkWindow.instance.getComputedStyle_Callback_2_(unwrap_jso(this), unwrap_jso(element), pseudoElement);
+  CssStyleDeclaration _getComputedStyle(Element element, String pseudoElement) => wrap_jso(_blink.BlinkWindow.instance.getComputedStyle_Callback_2_(unwrap_jso(this), unwrap_jso(element), pseudoElement));
   
   /**
    * Returns all CSS rules that apply to the element's pseudo-element.
@@ -34027,7 +39273,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DomName('Window.getMatchedCSSRules')
   @DocsEditable()
   @Experimental() // non-standard
-  List<CssRule> getMatchedCssRules(Element element, String pseudoElement) => _blink.BlinkWindow.instance.getMatchedCSSRules_Callback_2_(unwrap_jso(this), unwrap_jso(element), pseudoElement);
+  List<CssRule> getMatchedCssRules(Element element, String pseudoElement) => wrap_jso(_blink.BlinkWindow.instance.getMatchedCSSRules_Callback_2_(unwrap_jso(this), unwrap_jso(element), pseudoElement));
   
   /**
    * Returns the currently selected text.
@@ -34079,18 +39325,18 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   @DomName('Window.open')
   @DocsEditable()
-  WindowBase open(String url, String name, [String options]) => _blink.BlinkWindow.instance.open_Callback_3_(unwrap_jso(this), url, name, options);
+  WindowBase open(String url, String name, [String options]) => wrap_jso(_blink.BlinkWindow.instance.open_Callback_3_(unwrap_jso(this), url, name, options));
   
   SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) {
     if (creationCallback != null) {
-      return _blink.BlinkWindow.instance.openDatabase_Callback_5_(unwrap_jso(this), name, version, displayName, estimatedSize, unwrap_jso(creationCallback));
+      return wrap_jso(_blink.BlinkWindow.instance.openDatabase_Callback_5_(unwrap_jso(this), name, version, displayName, estimatedSize, unwrap_jso((database) => creationCallback(wrap_jso(database)))));
     }
-    return _blink.BlinkWindow.instance.openDatabase_Callback_4_(unwrap_jso(this), name, version, displayName, estimatedSize);
+    return wrap_jso(_blink.BlinkWindow.instance.openDatabase_Callback_4_(unwrap_jso(this), name, version, displayName, estimatedSize));
   }
 
   @DomName('Window.postMessage')
   @DocsEditable()
-  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List<MessagePort> transfer]) => _blink.BlinkWindow.instance.postMessage_Callback_3_(unwrap_jso(this), message, targetOrigin, transfer);
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List<MessagePort> transfer]) => _blink.BlinkWindow.instance.postMessage_Callback_3_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(message), targetOrigin, transfer);
   
   /**
    * Opens the print dialog for this window.
@@ -34106,7 +39352,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   @DomName('Window.requestAnimationFrame')
   @DocsEditable()
-  int _requestAnimationFrame(RequestAnimationFrameCallback callback) => _blink.BlinkWindow.instance.requestAnimationFrame_Callback_1_(unwrap_jso(this), unwrap_jso(callback));
+  int _requestAnimationFrame(RequestAnimationFrameCallback callback) => _blink.BlinkWindow.instance.requestAnimationFrame_Callback_1_(unwrap_jso(this), unwrap_jso((highResTime) => callback(highResTime)));
   
   /**
    * Resizes this window by an offset.
@@ -34138,7 +39384,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is num) && (x is num)) {
-      _blink.BlinkWindow.instance.scroll_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions);
+      _blink.BlinkWindow.instance.scroll_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), convertDartToNative_Dictionary(scrollOptions));
       return;
     }
     if ((y is int) && (x is int) && scrollOptions == null) {
@@ -34146,7 +39392,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is int) && (x is int)) {
-      _blink.BlinkWindow.instance.scroll_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions);
+      _blink.BlinkWindow.instance.scroll_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), convertDartToNative_Dictionary(scrollOptions));
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -34158,7 +39404,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is num) && (x is num)) {
-      _blink.BlinkWindow.instance.scrollBy_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions);
+      _blink.BlinkWindow.instance.scrollBy_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), convertDartToNative_Dictionary(scrollOptions));
       return;
     }
     if ((y is int) && (x is int) && scrollOptions == null) {
@@ -34166,7 +39412,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is int) && (x is int)) {
-      _blink.BlinkWindow.instance.scrollBy_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions);
+      _blink.BlinkWindow.instance.scrollBy_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), convertDartToNative_Dictionary(scrollOptions));
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -34178,7 +39424,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is num) && (x is num)) {
-      _blink.BlinkWindow.instance.scrollTo_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions);
+      _blink.BlinkWindow.instance.scrollTo_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), convertDartToNative_Dictionary(scrollOptions));
       return;
     }
     if ((y is int) && (x is int) && scrollOptions == null) {
@@ -34186,7 +39432,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is int) && (x is int)) {
-      _blink.BlinkWindow.instance.scrollTo_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions);
+      _blink.BlinkWindow.instance.scrollTo_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), convertDartToNative_Dictionary(scrollOptions));
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -34220,10 +39466,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   void __requestFileSystem(int type, int size, _FileSystemCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkWindow.instance.webkitRequestFileSystem_Callback_4_(unwrap_jso(this), type, size, unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkWindow.instance.webkitRequestFileSystem_Callback_4_(unwrap_jso(this), type, size, unwrap_jso((fileSystem) => successCallback(wrap_jso(fileSystem))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkWindow.instance.webkitRequestFileSystem_Callback_3_(unwrap_jso(this), type, size, unwrap_jso(successCallback));
+    _blink.BlinkWindow.instance.webkitRequestFileSystem_Callback_3_(unwrap_jso(this), type, size, unwrap_jso((fileSystem) => successCallback(wrap_jso(fileSystem))));
     return;
   }
 
@@ -34237,10 +39483,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
 
   void _resolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkWindow.instance.webkitResolveLocalFileSystemURL_Callback_3_(unwrap_jso(this), url, unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkWindow.instance.webkitResolveLocalFileSystemURL_Callback_3_(unwrap_jso(this), url, unwrap_jso((entry) => successCallback(wrap_jso(entry))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkWindow.instance.webkitResolveLocalFileSystemURL_Callback_2_(unwrap_jso(this), url, unwrap_jso(successCallback));
+    _blink.BlinkWindow.instance.webkitResolveLocalFileSystemURL_Callback_2_(unwrap_jso(this), url, unwrap_jso((entry) => successCallback(wrap_jso(entry))));
     return;
   }
 
@@ -34873,8 +40119,20 @@ class Worker extends EventTarget implements AbstractWorker {
   @DomName('Worker.Worker')
   @DocsEditable()
   factory Worker(String scriptUrl) {
-    return _blink.BlinkWorker.instance.constructorCallback_1_(scriptUrl);
+    return wrap_jso(_blink.BlinkWorker.instance.constructorCallback_1_(scriptUrl));
   }
+
+
+  static Worker internalCreateWorker() {
+    return new Worker._internalWrap();
+  }
+
+  factory Worker._internalWrap() {
+    return new Worker.internal_();
+  }
+
+  Worker.internal_() : super.internal_();
+
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -34913,6 +40171,18 @@ class WorkerConsole extends ConsoleBase {
   // To suppress missing implicit constructor warnings.
   factory WorkerConsole._() { throw new UnsupportedError("Not supported"); }
 
+
+  static WorkerConsole internalCreateWorkerConsole() {
+    return new WorkerConsole._internalWrap();
+  }
+
+  factory WorkerConsole._internalWrap() {
+    return new WorkerConsole.internal_();
+  }
+
+  WorkerConsole.internal_() : super.internal_();
+
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34938,6 +40208,18 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+
+  static WorkerGlobalScope internalCreateWorkerGlobalScope() {
+    return new WorkerGlobalScope._internalWrap();
+  }
+
+  factory WorkerGlobalScope._internalWrap() {
+    return new WorkerGlobalScope.internal_();
+  }
+
+  WorkerGlobalScope.internal_() : super.internal_();
+
 
   @DomName('WorkerGlobalScope.PERSISTENT')
   @DocsEditable()
@@ -34996,11 +40278,11 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   
   void _webkitRequestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkWorkerGlobalScope.instance.webkitRequestFileSystem_Callback_4_(unwrap_jso(this), type, size, unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkWorkerGlobalScope.instance.webkitRequestFileSystem_Callback_4_(unwrap_jso(this), type, size, unwrap_jso((fileSystem) => successCallback(wrap_jso(fileSystem))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (successCallback != null) {
-      _blink.BlinkWorkerGlobalScope.instance.webkitRequestFileSystem_Callback_3_(unwrap_jso(this), type, size, unwrap_jso(successCallback));
+      _blink.BlinkWorkerGlobalScope.instance.webkitRequestFileSystem_Callback_3_(unwrap_jso(this), type, size, unwrap_jso((fileSystem) => successCallback(wrap_jso(fileSystem))));
       return;
     }
     _blink.BlinkWorkerGlobalScope.instance.webkitRequestFileSystem_Callback_2_(unwrap_jso(this), type, size);
@@ -35021,7 +40303,7 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   @Experimental() // untriaged
-  _DOMFileSystemSync requestFileSystemSync(int type, int size) => _blink.BlinkWorkerGlobalScope.instance.webkitRequestFileSystemSync_Callback_2_(unwrap_jso(this), type, size);
+  _DOMFileSystemSync requestFileSystemSync(int type, int size) => wrap_jso(_blink.BlinkWorkerGlobalScope.instance.webkitRequestFileSystemSync_Callback_2_(unwrap_jso(this), type, size));
   
   @DomName('WorkerGlobalScope.webkitResolveLocalFileSystemSyncURL')
   @DocsEditable()
@@ -35029,14 +40311,14 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   @Experimental() // untriaged
-  _EntrySync resolveLocalFileSystemSyncUrl(String url) => _blink.BlinkWorkerGlobalScope.instance.webkitResolveLocalFileSystemSyncURL_Callback_1_(unwrap_jso(this), url);
+  _EntrySync resolveLocalFileSystemSyncUrl(String url) => wrap_jso(_blink.BlinkWorkerGlobalScope.instance.webkitResolveLocalFileSystemSyncURL_Callback_1_(unwrap_jso(this), url));
   
   void _webkitResolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkWorkerGlobalScope.instance.webkitResolveLocalFileSystemURL_Callback_3_(unwrap_jso(this), url, unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkWorkerGlobalScope.instance.webkitResolveLocalFileSystemURL_Callback_3_(unwrap_jso(this), url, unwrap_jso((entry) => successCallback(wrap_jso(entry))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkWorkerGlobalScope.instance.webkitResolveLocalFileSystemURL_Callback_2_(unwrap_jso(this), url, unwrap_jso(successCallback));
+    _blink.BlinkWorkerGlobalScope.instance.webkitResolveLocalFileSystemURL_Callback_2_(unwrap_jso(this), url, unwrap_jso((entry) => successCallback(wrap_jso(entry))));
     return;
   }
 
@@ -35099,6 +40381,21 @@ class WorkerPerformance extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory WorkerPerformance._() { throw new UnsupportedError("Not supported"); }
 
+  static WorkerPerformance internalCreateWorkerPerformance() {
+    return new WorkerPerformance._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory WorkerPerformance._internalWrap() {
+    return new WorkerPerformance.internal_();
+  }
+
+  WorkerPerformance.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('WorkerPerformance.memory')
   @DocsEditable()
   @Experimental() // untriaged
@@ -35107,7 +40404,7 @@ class WorkerPerformance extends NativeFieldWrapperClass2 {
   @DomName('WorkerPerformance.now')
   @DocsEditable()
   @Experimental() // untriaged
-  double now() => _blink.BlinkWorkerPerformance.instance.now_Callback_0_(unwrap_jso(this));
+  num now() => _blink.BlinkWorkerPerformance.instance.now_Callback_0_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35128,8 +40425,23 @@ class XPathEvaluator extends NativeFieldWrapperClass2 {
   @DomName('XPathEvaluator.XPathEvaluator')
   @DocsEditable()
   factory XPathEvaluator() {
-    return _blink.BlinkXPathEvaluator.instance.constructorCallback_0_();
+    return wrap_jso(_blink.BlinkXPathEvaluator.instance.constructorCallback_0_());
   }
+
+  static XPathEvaluator internalCreateXPathEvaluator() {
+    return new XPathEvaluator._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory XPathEvaluator._internalWrap() {
+    return new XPathEvaluator.internal_();
+  }
+
+  XPathEvaluator.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('XPathEvaluator.createExpression')
   @DocsEditable()
@@ -35159,6 +40471,21 @@ class XPathExpression extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory XPathExpression._() { throw new UnsupportedError("Not supported"); }
 
+  static XPathExpression internalCreateXPathExpression() {
+    return new XPathExpression._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory XPathExpression._internalWrap() {
+    return new XPathExpression.internal_();
+  }
+
+  XPathExpression.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('XPathExpression.evaluate')
   @DocsEditable()
   XPathResult evaluate(Node contextNode, int type, XPathResult inResult) => wrap_jso(_blink.BlinkXPathExpression.instance.evaluate_Callback_3_(unwrap_jso(this), unwrap_jso(contextNode), type, unwrap_jso(inResult)));
@@ -35179,6 +40506,21 @@ class XPathNSResolver extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory XPathNSResolver._() { throw new UnsupportedError("Not supported"); }
 
+  static XPathNSResolver internalCreateXPathNSResolver() {
+    return new XPathNSResolver._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory XPathNSResolver._internalWrap() {
+    return new XPathNSResolver.internal_();
+  }
+
+  XPathNSResolver.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('XPathNSResolver.lookupNamespaceURI')
   @DocsEditable()
   String lookupNamespaceUri(String prefix) => _blink.BlinkXPathNSResolver.instance.lookupNamespaceURI_Callback_1_(unwrap_jso(this), prefix);
@@ -35198,6 +40540,21 @@ class XPathNSResolver extends NativeFieldWrapperClass2 {
 class XPathResult extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory XPathResult._() { throw new UnsupportedError("Not supported"); }
+
+  static XPathResult internalCreateXPathResult() {
+    return new XPathResult._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory XPathResult._internalWrap() {
+    return new XPathResult.internal_();
+  }
+
+  XPathResult.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('XPathResult.ANY_TYPE')
   @DocsEditable()
@@ -35249,7 +40606,7 @@ class XPathResult extends NativeFieldWrapperClass2 {
   
   @DomName('XPathResult.numberValue')
   @DocsEditable()
-  double get numberValue => _blink.BlinkXPathResult.instance.numberValue_Getter_(unwrap_jso(this));
+  num get numberValue => _blink.BlinkXPathResult.instance.numberValue_Getter_(unwrap_jso(this));
   
   @DomName('XPathResult.resultType')
   @DocsEditable()
@@ -35290,6 +40647,18 @@ class XmlDocument extends Document {
   // To suppress missing implicit constructor warnings.
   factory XmlDocument._() { throw new UnsupportedError("Not supported"); }
 
+
+  static XmlDocument internalCreateXmlDocument() {
+    return new XmlDocument._internalWrap();
+  }
+
+  factory XmlDocument._internalWrap() {
+    return new XmlDocument.internal_();
+  }
+
+  XmlDocument.internal_() : super.internal_();
+
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35309,8 +40678,23 @@ class XmlSerializer extends NativeFieldWrapperClass2 {
   @DomName('XMLSerializer.XMLSerializer')
   @DocsEditable()
   factory XmlSerializer() {
-    return _blink.BlinkXMLSerializer.instance.constructorCallback_0_();
+    return wrap_jso(_blink.BlinkXMLSerializer.instance.constructorCallback_0_());
   }
+
+  static XmlSerializer internalCreateXmlSerializer() {
+    return new XmlSerializer._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory XmlSerializer._internalWrap() {
+    return new XmlSerializer.internal_();
+  }
+
+  XmlSerializer.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('XMLSerializer.serializeToString')
   @DocsEditable()
@@ -35337,8 +40721,23 @@ class XsltProcessor extends NativeFieldWrapperClass2 {
   @DomName('XSLTProcessor.XSLTProcessor')
   @DocsEditable()
   factory XsltProcessor() {
-    return _blink.BlinkXSLTProcessor.instance.constructorCallback_0_();
+    return wrap_jso(_blink.BlinkXSLTProcessor.instance.constructorCallback_0_());
   }
+
+  static XsltProcessor internalCreateXsltProcessor() {
+    return new XsltProcessor._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory XsltProcessor._internalWrap() {
+    return new XsltProcessor.internal_();
+  }
+
+  XsltProcessor.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -35389,6 +40788,18 @@ class _Attr extends Node {
   // To suppress missing implicit constructor warnings.
   factory _Attr._() { throw new UnsupportedError("Not supported"); }
 
+
+  static _Attr internalCreate_Attr() {
+    return new _Attr._internalWrap();
+  }
+
+  factory _Attr._internalWrap() {
+    return new _Attr.internal_();
+  }
+
+  _Attr.internal_() : super.internal_();
+
+
   @DomName('Attr.localName')
   @DocsEditable()
   @Experimental() // untriaged
@@ -35416,7 +40827,7 @@ class _Attr extends Node {
   @DomName('Attr.textContent')
   @DocsEditable()
   @Experimental() // untriaged
-  void set text(String value) => _blink.BlinkAttr.instance.textContent_Setter_(unwrap_jso(this), value);
+  set text(String value) => _blink.BlinkAttr.instance.textContent_Setter_(unwrap_jso(this), value);
   
   @DomName('Attr.value')
   @DocsEditable()
@@ -35424,7 +40835,7 @@ class _Attr extends Node {
   
   @DomName('Attr.value')
   @DocsEditable()
-  void set value(String value) => _blink.BlinkAttr.instance.value_Setter_(unwrap_jso(this), value);
+  set value(String value) => _blink.BlinkAttr.instance.value_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35438,9 +40849,21 @@ class _Attr extends Node {
 @DomName('CSSPrimitiveValue')
 // http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface
 @deprecated // deprecated
-abstract class _CSSPrimitiveValue extends _CSSValue {
+class _CSSPrimitiveValue extends _CSSValue {
   // To suppress missing implicit constructor warnings.
   factory _CSSPrimitiveValue._() { throw new UnsupportedError("Not supported"); }
+
+
+  static _CSSPrimitiveValue internalCreate_CSSPrimitiveValue() {
+    return new _CSSPrimitiveValue._internalWrap();
+  }
+
+  factory _CSSPrimitiveValue._internalWrap() {
+    return new _CSSPrimitiveValue.internal_();
+  }
+
+  _CSSPrimitiveValue.internal_() : super.internal_();
+
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35454,9 +40877,21 @@ abstract class _CSSPrimitiveValue extends _CSSValue {
 @DomName('CSSUnknownRule')
 // http://dev.w3.org/csswg/cssom/#the-cssstylesheet-interface
 @deprecated // deprecated
-abstract class _CSSUnknownRule extends CssRule {
+class _CSSUnknownRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory _CSSUnknownRule._() { throw new UnsupportedError("Not supported"); }
+
+
+  static _CSSUnknownRule internalCreate_CSSUnknownRule() {
+    return new _CSSUnknownRule._internalWrap();
+  }
+
+  factory _CSSUnknownRule._internalWrap() {
+    return new _CSSUnknownRule.internal_();
+  }
+
+  _CSSUnknownRule.internal_() : super.internal_();
+
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35470,9 +40905,24 @@ abstract class _CSSUnknownRule extends CssRule {
 @DomName('CSSValue')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _CSSValue extends NativeFieldWrapperClass2 {
+class _CSSValue extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _CSSValue._() { throw new UnsupportedError("Not supported"); }
+
+  static _CSSValue internalCreate_CSSValue() {
+    return new _CSSValue._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _CSSValue._internalWrap() {
+    return new _CSSValue.internal_();
+  }
+
+  _CSSValue.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35485,9 +40935,24 @@ abstract class _CSSValue extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('Cache')
 @Experimental() // untriaged
-abstract class _Cache extends NativeFieldWrapperClass2 {
+class _Cache extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _Cache._() { throw new UnsupportedError("Not supported"); }
+
+  static _Cache internalCreate_Cache() {
+    return new _Cache._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _Cache._internalWrap() {
+    return new _Cache.internal_();
+  }
+
+  _Cache.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35500,7 +40965,7 @@ abstract class _Cache extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('CanvasPathMethods')
 @Experimental() // untriaged
-abstract class _CanvasPathMethods extends NativeFieldWrapperClass2 {
+class _CanvasPathMethods extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _CanvasPathMethods._() { throw new UnsupportedError("Not supported"); }
 
@@ -35606,29 +41071,42 @@ class _ClientRect extends NativeFieldWrapperClass2 implements Rectangle {
     // To suppress missing implicit constructor warnings.
   factory _ClientRect._() { throw new UnsupportedError("Not supported"); }
 
+  static _ClientRect internalCreate_ClientRect() {
+    return new _ClientRect._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _ClientRect._internalWrap() {
+    return new _ClientRect.internal_();
+  }
+
+  _ClientRect.internal_() { }
+
+
   @DomName('ClientRect.bottom')
   @DocsEditable()
-  double get bottom => _blink.BlinkClientRect.instance.bottom_Getter_(unwrap_jso(this));
+  num get bottom => _blink.BlinkClientRect.instance.bottom_Getter_(unwrap_jso(this));
   
   @DomName('ClientRect.height')
   @DocsEditable()
-  double get height => _blink.BlinkClientRect.instance.height_Getter_(unwrap_jso(this));
+  num get height => _blink.BlinkClientRect.instance.height_Getter_(unwrap_jso(this));
   
   @DomName('ClientRect.left')
   @DocsEditable()
-  double get left => _blink.BlinkClientRect.instance.left_Getter_(unwrap_jso(this));
+  num get left => _blink.BlinkClientRect.instance.left_Getter_(unwrap_jso(this));
   
   @DomName('ClientRect.right')
   @DocsEditable()
-  double get right => _blink.BlinkClientRect.instance.right_Getter_(unwrap_jso(this));
+  num get right => _blink.BlinkClientRect.instance.right_Getter_(unwrap_jso(this));
   
   @DomName('ClientRect.top')
   @DocsEditable()
-  double get top => _blink.BlinkClientRect.instance.top_Getter_(unwrap_jso(this));
+  num get top => _blink.BlinkClientRect.instance.top_Getter_(unwrap_jso(this));
   
   @DomName('ClientRect.width')
   @DocsEditable()
-  double get width => _blink.BlinkClientRect.instance.width_Getter_(unwrap_jso(this));
+  num get width => _blink.BlinkClientRect.instance.width_Getter_(unwrap_jso(this));
   }
 
 /**
@@ -35676,9 +41154,24 @@ class _JenkinsSmiHash {
 
 @DocsEditable()
 @DomName('ClientRectList')
-class _ClientRectList extends NativeFieldWrapperClass2 with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List<Rectangle> {
+class _ClientRectList extends JsoNativeFieldWrapper with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List<Rectangle> {
   // To suppress missing implicit constructor warnings.
   factory _ClientRectList._() { throw new UnsupportedError("Not supported"); }
+
+  static _ClientRectList internalCreate_ClientRectList() {
+    return new _ClientRectList._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _ClientRectList._internalWrap() {
+    return new _ClientRectList.internal_();
+  }
+
+  _ClientRectList.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('ClientRectList.length')
   @DocsEditable()
@@ -35691,7 +41184,7 @@ class _ClientRectList extends NativeFieldWrapperClass2 with ListMixin<Rectangle>
   }
 
   Rectangle _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkClientRectList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, Rectangle value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -35699,7 +41192,7 @@ class _ClientRectList extends NativeFieldWrapperClass2 with ListMixin<Rectangle>
   // Rectangle is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -35746,9 +41239,24 @@ class _ClientRectList extends NativeFieldWrapperClass2 with ListMixin<Rectangle>
 @DomName('Counter')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _Counter extends NativeFieldWrapperClass2 {
+class _Counter extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _Counter._() { throw new UnsupportedError("Not supported"); }
+
+  static _Counter internalCreate_Counter() {
+    return new _Counter._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _Counter._internalWrap() {
+    return new _Counter.internal_();
+  }
+
+  _Counter.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35760,9 +41268,24 @@ abstract class _Counter extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('CSSRuleList')
-class _CssRuleList extends NativeFieldWrapperClass2 with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements List<CssRule> {
+class _CssRuleList extends JsoNativeFieldWrapper with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements List<CssRule> {
   // To suppress missing implicit constructor warnings.
   factory _CssRuleList._() { throw new UnsupportedError("Not supported"); }
+
+  static _CssRuleList internalCreate_CssRuleList() {
+    return new _CssRuleList._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _CssRuleList._internalWrap() {
+    return new _CssRuleList.internal_();
+  }
+
+  _CssRuleList.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('CSSRuleList.length')
   @DocsEditable()
@@ -35775,7 +41298,7 @@ class _CssRuleList extends NativeFieldWrapperClass2 with ListMixin<CssRule>, Imm
   }
 
   CssRule _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkCSSRuleList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, CssRule value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -35783,7 +41306,7 @@ class _CssRuleList extends NativeFieldWrapperClass2 with ListMixin<CssRule>, Imm
   // CssRule is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -35816,7 +41339,7 @@ class _CssRuleList extends NativeFieldWrapperClass2 with ListMixin<CssRule>, Imm
 
   @DomName('CSSRuleList.item')
   @DocsEditable()
-  CssRule item(int index) => _blink.BlinkCSSRuleList.instance.item_Callback_1_(unwrap_jso(this), index);
+  CssRule item(int index) => wrap_jso(_blink.BlinkCSSRuleList.instance.item_Callback_1_(unwrap_jso(this), index));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35834,6 +41357,18 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
   // To suppress missing implicit constructor warnings.
   factory _CssValueList._() { throw new UnsupportedError("Not supported"); }
 
+
+  static _CssValueList internalCreate_CssValueList() {
+    return new _CssValueList._internalWrap();
+  }
+
+  factory _CssValueList._internalWrap() {
+    return new _CssValueList.internal_();
+  }
+
+  _CssValueList.internal_() : super.internal_();
+
+
   @DomName('CSSValueList.length')
   @DocsEditable()
   int get length => _blink.BlinkCSSValueList.instance.length_Getter_(unwrap_jso(this));
@@ -35845,7 +41380,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
   }
 
   _CSSValue _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkCSSValueList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, _CSSValue value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -35853,7 +41388,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
   // _CSSValue is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -35886,7 +41421,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
 
   @DomName('CSSValueList.item')
   @DocsEditable()
-  _CSSValue item(int index) => _blink.BlinkCSSValueList.instance.item_Callback_1_(unwrap_jso(this), index);
+  _CSSValue item(int index) => wrap_jso(_blink.BlinkCSSValueList.instance.item_Callback_1_(unwrap_jso(this), index));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35901,9 +41436,24 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://www.w3.org/TR/file-system-api/#the-filesystemsync-interface
-abstract class _DOMFileSystemSync extends NativeFieldWrapperClass2 {
+class _DOMFileSystemSync extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _DOMFileSystemSync._() { throw new UnsupportedError("Not supported"); }
+
+  static _DOMFileSystemSync internalCreate_DOMFileSystemSync() {
+    return new _DOMFileSystemSync._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _DOMFileSystemSync._internalWrap() {
+    return new _DOMFileSystemSync.internal_();
+  }
+
+  _DOMFileSystemSync.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35917,9 +41467,21 @@ abstract class _DOMFileSystemSync extends NativeFieldWrapperClass2 {
 @DomName('DirectoryEntrySync')
 // http://www.w3.org/TR/file-system-api/#the-directoryentrysync-interface
 @Experimental()
-abstract class _DirectoryEntrySync extends _EntrySync {
+class _DirectoryEntrySync extends _EntrySync {
   // To suppress missing implicit constructor warnings.
   factory _DirectoryEntrySync._() { throw new UnsupportedError("Not supported"); }
+
+
+  static _DirectoryEntrySync internalCreate_DirectoryEntrySync() {
+    return new _DirectoryEntrySync._internalWrap();
+  }
+
+  factory _DirectoryEntrySync._internalWrap() {
+    return new _DirectoryEntrySync.internal_();
+  }
+
+  _DirectoryEntrySync.internal_() : super.internal_();
+
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35933,27 +41495,56 @@ abstract class _DirectoryEntrySync extends _EntrySync {
 @DomName('DirectoryReaderSync')
 // http://www.w3.org/TR/file-system-api/#idl-def-DirectoryReaderSync
 @Experimental()
-abstract class _DirectoryReaderSync extends NativeFieldWrapperClass2 {
+class _DirectoryReaderSync extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _DirectoryReaderSync._() { throw new UnsupportedError("Not supported"); }
+
+  static _DirectoryReaderSync internalCreate_DirectoryReaderSync() {
+    return new _DirectoryReaderSync._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _DirectoryReaderSync._internalWrap() {
+    return new _DirectoryReaderSync.internal_();
+  }
+
+  _DirectoryReaderSync.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable()
 @DomName('DocumentType')
 // http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-412266927
 @deprecated // stable
-abstract class _DocumentType extends Node implements ChildNode {
+class _DocumentType extends Node implements ChildNode {
   // To suppress missing implicit constructor warnings.
   factory _DocumentType._() { throw new UnsupportedError("Not supported"); }
 
+
+  static _DocumentType internalCreate_DocumentType() {
+    return new _DocumentType._internalWrap();
+  }
+
+  factory _DocumentType._internalWrap() {
+    return new _DocumentType.internal_();
+  }
+
+  _DocumentType.internal_() : super.internal_();
+
+
+  // Override this methods for Dartium _DocumentType can't be abstract.
+  Element get nextElementSibling => wrap_jso(_blink.BlinkDocumentType.instance.nextElementSibling_Getter_(unwrap_jso(this)));
+  Element get previousElementSibling => wrap_jso(_blink.BlinkDocumentType.instance.previousElementSibling_Getter_(unwrap_jso(this)));
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -35972,19 +41563,31 @@ class _DomRect extends DomRectReadOnly {
   @DocsEditable()
   factory _DomRect([num x, num y, num width, num height]) {
     if (height != null) {
-      return _blink.BlinkDOMRect.instance.constructorCallback_4_(x, y, width, height);
+      return wrap_jso(_blink.BlinkDOMRect.instance.constructorCallback_4_(x, y, width, height));
     }
     if (width != null) {
-      return _blink.BlinkDOMRect.instance.constructorCallback_3_(x, y, width);
+      return wrap_jso(_blink.BlinkDOMRect.instance.constructorCallback_3_(x, y, width));
     }
     if (y != null) {
-      return _blink.BlinkDOMRect.instance.constructorCallback_2_(x, y);
+      return wrap_jso(_blink.BlinkDOMRect.instance.constructorCallback_2_(x, y));
     }
     if (x != null) {
-      return _blink.BlinkDOMRect.instance.constructorCallback_1_(x);
+      return wrap_jso(_blink.BlinkDOMRect.instance.constructorCallback_1_(x));
     }
-    return _blink.BlinkDOMRect.instance.constructorCallback_0_();
+    return wrap_jso(_blink.BlinkDOMRect.instance.constructorCallback_0_());
   }
+
+
+  static _DomRect internalCreate_DomRect() {
+    return new _DomRect._internalWrap();
+  }
+
+  factory _DomRect._internalWrap() {
+    return new _DomRect.internal_();
+  }
+
+  _DomRect.internal_() : super.internal_();
+
 
   @DomName('DOMRect.height')
   @DocsEditable()
@@ -35994,7 +41597,7 @@ class _DomRect extends DomRectReadOnly {
   @DomName('DOMRect.height')
   @DocsEditable()
   @Experimental() // untriaged
-  void set height(num value) => _blink.BlinkDOMRect.instance.height_Setter_(unwrap_jso(this), value);
+  set height(num value) => _blink.BlinkDOMRect.instance.height_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMRect.width')
   @DocsEditable()
@@ -36004,7 +41607,7 @@ class _DomRect extends DomRectReadOnly {
   @DomName('DOMRect.width')
   @DocsEditable()
   @Experimental() // untriaged
-  void set width(num value) => _blink.BlinkDOMRect.instance.width_Setter_(unwrap_jso(this), value);
+  set width(num value) => _blink.BlinkDOMRect.instance.width_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMRect.x')
   @DocsEditable()
@@ -36014,7 +41617,7 @@ class _DomRect extends DomRectReadOnly {
   @DomName('DOMRect.x')
   @DocsEditable()
   @Experimental() // untriaged
-  void set x(num value) => _blink.BlinkDOMRect.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkDOMRect.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMRect.y')
   @DocsEditable()
@@ -36024,7 +41627,7 @@ class _DomRect extends DomRectReadOnly {
   @DomName('DOMRect.y')
   @DocsEditable()
   @Experimental() // untriaged
-  void set y(num value) => _blink.BlinkDOMRect.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkDOMRect.instance.y_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36038,9 +41641,24 @@ class _DomRect extends DomRectReadOnly {
 @DomName('EntrySync')
 // http://www.w3.org/TR/file-system-api/#idl-def-EntrySync
 @Experimental()
-abstract class _EntrySync extends NativeFieldWrapperClass2 {
+class _EntrySync extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _EntrySync._() { throw new UnsupportedError("Not supported"); }
+
+  static _EntrySync internalCreate_EntrySync() {
+    return new _EntrySync._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _EntrySync._internalWrap() {
+    return new _EntrySync.internal_();
+  }
+
+  _EntrySync.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36054,9 +41672,21 @@ abstract class _EntrySync extends NativeFieldWrapperClass2 {
 @DomName('FileEntrySync')
 // http://www.w3.org/TR/file-system-api/#the-fileentrysync-interface
 @Experimental()
-abstract class _FileEntrySync extends _EntrySync {
+class _FileEntrySync extends _EntrySync {
   // To suppress missing implicit constructor warnings.
   factory _FileEntrySync._() { throw new UnsupportedError("Not supported"); }
+
+
+  static _FileEntrySync internalCreate_FileEntrySync() {
+    return new _FileEntrySync._internalWrap();
+  }
+
+  factory _FileEntrySync._internalWrap() {
+    return new _FileEntrySync.internal_();
+  }
+
+  _FileEntrySync.internal_() : super.internal_();
+
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36070,15 +41700,30 @@ abstract class _FileEntrySync extends _EntrySync {
 @DomName('FileReaderSync')
 // http://www.w3.org/TR/FileAPI/#FileReaderSync
 @Experimental()
-abstract class _FileReaderSync extends NativeFieldWrapperClass2 {
+class _FileReaderSync extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _FileReaderSync._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('FileReaderSync.FileReaderSync')
   @DocsEditable()
   factory _FileReaderSync() {
-    return _blink.BlinkFileReaderSync.instance.constructorCallback_0_();
+    return wrap_jso(_blink.BlinkFileReaderSync.instance.constructorCallback_0_());
   }
+
+  static _FileReaderSync internalCreate_FileReaderSync() {
+    return new _FileReaderSync._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _FileReaderSync._internalWrap() {
+    return new _FileReaderSync.internal_();
+  }
+
+  _FileReaderSync.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36092,9 +41737,24 @@ abstract class _FileReaderSync extends NativeFieldWrapperClass2 {
 @DomName('FileWriterSync')
 // http://www.w3.org/TR/file-writer-api/#idl-def-FileWriterSync
 @Experimental()
-abstract class _FileWriterSync extends NativeFieldWrapperClass2 {
+class _FileWriterSync extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _FileWriterSync._() { throw new UnsupportedError("Not supported"); }
+
+  static _FileWriterSync internalCreate_FileWriterSync() {
+    return new _FileWriterSync._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _FileWriterSync._internalWrap() {
+    return new _FileWriterSync.internal_();
+  }
+
+  _FileWriterSync.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36108,9 +41768,24 @@ abstract class _FileWriterSync extends NativeFieldWrapperClass2 {
 @DomName('GamepadList')
 // https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html
 @Experimental()
-class _GamepadList extends NativeFieldWrapperClass2 with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements List<Gamepad> {
+class _GamepadList extends JsoNativeFieldWrapper with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements List<Gamepad> {
   // To suppress missing implicit constructor warnings.
   factory _GamepadList._() { throw new UnsupportedError("Not supported"); }
+
+  static _GamepadList internalCreate_GamepadList() {
+    return new _GamepadList._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _GamepadList._internalWrap() {
+    return new _GamepadList.internal_();
+  }
+
+  _GamepadList.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('GamepadList.length')
   @DocsEditable()
@@ -36123,7 +41798,7 @@ class _GamepadList extends NativeFieldWrapperClass2 with ListMixin<Gamepad>, Imm
   }
 
   Gamepad _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkGamepadList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, Gamepad value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -36131,7 +41806,7 @@ class _GamepadList extends NativeFieldWrapperClass2 with ListMixin<Gamepad>, Imm
   // Gamepad is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -36178,9 +41853,24 @@ class _GamepadList extends NativeFieldWrapperClass2 with ListMixin<Gamepad>, Imm
 @DomName('HTMLAllCollection')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dom-document-all
 @deprecated // deprecated
-abstract class _HTMLAllCollection extends NativeFieldWrapperClass2 {
+class _HTMLAllCollection extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _HTMLAllCollection._() { throw new UnsupportedError("Not supported"); }
+
+  static _HTMLAllCollection internalCreate_HTMLAllCollection() {
+    return new _HTMLAllCollection._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _HTMLAllCollection._internalWrap() {
+    return new _HTMLAllCollection.internal_();
+  }
+
+  _HTMLAllCollection.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('HTMLAllCollection.item')
   @DocsEditable()
@@ -36198,9 +41888,21 @@ abstract class _HTMLAllCollection extends NativeFieldWrapperClass2 {
 @DomName('HTMLAppletElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#the-applet-element
 @deprecated // deprecated
-abstract class _HTMLAppletElement extends HtmlElement {
+class _HTMLAppletElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLAppletElement._() { throw new UnsupportedError("Not supported"); }
+
+
+  static _HTMLAppletElement internalCreate_HTMLAppletElement() {
+    return new _HTMLAppletElement._internalWrap();
+  }
+
+  factory _HTMLAppletElement._internalWrap() {
+    return new _HTMLAppletElement.internal_();
+  }
+
+  _HTMLAppletElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -36220,9 +41922,21 @@ abstract class _HTMLAppletElement extends HtmlElement {
 @DomName('HTMLDirectoryElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dir
 @deprecated // deprecated
-abstract class _HTMLDirectoryElement extends HtmlElement {
+class _HTMLDirectoryElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLDirectoryElement._() { throw new UnsupportedError("Not supported"); }
+
+
+  static _HTMLDirectoryElement internalCreate_HTMLDirectoryElement() {
+    return new _HTMLDirectoryElement._internalWrap();
+  }
+
+  factory _HTMLDirectoryElement._internalWrap() {
+    return new _HTMLDirectoryElement.internal_();
+  }
+
+  _HTMLDirectoryElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -36242,9 +41956,21 @@ abstract class _HTMLDirectoryElement extends HtmlElement {
 @DomName('HTMLFontElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#htmlfontelement
 @deprecated // deprecated
-abstract class _HTMLFontElement extends HtmlElement {
+class _HTMLFontElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLFontElement._() { throw new UnsupportedError("Not supported"); }
+
+
+  static _HTMLFontElement internalCreate_HTMLFontElement() {
+    return new _HTMLFontElement._internalWrap();
+  }
+
+  factory _HTMLFontElement._internalWrap() {
+    return new _HTMLFontElement.internal_();
+  }
+
+  _HTMLFontElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -36264,9 +41990,21 @@ abstract class _HTMLFontElement extends HtmlElement {
 @DomName('HTMLFrameElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#htmlframeelement
 @deprecated // deprecated
-abstract class _HTMLFrameElement extends HtmlElement {
+class _HTMLFrameElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLFrameElement._() { throw new UnsupportedError("Not supported"); }
+
+
+  static _HTMLFrameElement internalCreate_HTMLFrameElement() {
+    return new _HTMLFrameElement._internalWrap();
+  }
+
+  factory _HTMLFrameElement._internalWrap() {
+    return new _HTMLFrameElement.internal_();
+  }
+
+  _HTMLFrameElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -36279,16 +42017,26 @@ abstract class _HTMLFrameElement extends HtmlElement {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable()
 @DomName('HTMLFrameSetElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#frameset
 @deprecated // deprecated
-abstract class _HTMLFrameSetElement extends HtmlElement implements WindowEventHandlers {
+class _HTMLFrameSetElement extends HtmlElement implements WindowEventHandlers {
   // To suppress missing implicit constructor warnings.
   factory _HTMLFrameSetElement._() { throw new UnsupportedError("Not supported"); }
+
+
+  static _HTMLFrameSetElement internalCreate_HTMLFrameSetElement() {
+    return new _HTMLFrameSetElement._internalWrap();
+  }
+
+  factory _HTMLFrameSetElement._internalWrap() {
+    return new _HTMLFrameSetElement.internal_();
+  }
+
+  _HTMLFrameSetElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -36296,7 +42044,16 @@ abstract class _HTMLFrameSetElement extends HtmlElement implements WindowEventHa
    */
   _HTMLFrameSetElement.created() : super.created();
 
+  // Override these methods for Dartium _HTMLFrameSetElement can't be abstract.
+  Stream<Event> get onHashChange => hashChangeEvent.forTarget(this);
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+  Stream<Event> get onOffline => offlineEvent.forTarget(this);
+  Stream<Event> get onOnline => onlineEvent.forTarget(this);
+  Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
+  Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
+  Stream<Event> get onUnload => unloadEvent.forTarget(this);
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36308,9 +42065,21 @@ abstract class _HTMLFrameSetElement extends HtmlElement implements WindowEventHa
 @DomName('HTMLMarqueeElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#the-marquee-element
 @deprecated // deprecated
-abstract class _HTMLMarqueeElement extends HtmlElement {
+class _HTMLMarqueeElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLMarqueeElement._() { throw new UnsupportedError("Not supported"); }
+
+
+  static _HTMLMarqueeElement internalCreate_HTMLMarqueeElement() {
+    return new _HTMLMarqueeElement._internalWrap();
+  }
+
+  factory _HTMLMarqueeElement._internalWrap() {
+    return new _HTMLMarqueeElement.internal_();
+  }
+
+  _HTMLMarqueeElement.internal_() : super.internal_();
+
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -36327,7 +42096,7 @@ abstract class _HTMLMarqueeElement extends HtmlElement {
 @DomName('MutationEvent')
 // http://www.w3.org/TR/DOM-Level-3-Events/#events-mutationevents
 @deprecated
-abstract class _MutationEvent extends Event {
+class _MutationEvent extends Event {
   factory _MutationEvent(String type,
       {bool canBubble: false, bool cancelable: false, Node relatedNode,
       String prevValue, String newValue, String attrName, int attrChange: 0}) {
@@ -36339,6 +42108,18 @@ abstract class _MutationEvent extends Event {
   }
   // To suppress missing implicit constructor warnings.
   factory _MutationEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static _MutationEvent internalCreate_MutationEvent() {
+    return new _MutationEvent._internalWrap();
+  }
+
+  factory _MutationEvent._internalWrap() {
+    return new _MutationEvent.internal_();
+  }
+
+  _MutationEvent.internal_() : super.internal_();
+
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36352,9 +42133,24 @@ abstract class _MutationEvent extends Event {
 @DomName('NamedNodeMap')
 // http://dom.spec.whatwg.org/#namednodemap
 @deprecated // deprecated
-class _NamedNodeMap extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class _NamedNodeMap extends JsoNativeFieldWrapper with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   // To suppress missing implicit constructor warnings.
   factory _NamedNodeMap._() { throw new UnsupportedError("Not supported"); }
+
+  static _NamedNodeMap internalCreate_NamedNodeMap() {
+    return new _NamedNodeMap._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _NamedNodeMap._internalWrap() {
+    return new _NamedNodeMap.internal_();
+  }
+
+  _NamedNodeMap.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('NamedNodeMap.length')
   @DocsEditable()
@@ -36367,7 +42163,7 @@ class _NamedNodeMap extends NativeFieldWrapperClass2 with ListMixin<Node>, Immut
   }
 
   Node _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkNamedNodeMap.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -36375,7 +42171,7 @@ class _NamedNodeMap extends NativeFieldWrapperClass2 with ListMixin<Node>, Immut
   // Node is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -36449,9 +42245,24 @@ class _NamedNodeMap extends NativeFieldWrapperClass2 with ListMixin<Node>, Immut
 @DocsEditable()
 @DomName('PagePopupController')
 @deprecated // nonstandard
-abstract class _PagePopupController extends NativeFieldWrapperClass2 {
+class _PagePopupController extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _PagePopupController._() { throw new UnsupportedError("Not supported"); }
+
+  static _PagePopupController internalCreate_PagePopupController() {
+    return new _PagePopupController._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _PagePopupController._internalWrap() {
+    return new _PagePopupController.internal_();
+  }
+
+  _PagePopupController.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36465,9 +42276,24 @@ abstract class _PagePopupController extends NativeFieldWrapperClass2 {
 @DomName('RGBColor')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _RGBColor extends NativeFieldWrapperClass2 {
+class _RGBColor extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _RGBColor._() { throw new UnsupportedError("Not supported"); }
+
+  static _RGBColor internalCreate_RGBColor() {
+    return new _RGBColor._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _RGBColor._internalWrap() {
+    return new _RGBColor.internal_();
+  }
+
+  _RGBColor.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -36476,9 +42302,21 @@ abstract class _RGBColor extends NativeFieldWrapperClass2 {
 
 
 @DomName('RadioNodeList')
-abstract class _RadioNodeList extends NodeList {
+class _RadioNodeList extends NodeList {
   // To suppress missing implicit constructor warnings.
   factory _RadioNodeList._() { throw new UnsupportedError("Not supported"); }
+
+
+  static _RadioNodeList internalCreate_RadioNodeList() {
+    return new _RadioNodeList._internalWrap();
+  }
+
+  factory _RadioNodeList._internalWrap() {
+    return new _RadioNodeList.internal_();
+  }
+
+  _RadioNodeList.internal_() : super.internal_();
+
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36492,9 +42330,24 @@ abstract class _RadioNodeList extends NodeList {
 @DomName('Rect')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _Rect extends NativeFieldWrapperClass2 {
+class _Rect extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _Rect._() { throw new UnsupportedError("Not supported"); }
+
+  static _Rect internalCreate_Rect() {
+    return new _Rect._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _Rect._internalWrap() {
+    return new _Rect.internal_();
+  }
+
+  _Rect.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36515,19 +42368,33 @@ class _Request extends Body {
   @DocsEditable()
   factory _Request(input, [Map requestInitDict]) {
     if ((input is String || input == null) && requestInitDict == null) {
-      return _blink.BlinkRequest.instance.constructorCallback_1_(input);
+      return wrap_jso(_blink.BlinkRequest.instance.constructorCallback_1_(input));
     }
     if ((requestInitDict is Map || requestInitDict == null) && (input is String || input == null)) {
-      return _blink.BlinkRequest.instance.constructorCallback_2_(input, requestInitDict);
+      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict);
+      return wrap_jso(_blink.BlinkRequest.instance.constructorCallback_2_(input, requestInitDict_1));
     }
     if ((input is _Request || input == null) && requestInitDict == null) {
-      return _blink.BlinkRequest.instance.constructorCallback_1_(input);
+      return wrap_jso(_blink.BlinkRequest.instance.constructorCallback_1_(input));
     }
     if ((requestInitDict is Map || requestInitDict == null) && (input is _Request || input == null)) {
-      return _blink.BlinkRequest.instance.constructorCallback_2_(input, requestInitDict);
+      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict);
+      return wrap_jso(_blink.BlinkRequest.instance.constructorCallback_2_(input, requestInitDict_1));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+
+
+  static _Request internalCreate_Request() {
+    return new _Request._internalWrap();
+  }
+
+  factory _Request._internalWrap() {
+    return new _Request.internal_();
+  }
+
+  _Request.internal_() : super.internal_();
+
 
   @DomName('Request.credentials')
   @DocsEditable()
@@ -36557,7 +42424,7 @@ class _Request extends Body {
   @DomName('Request.clone')
   @DocsEditable()
   @Experimental() // untriaged
-  _Request clone() => _blink.BlinkRequest.instance.clone_Callback_0_(unwrap_jso(this));
+  _Request clone() => wrap_jso(_blink.BlinkRequest.instance.clone_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36570,7 +42437,7 @@ class _Request extends Body {
 @DocsEditable()
 @DomName('Response')
 @Experimental() // untriaged
-abstract class _Response extends Body {
+class _Response extends Body {
   // To suppress missing implicit constructor warnings.
   factory _Response._() { throw new UnsupportedError("Not supported"); }
 
@@ -36578,48 +42445,77 @@ abstract class _Response extends Body {
   @DocsEditable()
   factory _Response(body_OR_input, [Map requestInitDict_OR_responseInitDict]) {
     if ((body_OR_input is String || body_OR_input == null) && requestInitDict_OR_responseInitDict == null) {
-      return _blink.BlinkResponse.instance.constructorCallback_1_(body_OR_input);
+      return wrap_jso(_blink.BlinkResponse.instance.constructorCallback_1_(body_OR_input));
     }
     if ((requestInitDict_OR_responseInitDict is Map || requestInitDict_OR_responseInitDict == null) && (body_OR_input is String || body_OR_input == null)) {
-      return _blink.BlinkResponse.instance.constructorCallback_2_(body_OR_input, requestInitDict_OR_responseInitDict);
+      var responseInitDict_1 = convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
+      return wrap_jso(_blink.BlinkResponse.instance.constructorCallback_2_(body_OR_input, responseInitDict_1));
     }
     if ((body_OR_input is Blob || body_OR_input == null) && requestInitDict_OR_responseInitDict == null) {
-      return _blink.BlinkResponse.instance.constructorCallback_1_(body_OR_input);
+      return wrap_jso(_blink.BlinkResponse.instance.constructorCallback_1_(body_OR_input));
     }
     if ((requestInitDict_OR_responseInitDict is Map || requestInitDict_OR_responseInitDict == null) && (body_OR_input is Blob || body_OR_input == null)) {
-      return _blink.BlinkResponse.instance.constructorCallback_2_(body_OR_input, requestInitDict_OR_responseInitDict);
+      var responseInitDict_1 = convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
+      return wrap_jso(_blink.BlinkResponse.instance.constructorCallback_2_(body_OR_input, responseInitDict_1));
     }
     if ((body_OR_input is TypedData || body_OR_input == null) && requestInitDict_OR_responseInitDict == null) {
-      return _blink.BlinkResponse.instance.constructorCallback_1_(body_OR_input);
+      return wrap_jso(_blink.BlinkResponse.instance.constructorCallback_1_(body_OR_input));
     }
     if ((requestInitDict_OR_responseInitDict is Map || requestInitDict_OR_responseInitDict == null) && (body_OR_input is TypedData || body_OR_input == null)) {
-      return _blink.BlinkResponse.instance.constructorCallback_2_(body_OR_input, requestInitDict_OR_responseInitDict);
+      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
+      return wrap_jso(_blink.BlinkResponse.instance.constructorCallback_2_(body_OR_input, requestInitDict_1));
     }
     if ((body_OR_input is ByteBuffer || body_OR_input == null) && requestInitDict_OR_responseInitDict == null) {
-      return _blink.BlinkResponse.instance.constructorCallback_1_(body_OR_input);
+      return wrap_jso(_blink.BlinkResponse.instance.constructorCallback_1_(body_OR_input));
     }
     if ((requestInitDict_OR_responseInitDict is Map || requestInitDict_OR_responseInitDict == null) && (body_OR_input is ByteBuffer || body_OR_input == null)) {
-      return _blink.BlinkResponse.instance.constructorCallback_2_(body_OR_input, requestInitDict_OR_responseInitDict);
+      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
+      return wrap_jso(_blink.BlinkResponse.instance.constructorCallback_2_(body_OR_input, requestInitDict_1));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+
+
+  static _Response internalCreate_Response() {
+    return new _Response._internalWrap();
+  }
+
+  factory _Response._internalWrap() {
+    return new _Response.internal_();
+  }
+
+  _Response.internal_() : super.internal_();
+
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable()
 @DomName('ServiceWorker')
 @Experimental() // untriaged
-abstract class _ServiceWorker extends EventTarget implements AbstractWorker {
+class _ServiceWorker extends EventTarget implements AbstractWorker {
   // To suppress missing implicit constructor warnings.
   factory _ServiceWorker._() { throw new UnsupportedError("Not supported"); }
 
+
+  static _ServiceWorker internalCreate_ServiceWorker() {
+    return new _ServiceWorker._internalWrap();
+  }
+
+  factory _ServiceWorker._internalWrap() {
+    return new _ServiceWorker.internal_();
+  }
+
+  _ServiceWorker.internal_() : super.internal_();
+
+
+  // Override these methods for Dartium _ServiceWorker can't be abstract.
+  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36631,9 +42527,24 @@ abstract class _ServiceWorker extends EventTarget implements AbstractWorker {
 @DomName('SpeechRecognitionResultList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionresultlist
 @Experimental()
-class _SpeechRecognitionResultList extends NativeFieldWrapperClass2 with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements List<SpeechRecognitionResult> {
+class _SpeechRecognitionResultList extends JsoNativeFieldWrapper with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements List<SpeechRecognitionResult> {
   // To suppress missing implicit constructor warnings.
   factory _SpeechRecognitionResultList._() { throw new UnsupportedError("Not supported"); }
+
+  static _SpeechRecognitionResultList internalCreate_SpeechRecognitionResultList() {
+    return new _SpeechRecognitionResultList._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _SpeechRecognitionResultList._internalWrap() {
+    return new _SpeechRecognitionResultList.internal_();
+  }
+
+  _SpeechRecognitionResultList.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SpeechRecognitionResultList.length')
   @DocsEditable()
@@ -36646,7 +42557,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass2 with ListMix
   }
 
   SpeechRecognitionResult _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkSpeechRecognitionResultList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, SpeechRecognitionResult value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -36654,7 +42565,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass2 with ListMix
   // SpeechRecognitionResult is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -36699,9 +42610,24 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass2 with ListMix
 
 @DocsEditable()
 @DomName('StyleSheetList')
-class _StyleSheetList extends NativeFieldWrapperClass2 with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements List<StyleSheet> {
+class _StyleSheetList extends JsoNativeFieldWrapper with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements List<StyleSheet> {
   // To suppress missing implicit constructor warnings.
   factory _StyleSheetList._() { throw new UnsupportedError("Not supported"); }
+
+  static _StyleSheetList internalCreate_StyleSheetList() {
+    return new _StyleSheetList._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _StyleSheetList._internalWrap() {
+    return new _StyleSheetList.internal_();
+  }
+
+  _StyleSheetList.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('StyleSheetList.length')
   @DocsEditable()
@@ -36714,7 +42640,7 @@ class _StyleSheetList extends NativeFieldWrapperClass2 with ListMixin<StyleSheet
   }
 
   StyleSheet _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkStyleSheetList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, StyleSheet value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -36722,7 +42648,7 @@ class _StyleSheetList extends NativeFieldWrapperClass2 with ListMixin<StyleSheet
   // StyleSheet is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -36755,7 +42681,7 @@ class _StyleSheetList extends NativeFieldWrapperClass2 with ListMixin<StyleSheet
 
   @DomName('StyleSheetList.__getter__')
   @DocsEditable()
-  CssStyleSheet __getter__(String name) => _blink.BlinkStyleSheetList.instance.$__getter___Callback_1_(unwrap_jso(this), name);
+  CssStyleSheet __getter__(String name) => wrap_jso(_blink.BlinkStyleSheetList.instance.$__getter___Callback_1_(unwrap_jso(this), name));
   
   @DomName('StyleSheetList.item')
   @DocsEditable()
@@ -36772,9 +42698,24 @@ class _StyleSheetList extends NativeFieldWrapperClass2 with ListMixin<StyleSheet
 @DocsEditable()
 @DomName('SubtleCrypto')
 @Experimental() // untriaged
-abstract class _SubtleCrypto extends NativeFieldWrapperClass2 {
+class _SubtleCrypto extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _SubtleCrypto._() { throw new UnsupportedError("Not supported"); }
+
+  static _SubtleCrypto internalCreate_SubtleCrypto() {
+    return new _SubtleCrypto._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _SubtleCrypto._internalWrap() {
+    return new _SubtleCrypto.internal_();
+  }
+
+  _SubtleCrypto.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36788,9 +42729,21 @@ abstract class _SubtleCrypto extends NativeFieldWrapperClass2 {
 @DomName('WebKitCSSFilterValue')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _WebKitCSSFilterValue extends _CssValueList {
+class _WebKitCSSFilterValue extends _CssValueList {
   // To suppress missing implicit constructor warnings.
   factory _WebKitCSSFilterValue._() { throw new UnsupportedError("Not supported"); }
+
+
+  static _WebKitCSSFilterValue internalCreate_WebKitCSSFilterValue() {
+    return new _WebKitCSSFilterValue._internalWrap();
+  }
+
+  factory _WebKitCSSFilterValue._internalWrap() {
+    return new _WebKitCSSFilterValue.internal_();
+  }
+
+  _WebKitCSSFilterValue.internal_() : super.internal_();
+
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36807,15 +42760,30 @@ abstract class _WebKitCSSFilterValue extends _CssValueList {
 @Experimental()
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
+class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _WebKitCSSMatrix._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WebKitCSSMatrix.WebKitCSSMatrix')
   @DocsEditable()
   factory _WebKitCSSMatrix([String cssValue]) {
-    return _blink.BlinkWebKitCSSMatrix.instance.constructorCallback_1_(cssValue);
+    return wrap_jso(_blink.BlinkWebKitCSSMatrix.instance.constructorCallback_1_(cssValue));
   }
+
+  static _WebKitCSSMatrix internalCreate_WebKitCSSMatrix() {
+    return new _WebKitCSSMatrix._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _WebKitCSSMatrix._internalWrap() {
+    return new _WebKitCSSMatrix.internal_();
+  }
+
+  _WebKitCSSMatrix.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36829,9 +42797,21 @@ abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
 @DomName('WebKitCSSTransformValue')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _WebKitCSSTransformValue extends _CssValueList {
+class _WebKitCSSTransformValue extends _CssValueList {
   // To suppress missing implicit constructor warnings.
   factory _WebKitCSSTransformValue._() { throw new UnsupportedError("Not supported"); }
+
+
+  static _WebKitCSSTransformValue internalCreate_WebKitCSSTransformValue() {
+    return new _WebKitCSSTransformValue._internalWrap();
+  }
+
+  factory _WebKitCSSTransformValue._internalWrap() {
+    return new _WebKitCSSTransformValue.internal_();
+  }
+
+  _WebKitCSSTransformValue.internal_() : super.internal_();
+
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36873,34 +42853,82 @@ abstract class _WindowTimers extends NativeFieldWrapperClass2 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable()
 @DomName('WorkerLocation')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workerlocation
 @Experimental()
-abstract class _WorkerLocation extends NativeFieldWrapperClass2 implements UrlUtilsReadOnly {
+class _WorkerLocation extends NativeFieldWrapperClass2 implements UrlUtilsReadOnly {
   // To suppress missing implicit constructor warnings.
   factory _WorkerLocation._() { throw new UnsupportedError("Not supported"); }
 
+  static _WorkerLocation internalCreate_WorkerLocation() {
+    return new _WorkerLocation._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _WorkerLocation._internalWrap() {
+    return new _WorkerLocation.internal_();
+  }
+
+  _WorkerLocation.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
+  // Override these methods for Dartium _WorkerLocation can't be abstract.
+  String get hash => _blink.BlinkWorkerLocation.instance.hash_Getter_(unwrap_jso(this));
+  String get host => _blink.BlinkWorkerLocation.instance.host_Getter_(unwrap_jso(this));
+  String get hostname => _blink.BlinkWorkerLocation.instance.hostname_Getter_(unwrap_jso(this));
+  String get href => _blink.BlinkWorkerLocation.instance.href_Getter_(unwrap_jso(this));
+  String get origin => _blink.BlinkWorkerLocation.instance.origin_Getter_(unwrap_jso(this));
+  String get pathname => _blink.BlinkWorkerLocation.instance.pathname_Getter_(unwrap_jso(this));
+  String get port => _blink.BlinkWorkerLocation.instance.port_Getter_(unwrap_jso(this));
+  String get protocol => _blink.BlinkWorkerLocation.instance.protocol_Getter_(unwrap_jso(this));
+  String get search => _blink.BlinkWorkerLocation.instance.search_Getter_(unwrap_jso(this));
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable()
 @DomName('WorkerNavigator')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workernavigator
 @Experimental()
-abstract class _WorkerNavigator extends NativeFieldWrapperClass2 implements NavigatorCpu, NavigatorOnLine, NavigatorID {
+class _WorkerNavigator extends NativeFieldWrapperClass2 implements NavigatorCpu, NavigatorOnLine, NavigatorID {
   // To suppress missing implicit constructor warnings.
   factory _WorkerNavigator._() { throw new UnsupportedError("Not supported"); }
 
+  static _WorkerNavigator internalCreate_WorkerNavigator() {
+    return new _WorkerNavigator._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory _WorkerNavigator._internalWrap() {
+    return new _WorkerNavigator.internal_();
+  }
+
+  _WorkerNavigator.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
+  // Override these methods for Dartium _WorkerNavigator can't be abstract.
+  String get appCodeName => _blink.BlinkWorkerNavigator.instance.appCodeName_Getter_(unwrap_jso(this));
+  String get appName => _blink.BlinkWorkerNavigator.instance.appCodeName_Getter_(unwrap_jso(this));
+  String get appVersion => _blink.BlinkWorkerNavigator.instance.appVersion_Getter_(unwrap_jso(this));
+  bool get dartEnabled => _blink.BlinkWorkerNavigator.instance.dartEnabled_Getter_(unwrap_jso(this));
+  String get platform => _blink.BlinkWorkerNavigator.instance.platform_Getter_(unwrap_jso(this));
+  String get product => _blink.BlinkWorkerNavigator.instance.product_Getter_(unwrap_jso(this));
+  String get userAgent => _blink.BlinkWorkerNavigator.instance.userAgent_Getter_(unwrap_jso(this));
+  int get hardwareConcurrency => _blink.BlinkWorkerNavigator.instance.hardwareConcurrency_Getter_(unwrap_jso(this));
+  bool get onLine => _blink.BlinkWorkerNavigator.instance.onLine_Getter_(unwrap_jso(this));
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36914,6 +42942,18 @@ abstract class _WorkerNavigator extends NativeFieldWrapperClass2 implements Navi
 class _XMLHttpRequestProgressEvent extends ProgressEvent {
   // To suppress missing implicit constructor warnings.
   factory _XMLHttpRequestProgressEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static _XMLHttpRequestProgressEvent internalCreate_XMLHttpRequestProgressEvent() {
+    return new _XMLHttpRequestProgressEvent._internalWrap();
+  }
+
+  factory _XMLHttpRequestProgressEvent._internalWrap() {
+    return new _XMLHttpRequestProgressEvent.internal_();
+  }
+
+  _XMLHttpRequestProgressEvent.internal_() : super.internal_();
+
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -37605,7 +43645,7 @@ class _ContentCssRect extends CssRect {
    * `height` function in jQuery and the calculated `height` CSS value,
    * converted to a num in pixels.
    */
-  void set height(newHeight) {
+  set height(newHeight) {
     if (newHeight is Dimension) {
       if (newHeight.value < 0) newHeight = new Dimension.px(0);
       _element.style.height = newHeight.toString();
@@ -37623,7 +43663,7 @@ class _ContentCssRect extends CssRect {
    * and the calculated
    * `width` CSS value, converted to a dimensionless num in pixels.
    */
-  void set width(newWidth) {
+  set width(newWidth) {
     if (newWidth is Dimension) {
       if (newWidth.value < 0) newWidth = new Dimension.px(0);
       _element.style.width = newWidth.toString();
@@ -37658,7 +43698,7 @@ class _ContentCssListRect extends _ContentCssRect {
    * function in jQuery and the calculated `height` CSS value, converted to a
    * num in pixels.
    */
-  void set height(newHeight) {
+  set height(newHeight) {
     _elementList.forEach((e) => e.contentEdge.height = newHeight);
   }
 
@@ -37668,7 +43708,7 @@ class _ContentCssListRect extends _ContentCssRect {
    * This is equivalent to the `width` function in jQuery and the calculated
    * `width` CSS value, converted to a dimensionless num in pixels.
    */
-  void set width(newWidth) {
+  set width(newWidth) {
     _elementList.forEach((e) => e.contentEdge.width = newWidth);
   }
 }
@@ -37775,7 +43815,7 @@ abstract class CssRect extends MutableRectangle<num> {
    *
    * Note that only the content height can actually be set via this method.
    */
-  void set height(newHeight) {
+  set height(newHeight) {
     throw new UnsupportedError("Can only set height for content rect.");
   }
 
@@ -37789,7 +43829,7 @@ abstract class CssRect extends MutableRectangle<num> {
    *
    * Note that only the content width can be set via this method.
    */
-  void set width(newWidth) {
+  set width(newWidth) {
     throw new UnsupportedError("Can only set width for content rect.");
   }
 
@@ -38783,11 +44823,11 @@ class _Html5NodeValidator implements NodeValidator {
   }
 
   bool allowsElement(Element element) {
-    return _allowedElements.contains(element.tagName);
+    return _allowedElements.contains(element._safeTagName);
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
-    var tagName = element.tagName;
+    var tagName = element._safeTagName;
     var validator = _attributeValidators['$tagName::$attributeName'];
     if (validator == null) {
       validator = _attributeValidators['*::$attributeName'];
@@ -40449,11 +46489,11 @@ class _SimpleNodeValidator implements NodeValidator {
   }
 
   bool allowsElement(Element element) {
-    return allowedElements.contains(element.tagName);
+    return allowedElements.contains(element._safeTagName);
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
-    var tagName = element.tagName;
+    var tagName = element._safeTagName;
     if (allowedUriAttributes.contains('$tagName::$attributeName')) {
       return uriPolicy.allowsUri(value);
     } else if (allowedUriAttributes.contains('*::$attributeName')) {
@@ -40494,10 +46534,10 @@ class _CustomElementNodeValidator extends _SimpleNodeValidator {
       var isAttr = element.attributes['is'];
       if (isAttr != null) {
         return allowedElements.contains(isAttr.toUpperCase()) &&
-          allowedElements.contains(element.tagName);
+          allowedElements.contains(element._safeTagName);
       }
     }
-    return allowCustomTag && allowedElements.contains(element.tagName);
+    return allowCustomTag && allowedElements.contains(element._safeTagName);
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
@@ -40553,7 +46593,7 @@ class _SvgNodeValidator implements NodeValidator {
     // foreignobject tag as SvgElement. We don't want foreignobject contents
     // anyway, so just remove the whole tree outright. And we can't rely
     // on IE recognizing the SvgForeignObject type, so go by tagName. Bug 23144
-    if (element is svg.SvgElement && element.tagName == 'foreignObject') {
+    if (element is svg.SvgElement && element._safeTagName == 'foreignObject') {
       return false;
     }
     if (element is svg.SvgElement) {
@@ -40667,7 +46707,7 @@ abstract class NodeTreeSanitizer {
   /**
    * A sanitizer for trees that we trust. It does no validation and allows
    * any elements. It is also more efficient, since it can pass the text
-   * directly through to the underlying APIs without creating a document 
+   * directly through to the underlying APIs without creating a document
    * fragment to be sanitized.
    */
   static const trusted = const _TrustedHtmlTreeSanitizer();
@@ -40682,7 +46722,7 @@ class _TrustedHtmlTreeSanitizer implements NodeTreeSanitizer {
 
   sanitizeTree(Node node) {}
 }
-  
+
 /**
  * Defines the policy for what types of uris are allowed for particular
  * attribute values.
@@ -40736,14 +46776,14 @@ class _ThrowsNodeValidator implements NodeValidator {
 
   bool allowsElement(Element element) {
     if (!validator.allowsElement(element)) {
-      throw new ArgumentError(element.tagName);
+      throw new ArgumentError(element._safeTagName);
     }
     return true;
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
     if (!validator.allowsAttribute(element, attributeName, value)) {
-      throw new ArgumentError('${element.tagName}[$attributeName="$value"]');
+      throw new ArgumentError('${element._safeTagName}[$attributeName="$value"]');
     }
   }
 }
@@ -40808,10 +46848,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     try {
       elementText = element.toString();
     } catch(e) {}
-    var elementTagName = 'element tag unavailable';
-    try {
-      elementTagName = element.tagName;
-    } catch(e) {}
+    var elementTagName = element._safeTagName;
     _sanitizeElement(element, parent, corrupted, elementText, elementTagName,
         attrs, isAttr);
   }
@@ -40913,7 +46950,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
 
   void operator []=(int index, E value) { _list[index] = value; }
 
-  void set length(int newLength) { _list.length = newLength; }
+  set length(int newLength) { _list.length = newLength; }
 
   void sort([int compare(E a, E b)]) { _list.sort(compare); }
 
@@ -41161,6 +47198,13 @@ bool _isBuiltinType(ClassMirror cls) {
 
 @Experimental()
 class KeyEvent extends _WrappedEvent implements KeyboardEvent {
+  /** Needed because KeyboardEvent is implements.
+   *  TODO(terry): Consider making blink_jsObject private (add underscore) for
+   *               all blink_jsObject.  Then needed private wrap/unwrap_jso
+   *               functions that delegate to a public wrap/unwrap_jso.
+   */
+  js.JsObject blink_jsObject;
+
   /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
   KeyboardEvent _parent;
 
@@ -41313,6 +47357,13 @@ class Platform {
  * Helper class to implement custom events which wrap DOM events.
  */
 class _WrappedEvent implements Event {
+  /** Needed because KeyboardEvent is implements.
+   *  TODO(terry): Consider making blink_jsObject private (add underscore) for
+   *               all blink_jsObject.  Then needed private wrap/unwrap_jso
+   *               functions that delegate to a public wrap/unwrap_jso.
+   */
+  js.JsObject blink_jsObject;
+
   final Event wrapped;
 
   /** The CSS selector involved with event delegation. */
@@ -41655,9 +47706,7 @@ class _Utils {
     return element;
   }
 
-  // TODO(terry): Enable below for Dartium w/ interop and remove other static window().
-  // static window() => wrap_jso(_blink.Blink_Utils.window()['window']);
-  static window() => _blink.Blink_Utils.window();
+  static window() => wrap_jso(js.context['window']);
 
   static forwardingPrint(String message) => _blink.Blink_Utils.forwardingPrint(message);
   static void spawnDomHelper(Function f, int replyTo) =>
@@ -42274,15 +48323,19 @@ class _Utils {
   static Element createElement(Document document, String tagName) =>
     wrap_jso(_blink.Blink_Utils.createElement(unwrap_jso(document), tagName));
 
-  static void initializeCustomElement(HtmlElement element) =>
-    _blink.Blink_Utils.initializeCustomElement(unwrap_jso(element));
-
   static Element changeElementWrapper(HtmlElement element, Type type) =>
     _blink.Blink_Utils.changeElementWrapper(unwrap_jso(element), type);
 }
 
 class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements
     WindowBase {
+  /** Needed because KeyboardEvent is implements.
+   *  TODO(terry): Consider making blink_jsObject private (add underscore) for
+   *               all blink_jsObject.  Then needed private wrap/unwrap_jso
+   *               functions that delegate to a public wrap/unwrap_jso.
+   */
+  js.JsObject blink_jsObject;
+
   _DOMWindowCrossFrame.internal();
 
   // Fields.
@@ -42341,7 +48394,7 @@ class _LocationCrossFrame extends NativeFieldWrapperClass2 implements LocationBa
   _LocationCrossFrame.internal();
 
   // Fields.
-  void set href(String h) => _blink.Blink_LocationCrossFrame.set_href(this, h);
+  set href(String h) => _blink.Blink_LocationCrossFrame.set_href(this, h);
 
   // Implementation support.
   String get typeName => "Location";
@@ -42576,10 +48629,6 @@ get _scheduleImmediateClosure => (void callback()) {
 get _pureIsolateScheduleImmediateClosure => ((void callback()) =>
   throw new UnimplementedError("scheduleMicrotask in background isolates "
                                "are not supported in the browser"));
-
-void _initializeCustomElement(Element e) {
-  _Utils.initializeCustomElement(e);
-}
 
 // Class for unsupported native browser 'DOM' objects.
 class _UnsupportedBrowserObject extends NativeFieldWrapperClass2 {

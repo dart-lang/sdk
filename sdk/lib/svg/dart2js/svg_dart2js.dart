@@ -10,7 +10,7 @@ library dart.dom.svg;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:_internal' hide deprecated;
+import 'dart:_internal';
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:_js_helper' show Creates, Returns, JSName, Native;
@@ -2693,7 +2693,7 @@ class LengthList extends Interceptor with ListMixin<Length>, ImmutableListMixin<
   // Length is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -3145,7 +3145,7 @@ class NumberList extends Interceptor with ListMixin<Number>, ImmutableListMixin<
   // Number is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -3932,7 +3932,7 @@ class PathSegList extends Interceptor with ListMixin<PathSeg>, ImmutableListMixi
   // PathSeg is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -4627,7 +4627,7 @@ class StringList extends Interceptor with ListMixin<String>, ImmutableListMixin<
   // String is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -4731,7 +4731,7 @@ class StyleElement extends SvgElement {
   // Shadowing definition.
   String get title => JS("String", "#.title", this);
 
-  void set title(String value) {
+  set title(String value) {
     JS("void", "#.title = #", this, value);
   }
 
@@ -4801,7 +4801,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
 
   List<Element> get children => new FilteredElementList(this);
 
-  void set children(List<Element> value) {
+  set children(List<Element> value) {
     final children = this.children;
     children.clear();
     children.addAll(value);
@@ -4821,7 +4821,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
     return container.innerHtml;
   }
 
-  void set innerHtml(String value) {
+  set innerHtml(String value) {
     this.setInnerHtml(value);
   }
 
@@ -4886,6 +4886,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
     var e = new SvgElement.tag(tag);
     return e is SvgElement && !(e is UnknownElement);
   }
+
   // To suppress missing implicit constructor warnings.
   factory SvgElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5169,7 +5170,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
   // Shadowing definition.
   int get tabIndex => JS("int", "#.tabIndex", this);
 
-  void set tabIndex(int value) {
+  set tabIndex(int value) {
     JS("void", "#.tabIndex = #", this, value);
   }
 
@@ -6082,7 +6083,7 @@ class TransformList extends Interceptor with ListMixin<Transform>, ImmutableList
   // Transform is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -6536,7 +6537,9 @@ abstract class _SVGCursorElement extends SvgElement implements UriReference, Tes
   // From SVGTests
 
   // From SVGURIReference
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -6557,7 +6560,9 @@ abstract class _SVGFEDropShadowElement extends SvgElement implements FilterPrimi
   _SVGFEDropShadowElement.created() : super.created();
 
   // From SVGFilterPrimitiveStandardAttributes
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -6715,7 +6720,9 @@ abstract class _SVGGlyphRefElement extends SvgElement implements UriReference {
   _SVGGlyphRefElement.created() : super.created();
 
   // From SVGURIReference
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -6762,7 +6769,9 @@ abstract class _SVGMPathElement extends SvgElement implements UriReference {
   _SVGMPathElement.created() : super.created();
 
   // From SVGURIReference
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

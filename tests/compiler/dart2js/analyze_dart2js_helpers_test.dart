@@ -27,7 +27,7 @@ import 'package:compiler/src/resolution/tree_elements.dart' show
 import 'package:compiler/src/source_file_provider.dart' show
     FormattingDiagnosticHandler;
 import 'package:compiler/src/tree/tree.dart';
-import 'package:compiler/src/universe/universe.dart' show
+import 'package:compiler/src/universe/call_structure.dart' show
     CallStructure;
 import 'package:expect/expect.dart';
 

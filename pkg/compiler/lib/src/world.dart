@@ -11,10 +11,7 @@ import 'common/backend_api.dart' show
 import 'common/registry.dart' show
     Registry;
 import 'compiler.dart' show
-    invariant,
-    Backend,
-    Compiler,
-    Registry;
+    Compiler;
 import 'dart_types.dart';
 import 'diagnostics/invariant.dart' show
     invariant;
@@ -27,11 +24,13 @@ import 'elements/elements.dart' show
     VariableElement;
 import 'ordered_typeset.dart';
 import 'types/types.dart' as ti;
-import 'universe/universe.dart' show
-    FunctionSet,
-    Selector,
-    SideEffects;
 import 'universe/class_set.dart';
+import 'universe/function_set.dart' show
+    FunctionSet;
+import 'universe/selector.dart' show
+    Selector;
+import 'universe/side_effects.dart' show
+    SideEffects;
 import 'util/util.dart' show
     Link;
 
@@ -376,11 +375,6 @@ class World implements ClassWorld {
   final Set<Element> alreadyPopulated;
 
   bool get isClosed => compiler.phase > Compiler.PHASE_RESOLVING;
-
-  // Used by selectors.
-  bool isAssertMethod(Element element) {
-    return compiler.backend.isAssertMethod(element);
-  }
 
   // Used by selectors.
   bool isForeign(Element element) {

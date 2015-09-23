@@ -7,9 +7,7 @@ library test.src.task.strong_mode_test;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
-import 'package:analyzer/task/dart.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
@@ -25,7 +23,8 @@ main() {
 @reflectiveTest
 class InstanceMemberInferrerTest extends AbstractContextTest {
   InstanceMemberInferrer get createInferrer =>
-      new InstanceMemberInferrer(context.typeProvider);
+      new InstanceMemberInferrer(context.typeProvider,
+          typeSystem: context.typeSystem);
 
   /**
    * Add a source with the given [content] and return the result of resolving

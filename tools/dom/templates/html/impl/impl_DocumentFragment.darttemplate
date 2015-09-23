@@ -38,7 +38,7 @@ $endif
     return _docChildren;
   }
 
-  void set children(List<Element> value) {
+  set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;
@@ -58,12 +58,7 @@ $endif
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   ElementList<Element> querySelectorAll(String selectors) =>
-$if JSINTEROP
-    _querySelectorAll(selectors);
-$else
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
-$endif
-
 
   String get innerHtml {
     final e = new Element.tag("div");
@@ -71,7 +66,7 @@ $endif
     return e.innerHtml;
   }
 
-  void set innerHtml(String value) {
+  set innerHtml(String value) {
     this.setInnerHtml(value);
   }
 

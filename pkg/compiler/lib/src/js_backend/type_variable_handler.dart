@@ -43,8 +43,7 @@ class TypeVariableHandler {
       // On first encounter, we have to ensure that the support classes get
       // resolved.
       if (!_seenClassesWithTypeVariables) {
-        _backend.enqueueClass(
-            enqueuer, _typeVariableClass, registry);
+        _backend.enqueueClass(enqueuer, _typeVariableClass, registry);
         _typeVariableClass.ensureResolved(_compiler);
         Link constructors = _typeVariableClass.constructors;
         if (constructors.isEmpty && constructors.tail.isEmpty) {
@@ -53,9 +52,9 @@ class TypeVariableHandler {
         }
         _typeVariableConstructor = _typeVariableClass.constructors.head;
         _backend.enqueueInResolution(_typeVariableConstructor, registry);
-        enqueuer.registerInstantiatedType(_typeVariableClass.rawType,
-                                          registry);
-        enqueuer.registerStaticUse(_backend.getCreateRuntimeType());
+        enqueuer.registerInstantiatedType(_typeVariableClass.rawType, registry);
+        enqueuer.registerStaticUse(
+            _backend.registerBackendUse(_backend.getCreateRuntimeType()));
         _seenClassesWithTypeVariables = true;
       }
     } else {

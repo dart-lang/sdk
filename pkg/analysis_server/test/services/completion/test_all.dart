@@ -14,6 +14,7 @@ import 'completion_computer_test.dart' as completion_computer_test;
 import 'completion_manager_test.dart' as completion_manager_test;
 import 'completion_target_test.dart' as completion_target_test;
 import 'imported_reference_contributor_test.dart' as imported_test;
+import 'inherited_computer_test.dart' as inherited_computer_test;
 import 'keyword_contributor_test.dart' as keyword_test;
 import 'local_declaration_visitor_test.dart' as local_declaration_visitor_test;
 import 'local_reference_contributor_test.dart'
@@ -33,6 +34,7 @@ main() {
     completion_manager_test.main();
     completion_target_test.main();
     imported_test.main();
+    inherited_computer_test.main();
     invocation_test.main();
     keyword_test.main();
     local_declaration_visitor_test.main();

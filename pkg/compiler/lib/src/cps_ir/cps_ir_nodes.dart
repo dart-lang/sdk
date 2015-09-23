@@ -9,7 +9,7 @@ import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../types/types.dart' show TypeMask;
-import '../universe/universe.dart' show Selector;
+import '../universe/selector.dart' show Selector;
 
 import 'builtin_operator.dart';
 export 'builtin_operator.dart';
@@ -86,7 +86,7 @@ abstract class CallExpression extends Expression {
 
 /// An expression without a continuation or a subexpression body.
 ///
-/// These break straight-line control flow and can be throught of as ending a
+/// These break straight-line control flow and can be thought of as ending a
 /// basic block.
 abstract class TailExpression extends Expression {
   Expression get next => null;
@@ -1261,6 +1261,21 @@ class Await extends CallExpression {
   }
 }
 
+class Yield extends CallExpression {
+  final Reference<Primitive> input;
+  final Reference<Continuation> continuation;
+  final bool hasStar;
+
+  Yield(Primitive input, this.hasStar, Continuation continuation)
+    : this.input = new Reference<Primitive>(input),
+      this.continuation = new Reference<Continuation>(continuation);
+
+  @override
+  accept(Visitor visitor) {
+    return visitor.visitYield(this);
+  }
+}
+
 List<Reference<Primitive>> _referenceList(Iterable<Primitive> definitions) {
   return definitions.map((e) => new Reference<Primitive>(e)).toList();
 }
@@ -1293,6 +1308,7 @@ abstract class Visitor<T> {
   T visitSetField(SetField node);
   T visitUnreachable(Unreachable node);
   T visitAwait(Await node);
+  T visitYield(Yield node);
 
   // Definitions.
   T visitLiteralList(LiteralList node);
@@ -1598,6 +1614,13 @@ class LeafVisitor implements Visitor {
   processAwait(Await node) {}
   visitAwait(Await node) {
     processAwait(node);
+    processReference(node.input);
+    processReference(node.continuation);
+  }
+
+  processYield(Yield node) {}
+  visitYield(Yield node) {
+    processYield(node);
     processReference(node.input);
     processReference(node.continuation);
   }

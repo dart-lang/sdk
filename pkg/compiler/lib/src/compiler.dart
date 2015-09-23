@@ -69,8 +69,7 @@ import 'elements/modelx.dart' show
     DeferredLoaderGetterElementX,
     MethodElementX,
     LibraryElementX,
-    PrefixElementX,
-    VoidElementX;
+    PrefixElementX;
 import 'enqueue.dart' show
     CodegenEnqueuer,
     Enqueuer,
@@ -94,7 +93,6 @@ import 'null_compiler_output.dart' show
 import 'parser/diet_parser_task.dart' show
     DietParserTask;
 import 'parser/parser_task.dart' show
-    DietParserTask,
     ParserTask;
 import 'patch_parser.dart' show
     PatchParserTask;
@@ -128,9 +126,11 @@ import 'tree/tree.dart' show
 import 'typechecker.dart' show
     TypeCheckerTask;
 import 'types/types.dart' as ti;
+import 'universe/call_structure.dart' show
+    CallStructure;
+import 'universe/selector.dart' show
+    Selector;
 import 'universe/universe.dart' show
-    CallStructure,
-    Selector,
     Universe;
 import 'util/util.dart' show
     Link,
@@ -189,6 +189,7 @@ abstract class Compiler implements DiagnosticListener {
   final bool dumpInfo;
   final bool useContentSecurityPolicy;
   final bool enableExperimentalMirrors;
+  final bool enableAssertMessage;
 
   /**
    * The maximum size of a concrete type before it widens to dynamic during
@@ -522,6 +523,7 @@ abstract class Compiler implements DiagnosticListener {
             this.fatalWarnings: false,
             bool hasIncrementalSupport: false,
             this.enableExperimentalMirrors: false,
+            this.enableAssertMessage: false,
             this.allowNativeExtensions: false,
             this.generateCodeWithCompileTimeErrors: false,
             this.testMode: false,

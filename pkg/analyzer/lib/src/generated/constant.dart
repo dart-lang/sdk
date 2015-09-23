@@ -214,6 +214,11 @@ class ConstantEvaluationEngine {
       "^(?:${ConstantValueComputer._OPERATOR_RE}\$|$_PUBLIC_IDENTIFIER_RE(?:=?\$|[.](?!\$)))+?\$");
 
   /**
+   * The type provider used to access the known types.
+   */
+  final TypeProvider typeProvider;
+
+  /**
    * The type system.  This is used to gues the types of constants when their
    * exact value is unknown.
    */
@@ -237,17 +242,12 @@ class ConstantEvaluationEngine {
    * given, is used to verify correct dependency analysis when running unit
    * tests.
    */
-  ConstantEvaluationEngine(TypeProvider typeProvider, this._declaredVariables,
-      {ConstantEvaluationValidator validator})
+  ConstantEvaluationEngine(this.typeProvider, this._declaredVariables,
+      {ConstantEvaluationValidator validator, TypeSystem typeSystem})
       : validator = validator != null
             ? validator
             : new ConstantEvaluationValidator_ForProduction(),
-        typeSystem = new TypeSystemImpl(typeProvider);
-
-  /**
-   * The type provider used to access the known types.
-   */
-  TypeProvider get typeProvider => typeSystem.typeProvider;
+        typeSystem = typeSystem != null ? typeSystem : new TypeSystemImpl();
 
   /**
    * Check that the arguments to a call to fromEnvironment() are correct. The
@@ -1018,6 +1018,9 @@ class ConstantEvaluationTarget_Annotation implements ConstantEvaluationTarget {
       return false;
     }
   }
+
+  @override
+  String toString() => 'Constant: $annotation';
 }
 
 /**
@@ -1150,17 +1153,24 @@ class ConstantEvaluator {
   final TypeProvider _typeProvider;
 
   /**
+   * The type system primitives.
+   */
+  final TypeSystem _typeSystem;
+
+  /**
    * Initialize a newly created evaluator to evaluate expressions in the given
    * [source]. The [typeProvider] is the type provider used to access known
    * types.
    */
-  ConstantEvaluator(this._source, this._typeProvider);
+  ConstantEvaluator(this._source, this._typeProvider, {TypeSystem typeSystem})
+      : _typeSystem = typeSystem != null ? typeSystem : new TypeSystemImpl();
 
   EvaluationResult evaluate(Expression expression) {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
     DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(_typeProvider, new DeclaredVariables()),
+        new ConstantEvaluationEngine(_typeProvider, new DeclaredVariables(),
+            typeSystem: _typeSystem),
         errorReporter));
     if (result != null) {
       return EvaluationResult.forValue(result);
@@ -1304,10 +1314,10 @@ class ConstantValueComputer {
    */
   ConstantValueComputer(this._context, TypeProvider typeProvider,
       DeclaredVariables declaredVariables,
-      [ConstantEvaluationValidator validator])
+      [ConstantEvaluationValidator validator, TypeSystem typeSystem])
       : evaluationEngine = new ConstantEvaluationEngine(
             typeProvider, declaredVariables,
-            validator: validator);
+            validator: validator, typeSystem: typeSystem);
 
   /**
    * Add the constants in the given compilation [unit] to the list of constants
@@ -1577,7 +1587,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     ParameterizedType thenType = thenResult.type;
     ParameterizedType elseType = elseResult.type;
     return new DartObjectImpl.validWithUnknownValue(
-        _typeSystem.getLeastUpperBound(thenType, elseType) as InterfaceType);
+        _typeSystem.getLeastUpperBound(_typeProvider, thenType, elseType)
+        as InterfaceType);
   }
 
   @override

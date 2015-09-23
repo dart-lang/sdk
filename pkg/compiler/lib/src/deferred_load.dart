@@ -34,8 +34,7 @@ import 'elements/elements.dart' show
     MetadataAnnotation,
     PrefixElement,
     ScopeContainerElement,
-    TypedefElement,
-    VoidElement;
+    TypedefElement;
 import 'js_backend/js_backend.dart' show
     JavaScriptBackend;
 import 'resolution/resolution.dart' show

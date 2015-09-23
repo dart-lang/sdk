@@ -429,6 +429,11 @@ abstract class AnalysisContext {
   TypeProvider get typeProvider;
 
   /**
+   * Return a type system for this context.
+   */
+  TypeSystem get typeSystem;
+
+  /**
    * Add the given [listener] to the list of objects that are to be notified
    * when various analysis results are produced in this context.
    */
@@ -1040,6 +1045,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   TypeProvider _typeProvider;
 
   /**
+   * The [TypeSystem] for this context, `null` if not yet created.
+   */
+  TypeSystem _typeSystem;
+
+  /**
    * The object used to manage the list of sources that need to be analyzed.
    */
   WorkManager _workManager = new WorkManager();
@@ -1547,6 +1557,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   void set typeProvider(TypeProvider typeProvider) {
     _typeProvider = typeProvider;
+  }
+
+  @override
+  TypeSystem get typeSystem {
+    if (_typeSystem == null) {
+      _typeSystem = TypeSystem.create(this);
+    }
+    return _typeSystem;
   }
 
   @override

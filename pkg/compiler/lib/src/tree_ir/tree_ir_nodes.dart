@@ -9,7 +9,7 @@ import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../types/types.dart' show TypeMask;
-import '../universe/universe.dart' show Selector;
+import '../universe/selector.dart' show Selector;
 
 import '../cps_ir/builtin_operator.dart';
 export '../cps_ir/builtin_operator.dart';
@@ -372,7 +372,7 @@ class ApplyBuiltinMethod extends Expression {
 
   bool receiverIsNotNull;
 
-  ApplyBuiltinMethod(this.method, 
+  ApplyBuiltinMethod(this.method,
                      this.receiver,
                      this.arguments,
                      {this.receiverIsNotNull: false});
@@ -501,7 +501,7 @@ class WhileTrue extends Loop {
 /**
  * A loop with a condition and update expressions. If there are any update
  * expressions, this generates a for loop, otherwise a while loop.
- * 
+ *
  * When the condition is false, control resumes at the [next] statement.
  *
  * It is NOT valid to target this statement with a [Break].
@@ -938,6 +938,22 @@ class Await extends Expression {
   }
 }
 
+class Yield extends Statement {
+  Statement next;
+  Expression input;
+  final bool hasStar;
+
+  Yield(this.input, this.hasStar, this.next);
+
+  accept(StatementVisitor visitor) {
+    return visitor.visitYield(this);
+  }
+
+  accept1(StatementVisitor1 visitor, arg) {
+    return visitor.visitYield(this, arg);
+  }
+}
+
 abstract class ExpressionVisitor<E> {
   E visitExpression(Expression node) => node.accept(this);
   E visitVariableUse(VariableUse node);
@@ -1027,6 +1043,7 @@ abstract class StatementVisitor<S> {
   S visitTry(Try node);
   S visitUnreachable(Unreachable node);
   S visitForeignStatement(ForeignStatement node);
+  S visitYield(Yield node);
 }
 
 abstract class StatementVisitor1<S, A> {
@@ -1044,6 +1061,7 @@ abstract class StatementVisitor1<S, A> {
   S visitTry(Try node, A arg);
   S visitUnreachable(Unreachable node, A arg);
   S visitForeignStatement(ForeignStatement node, A arg);
+  S visitYield(Yield node, A arg);
 }
 
 abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
@@ -1253,6 +1271,11 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   visitAwait(Await node) {
     visitExpression(node.input);
   }
+
+  visitYield(Yield node) {
+    visitExpression(node.input);
+    visitStatement(node.next);
+  }
 }
 
 abstract class Transformer implements ExpressionVisitor<Expression>,
@@ -1432,6 +1455,7 @@ class RecursiveTransformer extends Transformer {
 
   visitCreateInstance(CreateInstance node) {
     _replaceExpressions(node.arguments);
+    _replaceExpressions(node.typeInformation);
     return node;
   }
 
@@ -1504,6 +1528,11 @@ class RecursiveTransformer extends Transformer {
   }
 
   visitAwait(Await node) {
+    node.input = visitExpression(node.input);
+    return node;
+  }
+
+  visitYield(Yield node) {
     node.input = visitExpression(node.input);
     return node;
   }

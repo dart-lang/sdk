@@ -13,6 +13,8 @@
 namespace dart {
 
 DEFINE_FLAG(bool, compiler_stats, false, "Compiler stat counters.");
+DEFINE_FLAG(bool, compiler_benchmark, false,
+            "Compiler stat counters for benchmark.");
 
 
 class TokenStreamVisitor : public ObjectVisitor {
@@ -71,6 +73,7 @@ CompilerStats::CompilerStats(Isolate* isolate)
       num_tokens_total(0),
       num_literal_tokens_total(0),
       num_ident_tokens_total(0),
+      num_tokens_scanned(0),
       num_tokens_consumed(0),
       num_cached_consts(0),
       num_const_cache_hits(0),
@@ -87,7 +90,8 @@ CompilerStats::CompilerStats(Isolate* isolate)
       total_instr_size(0),
       pc_desc_size(0),
       vardesc_size(0),
-      text(NULL) {
+      text(NULL),
+      use_benchmark_output(false) {
 }
 
 
@@ -109,11 +113,7 @@ static void PrintToStats(const char* format, ...) {
 }
 
 
-char* CompilerStats::PrintToZone() {
-  if (!FLAG_compiler_stats) {
-    return NULL;
-  }
-
+void CompilerStats::Update() {
   // Traverse the heap and compute number of tokens in all
   // TokenStream objects.
   num_tokens_total = 0;
@@ -122,6 +122,76 @@ char* CompilerStats::PrintToZone() {
   TokenStreamVisitor visitor(isolate_, this);
   isolate_->heap()->IterateObjects(&visitor);
   Dart::vm_isolate()->heap()->IterateObjects(&visitor);
+}
+
+
+void CompilerStats::EnableBenchmark() {
+  FLAG_compiler_stats = true;
+  use_benchmark_output = true;
+}
+
+
+// Generate output for Golem benchmark harness. If the output format
+// changes, the parsing function in Golem must be updated.
+char* CompilerStats::BenchmarkOutput() {
+  Update();
+  Log log(PrintToStats);
+  LogBlock lb(Thread::Current(), &log);
+  log.Print("==== Compiler Stats for isolate '%s' ====\n",
+            isolate_->debugger_name());
+
+  log.Print("NumberOfTokens: %" Pd64 "\n", num_tokens_total);
+  log.Print("NumClassesParsed: %" Pd64 "\n", num_classes_parsed);
+  log.Print("NumFunctionsCompiled: %" Pd64 "\n", num_functions_compiled);
+  log.Print("NumFunctionsOptimized: %" Pd64 "\n", num_functions_optimized);
+  log.Print("NumFunctionsParsed: %" Pd64 "\n", num_functions_parsed);
+
+  // Scanner stats.
+  int64_t scan_usecs = scanner_timer.TotalElapsedTime();
+  int64_t scan_speed =
+      scan_usecs > 0 ? 1000 * num_tokens_scanned / scan_usecs : 0;
+  log.Print("NumTokensScanned: %" Pd64 " tokens\n", num_tokens_scanned);
+  log.Print("ScannerTime: %" Pd64 " ms\n", scan_usecs / 1000);
+  log.Print("ScannerSpeed: %" Pd64 " tokens/ms\n", scan_speed);
+
+  // Parser stats.
+  int64_t parse_usecs = parser_timer.TotalElapsedTime();
+  int64_t parse_speed =
+      parse_usecs > 0 ? 1000 * num_tokens_consumed / parse_usecs : 0;
+  log.Print("NumTokensParsed: %" Pd64 " tokens\n", num_tokens_consumed);
+  log.Print("ParserTime: %" Pd64 " ms\n", parse_usecs / 1000);
+  log.Print("ParserSpeed: %" Pd64 " tokens/ms\n", parse_speed);
+
+  // Compiler stats.
+  int64_t codegen_usecs = codegen_timer.TotalElapsedTime();
+  int64_t compile_usecs = scan_usecs + parse_usecs + codegen_usecs;
+  int64_t compile_speed =
+      compile_usecs > 0 ? (1000 * num_func_tokens_compiled / compile_usecs) : 0;
+  log.Print("NumTokensCompiled: %" Pd64 " tokens\n", num_func_tokens_compiled);
+  log.Print("CompilerTime: %" Pd64 " ms\n", compile_usecs / 1000);
+
+  log.Print("CompilerSpeed: %" Pd64 " tokens/ms\n", compile_speed);
+  log.Print("CodeSize: %" Pd64 " KB\n", total_code_size / 1024);
+  int64_t code_density = total_instr_size > 0 ?
+      (num_func_tokens_compiled * 1024) / total_instr_size : 0;
+
+  log.Print("CodeDensity: %" Pd64 " tokens/KB\n", code_density);
+  log.Print("InstrSize: %" Pd64 " KB\n", total_instr_size / 1024);
+  log.Flush();
+  char* benchmark_text = text;
+  text = NULL;
+  return benchmark_text;
+}
+
+
+char* CompilerStats::PrintToZone() {
+  if (!FLAG_compiler_stats) {
+    return NULL;
+  } else if (use_benchmark_output) {
+    return BenchmarkOutput();
+  }
+
+  Update();
 
   Log log(PrintToStats);
   LogBlock lb(Thread::Current(), &log);
@@ -132,6 +202,7 @@ char* CompilerStats::PrintToZone() {
   log.Print("  Literal tokens:        %" Pd64 "\n", num_literal_tokens_total);
   log.Print("  Ident tokens:          %" Pd64 "\n", num_ident_tokens_total);
   log.Print("Source length:           %" Pd64 " characters\n", src_length);
+  log.Print("Number of source tokens: %" Pd64 "\n", num_tokens_scanned);
 
   log.Print("==== Parser stats:\n");
   log.Print("Total tokens consumed:   %" Pd64 "\n", num_tokens_consumed);
@@ -145,62 +216,71 @@ char* CompilerStats::PrintToZone() {
   log.Print("Consts cache hits:       %" Pd64 "\n", num_const_cache_hits);
 
   int64_t scan_usecs = scanner_timer.TotalElapsedTime();
-  log.Print("Scanner time:            %" Pd64 " msecs\n", scan_usecs / 1000);
+  log.Print("Scanner time:            %" Pd64 " ms\n", scan_usecs / 1000);
+  int64_t scan_speed =
+      scan_usecs > 0 ? 1000 * num_tokens_consumed / scan_usecs : 0;
+  log.Print("Scanner speed:           %" Pd64 " tokens/ms\n", scan_speed);
   int64_t parse_usecs = parser_timer.TotalElapsedTime();
-  log.Print("Parser time:             %" Pd64 " msecs\n", parse_usecs / 1000);
-  log.Print("Parser speed:            %" Pd64 " tokens per msec\n",
-            1000 * num_tokens_consumed / parse_usecs);
+  int64_t parse_speed =
+      parse_usecs > 0 ? 1000 * num_tokens_consumed / parse_usecs : 0;
+  log.Print("Parser time:             %" Pd64 " ms\n", parse_usecs / 1000);
+  log.Print("Parser speed:            %" Pd64 " tokens/ms\n",
+             parse_speed);
+
   int64_t codegen_usecs = codegen_timer.TotalElapsedTime();
 
   log.Print("==== Backend stats:\n");
-  log.Print("Code gen. time:          %" Pd64 " msecs\n",
-            codegen_usecs / 1000);
+  log.Print("Code gen. time:          %" Pd64 " ms\n", codegen_usecs / 1000);
   int64_t graphbuilder_usecs = graphbuilder_timer.TotalElapsedTime();
-  log.Print("  Graph builder:         %" Pd64 " msecs\n",
+  log.Print("  Graph builder:         %" Pd64 " ms\n",
             graphbuilder_usecs / 1000);
   int64_t ssa_usecs = ssa_timer.TotalElapsedTime();
-  log.Print("  Graph SSA:             %" Pd64 " msecs\n", ssa_usecs / 1000);
+  log.Print("  Graph SSA:             %" Pd64 " ms\n", ssa_usecs / 1000);
 
   int64_t graphinliner_usecs = graphinliner_timer.TotalElapsedTime();
-  log.Print("  Graph inliner:         %" Pd64 " msecs\n",
+  log.Print("  Graph inliner:         %" Pd64 " ms\n",
             graphinliner_usecs / 1000);
   int64_t graphinliner_parse_usecs =
       graphinliner_parse_timer.TotalElapsedTime();
-  log.Print("    Parsing:             %" Pd64 " msecs\n",
+  log.Print("    Parsing:             %" Pd64 " ms\n",
             graphinliner_parse_usecs / 1000);
   int64_t graphinliner_build_usecs =
       graphinliner_build_timer.TotalElapsedTime();
-  log.Print("    Building:            %" Pd64 " msecs\n",
+  log.Print("    Building:            %" Pd64 " ms\n",
             graphinliner_build_usecs / 1000);
   int64_t graphinliner_ssa_usecs = graphinliner_ssa_timer.TotalElapsedTime();
-  log.Print("    SSA:                 %" Pd64 " msecs\n",
+  log.Print("    SSA:                 %" Pd64 " ms\n",
             graphinliner_ssa_usecs / 1000);
   int64_t graphinliner_opt_usecs = graphinliner_opt_timer.TotalElapsedTime();
-  log.Print("    Optimization:        %" Pd64 " msecs\n",
+  log.Print("    Optimization:        %" Pd64 " ms\n",
             graphinliner_opt_usecs / 1000);
   int64_t graphinliner_subst_usecs =
       graphinliner_subst_timer.TotalElapsedTime();
-  log.Print("    Substitution:        %" Pd64 " msecs\n",
+  log.Print("    Substitution:        %" Pd64 " ms\n",
             graphinliner_subst_usecs / 1000);
   int64_t graphoptimizer_usecs = graphoptimizer_timer.TotalElapsedTime();
-  log.Print("  Graph optimizer:       %" Pd64 " msecs\n",
+  log.Print("  Graph optimizer:       %" Pd64 " ms\n",
             (graphoptimizer_usecs - graphinliner_usecs) / 1000);
   int64_t graphcompiler_usecs = graphcompiler_timer.TotalElapsedTime();
-  log.Print("  Graph compiler:        %" Pd64 " msecs\n",
+  log.Print("  Graph compiler:        %" Pd64 " ms\n",
             graphcompiler_usecs / 1000);
   int64_t codefinalizer_usecs = codefinalizer_timer.TotalElapsedTime();
-  log.Print("  Code finalizer:        %" Pd64 " msecs\n",
+  log.Print("  Code finalizer:        %" Pd64 " ms\n",
             codefinalizer_usecs / 1000);
 
   log.Print("==== Compiled code stats:\n");
+  int64_t compile_usecs = scan_usecs + parse_usecs + codegen_usecs;
+  int64_t compile_speed = compile_usecs > 0 ?
+      (1000 * num_func_tokens_compiled / compile_usecs) : 0;
   log.Print("Functions parsed:        %" Pd64 "\n", num_functions_parsed);
   log.Print("Functions compiled:      %" Pd64 "\n", num_functions_compiled);
   log.Print("  optimized:             %" Pd64 "\n", num_functions_optimized);
+  log.Print("Compiler time:           %" Pd64 " ms\n", compile_usecs / 1000);
   log.Print("Tokens compiled:         %" Pd64 "\n", num_func_tokens_compiled);
-  log.Print("Compilation speed:       %" Pd64 " tokens per msec\n",
-            (1000 * num_func_tokens_compiled) / (parse_usecs + codegen_usecs));
-  log.Print("Code density:            %" Pd64 " tokens per KB\n",
-            (num_func_tokens_compiled * 1024) / total_instr_size);
+  log.Print("Compilation speed:       %" Pd64 " tokens/ms\n", compile_speed);
+  int64_t code_density = total_instr_size > 0 ?
+      (num_func_tokens_compiled * 1024) / total_instr_size : 0;
+  log.Print("Code density:            %" Pd64 " tokens per KB\n", code_density);
   log.Print("Code size:               %" Pd64 " KB\n", total_code_size / 1024);
   log.Print("  Instr size:            %" Pd64 " KB\n",
             total_instr_size / 1024);

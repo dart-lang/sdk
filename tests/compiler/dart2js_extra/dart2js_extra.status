@@ -69,21 +69,15 @@ lookup_map/dead_entry_through_mirrors_test: SkipByDesign # Test for tree-shaking
 
 [ $compiler == dart2js && $cps_ir ]
 16407_test: Pass # Please triage this failure.
-22868_test: RuntimeError # Issue 23997
 23432_test: RuntimeError # Issue 23432
 async_stacktrace_test/asyncStar: Crash # (foo()async*{try {tr...  cannot handle sync*/async* functions
-async_stacktrace_test/none: RuntimeError # $async$temp1.Tracer$ is not a function
 closure_capture5_test: Crash # (i=0): For-loop variable captured in loop header
 deferred/deferred_class_test: RuntimeError # Z.loadLibrary is not a function
-deferred/deferred_constant2_test: RuntimeError # TypeError: U.loadLibrary is not a function
-deferred/deferred_constant3_test: RuntimeError # TypeError: Y.loadLibrary is not a function
+deferred/deferred_constant2_test: RuntimeError # U.loadLibrary is not a function
+deferred/deferred_constant3_test: RuntimeError # Y.loadLibrary is not a function
 deferred/deferred_constant4_test: RuntimeError # B.loadLibrary is not a function
-deferred/deferred_function_test: Crash # (lib.foo): deferred access is not implemented
-deferred/deferred_mirrors1_test: RuntimeError # TypeError: U.loadLibrary is not a function
+deferred/deferred_function_test: Crash # (lib.foo('a')): deferred access is not implemented
+deferred/deferred_mirrors1_test: RuntimeError # U.loadLibrary is not a function
 deferred/deferred_overlapping_test: RuntimeError # E.loadLibrary is not a function
-deferred_split_test: RuntimeError # TypeError: Z.loadLibrary is not a function
-lookup_map/live_entry_through_mirrors_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-mirror_printer_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-mirror_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-reflect_native_types_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
+deferred_split_test: RuntimeError # Z.loadLibrary is not a function
 switch_test/none: Crash # (switch (val){foo:ba...  continue to a labeled switch case

@@ -18,7 +18,8 @@ import '../resolution/send_structure.dart';
 import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../tree/tree.dart';
-import '../universe/universe.dart' show CallStructure;
+import '../universe/call_structure.dart' show
+    CallStructure;
 import 'constructors.dart';
 import 'expressions.dart';
 

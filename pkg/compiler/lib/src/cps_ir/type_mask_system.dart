@@ -4,7 +4,7 @@
 
 library dart2js.type_mask_system;
 
-import '../closure.dart' show ClosureClassElement, Identifiers;
+import '../closure.dart' show ClosureClassElement;
 import '../common/names.dart' show Selectors, Identifiers;
 import '../compiler.dart' as dart2js show Compiler;
 import '../constants/constant_system.dart';
@@ -15,7 +15,7 @@ import '../io/source_information.dart' show SourceInformation;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;
-import '../universe/universe.dart';
+import '../universe/selector.dart' show Selector;
 import '../world.dart' show World;
 
 enum AbstractBool {

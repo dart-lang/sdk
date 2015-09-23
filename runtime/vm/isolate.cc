@@ -790,7 +790,8 @@ Isolate* Isolate::Init(const char* name_prefix,
 #define ISOLATE_TIMELINE_STREAM_INIT(name, enabled_by_default)                 \
   result->stream_##name##_.Init(#name,                                         \
                                 Timeline::EnableStreamByDefault(#name) ||      \
-                                enabled_by_default);
+                                enabled_by_default,                            \
+                                Timeline::Stream##name##EnabledFlag());
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_INIT);
 #undef ISOLATE_TIMELINE_STREAM_INIT
 
@@ -845,9 +846,12 @@ Isolate* Isolate::Init(const char* name_prefix,
                 "\tisolate:    %s\n", result->name());
     }
   }
-  if (FLAG_compiler_stats) {
-    result->compiler_stats_ = new CompilerStats(result);
+
+  result->compiler_stats_ = new CompilerStats(result);
+  if (FLAG_compiler_benchmark) {
+    result->compiler_stats_->EnableBenchmark();
   }
+
   ObjectIdRing::Init(result);
 
   // Add to isolate list. Shutdown and delete the isolate on failure.
@@ -886,6 +890,20 @@ uword Isolate::GetCurrentStackPointer() {
   uword stack_allocated_local_address = reinterpret_cast<uword>(&func);
   return stack_allocated_local_address;
 #endif
+}
+
+
+void Isolate::SetupInstructionsSnapshotPage(
+    const uint8_t* instructions_snapshot_buffer) {
+  InstructionsSnapshot snapshot(instructions_snapshot_buffer);
+#if defined(DEBUG)
+  OS::Print("Precompiled instructions are at [0x%" Px ", 0x%" Px ")\n",
+            reinterpret_cast<uword>(snapshot.instructions_start()),
+            reinterpret_cast<uword>(snapshot.instructions_start()) +
+            snapshot.instructions_size());
+#endif
+  heap_->SetupInstructionsSnapshotPage(snapshot.instructions_start(),
+                                       snapshot.instructions_size());
 }
 
 
@@ -1479,10 +1497,6 @@ void Isolate::LowLevelShutdown() {
   HandleScope handle_scope(thread);
   NoSafepointScope no_safepoint_scope;
 
-  if (compiler_stats_ != NULL) {
-    OS::Print("%s", compiler_stats()->PrintToZone());
-  }
-
   // Notify exit listeners that this isolate is shutting down.
   if (object_store() != NULL) {
     NotifyExitListeners();
@@ -1557,6 +1571,13 @@ void Isolate::Shutdown() {
     if ((this != Dart::vm_isolate()) &&
         !ServiceIsolate::IsServiceIsolateDescendant(this)) {
       CodeCoverage::Write(this);
+    }
+
+    // Write compiler stats data if enabled.
+    if (FLAG_compiler_stats
+        && !ServiceIsolate::IsServiceIsolateDescendant(this)
+        && (this != Dart::vm_isolate())) {
+      OS::Print("%s", compiler_stats()->PrintToZone());
     }
   }
 

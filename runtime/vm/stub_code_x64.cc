@@ -79,7 +79,8 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // There are no runtime calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
   __ movq(Address(RSP, argc_tag_offset), R10);  // Set argc in NativeArguments.
-  __ leaq(RAX, Address(RBP, R10, TIMES_8, 1 * kWordSize));  // Compute argv.
+  // Compute argv.
+  __ leaq(RAX, Address(RBP, R10, TIMES_8, kParamEndSlotFromFp * kWordSize));
   __ movq(Address(RSP, argv_offset), RAX);  // Set argv in NativeArguments.
   __ addq(RAX, Immediate(1 * kWordSize));  // Retval is next to 1st argument.
   __ movq(Address(RSP, retval_offset), RAX);  // Set retval in NativeArguments.
@@ -184,8 +185,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ movq(CallingConventions::kArg1Reg, RSP);
   // Pass pointer to function entrypoint.
   __ movq(CallingConventions::kArg2Reg, RBX);
-  __ LoadExternalLabel(
-      RAX, &NativeEntry::NativeCallWrapperLabel(), kNotPatchable);
+
+  __ movq(RAX, Address(THR, Thread::native_call_wrapper_entry_point_offset()));
   __ CallCFunction(RAX);
 
   // Mark that the isolate is executing Dart code.
@@ -280,12 +281,12 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   // Setup space on stack for return value.
   __ PushObject(Object::null_object());
   __ CallRuntime(kPatchStaticCallRuntimeEntry, 0);
-  __ popq(RAX);  // Get Code object result.
+  __ popq(CODE_REG);  // Get Code object result.
   __ popq(R10);  // Restore arguments descriptor array.
   // Remove the stub frame as we are about to jump to the dart function.
   __ LeaveStubFrame();
 
-  __ movq(RBX, FieldAddress(RAX, Code::entry_point_offset()));
+  __ movq(RBX, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ jmp(RBX);
 }
 
@@ -294,14 +295,18 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 // (invalid because its function was optimized or deoptimized).
 // R10: arguments descriptor array.
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
+  // Load code pointer to this stub from the thread:
+  // The one that is passed in, is not correct - it points to the code object
+  // that needs to be replaced.
+  __ movq(CODE_REG, Address(THR, Thread::fix_callers_target_code_offset()));
   __ EnterStubFrame();
   __ pushq(R10);  // Preserve arguments descriptor array.
   // Setup space on stack for return value.
   __ PushObject(Object::null_object());
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
-  __ popq(RAX);  // Get Code object.
+  __ popq(CODE_REG);  // Get Code object.
   __ popq(R10);  // Restore arguments descriptor array.
-  __ movq(RAX, FieldAddress(RAX, Code::entry_point_offset()));
+  __ movq(RAX, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ LeaveStubFrame();
   __ jmp(RAX);
   __ int3();
@@ -311,12 +316,16 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 // Called from object allocate instruction when the allocation stub has been
 // disabled.
 void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
+  // Load code pointer to this stub from the thread:
+  // The one that is passed in, is not correct - it points to the code object
+  // that needs to be replaced.
+  __ movq(CODE_REG, Address(THR, Thread::fix_allocation_stub_code_offset()));
   __ EnterStubFrame();
   // Setup space on stack for return value.
   __ PushObject(Object::null_object());
   __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
-  __ popq(RAX);  // Get Code object.
-  __ movq(RAX, FieldAddress(RAX, Code::entry_point_offset()));
+  __ popq(CODE_REG);  // Get Code object.
+  __ movq(RAX, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ LeaveStubFrame();
   __ jmp(RAX);
   __ int3();
@@ -379,11 +388,13 @@ static void PushArgumentsArray(Assembler* assembler) {
 //   +------------------+
 //   | return-address   |  (deoptimization point)
 //   +------------------+
+//   | Saved CODE_REG   |
+//   +------------------+
 //   | ...              | <- SP of optimized frame
 //
 // Parts of the code cannot GC, part of the code can GC.
 static void GenerateDeoptimizationSequence(Assembler* assembler,
-                                           bool preserve_result) {
+                                           DeoptStubKind kind) {
   // DeoptimizeCopyFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
   __ EnterStubFrame();
@@ -397,7 +408,13 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Push registers in their enumeration order: lowest register number at
   // lowest address.
   for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; i--) {
-    __ pushq(static_cast<Register>(i));
+    if (i == CODE_REG) {
+      // Save the original value of CODE_REG pushed before invoking this stub
+      // instead of the value used to call this stub.
+      __ pushq(Address(RBP, 2 * kWordSize));
+    } else {
+      __ pushq(static_cast<Register>(i));
+    }
   }
   __ subq(RSP, Immediate(kNumberOfXmmRegisters * kFpuRegisterSize));
   intptr_t offset = 0;
@@ -409,16 +426,19 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 
   // Pass address of saved registers block.
   __ movq(CallingConventions::kArg1Reg, RSP);
+  __ movq(CallingConventions::kArg2Reg, Immediate(kind == kLazyDeopt ? 1 : 0));
   __ ReserveAlignedFrameSpace(0);  // Ensure stack is aligned before the call.
-  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 1);
+  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 2);
   // Result (RAX) is stack-size (FP - SP) in bytes.
 
+  const bool preserve_result = (kind == kLazyDeopt);
   if (preserve_result) {
     // Restore result into RBX temporarily.
     __ movq(RBX, Address(RBP, saved_result_slot_from_fp * kWordSize));
   }
 
   // There is a Dart Frame on the stack. We must restore PP and leave frame.
+  __ RestoreCodePointer();
   __ LeaveStubFrame();
 
   __ popq(RCX);   // Preserve return address.
@@ -443,6 +463,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
   // Code above cannot cause GC.
   // There is a Dart Frame on the stack. We must restore PP and leave frame.
+  __ RestoreCodePointer();
   __ LeaveStubFrame();
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
@@ -478,13 +499,15 @@ void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
   // deoptimized.
   __ popq(RBX);
   __ subq(RBX, Immediate(ShortCallPattern::pattern_length_in_bytes()));
+  // Push zap value instead of CODE_REG for lazy deopt.
+  __ pushq(Immediate(0xf1f1f1f1));
   __ pushq(RBX);
-  GenerateDeoptimizationSequence(assembler, true);  // Preserve RAX.
+  GenerateDeoptimizationSequence(assembler, kLazyDeopt);
 }
 
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
-  GenerateDeoptimizationSequence(assembler, false);  // Don't preserve RAX.
+  GenerateDeoptimizationSequence(assembler, kEagerDeopt);
 }
 
 
@@ -542,14 +565,14 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ popq(RAX);  // Return value from the runtime call (function).
   __ popq(R10);  // Restore arguments descriptor.
   __ popq(RBX);  // Restore IC data.
+  __ RestoreCodePointer();
   __ LeaveStubFrame();
-
   if (!FLAG_lazy_dispatchers) {
     Label call_target_function;
     GenerateDispatcherCode(assembler, &call_target_function);
     __ Bind(&call_target_function);
   }
-
+  __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
   __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
   __ jmp(RCX);
 }
@@ -693,7 +716,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 // Called when invoking Dart code from C++ (VM code).
 // Input parameters:
 //   RSP : points to return address.
-//   RDI : entrypoint of the Dart function to call.
+//   RDI : target code
 //   RSI : arguments descriptor array.
 //   RDX : arguments array.
 //   RCX : current thread.
@@ -701,16 +724,20 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save frame pointer coming in.
   __ EnterFrame(0);
 
-  const Register kEntryPointReg = CallingConventions::kArg1Reg;
+  const Register kTargetCodeReg = CallingConventions::kArg1Reg;
   const Register kArgDescReg    = CallingConventions::kArg2Reg;
   const Register kArgsReg       = CallingConventions::kArg3Reg;
   const Register kThreadReg     = CallingConventions::kArg4Reg;
 
+  // Push code object to PC marker slot.
+  __ pushq(Address(kThreadReg, Thread::invoke_dart_code_stub_offset()));
+
   // At this point, the stack looks like:
+  // | stub code object
   // | saved RBP                                      | <-- RBP
   // | saved PC (return to DartEntry::InvokeFunction) |
 
-  const intptr_t kInitialOffset = 1;
+  const intptr_t kInitialOffset = 2;
   // Save arguments descriptor array.
   const intptr_t kArgumentsDescOffset = -(kInitialOffset) * kWordSize;
   __ pushq(kArgDescReg);
@@ -718,11 +745,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save C++ ABI callee-saved registers.
   __ PushRegisters(CallingConventions::kCalleeSaveCpuRegisters,
                    CallingConventions::kCalleeSaveXmmRegisters);
-
-  // We now load the pool pointer(PP) as we are about to invoke dart code and we
-  // could potentially invoke some intrinsic functions which need the PP to be
-  // set up.
-  __ LoadPoolPointer();
 
   // If any additional (or fewer) values are pushed, the offsets in
   // kExitLinkSlotFromEntryFp will need to be changed.
@@ -763,14 +785,15 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif
+
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()),
           Immediate(0));
 
   // Load arguments descriptor array into R10, which is passed to Dart code.
   __ movq(R10, Address(kArgDescReg, VMHandles::kOffsetOfRawPtrInHandle));
 
-  // Push arguments. At this point we only need to preserve kEntryPointReg.
-  ASSERT(kEntryPointReg != RDX);
+  // Push arguments. At this point we only need to preserve kTargetCodeReg.
+  ASSERT(kTargetCodeReg != RDX);
 
   // Load number of arguments into RBX.
   __ movq(RBX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
@@ -794,7 +817,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Bind(&done_push_arguments);
 
   // Call the Dart code entrypoint.
-  __ call(kEntryPointReg);  // R10 is the arguments descriptor array.
+  __ xorq(PP, PP);  // GC-safe value into PP.
+  __ movq(CODE_REG,
+          Address(kTargetCodeReg, VMHandles::kOffsetOfRawPtrInHandle));
+  __ movq(kTargetCodeReg, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  __ call(kTargetCodeReg);  // R10 is the arguments descriptor array.
 
   // Read the saved arguments descriptor array to obtain the number of passed
   // arguments.
@@ -831,7 +858,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 // Output:
 // RAX: new allocated RawContext object.
 void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
-  __ LoadObject(R12, Object::null_object());
+  __ LoadObject(R9, Object::null_object());
   if (FLAG_inline_alloc) {
     Label slow_case;
     // First compute the rounded instance size.
@@ -915,7 +942,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // No generational barrier needed, since we are storing null.
     __ InitializeFieldNoBarrier(RAX,
                                 FieldAddress(RAX, Context::parent_offset()),
-                                R12);
+                                R9);
 
     // Initialize the context variables.
     // RAX: new object.
@@ -934,7 +961,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       // No generational barrier needed, since we are storing null.
       __ InitializeFieldNoBarrier(RAX,
                                   Address(R13, R10, TIMES_8, 0),
-                                  R12);
+                                  R9);
       __ Bind(&entry);
       __ cmpq(R10, Immediate(0));
       __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
@@ -948,7 +975,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   }
   // Create a stub frame.
   __ EnterStubFrame();
-  __ pushq(R12);  // Setup space on stack for the return value.
+  __ pushq(R9);  // Setup space on stack for the return value.
   __ SmiTag(R10);
   __ pushq(R10);  // Push number of context variables.
   __ CallRuntime(kAllocateContextRuntimeEntry, 1);  // Allocate context.
@@ -1028,14 +1055,8 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 // Input parameters:
 //   RSP + 8 : type arguments object (only if class is parameterized).
 //   RSP : points to return address.
-void StubCode::GenerateAllocationStubForClass(
-    Assembler* assembler, const Class& cls,
-    uword* entry_patch_offset, uword* patch_code_pc_offset) {
-  // Must load pool pointer before being able to patch.
-  Register new_pp = R13;
-  __ LoadPoolPointer(new_pp);
-  *entry_patch_offset = assembler->CodeSize();
-
+void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
+                                              const Class& cls) {
   const intptr_t kObjectTypeArgumentsOffset = 1 * kWordSize;
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
@@ -1047,7 +1068,7 @@ void StubCode::GenerateAllocationStubForClass(
   const int kInlineInstanceSize = 12;  // In words.
   const intptr_t instance_size = cls.instance_size();
   ASSERT(instance_size > 0);
-  __ LoadObject(R12, Object::null_object());
+  __ LoadObject(R9, Object::null_object());
   if (is_cls_parameterized) {
     __ movq(RDX, Address(RSP, kObjectTypeArgumentsOffset));
     // RDX: instantiated type arguments.
@@ -1091,7 +1112,7 @@ void StubCode::GenerateAllocationStubForClass(
     // RAX: new object (tagged).
     // RBX: next object start.
     // RDX: new object type arguments (if is_cls_parameterized).
-    // R12: raw null.
+    // R9: raw null.
     // First try inlining the initialization without a loop.
     if (instance_size < (kInlineInstanceSize * kWordSize)) {
       // Check if the object contains any non-header fields.
@@ -1101,7 +1122,7 @@ void StubCode::GenerateAllocationStubForClass(
            current_offset += kWordSize) {
         __ InitializeFieldNoBarrier(RAX,
                                     FieldAddress(RAX, current_offset),
-                                    R12);
+                                    R9);
       }
     } else {
       __ leaq(RCX, FieldAddress(RAX, Instance::NextFieldOffset()));
@@ -1120,7 +1141,7 @@ void StubCode::GenerateAllocationStubForClass(
       static const bool kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
       __ j(ABOVE_EQUAL, &done, kJumpLength);
-      __ InitializeFieldNoBarrier(RAX, Address(RCX, 0), R12);
+      __ InitializeFieldNoBarrier(RAX, Address(RCX, 0), R9);
       __ addq(RCX, Immediate(kWordSize));
       __ jmp(&init_loop, Assembler::kNearJump);
       __ Bind(&done);
@@ -1141,12 +1162,12 @@ void StubCode::GenerateAllocationStubForClass(
   // RDX: new object type arguments.
   // Create a stub frame.
   __ EnterStubFrame();  // Uses PP to access class object.
-  __ pushq(R12);  // Setup space on stack for return value.
+  __ pushq(R9);  // Setup space on stack for return value.
   __ PushObject(cls);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
     __ pushq(RDX);  // Push type arguments of object to be allocated.
   } else {
-    __ pushq(R12);  // Push null type arguments.
+    __ pushq(R9);  // Push null type arguments.
   }
   __ CallRuntime(kAllocateObjectRuntimeEntry, 2);  // Allocate object.
   __ popq(RAX);  // Pop argument (type arguments of object).
@@ -1156,8 +1177,6 @@ void StubCode::GenerateAllocationStubForClass(
   // Restore the frame pointer.
   __ LeaveStubFrame();
   __ ret();
-  *patch_code_pc_offset = assembler->CodeSize();
-  __ JmpPatchable(*StubCode::FixAllocationStubTarget_entry(), new_pp);
 }
 
 
@@ -1243,9 +1262,9 @@ static void EmitFastSmiOp(Assembler* assembler,
   ASSERT(num_args == 2);
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Right
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Left.
-  __ movq(R12, RCX);
-  __ orq(R12, RAX);
-  __ testq(R12, Immediate(kSmiTagMask));
+  __ movq(R13, RCX);
+  __ orq(R13, RAX);
+  __ testq(R13, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, not_smi_or_overflow);
   switch (kind) {
     case Token::kADD: {
@@ -1281,18 +1300,18 @@ static void EmitFastSmiOp(Assembler* assembler,
   }
 
   // RBX: IC data object (preserved).
-  __ movq(R12, FieldAddress(RBX, ICData::ic_data_offset()));
-  // R12: ic_data_array with check entries: classes and target functions.
-  __ leaq(R12, FieldAddress(R12, Array::data_offset()));
-  // R12: points directly to the first ic data array element.
+  __ movq(R13, FieldAddress(RBX, ICData::ic_data_offset()));
+  // R13: ic_data_array with check entries: classes and target functions.
+  __ leaq(R13, FieldAddress(R13, Array::data_offset()));
+  // R13: points directly to the first ic data array element.
 #if defined(DEBUG)
   // Check that first entry is for Smi/Smi.
   Label error, ok;
   const Immediate& imm_smi_cid =
       Immediate(reinterpret_cast<intptr_t>(Smi::New(kSmiCid)));
-  __ cmpq(Address(R12, 0 * kWordSize), imm_smi_cid);
+  __ cmpq(Address(R13, 0 * kWordSize), imm_smi_cid);
   __ j(NOT_EQUAL, &error, Assembler::kNearJump);
-  __ cmpq(Address(R12, 1 * kWordSize), imm_smi_cid);
+  __ cmpq(Address(R13, 1 * kWordSize), imm_smi_cid);
   __ j(EQUAL, &ok, Assembler::kNearJump);
   __ Bind(&error);
   __ Stop("Incorrect IC data");
@@ -1302,11 +1321,11 @@ static void EmitFastSmiOp(Assembler* assembler,
   if (FLAG_optimization_counter_threshold >= 0) {
     const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
     // Update counter.
-    __ movq(R8, Address(R12, count_offset));
+    __ movq(R8, Address(R13, count_offset));
     __ addq(R8, Immediate(Smi::RawValue(1)));
-    __ movq(R13, Immediate(Smi::RawValue(Smi::kMaxValue)));
-    __ cmovnoq(R13, R8);
-    __ StoreIntoSmiField(Address(R12, count_offset), R13);
+    __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovnoq(R9, R8);
+    __ StoreIntoSmiField(Address(R13, count_offset), R9);
   }
 
   __ ret();
@@ -1382,18 +1401,18 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Loop that checks if there is an IC data match.
   Label loop, update, test, found;
   // RBX: IC data object (preserved).
-  __ movq(R12, FieldAddress(RBX, ICData::ic_data_offset()));
-  // R12: ic_data_array with check entries: classes and target functions.
-  __ leaq(R12, FieldAddress(R12, Array::data_offset()));
-  // R12: points directly to the first ic data array element.
+  __ movq(R13, FieldAddress(RBX, ICData::ic_data_offset()));
+  // R13: ic_data_array with check entries: classes and target functions.
+  __ leaq(R13, FieldAddress(R13, Array::data_offset()));
+  // R13: points directly to the first ic data array element.
 
   // Get the receiver's class ID (first read number of arguments from
   // arguments descriptor array and then access the receiver from the stack).
   __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  __ movq(R13, Address(RSP, RAX, TIMES_4, 0));  // RAX (argument count) is Smi.
-  __ LoadTaggedClassIdMayBeSmi(RAX, R13);
+  __ movq(R9, Address(RSP, RAX, TIMES_4, 0));  // RAX (argument count) is Smi.
+  __ LoadTaggedClassIdMayBeSmi(RAX, R9);
   // RAX: receiver's class ID as smi.
-  __ movq(R13, Address(R12, 0));  // First class ID (Smi) to check.
+  __ movq(R9, Address(R13, 0));  // First class ID (Smi) to check.
   __ jmp(&test);
 
   __ Comment("ICData loop");
@@ -1402,13 +1421,13 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     if (i > 0) {
       // If not the first, load the next argument's class ID.
       __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-      __ movq(R13, Address(RSP, RAX, TIMES_4, - i * kWordSize));
-      __ LoadTaggedClassIdMayBeSmi(RAX, R13);
+      __ movq(R9, Address(RSP, RAX, TIMES_4, - i * kWordSize));
+      __ LoadTaggedClassIdMayBeSmi(RAX, R9);
       // RAX: next argument class ID (smi).
-      __ movq(R13, Address(R12, i * kWordSize));
-      // R13: next class ID to check (smi).
+      __ movq(R9, Address(R13, i * kWordSize));
+      // R9: next class ID to check (smi).
     }
-    __ cmpq(RAX, R13);  // Class id match?
+    __ cmpq(RAX, R9);  // Class id match?
     if (i < (num_args - 1)) {
       __ j(NOT_EQUAL, &update);  // Continue.
     } else {
@@ -1420,20 +1439,20 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Reload receiver class ID.  It has not been destroyed when num_args == 1.
   if (num_args > 1) {
     __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-    __ movq(R13, Address(RSP, RAX, TIMES_4, 0));
-    __ LoadTaggedClassIdMayBeSmi(RAX, R13);
+    __ movq(R9, Address(RSP, RAX, TIMES_4, 0));
+    __ LoadTaggedClassIdMayBeSmi(RAX, R9);
   }
 
   const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
-  __ addq(R12, Immediate(entry_size));  // Next entry.
-  __ movq(R13, Address(R12, 0));  // Next class ID.
+  __ addq(R13, Immediate(entry_size));  // Next entry.
+  __ movq(R9, Address(R13, 0));  // Next class ID.
 
   __ Bind(&test);
-  __ cmpq(R13, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
+  __ cmpq(R9, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
   __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
 
   __ Comment("IC miss");
-  __ LoadObject(R12, Object::null_object());
+  __ LoadObject(R13, Object::null_object());
   // Compute address of arguments (first read number of arguments from
   // arguments descriptor array and then compute address on the stack).
   __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
@@ -1441,7 +1460,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ EnterStubFrame();
   __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(RBX);  // Preserve IC data object.
-  __ pushq(R12);  // Setup space on stack for result (target code object).
+  __ pushq(R13);  // Setup space on stack for result (target code object).
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
     __ movq(RCX, Address(RAX, -kWordSize * i));
@@ -1456,6 +1475,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ popq(RAX);  // Pop returned function object into RAX.
   __ popq(RBX);  // Restore IC data array.
   __ popq(R10);  // Restore arguments descriptor array.
+  if (range_collection_mode == kCollectRanges) {
+    __ RestoreCodePointer();
+  }
   __ LeaveStubFrame();
   Label call_target_function;
   if (!FLAG_lazy_dispatchers) {
@@ -1465,37 +1487,39 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 
   __ Bind(&found);
-  // R12: Pointer to an IC data check group.
+  // R13: Pointer to an IC data check group.
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-  __ movq(RAX, Address(R12, target_offset));
+  __ movq(RAX, Address(R13, target_offset));
 
   if (FLAG_optimization_counter_threshold >= 0) {
     // Update counter.
     __ Comment("Update caller's counter");
-    __ movq(R8, Address(R12, count_offset));
+    __ movq(R8, Address(R13, count_offset));
     __ addq(R8, Immediate(Smi::RawValue(1)));
-    __ movq(R13, Immediate(Smi::RawValue(Smi::kMaxValue)));
-    __ cmovnoq(R13, R8);
-    __ StoreIntoSmiField(Address(R12, count_offset), R13);
+    __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovnoq(R9, R8);
+    __ StoreIntoSmiField(Address(R13, count_offset), R9);
   }
 
   __ Comment("Call target");
   __ Bind(&call_target_function);
   // RAX: Target function.
   Label is_compiled;
-  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
   if (range_collection_mode == kCollectRanges) {
+    __ movq(R13, FieldAddress(RAX, Function::code_offset()));
+    __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
     __ movq(R8, Address(RSP, + 1 * kWordSize));
     if (num_args == 2) {
-      __ movq(R13, Address(RSP, + 2 * kWordSize));
+      __ movq(R9, Address(RSP, + 2 * kWordSize));
     }
     __ EnterStubFrame();
     __ pushq(RBX);
     if (num_args == 2) {
-      __ pushq(R13);
+      __ pushq(R9);
     }
     __ pushq(R8);
+    __ movq(CODE_REG, R13);
     __ call(RCX);
 
     Label done;
@@ -1506,6 +1530,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ LeaveStubFrame();
     __ ret();
   } else {
+    __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
+    __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
     __ jmp(RCX);
   }
 
@@ -1515,6 +1541,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ pushq(RBX);
     __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
     __ popq(RBX);
+    __ RestoreCodePointer();
     __ LeaveStubFrame();
     __ jmp(&done_stepping);
   }
@@ -1683,6 +1710,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Get function and call it, if possible.
   __ movq(RAX, Address(R12, target_offset));
+  __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
   __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
   __ jmp(RCX);
 
@@ -1692,6 +1720,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
     __ pushq(RBX);  // Preserve IC data object.
     __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
     __ popq(RBX);
+    __ RestoreCodePointer();
     __ LeaveStubFrame();
     __ jmp(&done_stepping, Assembler::kNearJump);
   }
@@ -1734,6 +1763,7 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ popq(R10);  // Restore arguments descriptor array.
   __ LeaveStubFrame();
 
+  __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
   __ movq(RAX, FieldAddress(RAX, Function::entry_point_offset()));
   __ jmp(RAX);
 }
@@ -1750,9 +1780,11 @@ void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ LoadObject(R12, Object::null_object());
   __ pushq(R12);  // Room for result.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
-  __ popq(RAX);  // Address of original.
+  __ popq(CODE_REG);  // Address of original.
   __ popq(RBX);  // Restore IC data.
   __ LeaveStubFrame();
+
+  __ movq(RAX, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ jmp(RAX);   // Jump to original stub.
 }
 
@@ -1765,8 +1797,10 @@ void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   __ LoadObject(R12, Object::null_object());
   __ pushq(R12);  // Room for result.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
-  __ popq(RAX);  // Address of original.
+  __ popq(CODE_REG);  // Address of original.
   __ LeaveStubFrame();
+
+  __ movq(RAX, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ jmp(RAX);   // Jump to original stub.
 }
 
@@ -1802,12 +1836,12 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   const intptr_t kInstanceOffsetInBytes = 2 * kWordSize;
   const intptr_t kCacheOffsetInBytes = 3 * kWordSize;
   __ movq(RAX, Address(RSP, kInstanceOffsetInBytes));
-  __ LoadObject(R12, Object::null_object());
+  __ LoadObject(R9, Object::null_object());
   if (n > 1) {
     __ LoadClass(R10, RAX);
     // Compute instance type arguments into R13.
     Label has_no_type_arguments;
-    __ movq(R13, R12);
+    __ movq(R13, R9);
     __ movl(RDI, FieldAddress(R10,
         Class::type_arguments_field_offset_in_words_offset()));
     __ cmpl(RDI, Immediate(Class::kNoTypeArguments));
@@ -1829,7 +1863,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ SmiTag(R10);
   __ Bind(&loop);
   __ movq(RDI, Address(RDX, kWordSize * SubtypeTestCache::kInstanceClassId));
-  __ cmpq(RDI, R12);
+  __ cmpq(RDI, R9);
   __ j(EQUAL, &not_found, Assembler::kNearJump);
   __ cmpq(RDI, R10);
   if (n == 1) {
@@ -1856,7 +1890,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ jmp(&loop, Assembler::kNearJump);
   // Fall through to not found.
   __ Bind(&not_found);
-  __ movq(RCX, R12);
+  __ movq(RCX, R9);
   __ ret();
 
   __ Bind(&found);
@@ -1959,9 +1993,9 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ pushq(RDI);
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
   __ popq(RAX);  // Disard argument.
-  __ popq(RAX);  // Get Code object.
+  __ popq(CODE_REG);  // Get Code object.
   __ popq(R10);  // Restore argument descriptor.
-  __ movq(RAX, FieldAddress(RAX, Code::entry_point_offset()));
+  __ movq(RAX, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ LeaveStubFrame();
   __ jmp(RAX);
   __ int3();
@@ -1988,27 +2022,27 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ CompareClassId(left, kDoubleCid);
   __ j(NOT_EQUAL, &check_mint, Assembler::kNearJump);
   __ CompareClassId(right, kDoubleCid);
-  __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+  __ j(NOT_EQUAL, &done, Assembler::kFarJump);
 
   // Double values bitwise compare.
   __ movq(left, FieldAddress(left, Double::value_offset()));
   __ cmpq(left, FieldAddress(right, Double::value_offset()));
-  __ jmp(&done, Assembler::kNearJump);
+  __ jmp(&done, Assembler::kFarJump);
 
   __ Bind(&check_mint);
   __ CompareClassId(left, kMintCid);
   __ j(NOT_EQUAL, &check_bigint, Assembler::kNearJump);
   __ CompareClassId(right, kMintCid);
-  __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+  __ j(NOT_EQUAL, &done, Assembler::kFarJump);
   __ movq(left, FieldAddress(left, Mint::value_offset()));
   __ cmpq(left, FieldAddress(right, Mint::value_offset()));
-  __ jmp(&done, Assembler::kNearJump);
+  __ jmp(&done, Assembler::kFarJump);
 
   __ Bind(&check_bigint);
   __ CompareClassId(left, kBigintCid);
-  __ j(NOT_EQUAL, &reference_compare, Assembler::kNearJump);
+  __ j(NOT_EQUAL, &reference_compare, Assembler::kFarJump);
   __ CompareClassId(right, kBigintCid);
-  __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+  __ j(NOT_EQUAL, &done, Assembler::kFarJump);
   __ EnterStubFrame();
   __ ReserveAlignedFrameSpace(0);
   __ movq(CallingConventions::kArg1Reg, left);
@@ -2054,6 +2088,7 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     __ Bind(&stepping);
     __ EnterStubFrame();
     __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ RestoreCodePointer();
     __ LeaveStubFrame();
     __ jmp(&done_stepping);
   }
@@ -2111,6 +2146,7 @@ void StubCode::EmitMegamorphicLookup(
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
   __ movq(RAX, FieldAddress(RDI, RCX, TIMES_8, base + kWordSize));
+  __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
   __ movq(target, FieldAddress(RAX, Function::entry_point_offset()));
 }
 

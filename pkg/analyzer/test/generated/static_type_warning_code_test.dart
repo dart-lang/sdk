@@ -7,7 +7,6 @@ library engine.static_type_warning_code_test;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
 import '../utils.dart';

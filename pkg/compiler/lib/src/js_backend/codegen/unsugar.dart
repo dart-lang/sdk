@@ -2,12 +2,12 @@ library dart2js.unsugar_cps;
 
 import '../../cps_ir/cps_ir_nodes.dart';
 
-import '../../cps_ir/optimizers.dart' show ParentVisitor;
+import '../../cps_ir/optimizers.dart' show ParentVisitor, Pass;
 import '../../constants/values.dart';
 import '../../elements/elements.dart';
 import '../../io/source_information.dart';
 import '../../js_backend/codegen/glue.dart';
-import '../../universe/universe.dart' show Selector;
+import '../../universe/selector.dart' show Selector;
 import '../../cps_ir/cps_ir_builder.dart' show ThisParameterLocal;
 
 class ExplicitReceiverParameterEntity implements Local {
@@ -35,7 +35,7 @@ class InterceptorEntity extends Entity {
 ///  - Add explicit receiver argument for methods that are called in interceptor
 ///    calling convention.
 ///  - Convert two-parameter exception handlers to one-parameter ones.
-class UnsugarVisitor extends RecursiveVisitor {
+class UnsugarVisitor extends RecursiveVisitor implements Pass {
   Glue _glue;
   ParentVisitor _parentVisitor = new ParentVisitor();
 
@@ -49,10 +49,12 @@ class UnsugarVisitor extends RecursiveVisitor {
 
   UnsugarVisitor(this._glue);
 
+  String get passName => 'Unsugaring';
+
   bool methodUsesReceiverArgument(FunctionElement function) {
     assert(_glue.isInterceptedMethod(function));
     ClassElement clazz = function.enclosingClass.declaration;
-    return _glue.isInterceptorClass(clazz) || 
+    return _glue.isInterceptorClass(clazz) ||
            _glue.isUsedAsMixin(clazz);
   }
 

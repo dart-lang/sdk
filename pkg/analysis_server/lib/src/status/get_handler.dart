@@ -495,6 +495,7 @@ class GetHandler {
     _writeResponse(request, (StringBuffer buffer) {
       _writePage(buffer, 'Analysis Server - Cache Entry',
           ['Context: $contextFilter', 'File: $sourceUri'], (HttpResponse) {
+        List<CacheEntry> entries = entryMap[folder];
         buffer.write('<h3>Analyzing Contexts</h3><p>');
         bool first = true;
         allContexts.forEach((Folder folder) {
@@ -516,7 +517,11 @@ class GetHandler {
                 },
                 HTML_ESCAPE.convert(folder.path)));
           }
-          if (entryMap[folder][0].explicitlyAdded) {
+          CacheEntry sourceEntry =
+              entries.firstWhere((CacheEntry entry) => entry.target is Source);
+          if (sourceEntry == null) {
+            buffer.write(' (missing source entry)');
+          } else if (sourceEntry.explicitlyAdded) {
             buffer.write(' (explicit)');
           } else {
             buffer.write(' (implicit)');
@@ -524,7 +529,6 @@ class GetHandler {
         });
         buffer.write('</p>');
 
-        List<CacheEntry> entries = entryMap[folder];
         if (entries == null) {
           buffer.write('<p>Not being analyzed in this context.</p>');
           return;
@@ -544,7 +548,7 @@ class GetHandler {
           buffer.write('<dl>');
           buffer.write('<dt>time</dt><dd>');
           buffer.write(entry.modificationTime);
-          buffer.write('</dd></dl>');
+          buffer.write('</dd>');
           for (ResultDescriptor result in results) {
             ResultData data = entry.getResultData(result);
             String descriptorName = HTML_ESCAPE.convert(result.toString());
@@ -560,7 +564,7 @@ class GetHandler {
           if (entry.exception != null) {
             buffer.write('<dt>exception</dt><dd>');
             _writeException(buffer, entry.exception);
-            buffer.write('</dd></dl>');
+            buffer.write('</dd>');
           }
           buffer.write('</dl>');
         }
@@ -757,12 +761,12 @@ class GetHandler {
         .map((Source source) => source.fullName)
         .toList();
     MapIterator<AnalysisTarget, CacheEntry> iterator =
-        context.analysisCache.iterator();
+        context.analysisCache.iterator(context: context);
     while (iterator.moveNext()) {
-      Source source = iterator.key.source;
-      if (source != null) {
+      AnalysisTarget target = iterator.key;
+      if (target is Source) {
         CacheEntry entry = iterator.value;
-        String sourceName = source.fullName;
+        String sourceName = target.fullName;
         if (!links.containsKey(sourceName)) {
           CaughtException exception = entry.exception;
           if (exception != null) {
@@ -772,7 +776,7 @@ class GetHandler {
               CACHE_ENTRY_PATH,
               {
                 CONTEXT_QUERY_PARAM: folder.path,
-                SOURCE_QUERY_PARAM: source.uri.toString()
+                SOURCE_QUERY_PARAM: target.uri.toString()
               },
               sourceName,
               exception != null);
@@ -799,7 +803,7 @@ class GetHandler {
       if (fileNames == null || fileNames.isEmpty) {
         buffer.write('<p>None</p>');
       } else {
-        buffer.write('<table style="width: 100%">');
+        buffer.write('<p><table style="width: 100%">');
         for (String fileName in fileNames) {
           buffer.write('<tr><td>');
           buffer.write(links[fileName]);
@@ -810,7 +814,7 @@ class GetHandler {
           }
           buffer.write('</td></tr>');
         }
-        buffer.write('</table>');
+        buffer.write('</table></p>');
       }
     }
 
@@ -818,27 +822,6 @@ class GetHandler {
       _writePage(
           buffer, 'Analysis Server - Context', ['Context: $contextFilter'],
           (StringBuffer buffer) {
-        List headerRowText = ['Context'];
-        headerRowText.addAll(CacheState.values);
-        buffer.write('<h3>Summary</h3>');
-        buffer.write('<table>');
-        _writeRow(buffer, headerRowText, header: true);
-        AnalysisContextStatistics statistics = context.statistics;
-        statistics.cacheRows.forEach((AnalysisContextStatistics_CacheRow row) {
-          List rowText = [row.name];
-          for (CacheState state in CacheState.values) {
-            String text = row.getCount(state).toString();
-            Map<String, String> params = <String, String>{
-              STATE_QUERY_PARAM: state.toString(),
-              CONTEXT_QUERY_PARAM: folder.path,
-              DESCRIPTOR_QUERY_PARAM: row.name
-            };
-            rowText.add(makeLink(CACHE_STATE_PATH, params, text));
-          }
-          _writeRow(buffer, rowText, classes: [null, "right"]);
-        });
-        buffer.write('</table>');
-
         _writeFiles(buffer, 'Priority Files', priorityNames);
         _writeFiles(buffer, 'Explicitly Analyzed Files', explicitNames);
         _writeFiles(buffer, 'Implicitly Analyzed Files', implicitNames);
@@ -1101,6 +1084,7 @@ class GetHandler {
         buffer.write(makeLink(CONTEXT_PATH, {CONTEXT_QUERY_PARAM: folder.path},
             key, _hasException(folderMap[folder])));
       });
+      // TODO(brianwilkerson) Add items for the SDK contexts (currently only one).
       buffer.write('</p>');
 
       buffer.write('<p><b>Options</b></p>');
@@ -1394,9 +1378,9 @@ class GetHandler {
    */
   void _writePluginStatus(StringBuffer buffer) {
     void writePlugin(Plugin plugin) {
-      buffer.write(_server.serverPlugin.uniqueIdentifier);
+      buffer.write(plugin.uniqueIdentifier);
       buffer.write(' (');
-      buffer.write(_server.serverPlugin.runtimeType);
+      buffer.write(plugin.runtimeType);
       buffer.write(')<br>');
     }
     buffer.write('<h3>Plugin Status</h3><p>');

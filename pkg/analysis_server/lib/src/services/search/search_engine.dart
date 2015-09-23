@@ -99,7 +99,7 @@ abstract class SearchEngine {
   /**
    * Returns subtypes of the given [type].
    *
-   * [type] - the [ClassElemnet] being subtyped by the found matches.
+   * [type] - the [ClassElement] being subtyped by the found matches.
    */
   Future<List<SearchMatch>> searchSubtypes(ClassElement type);
 

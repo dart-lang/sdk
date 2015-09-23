@@ -20,12 +20,6 @@ simple_function_subtype_test: Fail
 simple_inferrer_const_closure_test: Fail # Issue 16507
 simple_inferrer_const_closure2_test: Fail # Issue 16507
 simple_inferrer_global_field_closure_test: Fail # Issue 16507
-simple_inferrer_const_closure_default_test/05: Fail # Issue 24297
-simple_inferrer_const_closure_default_test/06: Fail # Issue 24297
-simple_inferrer_const_closure_default_test/09: Fail # Issue 24297
-simple_inferrer_const_closure_default_test/10: Fail # Issue 24297
-simple_inferrer_const_closure_default_test/11: Fail # Issue 24297
-simple_inferrer_const_closure_default_test/12: Fail # Issue 24297
 
 logical_expression_test: Fail # Issue 17027
 

@@ -10,7 +10,6 @@ import '../dart_types.dart';
 import '../diagnostics/source_span.dart' show
     SourceSpan;
 import '../elements/elements.dart';
-import '../tree/tree.dart';
 import 'constant_serialization.dart';
 import 'keys.dart';
 import 'modelz.dart';

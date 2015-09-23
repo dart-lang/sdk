@@ -738,7 +738,7 @@ class CacheEntryTest extends AbstractCacheTest {
     expect(entry.getValue(result2), 222);
     expect(entry.getValue(result3), 333);
     // replace result1, keep "dependedOn", invalidate result3
-    entry.setValueIncremental(result2, 2222);
+    entry.setValueIncremental(result2, 2222, true);
     expect(entry.getState(result1), CacheState.VALID);
     expect(entry.getState(result2), CacheState.VALID);
     expect(entry.getState(result3), CacheState.INVALID);

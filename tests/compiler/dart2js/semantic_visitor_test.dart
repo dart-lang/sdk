@@ -19,8 +19,9 @@ import 'package:compiler/src/resolution/operators.dart';
 import 'package:compiler/src/resolution/semantic_visitor.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/tree/tree.dart';
-import 'package:compiler/src/universe/universe.dart' show
-    CallStructure,
+import 'package:compiler/src/universe/call_structure.dart' show
+    CallStructure;
+import 'package:compiler/src/universe/selector.dart' show
     Selector;
 import 'memory_compiler.dart';
 
@@ -672,7 +673,6 @@ enum VisitKind {
   VISIT_UNRESOLVED_SUPER_GETTER_COMPOUND_INDEX_SET,
   VISIT_UNRESOLVED_SUPER_SETTER_COMPOUND_INDEX_SET,
 
-  VISIT_ASSERT,
   VISIT_LOGICAL_AND,
   VISIT_LOGICAL_OR,
   VISIT_IS,
@@ -734,7 +734,6 @@ enum VisitKind {
   VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_PREFIX,
   VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_POSTFIX,
 
-  ERROR_INVALID_ASSERT,
   ERROR_UNDEFINED_UNARY_EXPRESSION,
   ERROR_UNDEFINED_BINARY_EXPRESSION,
   ERROR_INVALID_GET,

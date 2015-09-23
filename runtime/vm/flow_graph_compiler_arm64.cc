@@ -13,6 +13,7 @@
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
+#include "vm/instructions.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -97,7 +98,6 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   Zone* zone = compiler->zone();
 
-  // Current PP, FP, and PC.
   builder->AddPp(current->function(), slot_ix++);
   builder->AddPcMarker(Function::Handle(zone), slot_ix++);
   builder->AddCallerFp(slot_ix++);
@@ -118,7 +118,6 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   Environment* previous = current;
   current = current->outer();
   while (current != NULL) {
-    // PP, FP, and PC.
     builder->AddPp(current->function(), slot_ix++);
     builder->AddPcMarker(previous->function(), slot_ix++);
     builder->AddCallerFp(slot_ix++);
@@ -154,9 +153,8 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   // The previous pointer is now the outermost environment.
   ASSERT(previous != NULL);
 
-  // For the outermost environment, set caller PC, caller PP, and caller FP.
+  // Add slots for the outermost environment.
   builder->AddCallerPp(slot_ix++);
-  // PC marker.
   builder->AddPcMarker(previous->function(), slot_ix++);
   builder->AddCallerFp(slot_ix++);
   builder->AddCallerPc(slot_ix++);
@@ -183,7 +181,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
   }
 
   ASSERT(deopt_env() != NULL);
-
+  __ Push(CODE_REG);
   __ BranchLink(*StubCode::Deoptimize_entry());
   set_pc_offset(assem->CodeSize());
 #undef __
@@ -911,12 +909,8 @@ void FlowGraphCompiler::CopyParameters() {
 
   __ Bind(&wrong_num_arguments);
   if (function.IsClosureFunction()) {
-    ASSERT(assembler()->constant_pool_allowed());
-    __ LeaveDartFrame();  // The arguments are still on the stack.
-    // Do not use caller's pool ptr in branch.
-    ASSERT(!assembler()->constant_pool_allowed());
+    __ LeaveDartFrame(kKeepCalleePP);  // The arguments are still on the stack.
     __ BranchPatchable(*StubCode::CallClosureNoSuchMethod_entry());
-    __ set_constant_pool_allowed(true);
     // The noSuchMethod call may return to the caller, but not here.
   } else if (check_correct_named_args) {
     __ Stop("Wrong arguments");
@@ -985,9 +979,6 @@ void FlowGraphCompiler::EmitFrameEntry() {
     // Load function object using the callee's pool pointer.
     __ LoadFunctionFromCalleePool(function_reg, function, new_pp);
 
-    // Patch point is after the eventually inlined function object.
-    entry_patch_pc_offset_ = assembler()->CodeSize();
-
     __ LoadFieldFromOffset(
         R7, function_reg, Function::usage_counter_offset(), kWord);
     // Reoptimization of an optimized function is triggered by counting in
@@ -1001,10 +992,8 @@ void FlowGraphCompiler::EmitFrameEntry() {
     ASSERT(function_reg == R6);
     Label dont_optimize;
     __ b(&dont_optimize, LT);
-    __ Branch(*StubCode::OptimizeFunction_entry());
+    __ Branch(*StubCode::OptimizeFunction_entry(), new_pp);
     __ Bind(&dont_optimize);
-  } else if (!flow_graph().IsCompiledForOsr()) {
-    entry_patch_pc_offset_ = assembler()->CodeSize();
   }
   __ Comment("Enter frame");
   if (flow_graph().IsCompiledForOsr()) {
@@ -1066,12 +1055,8 @@ void FlowGraphCompiler::CompileGraph() {
       __ b(&correct_num_arguments, EQ);
       __ Bind(&wrong_num_arguments);
       if (function.IsClosureFunction()) {
-        ASSERT(assembler()->constant_pool_allowed());
-        __ LeaveDartFrame();  // The arguments are still on the stack.
-        // Do not use caller's pool ptr in branch.
-        ASSERT(!assembler()->constant_pool_allowed());
+        __ LeaveDartFrame(kKeepCalleePP);  // Arguments are still on the stack.
         __ BranchPatchable(*StubCode::CallClosureNoSuchMethod_entry());
-        __ set_constant_pool_allowed(true);
         // The noSuchMethod call may return to the caller, but not here.
       } else {
         __ Stop("Wrong number of arguments");
@@ -1125,12 +1110,14 @@ void FlowGraphCompiler::CompileGraph() {
   ASSERT(assembler()->constant_pool_allowed());
   GenerateDeferredCode();
 
-  // Emit function patching code. This will be swapped with the first 3
-  // instructions at entry point.
-  patch_code_pc_offset_ = assembler()->CodeSize();
-  __ BranchPatchable(*StubCode::FixCallersTarget_entry());
-
   if (is_optimizing()) {
+    // Leave enough space for patching in case of lazy deoptimization from
+    // deferred code.
+    for (intptr_t i = 0;
+      i < CallPattern::kDeoptCallLengthInInstructions;
+      ++i) {
+      __ orr(R0, ZR, Operand(R0));  // nop
+    }
     lazy_deopt_pc_offset_ = assembler()->CodeSize();
   __ BranchPatchable(*StubCode::DeoptimizeLazy_entry());
   }

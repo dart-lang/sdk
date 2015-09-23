@@ -1363,14 +1363,16 @@ class SsaBuilder extends ast.Visitor
 
     bool doesNotContainCode() {
       // A function with size 1 does not contain any code.
-      return InlineWeeder.canBeInlined(function, 1, true);
+      return InlineWeeder.canBeInlined(function, 1, true,
+          enableUserAssertions: compiler.enableUserAssertions);
     }
 
     bool reductiveHeuristic() {
       // The call is on a path which is executed rarely, so inline only if it
       // does not make the program larger.
       if (isCalledOnce(element)) {
-        return InlineWeeder.canBeInlined(function, -1, false);
+        return InlineWeeder.canBeInlined(function, -1, false,
+            enableUserAssertions: compiler.enableUserAssertions);
       }
       // TODO(sra): Measure if inlining would 'reduce' the size.  One desirable
       // case we miss by doing nothing is inlining very simple constructors
@@ -1408,7 +1410,8 @@ class SsaBuilder extends ast.Visitor
         // We may have forced the inlining of some methods. Therefore check
         // if we can inline this method regardless of size.
         assert(InlineWeeder.canBeInlined(function, -1, false,
-                                         allowLoops: true));
+                allowLoops: true,
+                enableUserAssertions: compiler.enableUserAssertions));
         return true;
       }
 
@@ -1431,7 +1434,8 @@ class SsaBuilder extends ast.Visitor
       }
       bool canInline;
       canInline = InlineWeeder.canBeInlined(
-          function, maxInliningNodes, useMaxInliningNodes);
+          function, maxInliningNodes, useMaxInliningNodes,
+          enableUserAssertions: compiler.enableUserAssertions);
       if (canInline) {
         backend.inlineCache.markAsInlinable(element, insideLoop: insideLoop);
       } else {
@@ -1628,20 +1632,27 @@ class SsaBuilder extends ast.Visitor
       var emptyParameters = parameters.values.where((p) =>
           p.instructionType.isEmpty && !p.instructionType.isNullable);
       if (emptyParameters.length > 0) {
-        String message = compiler.enableMinification
-            ? 'unreachable'
-            : 'unreachable: ${functionElement} because: ${emptyParameters}';
-        // TODO(sra): Use a library function that throws a proper error object.
-        push(new HForeignCode(
-            js.js.parseForeignJS('throw "$message"'),
-            backend.dynamicType,
-            <HInstruction>[],
-            isStatement: true));
+        addComment('${emptyParameters} inferred as [empty]');
+        pushInvokeStatic(function.body, backend.assertUnreachableMethod, []);
+        pop();
         return closeFunction();
       }
     }
     function.body.accept(this);
     return closeFunction();
+  }
+
+  /// Adds a JavaScript comment to the output. The comment will be omitted in
+  /// minified mode.  Each line in [text] is preceded with `//` and indented.
+  /// Use sparingly. In order for the comment to be retained it is modeled as
+  /// having side effects which will inhibit code motion.
+  // TODO(sra): Figure out how to keep comment anchored without effects.
+  void addComment(String text) {
+    add(new HForeignCode(
+        js.js.statementTemplateYielding(new js.Comment(text)),
+        backend.dynamicType,
+        <HInstruction>[],
+        isStatement: true));
   }
 
   HGraph buildCheckedSetter(VariableElement field) {
@@ -2606,6 +2617,37 @@ class SsaBuilder extends ast.Visitor
   HInstruction visitAndPop(ast.Node node) {
     node.accept(this);
     return pop();
+  }
+
+  visitAssert(ast.Assert node) {
+    if (!compiler.enableUserAssertions) return;
+
+    if (!node.hasMessage) {
+      // Generate:
+      //
+      //     assertHelper(condition);
+      //
+      visit(node.condition);
+      pushInvokeStatic(node, backend.assertHelperMethod, [pop()]);
+      pop();
+      return;
+    }
+    // Assert has message. Generate:
+    //
+    //     if (assertTest(condition)) assertThrow(message);
+    //
+    void buildCondition() {
+      visit(node.condition);
+      pushInvokeStatic(node, backend.assertTestMethod, [pop()]);
+    }
+    void fail() {
+      visit(node.message);
+      pushInvokeStatic(node, backend.assertThrowMethod, [pop()]);
+      pop();
+    }
+    handleIf(node,
+             visitCondition: buildCondition,
+             visitThen: fail);
   }
 
   visitBlock(ast.Block node) {
@@ -4032,6 +4074,7 @@ class SsaBuilder extends ast.Visitor
     // Don't visit the first argument, which is the type, and the second
     // argument, which is the foreign code.
     if (link.isEmpty || link.tail.isEmpty) {
+      // We should not get here because the call should be compiled to NSM.
       compiler.internalError(node.argumentsNode,
           'At least two arguments expected.');
     }
@@ -4040,6 +4083,16 @@ class SsaBuilder extends ast.Visitor
 
     List<HInstruction> inputs = <HInstruction>[];
     addGenericSendArgumentsToList(link.tail.tail, inputs);
+
+    if (nativeBehavior.codeTemplate.positionalArgumentCount != inputs.length) {
+      compiler.reportError(
+          node, MessageKind.GENERIC,
+          {'text':
+            'Mismatch between number of placeholders'
+            ' and number of arguments.'});
+      stack.add(graph.addConstantNull(compiler));  // Result expected on stack.
+      return;
+    }
 
     TypeMask ssaType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
@@ -5181,18 +5234,6 @@ class SsaBuilder extends ast.Visitor
       }
     }
     return false;
-  }
-
-  @override
-  visitAssert(ast.Send node, ast.Node expression, _) {
-    if (!compiler.enableUserAssertions) {
-      stack.add(graph.addConstantNull(compiler));
-      return;
-    }
-    assert(invariant(node, node.arguments.tail.isEmpty,
-        message: "Invalid assertion: $node"));
-    generateStaticFunctionInvoke(
-        node, backend.assertMethod, CallStructure.ONE_ARG);
   }
 
   visitStaticSend(ast.Send node) {
@@ -8311,14 +8352,6 @@ class SsaBuilder extends ast.Visitor
   }
 
   @override
-  void errorInvalidAssert(
-      ast.Send node,
-      ast.NodeList arguments,
-      _) {
-    visitNode(node);
-  }
-
-  @override
   void errorUndefinedBinaryExpression(
       ast.Send node,
       ast.Node left,
@@ -8457,19 +8490,24 @@ class InlineWeeder extends ast.Visitor {
   final int maxInliningNodes;
   final bool useMaxInliningNodes;
   final bool allowLoops;
+  final bool enableUserAssertions;
 
   InlineWeeder(this.maxInliningNodes,
                this.useMaxInliningNodes,
-               this.allowLoops);
+               this.allowLoops,
+               this.enableUserAssertions);
 
   static bool canBeInlined(FunctionElement function,
                            int maxInliningNodes,
                            bool useMaxInliningNodes,
-                           {bool allowLoops: false}) {
+                           {bool allowLoops: false,
+                            bool enableUserAssertions: null}) {
+    assert(enableUserAssertions is bool); // Ensure we passed it.
     if (function.resolvedAst.elements.containsTryStatement) return false;
 
     InlineWeeder weeder =
-        new InlineWeeder(maxInliningNodes, useMaxInliningNodes, allowLoops);
+        new InlineWeeder(maxInliningNodes, useMaxInliningNodes, allowLoops,
+            enableUserAssertions);
     ast.FunctionExpression functionExpression = function.node;
     weeder.visit(functionExpression.initializers);
     weeder.visit(functionExpression.body);
@@ -8497,6 +8535,13 @@ class InlineWeeder extends ast.Visitor {
       tooDifficult = true;
     } else {
       node.visitChildren(this);
+    }
+  }
+
+  @override
+  void visitAssert(ast.Assert node) {
+    if (enableUserAssertions) {
+      visitNode(node);
     }
   }
 

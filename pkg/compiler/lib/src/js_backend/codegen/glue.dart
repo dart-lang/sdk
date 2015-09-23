@@ -19,7 +19,7 @@ import '../../enqueue.dart' show
 import '../../elements/elements.dart';
 import '../../js_emitter/js_emitter.dart';
 import '../../js/js.dart' as js;
-import '../../universe/universe.dart' show
+import '../../universe/selector.dart' show
     Selector;
 import '../../world.dart' show
     ClassWorld;

@@ -591,6 +591,11 @@ abstract class WorkManager {
   /**
    * Return the next [TargetedResult] that this work manager wants to be
    * computed, or `null` if this manager doesn't need any new results.
+   *
+   * Note, that it is not guaranteed that this result will be computed, it is
+   * up to the work manager to check whether the result is already computed
+   * (for example during the next [getNextResult] invocation) or computation
+   * of the same result should be requested again.
    */
   TargetedResult getNextResult();
 

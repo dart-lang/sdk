@@ -654,7 +654,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
          func.raw()->to_snapshot());
     READ_OBJECT_FIELDS(func,
                        func.raw()->from(), toobj,
-                       kAsReference);
+                       kAsInlinedObject);
     if (!reader->snapshot_code()) {
       // Initialize all fields that are not part of the snapshot.
       if (!is_optimized) {
@@ -662,7 +662,11 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
       }
       func.ClearCode();
     } else {
-      // TODO(rmacnak): Fix entry_point_.
+      // Fix entry point.
+      (*reader->CodeHandle()) = func.CurrentCode();
+      uword new_entry = (*reader->CodeHandle()).EntryPoint();
+      ASSERT(Dart::vm_isolate()->heap()->CodeContains(new_entry));
+      func.StoreNonPointer(&func.raw_ptr()->entry_point_, new_entry);
     }
     return func.raw();
   } else {
@@ -701,7 +705,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   writer->Write<bool>(is_in_fullsnapshot);
 
   if (kind == Snapshot::kFull || !is_in_fullsnapshot) {
-    bool is_optimized = Code::IsOptimized(ptr()->instructions_->ptr()->code_);
+    bool is_optimized = Code::IsOptimized(ptr()->code_);
 
     // Write out all the non object fields.
     writer->Write<int32_t>(ptr()->token_pos_);
@@ -722,7 +726,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
     RawObject** toobj =
         writer->snapshot_code() ? to() :
         (is_optimized ? to_optimized_snapshot() : to_snapshot());
-    SnapshotWriterVisitor visitor(writer);
+    SnapshotWriterVisitor visitor(writer, kAsInlinedObject);
     visitor.VisitPointers(from(), toobj);
   } else {
     writer->WriteFunctionId(this, owner_is_class);
@@ -1191,16 +1195,17 @@ RawCode* Code::ReadFrom(SnapshotReader* reader,
 
   result.set_compile_timestamp(reader->Read<int64_t>());
   result.set_state_bits(reader->Read<int32_t>());
-  result.set_entry_patch_pc_offset(reader->Read<int32_t>());
-  result.set_patch_code_pc_offset(reader->Read<int32_t>());
   result.set_lazy_deopt_pc_offset(reader->Read<int32_t>());
 
   // Set all the object fields.
   READ_OBJECT_FIELDS(result,
                      result.raw()->from(), result.raw()->to(),
-                     kAsReference);
+                     kAsInlinedObject);
 
-  // TODO(rmacnak): Fix entry_point_.
+  // Fix entry point.
+  uword new_entry = result.EntryPoint();
+  ASSERT(Dart::vm_isolate()->heap()->CodeContains(new_entry));
+  result.StoreNonPointer(&result.raw_ptr()->entry_point_, new_entry);
 
   return result.raw();
 }
@@ -1229,12 +1234,10 @@ void RawCode::WriteTo(SnapshotWriter* writer,
   // Write out all the non object fields.
   writer->Write<int64_t>(ptr()->compile_timestamp_);
   writer->Write<int32_t>(ptr()->state_bits_);
-  writer->Write<int32_t>(ptr()->entry_patch_pc_offset_);
-  writer->Write<int32_t>(ptr()->patch_code_pc_offset_);
   writer->Write<int32_t>(ptr()->lazy_deopt_pc_offset_);
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsInlinedObject);
   visitor.VisitPointers(from(), to());
 
   writer->SetInstructionsCode(ptr()->instructions_, this);
@@ -1255,12 +1258,6 @@ RawInstructions* Instructions::ReadFrom(SnapshotReader* reader,
                                reader->GetInstructionsAt(offset, full_tags));
   reader->AddBackRef(object_id, &result, kIsDeserialized);
 
-  {
-    // TODO(rmacnak): Drop after calling convention change.
-    Code::CheckedHandle(reader->ReadObjectImpl(kAsReference));
-    ObjectPool::CheckedHandle(reader->ReadObjectImpl(kAsReference));
-  }
-
   return result.raw();
 }
 
@@ -1271,28 +1268,19 @@ void RawInstructions::WriteTo(SnapshotWriter* writer,
   ASSERT(writer->snapshot_code());
   ASSERT(kind == Snapshot::kFull);
 
-  {
-    // TODO(rmacnak): Drop after calling convention change.
-    writer->WriteInlinedObjectHeader(object_id);
-    writer->WriteVMIsolateObject(kInstructionsCid);
-    writer->WriteTags(writer->GetObjectTags(this));
-  }
+  writer->WriteInlinedObjectHeader(object_id);
+  writer->WriteVMIsolateObject(kInstructionsCid);
+  writer->WriteTags(writer->GetObjectTags(this));
 
-  writer->Write<intptr_t>(writer->GetObjectTags(this));  // For sanity check.
+  // Instructions will be written pre-marked and in the VM heap. Write out
+  // the tags we expect to find when reading the snapshot for a sanity check
+  // that our offsets/alignment didn't get out of sync.
+  uword written_tags = writer->GetObjectTags(this);
+  written_tags = RawObject::VMHeapObjectTag::update(true, written_tags);
+  written_tags = RawObject::MarkBit::update(true, written_tags);
+  writer->Write<intptr_t>(written_tags);
 
-  // Temporarily restore the object header for writing to the text section.
-  // TODO(asiva): Don't mutate object headers during serialization.
-  uword object_tags = writer->GetObjectTags(this);
-  uword snapshot_tags = ptr()->tags_;
-  ptr()->tags_ = object_tags;
   writer->Write<int32_t>(writer->GetInstructionsId(this));
-  ptr()->tags_ = snapshot_tags;
-
-  {
-    // TODO(rmacnak): Drop after calling convention change.
-    writer->WriteObjectImpl(ptr()->code_, kAsReference);
-    writer->WriteObjectImpl(ptr()->object_pool_, kAsReference);
-  }
 }
 
 
@@ -1330,20 +1318,10 @@ RawObjectPool* ObjectPool::ReadFrom(SnapshotReader* reader,
         result.SetRawValueAt(i, raw_value);
         break;
       }
-      case ObjectPool::kExternalLabel: {
-        // TODO(rmacnak): Relocate.
-        intptr_t raw_value = reader->Read<intptr_t>();
-        result.SetRawValueAt(i, raw_value);
-        break;
-      }
       case ObjectPool::kNativeEntry: {
         // Read nothing. Initialize with the lazy link entry.
-        uword entry = reinterpret_cast<uword>(&NativeEntry::LinkNativeCall);
-#if defined(USING_SIMULATOR)
-        entry = Simulator::RedirectExternalReference(
-            entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
-#endif
-        result.SetRawValueAt(i, entry);
+        uword new_entry = NativeEntry::LinkNativeCallEntry();
+        result.SetRawValueAt(i, static_cast<intptr_t>(new_entry));
         break;
       }
       default:
@@ -1379,19 +1357,18 @@ void RawObjectPool::WriteTo(SnapshotWriter* writer,
     writer->Write<int8_t>(entry_type);
     Entry& entry = ptr()->data()[i];
     switch (entry_type) {
-      case ObjectPool::kTaggedObject:
+      case ObjectPool::kTaggedObject: {
         writer->WriteObjectImpl(entry.raw_obj_, kAsReference);
         break;
-      case ObjectPool::kImmediate:
+      }
+      case ObjectPool::kImmediate: {
         writer->Write<intptr_t>(entry.raw_value_);
         break;
-      case ObjectPool::kExternalLabel:
-        // TODO(rmacnak): Write symbolically.
-        writer->Write<intptr_t>(entry.raw_value_);
-        break;
-      case ObjectPool::kNativeEntry:
+      }
+      case ObjectPool::kNativeEntry: {
         // Write nothing. Will initialize with the lazy link entry.
         break;
+      }
       default:
         UNREACHABLE();
     }

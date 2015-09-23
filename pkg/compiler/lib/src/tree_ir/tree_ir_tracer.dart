@@ -178,6 +178,11 @@ class BlockCollector extends StatementVisitor {
   visitForeignStatement(ForeignStatement node) {
     _addStatement(node);
   }
+
+  @override
+  visitYield(Yield node) {
+    _addStatement(node);
+  }
 }
 
 class TreeTracer extends TracerUtil with StatementVisitor {
@@ -335,6 +340,11 @@ class TreeTracer extends TracerUtil with StatementVisitor {
   @override
   visitForeignStatement(ForeignStatement node) {
     printStatement(null, 'foreign ${node.codeTemplate.source}');
+  }
+
+  @override
+  visitYield(Yield node) {
+    printStatement(null, 'yield ${expr(node.input)}');
   }
 }
 
@@ -568,6 +578,12 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
   String visitAwait(Await node) {
     String value = visitExpression(node.input);
     return 'Await($value)';
+  }
+
+  @override
+  String visitYield(Yield node) {
+    String value = visitExpression(node.input);
+    return 'Yield($value)';
   }
 }
 

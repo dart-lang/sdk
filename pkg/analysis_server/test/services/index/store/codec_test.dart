@@ -252,6 +252,16 @@ class A {
     validateDecode(id1, id2, id3, element);
   }
 
+  void test_encode_IndexableName() {
+    IndexableName indexable = new IndexableName('test');
+    int id1 = codec.encode1(indexable);
+    int id2 = codec.encode2(indexable);
+    int id3 = codec.encode3(indexable);
+    expect(id1, -1);
+    expect(id2, isNonNegative);
+    expect(id3, IndexableNameKind.INSTANCE.index);
+  }
+
   void test_encode_LibraryElement() {
     resolveTestUnit('''
 class A {
@@ -284,17 +294,6 @@ class A {
     expect(id2, element.nameOffset);
     expect(id3, IndexableElementKind.forElement(element).index);
     validateDecode(id1, id2, id3, element);
-  }
-
-  void test_encode_NameElement() {
-    Element element = new NameElement('test');
-    IndexableObject indexable = new IndexableElement(element);
-    int id1 = codec.encode1(indexable);
-    int id2 = codec.encode2(indexable);
-    int id3 = codec.encode3(indexable);
-    expect(id1, -1);
-    expect(id2, isNonNegative);
-    expect(id3, IndexableElementKind.forElement(element).index);
   }
 
   void test_encode_nullLibraryElement() {

@@ -10,7 +10,6 @@
 #include "vm/atomic.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
-#include "vm/counters.h"
 #include "vm/handles.h"
 #include "vm/megamorphic_cache_table.h"
 #include "vm/metrics.h"
@@ -261,6 +260,9 @@ class Isolate : public BaseIsolate {
   // stack allocated local, but plays well with AddressSanitizer.
   // TODO(koda): Move to Thread.
   static uword GetCurrentStackPointer();
+
+  void SetupInstructionsSnapshotPage(
+      const uint8_t* instructions_snapshot_buffer);
 
   // Returns true if any of the interrupts specified by 'interrupt_bits' are
   // currently scheduled for this isolate, but leaves them unchanged.
@@ -664,7 +666,7 @@ class Isolate : public BaseIsolate {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_ACCESSOR);
 #undef ISOLATE_METRIC_ACCESSOR
 
-#define ISOLATE_TIMELINE_STREAM_ACCESSOR(name, enabled_by_default)             \
+#define ISOLATE_TIMELINE_STREAM_ACCESSOR(name, not_used)                       \
   TimelineStream* Get##name##Stream() { return &stream_##name##_; }
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_ACCESSOR)
 #undef ISOLATE_TIMELINE_STREAM_ACCESSOR
@@ -735,8 +737,6 @@ class Isolate : public BaseIsolate {
 #undef REUSABLE_HANDLE
 
   static void VisitIsolates(IsolateVisitor* visitor);
-
-  Counters* counters() { return &counters_; }
 
   // Handle service messages until we are told to resume execution.
   void PauseEventHandler();
@@ -916,8 +916,6 @@ class Isolate : public BaseIsolate {
 
   Metric* metrics_list_head_;
 
-  Counters counters_;
-
   bool compilation_allowed_;
 
   // TODO(23153): Move this out of Isolate/Thread.
@@ -947,7 +945,7 @@ class Isolate : public BaseIsolate {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
 
-#define ISOLATE_TIMELINE_STREAM_VARIABLE(name, enabled_by_default)             \
+#define ISOLATE_TIMELINE_STREAM_VARIABLE(name, not_used)                       \
   TimelineStream stream_##name##_;
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_VARIABLE)
 #undef ISOLATE_TIMELINE_STREAM_VARIABLE

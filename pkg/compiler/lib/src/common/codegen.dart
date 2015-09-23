@@ -26,8 +26,9 @@ import '../js_backend/js_backend.dart' show
     JavaScriptBackend;
 import '../resolution/tree_elements.dart' show
     TreeElements;
+import '../universe/selector.dart' show
+    Selector;
 import '../universe/universe.dart' show
-    Selector,
     UniverseSelector;
 import '../util/util.dart' show
     Setlet;
@@ -55,6 +56,11 @@ class CodegenRegistry extends Registry {
 
   CodegenEnqueuer get world => compiler.enqueuer.codegen;
   JavaScriptBackend get backend => compiler.backend;
+
+  void registerAssert(bool hasMessage) {
+    // Codegen does not register asserts.  They have been lowered to calls.
+    assert(false);
+  }
 
   void registerDependency(Element element) {
     treeElements.registerDependency(element);

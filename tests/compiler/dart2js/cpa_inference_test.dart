@@ -7,8 +7,9 @@ import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/inferrer/concrete_types_inferrer.dart';
-import 'package:compiler/src/universe/universe.dart' show
-    CallStructure,
+import 'package:compiler/src/universe/call_structure.dart' show
+    CallStructure;
+import 'package:compiler/src/universe/selector.dart' show
     Selector;
 
 import "compiler_helper.dart";

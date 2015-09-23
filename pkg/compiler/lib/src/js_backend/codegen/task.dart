@@ -84,10 +84,10 @@ class CpsFunctionCompiler implements FunctionCompiler {
         if (tracer != null) {
           tracer.traceCompilation(element.name, null);
         }
-        cps.FunctionDefinition cpsFunction = compileToCpsIR(element);
-        cpsFunction = optimizeCpsIR(cpsFunction);
-        tree_ir.FunctionDefinition treeFunction = compileToTreeIR(cpsFunction);
-        treeFunction = optimizeTreeIR(treeFunction);
+        cps.FunctionDefinition cpsFunction = compileToCpsIr(element);
+        cpsFunction = optimizeCpsIr(cpsFunction);
+        tree_ir.FunctionDefinition treeFunction = compileToTreeIr(cpsFunction);
+        treeFunction = optimizeTreeIr(treeFunction);
         return compileToJavaScript(work, treeFunction);
       } on CodegenBailout catch (e) {
         String message = "Unable to compile $element with the new compiler.\n"
@@ -107,23 +107,29 @@ class CpsFunctionCompiler implements FunctionCompiler {
     }
   }
 
-  cps.FunctionDefinition compileToCpsIR(AstElement element) {
-    cps.FunctionDefinition cpsNode = irBuilderTask.buildNode(element);
-    if (cpsNode == null) {
+  void applyCpsPass(cps_opt.Pass pass, cps.FunctionDefinition cpsFunction) {
+    pass.rewrite(cpsFunction);
+    traceGraph(pass.passName, cpsFunction);
+    dumpTypedIr(pass.passName, cpsFunction);
+    assert(checkCpsIntegrity(cpsFunction));
+  }
+
+  cps.FunctionDefinition compileToCpsIr(AstElement element) {
+    cps.FunctionDefinition cpsFunction = irBuilderTask.buildNode(element);
+    if (cpsFunction == null) {
       if (irBuilderTask.bailoutMessage == null) {
         giveUp('unable to build cps definition of $element');
       } else {
         giveUp(irBuilderTask.bailoutMessage);
       }
     }
-    traceGraph("IR Builder", cpsNode);
+    traceGraph('IR Builder', cpsFunction);
+    dumpTypedIr('IR Builder', cpsFunction);
     // Eliminating redundant phis before the unsugaring pass will make it
     // insert fewer getInterceptor calls.
-    new RedundantPhiEliminator().rewrite(cpsNode);
-    traceGraph("Redundant phi elimination", cpsNode);
-    new UnsugarVisitor(glue).rewrite(cpsNode);
-    traceGraph("Unsugaring", cpsNode);
-    return cpsNode;
+    applyCpsPass(new RedundantPhiEliminator(), cpsFunction);
+    applyCpsPass(new UnsugarVisitor(glue), cpsFunction);
+    return cpsFunction;
   }
 
   static const Pattern PRINT_TYPED_IR_FILTER = null;
@@ -143,19 +149,20 @@ class CpsFunctionCompiler implements FunctionCompiler {
     throw 'unsupported: $type';
   }
 
-  void dumpTypedIR(cps.FunctionDefinition cpsNode,
-                   TypePropagator typePropagator) {
+  void dumpTypedIr(String passName, cps.FunctionDefinition cpsFunction) {
     if (PRINT_TYPED_IR_FILTER != null &&
-        PRINT_TYPED_IR_FILTER.matchAsPrefix(cpsNode.element.name) != null) {
+        PRINT_TYPED_IR_FILTER.matchAsPrefix(cpsFunction.element.name) != null) {
       String printType(nodeOrRef, String s) {
         cps.Node node = nodeOrRef is cps.Reference
             ? nodeOrRef.definition
             : nodeOrRef;
-        var type = typePropagator.getType(node);
-        return type == null ? s : "$s:${formatTypeMask(type.type)}";
+        return node is cps.Variable && node.type != null
+            ? '$s:${formatTypeMask(node.type)}'
+            : s;
       }
       DEBUG_MODE = true;
-      print(new SExpressionStringifier(printType).visit(cpsNode));
+      print(';;; ==== After $passName ====');
+      print(new SExpressionStringifier(printType).visit(cpsFunction));
     }
   }
 
@@ -164,38 +171,28 @@ class CpsFunctionCompiler implements FunctionCompiler {
     return true; // So this can be used from assert().
   }
 
-  cps.FunctionDefinition optimizeCpsIR(cps.FunctionDefinition cpsNode) {
-    // Transformations on the CPS IR.
-    void applyCpsPass(cps_opt.Pass pass) {
-      pass.rewrite(cpsNode);
-      traceGraph(pass.passName, cpsNode);
-      assert(checkCpsIntegrity(cpsNode));
-    }
-
+  cps.FunctionDefinition optimizeCpsIr(cps.FunctionDefinition cpsFunction) {
     TypeMaskSystem typeSystem = new TypeMaskSystem(compiler);
 
-    applyCpsPass(new RedundantJoinEliminator());
-    applyCpsPass(new RedundantPhiEliminator());
-    applyCpsPass(new InsertRefinements(typeSystem));
-    TypePropagator typePropagator =
-        new TypePropagator(compiler, typeSystem, this);
-    applyCpsPass(typePropagator);
-    dumpTypedIR(cpsNode, typePropagator);
-    applyCpsPass(new RemoveRefinements());
-    applyCpsPass(new ShrinkingReducer());
-    applyCpsPass(new ScalarReplacer(compiler));
-    applyCpsPass(new MutableVariableEliminator());
-    applyCpsPass(new RedundantJoinEliminator());
-    applyCpsPass(new RedundantPhiEliminator());
-    applyCpsPass(new ShrinkingReducer());
-    applyCpsPass(new LoopInvariantCodeMotion());
-    applyCpsPass(new ShareInterceptors());
-    applyCpsPass(new ShrinkingReducer());
+    applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
+    applyCpsPass(new RedundantPhiEliminator(), cpsFunction);
+    applyCpsPass(new InsertRefinements(typeSystem), cpsFunction);
+    applyCpsPass(new TypePropagator(compiler, typeSystem, this), cpsFunction);
+    applyCpsPass(new RemoveRefinements(), cpsFunction);
+    applyCpsPass(new ShrinkingReducer(), cpsFunction);
+    applyCpsPass(new ScalarReplacer(compiler), cpsFunction);
+    applyCpsPass(new MutableVariableEliminator(), cpsFunction);
+    applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
+    applyCpsPass(new RedundantPhiEliminator(), cpsFunction);
+    applyCpsPass(new ShrinkingReducer(), cpsFunction);
+    applyCpsPass(new LoopInvariantCodeMotion(), cpsFunction);
+    applyCpsPass(new ShareInterceptors(), cpsFunction);
+    applyCpsPass(new ShrinkingReducer(), cpsFunction);
 
-    return cpsNode;
+    return cpsFunction;
   }
 
-  tree_ir.FunctionDefinition compileToTreeIR(cps.FunctionDefinition cpsNode) {
+  tree_ir.FunctionDefinition compileToTreeIr(cps.FunctionDefinition cpsNode) {
     tree_builder.Builder builder = new tree_builder.Builder(
         compiler.internalError);
     tree_ir.FunctionDefinition treeNode = builder.buildFunction(cpsNode);
@@ -210,7 +207,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
     return true; // So this can be used from assert().
   }
 
-  tree_ir.FunctionDefinition optimizeTreeIR(tree_ir.FunctionDefinition node) {
+  tree_ir.FunctionDefinition optimizeTreeIr(tree_ir.FunctionDefinition node) {
     void applyTreePass(tree_opt.Pass pass) {
       pass.rewrite(node);
       traceGraph(pass.passName, node);
