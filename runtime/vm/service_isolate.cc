@@ -689,7 +689,7 @@ class RunServiceTask : public ThreadPool::Task {
       HandleScope handle_scope(T);
       Error& error = Error::Handle(Z);
       error = I->object_store()->sticky_error();
-      if (!error.IsNull()) {
+      if (!error.IsNull() && !error.IsUnwindError()) {
         OS::PrintErr("vm-service: Error: %s\n", error.ToErrorCString());
       }
       Dart::RunShutdownCallback();

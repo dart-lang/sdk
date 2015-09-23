@@ -42,6 +42,8 @@ DEFINE_FLAG(bool, steal_breakpoints, false,
             "handler instead.  This handler dispatches breakpoints to "
             "the VM service.");
 
+DECLARE_FLAG(bool, trace_isolates);
+
 
 Debugger::EventHandler* Debugger::event_handler_ = NULL;
 
@@ -320,8 +322,9 @@ void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
     ASSERT(event.isolate_id() != ILLEGAL_ISOLATE_ID);
     if (type == DebuggerEvent::kIsolateInterrupted) {
       DebuggerStackTrace* trace = CollectStackTrace();
-      ASSERT(trace->Length() > 0);
-      event.set_top_frame(trace->FrameAt(0));
+      if (trace->Length() > 0) {
+        event.set_top_frame(trace->FrameAt(0));
+      }
       ASSERT(stack_trace_ == NULL);
       stack_trace_ = trace;
       resume_action_ = kContinue;
@@ -335,11 +338,27 @@ void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
 }
 
 
-void Debugger::SignalIsolateInterrupted() {
+RawError* Debugger::SignalIsolateInterrupted() {
   if (HasEventHandler()) {
-    Debugger* debugger = Isolate::Current()->debugger();
-    debugger->SignalIsolateEvent(DebuggerEvent::kIsolateInterrupted);
+    SignalIsolateEvent(DebuggerEvent::kIsolateInterrupted);
   }
+  Dart_IsolateInterruptCallback callback = isolate_->InterruptCallback();
+  if (callback != NULL) {
+    if (!(*callback)()) {
+      if (FLAG_trace_isolates) {
+        OS::Print("[!] Embedder api: terminating isolate:\n"
+                  "\tisolate:    %s\n", isolate_->name());
+      }
+      const String& msg = String::Handle(String::New("isolate terminated"));
+      return UnwindError::New(msg);
+    }
+  }
+
+  // If any error occurred while in the debug message loop, return it here.
+  const Error& error =
+      Error::Handle(isolate_, isolate_->object_store()->sticky_error());
+  isolate_->object_store()->clear_sticky_error();
+  return error.raw();
 }
 
 
@@ -2553,13 +2572,15 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
 }
 
 
-void Debugger::DebuggerStepCallback() {
+RawError* Debugger::DebuggerStepCallback() {
   ASSERT(isolate_->single_step());
   // We can't get here unless the debugger event handler enabled
   // single stepping.
   ASSERT(HasEventHandler());
   // Don't pause recursively.
-  if (IsPaused()) return;
+  if (IsPaused()) {
+    return Error::null();
+  }
 
   // Check whether we are in a Dart function that the user is
   // interested in. If we saved the frame pointer of a stack frame
@@ -2575,7 +2596,7 @@ void Debugger::DebuggerStepCallback() {
     if (stepping_fp_ > frame->fp()) {
       // We are in a callee of the frame we're interested in.
       // Ignore this stepping break.
-      return;
+      return Error::null();
     } else if (frame->fp() > stepping_fp_) {
       // We returned from the "interesting frame", there can be no more
       // stepping breaks for it. Pause at the next appropriate location
@@ -2585,16 +2606,16 @@ void Debugger::DebuggerStepCallback() {
   }
 
   if (!frame->IsDebuggable()) {
-    return;
+    return Error::null();
   }
   if (frame->TokenPos() == Scanner::kNoSourcePos) {
-    return;
+    return Error::null();
   }
 
   // Don't pause for a single step if there is a breakpoint set
   // at this location.
   if (HasActiveBreakpoint(frame->pc())) {
-    return;
+    return Error::null();
   }
 
   if (FLAG_verbose_debug) {
@@ -2610,15 +2631,21 @@ void Debugger::DebuggerStepCallback() {
   SignalPausedEvent(frame, NULL);
   HandleSteppingRequest(stack_trace_);
   stack_trace_ = NULL;
+
+  // If any error occurred while in the debug message loop, return it here.
+  const Error& error =
+      Error::Handle(isolate_, isolate_->object_store()->sticky_error());
+  isolate_->object_store()->clear_sticky_error();
+  return error.raw();
 }
 
 
-void Debugger::SignalBpReached() {
+RawError* Debugger::SignalBpReached() {
   // We ignore this breakpoint when the VM is executing code invoked
   // by the debugger to evaluate variables values, or when we see a nested
   // breakpoint or exception event.
   if (ignore_breakpoints_ || IsPaused() || !HasEventHandler()) {
-    return;
+    return Error::null();
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();
   ASSERT(stack_trace->Length() > 0);
@@ -2672,7 +2699,7 @@ void Debugger::SignalBpReached() {
   }
 
   if (bpt_hit == NULL) {
-    return;
+    return Error::null();
   }
 
   if (FLAG_verbose_debug) {
@@ -2693,6 +2720,12 @@ void Debugger::SignalBpReached() {
   if (cbpt->IsInternal()) {
     RemoveInternalBreakpoints();
   }
+
+  // If any error occurred while in the debug message loop, return it here.
+  const Error& error =
+      Error::Handle(isolate_, isolate_->object_store()->sticky_error());
+  isolate_->object_store()->clear_sticky_error();
+  return error.raw();
 }
 
 

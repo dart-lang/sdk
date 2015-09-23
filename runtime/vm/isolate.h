@@ -113,6 +113,27 @@ class IsolateVisitor {
 
 class Isolate : public BaseIsolate {
  public:
+  // Keep both these enums in sync with isolate_patch.dart.
+  // The different Isolate API message types.
+  enum LibMsgId {
+    kPauseMsg = 1,
+    kResumeMsg = 2,
+    kPingMsg = 3,
+    kKillMsg = 4,
+    kAddExitMsg = 5,
+    kDelExitMsg = 6,
+    kAddErrorMsg = 7,
+    kDelErrorMsg = 8,
+    kErrorFatalMsg = 9,
+    kInterruptMsg = 10,
+  };
+  // The different Isolate API message priorities for ping and kill messages.
+  enum LibMsgPriority {
+    kImmediateAction = 0,
+    kBeforeNextEventAction = 1,
+    kAsEventAction = 2
+  };
+
   ~Isolate();
 
   static inline Isolate* Current() {
@@ -184,6 +205,8 @@ class Isolate : public BaseIsolate {
     terminate_capability_ = value;
   }
   uint64_t terminate_capability() const { return terminate_capability_; }
+
+  void SendInternalLibMessage(LibMsgId msg_id, uint64_t capability);
 
   Heap* heap() const { return heap_; }
   void set_heap(Heap* value) { heap_ = value; }
@@ -319,17 +342,14 @@ class Isolate : public BaseIsolate {
 
   // Interrupt bits.
   enum {
-    kApiInterrupt = 0x1,      // An interrupt from Dart_InterruptIsolate.
+    kVMInterrupt = 0x1,  // Internal VM checks: safepoints, store buffers, etc.
     kMessageInterrupt = 0x2,  // An interrupt to process an out of band message.
-    kVMInterrupt = 0x4,  // Internal VM checks: safepoints, store buffers, etc.
 
-    kInterruptsMask =
-        kApiInterrupt |
-        kMessageInterrupt |
-        kVMInterrupt,
+    kInterruptsMask = (kVMInterrupt | kMessageInterrupt),
   };
 
   void ScheduleInterrupts(uword interrupt_bits);
+  RawError* HandleInterrupts();
   uword GetAndClearInterrupts();
 
   // Marks all libraries as loaded.

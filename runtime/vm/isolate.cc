@@ -149,6 +149,27 @@ void Isolate::ValidateClassTable() {
 }
 
 
+void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
+  const Array& msg = Array::Handle(Array::New(3));
+  Object& element = Object::Handle();
+
+  element = Smi::New(Message::kIsolateLibOOBMsg);
+  msg.SetAt(0, element);
+  element = Smi::New(msg_id);
+  msg.SetAt(1, element);
+  element = Capability::New(capability);
+  msg.SetAt(2, element);
+
+  uint8_t* data = NULL;
+  MessageWriter writer(&data, &allocator, false);
+  writer.WriteMessage(msg);
+
+  PortMap::PostMessage(new Message(main_port(),
+                                   data, writer.BytesWritten(),
+                                   Message::kOOBPriority));
+}
+
+
 class IsolateMessageHandler : public MessageHandler {
  public:
   explicit IsolateMessageHandler(Isolate* isolate);
@@ -167,30 +188,10 @@ class IsolateMessageHandler : public MessageHandler {
   bool IsCurrentIsolate() const;
   virtual Isolate* isolate() const { return isolate_; }
 
-  // Keep both these enums in sync with isolate_patch.dart.
-  // The different Isolate API message types.
-  enum {
-    kPauseMsg = 1,
-    kResumeMsg = 2,
-    kPingMsg = 3,
-    kKillMsg = 4,
-    kAddExitMsg = 5,
-    kDelExitMsg = 6,
-    kAddErrorMsg = 7,
-    kDelErrorMsg = 8,
-    kErrorFatalMsg = 9,
-  };
-  // The different Isolate API message priorities for ping and kill messages.
-  enum {
-    kImmediateAction = 0,
-    kBeforeNextEventAction = 1,
-    kAsEventAction = 2
-  };
-
  private:
   // A result of false indicates that the isolate should terminate the
   // processing of further events.
-  bool HandleLibMessage(const Array& message);
+  RawError* HandleLibMessage(const Array& message);
 
   bool ProcessUnhandledException(const Error& result);
   Isolate* isolate_;
@@ -213,50 +214,50 @@ const char* IsolateMessageHandler::name() const {
 // Isolate library OOB messages are fixed sized arrays which have the
 // following format:
 // [ OOB dispatch, Isolate library dispatch, <message specific data> ]
-bool IsolateMessageHandler::HandleLibMessage(const Array& message) {
-  if (message.Length() < 2) return true;
+RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
+  if (message.Length() < 2) return Error::null();
   const Object& type = Object::Handle(I, message.At(1));
-  if (!type.IsSmi()) return true;
+  if (!type.IsSmi()) return Error::null();
   const intptr_t msg_type = Smi::Cast(type).Value();
   switch (msg_type) {
-    case kPauseMsg: {
+    case Isolate::kPauseMsg: {
       // [ OOB, kPauseMsg, pause capability, resume capability ]
-      if (message.Length() != 4) return true;
+      if (message.Length() != 4) return Error::null();
       Object& obj = Object::Handle(I, message.At(2));
-      if (!I->VerifyPauseCapability(obj)) return true;
+      if (!I->VerifyPauseCapability(obj)) return Error::null();
       obj = message.At(3);
-      if (!obj.IsCapability()) return true;
+      if (!obj.IsCapability()) return Error::null();
       if (I->AddResumeCapability(Capability::Cast(obj))) {
         increment_paused();
       }
       break;
     }
-    case kResumeMsg: {
+    case Isolate::kResumeMsg: {
       // [ OOB, kResumeMsg, pause capability, resume capability ]
-      if (message.Length() != 4) return true;
+      if (message.Length() != 4) return Error::null();
       Object& obj = Object::Handle(I, message.At(2));
-      if (!I->VerifyPauseCapability(obj)) return true;
+      if (!I->VerifyPauseCapability(obj)) return Error::null();
       obj = message.At(3);
-      if (!obj.IsCapability()) return true;
+      if (!obj.IsCapability()) return Error::null();
       if (I->RemoveResumeCapability(Capability::Cast(obj))) {
         decrement_paused();
       }
       break;
     }
-    case kPingMsg: {
+    case Isolate::kPingMsg: {
       // [ OOB, kPingMsg, responsePort, priority, response ]
-      if (message.Length() != 5) return true;
+      if (message.Length() != 5) return Error::null();
       const Object& obj2 = Object::Handle(I, message.At(2));
-      if (!obj2.IsSendPort()) return true;
+      if (!obj2.IsSendPort()) return Error::null();
       const SendPort& send_port = SendPort::Cast(obj2);
       const Object& obj3 = Object::Handle(I, message.At(3));
-      if (!obj3.IsSmi()) return true;
+      if (!obj3.IsSmi()) return Error::null();
       const intptr_t priority = Smi::Cast(obj3).Value();
       const Object& obj4 = Object::Handle(I, message.At(4));
-      if (!obj4.IsInstance() && !obj4.IsNull()) return true;
+      if (!obj4.IsInstance() && !obj4.IsNull()) return Error::null();
       const Instance& response =
           obj4.IsNull() ? Instance::null_instance() : Instance::Cast(obj4);
-      if (priority == kImmediateAction) {
+      if (priority == Isolate::kImmediateAction) {
         uint8_t* data = NULL;
         intptr_t len = 0;
         SerializeObject(response, &data, &len, false);
@@ -264,81 +265,104 @@ bool IsolateMessageHandler::HandleLibMessage(const Array& message) {
                                          data, len,
                                          Message::kNormalPriority));
       } else {
-        ASSERT((priority == kBeforeNextEventAction) ||
-               (priority == kAsEventAction));
+        ASSERT((priority == Isolate::kBeforeNextEventAction) ||
+               (priority == Isolate::kAsEventAction));
         // Update the message so that it will be handled immediately when it
         // is picked up from the message queue the next time.
         message.SetAt(
             0, Smi::Handle(I, Smi::New(Message::kDelayedIsolateLibOOBMsg)));
-        message.SetAt(3, Smi::Handle(I, Smi::New(kImmediateAction)));
+        message.SetAt(3, Smi::Handle(I, Smi::New(Isolate::kImmediateAction)));
         uint8_t* data = NULL;
         intptr_t len = 0;
         SerializeObject(message, &data, &len, false);
-        this->PostMessage(new Message(Message::kIllegalPort,
-                                      data, len,
-                                      Message::kNormalPriority),
-                          priority == kBeforeNextEventAction /* at_head */);
+        this->PostMessage(
+            new Message(Message::kIllegalPort,
+                        data, len,
+                        Message::kNormalPriority),
+            priority == Isolate::kBeforeNextEventAction /* at_head */);
       }
       break;
     }
-    case kKillMsg: {
+    case Isolate::kKillMsg: {
       // [ OOB, kKillMsg, terminate capability, priority ]
-      if (message.Length() != 4) return true;
+      if (message.Length() != 4) return Error::null();
       Object& obj = Object::Handle(I, message.At(3));
-      if (!obj.IsSmi()) return true;
+      if (!obj.IsSmi()) return Error::null();
       const intptr_t priority = Smi::Cast(obj).Value();
-      if (priority == kImmediateAction) {
+      if (priority == Isolate::kImmediateAction) {
         obj = message.At(2);
         // Signal that the isolate should stop execution.
-        return !I->VerifyTerminateCapability(obj);
+        if (I->VerifyTerminateCapability(obj)) {
+          const String& msg = String::Handle(String::New(
+              "isolate terminated by Isolate.kill"));
+          return UnwindError::New(msg);
+        } else {
+          return Error::null();
+        }
       } else {
-        ASSERT((priority == kBeforeNextEventAction) ||
-               (priority == kAsEventAction));
+        ASSERT((priority == Isolate::kBeforeNextEventAction) ||
+               (priority == Isolate::kAsEventAction));
         // Update the message so that it will be handled immediately when it
         // is picked up from the message queue the next time.
         message.SetAt(
             0, Smi::Handle(I, Smi::New(Message::kDelayedIsolateLibOOBMsg)));
-        message.SetAt(3, Smi::Handle(I, Smi::New(kImmediateAction)));
+        message.SetAt(3, Smi::Handle(I, Smi::New(Isolate::kImmediateAction)));
         uint8_t* data = NULL;
         intptr_t len = 0;
         SerializeObject(message, &data, &len, false);
-        this->PostMessage(new Message(Message::kIllegalPort,
-                                      data, len,
-                                      Message::kNormalPriority),
-                          priority == kBeforeNextEventAction /* at_head */);
+        this->PostMessage(
+            new Message(Message::kIllegalPort,
+                        data, len,
+                        Message::kNormalPriority),
+            priority == Isolate::kBeforeNextEventAction /* at_head */);
       }
       break;
     }
-    case kAddExitMsg:
-    case kDelExitMsg:
-    case kAddErrorMsg:
-    case kDelErrorMsg: {
+    case Isolate::kInterruptMsg: {
+      // [ OOB, kInterruptMsg, pause capability ]
+      if (message.Length() != 3) return Error::null();
+      Object& obj = Object::Handle(I, message.At(2));
+      if (!I->VerifyPauseCapability(obj)) return Error::null();
+
+      // If we are already paused, don't pause again.
+      if (I->debugger()->PauseEvent() == NULL) {
+        return I->debugger()->SignalIsolateInterrupted();
+      }
+      break;
+    }
+
+    case Isolate::kAddExitMsg:
+    case Isolate::kDelExitMsg:
+    case Isolate::kAddErrorMsg:
+    case Isolate::kDelErrorMsg: {
       // [ OOB, msg, listener port ]
-      if (message.Length() < 3) return true;
+      if (message.Length() < 3) return Error::null();
       const Object& obj = Object::Handle(I, message.At(2));
-      if (!obj.IsSendPort()) return true;
+      if (!obj.IsSendPort()) return Error::null();
       const SendPort& listener = SendPort::Cast(obj);
       switch (msg_type) {
-        case kAddExitMsg: {
-          if (message.Length() != 4) return true;
+        case Isolate::kAddExitMsg: {
+          if (message.Length() != 4) return Error::null();
           // [ OOB, msg, listener port, response object ]
           const Object& response = Object::Handle(I, message.At(3));
-          if (!response.IsInstance() && !response.IsNull()) return true;
+          if (!response.IsInstance() && !response.IsNull()) {
+            return Error::null();
+          }
           I->AddExitListener(listener,
                              response.IsNull() ? Instance::null_instance()
                                                : Instance::Cast(response));
           break;
         }
-        case kDelExitMsg:
-          if (message.Length() != 3) return true;
+        case Isolate::kDelExitMsg:
+          if (message.Length() != 3) return Error::null();
           I->RemoveExitListener(listener);
           break;
-        case kAddErrorMsg:
-          if (message.Length() != 3) return true;
+        case Isolate::kAddErrorMsg:
+          if (message.Length() != 3) return Error::null();
           I->AddErrorListener(listener);
           break;
-        case kDelErrorMsg:
-          if (message.Length() != 3) return true;
+        case Isolate::kDelErrorMsg:
+          if (message.Length() != 3) return Error::null();
           I->RemoveErrorListener(listener);
           break;
         default:
@@ -346,15 +370,15 @@ bool IsolateMessageHandler::HandleLibMessage(const Array& message) {
       }
       break;
     }
-    case kErrorFatalMsg: {
+    case Isolate::kErrorFatalMsg: {
       // [ OOB, kErrorFatalMsg, terminate capability, val ]
-      if (message.Length() != 4) return true;
+      if (message.Length() != 4) return Error::null();
       // Check that the terminate capability has been passed correctly.
       Object& obj = Object::Handle(I, message.At(2));
-      if (!I->VerifyTerminateCapability(obj)) return true;
+      if (!I->VerifyTerminateCapability(obj)) return Error::null();
       // Get the value to be set.
       obj = message.At(3);
-      if (!obj.IsBool()) return true;
+      if (!obj.IsBool()) return Error::null();
       I->SetErrorsFatal(Bool::Cast(obj).value());
       break;
     }
@@ -365,7 +389,7 @@ bool IsolateMessageHandler::HandleLibMessage(const Array& message) {
       break;
 #endif  // defined(DEBUG)
   }
-  return true;
+  return Error::null();
 }
 
 
@@ -455,7 +479,10 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
               break;
             }
             case Message::kIsolateLibOOBMsg: {
-              success = HandleLibMessage(oob_msg);
+              const Error& error = Error::Handle(HandleLibMessage(oob_msg));
+              if (!error.IsNull()) {
+                success = ProcessUnhandledException(error);
+              }
               break;
             }
 #if defined(DEBUG)
@@ -479,7 +506,10 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
         const Object& oob_tag = Object::Handle(zone, msg_arr.At(0));
         if (oob_tag.IsSmi() &&
             (Smi::Cast(oob_tag).Value() == Message::kDelayedIsolateLibOOBMsg)) {
-          success = HandleLibMessage(Array::Cast(msg_arr));
+          const Error& error = Error::Handle(HandleLibMessage(msg_arr));
+          if (!error.IsNull()) {
+            success = ProcessUnhandledException(error);
+          }
         }
       }
     }
@@ -589,15 +619,20 @@ bool IsolateMessageHandler::ProcessUnhandledException(const Error& result) {
   } else {
     exc_str = String::New(result.ToErrorCString());
   }
-  bool has_listener = I->NotifyErrorListeners(exc_str, stacktrace_str);
-
-  if (I->ErrorsFatal()) {
-    if (has_listener) {
-      I->object_store()->clear_sticky_error();
-    } else {
-      I->object_store()->set_sticky_error(result);
-    }
+  if (result.IsUnwindError()) {
+    // Unwind errors are always fatal and don't notify listeners.
+    I->object_store()->set_sticky_error(result);
     return false;
+  } else {
+    bool has_listener = I->NotifyErrorListeners(exc_str, stacktrace_str);
+    if (I->ErrorsFatal()) {
+      if (has_listener) {
+        I->object_store()->clear_sticky_error();
+      } else {
+        I->object_store()->set_sticky_error(result);
+      }
+      return false;
+    }
   }
   return true;
 }
@@ -1413,6 +1448,39 @@ uword Isolate::GetAndClearInterrupts() {
 }
 
 
+RawError* Isolate::HandleInterrupts() {
+  uword interrupt_bits = GetAndClearInterrupts();
+  if ((interrupt_bits & kVMInterrupt) != 0) {
+    thread_registry()->CheckSafepoint();
+    if (store_buffer()->Overflowed()) {
+      if (FLAG_verbose_gc) {
+        OS::PrintErr("Scavenge scheduled by store buffer overflow.\n");
+      }
+      heap()->CollectGarbage(Heap::kNew);
+    }
+  }
+  if ((interrupt_bits & kMessageInterrupt) != 0) {
+    bool ok = message_handler()->HandleOOBMessages();
+    if (!ok) {
+      // False result from HandleOOBMessages signals that the isolate should
+      // be terminating.
+      if (FLAG_trace_isolates) {
+        OS::Print("[!] Terminating isolate due to OOB message:\n"
+                  "\tisolate:    %s\n", name());
+      }
+      // TODO(turnidge): If the isolate is being killed by
+      // Isolate.kill, then we probably want to respect pause_on_exit.
+      // If the isolate is being killed due to vm restart we don't.
+      message_handler()->set_pause_on_start(false);
+      message_handler()->set_pause_on_exit(false);
+      const String& msg = String::Handle(String::New("isolate terminated"));
+      return UnwindError::New(msg);
+    }
+  }
+  return Error::null();
+}
+
+
 uword Isolate::GetAndClearStackOverflowFlags() {
   uword stack_overflow_flags = stack_overflow_flags_;
   stack_overflow_flags_ = 0;
@@ -1499,6 +1567,9 @@ void Isolate::LowLevelShutdown() {
 
   // Notify exit listeners that this isolate is shutting down.
   if (object_store() != NULL) {
+    // TODO(turnidge): If the isolate is being killed by Isolate.kill,
+    // then we want to notify event listeners.  If the isolate is
+    // being killed due to vm restart we probably don't.
     NotifyExitListeners();
   }
 
@@ -2226,7 +2297,7 @@ void Isolate::KillLocked() {
 
   Dart_CObject kill;
   kill.type = Dart_CObject_kInt32;
-  kill.value.as_int32 = IsolateMessageHandler::kKillMsg;
+  kill.value.as_int32 = Isolate::kKillMsg;
   list_values[1] = &kill;
 
   Dart_CObject cap;
@@ -2236,7 +2307,7 @@ void Isolate::KillLocked() {
 
   Dart_CObject imm;
   imm.type = Dart_CObject_kInt32;
-  imm.value.as_int32 = IsolateMessageHandler::kImmediateAction;
+  imm.value.as_int32 = Isolate::kImmediateAction;
   list_values[3] = &imm;
 
   {

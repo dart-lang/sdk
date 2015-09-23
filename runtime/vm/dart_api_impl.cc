@@ -1596,16 +1596,7 @@ DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate) {
   }
   // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  // Schedule the interrupt. The isolate will notice this bit being set if it
-  // is currently executing in Dart code.
-  iso->ScheduleInterrupts(Isolate::kApiInterrupt);
-  // If the isolate is blocked on the message queue, we post a dummy message
-  // to the isolate's main port. The message will be ultimately ignored, but as
-  // part of handling the message the interrupt bit which was set above will be
-  // honored.
-  // Can't use Dart_Post() since there isn't a current isolate.
-  Dart_CObject api_null = { Dart_CObject_kNull , { 0 } };
-  Dart_PostCObject(iso->main_port(), &api_null);
+  iso->SendInternalLibMessage(Isolate::kInterruptMsg, iso->pause_capability());
 }
 
 

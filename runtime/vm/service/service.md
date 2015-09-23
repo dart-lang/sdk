@@ -1030,6 +1030,9 @@ class Event extends Response {
   //   PauseInterrupted
   //   PauseException
   //
+  // For PauseInterrupted events, there will be no top frame if the
+  // isolate is idle (waiting in the message loop).
+  //
   // For the Resume event, the top frame is provided at
   // all times except for the initial resume event that is delivered
   // when an isolate begins execution.

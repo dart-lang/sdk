@@ -709,13 +709,22 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   ASSERT(caller_frame != NULL);
   const Code& orig_stub = Code::Handle(
       isolate->debugger()->GetPatchedStubAddress(caller_frame->pc()));
-  isolate->debugger()->SignalBpReached();
+  const Error& error = Error::Handle(isolate->debugger()->SignalBpReached());
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
+  }
   arguments.SetReturn(orig_stub);
 }
 
 
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
-  isolate->debugger()->DebuggerStepCallback();
+  const Error& error =
+      Error::Handle(isolate->debugger()->DebuggerStepCallback());
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
+  }
 }
 
 
@@ -1347,40 +1356,10 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     }
   }
 
-  uword interrupt_bits = isolate->GetAndClearInterrupts();
-  if ((interrupt_bits & Isolate::kVMInterrupt) != 0) {
-    isolate->thread_registry()->CheckSafepoint();
-    if (isolate->store_buffer()->Overflowed()) {
-      if (FLAG_verbose_gc) {
-        OS::PrintErr("Scavenge scheduled by store buffer overflow.\n");
-      }
-      isolate->heap()->CollectGarbage(Heap::kNew);
-    }
-  }
-  if ((interrupt_bits & Isolate::kMessageInterrupt) != 0) {
-    bool ok = isolate->message_handler()->HandleOOBMessages();
-    if (!ok) {
-      // False result from HandleOOBMessages signals that the isolate should
-      // be terminating.
-      const String& msg = String::Handle(String::New("isolate terminated"));
-      const UnwindError& error = UnwindError::Handle(UnwindError::New(msg));
-      Exceptions::PropagateError(error);
-      UNREACHABLE();
-    }
-  }
-  if ((interrupt_bits & Isolate::kApiInterrupt) != 0) {
-    // Signal isolate interrupt event.
-    Debugger::SignalIsolateInterrupted();
-
-    Dart_IsolateInterruptCallback callback = isolate->InterruptCallback();
-    if (callback != NULL) {
-      if ((*callback)()) {
-        return;
-      } else {
-        // TODO(turnidge): Unwind the stack.
-        UNIMPLEMENTED();
-      }
-    }
+  const Error& error = Error::Handle(isolate->HandleInterrupts());
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
   }
 
   if ((stack_overflow_flags & Isolate::kOsrRequest) != 0) {
