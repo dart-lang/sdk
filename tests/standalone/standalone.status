@@ -106,7 +106,7 @@ pair_location_remapping_test: Skip
 precompilation_test: Skip # VM only test.
 
 [ $runtime == vm && $arch == ia32]
-precompilation_test: Fail # Not expected to pass on ia32.
+precompilation_test: Skip # Not expected to pass on ia32.
 
 [ $compiler == dart2js && $jscl ]
 assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.
