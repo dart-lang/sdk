@@ -162,6 +162,34 @@ RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 const double MegamorphicCache::kLoadFactor = 0.75;
 
 
+static void AppendSubString(Zone* zone,
+                            GrowableArray<const char*>* segments,
+                            const char* name,
+                            intptr_t start_pos, intptr_t len) {
+  char* segment = zone->Alloc<char>(len + 1);  // '\0'-terminated.
+  memmove(segment, name + start_pos, len);
+  segment[len] = '\0';
+  segments->Add(segment);
+}
+
+
+static const char* MergeSubStrings(Zone* zone,
+                                   const GrowableArray<const char*>& segments,
+                                   intptr_t alloc_len) {
+  char* result = zone->Alloc<char>(alloc_len + 1);  // '\0'-terminated
+  intptr_t pos = 0;
+  for (intptr_t k = 0; k < segments.length(); k++) {
+    const char* piece = segments[k];
+    const intptr_t piece_len = strlen(segments[k]);
+    memmove(result + pos, piece, piece_len);
+    pos += piece_len;
+    ASSERT(pos <= alloc_len);
+  }
+  result[pos] = '\0';
+  return result;
+}
+
+
 // Takes a vm internal name and makes it suitable for external user.
 //
 // Examples:
@@ -173,9 +201,10 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 //
 // Private name mangling is removed, possibly multiple times:
 //
-//   _ReceivePortImpl@6be832b -> _ReceivePortImpl
-//   _ReceivePortImpl@6be832b._internal@6be832b -> _ReceivePortImpl._internal
-//   _C@0x2b4ab9cc&_E@0x2b4ab9cc&_F@0x2b4ab9cc -> _C&_E&_F
+//   _ReceivePortImpl@709387912 -> _ReceivePortImpl
+//   _ReceivePortImpl@709387912._internal@709387912 ->
+//      _ReceivePortImpl._internal
+//   _C@6328321&_E@6328321&_F@6328321 -> _C&_E&_F
 //
 // The trailing . on the default constructor name is dropped:
 //
@@ -183,29 +212,31 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 //
 // And so forth:
 //
-//   get:foo@6be832b -> foo
-//   _MyClass@6b3832b. -> _MyClass
-//   _MyClass@6b3832b.named -> _MyClass.named
+//   get:foo@6328321 -> foo
+//   _MyClass@6328321. -> _MyClass
+//   _MyClass@6328321.named -> _MyClass.named
 //
 RawString* String::IdentifierPrettyName(const String& name) {
+  Zone* zone = Thread::Current()->zone();
   if (name.Equals(Symbols::TopLevel())) {
     // Name of invisible top-level class.
     return Symbols::Empty().raw();
   }
 
+  const char* cname = name.ToCString();
+  ASSERT(strlen(cname) == static_cast<size_t>(name.Length()));
+  const intptr_t name_len = name.Length();
   // First remove all private name mangling.
-  String& unmangled_name = String::Handle(Symbols::Empty().raw());
-  String& segment = String::Handle();
   intptr_t start_pos = 0;
-  for (intptr_t i = 0; i < name.Length(); i++) {
-    if (name.CharAt(i) == '@' &&
-        (i+1) < name.Length() &&
-        (name.CharAt(i+1) >= '0') &&
-        (name.CharAt(i+1) <= '9')) {
+  GrowableArray<const char*> unmangled_segments;
+  intptr_t sum_segment_len = 0;
+  for (intptr_t i = 0; i < name_len; i++) {
+    if ((cname[i] == '@') && ((i + 1) < name_len) &&
+        (cname[i + 1] >= '0') && (cname[i + 1] <= '9')) {
       // Append the current segment to the unmangled name.
-      segment = String::SubString(name, start_pos, (i - start_pos));
-      unmangled_name = String::Concat(unmangled_name, segment);
-
+      const intptr_t segment_len = i - start_pos;
+      sum_segment_len += segment_len;
+      AppendSubString(zone, &unmangled_segments, cname, start_pos, segment_len);
       // Advance until past the name mangling. The private keys are only
       // numbers so we skip until the first non-number.
       i++;  // Skip the '@'.
@@ -218,21 +249,29 @@ RawString* String::IdentifierPrettyName(const String& name) {
       i--;  // Account for for-loop increment.
     }
   }
+
+  const char* unmangled_name = NULL;
   if (start_pos == 0) {
     // No name unmangling needed, reuse the name that was passed in.
-    unmangled_name = name.raw();
+    unmangled_name = cname;
+    sum_segment_len = name_len;
   } else if (name.Length() != start_pos) {
     // Append the last segment.
-    segment = String::SubString(name, start_pos, (name.Length() - start_pos));
-    unmangled_name = String::Concat(unmangled_name, segment);
+    const intptr_t segment_len = name.Length() - start_pos;
+    sum_segment_len += segment_len;
+    AppendSubString(zone, &unmangled_segments, cname, start_pos, segment_len);
+  }
+  if (unmangled_name == NULL) {
+    // Merge unmangled_segments.
+    unmangled_name = MergeSubStrings(zone, unmangled_segments, sum_segment_len);
   }
 
-  intptr_t len = unmangled_name.Length();
+  intptr_t len = sum_segment_len;
   intptr_t start = 0;
   intptr_t dot_pos = -1;  // Position of '.' in the name, if any.
   bool is_setter = false;
   for (intptr_t i = start; i < len; i++) {
-    if (unmangled_name.CharAt(i) == ':') {
+    if (unmangled_name[i] == ':') {
       if (start != 0) {
         // Reset and break.
         start = 0;
@@ -240,11 +279,11 @@ RawString* String::IdentifierPrettyName(const String& name) {
         break;
       }
       ASSERT(start == 0);  // Only one : is possible in getters or setters.
-      if (unmangled_name.CharAt(0) == 's') {
+      if (unmangled_name[0] == 's') {
         is_setter = true;
       }
       start = i + 1;
-    } else if (unmangled_name.CharAt(i) == '.') {
+    } else if (unmangled_name[i] == '.') {
       if (dot_pos != -1) {
         // Reset and break.
         start = 0;
@@ -258,21 +297,25 @@ RawString* String::IdentifierPrettyName(const String& name) {
 
   if ((start == 0) && (dot_pos == -1)) {
     // This unmangled_name is fine as it is.
-    return unmangled_name.raw();
+    return Symbols::New(unmangled_name, sum_segment_len);
   }
 
   // Drop the trailing dot if needed.
   intptr_t end = ((dot_pos + 1) == len) ? dot_pos : len;
 
-  const String& result =
-      String::Handle(String::SubString(unmangled_name, start, (end - start)));
-
+  unmangled_segments.Clear();
+  intptr_t final_len = end - start;
+  AppendSubString(zone, &unmangled_segments, unmangled_name, start, final_len);
   if (is_setter) {
-    // Setters need to end with '='.
-    return String::Concat(result, Symbols::Equals());
+    const char* equals = Symbols::Equals().ToCString();
+    const intptr_t equals_len = strlen(equals);
+    AppendSubString(zone, &unmangled_segments, equals, 0, equals_len);
+    final_len += equals_len;
   }
 
-  return result.raw();
+  unmangled_name = MergeSubStrings(zone, unmangled_segments, final_len);
+
+  return Symbols::New(unmangled_name);
 }
 
 
