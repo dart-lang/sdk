@@ -13350,6 +13350,11 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
           })(#)''', element);
   }
 
+  /// A secondary check for corruption, needed on IE
+  static bool _hasCorruptedAttributesAdditionalCheck(Element element) {
+    return JS('bool', r'!(#.attributes instanceof NamedNodeMap)', element);
+  }
+
   static String _safeTagName(element) {
     String result = 'element tag unavailable';
     try {
@@ -40914,11 +40919,12 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       // If getting/indexing attributes throws, count that as corrupt.
       attrs = element.attributes;
       isAttr = attrs['is'];
+      var corruptedTest1 = Element._hasCorruptedAttributes(element);
+
       // On IE, erratically, the hasCorruptedAttributes test can return false,
       // even though it clearly is corrupted. A separate copy of the test
       // inlining just the basic check seems to help.
-      var corruptedTest1 = Element._hasCorruptedAttributes(element);
-      var corruptedTest2 = JS('bool', r'!(#.attributes instanceof NamedNodeMap)', element);
+      var corruptedTest2 = Element._hasCorruptedAttributesAdditionalCheck(element);
       corrupted = corruptedTest1 || corruptedTest2;
     } catch(e) {}
     var elementText = 'element unprintable';

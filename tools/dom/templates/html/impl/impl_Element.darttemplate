@@ -1474,6 +1474,11 @@ $if DART2JS
 	 return false;
           })(#)''', element);
   }
+
+  /// A secondary check for corruption, needed on IE
+  static bool _hasCorruptedAttributesAdditionalCheck(Element element) {
+    return JS('bool', r'!(#.attributes instanceof NamedNodeMap)', element);
+  }
 $else
 
   static var _namedNodeMap = js.context["NamedNodeMap"];
@@ -1501,6 +1506,9 @@ $else
     }
     return false;
   }
+
+  /// A secondary check for corruption, needed on IE
+  static bool _hasCorruptedAttributesAdditionalCheck(Element element) => false;
 $endif
 
   static String _safeTagName(element) {
