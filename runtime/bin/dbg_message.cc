@@ -1409,20 +1409,19 @@ void DbgMsgQueueList::IsolateEventHandler(Dart_IsolateId isolate_id,
     msg_queue->SendIsolateEvent(isolate_id, kind);
     Dart_ExitScope();
   } else {
+    DebuggerConnectionHandler::WaitForConnection();
     DbgMsgQueue* msg_queue = GetIsolateMsgQueue(isolate_id);
-    if (msg_queue != NULL) {
-      DebuggerConnectionHandler::WaitForConnection();
-      Dart_EnterScope();
-      msg_queue->SendQueuedMsgs();
-      msg_queue->SendIsolateEvent(isolate_id, kind);
-      if (kind == kInterrupted) {
-        msg_queue->MessageLoop();
-      } else {
-        ASSERT(kind == kShutdown);
-        RemoveIsolateMsgQueue(isolate_id);
-      }
-      Dart_ExitScope();
+    ASSERT(msg_queue != NULL);
+    Dart_EnterScope();
+    msg_queue->SendQueuedMsgs();
+    msg_queue->SendIsolateEvent(isolate_id, kind);
+    if (kind == kInterrupted) {
+      msg_queue->MessageLoop();
+    } else {
+      ASSERT(kind == kShutdown);
+      RemoveIsolateMsgQueue(isolate_id);
     }
+    Dart_ExitScope();
     // If there is no receive message queue, do not wait for a connection, and
     // ignore the message.
   }

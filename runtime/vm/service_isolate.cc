@@ -520,8 +520,6 @@ void ServiceIsolate::SetServiceIsolate(Isolate* isolate) {
   if (isolate_ != NULL) {
     isolate_->is_service_isolate_ = true;
     origin_ = isolate_->origin_id();
-  } else {
-    origin_ = ILLEGAL_PORT;
   }
 }
 
