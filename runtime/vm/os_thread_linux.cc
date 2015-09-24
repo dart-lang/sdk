@@ -9,6 +9,7 @@
 
 #include <errno.h>  // NOLINT
 #include <sys/resource.h>  // NOLINT
+#include <sys/syscall.h>  // NOLINT
 #include <sys/time.h>  // NOLINT
 
 #include "platform/assert.h"
@@ -154,6 +155,11 @@ intptr_t OSThread::GetMaxStackSize() {
 
 ThreadId OSThread::GetCurrentThreadId() {
   return pthread_self();
+}
+
+
+ThreadId OSThread::GetCurrentThreadTraceId() {
+  return syscall(__NR_gettid);
 }
 
 

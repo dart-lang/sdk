@@ -340,7 +340,7 @@ void TimelineEvent::Init(EventType event_type,
   set_event_type(event_type);
   timestamp0_ = 0;
   timestamp1_ = 0;
-  thread_ = OSThread::GetCurrentThreadId();
+  thread_ = OSThread::GetCurrentThreadTraceId();
   isolate_ = Isolate::Current();
   label_ = label;
   FreeArguments();
