@@ -12,7 +12,7 @@
 namespace dart {
 namespace bin {
 
-const char* kPrecompiledLibraryName = "libprecompiled.so";
+const char* kPrecompiledLibraryName = "./libprecompiled.so";
 const char* kPrecompiledSymbolName = "_kInstructionsSnapshot";
 
 void* Extensions::LoadExtensionLibrary(const char* library_file) {

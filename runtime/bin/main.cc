@@ -96,7 +96,6 @@ static bool has_trace_loading = false;
 static const char* DEFAULT_VM_SERVICE_SERVER_IP = "127.0.0.1";
 static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
 // VM Service options.
-static bool start_vm_service = false;
 static const char* vm_service_server_ip = DEFAULT_VM_SERVICE_SERVER_IP;
 // The 0 port is a magic value which results in the first available port
 // being allocated.
@@ -392,7 +391,6 @@ static bool ProcessEnableVmServiceOption(const char* option_value,
     return false;
   }
 
-  start_vm_service = true;
   return true;
 }
 
@@ -410,8 +408,6 @@ static bool ProcessObserveOption(const char* option_value,
                   "Use --observe[:<port number>[/<IPv4 address>]]\n");
     return false;
   }
-
-  start_vm_service = true;
 
   vm_options->AddArgument("--pause-isolates-on-exit");
   return true;
@@ -1069,13 +1065,13 @@ static void ReadSnapshotFile(const char* filename,
 static void* LoadLibrarySymbol(const char* libname, const char* symname) {
   void* library = Extensions::LoadExtensionLibrary(libname);
   if (library == NULL) {
-    ErrorExit(kErrorExitCode,
-              "Error: Failed to load library '%s'\n", libname);
+    Log::PrintErr("Error: Failed to load library '%s'\n", libname);
+    exit(kErrorExitCode);
   }
   void* symbol = Extensions::ResolveSymbol(library, symname);
   if (symbol == NULL) {
-    ErrorExit(kErrorExitCode,
-              "Error: Failed to load symbol '%s'\n", symname);
+    Log::PrintErr("Error: Failed to load symbol '%s'\n", symname);
+    exit(kErrorExitCode);
   }
   return symbol;
 }

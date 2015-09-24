@@ -88,6 +88,7 @@ void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {
   Array& buckets = Array::Handle();
   const GrowableObjectArray& table = GrowableObjectArray::Handle(
       isolate->object_store()->megamorphic_cache_table());
+  if (table.IsNull()) return;
   for (intptr_t i = 0; i < table.Length(); i += kEntrySize) {
     cache ^= table.At(i + kEntryCacheOffset);
     buckets = cache.buckets();
