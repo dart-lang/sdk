@@ -215,7 +215,7 @@ class FunctionInlineCache {
 enum SyntheticConstantKind {
   DUMMY_INTERCEPTOR,
   EMPTY_VALUE,
-  TYPEVARIABLE_REFERENCE,
+  TYPEVARIABLE_REFERENCE,  // Reference to a type in reflection data.
   NAME
 }
 

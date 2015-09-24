@@ -1710,11 +1710,17 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
 
   @override
   void visitType(TypeConstantValue constant, [_]) {
+    // Generates something like 'Type_String_k8F', using the simple name of the
+    // type and a hash to disambiguate the same name in different libraries.
     addRoot('Type');
     DartType type = constant.representedType;
-    JavaScriptBackend backend = compiler.backend;
-    String name = backend.rti.getTypeRepresentationForTypeConstant(type);
+    String name = type.element?.name;
+    if (name == null) {  // e.g. DartType 'dynamic' has no element.
+      JavaScriptBackend backend = compiler.backend;
+      name = backend.rti.getTypeRepresentationForTypeConstant(type);
+    }
     addIdentifier(name);
+    add(getHashTag(constant, 3));
   }
 
   @override
@@ -1730,7 +1736,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
         add('dummy_receiver');
         break;
       case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
-        add('type_variable_reference');
+        // Omit. These are opaque deferred indexes with nothing helpful to add.
         break;
       case SyntheticConstantKind.NAME:
         add('name');
@@ -1829,6 +1835,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   int visitType(TypeConstantValue constant, [_]) {
     DartType type = constant.representedType;
     JavaScriptBackend backend = compiler.backend;
+    // This name includes the library name and type parameters.
     String name = backend.rti.getTypeRepresentationForTypeConstant(type);
     return _hashString(4, name);
   }
@@ -1840,15 +1847,18 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   }
 
   @override
-  visitSynthetic(SyntheticConstantValue constant, [_]) {
+  int visitSynthetic(SyntheticConstantValue constant, [_]) {
     switch (constant.kind) {
       case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
-        return constant.payload.hashCode;
+        // These contain a deferred opaque index into metadata. There is nothing
+        // we can access that is stable between compiles.  Luckily, since they
+        // resolve to integer indexes, they're always part of a larger constant.
+        return 0;
       default:
         compiler.internalError(NO_LOCATION_SPANNABLE,
                                'SyntheticConstantValue should never be named and '
                                'never be subconstant');
-        return null;
+        return 0;
     }
   }
 
