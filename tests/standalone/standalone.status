@@ -108,6 +108,9 @@ precompilation_test: Skip # VM only test.
 [ $runtime == vm && $arch == ia32]
 precompilation_test: Skip # Not expected to pass on ia32.
 
+[ $runtime == vm && $arch == arm]
+precompilation_test: Skip # Issue 24427
+
 [ $compiler == dart2js && $jscl ]
 assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.
 deoptimization_test: RuntimeError, OK # Requires bigint.
