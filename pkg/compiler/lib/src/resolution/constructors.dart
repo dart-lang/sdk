@@ -168,8 +168,8 @@ class InitializerResolver {
     ClassElement lookupTarget = targetType.element;
     Selector constructorSelector =
         visitor.getRedirectingThisOrSuperConstructorSelector(call);
-    FunctionElement calledConstructor =
-        lookupTarget.lookupConstructor(constructorSelector.name);
+    ConstructorElement calledConstructor = findConstructor(
+        constructor.library, lookupTarget, constructorSelector.name);
 
     final bool isImplicitSuperCall = false;
     final String className = lookupTarget.name;
@@ -215,7 +215,9 @@ class InitializerResolver {
           getSuperOrThisLookupTarget(functionNode, isSuperCall: true);
       ClassElement lookupTarget = targetType.element;
       Selector constructorSelector = new Selector.callDefaultConstructor();
-      Element calledConstructor = lookupTarget.lookupConstructor(
+      ConstructorElement calledConstructor = findConstructor(
+          constructor.library,
+          lookupTarget,
           constructorSelector.name);
 
       final String className = lookupTarget.name;
@@ -464,12 +466,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       String constructorName) {
     ClassElement cls = type.element;
     cls.ensureResolved(compiler);
-    ConstructorElement constructor = cls.lookupConstructor(constructorName);
-    // TODO(johnniwinther): Use [Name] for lookup.
-    if (Name.isPrivateName(constructorName) &&
-        resolver.enclosingElement.library != cls.library) {
-      constructor = null;
-    }
+    ConstructorElement constructor = findConstructor(
+        resolver.enclosingElement.library, cls, constructorName);
     if (constructor == null) {
       String fullConstructorName =
           Elements.constructorNameForDiagnostics(cls.name, constructorName);
@@ -727,4 +725,24 @@ class ConstructorResult {
     sb.write(')');
     return sb.toString();
   }
+}
+
+/// Lookup the [constructorName] constructor in [cls] and normalize the result
+/// with respect to privacy and patching.
+ConstructorElement findConstructor(
+    LibraryElement currentLibrary,
+    ClassElement cls,
+    String constructorName) {
+  if (Name.isPrivateName(constructorName) &&
+      currentLibrary.library != cls.library) {
+    // TODO(johnniwinther): Report a special error on unaccessible private
+    // constructors.
+    return null;
+  }
+  // TODO(johnniwinther): Use [Name] for lookup.
+  ConstructorElement constructor = cls.lookupConstructor(constructorName);
+  if (constructor != null) {
+    constructor = constructor.declaration;
+  }
+  return constructor;
 }
