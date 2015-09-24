@@ -845,7 +845,6 @@ class Primitives {
   /// Returns the type of [object] as a string (including type arguments).
   ///
   /// In minified mode, uses the unminified names if available.
-  @NoInline()
   static String objectTypeName(Object object) {
     return formatType(_objectRawTypeName(object), getRuntimeTypeInfo(object));
   }
@@ -868,8 +867,9 @@ class Primitives {
     }
 
     if (name == null ||
-        identical(interceptor, JS_INTERCEPTOR_CONSTANT(Interceptor)) ||
-        object is UnknownJavaScriptObject) {
+        identical(interceptor,
+            JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject)) ||
+        identical(interceptor, JS_INTERCEPTOR_CONSTANT(Interceptor))) {
       // Try to do better.  If we do not find something better, leave the name
       // as 'UnknownJavaScriptObject' or 'Interceptor' (or the minified name).
       //
@@ -885,6 +885,7 @@ class Primitives {
       // Try the [constructorNameFallback]. This gets the constructor name for
       // any browser (used by [getNativeInterceptor]).
       String dispatchName = constructorNameFallback(object);
+      if (name == null) name = dispatchName;
       if (dispatchName == 'Object') {
         // Try to decompile the constructor by turning it into a string and get
         // the name out of that. If the decompiled name is a string containing
@@ -899,15 +900,10 @@ class Primitives {
             name = decompiledName;
           }
         }
-        if (name == null) name = dispatchName;
       } else {
         name = dispatchName;
       }
     }
-
-    // Type inference does not understand that [name] is now always a non-null
-    // String. (There is some imprecision in the negation of the disjunction.)
-    name = JS('String', '#', name);
 
     // TODO(kasperl): If the namer gave us a fresh global name, we may
     // want to remove the numeric suffix that makes it unique too.
