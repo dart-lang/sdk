@@ -253,6 +253,11 @@ async_await_test/02: Crash # (switch (v){label:ca...  continue to a labeled swit
 async_await_test/03: Crash # (switch (v){label:ca...  continue to a labeled switch case
 async_await_test/none: Crash # (switch (v){label:ca...  continue to a labeled switch case
 async_or_generator_return_type_stacktrace_test/02: Crash # (void badReturnTypeAsyncStar()async*{}): cannot handle sync*/async* functions
+async_return_types_test/nestedFuture: Crash #  cannot handle sync*/async* functions
+async_return_types_test/none: Crash # cannot handle sync*/async* functions
+async_return_types_test/tooManyTypeParameters: Crash # cannot handle sync*/async* functions
+async_return_types_test/wrongReturnType: Crash # cannot handle sync*/async* functions
+async_return_types_test/wrongTypeParameter: Crash # cannot handle sync*/async* functions
 async_star_await_pauses_test: Crash # (await for(var i in ...  await for
 async_star_cancel_and_throw_in_finally_test: Crash # (foo()async*{try {in...  cannot handle sync*/async* functions
 async_star_cancel_while_paused_test: Crash # (f()async*{list.add(...  cannot handle sync*/async* functions
