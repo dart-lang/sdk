@@ -41,15 +41,53 @@ main() {
       expect(options.length, equals(0));
     });
   });
+  group('AnalysisOptionsProvider', () {
+    setUp(() {
+      buildResourceProvider(true);
+    });
+    tearDown(() {
+      clearResourceProvider();
+    });
+    test('test_empty', () {
+      var optionsProvider = new AnalysisOptionsProvider();
+      Map<String, YamlNode> options =
+          optionsProvider.getOptions(resourceProvider.getFolder('/'));
+    });
+  });
+  group('AnalysisOptionsProvider', () {
+    setUp(() {
+      buildResourceProvider(false, true);
+    });
+    tearDown(() {
+      clearResourceProvider();
+    });
+    test('test_invalid', () {
+      var optionsProvider = new AnalysisOptionsProvider();
+      bool exceptionCaught = false;
+      try {
+        Map<String, YamlNode> options =
+            optionsProvider.getOptions(resourceProvider.getFolder('/'));
+      } catch (e, st) {
+        exceptionCaught = true;
+      }
+      expect(exceptionCaught, isTrue);
+    });
+  });
 }
 
 MemoryResourceProvider resourceProvider;
 
-buildResourceProvider() {
+buildResourceProvider([bool emptyAnalysisOptions = false,
+                       bool badAnalysisOptions = false]) {
   resourceProvider = new MemoryResourceProvider();
   resourceProvider.newFolder('/empty');
   resourceProvider.newFolder('/tmp');
-  resourceProvider.newFile(
+  if (badAnalysisOptions) {
+    resourceProvider.newFile('/.analysis_options', r''':''');
+  } else if (emptyAnalysisOptions) {
+    resourceProvider.newFile('/.analysis_options', r'''''');
+  } else {
+    resourceProvider.newFile(
       '/.analysis_options',
       r'''
 analyzer:
@@ -57,6 +95,7 @@ analyzer:
     - ignoreme.dart
     - 'sdk_ext/**'
 ''');
+  }
 }
 
 clearResourceProvider() {

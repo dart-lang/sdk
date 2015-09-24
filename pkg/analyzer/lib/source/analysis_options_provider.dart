@@ -35,9 +35,11 @@ class AnalysisOptionsProvider {
       return options;
     }
     var doc = loadYaml(optionsSource);
-    if (doc is! YamlMap) {
+    if ((doc != null) && (doc is! YamlMap)) {
       throw new Exception(
-          'Bad options file format (expected map, got ${doc.runtimeType})');
+          'Bad options file format (expected map, got ${doc.runtimeType})\n'
+          'contents of options file:\n'
+          '$optionsSource\n');
     }
     if (doc is YamlMap) {
       doc.forEach((k, v) {
