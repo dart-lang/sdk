@@ -208,7 +208,6 @@ css_test/supportsPointConversions: Fail # Issues 21710
 css_test/functional: Fail # Issues 21710
 
 [ $runtime == ie11 ]
-node_validator_important_if_you_suppress_make_the_bug_critical_test/dom_clobbering: RuntimeError # Issue 24387
 custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
 canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
 worker_test/functional: Pass, Fail # Issues 20659.
@@ -351,7 +350,6 @@ speechrecognition_test/supported: Fail
 websql_test/supported: Fail
 
 [  $compiler == dart2js && $runtime == ff ]
-node_validator_important_if_you_suppress_make_the_bug_critical_test/DOM_sanitization: RuntimeError # Issue 24384
 history_test/history: Skip # Issue 22050
 xhr_test/xhr: Pass, Fail # Issue 11602
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR

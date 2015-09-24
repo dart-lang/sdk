@@ -14778,11 +14778,11 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
     return false;
   }
 
-  String get _safeTagName {
+  static String _safeTagName(element) {
     String result = 'element tag unavailable';
     try {
-      if (tagName is String) {
-        result = tagName;
+      if (element.tagName is String) {
+        result = element.tagName;
       }
     } catch (e) {}
     return result;
@@ -44823,11 +44823,11 @@ class _Html5NodeValidator implements NodeValidator {
   }
 
   bool allowsElement(Element element) {
-    return _allowedElements.contains(element._safeTagName);
+    return _allowedElements.contains(Element._safeTagName(element));
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
-    var tagName = element._safeTagName;
+    var tagName = Element._safeTagName(element);
     var validator = _attributeValidators['$tagName::$attributeName'];
     if (validator == null) {
       validator = _attributeValidators['*::$attributeName'];
@@ -46489,11 +46489,11 @@ class _SimpleNodeValidator implements NodeValidator {
   }
 
   bool allowsElement(Element element) {
-    return allowedElements.contains(element._safeTagName);
+    return allowedElements.contains(Element._safeTagName(element));
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
-    var tagName = element._safeTagName;
+    var tagName = Element._safeTagName(element);
     if (allowedUriAttributes.contains('$tagName::$attributeName')) {
       return uriPolicy.allowsUri(value);
     } else if (allowedUriAttributes.contains('*::$attributeName')) {
@@ -46534,10 +46534,10 @@ class _CustomElementNodeValidator extends _SimpleNodeValidator {
       var isAttr = element.attributes['is'];
       if (isAttr != null) {
         return allowedElements.contains(isAttr.toUpperCase()) &&
-          allowedElements.contains(element._safeTagName);
+            allowedElements.contains(Element._safeTagName(element));
       }
     }
-    return allowCustomTag && allowedElements.contains(element._safeTagName);
+    return allowCustomTag && allowedElements.contains(Element._safeTagName(element));
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
@@ -46593,7 +46593,7 @@ class _SvgNodeValidator implements NodeValidator {
     // foreignobject tag as SvgElement. We don't want foreignobject contents
     // anyway, so just remove the whole tree outright. And we can't rely
     // on IE recognizing the SvgForeignObject type, so go by tagName. Bug 23144
-    if (element is svg.SvgElement && element._safeTagName == 'foreignObject') {
+    if (element is svg.SvgElement && Element._safeTagName(element) == 'foreignObject') {
       return false;
     }
     if (element is svg.SvgElement) {
@@ -46776,14 +46776,14 @@ class _ThrowsNodeValidator implements NodeValidator {
 
   bool allowsElement(Element element) {
     if (!validator.allowsElement(element)) {
-      throw new ArgumentError(element._safeTagName);
+      throw new ArgumentError(Element._safeTagName(element));
     }
     return true;
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
     if (!validator.allowsAttribute(element, attributeName, value)) {
-      throw new ArgumentError('${element._safeTagName}[$attributeName="$value"]');
+      throw new ArgumentError('${Element._safeTagName(element)}[$attributeName="$value"]');
     }
   }
 }
@@ -46825,7 +46825,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   }
 
   /// Sanitize the element, assuming we can't trust anything about it.
-  void _sanitizeUntrustedElement(Element element, Node parent) {
+  void _sanitizeUntrustedElement(/* Element */ element, Node parent) {
     // If the _hasCorruptedAttributes does not successfully return false,
     // then we consider it corrupted and remove.
     // TODO(alanknight): This is a workaround because on Firefox
@@ -46834,7 +46834,9 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     // can't call methods. This does mean that you can't explicitly allow an
     // embed tag. The only thing that will let it through is a null
     // sanitizer that doesn't traverse the tree at all. But sanitizing while
-    // allowing embeds seems quite unlikely.
+    // allowing embeds seems quite unlikely. This is also the reason that we
+    // can't declare the type of element, as an embed won't pass any type
+    // check in dart2js.
     var corrupted = true;
     var attrs;
     var isAttr;
@@ -46842,15 +46844,27 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       // If getting/indexing attributes throws, count that as corrupt.
       attrs = element.attributes;
       isAttr = attrs['is'];
-      corrupted = Element._hasCorruptedAttributes(element);
+      // On IE, erratically, the hasCorruptedAttributes test can return false,
+      // even though it clearly is corrupted. A separate copy of the test
+      // inlining just the basic check seems to help.
+      var corruptedTest1 = Element._hasCorruptedAttributes(element);
+      var corruptedTest2 = JS('bool', r'!(#.attributes instanceof NamedNodeMap)', element);
+      corrupted = corruptedTest1 || corruptedTest2;
     } catch(e) {}
-     var elementText = 'element unprintable';
+    var elementText = 'element unprintable';
     try {
       elementText = element.toString();
     } catch(e) {}
-    var elementTagName = element._safeTagName;
-    _sanitizeElement(element, parent, corrupted, elementText, elementTagName,
-        attrs, isAttr);
+    try {
+      var elementTagName = Element._safeTagName(element);
+      _sanitizeElement(element, parent, corrupted, elementText, elementTagName,
+          attrs, isAttr);
+    } on ArgumentError { // Thrown by _ThrowsNodeValidator
+      rethrow;
+    } catch(e) {  // Unexpected exception sanitizing -> remove
+      _removeNode(element, parent);
+      window.console.warn('Removing corrupted element $elementText');
+    }
   }
 
   /// Having done basic sanity checking on the element, and computed the
@@ -46859,23 +46873,23 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   void _sanitizeElement(Element element, Node parent, bool corrupted,
       String text, String tag, Map attrs, String isAttr) {
     if (false != corrupted) {
+       _removeNode(element, parent);
       window.console.warn(
           'Removing element due to corrupted attributes on <$text>');
-       _removeNode(element, parent);
        return;
     }
     if (!validator.allowsElement(element)) {
-      window.console.warn(
-          'Removing disallowed element <$tag>');
       _removeNode(element, parent);
+      window.console.warn(
+          'Removing disallowed element <$tag> from $parent');
       return;
     }
 
     if (isAttr != null) {
       if (!validator.allowsAttribute(element, 'is', isAttr)) {
+        _removeNode(element, parent);
         window.console.warn('Removing disallowed type extension '
             '<$tag is="$isAttr">');
-        _removeNode(element, parent);
         return;
       }
     }
