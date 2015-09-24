@@ -10,7 +10,7 @@
 namespace dart {
 
 ThreadRegistry::~ThreadRegistry() {
-  CloseAllTimelineBlocks();
+  ReclaimTimelineBlocks();
   // Delete monitor.
   delete monitor_;
 }
@@ -70,10 +70,9 @@ void ThreadRegistry::PruneThread(Thread* thread) {
   {
     TimelineEventRecorder* recorder = Timeline::recorder();
     if (recorder != NULL) {
-      MutexLocker recorder_lock(&recorder->lock_);
       // Cleanup entry.
       Entry& entry_to_remove = entries_[found_index];
-      CloseTimelineBlockLocked(&entry_to_remove);
+      ReclaimTimelineBlockLocked(&entry_to_remove);
     }
   }
   if (found_index != (length - 1)) {
@@ -84,27 +83,37 @@ void ThreadRegistry::PruneThread(Thread* thread) {
 }
 
 
-void ThreadRegistry::CloseAllTimelineBlocks() {
+void ThreadRegistry::ReclaimTimelineBlocks() {
   // Each thread that is scheduled in this isolate may have a cached timeline
   // block. Mark these timeline blocks as finished.
   MonitorLocker ml(monitor_);
   TimelineEventRecorder* recorder = Timeline::recorder();
   if (recorder != NULL) {
-    MutexLocker recorder_lock(&recorder->lock_);
     for (intptr_t i = 0; i < entries_.length(); i++) {
       // NOTE: It is only safe to access |entry.state| here.
       Entry& entry = entries_[i];
-      CloseTimelineBlockLocked(&entry);
+      ReclaimTimelineBlockLocked(&entry);
     }
   }
 }
 
 
-void ThreadRegistry::CloseTimelineBlockLocked(Entry* entry) {
-  if ((entry != NULL) && !entry->scheduled &&
-      (entry->state.timeline_block != NULL)) {
-    entry->state.timeline_block->Finish();
+void ThreadRegistry::ReclaimTimelineBlockLocked(Entry* entry) {
+  if (entry == NULL) {
+    return;
+  }
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  if (!entry->scheduled && (entry->state.timeline_block != NULL)) {
+    // Currently unscheduled thread.
+    recorder->FinishBlock(entry->state.timeline_block);
     entry->state.timeline_block = NULL;
+  } else if (entry->scheduled) {
+    // Currently scheduled thread.
+    Thread* thread = entry->thread;
+    // Take |Thread| lock.
+    MutexLocker thread_lock(thread->timeline_block_lock());
+    recorder->FinishBlock(thread->timeline_block());
+    thread->set_timeline_block(NULL);
   }
 }
 

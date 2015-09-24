@@ -26,6 +26,64 @@ DEFINE_FLAG(charp, timeline_dir, NULL,
             "Enable all timeline trace streams and output VM global trace "
             "into specified directory.");
 
+// Implementation notes:
+//
+// Writing events:
+// |TimelineEvent|s are written into |TimelineEventBlock|s. Each |Thread| caches
+// a |TimelineEventBlock| in TLS so that it can write events without
+// synchronizing with other threads in the system. Even though the |Thread| owns
+// the |TimelineEventBlock| the block may need to be reclaimed by the reporting
+// system. To support that, a |Thread| must hold its |timeline_block_lock_|
+// when operating on the |TimelineEventBlock|. This lock will only ever be
+// busy if blocks are being reclaimed by the reporting system.
+//
+// Reporting:
+// When requested, the timeline is serialized in the trace-event format
+// (https://goo.gl/hDZw5M). The request can be for a VM-wide timeline or an
+// isolate specific timeline. In both cases it may be that a thread has
+// a |TimelineEventBlock| cached in TLS. In order to report a complete timeline
+// the cached |TimelineEventBlock|s need to be reclaimed.
+//
+// Reclaiming open |TimelineEventBlock|s for an isolate:
+//
+// Cached |TimelineEventBlock|s can be in two places:
+// 1) In a |Thread| (Thread currently in an |Isolate|)
+// 2) In a |Thread::State| (Thread not currently in an |Isolate|).
+//
+// As a |Thread| enters and exits an |Isolate|, a |TimelineEventBlock|
+// will move between (1) and (2).
+//
+// The first case occurs for |Thread|s that are currently running inside an
+// isolate. The second case occurs for |Thread|s that are not currently
+// running inside an isolate.
+//
+// To reclaim the first case, we take the |Thread|'s |timeline_block_lock_|
+// and reclaim the cached block.
+//
+// To reclaim the second case, we can take the |ThreadRegistry| lock and
+// reclaim these blocks.
+//
+// |Timeline::ReclaimIsolateBlocks| and |Timeline::ReclaimAllBlocks| are
+// the two utility methods used to reclaim blocks before reporting.
+//
+// Locking notes:
+// The following locks are used by the timeline system:
+// - |TimelineEventRecorder::lock_| This lock is held whenever a
+// |TimelineEventBlock| is being requested or reclaimed.
+// - |Thread::timeline_block_lock_| This lock is held whenever a |Thread|'s
+// cached block is being operated on.
+// - |ThreadRegistry::monitor_| This lock protects the cached block for
+// unscheduled threads of an isolate.
+// - |Isolate::isolates_list_monitor_| This lock protects the list of
+// isolates in the system.
+//
+// Locks must always be taken in the following order:
+// |Isolate::isolates_list_monitor_|
+//   |ThreadRegistry::monitor_|
+//     |Thread::timeline_block_lock_|
+//       |TimelineEventRecorder::lock_|
+//
+
 void Timeline::InitOnce() {
   ASSERT(recorder_ == NULL);
   // Default to ring recorder being enabled.
@@ -74,6 +132,44 @@ bool Timeline::EnableStreamByDefault(const char* stream_name) {
 TimelineStream* Timeline::GetVMStream() {
   ASSERT(vm_stream_ != NULL);
   return vm_stream_;
+}
+
+
+void Timeline::ReclaimIsolateBlocks() {
+  ReclaimBlocksForIsolate(Isolate::Current());
+}
+
+
+class ReclaimBlocksIsolateVisitor : public IsolateVisitor {
+ public:
+  ReclaimBlocksIsolateVisitor() {}
+
+  virtual void VisitIsolate(Isolate* isolate) {
+    Timeline::ReclaimBlocksForIsolate(isolate);
+  }
+
+ private:
+};
+
+
+void Timeline::ReclaimAllBlocks() {
+  if (recorder() == NULL) {
+    return;
+  }
+  // Reclaim all blocks cached for all isolates.
+  ReclaimBlocksIsolateVisitor visitor;
+  Isolate::VisitIsolates(&visitor);
+  // Reclaim the global VM block.
+  recorder()->ReclaimGlobalBlock();
+}
+
+
+void Timeline::ReclaimBlocksForIsolate(Isolate* isolate) {
+  if (recorder() == NULL) {
+    return;
+  }
+  ASSERT(isolate != NULL);
+  isolate->ReclaimTimelineBlocks();
 }
 
 
@@ -394,9 +490,11 @@ void TimelineEventRecorder::PrintJSONMeta(JSONArray* events) const {
 
 
 TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
-  // Grab the thread's timeline event block.
+  // Grab the current thread.
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);
+  // We are accessing the thread's timeline block- so take the lock.
+  MutexLocker ml(thread->timeline_block_lock());
 
   if (thread->isolate() == NULL) {
     // Non-isolate thread case. This should be infrequent.
@@ -460,7 +558,7 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
     return;
   }
 
-  FinishGlobalBlock();
+  Timeline::ReclaimAllBlocks();
 
   JSONStream js;
   TimelineEventFilter filter;
@@ -481,7 +579,7 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
 }
 
 
-void TimelineEventRecorder::FinishGlobalBlock() {
+void TimelineEventRecorder::ReclaimGlobalBlock() {
   MutexLocker ml(&lock_);
   if (global_block_ != NULL) {
     global_block_->Finish();
@@ -495,6 +593,15 @@ int64_t TimelineEventRecorder::GetNextAsyncId() {
   uint32_t next = static_cast<uint32_t>(
       AtomicOperations::FetchAndIncrement(&async_id_));
   return static_cast<int64_t>(next);
+}
+
+
+void TimelineEventRecorder::FinishBlock(TimelineEventBlock* block) {
+  if (block == NULL) {
+    return;
+  }
+  MutexLocker ml(&lock_);
+  block->Finish();
 }
 
 
@@ -744,7 +851,9 @@ void TimelineEventEndlessRecorder::Clear() {
 TimelineEventBlock::TimelineEventBlock(intptr_t block_index)
     : next_(NULL),
       length_(0),
-      block_index_(block_index) {
+      block_index_(block_index),
+      isolate_(NULL),
+      in_use_(false) {
 }
 
 
@@ -808,13 +917,13 @@ void TimelineEventBlock::Reset() {
   }
   length_ = 0;
   isolate_ = NULL;
-  open_ = false;
+  in_use_ = false;
 }
 
 
 void TimelineEventBlock::Open(Isolate* isolate) {
   isolate_ = isolate;
-  open_ = true;
+  in_use_ = true;
 }
 
 
@@ -822,7 +931,7 @@ void TimelineEventBlock::Finish() {
   if (FLAG_trace_timeline) {
     OS::Print("Finish block %p\n", this);
   }
-  open_ = false;
+  in_use_ = false;
 }
 
 

@@ -799,8 +799,7 @@ class Isolate : public BaseIsolate {
 
   void LowLevelShutdown();
   void Shutdown();
-  // Assumes mutator is the only thread still in the isolate.
-  void CloseAllTimelineBlocks();
+  void ReclaimTimelineBlocks();
 
   void BuildName(const char* name_prefix);
   void PrintInvokedFunctions();
@@ -1006,6 +1005,7 @@ REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
   friend class Scavenger;  // VisitObjectPointers
   friend class ServiceIsolate;
   friend class Thread;
+  friend class Timeline;
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };

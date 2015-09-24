@@ -9300,6 +9300,7 @@ TEST_CASE(Timeline_Dart_TimelineDuration) {
   Dart_TimelineDuration("testDurationEvent", 0, 1);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
+  Timeline::ReclaimIsolateBlocks();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate);
   recorder->PrintJSON(&js, &filter);
@@ -9316,6 +9317,7 @@ TEST_CASE(Timeline_Dart_TimelineInstant) {
   Dart_TimelineInstant("testInstantEvent");
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
+  Timeline::ReclaimIsolateBlocks();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate);
   recorder->PrintJSON(&js, &filter);
@@ -9337,6 +9339,7 @@ TEST_CASE(Timeline_Dart_TimelineAsyncDisabled) {
   Dart_TimelineAsyncEnd("testAsyncEvent", async_id);
   // Check that testAsync is not in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
+  Timeline::ReclaimIsolateBlocks();
   JSONStream js;
   TimelineEventFilter filter;
   recorder->PrintJSON(&js, &filter);
@@ -9359,6 +9362,7 @@ TEST_CASE(Timeline_Dart_TimelineAsync) {
 
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
+  Timeline::ReclaimIsolateBlocks();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate);
   recorder->PrintJSON(&js, &filter);
@@ -9484,40 +9488,35 @@ TEST_CASE(Timeline_Dart_TimelineGetTraceGlobalOverride) {
 }
 
 
-UNIT_TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
-  const char* buffer = NULL;
-  intptr_t buffer_length = 0;
-  bool success = false;
+TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
+  const char* kScriptChars =
+    "bar() => 'z';\n"
+    "foo() => 'a';\n"
+    "main() => foo();\n";
 
   // Enable all streams.
   Dart_GlobalTimelineSetRecordedStreams(DART_TIMELINE_STREAM_ALL |
                                         DART_TIMELINE_STREAM_VM);
+  Dart_Handle lib;
   {
-    // Create isolate.
-    TestIsolateScope __test_isolate__;
-    Thread* __thread__ = Thread::Current();
-    ASSERT(__thread__->isolate() == __test_isolate__.isolate());
-    StackZone __zone__(__thread__);
-    HandleScope __hs__(__thread__);
-
-    // Load test script.
-    const char* kScriptChars =
-      "foo() => 'a';\n"
-      "main() => foo();\n";
-
-    Dart_Handle lib =
-        TestCase::LoadTestScript(kScriptChars, NULL);
-
-    // Invoke main, which will be compiled resulting in a compiler event in
-    // the timeline.
-    Dart_Handle result = Dart_Invoke(lib,
-                                     NewString("main"),
-                                     0,
-                                     NULL);
-    EXPECT_VALID(result);
+    // Add something to the VM stream.
+    TimelineDurationScope tds(Timeline::GetVMStream(),
+                              "TestVMDuration");
+    lib = TestCase::LoadTestScript(kScriptChars, NULL);
   }
 
-  // Isolate is shutdown now.
+  // Invoke main, which will be compiled resulting in a compiler event in
+  // the timeline.
+  Dart_Handle result = Dart_Invoke(lib,
+                                   NewString("main"),
+                                   0,
+                                   NULL);
+  EXPECT_VALID(result);
+
+  const char* buffer = NULL;
+  intptr_t buffer_length = 0;
+  bool success = false;
+
   // Grab the global trace.
   AppendData data;
   success = Dart_GlobalTimelineGetTrace(AppendStreamConsumer, &data);
@@ -9528,10 +9527,49 @@ UNIT_TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
   EXPECT(buffer != NULL);
 
   // Heartbeat test.
-  EXPECT_SUBSTRING("\"name\":\"InitializeIsolate\"", buffer);
+  EXPECT_SUBSTRING("\"name\":\"TestVMDuration\"", buffer);
   EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
   EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
   EXPECT_SUBSTRING("\"function\":\"::_main\"", buffer);
+  EXPECT_NOTSUBSTRING("\"function\":\"::_bar\"", buffer);
+
+  // Free buffer allocated by AppendStreamConsumer
+  free(data.buffer);
+  data.buffer = NULL;
+  data.buffer_length = 0;
+
+  // Retrieving the global trace resulted in all open blocks being reclaimed.
+  // Add some new events and verify that both sets of events are present
+  // in the resulting trace.
+  {
+    // Add something to the VM stream.
+    TimelineDurationScope tds(Timeline::GetVMStream(),
+                              "TestVMDuration2");
+    // Invoke bar, which will be compiled resulting in a compiler event in
+    // the timeline.
+    result = Dart_Invoke(lib,
+                         NewString("bar"),
+                         0,
+                         NULL);
+  }
+
+  // Grab the global trace.
+  success = Dart_GlobalTimelineGetTrace(AppendStreamConsumer, &data);
+  EXPECT(success);
+  buffer = reinterpret_cast<char*>(data.buffer);
+  buffer_length = data.buffer_length;
+  EXPECT(buffer_length > 0);
+  EXPECT(buffer != NULL);
+
+  // Heartbeat test for old events.
+  EXPECT_SUBSTRING("\"name\":\"TestVMDuration\"", buffer);
+  EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
+  EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
+  EXPECT_SUBSTRING("\"function\":\"::_main\"", buffer);
+
+  // Heartbeat test for new events.
+  EXPECT_SUBSTRING("\"name\":\"TestVMDuration2\"", buffer);
+  EXPECT_SUBSTRING("\"function\":\"::_bar\"", buffer);
 
   // Free buffer allocated by AppendStreamConsumer
   free(data.buffer);

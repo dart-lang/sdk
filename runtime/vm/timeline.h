@@ -45,6 +45,13 @@ class Timeline : public AllStatic {
 
   static TimelineStream* GetVMStream();
 
+  // Reclaim all |TimelineEventBlock|s that are owned by the current isolate.
+  static void ReclaimIsolateBlocks();
+
+  // Reclaim all |TimelineEventBlocks|s that are owned by all isolates and
+  // the global block owned by the VM.
+  static void ReclaimAllBlocks();
+
 #define ISOLATE_TIMELINE_STREAM_FLAGS(name, not_used)                          \
   static const bool* Stream##name##EnabledFlag() {                             \
     return &stream_##name##_enabled_;                                          \
@@ -56,6 +63,8 @@ class Timeline : public AllStatic {
 #undef ISOLATE_TIMELINE_STREAM_FLAGS
 
  private:
+  static void ReclaimBlocksForIsolate(Isolate* isolate);
+
   static TimelineEventRecorder* recorder_;
   static TimelineStream* vm_stream_;
 
@@ -65,6 +74,7 @@ class Timeline : public AllStatic {
 #undef ISOLATE_TIMELINE_STREAM_DECLARE_FLAG
 
   friend class TimelineRecorderOverride;
+  friend class ReclaimBlocksIsolateVisitor;
 };
 
 
@@ -392,8 +402,8 @@ class TimelineEventBlock {
   void Reset();
 
   // Only safe to access under the recorder's lock.
-  bool open() const {
-    return open_;
+  bool in_use() const {
+    return in_use_;
   }
 
   // Only safe to access under the recorder's lock.
@@ -411,7 +421,7 @@ class TimelineEventBlock {
 
   // Only accessed under the recorder's lock.
   Isolate* isolate_;
-  bool open_;
+  bool in_use_;
 
   void Open(Isolate* isolate);
   void Finish();
@@ -437,8 +447,8 @@ class TimelineEventFilter : public ValueObject {
     if (block == NULL) {
       return false;
     }
-    // Not empty and not open.
-    return !block->IsEmpty() && !block->open();
+    // Not empty and not in use.
+    return !block->IsEmpty() && !block->in_use();
   }
 
   virtual bool IncludeEvent(TimelineEvent* event) {
@@ -460,8 +470,8 @@ class IsolateTimelineEventFilter : public TimelineEventFilter {
     if (block == NULL) {
       return false;
     }
-    // Not empty, not open, and isolate match.
-    return !block->IsEmpty() &&
+    // Not empty, not in use, and isolate match.
+    return !block->IsEmpty() && !block->in_use() &&
            (block->isolate() == isolate_);
   }
 
@@ -483,6 +493,8 @@ class TimelineEventRecorder {
 
   int64_t GetNextAsyncId();
 
+  void FinishBlock(TimelineEventBlock* block);
+
  protected:
   void WriteTo(const char* directory);
 
@@ -500,17 +512,15 @@ class TimelineEventRecorder {
   Mutex lock_;
   // Only accessed under |lock_|.
   TimelineEventBlock* global_block_;
-  void FinishGlobalBlock();
+  void ReclaimGlobalBlock();
 
   uintptr_t async_id_;
 
-  friend class ThreadRegistry;
   friend class TimelineEvent;
   friend class TimelineEventBlockIterator;
   friend class TimelineStream;
   friend class TimelineTestHelper;
   friend class Timeline;
-  friend class Isolate;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TimelineEventRecorder);

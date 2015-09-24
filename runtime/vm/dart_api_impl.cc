@@ -5764,15 +5764,11 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
     // Nothing has been recorded.
     return false;
   }
-  // Suspend execution of other threads while serializing to JSON.
-  isolate->thread_registry()->SafepointThreads();
-  // TODO(johnmccutchan): Reclaim open blocks from isolate so we have a complete
-  // timeline.
+  // Reclaim all blocks cached by isolate.
+  Timeline::ReclaimIsolateBlocks();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate);
   timeline_recorder->PrintJSON(&js, &filter);
-  // Resume execution of other threads.
-  isolate->thread_registry()->ResumeAllThreads();
 
   // Copy output.
   char* output = NULL;
@@ -5801,8 +5797,8 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
     return false;
   }
 
-  // TODO(johnmccutchan): Reclaim all open blocks from the system so we have
-  // a complete timeline.
+  // Reclaim all blocks cached in the system.
+  Timeline::ReclaimAllBlocks();
   JSONStream js;
   TimelineEventFilter filter;
   timeline_recorder->PrintJSON(&js, &filter);

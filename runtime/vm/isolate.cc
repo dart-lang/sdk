@@ -1600,8 +1600,8 @@ void Isolate::LowLevelShutdown() {
   // Dump all accumulated timer data for the isolate.
   timer_list_.ReportTimers();
 
-  // Before analyzing the isolate's timeline blocks- close all of them.
-  CloseAllTimelineBlocks();
+  // Before analyzing the isolate's timeline blocks- reclaim all cached blocks.
+  ReclaimTimelineBlocks();
 
   // Dump all timing data for the isolate.
   if (FLAG_timing) {
@@ -1701,14 +1701,12 @@ void Isolate::Shutdown() {
 }
 
 
-void Isolate::CloseAllTimelineBlocks() {
-  // Close all blocks
-  thread_registry_->CloseAllTimelineBlocks();
+void Isolate::ReclaimTimelineBlocks() {
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder != NULL) {
-    MutexLocker ml(&recorder->lock_);
-    Thread::Current()->CloseTimelineBlock();
+  if (recorder == NULL) {
+    return;
   }
+  thread_registry_->ReclaimTimelineBlocks();
 }
 
 
