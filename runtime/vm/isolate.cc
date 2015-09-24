@@ -283,7 +283,8 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
       }
       break;
     }
-    case Isolate::kKillMsg: {
+    case Isolate::kKillMsg:
+    case Isolate::kInternalKillMsg: {
       // [ OOB, kKillMsg, terminate capability, priority ]
       if (message.Length() != 4) return Error::null();
       Object& obj = Object::Handle(I, message.At(3));
@@ -293,9 +294,22 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
         obj = message.At(2);
         // Signal that the isolate should stop execution.
         if (I->VerifyTerminateCapability(obj)) {
-          const String& msg = String::Handle(String::New(
-              "isolate terminated by Isolate.kill"));
-          return UnwindError::New(msg);
+          if (msg_type == Isolate::kKillMsg) {
+            const String& msg = String::Handle(String::New(
+                "isolate terminated by Isolate.kill"));
+            const UnwindError& error =
+                UnwindError::Handle(UnwindError::New(msg));
+            error.set_is_user_initiated(true);
+            return error.raw();
+          } else {
+            // TODO(turnidge): We should give the message handler a way
+            // to detect when an isolate is unwinding.
+            I->message_handler()->set_pause_on_start(false);
+            I->message_handler()->set_pause_on_exit(false);
+            const String& msg = String::Handle(String::New(
+                "isolate terminated by vm"));
+            return UnwindError::New(msg);
+          }
         } else {
           return Error::null();
         }
@@ -1416,8 +1430,7 @@ static void ShutdownIsolate(uword parameter) {
     ASSERT(thread->isolate() == isolate);
     StackZone zone(thread);
     HandleScope handle_scope(thread);
-    Error& error = Error::Handle();
-    error = isolate->object_store()->sticky_error();
+    const Error& error = Error::Handle(isolate->object_store()->sticky_error());
     if (!error.IsNull() && !error.IsUnwindError()) {
       OS::PrintErr("in ShutdownIsolate: %s\n", error.ToErrorCString());
     }
@@ -1470,13 +1483,10 @@ RawError* Isolate::HandleInterrupts() {
         OS::Print("[!] Terminating isolate due to OOB message:\n"
                   "\tisolate:    %s\n", name());
       }
-      // TODO(turnidge): If the isolate is being killed by
-      // Isolate.kill, then we probably want to respect pause_on_exit.
-      // If the isolate is being killed due to vm restart we don't.
-      message_handler()->set_pause_on_start(false);
-      message_handler()->set_pause_on_exit(false);
-      const String& msg = String::Handle(String::New("isolate terminated"));
-      return UnwindError::New(msg);
+      const Error& error = Error::Handle(object_store()->sticky_error());
+      object_store()->clear_sticky_error();
+      ASSERT(!error.IsNull());
+      return error.raw();
     }
   }
   return Error::null();
@@ -1569,10 +1579,12 @@ void Isolate::LowLevelShutdown() {
 
   // Notify exit listeners that this isolate is shutting down.
   if (object_store() != NULL) {
-    // TODO(turnidge): If the isolate is being killed by Isolate.kill,
-    // then we want to notify event listeners.  If the isolate is
-    // being killed due to vm restart we probably don't.
-    NotifyExitListeners();
+    const Error& error = Error::Handle(object_store()->sticky_error());
+    if (error.IsNull() ||
+        !error.IsUnwindError() ||
+        UnwindError::Cast(error).is_user_initiated()) {
+      NotifyExitListeners();
+    }
   }
 
   // Clean up debugger resources.
@@ -2297,10 +2309,10 @@ void Isolate::KillLocked() {
   oob.value.as_int32 = Message::kIsolateLibOOBMsg;
   list_values[0] = &oob;
 
-  Dart_CObject kill;
-  kill.type = Dart_CObject_kInt32;
-  kill.value.as_int32 = Isolate::kKillMsg;
-  list_values[1] = &kill;
+  Dart_CObject msg_type;
+  msg_type.type = Dart_CObject_kInt32;
+  msg_type.value.as_int32 = Isolate::kInternalKillMsg;
+  list_values[1] = &msg_type;
 
   Dart_CObject cap;
   cap.type = Dart_CObject_kCapability;

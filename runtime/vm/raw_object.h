@@ -1466,6 +1466,7 @@ class RawUnwindError : public RawError {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->message_);
   }
+  bool is_user_initiated_;
 };
 
 

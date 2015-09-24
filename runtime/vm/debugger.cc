@@ -15,6 +15,7 @@
 #include "vm/globals.h"
 #include "vm/longjump.h"
 #include "vm/json_stream.h"
+#include "vm/message_handler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
@@ -349,7 +350,11 @@ RawError* Debugger::SignalIsolateInterrupted() {
         OS::Print("[!] Embedder api: terminating isolate:\n"
                   "\tisolate:    %s\n", isolate_->name());
       }
-      const String& msg = String::Handle(String::New("isolate terminated"));
+      // TODO(turnidge): We should give the message handler a way to
+      // detect when an isolate is unwinding.
+      isolate_->message_handler()->set_pause_on_exit(false);
+      const String& msg =
+          String::Handle(String::New("isolate terminated by embedder"));
       return UnwindError::New(msg);
     }
   }

@@ -14226,6 +14226,7 @@ RawUnwindError* UnwindError::New(const String& message, Heap::Space space) {
                                       space);
     NoSafepointScope no_safepoint;
     result ^= raw;
+    result.StoreNonPointer(&result.raw_ptr()->is_user_initiated_, false);
   }
   result.set_message(message);
   return result.raw();
@@ -14234,6 +14235,11 @@ RawUnwindError* UnwindError::New(const String& message, Heap::Space space) {
 
 void UnwindError::set_message(const String& message) const {
   StorePointer(&raw_ptr()->message_, message.raw());
+}
+
+
+void UnwindError::set_is_user_initiated(bool value) const {
+  StoreNonPointer(&raw_ptr()->is_user_initiated_, value);
 }
 
 

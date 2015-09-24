@@ -4796,6 +4796,9 @@ class UnhandledException : public Error {
 
 class UnwindError : public Error {
  public:
+  bool is_user_initiated() const { return raw_ptr()->is_user_initiated_; }
+  void set_is_user_initiated(bool value) const;
+
   RawString* message() const { return raw_ptr()->message_; }
 
   static intptr_t InstanceSize() {
