@@ -110,6 +110,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     enterScope(element);
     try {
       _recordTopLevelElementDefinition(element);
+      _recordHasAncestor(element);
       {
         ExtendsClause extendsClause = node.extendsClause;
         if (extendsClause != null) {
@@ -154,6 +155,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     enterScope(element);
     try {
       _recordTopLevelElementDefinition(element);
+      _recordHasAncestor(element);
       {
         TypeName superclassNode = node.superclass;
         if (superclassNode != null) {
@@ -643,6 +645,40 @@ class _IndexContributor extends GeneralizingAstVisitor {
       }
     }
     return false;
+  }
+
+  void _recordHasAncestor(ClassElement element) {
+    int offset = element.nameOffset;
+    int length = element.name.length;
+    LocationImpl location = _createLocationForOffset(offset, length);
+    _recordHasAncestor0(location, element, false, <ClassElement>[]);
+  }
+
+  void _recordHasAncestor0(LocationImpl location, ClassElement element,
+      bool includeThis, List<ClassElement> visitedElements) {
+    if (element == null) {
+      return;
+    }
+    if (visitedElements.contains(element)) {
+      return;
+    }
+    visitedElements.add(element);
+    if (includeThis) {
+      recordRelationshipElement(element, IndexConstants.HAS_ANCESTOR, location);
+    }
+    {
+      InterfaceType superType = element.supertype;
+      if (superType != null) {
+        _recordHasAncestor0(location, superType.element, true, visitedElements);
+      }
+    }
+    for (InterfaceType mixinType in element.mixins) {
+      _recordHasAncestor0(location, mixinType.element, true, visitedElements);
+    }
+    for (InterfaceType implementedType in element.interfaces) {
+      _recordHasAncestor0(
+          location, implementedType.element, true, visitedElements);
+    }
   }
 
   /**

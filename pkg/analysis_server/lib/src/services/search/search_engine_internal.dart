@@ -23,6 +23,14 @@ class SearchEngineImpl implements SearchEngine {
   SearchEngineImpl(this._index);
 
   @override
+  Future<List<SearchMatch>> searchAllSubtypes(ClassElement type) {
+    _Requestor requestor = new _Requestor(_index);
+    requestor.addElement(
+        type, IndexConstants.HAS_ANCESTOR, MatchKind.DECLARATION);
+    return requestor.merge();
+  }
+
+  @override
   Future<List<SearchMatch>> searchElementDeclarations(String name) {
     IndexableName indexableName = new IndexableName(name);
     _Requestor requestor = new _Requestor(_index);

@@ -68,6 +68,13 @@ class MatchKind {
  */
 abstract class SearchEngine {
   /**
+   * Returns all subtypes of the given [type].
+   *
+   * [type] - the [ClassElement] being subtyped by the found matches.
+   */
+  Future<List<SearchMatch>> searchAllSubtypes(ClassElement type);
+
+  /**
    * Returns declarations of elements with the given name.
    *
    * [name] - the name being declared by the found matches.
@@ -97,7 +104,7 @@ abstract class SearchEngine {
   Future<List<SearchMatch>> searchReferences(Element element);
 
   /**
-   * Returns subtypes of the given [type].
+   * Returns direct subtypes of the given [type].
    *
    * [type] - the [ClassElement] being subtyped by the found matches.
    */

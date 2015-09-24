@@ -143,6 +143,14 @@ class IndexConstants {
 
   /**
    * Left: class.
+   *   Has ancestor (extended or implemented, directly or indirectly).
+   * Right: other class declaration.
+   */
+  static final RelationshipImpl HAS_ANCESTOR =
+      RelationshipImpl.getRelationship("has-ancestor");
+
+  /**
+   * Left: class.
    *   Is extended by.
    * Right: other class declaration.
    */
