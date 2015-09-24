@@ -1,3 +1,6 @@
+## 0.26.1+6
+* Provisional (internal) plugin manifest parsing.
+
 ## 0.26.1+5
 * Plugin configuration `ErrorHandler` typedef API fix.
 

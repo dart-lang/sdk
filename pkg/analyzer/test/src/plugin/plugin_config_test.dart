@@ -25,7 +25,7 @@ analyzer:
       path: '/u/disk/src/'
 ''';
         var config = parseConfig(optionsSrc);
-        var plugins = pluginsSortedByName(config);
+        var plugins = pluginsSortedByName(config.plugins);
         expect(plugins, hasLength(3));
         expect(plugins[0].name, equals('my_plugin1'));
         expect(plugins[0].version, equals('^0.1.0'));
@@ -37,6 +37,7 @@ analyzer:
         expect(plugins[2].libraryUri, equals('myplugin/myplugin.dart'));
         expect(plugins[2].className, equals('MyPlugin'));
       });
+
       test('plugin map (empty)', () {
         const optionsSrc = '''
 analyzer:
@@ -47,8 +48,38 @@ analyzer:
         // Commented out plugins shouldn't cause a parse failure.
         expect(config.plugins, hasLength(0));
       });
+
+      test('plugin manifest', () {
+        const manifestSrc = '''
+class_name: AnalyzerPlugin
+library_uri: myplugin/analyzer_plugin.dart
+contributes_to: analyzer  
+''';
+        var manifest = parsePluginManifestString(manifestSrc);
+        var plugin = manifest.plugin;
+        expect(plugin.libraryUri, equals('myplugin/analyzer_plugin.dart'));
+        expect(plugin.className, equals('AnalyzerPlugin'));
+        expect(manifest.contributesTo, unorderedEquals(['analyzer']));
+      });
+
+      test('plugin manifest (contributes_to list)', () {
+        const manifestSrc = '''
+class_name: AnalyzerPlugin
+library_uri: myplugin/analyzer_plugin.dart
+contributes_to: 
+  - analyzer
+  - analysis_server  
+''';
+        var manifest = parsePluginManifestString(manifestSrc);
+        var plugin = manifest.plugin;
+        expect(plugin.libraryUri, equals('myplugin/analyzer_plugin.dart'));
+        expect(plugin.className, equals('AnalyzerPlugin'));
+        expect(manifest.contributesTo,
+            unorderedEquals(['analyzer', 'analysis_server']));
+      });
+
       group('errors', () {
-        test('bad format', () {
+        test('bad config format', () {
           const optionsSrc = '''
 analyzer:
   plugins:
@@ -62,7 +93,23 @@ analyzer:
             expect(
                 e.message,
                 equals(
-                    'Unrecognized plugin config format (expected `YamlMap`, got `YamlList`)'));
+                    'Unrecognized plugin config format, expected `YamlMap`, got `YamlList`'));
+            expect(e.yamlNode, new isInstanceOf<YamlList>());
+          }
+        });
+        test('bad manifest format', () {
+          const manifestSource = '''
+library_uri:
+ - should be a scalar uri
+''';
+          try {
+            parsePluginManifestString(manifestSource);
+            fail('expected PluginConfigFormatException');
+          } on PluginConfigFormatException catch (e) {
+            expect(
+                e.message,
+                equals(
+                    'Unable to parse pugin manifest, expected `String`, got `YamlList`'));
             expect(e.yamlNode, new isInstanceOf<YamlList>());
           }
         });
@@ -76,5 +123,5 @@ PluginConfig parseConfig(String optionsSrc) {
   return new PluginConfig.fromOptions(options);
 }
 
-List<PluginInfo> pluginsSortedByName(PluginConfig config) =>
-    config.plugins.toList()..sort((p1, p2) => p1.name.compareTo(p2.name));
+List<PluginInfo> pluginsSortedByName(Iterable<PluginInfo> plugins) =>
+    plugins.toList()..sort((p1, p2) => p1.name.compareTo(p2.name));
