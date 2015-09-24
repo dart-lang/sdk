@@ -5705,10 +5705,23 @@ DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
 }
 
 
+// '[' + ']' + '\0'.
+#define MINIMUM_OUTPUT_LENGTH 3
+
 static void StreamToConsumer(Dart_StreamConsumer consumer,
                              void* user_data,
                              char* output,
                              intptr_t output_length) {
+  if (output == NULL) {
+    return;
+  }
+  if (output_length <= MINIMUM_OUTPUT_LENGTH) {
+    return;
+  }
+  // We expect the first character to be the opening of an array.
+  ASSERT(output[0] == '[');
+  // We expect the last character to be the closing of an array.
+  ASSERT(output[output_length - 2] == ']');
   // Start stream.
   const char* kStreamName = "timeline";
   const intptr_t kDataSize = 64 * KB;
@@ -5718,9 +5731,13 @@ static void StreamToConsumer(Dart_StreamConsumer consumer,
            0,
            user_data);
 
-  // Stream out data.
-  intptr_t cursor = 0;
-  intptr_t remaining = output_length;
+  // Stream out data. Skipping the array characters.
+  intptr_t cursor = 1;
+  output_length -= 1;
+  intptr_t remaining = output_length - 1;
+  // Replace array close with '\0'.
+  output[output_length - 2] = '\0';
+
   while (remaining >= kDataSize) {
     consumer(Dart_StreamConsumer_kData,
              kStreamName,
@@ -5768,7 +5785,7 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
   Timeline::ReclaimIsolateBlocks();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate);
-  timeline_recorder->PrintJSON(&js, &filter);
+  timeline_recorder->PrintTraceEvent(&js, &filter);
 
   // Copy output.
   char* output = NULL;
@@ -5777,12 +5794,12 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
   if (output != NULL) {
     // Add one for the '\0' character.
     output_length++;
+    StreamToConsumer(consumer, user_data, output, output_length);
+    // We stole the JSONStream's output buffer, free it.
+    free(output);
+    return output_length > MINIMUM_OUTPUT_LENGTH;
   }
-  StreamToConsumer(consumer, user_data, output, output_length);
-
-  // We stole the JSONStream's output buffer, free it.
-  free(output);
-  return true;
+  return false;
 }
 
 
@@ -5801,7 +5818,7 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
   Timeline::ReclaimAllBlocks();
   JSONStream js;
   TimelineEventFilter filter;
-  timeline_recorder->PrintJSON(&js, &filter);
+  timeline_recorder->PrintTraceEvent(&js, &filter);
 
   // Copy output.
   char* output = NULL;
@@ -5810,12 +5827,12 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
   if (output != NULL) {
     // Add one for the '\0' character.
     output_length++;
+    StreamToConsumer(consumer, user_data, output, output_length);
+    // We stole the JSONStream's output buffer, free it.
+    free(output);
+    return output_length > MINIMUM_OUTPUT_LENGTH;
   }
-  StreamToConsumer(consumer, user_data, output, output_length);
-
-  // We stole the JSONStream's output buffer, free it.
-  free(output);
-  return true;
+  return false;
 }
 
 

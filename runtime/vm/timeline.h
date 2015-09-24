@@ -490,6 +490,7 @@ class TimelineEventRecorder {
 
   // Interface method(s) which must be implemented.
   virtual void PrintJSON(JSONStream* js, TimelineEventFilter* filter) = 0;
+  virtual void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) = 0;
 
   int64_t GetNextAsyncId();
 
@@ -536,6 +537,7 @@ class TimelineEventRingRecorder : public TimelineEventRecorder {
   ~TimelineEventRingRecorder();
 
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 
  protected:
   TimelineEvent* StartEvent();
@@ -560,6 +562,7 @@ class TimelineEventStreamingRecorder : public TimelineEventRecorder {
   ~TimelineEventStreamingRecorder();
 
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 
   // Called when |event| is ready to be streamed. It is unsafe to keep a
   // reference to |event| as it may be freed as soon as this function returns.
@@ -584,10 +587,8 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
  public:
   TimelineEventEndlessRecorder();
 
-  // NOTE: Calling this while threads are filling in their blocks is not safe
-  // and there are no checks in place to ensure that doesn't happen.
-  // TODO(koda): Add isolate count to |ThreadRegistry| and verify that it is 1.
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 
  protected:
   TimelineEvent* StartEvent();

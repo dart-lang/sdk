@@ -681,6 +681,13 @@ void TimelineEventRingRecorder::PrintJSON(JSONStream* js,
 }
 
 
+void TimelineEventRingRecorder::PrintTraceEvent(JSONStream* js,
+                                                TimelineEventFilter* filter) {
+  JSONArray events(js);
+  PrintJSONEvents(&events, filter);
+}
+
+
 TimelineEventBlock* TimelineEventRingRecorder::GetHeadBlockLocked() {
   return blocks_[0];
 }
@@ -747,6 +754,13 @@ void TimelineEventStreamingRecorder::PrintJSON(JSONStream* js,
 }
 
 
+void TimelineEventStreamingRecorder::PrintTraceEvent(
+    JSONStream* js,
+    TimelineEventFilter* filter) {
+  JSONArray events(js);
+}
+
+
 TimelineEvent* TimelineEventStreamingRecorder::StartEvent() {
   TimelineEvent* event = new TimelineEvent();
   return event;
@@ -775,6 +789,14 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
     PrintJSONMeta(&events);
     PrintJSONEvents(&events, filter);
   }
+}
+
+
+void TimelineEventEndlessRecorder::PrintTraceEvent(
+    JSONStream* js,
+    TimelineEventFilter* filter) {
+  JSONArray events(js);
+  PrintJSONEvents(&events, filter);
 }
 
 
