@@ -151,7 +151,7 @@ ThreadId OSThread::GetCurrentThreadId() {
 
 
 ThreadId OSThread::GetCurrentThreadTraceId() {
-  return pthread_mach_thread_np(pthread_self());
+  return ThreadIdFromIntPtr(pthread_mach_thread_np(pthread_self()));
 }
 
 
