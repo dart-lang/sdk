@@ -1254,13 +1254,6 @@ main() {}''');
     expect(context.getResolvedCompilationUnit2(source, source), isNotNull);
   }
 
-  void test_getResolvedCompilationUnit_source_html() {
-    Source source = addSource("/test.html", "<html></html>");
-    expect(context.getResolvedCompilationUnit2(source, source), isNull);
-    expect(context.resolveCompilationUnit2(source, source), isNull);
-    expect(context.getResolvedCompilationUnit2(source, source), isNull);
-  }
-
   void test_getSourceFactory() {
     expect(context.sourceFactory, same(sourceFactory));
   }
