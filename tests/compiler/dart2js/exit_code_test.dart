@@ -98,13 +98,15 @@ class TestCompiler extends apiimpl.Compiler {
         break;
       case 'warning':
         onTest(testMarker, testType);
-        reportWarning(NO_LOCATION_SPANNABLE,
-                      MessageKind.GENERIC, {'text': marker});
+        reportWarning(createMessage(
+            NO_LOCATION_SPANNABLE,
+            MessageKind.GENERIC, {'text': marker}));
         break;
       case 'error':
         onTest(testMarker, testType);
-        reportError(NO_LOCATION_SPANNABLE,
-                    MessageKind.GENERIC, {'text': marker});
+        reportError(createMessage(
+            NO_LOCATION_SPANNABLE,
+            MessageKind.GENERIC, {'text': marker}));
         break;
       case 'internalError':
         onTest(testMarker, testType);

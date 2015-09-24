@@ -86,11 +86,6 @@ abstract class ElementZ extends Element with ElementCommon {
   ClassElement get contextClass => _unsupported('contextClass');
 
   @override
-  void diagnose(Element context, DiagnosticListener listener) {
-    _unsupported('diagnose');
-  }
-
-  @override
   ClassElement get enclosingClass => null;
 
   @override

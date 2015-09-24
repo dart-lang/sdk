@@ -179,7 +179,8 @@ class OrderedTypeSetBuilder {
       DartType existingType = link.head;
       if (existingType == type) return;
       if (existingType.element == type.element) {
-        compiler.reportError(cls,
+        compiler.reportErrorMessage(
+            cls,
             MessageKind.MULTI_INHERITANCE,
             {'thisType': cls.thisType,
              'firstType': existingType,

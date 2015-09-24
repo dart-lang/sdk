@@ -10,6 +10,9 @@ import '../constants/constructors.dart' show
     RedirectingGenerativeConstantConstructor;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
+import '../diagnostics/diagnostic_listener.dart' show
+    DiagnosticListener,
+    DiagnosticMessage;
 import '../diagnostics/invariant.dart' show
     invariant;
 import '../diagnostics/messages.dart' show
@@ -59,13 +62,7 @@ class InitializerResolver {
 
   ResolutionRegistry get registry => visitor.registry;
 
-  error(Node node, MessageKind kind, [arguments = const {}]) {
-    visitor.error(node, kind, arguments);
-  }
-
-  warning(Node node, MessageKind kind, [arguments = const {}]) {
-    visitor.warning(node, kind, arguments);
-  }
+  DiagnosticListener get listener => visitor.compiler;
 
   bool isFieldInitializer(SendSet node) {
     if (node.selector.asIdentifier() == null) return false;
@@ -75,12 +72,17 @@ class InitializerResolver {
   }
 
   reportDuplicateInitializerError(Element field, Node init, Node existing) {
-    visitor.compiler.reportError(
-        init,
-        MessageKind.DUPLICATE_INITIALIZER, {'fieldName': field.name});
-    visitor.compiler.reportInfo(
-        existing,
-        MessageKind.ALREADY_INITIALIZED, {'fieldName': field.name});
+    listener.reportError(
+        listener.createMessage(
+            init,
+            MessageKind.DUPLICATE_INITIALIZER,
+            {'fieldName': field.name}),
+        <DiagnosticMessage>[
+            listener.createMessage(
+                existing,
+                MessageKind.ALREADY_INITIALIZED,
+                {'fieldName': field.name}),
+        ]);
     isValidAsConstant = false;
   }
 
@@ -109,20 +111,24 @@ class InitializerResolver {
     if (isFieldInitializer(init)) {
       target = constructor.enclosingClass.lookupLocalMember(name);
       if (target == null) {
-        error(selector, MessageKind.CANNOT_RESOLVE, {'name': name});
+        listener.reportErrorMessage(
+            selector, MessageKind.CANNOT_RESOLVE, {'name': name});
         target = new ErroneousFieldElementX(
             selector.asIdentifier(), constructor.enclosingClass);
       } else if (target.kind != ElementKind.FIELD) {
-        error(selector, MessageKind.NOT_A_FIELD, {'fieldName': name});
+        listener.reportErrorMessage(
+            selector, MessageKind.NOT_A_FIELD, {'fieldName': name});
         target = new ErroneousFieldElementX(
             selector.asIdentifier(), constructor.enclosingClass);
       } else if (!target.isInstanceMember) {
-        error(selector, MessageKind.INIT_STATIC_FIELD, {'fieldName': name});
+        listener.reportErrorMessage(
+            selector, MessageKind.INIT_STATIC_FIELD, {'fieldName': name});
       } else {
         field = target;
       }
     } else {
-      error(init, MessageKind.INVALID_RECEIVER_IN_INITIALIZER);
+      listener.reportErrorMessage(
+          init, MessageKind.INVALID_RECEIVER_IN_INITIALIZER);
     }
     registry.useElement(init, target);
     registry.registerStaticUse(target);
@@ -146,7 +152,8 @@ class InitializerResolver {
     if (isSuperCall) {
       // Calculate correct lookup target and constructor name.
       if (identical(constructor.enclosingClass, visitor.compiler.objectClass)) {
-        error(diagnosticNode, MessageKind.SUPER_INITIALIZER_IN_OBJECT);
+        listener.reportErrorMessage(
+            diagnosticNode, MessageKind.SUPER_INITIALIZER_IN_OBJECT);
         isValidAsConstant = false;
       } else {
         return constructor.enclosingClass.supertype;
@@ -257,7 +264,7 @@ class InitializerResolver {
       MessageKind kind = isImplicitSuperCall
           ? MessageKind.CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT
           : MessageKind.CANNOT_RESOLVE_CONSTRUCTOR;
-      visitor.compiler.reportError(
+      listener.reportErrorMessage(
           diagnosticNode, kind, {'constructorName': fullConstructorName});
       isValidAsConstant = false;
     } else {
@@ -266,14 +273,14 @@ class InitializerResolver {
         MessageKind kind = isImplicitSuperCall
                            ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
                            : MessageKind.NO_MATCHING_CONSTRUCTOR;
-        visitor.compiler.reportError(diagnosticNode, kind);
+        listener.reportErrorMessage(diagnosticNode, kind);
         isValidAsConstant = false;
       } else if (constructor.isConst
                  && !lookedupConstructor.isConst) {
         MessageKind kind = isImplicitSuperCall
                            ? MessageKind.CONST_CALLS_NON_CONST_FOR_IMPLICIT
                            : MessageKind.CONST_CALLS_NON_CONST;
-        visitor.compiler.reportError(diagnosticNode, kind);
+        listener.reportErrorMessage(diagnosticNode, kind);
         isValidAsConstant = false;
       }
     }
@@ -343,12 +350,14 @@ class InitializerResolver {
       } else if (link.head.asSend() != null) {
         final Send call = link.head.asSend();
         if (call.argumentsNode == null) {
-          error(link.head, MessageKind.INVALID_INITIALIZER);
+          listener.reportErrorMessage(
+              link.head, MessageKind.INVALID_INITIALIZER);
           continue;
         }
         if (Initializers.isSuperConstructorCall(call)) {
           if (resolvedSuper) {
-            error(call, MessageKind.DUPLICATE_SUPER_INITIALIZER);
+            listener.reportErrorMessage(
+                call, MessageKind.DUPLICATE_SUPER_INITIALIZER);
           }
           ResolutionResult result = resolveSuperOrThisForSend(call);
           if (isConst) {
@@ -364,11 +373,13 @@ class InitializerResolver {
           // constructor is also const, we already reported an error in
           // [resolveMethodElement].
           if (functionNode.hasBody() && !constructor.isConst) {
-            error(functionNode, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY);
+            listener.reportErrorMessage(
+                functionNode, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY);
           }
           // Check that there are no other initializers.
           if (!initializers.tail.isEmpty) {
-            error(call, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER);
+            listener.reportErrorMessage(
+                call, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER);
           } else {
             constructor.isRedirectingGenerative = true;
           }
@@ -377,7 +388,8 @@ class InitializerResolver {
           signature.forEachParameter((ParameterElement parameter) {
             if (parameter.isInitializingFormal) {
               Node node = parameter.node;
-              error(node, MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED);
+              listener.reportErrorMessage(
+                  node, MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED);
               isValidAsConstant = false;
             }
           });
@@ -397,11 +409,13 @@ class InitializerResolver {
           }
           return result.element;
         } else {
-          visitor.error(call, MessageKind.CONSTRUCTOR_CALL_EXPECTED);
+          listener.reportErrorMessage(
+              call, MessageKind.CONSTRUCTOR_CALL_EXPECTED);
           return null;
         }
       } else {
-        error(link.head, MessageKind.INVALID_INITIALIZER);
+        listener.reportErrorMessage(
+            link.head, MessageKind.INVALID_INITIALIZER);
       }
     }
     if (!resolvedSuper) {
@@ -448,9 +462,11 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       registry.registerThrowRuntimeError();
     }
     if (isError || inConstContext) {
-      compiler.reportError(diagnosticNode, kind, arguments);
+      compiler.reportErrorMessage(
+          diagnosticNode, kind, arguments);
     } else {
-      compiler.reportWarning(diagnosticNode, kind, arguments);
+      compiler.reportWarningMessage(
+          diagnosticNode, kind, arguments);
     }
     ErroneousElement error = new ErroneousConstructorElementX(
         kind, arguments, name, enclosing);
@@ -479,14 +495,14 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
           {'constructorName': fullConstructorName},
           missingConstructor: true);
     } else if (inConstContext && !constructor.isConst) {
-      compiler.reportError(
+      compiler.reportErrorMessage(
           diagnosticNode, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
       return new ConstructorResult(
           ConstructorResultKind.NON_CONSTANT, constructor, type);
     } else {
       if (constructor.isGenerativeConstructor) {
         if (cls.isAbstract) {
-          compiler.reportWarning(
+          compiler.reportWarningMessage(
               diagnosticNode, MessageKind.ABSTRACT_CLASS_INSTANTIATION);
           registry.registerAbstractClassInstantiation();
           return new ConstructorResult(
@@ -570,7 +586,9 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     }
 
     Identifier name = node.selector.asIdentifier();
-    if (name == null) internalError(node.selector, 'unexpected node');
+    if (name == null) {
+      compiler.internalError(node.selector, 'unexpected node');
+    }
 
     if (receiver.type != null) {
       if (receiver.type.isInterfaceType) {
@@ -588,7 +606,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       Element member = prefix.lookupLocalMember(name.source);
       return constructorResultForElement(node, name.source, member);
     } else {
-      return internalError(node.receiver, 'unexpected receiver $receiver');
+      return compiler.internalError(
+          node.receiver, 'unexpected receiver $receiver');
     }
   }
 
@@ -680,8 +699,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
           MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
           {'typeVariableName': name});
     }
-    internalError(node, "Unexpected constructor type $type");
-    return null;
+    return compiler.internalError(node, "Unexpected constructor type $type");
   }
 
 }

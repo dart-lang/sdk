@@ -513,8 +513,9 @@ class Namer {
       case JsGetName.FUNCTION_CLASS_TYPE_NAME:
         return runtimeTypeName(compiler.functionClass);
       default:
-        compiler.reportError(
-          node, MessageKind.GENERIC,
+        compiler.reportErrorMessage(
+          node,
+          MessageKind.GENERIC,
           {'text': 'Error: Namer has no name for "$name".'});
         return asName('BROKEN');
     }

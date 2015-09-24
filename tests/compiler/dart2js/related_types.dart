@@ -97,8 +97,10 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
   /// a hint otherwise.
   void checkRelated(Node node, DartType left, DartType right) {
     if (hasEmptyIntersection(left, right)) {
-      compiler.reportHint(
-          node, MessageKind.NO_COMMON_SUBTYPES, {'left': left, 'right': right});
+      compiler.reportHint(compiler.createMessage(
+          node,
+          MessageKind.NO_COMMON_SUBTYPES,
+          {'left': left, 'right': right}));
     }
   }
 

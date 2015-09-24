@@ -211,7 +211,8 @@ class ModelEmitter {
 
     if (backend.requiresPreamble &&
         !backend.htmlLibraryIsLoaded) {
-      compiler.reportHint(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
+      compiler.reportHintMessage(
+          NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
 
     if (compiler.deferredMapUri != null) {

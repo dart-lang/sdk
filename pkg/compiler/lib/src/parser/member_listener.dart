@@ -72,9 +72,10 @@ class MemberListener extends NodeListener {
       return Elements.constructOperatorName(operator.source, isUnary);
     } else {
       if (receiver == null || receiver.source != enclosingClass.name) {
-        listener.reportError(send.receiver,
-                                 MessageKind.INVALID_CONSTRUCTOR_NAME,
-                                 {'name': enclosingClass.name});
+        listener.reportErrorMessage(
+            send.receiver,
+            MessageKind.INVALID_CONSTRUCTOR_NAME,
+            {'name': enclosingClass.name});
       }
       return selector.source;
     }
@@ -112,9 +113,10 @@ class MemberListener extends NodeListener {
     Identifier singleIdentifierName = method.name.asIdentifier();
     if (singleIdentifierName != null && singleIdentifierName.source == name) {
       if (name != enclosingClass.name) {
-        listener.reportError(singleIdentifierName,
-                                 MessageKind.INVALID_UNNAMED_CONSTRUCTOR_NAME,
-                                 {'name': enclosingClass.name});
+        listener.reportErrorMessage(
+            singleIdentifierName,
+            MessageKind.INVALID_UNNAMED_CONSTRUCTOR_NAME,
+            {'name': enclosingClass.name});
       }
     }
     Element memberElement = new PartialConstructorElement(

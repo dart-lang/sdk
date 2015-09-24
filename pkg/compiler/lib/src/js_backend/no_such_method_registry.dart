@@ -82,20 +82,20 @@ class NoSuchMethodRegistry {
   void emitDiagnostic() {
     throwingImpls.forEach((e) {
         if (!_hasForwardingSyntax(e)) {
-          _compiler.reportHint(e,
-                               MessageKind.DIRECTLY_THROWING_NSM);
+          _compiler.reportHintMessage(
+              e, MessageKind.DIRECTLY_THROWING_NSM);
         }
       });
     complexNoReturnImpls.forEach((e) {
         if (!_hasForwardingSyntax(e)) {
-          _compiler.reportHint(e,
-                               MessageKind.COMPLEX_THROWING_NSM);
+          _compiler.reportHintMessage(
+              e, MessageKind.COMPLEX_THROWING_NSM);
         }
       });
     complexReturningImpls.forEach((e) {
         if (!_hasForwardingSyntax(e)) {
-          _compiler.reportHint(e,
-                               MessageKind.COMPLEX_RETURNING_NSM);
+          _compiler.reportHintMessage(
+              e, MessageKind.COMPLEX_RETURNING_NSM);
         }
       });
   }

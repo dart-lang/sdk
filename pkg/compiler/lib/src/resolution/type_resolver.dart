@@ -8,6 +8,9 @@ import '../compiler.dart' show
 import '../dart_backend/dart_backend.dart' show
     DartBackend;
 import '../dart_types.dart';
+import '../diagnostics/diagnostic_listener.dart' show
+    DiagnosticListener,
+    DiagnosticMessage;
 import '../diagnostics/messages.dart' show
     MessageKind;
 import '../elements/elements.dart' show
@@ -38,6 +41,8 @@ class TypeResolver {
   final Compiler compiler;
 
   TypeResolver(this.compiler);
+
+  DiagnosticListener get listener => compiler;
 
   /// Tries to resolve the type name as an element.
   Element resolveTypeName(Identifier prefixName,
@@ -119,15 +124,21 @@ class TypeResolver {
     Element element = resolveTypeName(prefixName, typeName, visitor.scope,
                                       deferredIsMalformed: deferredIsMalformed);
 
-    DartType reportFailureAndCreateType(MessageKind messageKind,
-                                        Map messageArguments,
-                                        {DartType userProvidedBadType,
-                                         Element erroneousElement}) {
+    DartType reportFailureAndCreateType(
+        MessageKind messageKind,
+        Map messageArguments,
+        {DartType userProvidedBadType,
+         Element erroneousElement,
+         List<DiagnosticMessage> infos: const <DiagnosticMessage>[]}) {
       if (malformedIsError) {
-        visitor.error(node, messageKind, messageArguments);
+        listener.reportError(
+            listener.createMessage(node, messageKind, messageArguments),
+            infos);
       } else {
         registry.registerThrowRuntimeError();
-        visitor.warning(node, messageKind, messageArguments);
+        listener.reportWarning(
+            listener.createMessage(node, messageKind, messageArguments),
+            infos);
       }
       if (erroneousElement == null) {
         registry.registerThrowRuntimeError();
@@ -148,8 +159,11 @@ class TypeResolver {
     } else if (element.isAmbiguous) {
       AmbiguousElement ambiguous = element;
       type = reportFailureAndCreateType(
-          ambiguous.messageKind, ambiguous.messageArguments);
-      ambiguous.diagnose(registry.mapping.analyzedElement, compiler);
+          ambiguous.messageKind,
+          ambiguous.messageArguments,
+          infos: ambiguous.computeInfos(
+              registry.mapping.analyzedElement, compiler));
+      ;
     } else if (element.isErroneous) {
       if (element is ErroneousElement) {
         type = reportFailureAndCreateType(
@@ -241,7 +255,8 @@ class TypeResolver {
                                    TypeVariableType typeVariable,
                                    DartType bound) {
       if (!compiler.types.isSubtype(typeArgument, bound)) {
-        compiler.reportWarning(node,
+        compiler.reportWarningMessage(
+            node,
             MessageKind.INVALID_TYPE_VARIABLE_BOUND,
             {'typeVariable': typeVariable,
              'bound': bound,
@@ -273,7 +288,7 @@ class TypeResolver {
          !typeArguments.isEmpty;
          typeArguments = typeArguments.tail, index++) {
       if (index > expectedVariables - 1) {
-        visitor.warning(
+        compiler.reportWarningMessage(
             typeArguments.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
         typeArgumentCountMismatch = true;
       }
@@ -282,8 +297,8 @@ class TypeResolver {
       arguments.add(argType);
     }
     if (index < expectedVariables) {
-      visitor.warning(node.typeArguments,
-                      MessageKind.MISSING_TYPE_ARGUMENT);
+      compiler.reportWarningMessage(
+          node.typeArguments, MessageKind.MISSING_TYPE_ARGUMENT);
       typeArgumentCountMismatch = true;
     }
     return typeArgumentCountMismatch;

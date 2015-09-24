@@ -8,6 +8,8 @@ import '../common/tasks.dart' show
     DeferredAction;
 import '../compiler.dart' show
     Compiler;
+import '../diagnostics/diagnostic_listener.dart' show
+    DiagnosticMessage;
 import '../diagnostics/messages.dart' show
     MessageKind;
 import '../diagnostics/spannable.dart' show
@@ -28,27 +30,14 @@ class CommonResolverVisitor<R> extends Visitor<R> {
   CommonResolverVisitor(Compiler this.compiler);
 
   R visitNode(Node node) {
-    internalError(node,
+    return compiler.internalError(node,
         'internal error: Unhandled node: ${node.getObjectDescription()}');
-    return null;
   }
 
   R visitEmptyStatement(Node node) => null;
 
   /** Convenience method for visiting nodes that may be null. */
   R visit(Node node) => (node == null) ? null : node.accept(this);
-
-  void error(Spannable node, MessageKind kind, [Map arguments = const {}]) {
-    compiler.reportError(node, kind, arguments);
-  }
-
-  void warning(Spannable node, MessageKind kind, [Map arguments = const {}]) {
-    compiler.reportWarning(node, kind, arguments);
-  }
-
-  internalError(Spannable node, message) {
-    compiler.internalError(node, message);
-  }
 
   void addDeferredAction(Element element, DeferredAction action) {
     compiler.enqueuer.resolution.addDeferredAction(element, action);
@@ -86,7 +75,7 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
       if (element.name == 'yield' ||
           element.name == 'async' ||
           element.name == 'await') {
-        compiler.reportError(
+        compiler.reportErrorMessage(
             node, MessageKind.ASYNC_KEYWORD_AS_IDENTIFIER,
             {'keyword': element.name,
              'modifier': currentAsyncMarker});
@@ -106,9 +95,16 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
   void reportDuplicateDefinition(String name,
                                  Spannable definition,
                                  Spannable existing) {
-    compiler.reportError(definition,
-        MessageKind.DUPLICATE_DEFINITION, {'name': name});
-    compiler.reportInfo(existing,
-        MessageKind.EXISTING_DEFINITION, {'name': name});
+    compiler.reportError(
+        compiler.createMessage(
+            definition,
+            MessageKind.DUPLICATE_DEFINITION,
+            {'name': name}),
+        <DiagnosticMessage>[
+            compiler.createMessage(
+                existing,
+                MessageKind.EXISTING_DEFINITION,
+                {'name': name}),
+        ]);
   }
 }

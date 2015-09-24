@@ -4085,7 +4085,7 @@ class SsaBuilder extends ast.Visitor
     addGenericSendArgumentsToList(link.tail.tail, inputs);
 
     if (nativeBehavior.codeTemplate.positionalArgumentCount != inputs.length) {
-      compiler.reportError(
+      compiler.reportErrorMessage(
           node, MessageKind.GENERIC,
           {'text':
             'Mismatch between number of placeholders'
@@ -4155,7 +4155,7 @@ class SsaBuilder extends ast.Visitor
      ast.Node argument;
      switch (arguments.length) {
      case 0:
-       compiler.reportError(
+       compiler.reportErrorMessage(
            node, MessageKind.GENERIC,
            {'text': 'Error: Expected one argument to JS_GET_FLAG.'});
        return;
@@ -4164,7 +4164,7 @@ class SsaBuilder extends ast.Visitor
        break;
      default:
        for (int i = 1; i < arguments.length; i++) {
-         compiler.reportError(
+         compiler.reportErrorMessage(
              arguments[i], MessageKind.GENERIC,
              {'text': 'Error: Extra argument to JS_GET_FLAG.'});
        }
@@ -4172,7 +4172,7 @@ class SsaBuilder extends ast.Visitor
      }
      ast.LiteralString string = argument.asLiteralString();
      if (string == null) {
-       compiler.reportError(
+       compiler.reportErrorMessage(
            argument, MessageKind.GENERIC,
            {'text': 'Error: Expected a literal string.'});
      }
@@ -4186,7 +4186,7 @@ class SsaBuilder extends ast.Visitor
          value = compiler.useContentSecurityPolicy;
          break;
        default:
-         compiler.reportError(
+         compiler.reportErrorMessage(
              node, MessageKind.GENERIC,
              {'text': 'Error: Unknown internal flag "$name".'});
      }
@@ -4198,7 +4198,7 @@ class SsaBuilder extends ast.Visitor
     ast.Node argument;
     switch (arguments.length) {
     case 0:
-      compiler.reportError(
+      compiler.reportErrorMessage(
           node, MessageKind.GENERIC,
           {'text': 'Error: Expected one argument to JS_GET_NAME.'});
       return;
@@ -4207,8 +4207,8 @@ class SsaBuilder extends ast.Visitor
       break;
     default:
       for (int i = 1; i < arguments.length; i++) {
-        compiler.reportError(
-           arguments[i], MessageKind.GENERIC,
+        compiler.reportErrorMessage(
+            arguments[i], MessageKind.GENERIC,
             {'text': 'Error: Extra argument to JS_GET_NAME.'});
       }
       return;
@@ -4217,7 +4217,7 @@ class SsaBuilder extends ast.Visitor
     if (element == null ||
         element is! FieldElement ||
         element.enclosingClass != backend.jsGetNameEnum) {
-      compiler.reportError(
+      compiler.reportErrorMessage(
           argument, MessageKind.GENERIC,
           {'text': 'Error: Expected a JsGetName enum value.'});
     }
@@ -4233,7 +4233,7 @@ class SsaBuilder extends ast.Visitor
     List<ast.Node> arguments = node.arguments.toList();
     ast.Node argument;
     if (arguments.length < 2) {
-      compiler.reportError(
+      compiler.reportErrorMessage(
           node, MessageKind.GENERIC,
           {'text': 'Error: Expected at least two arguments to JS_BUILTIN.'});
     }
@@ -4242,7 +4242,7 @@ class SsaBuilder extends ast.Visitor
     if (builtinElement == null ||
         (builtinElement is! FieldElement) ||
         builtinElement.enclosingClass != backend.jsBuiltinEnum) {
-      compiler.reportError(
+      compiler.reportErrorMessage(
           argument, MessageKind.GENERIC,
           {'text': 'Error: Expected a JsBuiltin enum value.'});
     }
@@ -4276,7 +4276,7 @@ class SsaBuilder extends ast.Visitor
     switch (arguments.length) {
     case 0:
     case 1:
-      compiler.reportError(
+      compiler.reportErrorMessage(
           node, MessageKind.GENERIC,
           {'text': 'Error: Expected two arguments to JS_EMBEDDED_GLOBAL.'});
       return;
@@ -4287,7 +4287,7 @@ class SsaBuilder extends ast.Visitor
       break;
     default:
       for (int i = 2; i < arguments.length; i++) {
-        compiler.reportError(
+        compiler.reportErrorMessage(
             arguments[i], MessageKind.GENERIC,
             {'text': 'Error: Extra argument to JS_EMBEDDED_GLOBAL.'});
       }
@@ -4296,7 +4296,7 @@ class SsaBuilder extends ast.Visitor
     visit(globalNameNode);
     HInstruction globalNameHNode = pop();
     if (!globalNameHNode.isConstantString()) {
-      compiler.reportError(
+      compiler.reportErrorMessage(
           arguments[1], MessageKind.GENERIC,
           {'text': 'Error: Expected String as second argument '
                    'to JS_EMBEDDED_GLOBAL.'});
@@ -4333,7 +4333,8 @@ class SsaBuilder extends ast.Visitor
         }
       }
     }
-    compiler.reportError(node,
+    compiler.reportErrorMessage(
+        node,
         MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
     stack.add(graph.addConstantNull(compiler));
   }
@@ -6890,8 +6891,10 @@ class SsaBuilder extends ast.Visitor
   visitNodeList(ast.NodeList node) {
     for (Link<ast.Node> link = node.nodes; !link.isEmpty; link = link.tail) {
       if (isAborted()) {
-        compiler.reportWarning(link.head,
-            MessageKind.GENERIC, {'text': 'dead code'});
+        compiler.reportHintMessage(
+            link.head,
+            MessageKind.GENERIC,
+            {'text': 'dead code'});
       } else {
         visit(link.head);
       }

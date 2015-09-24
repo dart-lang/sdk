@@ -410,8 +410,6 @@ abstract class Element implements Entity {
 
   Scope buildScope();
 
-  void diagnose(Element context, DiagnosticListener listener);
-
   // TODO(johnniwinther): Move this to [AstElement].
   /// Returns the [Element] that holds the [TreeElements] for this element.
   AnalyzableElement get analyzableElement;
@@ -820,6 +818,10 @@ abstract class AmbiguousElement extends Element {
   Map get messageArguments;
   Element get existingElement;
   Element get newElement;
+
+  /// Compute the info messages associated with an error/warning on [context].
+  List<DiagnosticMessage> computeInfos(
+      Element context, DiagnosticListener listener);
 }
 
 // TODO(kasperl): This probably shouldn't be called an element. It's

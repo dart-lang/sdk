@@ -18,6 +18,8 @@ import '../compile_time_constants.dart' show
 import '../constants/values.dart' show
     ConstantValue;
 import '../dart_types.dart';
+import '../diagnostics/diagnostic_listener.dart' show
+    DiagnosticMessage;
 import '../diagnostics/invariant.dart' show
     invariant;
 import '../diagnostics/messages.dart' show
@@ -121,7 +123,8 @@ class ResolverTask extends CompilerTask {
       // Ensure that we follow redirections through implementation elements.
       redirection = redirection.implementation;
       if (seen.contains(redirection)) {
-        resolver.visitor.error(node, MessageKind.REDIRECTING_CONSTRUCTOR_CYCLE);
+        compiler.reportErrorMessage(
+            node, MessageKind.REDIRECTING_CONSTRUCTOR_CYCLE);
         return;
       }
       seen.add(redirection);
@@ -143,23 +146,27 @@ class ResolverTask extends CompilerTask {
         element.asyncMarker = AsyncMarker.SYNC_STAR;
       }
       if (element.isAbstract) {
-        compiler.reportError(asyncModifier,
+        compiler.reportErrorMessage(
+            asyncModifier,
             MessageKind.ASYNC_MODIFIER_ON_ABSTRACT_METHOD,
             {'modifier': element.asyncMarker});
       } else if (element.isConstructor) {
-        compiler.reportError(asyncModifier,
+        compiler.reportErrorMessage(
+            asyncModifier,
             MessageKind.ASYNC_MODIFIER_ON_CONSTRUCTOR,
             {'modifier': element.asyncMarker});
       } else {
         if (element.isSetter) {
-          compiler.reportError(asyncModifier,
+          compiler.reportErrorMessage(
+              asyncModifier,
               MessageKind.ASYNC_MODIFIER_ON_SETTER,
               {'modifier': element.asyncMarker});
 
         }
         if (functionExpression.body.asReturn() != null &&
             element.asyncMarker.isYielding) {
-          compiler.reportError(asyncModifier,
+          compiler.reportErrorMessage(
+              asyncModifier,
               MessageKind.YIELDING_MODIFIER_ON_ARROW_BODY,
               {'modifier': element.asyncMarker});
         }
@@ -192,18 +199,21 @@ class ResolverTask extends CompilerTask {
       FunctionElement element, FunctionExpression tree) {
     return compiler.withCurrentElement(element, () {
       if (element.isExternal && tree.hasBody()) {
-        error(element,
+        compiler.reportErrorMessage(
+            element,
             MessageKind.EXTERNAL_WITH_BODY,
             {'functionName': element.name});
       }
       if (element.isConstructor) {
         if (tree.returnType != null) {
-          error(tree, MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE);
+          compiler.reportErrorMessage(
+              tree, MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE);
         }
         if (element.isConst &&
             tree.hasBody() &&
             !tree.isRedirectingFactory) {
-          error(tree, MessageKind.CONST_CONSTRUCTOR_HAS_BODY);
+          compiler.reportErrorMessage(
+              tree, MessageKind.CONST_CONSTRUCTOR_HAS_BODY);
         }
       }
 
@@ -223,7 +233,8 @@ class ResolverTask extends CompilerTask {
           resolveRedirectingConstructor(resolver, tree, element, redirection);
         }
       } else if (tree.initializers != null) {
-        error(tree, MessageKind.FUNCTION_WITH_INITIALIZER);
+        compiler.reportErrorMessage(
+            tree, MessageKind.FUNCTION_WITH_INITIALIZER);
       }
 
       if (!compiler.analyzeSignaturesOnly || tree.isRedirectingFactory) {
@@ -253,7 +264,8 @@ class ResolverTask extends CompilerTask {
       if (Elements.isInstanceMethod(element) &&
           element.name == Identifiers.noSuchMethod_ &&
           _isNativeClassOrExtendsNativeClass(enclosingClass)) {
-        error(tree, MessageKind.NO_SUCH_METHOD_IN_NATIVE);
+        compiler.reportErrorMessage(
+            tree, MessageKind.NO_SUCH_METHOD_IN_NATIVE);
       }
 
       return registry.worldImpact;
@@ -320,8 +332,9 @@ class ResolverTask extends CompilerTask {
   WorldImpact resolveField(FieldElementX element) {
     VariableDefinitions tree = element.parseNode(compiler);
     if(element.modifiers.isStatic && element.isTopLevel) {
-      error(element.modifiers.getStatic(),
-            MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
+      compiler.reportErrorMessage(
+          element.modifiers.getStatic(),
+          MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
     }
     ResolverVisitor visitor = visitorFor(element);
     ResolutionRegistry registry = visitor.registry;
@@ -343,9 +356,11 @@ class ResolverTask extends CompilerTask {
       // [Compiler.analyzeSignaturesOnly] is set.
       visitor.visit(initializer);
     } else if (modifiers.isConst) {
-      compiler.reportError(element, MessageKind.CONST_WITHOUT_INITIALIZER);
+      compiler.reportErrorMessage(
+          element, MessageKind.CONST_WITHOUT_INITIALIZER);
     } else if (modifiers.isFinal && !element.isInstanceMember) {
-      compiler.reportError(element, MessageKind.FINAL_WITHOUT_INITIALIZER);
+      compiler.reportErrorMessage(
+          element, MessageKind.FINAL_WITHOUT_INITIALIZER);
     } else {
       registry.registerInstantiatedClass(compiler.nullClass);
     }
@@ -376,7 +391,8 @@ class ResolverTask extends CompilerTask {
   DartType resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
     DartType type = resolveReturnType(element, annotation);
     if (type.isVoid) {
-      error(annotation, MessageKind.VOID_NOT_ALLOWED);
+      compiler.reportErrorMessage(
+          annotation, MessageKind.VOID_NOT_ALLOWED);
     }
     return type;
   }
@@ -410,7 +426,8 @@ class ResolverTask extends CompilerTask {
 
       Element nextTarget = target.immediateRedirectionTarget;
       if (seen.contains(nextTarget)) {
-        error(node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
+        compiler.reportErrorMessage(
+            node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
         targetType = target.enclosingClass.thisType;
         break;
       }
@@ -459,8 +476,10 @@ class ResolverTask extends CompilerTask {
     compiler.withCurrentElement(cls, () => measure(() {
       if (cls.supertypeLoadState == STATE_DONE) return;
       if (cls.supertypeLoadState == STATE_STARTED) {
-        compiler.reportError(from, MessageKind.CYCLIC_CLASS_HIERARCHY,
-                                 {'className': cls.name});
+        compiler.reportErrorMessage(
+            from,
+            MessageKind.CYCLIC_CLASS_HIERARCHY,
+            {'className': cls.name});
         cls.supertypeLoadState = STATE_DONE;
         cls.hasIncompleteHierarchy = true;
         cls.allSupertypesAndSelf =
@@ -643,7 +662,7 @@ class ResolverTask extends CompilerTask {
     int illegalFlags = modifiers.flags & ~Modifiers.FLAG_ABSTRACT;
     if (illegalFlags != 0) {
       Modifiers illegalModifiers = new Modifiers.withFlags(null, illegalFlags);
-      compiler.reportError(
+      compiler.reportErrorMessage(
           modifiers,
           MessageKind.ILLEGAL_MIXIN_APPLICATION_MODIFIERS,
           {'modifiers': illegalModifiers});
@@ -657,8 +676,9 @@ class ResolverTask extends CompilerTask {
 
     // Check that we're not trying to use Object as a mixin.
     if (mixin.superclass == null) {
-      compiler.reportError(mixinApplication,
-                               MessageKind.ILLEGAL_MIXIN_OBJECT);
+      compiler.reportErrorMessage(
+          mixinApplication,
+          MessageKind.ILLEGAL_MIXIN_OBJECT);
       // Avoid reporting additional errors for the Object class.
       return;
     }
@@ -670,14 +690,16 @@ class ResolverTask extends CompilerTask {
 
     // Check that the mixed in class has Object as its superclass.
     if (!mixin.superclass.isObject) {
-      compiler.reportError(mixin, MessageKind.ILLEGAL_MIXIN_SUPERCLASS);
+      compiler.reportErrorMessage(
+          mixin, MessageKind.ILLEGAL_MIXIN_SUPERCLASS);
     }
 
     // Check that the mixed in class doesn't have any constructors and
     // make sure we aren't mixing in methods that use 'super'.
     mixin.forEachLocalMember((AstElement member) {
       if (member.isGenerativeConstructor && !member.isSynthesized) {
-        compiler.reportError(member, MessageKind.ILLEGAL_MIXIN_CONSTRUCTOR);
+        compiler.reportErrorMessage(
+            member, MessageKind.ILLEGAL_MIXIN_CONSTRUCTOR);
       } else {
         // Get the resolution tree and check that the resolved member
         // doesn't use 'super'. This is the part of the 'super' mixin
@@ -702,15 +724,18 @@ class ResolverTask extends CompilerTask {
     if (resolutionTree == null) return;
     Iterable<Node> superUses = resolutionTree.superUses;
     if (superUses.isEmpty) return;
-    compiler.reportError(mixinApplication,
-                         MessageKind.ILLEGAL_MIXIN_WITH_SUPER,
-                         {'className': mixin.name});
+    DiagnosticMessage error = compiler.createMessage(
+        mixinApplication,
+        MessageKind.ILLEGAL_MIXIN_WITH_SUPER,
+        {'className': mixin.name});
     // Show the user the problematic uses of 'super' in the mixin.
+    List<DiagnosticMessage> infos = <DiagnosticMessage>[];
     for (Node use in superUses) {
-      compiler.reportInfo(
+      infos.add(compiler.createMessage(
           use,
-          MessageKind.ILLEGAL_MIXIN_SUPER_USE);
+          MessageKind.ILLEGAL_MIXIN_SUPER_USE));
     }
+    compiler.reportError(error, infos);
   }
 
   void checkClassMembers(ClassElement cls) {
@@ -727,7 +752,7 @@ class ResolverTask extends CompilerTask {
 
         // Check modifiers.
         if (member.isFunction && member.modifiers.isFinal) {
-          compiler.reportError(
+          compiler.reportErrorMessage(
               member, MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER);
         }
         if (member.isConstructor) {
@@ -737,7 +762,7 @@ class ResolverTask extends CompilerTask {
           if (mismatchedFlagsBits != 0) {
             final mismatchedFlags =
                 new Modifiers.withFlags(null, mismatchedFlagsBits);
-            compiler.reportError(
+            compiler.reportErrorMessage(
                 member,
                 MessageKind.ILLEGAL_CONSTRUCTOR_MODIFIERS,
                 {'modifiers': mismatchedFlags});
@@ -748,7 +773,7 @@ class ResolverTask extends CompilerTask {
         }
         if (member.isField) {
           if (member.modifiers.isConst && !member.modifiers.isStatic) {
-            compiler.reportError(
+            compiler.reportErrorMessage(
                 member, MessageKind.ILLEGAL_CONST_FIELD_MODIFIER);
           }
           if (!member.modifiers.isStatic && !member.modifiers.isFinal) {
@@ -762,19 +787,24 @@ class ResolverTask extends CompilerTask {
     if (!constConstructors.isEmpty && !nonFinalInstanceFields.isEmpty) {
       Spannable span = constConstructors.length > 1
           ? cls : constConstructors[0];
-      compiler.reportError(span,
+      DiagnosticMessage error = compiler.createMessage(
+          span,
           MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS,
           {'className': cls.name});
+      List<DiagnosticMessage> infos = <DiagnosticMessage>[];
       if (constConstructors.length > 1) {
         for (Element constructor in constConstructors) {
-          compiler.reportInfo(constructor,
-              MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR);
+          infos.add(compiler.createMessage(
+              constructor,
+              MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR));
         }
       }
       for (Element field in nonFinalInstanceFields) {
-        compiler.reportInfo(field,
-            MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD);
+        infos.add(compiler.createMessage(
+            field,
+            MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD));
       }
+      compiler.reportError(error, infos);
     }
   }
 
@@ -806,11 +836,11 @@ class ResolverTask extends CompilerTask {
     if (!identical(getterFlags, setterFlags)) {
       final mismatchedFlags =
         new Modifiers.withFlags(null, getterFlags ^ setterFlags);
-      compiler.reportError(
+      compiler.reportErrorMessage(
           field.getter,
           MessageKind.GETTER_MISMATCH,
           {'modifiers': mismatchedFlags});
-      compiler.reportError(
+      compiler.reportErrorMessage(
           field.setter,
           MessageKind.SETTER_MISMATCH,
           {'modifiers': mismatchedFlags});
@@ -858,7 +888,7 @@ class ResolverTask extends CompilerTask {
     Element hashCodeImplementation =
         cls.lookupLocalMember('hashCode');
     if (hashCodeImplementation != null) return;
-    compiler.reportHint(
+    compiler.reportHintMessage(
         operatorEquals, MessageKind.OVERRIDE_EQUALS_NOT_HASH_CODE,
         {'class': cls.name});
   }
@@ -899,19 +929,19 @@ class ResolverTask extends CompilerTask {
           errorNode = node.parameters.nodes.skip(requiredParameterCount).head;
         }
       }
-      compiler.reportError(
+      compiler.reportErrorMessage(
           errorNode, messageKind, {'operatorName': function.name});
     }
     if (signature.optionalParameterCount != 0) {
       Node errorNode =
           node.parameters.nodes.skip(signature.requiredParameterCount).head;
       if (signature.optionalParametersAreNamed) {
-        compiler.reportError(
+        compiler.reportErrorMessage(
             errorNode,
             MessageKind.OPERATOR_NAMED_PARAMETERS,
             {'operatorName': function.name});
       } else {
-        compiler.reportError(
+        compiler.reportErrorMessage(
             errorNode,
             MessageKind.OPERATOR_OPTIONAL_PARAMETERS,
             {'operatorName': function.name});
@@ -924,11 +954,14 @@ class ResolverTask extends CompilerTask {
                          Element contextElement,
                          MessageKind contextMessage) {
     compiler.reportError(
-        errorneousElement,
-        errorMessage,
-        {'memberName': contextElement.name,
-         'className': contextElement.enclosingClass.name});
-    compiler.reportInfo(contextElement, contextMessage);
+        compiler.createMessage(
+            errorneousElement,
+            errorMessage,
+            {'memberName': contextElement.name,
+             'className': contextElement.enclosingClass.name}),
+        <DiagnosticMessage>[
+            compiler.createMessage(contextElement, contextMessage),
+        ]);
   }
 
 
@@ -1004,10 +1037,6 @@ class ResolverTask extends CompilerTask {
       registry.registerMetadataConstant(annotation, annotatedElement);
       annotation.resolutionState = STATE_DONE;
     }));
-  }
-
-  error(Spannable node, MessageKind kind, [arguments = const {}]) {
-    compiler.reportError(node, kind, arguments);
   }
 
   List<MetadataAnnotation> resolveMetadata(Element element,

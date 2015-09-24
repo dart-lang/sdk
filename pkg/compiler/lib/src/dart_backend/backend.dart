@@ -52,7 +52,8 @@ class DartBackend extends Backend {
       new Set<ClassElement>();
 
   bool enableCodegenWithErrorsIfSupported(Spannable node) {
-    compiler.reportHint(node,
+    compiler.reportHintMessage(
+        node,
         MessageKind.GENERIC,
         {'text': "Generation of code with compile time errors is not "
                  "supported for dart2dart."});
@@ -325,7 +326,8 @@ class DartBackend extends Backend {
   @override
   bool enableDeferredLoadingIfSupported(Spannable node, Registry registry) {
     // TODO(sigurdm): Implement deferred loading for dart2dart.
-    compiler.reportWarning(node, MessageKind.DEFERRED_LIBRARY_DART_2_DART);
+    compiler.reportWarningMessage(
+        node, MessageKind.DEFERRED_LIBRARY_DART_2_DART);
     return false;
   }
 }

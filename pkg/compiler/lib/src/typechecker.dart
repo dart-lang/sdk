@@ -14,6 +14,8 @@ import 'constants/expressions.dart';
 import 'constants/values.dart';
 import 'core_types.dart';
 import 'dart_types.dart';
+import 'diagnostics/diagnostic_listener.dart' show
+    DiagnosticMessage;
 import 'diagnostics/invariant.dart' show
     invariant;
 import 'diagnostics/messages.dart';
@@ -269,14 +271,9 @@ class TypePromotion {
     return new TypePromotion(node, variable, type)..messages.addAll(messages);
   }
 
-  void addHint(Spannable spannable, MessageKind kind, [Map arguments]) {
-    messages.add(new TypePromotionMessage(api.Diagnostic.HINT,
-        spannable, kind, arguments));
-  }
-
-  void addInfo(Spannable spannable, MessageKind kind, [Map arguments]) {
-    messages.add(new TypePromotionMessage(api.Diagnostic.INFO,
-        spannable, kind, arguments));
+  void addHint(DiagnosticMessage hint,
+               [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    messages.add(new TypePromotionMessage(hint, infos));
   }
 
   String toString() {
@@ -286,13 +283,10 @@ class TypePromotion {
 
 /// A hint or info message attached to a type promotion.
 class TypePromotionMessage {
-  api.Diagnostic diagnostic;
-  Spannable spannable;
-  MessageKind messageKind;
-  Map messageArguments;
+  DiagnosticMessage hint;
+  List<DiagnosticMessage> infos;
 
-  TypePromotionMessage(this.diagnostic, this.spannable, this.messageKind,
-                       [this.messageArguments]);
+  TypePromotionMessage(this.hint, this.infos);
 }
 
 class TypeCheckerVisitor extends Visitor<DartType> {
@@ -400,40 +394,24 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   reportTypeWarning(Spannable spannable, MessageKind kind,
                     [Map arguments = const {}]) {
-    compiler.reportWarning(spannable, kind, arguments);
+    compiler.reportWarningMessage(spannable, kind, arguments);
   }
 
   reportMessage(Spannable spannable, MessageKind kind,
                 Map arguments,
                 {bool isHint: false}) {
     if (isHint) {
-      compiler.reportHint(spannable, kind, arguments);
+      compiler.reportHintMessage(spannable, kind, arguments);
     } else {
-      compiler.reportWarning(spannable, kind, arguments);
+      compiler.reportWarningMessage(spannable, kind, arguments);
     }
-  }
-
-  reportTypeInfo(Spannable spannable, MessageKind kind,
-                 [Map arguments = const {}]) {
-    compiler.reportInfo(spannable, kind, arguments);
   }
 
   reportTypePromotionHint(TypePromotion typePromotion) {
     if (!reportedTypePromotions.contains(typePromotion)) {
       reportedTypePromotions.add(typePromotion);
       for (TypePromotionMessage message in typePromotion.messages) {
-        switch (message.diagnostic) {
-          case api.Diagnostic.HINT:
-            compiler.reportHint(message.spannable,
-                                message.messageKind,
-                                message.messageArguments);
-            break;
-          case api.Diagnostic.INFO:
-            compiler.reportInfo(message.spannable,
-                                message.messageKind,
-                                message.messageArguments);
-            break;
-        }
+        compiler.reportHint(message.hint, message.infos);
       }
     }
   }
@@ -483,44 +461,56 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     List<Node> potentialMutationsIn =
         elements.getPotentialMutationsIn(node, variable);
     if (!potentialMutationsIn.isEmpty) {
-      typePromotion.addHint(typePromotion.node,
+      DiagnosticMessage hint = compiler.createMessage(
+          typePromotion.node,
           MessageKind.POTENTIAL_MUTATION,
           {'variableName': variableName, 'shownType': typePromotion.type});
+      List<DiagnosticMessage> infos = <DiagnosticMessage>[];
       for (Node mutation in potentialMutationsIn) {
-        typePromotion.addInfo(mutation,
+        infos.add(compiler.createMessage(mutation,
             MessageKind.POTENTIAL_MUTATION_HERE,
-            {'variableName': variableName});
+            {'variableName': variableName}));
       }
+      typePromotion.addHint(hint, infos);
     }
     List<Node> potentialMutationsInClosures =
         elements.getPotentialMutationsInClosure(variable);
     if (!potentialMutationsInClosures.isEmpty) {
-      typePromotion.addHint(typePromotion.node,
+      DiagnosticMessage hint = compiler.createMessage(
+          typePromotion.node,
           MessageKind.POTENTIAL_MUTATION_IN_CLOSURE,
           {'variableName': variableName, 'shownType': typePromotion.type});
+      List<DiagnosticMessage> infos = <DiagnosticMessage>[];
       for (Node mutation in potentialMutationsInClosures) {
-        typePromotion.addInfo(mutation,
+        infos.add(compiler.createMessage(
+            mutation,
             MessageKind.POTENTIAL_MUTATION_IN_CLOSURE_HERE,
-            {'variableName': variableName});
+            {'variableName': variableName}));
       }
+      typePromotion.addHint(hint, infos);
     }
     if (checkAccesses) {
       List<Node> accesses = elements.getAccessesByClosureIn(node, variable);
       List<Node> mutations = elements.getPotentialMutations(variable);
       if (!accesses.isEmpty && !mutations.isEmpty) {
-        typePromotion.addHint(typePromotion.node,
+        DiagnosticMessage hint = compiler.createMessage(
+            typePromotion.node,
             MessageKind.ACCESSED_IN_CLOSURE,
             {'variableName': variableName, 'shownType': typePromotion.type});
+        List<DiagnosticMessage> infos = <DiagnosticMessage>[];
         for (Node access in accesses) {
-          typePromotion.addInfo(access,
+          infos.add(compiler.createMessage(
+              access,
               MessageKind.ACCESSED_IN_CLOSURE_HERE,
-              {'variableName': variableName});
+              {'variableName': variableName}));
         }
         for (Node mutation in mutations) {
-          typePromotion.addInfo(mutation,
+          infos.add(compiler.createMessage(
+              mutation,
               MessageKind.POTENTIAL_MUTATION_HERE,
-              {'variableName': variableName});
+              {'variableName': variableName}));
         }
+        typePromotion.addHint(hint, infos);
       }
     }
   }
@@ -570,11 +560,15 @@ class TypeCheckerVisitor extends Visitor<DartType> {
                        {bool isConst: false}) {
     if (!types.isAssignable(from, to)) {
       if (compiler.enableTypeAssertions && isConst) {
-        compiler.reportError(spannable, MessageKind.NOT_ASSIGNABLE,
-                             {'fromType': from, 'toType': to});
+        compiler.reportErrorMessage(
+            spannable,
+            MessageKind.NOT_ASSIGNABLE,
+            {'fromType': from, 'toType': to});
       } else {
-        reportTypeWarning(spannable, MessageKind.NOT_ASSIGNABLE,
-                          {'fromType': from, 'toType': to});
+        compiler.reportWarningMessage(
+            spannable,
+            MessageKind.NOT_ASSIGNABLE,
+            {'fromType': from, 'toType': to});
       }
       return false;
     }
@@ -892,7 +886,43 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     Link<Node> arguments = send.arguments;
     DartType unaliasedType = type.unalias(compiler);
     if (identical(unaliasedType.kind, TypeKind.FUNCTION)) {
-      bool error = false;
+
+      /// Report [warning] including info(s) about the declaration of [element]
+      /// or [type].
+      void reportWarning(DiagnosticMessage warning) {
+        // TODO(johnniwinther): Support pointing to individual parameters on
+        // assignability warnings.
+        List<DiagnosticMessage> infos = <DiagnosticMessage>[];
+        Element declaration = element;
+        if (declaration == null) {
+          declaration = type.element;
+        } else if (type.isTypedef) {
+          infos.add(compiler.createMessage(
+              declaration,
+              MessageKind.THIS_IS_THE_DECLARATION,
+              {'name': element.name}));
+          declaration = type.element;
+        }
+        if (declaration != null) {
+          infos.add(compiler.createMessage(
+              declaration, MessageKind.THIS_IS_THE_METHOD));
+        }
+        compiler.reportWarning(warning, infos);
+      }
+
+      /// Report a warning on [node] if [argumentType] is not assignable to
+      /// [parameterType].
+      void checkAssignable(Spannable node,
+                           DartType argumentType,
+                           DartType parameterType) {
+        if (!types.isAssignable(argumentType, parameterType)) {
+          reportWarning(compiler.createMessage(
+              node,
+              MessageKind.NOT_ASSIGNABLE,
+              {'fromType': argumentType, 'toType': parameterType}));
+        }
+      }
+
       FunctionType funType = unaliasedType;
       Iterator<DartType> parameterTypes = funType.parameterTypes.iterator;
       Iterator<DartType> optionalParameterTypes =
@@ -906,73 +936,51 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           DartType namedParameterType =
               funType.getNamedParameterType(argumentName);
           if (namedParameterType == null) {
-            error = true;
             // TODO(johnniwinther): Provide better information on the called
             // function.
-            reportTypeWarning(argument, MessageKind.NAMED_ARGUMENT_NOT_FOUND,
-                {'argumentName': argumentName});
+            reportWarning(compiler.createMessage(
+                argument,
+                MessageKind.NAMED_ARGUMENT_NOT_FOUND,
+                {'argumentName': argumentName}));
 
             DartType argumentType = analyze(argument);
             if (argumentTypes != null) argumentTypes.addLast(argumentType);
           } else {
             DartType argumentType = analyze(argument);
             if (argumentTypes != null) argumentTypes.addLast(argumentType);
-            if (!checkAssignable(argument, argumentType, namedParameterType)) {
-              error = true;
-            }
+            checkAssignable(argument, argumentType, namedParameterType);
           }
         } else {
           if (!parameterTypes.moveNext()) {
             if (!optionalParameterTypes.moveNext()) {
-              error = true;
+
               // TODO(johnniwinther): Provide better information on the
               // called function.
-              reportTypeWarning(argument, MessageKind.ADDITIONAL_ARGUMENT);
+              reportWarning(compiler.createMessage(
+                  argument, MessageKind.ADDITIONAL_ARGUMENT));
 
               DartType argumentType = analyze(argument);
               if (argumentTypes != null) argumentTypes.addLast(argumentType);
             } else {
               DartType argumentType = analyze(argument);
               if (argumentTypes != null) argumentTypes.addLast(argumentType);
-              if (!checkAssignable(argument,
-                                   argumentType,
-                                   optionalParameterTypes.current)) {
-                error = true;
-              }
+              checkAssignable(
+                  argument, argumentType, optionalParameterTypes.current);
             }
           } else {
             DartType argumentType = analyze(argument);
             if (argumentTypes != null) argumentTypes.addLast(argumentType);
-            if (!checkAssignable(argument, argumentType,
-                                 parameterTypes.current)) {
-              error = true;
-            }
+            checkAssignable(argument, argumentType, parameterTypes.current);
           }
         }
         arguments = arguments.tail;
       }
       if (parameterTypes.moveNext()) {
-        error = true;
         // TODO(johnniwinther): Provide better information on the called
         // function.
-        reportTypeWarning(send, MessageKind.MISSING_ARGUMENT,
-            {'argumentType': parameterTypes.current});
-      }
-      if (error) {
-        // TODO(johnniwinther): Improve access to declaring element and handle
-        // synthesized member signatures. Currently function typed instance
-        // members provide no access to their own name.
-        if (element == null) {
-          element = type.element;
-        } else if (type.isTypedef) {
-          reportTypeInfo(element,
-              MessageKind.THIS_IS_THE_DECLARATION,
-              {'name': element.name});
-          element = type.element;
-        }
-        if (element != null) {
-          reportTypeInfo(element, MessageKind.THIS_IS_THE_METHOD);
-        }
+        reportWarning(compiler.createMessage(
+            send, MessageKind.MISSING_ARGUMENT,
+            {'argumentType': parameterTypes.current}));
       }
     } else {
       while(!arguments.isEmpty) {
@@ -1213,27 +1221,30 @@ class TypeCheckerVisitor extends Visitor<DartType> {
             if (!types.isMoreSpecific(shownType, knownType)) {
               String variableName = variable.name;
               if (!types.isSubtype(shownType, knownType)) {
-                typePromotion.addHint(node,
+                typePromotion.addHint(compiler.createMessage(
+                    node,
                     MessageKind.NOT_MORE_SPECIFIC_SUBTYPE,
                     {'variableName': variableName,
                      'shownType': shownType,
-                     'knownType': knownType});
+                     'knownType': knownType}));
               } else {
                 DartType shownTypeSuggestion =
                     computeMoreSpecificType(shownType, knownType);
                 if (shownTypeSuggestion != null) {
-                  typePromotion.addHint(node,
+                  typePromotion.addHint(compiler.createMessage(
+                      node,
                       MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
                       {'variableName': variableName,
                        'shownType': shownType,
                        'shownTypeSuggestion': shownTypeSuggestion,
-                       'knownType': knownType});
+                       'knownType': knownType}));
                 } else {
-                  typePromotion.addHint(node,
+                  typePromotion.addHint(compiler.createMessage(
+                      node,
                       MessageKind.NOT_MORE_SPECIFIC,
                       {'variableName': variableName,
                        'shownType': shownType,
-                       'knownType': knownType});
+                       'knownType': knownType}));
                 }
               }
             }
@@ -1925,9 +1936,11 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         }
         unreferencedFields.addAll(enumValues.values);
         if (!unreferencedFields.isEmpty) {
-          compiler.reportWarning(node, MessageKind.MISSING_ENUM_CASES,
+          compiler.reportWarningMessage(
+              node, MessageKind.MISSING_ENUM_CASES,
               {'enumType': expressionType,
-               'enumValues': unreferencedFields.map((e) => e.name).join(', ')});
+               'enumValues': unreferencedFields.map(
+                   (e) => e.name).join(', ')});
         }
       });
     }

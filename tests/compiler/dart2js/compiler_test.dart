@@ -8,7 +8,7 @@ import "package:async_helper/async_helper.dart";
 import "package:compiler/src/diagnostics/messages.dart";
 import "package:compiler/src/elements/elements.dart";
 import "package:compiler/src/resolution/members.dart";
-import "package:compiler/src/diagnostics/spannable.dart";
+import "package:compiler/src/diagnostics/diagnostic_listener.dart";
 import "mock_compiler.dart";
 
 
@@ -21,24 +21,22 @@ class CallbackMockCompiler extends MockCompiler {
   setOnError(var f) => onError = f;
   setOnWarning(var f) => onWarning = f;
 
-  void reportWarning(Spannable node,
-                     MessageKind messageKind,
-                     [Map arguments = const {}]) {
+  void reportWarning(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     if (onWarning != null) {
-      MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
-      onWarning(this, node, template.message(arguments));
+      onWarning(this, message.spannable, message.message);
     }
-    super.reportWarning(node, messageKind, arguments);
+    super.reportWarning(message, infos);
   }
 
-  void reportError(Spannable node,
-                   MessageKind messageKind,
-                   [Map arguments = const {}]) {
+  void reportError(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     if (onError != null) {
-      MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
-      onError(this, node, template.message(arguments));
+      onError(this, message.spannable, message.message);
     }
-    super.reportError(node, messageKind, arguments);
+    super.reportError(message, infos);
   }
 }
 

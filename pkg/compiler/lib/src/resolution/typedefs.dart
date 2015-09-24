@@ -89,12 +89,14 @@ class TypedefCyclicVisitor extends BaseDartTypeVisitor {
         hasCyclicReference = true;
         if (seenTypedefsCount == 1) {
           // Direct cyclicity.
-          compiler.reportError(element,
+          compiler.reportErrorMessage(
+              element,
               MessageKind.CYCLIC_TYPEDEF,
               {'typedefName': element.name});
         } else if (seenTypedefsCount == 2) {
           // Cyclicity through one other typedef.
-          compiler.reportError(element,
+          compiler.reportErrorMessage(
+              element,
               MessageKind.CYCLIC_TYPEDEF_ONE,
               {'typedefName': element.name,
                'otherTypedefName': seenTypedefs.head.name});
@@ -102,7 +104,8 @@ class TypedefCyclicVisitor extends BaseDartTypeVisitor {
           // Cyclicity through more than one other typedef.
           for (TypedefElement cycle in seenTypedefs) {
             if (!identical(typedefElement, cycle)) {
-              compiler.reportError(element,
+              compiler.reportErrorMessage(
+                  element,
                   MessageKind.CYCLIC_TYPEDEF_ONE,
                   {'typedefName': element.name,
                    'otherTypedefName': cycle.name});

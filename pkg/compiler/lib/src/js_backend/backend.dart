@@ -902,7 +902,7 @@ class JavaScriptBackend extends Backend {
       cls.ensureResolved(compiler);
       cls.forEachMember((ClassElement classElement, Element member) {
         if (member.name == Identifiers.call) {
-          compiler.reportError(
+          compiler.reportErrorMessage(
               member,
               MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS);
           return;
@@ -1526,11 +1526,13 @@ class JavaScriptBackend extends Backend {
     if (totalMethodCount != preMirrorsMethodCount) {
       int mirrorCount = totalMethodCount - preMirrorsMethodCount;
       double percentage = (mirrorCount / totalMethodCount) * 100;
-      compiler.reportHint(
+      DiagnosticMessage hint = compiler.createMessage(
           compiler.mainApp, MessageKind.MIRROR_BLOAT,
           {'count': mirrorCount,
            'total': totalMethodCount,
            'percentage': percentage.round()});
+
+      List<DiagnosticMessage> infos = <DiagnosticMessage>[];
       for (LibraryElement library in compiler.libraryLoader.libraries) {
         if (library.isInternalLibrary) continue;
         for (ImportElement import in library.imports) {
@@ -1541,10 +1543,11 @@ class JavaScriptBackend extends Backend {
               ? MessageKind.MIRROR_IMPORT
               : MessageKind.MIRROR_IMPORT_NO_USAGE;
           compiler.withCurrentElement(library, () {
-            compiler.reportInfo(import, kind);
+            infos.add(compiler.createMessage(import, kind));
           });
         }
       }
+      compiler.reportHint(hint, infos);
     }
     return programSize;
   }
@@ -2646,7 +2649,8 @@ class JavaScriptBackend extends Backend {
       if (cls == forceInlineClass) {
         hasForceInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
-          compiler.reportHint(element,
+          compiler.reportHintMessage(
+              element,
               MessageKind.GENERIC,
               {'text': "Must inline"});
         }
@@ -2654,7 +2658,8 @@ class JavaScriptBackend extends Backend {
       } else if (cls == noInlineClass) {
         hasNoInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
-          compiler.reportHint(element,
+          compiler.reportHintMessage(
+              element,
               MessageKind.GENERIC,
               {'text': "Cannot inline"});
         }
@@ -2667,7 +2672,8 @@ class JavaScriptBackend extends Backend {
               " or static functions");
         }
         if (VERBOSE_OPTIMIZER_HINTS) {
-          compiler.reportHint(element,
+          compiler.reportHintMessage(
+              element,
               MessageKind.GENERIC,
               {'text': "Cannot throw"});
         }
@@ -2675,7 +2681,8 @@ class JavaScriptBackend extends Backend {
       } else if (cls == noSideEffectsClass) {
         hasNoSideEffects = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
-          compiler.reportHint(element,
+          compiler.reportHintMessage(
+              element,
               MessageKind.GENERIC,
               {'text': "Has no side effects"});
         }
@@ -2781,7 +2788,7 @@ class JavaScriptBackend extends Backend {
   @override
   bool enableCodegenWithErrorsIfSupported(Spannable node) {
     if (compiler.useCpsIr) {
-      compiler.reportHint(
+      compiler.reportHintMessage(
           node,
           MessageKind.GENERIC,
           {'text': "Generation of code with compile time errors is currently "

@@ -292,27 +292,32 @@ void testOperatorParse() {
   Expect.isNull(function.getOrSet);
 }
 
-class Collector implements DiagnosticListener {
+class Collector extends DiagnosticListener {
   int token = -1;
 
-  void reportFatalError(Token token,
-                        messageKind,
-                        [Map arguments = const {}]) {
+  void reportFatalError(Token token) {
     this.token = token.kind;
     throw this;
   }
 
-  void reportError(Token token,
-                   messageKind,
-                   [Map arguments = const {}]) {
-    reportFatalError(token, messageKind, arguments);
+  void reportError(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    reportFatalError(message.spannable);
   }
 
   void log(message) {
     print(message);
   }
 
-  noSuchMethod(Invocation invocation) => throw 'unsupported operation';
+  noSuchMethod(Invocation invocation) {
+    throw 'unsupported operation';
+  }
+
+  @override
+  DiagnosticMessage createMessage(spannable, messageKind, [arguments]) {
+    return new DiagnosticMessage(null, spannable, null);
+  }
 }
 
 void testMissingCloseParen() {

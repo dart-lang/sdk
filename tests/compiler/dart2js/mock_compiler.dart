@@ -194,37 +194,41 @@ class MockCompiler extends Compiler {
 
   // TODO(johnniwinther): Remove this when we don't filter certain type checker
   // warnings.
-  void reportWarning(Spannable node, MessageKind messageKind,
-                     [Map arguments = const {}]) {
-    MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
-    reportDiagnostic(node,
-                     template.message(arguments, terseDiagnostics),
-                     api.Diagnostic.WARNING);
+  void reportWarning(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    reportDiagnostic(message, infos, api.Diagnostic.WARNING);
   }
 
-  void reportDiagnostic(Spannable node,
-                        Message message,
+  void reportDiagnostic(DiagnosticMessage message,
+                        List<DiagnosticMessage> infoMessages,
                         api.Diagnostic kind) {
-    var diagnostic = new WarningMessage(node, message);
-    if (kind == api.Diagnostic.CRASH) {
-      crashes.add(diagnostic);
-    } else if (kind == api.Diagnostic.ERROR) {
-      errors.add(diagnostic);
-    } else if (kind == api.Diagnostic.WARNING) {
-      warnings.add(diagnostic);
-    } else if (kind == api.Diagnostic.INFO) {
-      infos.add(diagnostic);
-    } else if (kind == api.Diagnostic.HINT) {
-      hints.add(diagnostic);
-    }
-    if (diagnosticHandler != null) {
-      SourceSpan span = spanFromSpannable(node);
-      if (span != null) {
-        diagnosticHandler(span.uri, span.begin, span.end, '$message', kind);
-      } else {
-        diagnosticHandler(null, null, null, '$message', kind);
+
+    void processMessage(DiagnosticMessage message, api.Diagnostic kind) {
+      var diagnostic = new WarningMessage(message.spannable, message.message);
+      if (kind == api.Diagnostic.CRASH) {
+        crashes.add(diagnostic);
+      } else if (kind == api.Diagnostic.ERROR) {
+        errors.add(diagnostic);
+      } else if (kind == api.Diagnostic.WARNING) {
+        warnings.add(diagnostic);
+      } else if (kind == api.Diagnostic.INFO) {
+        infos.add(diagnostic);
+      } else if (kind == api.Diagnostic.HINT) {
+        hints.add(diagnostic);
+      }
+      if (diagnosticHandler != null) {
+        SourceSpan span = message.sourceSpan;
+        if (span != null) {
+          diagnosticHandler(span.uri, span.begin, span.end, '$message', kind);
+        } else {
+          diagnosticHandler(null, null, null, '$message', kind);
+        }
       }
     }
+
+    processMessage(message, kind);
+    infoMessages.forEach((i) => processMessage(i, api.Diagnostic.INFO));
   }
 
   bool get compilationFailed => !crashes.isEmpty || !errors.isEmpty;

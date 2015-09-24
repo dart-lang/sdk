@@ -395,7 +395,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
           try {
             return Uri.parse(tagUriString);
           } on FormatException {
-            compiler.reportError(
+            compiler.reportErrorMessage(
                 node.uri,
                 MessageKind.INVALID_URI, {'uri': tagUriString});
             return null;
@@ -482,7 +482,8 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     if (!identical(existing, library)) {
       if (library.hasLibraryName) {
         compiler.withCurrentElement(library, () {
-          compiler.reportWarning(library,
+          compiler.reportWarningMessage(
+              library,
               MessageKind.DUPLICATED_LIBRARY_RESOURCE,
               {'libraryName': library.libraryName,
                'resourceUri': resourceUri,
@@ -490,7 +491,8 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
                'canonicalUri2': existing.canonicalUri});
         });
       } else {
-        compiler.reportHint(library,
+        compiler.reportHintMessage(
+            library,
             MessageKind.DUPLICATED_RESOURCE,
             {'resourceUri': resourceUri,
              'canonicalUri1': library.canonicalUri,
@@ -501,12 +503,14 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       existing = libraryNames.putIfAbsent(name, () => library);
       if (!identical(existing, library)) {
         compiler.withCurrentElement(library, () {
-          compiler.reportWarning(library,
+          compiler.reportWarningMessage(
+              library,
               MessageKind.DUPLICATED_LIBRARY_NAME,
               {'libraryName': name});
         });
         compiler.withCurrentElement(existing, () {
-          compiler.reportWarning(existing,
+          compiler.reportWarningMessage(
+              existing,
               MessageKind.DUPLICATED_LIBRARY_NAME,
               {'libraryName': name});
         });
@@ -532,7 +536,8 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
             compiler.withCurrentElement(unit, () {
               compiler.scanner.scan(unit);
               if (unit.partTag == null && !sourceScript.isSynthesized) {
-                compiler.reportError(unit, MessageKind.MISSING_PART_OF_TAG);
+                compiler.reportErrorMessage(
+                    unit, MessageKind.MISSING_PART_OF_TAG);
               }
             });
           });
@@ -699,7 +704,7 @@ class TagState {
         default:
           listener.internalError(tag, "Unexpected order of library tags.");
       }
-      listener.reportError(tag, kind);
+      listener.reportErrorMessage(tag, kind);
     }
     tagState = NEXT[value];
     if (value == LIBRARY) {
@@ -931,41 +936,49 @@ class LibraryDependencyNode {
   Element addElementToExportScope(Compiler compiler, Element element,
                                   Link<ExportElement> exports) {
     String name = element.name;
+    DiagnosticMessage error;
+    List<DiagnosticMessage> infos = <DiagnosticMessage>[];
 
-    void reportDuplicateExport(Element duplicate,
-                               Link<ExportElement> duplicateExports,
-                               {bool reportError: true}) {
+    void createDuplicateExportMessage(
+        Element duplicate,
+        Link<ExportElement> duplicateExports) {
       assert(invariant(library, !duplicateExports.isEmpty,
           message: "No export for $duplicate from ${duplicate.library} "
                    "in $library."));
       compiler.withCurrentElement(library, () {
         for (ExportElement export in duplicateExports) {
-          if (reportError) {
-            compiler.reportError(export,
-                MessageKind.DUPLICATE_EXPORT, {'name': name});
-            reportError = false;
+          if (error == null) {
+            error = compiler.createMessage(
+                export,
+                MessageKind.DUPLICATE_EXPORT,
+                {'name': name});
           } else {
-            compiler.reportInfo(export,
-                MessageKind.DUPLICATE_EXPORT_CONT, {'name': name});
+            infos.add(compiler.createMessage(
+                export,
+                MessageKind.DUPLICATE_EXPORT_CONT,
+                {'name': name}));
           }
         }
       });
     }
 
-    void reportDuplicateExportDecl(Element duplicate,
-                                   Link<ExportElement> duplicateExports) {
+    void createDuplicateExportDeclMessage(
+        Element duplicate,
+        Link<ExportElement> duplicateExports) {
       assert(invariant(library, !duplicateExports.isEmpty,
           message: "No export for $duplicate from ${duplicate.library} "
                    "in $library."));
-      compiler.reportInfo(duplicate, MessageKind.DUPLICATE_EXPORT_DECL,
-          {'name': name, 'uriString': duplicateExports.head.uri});
+      infos.add(compiler.createMessage(
+          duplicate,
+              MessageKind.DUPLICATE_EXPORT_DECL,
+          {'name': name, 'uriString': duplicateExports.head.uri}));
     }
 
     Element existingElement = exportScope[name];
     if (existingElement != null && existingElement != element) {
       if (existingElement.isErroneous) {
-        reportDuplicateExport(element, exports);
-        reportDuplicateExportDecl(element, exports);
+        createDuplicateExportMessage(element, exports);
+        createDuplicateExportDeclMessage(element, exports);
         element = existingElement;
       } else if (existingElement.library == library) {
         // Do nothing. [existingElement] hides [element].
@@ -976,16 +989,19 @@ class LibraryDependencyNode {
       } else {
         // Declared elements hide exported elements.
         Link<ExportElement> existingExports = exporters[existingElement];
-        reportDuplicateExport(existingElement, existingExports);
-        reportDuplicateExport(element, exports, reportError: false);
-        reportDuplicateExportDecl(existingElement, existingExports);
-        reportDuplicateExportDecl(element, exports);
+        createDuplicateExportMessage(existingElement, existingExports);
+        createDuplicateExportMessage(element, exports);
+        createDuplicateExportDeclMessage(existingElement, existingExports);
+        createDuplicateExportDeclMessage(element, exports);
         element = exportScope[name] = new ErroneousElementX(
             MessageKind.DUPLICATE_EXPORT, {'name': name}, name, library);
       }
     } else {
       exportScope[name] = element;
       exporters[element] = exports;
+    }
+    if (error != null) {
+      compiler.reportError(error, infos);
     }
     return element;
   }
@@ -1049,7 +1065,7 @@ class LibraryDependencyNode {
         String name = identifier.source;
         Element element = library.findExported(name);
         if (element == null) {
-          listener.reportHint(
+          listener.reportHintMessage(
               identifier,
               combinator.isHide
                   ? MessageKind.EMPTY_HIDE : MessageKind.EMPTY_SHOW,

@@ -299,10 +299,18 @@ class LibraryInfo {
         ClassElement existingEnumClass =
             enumClassMap.putIfAbsent(cls.name, () => cls);
         if (existingEnumClass != cls) {
-          listener.reportError(cls, MessageKind.GENERIC,
-              {'text': "Duplicate enum names are not supported in dart2dart."});
-          listener.reportInfo(existingEnumClass, MessageKind.GENERIC,
-              {'text': "This is the other declaration of '${cls.name}'."});
+          listener.reportError(
+              listener.createMessage(
+                  cls,
+                  MessageKind.GENERIC,
+                  {'text': "Duplicate enum names are not supported "
+                           "in dart2dart."}),
+          <DiagnosticMessage>[
+              listener.createMessage(
+                  existingEnumClass,
+                  MessageKind.GENERIC,
+                  {'text': "This is the other declaration of '${cls.name}'."}),
+          ]);
         }
       }
     }
