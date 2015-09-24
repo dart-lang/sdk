@@ -5732,11 +5732,11 @@ static void StreamToConsumer(Dart_StreamConsumer consumer,
            user_data);
 
   // Stream out data. Skipping the array characters.
+  // Replace array close with '\0'.
+  output[output_length - 2] = '\0';
   intptr_t cursor = 1;
   output_length -= 1;
   intptr_t remaining = output_length - 1;
-  // Replace array close with '\0'.
-  output[output_length - 2] = '\0';
 
   while (remaining >= kDataSize) {
     consumer(Dart_StreamConsumer_kData,
