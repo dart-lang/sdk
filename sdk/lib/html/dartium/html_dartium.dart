@@ -20254,14 +20254,19 @@ class HtmlDocument extends Document {
       if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
         creating++;
 
-        var dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
+        var dartClass;
+        try {
+          dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
+        } catch (e) {
+          dartClass = null;
+        } finally {
+          // Need to remember the Dart class that was created for this custom so
+          // return it and setup the blink_jsObject to the $this that we'll be working
+          // with as we talk to blink. 
+          $this['dart_class'] = dartClass;
 
-        // Need to remember the Dart class that was created for this custom so
-        // return it and setup the blink_jsObject to the $this that we'll be working
-        // with as we talk to blink. 
-        $this['dart_class'] = dartClass;
-
-        creating--;
+          creating--;
+        }
       }
     });
     elemProto['attributeChangedCallback'] = new js.JsFunction.withThis(($this, attrName, oldVal, newVal) {
@@ -37071,10 +37076,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");

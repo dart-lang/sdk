@@ -310,14 +310,19 @@ $else
       if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
         creating++;
 
-        var dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
+        var dartClass;
+        try {
+          dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
+        } catch (e) {
+          dartClass = null;
+        } finally {
+          // Need to remember the Dart class that was created for this custom so
+          // return it and setup the blink_jsObject to the $this that we'll be working
+          // with as we talk to blink. 
+          $this['dart_class'] = dartClass;
 
-        // Need to remember the Dart class that was created for this custom so
-        // return it and setup the blink_jsObject to the $this that we'll be working
-        // with as we talk to blink. 
-        $this['dart_class'] = dartClass;
-
-        creating--;
+          creating--;
+        }
       }
     });
     elemProto['attributeChangedCallback'] = new js.JsFunction.withThis(($this, attrName, oldVal, newVal) {

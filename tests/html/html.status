@@ -12,7 +12,6 @@ js_typed_interop_test: Skip # Issue 23676, 23677
 [ $compiler == none && $runtime == dartium ]
 cross_domain_iframe_test: RuntimeError # Dartium JSInterop failure
 crypto_test/functional: RuntimeError # Dartium JSInterop failure
-custom/created_callback_test: Skip # Dartium JSInterop failure
 custom/document_register_basic_test: RuntimeError # Dartium JSInterop failure
 custom/document_register_type_extensions_test/registration: RuntimeError # Dartium JSInterop failure
 custom/element_upgrade_test: RuntimeError # Dartium JSInterop failure
