@@ -639,6 +639,14 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   void visitTry(tree_ir.Try node) {
+    void register(ClassElement classElement) {
+      if (classElement == null) return;
+      registry.registerInstantiatedClass(classElement);
+    }
+    // We might catch JavaScript exceptions.
+    register(glue.jsPlainJavaScriptObjectClass);
+    register(glue.jsUnknownJavaScriptObjectClass);
+
     js.Block tryBlock = buildBodyBlock(node.tryBody);
     tree_ir.Variable exceptionVariable = node.catchParameters.first;
     js.VariableDeclaration exceptionParameter =

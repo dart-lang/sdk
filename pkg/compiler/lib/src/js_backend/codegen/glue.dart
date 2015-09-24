@@ -261,6 +261,11 @@ class Glue {
   ClassElement get jsExtendableArrayClass => _backend.jsExtendableArrayClass;
   ClassElement get jsMutableArrayClass => _backend.jsMutableArrayClass;
 
+  ClassElement get jsPlainJavaScriptObjectClass =>
+      _backend.jsPlainJavaScriptObjectClass;
+  ClassElement get jsUnknownJavaScriptObjectClass =>
+      _backend.jsUnknownJavaScriptObjectClass;
+
   bool isStringClass(ClassElement classElement) =>
       classElement == _backend.jsStringClass ||
       classElement == _compiler.stringClass;
