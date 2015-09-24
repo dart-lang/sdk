@@ -11,6 +11,10 @@ class NativeEnqueuer {
   /// Initial entry point to native enqueuer.
   void processNativeClasses(Iterable<LibraryElement> libraries) {}
 
+  /// Registers the [nativeBehavior]. Adds the liveness of its instantiated
+  /// types to the world.
+  void registerNativeBehavior(NativeBehavior nativeBehavior, cause) {}
+
   /// Notification of a main Enqueuer worklist element.  For methods, adds
   /// information from metadata attributes, and computes types instantiated due
   /// to calling the method.
@@ -468,48 +472,41 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     });
   }
 
+  void registerNativeBehavior(NativeBehavior nativeBehavior, cause) {
+    processNativeBehavior(nativeBehavior, cause);
+    flushQueue();
+  }
+
   void registerMethodUsed(Element method) {
-    processNativeBehavior(
-        NativeBehavior.ofMethod(method, compiler),
-        method);
-      flushQueue();
+    registerNativeBehavior(NativeBehavior.ofMethod(method, compiler), method);
   }
 
   void registerFieldLoad(Element field) {
-    processNativeBehavior(
-        NativeBehavior.ofFieldLoad(field, compiler),
-        field);
-    flushQueue();
+    registerNativeBehavior(NativeBehavior.ofFieldLoad(field, compiler), field);
   }
 
   void registerFieldStore(Element field) {
-    processNativeBehavior(
-        NativeBehavior.ofFieldStore(field, compiler),
-        field);
-    flushQueue();
+    registerNativeBehavior(NativeBehavior.ofFieldStore(field, compiler), field);
   }
 
   void registerJsCall(Send node, ResolverVisitor resolver) {
     NativeBehavior behavior = NativeBehavior.ofJsCall(node, compiler, resolver);
-    processNativeBehavior(behavior, node);
+    registerNativeBehavior(behavior, node);
     nativeBehaviors[node] = behavior;
-    flushQueue();
   }
 
   void registerJsEmbeddedGlobalCall(Send node, ResolverVisitor resolver) {
     NativeBehavior behavior =
         NativeBehavior.ofJsEmbeddedGlobalCall(node, compiler, resolver);
-    processNativeBehavior(behavior, node);
+    registerNativeBehavior(behavior, node);
     nativeBehaviors[node] = behavior;
-    flushQueue();
   }
 
   void registerJsBuiltinCall(Send node, ResolverVisitor resolver) {
     NativeBehavior behavior =
         NativeBehavior.ofJsBuiltinCall(node, compiler, resolver);
-    processNativeBehavior(behavior, node);
+    registerNativeBehavior(behavior, node);
     nativeBehaviors[node] = behavior;
-    flushQueue();
   }
 
   NativeBehavior getNativeBehaviorOf(Send node) => nativeBehaviors[node];

@@ -1028,6 +1028,18 @@ class JavaScriptBackend extends Backend {
   void registerInstantiatedClass(ClassElement cls,
                                  Enqueuer enqueuer,
                                  Registry registry) {
+    _processClass(cls, enqueuer, registry);
+  }
+
+  void registerImplementedClass(ClassElement cls,
+                                Enqueuer enqueuer,
+                                Registry registry) {
+    _processClass(cls, enqueuer, registry);
+  }
+
+  void _processClass(ClassElement cls,
+                     Enqueuer enqueuer,
+                     Registry registry) {
     if (!cls.typeVariables.isEmpty) {
       typeVariableHandler.registerClassWithTypeVariables(cls, enqueuer,
                                                          registry);

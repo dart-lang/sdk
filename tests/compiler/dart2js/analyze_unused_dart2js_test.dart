@@ -71,8 +71,13 @@ const Map<String, List<String>> WHITE_LIST = const {
 void main() {
   var uri = currentDirectory.resolve(
       'pkg/compiler/lib/src/use_unused_api.dart');
-  asyncTest(() => analyze([uri], WHITE_LIST,
-      analyzeAll: false, checkResults: checkResults));
+  asyncTest(() => analyze(
+      [uri],
+      // TODO(johnniwinther): Use [WHITE_LIST] again when
+      // [Compiler.reportUnusedCode] is reenabled.
+      const {}, // WHITE_LIST
+      analyzeAll: false,
+      checkResults: checkResults));
 }
 
 bool checkResults(Compiler compiler, CollectingDiagnosticHandler handler) {

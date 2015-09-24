@@ -196,7 +196,13 @@ abstract class Enqueuer {
       ClassElement cls = type.element;
       registry.registerDependency(cls);
       cls.ensureResolved(compiler);
-      universe.registerTypeInstantiation(type, byMirrors: mirrorUsage);
+      universe.registerTypeInstantiation(
+          type,
+          byMirrors: mirrorUsage,
+          onImplemented: (ClassElement cls) {
+        compiler.backend.registerImplementedClass(
+                    cls, this, compiler.globalDependencies);
+      });
       processInstantiatedClass(cls);
       compiler.backend.registerInstantiatedType(type, registry);
     });
@@ -322,26 +328,26 @@ abstract class Enqueuer {
       // supertypes.
       cls.ensureResolved(compiler);
 
-      void processClass(ClassElement cls) {
-        if (_processedClasses.contains(cls)) return;
+      void processClass(ClassElement superclass) {
+        if (_processedClasses.contains(superclass)) return;
 
-        _processedClasses.add(cls);
-        recentClasses.add(cls);
-        cls.ensureResolved(compiler);
-        cls.implementation.forEachMember(processInstantiatedClassMember);
-        if (isResolutionQueue && !cls.isSynthesized) {
-          compiler.resolver.checkClass(cls);
+        _processedClasses.add(superclass);
+        recentClasses.add(superclass);
+        superclass.ensureResolved(compiler);
+        superclass.implementation.forEachMember(processInstantiatedClassMember);
+        if (isResolutionQueue && !superclass.isSynthesized) {
+          compiler.resolver.checkClass(superclass);
         }
-        // We only tell the backend once that [cls] was instantiated, so
+        // We only tell the backend once that [superclass] was instantiated, so
         // any additional dependencies must be treated as global
         // dependencies.
         compiler.backend.registerInstantiatedClass(
-            cls, this, compiler.globalDependencies);
+            superclass, this, compiler.globalDependencies);
       }
-      processClass(cls);
-      for (Link<DartType> supertypes = cls.allSupertypes;
-           !supertypes.isEmpty; supertypes = supertypes.tail) {
-        processClass(supertypes.head.element);
+
+      while (cls != null) {
+        processClass(cls);
+        cls = cls.superclass;
       }
     });
   }

@@ -650,7 +650,7 @@ class ArrayIterator<E> implements Iterator<E> {
     // inline moveNext() we might be able to GVN the length and eliminate this
     // check on known fixed length JSArray.
     if (_length != length) {
-      throw new ConcurrentModificationError(_iterable);
+      throw throwConcurrentModificationError(_iterable);
     }
 
     if (_index >= length) {

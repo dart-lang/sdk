@@ -1392,8 +1392,23 @@ abstract class ClassElement extends TypeDeclarationElement
 
   /// `true` if this class is an enum declaration.
   bool get isEnumClass;
+
+  /// `true` if this class is a mixin application, either named or unnamed.
   bool get isMixinApplication;
+
+  /// `true` if this class is a named mixin application, e.g.
+  ///
+  ///     class NamedMixinApplication = SuperClass with MixinClass;
+  ///
+  bool get isNamedMixinApplication;
+
+  /// `true` if this class is an unnamed mixin application, e.g. the synthesized
+  /// `SuperClass+MixinClass` mixin application class in:
+  ///
+  ///     class Class extends SuperClass with MixinClass {}
+  ///
   bool get isUnnamedMixinApplication;
+
   bool get hasBackendMembers;
   bool get hasLocalScopeMembers;
 
@@ -1404,13 +1419,19 @@ abstract class ClassElement extends TypeDeclarationElement
   /// implementing the interface or by providing a [call] method.
   bool implementsFunction(Compiler compiler);
 
+  /// Returns `true` if this class extends [cls] directly or indirectly.
+  ///
+  /// This method is not to be used for checking type hierarchy and assignments,
+  /// because it does not take parameterized types into account.
   bool isSubclassOf(ClassElement cls);
-  /// Returns true if `this` explicitly/nominally implements [intrface].
+
+  /// Returns `true` if this class explicitly implements [intrface].
   ///
   /// Note that, if [intrface] is the `Function` class, this method returns
   /// false for a class that has a `call` method but does not explicitly
   /// implement `Function`.
   bool implementsInterface(ClassElement intrface);
+
   bool hasFieldShadowedBy(Element fieldMember);
 
   /// Returns `true` if this class has a @proxy annotation.

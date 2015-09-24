@@ -18,6 +18,7 @@ main() {
   asyncTest(() => compile(TEST_ONE, entry: 'foo', check: (String generated) {
     Expect.isTrue(generated.contains(r'.add$1('));
     Expect.isTrue(generated.contains(r'.removeLast$0('));
-    Expect.isTrue(generated.contains(r'.length'));
+    Expect.isTrue(generated.contains(r'.length'),
+        "Unexpected code to contain '.length':\n$generated");
   }));
 }
