@@ -197,7 +197,18 @@ $endif
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   // Custom element created callback.
+$if DART2JS
   Node._created() : super._created();
+$else
+  Node._created() : super._created() {
+    // By this point blink_jsObject should be setup if it's not then we weren't
+    // called by the registerElement createdCallback - probably created() was
+    // called directly which is verboten.
+    if (this.blink_jsObject == null) {
+      throw new DomException.jsInterop("the created constructor cannot be called directly");
+    }
+  }
+$endif
 
   /**
    * A modifiable list of this node's children.

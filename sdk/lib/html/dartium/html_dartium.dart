@@ -20171,6 +20171,39 @@ class HtmlDocument extends Document {
     return isElement ? jsClassName : null;
   }
 
+  /**
+   * Does this CustomElement class have:
+   *
+   *   - a created constructor with no arguments?
+   *   - a created constructor with a super.created() initializer?
+   *
+   * e.g.,    MyCustomClass.created() : super.created();
+   */
+  bool _hasCreatedConstructor(ClassMirror classMirror) {
+    var createdParametersValid = false;
+    var superCreatedCalled = false;
+    var className = MirrorSystem.getName(classMirror.simpleName);
+    var methodMirror = classMirror.declarations[new Symbol("$className.created")];
+    if (methodMirror != null) {
+      createdParametersValid = methodMirror.parameters.length == 0;
+
+      // Get the created constructor source and look at the initializer;
+      // Must call super.created() if not its as an error.
+      var createdSource = methodMirror.source;
+      RegExp regExp = new RegExp(r":(.*?)(;|}|\n)");
+      var match = regExp.firstMatch(createdSource);
+      superCreatedCalled = match.input.substring(match.start,match.end).contains("super.created()");
+    }
+
+    if (!superCreatedCalled) {
+      throw new DomException.jsInterop('created constructor initializer must call super.created()');
+    } else if (!createdParametersValid) {
+      throw new DomException.jsInterop('created constructor must have no parameters');
+    }
+
+    return true;
+  }
+
   @Experimental()
   /**
    * Register a custom subclass of Element to be instantiatable by the DOM.
@@ -20225,68 +20258,71 @@ class HtmlDocument extends Document {
       throw new DomException.jsInterop("HierarchyRequestError: Only HTML elements can be customized.");
     }
 
-    // Start the hookup the JS way create an <x-foo> element that extends the
-    // <x-base> custom element. Inherit its prototype and signal what tag is
-    // inherited:
-    //
-    //     var myProto = Object.create(HTMLElement.prototype);
-    //     var myElement = document.registerElement('x-foo', {prototype: myProto});
-    var baseElement = js.context[jsClassName];
-    if (baseElement == null) {
-      // Couldn't find the HTML element so use a generic one.
-      baseElement = js.context['HTMLElement'];
-    }
-    var elemProto = js.context['Object'].callMethod("create", [baseElement['prototype']]);
+    if (_hasCreatedConstructor(classMirror)) {
+      // Start the hookup the JS way create an <x-foo> element that extends the
+      // <x-base> custom element. Inherit its prototype and signal what tag is
+      // inherited:
+      //
+      //     var myProto = Object.create(HTMLElement.prototype);
+      //     var myElement = document.registerElement('x-foo', {prototype: myProto});
+      var baseElement = js.context[jsClassName];
+      if (baseElement == null) {
+        // Couldn't find the HTML element so use a generic one.
+        baseElement = js.context['HTMLElement'];
+      }
+      var elemProto = js.context['Object'].callMethod("create", [baseElement['prototype']]);
 
-    // TODO(terry): Hack to stop recursion re-creating custom element when the
-    //              created() constructor of the custom element does e.g.,
-    //
-    //                  MyElement.created() : super.created() {
-    //                    this.innerHtml = "<b>I'm an x-foo-with-markup!</b>";
-    //                  }
-    //
-    //              sanitizing causes custom element to created recursively
-    //              until stack overflow.
-    //
-    //              See https://github.com/dart-lang/sdk/issues/23666
-    int creating = 0;
-    elemProto['createdCallback'] = new js.JsFunction.withThis(($this) {
-      if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
-        creating++;
+      // TODO(terry): Hack to stop recursion re-creating custom element when the
+      //              created() constructor of the custom element does e.g.,
+      //
+      //                  MyElement.created() : super.created() {
+      //                    this.innerHtml = "<b>I'm an x-foo-with-markup!</b>";
+      //                  }
+      //
+      //              sanitizing causes custom element to created recursively
+      //              until stack overflow.
+      //
+      //              See https://github.com/dart-lang/sdk/issues/23666
+      int creating = 0;
+      elemProto['createdCallback'] = new js.JsFunction.withThis(($this) {
+        if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
+          creating++;
 
-        var dartClass;
-        try {
-          dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
-        } catch (e) {
-          dartClass = null;
-        } finally {
-          // Need to remember the Dart class that was created for this custom so
-          // return it and setup the blink_jsObject to the $this that we'll be working
-          // with as we talk to blink. 
-          $this['dart_class'] = dartClass;
+          var dartClass;
+          try {
+            dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
+          } catch (e) {
+            dartClass = HtmlElement.internalCreateHtmlElement();
+            throw e;
+          } finally {
+            // Need to remember the Dart class that was created for this custom so
+            // return it and setup the blink_jsObject to the $this that we'll be working
+            // with as we talk to blink. 
+            $this['dart_class'] = dartClass;
 
-          creating--;
+            creating--;
+          }
         }
-      }
-    });
-    elemProto['attributeChangedCallback'] = new js.JsFunction.withThis(($this, attrName, oldVal, newVal) {
-      if ($this["dart_class"] != null && $this['dart_class'].attributeChanged != null) {
-        $this['dart_class'].attributeChanged(attrName, oldVal, newVal);
-      }
-    });
-    elemProto['attachedCallback'] = new js.JsFunction.withThis(($this) {
-      if ($this["dart_class"] != null && $this['dart_class'].attached != null) {
-        $this['dart_class'].attached();
-      }
-    });
-    elemProto['detachedCallback'] = new js.JsFunction.withThis(($this) {
-      if ($this["dart_class"] != null && $this['dart_class'].detached != null) {
-        $this['dart_class'].detached();
-      }
-    });
-    // document.registerElement('x-foo', {prototype: elemProto, extends: extendsTag});
-    var jsMap = new js.JsObject.jsify({'prototype': elemProto, 'extends': extendsTag});
-    js.context['document'].callMethod('registerElement', [tag, jsMap]);
+      });
+      elemProto['attributeChangedCallback'] = new js.JsFunction.withThis(($this, attrName, oldVal, newVal) {
+        if ($this["dart_class"] != null && $this['dart_class'].attributeChanged != null) {
+          $this['dart_class'].attributeChanged(attrName, oldVal, newVal);
+        }
+      });
+      elemProto['attachedCallback'] = new js.JsFunction.withThis(($this) {
+        if ($this["dart_class"] != null && $this['dart_class'].attached != null) {
+          $this['dart_class'].attached();
+        }
+      });
+      elemProto['detachedCallback'] = new js.JsFunction.withThis(($this) {
+        if ($this["dart_class"] != null && $this['dart_class'].detached != null) {
+          $this['dart_class'].detached();
+        }
+      });
+      // document.registerElement('x-foo', {prototype: elemProto, extends: extendsTag});
+      var jsMap = new js.JsObject.jsify({'prototype': elemProto, 'extends': extendsTag});
+      js.context['document'].callMethod('registerElement', [tag, jsMap]);
+    }
   }
 
   /** *Deprecated*: use [registerElement] instead. */
@@ -27928,7 +27964,14 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
 class Node extends EventTarget {
 
   // Custom element created callback.
-  Node._created() : super._created();
+  Node._created() : super._created() {
+    // By this point blink_jsObject should be setup if it's not then we weren't
+    // called by the registerElement createdCallback - probably created() was
+    // called directly which is verboten.
+    if (this.blink_jsObject == null) {
+      throw new DomException.jsInterop("the created constructor cannot be called directly");
+    }
+  }
 
   /**
    * A modifiable list of this node's children.
@@ -37076,10 +37119,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
