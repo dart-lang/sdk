@@ -197,7 +197,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * After every test, the server is stopped and [sourceDirectory] is deleted.
    */
   Future tearDown() {
-    return _shutdownIfNeeded().then((_) {
+    return shutdownIfNeeded().then((_) {
       sourceDirectory.deleteSync(recursive: true);
     });
   }
@@ -222,7 +222,7 @@ abstract class AbstractAnalysisServerIntegrationTest
   /**
    * If [skipShutdown] is not set, shut down the server.
    */
-  Future _shutdownIfNeeded() {
+  Future shutdownIfNeeded() {
     if (skipShutdown) {
       return new Future.value();
     }
