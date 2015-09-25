@@ -2943,7 +2943,7 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  int get nameLength => name != null ? name.length : 0;
+  int get nameLength => displayName != null ? displayName.length : 0;
 
   @override
   int get nameOffset => _nameOffset;
@@ -7347,7 +7347,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * the given [name].
    */
   LibraryElementImpl.forNode(this.context, LibraryIdentifier name)
-      : super.forNode(name), nameLength = name != null ? name.length : 0;
+      : super.forNode(name),
+        nameLength = name != null ? name.length : 0;
 
   @override
   CompilationUnitElement get definingCompilationUnit =>
