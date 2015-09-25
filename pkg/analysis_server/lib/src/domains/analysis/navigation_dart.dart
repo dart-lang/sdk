@@ -40,6 +40,52 @@ class DartNavigationComputer implements NavigationContributor {
   }
 }
 
+/**
+ * A Dart specific wrapper around [NavigationCollector].
+ */
+class _DartNavigationCollector {
+  final NavigationCollector collector;
+
+  _DartNavigationCollector(this.collector);
+
+  void _addRegion(int offset, int length, Element element) {
+    if (element is FieldFormalParameterElement) {
+      element = (element as FieldFormalParameterElement).field;
+    }
+    if (element == null || element == DynamicElementImpl.instance) {
+      return;
+    }
+    if (element.location == null) {
+      return;
+    }
+    protocol.ElementKind kind =
+        protocol.newElementKind_fromEngine(element.kind);
+    protocol.Location location = protocol.newLocation_fromElement(element);
+    if (location == null) {
+      return;
+    }
+    collector.addRegion(offset, length, kind, location);
+  }
+
+  void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {
+    int offset = a.offset;
+    int length = b.end - offset;
+    _addRegion(offset, length, element);
+  }
+
+  void _addRegionForNode(AstNode node, Element element) {
+    int offset = node.offset;
+    int length = node.length;
+    _addRegion(offset, length, element);
+  }
+
+  void _addRegionForToken(Token token, Element element) {
+    int offset = token.offset;
+    int length = token.length;
+    _addRegion(offset, length, element);
+  }
+}
+
 class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   final _DartNavigationCollector computer;
 
@@ -127,6 +173,11 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   visitIndexExpression(IndexExpression node) {
     super.visitIndexExpression(node);
     computer._addRegionForToken(node.rightBracket, node.bestElement);
+  }
+
+  @override
+  visitLibraryDirective(LibraryDirective node) {
+    computer._addRegionForNode(node.name, node.element);
   }
 
   @override
@@ -219,52 +270,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
     if (node != null) {
       node.accept(this);
     }
-  }
-}
-
-/**
- * A Dart specific wrapper around [NavigationCollector].
- */
-class _DartNavigationCollector {
-  final NavigationCollector collector;
-
-  _DartNavigationCollector(this.collector);
-
-  void _addRegion(int offset, int length, Element element) {
-    if (element is FieldFormalParameterElement) {
-      element = (element as FieldFormalParameterElement).field;
-    }
-    if (element == null || element == DynamicElementImpl.instance) {
-      return;
-    }
-    if (element.location == null) {
-      return;
-    }
-    protocol.ElementKind kind =
-        protocol.newElementKind_fromEngine(element.kind);
-    protocol.Location location = protocol.newLocation_fromElement(element);
-    if (location == null) {
-      return;
-    }
-    collector.addRegion(offset, length, kind, location);
-  }
-
-  void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {
-    int offset = a.offset;
-    int length = b.end - offset;
-    _addRegion(offset, length, element);
-  }
-
-  void _addRegionForNode(AstNode node, Element element) {
-    int offset = node.offset;
-    int length = node.length;
-    _addRegion(offset, length, element);
-  }
-
-  void _addRegionForToken(Token token, Element element) {
-    int offset = token.offset;
-    int length = token.length;
-    _addRegion(offset, length, element);
   }
 }
 

@@ -103,6 +103,14 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
   }
 
   /**
+   * Validates that there is a target in [testTargets]  with [testFile], at the
+   * offset of [str] in [testFile], and with the length of  [str].
+   */
+  void assertHasTargetString(String str) {
+    assertHasTarget(str, str.length);
+  }
+
+  /**
    * Validates that there is no a region at [search] and with the given
    * [length].
    */
@@ -578,6 +586,16 @@ main() {
         assertHasRegion('A>();');
         assertHasTarget('A {');
       }
+    });
+  }
+
+  test_library() {
+    addTestFile('''
+library my.lib;
+''');
+    return prepareNavigation().then((_) {
+      assertHasRegionString('my.lib');
+      assertHasTargetString('my.lib');
     });
   }
 
