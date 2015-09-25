@@ -1270,10 +1270,7 @@ dart_library.library('dart/core', null, /* Imports */[
           generator = null;
         if (dart.notNull(count) <= 0)
           return new (_internal.EmptyIterable$(E))();
-        return new (exports._GeneratorIterable$(E))(count, generator);
-      }
-      [dart.JsSymbol.iterator]() {
-        return new dart.JsIterator(this[dartx.iterator]);
+        return new (_GeneratorIterable$(E))(count, generator);
       }
       [dartx.join](separator) {
         if (separator === void 0)
@@ -1281,6 +1278,9 @@ dart_library.library('dart/core', null, /* Imports */[
         let buffer = new StringBuffer();
         buffer.writeAll(this, separator);
         return dart.toString(buffer);
+      }
+      [dart.JsSymbol.iterator]() {
+        return new dart.JsIterator(this[dartx.iterator]);
       }
     }
     dart.setSignature(Iterable, {
@@ -1306,7 +1306,7 @@ dart_library.library('dart/core', null, /* Imports */[
       _GeneratorIterable(end, generator) {
         this[_end] = end;
         this[_start] = 0;
-        this[_generator] = dart.as(generator != null ? generator : exports._GeneratorIterable$()._id, _Generator$(E));
+        this[_generator] = dart.as(generator != null ? generator : _GeneratorIterable$()._id, _Generator$(E));
         super.IterableBase();
       }
       slice(start, end, generator) {
@@ -1328,7 +1328,7 @@ dart_library.library('dart/core', null, /* Imports */[
         let newStart = dart.notNull(this[_start]) + dart.notNull(count);
         if (dart.notNull(newStart) >= dart.notNull(this[_end]))
           return new (_internal.EmptyIterable$(E))();
-        return new (exports._GeneratorIterable$(E)).slice(newStart, this[_end], this[_generator]);
+        return new (_GeneratorIterable$(E)).slice(newStart, this[_end], this[_generator]);
       }
       take(count) {
         RangeError.checkNotNegative(count, "count");
@@ -1337,7 +1337,7 @@ dart_library.library('dart/core', null, /* Imports */[
         let newEnd = dart.notNull(this[_start]) + dart.notNull(count);
         if (dart.notNull(newEnd) >= dart.notNull(this[_end]))
           return this;
-        return new (exports._GeneratorIterable$(E)).slice(this[_start], newEnd, this[_generator]);
+        return new (_GeneratorIterable$(E)).slice(this[_start], newEnd, this[_generator]);
       }
       static _id(n) {
         return n;
@@ -1347,8 +1347,8 @@ dart_library.library('dart/core', null, /* Imports */[
     dart.defineNamedConstructor(_GeneratorIterable, 'slice');
     dart.setSignature(_GeneratorIterable, {
       constructors: () => ({
-        _GeneratorIterable: [exports._GeneratorIterable$(E), [int, dart.functionType(E, [int])]],
-        slice: [exports._GeneratorIterable$(E), [int, int, _Generator$(E)]]
+        _GeneratorIterable: [_GeneratorIterable$(E), [int, dart.functionType(E, [int])]],
+        slice: [_GeneratorIterable$(E), [int, int, _Generator$(E)]]
       }),
       methods: () => ({
         skip: [Iterable$(E), [int]],
@@ -1548,9 +1548,9 @@ dart_library.library('dart/core', null, /* Imports */[
     Set[dart.implements] = () => [_internal.EfficientLength];
     dart.setSignature(Set, {
       constructors: () => ({
-        new: [exports.Set$(E), []],
-        identity: [exports.Set$(E), []],
-        from: [exports.Set$(E), [Iterable]]
+        new: [Set$(E), []],
+        identity: [Set$(E), []],
+        from: [Set$(E), [Iterable]]
       })
     });
     return Set;
@@ -1729,7 +1729,7 @@ dart_library.library('dart/core', null, /* Imports */[
         }
       }
       dart.setSignature(Runes, {
-        constructors: () => ({Runes: [exports.Runes, [String]]})
+        constructors: () => ({Runes: [Runes, [String]]})
       });
       dart.defineExtensionMembers(Runes, ['iterator', 'last']);
       return Runes;
