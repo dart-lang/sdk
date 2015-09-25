@@ -92,6 +92,7 @@ class Precompiler : public ValueObject {
   void CleanUp();
 
   void AddCalleesOf(const Function& function);
+  void AddClosureCall(const ICData& call_site);
   void AddField(const Field& field);
   void AddFunction(const Function& function);
   void AddClass(const Class& cls);

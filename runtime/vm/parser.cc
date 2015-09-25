@@ -1576,7 +1576,6 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func) {
 
 SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func) {
   TRACE_PARSER("ParseInvokeFieldDispatcher");
-  ASSERT(FLAG_lazy_dispatchers);
   ASSERT(func.IsInvokeFieldDispatcher());
   intptr_t token_pos = func.token_pos();
   ASSERT(func.token_pos() == 0);

@@ -3932,7 +3932,8 @@ TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   Function& invocation_dispatcher = Function::Handle();
   invocation_dispatcher ^=
       cls.GetInvocationDispatcher(invocation_dispatcher_name, args_desc,
-                                  RawFunction::kNoSuchMethodDispatcher);
+                                  RawFunction::kNoSuchMethodDispatcher,
+                                  true /* create_if_absent */);
   EXPECT(!invocation_dispatcher.IsNull());
   // Get index to function.
   intptr_t invocation_dispatcher_index =

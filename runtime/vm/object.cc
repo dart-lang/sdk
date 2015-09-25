@@ -2645,7 +2645,8 @@ void Class::CalculateFieldOffsets() const {
 
 RawFunction* Class::GetInvocationDispatcher(const String& target_name,
                                             const Array& args_desc,
-                                            RawFunction::Kind kind) const {
+                                            RawFunction::Kind kind,
+                                            bool create_if_absent) const {
   enum {
     kNameIndex = 0,
     kArgsDescIndex,
@@ -2675,7 +2676,7 @@ RawFunction* Class::GetInvocationDispatcher(const String& target_name,
     }
   }
 
-  if (dispatcher.IsNull()) {
+  if (dispatcher.IsNull() && create_if_absent) {
     if (i == cache.Length()) {
       // Allocate new larger cache.
       intptr_t new_len = (cache.Length() == 0)

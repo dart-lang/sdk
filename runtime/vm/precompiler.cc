@@ -401,6 +401,10 @@ void Precompiler::AddCalleesOf(const Function& function) {
           // A dynamic call.
           selector = call_site.target_name();
           AddSelector(selector);
+          if (selector.raw() == Symbols::Call().raw()) {
+            // Potential closure call.
+            AddClosureCall(call_site);
+          }
         }
       } else if (entry.IsField()) {
         // Potential need for field initializer.
@@ -413,6 +417,22 @@ void Precompiler::AddCalleesOf(const Function& function) {
       }
     }
   }
+}
+
+
+void Precompiler::AddClosureCall(const ICData& call_site) {
+  const Array& arguments_descriptor =
+      Array::Handle(Z, call_site.arguments_descriptor());
+  const Type& function_impl =
+      Type::Handle(Z, I->object_store()->function_impl_type());
+  const Class& cache_class =
+      Class::Handle(Z, function_impl.type_class());
+  const Function& dispatcher = Function::Handle(Z,
+      cache_class.GetInvocationDispatcher(Symbols::Call(),
+                                          arguments_descriptor,
+                                          RawFunction::kInvokeFieldDispatcher,
+                                          true /* create_if_absent */));
+  AddFunction(dispatcher);
 }
 
 

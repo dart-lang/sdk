@@ -1313,7 +1313,8 @@ class Class : public Object {
 
   RawFunction* GetInvocationDispatcher(const String& target_name,
                                        const Array& args_desc,
-                                       RawFunction::Kind kind) const;
+                                       RawFunction::Kind kind,
+                                       bool create_if_absent) const;
 
   void Finalize() const;
 

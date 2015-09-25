@@ -737,7 +737,6 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
                                      const String& target_name,
                                      const Array& arguments_descriptor,
                                      Function* result) {
-  ASSERT(FLAG_lazy_dispatchers);
   // 1. Check if there is a getter with the same name.
   const String& getter_name = String::Handle(Field::GetterName(target_name));
   const int kNumArguments = 1;
@@ -761,8 +760,9 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
       Function::Handle(cache_class.GetInvocationDispatcher(
           target_name,
           arguments_descriptor,
-          RawFunction::kInvokeFieldDispatcher));
-  ASSERT(!target_function.IsNull());
+          RawFunction::kInvokeFieldDispatcher,
+          FLAG_lazy_dispatchers));
+  ASSERT(!target_function.IsNull() || !FLAG_lazy_dispatchers);
   if (FLAG_trace_ic) {
     OS::PrintErr("InvokeField IC miss: adding <%s> id:%" Pd " -> <%s>\n",
         Class::Handle(receiver.clazz()).ToCString(),
@@ -778,10 +778,6 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
 RawFunction* InlineCacheMissHelper(
     const Instance& receiver,
     const ICData& ic_data) {
-  if (!FLAG_lazy_dispatchers) {
-    return Function::null();  // We'll handle it in the runtime.
-  }
-
   const Array& args_descriptor = Array::Handle(ic_data.arguments_descriptor());
 
   const Class& receiver_class = Class::Handle(receiver.clazz());
@@ -798,7 +794,8 @@ RawFunction* InlineCacheMissHelper(
         Function::Handle(receiver_class.GetInvocationDispatcher(
             target_name,
             args_descriptor,
-            RawFunction::kNoSuchMethodDispatcher));
+            RawFunction::kNoSuchMethodDispatcher,
+            FLAG_lazy_dispatchers));
     if (FLAG_trace_ic) {
       OS::PrintErr("NoSuchMethod IC miss: adding <%s> id:%" Pd " -> <%s>\n",
           Class::Handle(receiver.clazz()).ToCString(),
@@ -807,6 +804,9 @@ RawFunction* InlineCacheMissHelper(
     }
     result = target_function.raw();
   }
+  // May be null if --no-lazy-dispatchers, in which case dispatch will be
+  // handled by InvokeNoSuchMethodDispatcher.
+  ASSERT(!result.IsNull() || !FLAG_lazy_dispatchers);
   return result.raw();
 }
 
