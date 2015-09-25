@@ -2588,6 +2588,136 @@ class AnalysisHighlightsParams implements HasToJson {
 }
 
 /**
+ * analysis.implemented params
+ *
+ * {
+ *   "file": FilePath
+ *   "classes": List<ImplementedClass>
+ *   "members": List<ImplementedMember>
+ * }
+ */
+class AnalysisImplementedParams implements HasToJson {
+  String _file;
+
+  List<ImplementedClass> _classes;
+
+  List<ImplementedMember> _members;
+
+  /**
+   * The file with which the implementations are associated.
+   */
+  String get file => _file;
+
+  /**
+   * The file with which the implementations are associated.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  /**
+   * The classes defined in the file that are implemented or extended.
+   */
+  List<ImplementedClass> get classes => _classes;
+
+  /**
+   * The classes defined in the file that are implemented or extended.
+   */
+  void set classes(List<ImplementedClass> value) {
+    assert(value != null);
+    this._classes = value;
+  }
+
+  /**
+   * The member defined in the file that are implemented or overridden.
+   */
+  List<ImplementedMember> get members => _members;
+
+  /**
+   * The member defined in the file that are implemented or overridden.
+   */
+  void set members(List<ImplementedMember> value) {
+    assert(value != null);
+    this._members = value;
+  }
+
+  AnalysisImplementedParams(String file, List<ImplementedClass> classes, List<ImplementedMember> members) {
+    this.file = file;
+    this.classes = classes;
+    this.members = members;
+  }
+
+  factory AnalysisImplementedParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "file");
+      }
+      List<ImplementedClass> classes;
+      if (json.containsKey("classes")) {
+        classes = jsonDecoder._decodeList(jsonPath + ".classes", json["classes"], (String jsonPath, Object json) => new ImplementedClass.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "classes");
+      }
+      List<ImplementedMember> members;
+      if (json.containsKey("members")) {
+        members = jsonDecoder._decodeList(jsonPath + ".members", json["members"], (String jsonPath, Object json) => new ImplementedMember.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "members");
+      }
+      return new AnalysisImplementedParams(file, classes, members);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analysis.implemented params", json);
+    }
+  }
+
+  factory AnalysisImplementedParams.fromNotification(Notification notification) {
+    return new AnalysisImplementedParams.fromJson(
+        new ResponseDecoder(null), "params", notification._params);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["classes"] = classes.map((ImplementedClass value) => value.toJson()).toList();
+    result["members"] = members.map((ImplementedMember value) => value.toJson()).toList();
+    return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("analysis.implemented", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisImplementedParams) {
+      return file == other.file &&
+          _listEqual(classes, other.classes, (ImplementedClass a, ImplementedClass b) => a == b) &&
+          _listEqual(members, other.members, (ImplementedMember a, ImplementedMember b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, classes.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, members.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * analysis.invalidate params
  *
  * {
@@ -7836,6 +7966,7 @@ class AnalysisOptions implements HasToJson {
  * enum {
  *   FOLDING
  *   HIGHLIGHTS
+ *   IMPLEMENTED
  *   INVALIDATE
  *   NAVIGATION
  *   OCCURRENCES
@@ -7847,6 +7978,8 @@ class AnalysisService implements Enum {
   static const FOLDING = const AnalysisService._("FOLDING");
 
   static const HIGHLIGHTS = const AnalysisService._("HIGHLIGHTS");
+
+  static const IMPLEMENTED = const AnalysisService._("IMPLEMENTED");
 
   /**
    * This service is not currently implemented and will become a
@@ -7865,7 +7998,7 @@ class AnalysisService implements Enum {
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<AnalysisService> VALUES = const <AnalysisService>[FOLDING, HIGHLIGHTS, INVALIDATE, NAVIGATION, OCCURRENCES, OUTLINE, OVERRIDES];
+  static const List<AnalysisService> VALUES = const <AnalysisService>[FOLDING, HIGHLIGHTS, IMPLEMENTED, INVALIDATE, NAVIGATION, OCCURRENCES, OUTLINE, OVERRIDES];
 
   final String name;
 
@@ -7877,6 +8010,8 @@ class AnalysisService implements Enum {
         return FOLDING;
       case "HIGHLIGHTS":
         return HIGHLIGHTS;
+      case "IMPLEMENTED":
+        return IMPLEMENTED;
       case "INVALIDATE":
         return INVALIDATE;
       case "NAVIGATION":
@@ -10630,6 +10765,196 @@ class HoverInformation implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, parameter.hashCode);
     hash = _JenkinsSmiHash.combine(hash, propagatedType.hashCode);
     hash = _JenkinsSmiHash.combine(hash, staticType.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * ImplementedClass
+ *
+ * {
+ *   "offset": int
+ *   "length": int
+ * }
+ */
+class ImplementedClass implements HasToJson {
+  int _offset;
+
+  int _length;
+
+  /**
+   * The offset of the name of the implemented class.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset of the name of the implemented class.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  /**
+   * The length of the name of the implemented class.
+   */
+  int get length => _length;
+
+  /**
+   * The length of the name of the implemented class.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
+
+  ImplementedClass(int offset, int length) {
+    this.offset = offset;
+    this.length = length;
+  }
+
+  factory ImplementedClass.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "offset");
+      }
+      int length;
+      if (json.containsKey("length")) {
+        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "length");
+      }
+      return new ImplementedClass(offset, length);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "ImplementedClass", json);
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["offset"] = offset;
+    result["length"] = length;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is ImplementedClass) {
+      return offset == other.offset &&
+          length == other.length;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * ImplementedMember
+ *
+ * {
+ *   "offset": int
+ *   "length": int
+ * }
+ */
+class ImplementedMember implements HasToJson {
+  int _offset;
+
+  int _length;
+
+  /**
+   * The offset of the name of the implemented member.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset of the name of the implemented member.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  /**
+   * The length of the name of the implemented member.
+   */
+  int get length => _length;
+
+  /**
+   * The length of the name of the implemented member.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
+
+  ImplementedMember(int offset, int length) {
+    this.offset = offset;
+    this.length = length;
+  }
+
+  factory ImplementedMember.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "offset");
+      }
+      int length;
+      if (json.containsKey("length")) {
+        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "length");
+      }
+      return new ImplementedMember(offset, length);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "ImplementedMember", json);
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["offset"] = offset;
+    result["length"] = length;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is ImplementedMember) {
+      return offset == other.offset &&
+          length == other.length;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
