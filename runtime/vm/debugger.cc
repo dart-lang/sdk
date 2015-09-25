@@ -709,9 +709,14 @@ RawObject* ActivationFrame::GetAsyncOperation() {
   for (intptr_t i = 0; i < var_desc_len; i++) {
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors_.GetInfo(i, &var_info);
-    const int8_t kind = var_info.kind();
-    if (kind == RawLocalVarDescriptors::kAsyncOperation) {
-      return GetContextVar(var_info.scope_id, var_info.index());
+    if (var_descriptors_.GetName(i) == Symbols::AsyncOperation().raw()) {
+      const int8_t kind = var_info.kind();
+      if (kind == RawLocalVarDescriptors::kStackVar) {
+        return GetStackVar(var_info.index());
+      } else {
+        ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+        return GetContextVar(var_info.scope_id, var_info.index());
+      }
     }
   }
   return Object::null();
@@ -932,8 +937,7 @@ void ActivationFrame::VariableAt(intptr_t i,
   intptr_t desc_index = desc_indices_[i];
   ASSERT(name != NULL);
 
-  const String& tmp = String::Handle(var_descriptors_.GetName(desc_index));
-  *name ^= String::IdentifierPrettyName(tmp);
+  *name = var_descriptors_.GetName(desc_index);
 
   RawLocalVarDescriptors::VarInfo var_info;
   var_descriptors_.GetInfo(desc_index, &var_info);
@@ -1095,19 +1099,21 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj,
     JSONArray jsvars(jsobj, "vars");
     const int num_vars = NumLocalVariables();
     for (intptr_t v = 0; v < num_vars; v++) {
-      JSONObject jsvar(&jsvars);
       String& var_name = String::Handle();
       Instance& var_value = Instance::Handle();
       intptr_t token_pos;
       intptr_t end_token_pos;
       VariableAt(v, &var_name, &token_pos, &end_token_pos, &var_value);
-      jsvar.AddProperty("name", var_name.ToCString());
-      jsvar.AddProperty("value", var_value, !full);
-      // TODO(turnidge): Do we really want to provide this on every
-      // stack dump?  Should be associated with the function object, I
-      // think, and not the stack frame.
-      jsvar.AddProperty("_tokenPos", token_pos);
-      jsvar.AddProperty("_endTokenPos", end_token_pos);
+      if (var_name.raw() != Symbols::AsyncOperation().raw()) {
+        JSONObject jsvar(&jsvars);
+        jsvar.AddProperty("name", var_name.ToCString());
+        jsvar.AddProperty("value", var_value, !full);
+        // TODO(turnidge): Do we really want to provide this on every
+        // stack dump?  Should be associated with the function object, I
+        // think, and not the stack frame.
+        jsvar.AddProperty("_tokenPos", token_pos);
+        jsvar.AddProperty("_endTokenPos", end_token_pos);
+      }
     }
   }
 }
@@ -2563,6 +2569,8 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
   event.set_breakpoint(bpt);
   Object& closure_or_null = Object::Handle(top_frame->GetAsyncOperation());
   if (!closure_or_null.IsNull()) {
+    ASSERT(closure_or_null.IsInstance());
+    ASSERT(Instance::Cast(closure_or_null).IsClosure());
     event.set_async_continuation(&closure_or_null);
     const Script& script = Script::Handle(top_frame->SourceScript());
     const TokenStream& tokens = TokenStream::Handle(script.tokens());

@@ -1202,7 +1202,6 @@ class RawLocalVarDescriptors : public RawObject {
     kContextVar,
     kContextLevel,
     kSavedCurrentContext,
-    kAsyncOperation
   };
 
   enum {

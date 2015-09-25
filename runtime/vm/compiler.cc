@@ -927,12 +927,9 @@ static void DisassembleCode(const Function& function, bool optimized) {
       } else if (kind == RawLocalVarDescriptors::kStackVar) {
         THR_Print("  stack var '%s' offset %d",
           var_name.ToCString(), var_info.index());
-      } else if (kind == RawLocalVarDescriptors::kContextVar) {
-        THR_Print("  context var '%s' level %d offset %d",
-            var_name.ToCString(), var_info.scope_id, var_info.index());
       } else {
-        ASSERT(kind == RawLocalVarDescriptors::kAsyncOperation);
-        THR_Print("  async operation '%s' level %d offset %d",
+        ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+        THR_Print("  context var '%s' level %d offset %d",
             var_name.ToCString(), var_info.scope_id, var_info.index());
       }
       THR_Print(" (valid %d-%d)\n", var_info.begin_pos, var_info.end_pos);

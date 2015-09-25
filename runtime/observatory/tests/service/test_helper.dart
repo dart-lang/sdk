@@ -249,12 +249,20 @@ IsolateTest stoppedAtLine(int line) {
 
     ServiceMap stack = await isolate.getStack();
     expect(stack.type, equals('Stack'));
-    expect(stack['frames'].length, greaterThanOrEqualTo(1));
 
-    Frame top = stack['frames'][0];
-    print("We are at $top");
+    List<Frame> frames = stack['frames'];
+    expect(frames.length, greaterThanOrEqualTo(1));
+
+    Frame top = frames[0];
     Script script = await top.location.script.load();
-    expect(script.tokenToLine(top.location.tokenPos), equals(line));
+    if (script.tokenToLine(top.location.tokenPos) != line) {
+      var sb = new StringBuffer();
+      sb.write("Expected to be at line $line, but got stack trace:\n");
+      for (Frame f in stack['frames']) {
+        sb.write(" $f\n");
+      }
+      throw sb.toString();
+    }
   };
 }
 
