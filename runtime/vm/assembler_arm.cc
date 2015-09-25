@@ -24,48 +24,6 @@ DECLARE_FLAG(bool, allow_absolute_addresses);
 DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
 DECLARE_FLAG(bool, inline_alloc);
 
-// Instruction encoding bits.
-enum {
-  H   = 1 << 5,   // halfword (or byte)
-  L   = 1 << 20,  // load (or store)
-  S   = 1 << 20,  // set condition code (or leave unchanged)
-  W   = 1 << 21,  // writeback base register (or leave unchanged)
-  A   = 1 << 21,  // accumulate in multiply instruction (or not)
-  B   = 1 << 22,  // unsigned byte (or word)
-  D   = 1 << 22,  // high/lo bit of start of s/d register range
-  N   = 1 << 22,  // long (or short)
-  U   = 1 << 23,  // positive (or negative) offset/index
-  P   = 1 << 24,  // offset/pre-indexed addressing (or post-indexed addressing)
-  I   = 1 << 25,  // immediate shifter operand (or not)
-
-  B0 = 1,
-  B1 = 1 << 1,
-  B2 = 1 << 2,
-  B3 = 1 << 3,
-  B4 = 1 << 4,
-  B5 = 1 << 5,
-  B6 = 1 << 6,
-  B7 = 1 << 7,
-  B8 = 1 << 8,
-  B9 = 1 << 9,
-  B10 = 1 << 10,
-  B11 = 1 << 11,
-  B12 = 1 << 12,
-  B16 = 1 << 16,
-  B17 = 1 << 17,
-  B18 = 1 << 18,
-  B19 = 1 << 19,
-  B20 = 1 << 20,
-  B21 = 1 << 21,
-  B22 = 1 << 22,
-  B23 = 1 << 23,
-  B24 = 1 << 24,
-  B25 = 1 << 25,
-  B26 = 1 << 26,
-  B27 = 1 << 27,
-};
-
-
 uint32_t Address::encoding3() const {
   if (kind_ == Immediate) {
     uint32_t offset = encoding_ & kOffset12Mask;
@@ -1472,10 +1430,7 @@ void Assembler::vcgtqs(QRegister qd, QRegister qn, QRegister qm) {
 
 
 void Assembler::bkpt(uint16_t imm16) {
-  // bkpt requires that the cond field is AL.
-  int32_t encoding = (AL << kConditionShift) | B24 | B21 |
-                     ((imm16 >> 4) << 8) | B6 | B5 | B4 | (imm16 & 0xf);
-  Emit(encoding);
+  Emit(BkptEncoding(imm16));
 }
 
 

@@ -1761,9 +1761,8 @@ void Object::InitializeObject(uword address,
                               intptr_t class_id,
                               intptr_t size,
                               bool is_vm_object) {
-  // TODO(iposva): Get a proper halt instruction from the assembler which
-  // would be needed here for code objects.
-  uword initial_value = reinterpret_cast<uword>(null_);
+  uword initial_value = (class_id == kInstructionsCid)
+      ? Assembler::GetBreakInstructionFiller() : reinterpret_cast<uword>(null_);
   uword cur = address;
   uword end = address + size;
   while (cur < end) {

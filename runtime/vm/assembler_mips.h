@@ -504,11 +504,20 @@ class Assembler : public ValueObject {
     EmitBranchDelayNop();
   }
 
-  void break_(int32_t code) {
+  static int32_t BreakEncoding(int32_t code) {
     ASSERT(Utils::IsUint(20, code));
-    Emit(SPECIAL << kOpcodeShift |
-         code << kBreakCodeShift |
-         BREAK << kFunctionShift);
+    return SPECIAL << kOpcodeShift |
+           code << kBreakCodeShift |
+           BREAK << kFunctionShift;
+  }
+
+
+  void break_(int32_t code) {
+    Emit(BreakEncoding(code));
+  }
+
+  static uword GetBreakInstructionFiller() {
+    return BreakEncoding(0);
   }
 
   // FPU compare, always false.

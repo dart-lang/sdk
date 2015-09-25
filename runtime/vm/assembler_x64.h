@@ -684,6 +684,10 @@ class Assembler : public ValueObject {
   void int3();
   void hlt();
 
+  static uword GetBreakInstructionFiller() {
+    return 0xCCCCCCCCCCCCCCCC;
+  }
+
   // Note: verified_mem mode forces far jumps.
   void j(Condition condition, Label* label, bool near = kFarJump);
 
