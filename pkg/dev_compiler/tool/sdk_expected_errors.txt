@@ -1,7 +1,3 @@
-severe: [AnalyzerMessage] Classes cannot implement 'bool' (dart:_interceptors, line 29, col 45)
-severe: [AnalyzerMessage] Classes cannot implement 'int' (dart:_interceptors/js_number.dart, line 12, col 47)
-severe: [AnalyzerMessage] Classes cannot implement 'double' (dart:_interceptors/js_number.dart, line 12, col 52)
-severe: [AnalyzerMessage] Classes cannot implement 'String' (dart:_interceptors/js_string.dart, line 14, col 47)
 warning: [DownCastComposite] doneHandlers (dynamic) will need runtime check to cast to type Iterable<SendPort> (dart:_isolate_helper, line 574, col 29)
 warning: [DownCastComposite] args (dynamic) will need runtime check to cast to type List<String> (dart:_isolate_helper, line 839, col 37)
 warning: [DownCastComposite] msg['args'] (dynamic) will need runtime check to cast to type List<String> (dart:_isolate_helper, line 886, col 11)

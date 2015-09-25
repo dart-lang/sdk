@@ -16,7 +16,7 @@ import 'package:analyzer/src/generated/scanner.dart'
 import 'package:analyzer/src/task/dart.dart' show PublicNamespaceBuilder;
 
 import 'ast_builder.dart' show AstBuilder;
-import 'reify_coercions.dart' show CoercionReifier;
+import 'reify_coercions.dart' show CoercionReifier, Tuple2;
 
 // TODO(jmesserly): import from its own package
 import '../js/js_ast.dart' as JS;
@@ -82,8 +82,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   final _privateNames = new HashMap<String, JS.TemporaryId>();
   final _moduleItems = <JS.Statement>[];
   final _temps = new HashMap<Element, JS.TemporaryId>();
-  final _qualifiedIds = new HashMap<Element, JS.MaybeQualifiedId>();
-  final _qualifiedGenericIds = new HashMap<Element, JS.MaybeQualifiedId>();
+  final _qualifiedIds = new List<Tuple2<Element, JS.MaybeQualifiedId>>();
 
   /// The name for the library's exports inside itself.
   /// `exports` was chosen as the most similar to ES module patterns.
@@ -169,11 +168,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     // Mark all qualified names as qualified or not, depending on if they need
     // to be loaded lazily or not.
-    unqualifyIfNeeded(Element e, JS.MaybeQualifiedId id) {
-      id.setQualified(!_loader.isLoaded(e));
+    for (var elementIdPairs in _qualifiedIds) {
+      var element = elementIdPairs.e0;
+      var id = elementIdPairs.e1;
+      id.setQualified(!_loader.isLoaded(element));
     }
-    _qualifiedIds.forEach(unqualifyIfNeeded);
-    _qualifiedGenericIds.forEach(unqualifyIfNeeded);
 
     if (_exports.isNotEmpty) _moduleItems.add(js.comment('Exports:'));
 
@@ -1480,8 +1479,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     // library member
     if (element.enclosingElement is CompilationUnitElement) {
-      return _maybeQualifiedName(
-          element, _emitMemberName(name, isStatic: true));
+      return _maybeQualifiedName(element);
     }
 
     // Unqualified class member. This could mean implicit-this, or implicit
@@ -1641,27 +1639,30 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         jsArgs = [];
       }
       if (jsArgs != null) {
-        var genericName = _maybeQualifiedName(
-            element, _propertyName('$name\$'), _qualifiedGenericIds);
+        var genericName = _maybeQualifiedName(element, '$name\$');
         return js.call('#(#)', [genericName, jsArgs]);
       }
     }
 
-    return _maybeQualifiedName(element, _propertyName(name));
+    return _maybeQualifiedName(element);
   }
 
-  JS.Expression _maybeQualifiedName(Element e, JS.Expression name,
-      [Map<Element, JS.MaybeQualifiedId> idTable]) {
+  JS.Expression _maybeQualifiedName(Element e, [String name]) {
     var libName = _libraryName(e.library);
-    if (idTable == null) idTable = _qualifiedIds;
+    var nameExpr = _propertyName(name ?? e.name);
 
-    // Mutable top-level fields should always be qualified.
+    // Always qualify:
+    // * mutable top-level fields
+    // * elements from other libraries
     bool mutableTopLevel = e is TopLevelVariableElement && !e.isConst;
-    if (e.library != currentLibrary || mutableTopLevel) {
-      return new JS.PropertyAccess(libName, name);
+    bool fromAnotherLibrary = e.library != currentLibrary;
+    if (mutableTopLevel || fromAnotherLibrary) {
+      return new JS.PropertyAccess(libName, nameExpr);
     }
 
-    return idTable.putIfAbsent(e, () => new JS.MaybeQualifiedId(libName, name));
+    var id = new JS.MaybeQualifiedId(libName, nameExpr);
+    _qualifiedIds.add(new Tuple2(e, id));
+    return id;
   }
 
   @override
