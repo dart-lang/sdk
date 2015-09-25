@@ -6617,6 +6617,9 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
       node.methodName.bestElement;
 
   @override
+  Element visitPartOfDirective(PartOfDirective node) => node.element;
+
+  @override
   Element visitPostfixExpression(PostfixExpression node) => node.bestElement;
 
   @override
