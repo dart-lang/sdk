@@ -9,13 +9,16 @@ import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
+import 'package:analysis_server/src/domains/analysis/implemented_dart.dart';
 import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
 import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/html.dart';
@@ -36,6 +39,25 @@ runWithWorkingCacheSize(AnalysisContext context, f()) {
     }
   } else {
     return f();
+  }
+}
+
+scheduleImplementedNotification(
+    AnalysisServer server, Iterable<String> files) async {
+  SearchEngine searchEngine = server.searchEngine;
+  if (searchEngine == null) {
+    return;
+  }
+  for (String file in files) {
+    CompilationUnitElement unitElement = server.getCompilationUnitElement(file);
+    if (unitElement != null) {
+      ImplementedComputer computer =
+          new ImplementedComputer(searchEngine, unitElement);
+      await computer.compute();
+      var params = new protocol.AnalysisImplementedParams(
+          file, computer.classes, computer.members);
+      server.sendNotification(params.toNotification());
+    }
   }
 }
 

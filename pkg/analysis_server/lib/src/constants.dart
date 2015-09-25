@@ -41,6 +41,7 @@ const String ANALYSIS_UPDATE_OPTIONS = 'analysis.updateOptions';
 const String ANALYSIS_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_ERRORS = 'analysis.errors';
 const String ANALYSIS_HIGHLIGHTS = 'analysis.highlights';
+const String ANALYSIS_IMPLEMENTED = 'analysis.implemented';
 const String ANALYSIS_NAVIGATION = 'analysis.navigation';
 const String ANALYSIS_OCCURRENCES = 'analysis.occurrences';
 const String ANALYSIS_OUTLINE = 'analysis.outline';
