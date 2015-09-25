@@ -9,7 +9,6 @@ dart_library.library('dart/convert', null, /* Imports */[
 ], function(exports, dart, core, async, typed_data, _internal, collection) {
   'use strict';
   let dartx = dart.dartx;
-  let _allowInvalid = Symbol('_allowInvalid');
   let Codec$ = dart.generic(function(S, T) {
     class Codec extends core.Object {
       Codec() {
@@ -64,6 +63,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     statics: () => ({getByName: [Encoding, [core.String]]}),
     names: ['getByName']
   });
+  let _allowInvalid = Symbol('_allowInvalid');
   class AsciiCodec extends Encoding {
     AsciiCodec(opts) {
       let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : false;
@@ -96,7 +96,6 @@ dart_library.library('dart/convert', null, /* Imports */[
   });
   let ASCII = dart.const(new AsciiCodec());
   let _ASCII_MASK = 127;
-  let _subsetMask = Symbol('_subsetMask');
   let Converter$ = dart.generic(function(S, T) {
     class Converter extends core.Object {
       Converter() {
@@ -126,6 +125,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     return Converter;
   });
   let Converter = Converter$();
+  let _subsetMask = Symbol('_subsetMask');
   class _UnicodeSubsetEncoder extends Converter$(core.String, core.List$(core.int)) {
     _UnicodeSubsetEncoder(subsetMask) {
       this[_subsetMask] = subsetMask;
@@ -177,7 +177,6 @@ dart_library.library('dart/convert', null, /* Imports */[
   dart.setSignature(AsciiEncoder, {
     constructors: () => ({AsciiEncoder: [AsciiEncoder, []]})
   });
-  let _sink = Symbol('_sink');
   class StringConversionSinkMixin extends core.Object {
     add(str) {
       return this.addSlice(str, 0, str[dartx.length], false);
@@ -198,6 +197,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     })
   });
   class StringConversionSinkBase extends StringConversionSinkMixin {}
+  let _sink = Symbol('_sink');
   class _UnicodeSubsetEncoderSink extends StringConversionSinkBase {
     _UnicodeSubsetEncoderSink(subsetMask, sink) {
       this[_subsetMask] = subsetMask;
@@ -300,7 +300,6 @@ dart_library.library('dart/convert', null, /* Imports */[
     constructors: () => ({AsciiDecoder: [AsciiDecoder, [], {allowInvalid: core.bool}]}),
     methods: () => ({startChunkedConversion: [ByteConversionSink, [core.Sink$(core.String)]]})
   });
-  let _utf8Sink = Symbol('_utf8Sink');
   let ChunkedConversionSink$ = dart.generic(function(T) {
     class ChunkedConversionSink extends core.Object {
       ChunkedConversionSink() {
@@ -350,6 +349,7 @@ dart_library.library('dart/convert', null, /* Imports */[
   dart.setSignature(ByteConversionSinkBase, {
     methods: () => ({addSlice: [dart.void, [core.List$(core.int), core.int, core.int, core.bool]]})
   });
+  let _utf8Sink = Symbol('_utf8Sink');
   class _ErrorHandlingAsciiDecoderSink extends ByteConversionSinkBase {
     _ErrorHandlingAsciiDecoderSink(utf8Sink) {
       this[_utf8Sink] = utf8Sink;

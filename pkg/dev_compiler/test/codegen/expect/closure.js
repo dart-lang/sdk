@@ -3,12 +3,12 @@ dart_library.library('closure', null, /* Imports */[
   'dart/core',
   'dart/js'
 ], /* Lazy imports */[
-], function(closure, dart, core, js) {
+], function(exports, dart, core, js) {
   'use strict';
   let dartx = dart.dartx;
   /** @typedef {function({i: (?number|undefined)}=)} */
-  closure.Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
-  closure.Foo$ = dart.generic(function(T) {
+  let Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
+  let Foo$ = dart.generic(function(T) {
     class Foo extends core.Object {
       /**
        * @param {?number} i
@@ -22,7 +22,7 @@ dart_library.library('closure', null, /* Imports */[
       }
       /** @return {Foo} */
       static build() {
-        return new (closure.Foo$(T))(1, null);
+        return new (Foo$(T))(1, null);
       }
       /**
        * @param {?} a
@@ -95,45 +95,39 @@ dart_library.library('closure', null, /* Imports */[
     }
     dart.setSignature(Foo, {
       constructors: () => ({
-        Foo: [closure.Foo$(T), [core.int, T]],
-        build: [closure.Foo$(T), []]
+        Foo: [Foo$(T), [core.int, T]],
+        build: [Foo$(T), []]
       }),
       methods: () => ({
         untyped_method: [dart.dynamic, [dart.dynamic, dart.dynamic]],
         pass: [T, [T]],
-        typed_method: [core.String, [closure.Foo$(), core.List, core.int, core.num, core.double, core.bool, core.String, js.JsArray, js.JsObject, js.JsFunction]],
+        typed_method: [core.String, [Foo$(), core.List, core.int, core.num, core.double, core.bool, core.String, js.JsArray, js.JsObject, js.JsFunction]],
         optional_params: [dart.dynamic, [dart.dynamic], [dart.dynamic, dart.dynamic]],
         nullary_method: [dart.dynamic, []],
-        function_params: [dart.dynamic, [dart.functionType(core.int, [dart.dynamic], [dart.dynamic]), dart.functionType(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic}), closure.Callback]]
+        function_params: [dart.dynamic, [dart.functionType(core.int, [dart.dynamic], [dart.dynamic]), dart.functionType(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic}), Callback]]
       }),
       statics: () => ({named_params: [dart.dynamic, [dart.dynamic], {b: dart.dynamic, c: dart.dynamic}]}),
       names: ['named_params']
     });
     return Foo;
   });
-  closure.Foo = closure.Foo$();
+  let Foo = Foo$();
   /** @final {string} */
-  closure.Foo.some_static_constant = "abc";
+  Foo.some_static_constant = "abc";
   /** @final {string} */
-  closure.Foo.some_static_final = "abc";
+  Foo.some_static_final = "abc";
   /** @type {string} */
-  closure.Foo.some_static_var = "abc";
-  closure.Bar = class Bar extends core.Object {};
-  let Baz$super = dart.mixin(closure.Foo$(core.int), closure.Bar);
-  closure.Baz = class Baz extends Baz$super {
+  Foo.some_static_var = "abc";
+  class Bar extends core.Object {}
+  class Baz extends dart.mixin(Foo$(core.int), Bar) {
     /** @param {?number} i */
     Baz(i) {
       super.Foo(i, 123);
     }
-  };
-  dart.setSignature(closure.Baz, {
-    constructors: () => ({Baz: [closure.Baz, [core.int]]})
+  }
+  dart.setSignature(Baz, {
+    constructors: () => ({Baz: [Baz, [core.int]]})
   });
-  let _Bam$ = dart.generic(function(M) {
-    class _Bam extends core.Object {}
-    return _Bam;
-  });
-  let _Bam = _Bam$();
   /** @param {?} args */
   function main(args) {
   }
@@ -141,10 +135,15 @@ dart_library.library('closure', null, /* Imports */[
   /** @final {string} */
   let some_top_level_constant = "abc";
   /** @final {string} */
-  closure.some_top_level_final = "abc";
+  exports.some_top_level_final = "abc";
   /** @type {string} */
-  closure.some_top_level_var = "abc";
+  exports.some_top_level_var = "abc";
   // Exports:
-  closure.main = main;
-  closure.some_top_level_constant = some_top_level_constant;
+  exports.Callback = Callback;
+  exports.Foo$ = Foo$;
+  exports.Foo = Foo;
+  exports.Bar = Bar;
+  exports.Baz = Baz;
+  exports.main = main;
+  exports.some_top_level_constant = some_top_level_constant;
 });

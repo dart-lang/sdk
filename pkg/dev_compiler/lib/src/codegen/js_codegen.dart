@@ -49,54 +49,6 @@ const DSETINDEX = 'dsetindex';
 const DCALL = 'dcall';
 const DSEND = 'dsend';
 
-/// Type for builder of statements that need to refer to a companion class.
-/// [classRef] will either be a simple identifier or a qualified one, depending
-/// on the context in which the class is emitted (generics or not, exported or
-/// not...).
-typedef JS.Statement _ClassRefStatementBuilder(JS.Expression classRef);
-
-/// Helper class used to build class declarations.
-class _ClassBuilder {
-  final _ClassInfo info;
-
-  /// Statements that should appear before the class declaration.
-  final List<JS.Statement> prelude = [];
-  /// Members of the class declaration.
-  final List<JS.Method> body = [];
-  /// Builders for statements that should appear just after the class
-  /// declaration. These builders will get a local or qualified reference to the
-  /// class as argument so they can refer to it if they so wish.
-  ///
-  /// Note that these statements may be wrapped in generic or lazy classes
-  /// definitions, so they might not be top-level.
-  final List<_ClassRefStatementBuilder> statements = [];
-  /// Statements for extension classes are treated separately, as they need to
-  /// be at the top-level.
-  final List<JS.Statement> topLevelStatements = [];
-
-  _ClassBuilder(this.info);
-}
-
-/// Class info helper that provides member declarations.
-class _ClassInfo {
-  final ClassElement element;
-  final ClassDeclaration declaration;
-  final String jsPeerName;
-  final List<ConstructorDeclaration> ctors = [];
-  final List<FieldDeclaration> instanceFields = [];
-  final List<MethodDeclaration> methods = [];
-
-  _ClassInfo(this.element, [this.declaration, this.jsPeerName]) {
-    if (declaration != null) {
-      for (var m in declaration.members) {
-        if (m is ConstructorDeclaration) ctors.add(m);
-        else if (m is FieldDeclaration && !m.isStatic) instanceFields.add(m);
-        else if (m is MethodDeclaration) methods.add(m);
-      }
-    }
-  }
-}
-
 class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   final AbstractCompiler compiler;
   final CodegenOptions options;
@@ -134,8 +86,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   final _qualifiedGenericIds = new HashMap<Element, JS.MaybeQualifiedId>();
 
   /// The name for the library's exports inside itself.
-  var _exportsVar;
+  /// `exports` was chosen as the most similar to ES module patterns.
   final _dartxVar = new JS.Identifier('dartx');
+  final _exportsVar = new JS.TemporaryId('exports');
   final _runtimeLibVar = new JS.Identifier('dart');
   final _namedArgTemp = new JS.TemporaryId('opts');
 
@@ -164,21 +117,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     _jsArray = interceptors.getType('JSArray');
 
     _objectMembers = getObjectMemberMap(types);
-    // `exports` was chosen as the most similar to ES module patterns.
-    _exportsVar = new JS.TemporaryId(
-        _qualifyExports ? jsLibraryName(currentLibrary) : 'exports');
   }
-
-  /// Whether to always refer to current library's exported types as if they
-  /// were external types (i.e. within library 'foo', refer to local class 'Bar'
-  /// as 'foo.Bar'). This helps compile the 'core' library with Closure, as it
-  /// defines classes such as 'Object' or 'Error' that conflict with their JS
-  /// homonyms.
-  bool get _qualifyExports => options.closure;
-
-  /// Whether class parent needs to be a qualified identifier
-  /// (as opposed to an expression such as `dart.mixin(...)`).
-  bool get _needsQualifiedHeritage => options.closure;
 
   TypeProvider get types => rules.provider;
 
@@ -434,16 +373,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var type = element.type;
     var name = element.name;
 
-    return annotateTypeDef(
-        _finishType(type, ({bool isExportable}) {
-          return _emitDecl(name,
-              js.call('dart.typedef(#, () => #)', [
-                js.string(name, "'"),
-                _emitTypeName(type, lowerTypedef: true)
-              ]),
-              isExportable: isExportable);
-        }),
+    var fnType = annotateTypeDef(
+        js.statement('let # = dart.typedef(#, () => #);', [
+          name,
+          js.string(name, "'"),
+          _emitTypeName(type, lowerTypedef: true)
+        ]),
         node.element);
+
+    return _finishClassDef(type, fnType);
   }
 
   @override
@@ -454,7 +392,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var element = node.element;
 
     // Forward all generative constructors from the base class.
-    var builder = new _ClassBuilder(new _ClassInfo(element));
+    var body = <JS.Method>[];
 
     var supertype = element.supertype;
     if (!supertype.isObject) {
@@ -462,11 +400,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         var parentCtor = supertype.lookUpConstructor(ctor.name, ctor.library);
         var fun = js.call('function() { super.#(...arguments); }',
             [_constructorName(parentCtor)]) as JS.Fun;
-        builder.body.add(new JS.Method(_constructorName(ctor), fun));
+        body.add(new JS.Method(_constructorName(ctor), fun));
       }
     }
 
-    return _finishClass(builder);
+    var classDecl = new JS.ClassDeclaration(new JS.ClassExpression(
+        new JS.Identifier(element.name), _classHeritage(element), body));
+
+    return _finishClassDef(element.type, classDecl);
   }
 
   JS.Statement _emitJsType(String dartClassName, DartObjectImpl jsName) {
@@ -477,118 +418,64 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       // `dom.InputElement` to actually be HTMLInputElement.
       // TODO(jmesserly): if we had the JsName on the Element, we could just
       // generate it correctly when we refer to it.
-      return _emitDecl(dartClassName, new JS.Identifier(jsTypeName));
+      if (isPublic(dartClassName)) _addExport(dartClassName);
+      return js.statement('let # = #;', [dartClassName, jsTypeName]);
     }
     return null;
-  }
-
-  /// Emit declaration, exporting it if [isExportable] and if the name is
-  /// public.
-  JS.Statement _emitDecl(String name, JS.Expression expr,
-      {bool isExportable: true}) {
-    var shouldExport = isExportable && isPublic(name);
-    if (shouldExport && _qualifyExports) {
-      return js.statement('#.# = #;', [_exportsVar, name, expr]);
-    } else {
-      if (shouldExport) _addExport(name);
-
-      if (expr is JS.ClassExpression) {
-        return new JS.ClassDeclaration(expr);
-      } else {
-        return js.statement('let # = #;', [name, expr]);
-      }
-    }
   }
 
   @override
   JS.Statement visitClassDeclaration(ClassDeclaration node) {
     var classElem = node.element;
-    var classType = classElem.type;
+    var type = classElem.type;
     var jsName = findAnnotation(classElem, _isJsNameAnnotation);
+
     if (jsName != null) return _emitJsType(node.name.name, jsName);
 
-    var info = new _ClassInfo(classElem, node, _getJsPeerName(classElem));
-    var builder = new _ClassBuilder(info);
-
-    _addClassJsPeerSetup(builder);
-    _addClassInterfaces(builder);
-
-    // Iff no constructor is specified for a class C, it implicitly has a
-    // default constructor `C() : super() {}`, unless C is class Object.
-    if (info.ctors.isEmpty && !classType.isObject) {
-      builder.body.add(_emitImplicitConstructor(node, info.instanceFields));
-    }
-
+    var ctors = <ConstructorDeclaration>[];
+    var fields = <FieldDeclaration>[];
+    var methods = <MethodDeclaration>[];
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
-        builder.body.add(_emitConstructor(
-            member, classType, info.instanceFields, classType.isObject));
-        // Named constructors
-        if (member.name != null && member.factoryKeyword == null) {
-          builder.statements.add((classRef) =>
-              js.statement('dart.defineNamedConstructor(#, #);', [
-                classRef,
-                _emitMemberName(member.name.name, isStatic: true)
-              ]));
-        }
+        ctors.add(member);
       } else if (member is FieldDeclaration && !member.isStatic) {
-        /// Instance fields, if they override getter/setter pairs
-        for (VariableDeclaration fieldDecl in member.fields.variables) {
-          var field = fieldDecl.element as FieldElement;
-          if (_fieldsNeedingStorage.contains(field)) {
-            builder.statements.add((classRef) =>
-                js.statement('dart.virtualField(#, #)',
-                    [classRef, _emitMemberName(field.name, type: classType)]));
-          }
-        }
+        fields.add(member);
       } else if (member is MethodDeclaration) {
-        builder.body.add(_emitMethodDeclaration(classType, member));
+        methods.add(member);
       }
     }
 
-    _addClassExtensionNames(builder);
-    _addClassIterableSupport(builder);
-    _addClassMemberSignatures(builder);
-    _addClassMetadata(builder);
+    var classExpr = new JS.ClassExpression(new JS.Identifier(type.name),
+        _classHeritage(classElem), _emitClassMethods(node, ctors, fields));
 
-    return _finishClass(builder);
-  }
-
-  void _addClassExtensionNames(_ClassBuilder builder) {
-    var classElem = builder.info.element;
-    if (!_extensionTypes.contains(classElem)) return;
-
-    var dartxNames = <JS.Expression>[];
-    for (MethodDeclaration m in builder.info.methods) {
-      if (!m.isAbstract && !m.isStatic && m.element.isPublic) {
-        dartxNames.add(_elementMemberName(m.element, allowExtensions: false));
-      }
+    String jsPeerName;
+    var jsPeer = findAnnotation(classElem, _isJsPeerInterface);
+    if (jsPeer != null) {
+      jsPeerName = getConstantField(jsPeer, 'name', types.stringType) as String;
     }
 
-    if (dartxNames.isNotEmpty) {
-      builder.prelude.add(js.statement('dart.defineExtensionNames(#)',
-          [new JS.ArrayInitializer(dartxNames, multiline: true)]));
+    var body = _finishClassMembers(classElem, classExpr, ctors, fields, methods,
+        node.metadata, jsPeerName);
+
+    var result = _finishClassDef(type, body);
+
+    if (jsPeerName != null) {
+      // This class isn't allowed to be lazy, because we need to set up
+      // the native JS type eagerly at this point.
+      // If we wanted to support laziness, we could defer the hookup until
+      // the end of the Dart library cycle load.
+      assert(_loader.isLoaded(classElem));
+
+      // TODO(jmesserly): this copies the dynamic members.
+      // Probably fine for objects coming from JS, but not if we actually
+      // want to support construction of instances with generic types other
+      // than dynamic. See issue #154 for Array and List<E> related bug.
+      var copyMembers = js.statement(
+          'dart.registerExtension(dart.global.#, #);',
+          [_propertyName(jsPeerName), classElem.name]);
+      return _statement([result, copyMembers]);
     }
-  }
-
-  void _addClassIterableSupport(_ClassBuilder builder) {
-    if (builder.info.jsPeerName != null) return;
-
-    var classType = builder.info.element.type;
-    bool hasIteratorMethod = builder.info.methods
-        .any((m) => m.isGetter && m.name.name == 'iterator');
-
-    // If the type doesn't have an `iterator`, but claims to implement Iterable,
-    // we inject the adaptor method here, as it's less code size to put the
-    // helper on a parent class. This pattern is common in the core libraries
-    // (e.g. IterableMixin<E> and IterableBase<E>).
-    //
-    // (We could do this same optimization for any interface with an `iterator`
-    // method, but that's more expensive to check for, so it doesn't seem worth
-    // it. The above case for an explicit `iterator` method will catch those.)
-    if (hasIteratorMethod || _implementsIterable(classType)) {
-      builder.body.add(_emitIterable(classType));
-    }
+    return result;
   }
 
   @override
@@ -638,95 +525,51 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     return _statement(result);
   }
 
-  static bool _isQualifiedName(JS.Expression expr) =>
-      expr is JS.Identifier
-      || (expr is JS.PropertyAccess
-          && expr.selector is JS.LiteralString
-          && _isQualifiedName(expr.receiver));
-
-  /// Builds the class.
-  JS.Statement _finishClass(_ClassBuilder builder) {
-    var element = builder.info.element;
-    var name = element.name;
-
-    var heritage = _classHeritage(element);
-    /// Closure expects qualified identifiers for superclasses.
-    if (_needsQualifiedHeritage && !_isQualifiedName(heritage)) {
-      var alias = new JS.TemporaryId("$name\$super");
-      builder.prelude.add(js.statement('let # = #', [alias, heritage]));
-      heritage = alias;
-    }
-
-    var classExpr = new JS.ClassExpression(
-        new JS.Identifier(name),
-        heritage,
-        builder.body.where((m) => m != null).toList(growable: false));
-    var result = _finishType(element.type, ({bool isExportable}) {
-      var classRef = isExportable
-          ? _maybeQualifiedLocalType(name)
-          : new JS.Identifier(name);
-
-      return _statement([]
-          ..addAll(builder.prelude)
-          ..add(_emitDecl(name, classExpr, isExportable: isExportable))
-          ..addAll(builder.statements.map((statementBuilder) {
-            return statementBuilder(classRef);
-          })));
-    });
-    return _statement([result]..addAll(builder.topLevelStatements));
-  }
-
-  /// Given a class definition statement factory, completes its declaration.
+  /// Given a class element and body, complete the class declaration.
   /// This handles generic type parameters, laziness (in library-cycle cases),
   /// and ensuring dependencies are loaded first.
-  JS.Statement _finishType(ParameterizedType type,
-      JS.Statement getStatement({bool isExportable})) {
-    // The base class and all mixins must be declared before this class.
-    // TODO(jmesserly): the lazy class def is a simple solution for now.
-    // We may want to consider other options in the future.
-    bool isLoaded = _loader.isLoaded(type.element);
+  JS.Statement _finishClassDef(ParameterizedType type, JS.Statement body) {
     var name = type.name;
+    var genericName = '$name\$';
 
-    if (type.typeParameters.isEmpty) {
-      if (isLoaded) {
-        return getStatement(isExportable: true);
-      } else {
-        return js.statement(
-          'dart.defineLazyClass(#, { get #() { #; return #; } });', [
-            _exportsVar,
-            _propertyName(name),
-            getStatement(isExportable: false),
-            name
-          ]);
-      }
-    } else {
-      var genericName = '$name\$';
-      var genericDef = _emitDecl(
-          genericName,
-          js.call('dart.generic(function(#) { #; return #; })', [
-            type.typeParameters.map((p) => p.name),
-            getStatement(isExportable: false),
-            name
-          ]),
-          isExportable: true);
-
-      if (isLoaded) {
-        var genericInst = _emitTypeName(
-            fillDynamicTypeArgs(type, types), lowerGeneric: true);
-        return js.statement('{ #; #; }', [
-          genericDef,
-          _emitDecl(name, genericInst)
-        ]);
-      } else {
-        return js.statement(
-            '{ #; dart.defineLazyClassGeneric(#, #, { get: # }); }', [
-                genericDef,
-                _exportsVar,
-                _propertyName(name),
-                _maybeQualifiedLocalType(genericName)
-            ]);
-      }
+    JS.Statement genericDef = null;
+    if (type.typeParameters.isNotEmpty) {
+      genericDef = _emitGenericClassDef(type, body);
     }
+
+    // The base class and all mixins must be declared before this class.
+    if (!_loader.isLoaded(type.element)) {
+      // TODO(jmesserly): the lazy class def is a simple solution for now.
+      // We may want to consider other options in the future.
+
+      if (genericDef != null) {
+        return js.statement(
+            '{ #; dart.defineLazyClassGeneric(#, #, { get: # }); }',
+            [genericDef, _exportsVar, _propertyName(name), genericName]);
+      }
+
+      return js.statement(
+          'dart.defineLazyClass(#, { get #() { #; return #; } });',
+          [_exportsVar, _propertyName(name), body, name]);
+    }
+
+    if (isPublic(name)) _addExport(name);
+
+    if (genericDef != null) {
+      var dynType = fillDynamicTypeArgs(type, types);
+      var genericInst = _emitTypeName(dynType, lowerGeneric: true);
+      return js.statement('{ #; let # = #; }', [genericDef, name, genericInst]);
+    }
+    return body;
+  }
+
+  JS.Statement _emitGenericClassDef(ParameterizedType type, JS.Statement body) {
+    var name = type.name;
+    var genericName = '$name\$';
+    var typeParams = type.typeParameters.map((p) => p.name);
+    if (isPublic(name)) _exports.add(genericName);
+    return js.statement('let # = dart.generic(function(#) { #; return #; });',
+        [genericName, typeParams, body, name]);
   }
 
   JS.Expression _classHeritage(ClassElement element) {
@@ -745,6 +588,50 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     _loader.finishTopLevel(element);
     return heritage;
+  }
+
+  List<JS.Method> _emitClassMethods(ClassDeclaration node,
+      List<ConstructorDeclaration> ctors, List<FieldDeclaration> fields) {
+    var element = node.element;
+    var type = element.type;
+    var isObject = type.isObject;
+
+    // Iff no constructor is specified for a class C, it implicitly has a
+    // default constructor `C() : super() {}`, unless C is class Object.
+    var jsMethods = <JS.Method>[];
+    if (ctors.isEmpty && !isObject) {
+      jsMethods.add(_emitImplicitConstructor(node, fields));
+    }
+
+    bool hasJsPeer = findAnnotation(element, _isJsPeerInterface) != null;
+
+    bool hasIterator = false;
+    for (var m in node.members) {
+      if (m is ConstructorDeclaration) {
+        jsMethods.add(_emitConstructor(m, type, fields, isObject));
+      } else if (m is MethodDeclaration) {
+        jsMethods.add(_emitMethodDeclaration(type, m));
+
+        if (!hasJsPeer && m.isGetter && m.name.name == 'iterator') {
+          hasIterator = true;
+          jsMethods.add(_emitIterable(type));
+        }
+      }
+    }
+
+    // If the type doesn't have an `iterator`, but claims to implement Iterable,
+    // we inject the adaptor method here, as it's less code size to put the
+    // helper on a parent class. This pattern is common in the core libraries
+    // (e.g. IterableMixin<E> and IterableBase<E>).
+    //
+    // (We could do this same optimization for any interface with an `iterator`
+    // method, but that's more expensive to check for, so it doesn't seem worth
+    // it. The above case for an explicit `iterator` method will catch those.)
+    if (!hasJsPeer && !hasIterator && _implementsIterable(type)) {
+      jsMethods.add(_emitIterable(type));
+    }
+
+    return jsMethods.where((m) => m != null).toList(growable: false);
   }
 
   bool _implementsIterable(InterfaceType t) =>
@@ -785,63 +672,67 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     }
   }
 
-  String _getJsPeerName(ClassElement classElem) {
-    var jsPeer = findAnnotation(classElem, _isJsPeerInterface);
-    return jsPeer == null ? null
-      : getConstantField(jsPeer, 'name', types.stringType) as String;
-  }
+  /// Emit class members that need to come after the class declaration, such
+  /// as static fields. See [_emitClassMethods] for things that are emitted
+  /// inside the ES6 `class { ... }` node.
+  JS.Statement _finishClassMembers(
+      ClassElement classElem,
+      JS.ClassExpression cls,
+      List<ConstructorDeclaration> ctors,
+      List<FieldDeclaration> fields,
+      List<MethodDeclaration> methods,
+      List<Annotation> metadata,
+      String jsPeerName) {
+    var name = classElem.name;
+    var body = <JS.Statement>[];
 
-  void _addClassJsPeerSetup(_ClassBuilder builder) {
-    var jsPeerName = builder.info.jsPeerName;
-    if (jsPeerName == null) return;
+    if (_extensionTypes.contains(classElem)) {
+      var dartxNames = <JS.Expression>[];
+      for (var m in methods) {
+        if (!m.isAbstract && !m.isStatic && m.element.isPublic) {
+          dartxNames.add(_elementMemberName(m.element, allowExtensions: false));
+        }
+      }
+      if (dartxNames.isNotEmpty) {
+        body.add(js.statement('dart.defineExtensionNames(#)',
+            [new JS.ArrayInitializer(dartxNames, multiline: true)]));
+      }
+    }
 
-    ClassElement classElem = builder.info.element;
+    body.add(new JS.ClassDeclaration(cls));
 
     // TODO(jmesserly): we should really just extend native Array.
-    if (classElem.typeParameters.isNotEmpty) {
-      builder.statements.add((classRef) =>
-          js.statement('dart.setBaseClass(#, dart.global.#);',
-              [classRef, _propertyName(jsPeerName)]));
+    if (jsPeerName != null && classElem.typeParameters.isNotEmpty) {
+      body.add(js.statement('dart.setBaseClass(#, dart.global.#);',
+          [classElem.name, _propertyName(jsPeerName)]));
     }
 
-    // This class isn't allowed to be lazy, because we need to set up
-    // the native JS type eagerly at this point.
-    // If we wanted to support laziness, we could defer the hookup until
-    // the end of the Dart library cycle load.
-    assert(_loader.isLoaded(classElem));
-
-    // TODO(jmesserly): this copies the dynamic members.
-    // Probably fine for objects coming from JS, but not if we actually
-    // want to support construction of instances with generic types other
-    // than dynamic. See issue #154 for Array and List<E> related bug.
-    builder.topLevelStatements.add(
-        js.statement(
-          'dart.registerExtension(dart.global.#, #);', [
-              _propertyName(jsPeerName),
-              classElem.name
-          ]));
-  }
-  void _addClassInterfaces(_ClassBuilder builder) {
-    ClassElement classElem = builder.info.element;
+    // Interfaces
     if (classElem.interfaces.isNotEmpty) {
-      builder.statements.add((classRef) =>
-          js.statement('#[dart.implements] = () => #;', [
-            classRef,
-            new JS.ArrayInitializer(new List<JS.Expression>.from(
-                classElem.interfaces.map(_emitTypeName)))
-          ]));
+      body.add(js.statement('#[dart.implements] = () => #;', [
+        name,
+        new JS.ArrayInitializer(new List<JS.Expression>.from(
+            classElem.interfaces.map(_emitTypeName)))
+      ]));
     }
-  }
 
-  /// Emit statements for members that need to come after the class declaration,
-  /// such as static fields. See [_emitClassMethods] for things that are emitted
-  /// inside the ES6 `class { ... }` node.
-  void _addClassMemberSignatures(_ClassBuilder builder) {
+    // Named constructors
+    for (ConstructorDeclaration member in ctors) {
+      if (member.name != null && member.factoryKeyword == null) {
+        body.add(js.statement('dart.defineNamedConstructor(#, #);',
+            [name, _emitMemberName(member.name.name, isStatic: true)]));
+      }
+    }
 
-    var ctors = builder.info.ctors;
-    var methods = builder.info.methods;
-
-    ClassElement classElem = builder.info.element;
+    // Instance fields, if they override getter/setter pairs
+    for (FieldDeclaration member in fields) {
+      for (VariableDeclaration fieldDecl in member.fields.variables) {
+        var field = fieldDecl.element as FieldElement;
+        if (_fieldsNeedingStorage.contains(field)) {
+          body.add(_overrideField(field));
+        }
+      }
+    }
 
     // Emit the signature on the class recording the runtime type information
     {
@@ -897,8 +788,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       }
       if (!sigFields.isEmpty) {
         var sig = new JS.ObjectInitializer(sigFields);
-        builder.statements.add((classRef) =>
-            js.statement('dart.setSignature(#, #);', [classRef, sig]));
+        var classExpr = new JS.Identifier(name);
+        body.add(js.statement('dart.setSignature(#, #);', [classExpr, sig]));
       }
     }
 
@@ -910,27 +801,23 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       for (var e in extensions) {
         methodNames.add(_elementMemberName(e));
       }
-      builder.statements.add((classRef) =>
-          js.statement('dart.defineExtensionMembers(#, #);', [
-            classRef,
-            new JS.ArrayInitializer(methodNames,
-                multiline: methodNames.length > 4)
-          ]));
+      body.add(js.statement('dart.defineExtensionMembers(#, #);', [
+        name,
+        new JS.ArrayInitializer(methodNames, multiline: methodNames.length > 4)
+      ]));
     }
-  }
 
-  void _addClassMetadata(_ClassBuilder builder) {
-    var metadata = builder.info.declaration?.metadata ?? const [];
     // TODO(vsm): Make this optional per #268.
     // Metadata
     if (metadata.isNotEmpty) {
-      builder.statements.add((classRef) =>
-          js.statement('#[dart.metadata] = () => #;', [
-            classRef,
-            new JS.ArrayInitializer(
-                new List<JS.Expression>.from(metadata.map(_instantiateAnnotation)))
-          ]));
+      body.add(js.statement('#[dart.metadata] = () => #;', [
+        name,
+        new JS.ArrayInitializer(
+            new List<JS.Expression>.from(metadata.map(_instantiateAnnotation)))
+      ]));
     }
+
+    return _statement(body);
   }
 
   List<ExecutableElement> _extensionsToImplement(ClassElement element) {
@@ -973,6 +860,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       _collectExtensions(i, types);
     }
     _collectExtensions(type.superclass, types);
+  }
+
+  JS.Statement _overrideField(FieldElement e) {
+    var cls = e.enclosingElement;
+    return js.statement('dart.virtualField(#, #)',
+        [cls.name, _emitMemberName(e.name, type: cls.type)]);
   }
 
   /// Generates the implicit default constructor for class C of the form
@@ -1184,7 +1077,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   ///   3. constructor field initializers,
   ///   4. initialize fields not covered in 1-3
   JS.Statement _initializeFields(
-      ClassDeclaration cls, Iterable<FieldDeclaration> fieldDecls,
+      ClassDeclaration cls, List<FieldDeclaration> fieldDecls,
       [ConstructorDeclaration ctor]) {
     var unit = cls.getAncestor((a) => a is CompilationUnit) as CompilationUnit;
     var constField = new ConstFieldVisitor(types, unit);
@@ -1757,36 +1650,18 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     return _maybeQualifiedName(element, _propertyName(name));
   }
 
-  JS.Expression _maybeQualifiedLocalType(String name) =>
-      isPublic(name) && _qualifyExports
-          ? _maybeQualifiedName(currentLibrary, _propertyName(name))
-          : new JS.Identifier(name);
-
   JS.Expression _maybeQualifiedName(Element e, JS.Expression name,
       [Map<Element, JS.MaybeQualifiedId> idTable]) {
-    bool isPrivate = name is JS.LiteralString
-        && !isPublic(name.valueWithoutQuotes);
-    bool isCurrentLibrary = e.library == currentLibrary;
+    var libName = _libraryName(e.library);
+    if (idTable == null) idTable = _qualifiedIds;
 
     // Mutable top-level fields should always be qualified.
     bool mutableTopLevel = e is TopLevelVariableElement && !e.isConst;
-
-    if (name is JS.LiteralString
-        && isCurrentLibrary
-        && !mutableTopLevel
-        && (isPrivate || !_qualifyExports)) {
-      return new JS.Identifier(name.valueWithoutQuotes);
-    }
-    var libName = _libraryName(e.library);
-
-    if (!isCurrentLibrary
-        || _qualifyExports && !isPrivate
-        || mutableTopLevel) {
+    if (e.library != currentLibrary || mutableTopLevel) {
       return new JS.PropertyAccess(libName, name);
     }
 
-    return (idTable ?? _qualifiedIds)
-        .putIfAbsent(e, () => new JS.MaybeQualifiedId(libName, name));
+    return idTable.putIfAbsent(e, () => new JS.MaybeQualifiedId(libName, name));
   }
 
   @override
@@ -2208,7 +2083,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     JS.Expression objExpr = _exportsVar;
     var target = _lazyFields[0].element.enclosingElement;
     if (target is ClassElement) {
-      objExpr = _maybeQualifiedLocalType(target.type.name);
+      objExpr = new JS.Identifier(target.type.name);
     }
 
     return js.statement(
