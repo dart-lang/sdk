@@ -6509,25 +6509,6 @@ class ElementLocator {
     ElementLocator_ElementMapper mapper = new ElementLocator_ElementMapper();
     return node.accept(mapper);
   }
-
-  /**
-   * Return the element associated with the given [node], or `null` if there is
-   * no element associated with the node.
-   */
-  static Element locateWithOffset(AstNode node, int offset) {
-    // TODO(brianwilkerson) 'offset' is not used. Figure out what's going on:
-    // whether there's a bug or whether this method is unnecessary.
-    if (node == null) {
-      return null;
-    }
-    // try to get Element from node
-    Element nodeElement = locate(node);
-    if (nodeElement != null) {
-      return nodeElement;
-    }
-    // no Element
-    return null;
-  }
 }
 
 /**

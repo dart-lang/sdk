@@ -7055,19 +7055,6 @@ core.int value;''');
         TopLevelVariableElement, element);
   }
 
-  void test_locateWithOffset_BinaryExpression() {
-    AstNode id = _findNodeIn("+", "var x = 3 + 4;");
-    Element element = ElementLocator.locateWithOffset(id, 0);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement, MethodElement, element);
-  }
-
-  void test_locateWithOffset_StringLiteral() {
-    AstNode id = _findNodeIn("abc", "var x = 'abc';");
-    Element element = ElementLocator.locateWithOffset(id, 1);
-    expect(element, isNull);
-  }
-
   /**
    * Find the first AST node matching a pattern in the resolved AST for the given source.
    *

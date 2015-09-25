@@ -556,7 +556,7 @@ class AnalysisServer {
    */
   List<Element> getElementsAtOffset(String file, int offset) {
     List<AstNode> nodes = getNodesAtOffset(file, offset);
-    return getElementsOfNodes(nodes, offset);
+    return getElementsOfNodes(nodes);
   }
 
   /**
@@ -564,7 +564,7 @@ class AnalysisServer {
    *
    * May be empty if not resolved, but not `null`.
    */
-  List<Element> getElementsOfNodes(List<AstNode> nodes, int offset) {
+  List<Element> getElementsOfNodes(List<AstNode> nodes) {
     List<Element> elements = <Element>[];
     for (AstNode node in nodes) {
       if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
@@ -573,7 +573,7 @@ class AnalysisServer {
       if (node is LibraryIdentifier) {
         node = node.parent;
       }
-      Element element = ElementLocator.locateWithOffset(node, offset);
+      Element element = ElementLocator.locate(node);
       if (node is SimpleIdentifier && element is PrefixElement) {
         element = getImportElement(node);
       }

@@ -592,7 +592,7 @@ class _RefactoringManager {
     }
     if (kind == RefactoringKind.RENAME) {
       List<AstNode> nodes = server.getNodesAtOffset(file, offset);
-      List<Element> elements = server.getElementsOfNodes(nodes, offset);
+      List<Element> elements = server.getElementsOfNodes(nodes);
       if (nodes.isNotEmpty && elements.isNotEmpty) {
         AstNode node = nodes[0];
         Element element = elements[0];

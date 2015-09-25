@@ -83,7 +83,7 @@ class DartUnitHoverComputer {
       HoverInformation hover =
           new HoverInformation(expression.offset, expression.length);
       // element
-      Element element = ElementLocator.locateWithOffset(expression, _offset);
+      Element element = ElementLocator.locate(expression);
       if (element != null) {
         // variable, if synthetic accessor
         if (element is PropertyAccessorElement) {
