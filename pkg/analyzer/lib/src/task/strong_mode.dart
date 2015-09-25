@@ -28,7 +28,8 @@ void setParameterType(PropertyAccessorElement element, DartType type) {
       FunctionType functionType = element.type;
       if (functionType is FunctionTypeImpl) {
         element.type =
-            new FunctionTypeImpl(element, functionType.prunedTypedefs);
+            new FunctionTypeImpl(element, functionType.prunedTypedefs)
+              ..typeArguments = functionType.typeArguments;
       } else {
         assert(false);
       }
@@ -53,7 +54,8 @@ void setReturnType(ExecutableElement element, DartType type) {
     element.returnType = type;
     FunctionType functionType = element.type;
     if (functionType is FunctionTypeImpl) {
-      element.type = new FunctionTypeImpl(element, functionType.prunedTypedefs);
+      element.type = new FunctionTypeImpl(element, functionType.prunedTypedefs)
+        ..typeArguments = functionType.typeArguments;
     } else {
       assert(false);
     }

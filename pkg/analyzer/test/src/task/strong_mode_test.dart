@@ -707,13 +707,17 @@ class C<E> implements A<E> {
 }
 ''');
     ClassElement classC = unit.getType('C');
+    DartType typeCE = classC.typeParameters[0].type;
     MethodElement methodC = classC.getMethod(methodName);
     ParameterElement parameterC = methodC.parameters[0];
     expect(parameterC.type.isDynamic, isTrue);
+    expect(methodC.type.typeArguments, [typeCE]);
 
     inferrer.inferCompilationUnit(unit);
 
     expect(parameterC.type, classC.typeParameters[0].type);
+    expect(methodC.type.typeArguments, [typeCE],
+        reason: 'function type should still have type arguments');
   }
 
   void test_inferCompilationUnit_method_return_multiple_different() {
@@ -917,12 +921,16 @@ class B<E> extends A<E> {
 }
 ''');
     ClassElement classB = unit.getType('B');
+    DartType typeBE = classB.typeParameters[0].type;
     MethodElement methodB = classB.getMethod(methodName);
     expect(methodB.returnType.isDynamic, isTrue);
+    expect(methodB.type.typeArguments, [typeBE]);
 
     inferrer.inferCompilationUnit(unit);
 
     expect(methodB.returnType, classB.typeParameters[0].type);
+    expect(methodB.type.typeArguments, [typeBE],
+        reason: 'function type should still have type arguments');
   }
 }
 
