@@ -33,21 +33,15 @@ class ImplementedComputer {
   }
 
   void _addImplementedClass(ClassElement type) {
-    String name = type.name;
-    if (name != null) {
-      int offset = type.nameOffset;
-      int length = name.length;
-      classes.add(new protocol.ImplementedClass(offset, length));
-    }
+    int offset = type.nameOffset;
+    int length = type.nameLength;
+    classes.add(new protocol.ImplementedClass(offset, length));
   }
 
   void _addImplementedMember(Element member) {
-    String name = member.displayName;
-    if (name != null) {
-      int offset = member.nameOffset;
-      int length = name.length;
-      members.add(new protocol.ImplementedMember(offset, length));
-    }
+    int offset = member.nameOffset;
+    int length = member.nameLength;
+    members.add(new protocol.ImplementedMember(offset, length));
   }
 
   void _addMemberIfImplemented(Element element) {

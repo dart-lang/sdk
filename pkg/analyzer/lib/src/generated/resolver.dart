@@ -763,14 +763,14 @@ class ClassScope extends EnclosedScope {
         return new AnalysisError(
             duplicate.source,
             duplicate.nameOffset,
-            duplicate.displayName.length,
+            duplicate.nameLength,
             CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME,
             [existing.displayName]);
       } else {
         return new AnalysisError(
             existing.source,
             existing.nameOffset,
-            existing.displayName.length,
+            existing.nameLength,
             CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME,
             [existing.displayName]);
       }
@@ -6355,7 +6355,7 @@ class InheritanceManager {
                 _reportError(
                     classElt,
                     classElt.nameOffset,
-                    classElt.displayName.length,
+                    classElt.nameLength,
                     StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
                     [key, firstTwoFuntionTypesStr]);
               }
@@ -6384,7 +6384,7 @@ class InheritanceManager {
           _reportError(
               classElt,
               classElt.nameOffset,
-              classElt.displayName.length,
+              classElt.nameLength,
               StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
               [key]);
         }
@@ -8999,7 +8999,7 @@ class LibraryScope extends EnclosedScope {
       return new AnalysisError(
           duplicate.source,
           offset,
-          duplicate.displayName.length,
+          duplicate.nameLength,
           CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
           [existing.displayName]);
     }
@@ -11943,12 +11943,8 @@ abstract class Scope {
     // TODO(jwren) There are 4 error codes for duplicate, but only 1 is being
     // generated.
     Source source = duplicate.source;
-    return new AnalysisError(
-        source,
-        duplicate.nameOffset,
-        duplicate.displayName.length,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
-        [existing.displayName]);
+    return new AnalysisError(source, duplicate.nameOffset, duplicate.nameLength,
+        CompileTimeErrorCode.DUPLICATE_DEFINITION, [existing.displayName]);
   }
 
   /**
@@ -15155,7 +15151,7 @@ class StrongTypeSystemImpl implements TypeSystem {
   }
 
   /**
-   * Check that [f1] is a subtype of [f2]. 
+   * Check that [f1] is a subtype of [f2].
    * [fuzzyArrows] indicates whether or not the f1 and f2 should be
    * treated as fuzzy arrow types (and hence dynamic parameters to f2 treated
    * as bottom).
@@ -15534,12 +15530,8 @@ class UnusedLocalElementsVerifier extends RecursiveElementVisitor {
   void _reportErrorForElement(
       ErrorCode errorCode, Element element, List<Object> arguments) {
     if (element != null) {
-      _errorListener.onError(new AnalysisError(
-          element.source,
-          element.nameOffset,
-          element.displayName.length,
-          errorCode,
-          arguments));
+      _errorListener.onError(new AnalysisError(element.source,
+          element.nameOffset, element.nameLength, errorCode, arguments));
     }
   }
 }

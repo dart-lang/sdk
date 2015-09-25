@@ -8466,7 +8466,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   String get name => _name;
 
   @override
-  int get nameLength => name != null ? name.length : 0;
+  int get nameLength => displayName != null ? displayName.length : 0;
 
   @override
   int get nameOffset => -1;

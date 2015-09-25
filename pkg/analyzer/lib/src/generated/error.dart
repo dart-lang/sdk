@@ -2569,16 +2569,15 @@ class ErrorReporter {
    * Report an error with the given [errorCode] and [arguments]. The [element]
    * is used to compute the location of the error.
    */
-  void reportErrorForElement(
-      ErrorCode errorCode, Element element, List<Object> arguments) {
-    String displayName = element.displayName;
+  void reportErrorForElement(ErrorCode errorCode, Element element,
+      [List<Object> arguments]) {
     int length = 0;
-    if (displayName != null) {
-      length = displayName.length;
-    } else if (element is ImportElement) {
+    if (element is ImportElement) {
       length = 6; // 'import'.length
     } else if (element is ExportElement) {
       length = 6; // 'export'.length
+    } else {
+      length = element.nameLength;
     }
     reportErrorForOffset(errorCode, element.nameOffset, length, arguments);
   }

@@ -1580,7 +1580,7 @@ main(A a, p) {
 
   void _assertDefinesTopLevelElement(Element element) {
     ExpectedLocation location = new ExpectedLocation(
-        element, element.nameOffset, element.name.length, false, true);
+        element, element.nameOffset, element.nameLength, false, true);
     _assertRecordedRelationForElement(
         testLibraryElement, IndexConstants.DEFINES, location);
     expect(recordedTopElements, contains(element));

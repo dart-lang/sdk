@@ -36,7 +36,7 @@ class IndexableElement implements IndexableObject {
   IndexableObjectKind get kind => IndexableElementKind.forElement(element);
 
   @override
-  int get length => element.displayName.length;
+  int get length => element.nameLength;
 
   @override
   String get name => element.displayName;

@@ -90,7 +90,7 @@ class ElementReferencesComputer {
 
   SearchResult _newDeclarationResult(Element refElement) {
     int nameOffset = refElement.nameOffset;
-    int nameLength = refElement.name.length;
+    int nameLength = refElement.nameLength;
     SearchMatch searchMatch = new SearchMatch(MatchKind.DECLARATION, refElement,
         new SourceRange(nameOffset, nameLength), true, false);
     return newSearchResult_fromMatch(searchMatch);

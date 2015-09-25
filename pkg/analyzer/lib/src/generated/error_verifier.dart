@@ -2253,10 +2253,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       // report problem
       hasProblem = true;
-      _errorReporter.reportErrorForOffset(
-          CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD,
-          method.nameOffset,
-          name.length, [
+      _errorReporter.reportErrorForElement(
+          CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD, method, [
         _enclosingClass.displayName,
         inherited.enclosingElement.displayName,
         name
@@ -2276,10 +2274,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       // report problem
       hasProblem = true;
-      _errorReporter.reportErrorForOffset(
-          CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER,
-          accessor.nameOffset,
-          name.length, [
+      _errorReporter.reportErrorForElement(
+          CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER, accessor, [
         _enclosingClass.displayName,
         inherited.enclosingElement.displayName,
         name
@@ -2559,10 +2555,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       String name = typeParameter.name;
       // name is same as the name of the enclosing class
       if (_enclosingClass.name == name) {
-        _errorReporter.reportErrorForOffset(
+        _errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS,
-            typeParameter.nameOffset,
-            name.length,
+            typeParameter,
             [name]);
         problemReported = true;
       }
@@ -2570,10 +2565,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (_enclosingClass.getMethod(name) != null ||
           _enclosingClass.getGetter(name) != null ||
           _enclosingClass.getSetter(name) != null) {
-        _errorReporter.reportErrorForOffset(
+        _errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER,
-            typeParameter.nameOffset,
-            name.length,
+            typeParameter,
             [name]);
         problemReported = true;
       }
@@ -3008,10 +3002,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       displayName = enclosingElement.getExtendedDisplayName(null);
     }
     // report problem
-    _errorReporter.reportErrorForOffset(
+    _errorReporter.reportErrorForElement(
         CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE,
-        staticMember.nameOffset,
-        name.length,
+        staticMember,
         [name, displayName]);
     return true;
   }
@@ -4026,10 +4019,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // check accessors
     for (PropertyAccessorElement accessor in _enclosingClass.accessors) {
       if (className == accessor.name) {
-        _errorReporter.reportErrorForOffset(
-            CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME,
-            accessor.nameOffset,
-            className.length);
+        _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, accessor);
         problemReported = true;
       }
     }
@@ -5965,21 +5956,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           buffer.write(separator);
         }
         buffer.write(element.displayName);
-        _errorReporter.reportErrorForOffset(
+        _errorReporter.reportErrorForElement(
             CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-            _enclosingClass.nameOffset,
-            enclosingClassName.length,
+            _enclosingClass,
             [enclosingClassName, buffer.toString()]);
         return true;
       } else {
         // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS or
         // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS or
         // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH
-        _errorReporter.reportErrorForOffset(
-            _getBaseCaseErrorCode(element),
-            _enclosingClass.nameOffset,
-            enclosingClassName.length,
-            [enclosingClassName]);
+        _errorReporter.reportErrorForElement(_getBaseCaseErrorCode(element),
+            _enclosingClass, [enclosingClassName]);
         return true;
       }
     }

@@ -649,7 +649,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   void _recordHasAncestor(ClassElement element) {
     int offset = element.nameOffset;
-    int length = element.name.length;
+    int length = element.nameLength;
     LocationImpl location = _createLocationForOffset(offset, length);
     _recordHasAncestor0(location, element, false, <ClassElement>[]);
   }
