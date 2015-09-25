@@ -210,7 +210,7 @@ void TimelineEvent::Reset() {
 
 void TimelineEvent::AsyncBegin(const char* label, int64_t async_id) {
   Init(kAsyncBegin, label);
-  timestamp0_ = OS::GetCurrentTimeMicros();
+  timestamp0_ = OS::GetCurrentTraceMicros();
   // Overload timestamp1_ with the async_id.
   timestamp1_ = async_id;
 }
@@ -219,7 +219,7 @@ void TimelineEvent::AsyncBegin(const char* label, int64_t async_id) {
 void TimelineEvent::AsyncInstant(const char* label,
                                  int64_t async_id) {
   Init(kAsyncInstant, label);
-  timestamp0_ = OS::GetCurrentTimeMicros();
+  timestamp0_ = OS::GetCurrentTraceMicros();
   // Overload timestamp1_ with the async_id.
   timestamp1_ = async_id;
 }
@@ -228,7 +228,7 @@ void TimelineEvent::AsyncInstant(const char* label,
 void TimelineEvent::AsyncEnd(const char* label,
                              int64_t async_id) {
   Init(kAsyncEnd, label);
-  timestamp0_ = OS::GetCurrentTimeMicros();
+  timestamp0_ = OS::GetCurrentTraceMicros();
   // Overload timestamp1_ with the async_id.
   timestamp1_ = async_id;
 }
@@ -236,18 +236,18 @@ void TimelineEvent::AsyncEnd(const char* label,
 
 void TimelineEvent::DurationBegin(const char* label) {
   Init(kDuration, label);
-  timestamp0_ = OS::GetCurrentTimeMicros();
+  timestamp0_ = OS::GetCurrentTraceMicros();
 }
 
 
 void TimelineEvent::DurationEnd() {
-  timestamp1_ = OS::GetCurrentTimeMicros();
+  timestamp1_ = OS::GetCurrentTraceMicros();
 }
 
 
 void TimelineEvent::Instant(const char* label) {
   Init(kInstant, label);
-  timestamp0_ = OS::GetCurrentTimeMicros();
+  timestamp0_ = OS::GetCurrentTraceMicros();
 }
 
 
@@ -355,12 +355,12 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
   obj.AddProperty("cat", category_);
   obj.AddProperty64("tid", tid);
   obj.AddProperty64("pid", pid);
-  obj.AddPropertyTimeMillis("ts", TimeOrigin());
+  obj.AddPropertyTimeMicros("ts", TimeOrigin());
 
   switch (event_type()) {
     case kDuration: {
       obj.AddProperty("ph", "X");
-      obj.AddPropertyTimeMillis("dur", TimeDuration());
+      obj.AddPropertyTimeMicros("dur", TimeDuration());
     }
     break;
     case kInstant: {
@@ -409,7 +409,7 @@ int64_t TimelineEvent::AsyncId() const {
 int64_t TimelineEvent::TimeDuration() const {
   if (timestamp1_ == 0) {
     // This duration is still open, use current time as end.
-    return OS::GetCurrentTimeMicros() - timestamp0_;
+    return OS::GetCurrentTraceMicros() - timestamp0_;
   }
   return timestamp1_ - timestamp0_;
 }

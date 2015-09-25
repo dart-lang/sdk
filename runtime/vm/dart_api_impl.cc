@@ -26,6 +26,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os_thread.h"
+#include "vm/os.h"
 #include "vm/port.h"
 #include "vm/precompiler.h"
 #include "vm/profiler.h"
@@ -5664,6 +5665,11 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
   Service::SendEmbedderEvent(I, stream_id, event_kind,
                              bytes, bytes_length);
   return Api::Success();
+}
+
+
+DART_EXPORT int64_t Dart_TimelineGetMicros() {
+  return OS::GetCurrentTraceMicros();
 }
 
 

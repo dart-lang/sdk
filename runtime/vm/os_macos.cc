@@ -82,6 +82,43 @@ int64_t OS::GetCurrentTimeMicros() {
 }
 
 
+int64_t OS::GetCurrentTraceMicros() {
+#if defined(TARGET_OS_IOS)
+  // On iOS mach_absolute_time stops while the device is sleeping. Instead use
+  // now - KERN_BOOTTIME to get a time difference that is not impacted by clock
+  // changes. KERN_BOOTTIME will be updated by the system whenever the system
+  // clock change.
+  struct timeval boottime;
+  int mib[2] = {CTL_KERN, KERN_BOOTTIME};
+  size_t size = sizeof(boottime);
+  int kr = sysctl(mib, arraysize(mib), &boottime, &size, NULL, 0);
+  ASSERT(KERN_SUCCESS == kr);
+  int64_t now = GetCurrentTimeMicros();
+  int64_t origin = boottime.tv_sec * kMicrosecondsPerSecond;
+  origin += boottime.tv_usec;
+  return now - origin;
+#else
+  static mach_timebase_info_data_t timebase_info;
+  if (timebase_info.denom == 0) {
+    // Zero-initialization of statics guarantees that denom will be 0 before
+    // calling mach_timebase_info.  mach_timebase_info will never set denom to
+    // 0 as that would be invalid, so the zero-check can be used to determine
+    // whether mach_timebase_info has already been called.  This is
+    // recommended by Apple's QA1398.
+    kern_return_t kr = mach_timebase_info(&timebase_info);
+    ASSERT(KERN_SUCCESS == kr);
+  }
+
+  // timebase_info converts absolute time tick units into nanoseconds.  Convert
+  // to microseconds.
+  int64_t result = mach_absolute_time() / kNanosecondsPerMicrosecond;
+  result *= timebase_info.numer;
+  result /= timebase_info.denom;
+  return result;
+#endif  // defined(TARGET_OS_IOS)
+}
+
+
 void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
   const int kMinimumAlignment = 16;
   ASSERT(Utils::IsPowerOfTwo(alignment));
