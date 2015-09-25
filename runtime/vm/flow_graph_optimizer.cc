@@ -224,6 +224,12 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     ArgumentsDescriptor args_desc(args_desc_array);
     const Class& receiver_class = Class::Handle(Z,
         isolate()->class_table()->At(class_ids[0]));
+    if (!receiver_class.is_finalized()) {
+      // Do not eagerly finalize classes. ResolveDynamicForReceiverClass can
+      // cause class finalization, since callee's receiver class may not be
+      // finalized yet.
+      return false;
+    }
     const Function& function = Function::Handle(Z,
         Resolver::ResolveDynamicForReceiverClass(
             receiver_class,

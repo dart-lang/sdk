@@ -3215,7 +3215,8 @@ class Script : public Object {
   void Tokenize(const String& private_key) const;
 
   RawLibrary* FindLibrary() const;
-  RawString* GetLine(intptr_t line_number) const;
+  RawString* GetLine(intptr_t line_number,
+                     Heap::Space space = Heap::kNew) const;
   RawString* GetSnippet(intptr_t from_line,
                         intptr_t from_column,
                         intptr_t to_line,
@@ -5408,7 +5409,8 @@ class TypeParameter : public AbstractType {
   // bound cannot be checked yet and this is not an error.
   bool CheckBound(const AbstractType& bounded_type,
                   const AbstractType& upper_bound,
-                  Error* bound_error) const;
+                  Error* bound_error,
+                  Heap::Space space = Heap::kNew) const;
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(TrailPtr trail = NULL) const {
     return false;
@@ -6186,7 +6188,10 @@ class String : public Instance {
 
   static RawString* NewFormatted(const char* format, ...)
       PRINTF_ATTRIBUTE(1, 2);
-  static RawString* NewFormattedV(const char* format, va_list args);
+  static RawString* NewFormatted(Heap::Space space, const char* format, ...)
+      PRINTF_ATTRIBUTE(2, 3);
+  static RawString* NewFormattedV(const char* format, va_list args,
+                                  Heap::Space space = Heap::kNew);
 
   static bool ParseDouble(const String& str,
                           intptr_t start,

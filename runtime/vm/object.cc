@@ -4449,10 +4449,12 @@ RawString* UnresolvedClass::Name() const {
     const LibraryPrefix& lib_prefix = LibraryPrefix::Handle(library_prefix());
     String& name = String::Handle();
     name = lib_prefix.name();  // Qualifier.
-    name = String::Concat(name, Symbols::Dot());
-    const String& str = String::Handle(ident());
-    name = String::Concat(name, str);
-    return name.raw();
+    Zone* zone = Thread::Current()->zone();
+    GrowableHandlePtrArray<const String> strs(zone, 3);
+    strs.Add(name);
+    strs.Add(Symbols::Dot());
+    strs.Add(String::Handle(zone, ident()));
+    return Symbols::FromConcatAll(strs);
   } else {
     return ident();
   }
@@ -8736,7 +8738,7 @@ void Script::TokenRangeAtLine(intptr_t line_number,
 }
 
 
-RawString* Script::GetLine(intptr_t line_number) const {
+RawString* Script::GetLine(intptr_t line_number, Heap::Space space) const {
   const String& src = String::Handle(Source());
   intptr_t relative_line_number = line_number - line_offset();
   intptr_t current_line = 1;
@@ -8763,7 +8765,8 @@ RawString* Script::GetLine(intptr_t line_number) const {
   if (line_start_idx >= 0) {
     return String::SubString(src,
                              line_start_idx,
-                             last_char_idx - line_start_idx + 1);
+                             last_char_idx - line_start_idx + 1,
+                             space);
   } else {
     return Symbols::Empty().raw();
   }
@@ -14046,7 +14049,8 @@ RawLanguageError* LanguageError::NewFormattedV(const Error& prev_error,
   result.set_script(script);
   result.set_token_pos(token_pos);
   result.set_kind(kind);
-  result.set_message(String::Handle(String::NewFormattedV(format, args)));
+  result.set_message(String::Handle(
+      String::NewFormattedV(format, args, space)));
   return result.raw();
 }
 
@@ -16195,12 +16199,13 @@ RawAbstractType* TypeParameter::InstantiateFrom(
 
 bool TypeParameter::CheckBound(const AbstractType& bounded_type,
                                const AbstractType& upper_bound,
-                               Error* bound_error) const {
+                               Error* bound_error,
+                               Heap::Space space) const {
   ASSERT((bound_error != NULL) && bound_error->IsNull());
   ASSERT(bounded_type.IsFinalized());
   ASSERT(upper_bound.IsFinalized());
   ASSERT(!bounded_type.IsMalformed());
-  if (bounded_type.IsSubtypeOf(upper_bound, bound_error)) {
+  if (bounded_type.IsSubtypeOf(upper_bound, bound_error, space)) {
     return true;
   }
   // Set bound_error if the caller is interested and if this is the first error.
@@ -18785,7 +18790,18 @@ RawString* String::NewFormatted(const char* format, ...) {
 }
 
 
-RawString* String::NewFormattedV(const char* format, va_list args) {
+RawString* String::NewFormatted(Heap::Space space, const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  RawString* result = NewFormattedV(format, args, space);
+  NoSafepointScope no_safepoint;
+  va_end(args);
+  return result;
+}
+
+
+RawString* String::NewFormattedV(const char* format, va_list args,
+                                 Heap::Space space) {
   va_list args_copy;
   va_copy(args_copy, args);
   intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
@@ -18795,7 +18811,7 @@ RawString* String::NewFormattedV(const char* format, va_list args) {
   char* buffer = zone->Alloc<char>(len + 1);
   OS::VSNPrint(buffer, (len + 1), format, args);
 
-  return String::New(buffer);
+  return String::New(buffer, space);
 }
 
 

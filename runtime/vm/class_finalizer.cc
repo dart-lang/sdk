@@ -845,8 +845,10 @@ void ClassFinalizer::CheckTypeArgumentBounds(const Class& cls,
               TypeParameter::Cast(type_arg).bound());
           ResolveType(type_arg_cls, bound);
         }
-        if (!type_param.CheckBound(type_arg, instantiated_bound, &error) &&
-            error.IsNull()) {
+        // This may be called only if type needs to be finalized, therefore
+        // seems OK to allocate finalized types in old space.
+        if (!type_param.CheckBound(type_arg, instantiated_bound,
+                &error, Heap::kOld) && error.IsNull()) {
           // The bound cannot be checked at compile time; postpone to run time.
           type_arg = BoundedType::New(type_arg, instantiated_bound, type_param);
           arguments.SetTypeAt(offset + i, type_arg);
