@@ -2536,6 +2536,12 @@ abstract class Element implements AnalysisTarget {
   String get name;
 
   /**
+   * Return the length of the name of this element in the file that contains the
+   * declaration of this element, or `0` if this element does not have a name.
+   */
+  int get nameLength;
+
+  /**
    * Return the offset of the name of this element in the file that contains the
    * declaration of this element, or `-1` if this element is synthetic, does not
    * have a name, or otherwise does not have an offset.
@@ -2936,10 +2942,10 @@ abstract class ElementImpl implements Element {
     _cachedHashCode = null;
   }
 
-  /**
-   * The offset of the name of this element in the file that contains the
-   * declaration of this element.
-   */
+  @override
+  int get nameLength => name != null ? name.length : 0;
+
+  @override
   int get nameOffset => _nameOffset;
 
   /**
@@ -7312,6 +7318,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    */
   FunctionElement _loadLibraryFunction;
 
+  @override
+  final int nameLength;
+
   /**
    * The export [Namespace] of this library, `null` if it has not been
    * computed yet.
@@ -7330,7 +7339,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * Initialize a newly created library element in the given [context] to have
    * the given [name] and [offset].
    */
-  LibraryElementImpl(this.context, String name, int offset)
+  LibraryElementImpl(this.context, String name, int offset, this.nameLength)
       : super(name, offset);
 
   /**
@@ -7338,7 +7347,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * the given [name].
    */
   LibraryElementImpl.forNode(this.context, LibraryIdentifier name)
-      : super.forNode(name);
+      : super.forNode(name), nameLength = name != null ? name.length : 0;
 
   @override
   CompilationUnitElement get definingCompilationUnit =>
@@ -7940,6 +7949,9 @@ abstract class Member implements Element {
   String get name => _baseElement.name;
 
   @override
+  int get nameLength => _baseElement.nameLength;
+
+  @override
   int get nameOffset => _baseElement.nameOffset;
 
   @deprecated
@@ -8451,6 +8463,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   String get name => _name;
+
+  @override
+  int get nameLength => name != null ? name.length : 0;
 
   @override
   int get nameOffset => -1;

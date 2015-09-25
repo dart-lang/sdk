@@ -371,6 +371,9 @@ abstract class ElementHandle implements Element {
   String get name => actualElement.name;
 
   @override
+  int get nameLength => actualElement.nameLength;
+
+  @override
   int get nameOffset => actualElement.nameOffset;
 
   @deprecated

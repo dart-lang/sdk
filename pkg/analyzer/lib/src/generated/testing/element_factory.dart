@@ -442,7 +442,7 @@ class ElementFactory {
     String fileName = "/$libraryName.dart";
     CompilationUnitElementImpl unit = compilationUnit(fileName);
     LibraryElementImpl library =
-        new LibraryElementImpl(context, libraryName, 0);
+        new LibraryElementImpl(context, libraryName, 0, libraryName.length);
     library.definingCompilationUnit = unit;
     return library;
   }
