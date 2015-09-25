@@ -462,6 +462,10 @@ class Compiler extends leg.Compiler {
           if (elapsed != 0) {
             cumulated += elapsed;
             log('${task.name} took ${elapsed}msec');
+            for (String subtask in task.subtasks) {
+              int subtime = task.getSubtaskTime(subtask);
+              log('${task.name} > $subtask took ${subtime}msec');
+            }
           }
         }
         int total = totalCompileTime.elapsedMilliseconds;

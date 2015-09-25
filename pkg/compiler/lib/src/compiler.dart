@@ -34,8 +34,6 @@ import 'compile_time_constants.dart';
 import 'constants/values.dart';
 import 'core_types.dart' show
     CoreTypes;
-import 'cps_ir/cps_ir_builder_task.dart' show
-    IrBuilderTask;
 import 'dart_backend/dart_backend.dart' as dart_backend;
 import 'dart_types.dart' show
     DartType,
@@ -428,7 +426,6 @@ abstract class Compiler extends DiagnosticListener {
   ResolverTask resolver;
   closureMapping.ClosureTask closureToClassMapper;
   TypeCheckerTask checker;
-  IrBuilderTask irBuilder;
   ti.TypesTask typesTask;
   Backend backend;
 
@@ -584,7 +581,6 @@ abstract class Compiler extends DiagnosticListener {
       resolver = new ResolverTask(this, backend.constantCompilerTask),
       closureToClassMapper = new closureMapping.ClosureTask(this),
       checker = new TypeCheckerTask(this),
-      irBuilder = new IrBuilderTask(this, backend.sourceInformationStrategy),
       typesTask = new ti.TypesTask(this),
       constants = backend.constantCompilerTask,
       deferredLoadTask = new DeferredLoadTask(this),

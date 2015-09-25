@@ -20,7 +20,7 @@ class SsaOptimizerTask extends CompilerTask {
 
   void optimize(CodegenWorkItem work, HGraph graph) {
     void runPhase(OptimizationPhase phase) {
-      phase.visitGraph(graph);
+      measureSubtask(phase.name, () => phase.visitGraph(graph));
       compiler.tracer.traceGraph(phase.name, graph);
       assert(graph.isValid());
     }

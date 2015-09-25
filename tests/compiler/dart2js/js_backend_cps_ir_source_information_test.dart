@@ -78,7 +78,8 @@ runTests(List<TestEntry> tests) {
       }
 
       Uri uri = Uri.parse('memory:$TEST_MAIN_FILE');
-      compiler.irBuilder.builderCallback = cacheIrNodeForMain;
+      compiler.backend.functionCompiler.cpsBuilderTask.builderCallback =
+          cacheIrNodeForMain;
 
       return compiler.run(uri).then((bool success) {
         Expect.isTrue(success);
