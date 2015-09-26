@@ -12172,6 +12172,20 @@ main() {
         code, typeProvider.dynamicType, typeProvider.intType);
   }
 
+  void test_localVariableInference_declaredType_disabled_for_toString() {
+    String name = 'toString';
+    String code = '''
+main() {
+  dynamic $name = () => null;
+  $name(); // marker
+}''';
+    SimpleIdentifier identifier = _findMarkedIdentifier(code, "$name = ");
+    expect(identifier.staticType, typeProvider.dynamicType);
+    SimpleIdentifier call = _findMarkedIdentifier(code, "(); // marker");
+    expect(call.staticType, typeProvider.dynamicType);
+    expect((call.parent as Expression).staticType, typeProvider.dynamicType);
+  }
+
   void test_localVariableInference_noInitializer_disabled() {
     String code = r'''
 main() {
