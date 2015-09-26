@@ -127,7 +127,7 @@ class _FieldFormalSuggestionBuilder implements SuggestionBuilder {
         ClassDeclaration classDecl =
             constructorDecl.getAncestor((p) => p is ClassDeclaration);
         for (ClassMember member in classDecl.members) {
-          if (member is FieldDeclaration) {
+          if (member is FieldDeclaration && !member.isStatic) {
             for (VariableDeclaration varDecl in member.fields.variables) {
               SimpleIdentifier fieldId = varDecl.name;
               if (fieldId != null) {

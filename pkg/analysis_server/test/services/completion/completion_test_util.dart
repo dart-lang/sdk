@@ -4392,7 +4392,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class A implements I {
         A(this.^) {}
         A.z() {}
-        var b; X _c;
+        var b; X _c; static sb;
         X get d => new A();get _e => new A();
         // no semicolon between completion point and next statement
         set s1(I x) {} set _s2(I x) {m(null);}
@@ -4406,6 +4406,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
           relevance: DART_RELEVANCE_LOCAL_FIELD);
       assertSuggestInvocationField('_c', 'X',
           relevance: DART_RELEVANCE_LOCAL_FIELD);
+      assertNotSuggested('sb');
       assertNotSuggested('d');
       assertNotSuggested('_e');
       assertNotSuggested('f');
