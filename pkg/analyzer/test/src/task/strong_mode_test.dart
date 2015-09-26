@@ -241,6 +241,32 @@ class B extends A {
     expect(getterB.returnType, getterA.returnType);
   }
 
+  void test_inferCompilationUnit_field_single_final_narrowType() {
+    InstanceMemberInferrer inferrer = createInferrer;
+    String fieldName = 'f';
+    CompilationUnitElement unit = resolve('''
+class A {
+  final $fieldName;
+}
+class B extends A {
+  final $fieldName = 0;
+}
+''');
+    ClassElement classA = unit.getType('A');
+    FieldElement fieldA = classA.getField(fieldName);
+    PropertyAccessorElement getterA = classA.getGetter(fieldName);
+    ClassElement classB = unit.getType('B');
+    FieldElement fieldB = classB.getField(fieldName);
+    PropertyAccessorElement getterB = classB.getGetter(fieldName);
+    expect(fieldB.type.isDynamic, isTrue);
+    expect(getterB.returnType.isDynamic, isTrue);
+
+    inferrer.inferCompilationUnit(unit);
+
+    expect(fieldB.type, inferrer.typeProvider.intType);
+    expect(getterB.returnType, fieldB.type);
+  }
+
   void test_inferCompilationUnit_field_single_generic() {
     InstanceMemberInferrer inferrer = createInferrer;
     String fieldName = 'f';

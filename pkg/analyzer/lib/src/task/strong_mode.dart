@@ -294,10 +294,15 @@ class InstanceMemberInferrer {
         }
       }
       //
-      // Then, if none was found, infer the type from the initialization
-      // expression.
+      // If there is no overridden getter or if the overridden getter's type is
+      // dynamic, then we can infer the type from the initialization expression
+      // without breaking subtype rules. We could potentially infer a consistent
+      // return type even if the overridden getter's type was not dynamic, but
+      // choose not to for simplicity. The field is required to be final to
+      // prevent choosing a type that is inconsistent with assignments we cannot
+      // analyze.
       //
-      if (newType == null) {
+      if (newType == null || newType.isDynamic) {
         if (fieldElement.initializer != null &&
             (fieldElement.isFinal || overriddenGetters.isEmpty)) {
           newType = fieldElement.initializer.returnType;
