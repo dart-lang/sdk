@@ -767,7 +767,7 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
     OS::PrintErr("InvokeField IC miss: adding <%s> id:%" Pd " -> <%s>\n",
         Class::Handle(receiver.clazz()).ToCString(),
         receiver.GetClassId(),
-        target_function.ToCString());
+        target_function.IsNull() ? "null" : target_function.ToCString());
   }
   *result = target_function.raw();
   return true;
@@ -800,7 +800,7 @@ RawFunction* InlineCacheMissHelper(
       OS::PrintErr("NoSuchMethod IC miss: adding <%s> id:%" Pd " -> <%s>\n",
           Class::Handle(receiver.clazz()).ToCString(),
           receiver.GetClassId(),
-          target_function.ToCString());
+          target_function.IsNull() ? "null" : target_function.ToCString());
     }
     result = target_function.raw();
   }
