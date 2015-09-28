@@ -265,13 +265,16 @@ class DartWorkManager implements WorkManager {
   @override
   void resultsComputed(
       AnalysisTarget target, Map<ResultDescriptor, dynamic> outputs) {
+    bool isDartSource = _isDartSource(target);
     // Organize sources.
-    if (_isDartSource(target)) {
+    bool isDartLibrarySource = false;
+    if (isDartSource) {
       Source source = target;
       SourceKind kind = outputs[SOURCE_KIND];
       if (kind != null) {
         unknownSourceQueue.remove(source);
         if (kind == SourceKind.LIBRARY) {
+          isDartLibrarySource = true;
           if (context.prioritySources.contains(source)) {
             _schedulePriorityLibrarySourceAnalysis(source);
           } else {
@@ -284,7 +287,7 @@ class DartWorkManager implements WorkManager {
       }
     }
     // Update parts in libraries.
-    if (_isDartSource(target)) {
+    if (isDartLibrarySource) {
       Source library = target;
       List<Source> includedParts = outputs[INCLUDED_PARTS];
       if (includedParts != null) {
@@ -300,7 +303,7 @@ class DartWorkManager implements WorkManager {
       }
     }
     // Update notice.
-    if (_isDartSource(target)) {
+    if (isDartSource) {
       bool shouldSetErrors = false;
       outputs.forEach((ResultDescriptor descriptor, value) {
         if (descriptor == PARSED_UNIT && value != null) {

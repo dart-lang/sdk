@@ -576,9 +576,14 @@ class DartWorkManagerTest {
     Source library2 = new TestSource('library2.dart');
     _getOrCreateEntry(part1).setValue(CONTAINING_LIBRARIES, [], []);
     expect(cache.getState(part1, CONTAINING_LIBRARIES), CacheState.VALID);
+    // configure AnalysisContext mock
+    when(context.prioritySources).thenReturn(<Source>[]);
+    when(context.shouldErrorsBeAnalyzed(anyObject, anyObject))
+        .thenReturn(false);
     // library1 parts
     manager.resultsComputed(library1, {
-      INCLUDED_PARTS: [part1, part2]
+      INCLUDED_PARTS: [part1, part2],
+      SOURCE_KIND: SourceKind.LIBRARY
     });
     expect(manager.partLibrariesMap[part1], [library1]);
     expect(manager.partLibrariesMap[part2], [library1]);
@@ -587,7 +592,8 @@ class DartWorkManagerTest {
     expect(manager.libraryPartsMap[library2], isNull);
     // library2 parts
     manager.resultsComputed(library2, {
-      INCLUDED_PARTS: [part2, part3]
+      INCLUDED_PARTS: [part2, part3],
+      SOURCE_KIND: SourceKind.LIBRARY
     });
     expect(manager.partLibrariesMap[part1], [library1]);
     expect(manager.partLibrariesMap[part2], [library1, library2]);
@@ -679,6 +685,15 @@ class DartWorkManagerTest {
     manager.resultsComputed(source2, {SOURCE_KIND: SourceKind.PART});
     expect_librarySourceQueue([]);
     expect_unknownSourceQueue([source1, source3]);
+  }
+
+  void test_resultsComputed_updatePartsLibraries_partParsed() {
+    Source part = new TestSource('part.dart');
+    expect(manager.libraryPartsMap, isEmpty);
+    // part.dart parsed, no changes is the map of libraries
+    manager.resultsComputed(
+        part, {SOURCE_KIND: SourceKind.PART, INCLUDED_PARTS: <Source>[]});
+    expect(manager.libraryPartsMap, isEmpty);
   }
 
   CacheEntry _getOrCreateEntry(Source source) {
