@@ -954,6 +954,19 @@ test_pack:lib/
     expect(result, same(source));
   }
 
+  void test_setRoots_pathContainsDotFile() {
+    // If the path to a file (relative to the context root) contains a folder
+    // whose name begins with '.', then the file is ignored.
+    String project = '/project';
+    String fileA = '$project/foo.dart';
+    String fileB = '$project/.pub/bar.dart';
+    resourceProvider.newFile(fileA, '');
+    resourceProvider.newFile(fileB, '');
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    callbacks.assertContextPaths([project]);
+    callbacks.assertContextFiles(project, [fileA]);
+  }
+
   void test_setRoots_removeFolderWithoutPubspec() {
     packageMapProvider.packageMap = null;
     // add one root - there is a context
@@ -1077,6 +1090,18 @@ test_pack:lib/
     _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
   }
 
+  void test_setRoots_rootPathContainsDotFile() {
+    // If the path to the context root itself contains a folder whose name
+    // begins with '.', then that is not sufficient to cause any files in the
+    // context to be ignored.
+    String project = '/.pub/project';
+    String fileA = '$project/foo.dart';
+    resourceProvider.newFile(fileA, '');
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    callbacks.assertContextPaths([project]);
+    callbacks.assertContextFiles(project, [fileA]);
+  }
+
   test_watch_addDummyLink() {
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // empty folder initially
@@ -1125,6 +1150,38 @@ test_pack:lib/
       callbacks.assertContextPaths([project]);
       callbacks.assertContextFiles(project, [fileA]);
     });
+  }
+
+  test_watch_addFile_pathContainsDotFile() async {
+    // If a file is added and the path to it (relative to the context root)
+    // contains a folder whose name begins with '.', then the file is ignored.
+    String project = '/project';
+    String fileA = '$project/foo.dart';
+    String fileB = '$project/.pub/bar.dart';
+    resourceProvider.newFile(fileA, '');
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    callbacks.assertContextPaths([project]);
+    callbacks.assertContextFiles(project, [fileA]);
+    resourceProvider.newFile(fileB, '');
+    await pumpEventQueue();
+    callbacks.assertContextPaths([project]);
+    callbacks.assertContextFiles(project, [fileA]);
+  }
+
+  test_watch_addFile_rootPathContainsDotFile() async {
+    // If a file is added and the path to the context contains a folder whose
+    // name begins with '.', then the file is not ignored.
+    String project = '/.pub/project';
+    String fileA = '$project/foo.dart';
+    String fileB = '$project/bar/baz.dart';
+    resourceProvider.newFile(fileA, '');
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    callbacks.assertContextPaths([project]);
+    callbacks.assertContextFiles(project, [fileA]);
+    resourceProvider.newFile(fileB, '');
+    await pumpEventQueue();
+    callbacks.assertContextPaths([project]);
+    callbacks.assertContextFiles(project, [fileA, fileB]);
   }
 
   test_watch_addFileInSubfolder() {

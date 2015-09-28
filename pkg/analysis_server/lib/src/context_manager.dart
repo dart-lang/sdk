@@ -1010,7 +1010,7 @@ class ContextManagerImpl implements ContextManager {
       _recomputeFolderDisposition(info);
     }
     // maybe excluded globally
-    if (_isExcluded(path)) {
+    if (_isExcluded(path) || _isContainedInDotFolder(info.folder.path, path)) {
       return;
     }
     // maybe excluded from the context, so other context will handle it
@@ -1143,6 +1143,23 @@ class ContextManagerImpl implements ContextManager {
 
     //TODO(pquitslund): find the right place for this
     _checkForPackagespecUpdate(path, info, info.folder);
+  }
+
+  /**
+   * Determine whether the given [path], when interpreted relative to the
+   * context root [root], contains a folder whose name starts with '.'.
+   */
+  bool _isContainedInDotFolder(String root, String path) {
+    String relativePath =
+        pathContext.relative(pathContext.dirname(path), from: root);
+    for (String pathComponent in pathContext.split(relativePath)) {
+      if (pathComponent.startsWith('.') &&
+          pathComponent != '.' &&
+          pathComponent != '..') {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
