@@ -9,7 +9,7 @@ cross_frame_test: Skip # Test reloads itself. Issue 18558
 js_array_test: Skip # Issue 23676, 23677
 js_typed_interop_test: Skip # Issue 23676, 23677
 
-[ $compiler == none && $runtime == dartium ]
+[ $compiler == none && ($runtime == dartium || $runtime == drt) ]
 cross_domain_iframe_test: RuntimeError # Dartium JSInterop failure
 crypto_test/functional: RuntimeError # Dartium JSInterop failure
 custom/document_register_basic_test: RuntimeError # Dartium JSInterop failure
