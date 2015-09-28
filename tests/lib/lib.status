@@ -256,6 +256,9 @@ mirrors/deferred_type_test: RuntimeError, OK # Should be CompileTimeError. Issue
 async/multiple_timer_test: Fail, Pass # See Issue 10982
 async/timer_test: Fail, Pass # See Issue 10982
 
+[ $compiler == none && $runtime == drt && $checked ]
+async/slow_consumer_test: Fail, Pass # Dartium JsInterop failure, dartbug.com/24460
+
 [$compiler == none && $runtime == ContentShellOnAndroid ]
 async/stream_timeout_test: RuntimeError, Pass # Issue 19127
 async/slow_consumer3_test: SkipSlow # Times out flakily. Issue 20956
