@@ -4,95 +4,204 @@
 
 library dart2js.cps_ir.share_interceptors;
 
-import 'cps_ir_nodes.dart';
 import 'optimizers.dart';
-import 'type_mask_system.dart';
-import '../elements/elements.dart';
+import 'cps_ir_nodes.dart';
+import 'loop_hierarchy.dart';
 import '../constants/values.dart';
 
-/// Merges calls to `getInterceptor` when one call is in scope of the other.
-///
-/// Also replaces `getInterceptor` calls with an interceptor constant when
-/// the result is known statically, and there is no interceptor already in
-/// scope.
+/// Removes redundant `getInterceptor` calls.
 /// 
-/// Should run after [LoopInvariantCodeMotion] so interceptors lifted out from
-/// loops can be merged.
+/// The pass performs three optimizations for interceptors:
+///- pull interceptors out of loops
+///- replace interceptors with constants
+///- share interceptors when one is in scope of the other
 class ShareInterceptors extends RecursiveVisitor implements Pass {
   String get passName => 'Share interceptors';
 
+  /// The innermost loop containing a given primitive.
+  final Map<Primitive, Continuation> loopHeaderFor =
+      <Primitive, Continuation>{};
+
+  /// An interceptor currently in scope for a given primitive.
   final Map<Primitive, Primitive> interceptorFor =
       <Primitive, Primitive>{};
 
+  /// A primitive currently in scope holding a given interceptor constant.
   final Map<ConstantValue, Primitive> sharedConstantFor =
       <ConstantValue, Primitive>{};
 
+  /// Interceptors to be hoisted out of the given loop.
+  final Map<Continuation, List<Primitive>> loopHoistedInterceptors =
+      <Continuation, List<Primitive>>{};
+
+  LoopHierarchy loopHierarchy;
+  Continuation currentLoopHeader;
+
   void rewrite(FunctionDefinition node) {
+    loopHierarchy = new LoopHierarchy(node);
     visit(node.body);
   }
 
   @override
-  Expression traverseLetPrim(LetPrim node) {
-    if (node.primitive is Interceptor) {
-      Interceptor interceptor = node.primitive;
-      Primitive input = interceptor.input.definition;
-      Primitive existing = interceptorFor[input];
-      if (existing != null) {
-        if (existing is Interceptor) {
-          existing.interceptedClasses.addAll(interceptor.interceptedClasses);
-        }
-        existing.substituteFor(interceptor);
-      } else if (interceptor.constantValue != null) {
-        InterceptorConstantValue value = interceptor.constantValue;
-        // There is no interceptor obtained from this particular input, but
-        // there might one obtained from another input that is known to
-        // have the same result, so try to reuse that.
-        Primitive shared = sharedConstantFor[value];
-        if (shared != null) {
-          shared.substituteFor(interceptor);
-        } else {
-          Constant constant = new Constant(value);
-          constant.hint = interceptor.hint;
-          node.primitive = constant;
-          constant.parent = node;
-          interceptor.input.unlink();
-          constant.substituteFor(interceptor);
-          interceptorFor[input] = constant;
-          sharedConstantFor[value] = constant;
-          pushAction(() {
-            interceptorFor.remove(input);
-            sharedConstantFor.remove(value);
-
-            if (constant.hasExactlyOneUse) {
-              // As a heuristic, always sink single-use interceptor constants
-              // to their use, even if it is inside a loop.
-              Expression use = getEnclosingExpression(constant.firstRef.parent);
-              InteriorNode parent = node.parent;
-              parent.body = node.body;
-              node.body.parent = parent;
-
-              InteriorNode useParent = use.parent;
-              useParent.body = node;
-              node.body = use;
-              use.parent = node;
-              node.parent = useParent;
-            }
-          });
-        }
-      } else {
-        interceptorFor[input] = interceptor;
-        pushAction(() {
-          interceptorFor.remove(input);
-        });
-      }
+  Expression traverseContinuation(Continuation cont) {
+    Continuation oldLoopHeader = currentLoopHeader;
+    pushAction(() {
+      currentLoopHeader = oldLoopHeader;
+    });
+    currentLoopHeader = loopHierarchy.getLoopHeader(cont);
+    for (Parameter param in cont.parameters) {
+      loopHeaderFor[param] = currentLoopHeader;
     }
-    return node.body;
+    if (cont.isRecursive) {
+      pushAction(() {
+        // After the loop body has been processed, all interceptors hoisted
+        // to this loop fall out of scope and should be removed from the
+        // environment.
+        List<Primitive> hoisted = loopHoistedInterceptors[cont];
+        if (hoisted != null) {
+          for (Primitive interceptor in hoisted) {
+            if (interceptor is Interceptor) {
+              Primitive input = interceptor.input.definition;
+              assert(interceptorFor[input] == interceptor);
+              interceptorFor.remove(input);
+            } else if (interceptor is Constant) {
+              assert(sharedConstantFor[interceptor.value] == interceptor);
+              sharedConstantFor.remove(interceptor.value);
+            } else {
+              throw "Unexpected interceptor: $interceptor";
+            }
+          }
+        }
+      });
+    }
+    return cont.body;
   }
 
-  Expression getEnclosingExpression(Node node) {
-    while (node is! Expression) {
-      node = node.parent;
+  @override
+  Expression traverseLetPrim(LetPrim node) {
+    loopHeaderFor[node.primitive] = currentLoopHeader;
+    Expression next = node.body;
+    if (node.primitive is! Interceptor) {
+      return next;
     }
-    return node;
+    Interceptor interceptor = node.primitive;
+    Primitive input = interceptor.input.definition;
+
+    // Try to reuse an existing interceptor for the same input.
+    Primitive existing = interceptorFor[input];
+    if (existing != null) {
+      if (existing is Interceptor) {
+        existing.interceptedClasses.addAll(interceptor.interceptedClasses);
+      }
+      existing.substituteFor(interceptor);
+      InteriorNode parent = node.parent;
+      parent.body = node.body;
+      node.body.parent = parent;
+      interceptor.input.unlink();
+      return next;
+    }
+
+    // There is no interceptor obtained from this particular input, but
+    // there might one obtained from another input that is known to
+    // have the same result, so try to reuse that.
+    InterceptorConstantValue constant = interceptor.constantValue;
+    if (constant != null) {
+      existing = sharedConstantFor[constant];
+      if (existing != null) {
+        existing.substituteFor(interceptor);
+        InteriorNode parent = node.parent;
+        parent.body = node.body;
+        node.body.parent = parent;
+        interceptor.input.unlink();
+        return next;
+      }
+
+      // The interceptor could not be shared. Replace it with a constant.
+      Constant constantPrim = new Constant(constant);
+      node.primitive = constantPrim;
+      constantPrim.hint = interceptor.hint;
+      constantPrim.type = interceptor.type;
+      constantPrim.substituteFor(interceptor);
+      interceptor.input.unlink();
+      sharedConstantFor[constant] = constantPrim;
+    } else {
+      interceptorFor[input] = interceptor;
+    }
+
+    // Determine the outermost loop where the input to the interceptor call
+    // is available.  Constant interceptors take no input and can thus be
+    // hoisted all way to the top-level.
+    Continuation referencedLoop = constant != null
+        ? null
+        : lowestCommonAncestor(loopHeaderFor[input], currentLoopHeader);
+    if (referencedLoop != currentLoopHeader) {
+      // [referencedLoop] contains the binding for [input], so we cannot hoist
+      // the interceptor outside that loop.  Find the loop nested one level
+      // inside referencedLoop, and hoist the interceptor just outside that one.
+      Continuation loop = currentLoopHeader;
+      Continuation enclosing = loopHierarchy.getEnclosingLoop(loop);
+      while (enclosing != referencedLoop) {
+        assert(loop != null);
+        loop = enclosing;
+        enclosing = loopHierarchy.getEnclosingLoop(loop);
+      }
+      assert(loop != null);
+
+      // Remove LetPrim from its current position.
+      InteriorNode parent = node.parent;
+      parent.body = node.body;
+      node.body.parent = parent;
+
+      // Insert the LetPrim immediately before the loop.
+      LetCont loopBinding = loop.parent;
+      InteriorNode newParent = loopBinding.parent;
+      newParent.body = node;
+      node.body = loopBinding;
+      loopBinding.parent = node;
+      node.parent = newParent;
+
+      // A different loop now contains the interceptor.
+      loopHeaderFor[node.primitive] = enclosing;
+
+      // Register the interceptor as hoisted to that loop, so it will be
+      // removed from the environment when it falls out of scope.
+      loopHoistedInterceptors
+          .putIfAbsent(loop, () => <Primitive>[])
+          .add(node.primitive);
+    } else if (constant != null) {
+      // The LetPrim was not hoisted. Remove the bound interceptor from the
+      // environment when leaving the LetPrim body.
+      pushAction(() {
+        assert(sharedConstantFor[constant] == node.primitive);
+        sharedConstantFor.remove(constant);
+      });
+    } else {
+      pushAction(() {
+        assert(interceptorFor[input] == node.primitive);
+        interceptorFor.remove(input);
+      });
+    }
+    return next;
+  }
+
+  /// Returns the the innermost loop that effectively encloses both
+  /// c1 and c2 (or `null` if there is no such loop).
+  Continuation lowestCommonAncestor(Continuation c1, Continuation c2) {
+    int d1 = getDepth(c1), d2 = getDepth(c2);
+    while (c1 != c2) {
+      if (d1 <= d2) {
+        c2 = loopHierarchy.getEnclosingLoop(c2);
+        d2 = getDepth(c2);
+      } else {
+        c1 = loopHierarchy.getEnclosingLoop(c1);
+        d1 = getDepth(c1);
+      }
+    }
+    return c1;
+  }
+
+  int getDepth(Continuation loop) {
+    if (loop == null) return -1;
+    return loopHierarchy.loopDepth[loop];
   }
 }

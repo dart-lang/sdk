@@ -15,7 +15,6 @@ export 'shrinking_reductions.dart' show ShrinkingReducer, ParentVisitor;
 export 'mutable_ssa.dart' show MutableVariableEliminator;
 export 'insert_refinements.dart' show InsertRefinements;
 export 'remove_refinements.dart' show RemoveRefinements;
-export 'loop_invariant_code_motion.dart' show LoopInvariantCodeMotion;
 export 'share_interceptors.dart' show ShareInterceptors;
 
 /// An optimization pass over the CPS IR.

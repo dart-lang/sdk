@@ -195,7 +195,6 @@ class CpsFunctionCompiler implements FunctionCompiler {
     applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
     applyCpsPass(new RedundantPhiEliminator(), cpsFunction);
     applyCpsPass(new ShrinkingReducer(), cpsFunction);
-    applyCpsPass(new LoopInvariantCodeMotion(), cpsFunction);
     applyCpsPass(new ShareInterceptors(), cpsFunction);
     applyCpsPass(new ShrinkingReducer(), cpsFunction);
 
