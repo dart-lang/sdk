@@ -387,11 +387,7 @@ class FlowGraphCompiler : public ValueObject {
 
   bool NeedsEdgeCounter(TargetEntryInstr* block);
 
-  void EmitEdgeCounter();
-
-#if !defined(TARGET_ARCH_ARM64) && !defined(TARGET_ARCH_MIPS)
-  static int32_t EdgeCounterIncrementSizeInBytes();
-#endif  // !TARGET_ARCH_ARM64 && !TARGET_ARCH_MIPS
+  void EmitEdgeCounter(intptr_t edge_id);
 
   void EmitOptimizedInstanceCall(const StubEntry& stub_entry,
                                  const ICData& ic_data,
@@ -535,6 +531,10 @@ class FlowGraphCompiler : public ValueObject {
 
   const Array& inlined_code_intervals() const {
     return inlined_code_intervals_;
+  }
+
+  RawArray* edge_counters_array() const {
+    return edge_counters_array_.raw();
   }
 
   RawArray* InliningIdToFunction() const;
@@ -730,6 +730,8 @@ class FlowGraphCompiler : public ValueObject {
   intptr_t lazy_deopt_pc_offset_;
 
   ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data_;
+
+  Array& edge_counters_array_;
 
   Array& inlined_code_intervals_;
   const GrowableArray<const Function*>& inline_id_to_function_;

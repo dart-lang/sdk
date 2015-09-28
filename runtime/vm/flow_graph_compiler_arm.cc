@@ -1180,41 +1180,28 @@ void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
 }
 
 
-void FlowGraphCompiler::EmitEdgeCounter() {
+void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
   // We do not check for overflow when incrementing the edge counter.  The
   // function should normally be optimized long before the counter can
   // overflow; and though we do not reset the counters when we optimize or
   // deoptimize, there is a bound on the number of
   // optimization/deoptimization cycles we will attempt.
+  ASSERT(!edge_counters_array_.IsNull());
   ASSERT(assembler_->constant_pool_allowed());
   const Array& counter = Array::ZoneHandle(zone(), Array::New(1, Heap::kOld));
   counter.SetAt(0, Smi::Handle(zone(), Smi::New(0)));
   __ Comment("Edge counter");
-  __ LoadUniqueObject(R0, counter);
-  intptr_t increment_start = assembler_->CodeSize();
+  __ LoadObject(R0, edge_counters_array_);
 #if defined(DEBUG)
   bool old_use_far_branches = assembler_->use_far_branches();
   assembler_->set_use_far_branches(true);
 #endif  // DEBUG
-  __ ldr(IP, FieldAddress(R0, Array::element_offset(0)));
+  __ ldr(IP, FieldAddress(R0, Array::element_offset(edge_id)));
   __ add(IP, IP, Operand(Smi::RawValue(1)));
-  __ StoreIntoSmiField(FieldAddress(R0, Array::element_offset(0)), IP);
-  int32_t size = assembler_->CodeSize() - increment_start;
-  if (isolate()->edge_counter_increment_size() == -1) {
-    isolate()->set_edge_counter_increment_size(size);
-  } else {
-    ASSERT(size == isolate()->edge_counter_increment_size());
-  }
+  __ StoreIntoSmiField(FieldAddress(R0, Array::element_offset(edge_id)), IP);
 #if defined(DEBUG)
   assembler_->set_use_far_branches(old_use_far_branches);
 #endif  // DEBUG
-}
-
-
-int32_t FlowGraphCompiler::EdgeCounterIncrementSizeInBytes() {
-  const int32_t size = Isolate::Current()->edge_counter_increment_size();
-  ASSERT(size != -1);
-  return size;
 }
 
 

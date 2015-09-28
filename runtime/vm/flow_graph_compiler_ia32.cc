@@ -1210,31 +1210,16 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
 }
 
 
-void FlowGraphCompiler::EmitEdgeCounter() {
+void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
   // We do not check for overflow when incrementing the edge counter.  The
   // function should normally be optimized long before the counter can
   // overflow; and though we do not reset the counters when we optimize or
   // deoptimize, there is a bound on the number of
   // optimization/deoptimization cycles we will attempt.
-  const Array& counter = Array::ZoneHandle(zone(), Array::New(1, Heap::kOld));
-  counter.SetAt(0, Smi::Handle(zone(), Smi::New(0)));
+  ASSERT(!edge_counters_array_.IsNull());
   __ Comment("Edge counter");
-  __ LoadObject(EAX, counter);
-  intptr_t increment_start = assembler_->CodeSize();
-  __ IncrementSmiField(FieldAddress(EAX, Array::element_offset(0)), 1);
-  int32_t size = assembler_->CodeSize() - increment_start;
-  if (isolate()->edge_counter_increment_size() == -1) {
-    isolate()->set_edge_counter_increment_size(size);
-  } else {
-    ASSERT(size == isolate()->edge_counter_increment_size());
-  }
-}
-
-
-int32_t FlowGraphCompiler::EdgeCounterIncrementSizeInBytes() {
-  const int32_t size = Isolate::Current()->edge_counter_increment_size();
-  ASSERT(size != -1);
-  return size;
+  __ LoadObject(EAX, edge_counters_array_);
+  __ IncrementSmiField(FieldAddress(EAX, Array::element_offset(edge_id)), 1);
 }
 
 

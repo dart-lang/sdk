@@ -610,13 +610,12 @@ class Instruction : public ZoneAllocated {
 
   explicit Instruction(intptr_t deopt_id = Isolate::kNoDeoptId)
       : deopt_id_(deopt_id),
-        lifetime_position_(-1),
+        lifetime_position_(kNoPlaceId),
         previous_(NULL),
         next_(NULL),
         env_(NULL),
         locs_(NULL),
-        inlining_id_(-1),
-        place_id_(kNoPlaceId) { }
+        inlining_id_(-1) { }
 
   virtual ~Instruction() { }
 
@@ -889,13 +888,15 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   };
 
   intptr_t deopt_id_;
-  intptr_t lifetime_position_;  // Position used by register allocator.
+  union {
+    intptr_t lifetime_position_;  // Position used by register allocator.
+    intptr_t place_id_;
+  };
   Instruction* previous_;
   Instruction* next_;
   Environment* env_;
   LocationSummary* locs_;
   intptr_t inlining_id_;
-  intptr_t place_id_;
 
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
@@ -2158,12 +2159,16 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
  public:
   explicit GotoInstr(JoinEntryInstr* entry)
     : TemplateInstruction(Isolate::Current()->GetNextDeoptId()),
+      block_(NULL),
       successor_(entry),
       edge_weight_(0.0),
       parallel_move_(NULL) {
   }
 
   DECLARE_INSTRUCTION(Goto)
+
+  BlockEntryInstr* block() const { return block_; }
+  void set_block(BlockEntryInstr* block) { block_ = block; }
 
   JoinEntryInstr* successor() const { return successor_; }
   void set_successor(JoinEntryInstr* successor) { successor_ = successor; }
@@ -2206,6 +2211,7 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
   virtual void PrintTo(BufferFormatter* f) const;
 
  private:
+  BlockEntryInstr* block_;
   JoinEntryInstr* successor_;
   double edge_weight_;
 

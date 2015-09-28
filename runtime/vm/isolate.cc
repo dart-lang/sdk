@@ -746,7 +746,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       gc_epilogue_callback_(NULL),
       defer_finalization_count_(0),
       deopt_context_(NULL),
-      edge_counter_increment_size_(-1),
       compiler_stats_(NULL),
       is_service_isolate_(false),
       stacktrace_(NULL),

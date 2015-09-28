@@ -1198,19 +1198,18 @@ void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
 }
 
 
-void FlowGraphCompiler::EmitEdgeCounter() {
+void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
   // We do not check for overflow when incrementing the edge counter.  The
   // function should normally be optimized long before the counter can
   // overflow; and though we do not reset the counters when we optimize or
   // deoptimize, there is a bound on the number of
   // optimization/deoptimization cycles we will attempt.
-  const Array& counter = Array::ZoneHandle(zone(), Array::New(1, Heap::kOld));
-  counter.SetAt(0, Smi::Handle(zone(), Smi::New(0)));
+  ASSERT(!edge_counters_array_.IsNull());
   __ Comment("Edge counter");
-  __ LoadUniqueObject(T0, counter);
-  __ lw(T1, FieldAddress(T0, Array::element_offset(0)));
+  __ LoadObject(T0, edge_counters_array_);
+  __ lw(T1, FieldAddress(T0, Array::element_offset(edge_id)));
   __ AddImmediate(T1, T1, Smi::RawValue(1));
-  __ sw(T1, FieldAddress(T0, Array::element_offset(0)));
+  __ sw(T1, FieldAddress(T0, Array::element_offset(edge_id)));
 }
 
 

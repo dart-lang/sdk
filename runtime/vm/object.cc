@@ -6920,49 +6920,51 @@ int32_t Function::SourceFingerprint() const {
 
 
 void Function::SaveICDataMap(
-    const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data) const {
-  // Compute number of ICData objectsto save.
-  intptr_t count = 0;
+    const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
+    const Array& edge_counters_array) const {
+  // Compute number of ICData objects to save.
+  // Store edge counter array in the first slot.
+  intptr_t count = 1;
   for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
     if (deopt_id_to_ic_data[i] != NULL) {
       count++;
     }
   }
-  if (count == 0) {
-    set_ic_data_array(Object::empty_array());
-  } else {
-    const Array& a = Array::Handle(Array::New(count, Heap::kOld));
-    INC_STAT(Thread::Current(), total_code_size, count * sizeof(uword));
-    count = 0;
-    for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
-      if (deopt_id_to_ic_data[i] != NULL) {
-        a.SetAt(count++, *deopt_id_to_ic_data[i]);
-      }
+  const Array& array = Array::Handle(Array::New(count, Heap::kOld));
+  INC_STAT(Thread::Current(), total_code_size, count * sizeof(uword));
+  count = 1;
+  for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
+    if (deopt_id_to_ic_data[i] != NULL) {
+      array.SetAt(count++, *deopt_id_to_ic_data[i]);
     }
-    set_ic_data_array(a);
   }
+  array.SetAt(0, edge_counters_array);
+  set_ic_data_array(array);
 }
 
 
 void Function::RestoreICDataMap(
     ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data) const {
+  ASSERT(deopt_id_to_ic_data->is_empty());
   Zone* zone = Thread::Current()->zone();
-  const Array& saved_icd = Array::Handle(zone, ic_data_array());
-  if (saved_icd.IsNull() || (saved_icd.Length() == 0)) {
-    deopt_id_to_ic_data->Clear();
+  const Array& saved_ic_data = Array::Handle(zone, ic_data_array());
+  if (saved_ic_data.IsNull()) {
     return;
   }
-  ICData& icd = ICData::Handle();
-  icd ^= saved_icd.At(saved_icd.Length() - 1);
-  const intptr_t len = icd.deopt_id() + 1;
-  deopt_id_to_ic_data->SetLength(len);
-  for (intptr_t i = 0; i < len; i++) {
-    (*deopt_id_to_ic_data)[i] = NULL;
-  }
-  for (intptr_t i = 0; i < saved_icd.Length(); i++) {
-    ICData& icd = ICData::ZoneHandle(zone);
-    icd ^= saved_icd.At(i);
-    (*deopt_id_to_ic_data)[icd.deopt_id()] = &icd;
+  const intptr_t saved_length = saved_ic_data.Length();
+  ASSERT(saved_length > 0);
+  if (saved_length > 1) {
+    const intptr_t restored_length = ICData::Cast(Object::Handle(
+        zone, saved_ic_data.At(saved_length - 1))).deopt_id() + 1;
+    deopt_id_to_ic_data->SetLength(restored_length);
+    for (intptr_t i = 0; i < restored_length; i++) {
+      (*deopt_id_to_ic_data)[i] = NULL;
+    }
+    for (intptr_t i = 1; i < saved_length; i++) {
+      ICData& ic_data = ICData::ZoneHandle(zone);
+      ic_data ^= saved_ic_data.At(i);
+      (*deopt_id_to_ic_data)[ic_data.deopt_id()] = &ic_data;
+    }
   }
 }
 
@@ -6984,12 +6986,12 @@ void Function::ClearICDataArray() const {
 
 void Function::SetDeoptReasonForAll(intptr_t deopt_id,
                                     ICData::DeoptReasonId reason) {
-  const Array& icd_array = Array::Handle(ic_data_array());
-  ICData& icd = ICData::Handle();
-  for (intptr_t i = 0; i < icd_array.Length(); i++) {
-    icd ^= icd_array.At(i);
-    if (icd.deopt_id() == deopt_id) {
-      icd.AddDeoptReason(reason);
+  const Array& array = Array::Handle(ic_data_array());
+  ICData& ic_data = ICData::Handle();
+  for (intptr_t i = 1; i < array.Length(); i++) {
+    ic_data ^= array.At(i);
+    if (ic_data.deopt_id() == deopt_id) {
+      ic_data.AddDeoptReason(reason);
     }
   }
 }

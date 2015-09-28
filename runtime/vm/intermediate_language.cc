@@ -974,6 +974,7 @@ bool BlockEntryInstr::DiscoverBlock(
     last = it.Current();
   }
   set_last_instruction(last);
+  if (last->IsGoto()) last->AsGoto()->set_block(this);
 
   return true;
 }
@@ -2725,7 +2726,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   if (!compiler->is_optimizing()) {
     if (compiler->NeedsEdgeCounter(this)) {
-      compiler->EmitEdgeCounter();
+      compiler->EmitEdgeCounter(preorder_number());
     }
     // The deoptimization descriptor points after the edge counter code for
     // uniformity with ARM and MIPS, where we can reuse pattern matching

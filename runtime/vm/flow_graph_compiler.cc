@@ -208,6 +208,7 @@ FlowGraphCompiler::FlowGraphCompiler(
         pending_deoptimization_env_(NULL),
         lazy_deopt_pc_offset_(Code::kInvalidPc),
         deopt_id_to_ic_data_(NULL),
+        edge_counters_array_(Array::ZoneHandle()),
         inlined_code_intervals_(Array::ZoneHandle(Object::empty_array().raw())),
         inline_id_to_function_(inline_id_to_function),
         caller_inline_id_(caller_inline_id) {
@@ -220,14 +221,15 @@ FlowGraphCompiler::FlowGraphCompiler(
     for (intptr_t i = 0; i < len; i++) {
       (*deopt_id_to_ic_data_)[i] = NULL;
     }
-    const Array& old_saved_icdata = Array::Handle(zone(),
+    // TODO(fschneider): Abstract iteration into ICDataArrayIterator.
+    const Array& old_saved_ic_data = Array::Handle(zone(),
         flow_graph->function().ic_data_array());
     const intptr_t saved_len =
-        old_saved_icdata.IsNull() ? 0 : old_saved_icdata.Length();
-    for (intptr_t i = 0; i < saved_len; i++) {
-      ICData& icd = ICData::ZoneHandle(zone());
-      icd ^= old_saved_icdata.At(i);
-      (*deopt_id_to_ic_data_)[icd.deopt_id()] = &icd;
+        old_saved_ic_data.IsNull() ? 0 : old_saved_ic_data.Length();
+    for (intptr_t i = 1; i < saved_len; i++) {
+      ICData& ic_data = ICData::ZoneHandle(zone());
+      ic_data ^= old_saved_ic_data.At(i);
+      (*deopt_id_to_ic_data_)[ic_data.deopt_id()] = &ic_data;
     }
   }
   ASSERT(assembler != NULL);
@@ -281,6 +283,17 @@ void FlowGraphCompiler::InitCompiler() {
     // Remove the stack overflow check at function entry.
     Instruction* first = flow_graph_.graph_entry()->normal_entry()->next();
     if (first->IsCheckStackOverflow()) first->RemoveFromGraph();
+  }
+  if (!is_optimizing()) {
+    // Initialize edge counter array.
+    const intptr_t num_counters = flow_graph_.preorder().length();
+    const Array& edge_counters =
+        Array::Handle(Array::New(num_counters, Heap::kOld));
+    const Smi& zero_smi = Smi::Handle(Smi::New(0));
+    for (intptr_t i = 0; i < num_counters; ++i) {
+      edge_counters.SetAt(i, zero_smi);
+    }
+    edge_counters_array_ = edge_counters.raw();
   }
 }
 

@@ -2604,7 +2604,8 @@ class Function : public Object {
 
   // Works with map [deopt-id] -> ICData.
   void SaveICDataMap(
-      const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data) const;
+      const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
+      const Array& edge_counters_array) const;
   void RestoreICDataMap(
       ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data) const;
 

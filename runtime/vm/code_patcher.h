@@ -79,8 +79,6 @@ class CodePatcher : public AllStatic {
 
   static void InsertDeoptimizationCallAt(uword start, uword target);
 
-  static RawObject* GetEdgeCounterAt(uword pc, const Code& code);
-
   static void PatchPoolPointerCallAt(uword return_address,
                                      const Code& code,
                                      const Code& new_target);

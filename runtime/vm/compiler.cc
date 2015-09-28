@@ -788,7 +788,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         } else {  // not optimized.
           if (!Compiler::always_optimize() &&
               (function.ic_data_array() == Array::null())) {
-            function.SaveICDataMap(graph_compiler.deopt_id_to_ic_data());
+            function.SaveICDataMap(
+                graph_compiler.deopt_id_to_ic_data(),
+                Array::Handle(zone, graph_compiler.edge_counters_array()));
           }
           function.set_unoptimized_code(code);
           function.AttachCode(code);
@@ -1022,17 +1024,6 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     TIMERSCOPE(thread, time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
     per_compile_timer.Start();
-
-    // Restore unoptimized code if needed.
-    if (optimized) {
-      if (!Compiler::always_optimize()) {
-        const Error& error = Error::Handle(
-            zone, Compiler::EnsureUnoptimizedCode(Thread::Current(), function));
-        if (!error.IsNull()) {
-          return error.raw();
-        }
-      }
-    }
 
     ParsedFunction* parsed_function = new(zone) ParsedFunction(
         thread, Function::ZoneHandle(zone, function.raw()));

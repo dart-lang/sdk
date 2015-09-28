@@ -687,13 +687,6 @@ class CallSiteInliner : public ValueObject {
       ParsedFunction* parsed_function;
       {
         CSTAT_TIMER_SCOPE(thread(), graphinliner_parse_timer);
-        if (!Compiler::always_optimize()) {
-          const Error& error = Error::Handle(Z,
-              Compiler::EnsureUnoptimizedCode(Thread::Current(), function));
-          if (!error.IsNull()) {
-            Exceptions::PropagateError(error);
-          }
-        }
         parsed_function = GetParsedFunction(function, &in_cache);
       }
 
