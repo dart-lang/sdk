@@ -241,6 +241,21 @@ class B extends A {
         expectedContextSearch: 'newName() {} // marker');
   }
 
+  test_checkInitialConditions_inSDK() async {
+    indexTestUnit('''
+main() {
+  'abc'.toUpperCase();
+}
+''');
+    createRenameRefactoringAtString('toUpperCase()');
+    // check status
+    refactoring.newName = 'NewName';
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            "The method 'String.toUpperCase' is defined in the SDK, so cannot be renamed.");
+  }
+
   test_checkInitialConditions_operator() async {
     indexTestUnit('''
 class A {

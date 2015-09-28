@@ -224,6 +224,21 @@ class B {
     assertRefactoringStatusOK(status);
   }
 
+  test_checkInitialConditions_inSDK() async {
+    indexTestUnit('''
+main() {
+  String s;
+}
+''');
+    createRenameRefactoringAtString('String s');
+    // check status
+    refactoring.newName = 'NewName';
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            "The class 'String' is defined in the SDK, so cannot be renamed.");
+  }
+
   test_checkNewName_ClassElement() {
     indexTestUnit('''
 class Test {}

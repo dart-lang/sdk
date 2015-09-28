@@ -175,7 +175,9 @@ String getElementKindName(Element element) {
  */
 String getElementQualifiedName(Element element) {
   ElementKind kind = element.kind;
-  if (kind == ElementKind.FIELD || kind == ElementKind.METHOD) {
+  if (kind == ElementKind.CONSTRUCTOR ||
+      kind == ElementKind.FIELD ||
+      kind == ElementKind.METHOD) {
     return '${element.enclosingElement.displayName}.${element.displayName}';
   } else {
     return element.displayName;

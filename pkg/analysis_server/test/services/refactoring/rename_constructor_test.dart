@@ -55,6 +55,21 @@ class A {
         expectedContextSearch: 'newName() {} // existing');
   }
 
+  test_checkInitialConditions_inSDK() async {
+    indexTestUnit('''
+main() {
+  new String.fromCharCodes([]);
+}
+''');
+    createRenameRefactoringAtString('fromCharCodes(');
+    // check status
+    refactoring.newName = 'newName';
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            "The constructor 'String.fromCharCodes' is defined in the SDK, so cannot be renamed.");
+  }
+
   test_checkNewName() {
     indexTestUnit('''
 class A {
