@@ -14011,6 +14011,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         DartType type;
         TypeName typeName = node.type;
         if (typeName == null) {
+          element.hasImplicitType = true;
           type = _dynamicType;
           if (parameter is FieldFormalParameterElement) {
             FieldElement fieldElement =

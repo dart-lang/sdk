@@ -263,6 +263,11 @@ class InstanceMemberInferrer {
         classElement.fields.forEach(_inferField);
         classElement.accessors.forEach(_inferExecutable);
         classElement.methods.forEach(_inferExecutable);
+        //
+        // Infer initializing formal parameter types. This must happen after
+        // field types are inferred.
+        //
+        classElement.constructors.forEach(_inferConstructorFieldFormals);
         classElement.hasBeenInferred = true;
       } finally {
         elementsBeingInferred.remove(classElement);
@@ -440,6 +445,21 @@ class InstanceMemberInferrer {
   bool _allSameElementKind(
       ExecutableElement element, List<ExecutableElement> elements) {
     return elements.every((e) => e.kind == element.kind);
+  }
+
+  void _inferConstructorFieldFormals(ConstructorElement element) {
+    for (ParameterElement p in element.parameters) {
+      if (p is FieldFormalParameterElement) {
+        _inferFieldFormalParameter(p);
+      }
+    }
+  }
+
+  void _inferFieldFormalParameter(FieldFormalParameterElement element) {
+    FieldElement field = element.field;
+    if (field != null && element.hasImplicitType) {
+      (element as FieldFormalParameterElementImpl).type = field.type;
+    }
   }
 }
 

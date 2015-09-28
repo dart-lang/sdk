@@ -958,6 +958,29 @@ class B<E> extends A<E> {
     expect(methodB.type.typeArguments, [typeBE],
         reason: 'function type should still have type arguments');
   }
+
+  void test_inferCompilationUnit_fieldFormal() {
+    InstanceMemberInferrer inferrer = createInferrer;
+    String fieldName = 'f';
+    CompilationUnitElement unit = resolve('''
+class A {
+  final $fieldName = 0;
+  A([this.$fieldName = 'hello']);
+}
+''');
+    ClassElement classA = unit.getType('A');
+    FieldElement fieldA = classA.getField(fieldName);
+    FieldFormalParameterElement paramA =
+        classA.unnamedConstructor.parameters[0];
+    expect(fieldA.type.isDynamic, isTrue);
+    expect(paramA.type.isDynamic, isTrue);
+
+    inferrer.inferCompilationUnit(unit);
+
+    DartType intType = inferrer.typeProvider.intType;
+    expect(fieldA.type, intType);
+    expect(paramA.type, intType);
+  }
 }
 
 @reflectiveTest
