@@ -20231,7 +20231,7 @@ class HtmlDocument extends Document {
 
         // Get the created constructor source and look at the initializer;
         // Must call super.created() if not its as an error.
-        var createdSource = methodMirror.source.replaceAll('\n', ' ');
+        var createdSource = methodMirror.source?.replaceAll('\n', ' ');
         RegExp regExp = new RegExp(r":(.*?)(;|}|\n)");
         var match = regExp.firstMatch(createdSource);
         superCreatedCalled = match.input.substring(match.start,match.end).contains("super.created(");
@@ -20244,6 +20244,10 @@ class HtmlDocument extends Document {
       }
 
       classMirror = classMirror.superclass;
+      while (classMirror != classMirror.mixin) {
+        // Skip the mixins.
+        classMirror = classMirror.superclass;
+      }
     }
 
     return true;
