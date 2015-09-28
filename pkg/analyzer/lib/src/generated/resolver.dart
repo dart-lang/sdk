@@ -9613,12 +9613,13 @@ class PartialResolverVisitor extends ResolverVisitor {
   final bool strongMode;
 
   /**
-   * The static variables that have an initializer. These are the variables that
-   * need to be re-resolved after static variables have their types inferred. A
-   * subset of these variables are those whose types should be inferred. The
-   * list will be empty unless the resolver is being run in strong mode.
+   * The static variables and fields that have an initializer. These are the
+   * variables that need to be re-resolved after static variables have their
+   * types inferred. A subset of these variables are those whose types should
+   * be inferred. The list will be empty unless the resolver is being run in
+   * strong mode.
    */
-  final List<VariableElement> staticVariables = <VariableElement>[];
+  final List<VariableElement> variablesAndFields = <VariableElement>[];
 
   /**
    * A flag indicating whether we should discard errors while resolving the
@@ -9671,8 +9672,8 @@ class PartialResolverVisitor extends ResolverVisitor {
 
   @override
   Object visitFieldDeclaration(FieldDeclaration node) {
-    if (strongMode && node.isStatic) {
-      _addStaticVariables(node.fields.variables);
+    if (strongMode) {
+      _addVariables(node.fields.variables);
       bool wasDiscarding = discardErrorsInInitializer;
       discardErrorsInInitializer = true;
       try {
@@ -9699,7 +9700,7 @@ class PartialResolverVisitor extends ResolverVisitor {
   @override
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     if (strongMode) {
-      _addStaticVariables(node.variables.variables);
+      _addVariables(node.variables.variables);
       bool wasDiscarding = discardErrorsInInitializer;
       discardErrorsInInitializer = true;
       try {
@@ -9718,10 +9719,10 @@ class PartialResolverVisitor extends ResolverVisitor {
    * potentially need to be re-resolved after inference because they might
    * refer to a field whose type was inferred.
    */
-  void _addStaticVariables(NodeList<VariableDeclaration> variables) {
+  void _addVariables(NodeList<VariableDeclaration> variables) {
     for (VariableDeclaration variable in variables) {
       if (variable.initializer != null) {
-        staticVariables.add(variable.element);
+        variablesAndFields.add(variable.element);
       }
     }
   }

@@ -2667,35 +2667,32 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
     // have types inferred before inferring the type of this variable.
     //
     VariableElementImpl variable = target;
+
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     RecordingErrorListener errorListener = new RecordingErrorListener();
-    if (dependencyCycle == null) {
-      //
-      // Re-resolve the variable's initializer so that the inferred types of other
-      // variables will be propagated.
-      //
-      NodeLocator locator = new NodeLocator(variable.nameOffset);
-      AstNode node = locator.searchWithin(unit);
-      VariableDeclaration declaration = node
-          .getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
-      if (declaration == null || declaration.name != node) {
-        throw new AnalysisException(
-            "NodeLocator failed to find a variable's declaration");
-      }
-      Expression initializer = declaration.initializer;
-      ResolutionEraser.erase(initializer, eraseDeclarations: false);
-      ResolutionContext resolutionContext =
-          ResolutionContextBuilder.contextFor(initializer, errorListener);
-      ResolverVisitor visitor = new ResolverVisitor(
-          variable.library, variable.source, typeProvider, errorListener,
-          nameScope: resolutionContext.scope);
-      if (resolutionContext.enclosingClassDeclaration != null) {
-        visitor.prepareToResolveMembersInClass(
-            resolutionContext.enclosingClassDeclaration);
-      }
-      visitor.initForIncrementalResolution();
-      initializer.accept(visitor);
+    VariableDeclaration declaration = getDeclaration(unit);
+    //
+    // Re-resolve the variable's initializer so that the inferred types of other
+    // variables will be propagated.
+    //
+    Expression initializer = declaration.initializer;
+    ResolutionEraser.erase(initializer, eraseDeclarations: false);
+    ResolutionContext resolutionContext =
+        ResolutionContextBuilder.contextFor(initializer, errorListener);
+    ResolverVisitor visitor = new ResolverVisitor(
+        variable.library, variable.source, typeProvider, errorListener,
+        nameScope: resolutionContext.scope);
+    if (resolutionContext.enclosingClassDeclaration != null) {
+      visitor.prepareToResolveMembersInClass(
+          resolutionContext.enclosingClassDeclaration);
+    }
+    visitor.initForIncrementalResolution();
+    initializer.accept(visitor);
+
+    // If we're not in a dependency cycle, and we have no type annotation,
+    // do inference.
+    if (dependencyCycle == null && variable.hasImplicitType) {
       //
       // Record the type of the variable.
       //
@@ -3159,7 +3156,7 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
-    outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT] = visitor.staticVariables;
+    outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT] = visitor.variablesAndFields;
     outputs[PARTIALLY_RESOLVE_REFERENCES_ERRORS] =
         removeDuplicateErrors(errorListener.errors);
     outputs[RESOLVED_UNIT5] = unit;
