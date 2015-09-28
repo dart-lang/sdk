@@ -49,7 +49,7 @@ vars.update({
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
-  "observatory_pub_packages_rev": "@cdc4b3d4c15b9c0c8e7702dff127b440afbb7485",
+  "observatory_pub_packages_rev": "@a731d3b1caf27b45aecdce9378b87a510240264d",
   "package_config_rev": "@0.1.3",
   "path_rev": "@b657c0854d1cf41c014986fa9d2321f1173df805",
   "plugin_tag": "@0.1.0",
