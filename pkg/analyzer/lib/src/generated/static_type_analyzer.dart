@@ -1820,6 +1820,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   bool _inferObjectAccess(
       Expression node, DartType nodeType, SimpleIdentifier id) {
+    // If we have an access like `libraryPrefix.hashCode` don't infer it.
+    if (node is PrefixedIdentifier &&
+        node.prefix.staticElement is PrefixElement) {
+      return false;
+    }
     // Search for Object accesses.
     String name = id.name;
     PropertyAccessorElement inferredElement =

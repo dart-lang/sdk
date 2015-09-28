@@ -13953,6 +13953,49 @@ main() {
     expect(methodInvoke.realTarget.staticType, typeProvider.dynamicType);
   }
 
+
+  void test_objectAccessInference_disabled_for_local_getter() {
+    String name = 'hashCode';
+    String code = '''
+dynamic get $name => null;
+main() {
+  $name; // marker
+}''';
+
+    SimpleIdentifier getter = _findMarkedIdentifier(code, "; // marker");
+    expect(getter.staticType, typeProvider.dynamicType);
+  }
+
+  void test_objectAccessInference_disabled_for_library_prefix() {
+    String name = 'hashCode';
+    addNamedSource('/helper.dart', '''
+library helper;
+dynamic get $name => 42;
+''');
+    String code = '''
+import 'helper.dart' as helper;
+main() {
+  helper.$name; // marker
+}''';
+
+    SimpleIdentifier id = _findMarkedIdentifier(code, "; // marker");
+    PrefixedIdentifier prefixedId = id.parent;
+    expect(id.staticType, typeProvider.dynamicType);
+    expect(prefixedId.staticType, typeProvider.dynamicType);
+  }
+
+  void test_objectAccessInference_enabled_for_cascades() {
+    String name = 'hashCode';
+    String code = '''
+main() {
+  dynamic obj;
+  obj..$name..$name; // marker
+}''';
+    PropertyAccess access = _findMarkedIdentifier(code, "; // marker").parent;
+    expect(access.staticType, typeProvider.dynamicType);
+    expect(access.realTarget.staticType, typeProvider.dynamicType);
+  }
+
   void test_propagatedReturnType_localFunction() {
     String code = r'''
 main() {
