@@ -1207,9 +1207,9 @@ void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
   ASSERT(!edge_counters_array_.IsNull());
   __ Comment("Edge counter");
   __ LoadObject(T0, edge_counters_array_);
-  __ lw(T1, FieldAddress(T0, Array::element_offset(edge_id)));
+  __ LoadFieldFromOffset(T1, T0, Array::element_offset(edge_id));
   __ AddImmediate(T1, T1, Smi::RawValue(1));
-  __ sw(T1, FieldAddress(T0, Array::element_offset(edge_id)));
+  __ StoreFieldToOffset(T1, T0, Array::element_offset(edge_id));
 }
 
 

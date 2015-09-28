@@ -1188,17 +1188,16 @@ void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
   // optimization/deoptimization cycles we will attempt.
   ASSERT(!edge_counters_array_.IsNull());
   ASSERT(assembler_->constant_pool_allowed());
-  const Array& counter = Array::ZoneHandle(zone(), Array::New(1, Heap::kOld));
-  counter.SetAt(0, Smi::Handle(zone(), Smi::New(0)));
   __ Comment("Edge counter");
   __ LoadObject(R0, edge_counters_array_);
 #if defined(DEBUG)
   bool old_use_far_branches = assembler_->use_far_branches();
   assembler_->set_use_far_branches(true);
 #endif  // DEBUG
-  __ ldr(IP, FieldAddress(R0, Array::element_offset(edge_id)));
-  __ add(IP, IP, Operand(Smi::RawValue(1)));
-  __ StoreIntoSmiField(FieldAddress(R0, Array::element_offset(edge_id)), IP);
+  __ LoadFieldFromOffset(kWord, R1, R0, Array::element_offset(edge_id));
+  __ add(R1, R1, Operand(Smi::RawValue(1)));
+  __ StoreIntoObjectNoBarrierOffset(
+      R0, Array::element_offset(edge_id), R1, Assembler::kOnlySmi);
 #if defined(DEBUG)
   assembler_->set_use_far_branches(old_use_far_branches);
 #endif  // DEBUG
