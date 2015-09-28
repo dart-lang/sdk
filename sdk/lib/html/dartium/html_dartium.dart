@@ -20148,7 +20148,8 @@ class HtmlDocument extends Document {
 
     while (classMirror.superclass != null) {
       var fullName = classMirror.superclass.qualifiedName;
-      isElement = isElement || (fullName == #dart.dom.html.Element);
+      isElement = isElement ||
+          (fullName == #dart.dom.html.Element || fullName == #dart.dom.svg.Element);
 
       var domLibrary = MirrorSystem.getName(fullName).startsWith('dart.dom.');
       if (jsClassName == null && domLibrary) {
@@ -20158,7 +20159,7 @@ class HtmlDocument extends Document {
           var metaDataMirror = metadata.reflectee;
           var metaType = reflectClass(metaDataMirror.runtimeType);
           if (MirrorSystem.getName(metaType.simpleName) == 'DomName' &&
-              metaDataMirror.name.startsWith('HTML')) {
+              (metaDataMirror.name.startsWith('HTML') || metaDataMirror.name.startsWith('SVG'))) {
             jsClassName = metadata.reflectee.name;
           }
         }
@@ -20172,6 +20173,37 @@ class HtmlDocument extends Document {
   }
 
   /**
+   * Get the class that immediately derived from a class in dart:html or
+   * dart:svg (has an attribute DomName of either HTML* or SVG*).
+   */
+  ClassMirror _getDomSuperClass(ClassMirror classMirror) {
+    var isElement = false;
+
+    while (classMirror.superclass != null) {
+      var fullName = classMirror.superclass.qualifiedName;
+      isElement = isElement || (fullName == #dart.dom.html.Element || fullName == #dart.dom.svg.Element);
+
+      var domLibrary = MirrorSystem.getName(fullName).startsWith('dart.dom.');
+      if (domLibrary) {
+        // Lookup JS class (if not found).
+        var metadatas = classMirror.metadata;
+        for (var metadata in metadatas) {
+          var metaDataMirror = metadata.reflectee;
+          var metaType = reflectClass(metaDataMirror.runtimeType);
+          if (MirrorSystem.getName(metaType.simpleName) == 'DomName' &&
+              (metaDataMirror.name.startsWith('HTML') || metaDataMirror.name.startsWith('SVG'))) {
+            if (isElement) return classMirror;
+          }
+        }
+      }
+
+      classMirror = classMirror.superclass;
+    }
+
+    return null;
+  }
+
+  /**
    * Does this CustomElement class have:
    *
    *   - a created constructor with no arguments?
@@ -20179,26 +20211,39 @@ class HtmlDocument extends Document {
    *
    * e.g.,    MyCustomClass.created() : super.created();
    */
-  bool _hasCreatedConstructor(ClassMirror classMirror) {
-    var createdParametersValid = false;
-    var superCreatedCalled = false;
-    var className = MirrorSystem.getName(classMirror.simpleName);
-    var methodMirror = classMirror.declarations[new Symbol("$className.created")];
-    if (methodMirror != null) {
-      createdParametersValid = methodMirror.parameters.length == 0;
+  bool _hasCreatedConstructor(ClassMirror classToRegister) {
+    var htmlClassMirror = _getDomSuperClass(classToRegister);
 
-      // Get the created constructor source and look at the initializer;
-      // Must call super.created() if not its as an error.
-      var createdSource = methodMirror.source;
-      RegExp regExp = new RegExp(r":(.*?)(;|}|\n)");
-      var match = regExp.firstMatch(createdSource);
-      superCreatedCalled = match.input.substring(match.start,match.end).contains("super.created()");
-    }
+    var classMirror = classToRegister;
+    while (classMirror != null && classMirror != htmlClassMirror) {
+      var createdParametersValid = false;
+      var superCreatedCalled = false;
+      var className = MirrorSystem.getName(classMirror.simpleName);
+      var methodMirror = classMirror.declarations[new Symbol("$className.created")];
+      if (methodMirror != null && methodMirror.isConstructor) {
+        createdParametersValid = true;                // Assume no parameters.
+        if (methodMirror.parameters.length != 0) {
+          // If any parameters each one must be optional.
+          methodMirror.parameters.forEach((parameter) {
+            createdParametersValid = createdParametersValid && parameter.isOptional;
+          });
+        }
 
-    if (!superCreatedCalled) {
-      throw new DomException.jsInterop('created constructor initializer must call super.created()');
-    } else if (!createdParametersValid) {
-      throw new DomException.jsInterop('created constructor must have no parameters');
+        // Get the created constructor source and look at the initializer;
+        // Must call super.created() if not its as an error.
+        var createdSource = methodMirror.source.replaceAll('\n', ' ');
+        RegExp regExp = new RegExp(r":(.*?)(;|}|\n)");
+        var match = regExp.firstMatch(createdSource);
+        superCreatedCalled = match.input.substring(match.start,match.end).contains("super.created(");
+      }
+
+      if (!superCreatedCalled) {
+        throw new DomException.jsInterop('created constructor initializer must call super.created()');
+      } else if (!createdParametersValid) {
+        throw new DomException.jsInterop('created constructor must have no parameters');
+      }
+
+      classMirror = classMirror.superclass;
     }
 
     return true;
