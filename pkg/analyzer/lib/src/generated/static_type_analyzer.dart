@@ -1762,12 +1762,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * being called is one of the object methods.
    */
   bool _inferMethodInvocationObject(MethodInvocation node) {
-    // If we have a call like `toString()` don't infer it.
-    //
-    // Either: it's really `this.toString()` and we shouldn't need inference,
-    // or it's a call to a function that happens to be called `toString()` and
-    // we shouldn't infer.
-    if (node.target == null) {
+    // If we have a call like `toString()` or `libraryPrefix.toString()` don't
+    // infer it.
+    Expression target = node.realTarget;
+    if (target == null ||
+        target is SimpleIdentifier && target.staticElement is PrefixElement) {
       return false;
     }
 

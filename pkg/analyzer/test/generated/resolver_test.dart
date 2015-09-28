@@ -12172,20 +12172,6 @@ main() {
         code, typeProvider.dynamicType, typeProvider.intType);
   }
 
-  void test_localVariableInference_declaredType_disabled_for_toString() {
-    String name = 'toString';
-    String code = '''
-main() {
-  dynamic $name = () => null;
-  $name(); // marker
-}''';
-    SimpleIdentifier identifier = _findMarkedIdentifier(code, "$name = ");
-    expect(identifier.staticType, typeProvider.dynamicType);
-    SimpleIdentifier call = _findMarkedIdentifier(code, "(); // marker");
-    expect(call.staticType, typeProvider.dynamicType);
-    expect((call.parent as Expression).staticType, typeProvider.dynamicType);
-  }
-
   void test_localVariableInference_noInitializer_disabled() {
     String code = r'''
 main() {
@@ -13918,6 +13904,53 @@ f1(x) {
 }''',
         null,
         typeProvider.stringType);
+  }
+
+  void test_objectMethodInference_disabled_for_local_function() {
+    String name = 'toString';
+    String code = '''
+main() {
+  dynamic $name = () => null;
+  $name(); // marker
+}''';
+    SimpleIdentifier identifier = _findMarkedIdentifier(code, "$name = ");
+    expect(identifier.staticType, typeProvider.dynamicType);
+
+    SimpleIdentifier methodName = _findMarkedIdentifier(code, "(); // marker");
+    MethodInvocation methodInvoke = methodName.parent;
+    expect(methodName.staticType, typeProvider.dynamicType);
+    expect(methodInvoke.staticType, typeProvider.dynamicType);
+  }
+
+  void test_objectMethodInference_disabled_for_library_prefix() {
+    String name = 'toString';
+    addNamedSource('/helper.dart', '''
+library helper;
+dynamic $name = (int x) => x + 42');
+''');
+    String code = '''
+import 'helper.dart' as helper;
+main() {
+  helper.$name(); // marker
+}''';
+    SimpleIdentifier methodName = _findMarkedIdentifier(code, "(); // marker");
+    MethodInvocation methodInvoke = methodName.parent;
+    expect(methodName.staticType, null, reason: 'library prefix has no type');
+    expect(methodInvoke.staticType, typeProvider.dynamicType);
+  }
+
+  void test_objectMethodInference_enabled_for_cascades() {
+    String name = 'toString';
+    String code = '''
+main() {
+  dynamic obj;
+  obj..$name()..$name(); // marker
+}''';
+    SimpleIdentifier methodName = _findMarkedIdentifier(code, "(); // marker");
+    MethodInvocation methodInvoke = methodName.parent;
+
+    expect(methodInvoke.staticType, typeProvider.dynamicType);
+    expect(methodInvoke.realTarget.staticType, typeProvider.dynamicType);
   }
 
   void test_propagatedReturnType_localFunction() {
