@@ -141,11 +141,11 @@ class ScalarReplacementVisitor extends RecursiveVisitor {
         initialValue = new Constant(new NullConstantValue());
         LetPrim let = new LetPrim(initialValue);
         let.primitive.parent = let;
-        insertionPoint = let..insertBelow(insertionPoint);
+        insertionPoint = insertAtBody(insertionPoint, let);
       }
       LetMutable let = new LetMutable(variable, initialValue);
       let.value.parent = let;
-      insertionPoint = let..insertBelow(insertionPoint);
+      insertionPoint = insertAtBody(insertionPoint, let);
     }
 
     // Replace references with MutableVariable operations or references to the
@@ -188,6 +188,15 @@ class ScalarReplacementVisitor extends RecursiveVisitor {
     deleteLetPrimOf(allocation);
   }
 
+  InteriorNode insertAtBody(
+      InteriorNode insertionPoint, InteriorExpression let) {
+    let.parent = insertionPoint;
+    let.body = insertionPoint.body;
+    let.body.parent = let;
+    insertionPoint.body = let;
+    return let;
+  }
+
   /// Replaces [old] with [primitive] in [old]'s parent [LetPrim].
   void replacePrimitive(Primitive old, Primitive primitive) {
     LetPrim letPrim = old.parent;
@@ -197,7 +206,11 @@ class ScalarReplacementVisitor extends RecursiveVisitor {
   void deleteLetPrimOf(Primitive primitive) {
     assert(primitive.hasNoUses);
     LetPrim letPrim = primitive.parent;
-    letPrim.remove();
+    Node child = letPrim.body;
+    InteriorNode parent = letPrim.parent;
+    child.parent = parent;
+    parent.body  = child;
+
     deletePrimitive(primitive);
   }
 

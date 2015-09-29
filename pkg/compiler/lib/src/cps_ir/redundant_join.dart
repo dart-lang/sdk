@@ -64,6 +64,20 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
     }
   }
 
+  /// Removes [movedNode] from its current position and inserts it
+  /// before [target].
+  void moveToBefore(Expression target, LetCont movedNode) {
+    if (movedNode.parent != null) {
+      movedNode.parent.body = movedNode.body;
+      movedNode.body.parent = movedNode.parent;
+    }
+    InteriorNode parent = target.parent;
+    parent.body = movedNode;
+    movedNode.body = target;
+    target.parent = movedNode;
+    movedNode.parent = parent;
+  }
+
   void rewriteBranch(Branch branch) {
     InteriorNode parent = getEffectiveParent(branch);
     if (parent is! Continuation) return;
@@ -147,8 +161,7 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
           }
         }
       }
-      innerLetCont.remove();
-      innerLetCont.insertAbove(outerLetCont);
+      moveToBefore(outerLetCont, innerLetCont);
     }
 
     assert(branchCont.body == branch);
@@ -183,7 +196,9 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
     branch.falseContinuation.unlink();
     outerLetCont.continuations.remove(branchCont);
     if (outerLetCont.continuations.isEmpty) {
-      outerLetCont.remove();
+      InteriorNode parent = outerLetCont.parent;
+      parent.body = outerLetCont.body;
+      outerLetCont.body.parent = parent;
     }
 
     // We may have created new redundant join points in the two branches.
