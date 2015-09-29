@@ -357,7 +357,7 @@ class Expect {
    *     Expect.throws(myThrowingFunction, (e) => e is MyException);
    */
   static void throws(void f(),
-                     [_CheckExceptionFn check = null,
+                     [bool check(exception) = null,
                       String reason = null]) {
     String msg = reason == null ? "" : "($reason)";
     if (f is! _Nullary) {
@@ -388,7 +388,6 @@ class Expect {
 
 bool _identical(a, b) => identical(a, b);
 
-typedef bool _CheckExceptionFn(exception);
 typedef _Nullary();  // Expect.throws argument must be this type.
 
 class ExpectException implements Exception {

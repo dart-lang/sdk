@@ -58,6 +58,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 part 'ascii.dart';
+part 'base64.dart';
 part 'byte_conversion.dart';
 part 'chunked_conversion.dart';
 part 'codec.dart';
