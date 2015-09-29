@@ -321,13 +321,7 @@ class ConstantPropagationLattice {
   /// [typedSelector]. If the given selector is not a [TypedSelector], any
   /// reachable method matching the selector may be targeted.
   AbstractValue getInvokeReturnType(Selector selector, TypeMask mask) {
-    return fromMask(typeSystem.getInvokeReturnType(selector, mask));
-  }
-
-  AbstractValue fromMask(TypeMask mask) {
-    ConstantValue constantValue = typeSystem.getConstantOf(mask);
-    if (constantValue != null) return constant(constantValue, mask);
-    return nonConstant(mask);
+    return nonConstant(typeSystem.getInvokeReturnType(selector, mask));
   }
 }
 
@@ -2072,7 +2066,7 @@ class TypePropagationVisitor implements Visitor {
       TypeMask type = param.hint is ParameterElement
           ? typeSystem.getParameterType(param.hint)
           : typeSystem.dynamicType;
-      setValue(param, lattice.fromMask(type));
+      setValue(param, nonConstant(type));
     }
     push(node.body);
   }
@@ -2119,7 +2113,7 @@ class TypePropagationVisitor implements Visitor {
     }
 
     TypeMask returnType = typeSystem.getReturnType(node.target);
-    setResult(node, lattice.fromMask(returnType));
+    setResult(node, nonConstant(returnType));
   }
 
   void visitInvokeContinuation(InvokeContinuation node) {
