@@ -159,7 +159,7 @@ class CompilerOptions {
       this.useColors: true,
       this.help: false,
       this.version: false,
-      this.logLevel: Level.SEVERE,
+      this.logLevel: Level.WARNING,
       this.serverMode: false,
       this.enableHashing: false,
       this.widget: true,
@@ -181,8 +181,7 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
   if (enableHashing == null) {
     enableHashing = serverMode;
   }
-  // TODO(jmesserly): shouldn't level always default to warning?
-  var logLevel = serverMode ? Level.WARNING : Level.SEVERE;
+  var logLevel = Level.WARNING;
   var levelName = args['log'];
   if (levelName != null) {
     levelName = levelName.toUpperCase();
@@ -313,7 +312,7 @@ final ArgParser argParser = StrongModeOptions.addArguments(new ArgParser()
       defaultsTo: _CLOSURE_DEFAULT)
   ..addFlag('force-compile',
       help: 'Compile code with static errors', defaultsTo: false)
-  ..addOption('log', abbr: 'l', help: 'Logging level (defaults to severe)')
+  ..addOption('log', abbr: 'l', help: 'Logging level (defaults to warning)')
   ..addFlag('dump-info',
       abbr: 'i', help: 'Dump summary information', defaultsTo: null)
   ..addOption('v8-binary',
