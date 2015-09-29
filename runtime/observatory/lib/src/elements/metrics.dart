@@ -7,6 +7,7 @@ library metrics;
 import 'dart:async';
 import 'dart:html';
 import 'observatory_element.dart';
+import 'package:charted/charted.dart';
 import 'package:observatory/app.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
@@ -152,57 +153,70 @@ class MetricDetailsElement extends ObservatoryElement {
 class MetricsGraphElement extends ObservatoryElement {
   MetricsGraphElement.created() : super.created();
 
-  final DataTable _table = new DataTable();
-  Chart _chart;
+  HtmlElement _wrapper;
+  HtmlElement _areaHost;
+  CartesianArea _area;
+  ChartData _data;
+  final _columns = [
+      new ChartColumnSpec(label: 'Time', type: ChartColumnSpec.TYPE_TIMESTAMP),
+      new ChartColumnSpec(label: 'Value', formatter: (v) => v.toString())
+  ];
+  final _rows = [[0, 1000000.0]];
 
   @published ServiceMetric metric;
   @observable Isolate isolate;
 
   void attached() {
+    super.attached();
     // Redraw once a second.
     pollPeriod = new Duration(seconds: 1);
-    super.attached();
+    _reset();
   }
 
   void onPoll() {
-    draw();
-  }
-
-  void draw() {
-    if (_chart == null) {
-      // Construct chart.
-      var element = shadowRoot.querySelector('#graph');
-      if (element == null) {
-        // Bail.
-        return;
-      }
-      _chart = new Chart('LineChart', element);
-    }
     if (metric == null) {
       return;
     }
     _update();
-    _chart.draw(_table);
+    _draw();
   }
 
-  void _setupInitialDataTable() {
-    _table.clearColumns();
-    // Only one metric right now.
-    _table.addColumn('timeofday', 'time');
-    _table.addColumn('number', metric.name);
+  void _reset() {
+    _rows.clear();
+    _wrapper = shadowRoot.querySelector('#metric-chart');
+    assert(_wrapper != null);
+    _areaHost = _wrapper.querySelector('.chart-host');
+    assert(_areaHost != null);
+    _areaHost.children.clear();
+    var series = new ChartSeries("one", [1], new LineChartRenderer());
+    var config = new ChartConfig([series], [0]);
+    config.minimumSize = new Rect(800, 600);
+    _data = new ChartData(_columns, _rows);
+    _area = new CartesianArea(_areaHost,
+                              _data,
+                              config,
+                              state: new ChartState());
   }
 
   void _update() {
-    _table.clearRows();
+    _rows.clear();
     for (var i = 0; i < metric.samples.length; i++) {
       var sample = metric.samples[i];
-      _table.addTimeOfDayValue(sample.time, sample.value);
+      _rows.add([sample.time.millisecondsSinceEpoch, sample.value]);
     }
+  }
+
+  void _draw() {
+    if (_rows.length < 2) {
+      return;
+    }
+    _area.data = new ChartData(_columns, _rows);
+    _area.draw();
   }
 
   metricChanged(oldValue) {
     if (oldValue != metric) {
-      _setupInitialDataTable();
+      _reset();
     }
   }
 }

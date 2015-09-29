@@ -6,6 +6,7 @@ transformers:
     - web/index.html
     inline_stylesheets:
       lib/src/elements/css/shared.css: false
+      packages/charted/charts/themes/quantum_theme.css: false
 - $dart2js:
     $include: "**/*.polymer.bootstrap.dart"
     suppressWarnings: false
