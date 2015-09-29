@@ -464,6 +464,10 @@ const uint8_t* DartUtils::SniffForMagicNumber(const uint8_t* text_buffer,
                                               intptr_t* buffer_len,
                                               bool* is_snapshot) {
   intptr_t len = sizeof(magic_number);
+  if (*buffer_len <= len) {
+    *is_snapshot = false;
+    return text_buffer;
+  }
   for (intptr_t i = 0; i < len; i++) {
     if (text_buffer[i] != magic_number[i]) {
       *is_snapshot = false;
