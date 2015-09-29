@@ -2229,14 +2229,7 @@ void SnapshotWriter::WriteObjectImpl(RawObject* raw, bool as_reference) {
   // Objects are usually writen as references to avoid deep recursion, but in
   // some places we know we are dealing with leaf or shallow objects and write
   // them inline.
-  // Code and Instructions are written inline so that Functions and Code
-  // can patch their entry points in their ReadFrom's. TODO(rmacnak): Remove the
-  // special case for Code and Instructions and patch entries after the whole
-  // graph has been loaded.
-  if (!as_reference ||
-      raw->IsCanonical() ||
-      raw->IsCode() ||
-      raw->IsInstructions()) {
+  if (!as_reference || raw->IsCanonical()) {
     // Object is being serialized, add it to the forward ref list and mark
     // it so that future references to this object in the snapshot will use
     // an object id, instead of trying to serialize it again.

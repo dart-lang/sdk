@@ -773,9 +773,6 @@ class RawFunction : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->data_);
   }
   RawArray* ic_data_array_;  // ICData of unoptimized code.
-  RawObject** to_optimized_snapshot() {
-    return reinterpret_cast<RawObject**>(&ptr()->ic_data_array_);
-  }
   RawObject** to_no_code() {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_array_);
   }

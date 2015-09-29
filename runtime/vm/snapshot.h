@@ -989,6 +989,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawContextScope;
   friend class RawExceptionHandlers;
   friend class RawField;
+  friend class RawFunction;
   friend class RawGrowableObjectArray;
   friend class RawImmutableArray;
   friend class RawInstructions;

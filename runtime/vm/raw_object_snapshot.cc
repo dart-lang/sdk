@@ -652,25 +652,26 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
     func.set_optimized_call_site_count(reader->Read<uint16_t>());
 
     // Set all the object fields.
-    bool is_optimized = func.usage_counter() != 0;
-    RawObject** toobj = reader->snapshot_code() ? func.raw()->to() :
-        (is_optimized ? func.raw()->to_optimized_snapshot() :
-         func.raw()->to_snapshot());
     READ_OBJECT_FIELDS(func,
-                       func.raw()->from(), toobj,
+                       func.raw()->from(), func.raw()->to_snapshot(),
                        kAsReference);
-    if (!reader->snapshot_code()) {
-      // Initialize all fields that are not part of the snapshot.
-      if (!is_optimized) {
+    // Initialize all fields that are not part of the snapshot.
+    if (reader->snapshot_code()) {
+      func.ClearICDataArray();
+      func.ClearCode();
+      // Read the code object and fixup entry point.
+      (*reader->CodeHandle()) ^= reader->ReadObjectImpl(kAsInlinedObject);
+      func.SetInstructions(*reader->CodeHandle());
+    } else {
+      bool is_optimized = func.usage_counter() != 0;
+      if (is_optimized) {
+        // Read the ic data array as the function is an optimized one.
+        (*reader->ArrayHandle()) ^= reader->ReadObjectImpl(kAsReference);
+        func.set_ic_data_array(*reader->ArrayHandle());
+      } else {
         func.ClearICDataArray();
       }
       func.ClearCode();
-    } else {
-      // Fix entry point.
-      (*reader->CodeHandle()) = func.CurrentCode();
-      uword new_entry = (*reader->CodeHandle()).EntryPoint();
-      ASSERT(Dart::vm_isolate()->heap()->CodeContains(new_entry));
-      func.StoreNonPointer(&func.raw_ptr()->entry_point_, new_entry);
     }
     return func.raw();
   } else {
@@ -727,11 +728,19 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
     writer->Write<uint16_t>(ptr()->optimized_call_site_count_);
 
     // Write out all the object pointer fields.
-    RawObject** toobj =
-        writer->snapshot_code() ? to() :
-        (is_optimized ? to_optimized_snapshot() : to_snapshot());
     SnapshotWriterVisitor visitor(writer, kAsReference);
-    visitor.VisitPointers(from(), toobj);
+    visitor.VisitPointers(from(), to_snapshot());
+    if (writer->snapshot_code()) {
+      ASSERT(ptr()->ic_data_array_ == Array::null());
+      ASSERT((ptr()->code_ == ptr()->unoptimized_code_) ||
+             (ptr()->unoptimized_code_ == Code::null()));
+      // Write out the code object as we are generating a precompiled snapshot.
+      writer->WriteObjectImpl(ptr()->code_, kAsInlinedObject);
+    } else if (is_optimized) {
+      // Write out the ic data array as the function is optimized or
+      // we are generating a precompiled snapshot.
+      writer->WriteObjectImpl(ptr()->ic_data_array_, kAsReference);
+    }
   } else {
     writer->WriteFunctionId(this, owner_is_class);
   }
