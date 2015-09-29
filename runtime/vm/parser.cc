@@ -13167,7 +13167,7 @@ void Parser::ParseConstructorClosurization(Function* constructor,
       ASSERT(!type.IsMalformedOrMalbounded());
       if (!type.IsInstantiated()) {
         Error& error = Error::Handle(Z);
-        type ^= type.InstantiateFrom(*type_arguments, &error);
+        type ^= type.InstantiateFrom(*type_arguments, &error, NULL, Heap::kOld);
         ASSERT(error.IsNull());
       }
       *type_arguments = type.arguments();
@@ -13371,7 +13371,8 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
         }
         return ThrowTypeError(redirect_type.token_pos(), redirect_type);
       }
-      if (I->flags().type_checks() && !redirect_type.IsSubtypeOf(type, NULL)) {
+      if (I->flags().type_checks() &&
+              !redirect_type.IsSubtypeOf(type, NULL, Heap::kOld)) {
         // Additional type checking of the result is necessary.
         type_bound = type.raw();
       }
