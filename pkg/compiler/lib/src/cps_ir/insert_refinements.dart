@@ -68,17 +68,9 @@ class InsertRefinements extends RecursiveVisitor implements Pass {
       let = new LetCont(cont, null);
       cont.parent = let;
     } else {
-      // Remove LetCont from current position.
-      InteriorNode letParent = let.parent;
-      letParent.body = let.body;
-      let.body.parent = letParent;
+      let.remove(); // Reuse the existing LetCont.
     }
-
-    // Insert LetCont before use.
-    useParent.body = let;
-    let.body = use;
-    use.parent = let;
-    let.parent = useParent;
+    let.insertAbove(use);
   }
 
   Primitive unfoldInterceptor(Primitive prim) {
@@ -94,11 +86,11 @@ class InsertRefinements extends RecursiveVisitor implements Pass {
       refinementFor[value] = currentRefinement;
       if (refined.hasNoUses) {
         // Clean up refinements that are not used.
-        refined.value.unlink();
+        refined.destroy();
       } else {
-        cont.body = new LetPrim(refined, cont.body);
-        refined.parent = cont.body;
-        refined.value.parent = refined;
+        LetPrim let = new LetPrim(refined);
+        refined.parent = let;
+        let.insertBelow(cont);
       }
     });
     push(cont);

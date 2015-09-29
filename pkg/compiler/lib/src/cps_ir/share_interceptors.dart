@@ -94,10 +94,8 @@ class ShareInterceptors extends RecursiveVisitor implements Pass {
         existing.interceptedClasses.addAll(interceptor.interceptedClasses);
       }
       existing.substituteFor(interceptor);
-      InteriorNode parent = node.parent;
-      parent.body = node.body;
-      node.body.parent = parent;
-      interceptor.input.unlink();
+      interceptor.destroy();
+      node.remove();
       return next;
     }
 
@@ -109,10 +107,8 @@ class ShareInterceptors extends RecursiveVisitor implements Pass {
       existing = sharedConstantFor[constant];
       if (existing != null) {
         existing.substituteFor(interceptor);
-        InteriorNode parent = node.parent;
-        parent.body = node.body;
-        node.body.parent = parent;
-        interceptor.input.unlink();
+        interceptor.destroy();
+        node.remove();
         return next;
       }
 
@@ -122,7 +118,7 @@ class ShareInterceptors extends RecursiveVisitor implements Pass {
       constantPrim.hint = interceptor.hint;
       constantPrim.type = interceptor.type;
       constantPrim.substituteFor(interceptor);
-      interceptor.input.unlink();
+      interceptor.destroy();
       sharedConstantFor[constant] = constantPrim;
     } else {
       interceptorFor[input] = interceptor;
@@ -147,18 +143,10 @@ class ShareInterceptors extends RecursiveVisitor implements Pass {
       }
       assert(loop != null);
 
-      // Remove LetPrim from its current position.
-      InteriorNode parent = node.parent;
-      parent.body = node.body;
-      node.body.parent = parent;
-
-      // Insert the LetPrim immediately before the loop.
+      // Move the LetPrim above the loop binding.
       LetCont loopBinding = loop.parent;
-      InteriorNode newParent = loopBinding.parent;
-      newParent.body = node;
-      node.body = loopBinding;
-      loopBinding.parent = node;
-      node.parent = newParent;
+      node.remove();
+      node.insertAbove(loopBinding);
 
       // A different loop now contains the interceptor.
       loopHeaderFor[node.primitive] = enclosing;
