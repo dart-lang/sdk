@@ -179,6 +179,8 @@ abstract class TracerVisitor<T extends TypeInformation>
 
   void visitStringLiteralTypeInformation(StringLiteralTypeInformation info) {}
 
+  void visitBoolLiteralTypeInformation(BoolLiteralTypeInformation info) {}
+
   void visitClosureTypeInformation(ClosureTypeInformation info) {}
 
   void visitClosureCallSiteTypeInformation(

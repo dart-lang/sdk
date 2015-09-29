@@ -436,6 +436,12 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
     return _stringType;
   }
 
+  @override
+  ConcreteType boolLiteralType(_) {
+    inferrer.augmentSeenClasses(compiler.backend.boolImplementation);
+    return _boolType;
+  }
+
   /**
    * Returns the [TypeMask] representation of [baseType].
    */

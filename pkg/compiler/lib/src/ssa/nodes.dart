@@ -876,6 +876,8 @@ abstract class HInstruction implements Spannable {
 
   bool isExact() => instructionType.isExact || isNull();
 
+  bool isValue() => instructionType.isValue;
+
   bool canBeNull() => instructionType.isNullable;
 
   bool isNull() => instructionType.isEmpty && instructionType.isNullable;

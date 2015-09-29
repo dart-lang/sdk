@@ -1306,6 +1306,13 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor {
       } else {
         markBlockLive(instruction.elseBlock);
       }
+    } else if (condition.isValue()) {
+      ValueTypeMask valueType = condition.instructionType;
+      if (valueType.value == true) {
+        markBlockLive(instruction.thenBlock);
+      } else {
+        markBlockLive(instruction.elseBlock);
+      }
     } else {
       visitControlFlow(instruction);
     }

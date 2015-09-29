@@ -266,7 +266,7 @@ class TypesTask extends CompilerTask {
     return result;
   }
 
-  /** Returns true if [type1] is strictly bettern than [type2]. */
+  /** Returns true if [type1] is strictly better than [type2]. */
   bool better(TypeMask type1, TypeMask type2) {
     if (type1 == null) return false;
     if (type2 == null) {
