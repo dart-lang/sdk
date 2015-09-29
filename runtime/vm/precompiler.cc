@@ -64,8 +64,6 @@ Precompiler::Precompiler(Thread* thread) :
 
 void Precompiler::DoCompileAll(
     Dart_QualifiedFunctionName embedder_entry_points[]) {
-  LogBlock lb;
-
   // Drop all existing code so we can use the presence of code as an indicator
   // that we have already looked for the function's callees.
   ClearAllCode();
@@ -471,11 +469,16 @@ void Precompiler::AddFunction(const Function& function) {
 
 
 bool Precompiler::IsSent(const String& selector) {
+  if (selector.IsNull()) {
+    return false;
+  }
   return sent_selectors_.Includes(selector);
 }
 
 
 void Precompiler::AddSelector(const String& selector) {
+  ASSERT(!selector.IsNull());
+
   if (!IsSent(selector)) {
     sent_selectors_.Add(selector);
     selector_count_++;
@@ -485,13 +488,6 @@ void Precompiler::AddSelector(const String& selector) {
       THR_Print("Enqueueing selector %" Pd " %s\n",
                 selector_count_,
                 selector.ToCString());
-    }
-
-    if (!Field::IsGetterName(selector) &&
-        !Field::IsSetterName(selector)) {
-      // Regular method may be call-through-getter.
-      const String& getter = String::Handle(Field::GetterSymbol(selector));
-      AddSelector(getter);
     }
   }
 }
@@ -520,7 +516,10 @@ void Precompiler::CheckForNewDynamicFunctions() {
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
   Function& function = Function::Handle(Z);
+  Function& function2 = Function::Handle(Z);
   String& selector = String::Handle(Z);
+  String& selector2 = String::Handle(Z);
+  String& selector3 = String::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -581,13 +580,51 @@ void Precompiler::CheckForNewDynamicFunctions() {
           AddFunction(function);
         }
 
-        if (function.kind() == RawFunction::kRegularFunction &&
-            !Field::IsGetterName(selector) &&
-            !Field::IsSetterName(selector)) {
-          selector = Field::GetterSymbol(selector);
-          if (IsSent(selector)) {
-            function = function.ImplicitClosureFunction();
+        // Handle the implicit call type conversions.
+        if (Field::IsGetterName(selector)) {
+          selector2 = Field::NameFromGetter(selector);
+          selector3 = Symbols::Lookup(selector2);
+          if (IsSent(selector2)) {
+            // Call-through-getter.
+            // Function is get:foo and somewhere foo is called.
             AddFunction(function);
+          }
+          selector3 = Symbols::LookupFromConcat(Symbols::ClosurizePrefix(),
+                                                selector2);
+          if (IsSent(selector3)) {
+            // Hash-closurization.
+            // Function is get:foo and somewhere get:#foo is called.
+            AddFunction(function);
+
+            function2 = function.ImplicitClosureFunction();
+            AddFunction(function2);
+          }
+        } else if (Field::IsSetterName(selector)) {
+          selector2 = Symbols::LookupFromConcat(Symbols::ClosurizePrefix(),
+                                                selector);
+          if (IsSent(selector2)) {
+            // Hash-closurization.
+            // Function is set:foo and somewhere get:#set:foo is called.
+            AddFunction(function);
+
+            function2 = function.ImplicitClosureFunction();
+            AddFunction(function2);
+          }
+        } else if (function.kind() == RawFunction::kRegularFunction) {
+          selector2 = Field::LookupGetterSymbol(selector);
+          if (IsSent(selector2)) {
+            // Closurization.
+            // Function is foo and somewhere get:foo is called.
+            function2 = function.ImplicitClosureFunction();
+            AddFunction(function2);
+          }
+          selector2 = Symbols::LookupFromConcat(Symbols::ClosurizePrefix(),
+                                                selector);
+          if (IsSent(selector2)) {
+            // Hash-closurization.
+            // Function is foo and somewhere get:#foo is called.
+            function2 = function.ImplicitClosureFunction();
+            AddFunction(function2);
           }
         }
       }
