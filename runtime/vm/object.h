@@ -3795,7 +3795,7 @@ class LocalVarDescriptors : public Object {
 
   static RawLocalVarDescriptors* New(intptr_t num_variables);
 
-  static const char* KindToStr(intptr_t kind);
+  static const char* KindToCString(RawLocalVarDescriptors::VarInfoKind kind);
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors, Object);

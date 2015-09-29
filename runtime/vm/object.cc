@@ -11461,39 +11461,18 @@ void LocalVarDescriptors::GetInfo(intptr_t var_index,
 }
 
 
-static const char* VarKindString(int kind) {
-  switch (kind) {
-    case RawLocalVarDescriptors::kStackVar:
-      return "StackVar";
-      break;
-    case RawLocalVarDescriptors::kContextVar:
-      return "ContextVar";
-      break;
-    case RawLocalVarDescriptors::kContextLevel:
-      return "ContextLevel";
-      break;
-    case RawLocalVarDescriptors::kSavedCurrentContext:
-      return "CurrentCtx";
-      break;
-    default:
-      UNREACHABLE();
-      return "Unknown";
-  }
-}
-
-
 static int PrintVarInfo(char* buffer, int len,
                         intptr_t i,
                         const String& var_name,
                         const RawLocalVarDescriptors::VarInfo& info) {
-  const int8_t kind = info.kind();
+  const RawLocalVarDescriptors::VarInfoKind kind = info.kind();
   const int32_t index = info.index();
   if (kind == RawLocalVarDescriptors::kContextLevel) {
     return OS::SNPrint(buffer, len,
                        "%2" Pd " %-13s level=%-3d scope=%-3d"
                        " begin=%-3d end=%d\n",
                        i,
-                       VarKindString(kind),
+                       LocalVarDescriptors::KindToCString(kind),
                        index,
                        info.scope_id,
                        info.begin_pos,
@@ -11503,7 +11482,7 @@ static int PrintVarInfo(char* buffer, int len,
                        "%2" Pd " %-13s level=%-3d index=%-3d"
                        " begin=%-3d end=%-3d name=%s\n",
                        i,
-                       VarKindString(kind),
+                       LocalVarDescriptors::KindToCString(kind),
                        info.scope_id,
                        index,
                        info.begin_pos,
@@ -11514,7 +11493,7 @@ static int PrintVarInfo(char* buffer, int len,
                        "%2" Pd " %-13s scope=%-3d index=%-3d"
                        " begin=%-3d end=%-3d name=%s\n",
                        i,
-                       VarKindString(kind),
+                       LocalVarDescriptors::KindToCString(kind),
                        info.scope_id,
                        index,
                        info.begin_pos,
@@ -11576,12 +11555,13 @@ void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream,
     var.AddProperty("beginPos", static_cast<intptr_t>(info.begin_pos));
     var.AddProperty("endPos", static_cast<intptr_t>(info.end_pos));
     var.AddProperty("scopeId", static_cast<intptr_t>(info.scope_id));
-    var.AddProperty("kind", KindToStr(info.kind()));
+    var.AddProperty("kind", KindToCString(info.kind()));
   }
 }
 
 
-const char* LocalVarDescriptors::KindToStr(intptr_t kind) {
+const char* LocalVarDescriptors::KindToCString(
+    RawLocalVarDescriptors::VarInfoKind kind) {
   switch (kind) {
     case RawLocalVarDescriptors::kStackVar:
       return "StackVar";
@@ -11590,7 +11570,7 @@ const char* LocalVarDescriptors::KindToStr(intptr_t kind) {
     case RawLocalVarDescriptors::kContextLevel:
       return "ContextLevel";
     case RawLocalVarDescriptors::kSavedCurrentContext:
-      return "SavedCurrentContext";
+      return "CurrentCtx";
     default:
       UNIMPLEMENTED();
       return NULL;
