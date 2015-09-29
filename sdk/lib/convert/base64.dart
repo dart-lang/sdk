@@ -65,7 +65,7 @@ class Base64Encoder extends Converter<List<int>, String> {
 
   ByteConversionSink startChunkedConversion(Sink<String> sink) {
     if (sink is StringConversionSink) {
-      return new _Utf8Base64EncoderSink(sink.asUtf8Sink());
+      return new _Utf8Base64EncoderSink(sink.asUtf8Sink(false));
     }
     return new _AsciiBase64EncoderSink(sink);
   }
@@ -575,7 +575,7 @@ class _Base64Decoder {
     if (expectedPadding > 0) {
       int firstChar = input.codeUnitAt(start);
       if (firstChar != _paddingChar) {
-        throw new FormatException("Missing padding character", string, start);
+        throw new FormatException("Missing padding character", input, start);
       }
       state = _encodePaddingState(0);
       start++;
