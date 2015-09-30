@@ -1149,12 +1149,6 @@ wrap_jso(jsObject) {
       // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
       return jsObject;
     }
-
-    // To preserve identity, if we already have a wrapper for this, return it.
-    var existing = jsObject['dartClass_instance'];
-    if (existing != null) {
-      return existing;
-    }
     // Try the most general type conversions on it.
     // TODO(alanknight): We may be able to do better. This maintains identity,
     // which is useful, but expensive. And if we nest something that only
@@ -1171,6 +1165,7 @@ wrap_jso(jsObject) {
     if (__interop_checks) {
       debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
     }
+
     var dartClass_instance;
     if (jsObject.hasProperty('dart_class')) {
       // Got a dart_class (it's a custom element) use it it's already set up.
@@ -1180,7 +1175,6 @@ wrap_jso(jsObject) {
       if (func != null) {
         dartClass_instance = func();
         dartClass_instance.blink_jsObject = jsObject;
-        jsObject['dartClass_instance'] = dartClass_instance;
       }
     }
     return dartClass_instance;
@@ -1195,7 +1189,6 @@ wrap_jso(jsObject) {
 
   return null;
 }
-
 
 /**
  * Create Dart class that maps to the JS Type that is the JS type being
@@ -37175,10 +37168,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
