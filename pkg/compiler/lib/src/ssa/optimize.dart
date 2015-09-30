@@ -200,6 +200,32 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return node;
   }
 
+  ConstantValue getConstantFromType(HInstruction node) {
+    if (node.isValue() && !node.canBeNull()) {
+      ValueTypeMask valueMask = node.instructionType;
+      if (valueMask.value.isBool) {
+        return valueMask.value;
+      }
+      // TODO(het): consider supporting other values (short strings?)
+    }
+    return null;
+  }
+
+  void propagateConstantValueToUses(HInstruction known) {
+    if (known.usedBy.isEmpty) return;
+    ConstantValue value = getConstantFromType(known);
+    if (value != null) {
+      for (HInstruction user in known.usedBy.toList()) {
+        user.changeUse(known, graph.addConstant(value, compiler));
+      }
+    }
+  }
+
+  HInstruction visitParameterValue(HParameterValue node) {
+    propagateConstantValueToUses(node);
+    return node;
+  }
+
   HInstruction visitBoolify(HBoolify node) {
     List<HInstruction> inputs = node.inputs;
     assert(inputs.length == 1);
@@ -372,6 +398,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
+    propagateConstantValueToUses(node);
     if (node.isInterceptedCall) {
       HInstruction folded = handleInterceptedCall(node);
       if (folded != node) return folded;
@@ -806,6 +833,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
+    propagateConstantValueToUses(node);
     if (node.isInterceptedCall) {
       HInstruction folded = handleInterceptedCall(node);
       if (folded != node) return folded;
@@ -867,6 +895,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitInvokeStatic(HInvokeStatic node) {
+    propagateConstantValueToUses(node);
     if (node.element == backend.getCheckConcurrentModificationError()) {
       if (node.inputs.length == 2) {
         HInstruction firstArgument = node.inputs[0];
@@ -1302,13 +1331,6 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor {
     HInstruction condition = instruction.condition;
     if (condition.isConstant()) {
       if (condition.isConstantTrue()) {
-        markBlockLive(instruction.thenBlock);
-      } else {
-        markBlockLive(instruction.elseBlock);
-      }
-    } else if (condition.isValue()) {
-      ValueTypeMask valueType = condition.instructionType;
-      if (valueType.value == true) {
         markBlockLive(instruction.thenBlock);
       } else {
         markBlockLive(instruction.elseBlock);
