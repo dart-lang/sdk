@@ -4353,6 +4353,20 @@ class Code : public Object {
   bool IsStubCode() const;
   bool IsFunctionCode() const;
 
+  void DisableDartCode() const;
+
+  void DisableStubCode() const;
+
+  void Enable() const {
+    if (!IsDisabled()) return;
+    ASSERT(instructions() != active_instructions());
+    set_active_instructions(instructions());
+  }
+
+  bool IsDisabled() const {
+    return instructions() != active_instructions();
+  }
+
  private:
   void set_state_bits(intptr_t bits) const;
 

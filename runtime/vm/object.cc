@@ -3766,11 +3766,9 @@ void Class::DisableAllocationStub() const {
   if (existing_stub.IsNull()) {
     return;
   }
-  ASSERT(!CodePatcher::IsEntryPatched(existing_stub));
-  // Patch the stub so that the next caller will regenerate the stub.
-  CodePatcher::PatchEntry(
-      existing_stub,
-      Code::Handle(StubCode::FixAllocationStubTarget_entry()->code()));
+  ASSERT(!existing_stub.IsDisabled());
+  // Change the stub so that the next caller will regenerate the stub.
+  existing_stub.DisableStubCode();
   // Disassociate the existing stub from class.
   StorePointer(&raw_ptr()->allocation_stub_, Code::null());
 }
@@ -5327,9 +5325,7 @@ void Function::SwitchToUnoptimizedCode() const {
       ToFullyQualifiedCString(),
       current_code.EntryPoint());
   }
-  // Patch entry of the optimized code.
-  CodePatcher::PatchEntry(
-      current_code, Code::Handle(StubCode::FixCallersTarget_entry()->code()));
+  current_code.DisableDartCode();
   const Error& error = Error::Handle(zone,
       Compiler::EnsureUnoptimizedCode(thread, *this));
   if (!error.IsNull()) {
@@ -5337,7 +5333,7 @@ void Function::SwitchToUnoptimizedCode() const {
   }
   const Code& unopt_code = Code::Handle(zone, unoptimized_code());
   AttachCode(unopt_code);
-  CodePatcher::RestoreEntry(unopt_code);
+  unopt_code.Enable();
   isolate->TrackDeoptimizedCode(current_code);
 }
 
@@ -10593,7 +10589,7 @@ class PrefixDependentArray : public WeakCodeReferences {
       THR_Print("Prefix '%s': disabling %s code for %s function '%s'\n",
           String::Handle(prefix_.name()).ToCString(),
           code.is_optimized() ? "optimized" : "unoptimized",
-          CodePatcher::IsEntryPatched(code) ? "patched" : "unpatched",
+          code.IsDisabled() ? "'patched'" : "'unpatched'",
           Function::Handle(code.function()).ToCString());
     }
   }
@@ -13296,6 +13292,24 @@ bool Code::IsStubCode() const {
 bool Code::IsFunctionCode() const {
   const Object& obj = Object::Handle(owner());
   return obj.IsFunction();
+}
+
+
+void Code::DisableDartCode() const {
+  ASSERT(IsFunctionCode());
+  ASSERT(instructions() == active_instructions());
+  const Code& new_code =
+      Code::Handle(StubCode::FixCallersTarget_entry()->code());
+  set_active_instructions(new_code.instructions());
+}
+
+
+void Code::DisableStubCode() const {
+ASSERT(IsAllocationStubCode());
+  ASSERT(instructions() == active_instructions());
+  const Code& new_code =
+      Code::Handle(StubCode::FixAllocationStubTarget_entry()->code());
+  set_active_instructions(new_code.instructions());
 }
 
 

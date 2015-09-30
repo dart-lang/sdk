@@ -68,7 +68,6 @@ DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_inlining_intervals);
 DECLARE_FLAG(bool, trace_irregexp);
-DECLARE_FLAG(bool, trace_patching);
 
 
 bool Compiler::always_optimize_ = false;
@@ -758,17 +757,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         if (optimized) {
           // We may not have previous code if 'always_optimize' is set.
           if ((osr_id == Isolate::kNoDeoptId) && function.HasCode()) {
-            CodePatcher::PatchEntry(
-                Code::Handle(function.CurrentCode()),
-                Code::Handle(StubCode::FixCallersTarget_entry()->code()));
-            if (FLAG_trace_compiler || FLAG_trace_patching) {
-              if (FLAG_trace_compiler) {
-                THR_Print("  ");
-              }
-              THR_Print("Patch unoptimized '%s' entry point %#" Px "\n",
-                  function.ToFullyQualifiedCString(),
-                  Code::Handle(function.unoptimized_code()).EntryPoint());
-            }
+            Code::Handle(function.CurrentCode()).DisableDartCode();
           }
           function.AttachCode(code);
 

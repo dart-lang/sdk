@@ -1542,7 +1542,7 @@ DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
   Code& alloc_stub = Code::Handle(isolate, alloc_class.allocation_stub());
   if (alloc_stub.IsNull()) {
     alloc_stub = StubCode::GetAllocationStubForClass(alloc_class);
-    ASSERT(!CodePatcher::IsEntryPatched(alloc_stub));
+    ASSERT(!alloc_stub.IsDisabled());
   }
   CodePatcher::PatchStaticCallAt(frame->pc(),
                                  caller_code,
