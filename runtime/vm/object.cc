@@ -1060,7 +1060,6 @@ void Object::RegisterPrivateClass(const Class& cls,
 RawError* Object::Init(Isolate* isolate) {
   Thread* thread = Thread::Current();
   ASSERT(isolate == thread->isolate());
-  TIMERSCOPE(thread, time_bootstrap);
   TimelineDurationScope tds(isolate,
                             isolate->GetIsolateStream(),
                             "Object::Init");

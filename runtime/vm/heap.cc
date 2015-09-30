@@ -334,7 +334,6 @@ void Heap::CollectGarbage(Space space,
   switch (space) {
     case kNew: {
       RecordBeforeGC(kNew, reason);
-      TimerScope timer(true, &(isolate()->timer_list().time_gc()), thread);
       VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
       TimelineDurationScope tds(thread,
                                 isolate()->GetGCStream(),
@@ -354,7 +353,6 @@ void Heap::CollectGarbage(Space space,
     case kOld:
     case kCode: {
       RecordBeforeGC(kOld, reason);
-      TimerScope timer(true, &(isolate()->timer_list().time_gc()), thread);
       VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
       TimelineDurationScope tds(thread,
                                 isolate()->GetGCStream(),
@@ -395,7 +393,6 @@ void Heap::CollectAllGarbage() {
   Thread* thread = Thread::Current();
   {
     RecordBeforeGC(kNew, kFull);
-    TimerScope timer(true, &(isolate()->timer_list().time_gc()), thread);
     VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
     TimelineDurationScope tds(thread,
                               isolate()->GetGCStream(),
@@ -409,7 +406,6 @@ void Heap::CollectAllGarbage() {
   }
   {
     RecordBeforeGC(kOld, kFull);
-    TimerScope timer(true, &(isolate()->timer_list().time_gc()), thread);
     VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
     TimelineDurationScope tds(thread,
                               isolate()->GetGCStream(),

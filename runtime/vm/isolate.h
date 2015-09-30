@@ -254,8 +254,6 @@ class Isolate : public BaseIsolate {
   ApiState* api_state() const { return api_state_; }
   void set_api_state(ApiState* value) { api_state_ = value; }
 
-  TimerList& timer_list() { return timer_list_; }
-
   void set_init_callback_data(void* value) {
     init_callback_data_ = value;
   }
@@ -860,7 +858,6 @@ class Isolate : public BaseIsolate {
   Flags flags_;
   Random random_;
   Simulator* simulator_;
-  TimerList timer_list_;
   intptr_t deopt_id_;
   Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.
   uword stack_limit_;

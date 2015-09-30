@@ -1378,7 +1378,6 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
   #endif  // defined(DART_NO_SNAPSHOT).
       // We exit the API scope entered above.
       Dart_ExitScope();
-      START_TIMER(I, time_total_runtime);
       return Api::CastIsolate(I);
     }
     *error = strdup(error_obj.ToErrorCString());
@@ -1399,7 +1398,6 @@ DART_EXPORT void Dart_ShutdownIsolate() {
     HandleScope handle_scope(T);
     Dart::RunShutdownCallback();
   }
-  STOP_TIMER(I, time_total_runtime);
   Dart::ShutdownIsolate();
 }
 
@@ -1506,7 +1504,6 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
     intptr_t* isolate_snapshot_size) {
   ASSERT(FLAG_load_deferred_eagerly);
   DARTSCOPE(Thread::Current());
-  TIMERSCOPE(T, time_creating_snapshot);
   if (vm_isolate_snapshot_buffer != NULL &&
       vm_isolate_snapshot_size == NULL) {
     RETURN_NULL_ERROR(vm_isolate_snapshot_size);
@@ -1547,7 +1544,6 @@ static Dart_Handle createLibrarySnapshot(Dart_Handle library,
                                          uint8_t** buffer,
                                          intptr_t* size) {
   DARTSCOPE(Thread::Current());
-  TIMERSCOPE(T, time_creating_snapshot);
   if (buffer == NULL) {
     RETURN_NULL_ERROR(buffer);
   }
@@ -4058,9 +4054,6 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                                     Dart_Handle* arguments) {
   DARTSCOPE(Thread::Current());
   CHECK_CALLBACK_STATE(I);
-  // TODO(turnidge): This is a bit simplistic.  It overcounts when
-  // other operations (gc, compilation) are active.
-  TIMERSCOPE(T, time_dart_execution);
 
   const String& function_name = Api::UnwrapStringHandle(I, name);
   if (function_name.IsNull()) {
@@ -5059,7 +5052,6 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         intptr_t line_offset,
                                         intptr_t column_offset) {
   DARTSCOPE(Thread::Current());
-  TIMERSCOPE(T, time_script_loading);
   const String& url_str = Api::UnwrapStringHandle(I, url);
   if (url_str.IsNull()) {
     RETURN_TYPE_ERROR(I, url, String);
@@ -5103,7 +5095,6 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
 DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
                                                     intptr_t buffer_len) {
   DARTSCOPE(Thread::Current());
-  TIMERSCOPE(T, time_script_loading);
   StackZone zone(T);
   if (buffer == NULL) {
     RETURN_NULL_ERROR(buffer);
@@ -5303,7 +5294,6 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                                          intptr_t line_offset,
                                          intptr_t column_offset) {
   DARTSCOPE(Thread::Current());
-  TIMERSCOPE(T, time_script_loading);
   const String& url_str = Api::UnwrapStringHandle(I, url);
   if (url_str.IsNull()) {
     RETURN_TYPE_ERROR(I, url, String);
@@ -5405,7 +5395,6 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         intptr_t line_offset,
                                         intptr_t column_offset) {
   DARTSCOPE(Thread::Current());
-  TIMERSCOPE(T, time_script_loading);
   const Library& lib = Api::UnwrapLibraryHandle(I, library);
   if (lib.IsNull()) {
     RETURN_TYPE_ERROR(I, library, Library);
@@ -5443,7 +5432,6 @@ DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
                                               Dart_Handle url,
                                               Dart_Handle patch_source) {
   DARTSCOPE(Thread::Current());
-  TIMERSCOPE(T, time_script_loading);
   const Library& lib = Api::UnwrapLibraryHandle(I, library);
   if (lib.IsNull()) {
     RETURN_TYPE_ERROR(I, library, Library);

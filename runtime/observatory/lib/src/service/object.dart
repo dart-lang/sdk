@@ -1270,9 +1270,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @observable String vmName;
   @observable ServiceFunction entry;
 
-  @observable final Map<String, double> timers =
-      toObservable(new Map<String, double>());
-
   final HeapSpace newSpace = new HeapSpace();
   final HeapSpace oldSpace = new HeapSpace();
 
@@ -1373,18 +1370,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
         }
       }
     }
-    var timerMap = {};
-    map['timers'].forEach((timer) {
-        timerMap[timer['name']] = timer['time'];
-      });
-    timers['total'] = timerMap['time_total_runtime'];
-    timers['compile'] = timerMap['time_compilation'];
-    timers['gc'] = 0.0;  // TODO(turnidge): Export this from VM.
-    timers['init'] = (timerMap['time_script_loading'] +
-                      timerMap['time_creating_snapshot'] +
-                      timerMap['time_isolate_initialization'] +
-                      timerMap['time_bootstrap']);
-    timers['dart'] = timerMap['time_dart_execution'];
 
     updateHeapsFromMap(map['_heaps']);
     _updateBreakpoints(map['breakpoints']);

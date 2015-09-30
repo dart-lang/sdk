@@ -430,10 +430,6 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "isolateName", I->name());
 
-  // TODO(turnidge): Rework collection total dart execution.  This can
-  // overcount when other things (gc, compilation) are active.
-  TIMERSCOPE(thread, time_dart_execution);
-
   // If the message is in band we lookup the handler to dispatch to.  If the
   // receive port was closed, we drop the message without deserializing it.
   // Illegal port is a special case for artificially enqueued isolate library
@@ -731,7 +727,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       flags_(),
       random_(),
       simulator_(NULL),
-      timer_list_(),
       deopt_id_(0),
       mutex_(new Mutex()),
       stack_limit_(0),
@@ -1596,9 +1591,6 @@ void Isolate::LowLevelShutdown() {
   delete message_handler();
   set_message_handler(NULL);
 
-  // Dump all accumulated timer data for the isolate.
-  timer_list_.ReportTimers();
-
   // Before analyzing the isolate's timeline blocks- reclaim all cached blocks.
   ReclaimTimelineBlocks();
 
@@ -1866,7 +1858,6 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     jsobj.AddProperty("rootLib", lib);
   }
 
-  timer_list().PrintTimersToJSONProperty(&jsobj);
   {
     JSONObject tagCounters(&jsobj, "_tagCounters");
     vm_tag_counters()->PrintToJSONObject(&tagCounters);

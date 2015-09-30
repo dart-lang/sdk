@@ -11982,10 +11982,7 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(const Field& field,
       ASSERT(!func.IsNull());
       ASSERT(func.kind() == RawFunction::kImplicitStaticFinalGetter);
       Object& const_value = Object::Handle(Z);
-      {
-        PAUSETIMERSCOPE(T, time_compilation);
-        const_value = DartEntry::InvokeFunction(func, Object::empty_array());
-      }
+      const_value = DartEntry::InvokeFunction(func, Object::empty_array());
       if (const_value.IsError()) {
         const Error& error = Error::Cast(const_value);
         if (error.IsUnhandledException()) {
@@ -12064,11 +12061,7 @@ RawObject* Parser::EvaluateConstConstructorCall(
   const Array& args_descriptor = Array::Handle(Z,
       ArgumentsDescriptor::New(num_arguments, arguments->names()));
   Object& result = Object::Handle(Z);
-  {
-    PAUSETIMERSCOPE(T, time_compilation);
-    result = DartEntry::InvokeFunction(
-        constructor, arg_values, args_descriptor);
-  }
+  result = DartEntry::InvokeFunction(constructor, arg_values, args_descriptor);
   if (result.IsError()) {
       // An exception may not occur in every parse attempt, i.e., the
       // generated AST is not deterministic. Therefore mark the function as
@@ -13559,10 +13552,7 @@ String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
 
   // Call interpolation function.
   Object& result = Object::Handle(Z);
-  {
-    PAUSETIMERSCOPE(T, time_compilation);
-    result = DartEntry::InvokeFunction(func, interpolate_arg);
-  }
+  result = DartEntry::InvokeFunction(func, interpolate_arg);
   if (result.IsUnhandledException()) {
     ReportError("%s", Error::Cast(result).ToErrorCString());
   }

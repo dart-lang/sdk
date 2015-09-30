@@ -1010,7 +1010,6 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     Isolate* const isolate = thread->isolate();
     StackZone stack_zone(thread);
     Zone* const zone = stack_zone.GetZone();
-    TIMERSCOPE(thread, time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
     per_compile_timer.Start();
 
