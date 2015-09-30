@@ -11,6 +11,10 @@ class NativeEnqueuer {
   /// Initial entry point to native enqueuer.
   void processNativeClasses(Iterable<LibraryElement> libraries) {}
 
+  /// Registers the [nativeBehavior]. Adds the liveness of its instantiated
+  /// types to the world.
+  void registerNativeBehavior(NativeBehavior nativeBehavior, cause) {}
+
   /// Notification of a main Enqueuer worklist element.  For methods, adds
   /// information from metadata attributes, and computes types instantiated due
   /// to calling the method.
@@ -369,8 +373,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
     // TODO(ahe): Is this really a global dependency?
     classElement.ensureResolved(compiler);
-    world.registerInstantiatedType(
-        classElement.rawType, compiler.globalDependencies);
+    compiler.backend.registerInstantiatedType(
+        classElement.rawType, world, compiler.globalDependencies);
 
     // Also parse the node to know all its methods because otherwise it will
     // only be parsed if there is a call to one of its constructors.
@@ -468,48 +472,41 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     });
   }
 
+  void registerNativeBehavior(NativeBehavior nativeBehavior, cause) {
+    processNativeBehavior(nativeBehavior, cause);
+    flushQueue();
+  }
+
   void registerMethodUsed(Element method) {
-    processNativeBehavior(
-        NativeBehavior.ofMethod(method, compiler),
-        method);
-      flushQueue();
+    registerNativeBehavior(NativeBehavior.ofMethod(method, compiler), method);
   }
 
   void registerFieldLoad(Element field) {
-    processNativeBehavior(
-        NativeBehavior.ofFieldLoad(field, compiler),
-        field);
-    flushQueue();
+    registerNativeBehavior(NativeBehavior.ofFieldLoad(field, compiler), field);
   }
 
   void registerFieldStore(Element field) {
-    processNativeBehavior(
-        NativeBehavior.ofFieldStore(field, compiler),
-        field);
-    flushQueue();
+    registerNativeBehavior(NativeBehavior.ofFieldStore(field, compiler), field);
   }
 
   void registerJsCall(Send node, ResolverVisitor resolver) {
     NativeBehavior behavior = NativeBehavior.ofJsCall(node, compiler, resolver);
-    processNativeBehavior(behavior, node);
+    registerNativeBehavior(behavior, node);
     nativeBehaviors[node] = behavior;
-    flushQueue();
   }
 
   void registerJsEmbeddedGlobalCall(Send node, ResolverVisitor resolver) {
     NativeBehavior behavior =
         NativeBehavior.ofJsEmbeddedGlobalCall(node, compiler, resolver);
-    processNativeBehavior(behavior, node);
+    registerNativeBehavior(behavior, node);
     nativeBehaviors[node] = behavior;
-    flushQueue();
   }
 
   void registerJsBuiltinCall(Send node, ResolverVisitor resolver) {
     NativeBehavior behavior =
         NativeBehavior.ofJsBuiltinCall(node, compiler, resolver);
-    processNativeBehavior(behavior, node);
+    registerNativeBehavior(behavior, node);
     nativeBehaviors[node] = behavior;
-    flushQueue();
   }
 
   NativeBehavior getNativeBehaviorOf(Send node) => nativeBehaviors[node];
@@ -523,30 +520,30 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       matchedTypeConstraints.add(type);
       if (type is SpecialType) {
         if (type == SpecialType.JsObject) {
-          world.registerInstantiatedType(
-              compiler.coreTypes.objectType, registry);
+          backend.registerInstantiatedType(
+              compiler.coreTypes.objectType, world, registry);
         }
         continue;
       }
       if (type is InterfaceType) {
         if (type.element == compiler.intClass) {
-          world.registerInstantiatedType(type, registry);
+          backend.registerInstantiatedType(type, world, registry);
         } else if (type.element == compiler.doubleClass) {
-          world.registerInstantiatedType(type, registry);
+          backend.registerInstantiatedType(type, world, registry);
         } else if (type.element == compiler.numClass) {
-          world.registerInstantiatedType(
-              compiler.coreTypes.doubleType, registry);
-          world.registerInstantiatedType(
-              compiler.coreTypes.intType, registry);
+          backend.registerInstantiatedType(
+              compiler.coreTypes.doubleType, world, registry);
+          backend.registerInstantiatedType(
+              compiler.coreTypes.intType, world, registry);
         } else if (type.element == compiler.stringClass) {
-          world.registerInstantiatedType(type, registry);
+          backend.registerInstantiatedType(type, world, registry);
         } else if (type.element == compiler.nullClass) {
-          world.registerInstantiatedType(type, registry);
+          backend.registerInstantiatedType(type, world, registry);
         } else if (type.element == compiler.boolClass) {
-          world.registerInstantiatedType(type, registry);
+          backend.registerInstantiatedType(type, world, registry);
         } else if (compiler.types.isSubtype(
                       type, backend.listImplementation.rawType)) {
-          world.registerInstantiatedType(type, registry);
+          backend.registerInstantiatedType(type, world, registry);
         }
       }
       assert(type is DartType);

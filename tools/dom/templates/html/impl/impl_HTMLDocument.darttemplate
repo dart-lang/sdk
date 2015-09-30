@@ -199,7 +199,8 @@ $if DARTIUM
 
     while (classMirror.superclass != null) {
       var fullName = classMirror.superclass.qualifiedName;
-      isElement = isElement || (fullName == #dart.dom.html.Element);
+      isElement = isElement ||
+          (fullName == #dart.dom.html.Element || fullName == #dart.dom.svg.Element);
 
       var domLibrary = MirrorSystem.getName(fullName).startsWith('dart.dom.');
       if (jsClassName == null && domLibrary) {
@@ -209,7 +210,7 @@ $if DARTIUM
           var metaDataMirror = metadata.reflectee;
           var metaType = reflectClass(metaDataMirror.runtimeType);
           if (MirrorSystem.getName(metaType.simpleName) == 'DomName' &&
-              metaDataMirror.name.startsWith('HTML')) {
+              (metaDataMirror.name.startsWith('HTML') || metaDataMirror.name.startsWith('SVG'))) {
             jsClassName = metadata.reflectee.name;
           }
         }
@@ -220,6 +221,87 @@ $if DARTIUM
 
     // If we're an element then everything is okay.
     return isElement ? jsClassName : null;
+  }
+
+  /**
+   * Get the class that immediately derived from a class in dart:html or
+   * dart:svg (has an attribute DomName of either HTML* or SVG*).
+   */
+  ClassMirror _getDomSuperClass(ClassMirror classMirror) {
+    var isElement = false;
+
+    while (classMirror.superclass != null) {
+      var fullName = classMirror.superclass.qualifiedName;
+      isElement = isElement || (fullName == #dart.dom.html.Element || fullName == #dart.dom.svg.Element);
+
+      var domLibrary = MirrorSystem.getName(fullName).startsWith('dart.dom.');
+      if (domLibrary) {
+        // Lookup JS class (if not found).
+        var metadatas = classMirror.metadata;
+        for (var metadata in metadatas) {
+          var metaDataMirror = metadata.reflectee;
+          var metaType = reflectClass(metaDataMirror.runtimeType);
+          if (MirrorSystem.getName(metaType.simpleName) == 'DomName' &&
+              (metaDataMirror.name.startsWith('HTML') || metaDataMirror.name.startsWith('SVG'))) {
+            if (isElement) return classMirror;
+          }
+        }
+      }
+
+      classMirror = classMirror.superclass;
+    }
+
+    return null;
+  }
+
+  /**
+   * Does this CustomElement class have:
+   *
+   *   - a created constructor with no arguments?
+   *   - a created constructor with a super.created() initializer?
+   *
+   * e.g.,    MyCustomClass.created() : super.created();
+   */
+  bool _hasCreatedConstructor(ClassMirror classToRegister) {
+    var htmlClassMirror = _getDomSuperClass(classToRegister);
+
+    var classMirror = classToRegister;
+    while (classMirror != null && classMirror != htmlClassMirror) {
+      var createdParametersValid = false;
+      var superCreatedCalled = false;
+      var className = MirrorSystem.getName(classMirror.simpleName);
+      var methodMirror = classMirror.declarations[new Symbol("$className.created")];
+      if (methodMirror != null && methodMirror.isConstructor) {
+        createdParametersValid = true;                // Assume no parameters.
+        if (methodMirror.parameters.length != 0) {
+          // If any parameters each one must be optional.
+          methodMirror.parameters.forEach((parameter) {
+            createdParametersValid = createdParametersValid && parameter.isOptional;
+          });
+        }
+
+        // Get the created constructor source and look at the initializer;
+        // Must call super.created() if not its as an error.
+        var createdSource = methodMirror.source?.replaceAll('\n', ' ');
+        RegExp regExp = new RegExp(r":(.*?)(;|}|\n)");
+        var match = regExp.firstMatch(createdSource);
+        superCreatedCalled = match.input.substring(match.start,match.end).contains("super.created(");
+      }
+
+      if (!superCreatedCalled) {
+        throw new DomException.jsInterop('created constructor initializer must call super.created()');
+      } else if (!createdParametersValid) {
+        throw new DomException.jsInterop('created constructor must have no parameters');
+      }
+
+      classMirror = classMirror.superclass;
+      while (classMirror != classMirror.mixin) {
+        // Skip the mixins.
+        classMirror = classMirror.superclass;
+      }
+    }
+
+    return true;
   }
 $endif
 
@@ -281,63 +363,71 @@ $else
       throw new DomException.jsInterop("HierarchyRequestError: Only HTML elements can be customized.");
     }
 
-    // Start the hookup the JS way create an <x-foo> element that extends the
-    // <x-base> custom element. Inherit its prototype and signal what tag is
-    // inherited:
-    //
-    //     var myProto = Object.create(HTMLElement.prototype);
-    //     var myElement = document.registerElement('x-foo', {prototype: myProto});
-    var baseElement = js.context[jsClassName];
-    if (baseElement == null) {
-      // Couldn't find the HTML element so use a generic one.
-      baseElement = js.context['HTMLElement'];
+    if (_hasCreatedConstructor(classMirror)) {
+      // Start the hookup the JS way create an <x-foo> element that extends the
+      // <x-base> custom element. Inherit its prototype and signal what tag is
+      // inherited:
+      //
+      //     var myProto = Object.create(HTMLElement.prototype);
+      //     var myElement = document.registerElement('x-foo', {prototype: myProto});
+      var baseElement = js.context[jsClassName];
+      if (baseElement == null) {
+        // Couldn't find the HTML element so use a generic one.
+        baseElement = js.context['HTMLElement'];
+      }
+      var elemProto = js.context['Object'].callMethod("create", [baseElement['prototype']]);
+
+      // TODO(terry): Hack to stop recursion re-creating custom element when the
+      //              created() constructor of the custom element does e.g.,
+      //
+      //                  MyElement.created() : super.created() {
+      //                    this.innerHtml = "<b>I'm an x-foo-with-markup!</b>";
+      //                  }
+      //
+      //              sanitizing causes custom element to created recursively
+      //              until stack overflow.
+      //
+      //              See https://github.com/dart-lang/sdk/issues/23666
+      int creating = 0;
+      elemProto['createdCallback'] = new js.JsFunction.withThis(($this) {
+        if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
+          creating++;
+
+          var dartClass;
+          try {
+            dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
+          } catch (e) {
+            dartClass = HtmlElement.internalCreateHtmlElement();
+            throw e;
+          } finally {
+            // Need to remember the Dart class that was created for this custom so
+            // return it and setup the blink_jsObject to the $this that we'll be working
+            // with as we talk to blink. 
+            $this['dart_class'] = dartClass;
+
+            creating--;
+          }
+        }
+      });
+      elemProto['attributeChangedCallback'] = new js.JsFunction.withThis(($this, attrName, oldVal, newVal) {
+        if ($this["dart_class"] != null && $this['dart_class'].attributeChanged != null) {
+          $this['dart_class'].attributeChanged(attrName, oldVal, newVal);
+        }
+      });
+      elemProto['attachedCallback'] = new js.JsFunction.withThis(($this) {
+        if ($this["dart_class"] != null && $this['dart_class'].attached != null) {
+          $this['dart_class'].attached();
+        }
+      });
+      elemProto['detachedCallback'] = new js.JsFunction.withThis(($this) {
+        if ($this["dart_class"] != null && $this['dart_class'].detached != null) {
+          $this['dart_class'].detached();
+        }
+      });
+      // document.registerElement('x-foo', {prototype: elemProto, extends: extendsTag});
+      var jsMap = new js.JsObject.jsify({'prototype': elemProto, 'extends': extendsTag});
+      js.context['document'].callMethod('registerElement', [tag, jsMap]);
     }
-    var elemProto = js.context['Object'].callMethod("create", [baseElement['prototype']]);
-
-    // TODO(terry): Hack to stop recursion re-creating custom element when the
-    //              created() constructor of the custom element does e.g.,
-    //
-    //                  MyElement.created() : super.created() {
-    //                    this.innerHtml = "<b>I'm an x-foo-with-markup!</b>";
-    //                  }
-    //
-    //              sanitizing causes custom element to created recursively
-    //              until stack overflow.
-    //
-    //              See https://github.com/dart-lang/sdk/issues/23666
-    int creating = 0;
-    elemProto['createdCallback'] = new js.JsFunction.withThis(($this) {
-      if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
-        creating++;
-
-        var dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
-
-        // Need to remember the Dart class that was created for this custom so
-        // return it and setup the blink_jsObject to the $this that we'll be working
-        // with as we talk to blink. 
-        $this['dart_class'] = dartClass;
-
-        creating--;
-      }
-    });
-    elemProto['attributeChangedCallback'] = new js.JsFunction.withThis(($this, attrName, oldVal, newVal) {
-      if ($this["dart_class"] != null && $this['dart_class'].attributeChanged != null) {
-        $this['dart_class'].attributeChanged(attrName, oldVal, newVal);
-      }
-    });
-    elemProto['attachedCallback'] = new js.JsFunction.withThis(($this) {
-      if ($this["dart_class"] != null && $this['dart_class'].attached != null) {
-        $this['dart_class'].attached();
-      }
-    });
-    elemProto['detachedCallback'] = new js.JsFunction.withThis(($this) {
-      if ($this["dart_class"] != null && $this['dart_class'].detached != null) {
-        $this['dart_class'].detached();
-      }
-    });
-    // document.registerElement('x-foo', {prototype: elemProto, extends: extendsTag});
-    var jsMap = new js.JsObject.jsify({'prototype': elemProto, 'extends': extendsTag});
-    js.context['document'].callMethod('registerElement', [tag, jsMap]);
 $endif
   }
 

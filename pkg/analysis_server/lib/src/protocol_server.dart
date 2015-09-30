@@ -213,9 +213,8 @@ Location newLocation_fromElement(engine.Element element) {
   if (context == null || source == null) {
     return null;
   }
-  String name = element.displayName;
   int offset = element.nameOffset;
-  int length = name != null ? name.length : 0;
+  int length = element.nameLength;
   if (element is engine.CompilationUnitElement) {
     offset = 0;
     length = 0;

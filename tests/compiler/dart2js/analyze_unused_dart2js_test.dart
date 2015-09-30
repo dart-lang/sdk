@@ -71,8 +71,13 @@ const Map<String, List<String>> WHITE_LIST = const {
 void main() {
   var uri = currentDirectory.resolve(
       'pkg/compiler/lib/src/use_unused_api.dart');
-  asyncTest(() => analyze([uri], WHITE_LIST,
-      analyzeAll: false, checkResults: checkResults));
+  asyncTest(() => analyze(
+      [uri],
+      // TODO(johnniwinther): Use [WHITE_LIST] again when
+      // [Compiler.reportUnusedCode] is reenabled.
+      const {}, // WHITE_LIST
+      analyzeAll: false,
+      checkResults: checkResults));
 }
 
 bool checkResults(Compiler compiler, CollectingDiagnosticHandler handler) {
@@ -81,20 +86,23 @@ bool checkResults(Compiler compiler, CollectingDiagnosticHandler handler) {
   void checkLive(member) {
     if (member.isFunction) {
       if (compiler.enqueuer.resolution.hasBeenResolved(member)) {
-        compiler.reportHint(member, MessageKind.GENERIC,
-            {'text': "Helper function in production code '$member'."});
+        compiler.reportHint(compiler.createMessage(
+            member, MessageKind.GENERIC,
+            {'text': "Helper function in production code '$member'."}));
       }
     } else if (member.isClass) {
       if (member.isResolved) {
-        compiler.reportHint(member, MessageKind.GENERIC,
-            {'text': "Helper class in production code '$member'."});
+        compiler.reportHint(compiler.createMessage(
+            member, MessageKind.GENERIC,
+            {'text': "Helper class in production code '$member'."}));
       } else {
         member.forEachLocalMember(checkLive);
       }
     } else if (member.isTypedef) {
       if (member.isResolved) {
-        compiler.reportHint(member, MessageKind.GENERIC,
-            {'text': "Helper typedef in production code '$member'."});
+        compiler.reportHint(compiler.createMessage(
+            member, MessageKind.GENERIC,
+            {'text': "Helper typedef in production code '$member'."}));
       }
     }
   }

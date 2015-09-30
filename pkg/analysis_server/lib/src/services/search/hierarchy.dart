@@ -132,27 +132,14 @@ List<Element> getMembers(ClassElement clazz) {
  */
 Future<Set<ClassElement>> getSubClasses(
     SearchEngine searchEngine, ClassElement seed) {
-  Set<ClassElement> subs = new HashSet<ClassElement>();
-  // prepare queue
-  List<ClassElement> queue = new List<ClassElement>();
-  queue.add(seed);
-  // schedule subclasss search
-  addSubClasses() {
-    // add direct subclasses of the next class
-    while (queue.isNotEmpty) {
-      ClassElement clazz = queue.removeLast();
-      if (subs.add(clazz)) {
-        return getDirectSubClasses(searchEngine, clazz).then((directSubs) {
-          queue.addAll(directSubs);
-          return new Future(addSubClasses);
-        });
-      }
+  return searchEngine.searchAllSubtypes(seed).then((List<SearchMatch> matches) {
+    Set<ClassElement> ancestors = new HashSet<ClassElement>();
+    for (SearchMatch match in matches) {
+      ClassElement ancestor = match.element;
+      ancestors.add(ancestor);
     }
-    // done
-    subs.remove(seed);
-    return subs;
-  }
-  return new Future(addSubClasses);
+    return ancestors;
+  });
 }
 
 /**

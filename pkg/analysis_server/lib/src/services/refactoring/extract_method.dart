@@ -594,7 +594,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
     // maybe ends with "return" statement
     if (_selectionStatements != null) {
-      _ReturnTypeComputer returnTypeComputer = new _ReturnTypeComputer();
+      _ReturnTypeComputer returnTypeComputer = new _ReturnTypeComputer(context);
       _selectionStatements.forEach((statement) {
         statement.accept(returnTypeComputer);
       });
@@ -1158,7 +1158,11 @@ class _Occurrence {
 }
 
 class _ReturnTypeComputer extends RecursiveAstVisitor {
+  final AnalysisContext context;
+
   DartType returnType;
+
+  _ReturnTypeComputer(this.context);
 
   @override
   visitBlockFunctionBody(BlockFunctionBody node) {}
@@ -1182,7 +1186,8 @@ class _ReturnTypeComputer extends RecursiveAstVisitor {
       if (returnType is InterfaceType && type is InterfaceType) {
         returnType = InterfaceType.getSmartLeastUpperBound(returnType, type);
       } else {
-        returnType = returnType.getLeastUpperBound(type);
+        returnType = context.typeSystem
+            .getLeastUpperBound(context.typeProvider, returnType, type);
       }
     }
   }

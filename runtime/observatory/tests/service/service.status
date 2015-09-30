@@ -19,4 +19,4 @@ evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
 developer_extension_test: SkipByDesign
 
 [ $arch == arm ]
-process_service_test: Fail # Issue 24344
+process_service_test: Pass, Fail # Issue 24344

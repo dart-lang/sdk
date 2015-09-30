@@ -224,6 +224,12 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     ArgumentsDescriptor args_desc(args_desc_array);
     const Class& receiver_class = Class::Handle(Z,
         isolate()->class_table()->At(class_ids[0]));
+    if (!receiver_class.is_finalized()) {
+      // Do not eagerly finalize classes. ResolveDynamicForReceiverClass can
+      // cause class finalization, since callee's receiver class may not be
+      // finalized yet.
+      return false;
+    }
     const Function& function = Function::Handle(Z,
         Resolver::ResolveDynamicForReceiverClass(
             receiver_class,
@@ -4002,7 +4008,8 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(
         TypeArguments::Handle(Z),
         type_class,
         TypeArguments::Handle(Z),
-        NULL);
+        NULL,
+        Heap::kOld);
     results->Add(cls.id());
     results->Add(is_subtype);
     if (prev.IsNull()) {
@@ -4093,7 +4100,8 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
     const bool smi_is_subtype = cls.IsSubtypeOf(TypeArguments::Handle(),
                                                 type_class,
                                                 TypeArguments::Handle(),
-                                                NULL);
+                                                NULL,
+                                                Heap::kOld);
     results->Add((*results)[results->length() - 2]);
     results->Add((*results)[results->length() - 2]);
     for (intptr_t i = results->length() - 3; i > 1; --i) {

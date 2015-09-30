@@ -129,7 +129,7 @@ void RawClass::WriteTo(SnapshotWriter* writer,
     writer->Write<uint16_t>(ptr()->state_bits_);
 
     // Write out all the object pointer fields.
-    SnapshotWriterVisitor visitor(writer);
+    SnapshotWriterVisitor visitor(writer, kAsReference);
     visitor.VisitPointers(from(), to());
   } else {
     if (writer->can_send_any_object() ||
@@ -185,7 +185,7 @@ void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
   writer->Write<int32_t>(ptr()->token_pos_);
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
 
@@ -271,7 +271,7 @@ void RawType::WriteTo(SnapshotWriter* writer,
   // the type object when reading it back we should write out all the fields
   // inline and not as references.
   ASSERT(ptr()->type_class_ != Object::null());
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
 
@@ -309,7 +309,7 @@ void RawTypeRef::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
 
@@ -360,7 +360,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
 
@@ -398,7 +398,7 @@ void RawBoundedType::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
 
@@ -523,7 +523,7 @@ void RawPatchClass::WriteTo(SnapshotWriter* writer,
   writer->WriteVMIsolateObject(kPatchClassCid);
   writer->WriteTags(writer->GetObjectTags(this));
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
 
@@ -541,7 +541,9 @@ RawClosureData* ClosureData::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &data, kIsDeserialized);
 
   // Set all the object fields.
-  READ_OBJECT_FIELDS(data, data.raw()->from(), data.raw()->to(), kAsReference);
+  READ_OBJECT_FIELDS(data,
+                     data.raw()->from(), data.raw()->to(),
+                     kAsInlinedObject);
 
   return data.raw();
 }
@@ -597,7 +599,9 @@ RawRedirectionData* RedirectionData::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &data, kIsDeserialized);
 
   // Set all the object fields.
-  READ_OBJECT_FIELDS(data, data.raw()->from(), data.raw()->to(), kAsReference);
+  READ_OBJECT_FIELDS(data,
+                     data.raw()->from(), data.raw()->to(),
+                     kAsReference);
 
   return data.raw();
 }
@@ -617,7 +621,7 @@ void RawRedirectionData::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
 
@@ -648,25 +652,26 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
     func.set_optimized_call_site_count(reader->Read<uint16_t>());
 
     // Set all the object fields.
-    bool is_optimized = func.usage_counter() != 0;
-    RawObject** toobj = reader->snapshot_code() ? func.raw()->to() :
-        (is_optimized ? func.raw()->to_optimized_snapshot() :
-         func.raw()->to_snapshot());
     READ_OBJECT_FIELDS(func,
-                       func.raw()->from(), toobj,
-                       kAsInlinedObject);
-    if (!reader->snapshot_code()) {
-      // Initialize all fields that are not part of the snapshot.
-      if (!is_optimized) {
+                       func.raw()->from(), func.raw()->to_snapshot(),
+                       kAsReference);
+    // Initialize all fields that are not part of the snapshot.
+    if (reader->snapshot_code()) {
+      func.ClearICDataArray();
+      func.ClearCode();
+      // Read the code object and fixup entry point.
+      (*reader->CodeHandle()) ^= reader->ReadObjectImpl(kAsInlinedObject);
+      func.SetInstructions(*reader->CodeHandle());
+    } else {
+      bool is_optimized = func.usage_counter() != 0;
+      if (is_optimized) {
+        // Read the ic data array as the function is an optimized one.
+        (*reader->ArrayHandle()) ^= reader->ReadObjectImpl(kAsReference);
+        func.set_ic_data_array(*reader->ArrayHandle());
+      } else {
         func.ClearICDataArray();
       }
       func.ClearCode();
-    } else {
-      // Fix entry point.
-      (*reader->CodeHandle()) = func.CurrentCode();
-      uword new_entry = (*reader->CodeHandle()).EntryPoint();
-      ASSERT(Dart::vm_isolate()->heap()->CodeContains(new_entry));
-      func.StoreNonPointer(&func.raw_ptr()->entry_point_, new_entry);
     }
     return func.raw();
   } else {
@@ -723,11 +728,19 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
     writer->Write<uint16_t>(ptr()->optimized_call_site_count_);
 
     // Write out all the object pointer fields.
-    RawObject** toobj =
-        writer->snapshot_code() ? to() :
-        (is_optimized ? to_optimized_snapshot() : to_snapshot());
-    SnapshotWriterVisitor visitor(writer, kAsInlinedObject);
-    visitor.VisitPointers(from(), toobj);
+    SnapshotWriterVisitor visitor(writer, kAsReference);
+    visitor.VisitPointers(from(), to_snapshot());
+    if (writer->snapshot_code()) {
+      ASSERT(ptr()->ic_data_array_ == Array::null());
+      ASSERT((ptr()->code_ == ptr()->unoptimized_code_) ||
+             (ptr()->unoptimized_code_ == Code::null()));
+      // Write out the code object as we are generating a precompiled snapshot.
+      writer->WriteObjectImpl(ptr()->code_, kAsInlinedObject);
+    } else if (is_optimized) {
+      // Write out the ic data array as the function is optimized or
+      // we are generating a precompiled snapshot.
+      writer->WriteObjectImpl(ptr()->ic_data_array_, kAsReference);
+    }
   } else {
     writer->WriteFunctionId(this, owner_is_class);
   }
@@ -855,7 +868,7 @@ void RawLiteralToken::WriteTo(SnapshotWriter* writer,
   writer->Write<int32_t>(ptr()->kind_);
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
 
@@ -975,7 +988,7 @@ void RawScript::WriteTo(SnapshotWriter* writer,
   writer->Write<int8_t>(ptr()->kind_);
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to_snapshot());
 }
 
@@ -1087,7 +1100,7 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
 
     // Write out all the object pointer fields.
     RawObject** toobj = (kind == Snapshot::kFull) ? to() : to_snapshot();
-    SnapshotWriterVisitor visitor(writer);
+    SnapshotWriterVisitor visitor(writer, kAsReference);
     visitor.VisitPointers(from(), toobj);
   }
 }
@@ -1140,7 +1153,7 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
   writer->Write<bool>(ptr()->is_loaded_);
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
 
@@ -1178,7 +1191,7 @@ void RawNamespace::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
 
@@ -1200,7 +1213,7 @@ RawCode* Code::ReadFrom(SnapshotReader* reader,
   // Set all the object fields.
   READ_OBJECT_FIELDS(result,
                      result.raw()->from(), result.raw()->to(),
-                     kAsInlinedObject);
+                     kAsReference);
 
   // Fix entry point.
   uword new_entry = result.EntryPoint();
@@ -1237,7 +1250,7 @@ void RawCode::WriteTo(SnapshotWriter* writer,
   writer->Write<int32_t>(ptr()->lazy_deopt_pc_offset_);
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer, kAsInlinedObject);
+  SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 
   writer->SetInstructionsCode(ptr()->instructions_, this);
@@ -1309,7 +1322,8 @@ RawObjectPool* ObjectPool::ReadFrom(SnapshotReader* reader,
     *reinterpret_cast<int8_t*>(info_array.DataAddr(i)) = entry_type;
     switch (entry_type) {
       case ObjectPool::kTaggedObject: {
-        (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
+        (*reader->PassiveObjectHandle()) =
+            reader->ReadObjectImpl(kAsInlinedObject);
         result.SetObjectAt(i, *(reader->PassiveObjectHandle()));
         break;
       }
@@ -1358,7 +1372,7 @@ void RawObjectPool::WriteTo(SnapshotWriter* writer,
     Entry& entry = ptr()->data()[i];
     switch (entry_type) {
       case ObjectPool::kTaggedObject: {
-        writer->WriteObjectImpl(entry.raw_obj_, kAsReference);
+        writer->WriteObjectImpl(entry.raw_obj_, kAsInlinedObject);
         break;
       }
       case ObjectPool::kImmediate: {
@@ -1622,7 +1636,7 @@ void RawContext::WriteTo(SnapshotWriter* writer,
   writer->Write<int32_t>(num_variables);
   if (num_variables != 0) {
     // Write out all the object pointer fields.
-    SnapshotWriterVisitor visitor(writer);
+    SnapshotWriterVisitor visitor(writer, kAsReference);
     visitor.VisitPointers(from(), to(num_variables));
   }
 }
@@ -1706,7 +1720,7 @@ RawICData* ICData::ReadFrom(SnapshotReader* reader,
   // Set all the object fields.
   READ_OBJECT_FIELDS(result,
                      result.raw()->from(), result.raw()->to(),
-                     kAsReference);
+                     kAsInlinedObject);
 
   return result.raw();
 }
@@ -1729,7 +1743,7 @@ void RawICData::WriteTo(SnapshotWriter* writer,
   writer->Write<uint32_t>(ptr()->state_bits_);
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsInlinedObject);
   visitor.VisitPointers(from(), to());
 }
 
@@ -1774,7 +1788,7 @@ void RawMegamorphicCache::WriteTo(SnapshotWriter* writer,
   writer->Write<int32_t>(ptr()->filled_entry_count_);
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
 
@@ -1869,7 +1883,7 @@ void RawApiError::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
 
@@ -1915,7 +1929,7 @@ void RawLanguageError::WriteTo(SnapshotWriter* writer,
   writer->Write<uint8_t>(ptr()->kind_);
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
 
@@ -1947,7 +1961,7 @@ void RawUnhandledException::WriteTo(SnapshotWriter* writer,
   writer->WriteVMIsolateObject(kUnhandledExceptionCid);
   writer->WriteTags(writer->GetObjectTags(this));
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
 
@@ -2117,7 +2131,7 @@ void RawBigint::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer, false);
+  SnapshotWriterVisitor visitor(writer, kAsInlinedObject);
   visitor.VisitPointers(from(), to());
 }
 
@@ -2230,7 +2244,7 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
   intptr_t len = reader->ReadSmiValue();
   intptr_t hash = reader->ReadSmiValue();
-  String& str_obj = String::Handle(reader->zone(), String::null());
+  String& str_obj = String::ZoneHandle(reader->zone(), String::null());
 
   if (kind == Snapshot::kFull) {
     // We currently only expect the Dart mutator to read snapshots.
@@ -2264,7 +2278,7 @@ RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
   intptr_t len = reader->ReadSmiValue();
   intptr_t hash = reader->ReadSmiValue();
-  String& str_obj = String::Handle(reader->zone(), String::null());
+  String& str_obj = String::ZoneHandle(reader->zone(), String::null());
 
   if (kind == Snapshot::kFull) {
     RawTwoByteString* obj = reader->NewTwoByteString(len);
@@ -2867,7 +2881,7 @@ RawExternalTypedData* ExternalTypedData::ReadFrom(SnapshotReader* reader,
   intptr_t cid = RawObject::ClassIdTag::decode(tags);
   intptr_t length = reader->ReadSmiValue();
   uint8_t* data = reinterpret_cast<uint8_t*>(reader->ReadRawPointerValue());
-  ExternalTypedData& obj = ExternalTypedData::Handle(
+  ExternalTypedData& obj = ExternalTypedData::ZoneHandle(
       ExternalTypedData::New(cid, data, length));
   reader->AddBackRef(object_id, &obj, kIsDeserialized);
   void* peer = reinterpret_cast<void*>(reader->ReadRawPointerValue());
@@ -3142,7 +3156,7 @@ void RawStacktrace::WriteTo(SnapshotWriter* writer,
     writer->Write(ptr()->expand_inlined_);
 
     // Write out all the object pointer fields.
-    SnapshotWriterVisitor visitor(writer);
+    SnapshotWriterVisitor visitor(writer, kAsReference);
     visitor.VisitPointers(from(), to());
   } else {
     // Stacktraces are not allowed in other snapshot forms.
@@ -3234,7 +3248,7 @@ void RawWeakProperty::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
+  SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
 

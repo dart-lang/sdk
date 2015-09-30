@@ -187,19 +187,9 @@ bool _isInScopeOf(LetCont letCont, Definition definition) {
 void _moveIntoScopeOf(LetCont letCont, Definition definition) {
   if (_isInScopeOf(letCont, definition)) return;
 
-  // Remove the continuation binding from its current spot.
-  InteriorNode parent = letCont.parent;
-  parent.body = letCont.body;
-  letCont.body.parent = parent;
-
-  // Insert it just below the binding of definition.
   InteriorNode binding = definition.parent;
-
-  letCont.body = binding.body;
-  binding.body.parent = letCont;
-
-  binding.body = letCont;
-  letCont.parent = binding;
+  letCont.remove();
+  letCont.insertBelow(binding);
 }
 
 /// Ensures [continuation] has its own LetCont binding by creating
@@ -210,10 +200,8 @@ LetCont _makeUniqueBinding(Continuation continuation) {
   LetCont letCont = continuation.parent;
   if (letCont.continuations.length == 1) return letCont;
   letCont.continuations.remove(continuation);
-  LetCont newBinding = new LetCont(continuation, letCont.body);
-  newBinding.body.parent = newBinding;
-  newBinding.parent = letCont;
-  letCont.body = newBinding;
+  LetCont newBinding = new LetCont(continuation, null);
   continuation.parent = newBinding;
+  newBinding.insertBelow(letCont);
   return newBinding;
 }

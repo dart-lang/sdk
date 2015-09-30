@@ -22,14 +22,13 @@ class RemoveRefinements extends RecursiveVisitor implements Pass {
 
   @override
   Expression traverseLetPrim(LetPrim node) {
+    Expression next = node.body;
     if (node.primitive is Refinement) {
       Refinement refinement = node.primitive;
       refinement.value.definition.substituteFor(refinement);
-      refinement.value.unlink();
-      InteriorNode parent = node.parent;
-      parent.body = node.body;
-      node.body.parent = parent;
+      refinement.destroy();
+      node.remove();
     }
-    return node.body;
+    return next;
   }
 }

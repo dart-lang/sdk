@@ -20,7 +20,7 @@ class SsaOptimizerTask extends CompilerTask {
 
   void optimize(CodegenWorkItem work, HGraph graph) {
     void runPhase(OptimizationPhase phase) {
-      phase.visitGraph(graph);
+      measureSubtask(phase.name, () => phase.visitGraph(graph));
       compiler.tracer.traceGraph(phase.name, graph);
       assert(graph.isValid());
     }
@@ -1302,6 +1302,13 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor {
     HInstruction condition = instruction.condition;
     if (condition.isConstant()) {
       if (condition.isConstantTrue()) {
+        markBlockLive(instruction.thenBlock);
+      } else {
+        markBlockLive(instruction.elseBlock);
+      }
+    } else if (condition.isValue()) {
+      ValueTypeMask valueType = condition.instructionType;
+      if (valueType.value == true) {
         markBlockLive(instruction.thenBlock);
       } else {
         markBlockLive(instruction.elseBlock);

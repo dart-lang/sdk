@@ -3932,7 +3932,8 @@ TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   Function& invocation_dispatcher = Function::Handle();
   invocation_dispatcher ^=
       cls.GetInvocationDispatcher(invocation_dispatcher_name, args_desc,
-                                  RawFunction::kNoSuchMethodDispatcher);
+                                  RawFunction::kNoSuchMethodDispatcher,
+                                  true /* create_if_absent */);
   EXPECT(!invocation_dispatcher.IsNull());
   // Get index to function.
   intptr_t invocation_dispatcher_index =
@@ -4755,6 +4756,38 @@ TEST_CASE(Symbols_FromConcatAll) {
                               &empty,
                               &Symbols::isPaused() };
     CheckConcatAll(data, 3);
+  }
+}
+
+
+struct TestResult {
+  const char* in;
+  const char* out;
+};
+
+
+TEST_CASE(String_IdentifierPrettyName) {
+  TestResult tests[] = {
+    {"(dynamic, dynamic) => void", "(dynamic, dynamic) => void"},
+    {"_List@915557746", "_List"},
+    {"_HashMap@600006304<K, V>(dynamic) => V", "_HashMap<K, V>(dynamic) => V"},
+    {"set:foo", "foo="},
+    {"get:foo", "foo"},
+    {"_ReceivePortImpl@709387912", "_ReceivePortImpl"},
+    {"_ReceivePortImpl@709387912._internal@709387912",
+        "_ReceivePortImpl._internal"},
+    {"_C@6328321&_E@6328321&_F@6328321", "_C&_E&_F"},
+    {"List.", "List"},
+    {"get:foo@6328321", "foo"},
+    {"_MyClass@6328321.", "_MyClass"},
+    {"_MyClass@6328321.named", "_MyClass.named"},
+  };
+  String& test = String::Handle();
+  String& result = String::Handle();
+  for (size_t i = 0; i < ARRAY_SIZE(tests); i++) {
+    test = String::New(tests[i].in);
+    result = String::IdentifierPrettyName(test);
+    EXPECT_STREQ(tests[i].out, result.ToCString());
   }
 }
 

@@ -153,9 +153,21 @@ abstract class Backend {
                                  Enqueuer enqueuer,
                                  Registry registry) {}
 
-  /// Called to notify to the backend that an interface type has been
-  /// instantiated.
-  void registerInstantiatedType(InterfaceType type, Registry registry) {}
+  /// Called to notify to the backend that a class is implemented by an
+  /// instantiated class.
+  void registerImplementedClass(ClassElement cls,
+                                Enqueuer enqueuer,
+                                Registry registry) {}
+
+  /// Called to instruct to the backend register [type] as instantiated on
+  /// [enqueuer].
+  void registerInstantiatedType(InterfaceType type,
+                                Enqueuer enqueuer,
+                                Registry registry,
+                                {bool mirrorUsage: false}) {
+    registry.registerDependency(type.element);
+    enqueuer.registerInstantiatedType(type, mirrorUsage: mirrorUsage);
+  }
 
   /// Register an is check to the backend.
   void registerIsCheckForCodegen(DartType type,
@@ -176,14 +188,14 @@ abstract class Backend {
       Enqueuer enqueuer,
       Registry registry) {}
 
-  /**
-   * Call this to register that a getter exists for a function on an
-   * instantiated generic class.
-   */
+  /// Called to instruct the backend to register that a closure exists for a
+  /// function on an instantiated generic class.
   void registerClosureWithFreeTypeVariables(
       Element closure,
       Enqueuer enqueuer,
-      Registry registry) {}
+      Registry registry) {
+    enqueuer.universe.closuresWithFreeTypeVariables.add(closure);
+  }
 
   /// Call this to register that a member has been closurized.
   void registerBoundClosure(Enqueuer enqueuer) {}

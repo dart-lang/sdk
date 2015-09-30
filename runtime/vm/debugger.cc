@@ -15,6 +15,7 @@
 #include "vm/globals.h"
 #include "vm/longjump.h"
 #include "vm/json_stream.h"
+#include "vm/message_handler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
@@ -41,6 +42,8 @@ DEFINE_FLAG(bool, steal_breakpoints, false,
             "are sent to the embedder and use a generic VM breakpoint "
             "handler instead.  This handler dispatches breakpoints to "
             "the VM service.");
+
+DECLARE_FLAG(bool, trace_isolates);
 
 
 Debugger::EventHandler* Debugger::event_handler_ = NULL;
@@ -320,8 +323,9 @@ void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
     ASSERT(event.isolate_id() != ILLEGAL_ISOLATE_ID);
     if (type == DebuggerEvent::kIsolateInterrupted) {
       DebuggerStackTrace* trace = CollectStackTrace();
-      ASSERT(trace->Length() > 0);
-      event.set_top_frame(trace->FrameAt(0));
+      if (trace->Length() > 0) {
+        event.set_top_frame(trace->FrameAt(0));
+      }
       ASSERT(stack_trace_ == NULL);
       stack_trace_ = trace;
       resume_action_ = kContinue;
@@ -335,11 +339,31 @@ void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
 }
 
 
-void Debugger::SignalIsolateInterrupted() {
+RawError* Debugger::SignalIsolateInterrupted() {
   if (HasEventHandler()) {
-    Debugger* debugger = Isolate::Current()->debugger();
-    debugger->SignalIsolateEvent(DebuggerEvent::kIsolateInterrupted);
+    SignalIsolateEvent(DebuggerEvent::kIsolateInterrupted);
   }
+  Dart_IsolateInterruptCallback callback = isolate_->InterruptCallback();
+  if (callback != NULL) {
+    if (!(*callback)()) {
+      if (FLAG_trace_isolates) {
+        OS::Print("[!] Embedder api: terminating isolate:\n"
+                  "\tisolate:    %s\n", isolate_->name());
+      }
+      // TODO(turnidge): We should give the message handler a way to
+      // detect when an isolate is unwinding.
+      isolate_->message_handler()->set_pause_on_exit(false);
+      const String& msg =
+          String::Handle(String::New("isolate terminated by embedder"));
+      return UnwindError::New(msg);
+    }
+  }
+
+  // If any error occurred while in the debug message loop, return it here.
+  const Error& error =
+      Error::Handle(isolate_, isolate_->object_store()->sticky_error());
+  isolate_->object_store()->clear_sticky_error();
+  return error.raw();
 }
 
 
@@ -685,9 +709,14 @@ RawObject* ActivationFrame::GetAsyncOperation() {
   for (intptr_t i = 0; i < var_desc_len; i++) {
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors_.GetInfo(i, &var_info);
-    const int8_t kind = var_info.kind();
-    if (kind == RawLocalVarDescriptors::kAsyncOperation) {
-      return GetContextVar(var_info.scope_id, var_info.index());
+    if (var_descriptors_.GetName(i) == Symbols::AsyncOperation().raw()) {
+      const int8_t kind = var_info.kind();
+      if (kind == RawLocalVarDescriptors::kStackVar) {
+        return GetStackVar(var_info.index());
+      } else {
+        ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+        return GetContextVar(var_info.scope_id, var_info.index());
+      }
     }
   }
   return Object::null();
@@ -908,8 +937,7 @@ void ActivationFrame::VariableAt(intptr_t i,
   intptr_t desc_index = desc_indices_[i];
   ASSERT(name != NULL);
 
-  const String& tmp = String::Handle(var_descriptors_.GetName(desc_index));
-  *name ^= String::IdentifierPrettyName(tmp);
+  *name = var_descriptors_.GetName(desc_index);
 
   RawLocalVarDescriptors::VarInfo var_info;
   var_descriptors_.GetInfo(desc_index, &var_info);
@@ -1071,19 +1099,21 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj,
     JSONArray jsvars(jsobj, "vars");
     const int num_vars = NumLocalVariables();
     for (intptr_t v = 0; v < num_vars; v++) {
-      JSONObject jsvar(&jsvars);
       String& var_name = String::Handle();
       Instance& var_value = Instance::Handle();
       intptr_t token_pos;
       intptr_t end_token_pos;
       VariableAt(v, &var_name, &token_pos, &end_token_pos, &var_value);
-      jsvar.AddProperty("name", var_name.ToCString());
-      jsvar.AddProperty("value", var_value, !full);
-      // TODO(turnidge): Do we really want to provide this on every
-      // stack dump?  Should be associated with the function object, I
-      // think, and not the stack frame.
-      jsvar.AddProperty("_tokenPos", token_pos);
-      jsvar.AddProperty("_endTokenPos", end_token_pos);
+      if (var_name.raw() != Symbols::AsyncOperation().raw()) {
+        JSONObject jsvar(&jsvars);
+        jsvar.AddProperty("name", var_name.ToCString());
+        jsvar.AddProperty("value", var_value, !full);
+        // TODO(turnidge): Do we really want to provide this on every
+        // stack dump?  Should be associated with the function object, I
+        // think, and not the stack frame.
+        jsvar.AddProperty("_tokenPos", token_pos);
+        jsvar.AddProperty("_endTokenPos", end_token_pos);
+      }
     }
   }
 }
@@ -2539,6 +2569,8 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
   event.set_breakpoint(bpt);
   Object& closure_or_null = Object::Handle(top_frame->GetAsyncOperation());
   if (!closure_or_null.IsNull()) {
+    ASSERT(closure_or_null.IsInstance());
+    ASSERT(Instance::Cast(closure_or_null).IsClosure());
     event.set_async_continuation(&closure_or_null);
     const Script& script = Script::Handle(top_frame->SourceScript());
     const TokenStream& tokens = TokenStream::Handle(script.tokens());
@@ -2553,13 +2585,15 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
 }
 
 
-void Debugger::DebuggerStepCallback() {
+RawError* Debugger::DebuggerStepCallback() {
   ASSERT(isolate_->single_step());
   // We can't get here unless the debugger event handler enabled
   // single stepping.
   ASSERT(HasEventHandler());
   // Don't pause recursively.
-  if (IsPaused()) return;
+  if (IsPaused()) {
+    return Error::null();
+  }
 
   // Check whether we are in a Dart function that the user is
   // interested in. If we saved the frame pointer of a stack frame
@@ -2575,7 +2609,7 @@ void Debugger::DebuggerStepCallback() {
     if (stepping_fp_ > frame->fp()) {
       // We are in a callee of the frame we're interested in.
       // Ignore this stepping break.
-      return;
+      return Error::null();
     } else if (frame->fp() > stepping_fp_) {
       // We returned from the "interesting frame", there can be no more
       // stepping breaks for it. Pause at the next appropriate location
@@ -2585,16 +2619,16 @@ void Debugger::DebuggerStepCallback() {
   }
 
   if (!frame->IsDebuggable()) {
-    return;
+    return Error::null();
   }
   if (frame->TokenPos() == Scanner::kNoSourcePos) {
-    return;
+    return Error::null();
   }
 
   // Don't pause for a single step if there is a breakpoint set
   // at this location.
   if (HasActiveBreakpoint(frame->pc())) {
-    return;
+    return Error::null();
   }
 
   if (FLAG_verbose_debug) {
@@ -2610,15 +2644,21 @@ void Debugger::DebuggerStepCallback() {
   SignalPausedEvent(frame, NULL);
   HandleSteppingRequest(stack_trace_);
   stack_trace_ = NULL;
+
+  // If any error occurred while in the debug message loop, return it here.
+  const Error& error =
+      Error::Handle(isolate_, isolate_->object_store()->sticky_error());
+  isolate_->object_store()->clear_sticky_error();
+  return error.raw();
 }
 
 
-void Debugger::SignalBpReached() {
+RawError* Debugger::SignalBpReached() {
   // We ignore this breakpoint when the VM is executing code invoked
   // by the debugger to evaluate variables values, or when we see a nested
   // breakpoint or exception event.
   if (ignore_breakpoints_ || IsPaused() || !HasEventHandler()) {
-    return;
+    return Error::null();
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();
   ASSERT(stack_trace->Length() > 0);
@@ -2672,7 +2712,7 @@ void Debugger::SignalBpReached() {
   }
 
   if (bpt_hit == NULL) {
-    return;
+    return Error::null();
   }
 
   if (FLAG_verbose_debug) {
@@ -2693,6 +2733,12 @@ void Debugger::SignalBpReached() {
   if (cbpt->IsInternal()) {
     RemoveInternalBreakpoints();
   }
+
+  // If any error occurred while in the debug message loop, return it here.
+  const Error& error =
+      Error::Handle(isolate_, isolate_->object_store()->sticky_error());
+  isolate_->object_store()->clear_sticky_error();
+  return error.raw();
 }
 
 

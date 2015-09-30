@@ -2226,15 +2226,18 @@ void SnapshotWriter::WriteObjectImpl(RawObject* raw, bool as_reference) {
     return;
   }
 
-  if (as_reference && !raw->IsCanonical()) {
-    WriteObjectRef(raw);
-  } else {
+  // Objects are usually writen as references to avoid deep recursion, but in
+  // some places we know we are dealing with leaf or shallow objects and write
+  // them inline.
+  if (!as_reference || raw->IsCanonical()) {
     // Object is being serialized, add it to the forward ref list and mark
     // it so that future references to this object in the snapshot will use
     // an object id, instead of trying to serialize it again.
     forward_list_->MarkAndAddObject(raw, kIsSerialized);
 
     WriteInlinedObject(raw);
+  } else {
+    WriteObjectRef(raw);
   }
 }
 

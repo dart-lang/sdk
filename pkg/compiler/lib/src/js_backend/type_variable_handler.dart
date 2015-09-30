@@ -52,7 +52,8 @@ class TypeVariableHandler {
         }
         _typeVariableConstructor = _typeVariableClass.constructors.head;
         _backend.enqueueInResolution(_typeVariableConstructor, registry);
-        enqueuer.registerInstantiatedType(_typeVariableClass.rawType, registry);
+        _backend.registerInstantiatedType(
+            _typeVariableClass.rawType, enqueuer, registry);
         enqueuer.registerStaticUse(
             _backend.registerBackendUse(_backend.getCreateRuntimeType()));
         _seenClassesWithTypeVariables = true;

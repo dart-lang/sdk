@@ -989,6 +989,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawContextScope;
   friend class RawExceptionHandlers;
   friend class RawField;
+  friend class RawFunction;
   friend class RawGrowableObjectArray;
   friend class RawImmutableArray;
   friend class RawInstructions;
@@ -1115,11 +1116,6 @@ class MessageWriter : public SnapshotWriter {
 // objects to a snap shot.
 class SnapshotWriterVisitor : public ObjectPointerVisitor {
  public:
-  explicit SnapshotWriterVisitor(SnapshotWriter* writer)
-      : ObjectPointerVisitor(Isolate::Current()),
-        writer_(writer),
-        as_references_(true) {}
-
   SnapshotWriterVisitor(SnapshotWriter* writer, bool as_references)
       : ObjectPointerVisitor(Isolate::Current()),
         writer_(writer),

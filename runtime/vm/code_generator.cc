@@ -709,13 +709,22 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   ASSERT(caller_frame != NULL);
   const Code& orig_stub = Code::Handle(
       isolate->debugger()->GetPatchedStubAddress(caller_frame->pc()));
-  isolate->debugger()->SignalBpReached();
+  const Error& error = Error::Handle(isolate->debugger()->SignalBpReached());
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
+  }
   arguments.SetReturn(orig_stub);
 }
 
 
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
-  isolate->debugger()->DebuggerStepCallback();
+  const Error& error =
+      Error::Handle(isolate->debugger()->DebuggerStepCallback());
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
+  }
 }
 
 
@@ -728,7 +737,6 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
                                      const String& target_name,
                                      const Array& arguments_descriptor,
                                      Function* result) {
-  ASSERT(FLAG_lazy_dispatchers);
   // 1. Check if there is a getter with the same name.
   const String& getter_name = String::Handle(Field::GetterName(target_name));
   const int kNumArguments = 1;
@@ -752,13 +760,14 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
       Function::Handle(cache_class.GetInvocationDispatcher(
           target_name,
           arguments_descriptor,
-          RawFunction::kInvokeFieldDispatcher));
-  ASSERT(!target_function.IsNull());
+          RawFunction::kInvokeFieldDispatcher,
+          FLAG_lazy_dispatchers));
+  ASSERT(!target_function.IsNull() || !FLAG_lazy_dispatchers);
   if (FLAG_trace_ic) {
     OS::PrintErr("InvokeField IC miss: adding <%s> id:%" Pd " -> <%s>\n",
         Class::Handle(receiver.clazz()).ToCString(),
         receiver.GetClassId(),
-        target_function.ToCString());
+        target_function.IsNull() ? "null" : target_function.ToCString());
   }
   *result = target_function.raw();
   return true;
@@ -769,10 +778,6 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
 RawFunction* InlineCacheMissHelper(
     const Instance& receiver,
     const ICData& ic_data) {
-  if (!FLAG_lazy_dispatchers) {
-    return Function::null();  // We'll handle it in the runtime.
-  }
-
   const Array& args_descriptor = Array::Handle(ic_data.arguments_descriptor());
 
   const Class& receiver_class = Class::Handle(receiver.clazz());
@@ -789,15 +794,19 @@ RawFunction* InlineCacheMissHelper(
         Function::Handle(receiver_class.GetInvocationDispatcher(
             target_name,
             args_descriptor,
-            RawFunction::kNoSuchMethodDispatcher));
+            RawFunction::kNoSuchMethodDispatcher,
+            FLAG_lazy_dispatchers));
     if (FLAG_trace_ic) {
       OS::PrintErr("NoSuchMethod IC miss: adding <%s> id:%" Pd " -> <%s>\n",
           Class::Handle(receiver.clazz()).ToCString(),
           receiver.GetClassId(),
-          target_function.ToCString());
+          target_function.IsNull() ? "null" : target_function.ToCString());
     }
     result = target_function.raw();
   }
+  // May be null if --no-lazy-dispatchers, in which case dispatch will be
+  // handled by InvokeNoSuchMethodDispatcher.
+  ASSERT(!result.IsNull() || !FLAG_lazy_dispatchers);
   return result.raw();
 }
 
@@ -1347,40 +1356,10 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     }
   }
 
-  uword interrupt_bits = isolate->GetAndClearInterrupts();
-  if ((interrupt_bits & Isolate::kVMInterrupt) != 0) {
-    isolate->thread_registry()->CheckSafepoint();
-    if (isolate->store_buffer()->Overflowed()) {
-      if (FLAG_verbose_gc) {
-        OS::PrintErr("Scavenge scheduled by store buffer overflow.\n");
-      }
-      isolate->heap()->CollectGarbage(Heap::kNew);
-    }
-  }
-  if ((interrupt_bits & Isolate::kMessageInterrupt) != 0) {
-    bool ok = isolate->message_handler()->HandleOOBMessages();
-    if (!ok) {
-      // False result from HandleOOBMessages signals that the isolate should
-      // be terminating.
-      const String& msg = String::Handle(String::New("isolate terminated"));
-      const UnwindError& error = UnwindError::Handle(UnwindError::New(msg));
-      Exceptions::PropagateError(error);
-      UNREACHABLE();
-    }
-  }
-  if ((interrupt_bits & Isolate::kApiInterrupt) != 0) {
-    // Signal isolate interrupt event.
-    Debugger::SignalIsolateInterrupted();
-
-    Dart_IsolateInterruptCallback callback = isolate->InterruptCallback();
-    if (callback != NULL) {
-      if ((*callback)()) {
-        return;
-      } else {
-        // TODO(turnidge): Unwind the stack.
-        UNIMPLEMENTED();
-      }
-    }
+  const Error& error = Error::Handle(isolate->HandleInterrupts());
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
   }
 
   if ((stack_overflow_flags & Isolate::kOsrRequest) != 0) {

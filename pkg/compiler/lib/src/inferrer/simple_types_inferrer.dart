@@ -121,6 +121,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   bool isNull(TypeMask mask) => mask.isEmpty && mask.isNullable;
 
   TypeMask stringLiteralType(ast.DartString value) => stringType;
+  TypeMask boolLiteralType(ast.LiteralBool value) => boolType;
 
   TypeMask nonNullSubtype(ClassElement type)
       => new TypeMask.nonNullSubtype(type.declaration, classWorld);

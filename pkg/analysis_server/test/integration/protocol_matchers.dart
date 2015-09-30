@@ -398,6 +398,22 @@ final Matcher isAnalysisHighlightsParams = new LazyMatcher(() => new MatchesJson
   }));
 
 /**
+ * analysis.implemented params
+ *
+ * {
+ *   "file": FilePath
+ *   "classes": List<ImplementedClass>
+ *   "members": List<ImplementedMember>
+ * }
+ */
+final Matcher isAnalysisImplementedParams = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.implemented params", {
+    "file": isFilePath,
+    "classes": isListOf(isImplementedClass),
+    "members": isListOf(isImplementedMember)
+  }));
+
+/**
  * analysis.invalidate params
  *
  * {
@@ -1106,6 +1122,7 @@ final Matcher isAnalysisOptions = new LazyMatcher(() => new MatchesJsonObject(
  * enum {
  *   FOLDING
  *   HIGHLIGHTS
+ *   IMPLEMENTED
  *   INVALIDATE
  *   NAVIGATION
  *   OCCURRENCES
@@ -1116,6 +1133,7 @@ final Matcher isAnalysisOptions = new LazyMatcher(() => new MatchesJsonObject(
 final Matcher isAnalysisService = new MatchesEnum("AnalysisService", [
   "FOLDING",
   "HIGHLIGHTS",
+  "IMPLEMENTED",
   "INVALIDATE",
   "NAVIGATION",
   "OCCURRENCES",
@@ -1615,6 +1633,34 @@ final Matcher isHoverInformation = new LazyMatcher(() => new MatchesJsonObject(
     "parameter": isString,
     "propagatedType": isString,
     "staticType": isString
+  }));
+
+/**
+ * ImplementedClass
+ *
+ * {
+ *   "offset": int
+ *   "length": int
+ * }
+ */
+final Matcher isImplementedClass = new LazyMatcher(() => new MatchesJsonObject(
+  "ImplementedClass", {
+    "offset": isInt,
+    "length": isInt
+  }));
+
+/**
+ * ImplementedMember
+ *
+ * {
+ *   "offset": int
+ *   "length": int
+ * }
+ */
+final Matcher isImplementedMember = new LazyMatcher(() => new MatchesJsonObject(
+  "ImplementedMember", {
+    "offset": isInt,
+    "length": isInt
   }));
 
 /**

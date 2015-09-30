@@ -8,6 +8,7 @@ dummy_compiler_test: Crash # Issue 22809
 [ $compiler == dart2js ]
 dummy_compiler_test: Slow, Pass
 recursive_import_test: Slow, Pass
+source_mirrors_test: Slow, Pass
 
 [ $compiler == none && $runtime == drt ]
 dummy_compiler_test: Skip # Issue 7233
@@ -20,7 +21,6 @@ dart2js_test: SkipByDesign # Uses dart:io.
 
 
 [ $compiler == dart2js && $mode == debug ]
-source_mirrors_test: Slow, Pass
 dummy_compiler_test: Slow, Pass
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]

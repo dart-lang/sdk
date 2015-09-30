@@ -58,8 +58,8 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<RefactoringStatus> checkInitialConditions() {
-    RefactoringStatus result = new RefactoringStatus();
+  Future<RefactoringStatus> checkInitialConditions() async {
+    RefactoringStatus result = await super.checkInitialConditions();
     if (element is MethodElement && (element as MethodElement).isOperator) {
       result.addFatalError('Cannot rename operator.');
     }

@@ -232,35 +232,6 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
   return InstanceCall::kPatternSize;
 }
 
-
-// The expected code pattern of an edge counter in unoptimized code:
-//  b8 imm32    mov EAX, immediate
-class EdgeCounter : public ValueObject {
- public:
-  EdgeCounter(uword pc, const Code& ignored)
-      : end_(pc - FlowGraphCompiler::EdgeCounterIncrementSizeInBytes()) {
-    ASSERT(IsValid(end_));
-  }
-
-  static bool IsValid(uword end) {
-    return (*reinterpret_cast<uint8_t*>(end - 5) == 0xb8);
-  }
-
-  RawObject* edge_counter() const {
-    return *reinterpret_cast<RawObject**>(end_ - 4);
-  }
-
- private:
-  uword end_;
-};
-
-
-RawObject* CodePatcher::GetEdgeCounterAt(uword pc, const Code& code) {
-  ASSERT(code.ContainsInstructionAt(pc));
-  EdgeCounter counter(pc, code);
-  return counter.edge_counter();
-}
-
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

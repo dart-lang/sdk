@@ -325,7 +325,6 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
   SplayTreeMap._internal();
 
   V operator [](Object key) {
-    if (key == null) throw new ArgumentError(key);
     if (!_validKey(key)) return null;
     if (_root != null) {
       int comp = _splay(key);

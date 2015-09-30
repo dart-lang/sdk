@@ -113,6 +113,30 @@ class IsolateVisitor {
 
 class Isolate : public BaseIsolate {
  public:
+  // Keep both these enums in sync with isolate_patch.dart.
+  // The different Isolate API message types.
+  enum LibMsgId {
+    kPauseMsg = 1,
+    kResumeMsg = 2,
+    kPingMsg = 3,
+    kKillMsg = 4,
+    kAddExitMsg = 5,
+    kDelExitMsg = 6,
+    kAddErrorMsg = 7,
+    kDelErrorMsg = 8,
+    kErrorFatalMsg = 9,
+
+    // Internal message ids.
+    kInterruptMsg = 10,     // Break in the debugger.
+    kInternalKillMsg = 11,  // Like kill, but does not run exit listeners, etc.
+  };
+  // The different Isolate API message priorities for ping and kill messages.
+  enum LibMsgPriority {
+    kImmediateAction = 0,
+    kBeforeNextEventAction = 1,
+    kAsEventAction = 2
+  };
+
   ~Isolate();
 
   static inline Isolate* Current() {
@@ -184,6 +208,8 @@ class Isolate : public BaseIsolate {
     terminate_capability_ = value;
   }
   uint64_t terminate_capability() const { return terminate_capability_; }
+
+  void SendInternalLibMessage(LibMsgId msg_id, uint64_t capability);
 
   Heap* heap() const { return heap_; }
   void set_heap(Heap* value) { heap_ = value; }
@@ -319,17 +345,14 @@ class Isolate : public BaseIsolate {
 
   // Interrupt bits.
   enum {
-    kApiInterrupt = 0x1,      // An interrupt from Dart_InterruptIsolate.
+    kVMInterrupt = 0x1,  // Internal VM checks: safepoints, store buffers, etc.
     kMessageInterrupt = 0x2,  // An interrupt to process an out of band message.
-    kVMInterrupt = 0x4,  // Internal VM checks: safepoints, store buffers, etc.
 
-    kInterruptsMask =
-        kApiInterrupt |
-        kMessageInterrupt |
-        kVMInterrupt,
+    kInterruptsMask = (kVMInterrupt | kMessageInterrupt),
   };
 
   void ScheduleInterrupts(uword interrupt_bits);
+  RawError* HandleInterrupts();
   uword GetAndClearInterrupts();
 
   // Marks all libraries as loaded.
@@ -582,15 +605,6 @@ class Isolate : public BaseIsolate {
     deopt_context_ = value;
   }
 
-  int32_t edge_counter_increment_size() const {
-    return edge_counter_increment_size_;
-  }
-  void set_edge_counter_increment_size(int32_t size) {
-    ASSERT(edge_counter_increment_size_ == -1);
-    ASSERT(size >= 0);
-    edge_counter_increment_size_ = size;
-  }
-
   void UpdateLastAllocationProfileAccumulatorResetTimestamp() {
     last_allocationprofile_accumulator_reset_timestamp_ =
         OS::GetCurrentTimeMillis();
@@ -776,8 +790,7 @@ class Isolate : public BaseIsolate {
 
   void LowLevelShutdown();
   void Shutdown();
-  // Assumes mutator is the only thread still in the isolate.
-  void CloseAllTimelineBlocks();
+  void ReclaimTimelineBlocks();
 
   void BuildName(const char* name_prefix);
   void PrintInvokedFunctions();
@@ -862,7 +875,6 @@ class Isolate : public BaseIsolate {
   Dart_GcEpilogueCallback gc_epilogue_callback_;
   intptr_t defer_finalization_count_;
   DeoptContext* deopt_context_;
-  int32_t edge_counter_increment_size_;
 
   CompilerStats* compiler_stats_;
 
@@ -983,6 +995,7 @@ REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
   friend class Scavenger;  // VisitObjectPointers
   friend class ServiceIsolate;
   friend class Thread;
+  friend class Timeline;
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };

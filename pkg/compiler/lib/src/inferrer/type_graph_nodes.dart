@@ -1127,6 +1127,20 @@ class StringLiteralTypeInformation extends ConcreteTypeInformation {
   }
 }
 
+class BoolLiteralTypeInformation extends ConcreteTypeInformation {
+  final ast.LiteralBool value;
+
+  BoolLiteralTypeInformation(value, TypeMask mask)
+      : super(new ValueTypeMask(mask, value.value)),
+        this.value = value;
+
+  String toString() => 'Type $type value ${value.value}';
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitBoolLiteralTypeInformation(this);
+  }
+}
+
 /**
  * A [NarrowTypeInformation] narrows a [TypeInformation] to a type,
  * represented in [typeAnnotation].
@@ -1585,6 +1599,7 @@ abstract class TypeInformationVisitor<T> {
   T visitMapTypeInformation(MapTypeInformation info);
   T visitConcreteTypeInformation(ConcreteTypeInformation info);
   T visitStringLiteralTypeInformation(StringLiteralTypeInformation info);
+  T visitBoolLiteralTypeInformation(BoolLiteralTypeInformation info);
   T visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info);
   T visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info);
   T visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info);

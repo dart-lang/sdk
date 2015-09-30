@@ -75,7 +75,7 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V> {
   final _jsObject;
   final List<K> _keys;
 
-  bool containsValue(V needle) {
+  bool containsValue(Object needle) {
     return values.any((V value) => value == needle);
   }
 
@@ -160,7 +160,7 @@ class GeneralConstantMap<K, V> extends ConstantMap<K, V> {
     return backingMap;
   }
 
-  bool containsValue(V needle) {
+  bool containsValue(Object needle) {
     return _getMap().containsValue(needle);
   }
 

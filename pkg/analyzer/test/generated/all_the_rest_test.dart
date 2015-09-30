@@ -6968,6 +6968,26 @@ void main() {
         (obj) => obj is FunctionElement, FunctionElement, element);
   }
 
+  void test_locate_PartOfDirective() {
+    Source librarySource = addNamedSource(
+        '/lib.dart',
+        '''
+library my.lib;
+part 'part.dart';
+''');
+    Source unitSource = addNamedSource(
+        '/part.dart',
+        '''
+part of my.lib;
+''');
+    CompilationUnit unit =
+        analysisContext.resolveCompilationUnit2(unitSource, librarySource);
+    PartOfDirective partOf = unit.directives.first;
+    Element element = ElementLocator.locate(partOf);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is LibraryElement, LibraryElement, element);
+  }
+
   void test_locate_PostfixExpression() {
     AstNode id = _findNodeIn("++", "int addOne(int x) => x++;");
     Element element = ElementLocator.locate(id);
@@ -7033,19 +7053,6 @@ core.int value;''');
     Element element = ElementLocator.locate(declaration);
     EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
         TopLevelVariableElement, element);
-  }
-
-  void test_locateWithOffset_BinaryExpression() {
-    AstNode id = _findNodeIn("+", "var x = 3 + 4;");
-    Element element = ElementLocator.locateWithOffset(id, 0);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement, MethodElement, element);
-  }
-
-  void test_locateWithOffset_StringLiteral() {
-    AstNode id = _findNodeIn("abc", "var x = 'abc';");
-    Element element = ElementLocator.locateWithOffset(id, 1);
-    expect(element, isNull);
   }
 
   /**

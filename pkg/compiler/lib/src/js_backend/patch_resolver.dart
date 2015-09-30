@@ -9,9 +9,12 @@ import '../common/tasks.dart' show
 import '../compiler.dart' show
     Compiler;
 import '../dart_types.dart';
+import '../diagnostics/diagnostic_listener.dart' show
+    DiagnosticMessage;
 import '../diagnostics/invariant.dart' show
     invariant;
-import '../diagnostics/messages.dart' show MessageKind;
+import '../diagnostics/messages.dart' show
+    MessageKind;
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
 import '../tree/tree.dart';
@@ -31,7 +34,7 @@ class PatchResolverTask extends CompilerTask {
       checkMatchingPatchSignatures(element, patch);
       element = patch;
     } else {
-      compiler.reportError(
+      compiler.reportErrorMessage(
          element, MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION);
     }
     return element;
@@ -57,15 +60,19 @@ class PatchResolverTask extends CompilerTask {
       DartType patchParameterType = patchParameter.computeType(compiler);
       if (originParameterType != patchParameterType) {
         compiler.reportError(
-            originParameter.parseNode(compiler),
-            MessageKind.PATCH_PARAMETER_TYPE_MISMATCH,
-            {'methodName': origin.name,
-             'parameterName': originParameter.name,
-             'originParameterType': originParameterType,
-             'patchParameterType': patchParameterType});
-        compiler.reportInfo(patchParameter,
-            MessageKind.PATCH_POINT_TO_PARAMETER,
-            {'parameterName': patchParameter.name});
+            compiler.createMessage(
+                originParameter.parseNode(compiler),
+                MessageKind.PATCH_PARAMETER_TYPE_MISMATCH,
+                {'methodName': origin.name,
+                 'parameterName': originParameter.name,
+                 'originParameterType': originParameterType,
+                 'patchParameterType': patchParameterType}),
+            <DiagnosticMessage>[
+              compiler.createMessage(
+                  patchParameter,
+                  MessageKind.PATCH_POINT_TO_PARAMETER,
+                  {'parameterName': patchParameter.name}),
+            ]);
       } else {
         // Hack: Use unparser to test parameter equality. This only works
         // because we are restricting patch uses and the approach cannot be used
@@ -82,14 +89,19 @@ class PatchResolverTask extends CompilerTask {
             // optional parameter.
             && origin != compiler.unnamedListConstructor) {
           compiler.reportError(
-              originParameter.parseNode(compiler),
-              MessageKind.PATCH_PARAMETER_MISMATCH,
-              {'methodName': origin.name,
-               'originParameter': originParameterText,
-               'patchParameter': patchParameterText});
-          compiler.reportInfo(patchParameter,
-              MessageKind.PATCH_POINT_TO_PARAMETER,
-              {'parameterName': patchParameter.name});
+              compiler.createMessage(
+                  originParameter.parseNode(compiler),
+                  MessageKind.PATCH_PARAMETER_MISMATCH,
+                  {'methodName': origin.name,
+                   'originParameter': originParameterText,
+                   'patchParameter': patchParameterText}),
+              <DiagnosticMessage>[
+                  compiler.createMessage(
+                      patchParameter,
+                      MessageKind.PATCH_POINT_TO_PARAMETER,
+                      {'parameterName': patchParameter.name}),
+              ]);
+
         }
       }
     }
@@ -106,7 +118,7 @@ class PatchResolverTask extends CompilerTask {
       compiler.withCurrentElement(patch, () {
         Node errorNode =
             patchTree.returnType != null ? patchTree.returnType : patchTree;
-        compiler.reportError(
+        compiler.reportErrorMessage(
             errorNode, MessageKind.PATCH_RETURN_TYPE_MISMATCH,
             {'methodName': origin.name,
              'originReturnType': originSignature.type.returnType,
@@ -116,7 +128,7 @@ class PatchResolverTask extends CompilerTask {
     if (originSignature.requiredParameterCount !=
         patchSignature.requiredParameterCount) {
       compiler.withCurrentElement(patch, () {
-        compiler.reportError(
+        compiler.reportErrorMessage(
             patchTree,
             MessageKind.PATCH_REQUIRED_PARAMETER_COUNT_MISMATCH,
             {'methodName': origin.name,
@@ -133,7 +145,7 @@ class PatchResolverTask extends CompilerTask {
       if (originSignature.optionalParametersAreNamed !=
           patchSignature.optionalParametersAreNamed) {
         compiler.withCurrentElement(patch, () {
-          compiler.reportError(
+          compiler.reportErrorMessage(
               patchTree,
               MessageKind.PATCH_OPTIONAL_PARAMETER_NAMED_MISMATCH,
               {'methodName': origin.name});
@@ -143,7 +155,7 @@ class PatchResolverTask extends CompilerTask {
     if (originSignature.optionalParameterCount !=
         patchSignature.optionalParameterCount) {
       compiler.withCurrentElement(patch, () {
-        compiler.reportError(
+        compiler.reportErrorMessage(
             patchTree,
             MessageKind.PATCH_OPTIONAL_PARAMETER_COUNT_MISMATCH,
             {'methodName': origin.name,

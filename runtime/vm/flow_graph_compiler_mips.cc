@@ -257,7 +257,8 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const Register kInstanceReg = A0;
   Error& malformed_error = Error::Handle(zone());
   const Type& int_type = Type::Handle(zone(), Type::IntType());
-  const bool smi_is_ok = int_type.IsSubtypeOf(type, &malformed_error);
+  const bool smi_is_ok =
+      int_type.IsSubtypeOf(type, &malformed_error, Heap::kOld);
   // Malformed type should have been handled at graph construction time.
   ASSERT(smi_is_ok || malformed_error.IsNull());
   __ andi(CMPRES1, kInstanceReg, Immediate(kSmiTagMask));
@@ -296,7 +297,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
         ASSERT(tp_argument.HasResolvedTypeClass());
         // Check if type argument is dynamic or Object.
         const Type& object_type = Type::Handle(zone(), Type::ObjectType());
-        if (object_type.IsSubtypeOf(tp_argument, NULL)) {
+        if (object_type.IsSubtypeOf(tp_argument, NULL, Heap::kOld)) {
           // Instance class test only necessary.
           return GenerateSubtype1TestCacheLookup(
               token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
@@ -351,7 +352,8 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   if (smi_class.IsSubtypeOf(TypeArguments::Handle(zone()),
                             type_class,
                             TypeArguments::Handle(zone()),
-                            NULL)) {
+                            NULL,
+                            Heap::kOld)) {
     __ beq(T0, ZR, is_instance_lbl);
   } else {
     __ beq(T0, ZR, is_not_instance_lbl);
@@ -377,7 +379,8 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
   // Note that instance is not Smi (checked above).
-  if (type.IsSubtypeOf(Type::Handle(zone(), Type::Number()), NULL)) {
+  if (type.IsSubtypeOf(
+          Type::Handle(zone(), Type::Number()), NULL, Heap::kOld)) {
     GenerateNumberTypeCheck(
         kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
     return false;
@@ -1126,7 +1129,7 @@ void FlowGraphCompiler::CompileGraph() {
   __ break_(0);
   GenerateDeferredCode();
 
-  if (is_optimizing()) {
+  if (is_optimizing() && Compiler::allow_recompilation()) {
     // Leave enough space for patching in case of lazy deoptimization from
     // deferred code.
     for (intptr_t i = 0;
@@ -1198,19 +1201,18 @@ void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
 }
 
 
-void FlowGraphCompiler::EmitEdgeCounter() {
+void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
   // We do not check for overflow when incrementing the edge counter.  The
   // function should normally be optimized long before the counter can
   // overflow; and though we do not reset the counters when we optimize or
   // deoptimize, there is a bound on the number of
   // optimization/deoptimization cycles we will attempt.
-  const Array& counter = Array::ZoneHandle(zone(), Array::New(1, Heap::kOld));
-  counter.SetAt(0, Smi::Handle(zone(), Smi::New(0)));
+  ASSERT(!edge_counters_array_.IsNull());
   __ Comment("Edge counter");
-  __ LoadUniqueObject(T0, counter);
-  __ lw(T1, FieldAddress(T0, Array::element_offset(0)));
+  __ LoadObject(T0, edge_counters_array_);
+  __ LoadFieldFromOffset(T1, T0, Array::element_offset(edge_id));
   __ AddImmediate(T1, T1, Smi::RawValue(1));
-  __ sw(T1, FieldAddress(T0, Array::element_offset(0)));
+  __ StoreFieldToOffset(T1, T0, Array::element_offset(edge_id));
 }
 
 

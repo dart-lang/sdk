@@ -763,14 +763,14 @@ class ClassScope extends EnclosedScope {
         return new AnalysisError(
             duplicate.source,
             duplicate.nameOffset,
-            duplicate.displayName.length,
+            duplicate.nameLength,
             CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME,
             [existing.displayName]);
       } else {
         return new AnalysisError(
             existing.source,
             existing.nameOffset,
-            existing.displayName.length,
+            existing.nameLength,
             CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME,
             [existing.displayName]);
       }
@@ -6355,7 +6355,7 @@ class InheritanceManager {
                 _reportError(
                     classElt,
                     classElt.nameOffset,
-                    classElt.displayName.length,
+                    classElt.nameLength,
                     StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
                     [key, firstTwoFuntionTypesStr]);
               }
@@ -6384,7 +6384,7 @@ class InheritanceManager {
           _reportError(
               classElt,
               classElt.nameOffset,
-              classElt.displayName.length,
+              classElt.nameLength,
               StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
               [key]);
         }
@@ -8999,7 +8999,7 @@ class LibraryScope extends EnclosedScope {
       return new AnalysisError(
           duplicate.source,
           offset,
-          duplicate.displayName.length,
+          duplicate.nameLength,
           CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
           [existing.displayName]);
     }
@@ -9613,12 +9613,13 @@ class PartialResolverVisitor extends ResolverVisitor {
   final bool strongMode;
 
   /**
-   * The static variables that have an initializer. These are the variables that
-   * need to be re-resolved after static variables have their types inferred. A
-   * subset of these variables are those whose types should be inferred. The
-   * list will be empty unless the resolver is being run in strong mode.
+   * The static variables and fields that have an initializer. These are the
+   * variables that need to be re-resolved after static variables have their
+   * types inferred. A subset of these variables are those whose types should
+   * be inferred. The list will be empty unless the resolver is being run in
+   * strong mode.
    */
-  final List<VariableElement> staticVariables = <VariableElement>[];
+  final List<VariableElement> variablesAndFields = <VariableElement>[];
 
   /**
    * A flag indicating whether we should discard errors while resolving the
@@ -9671,8 +9672,8 @@ class PartialResolverVisitor extends ResolverVisitor {
 
   @override
   Object visitFieldDeclaration(FieldDeclaration node) {
-    if (strongMode && node.isStatic) {
-      _addStaticVariables(node.fields.variables);
+    if (strongMode) {
+      _addVariables(node.fields.variables);
       bool wasDiscarding = discardErrorsInInitializer;
       discardErrorsInInitializer = true;
       try {
@@ -9699,7 +9700,7 @@ class PartialResolverVisitor extends ResolverVisitor {
   @override
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     if (strongMode) {
-      _addStaticVariables(node.variables.variables);
+      _addVariables(node.variables.variables);
       bool wasDiscarding = discardErrorsInInitializer;
       discardErrorsInInitializer = true;
       try {
@@ -9718,10 +9719,10 @@ class PartialResolverVisitor extends ResolverVisitor {
    * potentially need to be re-resolved after inference because they might
    * refer to a field whose type was inferred.
    */
-  void _addStaticVariables(NodeList<VariableDeclaration> variables) {
+  void _addVariables(NodeList<VariableDeclaration> variables) {
     for (VariableDeclaration variable in variables) {
       if (variable.initializer != null) {
-        staticVariables.add(variable.element);
+        variablesAndFields.add(variable.element);
       }
     }
   }
@@ -11943,12 +11944,8 @@ abstract class Scope {
     // TODO(jwren) There are 4 error codes for duplicate, but only 1 is being
     // generated.
     Source source = duplicate.source;
-    return new AnalysisError(
-        source,
-        duplicate.nameOffset,
-        duplicate.displayName.length,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
-        [existing.displayName]);
+    return new AnalysisError(source, duplicate.nameOffset, duplicate.nameLength,
+        CompileTimeErrorCode.DUPLICATE_DEFINITION, [existing.displayName]);
   }
 
   /**
@@ -14015,6 +14012,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         DartType type;
         TypeName typeName = node.type;
         if (typeName == null) {
+          element.hasImplicitType = true;
           type = _dynamicType;
           if (parameter is FieldFormalParameterElement) {
             FieldElement fieldElement =
@@ -15155,7 +15153,7 @@ class StrongTypeSystemImpl implements TypeSystem {
   }
 
   /**
-   * Check that [f1] is a subtype of [f2]. 
+   * Check that [f1] is a subtype of [f2].
    * [fuzzyArrows] indicates whether or not the f1 and f2 should be
    * treated as fuzzy arrow types (and hence dynamic parameters to f2 treated
    * as bottom).
@@ -15534,12 +15532,8 @@ class UnusedLocalElementsVerifier extends RecursiveElementVisitor {
   void _reportErrorForElement(
       ErrorCode errorCode, Element element, List<Object> arguments) {
     if (element != null) {
-      _errorListener.onError(new AnalysisError(
-          element.source,
-          element.nameOffset,
-          element.displayName.length,
-          errorCode,
-          arguments));
+      _errorListener.onError(new AnalysisError(element.source,
+          element.nameOffset, element.nameLength, errorCode, arguments));
     }
   }
 }

@@ -602,7 +602,7 @@ class CompileTimeErrorCode extends ErrorCode {
    */
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_CLASS =
       const CompileTimeErrorCode('CONFLICTING_TYPE_VARIABLE_AND_CLASS',
-          "'{0}' cannot be used to name a type varaible in a class with the same name");
+          "'{0}' cannot be used to name a type variable in a class with the same name");
 
   /**
    * 7. Classes: It is a compile time error if a generic class declares a type
@@ -611,7 +611,7 @@ class CompileTimeErrorCode extends ErrorCode {
    */
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_MEMBER =
       const CompileTimeErrorCode('CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
-          "'{0}' cannot be used to name a type varaible and member in this class");
+          "'{0}' cannot be used to name a type variable and member in this class");
 
   /**
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant
@@ -2569,16 +2569,15 @@ class ErrorReporter {
    * Report an error with the given [errorCode] and [arguments]. The [element]
    * is used to compute the location of the error.
    */
-  void reportErrorForElement(
-      ErrorCode errorCode, Element element, List<Object> arguments) {
-    String displayName = element.displayName;
+  void reportErrorForElement(ErrorCode errorCode, Element element,
+      [List<Object> arguments]) {
     int length = 0;
-    if (displayName != null) {
-      length = displayName.length;
-    } else if (element is ImportElement) {
+    if (element is ImportElement) {
       length = 6; // 'import'.length
     } else if (element is ExportElement) {
       length = 6; // 'export'.length
+    } else {
+      length = element.nameLength;
     }
     reportErrorForOffset(errorCode, element.nameOffset, length, arguments);
   }
@@ -3097,7 +3096,7 @@ class HintCode extends ErrorCode {
       "The stack trace variable '{0}' is not used and can be removed");
 
   /**
-   * Unused local variables are local varaibles which are never read.
+   * Unused local variables are local variables which are never read.
    */
   static const HintCode UNUSED_LOCAL_VARIABLE = const HintCode(
       'UNUSED_LOCAL_VARIABLE',

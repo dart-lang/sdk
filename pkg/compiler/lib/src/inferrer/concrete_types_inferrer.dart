@@ -436,6 +436,12 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
     return _stringType;
   }
 
+  @override
+  ConcreteType boolLiteralType(_) {
+    inferrer.augmentSeenClasses(compiler.backend.boolImplementation);
+    return _boolType;
+  }
+
   /**
    * Returns the [TypeMask] representation of [baseType].
    */
@@ -454,6 +460,8 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
       } else if (element == compiler.backend.intImplementation) {
         return new TypeMask.nonNullSubclass(compiler.backend.intImplementation,
                                             compiler.world);
+      } else if (!compiler.world.isInstantiated(element.declaration)) {
+        return new TypeMask.nonNullSubtype(element.declaration, compiler.world);
       } else {
         return new TypeMask.nonNullExact(element.declaration, compiler.world);
       }

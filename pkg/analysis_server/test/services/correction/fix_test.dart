@@ -4173,6 +4173,84 @@ main() {
 ''');
   }
 
+  void test_undefinedMethod_parameterType_differentPrefixInTargetUnit() {
+    String code2 = r'''
+library test2;
+import 'test3.dart' as bbb;
+export 'test3.dart';
+class D {
+}
+''';
+    addSource('/test2.dart', code2);
+    addSource(
+        '/test3.dart',
+        r'''
+library test3;
+class E {}
+''');
+    resolveTestUnit('''
+library test;
+import 'test2.dart' as aaa;
+main(aaa.D d, aaa.E e) {
+  d.foo(e);
+}
+''');
+    AnalysisError error = _findErrorToFix();
+    fix = _assertHasFix(DartFixKind.CREATE_METHOD, error);
+    change = fix.change;
+    // apply to "test2.dart"
+    List<SourceFileEdit> fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    SourceFileEdit fileEdit = change.edits[0];
+    expect(fileEdit.file, '/test2.dart');
+    expect(
+        SourceEdit.applySequence(code2, fileEdit.edits),
+        r'''
+library test2;
+import 'test3.dart' as bbb;
+export 'test3.dart';
+class D {
+  void foo(bbb.E e) {
+  }
+}
+''');
+  }
+
+  void test_undefinedMethod_parameterType_inTargetUnit() {
+    String code2 = r'''
+library test2;
+class D {
+}
+class E {}
+''';
+    addSource('/test2.dart', code2);
+    resolveTestUnit('''
+library test;
+import 'test2.dart' as test2;
+main(test2.D d, test2.E e) {
+  d.foo(e);
+}
+''');
+    AnalysisError error = _findErrorToFix();
+    fix = _assertHasFix(DartFixKind.CREATE_METHOD, error);
+    change = fix.change;
+    // apply to "test2.dart"
+    List<SourceFileEdit> fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    SourceFileEdit fileEdit = change.edits[0];
+    expect(fileEdit.file, '/test2.dart');
+    expect(
+        SourceEdit.applySequence(code2, fileEdit.edits),
+        r'''
+library test2;
+class D {
+  void foo(E e) {
+  }
+}
+class E {}
+''');
+  }
+
   void test_undefinedMethod_useSimilar_ignoreOperators() {
     resolveTestUnit('''
 main(Object object) {

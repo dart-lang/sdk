@@ -2870,7 +2870,17 @@ DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort();
  */
 
 
-DART_EXPORT Dart_Handle Dart_Precompile();
+typedef struct {
+  const char* library_uri;
+  const char* class_name;
+  const char* function_name;
+} Dart_QualifiedFunctionName;
+
+
+DART_EXPORT Dart_Handle Dart_Precompile(
+    Dart_QualifiedFunctionName entry_points[]);
+
+
 DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
     uint8_t** vm_isolate_snapshot_buffer,
     intptr_t* vm_isolate_snapshot_size,

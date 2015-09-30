@@ -148,13 +148,13 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
 
   void indexTestUnit(String code) {
     resolveTestUnit(code);
-    index.indexUnit(context, testUnit);
+    index.index(context, testUnit);
   }
 
   void indexUnit(String file, String code) {
     Source source = addSource(file, code);
     CompilationUnit unit = resolveLibraryUnit(source);
-    index.indexUnit(context, unit);
+    index.index(context, unit);
   }
 
   void setUp() {

@@ -215,7 +215,7 @@ class FunctionInlineCache {
 enum SyntheticConstantKind {
   DUMMY_INTERCEPTOR,
   EMPTY_VALUE,
-  TYPEVARIABLE_REFERENCE,
+  TYPEVARIABLE_REFERENCE,  // Reference to a type in reflection data.
   NAME
 }
 
@@ -902,7 +902,7 @@ class JavaScriptBackend extends Backend {
       cls.ensureResolved(compiler);
       cls.forEachMember((ClassElement classElement, Element member) {
         if (member.name == Identifiers.call) {
-          compiler.reportError(
+          compiler.reportErrorMessage(
               member,
               MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS);
           return;
@@ -1028,6 +1028,18 @@ class JavaScriptBackend extends Backend {
   void registerInstantiatedClass(ClassElement cls,
                                  Enqueuer enqueuer,
                                  Registry registry) {
+    _processClass(cls, enqueuer, registry);
+  }
+
+  void registerImplementedClass(ClassElement cls,
+                                Enqueuer enqueuer,
+                                Registry registry) {
+    _processClass(cls, enqueuer, registry);
+  }
+
+  void _processClass(ClassElement cls,
+                     Enqueuer enqueuer,
+                     Registry registry) {
     if (!cls.typeVariables.isEmpty) {
       typeVariableHandler.registerClassWithTypeVariables(cls, enqueuer,
                                                          registry);
@@ -1159,8 +1171,13 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerInstantiatedType(InterfaceType type, Registry registry) {
+  void registerInstantiatedType(InterfaceType type,
+                                Enqueuer enqueuer,
+                                Registry registry,
+                                {bool mirrorUsage: false}) {
     lookupMapAnalysis.registerInstantiatedType(type, registry);
+    super.registerInstantiatedType(
+        type, enqueuer, registry, mirrorUsage: mirrorUsage);
   }
 
   void registerUseInterceptor(Enqueuer enqueuer) {
@@ -1235,6 +1252,7 @@ class JavaScriptBackend extends Backend {
     if (enqueuer.isResolutionQueue || methodNeedsRti(closure)) {
       registerComputeSignature(enqueuer, registry);
     }
+    super.registerClosureWithFreeTypeVariables(closure, enqueuer, registry);
   }
 
   /// Call during codegen if an instance of [closure] is being created.
@@ -1247,16 +1265,19 @@ class JavaScriptBackend extends Backend {
 
   void registerBoundClosure(Enqueuer enqueuer) {
     boundClosureClass.ensureResolved(compiler);
-    enqueuer.registerInstantiatedType(
+    registerInstantiatedType(
         boundClosureClass.rawType,
+        enqueuer,
         // Precise dependency is not important here.
         compiler.globalDependencies);
   }
 
   void registerGetOfStaticFunction(Enqueuer enqueuer) {
     closureClass.ensureResolved(compiler);
-    enqueuer.registerInstantiatedType(
-        closureClass.rawType, compiler.globalDependencies);
+    registerInstantiatedType(
+        closureClass.rawType,
+        enqueuer,
+        compiler.globalDependencies);
   }
 
   void registerComputeSignature(Enqueuer enqueuer, Registry registry) {
@@ -1442,7 +1463,7 @@ class JavaScriptBackend extends Backend {
       helpersUsed.add(cls.implementation);
     }
     cls.ensureResolved(compiler);
-    enqueuer.registerInstantiatedType(cls.rawType, registry);
+    registerInstantiatedType(cls.rawType, enqueuer, registry);
   }
 
   WorldImpact codegen(CodegenWorkItem work) {
@@ -1514,11 +1535,13 @@ class JavaScriptBackend extends Backend {
     if (totalMethodCount != preMirrorsMethodCount) {
       int mirrorCount = totalMethodCount - preMirrorsMethodCount;
       double percentage = (mirrorCount / totalMethodCount) * 100;
-      compiler.reportHint(
+      DiagnosticMessage hint = compiler.createMessage(
           compiler.mainApp, MessageKind.MIRROR_BLOAT,
           {'count': mirrorCount,
            'total': totalMethodCount,
            'percentage': percentage.round()});
+
+      List<DiagnosticMessage> infos = <DiagnosticMessage>[];
       for (LibraryElement library in compiler.libraryLoader.libraries) {
         if (library.isInternalLibrary) continue;
         for (ImportElement import in library.imports) {
@@ -1529,10 +1552,11 @@ class JavaScriptBackend extends Backend {
               ? MessageKind.MIRROR_IMPORT
               : MessageKind.MIRROR_IMPORT_NO_USAGE;
           compiler.withCurrentElement(library, () {
-            compiler.reportInfo(import, kind);
+            infos.add(compiler.createMessage(import, kind));
           });
         }
       }
+      compiler.reportHint(hint, infos);
     }
     return programSize;
   }
@@ -2634,7 +2658,8 @@ class JavaScriptBackend extends Backend {
       if (cls == forceInlineClass) {
         hasForceInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
-          compiler.reportHint(element,
+          compiler.reportHintMessage(
+              element,
               MessageKind.GENERIC,
               {'text': "Must inline"});
         }
@@ -2642,7 +2667,8 @@ class JavaScriptBackend extends Backend {
       } else if (cls == noInlineClass) {
         hasNoInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
-          compiler.reportHint(element,
+          compiler.reportHintMessage(
+              element,
               MessageKind.GENERIC,
               {'text': "Cannot inline"});
         }
@@ -2655,7 +2681,8 @@ class JavaScriptBackend extends Backend {
               " or static functions");
         }
         if (VERBOSE_OPTIMIZER_HINTS) {
-          compiler.reportHint(element,
+          compiler.reportHintMessage(
+              element,
               MessageKind.GENERIC,
               {'text': "Cannot throw"});
         }
@@ -2663,7 +2690,8 @@ class JavaScriptBackend extends Backend {
       } else if (cls == noSideEffectsClass) {
         hasNoSideEffects = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
-          compiler.reportHint(element,
+          compiler.reportHintMessage(
+              element,
               MessageKind.GENERIC,
               {'text': "Has no side effects"});
         }
@@ -2740,7 +2768,7 @@ class JavaScriptBackend extends Backend {
     } else if (element.asyncMarker == AsyncMarker.SYNC_STAR) {
       ClassElement clsSyncStarIterable = getSyncStarIterable();
       clsSyncStarIterable.ensureResolved(compiler);
-      enqueuer.registerInstantiatedType(clsSyncStarIterable.rawType, registry);
+      registerInstantiatedType(clsSyncStarIterable.rawType, enqueuer, registry);
       enqueue(enqueuer, getSyncStarIterableConstructor(), registry);
       enqueue(enqueuer, getEndOfIteration(), registry);
       enqueue(enqueuer, getYieldStar(), registry);
@@ -2748,8 +2776,8 @@ class JavaScriptBackend extends Backend {
     } else if (element.asyncMarker == AsyncMarker.ASYNC_STAR) {
       ClassElement clsASyncStarController = getASyncStarController();
       clsASyncStarController.ensureResolved(compiler);
-      enqueuer.registerInstantiatedType(
-          clsASyncStarController.rawType, registry);
+      registerInstantiatedType(
+          clsASyncStarController.rawType, enqueuer, registry);
       enqueue(enqueuer, getAsyncStarHelper(), registry);
       enqueue(enqueuer, getStreamOfController(), registry);
       enqueue(enqueuer, getYieldSingle(), registry);
@@ -2769,7 +2797,7 @@ class JavaScriptBackend extends Backend {
   @override
   bool enableCodegenWithErrorsIfSupported(Spannable node) {
     if (compiler.useCpsIr) {
-      compiler.reportHint(
+      compiler.reportHintMessage(
           node,
           MessageKind.GENERIC,
           {'text': "Generation of code with compile time errors is currently "

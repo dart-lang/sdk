@@ -35,6 +35,7 @@ import '../resolution/tree_elements.dart' show
 import '../tree/tree.dart' as ast show
     DartString,
     Node,
+    LiteralBool,
     Send,
     SendSet,
     TryStatement;
@@ -240,6 +241,10 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   TypeInformation stringLiteralType(ast.DartString value) {
     return new StringLiteralTypeInformation(
         value, compiler.typesTask.stringType);
+  }
+
+  TypeInformation boolLiteralType(ast.LiteralBool value) {
+    return new BoolLiteralTypeInformation(value, compiler.typesTask.boolType);
   }
 
   TypeInformation computeLUB(TypeInformation firstType,

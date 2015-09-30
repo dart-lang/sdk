@@ -556,14 +556,14 @@ class Debugger {
   RawObject* GetStaticField(const Class& cls,
                             const String& field_name);
 
-  void SignalBpReached();
-  void DebuggerStepCallback();
+  RawError* SignalBpReached();
+  RawError* DebuggerStepCallback();
+  RawError* SignalIsolateInterrupted();
 
   void BreakHere(const String& msg);
 
   void SignalExceptionThrown(const Instance& exc);
   void SignalIsolateEvent(DebuggerEvent::EventType type);
-  static void SignalIsolateInterrupted();
 
   RawCode* GetPatchedStubAddress(uword breakpoint_address);
 

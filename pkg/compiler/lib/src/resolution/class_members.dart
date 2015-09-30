@@ -9,6 +9,8 @@ import '../common/names.dart' show
 import '../compiler.dart' show
     Compiler;
 import '../dart_types.dart';
+import '../diagnostics/diagnostic_listener.dart' show
+    DiagnosticMessage;
 import '../diagnostics/invariant.dart' show
     invariant;
 import '../diagnostics/messages.dart' show
@@ -254,7 +256,7 @@ abstract class MembersCreator {
       }
       reportMessage(
           interfaceMember.element, MessageKind.ABSTRACT_METHOD, () {
-        compiler.reportWarning(
+        compiler.reportWarningMessage(
             interfaceMember.element, kind,
             {'class': cls.name, 'name': name.text});
       });
@@ -266,20 +268,24 @@ abstract class MembersCreator {
         Member inherited = interfaceMember.declarations.first;
         reportMessage(
             interfaceMember, MessageKind.UNIMPLEMENTED_METHOD, () {
-          compiler.reportWarning(cls,
+          DiagnosticMessage warning = compiler.createMessage(
+              cls,
               interfaceMember.declarations.length == 1
                   ? singleKind : multipleKind,
               {'class': cls.name,
                'name': name.text,
                'method': interfaceMember,
                'declarer': inherited.declarer});
+          List<DiagnosticMessage> infos = <DiagnosticMessage>[];
           for (Member inherited in interfaceMember.declarations) {
-            compiler.reportInfo(inherited.element,
+            infos.add(compiler.createMessage(
+                inherited.element,
                 inherited.isDeclaredByField ?
                     implicitlyDeclaredKind : explicitlyDeclaredKind,
                 {'class': inherited.declarer.name,
-                 'name': name.text});
+                 'name': name.text}));
           }
+          compiler.reportWarning(warning, infos);
         });
       }
       if (interfaceMember.isSetter) {
@@ -314,7 +320,9 @@ abstract class MembersCreator {
     if (compiler.backend.isBackendLibrary(cls.library)) return;
 
     reportMessage(compiler.functionClass, MessageKind.UNIMPLEMENTED_METHOD, () {
-      compiler.reportWarning(cls, MessageKind.UNIMPLEMENTED_METHOD_ONE,
+      compiler.reportWarningMessage(
+          cls,
+          MessageKind.UNIMPLEMENTED_METHOD_ONE,
           {'class': cls.name,
            'name': Identifiers.call,
            'method': Identifiers.call,
@@ -338,12 +346,17 @@ abstract class MembersCreator {
             reportMessage(superMember, MessageKind.INSTANCE_STATIC_SAME_NAME,
                 () {
               compiler.reportWarning(
-                  declared.element,
-                  MessageKind.INSTANCE_STATIC_SAME_NAME,
-                  {'memberName': declared.name,
-                    'className': superclass.name});
-              compiler.reportInfo(superMember.element,
-                  MessageKind.INSTANCE_STATIC_SAME_NAME_CONT);
+                  compiler.createMessage(
+                      declared.element,
+                      MessageKind.INSTANCE_STATIC_SAME_NAME,
+                      {'memberName': declared.name,
+                       'className': superclass.name}),
+                  <DiagnosticMessage>[
+                      compiler.createMessage(
+                          superMember.element,
+                          MessageKind.INSTANCE_STATIC_SAME_NAME_CONT),
+                  ]);
+
             });
             break;
           }
@@ -386,22 +399,29 @@ abstract class MembersCreator {
         void reportError(MessageKind errorKind, MessageKind infoKind) {
           reportMessage(
               inherited.element, MessageKind.INVALID_OVERRIDE_METHOD, () {
-            compiler.reportError(declared.element, errorKind,
-                {'name': declared.name.text,
-                 'class': cls.thisType,
-                 'inheritedClass': inherited.declarer});
-            compiler.reportInfo(inherited.element, infoKind,
-                {'name': declared.name.text,
-                 'class': inherited.declarer});
+            compiler.reportError(
+                compiler.createMessage(
+                    declared.element,
+                    errorKind,
+                    {'name': declared.name.text,
+                     'class': cls.thisType,
+                     'inheritedClass': inherited.declarer}),
+                <DiagnosticMessage>[
+                    compiler.createMessage(
+                        inherited.element,
+                        infoKind,
+                        {'name': declared.name.text,
+                         'class': inherited.declarer}),
+                ]);
           });
         }
 
         if (declared.isDeclaredByField && inherited.isMethod) {
           reportError(MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD,
-              MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD_CONT);
+                      MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD_CONT);
         } else if (declared.isMethod && inherited.isDeclaredByField) {
           reportError(MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD,
-              MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD_CONT);
+                      MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD_CONT);
         } else if (declared.isGetter && inherited.isMethod) {
           reportError(MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER,
                       MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER_CONT);
@@ -415,15 +435,22 @@ abstract class MembersCreator {
                                MessageKind warningKind,
                                MessageKind infoKind) {
               reportMessage(marker, MessageKind.INVALID_OVERRIDE_METHOD, () {
-                compiler.reportWarning(declared.element, warningKind,
-                    {'declaredType': declared.type,
-                     'name': declared.name.text,
-                     'class': cls.thisType,
-                     'inheritedType': inherited.type,
-                     'inheritedClass': inherited.declarer});
-                compiler.reportInfo(inherited.element, infoKind,
-                    {'name': declared.name.text,
-                     'class': inherited.declarer});
+                compiler.reportWarning(
+                    compiler.createMessage(
+                        declared.element,
+                        warningKind,
+                        {'declaredType': declared.type,
+                         'name': declared.name.text,
+                         'class': cls.thisType,
+                         'inheritedType': inherited.type,
+                         'inheritedClass': inherited.declarer}),
+                    <DiagnosticMessage>[
+                        compiler.createMessage(
+                            inherited.element,
+                            infoKind,
+                            {'name': declared.name.text,
+                             'class': inherited.declarer}),
+                    ]);
               });
             }
             if (declared.isDeclaredByField) {
@@ -476,11 +503,14 @@ abstract class MembersCreator {
                               Element contextElement,
                               MessageKind contextMessage) {
     compiler.reportError(
-        errorneousElement,
-        errorMessage,
-        {'memberName': contextElement.name,
-         'className': contextElement.enclosingClass.name});
-    compiler.reportInfo(contextElement, contextMessage);
+        compiler.createMessage(
+            errorneousElement,
+            errorMessage,
+            {'memberName': contextElement.name,
+             'className': contextElement.enclosingClass.name}),
+        <DiagnosticMessage>[
+            compiler.createMessage(contextElement, contextMessage),
+        ]);
   }
 
   /// Compute all class and interface names by the [name] in [cls].
@@ -683,9 +713,11 @@ class InterfaceMembersCreator extends MembersCreator {
               () => new Setlet<Member>()).add(inherited);
         }
         if (someAreGetters && !allAreGetters) {
-          compiler.reportWarning(cls,
-                                 MessageKind.INHERIT_GETTER_AND_METHOD,
-                                 {'class': thisType, 'name': name.text });
+          DiagnosticMessage warning = compiler.createMessage(
+              cls,
+              MessageKind.INHERIT_GETTER_AND_METHOD,
+              {'class': thisType, 'name': name.text });
+          List<DiagnosticMessage> infos = <DiagnosticMessage>[];
           for (Member inherited in inheritedMembers) {
             MessageKind kind;
             if (inherited.isMethod) {
@@ -700,9 +732,12 @@ class InterfaceMembersCreator extends MembersCreator {
                 kind = MessageKind.INHERITED_EXPLICIT_GETTER;
               }
             }
-            compiler.reportInfo(inherited.element, kind,
-                {'class': inherited.declarer, 'name': name.text });
+            infos.add(compiler.createMessage(
+                inherited.element,
+                kind,
+                {'class': inherited.declarer, 'name': name.text}));
           }
+          compiler.reportWarning(warning, infos);
           interfaceMembers[name] = new ErroneousMember(inheritedMembers);
         } else if (subtypesOfAllInherited.length == 1) {
           // All signatures have the same type.

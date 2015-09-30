@@ -748,6 +748,6 @@ class ElementListener extends Listener {
     if (!memberErrors.isEmpty) {
       memberErrors = memberErrors.tail.prepend(true);
     }
-    listener.reportError(spannable, errorCode, arguments);
+    listener.reportErrorMessage(spannable, errorCode, arguments);
   }
 }

@@ -268,38 +268,6 @@ RawCode* CodePatcher::GetNativeCallAt(uword return_address,
   return call.target();
 }
 
-
-// The expected code pattern of an edge counter in unoptimized code:
-//  49 8b 87 imm32    mov RAX, [PP + offset]
-class EdgeCounter : public ValueObject {
- public:
-  EdgeCounter(uword pc, const Code& code)
-      : end_(pc - FlowGraphCompiler::EdgeCounterIncrementSizeInBytes()),
-        object_pool_(ObjectPool::Handle(code.GetObjectPool())) {
-    ASSERT(IsValid(end_));
-  }
-
-  static bool IsValid(uword end) {
-    uint8_t* bytes = reinterpret_cast<uint8_t*>(end - 7);
-    return (bytes[0] == 0x49) && (bytes[1] == 0x8b) && (bytes[2] == 0x87);
-  }
-
-  RawObject* edge_counter() const {
-    return object_pool_.ObjectAt(IndexFromPPLoad(end_ - 4));
-  }
-
- private:
-  uword end_;
-  const ObjectPool& object_pool_;
-};
-
-
-RawObject* CodePatcher::GetEdgeCounterAt(uword pc, const Code& code) {
-  ASSERT(code.ContainsInstructionAt(pc));
-  EdgeCounter counter(pc, code);
-  return counter.edge_counter();
-}
-
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

@@ -1648,6 +1648,24 @@ library my.new_name;
 ''');
   }
 
+  test_library_partOfDirective() {
+    addFile(
+        '$testFolder/my_lib.dart',
+        '''
+library aaa.bbb.ccc;
+part 'test.dart';
+''');
+    addTestFile('''
+part of aaa.bbb.ccc;
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('aaa.bb', 'my.new_name');
+    },
+        '''
+part of my.new_name;
+''');
+  }
+
   test_localVariable() {
     addTestFile('''
 main() {

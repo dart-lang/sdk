@@ -281,7 +281,7 @@ class PartialFieldList extends VariableList with PartialElement {
           !definitions.modifiers.isConst &&
           definitions.type == null &&
           !definitions.isErroneous) {
-        listener.reportError(
+        listener.reportErrorMessage(
             definitions,
             MessageKind.GENERIC,
             { 'text': 'A field declaration must start with var, final, '

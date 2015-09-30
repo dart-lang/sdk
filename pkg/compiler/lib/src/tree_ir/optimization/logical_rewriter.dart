@@ -95,7 +95,8 @@ class LogicalRewriter extends RecursiveTransformer
 
   bool isTerminator(Statement node) {
     return (node is Jump || node is Return) && !isFallthrough(node) ||
-           (node is ExpressionStatement && node.next is Unreachable);
+           (node is ExpressionStatement && node.next is Unreachable) ||
+           node is Throw;
   }
 
   Statement visitIf(If node) {

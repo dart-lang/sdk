@@ -251,8 +251,6 @@ abstract class ElementX extends Element with ElementCommon {
 
   bool get isAbstract => modifiers.isAbstract;
 
-  void diagnose(Element context, DiagnosticListener listener) {}
-
   bool get hasTreeElements => analyzableElement.hasTreeElements;
 
   TreeElements get treeElements => analyzableElement.treeElements;
@@ -475,14 +473,16 @@ class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
     if (warning != null) {
       Spannable spannable = warning.spannable;
       if (spannable == null) spannable = usageSpannable;
-      listener.reportWarning(
+      DiagnosticMessage warningMessage = listener.createMessage(
           spannable, warning.messageKind, warning.messageArguments);
-    }
-    if (info != null) {
-      Spannable spannable = info.spannable;
-      if (spannable == null) spannable = usageSpannable;
-      listener.reportInfo(
-          spannable, info.messageKind, info.messageArguments);
+      List<DiagnosticMessage> infos = <DiagnosticMessage>[];
+      if (info != null) {
+        Spannable spannable = info.spannable;
+        if (spannable == null) spannable = usageSpannable;
+        infos.add(listener.createMessage(
+            spannable, info.messageKind, info.messageArguments));
+      }
+      listener.reportWarning(warningMessage, infos);
     }
     if (unwrapped.isWarnOnUse) {
       unwrapped = unwrapped.unwrap(listener, usageSpannable);
@@ -534,6 +534,11 @@ abstract class AmbiguousElementX extends ElementX implements AmbiguousElement {
     return set;
   }
 
+  List<DiagnosticMessage> computeInfos(Element context,
+                                   DiagnosticListener listener) {
+    return const <DiagnosticMessage>[];
+  }
+
   accept(ElementVisitor visitor, arg) {
     return visitor.visitAmbiguousElement(this, arg);
   }
@@ -552,21 +557,25 @@ class AmbiguousImportX extends AmbiguousElementX {
       : super(messageKind, messageArguments, enclosingElement, existingElement,
               newElement);
 
-  void diagnose(Element context, DiagnosticListener listener) {
+  List<DiagnosticMessage> computeInfos(
+      Element context,
+      DiagnosticListener listener) {
+    List<DiagnosticMessage> infos = <DiagnosticMessage>[];
     Setlet ambiguousElements = flatten();
     MessageKind code = (ambiguousElements.length == 1)
         ? MessageKind.AMBIGUOUS_REEXPORT : MessageKind.AMBIGUOUS_LOCATION;
     LibraryElementX importer = context.library;
     for (Element element in ambiguousElements) {
-      var arguments = {'name': element.name};
-      listener.reportInfo(element, code, arguments);
+      Map arguments = {'name': element.name};
+      infos.add(listener.createMessage(element, code, arguments));
       listener.withCurrentElement(importer, () {
         for (ImportElement import in importer.importers.getImports(element)) {
-          listener.reportInfo(
-              import, MessageKind.IMPORTED_HERE, arguments);
+          infos.add(listener.createMessage(
+              import, MessageKind.IMPORTED_HERE, arguments));
         }
       });
     }
+    return infos;
   }
 }
 
@@ -600,9 +609,16 @@ class ScopeX {
       Element existing = contents.putIfAbsent(name, () => element);
       if (!identical(existing, element)) {
         listener.reportError(
-            element, MessageKind.DUPLICATE_DEFINITION, {'name': name});
-        listener.reportInfo(existing,
-            MessageKind.EXISTING_DEFINITION, {'name': name});
+            listener.createMessage(
+                element,
+                MessageKind.DUPLICATE_DEFINITION,
+                {'name': name}),
+            <DiagnosticMessage>[
+                listener.createMessage(
+                    existing,
+                    MessageKind.EXISTING_DEFINITION,
+                    {'name': name}),
+            ]);
       }
     }
   }
@@ -624,11 +640,17 @@ class ScopeX {
                    Element existing,
                    DiagnosticListener listener) {
     void reportError(Element other) {
-      listener.reportError(accessor,
-                           MessageKind.DUPLICATE_DEFINITION,
-                           {'name': accessor.name});
-      listener.reportInfo(
-          other, MessageKind.EXISTING_DEFINITION, {'name': accessor.name});
+      listener.reportError(
+          listener.createMessage(
+              accessor,
+              MessageKind.DUPLICATE_DEFINITION,
+              {'name': accessor.name}),
+          <DiagnosticMessage>[
+              listener.createMessage(
+                  other,
+                  MessageKind.EXISTING_DEFINITION,
+                  {'name': accessor.name}),
+          ]);
 
       contents[accessor.name] = new DuplicatedElementX(
           MessageKind.DUPLICATE_DEFINITION, {'name': accessor.name},
@@ -722,15 +744,17 @@ class CompilationUnitElementX extends ElementX
     LibraryElementX library = enclosingElement;
     if (library.entryCompilationUnit == this) {
       partTag = tag;
-      listener.reportError(tag, MessageKind.IMPORT_PART_OF);
+      listener.reportErrorMessage(
+          tag, MessageKind.IMPORT_PART_OF);
       return;
     }
     if (!localMembers.isEmpty) {
-      listener.reportError(tag, MessageKind.BEFORE_TOP_LEVEL);
+      listener.reportErrorMessage(
+          tag, MessageKind.BEFORE_TOP_LEVEL);
       return;
     }
     if (partTag != null) {
-      listener.reportWarning(tag, MessageKind.DUPLICATED_PART_OF);
+      listener.reportWarningMessage(tag, MessageKind.DUPLICATED_PART_OF);
       return;
     }
     partTag = tag;
@@ -739,16 +763,22 @@ class CompilationUnitElementX extends ElementX
     if (libraryTag != null) {
       String expectedName = libraryTag.name.toString();
       if (expectedName != actualName) {
-        listener.reportWarning(tag.name,
+        listener.reportWarningMessage(
+            tag.name,
             MessageKind.LIBRARY_NAME_MISMATCH,
             {'libraryName': expectedName});
       }
     } else {
-      listener.reportWarning(library,
-          MessageKind.MISSING_LIBRARY_NAME,
-          {'libraryName': actualName});
-      listener.reportInfo(tag.name,
-          MessageKind.THIS_IS_THE_PART_OF_TAG);
+      listener.reportWarning(
+          listener.createMessage(
+              library,
+              MessageKind.MISSING_LIBRARY_NAME,
+              {'libraryName': actualName}),
+          <DiagnosticMessage>[
+              listener.createMessage(
+                  tag.name,
+                  MessageKind.THIS_IS_THE_PART_OF_TAG),
+          ]);
     }
   }
 
@@ -2623,7 +2653,8 @@ abstract class ClassElementX extends BaseClassElementX {
 
   void addToScope(Element element, DiagnosticListener listener) {
     if (element.isField && element.name == name) {
-      listener.reportError(element, MessageKind.MEMBER_USES_CLASS_NAME);
+      listener.reportErrorMessage(
+          element, MessageKind.MEMBER_USES_CLASS_NAME);
     }
     localScope.add(element, listener);
   }

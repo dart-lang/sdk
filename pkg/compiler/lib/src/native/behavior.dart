@@ -214,7 +214,8 @@ class NativeBehavior {
 
     void reportError(String message) {
       seenError = true;
-      listener.reportError(spannable, MessageKind.GENERIC, {'text': message});
+      listener.reportErrorMessage(
+          spannable, MessageKind.GENERIC, {'text': message});
     }
 
     const List<String> knownTags = const [
@@ -434,21 +435,25 @@ class NativeBehavior {
 
     var argNodes = jsCall.arguments;
     if (argNodes.isEmpty || argNodes.tail.isEmpty) {
-      compiler.reportError(jsCall, MessageKind.GENERIC,
+      compiler.reportErrorMessage(
+          jsCall,
+          MessageKind.GENERIC,
           {'text': "JS expression takes two or more arguments."});
       return behavior;
     }
 
     var specArgument = argNodes.head;
     if (specArgument is !StringNode || specArgument.isInterpolation) {
-      compiler.reportError(specArgument, MessageKind.GENERIC,
+      compiler.reportErrorMessage(
+          specArgument, MessageKind.GENERIC,
           {'text': "JS first argument must be a string literal."});
       return behavior;
     }
 
     var codeArgument = argNodes.tail.head;
     if (codeArgument is !StringNode || codeArgument.isInterpolation) {
-      compiler.reportError(codeArgument, MessageKind.GENERIC,
+      compiler.reportErrorMessage(
+          codeArgument, MessageKind.GENERIC,
           {'text': "JS second argument must be a string literal."});
       return behavior;
     }
@@ -753,7 +758,7 @@ class NativeBehavior {
 
     int index = typeString.indexOf('<');
     if (index < 1) {
-      compiler.reportError(
+      compiler.reportErrorMessage(
           _errorNode(locationNodeOrElement, compiler),
           MessageKind.GENERIC,
           {'text': "Type '$typeString' not found."});
@@ -764,7 +769,7 @@ class NativeBehavior {
       // TODO(sra): Parse type parameters.
       return type;
     }
-    compiler.reportError(
+    compiler.reportErrorMessage(
         _errorNode(locationNodeOrElement, compiler),
         MessageKind.GENERIC,
         {'text': "Type '$typeString' not found."});

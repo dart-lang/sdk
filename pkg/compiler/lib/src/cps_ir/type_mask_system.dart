@@ -127,6 +127,20 @@ class TypeMaskSystem {
     return computeTypeMask(inferrer.compiler, constant);
   }
 
+  // Returns the constant value if a TypeMask represents a single value.
+  // Returns `null` if [mask] is not a constant.
+  ConstantValue getConstantOf(TypeMask mask) {
+    if (!mask.isValue) return null;
+    if (mask.isNullable) return null;  // e.g. 'true or null'.
+    ValueTypeMask valueMask = mask;
+    var value = valueMask.value;
+    // TODO(sra): Why is ValueTypeMask.value not a ConstantValue?
+    if (value == false) return new FalseConstantValue();
+    if (value == true) return new TrueConstantValue();
+    // TODO(sra): Consider other values. Be careful with large strings.
+    return null;
+  }
+
   TypeMask nonNullExact(ClassElement element) {
     // The class world does not know about classes created by
     // closure conversion, so just treat those as a subtypes of Function.

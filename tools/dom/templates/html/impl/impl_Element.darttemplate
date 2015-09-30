@@ -1453,8 +1453,31 @@ $if DART2JS
 	     return true;
 	   }
 	 }
+         var length = 0;
+         if (element.children) {
+           length = element.children.length;
+         }
+         for (var i = 0; i < length; i++) {
+           var child = element.children[i];
+           // On IE it seems like we sometimes don't see the clobbered attribute,
+           // perhaps as a result of an over-optimization. Also use another route
+           // to check of attributes, children, or lastChild are clobbered. It may
+           // seem silly to check children as we rely on children to do this iteration,
+           // but it seems possible that the access to children might see the real thing,
+           // allowing us to check for clobbering that may show up in other accesses.
+           if (child["id"] == 'attributes' || child["name"] == 'attributes' ||
+               child["id"] == 'lastChild'  || child["name"] == 'lastChild' ||
+               child["id"] == 'children' || child["name"] == 'children') {
+             return true;
+           }
+         }
 	 return false;
           })(#)''', element);
+  }
+
+  /// A secondary check for corruption, needed on IE
+  static bool _hasCorruptedAttributesAdditionalCheck(Element element) {
+    return JS('bool', r'!(#.attributes instanceof NamedNodeMap)', element);
   }
 $else
 
@@ -1483,13 +1506,16 @@ $else
     }
     return false;
   }
+
+  /// A secondary check for corruption, needed on IE
+  static bool _hasCorruptedAttributesAdditionalCheck(Element element) => false;
 $endif
 
-  String get _safeTagName {
+  static String _safeTagName(element) {
     String result = 'element tag unavailable';
     try {
-      if (tagName is String) {
-        result = tagName;
+      if (element.tagName is String) {
+        result = element.tagName;
       }
     } catch (e) {}
     return result;

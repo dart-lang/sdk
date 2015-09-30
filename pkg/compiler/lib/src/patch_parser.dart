@@ -300,7 +300,7 @@ void patchElement(Compiler compiler,
                   Element origin,
                   Element patch) {
   if (origin == null) {
-    compiler.reportError(
+    compiler.reportErrorMessage(
         patch, MessageKind.PATCH_NON_EXISTING, {'name': patch.name});
     return;
   }
@@ -309,7 +309,7 @@ void patchElement(Compiler compiler,
         origin.isFunction ||
         origin.isAbstractField)) {
     // TODO(ahe): Remove this error when the parser rejects all bad modifiers.
-    compiler.reportError(origin, MessageKind.PATCH_NONPATCHABLE);
+    compiler.reportErrorMessage(origin, MessageKind.PATCH_NONPATCHABLE);
     return;
   }
   if (patch.isClass) {
@@ -324,7 +324,7 @@ void patchElement(Compiler compiler,
     tryPatchFunction(compiler, origin, patch);
   } else {
     // TODO(ahe): Remove this error when the parser rejects all bad modifiers.
-    compiler.reportError(patch, MessageKind.PATCH_NONPATCHABLE);
+    compiler.reportErrorMessage(patch, MessageKind.PATCH_NONPATCHABLE);
   }
 }
 
@@ -333,9 +333,16 @@ void tryPatchClass(Compiler compiler,
                    ClassElement patch) {
   if (!origin.isClass) {
     compiler.reportError(
-        origin, MessageKind.PATCH_NON_CLASS, {'className': patch.name});
-    compiler.reportInfo(
-        patch, MessageKind.PATCH_POINT_TO_CLASS, {'className': patch.name});
+        compiler.createMessage(
+            origin,
+            MessageKind.PATCH_NON_CLASS,
+            {'className': patch.name}),
+        <DiagnosticMessage>[
+            compiler.createMessage(
+                patch,
+                MessageKind.PATCH_POINT_TO_CLASS,
+                {'className': patch.name}),
+        ]);
     return;
   }
   patchClass(compiler, origin, patch);
@@ -490,19 +497,31 @@ void tryPatchGetter(DiagnosticListener listener,
                     FunctionElement patch) {
   if (!origin.isAbstractField) {
     listener.reportError(
-        origin, MessageKind.PATCH_NON_GETTER, {'name': origin.name});
-    listener.reportInfo(
-        patch,
-        MessageKind.PATCH_POINT_TO_GETTER, {'getterName': patch.name});
+        listener.createMessage(
+            origin,
+            MessageKind.PATCH_NON_GETTER,
+            {'name': origin.name}),
+        <DiagnosticMessage>[
+            listener.createMessage(
+                patch,
+                MessageKind.PATCH_POINT_TO_GETTER,
+                {'getterName': patch.name}),
+        ]);
     return;
   }
   AbstractFieldElement originField = origin;
   if (originField.getter == null) {
     listener.reportError(
-        origin, MessageKind.PATCH_NO_GETTER, {'getterName': patch.name});
-    listener.reportInfo(
-        patch,
-        MessageKind.PATCH_POINT_TO_GETTER, {'getterName': patch.name});
+        listener.createMessage(
+            origin,
+            MessageKind.PATCH_NO_GETTER,
+            {'getterName': patch.name}),
+        <DiagnosticMessage>[
+            listener.createMessage(
+                patch,
+                MessageKind.PATCH_POINT_TO_GETTER,
+                {'getterName': patch.name}),
+        ]);
     return;
   }
   GetterElementX getter = originField.getter;
@@ -514,19 +533,31 @@ void tryPatchSetter(DiagnosticListener listener,
                     FunctionElement patch) {
   if (!origin.isAbstractField) {
     listener.reportError(
-        origin, MessageKind.PATCH_NON_SETTER, {'name': origin.name});
-    listener.reportInfo(
-        patch,
-        MessageKind.PATCH_POINT_TO_SETTER, {'setterName': patch.name});
+        listener.createMessage(
+            origin,
+            MessageKind.PATCH_NON_SETTER,
+            {'name': origin.name}),
+        <DiagnosticMessage>[
+            listener.createMessage(
+                patch,
+                MessageKind.PATCH_POINT_TO_SETTER,
+                {'setterName': patch.name}),
+        ]);
     return;
   }
   AbstractFieldElement originField = origin;
   if (originField.setter == null) {
     listener.reportError(
-        origin, MessageKind.PATCH_NO_SETTER, {'setterName': patch.name});
-    listener.reportInfo(
-        patch,
-        MessageKind.PATCH_POINT_TO_SETTER, {'setterName': patch.name});
+        listener.createMessage(
+            origin,
+            MessageKind.PATCH_NO_SETTER,
+            {'setterName': patch.name}),
+        <DiagnosticMessage>[
+              listener.createMessage(
+                  patch,
+                  MessageKind.PATCH_POINT_TO_SETTER,
+                  {'setterName': patch.name}),
+        ]);
     return;
   }
   SetterElementX setter = originField.setter;
@@ -538,12 +569,16 @@ void tryPatchConstructor(DiagnosticListener listener,
                          FunctionElement patch) {
   if (!origin.isConstructor) {
     listener.reportError(
-        origin,
-        MessageKind.PATCH_NON_CONSTRUCTOR, {'constructorName': patch.name});
-    listener.reportInfo(
-        patch,
-        MessageKind.PATCH_POINT_TO_CONSTRUCTOR,
-        {'constructorName': patch.name});
+        listener.createMessage(
+            origin,
+            MessageKind.PATCH_NON_CONSTRUCTOR,
+            {'constructorName': patch.name}),
+        <DiagnosticMessage>[
+            listener.createMessage(
+                patch,
+                MessageKind.PATCH_POINT_TO_CONSTRUCTOR,
+                {'constructorName': patch.name}),
+        ]);
     return;
   }
   patchFunction(listener, origin, patch);
@@ -554,11 +589,16 @@ void tryPatchFunction(DiagnosticListener listener,
                       FunctionElement patch) {
   if (!origin.isFunction) {
     listener.reportError(
-        origin,
-        MessageKind.PATCH_NON_FUNCTION, {'functionName': patch.name});
-    listener.reportInfo(
-        patch,
-        MessageKind.PATCH_POINT_TO_FUNCTION, {'functionName': patch.name});
+        listener.createMessage(
+            origin,
+            MessageKind.PATCH_NON_FUNCTION,
+            {'functionName': patch.name}),
+        <DiagnosticMessage>[
+            listener.createMessage(
+                patch,
+                MessageKind.PATCH_POINT_TO_FUNCTION,
+                {'functionName': patch.name}),
+        ]);
     return;
   }
   patchFunction(listener, origin, patch);
@@ -568,10 +608,14 @@ void patchFunction(DiagnosticListener listener,
                    BaseFunctionElementX origin,
                    BaseFunctionElementX patch) {
   if (!origin.modifiers.isExternal) {
-    listener.reportError(origin, MessageKind.PATCH_NON_EXTERNAL);
-    listener.reportInfo(
-        patch,
-        MessageKind.PATCH_POINT_TO_FUNCTION, {'functionName': patch.name});
+    listener.reportError(
+        listener.createMessage(origin, MessageKind.PATCH_NON_EXTERNAL),
+        <DiagnosticMessage>[
+              listener.createMessage(
+                  patch,
+                  MessageKind.PATCH_POINT_TO_FUNCTION,
+                  {'functionName': patch.name}),
+        ]);
     return;
   }
   if (origin.isPatched) {

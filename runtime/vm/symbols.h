@@ -327,6 +327,7 @@ class ObjectPointerVisitor;
   V(_instanceOfString, "_instanceOfString")                                    \
   V(_as, "_as")                                                                \
   V(GetterPrefix, "get:")                                                      \
+  V(ClosurizePrefix, "get:#")                                                  \
   V(SetterPrefix, "set:")                                                      \
   V(InitPrefix, "init:")                                                       \
   V(_New, "_new")                                                              \

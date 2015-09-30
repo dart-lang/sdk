@@ -52,7 +52,8 @@ class DartBackend extends Backend {
       new Set<ClassElement>();
 
   bool enableCodegenWithErrorsIfSupported(Spannable node) {
-    compiler.reportHint(node,
+    compiler.reportHintMessage(
+        node,
         MessageKind.GENERIC,
         {'text': "Generation of code with compile time errors is not "
                  "supported for dart2dart."});
@@ -253,7 +254,10 @@ class DartBackend extends Backend {
   }
 
   @override
-  void registerInstantiatedType(InterfaceType type, Registry registry) {
+  void registerInstantiatedType(InterfaceType type,
+                                Enqueuer enqueuer,
+                                Registry registry,
+                                {bool mirrorUsage: false}) {
     // Without patching, dart2dart has no way of performing sound tree-shaking
     // in face external functions. Therefore we employ another scheme:
     //
@@ -319,13 +323,15 @@ class DartBackend extends Backend {
         }
       }
     }
-
+    super.registerInstantiatedType(
+        type, enqueuer, registry, mirrorUsage: mirrorUsage);
   }
 
   @override
   bool enableDeferredLoadingIfSupported(Spannable node, Registry registry) {
     // TODO(sigurdm): Implement deferred loading for dart2dart.
-    compiler.reportWarning(node, MessageKind.DEFERRED_LIBRARY_DART_2_DART);
+    compiler.reportWarningMessage(
+        node, MessageKind.DEFERRED_LIBRARY_DART_2_DART);
     return false;
   }
 }

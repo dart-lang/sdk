@@ -6,8 +6,7 @@ library services.src.index.index_contributor;
 
 import 'dart:collection' show Queue;
 
-import 'package:analysis_server/analysis/index/index_core.dart';
-import 'package:analysis_server/analysis/index/index_dart.dart';
+import 'package:analysis_server/analysis/index_core.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_store.dart';
@@ -15,74 +14,20 @@ import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/html.dart' as ht;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
- * Adds data to [store] based on the resolved Dart [unit].
+ * An [IndexContributor] that contributes relationships for Dart files.
  */
-void indexDartUnit(
-    InternalIndexStore store, AnalysisContext context, CompilationUnit unit) {
-  // check unit
-  if (unit == null) {
-    return;
-  }
-  // prepare unit element
-  CompilationUnitElement unitElement = unit.element;
-  if (unitElement == null) {
-    return;
-  }
-  // about to index
-  bool mayIndex = store.aboutToIndex(context, unitElement);
-  if (!mayIndex) {
-    return;
-  }
-  // do index
-  try {
-    unit.accept(new _IndexContributor(store));
-    store.doneIndex();
-  } catch (e) {
-    store.cancelIndex();
-    rethrow;
-  }
-}
-
-/**
- * Adds data to [store] based on the resolved HTML [unit].
- */
-void indexHtmlUnit(
-    InternalIndexStore store, AnalysisContext context, ht.HtmlUnit unit) {
-  // TODO(scheglov) remove or implement
-//  // check unit
-//  if (unit == null) {
-//    return;
-//  }
-//  // prepare unit element
-//  HtmlElement unitElement = unit.element;
-//  if (unitElement == null) {
-//    return;
-//  }
-//  // about to index
-//  bool mayIndex = store.aboutToIndexHtml(context, unitElement);
-//  if (!mayIndex) {
-//    return;
-//  }
-//  // do index
-//  store.doneIndex();
-}
-
-/**
- * An [IndexContributor] that can be used to contribute relationships for Dart
- * files.
- */
-class DefaultDartIndexContributor extends DartIndexContributor {
+class DartIndexContributor extends IndexContributor {
   @override
-  void internalContributeTo(IndexStore store, CompilationUnit unit) {
-    _IndexContributor contributor =
-        new _IndexContributor(store as InternalIndexStore);
-    unit.accept(contributor);
+  void contributeTo(IndexStore store, AnalysisContext context, Object object) {
+    if (store is InternalIndexStore && object is CompilationUnit) {
+      _IndexContributor contributor = new _IndexContributor(store);
+      object.accept(contributor);
+    }
   }
 }
 
@@ -165,6 +110,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     enterScope(element);
     try {
       _recordTopLevelElementDefinition(element);
+      _recordHasAncestor(element);
       {
         ExtendsClause extendsClause = node.extendsClause;
         if (extendsClause != null) {
@@ -209,6 +155,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     enterScope(element);
     try {
       _recordTopLevelElementDefinition(element);
+      _recordHasAncestor(element);
       {
         TypeName superclassNode = node.superclass;
         if (superclassNode != null) {
@@ -698,6 +645,40 @@ class _IndexContributor extends GeneralizingAstVisitor {
       }
     }
     return false;
+  }
+
+  void _recordHasAncestor(ClassElement element) {
+    int offset = element.nameOffset;
+    int length = element.nameLength;
+    LocationImpl location = _createLocationForOffset(offset, length);
+    _recordHasAncestor0(location, element, false, <ClassElement>[]);
+  }
+
+  void _recordHasAncestor0(LocationImpl location, ClassElement element,
+      bool includeThis, List<ClassElement> visitedElements) {
+    if (element == null) {
+      return;
+    }
+    if (visitedElements.contains(element)) {
+      return;
+    }
+    visitedElements.add(element);
+    if (includeThis) {
+      recordRelationshipElement(element, IndexConstants.HAS_ANCESTOR, location);
+    }
+    {
+      InterfaceType superType = element.supertype;
+      if (superType != null) {
+        _recordHasAncestor0(location, superType.element, true, visitedElements);
+      }
+    }
+    for (InterfaceType mixinType in element.mixins) {
+      _recordHasAncestor0(location, mixinType.element, true, visitedElements);
+    }
+    for (InterfaceType implementedType in element.interfaces) {
+      _recordHasAncestor0(
+          location, implementedType.element, true, visitedElements);
+    }
   }
 
   /**

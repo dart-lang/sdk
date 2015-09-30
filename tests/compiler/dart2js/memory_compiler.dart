@@ -263,7 +263,6 @@ Compiler compilerFor(
     cachedCompiler.resolver = null;
     cachedCompiler.closureToClassMapper = null;
     cachedCompiler.checker = null;
-    cachedCompiler.irBuilder = null;
     cachedCompiler.typesTask = null;
     cachedCompiler.backend = null;
     // Don't null out the enqueuer as it prevents us from using cachedCompiler

@@ -6,7 +6,7 @@ library test.services.src.index.store.split_store;
 
 import 'dart:async';
 
-import 'package:analysis_server/analysis/index/index_core.dart';
+import 'package:analysis_server/analysis/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analysis_server/src/services/index/store/codec.dart';
@@ -521,8 +521,8 @@ class _SplitIndexStoreTest {
     indexableD = new IndexableElement(elementD);
 
     nodeManager.elementCodec = elementCodec;
-    store = new SplitIndexStore(nodeManager,
-        <IndexObjectManager>[new DartUnitIndexObjectManager()]);
+    store = new SplitIndexStore(
+        nodeManager, <IndexObjectManager>[new DartUnitIndexObjectManager()]);
     when(elementCodec.encode1(indexableA)).thenReturn(11);
     when(elementCodec.encode2(indexableA)).thenReturn(12);
     when(elementCodec.encode3(indexableA)).thenReturn(13);

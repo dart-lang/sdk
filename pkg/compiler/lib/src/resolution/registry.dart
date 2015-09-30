@@ -85,8 +85,7 @@ class EagerRegistry implements Registry {
 
   @override
   void registerInstantiation(InterfaceType type) {
-    // TODO(johnniwinther): Remove the need for passing `this`.
-    world.registerInstantiatedType(type, this);
+    world.registerInstantiatedType(type);
   }
 
   @override
@@ -94,6 +93,8 @@ class EagerRegistry implements Registry {
     registerDependency(element);
     world.registerStaticUse(element);
   }
+
+  String toString() => 'EagerRegistry for ${mapping.analyzedElement}';
 }
 
 class ResolutionWorldImpact implements WorldImpact {
@@ -221,6 +222,8 @@ class ResolutionRegistry implements Registry {
   World get universe => compiler.world;
 
   Backend get backend => compiler.backend;
+
+  String toString() => 'ResolutionRegistry for ${mapping.analyzedElement}';
 
   //////////////////////////////////////////////////////////////////////////////
   //  Node-to-Element mapping functionality.
@@ -444,7 +447,10 @@ class ResolutionRegistry implements Registry {
   }
 
   void registerClosure(LocalFunctionElement element) {
-    world.registerClosure(element, this);
+    if (element.computeType(compiler).containsTypeVariables) {
+      backend.registerClosureWithFreeTypeVariables(element, world, this);
+    }
+    world.registerClosure(element);
   }
 
   void registerSuperUse(Node node) {
@@ -466,7 +472,7 @@ class ResolutionRegistry implements Registry {
   void registerTypeLiteral(Send node, DartType type) {
     mapping.setType(node, type);
     backend.resolutionCallbacks.onTypeLiteral(type, this);
-    world.registerInstantiatedType(compiler.coreTypes.typeType, this);
+    backend.registerInstantiatedType(compiler.coreTypes.typeType, world, this);
   }
 
   void registerMapLiteral(Node node, DartType type, bool isConstant) {
@@ -515,7 +521,7 @@ class ResolutionRegistry implements Registry {
   }
 
   void registerInstantiatedType(InterfaceType type) {
-    world.registerInstantiatedType(type, this);
+    backend.registerInstantiatedType(type, world, this);
     mapping.addRequiredType(type);
   }
 
@@ -580,7 +586,7 @@ class ResolutionRegistry implements Registry {
   }
 
   void registerInstantiation(InterfaceType type) {
-    world.registerInstantiatedType(type, this);
+    backend.registerInstantiatedType(type, world, this);
   }
 
   void registerAssert(bool hasMessage) {

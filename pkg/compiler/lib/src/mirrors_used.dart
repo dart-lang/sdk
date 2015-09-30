@@ -409,9 +409,8 @@ class MirrorUsageBuilder {
           MessageKind kind = onlyStrings
               ? MessageKind.MIRRORS_EXPECTED_STRING
               : MessageKind.MIRRORS_EXPECTED_STRING_OR_TYPE;
-          compiler.reportHint(
-              node,
-              kind, {'name': node, 'type': apiTypeOf(entry)});
+          compiler.reportHintMessage(
+              node, kind, {'name': node, 'type': apiTypeOf(entry)});
         }
       }
       return result;
@@ -428,9 +427,8 @@ class MirrorUsageBuilder {
       MessageKind kind = onlyStrings
           ? MessageKind.MIRRORS_EXPECTED_STRING_OR_LIST
           : MessageKind.MIRRORS_EXPECTED_STRING_TYPE_OR_LIST;
-      compiler.reportHint(
-          node,
-          kind, {'name': node, 'type': apiTypeOf(constant)});
+      compiler.reportHintMessage(
+          node, kind, {'name': node, 'type': apiTypeOf(constant)});
       return null;
     }
   }
@@ -513,8 +511,9 @@ class MirrorUsageBuilder {
     List<String> identifiers = expression.split('.');
     Element element = enclosingLibrary.find(identifiers[0]);
     if (element == null) {
-      compiler.reportHint(
-          spannable, MessageKind.MIRRORS_CANNOT_RESOLVE_IN_CURRENT_LIBRARY,
+      compiler.reportHintMessage(
+          spannable,
+          MessageKind.MIRRORS_CANNOT_RESOLVE_IN_CURRENT_LIBRARY,
           {'name': expression});
       return null;
     } else {
@@ -531,12 +530,12 @@ class MirrorUsageBuilder {
       if (e == null) {
         if (current.isLibrary) {
           LibraryElement library = current;
-          compiler.reportHint(
+          compiler.reportHintMessage(
               spannable, MessageKind.MIRRORS_CANNOT_RESOLVE_IN_LIBRARY,
               {'name': identifiers[0],
                'library': library.libraryOrScriptName});
         } else {
-          compiler.reportHint(
+          compiler.reportHintMessage(
               spannable, MessageKind.MIRRORS_CANNOT_FIND_IN_ELEMENT,
               {'name': identifier, 'element': current.name});
         }

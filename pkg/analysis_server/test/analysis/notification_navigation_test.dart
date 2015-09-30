@@ -103,6 +103,14 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
   }
 
   /**
+   * Validates that there is a target in [testTargets]  with [testFile], at the
+   * offset of [str] in [testFile], and with the length of  [str].
+   */
+  void assertHasTargetString(String str) {
+    assertHasTarget(str, str.length);
+  }
+
+  /**
    * Validates that there is no a region at [search] and with the given
    * [length].
    */
@@ -581,6 +589,16 @@ main() {
     });
   }
 
+  test_library() {
+    addTestFile('''
+library my.lib;
+''');
+    return prepareNavigation().then((_) {
+      assertHasRegionString('my.lib');
+      assertHasTargetString('my.lib');
+    });
+  }
+
   test_multiplyDefinedElement() {
     addFile('$projectPath/bin/libA.dart', 'library A; int TEST = 1;');
     addFile('$projectPath/bin/libB.dart', 'library B; int TEST = 2;');
@@ -664,7 +682,7 @@ main() {
     var libFile = addFile('$projectPath/bin/lib.dart', libCode);
     addTestFile('part of lib;');
     return prepareNavigation().then((_) {
-      assertHasRegionString('part of lib');
+      assertHasRegionString('lib');
       assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
     });
   }

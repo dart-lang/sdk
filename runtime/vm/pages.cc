@@ -1045,11 +1045,6 @@ void PageSpace::SetupInstructionsSnapshotPage(void* pointer, uword size) {
   page->object_end_ = memory->end();
   page->executable_ = true;
 
-#if defined(DEBUG)
-  OS::Print("Precompiled instructions page at [0x%" Px ", 0x%" Px ")\n",
-            page->object_start(), page->object_end());
-#endif
-
   MutexLocker ml(pages_lock_);
   if (exec_pages_ == NULL) {
     exec_pages_ = page;

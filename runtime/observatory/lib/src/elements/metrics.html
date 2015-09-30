@@ -127,12 +127,20 @@
 <polymer-element name="metrics-graph" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="../../../../packages/charted/charts/themes/quantum_theme.css">
     <style>
-      .graph {
-        min-height: 600px;
-      }
+.chart-wrapper {
+  padding: 40px;
+  width: 800px;
+}
+.chart-host-wrapper {
+  height: 300px;
+}
     </style>
-    <div id="graph" class="graph">
+    <div class="chart-wrapper" id="metric-chart">
+        <div class="chart-host-wrapper">
+            <div class="chart-host" dir="ltr"></div>
+        </div>
     </div>
   </template>
 </polymer-element>

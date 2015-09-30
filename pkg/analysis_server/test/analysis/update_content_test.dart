@@ -95,7 +95,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     createProject();
     addTestFile('main() { print(1); }');
     await server.onAnalysisComplete;
-    verify(server.index.indexUnit(anyObject, testUnitMatcher)).times(1);
+    verify(server.index.index(anyObject, testUnitMatcher)).times(1);
     // add an overlay
     server.updateContent(
         '1', {testFile: new AddContentOverlay('main() { print(2); }')});
@@ -107,7 +107,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     server.updateContent('2', {testFile: new RemoveContentOverlay()});
     // Validate that at the end the unit was indexed.
     await server.onAnalysisComplete;
-    verify(server.index.indexUnit(anyObject, testUnitMatcher)).times(2);
+    verify(server.index.index(anyObject, testUnitMatcher)).times(2);
   }
 
   test_multiple_contexts() async {

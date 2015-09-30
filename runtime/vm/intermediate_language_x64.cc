@@ -6182,13 +6182,10 @@ LocationSummary* GotoInstr::MakeLocationSummary(Zone* zone,
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing()) {
     if (FLAG_emit_edge_counters) {
-      compiler->EmitEdgeCounter();
+      compiler->EmitEdgeCounter(block()->preorder_number());
     }
     // Add a deoptimization descriptor for deoptimizing instructions that
-    // may be inserted before this instruction.  This descriptor points
-    // after the edge counter for uniformity with ARM and MIPS, where we can
-    // reuse pattern matching that matches backwards from the end of the
-    // pattern.
+    // may be inserted before this instruction.
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
                                    Scanner::kNoSourcePos);

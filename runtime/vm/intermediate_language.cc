@@ -974,6 +974,7 @@ bool BlockEntryInstr::DiscoverBlock(
     last = it.Current();
   }
   set_last_instruction(last);
+  if (last->IsGoto()) last->AsGoto()->set_block(this);
 
   return true;
 }
@@ -2032,7 +2033,8 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
         TypeArguments::Cast(constant_type_args->value());
     Error& bound_error = Error::Handle();
     const AbstractType& new_dst_type = AbstractType::Handle(
-        dst_type().InstantiateFrom(instantiator_type_args, &bound_error));
+        dst_type().InstantiateFrom(
+            instantiator_type_args, &bound_error, NULL, Heap::kOld));
     // If dst_type is instantiated to dynamic or Object, skip the test.
     if (!new_dst_type.IsMalformedOrMalbounded() && bound_error.IsNull() &&
         (new_dst_type.IsDynamicType() || new_dst_type.IsObjectType())) {
@@ -2317,7 +2319,7 @@ static bool MayBeBoxableNumber(intptr_t cid) {
 
 static bool MaybeNumber(CompileType* type) {
   ASSERT(Type::Handle(Type::Number()).IsMoreSpecificThan(
-         Type::Handle(Type::Number()), NULL));
+         Type::Handle(Type::Number()), NULL, Heap::kOld));
   return type->ToAbstractType()->IsDynamicType()
       || type->ToAbstractType()->IsObjectType()
       || type->ToAbstractType()->IsTypeParameter()
@@ -2725,7 +2727,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   if (!compiler->is_optimizing()) {
     if (compiler->NeedsEdgeCounter(this)) {
-      compiler->EmitEdgeCounter();
+      compiler->EmitEdgeCounter(preorder_number());
     }
     // The deoptimization descriptor points after the edge counter code for
     // uniformity with ARM and MIPS, where we can reuse pattern matching

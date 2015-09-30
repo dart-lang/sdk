@@ -773,9 +773,6 @@ class RawFunction : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->data_);
   }
   RawArray* ic_data_array_;  // ICData of unoptimized code.
-  RawObject** to_optimized_snapshot() {
-    return reinterpret_cast<RawObject**>(&ptr()->ic_data_array_);
-  }
   RawObject** to_no_code() {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_array_);
   }
@@ -1087,6 +1084,14 @@ class RawObjectPool : public RawObject {
 class RawInstructions : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instructions);
 
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->code_);
+  }
+  RawCode* code_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->code_);
+  }
+
   int32_t size_;
 
   // Variable length data follows here.
@@ -1202,7 +1207,6 @@ class RawLocalVarDescriptors : public RawObject {
     kContextVar,
     kContextLevel,
     kSavedCurrentContext,
-    kAsyncOperation
   };
 
   enum {
@@ -1466,6 +1470,7 @@ class RawUnwindError : public RawError {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->message_);
   }
+  bool is_user_initiated_;
 };
 
 

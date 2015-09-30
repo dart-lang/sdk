@@ -102,7 +102,7 @@ class StringValidator {
   }
 
   void stringParseError(String message, Token token, int offset) {
-    listener.reportError(
+    listener.reportErrorMessage(
         token, MessageKind.GENERIC, {'text': "$message @ $offset"});
   }
 

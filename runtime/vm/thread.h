@@ -261,15 +261,20 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   static intptr_t OffsetFromThread(const Object& object);
   static intptr_t OffsetFromThread(const RuntimeEntry* runtime_entry);
 
+  Mutex* timeline_block_lock() {
+    return &timeline_block_lock_;
+  }
+
+  // Only safe to access when holding |timeline_block_lock_|.
   TimelineEventBlock* timeline_block() const {
     return state_.timeline_block;
   }
 
+  // Only safe to access when holding |timeline_block_lock_|.
   void set_timeline_block(TimelineEventBlock* block) {
     state_.timeline_block = block;
   }
 
-  void CloseTimelineBlock();
   class Log* log() const;
 
   LongJumpScope* long_jump_base() const { return state_.long_jump_base; }
@@ -296,6 +301,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   Isolate* isolate_;
   Heap* heap_;
   State state_;
+  Mutex timeline_block_lock_;
   StoreBufferBlock* store_buffer_block_;
   class Log* log_;
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \

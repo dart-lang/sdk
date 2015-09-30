@@ -1869,6 +1869,11 @@ class FixProcessor {
           sourcePrefix = eol;
         }
         sourceSuffix = eol;
+        // use different utils
+        CompilationUnitElement targetUnitElement =
+            getCompilationUnitElement(targetClassElement);
+        CompilationUnit targetUnit = getParsedUnit(targetUnitElement);
+        utils = new CorrectionUtils(targetUnit);
       }
       String targetFile = targetElement.source.fullName;
       // build method source

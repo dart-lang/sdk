@@ -96,6 +96,26 @@ class AbstractContextManagerTest {
     ContextManagerImpl.ENABLE_PACKAGESPEC_SUPPORT = false;
   }
 
+  test_analysis_options_parse_failure() async {
+    // Create files.
+    String libPath = newFolder([projPath, LIB_NAME]);
+    newFile([libPath, 'main.dart']);
+    String sdkExtPath = newFolder([projPath, 'sdk_ext']);
+    newFile([sdkExtPath, 'entry.dart']);
+    String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
+    newFile([sdkExtSrcPath, 'part.dart']);
+    // Setup analysis options file with ignore list.
+    newFile(
+        [projPath, '.analysis_options'],
+        r'''
+;
+''');
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+
+    // No error means success.
+  }
+
   void test_contextsInAnalysisRoot_nestedContext() {
     String subProjPath = posix.join(projPath, 'subproj');
     Folder subProjFolder = resourceProvider.newFolder(subProjPath);
@@ -347,41 +367,6 @@ analyzer:
   // TODO(paulberry): This test only tests PackagesFileDisposition.
   // Once http://dartbug.com/23909 is fixed, add a test for sdk extensions
   // and PackageMapDisposition.
-  test_sdk_ext_packagespec() async {
-    // Create files.
-    String libPath = newFolder([projPath, LIB_NAME]);
-    newFile([libPath, 'main.dart']);
-    newFile([libPath, 'nope.dart']);
-    String sdkExtPath = newFolder([projPath, 'sdk_ext']);
-    newFile([sdkExtPath, 'entry.dart']);
-    String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
-    newFile([sdkExtSrcPath, 'part.dart']);
-    // Setup sdk extension mapping.
-    newFile(
-        [libPath, '_sdkext'],
-        r'''
-{
-  "dart:foobar": "../sdk_ext/entry.dart"
-}
-''');
-    // Setup .packages file
-    newFile(
-        [projPath, '.packages'],
-        r'''
-test_pack:lib/
-''');
-    // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    // Confirm that one context was created.
-    var contexts =
-        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
-    expect(contexts, isNotNull);
-    expect(contexts.length, equals(1));
-    var context = contexts[0];
-    var source = context.sourceFactory.forUri('dart:foobar');
-    expect(source.fullName, equals('/my/proj/sdk_ext/entry.dart'));
-  }
-
   test_refresh_folder_with_packagespec() {
     // create a context with a .packages file
     String packagespecFile = posix.join(projPath, '.packages');
@@ -487,6 +472,41 @@ test_pack:lib/
         expect(callbacks.currentContextTimestamps[proj2Path], callbacks.now);
       });
     });
+  }
+
+  test_sdk_ext_packagespec() async {
+    // Create files.
+    String libPath = newFolder([projPath, LIB_NAME]);
+    newFile([libPath, 'main.dart']);
+    newFile([libPath, 'nope.dart']);
+    String sdkExtPath = newFolder([projPath, 'sdk_ext']);
+    newFile([sdkExtPath, 'entry.dart']);
+    String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
+    newFile([sdkExtSrcPath, 'part.dart']);
+    // Setup sdk extension mapping.
+    newFile(
+        [libPath, '_sdkext'],
+        r'''
+{
+  "dart:foobar": "../sdk_ext/entry.dart"
+}
+''');
+    // Setup .packages file
+    newFile(
+        [projPath, '.packages'],
+        r'''
+test_pack:lib/
+''');
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // Confirm that one context was created.
+    var contexts =
+        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
+    expect(contexts, isNotNull);
+    expect(contexts.length, equals(1));
+    var context = contexts[0];
+    var source = context.sourceFactory.forUri('dart:foobar');
+    expect(source.fullName, equals('/my/proj/sdk_ext/entry.dart'));
   }
 
   void test_setRoots_addFolderWithDartFile() {
@@ -934,6 +954,19 @@ test_pack:lib/
     expect(result, same(source));
   }
 
+  void test_setRoots_pathContainsDotFile() {
+    // If the path to a file (relative to the context root) contains a folder
+    // whose name begins with '.', then the file is ignored.
+    String project = '/project';
+    String fileA = '$project/foo.dart';
+    String fileB = '$project/.pub/bar.dart';
+    resourceProvider.newFile(fileA, '');
+    resourceProvider.newFile(fileB, '');
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    callbacks.assertContextPaths([project]);
+    callbacks.assertContextFiles(project, [fileA]);
+  }
+
   void test_setRoots_removeFolderWithoutPubspec() {
     packageMapProvider.packageMap = null;
     // add one root - there is a context
@@ -1057,6 +1090,18 @@ test_pack:lib/
     _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
   }
 
+  void test_setRoots_rootPathContainsDotFile() {
+    // If the path to the context root itself contains a folder whose name
+    // begins with '.', then that is not sufficient to cause any files in the
+    // context to be ignored.
+    String project = '/.pub/project';
+    String fileA = '$project/foo.dart';
+    resourceProvider.newFile(fileA, '');
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    callbacks.assertContextPaths([project]);
+    callbacks.assertContextFiles(project, [fileA]);
+  }
+
   test_watch_addDummyLink() {
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // empty folder initially
@@ -1105,6 +1150,38 @@ test_pack:lib/
       callbacks.assertContextPaths([project]);
       callbacks.assertContextFiles(project, [fileA]);
     });
+  }
+
+  test_watch_addFile_pathContainsDotFile() async {
+    // If a file is added and the path to it (relative to the context root)
+    // contains a folder whose name begins with '.', then the file is ignored.
+    String project = '/project';
+    String fileA = '$project/foo.dart';
+    String fileB = '$project/.pub/bar.dart';
+    resourceProvider.newFile(fileA, '');
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    callbacks.assertContextPaths([project]);
+    callbacks.assertContextFiles(project, [fileA]);
+    resourceProvider.newFile(fileB, '');
+    await pumpEventQueue();
+    callbacks.assertContextPaths([project]);
+    callbacks.assertContextFiles(project, [fileA]);
+  }
+
+  test_watch_addFile_rootPathContainsDotFile() async {
+    // If a file is added and the path to the context contains a folder whose
+    // name begins with '.', then the file is not ignored.
+    String project = '/.pub/project';
+    String fileA = '$project/foo.dart';
+    String fileB = '$project/bar/baz.dart';
+    resourceProvider.newFile(fileA, '');
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    callbacks.assertContextPaths([project]);
+    callbacks.assertContextFiles(project, [fileA]);
+    resourceProvider.newFile(fileB, '');
+    await pumpEventQueue();
+    callbacks.assertContextPaths([project]);
+    callbacks.assertContextFiles(project, [fileA, fileB]);
   }
 
   test_watch_addFileInSubfolder() {

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:logging/logging.dart';
-import 'package:observatory/app.dart';
 import 'package:polymer/polymer.dart';
 
 main() {
@@ -19,16 +18,12 @@ main() {
       print('${rec.level.name}: ${rec.time}: ${rec.message}');
   });
   Logger.root.info('Starting Observatory');
-  var chartsLoaded = GoogleChart.initOnce();
-  chartsLoaded.then((_) {
-    // Charts loaded, initialize polymer.
-    initPolymer().then((zone) {
-      Logger.root.info('Polymer initialized');
-      // Code here is in the polymer Zone, which ensures that
-      // @observable properties work correctly.
-      Polymer.onReady.then((_) {
-        Logger.root.info('Polymer elements have been upgraded');
-      });
+  initPolymer().then((zone) {
+    Logger.root.info('Polymer initialized');
+    // Code here is in the polymer Zone, which ensures that
+    // @observable properties work correctly.
+    Polymer.onReady.then((_) {
+      Logger.root.info('Polymer elements have been upgraded');
     });
   });
 }

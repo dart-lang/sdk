@@ -308,6 +308,11 @@ void JSONStream::PrintValueTimeMillis(int64_t millis) {
 }
 
 
+void JSONStream::PrintValueTimeMicros(int64_t micros) {
+  PrintValue64(micros);
+}
+
+
 void JSONStream::PrintValue(double d) {
   PrintCommaIfNeeded();
   buffer_.Printf("%f", d);
@@ -462,6 +467,11 @@ void JSONStream::PrintProperty64(const char* name, int64_t i) {
 
 void JSONStream::PrintPropertyTimeMillis(const char* name, int64_t millis) {
   PrintProperty(name, static_cast<double>(millis));
+}
+
+
+void JSONStream::PrintPropertyTimeMicros(const char* name, int64_t micros) {
+  PrintProperty64(name, micros);
 }
 
 

@@ -450,6 +450,26 @@ class AnalysisServer {
     return folderMap.values;
   }
 
+  CompilationUnitElement getCompilationUnitElement(String file) {
+    ContextSourcePair pair = getContextSourcePair(file);
+    if (pair == null) {
+      return null;
+    }
+    // prepare AnalysisContext and Source
+    AnalysisContext context = pair.context;
+    Source unitSource = pair.source;
+    if (context == null || unitSource == null) {
+      return null;
+    }
+    // get element in the first library
+    List<Source> librarySources = context.getLibrariesContaining(unitSource);
+    if (!librarySources.isNotEmpty) {
+      return null;
+    }
+    Source librarySource = librarySources.first;
+    return context.getCompilationUnitElement(unitSource, librarySource);
+  }
+
   /**
    * Return the [AnalysisContext] that contains the given [path].
    * Return `null` if no context contains the [path].
@@ -536,7 +556,7 @@ class AnalysisServer {
    */
   List<Element> getElementsAtOffset(String file, int offset) {
     List<AstNode> nodes = getNodesAtOffset(file, offset);
-    return getElementsOfNodes(nodes, offset);
+    return getElementsOfNodes(nodes);
   }
 
   /**
@@ -544,7 +564,7 @@ class AnalysisServer {
    *
    * May be empty if not resolved, but not `null`.
    */
-  List<Element> getElementsOfNodes(List<AstNode> nodes, int offset) {
+  List<Element> getElementsOfNodes(List<AstNode> nodes) {
     List<Element> elements = <Element>[];
     for (AstNode node in nodes) {
       if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
@@ -553,7 +573,7 @@ class AnalysisServer {
       if (node is LibraryIdentifier) {
         node = node.parent;
       }
-      Element element = ElementLocator.locateWithOffset(node, offset);
+      Element element = ElementLocator.locate(node);
       if (node is SimpleIdentifier && element is PrefixElement) {
         element = getImportElement(node);
       }
@@ -563,6 +583,23 @@ class AnalysisServer {
     }
     return elements;
   }
+
+// TODO(brianwilkerson) Add the following method after 'prioritySources' has
+// been added to InternalAnalysisContext.
+//  /**
+//   * Return a list containing the full names of all of the sources that are
+//   * priority sources.
+//   */
+//  List<String> getPriorityFiles() {
+//    List<String> priorityFiles = new List<String>();
+//    folderMap.values.forEach((ContextDirectory directory) {
+//      InternalAnalysisContext context = directory.context;
+//      context.prioritySources.forEach((Source source) {
+//        priorityFiles.add(source.fullName);
+//      });
+//    });
+//    return priorityFiles;
+//  }
 
   /**
    * Return an analysis error info containing the array of all of the errors and
@@ -589,23 +626,6 @@ class AnalysisServer {
     }
     return context.getErrors(source);
   }
-
-// TODO(brianwilkerson) Add the following method after 'prioritySources' has
-// been added to InternalAnalysisContext.
-//  /**
-//   * Return a list containing the full names of all of the sources that are
-//   * priority sources.
-//   */
-//  List<String> getPriorityFiles() {
-//    List<String> priorityFiles = new List<String>();
-//    folderMap.values.forEach((ContextDirectory directory) {
-//      InternalAnalysisContext context = directory.context;
-//      context.prioritySources.forEach((Source source) {
-//        priorityFiles.add(source.fullName);
-//      });
-//    });
-//    return priorityFiles;
-//  }
 
   /**
    * Returns resolved [AstNode]s at the given [offset] of the given [file].
@@ -790,6 +810,7 @@ class AnalysisServer {
           sendAnalysisNotificationAnalyzedFiles(this);
         }
         sendStatusNotification(null);
+        _scheduleAnalysisImplementedNotification();
         if (_onAnalysisCompleteCompleter != null) {
           _onAnalysisCompleteCompleter.complete();
           _onAnalysisCompleteCompleter = null;
@@ -993,6 +1014,11 @@ class AnalysisServer {
     });
     // remember new subscriptions
     this.analysisServices = subscriptions;
+    // special case for implemented elements
+    if (analysisServices.containsKey(AnalysisService.IMPLEMENTED) &&
+        isAnalysisComplete()) {
+      _scheduleAnalysisImplementedNotification();
+    }
   }
 
   /**
@@ -1280,6 +1306,13 @@ class AnalysisServer {
     return runWithWorkingCacheSize(context, () {
       return context.resolveCompilationUnit2(source, librarySource);
     });
+  }
+
+  _scheduleAnalysisImplementedNotification() async {
+    Set<String> files = analysisServices[AnalysisService.IMPLEMENTED];
+    if (files != null) {
+      scheduleImplementedNotification(this, files);
+    }
   }
 
   /**

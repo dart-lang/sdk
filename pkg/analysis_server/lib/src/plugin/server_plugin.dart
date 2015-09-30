@@ -5,7 +5,7 @@
 library analysis_server.src.plugin.server_plugin;
 
 import 'package:analysis_server/analysis/analysis_domain.dart';
-import 'package:analysis_server/analysis/index/index_core.dart';
+import 'package:analysis_server/analysis/index_core.dart';
 import 'package:analysis_server/analysis/navigation_core.dart';
 import 'package:analysis_server/analysis/occurrences_core.dart';
 import 'package:analysis_server/completion/completion_core.dart';
@@ -14,6 +14,7 @@ import 'package:analysis_server/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/analyzed_files.dart';
 import 'package:analysis_server/plugin/assist.dart';
 import 'package:analysis_server/plugin/fix.dart';
+import 'package:analysis_server/plugin/index.dart';
 import 'package:analysis_server/plugin/navigation.dart';
 import 'package:analysis_server/plugin/occurrences.dart';
 import 'package:analysis_server/src/analysis_server.dart';
@@ -28,6 +29,7 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/services/index/index_contributor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:plugin/plugin.dart';
@@ -310,8 +312,8 @@ class ServerPlugin implements Plugin {
     //
     // Register index contributors.
     //
-    // TODO(brianwilkerson) Register the index contributors.
-//    registerExtension(INDEX_CONTRIBUTOR_EXTENSION_POINT, ???);
+    registerExtension(
+        INDEX_CONTRIBUTOR_EXTENSION_POINT_ID, new DartIndexContributor());
   }
 
   /**

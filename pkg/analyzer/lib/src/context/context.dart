@@ -1199,10 +1199,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   CompilationUnit resolveCompilationUnit2(
       Source unitSource, Source librarySource) {
-    if (!AnalysisEngine.isDartFileName(unitSource.shortName) ||
-        !AnalysisEngine.isDartFileName(librarySource.shortName)) {
-      return null;
-    }
     return computeResult(
         new LibrarySpecificUnit(librarySource, unitSource), RESOLVED_UNIT);
   }
@@ -1772,7 +1768,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           }
           return;
         }
-      } catch (e) {}
+      } catch (e) {
+        entry.modificationTime = -1;
+      }
     }
     // We need to invalidate the cache.
     {

@@ -58,6 +58,7 @@ abstract class TypeSystem<T> {
   T get typeType;
 
   T stringLiteralType(DartString value);
+  T boolLiteralType(LiteralBool value);
 
   T nonNullSubtype(ClassElement type);
   T nonNullSubclass(ClassElement type);
@@ -832,7 +833,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
   }
 
   T visitLiteralBool(LiteralBool node) {
-    return types.boolType;
+    return types.boolLiteralType(node);
   }
 
   T visitLiteralDouble(LiteralDouble node) {

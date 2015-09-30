@@ -410,6 +410,11 @@ const Map<String, String> DEFAULT_ASYNC_LIBRARY = const <String, String>{
 const Map<String, String> ASYNC_AWAIT_LIBRARY = const <String, String>{
   '_wrapJsFunctionForAsync': '_wrapJsFunctionForAsync(f) {}',
   '_asyncHelper': '_asyncHelper(o, f, c) {}',
+  '_SyncStarIterable': 'class _SyncStarIterable {}',
+  '_IterationMarker': 'class _IterationMarker {}',
+  '_AsyncStarStreamController': 'class _AsyncStarStreamController {}',
+  '_asyncStarHelper': '_asyncStarHelper(x, y, z) {}',
+  '_streamOfController': '_streamOfController(x) {}',
 };
 
 const String DEFAULT_MIRRORS_SOURCE = r'''

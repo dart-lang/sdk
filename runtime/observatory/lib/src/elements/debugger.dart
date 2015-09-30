@@ -1358,10 +1358,12 @@ class ObservatoryDebugger extends Debugger {
   void _reportPause(ServiceEvent event) {
     if (event.kind == ServiceEvent.kPauseStart) {
       console.print(
-          "Paused at isolate start (type 'continue' [F7] or 'step' [F10] to start the isolate')");
+          "Paused at isolate start "
+          "(type 'continue' [F7] or 'step' [F10] to start the isolate')");
     } else if (event.kind == ServiceEvent.kPauseExit) {
       console.print(
-          "Paused at isolate exit (type 'continue' or [F7] to exit the isolate')");
+          "Paused at isolate exit "
+          "(type 'continue' or [F7] to exit the isolate')");
     }
     if (stack['frames'].length > 0) {
       Frame frame = stack['frames'][0];
@@ -1384,6 +1386,9 @@ class ObservatoryDebugger extends Debugger {
           console.print('Paused at ${script.name}:${line}:${col}');
         }
       });
+    } else {
+      console.print("Paused in message loop (type 'continue' or [F7] "
+                    "to resume processing messages)");
     }
   }
 

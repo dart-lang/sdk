@@ -4,13 +4,14 @@
 
 library test.services.src.index.dart_index_contributor;
 
-import 'package:analysis_server/analysis/index/index_core.dart';
+import 'package:analysis_server/analysis/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_contributor.dart';
 import 'package:analysis_server/src/services/index/index_store.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
@@ -22,6 +23,11 @@ import '../../utils.dart';
 main() {
   initializeTestEnvironment();
   defineReflectiveTests(DartUnitContributorTest);
+}
+
+void indexDartUnit(
+    InternalIndexStore store, AnalysisContext context, CompilationUnit unit) {
+  new DartIndexContributor().contributeTo(store, context, unit);
 }
 
 /**
@@ -153,6 +159,84 @@ main() {
     // verify
     _assertNoRecordedRelationForElement(variableElement,
         IndexConstants.IS_READ_BY, _expectedLocation(mainElement, 'v in []'));
+  }
+
+  void test_hasAncestor_ClassDeclaration() {
+    _indexTestUnit('''
+class A {}
+class B1 extends A {}
+class B2 implements A {}
+class C1 extends B1 {}
+class C2 extends B2 {}
+class C3 implements B1 {}
+class C4 implements B2 {}
+class M extends Object with A {}
+''');
+    // prepare elements
+    ClassElement classElementA = findElement("A");
+    ClassElement classElementB1 = findElement("B1");
+    ClassElement classElementB2 = findElement("B2");
+    ClassElement classElementC1 = findElement("C1");
+    ClassElement classElementC2 = findElement("C2");
+    ClassElement classElementC3 = findElement("C3");
+    ClassElement classElementC4 = findElement("C4");
+    ClassElement classElementM = findElement("M");
+    // verify
+    _assertRecordedRelationForElement(
+        classElementA,
+        IndexConstants.HAS_ANCESTOR,
+        _expectedLocation(classElementB1, 'B1 extends A'));
+    _assertRecordedRelationForElement(
+        classElementA,
+        IndexConstants.HAS_ANCESTOR,
+        _expectedLocation(classElementB2, 'B2 implements A'));
+    _assertRecordedRelationForElement(
+        classElementA,
+        IndexConstants.HAS_ANCESTOR,
+        _expectedLocation(classElementC1, 'C1 extends B1'));
+    _assertRecordedRelationForElement(
+        classElementA,
+        IndexConstants.HAS_ANCESTOR,
+        _expectedLocation(classElementC2, 'C2 extends B2'));
+    _assertRecordedRelationForElement(
+        classElementA,
+        IndexConstants.HAS_ANCESTOR,
+        _expectedLocation(classElementC3, 'C3 implements B1'));
+    _assertRecordedRelationForElement(
+        classElementA,
+        IndexConstants.HAS_ANCESTOR,
+        _expectedLocation(classElementC4, 'C4 implements B2'));
+    _assertRecordedRelationForElement(
+        classElementA,
+        IndexConstants.HAS_ANCESTOR,
+        _expectedLocation(classElementM, 'M extends Object with A'));
+  }
+
+  void test_hasAncestor_ClassTypeAlias() {
+    _indexTestUnit('''
+class A {}
+class B extends A {}
+class C1 = Object with A;
+class C2 = Object with B;
+''');
+    // prepare elements
+    ClassElement classElementA = findElement("A");
+    ClassElement classElementB = findElement("B");
+    ClassElement classElementC1 = findElement("C1");
+    ClassElement classElementC2 = findElement("C2");
+    // verify
+    _assertRecordedRelationForElement(
+        classElementA,
+        IndexConstants.HAS_ANCESTOR,
+        _expectedLocation(classElementC1, 'C1 = Object with A'));
+    _assertRecordedRelationForElement(
+        classElementA,
+        IndexConstants.HAS_ANCESTOR,
+        _expectedLocation(classElementC2, 'C2 = Object with B'));
+    _assertRecordedRelationForElement(
+        classElementB,
+        IndexConstants.HAS_ANCESTOR,
+        _expectedLocation(classElementC2, 'C2 = Object with B'));
   }
 
   void test_IndexableName_field() {
@@ -1496,7 +1580,7 @@ main(A a, p) {
 
   void _assertDefinesTopLevelElement(Element element) {
     ExpectedLocation location = new ExpectedLocation(
-        element, element.nameOffset, element.name.length, false, true);
+        element, element.nameOffset, element.nameLength, false, true);
     _assertRecordedRelationForElement(
         testLibraryElement, IndexConstants.DEFINES, location);
     expect(recordedTopElements, contains(element));

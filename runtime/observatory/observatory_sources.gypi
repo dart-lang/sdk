@@ -19,7 +19,6 @@
     'lib/service_html.dart',
     'lib/src/app/analytics.dart',
     'lib/src/app/application.dart',
-    'lib/src/app/chart.dart',
     'lib/src/app/location_manager.dart',
     'lib/src/app/page.dart',
     'lib/src/app/settings.dart',

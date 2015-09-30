@@ -4,7 +4,7 @@
 
 library services.index_store;
 
-import 'package:analysis_server/analysis/index/index_core.dart';
+import 'package:analysis_server/analysis/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -22,7 +22,7 @@ abstract class InternalIndexStore extends IndexStore {
   /**
    * Notifies the index store that we are going to index the given [object].
    *
-   * [context] - the [AnalysisContext] in which unit being indexed.
+   * [context] - the [AnalysisContext] in which the [object] being indexed.
    * [object] - the object being indexed.
    *
    * Returns `true` if the given [object] may be indexed, or `false` if

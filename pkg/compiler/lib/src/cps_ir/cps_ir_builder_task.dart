@@ -75,7 +75,7 @@ class IrBuilderTask extends CompilerTask {
       [this.builderCallback])
       : super(compiler);
 
-  String get name => 'IR builder';
+  String get name => 'CPS builder';
 
   ir.FunctionDefinition buildNode(AstElement element) {
     return measure(() {

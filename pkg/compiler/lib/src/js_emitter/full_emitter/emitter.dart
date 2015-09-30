@@ -1812,7 +1812,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
     if (backend.requiresPreamble &&
         !backend.htmlLibraryIsLoaded) {
-      compiler.reportHint(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
+      compiler.reportHintMessage(
+          NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
     // Return the total program size.
     return outputBuffers.values.fold(0, (a, b) => a + b.length);

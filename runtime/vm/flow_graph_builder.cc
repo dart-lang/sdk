@@ -1660,7 +1660,8 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   const bool negate_result = (node->kind() == Token::kISNOT);
   // All objects are instances of type T if Object type is a subtype of type T.
   const Type& object_type = Type::Handle(Z, Type::ObjectType());
-  if (type.IsInstantiated() && object_type.IsSubtypeOf(type, NULL)) {
+  if (type.IsInstantiated() &&
+      object_type.IsSubtypeOf(type, NULL, Heap::kOld)) {
     // Must evaluate left side.
     EffectGraphVisitor for_left_value(owner());
     node->left()->Visit(&for_left_value);

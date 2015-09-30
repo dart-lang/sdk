@@ -895,6 +895,9 @@ void SSLFilter::Connect(const char* hostname,
     // against the certificate presented by the server.
     X509_VERIFY_PARAM* certificate_checking_parameters = SSL_get0_param(ssl_);
     hostname_ = strdup(hostname);
+    X509_VERIFY_PARAM_set_flags(certificate_checking_parameters,
+                                X509_V_FLAG_PARTIAL_CHAIN |
+                                X509_V_FLAG_TRUSTED_FIRST);
     X509_VERIFY_PARAM_set_hostflags(certificate_checking_parameters, 0);
     X509_VERIFY_PARAM_set1_host(certificate_checking_parameters,
                                 hostname_, strlen(hostname_));
@@ -957,8 +960,10 @@ void SSLFilter::Handshake() {
   if (SSL_LOG_STATUS) Log::Print("SSL_handshake status: %d\n", status);
   if (status != 1) {
     error = SSL_get_error(ssl_, status);
-    if (SSL_LOG_STATUS) Log::Print("ERROR: %d\n", error);
-    ERR_print_errors_cb(printErrorCallback, NULL);
+    if (SSL_LOG_STATUS) {
+      Log::Print("ERROR: %d\n", error);
+      ERR_print_errors_cb(printErrorCallback, NULL);
+    }
   }
   if (status == 1) {
     if (in_handshake_) {

@@ -876,6 +876,8 @@ abstract class HInstruction implements Spannable {
 
   bool isExact() => instructionType.isExact || isNull();
 
+  bool isValue() => instructionType.isValue;
+
   bool canBeNull() => instructionType.isNullable;
 
   bool isNull() => instructionType.isEmpty && instructionType.isNullable;
@@ -905,7 +907,7 @@ abstract class HInstruction implements Spannable {
       TypeMask typeMask,
       ClassElement cls,
       ClassWorld classWorld) {
-    return classWorld.isInstantiated(cls) &&
+    return classWorld.isImplemented(cls) &&
         typeMask.satisfies(cls, classWorld);
   }
 

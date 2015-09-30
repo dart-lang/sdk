@@ -23,6 +23,8 @@ import 'commandline_options.dart';
 import 'common/tasks.dart' show
     GenericTask;
 import 'compiler.dart' as leg;
+import 'diagnostics/diagnostic_listener.dart' show
+    DiagnosticMessage;
 import 'diagnostics/messages.dart';
 import 'diagnostics/source_span.dart' show
     SourceSpan;
@@ -32,7 +34,6 @@ import 'diagnostics/spannable.dart' show
 import 'elements/elements.dart' as elements;
 import 'io/source_file.dart';
 import 'script.dart';
-import 'tree/tree.dart' as tree;
 
 const bool forceIncrementalSupport =
     const bool.fromEnvironment('DART2JS_EXPERIMENTAL_INCREMENTAL_SUPPORT');
@@ -246,13 +247,13 @@ class Compiler extends leg.Compiler {
     elements.Element element = currentElement;
     void reportReadError(exception) {
       if (element == null || node == null) {
-        reportError(
+        reportErrorMessage(
             new SourceSpan(readableUri, 0, 0),
             MessageKind.READ_SELF_ERROR,
             {'uri': readableUri, 'exception': exception});
       } else {
         withCurrentElement(element, () {
-          reportError(
+          reportErrorMessage(
               node,
               MessageKind.READ_SCRIPT_ERROR,
               {'uri': readableUri, 'exception': exception});
@@ -265,7 +266,8 @@ class Compiler extends leg.Compiler {
     if (resourceUri.scheme == 'dart-ext') {
       if (!allowNativeExtensions) {
         withCurrentElement(element, () {
-          reportError(node, MessageKind.DART_EXT_NOT_SUPPORTED);
+          reportErrorMessage(
+              node, MessageKind.DART_EXT_NOT_SUPPORTED);
         });
       }
       return synthesizeScript(node, readableUri);
@@ -335,13 +337,13 @@ class Compiler extends leg.Compiler {
       }
       if (!allowInternalLibraryAccess) {
         if (importingLibrary != null) {
-          reportError(
+          reportErrorMessage(
               spannable,
               MessageKind.INTERNAL_LIBRARY_FROM,
               {'resolvedUri': resolvedUri,
                'importingUri': importingLibrary.canonicalUri});
         } else {
-          reportError(
+          reportErrorMessage(
               spannable,
               MessageKind.INTERNAL_LIBRARY,
               {'resolvedUri': resolvedUri});
@@ -350,11 +352,15 @@ class Compiler extends leg.Compiler {
     }
     if (path == null) {
       if (libraryInfo == null) {
-        reportError(spannable, MessageKind.LIBRARY_NOT_FOUND,
-                    {'resolvedUri': resolvedUri});
+        reportErrorMessage(
+            spannable,
+            MessageKind.LIBRARY_NOT_FOUND,
+            {'resolvedUri': resolvedUri});
       } else {
-        reportError(spannable, MessageKind.LIBRARY_NOT_SUPPORTED,
-                    {'resolvedUri': resolvedUri});
+        reportErrorMessage(
+            spannable,
+            MessageKind.LIBRARY_NOT_SUPPORTED,
+            {'resolvedUri': resolvedUri});
       }
       // TODO(johnniwinther): Support signaling the error through the returned
       // value.
@@ -379,7 +385,7 @@ class Compiler extends leg.Compiler {
     try {
       checkValidPackageUri(uri);
     } on ArgumentError catch (e) {
-      reportError(
+      reportErrorMessage(
           node,
           MessageKind.INVALID_PACKAGE_URI,
           {'uri': uri, 'exception': e.message});
@@ -387,11 +393,10 @@ class Compiler extends leg.Compiler {
     }
     return packages.resolve(uri,
         notFound: (Uri notFound) {
-          reportError(
+          reportErrorMessage(
               node,
               MessageKind.LIBRARY_NOT_FOUND,
-              {'resolvedUri': uri}
-          );
+              {'resolvedUri': uri});
           return null;
         });
   }
@@ -426,7 +431,9 @@ class Compiler extends leg.Compiler {
         packages =
             new MapPackages(pkgs.parse(packageConfigContents, packageConfig));
       }).catchError((error) {
-        reportError(NO_LOCATION_SPANNABLE, MessageKind.INVALID_PACKAGE_CONFIG,
+        reportErrorMessage(
+            NO_LOCATION_SPANNABLE,
+            MessageKind.INVALID_PACKAGE_CONFIG,
             {'uri': packageConfig, 'exception': error});
         packages = Packages.noPackages;
       });
@@ -455,6 +462,10 @@ class Compiler extends leg.Compiler {
           if (elapsed != 0) {
             cumulated += elapsed;
             log('${task.name} took ${elapsed}msec');
+            for (String subtask in task.subtasks) {
+              int subtime = task.getSubtaskTime(subtask);
+              log('${task.name} > $subtask took ${subtime}msec');
+            }
           }
         }
         int total = totalCompileTime.elapsedMilliseconds;
@@ -465,17 +476,26 @@ class Compiler extends leg.Compiler {
     });
   }
 
-  void reportDiagnostic(Spannable node,
-                        Message message,
+  void reportDiagnostic(DiagnosticMessage message,
+                        List<DiagnosticMessage> infos,
                         api.Diagnostic kind) {
-    SourceSpan span = spanFromSpannable(node);
-    if (identical(kind, api.Diagnostic.ERROR)
-        || identical(kind, api.Diagnostic.CRASH)
-        || (fatalWarnings && identical(kind, api.Diagnostic.WARNING))) {
+    if (kind == api.Diagnostic.ERROR ||
+        kind == api.Diagnostic.CRASH ||
+        (fatalWarnings && kind == api.Diagnostic.WARNING)) {
       compilationFailed = true;
     }
+    _reportDiagnosticMessage(message, kind);
+    for (DiagnosticMessage info in infos) {
+      _reportDiagnosticMessage(info, api.Diagnostic.INFO);
+    }
+  }
+
+  void _reportDiagnosticMessage(DiagnosticMessage diagnosticMessage,
+                                api.Diagnostic kind) {
     // [:span.uri:] might be [:null:] in case of a [Script] with no [uri]. For
     // instance in the [Types] constructor in typechecker.dart.
+    SourceSpan span = diagnosticMessage.sourceSpan;
+    Message message = diagnosticMessage.message;
     if (span == null || span.uri == null) {
       callUserHandler(message, null, null, null, '$message', kind);
     } else {

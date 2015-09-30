@@ -115,10 +115,10 @@ abstract class IndexableObjectKind {
  */
 abstract class IndexContributor {
   /**
-   * Contribute relationships to the given index [store] as a result of
-   * analyzing the given [source] in the given [context].
+   * Contribute relationships existing in the given [object] to the given
+   * index [store] in the given [context].
    */
-  void contributeTo(IndexStore store, AnalysisContext context, Source source);
+  void contributeTo(IndexStore store, AnalysisContext context, Object object);
 }
 
 // A sketch of what the driver routine might look like:

@@ -838,6 +838,11 @@ class Assembler : public ValueObject {
     EmitExceptionGenOp(BRK, imm);
   }
 
+  static uword GetBreakInstructionFiller() {
+    const intptr_t encoding = ExceptionGenOpEncoding(BRK, 0);
+    return encoding << 32 | encoding;
+  }
+
   // Double floating point.
   bool fmovdi(VRegister vd, double immd) {
     int64_t imm64 = bit_cast<int64_t, double>(immd);
@@ -1688,10 +1693,12 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
+  static int32_t ExceptionGenOpEncoding(ExceptionGenOp op, uint16_t imm) {
+    return op | (static_cast<int32_t>(imm) << kImm16Shift);
+  }
+
   void EmitExceptionGenOp(ExceptionGenOp op, uint16_t imm) {
-    const int32_t encoding =
-        op | (static_cast<int32_t>(imm) << kImm16Shift);
-    Emit(encoding);
+    Emit(ExceptionGenOpEncoding(op, imm));
   }
 
   void EmitMoveWideOp(MoveWideOp op, Register rd, const Immediate& imm,

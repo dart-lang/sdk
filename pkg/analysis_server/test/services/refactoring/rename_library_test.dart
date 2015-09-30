@@ -52,7 +52,36 @@ part of my.app;
 library my.app;
 part 'part.dart';
 ''');
-    index.indexUnit(
+    index.index(
+        context, context.resolveCompilationUnit2(unitSource, testSource));
+    // configure refactoring
+    _createRenameRefactoring();
+    expect(refactoring.refactoringName, 'Rename Library');
+    expect(refactoring.elementKindName, 'library');
+    refactoring.newName = 'the.new.name';
+    // validate change
+    await assertSuccessfulRefactoring('''
+library the.new.name;
+part 'part.dart';
+''');
+    assertFileChangeResult(
+        '/part.dart',
+        '''
+part of the.new.name;
+''');
+  }
+
+  test_createChange_hasWhitespaces() async {
+    Source unitSource = addSource(
+        '/part.dart',
+        '''
+part of my .  app;
+''');
+    indexTestUnit('''
+library my    . app;
+part 'part.dart';
+''');
+    index.index(
         context, context.resolveCompilationUnit2(unitSource, testSource));
     // configure refactoring
     _createRenameRefactoring();

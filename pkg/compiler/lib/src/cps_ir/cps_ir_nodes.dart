@@ -76,6 +76,42 @@ abstract class InteriorNode extends Node {
 /// [LetMutable].
 abstract class InteriorExpression extends Expression implements InteriorNode {
   Expression get next => body;
+
+  /// Removes this expression from its current position in the IR.
+  ///
+  /// The node can be re-inserted elsewhere or remain orphaned.
+  ///
+  /// If orphaned, the caller is responsible for unlinking all references in
+  /// the orphaned node. Use [Reference.unlink] or [Primitive.destroy] for this.
+  void remove() {
+    assert(parent != null);
+    assert(parent.body == this);
+    assert(body.parent == this);
+    parent.body = body;
+    body.parent = parent;
+    parent = null;
+    body = null;
+  }
+
+  /// Inserts this above [node].
+  ///
+  /// This node must be orphaned first.
+  void insertAbove(Expression node) {
+    insertBelow(node.parent);
+  }
+
+  /// Inserts this below [node].
+  ///
+  /// This node must be orphaned first.
+  void insertBelow(InteriorNode newParent) {
+    assert(parent == null);
+    assert(body == null);
+    Expression child = newParent.body;
+    newParent.body = this;
+    this.body = child;
+    child.parent = this;
+    this.parent = newParent;
+  }
 }
 
 /// An expression that passes a continuation to a call.
@@ -216,6 +252,12 @@ abstract class Primitive extends Variable<Primitive> {
 
   bool get hasNoEffectiveUses {
     return effectiveUses.isEmpty;
+  }
+
+  /// Unlinks all references contained in this node.
+  void destroy() {
+    assert(hasNoUses);
+    RemovalVisitor.remove(this);
   }
 }
 

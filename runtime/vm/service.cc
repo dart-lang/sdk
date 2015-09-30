@@ -2423,8 +2423,12 @@ static const MethodParameter* pause_params[] = {
 
 
 static bool Pause(Isolate* isolate, JSONStream* js) {
-  // TODO(turnidge): Don't double-interrupt the isolate here.
-  isolate->ScheduleInterrupts(Isolate::kApiInterrupt);
+  // TODO(turnidge): This interrupt message could have been sent from
+  // the service isolate directly, but would require some special case
+  // code.  That would prevent this isolate getting double-interrupted
+  // with OOB messages.
+  isolate->SendInternalLibMessage(Isolate::kInterruptMsg,
+                                  isolate->pause_capability());
   PrintSuccess(js);
   return true;
 }

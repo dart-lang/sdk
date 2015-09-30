@@ -298,7 +298,7 @@ main() {
       ..allowElement(
           'a',
           attributes: ['href']);
-  
+
     testHtml('reject different-origin link',
       validator,
         '<a href="http://www.google.com/foo">Google-Foo</a>',
@@ -511,7 +511,7 @@ main() {
 
     testHtml('DOM clobbering of attributes with single node',
     validator,
-    "<form onmouseover='alert(1)'><input name='attributes'>",
+    "<form id='single_node_clobbering' onmouseover='alert(1)'><input name='attributes'>",
     "");
 
     testHtml('DOM clobbering of attributes with multiple nodes',

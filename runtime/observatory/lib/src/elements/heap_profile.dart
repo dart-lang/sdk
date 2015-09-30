@@ -7,6 +7,7 @@ library heap_profile_element;
 import 'dart:async';
 import 'dart:html';
 import 'observatory_element.dart';
+import 'package:charted/charted.dart';
 import 'package:observatory/app.dart';
 import 'package:observatory/service.dart';
 import 'package:observatory/elements.dart';
@@ -32,12 +33,11 @@ class HeapProfileElement extends ObservatoryElement {
   @observable String lastAccumulatorReset = '---';
 
   // Pie chart of new space usage.
-  var _newPieDataTable;
   var _newPieChart;
-
+  final _newPieChartRows = [];
   // Pie chart of old space usage.
-  var _oldPieDataTable;
   var _oldPieChart;
+  final _oldPieChartRows = [];
 
   @observable ClassSortedTable classTable;
   var _classTableBody;
@@ -48,14 +48,14 @@ class HeapProfileElement extends ObservatoryElement {
   @published Isolate isolate;
   @observable ServiceMap profile;
 
+  final _pieChartColumns = [
+      new ChartColumnSpec(label: 'Type', type: ChartColumnSpec.TYPE_STRING),
+      new ChartColumnSpec(label: 'Size', formatter: (v) => v.toString())
+  ];
+
   HeapProfileElement.created() : super.created() {
-    // Create pie chart models.
-    _newPieDataTable = new DataTable();
-    _newPieDataTable.addColumn('string', 'Type');
-    _newPieDataTable.addColumn('number', 'Size');
-    _oldPieDataTable = new DataTable();
-    _oldPieDataTable.addColumn('string', 'Type');
-    _oldPieDataTable.addColumn('number', 'Size');
+    _initPieChartData(_newPieChartRows);
+    _initPieChartData(_oldPieChartRows);
 
     // Create class table model.
     var columns = [
@@ -84,14 +84,34 @@ class HeapProfileElement extends ObservatoryElement {
     classTable.sortColumnIndex = 2;
   }
 
+  LayoutArea _makePieChart(String id, List rows) {
+    var wrapper = shadowRoot.querySelector(id);
+    var areaHost = wrapper.querySelector('.chart-host');
+    assert(areaHost != null);
+    var legendHost = wrapper.querySelector('.chart-legend-host');
+    assert(legendHost != null);
+    var series = new ChartSeries(id, [1], new PieChartRenderer(
+      sortDataByValue: false
+    ));
+    var config = new ChartConfig([series], [0]);
+    config.minimumSize = new Rect(300, 300);
+    config.legend = new ChartLegend(legendHost, showValues: true);
+    var data = new ChartData(_pieChartColumns, rows);
+    var area = new LayoutArea(areaHost,
+                              data,
+                              config,
+                              state: new ChartState(),
+                              autoUpdate: false);
+    area.addChartBehavior(new Hovercard());
+    area.addChartBehavior(new AxisLabelTooltip());
+    return area;
+  }
+
   @override
   void attached() {
     super.attached();
-    // Grab the pie chart divs.
-    _newPieChart = new Chart('PieChart',
-        shadowRoot.querySelector('#newPieChart'));
-    _oldPieChart = new Chart('PieChart',
-        shadowRoot.querySelector('#oldPieChart'));
+    _newPieChart = _makePieChart('#new-pie-chart', _newPieChartRows);
+    _oldPieChart = _makePieChart('#old-pie-chart', _oldPieChartRows);
     _classTableBody = shadowRoot.querySelector('#classTableBody');
     _subscriptionFuture =
         app.vm.listenEventStream(VM.kGCStream, _onEvent);
@@ -132,18 +152,29 @@ class HeapProfileElement extends ObservatoryElement {
     }).catchError(app.handleException);
   }
 
+  static const _USED_INDEX = 0;
+  static const _FREE_INDEX = 1;
+  static const _EXTERNAL_INDEX = 2;
+
+  static const _LABEL_INDEX = 0;
+  static const _VALUE_INDEX = 1;
+
+  void _initPieChartData(List rows) {
+    rows.add(['Used', 0]);
+    rows.add(['Free', 0]);
+    rows.add(['External', 0]);
+  }
+
+  void _updatePieChartData(List rows, HeapSpace space) {
+    rows[_USED_INDEX][_VALUE_INDEX] = space.used;
+    rows[_FREE_INDEX][_VALUE_INDEX] = space.capacity - space.used;
+    rows[_EXTERNAL_INDEX][_VALUE_INDEX] = space.external;
+  }
+
   void _updatePieCharts() {
     assert(profile != null);
-    _newPieDataTable.clearRows();
-    _newPieDataTable.addRow(['Used', isolate.newSpace.used]);
-    _newPieDataTable.addRow(['Free',
-        isolate.newSpace.capacity - isolate.newSpace.used]);
-    _newPieDataTable.addRow(['External', isolate.newSpace.external]);
-    _oldPieDataTable.clearRows();
-    _oldPieDataTable.addRow(['Used', isolate.oldSpace.used]);
-    _oldPieDataTable.addRow(['Free',
-        isolate.oldSpace.capacity - isolate.oldSpace.used]);
-    _oldPieDataTable.addRow(['External', isolate.oldSpace.external]);
+    _updatePieChartData(_newPieChartRows, isolate.newSpace);
+    _updatePieChartData(_oldPieChartRows, isolate.oldSpace);
   }
 
   void _updateClasses() {
@@ -268,8 +299,8 @@ class HeapProfileElement extends ObservatoryElement {
   }
 
   void _drawCharts() {
-    _newPieChart.draw(_newPieDataTable);
-    _oldPieChart.draw(_oldPieDataTable);
+    _newPieChart.draw();
+    _oldPieChart.draw();
   }
 
   @observable void changeSort(Event e, var detail, Element target) {

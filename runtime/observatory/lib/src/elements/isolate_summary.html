@@ -121,9 +121,7 @@
       </div>
     </template>
     <div class="flex-row">
-      <div class="flex-item-10-percent">
-      </div>
-      <div class="flex-item-40-percent">
+      <div class="flex-item-50-percent">
         <isolate-counter-chart counters="{{ isolate.counters }}"></isolate-counter-chart>
       </div>
       <div class="flex-item-40-percent">
@@ -214,7 +212,26 @@
 
 <polymer-element name="isolate-counter-chart" extends="observatory-element">
   <template>
-    <div id="counterPieChart" style="height: 200px"></div>
+    <link rel="stylesheet" href="../../../../packages/charted/charts/themes/quantum_theme.css">
+    <style>
+.chart-wrapper {
+}
+
+.chart-host-wrapper {
+  height: 200px;
+}
+.chart-legend-host {
+  max-height: 200px;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+    </style>
+    <div class="chart-wrapper" id="isolate-counter-chart">
+      <div class="chart-host-wrapper">
+          <div class="chart-host"></div>
+          <div class="chart-legend-host"></div>
+      </div>
+  </div>
   </template>
 </polymer-element>
 

@@ -1,3 +1,12 @@
+## 0.26.1+6
+* Provisional (internal) plugin manifest parsing.
+
+## 0.26.1+5
+* Plugin configuration `ErrorHandler` typedef API fix.
+
+## 0.26.1+4
+* Provisional (internal) support for plugin configuration via `.analysis_options`.
+
 ## 0.26.1+2
 
 * Extension point for WorkManagerFactory(s).

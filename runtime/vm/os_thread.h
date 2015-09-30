@@ -48,6 +48,7 @@ class OSThread {
   static void SetThreadLocal(ThreadLocalKey key, uword value);
   static intptr_t GetMaxStackSize();
   static ThreadId GetCurrentThreadId();
+  static ThreadId GetCurrentThreadTraceId();
   static intptr_t CurrentCurrentThreadIdAsIntPtr() {
     return ThreadIdToIntPtr(GetCurrentThreadId());
   }

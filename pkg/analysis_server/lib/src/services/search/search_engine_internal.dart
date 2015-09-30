@@ -6,7 +6,7 @@ library services.src.search.search_engine;
 
 import 'dart:async';
 
-import 'package:analysis_server/analysis/index/index_core.dart';
+import 'package:analysis_server/analysis/index_core.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
@@ -21,6 +21,14 @@ class SearchEngineImpl implements SearchEngine {
   final Index _index;
 
   SearchEngineImpl(this._index);
+
+  @override
+  Future<List<SearchMatch>> searchAllSubtypes(ClassElement type) {
+    _Requestor requestor = new _Requestor(_index);
+    requestor.addElement(
+        type, IndexConstants.HAS_ANCESTOR, MatchKind.DECLARATION);
+    return requestor.merge();
+  }
 
   @override
   Future<List<SearchMatch>> searchElementDeclarations(String name) {

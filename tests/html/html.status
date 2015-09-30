@@ -9,10 +9,9 @@ cross_frame_test: Skip # Test reloads itself. Issue 18558
 js_array_test: Skip # Issue 23676, 23677
 js_typed_interop_test: Skip # Issue 23676, 23677
 
-[ $compiler == none && $runtime == dartium ]
+[ $compiler == none && ($runtime == dartium || $runtime == drt) ]
 cross_domain_iframe_test: RuntimeError # Dartium JSInterop failure
 crypto_test/functional: RuntimeError # Dartium JSInterop failure
-custom/created_callback_test: Skip # Dartium JSInterop failure
 custom/document_register_basic_test: RuntimeError # Dartium JSInterop failure
 custom/document_register_type_extensions_test/registration: RuntimeError # Dartium JSInterop failure
 custom/element_upgrade_test: RuntimeError # Dartium JSInterop failure
@@ -60,6 +59,7 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
+postmessage_structured_test/primitives: RuntimeError # Bug 24432
 # Dartium seems to lose the data from the dispatchEvent.
 async_test: Fail # Uses spawn, not implemented from a DOM isolate in Dartium
 keyboard_event_test: Fail # Issue 13902
@@ -208,7 +208,6 @@ css_test/supportsPointConversions: Fail # Issues 21710
 css_test/functional: Fail # Issues 21710
 
 [ $runtime == ie11 ]
-node_validator_important_if_you_suppress_make_the_bug_critical_test/dom_clobbering: RuntimeError # Issue 24387
 custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
 canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
 worker_test/functional: Pass, Fail # Issues 20659.
@@ -351,7 +350,6 @@ speechrecognition_test/supported: Fail
 websql_test/supported: Fail
 
 [  $compiler == dart2js && $runtime == ff ]
-node_validator_important_if_you_suppress_make_the_bug_critical_test/DOM_sanitization: RuntimeError # Issue 24384
 history_test/history: Skip # Issue 22050
 xhr_test/xhr: Pass, Fail # Issue 11602
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR

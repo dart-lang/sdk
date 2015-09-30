@@ -42,6 +42,14 @@ class UniverseSelector {
         (mask == null || mask.canHit(element, selector, world));
   }
 
+  int get hashCode => selector.hashCode * 13 + mask.hashCode * 17;
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! UniverseSelector) return false;
+    return selector == other.selector && mask == other.mask;
+  }
+
   String toString() => '$selector,$mask';
 }
 
@@ -151,6 +159,9 @@ class Universe {
   /// Invariant: Elements are declaration elements.
   final Set<ClassElement> _allInstantiatedClasses = new Set<ClassElement>();
 
+  /// Classes implemented by directly instantiated classes.
+  final Set<ClassElement> _implementedClasses = new Set<ClassElement>();
+
   /// The set of all referenced static fields.
   ///
   /// Invariant: Elements are declaration elements.
@@ -239,12 +250,19 @@ class Universe {
   Iterable<DartType> get instantiatedTypes => _instantiatedTypes;
 
   /// Returns `true` if [cls] is considered to be instantiated, either directly,
-  /// through subclasses or through subtypes. The latter case only contains
-  /// spurious information from instatiations through factory constructors and
-  /// mixins.
+  /// through subclasses.
   // TODO(johnniwinther): Improve semantic precision.
   bool isInstantiated(ClassElement cls) {
-    return _allInstantiatedClasses.contains(cls);
+    return _allInstantiatedClasses.contains(cls.declaration);
+  }
+
+  /// Returns `true` if [cls] is considered to be implemented by an
+  /// instantiated class, either directly, through subclasses or through
+  /// subtypes. The latter case only contains spurious information from
+  /// instantiations through factory constructors and mixins.
+  // TODO(johnniwinther): Improve semantic precision.
+  bool isImplemented(ClassElement cls) {
+    return _implementedClasses.contains(cls.declaration);
   }
 
   /// Register [type] as (directly) instantiated.
@@ -254,7 +272,8 @@ class Universe {
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
   void registerTypeInstantiation(InterfaceType type,
-                                 {bool byMirrors: false}) {
+                                 {bool byMirrors: false,
+                                  void onImplemented(ClassElement cls)}) {
     _instantiatedTypes.add(type);
     ClassElement cls = type.element;
     if (!cls.isAbstract
@@ -270,11 +289,22 @@ class Universe {
       _directlyInstantiatedClasses.add(cls);
     }
 
-    // TODO(johnniwinther): Replace this by separate more specific mappings.
-    if (!_allInstantiatedClasses.add(cls)) return;
-    cls.allSupertypes.forEach((InterfaceType supertype) {
-      _allInstantiatedClasses.add(supertype.element);
-    });
+    // TODO(johnniwinther): Replace this by separate more specific mappings that
+    // include the type arguments.
+    if (_implementedClasses.add(cls)) {
+      onImplemented(cls);
+      cls.allSupertypes.forEach((InterfaceType supertype) {
+        if (_implementedClasses.add(supertype.element)) {
+          onImplemented(supertype.element);
+        }
+      });
+    }
+    while (cls != null) {
+      if (!_allInstantiatedClasses.add(cls)) {
+        return;
+      }
+      cls = cls.superclass;
+    }
   }
 
   bool _hasMatchingSelector(Map<Selector, SelectorConstraints> selectors,

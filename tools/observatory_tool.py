@@ -41,37 +41,46 @@ def BuildArguments():
   return result
 
 def ProcessOptions(options, args):
-  # Required options.
-  if options.command is None or options.directory is None:
-    return False
-  # If we have a working pub executable, try and use that.
-  # TODO(whesse): Drop the pub-executable option if it isn't used.
-  if options.pub_executable is not None:
-    try:
-      if 0 == subprocess.call([options.pub_executable, '--version']):
-        return True
-    except OSError as e:
-      pass
-  options.pub_executable = None
+  with open(os.devnull, 'wb') as silent_sink:
+    # Required options.
+    if options.command is None or options.directory is None:
+      return False
 
-  if options.sdk is not None and utils.CheckedInSdkCheckExecutable():
-    # Use the checked in pub executable.
-    options.pub_snapshot = os.path.join(utils.CheckedInSdkPath(),
-                                        'bin',
-                                        'snapshots',
-                                        'pub.dart.snapshot');
-    try:
-      if 0 == subprocess.call([utils.CheckedInSdkExecutable(),
-                               options.pub_snapshot,
-                               '--version']):
-        return True
-    except OSError as e:
-      pass
-  options.pub_snapshot = None
+    # Set a default value for pub_snapshot.
+    options.pub_snapshot = None
 
-  # We need a dart executable and a package root.
-  return (options.package_root is not None and
-          options.dart_executable is not None)
+    # If we have a working pub executable, try and use that.
+    # TODO(whesse): Drop the pub-executable option if it isn't used.
+    if options.pub_executable is not None:
+      try:
+        if 0 == subprocess.call([options.pub_executable, '--version'],
+                                stdout=silent_sink,
+                                stderr=silent_sink):
+          return True
+      except OSError as e:
+        pass
+    options.pub_executable = None
+
+    if options.sdk is not None and utils.CheckedInSdkCheckExecutable():
+      # Use the checked in pub executable.
+      options.pub_snapshot = os.path.join(utils.CheckedInSdkPath(),
+                                          'bin',
+                                          'snapshots',
+                                          'pub.dart.snapshot');
+      try:
+        if 0 == subprocess.call([utils.CheckedInSdkExecutable(),
+                                 options.pub_snapshot,
+                                 '--version'],
+                                 stdout=silent_sink,
+                                 stderr=silent_sink):
+          return True
+      except OSError as e:
+        pass
+    options.pub_snapshot = None
+
+    # We need a dart executable and a package root.
+    return (options.package_root is not None and
+            options.dart_executable is not None)
 
 def ChangeDirectory(directory):
   os.chdir(directory);

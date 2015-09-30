@@ -34,8 +34,6 @@ import 'compile_time_constants.dart';
 import 'constants/values.dart';
 import 'core_types.dart' show
     CoreTypes;
-import 'cps_ir/cps_ir_builder_task.dart' show
-    IrBuilderTask;
 import 'dart_backend/dart_backend.dart' as dart_backend;
 import 'dart_types.dart' show
     DartType,
@@ -138,7 +136,7 @@ import 'util/util.dart' show
 import 'world.dart' show
     World;
 
-abstract class Compiler implements DiagnosticListener {
+abstract class Compiler extends DiagnosticListener {
 
   final Stopwatch totalCompileTime = new Stopwatch();
   int nextFreeClassId = 0;
@@ -428,7 +426,6 @@ abstract class Compiler implements DiagnosticListener {
   ResolverTask resolver;
   closureMapping.ClosureTask closureToClassMapper;
   TypeCheckerTask checker;
-  IrBuilderTask irBuilder;
   ti.TypesTask typesTask;
   Backend backend;
 
@@ -584,7 +581,6 @@ abstract class Compiler implements DiagnosticListener {
       resolver = new ResolverTask(this, backend.constantCompilerTask),
       closureToClassMapper = new closureMapping.ClosureTask(this),
       checker = new TypeCheckerTask(this),
-      irBuilder = new IrBuilderTask(this, backend.sourceInformationStrategy),
       typesTask = new ti.TypesTask(this),
       constants = backend.constantCompilerTask,
       deferredLoadTask = new DeferredLoadTask(this),
@@ -616,10 +612,12 @@ abstract class Compiler implements DiagnosticListener {
     internalError(spannable, "$methodName not implemented.");
   }
 
-  void internalError(Spannable node, reason) {
+  internalError(Spannable node, reason) {
     String message = tryToString(reason);
     reportDiagnosticInternal(
-        node, MessageKind.GENERIC, {'text': message}, api.Diagnostic.CRASH);
+        createMessage(node, MessageKind.GENERIC, {'text': message}),
+        const <DiagnosticMessage>[],
+        api.Diagnostic.CRASH);
     throw 'Internal Error: $message';
   }
 
@@ -627,8 +625,8 @@ abstract class Compiler implements DiagnosticListener {
     if (hasCrashed) return;
     hasCrashed = true;
     reportDiagnostic(
-        element,
-        MessageTemplate.TEMPLATES[MessageKind.COMPILER_CRASHED].message(),
+        createMessage(element, MessageKind.COMPILER_CRASHED),
+        const <DiagnosticMessage>[],
         api.Diagnostic.CRASH);
     pleaseReportCrash();
   }
@@ -691,9 +689,11 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void log(message) {
-    reportDiagnostic(null,
-        MessageTemplate.TEMPLATES[MessageKind.GENERIC]
-            .message({'text': '$message'}),
+    Message msg = MessageTemplate.TEMPLATES[MessageKind.GENERIC]
+        .message({'text': '$message'});
+    reportDiagnostic(
+        new DiagnosticMessage(null, null, msg),
+        const <DiagnosticMessage>[],
         api.Diagnostic.VERBOSE_INFO);
   }
 
@@ -708,9 +708,10 @@ abstract class Compiler implements DiagnosticListener {
             reportAssertionFailure(error);
           } else {
             reportDiagnostic(
-                new SourceSpan(uri, 0, 0),
-                MessageTemplate.TEMPLATES[MessageKind.COMPILER_CRASHED]
-                    .message(),
+                createMessage(
+                    new SourceSpan(uri, 0, 0),
+                    MessageKind.COMPILER_CRASHED),
+                const <DiagnosticMessage>[],
                 api.Diagnostic.CRASH);
           }
           pleaseReportCrash();
@@ -875,11 +876,13 @@ abstract class Compiler implements DiagnosticListener {
         Set<String> importChains =
             computeImportChainsFor(loadedLibraries, Uris.dart_mirrors);
         if (!backend.supportsReflection) {
-          reportError(NO_LOCATION_SPANNABLE,
-                      MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND);
+          reportErrorMessage(
+              NO_LOCATION_SPANNABLE,
+              MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND);
         } else {
-          reportWarning(NO_LOCATION_SPANNABLE,
-             MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
+          reportWarningMessage(
+              NO_LOCATION_SPANNABLE,
+              MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
               {'importChain': importChains.join(
                    MessageTemplate.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)});
         }
@@ -1086,7 +1089,7 @@ abstract class Compiler implements DiagnosticListener {
     if (errorElement != null &&
         errorElement.isSynthesized &&
         !mainApp.isSynthesized) {
-      reportWarning(
+      reportWarningMessage(
           errorElement, errorElement.messageKind,
           errorElement.messageArguments);
     }
@@ -1154,12 +1157,14 @@ abstract class Compiler implements DiagnosticListener {
           kind = MessageKind.HIDDEN_WARNINGS;
         }
         MessageTemplate template = MessageTemplate.TEMPLATES[kind];
-        reportDiagnostic(null,
-            template.message(
-                {'warnings': info.warnings,
-                 'hints': info.hints,
-                 'uri': uri},
-                terseDiagnostics),
+        Message message = template.message(
+            {'warnings': info.warnings,
+             'hints': info.hints,
+             'uri': uri},
+            terseDiagnostics);
+        reportDiagnostic(
+            new DiagnosticMessage(null, null, message),
+            const <DiagnosticMessage>[],
             api.Diagnostic.HINT);
       });
     }
@@ -1177,7 +1182,9 @@ abstract class Compiler implements DiagnosticListener {
         // code is artificially used.
         // If compilation failed, it is possible that the error prevents the
         // compiler from analyzing all the code.
-        reportUnusedCode();
+        // TODO(johnniwinther): Reenable this when the reporting is more
+        // precise.
+        //reportUnusedCode();
       }
       return;
     }
@@ -1235,7 +1242,8 @@ abstract class Compiler implements DiagnosticListener {
       ClassElement cls = element;
       cls.ensureResolved(this);
       cls.forEachLocalMember(enqueuer.resolution.addToWorkList);
-      world.registerInstantiatedType(cls.rawType, globalDependencies);
+      backend.registerInstantiatedType(
+          cls.rawType, world, globalDependencies);
     } else {
       world.addToWorkList(element);
     }
@@ -1273,11 +1281,11 @@ abstract class Compiler implements DiagnosticListener {
       if (mainMethod.functionSignature.parameterCount != 0) {
         // The first argument could be a list of strings.
         backend.listImplementation.ensureResolved(this);
-        world.registerInstantiatedType(
-            backend.listImplementation.rawType, globalDependencies);
+        backend.registerInstantiatedType(
+            backend.listImplementation.rawType, world, globalDependencies);
         backend.stringImplementation.ensureResolved(this);
-        world.registerInstantiatedType(
-            backend.stringImplementation.rawType, globalDependencies);
+        backend.registerInstantiatedType(
+            backend.stringImplementation.rawType, world, globalDependencies);
 
         backend.registerMainHasArguments(world);
       }
@@ -1326,7 +1334,7 @@ abstract class Compiler implements DiagnosticListener {
     }
     log('Excess resolution work: ${resolved.length}.');
     for (Element e in resolved) {
-      reportWarning(e,
+      reportWarningMessage(e,
           MessageKind.GENERIC,
           {'text': 'Warning: $e resolved but not compiled.'});
     }
@@ -1393,38 +1401,51 @@ abstract class Compiler implements DiagnosticListener {
     return backend.codegen(work);
   }
 
-  void reportError(Spannable node,
-                   MessageKind messageKind,
-                   [Map arguments = const {}]) {
-    reportDiagnosticInternal(
-        node, messageKind, arguments, api.Diagnostic.ERROR);
+  DiagnosticMessage createMessage(
+      Spannable spannable,
+      MessageKind messageKind,
+      [Map arguments = const {}]) {
+    SourceSpan span = spanFromSpannable(spannable);
+    MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
+    Message message = template.message(arguments, terseDiagnostics);
+    return new DiagnosticMessage(span, spannable, message);
   }
 
-  void reportWarning(Spannable node, MessageKind messageKind,
-                     [Map arguments = const {}]) {
-    reportDiagnosticInternal(
-        node, messageKind, arguments, api.Diagnostic.WARNING);
+  void reportError(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    reportDiagnosticInternal(message, infos, api.Diagnostic.ERROR);
   }
 
+  void reportWarning(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    reportDiagnosticInternal(message, infos, api.Diagnostic.WARNING);
+  }
+
+  void reportHint(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    reportDiagnosticInternal(message, infos, api.Diagnostic.HINT);
+  }
+
+  @deprecated
   void reportInfo(Spannable node, MessageKind messageKind,
                   [Map arguments = const {}]) {
-    reportDiagnosticInternal(node, messageKind, arguments, api.Diagnostic.INFO);
+    reportDiagnosticInternal(
+        createMessage(node, messageKind, arguments),
+        const <DiagnosticMessage>[],
+        api.Diagnostic.INFO);
   }
 
-  void reportHint(Spannable node, MessageKind messageKind,
-                  [Map arguments = const {}]) {
-    reportDiagnosticInternal(node, messageKind, arguments, api.Diagnostic.HINT);
-  }
-
-  void reportDiagnosticInternal(Spannable node,
-                                MessageKind messageKind,
-                                Map arguments,
+  void reportDiagnosticInternal(DiagnosticMessage message,
+                                List<DiagnosticMessage> infos,
                                 api.Diagnostic kind) {
-    if (!showPackageWarnings && node != NO_LOCATION_SPANNABLE) {
+    if (!showPackageWarnings && message.spannable != NO_LOCATION_SPANNABLE) {
       switch (kind) {
       case api.Diagnostic.WARNING:
       case api.Diagnostic.HINT:
-        Element element = elementFromSpannable(node);
+        Element element = elementFromSpannable(message.spannable);
         if (!inUserCode(element, assumeInUserCode: true)) {
           Uri uri = getCanonicalUri(element);
           SuppressionInfo info =
@@ -1446,22 +1467,20 @@ abstract class Compiler implements DiagnosticListener {
       }
     }
     lastDiagnosticWasFiltered = false;
-    MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
-    reportDiagnostic(
-        node,
-        template.message(arguments, terseDiagnostics),
-        kind);
+    reportDiagnostic(message, infos, kind);
   }
 
-  void reportDiagnostic(Spannable span,
-                        Message message,
+  void reportDiagnostic(DiagnosticMessage message,
+                        List<DiagnosticMessage> infos,
                         api.Diagnostic kind);
 
   void reportAssertionFailure(SpannableAssertionFailure ex) {
     String message = (ex.message != null) ? tryToString(ex.message)
                                           : tryToString(ex);
     reportDiagnosticInternal(
-        ex.node, MessageKind.GENERIC, {'text': message}, api.Diagnostic.CRASH);
+        createMessage(ex.node, MessageKind.GENERIC, {'text': message}),
+        const <DiagnosticMessage>[],
+        api.Diagnostic.CRASH);
   }
 
   SourceSpan spanFromTokens(Token begin, Token end, [Uri uri]) {
@@ -1598,20 +1617,20 @@ abstract class Compiler implements DiagnosticListener {
       if (member.isErroneous) return;
       if (member.isFunction) {
         if (!enqueuer.resolution.hasBeenResolved(member)) {
-          reportHint(member, MessageKind.UNUSED_METHOD,
-                     {'name': member.name});
+          reportHintMessage(
+              member, MessageKind.UNUSED_METHOD, {'name': member.name});
         }
       } else if (member.isClass) {
         if (!member.isResolved) {
-          reportHint(member, MessageKind.UNUSED_CLASS,
-                     {'name': member.name});
+          reportHintMessage(
+              member, MessageKind.UNUSED_CLASS, {'name': member.name});
         } else {
           member.forEachLocalMember(checkLive);
         }
       } else if (member.isTypedef) {
         if (!member.isResolved) {
-          reportHint(member, MessageKind.UNUSED_TYPEDEF,
-                     {'name': member.name});
+          reportHintMessage(
+              member, MessageKind.UNUSED_TYPEDEF, {'name': member.name});
         }
       }
     }

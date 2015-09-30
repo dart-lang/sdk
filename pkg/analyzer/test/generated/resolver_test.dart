@@ -12025,6 +12025,22 @@ main() {
     expect(declaration.initializer.propagatedType, isNull);
   }
 
+  void test_pseudoGeneric_max_doubleInt() {
+    String code = r'''
+import 'dart:math';
+main() {
+  var foo = max(1.0, 2);
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'num');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
   void test_pseudoGeneric_then() {
     String code = r'''
 import 'dart:async';
@@ -13888,6 +13904,96 @@ f1(x) {
 }''',
         null,
         typeProvider.stringType);
+  }
+
+  void test_objectMethodInference_disabled_for_local_function() {
+    String name = 'toString';
+    String code = '''
+main() {
+  dynamic $name = () => null;
+  $name(); // marker
+}''';
+    SimpleIdentifier identifier = _findMarkedIdentifier(code, "$name = ");
+    expect(identifier.staticType, typeProvider.dynamicType);
+
+    SimpleIdentifier methodName = _findMarkedIdentifier(code, "(); // marker");
+    MethodInvocation methodInvoke = methodName.parent;
+    expect(methodName.staticType, typeProvider.dynamicType);
+    expect(methodInvoke.staticType, typeProvider.dynamicType);
+  }
+
+  void test_objectMethodInference_disabled_for_library_prefix() {
+    String name = 'toString';
+    addNamedSource('/helper.dart', '''
+library helper;
+dynamic $name = (int x) => x + 42');
+''');
+    String code = '''
+import 'helper.dart' as helper;
+main() {
+  helper.$name(); // marker
+}''';
+    SimpleIdentifier methodName = _findMarkedIdentifier(code, "(); // marker");
+    MethodInvocation methodInvoke = methodName.parent;
+    expect(methodName.staticType, null, reason: 'library prefix has no type');
+    expect(methodInvoke.staticType, typeProvider.dynamicType);
+  }
+
+  void test_objectMethodInference_enabled_for_cascades() {
+    String name = 'toString';
+    String code = '''
+main() {
+  dynamic obj;
+  obj..$name()..$name(); // marker
+}''';
+    SimpleIdentifier methodName = _findMarkedIdentifier(code, "(); // marker");
+    MethodInvocation methodInvoke = methodName.parent;
+
+    expect(methodInvoke.staticType, typeProvider.dynamicType);
+    expect(methodInvoke.realTarget.staticType, typeProvider.dynamicType);
+  }
+
+
+  void test_objectAccessInference_disabled_for_local_getter() {
+    String name = 'hashCode';
+    String code = '''
+dynamic get $name => null;
+main() {
+  $name; // marker
+}''';
+
+    SimpleIdentifier getter = _findMarkedIdentifier(code, "; // marker");
+    expect(getter.staticType, typeProvider.dynamicType);
+  }
+
+  void test_objectAccessInference_disabled_for_library_prefix() {
+    String name = 'hashCode';
+    addNamedSource('/helper.dart', '''
+library helper;
+dynamic get $name => 42;
+''');
+    String code = '''
+import 'helper.dart' as helper;
+main() {
+  helper.$name; // marker
+}''';
+
+    SimpleIdentifier id = _findMarkedIdentifier(code, "; // marker");
+    PrefixedIdentifier prefixedId = id.parent;
+    expect(id.staticType, typeProvider.dynamicType);
+    expect(prefixedId.staticType, typeProvider.dynamicType);
+  }
+
+  void test_objectAccessInference_enabled_for_cascades() {
+    String name = 'hashCode';
+    String code = '''
+main() {
+  dynamic obj;
+  obj..$name..$name; // marker
+}''';
+    PropertyAccess access = _findMarkedIdentifier(code, "; // marker").parent;
+    expect(access.staticType, typeProvider.dynamicType);
+    expect(access.realTarget.staticType, typeProvider.dynamicType);
   }
 
   void test_propagatedReturnType_localFunction() {

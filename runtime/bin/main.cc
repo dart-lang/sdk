@@ -96,7 +96,6 @@ static bool has_trace_loading = false;
 static const char* DEFAULT_VM_SERVICE_SERVER_IP = "127.0.0.1";
 static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
 // VM Service options.
-static bool start_vm_service = false;
 static const char* vm_service_server_ip = DEFAULT_VM_SERVICE_SERVER_IP;
 // The 0 port is a magic value which results in the first available port
 // being allocated.
@@ -323,7 +322,7 @@ static bool ProcessGenPrecompiledSnapshotOption(
   // Ensure that we are not already running using a full snapshot.
   if (isolate_snapshot_buffer != NULL) {
     Log::PrintErr("Precompiled snapshots must be generated with"
-                  " dart_no_snapshot.");
+                  " dart_no_snapshot.\n");
     return false;
   }
   has_gen_precompiled_snapshot = true;
@@ -392,7 +391,6 @@ static bool ProcessEnableVmServiceOption(const char* option_value,
     return false;
   }
 
-  start_vm_service = true;
   return true;
 }
 
@@ -410,8 +408,6 @@ static bool ProcessObserveOption(const char* option_value,
                   "Use --observe[:<port number>[/<IPv4 address>]]\n");
     return false;
   }
-
-  start_vm_service = true;
 
   vm_options->AddArgument("--pause-isolates-on-exit");
   return true;
@@ -1069,13 +1065,13 @@ static void ReadSnapshotFile(const char* filename,
 static void* LoadLibrarySymbol(const char* libname, const char* symname) {
   void* library = Extensions::LoadExtensionLibrary(libname);
   if (library == NULL) {
-    ErrorExit(kErrorExitCode,
-              "Error: Failed to load library '%s'\n", libname);
+    Log::PrintErr("Error: Failed to load library '%s'\n", libname);
+    exit(kErrorExitCode);
   }
   void* symbol = Extensions::ResolveSymbol(library, symname);
   if (symbol == NULL) {
-    ErrorExit(kErrorExitCode,
-              "Error: Failed to load symbol '%s'\n", symname);
+    Log::PrintErr("Error: Failed to load symbol '%s'\n", symname);
+    exit(kErrorExitCode);
   }
   return symbol;
 }
@@ -1259,7 +1255,32 @@ void main(int argc, char** argv) {
     result = Dart_LibraryImportLibrary(builtin_lib, root_lib, Dart_Null());
 
     if (has_gen_precompiled_snapshot) {
-      result = Dart_Precompile();
+      Dart_QualifiedFunctionName standalone_entry_points[] = {
+        { "dart:_builtin", "::", "_getMainClosure" },
+        { "dart:_builtin", "::", "_getPrintClosure" },
+        { "dart:_builtin", "::", "_getUriBaseClosure" },
+        { "dart:_builtin", "::", "_resolveUri" },
+        { "dart:_builtin", "::", "_setWorkingDirectory" },
+        { "dart:_builtin", "::", "_loadDataAsync" },
+        { "dart:io", "::", "_makeUint8ListView" },
+        { "dart:io", "::", "_makeDatagram" },
+        { "dart:io", "::", "_setupHooks" },
+        { "dart:io", "CertificateException", "CertificateException." },
+        { "dart:io", "HandshakeException", "HandshakeException." },
+        { "dart:io", "TlsException", "TlsException." },
+        { "dart:io", "X509Certificate", "X509Certificate." },
+        { "dart:io", "_ExternalBuffer", "set:data" },
+        { "dart:io", "_Platform", "set:_nativeScript" },
+        { "dart:io", "_ProcessStartStatus", "set:_errorCode" },
+        { "dart:io", "_ProcessStartStatus", "set:_errorMessage" },
+        { "dart:io", "_SecureFilterImpl", "get:ENCRYPTED_SIZE" },
+        { "dart:io", "_SecureFilterImpl", "get:SIZE" },
+        { "dart:vmservice_io", "::", "_addResource" },
+        { "dart:vmservice_io", "::", "main" },
+        { NULL, NULL, NULL }  // Must be terminated with NULL entries.
+      };
+
+      result = Dart_Precompile(standalone_entry_points);
       DartExitOnError(result);
 
       uint8_t* vm_isolate_buffer = NULL;

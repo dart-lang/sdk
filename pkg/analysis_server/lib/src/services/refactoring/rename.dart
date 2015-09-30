@@ -9,11 +9,13 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -136,6 +138,13 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   @override
   Future<RefactoringStatus> checkInitialConditions() {
     RefactoringStatus result = new RefactoringStatus();
+    if (element.source.isInSystemLibrary) {
+      String message = format(
+          "The {0} '{1}' is defined in the SDK, so cannot be renamed.",
+          getElementKindName(element),
+          getElementQualifiedName(element));
+      result.addFatalError(message);
+    }
     return new Future.value(result);
   }
 

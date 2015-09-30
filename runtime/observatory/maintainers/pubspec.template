@@ -7,12 +7,14 @@ transformers:
     inline_stylesheets:
       lib/src/elements/css/shared.css: false
 - $dart2js:
+    $include: "**/*.polymer.bootstrap.dart"
     suppressWarnings: false
-    $exclude: web/main.dart
     commandLineOptions: [--show-package-warnings]
 dependencies:
   args: any
-  charted: any
+  charted: ^0.2.9
   polymer: any
   unittest: < 0.12.0
   usage: any
+  code_transformers: 0.2.9
+

@@ -162,6 +162,34 @@ RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 const double MegamorphicCache::kLoadFactor = 0.75;
 
 
+static void AppendSubString(Zone* zone,
+                            GrowableArray<const char*>* segments,
+                            const char* name,
+                            intptr_t start_pos, intptr_t len) {
+  char* segment = zone->Alloc<char>(len + 1);  // '\0'-terminated.
+  memmove(segment, name + start_pos, len);
+  segment[len] = '\0';
+  segments->Add(segment);
+}
+
+
+static const char* MergeSubStrings(Zone* zone,
+                                   const GrowableArray<const char*>& segments,
+                                   intptr_t alloc_len) {
+  char* result = zone->Alloc<char>(alloc_len + 1);  // '\0'-terminated
+  intptr_t pos = 0;
+  for (intptr_t k = 0; k < segments.length(); k++) {
+    const char* piece = segments[k];
+    const intptr_t piece_len = strlen(segments[k]);
+    memmove(result + pos, piece, piece_len);
+    pos += piece_len;
+    ASSERT(pos <= alloc_len);
+  }
+  result[pos] = '\0';
+  return result;
+}
+
+
 // Takes a vm internal name and makes it suitable for external user.
 //
 // Examples:
@@ -173,9 +201,10 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 //
 // Private name mangling is removed, possibly multiple times:
 //
-//   _ReceivePortImpl@6be832b -> _ReceivePortImpl
-//   _ReceivePortImpl@6be832b._internal@6be832b -> _ReceivePortImpl._internal
-//   _C@0x2b4ab9cc&_E@0x2b4ab9cc&_F@0x2b4ab9cc -> _C&_E&_F
+//   _ReceivePortImpl@709387912 -> _ReceivePortImpl
+//   _ReceivePortImpl@709387912._internal@709387912 ->
+//      _ReceivePortImpl._internal
+//   _C@6328321&_E@6328321&_F@6328321 -> _C&_E&_F
 //
 // The trailing . on the default constructor name is dropped:
 //
@@ -183,29 +212,31 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 //
 // And so forth:
 //
-//   get:foo@6be832b -> foo
-//   _MyClass@6b3832b. -> _MyClass
-//   _MyClass@6b3832b.named -> _MyClass.named
+//   get:foo@6328321 -> foo
+//   _MyClass@6328321. -> _MyClass
+//   _MyClass@6328321.named -> _MyClass.named
 //
 RawString* String::IdentifierPrettyName(const String& name) {
+  Zone* zone = Thread::Current()->zone();
   if (name.Equals(Symbols::TopLevel())) {
     // Name of invisible top-level class.
     return Symbols::Empty().raw();
   }
 
+  const char* cname = name.ToCString();
+  ASSERT(strlen(cname) == static_cast<size_t>(name.Length()));
+  const intptr_t name_len = name.Length();
   // First remove all private name mangling.
-  String& unmangled_name = String::Handle(Symbols::Empty().raw());
-  String& segment = String::Handle();
   intptr_t start_pos = 0;
-  for (intptr_t i = 0; i < name.Length(); i++) {
-    if (name.CharAt(i) == '@' &&
-        (i+1) < name.Length() &&
-        (name.CharAt(i+1) >= '0') &&
-        (name.CharAt(i+1) <= '9')) {
+  GrowableArray<const char*> unmangled_segments;
+  intptr_t sum_segment_len = 0;
+  for (intptr_t i = 0; i < name_len; i++) {
+    if ((cname[i] == '@') && ((i + 1) < name_len) &&
+        (cname[i + 1] >= '0') && (cname[i + 1] <= '9')) {
       // Append the current segment to the unmangled name.
-      segment = String::SubString(name, start_pos, (i - start_pos));
-      unmangled_name = String::Concat(unmangled_name, segment);
-
+      const intptr_t segment_len = i - start_pos;
+      sum_segment_len += segment_len;
+      AppendSubString(zone, &unmangled_segments, cname, start_pos, segment_len);
       // Advance until past the name mangling. The private keys are only
       // numbers so we skip until the first non-number.
       i++;  // Skip the '@'.
@@ -218,21 +249,29 @@ RawString* String::IdentifierPrettyName(const String& name) {
       i--;  // Account for for-loop increment.
     }
   }
+
+  const char* unmangled_name = NULL;
   if (start_pos == 0) {
     // No name unmangling needed, reuse the name that was passed in.
-    unmangled_name = name.raw();
+    unmangled_name = cname;
+    sum_segment_len = name_len;
   } else if (name.Length() != start_pos) {
     // Append the last segment.
-    segment = String::SubString(name, start_pos, (name.Length() - start_pos));
-    unmangled_name = String::Concat(unmangled_name, segment);
+    const intptr_t segment_len = name.Length() - start_pos;
+    sum_segment_len += segment_len;
+    AppendSubString(zone, &unmangled_segments, cname, start_pos, segment_len);
+  }
+  if (unmangled_name == NULL) {
+    // Merge unmangled_segments.
+    unmangled_name = MergeSubStrings(zone, unmangled_segments, sum_segment_len);
   }
 
-  intptr_t len = unmangled_name.Length();
+  intptr_t len = sum_segment_len;
   intptr_t start = 0;
   intptr_t dot_pos = -1;  // Position of '.' in the name, if any.
   bool is_setter = false;
   for (intptr_t i = start; i < len; i++) {
-    if (unmangled_name.CharAt(i) == ':') {
+    if (unmangled_name[i] == ':') {
       if (start != 0) {
         // Reset and break.
         start = 0;
@@ -240,11 +279,11 @@ RawString* String::IdentifierPrettyName(const String& name) {
         break;
       }
       ASSERT(start == 0);  // Only one : is possible in getters or setters.
-      if (unmangled_name.CharAt(0) == 's') {
+      if (unmangled_name[0] == 's') {
         is_setter = true;
       }
       start = i + 1;
-    } else if (unmangled_name.CharAt(i) == '.') {
+    } else if (unmangled_name[i] == '.') {
       if (dot_pos != -1) {
         // Reset and break.
         start = 0;
@@ -258,21 +297,25 @@ RawString* String::IdentifierPrettyName(const String& name) {
 
   if ((start == 0) && (dot_pos == -1)) {
     // This unmangled_name is fine as it is.
-    return unmangled_name.raw();
+    return Symbols::New(unmangled_name, sum_segment_len);
   }
 
   // Drop the trailing dot if needed.
   intptr_t end = ((dot_pos + 1) == len) ? dot_pos : len;
 
-  const String& result =
-      String::Handle(String::SubString(unmangled_name, start, (end - start)));
-
+  unmangled_segments.Clear();
+  intptr_t final_len = end - start;
+  AppendSubString(zone, &unmangled_segments, unmangled_name, start, final_len);
   if (is_setter) {
-    // Setters need to end with '='.
-    return String::Concat(result, Symbols::Equals());
+    const char* equals = Symbols::Equals().ToCString();
+    const intptr_t equals_len = strlen(equals);
+    AppendSubString(zone, &unmangled_segments, equals, 0, equals_len);
+    final_len += equals_len;
   }
 
-  return result.raw();
+  unmangled_name = MergeSubStrings(zone, unmangled_segments, final_len);
+
+  return Symbols::New(unmangled_name);
 }
 
 
@@ -1718,9 +1761,8 @@ void Object::InitializeObject(uword address,
                               intptr_t class_id,
                               intptr_t size,
                               bool is_vm_object) {
-  // TODO(iposva): Get a proper halt instruction from the assembler which
-  // would be needed here for code objects.
-  uword initial_value = reinterpret_cast<uword>(null_);
+  uword initial_value = (class_id == kInstructionsCid)
+      ? Assembler::GetBreakInstructionFiller() : reinterpret_cast<uword>(null_);
   uword cur = address;
   uword end = address + size;
   while (cur < end) {
@@ -2602,7 +2644,8 @@ void Class::CalculateFieldOffsets() const {
 
 RawFunction* Class::GetInvocationDispatcher(const String& target_name,
                                             const Array& args_desc,
-                                            RawFunction::Kind kind) const {
+                                            RawFunction::Kind kind,
+                                            bool create_if_absent) const {
   enum {
     kNameIndex = 0,
     kArgsDescIndex,
@@ -2632,7 +2675,7 @@ RawFunction* Class::GetInvocationDispatcher(const String& target_name,
     }
   }
 
-  if (dispatcher.IsNull()) {
+  if (dispatcher.IsNull() && create_if_absent) {
     if (i == cache.Length()) {
       // Allocate new larger cache.
       intptr_t new_len = (cache.Length() == 0)
@@ -4406,10 +4449,12 @@ RawString* UnresolvedClass::Name() const {
     const LibraryPrefix& lib_prefix = LibraryPrefix::Handle(library_prefix());
     String& name = String::Handle();
     name = lib_prefix.name();  // Qualifier.
-    name = String::Concat(name, Symbols::Dot());
-    const String& str = String::Handle(ident());
-    name = String::Concat(name, str);
-    return name.raw();
+    Zone* zone = Thread::Current()->zone();
+    GrowableHandlePtrArray<const String> strs(zone, 3);
+    strs.Add(name);
+    strs.Add(Symbols::Dot());
+    strs.Add(String::Handle(zone, ident()));
+    return Symbols::FromConcatAll(strs);
   } else {
     return ident();
   }
@@ -6875,49 +6920,51 @@ int32_t Function::SourceFingerprint() const {
 
 
 void Function::SaveICDataMap(
-    const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data) const {
-  // Compute number of ICData objectsto save.
-  intptr_t count = 0;
+    const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
+    const Array& edge_counters_array) const {
+  // Compute number of ICData objects to save.
+  // Store edge counter array in the first slot.
+  intptr_t count = 1;
   for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
     if (deopt_id_to_ic_data[i] != NULL) {
       count++;
     }
   }
-  if (count == 0) {
-    set_ic_data_array(Object::empty_array());
-  } else {
-    const Array& a = Array::Handle(Array::New(count, Heap::kOld));
-    INC_STAT(Thread::Current(), total_code_size, count * sizeof(uword));
-    count = 0;
-    for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
-      if (deopt_id_to_ic_data[i] != NULL) {
-        a.SetAt(count++, *deopt_id_to_ic_data[i]);
-      }
+  const Array& array = Array::Handle(Array::New(count, Heap::kOld));
+  INC_STAT(Thread::Current(), total_code_size, count * sizeof(uword));
+  count = 1;
+  for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
+    if (deopt_id_to_ic_data[i] != NULL) {
+      array.SetAt(count++, *deopt_id_to_ic_data[i]);
     }
-    set_ic_data_array(a);
   }
+  array.SetAt(0, edge_counters_array);
+  set_ic_data_array(array);
 }
 
 
 void Function::RestoreICDataMap(
     ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data) const {
+  ASSERT(deopt_id_to_ic_data->is_empty());
   Zone* zone = Thread::Current()->zone();
-  const Array& saved_icd = Array::Handle(zone, ic_data_array());
-  if (saved_icd.IsNull() || (saved_icd.Length() == 0)) {
-    deopt_id_to_ic_data->Clear();
+  const Array& saved_ic_data = Array::Handle(zone, ic_data_array());
+  if (saved_ic_data.IsNull()) {
     return;
   }
-  ICData& icd = ICData::Handle();
-  icd ^= saved_icd.At(saved_icd.Length() - 1);
-  const intptr_t len = icd.deopt_id() + 1;
-  deopt_id_to_ic_data->SetLength(len);
-  for (intptr_t i = 0; i < len; i++) {
-    (*deopt_id_to_ic_data)[i] = NULL;
-  }
-  for (intptr_t i = 0; i < saved_icd.Length(); i++) {
-    ICData& icd = ICData::ZoneHandle(zone);
-    icd ^= saved_icd.At(i);
-    (*deopt_id_to_ic_data)[icd.deopt_id()] = &icd;
+  const intptr_t saved_length = saved_ic_data.Length();
+  ASSERT(saved_length > 0);
+  if (saved_length > 1) {
+    const intptr_t restored_length = ICData::Cast(Object::Handle(
+        zone, saved_ic_data.At(saved_length - 1))).deopt_id() + 1;
+    deopt_id_to_ic_data->SetLength(restored_length);
+    for (intptr_t i = 0; i < restored_length; i++) {
+      (*deopt_id_to_ic_data)[i] = NULL;
+    }
+    for (intptr_t i = 1; i < saved_length; i++) {
+      ICData& ic_data = ICData::ZoneHandle(zone);
+      ic_data ^= saved_ic_data.At(i);
+      (*deopt_id_to_ic_data)[ic_data.deopt_id()] = &ic_data;
+    }
   }
 }
 
@@ -6939,12 +6986,12 @@ void Function::ClearICDataArray() const {
 
 void Function::SetDeoptReasonForAll(intptr_t deopt_id,
                                     ICData::DeoptReasonId reason) {
-  const Array& icd_array = Array::Handle(ic_data_array());
-  ICData& icd = ICData::Handle();
-  for (intptr_t i = 0; i < icd_array.Length(); i++) {
-    icd ^= icd_array.At(i);
-    if (icd.deopt_id() == deopt_id) {
-      icd.AddDeoptReason(reason);
+  const Array& array = Array::Handle(ic_data_array());
+  ICData& ic_data = ICData::Handle();
+  for (intptr_t i = 1; i < array.Length(); i++) {
+    ic_data ^= array.At(i);
+    if (ic_data.deopt_id() == deopt_id) {
+      ic_data.AddDeoptReason(reason);
     }
   }
 }
@@ -8693,7 +8740,7 @@ void Script::TokenRangeAtLine(intptr_t line_number,
 }
 
 
-RawString* Script::GetLine(intptr_t line_number) const {
+RawString* Script::GetLine(intptr_t line_number, Heap::Space space) const {
   const String& src = String::Handle(Source());
   intptr_t relative_line_number = line_number - line_offset();
   intptr_t current_line = 1;
@@ -8720,7 +8767,8 @@ RawString* Script::GetLine(intptr_t line_number) const {
   if (line_start_idx >= 0) {
     return String::SubString(src,
                              line_start_idx,
-                             last_char_idx - line_start_idx + 1);
+                             last_char_idx - line_start_idx + 1,
+                             space);
   } else {
     return Symbols::Empty().raw();
   }
@@ -11413,42 +11461,18 @@ void LocalVarDescriptors::GetInfo(intptr_t var_index,
 }
 
 
-static const char* VarKindString(int kind) {
-  switch (kind) {
-    case RawLocalVarDescriptors::kStackVar:
-      return "StackVar";
-      break;
-    case RawLocalVarDescriptors::kContextVar:
-      return "ContextVar";
-      break;
-    case RawLocalVarDescriptors::kContextLevel:
-      return "ContextLevel";
-      break;
-    case RawLocalVarDescriptors::kSavedCurrentContext:
-      return "CurrentCtx";
-      break;
-    case RawLocalVarDescriptors::kAsyncOperation:
-      return "AsyncOperation";
-      break;
-    default:
-      UNREACHABLE();
-      return "Unknown";
-  }
-}
-
-
 static int PrintVarInfo(char* buffer, int len,
                         intptr_t i,
                         const String& var_name,
                         const RawLocalVarDescriptors::VarInfo& info) {
-  const int8_t kind = info.kind();
+  const RawLocalVarDescriptors::VarInfoKind kind = info.kind();
   const int32_t index = info.index();
   if (kind == RawLocalVarDescriptors::kContextLevel) {
     return OS::SNPrint(buffer, len,
                        "%2" Pd " %-13s level=%-3d scope=%-3d"
                        " begin=%-3d end=%d\n",
                        i,
-                       VarKindString(kind),
+                       LocalVarDescriptors::KindToCString(kind),
                        index,
                        info.scope_id,
                        info.begin_pos,
@@ -11458,7 +11482,7 @@ static int PrintVarInfo(char* buffer, int len,
                        "%2" Pd " %-13s level=%-3d index=%-3d"
                        " begin=%-3d end=%-3d name=%s\n",
                        i,
-                       VarKindString(kind),
+                       LocalVarDescriptors::KindToCString(kind),
                        info.scope_id,
                        index,
                        info.begin_pos,
@@ -11469,7 +11493,7 @@ static int PrintVarInfo(char* buffer, int len,
                        "%2" Pd " %-13s scope=%-3d index=%-3d"
                        " begin=%-3d end=%-3d name=%s\n",
                        i,
-                       VarKindString(kind),
+                       LocalVarDescriptors::KindToCString(kind),
                        info.scope_id,
                        index,
                        info.begin_pos,
@@ -11531,12 +11555,13 @@ void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream,
     var.AddProperty("beginPos", static_cast<intptr_t>(info.begin_pos));
     var.AddProperty("endPos", static_cast<intptr_t>(info.end_pos));
     var.AddProperty("scopeId", static_cast<intptr_t>(info.scope_id));
-    var.AddProperty("kind", KindToStr(info.kind()));
+    var.AddProperty("kind", KindToCString(info.kind()));
   }
 }
 
 
-const char* LocalVarDescriptors::KindToStr(intptr_t kind) {
+const char* LocalVarDescriptors::KindToCString(
+    RawLocalVarDescriptors::VarInfoKind kind) {
   switch (kind) {
     case RawLocalVarDescriptors::kStackVar:
       return "StackVar";
@@ -11545,9 +11570,7 @@ const char* LocalVarDescriptors::KindToStr(intptr_t kind) {
     case RawLocalVarDescriptors::kContextLevel:
       return "ContextLevel";
     case RawLocalVarDescriptors::kSavedCurrentContext:
-      return "SavedCurrentContext";
-    case RawLocalVarDescriptors::kAsyncOperation:
-      return "AsyncOperation";
+      return "CurrentCtx";
     default:
       UNIMPLEMENTED();
       return NULL;
@@ -13006,6 +13029,7 @@ RawCode* Code::FinalizeCode(const char* name,
   INC_STAT(Thread::Current(), total_instr_size, assembler->CodeSize());
   INC_STAT(Thread::Current(), total_code_size, assembler->CodeSize());
 
+  instrs.set_code(code.raw());
   // Copy the instructions into the instruction area and apply all fixups.
   // Embedded pointers are still in handles at this point.
   MemoryRegion region(reinterpret_cast<void*>(instrs.EntryPoint()),
@@ -13087,8 +13111,13 @@ RawCode* Code::FinalizeCode(const Function& function,
 
 
 // Check if object matches find condition.
-bool Code::FindRawCodeVisitor::FindObject(RawObject* obj) const {
-  return RawCode::ContainsPC(obj, pc_);
+bool Code::FindRawCodeVisitor::FindObject(RawObject* raw_obj) const {
+  uword tags = raw_obj->ptr()->tags_;
+  if (RawObject::ClassIdTag::decode(tags) == kInstructionsCid) {
+    RawInstructions* raw_insts = reinterpret_cast<RawInstructions*>(raw_obj);
+    return RawInstructions::ContainsPC(raw_insts, pc_);
+  }
+  return false;
 }
 
 
@@ -13096,13 +13125,18 @@ RawCode* Code::LookupCodeInIsolate(Isolate* isolate, uword pc) {
   ASSERT((isolate == Isolate::Current()) || (isolate == Dart::vm_isolate()));
   NoSafepointScope no_safepoint;
   FindRawCodeVisitor visitor(pc);
-  RawObject* instr;
+  RawInstructions* instr;
+  if (Dart::IsRunningPrecompiledCode()) {
+    // TODO(johnmccutchan): Make code lookup work when running precompiled.
+    UNIMPLEMENTED();
+    return Code::null();
+  }
   if (isolate->heap() == NULL) {
     return Code::null();
   }
-  instr = isolate->heap()->FindOldObject(&visitor);
-  if (instr != Code::null()) {
-    return static_cast<RawCode*>(instr);
+  instr = isolate->heap()->FindObjectInCodeSpace(&visitor);
+  if (instr != Instructions::null()) {
+    return Instructions::Handle(instr).code();
   }
   return Code::null();
 }
@@ -14008,7 +14042,8 @@ RawLanguageError* LanguageError::NewFormattedV(const Error& prev_error,
   result.set_script(script);
   result.set_token_pos(token_pos);
   result.set_kind(kind);
-  result.set_message(String::Handle(String::NewFormattedV(format, args)));
+  result.set_message(String::Handle(
+      String::NewFormattedV(format, args, space)));
   return result.raw();
 }
 
@@ -14226,6 +14261,7 @@ RawUnwindError* UnwindError::New(const String& message, Heap::Space space) {
                                       space);
     NoSafepointScope no_safepoint;
     result ^= raw;
+    result.StoreNonPointer(&result.raw_ptr()->is_user_initiated_, false);
   }
   result.set_message(message);
   return result.raw();
@@ -14234,6 +14270,11 @@ RawUnwindError* UnwindError::New(const String& message, Heap::Space space) {
 
 void UnwindError::set_message(const String& message) const {
   StorePointer(&raw_ptr()->message_, message.raw());
+}
+
+
+void UnwindError::set_is_user_initiated(bool value) const {
+  StoreNonPointer(&raw_ptr()->is_user_initiated_, value);
 }
 
 
@@ -16151,12 +16192,13 @@ RawAbstractType* TypeParameter::InstantiateFrom(
 
 bool TypeParameter::CheckBound(const AbstractType& bounded_type,
                                const AbstractType& upper_bound,
-                               Error* bound_error) const {
+                               Error* bound_error,
+                               Heap::Space space) const {
   ASSERT((bound_error != NULL) && bound_error->IsNull());
   ASSERT(bounded_type.IsFinalized());
   ASSERT(upper_bound.IsFinalized());
   ASSERT(!bounded_type.IsMalformed());
-  if (bounded_type.IsSubtypeOf(upper_bound, bound_error)) {
+  if (bounded_type.IsSubtypeOf(upper_bound, bound_error, space)) {
     return true;
   }
   // Set bound_error if the caller is interested and if this is the first error.
@@ -18741,7 +18783,18 @@ RawString* String::NewFormatted(const char* format, ...) {
 }
 
 
-RawString* String::NewFormattedV(const char* format, va_list args) {
+RawString* String::NewFormatted(Heap::Space space, const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  RawString* result = NewFormattedV(format, args, space);
+  NoSafepointScope no_safepoint;
+  va_end(args);
+  return result;
+}
+
+
+RawString* String::NewFormattedV(const char* format, va_list args,
+                                 Heap::Space space) {
   va_list args_copy;
   va_copy(args_copy, args);
   intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
@@ -18751,7 +18804,7 @@ RawString* String::NewFormattedV(const char* format, va_list args) {
   char* buffer = zone->Alloc<char>(len + 1);
   OS::VSNPrint(buffer, (len + 1), format, args);
 
-  return String::New(buffer);
+  return String::New(buffer, space);
 }
 
 

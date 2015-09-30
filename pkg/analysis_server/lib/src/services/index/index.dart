@@ -6,12 +6,10 @@ library services.index;
 
 import 'dart:async';
 
-import 'package:analysis_server/analysis/index/index_core.dart';
+import 'package:analysis_server/analysis/index_core.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/html.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -45,20 +43,12 @@ abstract class Index implements IndexStore {
   List<Element> getTopLevelDeclarations(ElementNameFilter nameFilter);
 
   /**
-   * Processes the given [HtmlUnit] in order to record the relationships.
+   * Processes the given [object] in order to record the relationships.
    *
-   * [context] - the [AnalysisContext] in which [HtmlUnit] was resolved.
-   * [unit] - the [HtmlUnit] being indexed.
+   * [context] - the [AnalysisContext] in which the [object] being indexed.
+   * [object] - the object being indexed.
    */
-  void indexHtmlUnit(AnalysisContext context, HtmlUnit unit);
-
-  /**
-   * Processes the given [CompilationUnit] in order to record the relationships.
-   *
-   * [context] - the [AnalysisContext] in which [CompilationUnit] was resolved.
-   * [unit] - the [CompilationUnit] being indexed.
-   */
-  void indexUnit(AnalysisContext context, CompilationUnit unit);
+  void index(AnalysisContext context, Object object);
 
   /**
    * Starts the index.
@@ -150,6 +140,14 @@ class IndexConstants {
    */
   static final RelationshipImpl DEFINES =
       RelationshipImpl.getRelationship("defines");
+
+  /**
+   * Left: class.
+   *   Has ancestor (extended or implemented, directly or indirectly).
+   * Right: other class declaration.
+   */
+  static final RelationshipImpl HAS_ANCESTOR =
+      RelationshipImpl.getRelationship("has-ancestor");
 
   /**
    * Left: class.

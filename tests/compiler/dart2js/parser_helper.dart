@@ -37,7 +37,7 @@ export 'package:compiler/src/parser/partial_elements.dart';
 export "package:compiler/src/tokens/token.dart";
 export "package:compiler/src/tokens/token_constants.dart";
 
-class LoggerCanceler implements DiagnosticListener {
+class LoggerCanceler extends DiagnosticListener {
   void log(message) {
     print(message);
   }
@@ -50,33 +50,42 @@ class LoggerCanceler implements DiagnosticListener {
     throw 'unsupported operation';
   }
 
-  void reportMessage(SourceSpan span, Message message, kind) {
+  void reportError(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     log(message);
+    infos.forEach(log);
   }
 
-  void reportFatalError(Spannable node,
-                        MessageKind errorCode,
-                        [Map arguments]) {
-    log(new Message(MessageTemplate.TEMPLATES[errorCode], arguments, false));
-  }
-
-  void reportError(Spannable node, MessageKind errorCode, [Map arguments]) {
-    log(new Message(MessageTemplate.TEMPLATES[errorCode], arguments, false));
-  }
-
-  void reportWarning(Spannable node, MessageKind errorCode, [Map arguments]) {
-    log(new Message(MessageTemplate.TEMPLATES[errorCode], arguments, false));
+  void reportWarning(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    log(message);
+    infos.forEach(log);
   }
 
   void reportInfo(Spannable node, MessageKind errorCode, [Map arguments]) {
     log(new Message(MessageTemplate.TEMPLATES[errorCode], arguments, false));
   }
 
-  void reportHint(Spannable node, MessageKind errorCode, [Map arguments]) {
-    log(new Message(MessageTemplate.TEMPLATES[errorCode], arguments, false));
+  void reportHint(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    log(message);
+    infos.forEach(log);
   }
 
   withCurrentElement(Element element, f()) => f();
+
+  @override
+  DiagnosticMessage createMessage(
+      Spannable spannable,
+      MessageKind messageKind,
+      [Map arguments = const {}]) {
+    return new DiagnosticMessage(
+        null, spannable,
+        new Message(MessageTemplate.TEMPLATES[messageKind], arguments, false));
+  }
 }
 
 Token scan(String text) =>

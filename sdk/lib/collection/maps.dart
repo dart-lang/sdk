@@ -60,7 +60,7 @@ abstract class MapMixin<K, V> implements Map<K, V> {
     }
   }
 
-  bool containsValue(V value) {
+  bool containsValue(Object value) {
     for (K key in keys) {
       if (this[key] == value) return true;
     }
@@ -218,18 +218,18 @@ class UnmodifiableMapView<K, V> =
  * necessary to implement each particular operation.
  */
 class Maps {
-  static bool containsValue(Map map, value) {
+  static bool containsValue(Map map, Object value) {
     for (final v in map.values) {
-      if (value == v) {
+      if (v == value) {
         return true;
       }
     }
     return false;
   }
 
-  static bool containsKey(Map map, key) {
+  static bool containsKey(Map map, Object key) {
     for (final k in map.keys) {
-      if (key == k) {
+      if (k == key) {
         return true;
       }
     }

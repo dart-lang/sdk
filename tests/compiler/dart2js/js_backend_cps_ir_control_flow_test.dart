@@ -68,6 +68,7 @@ const TestEntry("""
 foo(a) { print(a); return a; }
 
 main() {
+ foo(false);
  if (foo(true)) {
    print(1);
  } else {
@@ -76,6 +77,7 @@ main() {
  print(3);
 }""", """
 function() {
+  V.foo(false);
   V.foo(true) ? P.print(1) : P.print(2);
   P.print(3);
 }"""),
@@ -83,6 +85,7 @@ const TestEntry("""
 foo(a) { print(a); return a; }
 
 main() {
+ foo(false);
  if (foo(true)) {
    print(1);
    print(1);
@@ -93,6 +96,7 @@ main() {
  print(3);
 }""", """
 function() {
+  V.foo(false);
   if (V.foo(true)) {
     P.print(1);
     P.print(1);

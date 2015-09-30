@@ -729,7 +729,7 @@ class DeferredLoadTask extends CompilerTask {
                   compiler.constants.getConstantValue(metadata.constant);
               Element element = value.getType(compiler.coreTypes).element;
               if (element == deferredLibraryClass) {
-                 compiler.reportError(
+                 compiler.reportErrorMessage(
                      import, MessageKind.DEFERRED_OLD_SYNTAX);
               }
             }
@@ -746,7 +746,8 @@ class DeferredLoadTask extends CompilerTask {
             _allDeferredImports[key] = importedLibrary;
 
             if (prefix == null) {
-              compiler.reportError(import,
+              compiler.reportErrorMessage(
+                  import,
                   MessageKind.DEFERRED_LIBRARY_WITHOUT_PREFIX);
             } else {
               prefixDeferredImport[prefix] = import;
@@ -762,7 +763,8 @@ class DeferredLoadTask extends CompilerTask {
               ImportElement failingImport = (previousDeferredImport != null)
                   ? previousDeferredImport
                   : import;
-              compiler.reportError(failingImport.prefix,
+              compiler.reportErrorMessage(
+                  failingImport.prefix,
                   MessageKind.DEFERRED_LIBRARY_DUPLICATE_PREFIX);
             }
             usedPrefixes.add(prefix);

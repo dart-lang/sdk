@@ -1313,7 +1313,8 @@ class Class : public Object {
 
   RawFunction* GetInvocationDispatcher(const String& target_name,
                                        const Array& args_desc,
-                                       RawFunction::Kind kind) const;
+                                       RawFunction::Kind kind,
+                                       bool create_if_absent) const;
 
   void Finalize() const;
 
@@ -2603,7 +2604,8 @@ class Function : public Object {
 
   // Works with map [deopt-id] -> ICData.
   void SaveICDataMap(
-      const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data) const;
+      const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
+      const Array& edge_counters_array) const;
   void RestoreICDataMap(
       ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data) const;
 
@@ -3214,7 +3216,8 @@ class Script : public Object {
   void Tokenize(const String& private_key) const;
 
   RawLibrary* FindLibrary() const;
-  RawString* GetLine(intptr_t line_number) const;
+  RawString* GetLine(intptr_t line_number,
+                     Heap::Space space = Heap::kNew) const;
   RawString* GetSnippet(intptr_t from_line,
                         intptr_t from_column,
                         intptr_t to_line,
@@ -3711,6 +3714,13 @@ class Instructions : public Object {
  public:
   intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
 
+  RawCode* code() const {
+    // This should only be accessed when jitting.
+    // TODO(johnmccutchan): Remove code back pointer.
+    ASSERT(!Dart::IsRunningPrecompiledCode());
+    return raw_ptr()->code_;
+  }
+
   uword EntryPoint() const {
     return reinterpret_cast<uword>(raw_ptr()) + HeaderSize();
   }
@@ -3747,6 +3757,10 @@ class Instructions : public Object {
  private:
   void set_size(intptr_t size) const {
     StoreNonPointer(&raw_ptr()->size_, size);
+  }
+
+  void set_code(RawCode* code) const {
+    StorePointer(&raw_ptr()->code_, code);
   }
 
   // New is a private method as RawInstruction and RawCode objects should
@@ -3792,7 +3806,7 @@ class LocalVarDescriptors : public Object {
 
   static RawLocalVarDescriptors* New(intptr_t num_variables);
 
-  static const char* KindToStr(intptr_t kind);
+  static const char* KindToCString(RawLocalVarDescriptors::VarInfoKind kind);
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors, Object);
@@ -4796,6 +4810,9 @@ class UnhandledException : public Error {
 
 class UnwindError : public Error {
  public:
+  bool is_user_initiated() const { return raw_ptr()->is_user_initiated_; }
+  void set_is_user_initiated(bool value) const;
+
   RawString* message() const { return raw_ptr()->message_; }
 
   static intptr_t InstanceSize() {
@@ -5404,7 +5421,8 @@ class TypeParameter : public AbstractType {
   // bound cannot be checked yet and this is not an error.
   bool CheckBound(const AbstractType& bounded_type,
                   const AbstractType& upper_bound,
-                  Error* bound_error) const;
+                  Error* bound_error,
+                  Heap::Space space = Heap::kNew) const;
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(TrailPtr trail = NULL) const {
     return false;
@@ -6182,7 +6200,10 @@ class String : public Instance {
 
   static RawString* NewFormatted(const char* format, ...)
       PRINTF_ATTRIBUTE(1, 2);
-  static RawString* NewFormattedV(const char* format, va_list args);
+  static RawString* NewFormatted(Heap::Space space, const char* format, ...)
+      PRINTF_ATTRIBUTE(2, 3);
+  static RawString* NewFormattedV(const char* format, va_list args,
+                                  Heap::Space space = Heap::kNew);
 
   static bool ParseDouble(const String& str,
                           intptr_t start,

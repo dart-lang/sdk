@@ -51,28 +51,23 @@ void checkPrintType(String expression, checkType(compiler, type)) {
 
 void testBasicTypes() {
   checkPrintType('true', (compiler, type) {
-    var inferrer = compiler.typesTask.typesInferrer;
+    if (type.isForwarding) type = type.forwardTo;
     Expect.identical(compiler.typesTask.boolType, type);
   });
   checkPrintType('1.5', (compiler, type) {
-    var inferrer = compiler.typesTask.typesInferrer;
     Expect.identical(compiler.typesTask.doubleType, type);
   });
   checkPrintType('1', (compiler, type) {
-    var inferrer = compiler.typesTask.typesInferrer;
     Expect.identical(compiler.typesTask.uint31Type, type);
   });
   checkPrintType('[]', (compiler, type) {
-    var inferrer = compiler.typesTask.typesInferrer;
     if (type.isForwarding) type = type.forwardTo;
     Expect.identical(compiler.typesTask.growableListType, type);
   });
   checkPrintType('null', (compiler, type) {
-    var inferrer = compiler.typesTask.typesInferrer;
     Expect.identical(compiler.typesTask.nullType, type);
   });
   checkPrintType('"foo"', (compiler, type) {
-    var inferrer = compiler.typesTask.typesInferrer;
     Expect.isTrue(
         compiler.typesTask.stringType.containsOnlyString(compiler.world));
   });
@@ -90,7 +85,6 @@ void testOptionalParameters() {
         var thirdParameter =
           fiskElement.computeSignature(compiler).optionalParameters[1];
         var typesTask = compiler.typesTask;
-        var inferrer = typesTask.typesInferrer;
         Expect.identical(
             typesTask.uint31Type,
             typesTask.getGuaranteedTypeOfElement(firstParameter));

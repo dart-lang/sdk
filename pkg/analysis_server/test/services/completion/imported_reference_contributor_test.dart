@@ -759,7 +759,7 @@ class C extends B with M1, M2 {
       result.changeNotices.forEach((ChangeNotice notice) {
         CompilationUnit unit = notice.resolvedDartUnit;
         if (unit != null) {
-          index.indexUnit(context2, unit);
+          index.index(context2, unit);
         }
       });
       result = context2.performAnalysisTask();

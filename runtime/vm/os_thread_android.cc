@@ -156,6 +156,11 @@ ThreadId OSThread::GetCurrentThreadId() {
 }
 
 
+ThreadId OSThread::GetCurrentThreadTraceId() {
+  return GetCurrentThreadId();
+}
+
+
 ThreadJoinId OSThread::GetCurrentThreadJoinId() {
   return pthread_self();
 }

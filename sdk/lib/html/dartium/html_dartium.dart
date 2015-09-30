@@ -14778,11 +14778,14 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
     return false;
   }
 
-  String get _safeTagName {
+  /// A secondary check for corruption, needed on IE
+  static bool _hasCorruptedAttributesAdditionalCheck(Element element) => false;
+
+  static String _safeTagName(element) {
     String result = 'element tag unavailable';
     try {
-      if (tagName is String) {
-        result = tagName;
+      if (element.tagName is String) {
+        result = element.tagName;
       }
     } catch (e) {}
     return result;
@@ -20145,7 +20148,8 @@ class HtmlDocument extends Document {
 
     while (classMirror.superclass != null) {
       var fullName = classMirror.superclass.qualifiedName;
-      isElement = isElement || (fullName == #dart.dom.html.Element);
+      isElement = isElement ||
+          (fullName == #dart.dom.html.Element || fullName == #dart.dom.svg.Element);
 
       var domLibrary = MirrorSystem.getName(fullName).startsWith('dart.dom.');
       if (jsClassName == null && domLibrary) {
@@ -20155,7 +20159,7 @@ class HtmlDocument extends Document {
           var metaDataMirror = metadata.reflectee;
           var metaType = reflectClass(metaDataMirror.runtimeType);
           if (MirrorSystem.getName(metaType.simpleName) == 'DomName' &&
-              metaDataMirror.name.startsWith('HTML')) {
+              (metaDataMirror.name.startsWith('HTML') || metaDataMirror.name.startsWith('SVG'))) {
             jsClassName = metadata.reflectee.name;
           }
         }
@@ -20166,6 +20170,87 @@ class HtmlDocument extends Document {
 
     // If we're an element then everything is okay.
     return isElement ? jsClassName : null;
+  }
+
+  /**
+   * Get the class that immediately derived from a class in dart:html or
+   * dart:svg (has an attribute DomName of either HTML* or SVG*).
+   */
+  ClassMirror _getDomSuperClass(ClassMirror classMirror) {
+    var isElement = false;
+
+    while (classMirror.superclass != null) {
+      var fullName = classMirror.superclass.qualifiedName;
+      isElement = isElement || (fullName == #dart.dom.html.Element || fullName == #dart.dom.svg.Element);
+
+      var domLibrary = MirrorSystem.getName(fullName).startsWith('dart.dom.');
+      if (domLibrary) {
+        // Lookup JS class (if not found).
+        var metadatas = classMirror.metadata;
+        for (var metadata in metadatas) {
+          var metaDataMirror = metadata.reflectee;
+          var metaType = reflectClass(metaDataMirror.runtimeType);
+          if (MirrorSystem.getName(metaType.simpleName) == 'DomName' &&
+              (metaDataMirror.name.startsWith('HTML') || metaDataMirror.name.startsWith('SVG'))) {
+            if (isElement) return classMirror;
+          }
+        }
+      }
+
+      classMirror = classMirror.superclass;
+    }
+
+    return null;
+  }
+
+  /**
+   * Does this CustomElement class have:
+   *
+   *   - a created constructor with no arguments?
+   *   - a created constructor with a super.created() initializer?
+   *
+   * e.g.,    MyCustomClass.created() : super.created();
+   */
+  bool _hasCreatedConstructor(ClassMirror classToRegister) {
+    var htmlClassMirror = _getDomSuperClass(classToRegister);
+
+    var classMirror = classToRegister;
+    while (classMirror != null && classMirror != htmlClassMirror) {
+      var createdParametersValid = false;
+      var superCreatedCalled = false;
+      var className = MirrorSystem.getName(classMirror.simpleName);
+      var methodMirror = classMirror.declarations[new Symbol("$className.created")];
+      if (methodMirror != null && methodMirror.isConstructor) {
+        createdParametersValid = true;                // Assume no parameters.
+        if (methodMirror.parameters.length != 0) {
+          // If any parameters each one must be optional.
+          methodMirror.parameters.forEach((parameter) {
+            createdParametersValid = createdParametersValid && parameter.isOptional;
+          });
+        }
+
+        // Get the created constructor source and look at the initializer;
+        // Must call super.created() if not its as an error.
+        var createdSource = methodMirror.source?.replaceAll('\n', ' ');
+        RegExp regExp = new RegExp(r":(.*?)(;|}|\n)");
+        var match = regExp.firstMatch(createdSource);
+        superCreatedCalled = match.input.substring(match.start,match.end).contains("super.created(");
+      }
+
+      if (!superCreatedCalled) {
+        throw new DomException.jsInterop('created constructor initializer must call super.created()');
+      } else if (!createdParametersValid) {
+        throw new DomException.jsInterop('created constructor must have no parameters');
+      }
+
+      classMirror = classMirror.superclass;
+      while (classMirror != classMirror.mixin) {
+        // Skip the mixins.
+        classMirror = classMirror.superclass;
+      }
+    }
+
+    return true;
   }
 
   @Experimental()
@@ -20222,63 +20307,71 @@ class HtmlDocument extends Document {
       throw new DomException.jsInterop("HierarchyRequestError: Only HTML elements can be customized.");
     }
 
-    // Start the hookup the JS way create an <x-foo> element that extends the
-    // <x-base> custom element. Inherit its prototype and signal what tag is
-    // inherited:
-    //
-    //     var myProto = Object.create(HTMLElement.prototype);
-    //     var myElement = document.registerElement('x-foo', {prototype: myProto});
-    var baseElement = js.context[jsClassName];
-    if (baseElement == null) {
-      // Couldn't find the HTML element so use a generic one.
-      baseElement = js.context['HTMLElement'];
+    if (_hasCreatedConstructor(classMirror)) {
+      // Start the hookup the JS way create an <x-foo> element that extends the
+      // <x-base> custom element. Inherit its prototype and signal what tag is
+      // inherited:
+      //
+      //     var myProto = Object.create(HTMLElement.prototype);
+      //     var myElement = document.registerElement('x-foo', {prototype: myProto});
+      var baseElement = js.context[jsClassName];
+      if (baseElement == null) {
+        // Couldn't find the HTML element so use a generic one.
+        baseElement = js.context['HTMLElement'];
+      }
+      var elemProto = js.context['Object'].callMethod("create", [baseElement['prototype']]);
+
+      // TODO(terry): Hack to stop recursion re-creating custom element when the
+      //              created() constructor of the custom element does e.g.,
+      //
+      //                  MyElement.created() : super.created() {
+      //                    this.innerHtml = "<b>I'm an x-foo-with-markup!</b>";
+      //                  }
+      //
+      //              sanitizing causes custom element to created recursively
+      //              until stack overflow.
+      //
+      //              See https://github.com/dart-lang/sdk/issues/23666
+      int creating = 0;
+      elemProto['createdCallback'] = new js.JsFunction.withThis(($this) {
+        if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
+          creating++;
+
+          var dartClass;
+          try {
+            dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
+          } catch (e) {
+            dartClass = HtmlElement.internalCreateHtmlElement();
+            throw e;
+          } finally {
+            // Need to remember the Dart class that was created for this custom so
+            // return it and setup the blink_jsObject to the $this that we'll be working
+            // with as we talk to blink. 
+            $this['dart_class'] = dartClass;
+
+            creating--;
+          }
+        }
+      });
+      elemProto['attributeChangedCallback'] = new js.JsFunction.withThis(($this, attrName, oldVal, newVal) {
+        if ($this["dart_class"] != null && $this['dart_class'].attributeChanged != null) {
+          $this['dart_class'].attributeChanged(attrName, oldVal, newVal);
+        }
+      });
+      elemProto['attachedCallback'] = new js.JsFunction.withThis(($this) {
+        if ($this["dart_class"] != null && $this['dart_class'].attached != null) {
+          $this['dart_class'].attached();
+        }
+      });
+      elemProto['detachedCallback'] = new js.JsFunction.withThis(($this) {
+        if ($this["dart_class"] != null && $this['dart_class'].detached != null) {
+          $this['dart_class'].detached();
+        }
+      });
+      // document.registerElement('x-foo', {prototype: elemProto, extends: extendsTag});
+      var jsMap = new js.JsObject.jsify({'prototype': elemProto, 'extends': extendsTag});
+      js.context['document'].callMethod('registerElement', [tag, jsMap]);
     }
-    var elemProto = js.context['Object'].callMethod("create", [baseElement['prototype']]);
-
-    // TODO(terry): Hack to stop recursion re-creating custom element when the
-    //              created() constructor of the custom element does e.g.,
-    //
-    //                  MyElement.created() : super.created() {
-    //                    this.innerHtml = "<b>I'm an x-foo-with-markup!</b>";
-    //                  }
-    //
-    //              sanitizing causes custom element to created recursively
-    //              until stack overflow.
-    //
-    //              See https://github.com/dart-lang/sdk/issues/23666
-    int creating = 0;
-    elemProto['createdCallback'] = new js.JsFunction.withThis(($this) {
-      if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
-        creating++;
-
-        var dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
-
-        // Need to remember the Dart class that was created for this custom so
-        // return it and setup the blink_jsObject to the $this that we'll be working
-        // with as we talk to blink. 
-        $this['dart_class'] = dartClass;
-
-        creating--;
-      }
-    });
-    elemProto['attributeChangedCallback'] = new js.JsFunction.withThis(($this, attrName, oldVal, newVal) {
-      if ($this["dart_class"] != null && $this['dart_class'].attributeChanged != null) {
-        $this['dart_class'].attributeChanged(attrName, oldVal, newVal);
-      }
-    });
-    elemProto['attachedCallback'] = new js.JsFunction.withThis(($this) {
-      if ($this["dart_class"] != null && $this['dart_class'].attached != null) {
-        $this['dart_class'].attached();
-      }
-    });
-    elemProto['detachedCallback'] = new js.JsFunction.withThis(($this) {
-      if ($this["dart_class"] != null && $this['dart_class'].detached != null) {
-        $this['dart_class'].detached();
-      }
-    });
-    // document.registerElement('x-foo', {prototype: elemProto, extends: extendsTag});
-    var jsMap = new js.JsObject.jsify({'prototype': elemProto, 'extends': extendsTag});
-    js.context['document'].callMethod('registerElement', [tag, jsMap]);
   }
 
   /** *Deprecated*: use [registerElement] instead. */
@@ -27920,7 +28013,14 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
 class Node extends EventTarget {
 
   // Custom element created callback.
-  Node._created() : super._created();
+  Node._created() : super._created() {
+    // By this point blink_jsObject should be setup if it's not then we weren't
+    // called by the registerElement createdCallback - probably created() was
+    // called directly which is verboten.
+    if (this.blink_jsObject == null) {
+      throw new DomException.jsInterop("the created constructor cannot be called directly");
+    }
+  }
 
   /**
    * A modifiable list of this node's children.
@@ -37068,10 +37168,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -44823,11 +44923,11 @@ class _Html5NodeValidator implements NodeValidator {
   }
 
   bool allowsElement(Element element) {
-    return _allowedElements.contains(element._safeTagName);
+    return _allowedElements.contains(Element._safeTagName(element));
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
-    var tagName = element._safeTagName;
+    var tagName = Element._safeTagName(element);
     var validator = _attributeValidators['$tagName::$attributeName'];
     if (validator == null) {
       validator = _attributeValidators['*::$attributeName'];
@@ -46489,11 +46589,11 @@ class _SimpleNodeValidator implements NodeValidator {
   }
 
   bool allowsElement(Element element) {
-    return allowedElements.contains(element._safeTagName);
+    return allowedElements.contains(Element._safeTagName(element));
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
-    var tagName = element._safeTagName;
+    var tagName = Element._safeTagName(element);
     if (allowedUriAttributes.contains('$tagName::$attributeName')) {
       return uriPolicy.allowsUri(value);
     } else if (allowedUriAttributes.contains('*::$attributeName')) {
@@ -46534,10 +46634,10 @@ class _CustomElementNodeValidator extends _SimpleNodeValidator {
       var isAttr = element.attributes['is'];
       if (isAttr != null) {
         return allowedElements.contains(isAttr.toUpperCase()) &&
-          allowedElements.contains(element._safeTagName);
+            allowedElements.contains(Element._safeTagName(element));
       }
     }
-    return allowCustomTag && allowedElements.contains(element._safeTagName);
+    return allowCustomTag && allowedElements.contains(Element._safeTagName(element));
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
@@ -46593,7 +46693,7 @@ class _SvgNodeValidator implements NodeValidator {
     // foreignobject tag as SvgElement. We don't want foreignobject contents
     // anyway, so just remove the whole tree outright. And we can't rely
     // on IE recognizing the SvgForeignObject type, so go by tagName. Bug 23144
-    if (element is svg.SvgElement && element._safeTagName == 'foreignObject') {
+    if (element is svg.SvgElement && Element._safeTagName(element) == 'foreignObject') {
       return false;
     }
     if (element is svg.SvgElement) {
@@ -46776,14 +46876,14 @@ class _ThrowsNodeValidator implements NodeValidator {
 
   bool allowsElement(Element element) {
     if (!validator.allowsElement(element)) {
-      throw new ArgumentError(element._safeTagName);
+      throw new ArgumentError(Element._safeTagName(element));
     }
     return true;
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
     if (!validator.allowsAttribute(element, attributeName, value)) {
-      throw new ArgumentError('${element._safeTagName}[$attributeName="$value"]');
+      throw new ArgumentError('${Element._safeTagName(element)}[$attributeName="$value"]');
     }
   }
 }
@@ -46825,7 +46925,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   }
 
   /// Sanitize the element, assuming we can't trust anything about it.
-  void _sanitizeUntrustedElement(Element element, Node parent) {
+  void _sanitizeUntrustedElement(/* Element */ element, Node parent) {
     // If the _hasCorruptedAttributes does not successfully return false,
     // then we consider it corrupted and remove.
     // TODO(alanknight): This is a workaround because on Firefox
@@ -46834,7 +46934,9 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     // can't call methods. This does mean that you can't explicitly allow an
     // embed tag. The only thing that will let it through is a null
     // sanitizer that doesn't traverse the tree at all. But sanitizing while
-    // allowing embeds seems quite unlikely.
+    // allowing embeds seems quite unlikely. This is also the reason that we
+    // can't declare the type of element, as an embed won't pass any type
+    // check in dart2js.
     var corrupted = true;
     var attrs;
     var isAttr;
@@ -46842,15 +46944,27 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       // If getting/indexing attributes throws, count that as corrupt.
       attrs = element.attributes;
       isAttr = attrs['is'];
-      corrupted = Element._hasCorruptedAttributes(element);
+      var corruptedTest1 = Element._hasCorruptedAttributes(element);
+
+      // On IE, erratically, the hasCorruptedAttributes test can return false,
+      // even though it clearly is corrupted. A separate copy of the test
+      // inlining just the basic check seems to help.
+      corrupted = corruptedTest1 ? true : Element._hasCorruptedAttributesAdditionalCheck(element);
     } catch(e) {}
-     var elementText = 'element unprintable';
+    var elementText = 'element unprintable';
     try {
       elementText = element.toString();
     } catch(e) {}
-    var elementTagName = element._safeTagName;
-    _sanitizeElement(element, parent, corrupted, elementText, elementTagName,
-        attrs, isAttr);
+    try {
+      var elementTagName = Element._safeTagName(element);
+      _sanitizeElement(element, parent, corrupted, elementText, elementTagName,
+          attrs, isAttr);
+    } on ArgumentError { // Thrown by _ThrowsNodeValidator
+      rethrow;
+    } catch(e) {  // Unexpected exception sanitizing -> remove
+      _removeNode(element, parent);
+      window.console.warn('Removing corrupted element $elementText');
+    }
   }
 
   /// Having done basic sanity checking on the element, and computed the
@@ -46859,23 +46973,23 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   void _sanitizeElement(Element element, Node parent, bool corrupted,
       String text, String tag, Map attrs, String isAttr) {
     if (false != corrupted) {
+       _removeNode(element, parent);
       window.console.warn(
           'Removing element due to corrupted attributes on <$text>');
-       _removeNode(element, parent);
        return;
     }
     if (!validator.allowsElement(element)) {
-      window.console.warn(
-          'Removing disallowed element <$tag>');
       _removeNode(element, parent);
+      window.console.warn(
+          'Removing disallowed element <$tag> from $parent');
       return;
     }
 
     if (isAttr != null) {
       if (!validator.allowsAttribute(element, 'is', isAttr)) {
+        _removeNode(element, parent);
         window.console.warn('Removing disallowed type extension '
             '<$tag is="$isAttr">');
-        _removeNode(element, parent);
         return;
       }
     }

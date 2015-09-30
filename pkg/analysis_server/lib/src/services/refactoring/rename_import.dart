@@ -54,7 +54,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
       SourceEdit edit = null;
       if (newName.isEmpty) {
         int uriEnd = element.uriEnd;
-        int prefixEnd = element.prefixOffset + prefix.displayName.length;
+        int prefixEnd = element.prefixOffset + prefix.nameLength;
         SourceRange range = rangeStartEnd(uriEnd, prefixEnd);
         edit = newSourceEdit_range(range, "");
       } else {
@@ -63,7 +63,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
           edit = newSourceEdit_range(range, " as ${newName}");
         } else {
           int offset = element.prefixOffset;
-          int length = prefix.displayName.length;
+          int length = prefix.nameLength;
           SourceRange range = rangeStartLength(offset, length);
           edit = newSourceEdit_range(range, newName);
         }

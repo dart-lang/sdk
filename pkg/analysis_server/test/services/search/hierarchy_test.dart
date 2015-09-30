@@ -316,6 +316,6 @@ class F implements A {}
 
   void _indexTestUnit(String code) {
     resolveTestUnit(code);
-    index.indexUnit(context, testUnit);
+    index.index(context, testUnit);
   }
 }

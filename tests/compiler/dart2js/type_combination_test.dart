@@ -735,12 +735,20 @@ void main() {
     backend.interceptorsLibrary.forEachLocalMember((element) {
       if (element.isClass) {
         element.ensureResolved(compiler);
-        compiler.enqueuer.resolution.registerInstantiatedType(
-            element.rawType, compiler.globalDependencies);
+        backend.registerInstantiatedType(
+            element.rawType,
+            compiler.enqueuer.resolution,
+            compiler.globalDependencies);
       }
     });
-    compiler.enqueuer.resolution.registerInstantiatedType(
-        compiler.coreTypes.mapType(), compiler.globalDependencies);
+    backend.registerInstantiatedType(
+        compiler.coreTypes.mapType(),
+        compiler.enqueuer.resolution,
+        compiler.globalDependencies);
+    backend.registerInstantiatedType(
+        compiler.coreTypes.functionType,
+        compiler.enqueuer.resolution,
+        compiler.globalDependencies);
     compiler.world.populate();
 
     // Grab hold of a supertype for String so we can produce potential

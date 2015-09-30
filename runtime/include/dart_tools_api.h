@@ -879,6 +879,14 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
  * ========
  */
 
+/**
+ * Returns a timestamp in microseconds. This timestamp is suitable for
+ * passing into the timeline system.
+ *
+ * \return A timestamp that can be passed to the timeline system.
+ */
+DART_EXPORT int64_t Dart_TimelineGetMicros();
+
 /** Timeline stream for Dart API calls */
 #define DART_TIMELINE_STREAM_API (1 << 0)
 /** Timeline stream for compiler events */
@@ -976,7 +984,6 @@ typedef void (*Dart_StreamConsumer)(
 DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
                                        void* user_data);
 
-
 /**
  * Get the timeline for entire VM (including all isolates).
  *
@@ -1000,8 +1007,7 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
  * \param start_micros The start of the duration (in microseconds)
  * \param end_micros The end of the duration (in microseconds)
  *
- * NOTE: On Posix platforms you should use gettimeofday and on Windows platforms
- * you should use GetSystemTimeAsFileTime to get the time values.
+ * NOTE: All timestamps should be acquired from Dart_TimelineGetMicros.
  */
 DART_EXPORT Dart_Handle Dart_TimelineDuration(const char* label,
                                               int64_t start_micros,
@@ -1013,8 +1019,7 @@ DART_EXPORT Dart_Handle Dart_TimelineDuration(const char* label,
  *
  * \param label The name of event.
  *
- * NOTE: On Posix platforms this call uses gettimeofday and on Windows platforms
- * this call uses GetSystemTimeAsFileTime to get the current time.
+ * NOTE: All timestamps should be acquired from Dart_TimelineGetMicros.
  */
 DART_EXPORT Dart_Handle Dart_TimelineInstant(const char* label);
 
@@ -1031,8 +1036,7 @@ DART_EXPORT Dart_Handle Dart_TimelineInstant(const char* label);
  * calls to Dart_TimelineAsyncInstant and Dart_TimelineAsyncEnd will become
  * no-ops.
  *
- * NOTE: On Posix platforms this call uses gettimeofday and on Windows platforms
- * this call uses GetSystemTimeAsFileTime to get the current time.
+ * NOTE: All timestamps should be acquired from Dart_TimelineGetMicros.
  */
 DART_EXPORT Dart_Handle Dart_TimelineAsyncBegin(const char* label,
                                                 int64_t* async_id);
@@ -1047,8 +1051,7 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncBegin(const char* label,
  * \return Returns an asynchronous id that must be passed to
  * Dart_TimelineAsyncInstant and Dart_TimelineAsyncEnd.
  *
- * NOTE: On Posix platforms this call uses gettimeofday and on Windows platforms
- * this call uses GetSystemTimeAsFileTime to get the current time.
+ * NOTE: All timestamps should be acquired from Dart_TimelineGetMicros.
  */
 DART_EXPORT Dart_Handle Dart_TimelineAsyncInstant(const char* label,
                                                   int64_t async_id);
@@ -1063,8 +1066,7 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncInstant(const char* label,
  * \return Returns an asynchronous id that must be passed to
  * Dart_TimelineAsyncInstant and Dart_TimelineAsyncEnd.
  *
- * NOTE: On Posix platforms this call uses gettimeofday and on Windows platforms
- * this call uses GetSystemTimeAsFileTime to get the current time.
+ * NOTE: All timestamps should be acquired from Dart_TimelineGetMicros.
  */
 DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
                                               int64_t async_id);

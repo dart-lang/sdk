@@ -16,6 +16,11 @@
     callback now forward stack traces along with errors to the resulting
     streams.
 
+### Tool changes
+
+* `docgen` and 'dartdocgen' no longer ship in the sdk. The `docgen` sources have
+   been removed from the repository.
+
 ## 1.12.0
 
 ### Language changes

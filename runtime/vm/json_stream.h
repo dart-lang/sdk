@@ -123,6 +123,7 @@ class JSONStream : ValueObject {
   void PrintValue(intptr_t i);
   void PrintValue64(int64_t i);
   void PrintValueTimeMillis(int64_t millis);
+  void PrintValueTimeMicros(int64_t micros);
   void PrintValue(double d);
   void PrintValueBase64(const uint8_t* bytes, intptr_t length);
   void PrintValue(const char* s);
@@ -143,6 +144,7 @@ class JSONStream : ValueObject {
   void PrintProperty(const char* name, intptr_t i);
   void PrintProperty64(const char* name, int64_t i);
   void PrintPropertyTimeMillis(const char* name, int64_t millis);
+  void PrintPropertyTimeMicros(const char* name, int64_t micros);
   void PrintProperty(const char* name, double d);
   void PrintPropertyBase64(const char* name,
                            const uint8_t* bytes,
@@ -228,6 +230,9 @@ class JSONObject : public ValueObject {
   void AddPropertyTimeMillis(const char* name, int64_t millis) const {
     stream_->PrintPropertyTimeMillis(name, millis);
   }
+  void AddPropertyTimeMicros(const char* name, int64_t micros) const {
+    stream_->PrintPropertyTimeMicros(name, micros);
+  }
   void AddProperty(const char* name, double d) const {
     stream_->PrintProperty(name, d);
   }
@@ -301,6 +306,9 @@ class JSONArray : public ValueObject {
   void AddValue64(int64_t i) const { stream_->PrintValue64(i); }
   void AddValueTimeMillis(int64_t millis) const {
     stream_->PrintValueTimeMillis(millis);
+  }
+  void AddValueTimeMicros(int64_t micros) const {
+    stream_->PrintValueTimeMicros(micros);
   }
   void AddValue(double d) const { stream_->PrintValue(d); }
   void AddValue(const char* s) const { stream_->PrintValue(s); }

@@ -270,12 +270,16 @@ class NodeListener extends ElementListener {
       pushNode(new Send(receiver, new Operator(token), arguments));
     }
     if (identical(tokenString, '===')) {
-      listener.reportError(token, MessageKind.UNSUPPORTED_EQ_EQ_EQ,
-                           {'lhs': receiver, 'rhs': argument});
+      listener.reportErrorMessage(
+          token,
+          MessageKind.UNSUPPORTED_EQ_EQ_EQ,
+          {'lhs': receiver, 'rhs': argument});
     }
     if (identical(tokenString, '!==')) {
-      listener.reportError(token, MessageKind.UNSUPPORTED_BANG_EQ_EQ,
-                           {'lhs': receiver, 'rhs': argument});
+      listener.reportErrorMessage(
+          token,
+          MessageKind.UNSUPPORTED_BANG_EQ_EQ,
+          {'lhs': receiver, 'rhs': argument});
     }
   }
 
@@ -447,8 +451,8 @@ class NodeListener extends ElementListener {
   void endRethrowStatement(Token throwToken, Token endToken) {
     pushNode(new Rethrow(throwToken, endToken));
     if (identical(throwToken.stringValue, 'throw')) {
-      listener.reportError(throwToken,
-                           MessageKind.UNSUPPORTED_THROW_WITHOUT_EXP);
+      listener.reportErrorMessage(
+          throwToken, MessageKind.UNSUPPORTED_THROW_WITHOUT_EXP);
     }
   }
 

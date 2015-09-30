@@ -689,6 +689,35 @@ abstract class IntegrationTestMixin {
   StreamController<AnalysisHighlightsParams> _onAnalysisHighlights;
 
   /**
+   * Reports the classes that are implemented or extended and class members
+   * that are implemented or overridden in a file.
+   *
+   * This notification is not subscribed to by default. Clients can subscribe
+   * by including the value "IMPLEMENTED" in the list of services passed in an
+   * analysis.setSubscriptions request.
+   *
+   * Parameters
+   *
+   * file ( FilePath )
+   *
+   *   The file with which the implementations are associated.
+   *
+   * classes ( List<ImplementedClass> )
+   *
+   *   The classes defined in the file that are implemented or extended.
+   *
+   * members ( List<ImplementedMember> )
+   *
+   *   The member defined in the file that are implemented or overridden.
+   */
+  Stream<AnalysisImplementedParams> onAnalysisImplemented;
+
+  /**
+   * Stream controller for [onAnalysisImplemented].
+   */
+  StreamController<AnalysisImplementedParams> _onAnalysisImplemented;
+
+  /**
    * Reports that the navigation information associated with a region of a
    * single file has become invalid and should be re-requested.
    *
@@ -1607,6 +1636,8 @@ abstract class IntegrationTestMixin {
     onAnalysisFolding = _onAnalysisFolding.stream.asBroadcastStream();
     _onAnalysisHighlights = new StreamController<AnalysisHighlightsParams>(sync: true);
     onAnalysisHighlights = _onAnalysisHighlights.stream.asBroadcastStream();
+    _onAnalysisImplemented = new StreamController<AnalysisImplementedParams>(sync: true);
+    onAnalysisImplemented = _onAnalysisImplemented.stream.asBroadcastStream();
     _onAnalysisInvalidate = new StreamController<AnalysisInvalidateParams>(sync: true);
     onAnalysisInvalidate = _onAnalysisInvalidate.stream.asBroadcastStream();
     _onAnalysisNavigation = new StreamController<AnalysisNavigationParams>(sync: true);
@@ -1663,6 +1694,10 @@ abstract class IntegrationTestMixin {
       case "analysis.highlights":
         expect(params, isAnalysisHighlightsParams);
         _onAnalysisHighlights.add(new AnalysisHighlightsParams.fromJson(decoder, 'params', params));
+        break;
+      case "analysis.implemented":
+        expect(params, isAnalysisImplementedParams);
+        _onAnalysisImplemented.add(new AnalysisImplementedParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.invalidate":
         expect(params, isAnalysisInvalidateParams);
