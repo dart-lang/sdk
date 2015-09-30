@@ -1761,10 +1761,22 @@ void Object::InitializeObject(uword address,
                               intptr_t class_id,
                               intptr_t size,
                               bool is_vm_object) {
-  uword initial_value = (class_id == kInstructionsCid)
-      ? Assembler::GetBreakInstructionFiller() : reinterpret_cast<uword>(null_);
+  const uword break_instruction_value = Assembler::GetBreakInstructionFiller();
+  const uword null_value = reinterpret_cast<uword>(null_);
+  const bool is_instructions = class_id == kInstructionsCid;
+  uword initial_value =
+      is_instructions ? break_instruction_value : null_value;
   uword cur = address;
   uword end = address + size;
+  if (is_instructions) {
+    // Fill the header with null. The remainder of the Instructions object will
+    // be filled with the break_instruction_value.
+    uword header_end = address + Instructions::HeaderSize();
+    while (cur < header_end) {
+      *reinterpret_cast<uword*>(cur) = null_value;
+      cur += kWordSize;
+    }
+  }
   while (cur < end) {
     *reinterpret_cast<uword*>(cur) = initial_value;
     cur += kWordSize;
