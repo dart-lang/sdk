@@ -10,8 +10,6 @@ import '../common/tasks.dart' show
     CompilerTask;
 import '../compiler.dart' show
     Compiler;
-import '../constants/values.dart' show
-    PrimitiveConstantValue;
 import '../diagnostics/invariant.dart' show
     invariant;
 import '../diagnostics/spannable.dart' show
