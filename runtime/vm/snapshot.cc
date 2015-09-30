@@ -2008,19 +2008,6 @@ void FullSnapshotWriter::WriteIsolateFullSnapshot() {
 }
 
 
-class WritableVMIsolateScope : StackResource {
- public:
-  explicit WritableVMIsolateScope(Thread* thread) : StackResource(thread) {
-    Dart::vm_isolate()->heap()->WriteProtect(false);
-  }
-
-  ~WritableVMIsolateScope() {
-    ASSERT(Dart::vm_isolate()->heap()->UsedInWords(Heap::kNew) == 0);
-    Dart::vm_isolate()->heap()->WriteProtect(true);
-  }
-};
-
-
 void FullSnapshotWriter::WriteFullSnapshot() {
   if (!vm_isolate_is_symbolic_) {
     // TODO(asiva): Don't mutate object headers during serialization.

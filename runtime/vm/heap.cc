@@ -779,4 +779,16 @@ NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
     heap->SetGrowthControlState(current_growth_controller_state_);
 }
 
+
+WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread)
+    : StackResource(thread) {
+  Dart::vm_isolate()->heap()->WriteProtect(false);
+}
+
+
+WritableVMIsolateScope::~WritableVMIsolateScope() {
+  ASSERT(Dart::vm_isolate()->heap()->UsedInWords(Heap::kNew) == 0);
+  Dart::vm_isolate()->heap()->WriteProtect(true);
+}
+
 }  // namespace dart

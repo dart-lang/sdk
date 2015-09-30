@@ -133,7 +133,8 @@ class Heap {
   void SetGrowthControlState(bool state);
   bool GrowthControlState();
 
-  // Protect access to the heap.
+  // Protect access to the heap. Note: Code pages are made
+  // executable/non-executable when 'read_only' is true/false, respectively.
   void WriteProtect(bool read_only);
   void WriteProtectCode(bool read_only) {
     old_space_.WriteProtectCode(read_only);
@@ -356,6 +357,14 @@ class NoHeapGrowthControlScope : public StackResource {
  private:
   bool current_growth_controller_state_;
   DISALLOW_COPY_AND_ASSIGN(NoHeapGrowthControlScope);
+};
+
+
+// Note: During this scope, the code pages are non-executable.
+class WritableVMIsolateScope : StackResource {
+ public:
+  explicit WritableVMIsolateScope(Thread* thread);
+  ~WritableVMIsolateScope();
 };
 
 }  // namespace dart

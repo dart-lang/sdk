@@ -277,7 +277,8 @@ class PageSpace {
         (ExternalInWords() > max_external_in_words_);
   }
 
-  // TODO(koda): Unify protection handling.
+  // Note: Code pages are made executable/non-executable when 'read_only' is
+  // true/false, respectively.
   void WriteProtect(bool read_only);
   void WriteProtectCode(bool read_only);
 

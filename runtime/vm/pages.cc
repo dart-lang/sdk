@@ -136,7 +136,6 @@ void HeapPage::WriteProtect(bool read_only) {
       prot = VirtualMemory::kReadOnly;
     }
   } else {
-    // TODO(23217): Should this really make all pages non-executable?
     prot = VirtualMemory::kReadWrite;
   }
   bool status = memory_->Protect(prot);

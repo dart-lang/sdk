@@ -951,12 +951,14 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   cls = isolate->object_store()->one_byte_string_class();
   cls.set_name(Symbols::OneByteString());
 
-  // Make the VM isolate read-only after setting all objects as marked.
-  PremarkingVisitor premarker(isolate);
-  isolate->heap()->WriteProtect(false);
-  ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
-  isolate->heap()->IterateOldObjects(&premarker);
-  isolate->heap()->WriteProtect(true);
+  {
+    ASSERT(isolate == Dart::vm_isolate());
+    WritableVMIsolateScope scope(Thread::Current());
+    PremarkingVisitor premarker(isolate);
+    ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
+    isolate->heap()->IterateOldObjects(&premarker);
+    // Make the VM isolate read-only again after setting all objects as marked.
+  }
 }
 
 
