@@ -13029,6 +13029,7 @@ RawCode* Code::FinalizeCode(const char* name,
   INC_STAT(Thread::Current(), total_instr_size, assembler->CodeSize());
   INC_STAT(Thread::Current(), total_code_size, assembler->CodeSize());
 
+  instrs.set_code(code.raw());
   // Copy the instructions into the instruction area and apply all fixups.
   // Embedded pointers are still in handles at this point.
   MemoryRegion region(reinterpret_cast<void*>(instrs.EntryPoint()),
@@ -13110,8 +13111,13 @@ RawCode* Code::FinalizeCode(const Function& function,
 
 
 // Check if object matches find condition.
-bool Code::FindRawCodeVisitor::FindObject(RawObject* obj) const {
-  return RawCode::ContainsPC(obj, pc_);
+bool Code::FindRawCodeVisitor::FindObject(RawObject* raw_obj) const {
+  uword tags = raw_obj->ptr()->tags_;
+  if (RawObject::ClassIdTag::decode(tags) == kInstructionsCid) {
+    RawInstructions* raw_insts = reinterpret_cast<RawInstructions*>(raw_obj);
+    return RawInstructions::ContainsPC(raw_insts, pc_);
+  }
+  return false;
 }
 
 
@@ -13119,13 +13125,18 @@ RawCode* Code::LookupCodeInIsolate(Isolate* isolate, uword pc) {
   ASSERT((isolate == Isolate::Current()) || (isolate == Dart::vm_isolate()));
   NoSafepointScope no_safepoint;
   FindRawCodeVisitor visitor(pc);
-  RawObject* instr;
+  RawInstructions* instr;
+  if (Dart::IsRunningPrecompiledCode()) {
+    // TODO(johnmccutchan): Make code lookup work when running precompiled.
+    UNIMPLEMENTED();
+    return Code::null();
+  }
   if (isolate->heap() == NULL) {
     return Code::null();
   }
-  instr = isolate->heap()->FindOldObject(&visitor);
-  if (instr != Code::null()) {
-    return static_cast<RawCode*>(instr);
+  instr = isolate->heap()->FindObjectInCodeSpace(&visitor);
+  if (instr != Instructions::null()) {
+    return Instructions::Handle(instr).code();
   }
   return Code::null();
 }

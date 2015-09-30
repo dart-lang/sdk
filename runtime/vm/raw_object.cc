@@ -556,6 +556,9 @@ intptr_t RawObjectPool::VisitObjectPoolPointers(
 intptr_t RawInstructions::VisitInstructionsPointers(
     RawInstructions* raw_obj, ObjectPointerVisitor* visitor) {
   RawInstructions* obj = raw_obj->ptr();
+  if (!Dart::IsRunningPrecompiledCode()) {
+    visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  }
   return Instructions::InstanceSize(obj->size_);
 }
 
