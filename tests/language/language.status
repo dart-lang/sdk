@@ -73,6 +73,9 @@ main_test/42: Fail # Issue 20028
 mirror_in_static_init_test: Fail # Issue 22071
 vm/debug_break_enabled_vm_test/*: Skip # Issue 14651.
 
+[ $compiler == none && $runtime == dartium && $system == linux && $arch != x64 ]
+issue_22780_test/01 : Pass, Timeout # Issue 24473
+
 [ $compiler == none && $runtime == drt ]
 disassemble_test: Pass, Fail # Issue 18122
 
