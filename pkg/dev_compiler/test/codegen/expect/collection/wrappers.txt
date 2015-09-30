@@ -1,2 +1,0 @@
-severe: [InvalidMethodOverride] Invalid override. The type of DelegatingSet.lookup ((E) → E) is not a subtype of Set<E>.lookup ((Object) → E). (package:collection/wrappers.dart, line 237, col 3)
-severe: [InvalidMethodOverride] Invalid override. The type of MapValueSet.lookup ((V) → V) is not a subtype of Set<V>.lookup ((Object) → V). (package:collection/wrappers.dart, line 521, col 3)
