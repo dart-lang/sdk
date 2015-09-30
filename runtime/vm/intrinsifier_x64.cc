@@ -37,10 +37,11 @@ void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
   if (Isolate::Current()->flags().type_checks()) {
     return;
   }
+
+  Label fall_through;
   __ movq(RDX, Address(RSP, + 1 * kWordSize));  // Value.
   __ movq(RCX, Address(RSP, + 2 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 3 * kWordSize));  // Array.
-  Label fall_through;
   __ testq(RCX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through);
   // Range check.
