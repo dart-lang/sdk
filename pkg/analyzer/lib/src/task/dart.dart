@@ -2804,6 +2804,16 @@ class LibraryErrorsReadyTask extends SourceBasedAnalysisTask {
  */
 class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
   /**
+   * The name of the [BUILD_DIRECTIVES_ERRORS] input.
+   */
+  static const String BUILD_DIRECTIVES_ERRORS_INPUT = 'BUILD_DIRECTIVES_ERRORS';
+
+  /**
+   * The name of the [BUILD_LIBRARY_ERRORS] input.
+   */
+  static const String BUILD_LIBRARY_ERRORS_INPUT = 'BUILD_LIBRARY_ERRORS';
+
+  /**
    * The name of the [HINTS] input.
    */
   static const String HINTS_INPUT = 'HINTS';
@@ -2864,6 +2874,8 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
     // Prepare inputs.
     //
     List<List<AnalysisError>> errorLists = <List<AnalysisError>>[];
+    errorLists.add(getRequiredInput(BUILD_DIRECTIVES_ERRORS_INPUT));
+    errorLists.add(getRequiredInput(BUILD_LIBRARY_ERRORS_INPUT));
     errorLists.add(getRequiredInput(HINTS_INPUT));
     errorLists.add(getRequiredInput(INFER_STATIC_VARIABLE_TYPES_ERRORS_INPUT));
     errorLists.add(getRequiredInput(PARTIALLY_RESOLVE_REFERENCES_ERRORS_INPUT));
@@ -2884,7 +2896,7 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
-    return <String, TaskInput>{
+    Map<String, TaskInput> inputs = <String, TaskInput>{
       HINTS_INPUT: HINTS.of(unit),
       INFER_STATIC_VARIABLE_TYPES_ERRORS_INPUT:
           INFER_STATIC_VARIABLE_TYPES_ERRORS.of(unit),
@@ -2896,6 +2908,18 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
       VARIABLE_REFERENCE_ERRORS_INPUT: VARIABLE_REFERENCE_ERRORS.of(unit),
       VERIFY_ERRORS_INPUT: VERIFY_ERRORS.of(unit)
     };
+    Source source = unit.source;
+    if (unit.library == source) {
+      inputs[BUILD_DIRECTIVES_ERRORS_INPUT] =
+          BUILD_DIRECTIVES_ERRORS.of(source);
+      inputs[BUILD_LIBRARY_ERRORS_INPUT] = BUILD_LIBRARY_ERRORS.of(source);
+    } else {
+      inputs[BUILD_DIRECTIVES_ERRORS_INPUT] =
+          new ConstantTaskInput(AnalysisError.NO_ERRORS);
+      inputs[BUILD_LIBRARY_ERRORS_INPUT] =
+          new ConstantTaskInput(AnalysisError.NO_ERRORS);
+    }
+    return inputs;
   }
 
   /**

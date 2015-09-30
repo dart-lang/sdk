@@ -159,8 +159,6 @@ class EnginePlugin implements Plugin {
 
   void _registerDartErrorsForSource(RegisterExtension registerExtension) {
     String id = DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID;
-    registerExtension(id, BUILD_DIRECTIVES_ERRORS);
-    registerExtension(id, BUILD_LIBRARY_ERRORS);
     registerExtension(id, PARSE_ERRORS);
     registerExtension(id, SCAN_ERRORS);
   }

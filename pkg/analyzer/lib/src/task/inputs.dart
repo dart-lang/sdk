@@ -24,6 +24,52 @@ typedef R Mapper<P, R>(P value);
  * An input to an [AnalysisTask] that is computed by accessing a single result
  * defined on a single target.
  */
+class ConstantTaskInput<V> extends TaskInputImpl<V> {
+  final V value;
+
+  ConstantTaskInput(this.value);
+
+  @override
+  TaskInputBuilder<V> createBuilder() {
+    return new ConstantTaskInputBuilder<V>(this);
+  }
+}
+
+/**
+ * A [TaskInputBuilder] used to build an input based on a [ConstantTaskInput].
+ */
+class ConstantTaskInputBuilder<V> implements TaskInputBuilder<V> {
+  final ConstantTaskInput input;
+
+  ConstantTaskInputBuilder(this.input);
+
+  @override
+  ResultDescriptor get currentResult => null;
+
+  @override
+  AnalysisTarget get currentTarget => null;
+
+  @override
+  void set currentValue(Object value) {
+    throw new StateError('Only supported after moveNext() returns true');
+  }
+
+  @override
+  V get inputValue => input.value;
+
+  @override
+  void currentValueNotAvailable() {
+    throw new StateError('Only supported after moveNext() returns true');
+  }
+
+  @override
+  bool moveNext() => false;
+}
+
+/**
+ * An input to an [AnalysisTask] that is computed by accessing a single result
+ * defined on a single target.
+ */
 class ListTaskInputImpl<E> extends SimpleTaskInput<List<E>>
     with ListTaskInputMixin<E>
     implements ListTaskInput<E> {
@@ -675,11 +721,18 @@ class TopLevelTaskInputBuilder
       return false;
     }
     currentBuilder = inputDescriptors[_currentName].createBuilder();
-    // NOTE: This assumes that every builder will require at least one result
-    // value to be created. If that assumption is every broken, this method will
-    // need to be changed to advance until we find a builder that does require
-    // a result to be computed (or run out of builders).
-    return currentBuilder.moveNext();
+    while (!currentBuilder.moveNext()) {
+      if (currentBuilder.inputValue != null) {
+        inputs[_currentName] = currentBuilder.inputValue;
+      }
+      nameIndex++;
+      if (nameIndex >= inputNames.length) {
+        // There is no next value, so we're done.
+        return false;
+      }
+      currentBuilder = inputDescriptors[_currentName].createBuilder();
+    }
+    return true;
   }
 }
 
