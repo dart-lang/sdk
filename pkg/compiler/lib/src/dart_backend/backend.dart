@@ -254,7 +254,10 @@ class DartBackend extends Backend {
   }
 
   @override
-  void registerInstantiatedType(InterfaceType type, Registry registry) {
+  void registerInstantiatedType(InterfaceType type,
+                                Enqueuer enqueuer,
+                                Registry registry,
+                                {bool mirrorUsage: false}) {
     // Without patching, dart2dart has no way of performing sound tree-shaking
     // in face external functions. Therefore we employ another scheme:
     //
@@ -320,7 +323,8 @@ class DartBackend extends Backend {
         }
       }
     }
-
+    super.registerInstantiatedType(
+        type, enqueuer, registry, mirrorUsage: mirrorUsage);
   }
 
   @override

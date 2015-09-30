@@ -75,11 +75,11 @@ class CodegenRegistry extends Registry {
   }
 
   void registerInstantiatedClass(ClassElement element) {
-    world.registerInstantiatedType(element.rawType, this);
+    backend.registerInstantiatedType(element.rawType, world, this);
   }
 
   void registerInstantiatedType(InterfaceType type) {
-    world.registerInstantiatedType(type, this);
+    backend.registerInstantiatedType(type, world, this);
   }
 
   void registerStaticUse(Element element) {
@@ -169,7 +169,7 @@ class CodegenRegistry extends Registry {
   }
 
   void registerInstantiation(InterfaceType type) {
-    world.registerInstantiatedType(type, this);
+    backend.registerInstantiatedType(type, world, this);
   }
 
   void registerAsyncMarker(FunctionElement element) {

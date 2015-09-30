@@ -1242,7 +1242,8 @@ abstract class Compiler extends DiagnosticListener {
       ClassElement cls = element;
       cls.ensureResolved(this);
       cls.forEachLocalMember(enqueuer.resolution.addToWorkList);
-      world.registerInstantiatedType(cls.rawType, globalDependencies);
+      backend.registerInstantiatedType(
+          cls.rawType, world, globalDependencies);
     } else {
       world.addToWorkList(element);
     }
@@ -1280,11 +1281,11 @@ abstract class Compiler extends DiagnosticListener {
       if (mainMethod.functionSignature.parameterCount != 0) {
         // The first argument could be a list of strings.
         backend.listImplementation.ensureResolved(this);
-        world.registerInstantiatedType(
-            backend.listImplementation.rawType, globalDependencies);
+        backend.registerInstantiatedType(
+            backend.listImplementation.rawType, world, globalDependencies);
         backend.stringImplementation.ensureResolved(this);
-        world.registerInstantiatedType(
-            backend.stringImplementation.rawType, globalDependencies);
+        backend.registerInstantiatedType(
+            backend.stringImplementation.rawType, world, globalDependencies);
 
         backend.registerMainHasArguments(world);
       }

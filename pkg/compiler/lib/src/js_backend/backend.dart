@@ -1171,8 +1171,13 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerInstantiatedType(InterfaceType type, Registry registry) {
+  void registerInstantiatedType(InterfaceType type,
+                                Enqueuer enqueuer,
+                                Registry registry,
+                                {bool mirrorUsage: false}) {
     lookupMapAnalysis.registerInstantiatedType(type, registry);
+    super.registerInstantiatedType(
+        type, enqueuer, registry, mirrorUsage: mirrorUsage);
   }
 
   void registerUseInterceptor(Enqueuer enqueuer) {
@@ -1247,6 +1252,7 @@ class JavaScriptBackend extends Backend {
     if (enqueuer.isResolutionQueue || methodNeedsRti(closure)) {
       registerComputeSignature(enqueuer, registry);
     }
+    super.registerClosureWithFreeTypeVariables(closure, enqueuer, registry);
   }
 
   /// Call during codegen if an instance of [closure] is being created.
@@ -1259,16 +1265,19 @@ class JavaScriptBackend extends Backend {
 
   void registerBoundClosure(Enqueuer enqueuer) {
     boundClosureClass.ensureResolved(compiler);
-    enqueuer.registerInstantiatedType(
+    registerInstantiatedType(
         boundClosureClass.rawType,
+        enqueuer,
         // Precise dependency is not important here.
         compiler.globalDependencies);
   }
 
   void registerGetOfStaticFunction(Enqueuer enqueuer) {
     closureClass.ensureResolved(compiler);
-    enqueuer.registerInstantiatedType(
-        closureClass.rawType, compiler.globalDependencies);
+    registerInstantiatedType(
+        closureClass.rawType,
+        enqueuer,
+        compiler.globalDependencies);
   }
 
   void registerComputeSignature(Enqueuer enqueuer, Registry registry) {
@@ -1454,7 +1463,7 @@ class JavaScriptBackend extends Backend {
       helpersUsed.add(cls.implementation);
     }
     cls.ensureResolved(compiler);
-    enqueuer.registerInstantiatedType(cls.rawType, registry);
+    registerInstantiatedType(cls.rawType, enqueuer, registry);
   }
 
   WorldImpact codegen(CodegenWorkItem work) {
@@ -2759,7 +2768,7 @@ class JavaScriptBackend extends Backend {
     } else if (element.asyncMarker == AsyncMarker.SYNC_STAR) {
       ClassElement clsSyncStarIterable = getSyncStarIterable();
       clsSyncStarIterable.ensureResolved(compiler);
-      enqueuer.registerInstantiatedType(clsSyncStarIterable.rawType, registry);
+      registerInstantiatedType(clsSyncStarIterable.rawType, enqueuer, registry);
       enqueue(enqueuer, getSyncStarIterableConstructor(), registry);
       enqueue(enqueuer, getEndOfIteration(), registry);
       enqueue(enqueuer, getYieldStar(), registry);
@@ -2767,8 +2776,8 @@ class JavaScriptBackend extends Backend {
     } else if (element.asyncMarker == AsyncMarker.ASYNC_STAR) {
       ClassElement clsASyncStarController = getASyncStarController();
       clsASyncStarController.ensureResolved(compiler);
-      enqueuer.registerInstantiatedType(
-          clsASyncStarController.rawType, registry);
+      registerInstantiatedType(
+          clsASyncStarController.rawType, enqueuer, registry);
       enqueue(enqueuer, getAsyncStarHelper(), registry);
       enqueue(enqueuer, getStreamOfController(), registry);
       enqueue(enqueuer, getYieldSingle(), registry);

@@ -373,8 +373,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
     // TODO(ahe): Is this really a global dependency?
     classElement.ensureResolved(compiler);
-    world.registerInstantiatedType(
-        classElement.rawType, compiler.globalDependencies);
+    compiler.backend.registerInstantiatedType(
+        classElement.rawType, world, compiler.globalDependencies);
 
     // Also parse the node to know all its methods because otherwise it will
     // only be parsed if there is a call to one of its constructors.
@@ -520,30 +520,30 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       matchedTypeConstraints.add(type);
       if (type is SpecialType) {
         if (type == SpecialType.JsObject) {
-          world.registerInstantiatedType(
-              compiler.coreTypes.objectType, registry);
+          backend.registerInstantiatedType(
+              compiler.coreTypes.objectType, world, registry);
         }
         continue;
       }
       if (type is InterfaceType) {
         if (type.element == compiler.intClass) {
-          world.registerInstantiatedType(type, registry);
+          backend.registerInstantiatedType(type, world, registry);
         } else if (type.element == compiler.doubleClass) {
-          world.registerInstantiatedType(type, registry);
+          backend.registerInstantiatedType(type, world, registry);
         } else if (type.element == compiler.numClass) {
-          world.registerInstantiatedType(
-              compiler.coreTypes.doubleType, registry);
-          world.registerInstantiatedType(
-              compiler.coreTypes.intType, registry);
+          backend.registerInstantiatedType(
+              compiler.coreTypes.doubleType, world, registry);
+          backend.registerInstantiatedType(
+              compiler.coreTypes.intType, world, registry);
         } else if (type.element == compiler.stringClass) {
-          world.registerInstantiatedType(type, registry);
+          backend.registerInstantiatedType(type, world, registry);
         } else if (type.element == compiler.nullClass) {
-          world.registerInstantiatedType(type, registry);
+          backend.registerInstantiatedType(type, world, registry);
         } else if (type.element == compiler.boolClass) {
-          world.registerInstantiatedType(type, registry);
+          backend.registerInstantiatedType(type, world, registry);
         } else if (compiler.types.isSubtype(
                       type, backend.listImplementation.rawType)) {
-          world.registerInstantiatedType(type, registry);
+          backend.registerInstantiatedType(type, world, registry);
         }
       }
       assert(type is DartType);
