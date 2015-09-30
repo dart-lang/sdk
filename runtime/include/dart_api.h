@@ -2877,8 +2877,29 @@ typedef struct {
 } Dart_QualifiedFunctionName;
 
 
+/**
+ * Compiles all functions reachable from the provided entry points and marks
+ * the isolate to disallow future compilation.
+ *
+ * \param entry_points A list of functions that may be invoked through the
+ * embedding API, e.g. Dart_Invoke/GetField/SetField/New/InvokeClosure.
+ *
+ * \param reset_fields Controls whether static fields are reset. Fields without
+ * an initializer will be set to null, and fields with an initializer will have
+ * their initializer run the next time they are accessed.
+ *
+ * reset_fields is true when we are about to create a precompilated snapshot.
+ * Some fields are already been initialized as part of the loading logic, and
+ * we want them to be reinitialized in the new process that will load the
+ * snapshot. reset_fields is false for --noopt, which will continue running in
+ * the same process.
+ *
+ * \return An error handle if a compilation error or runtime error running const
+ * constructors was encountered.
+ */
 DART_EXPORT Dart_Handle Dart_Precompile(
-    Dart_QualifiedFunctionName entry_points[]);
+    Dart_QualifiedFunctionName entry_points[],
+    bool reset_fields);
 
 
 DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(

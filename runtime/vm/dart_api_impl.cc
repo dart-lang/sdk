@@ -5938,14 +5938,16 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
 
 
 DART_EXPORT Dart_Handle Dart_Precompile(
-    Dart_QualifiedFunctionName entry_points[]) {
+    Dart_QualifiedFunctionName entry_points[],
+    bool reset_fields) {
   DARTSCOPE(Thread::Current());
   Dart_Handle result = Api::CheckAndFinalizePendingClasses(I);
   if (::Dart_IsError(result)) {
     return result;
   }
   CHECK_CALLBACK_STATE(I);
-  const Error& error = Error::Handle(Precompiler::CompileAll(entry_points));
+  const Error& error = Error::Handle(Precompiler::CompileAll(entry_points,
+                                                             reset_fields));
   if (!error.IsNull()) {
     return Api::NewHandle(I, error.raw());
   }

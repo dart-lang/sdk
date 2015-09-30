@@ -71,10 +71,17 @@ DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(bool, precompile_collect_closures);
 DECLARE_FLAG(bool, print_stop_message);
+DECLARE_FLAG(bool, lazy_dispatchers);
+DECLARE_FLAG(bool, interpret_irregexp);
+DECLARE_FLAG(bool, enable_mirrors);
+DECLARE_FLAG(bool, link_natives_lazily);
 
-
-static void NooptModeHandler(bool value) {
+static void PrecompilationModeHandler(bool value) {
   if (value) {
+#if defined(TARGET_ARCH_IA32)
+    FATAL("Precompilation not supported on IA32");
+#endif
+
     FLAG_always_megamorphic_calls = true;
     FLAG_polymorphic_with_deopt = false;
     FLAG_optimization_counter_threshold = -1;
@@ -99,29 +106,7 @@ static void NooptModeHandler(bool value) {
     // Calling the PrintStopMessage stub is not supported in precompiled code
     // since it is done at places where no pool pointer is loaded.
     FLAG_print_stop_message = false;
-  }
-}
 
-
-// --noopt disables optimizer and tunes unoptimized code to run as fast
-// as possible.
-DEFINE_FLAG_HANDLER(NooptModeHandler,
-                    noopt,
-                    "Run fast unoptimized code only.");
-
-
-DECLARE_FLAG(bool, lazy_dispatchers);
-DECLARE_FLAG(bool, interpret_irregexp);
-DECLARE_FLAG(bool, enable_mirrors);
-DECLARE_FLAG(bool, link_natives_lazily);
-
-static void PrecompileModeHandler(bool value) {
-  if (value) {
-#if defined(TARGET_ARCH_IA32)
-    FATAL("Precompilation not supported on IA32");
-#endif
-
-    NooptModeHandler(true);
     FLAG_lazy_dispatchers = false;
     FLAG_interpret_irregexp = true;
     FLAG_enable_mirrors = false;
@@ -133,8 +118,8 @@ static void PrecompileModeHandler(bool value) {
 }
 
 
-DEFINE_FLAG_HANDLER(PrecompileModeHandler,
-                    precompile,
+DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
+                    precompilation,
                     "Precompilation mode");
 
 

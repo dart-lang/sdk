@@ -29,10 +29,11 @@ static void Jump(const Error& error) {
 
 
 RawError* Precompiler::CompileAll(
-    Dart_QualifiedFunctionName embedder_entry_points[]) {
+    Dart_QualifiedFunctionName embedder_entry_points[],
+    bool reset_fields) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Precompiler precompiler(Thread::Current());
+    Precompiler precompiler(Thread::Current(), reset_fields);
     precompiler.DoCompileAll(embedder_entry_points);
     return Error::null();
   } else {
@@ -44,10 +45,11 @@ RawError* Precompiler::CompileAll(
 }
 
 
-Precompiler::Precompiler(Thread* thread) :
+Precompiler::Precompiler(Thread* thread, bool reset_fields) :
   thread_(thread),
   zone_(thread->zone()),
   isolate_(thread->isolate()),
+  reset_fields_(reset_fields),
   changed_(false),
   function_count_(0),
   class_count_(0),
@@ -443,6 +445,12 @@ void Precompiler::AddField(const Field& field) {
     AddClass(cls);
 
     if (field.has_initializer()) {
+      // Should not be in the middle of initialization while precompiling.
+      ASSERT(value.raw() != Object::transition_sentinel().raw());
+
+      const bool is_initialized = value.raw() != Object::sentinel().raw();
+      if (is_initialized && !reset_fields_) return;
+
       if (field.HasPrecompiledInitializer()) return;
 
       if (FLAG_trace_precompiler) {

@@ -81,6 +81,12 @@ static bool has_gen_precompiled_snapshot = false;
 static bool has_run_precompiled_snapshot = false;
 
 
+// Global flag that is used to indicate that we want to compile everything in
+// the same way as precompilation before main, then continue running in the
+// same process.
+static bool has_noopt = false;
+
+
 extern const char* kPrecompiledLibraryName;
 extern const char* kPrecompiledSymbolName;
 static const char* kPrecompiledVmIsolateName = "precompiled.vmisolate";
@@ -326,7 +332,7 @@ static bool ProcessGenPrecompiledSnapshotOption(
     return false;
   }
   has_gen_precompiled_snapshot = true;
-  vm_options->AddArgument("--precompile");
+  vm_options->AddArgument("--precompilation");
   return true;
 }
 
@@ -339,7 +345,20 @@ static bool ProcessRunPrecompiledSnapshotOption(
     return false;
   }
   has_run_precompiled_snapshot = true;
-  vm_options->AddArgument("--precompile");
+  vm_options->AddArgument("--precompilation");
+  return true;
+}
+
+
+static bool ProcessNooptOption(
+    const char* arg,
+    CommandLineOptions* vm_options) {
+  ASSERT(arg != NULL);
+  if (*arg != '\0') {
+    return false;
+  }
+  has_noopt = true;
+  vm_options->AddArgument("--precompilation");
   return true;
 }
 
@@ -483,6 +502,7 @@ static struct {
   { "--debug", ProcessDebugOption },
   { "--enable-vm-service", ProcessEnableVmServiceOption },
   { "--gen-precompiled-snapshot", ProcessGenPrecompiledSnapshotOption },
+  { "--noopt", ProcessNooptOption },
   { "--observe", ProcessObserveOption },
   { "--run-precompiled-snapshot", ProcessRunPrecompiledSnapshotOption },
   { "--shutdown", ProcessShutdownOption },
@@ -887,9 +907,6 @@ static void PrintUsage() {
 "  enables the VM service and listens on specified port for connections\n"
 "  (default port number is 8181)\n"
 "\n"
-"--noopt\n"
-"  run unoptimized code only\n"
-"\n"
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");
     const char* print_flags = "--print_flags";
@@ -1254,7 +1271,7 @@ void main(int argc, char** argv) {
     ASSERT(!Dart_IsError(builtin_lib));
     result = Dart_LibraryImportLibrary(builtin_lib, root_lib, Dart_Null());
 
-    if (has_gen_precompiled_snapshot) {
+    if (has_noopt || has_gen_precompiled_snapshot) {
       Dart_QualifiedFunctionName standalone_entry_points[] = {
         { "dart:_builtin", "::", "_getMainClosure" },
         { "dart:_builtin", "::", "_getPrintClosure" },
@@ -1280,9 +1297,12 @@ void main(int argc, char** argv) {
         { NULL, NULL, NULL }  // Must be terminated with NULL entries.
       };
 
-      result = Dart_Precompile(standalone_entry_points);
+      const bool reset_fields = has_gen_precompiled_snapshot;
+      result = Dart_Precompile(standalone_entry_points, reset_fields);
       DartExitOnError(result);
+    }
 
+    if (has_gen_precompiled_snapshot) {
       uint8_t* vm_isolate_buffer = NULL;
       intptr_t vm_isolate_size = 0;
       uint8_t* isolate_buffer = NULL;
