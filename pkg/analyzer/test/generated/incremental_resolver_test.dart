@@ -4091,6 +4091,28 @@ foo(String p) {}
 ''');
   }
 
+  void test_true_todoHint() {
+    _resolveUnit(r'''
+main() {
+  print(1);
+}
+foo() {
+ // TODO
+}
+''');
+    List<AnalysisError> oldErrors = analysisContext.computeErrors(source);
+    _updateAndValidate(r'''
+main() {
+  print(2);
+}
+foo() {
+ // TODO
+}
+''');
+    List<AnalysisError> newErrors = analysisContext.computeErrors(source);
+    _assertEqualErrors(newErrors, oldErrors);
+  }
+
   void test_true_wholeConstructor() {
     _resolveUnit(r'''
 class A {
@@ -4166,28 +4188,6 @@ class A {
   }
 }
 ''');
-  }
-
-  void test_true_todoHint() {
-    _resolveUnit(r'''
-main() {
-  print(1);
-}
-foo() {
- // TODO
-}
-''');
-    List<AnalysisError> oldErrors = analysisContext.computeErrors(source);
-    _updateAndValidate(r'''
-main() {
-  print(2);
-}
-foo() {
- // TODO
-}
-''');
-    List<AnalysisError> newErrors = analysisContext.computeErrors(source);
-    _assertEqualErrors(newErrors, oldErrors);
   }
 
   void test_unusedHint_add_wasUsedOnlyInPart() {
@@ -4438,6 +4438,36 @@ f3() {
   print(333)
 }
 ''');
+  }
+
+  void test_whitespace_getElementAt() {
+    _resolveUnit(r'''
+class A {}
+class B extends A {}
+''');
+    {
+      ClassElement typeA = oldUnitElement.getType('A');
+      expect(oldUnitElement.getElementAt(typeA.nameOffset), typeA);
+    }
+    {
+      ClassElement typeB = oldUnitElement.getType('B');
+      expect(oldUnitElement.getElementAt(typeB.nameOffset), typeB);
+    }
+    _updateAndValidate(r'''
+class A {}
+
+class B extends A {}
+''');
+    // getElementAt() caches results, it should be notified when offset
+    // are changed.
+    {
+      ClassElement typeA = oldUnitElement.getType('A');
+      expect(oldUnitElement.getElementAt(typeA.nameOffset), typeA);
+    }
+    {
+      ClassElement typeB = oldUnitElement.getType('B');
+      expect(oldUnitElement.getElementAt(typeB.nameOffset), typeB);
+    }
   }
 
   void _assertEqualLineInfo(LineInfo incrLineInfo, LineInfo fullLineInfo) {

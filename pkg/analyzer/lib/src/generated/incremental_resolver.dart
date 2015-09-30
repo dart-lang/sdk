@@ -1044,8 +1044,6 @@ class IncrementalResolver {
       _context.invalidateLibraryHints(_librarySource);
       // update entry errors
       _updateEntry();
-      // notify unit
-      _definingUnit.afterIncrementalResolution();
       // OK
       return true;
     } finally {
@@ -1279,6 +1277,7 @@ class IncrementalResolver {
     try {
       _definingUnit
           .accept(new _ElementNameOffsetUpdater(_updateOffset, _updateDelta));
+      _definingUnit.afterIncrementalResolution();
     } finally {
       timer.stop('update element offsets');
     }

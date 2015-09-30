@@ -90,16 +90,12 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
     return createLocalMemoryIndex();
   }
 
+  /**
+   * Subscribe for `IMPLEMENTED` and wait for the notification.
+   */
   Future prepareImplementedElements() {
-    addAnalysisSubscription(AnalysisService.IMPLEMENTED, testFile);
-    Future waitForNotification(int times) {
-      if (times == 0 || implementedClasses != null) {
-        return new Future.value();
-      }
-      return new Future.delayed(
-          Duration.ZERO, () => waitForNotification(times - 1));
-    }
-    return waitForNotification(100);
+    subscribeForImplemented();
+    return waitForImplementedElements();
   }
 
   void processNotification(Notification notification) {
@@ -117,6 +113,10 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
     createProject();
   }
 
+  void subscribeForImplemented() {
+    addAnalysisSubscription(AnalysisService.IMPLEMENTED, testFile);
+  }
+
   test_afterAnalysis() async {
     addTestFile('''
 class A {}
@@ -125,6 +125,25 @@ class B extends A {}
     await waitForTasksFinished();
     await prepareImplementedElements();
     assertHasImplementedClass('A {');
+  }
+
+  test_afterIncrementalResolution() async {
+    subscribeForImplemented();
+    addTestFile('''
+class A {}
+class B extends A {}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedClass('A {');
+    // add a space
+    implementedClasses = null;
+    testCode = '''
+class A  {}
+class B extends A {}
+''';
+    server.updateContent('1', {testFile: new AddContentOverlay(testCode)});
+    await waitForImplementedElements();
+    assertHasImplementedClass('A  {');
   }
 
   test_class_extended() async {
@@ -285,5 +304,16 @@ class B extends A {
 ''');
     await prepareImplementedElements();
     assertHasImplementedMember('f(_) {} // A');
+  }
+
+  Future waitForImplementedElements() {
+    Future waitForNotification(int times) {
+      if (times == 0 || implementedClasses != null) {
+        return new Future.value();
+      }
+      return new Future.delayed(
+          Duration.ZERO, () => waitForNotification(times - 1));
+    }
+    return waitForNotification(100);
   }
 }
