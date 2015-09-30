@@ -143,6 +143,18 @@ List<SourceRange> getCommentRanges(CompilationUnit unit) {
   return ranges;
 }
 
+/**
+ * Return the given [element] if it is a [CompilationUnitElement].
+ * Return the enclosing [CompilationUnitElement] of the given [element],
+ * maybe `null`.
+ */
+CompilationUnitElement getCompilationUnitElement(Element element) {
+  if (element is CompilationUnitElement) {
+    return element;
+  }
+  return element.getAncestor((e) => e is CompilationUnitElement);
+}
+
 String getDefaultValueCode(DartType type) {
   if (type != null) {
     String typeName = type.displayName;
@@ -441,8 +453,7 @@ List<AstNode> getParents(AstNode node) {
  * The resulting AST structure may or may not be resolved.
  */
 AstNode getParsedClassElementNode(ClassElement classElement) {
-  CompilationUnitElement unitElement =
-      classElement.getAncestor((e) => e is CompilationUnitElement);
+  CompilationUnitElement unitElement = getCompilationUnitElement(classElement);
   CompilationUnit unit = getParsedUnit(unitElement);
   int offset = classElement.nameOffset;
   AstNode classNameNode = new NodeLocator(offset).searchWithin(unit);
