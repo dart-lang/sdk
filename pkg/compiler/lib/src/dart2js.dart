@@ -329,9 +329,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
                       (_) => diagnosticHandler.enableColors = true),
     new OptionHandler('--enable[_-]checked[_-]mode|--checked',
                       (_) => setCheckedMode(Flags.enableCheckedMode)),
-    new OptionHandler(Flags.enableConcreteTypeInference,
-                      (_) => implyCompilation(
-                          Flags.enableConcreteTypeInference)),
     new OptionHandler(Flags.trustTypeAnnotations,
                       (_) => setTrustTypeAnnotations(
                           Flags.trustTypeAnnotations)),

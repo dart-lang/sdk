@@ -90,8 +90,6 @@ class Compiler extends leg.Compiler {
             analyzeSignaturesOnly:
                 hasOption(options, Flags.analyzeSignaturesOnly),
             strips: extractCsvOption(options, '--force-strip='),
-            enableConcreteTypeInference:
-                hasOption(options, Flags.enableConcreteTypeInference),
             disableTypeInferenceFlag:
                 hasOption(options, Flags.disableTypeInference),
             preserveComments: hasOption(options, Flags.preserveComments),
