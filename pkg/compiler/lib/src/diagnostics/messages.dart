@@ -3352,7 +3352,11 @@ Use the --categories option to support import of '#{uri}'.
       MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND:
         const MessageTemplate(
           MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND,
-          "dart:mirrors library is not supported when using this backend."),
+          """
+dart:mirrors library is not supported when using this backend.
+
+Your app imports dart:mirrors via:""""""
+$MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING#{importChain}"""),
 
       MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS:
         const MessageTemplate(MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS,
@@ -3391,6 +3395,10 @@ Use the --categories option to support import of '#{uri}'.
   /// Padding used before and between import chains in the message for
   /// [MessageKind.IMPORT_EXPERIMENTAL_MIRRORS].
   static const String IMPORT_EXPERIMENTAL_MIRRORS_PADDING = '\n*   ';
+
+  /// Padding used before and between import chains in the message for
+  /// [MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND].
+  static const String MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING = '\n   ';
 
   /// Padding used before and between import chains in the message for
   /// [MessageKind.DISALLOWED_LIBRARY_IMPORT].

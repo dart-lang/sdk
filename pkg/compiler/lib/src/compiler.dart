@@ -871,21 +871,24 @@ abstract class Compiler extends DiagnosticListener {
         return null;
       }
 
-      if (!enableExperimentalMirrors &&
-          loadedLibraries.containsLibrary(Uris.dart_mirrors)) {
+      bool importsMirrorsLibrary =
+          loadedLibraries.containsLibrary(Uris.dart_mirrors);
+      if (importsMirrorsLibrary && !backend.supportsReflection) {
         Set<String> importChains =
             computeImportChainsFor(loadedLibraries, Uris.dart_mirrors);
-        if (!backend.supportsReflection) {
-          reportErrorMessage(
-              NO_LOCATION_SPANNABLE,
-              MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND);
-        } else {
-          reportWarningMessage(
-              NO_LOCATION_SPANNABLE,
-              MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
-              {'importChain': importChains.join(
-                   MessageTemplate.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)});
-        }
+        reportErrorMessage(
+            NO_LOCATION_SPANNABLE,
+            MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND,
+            {'importChain': importChains.join(
+                MessageTemplate.MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING)});
+      } else if (importsMirrorsLibrary && !enableExperimentalMirrors) {
+        Set<String> importChains =
+            computeImportChainsFor(loadedLibraries, Uris.dart_mirrors);
+        reportWarningMessage(
+            NO_LOCATION_SPANNABLE,
+            MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
+            {'importChain': importChains.join(
+                 MessageTemplate.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)});
       }
 
       functionClass.ensureResolved(this);
