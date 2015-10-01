@@ -687,7 +687,7 @@ class LibraryUpdater extends JsFeatures {
       PartialFunctionElement before,
       PartialFunctionElement after) {
     FunctionExpression node =
-        after.parseNode(compiler).asFunctionExpression();
+        after.parseNode(compiler.parsing).asFunctionExpression();
     if (node == null) {
       return cannotReuse(after, "Not a function expression: '$node'");
     }
@@ -709,7 +709,7 @@ class LibraryUpdater extends JsFeatures {
       Token diffToken,
       PartialClassElement before,
       PartialClassElement after) {
-    ClassNode node = after.parseNode(compiler).asClassNode();
+    ClassNode node = after.parseNode(compiler.parsing).asClassNode();
     if (node == null) {
       return cannotReuse(after, "Not a ClassNode: '$node'");
     }
