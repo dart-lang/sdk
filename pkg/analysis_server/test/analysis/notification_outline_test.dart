@@ -21,6 +21,8 @@ main() {
 
 @reflectiveTest
 class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
+  FileKind fileKind;
+  String libraryName;
   Outline outline;
 
   Future prepareOutline() {
@@ -32,6 +34,8 @@ class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
     if (notification.event == ANALYSIS_OUTLINE) {
       var params = new AnalysisOutlineParams.fromNotification(notification);
       if (params.file == testFile) {
+        fileKind = params.kind;
+        libraryName = params.libraryName;
         outline = params.outline;
       }
     }
@@ -309,6 +313,43 @@ class A {
     return prepareOutline().then((_) {
       expect(outline, isNotNull);
     });
+  }
+
+  test_libraryName_hasLibraryDirective() async {
+    addTestFile('''
+library my.lib;
+''');
+    await prepareOutline();
+    expect(fileKind, FileKind.LIBRARY);
+    expect(libraryName, 'my.lib');
+  }
+
+  test_libraryName_hasLibraryPartOfDirectives() async {
+    addTestFile('''
+part of lib.in.part.of;
+library my.lib;
+''');
+    await prepareOutline();
+    expect(fileKind, FileKind.LIBRARY);
+    expect(libraryName, 'my.lib');
+  }
+
+  test_libraryName_hasPartOfDirective() async {
+    addTestFile('''
+part of my.lib;
+''');
+    await prepareOutline();
+    expect(fileKind, FileKind.PART);
+    expect(libraryName, 'my.lib');
+  }
+
+  test_libraryName_noDirectives() async {
+    addTestFile('''
+class A {}
+''');
+    await prepareOutline();
+    expect(fileKind, FileKind.LIBRARY);
+    expect(libraryName, isNull);
   }
 
   test_localFunctions() {
