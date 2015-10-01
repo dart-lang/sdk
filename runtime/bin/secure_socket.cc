@@ -897,11 +897,9 @@ void SSLFilter::Connect(const char* hostname,
                                 X509_V_FLAG_PARTIAL_CHAIN |
                                 X509_V_FLAG_TRUSTED_FIRST);
     X509_VERIFY_PARAM_set_hostflags(certificate_checking_parameters, 0);
-    X509_VERIFY_PARAM_set1_host(certificate_checking_parameters,
-                                hostname_, strlen(hostname_));
-    // TODO(24225) Check return value of set1_host().
-    // TODO(24186) free hostname_ if it is not freed when SSL is destroyed.
-    // otherwise, make it a local variable, not a instance field.
+    status = X509_VERIFY_PARAM_set1_host(certificate_checking_parameters,
+                                         hostname_, strlen(hostname_));
+    CheckStatus(status, "Set hostname for certificate checking", __LINE__);
   }
   // Make the connection:
   if (is_server_) {
@@ -1041,6 +1039,10 @@ void SSLFilter::Destroy() {
   if (socket_side_ != NULL) {
     BIO_free(socket_side_);
     socket_side_ = NULL;
+  }
+  if (hostname_ != NULL) {
+    free(hostname_);
+    hostname_ = NULL;
   }
   for (int i = 0; i < kNumBuffers; ++i) {
     Dart_DeletePersistentHandle(dart_buffer_objects_[i]);
