@@ -50,6 +50,7 @@ int _getTraceClock() {
   // TODO.
   return _clockValue++;
 }
+int _clockValue = 0;
 
 @patch
 void _reportCompleteEvent(int start,
