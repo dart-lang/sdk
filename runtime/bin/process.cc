@@ -262,7 +262,15 @@ void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
     free(error);
   }
   if (do_vm_shutdown) {
+#ifdef LEGACY_DEBUG_PROTOCOL_ENABLED
+    // Note that this dependency crosses logical project boundaries by making
+    // the dart:io implementation depend upon the standalone VM's legacy debug
+    // protocol. This breaks projects which want to use our dart:io
+    // implementation. Because the protocol is going away shortly, it's
+    // reasonable to leave it behind a #ifdef that is only enabled for the
+    // standalone VM for now.
     DebuggerConnectionHandler::StopHandler();
+#endif
     EventHandler::Stop();
   }
   exit(static_cast<int>(status));

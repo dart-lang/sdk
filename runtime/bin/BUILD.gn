@@ -205,6 +205,8 @@ source_set("embedded_dart_io") {
     "*secure_socket.h",
     "*filter_unsupported.cc",
     "*io_service_unsupported.cc",
+    "*io_service.cc",
+    "*io_service.h",
     "*_test.cc",
     "*_test.h",
     "*dbg*",
