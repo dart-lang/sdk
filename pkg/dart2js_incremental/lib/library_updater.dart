@@ -74,11 +74,7 @@ import 'package:compiler/src/js/js.dart' show
 import 'package:compiler/src/js/js.dart' as jsAst;
 
 import 'package:compiler/src/js_emitter/js_emitter.dart' show
-    ClassBuilder,
-    ClassEmitter,
     CodeEmitterTask,
-    ContainerBuilder,
-    MemberInfo,
     computeMixinClass;
 
 import 'package:compiler/src/js_emitter/full_emitter/emitter.dart'
