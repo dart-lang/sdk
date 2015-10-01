@@ -51,7 +51,7 @@ vars = {
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
   "dart2js_info_rev" : "@bad01369f1f605ab688d505c135db54de927318f",
-  "dartdoc_rev" : "@786426c4bbea96729d5eab2add744def41a5a690",
+  "dartdoc_rev" : "@d51211b7c0a30862a691aa6dc0631009bd926004",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.0",
   "dev_compiler_rev": "@0.1.8",
