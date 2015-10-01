@@ -1154,8 +1154,9 @@ wrap_jso(jsObject) {
     // TODO(alanknight): With upgraded custom elements this causes a failure because
     // we need a new wrapper after the type changes. We could possibly invalidate this
     // if the constructor name didn't match?
-    if (jsObject.dartWrapper != null) {
-      return jsObject.dartWrapper;
+    var wrapper = js.getDartHtmlWrapperFor(jsObject);
+    if (wrapper != null) {
+      return wrapper;
     }
 
     // Try the most general type conversions on it.
@@ -1184,7 +1185,7 @@ wrap_jso(jsObject) {
       if (func != null) {
         dartClass_instance = func();
         dartClass_instance.blink_jsObject = jsObject;
-        jsObject.dartWrapper = dartClass_instance;
+        js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
       }
     }
     return dartClass_instance;

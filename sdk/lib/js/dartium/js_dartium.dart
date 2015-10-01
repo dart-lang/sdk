@@ -480,6 +480,22 @@ JsObject get context {
 }
 
 /**
+ * Get the dart wrapper object for object. Top-level so we
+ * we can access it from other libraries without it being
+ * a public instance field on JsObject.
+ */
+getDartHtmlWrapperFor(JsObject object) => object._dartHtmlWrapper;
+
+/**
+ * Set the dart wrapper object for object. Top-level so we
+ * we can access it from other libraries without it being
+ * a public instance field on JsObject.
+ */
+void setDartHtmlWrapperFor(JsObject object, wrapper) {
+  object._dartHtmlWrapper = wrapper;
+}
+
+/**
  * Proxies a JavaScript object to Dart.
  *
  * The properties of the JavaScript object are accessible via the `[]` and
@@ -492,7 +508,7 @@ class JsObject extends NativeFieldWrapperClass2 {
    * If this JsObject is wrapped, e.g. DOM objects, then we can save the
    * wrapper here and preserve its identity.
    */
-  var dartWrapper;
+  var _dartHtmlWrapper;
 
   /**
    * Constructs a new JavaScript object from [constructor] and returns a proxy
