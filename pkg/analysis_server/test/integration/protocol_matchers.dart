@@ -468,13 +468,18 @@ final Matcher isAnalysisOccurrencesParams = new LazyMatcher(() => new MatchesJso
  *
  * {
  *   "file": FilePath
+ *   "kind": FileKind
+ *   "libraryName": optional String
  *   "outline": Outline
  * }
  */
 final Matcher isAnalysisOutlineParams = new LazyMatcher(() => new MatchesJsonObject(
   "analysis.outline params", {
     "file": isFilePath,
+    "kind": isFileKind,
     "outline": isOutline
+  }, optionalFields: {
+    "libraryName": isString
   }));
 
 /**
@@ -1376,6 +1381,19 @@ final Matcher isExecutionContextId = isString;
  */
 final Matcher isExecutionService = new MatchesEnum("ExecutionService", [
   "LAUNCH_DATA"
+]);
+
+/**
+ * FileKind
+ *
+ * enum {
+ *   LIBRARY
+ *   PART
+ * }
+ */
+final Matcher isFileKind = new MatchesEnum("FileKind", [
+  "LIBRARY",
+  "PART"
 ]);
 
 /**

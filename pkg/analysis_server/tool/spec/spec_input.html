@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.9.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.10.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -1042,6 +1042,23 @@
             <ref>FilePath</ref>
             <p>
               The file with which the outline is associated.
+            </p>
+          </field>
+          <field name="kind">
+            <ref>FileKind</ref>
+            <p>
+              The kind of the file.
+            </p>
+          </field>
+          <field name="libraryName" optional="true">
+            <ref>String</ref>
+            <p>
+              The name of the library defined by the file using a "library"
+              directive, or referenced by a "part of" directive. If both
+              "library" and "part of" directives are present, then the
+              "library" directive takes precedence.
+              This field will be omitted if the file has neither "library"
+              nor "part of" directives.
             </p>
           </field>
           <field name="outline">
@@ -2549,6 +2566,15 @@
         </p>
         <enum>
           <value><code>LAUNCH_DATA</code></value>
+        </enum>
+      </type>
+      <type name="FileKind">
+        <p>
+          An enumeration of the kinds of files.
+        </p>
+        <enum>
+          <value><code>LIBRARY</code></value>
+          <value><code>PART</code></value>
         </enum>
       </type>
       <type name="FilePath">

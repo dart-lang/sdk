@@ -217,7 +217,8 @@ void sendAnalysisNotificationOutline(AnalysisServer server, String file,
   _sendNotification(server, () {
     var computer = new DartUnitOutlineComputer(file, lineInfo, dartUnit);
     var outline = computer.compute();
-    var params = new protocol.AnalysisOutlineParams(file, outline);
+    var params = new protocol.AnalysisOutlineParams(
+        file, protocol.FileKind.LIBRARY, outline);
     server.sendNotification(params.toNotification());
   });
 }

@@ -3158,11 +3158,17 @@ class AnalysisOccurrencesParams implements HasToJson {
  *
  * {
  *   "file": FilePath
+ *   "kind": FileKind
+ *   "libraryName": optional String
  *   "outline": Outline
  * }
  */
 class AnalysisOutlineParams implements HasToJson {
   String _file;
+
+  FileKind _kind;
+
+  String _libraryName;
 
   Outline _outline;
 
@@ -3180,6 +3186,39 @@ class AnalysisOutlineParams implements HasToJson {
   }
 
   /**
+   * The kind of the file.
+   */
+  FileKind get kind => _kind;
+
+  /**
+   * The kind of the file.
+   */
+  void set kind(FileKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
+
+  /**
+   * The name of the library defined by the file using a "library" directive,
+   * or referenced by a "part of" directive. If both "library" and "part of"
+   * directives are present, then the "library" directive takes precedence.
+   * This field will be omitted if the file has neither "library" nor "part of"
+   * directives.
+   */
+  String get libraryName => _libraryName;
+
+  /**
+   * The name of the library defined by the file using a "library" directive,
+   * or referenced by a "part of" directive. If both "library" and "part of"
+   * directives are present, then the "library" directive takes precedence.
+   * This field will be omitted if the file has neither "library" nor "part of"
+   * directives.
+   */
+  void set libraryName(String value) {
+    this._libraryName = value;
+  }
+
+  /**
    * The outline associated with the file.
    */
   Outline get outline => _outline;
@@ -3192,8 +3231,10 @@ class AnalysisOutlineParams implements HasToJson {
     this._outline = value;
   }
 
-  AnalysisOutlineParams(String file, Outline outline) {
+  AnalysisOutlineParams(String file, FileKind kind, Outline outline, {String libraryName}) {
     this.file = file;
+    this.kind = kind;
+    this.libraryName = libraryName;
     this.outline = outline;
   }
 
@@ -3208,13 +3249,23 @@ class AnalysisOutlineParams implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
+      FileKind kind;
+      if (json.containsKey("kind")) {
+        kind = new FileKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "kind");
+      }
+      String libraryName;
+      if (json.containsKey("libraryName")) {
+        libraryName = jsonDecoder._decodeString(jsonPath + ".libraryName", json["libraryName"]);
+      }
       Outline outline;
       if (json.containsKey("outline")) {
         outline = new Outline.fromJson(jsonDecoder, jsonPath + ".outline", json["outline"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "outline");
       }
-      return new AnalysisOutlineParams(file, outline);
+      return new AnalysisOutlineParams(file, kind, outline, libraryName: libraryName);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.outline params", json);
     }
@@ -3228,6 +3279,10 @@ class AnalysisOutlineParams implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
+    result["kind"] = kind.toJson();
+    if (libraryName != null) {
+      result["libraryName"] = libraryName;
+    }
     result["outline"] = outline.toJson();
     return result;
   }
@@ -3243,6 +3298,8 @@ class AnalysisOutlineParams implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisOutlineParams) {
       return file == other.file &&
+          kind == other.kind &&
+          libraryName == other.libraryName &&
           outline == other.outline;
     }
     return false;
@@ -3252,6 +3309,8 @@ class AnalysisOutlineParams implements HasToJson {
   int get hashCode {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, libraryName.hashCode);
     hash = _JenkinsSmiHash.combine(hash, outline.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
@@ -9506,6 +9565,55 @@ class ExecutionService implements Enum {
 
   @override
   String toString() => "ExecutionService.$name";
+
+  String toJson() => name;
+}
+
+/**
+ * FileKind
+ *
+ * enum {
+ *   LIBRARY
+ *   PART
+ * }
+ */
+class FileKind implements Enum {
+  static const LIBRARY = const FileKind._("LIBRARY");
+
+  static const PART = const FileKind._("PART");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<FileKind> VALUES = const <FileKind>[LIBRARY, PART];
+
+  final String name;
+
+  const FileKind._(this.name);
+
+  factory FileKind(String name) {
+    switch (name) {
+      case "LIBRARY":
+        return LIBRARY;
+      case "PART":
+        return PART;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory FileKind.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new FileKind(json);
+      } catch(_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "FileKind", json);
+  }
+
+  @override
+  String toString() => "FileKind.$name";
 
   String toJson() => name;
 }
