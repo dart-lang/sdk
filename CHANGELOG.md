@@ -1,5 +1,6 @@
 ## 1.13.0
 
+### Core library changes
 * `dart:async`
   * `StreamTransformer` instances created with `fromHandlers` with no
     `handleError` callback now forward stack traces along with errors to the
@@ -20,6 +21,9 @@
 
 * `docgen` and 'dartdocgen' no longer ship in the sdk. The `docgen` sources have
    been removed from the repository.
+
+* This is the last release to ship the VM's "legacy debug protocol".
+  We intend to remove the legacy debug protocol in Dart VM 1.14.
 
 ## 1.12.0
 
