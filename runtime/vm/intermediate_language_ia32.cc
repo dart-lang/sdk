@@ -151,15 +151,19 @@ LocationSummary* ConstantInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 0;
   return LocationSummary::Make(zone,
                                kNumInputs,
-                               Location::RequiresRegister(),
+                               Assembler::IsSafe(value())
+                                   ? Location::Constant(this)
+                                   : Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
 
 
 void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
-  if (!locs()->out(0).IsInvalid()) {
-    Register result = locs()->out(0).reg();
+  Location out = locs()->out(0);
+  ASSERT(out.IsRegister() || out.IsConstant() || out.IsInvalid());
+  if (out.IsRegister()) {
+    Register result = out.reg();
     __ LoadObjectSafely(result, value());
   }
 }

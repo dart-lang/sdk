@@ -751,6 +751,8 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
     Location value = defn->locs()->out(0);
     if (value.IsRegister()) {
       __ pushl(value.reg());
+    } else if (value.IsConstant()) {
+      __ PushObject(value.constant());
     } else {
       ASSERT(value.IsStackSlot());
       __ pushl(value.ToStackSlotAddress());
