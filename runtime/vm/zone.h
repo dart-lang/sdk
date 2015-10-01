@@ -46,6 +46,10 @@ class Zone {
   // Make a copy of the string in the zone allocated area.
   char* MakeCopyOfString(const char* str);
 
+  // Concatenate strings |a| and |b|. |a| may be NULL. If |a| is not NULL,
+  // |join| will be inserted between |a| and |b|.
+  char* ConcatStrings(const char* a, const char* b, char join = ',');
+
   // TODO(zra): Remove these calls and replace them with calls to OS::SCreate
   // and OS::VSCreate.
   // These calls are deprecated. Do not add further calls to these functions.

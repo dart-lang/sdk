@@ -479,6 +479,36 @@ IsolateTimelineEventFilter::IsolateTimelineEventFilter(Isolate* isolate)
 }
 
 
+DartTimelineEvent::DartTimelineEvent()
+    : isolate_(NULL),
+      event_as_json_(NULL) {
+}
+
+
+DartTimelineEvent::~DartTimelineEvent() {
+  Clear();
+}
+
+
+void DartTimelineEvent::Clear() {
+  if (isolate_ != NULL) {
+    isolate_ = NULL;
+  }
+  if (event_as_json_ != NULL) {
+    free(event_as_json_);
+    event_as_json_ = NULL;
+  }
+}
+
+
+void DartTimelineEvent::Init(Isolate* isolate, const char* event) {
+  ASSERT(isolate_ == NULL);
+  ASSERT(event != NULL);
+  isolate_ = isolate;
+  event_as_json_ = strdup(event);
+}
+
+
 TimelineEventRecorder::TimelineEventRecorder()
     : global_block_(NULL),
       async_id_(0) {
@@ -550,6 +580,21 @@ TimelineEvent* TimelineEventRecorder::GlobalBlockStartEvent() {
 }
 
 
+// Trims the ']' character.
+static void TrimOutput(char* output,
+                       intptr_t* output_length) {
+  ASSERT(output != NULL);
+  ASSERT(output_length != NULL);
+  ASSERT(*output_length >= 2);
+  // We expect the first character to be the opening of an array.
+  ASSERT(output[0] == '[');
+  // We expect the last character to be the closing of an array.
+  ASSERT(output[*output_length - 1] == ']');
+  // Skip the ].
+  *output_length -= 1;
+}
+
+
 void TimelineEventRecorder::WriteTo(const char* directory) {
   Dart_FileOpenCallback file_open = Isolate::file_open_callback();
   Dart_FileWriteCallback file_write = Isolate::file_write_callback();
@@ -557,12 +602,10 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
   if ((file_open == NULL) || (file_write == NULL) || (file_close == NULL)) {
     return;
   }
+  Thread* T = Thread::Current();
+  StackZone zone(T);
 
   Timeline::ReclaimAllBlocks();
-
-  JSONStream js;
-  TimelineEventFilter filter;
-  PrintJSON(&js, &filter);
 
   intptr_t pid = OS::ProcessId();
   char* filename = OS::SCreate(NULL,
@@ -574,8 +617,43 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
     return;
   }
   free(filename);
-  (*file_write)(js.buffer()->buf(), js.buffer()->length(), file);
+
+  JSONStream js;
+  TimelineEventFilter filter;
+  PrintTraceEvent(&js, &filter);
+  // Steal output from JSONStream.
+  char* output = NULL;
+  intptr_t output_length = 0;
+  js.Steal(const_cast<const char**>(&output), &output_length);
+  TrimOutput(output, &output_length);
+  ASSERT(output_length >= 1);
+  (*file_write)(output, output_length, file);
+  // Free the stolen output.
+  free(output);
+
+  const char* dart_events =
+      DartTimelineEventIterator::PrintTraceEvents(this,
+                                                  zone.GetZone(),
+                                                  NULL);
+
+  // If we wrote out vm events and have dart events, write out the comma.
+  if ((output_length > 1) && (dart_events != NULL)) {
+    // Write out the ',' character.
+    const char* comma = ",";
+    (*file_write)(comma, 1, file);
+  }
+
+  // Write out the Dart events.
+  if (dart_events != NULL) {
+    (*file_write)(dart_events, strlen(dart_events), file);
+  }
+
+  // Write out the ']' character.
+  const char* array_close = "]";
+  (*file_write)(array_close, 1, file);
   (*file_close)(file);
+
+  return;
 }
 
 
@@ -615,7 +693,10 @@ TimelineEventRingRecorder::TimelineEventRingRecorder(intptr_t capacity)
     : blocks_(NULL),
       capacity_(capacity),
       num_blocks_(0),
-      block_cursor_(0) {
+      block_cursor_(0),
+      dart_events_(NULL),
+      dart_events_capacity_(capacity),
+      dart_events_cursor_(0) {
   // Capacity must be a multiple of TimelineEventBlock::kBlockSize
   ASSERT((capacity % TimelineEventBlock::kBlockSize) == 0);
   // Allocate blocks array.
@@ -631,6 +712,13 @@ TimelineEventRingRecorder::TimelineEventRingRecorder(intptr_t capacity)
   for (intptr_t i = 0; i < num_blocks_ - 1; i++) {
     blocks_[i]->set_next(blocks_[i + 1]);
   }
+  // Pre-allocate DartTimelineEvents.
+  dart_events_ =
+      reinterpret_cast<DartTimelineEvent**>(
+          calloc(dart_events_capacity_, sizeof(DartTimelineEvent*)));
+  for (intptr_t i = 0; i < dart_events_capacity_; i++) {
+    dart_events_[i] = new DartTimelineEvent();
+  }
 }
 
 
@@ -641,6 +729,12 @@ TimelineEventRingRecorder::~TimelineEventRingRecorder() {
     delete block;
   }
   free(blocks_);
+  // Delete all DartTimelineEvents.
+  for (intptr_t i = 0; i < dart_events_capacity_; i++) {
+    DartTimelineEvent* event = dart_events_[i];
+    delete event;
+  }
+  free(dart_events_);
 }
 
 
@@ -678,6 +772,33 @@ void TimelineEventRingRecorder::PrintJSON(JSONStream* js,
     PrintJSONMeta(&events);
     PrintJSONEvents(&events, filter);
   }
+}
+
+
+void TimelineEventRingRecorder::AppendDartEvent(Isolate* isolate,
+                                                const char* event) {
+  MutexLocker ml(&lock_);
+  // TODO(johnmccutchan): If locking becomes an issue, use the Isolate to store
+  // the events.
+  if (dart_events_cursor_ == dart_events_capacity_) {
+    dart_events_cursor_ = 0;
+  }
+  ASSERT(dart_events_[dart_events_cursor_] != NULL);
+  dart_events_[dart_events_cursor_]->Clear();
+  dart_events_[dart_events_cursor_]->Init(isolate, event);
+  dart_events_cursor_++;
+}
+
+
+intptr_t TimelineEventRingRecorder::NumDartEventsLocked() {
+  return dart_events_capacity_;
+}
+
+
+DartTimelineEvent* TimelineEventRingRecorder::DartEventAtLocked(intptr_t i) {
+  ASSERT(i >= 0);
+  ASSERT(i < dart_events_capacity_);
+  return dart_events_[i];
 }
 
 
@@ -761,6 +882,25 @@ void TimelineEventStreamingRecorder::PrintTraceEvent(
 }
 
 
+void TimelineEventStreamingRecorder::AppendDartEvent(Isolate* isolate,
+                                                     const char* event) {
+  if (event != NULL) {
+    StreamDartEvent(event);
+  }
+}
+
+
+intptr_t TimelineEventStreamingRecorder::NumDartEventsLocked() {
+  return 0;
+}
+
+
+DartTimelineEvent* TimelineEventStreamingRecorder::DartEventAtLocked(
+    intptr_t i) {
+  return NULL;
+}
+
+
 TimelineEvent* TimelineEventStreamingRecorder::StartEvent() {
   TimelineEvent* event = new TimelineEvent();
   return event;
@@ -775,7 +915,10 @@ void TimelineEventStreamingRecorder::CompleteEvent(TimelineEvent* event) {
 
 TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
     : head_(NULL),
-      block_index_(0) {
+      block_index_(0),
+      dart_events_(NULL),
+      dart_events_capacity_(0),
+      dart_events_cursor_(0) {
 }
 
 
@@ -797,6 +940,31 @@ void TimelineEventEndlessRecorder::PrintTraceEvent(
     TimelineEventFilter* filter) {
   JSONArray events(js);
   PrintJSONEvents(&events, filter);
+}
+
+
+void TimelineEventEndlessRecorder::AppendDartEvent(Isolate* isolate,
+                                                   const char* event) {
+  MutexLocker ml(&lock_);
+  // TODO(johnmccutchan): If locking becomes an issue, use the Isolate to store
+  // the events.
+  if (dart_events_cursor_ == dart_events_capacity_) {
+    // Grow.
+    intptr_t new_capacity =
+        (dart_events_capacity_ == 0) ? 16 : dart_events_capacity_ * 2;
+    dart_events_ = reinterpret_cast<DartTimelineEvent**>(
+        realloc(dart_events_, new_capacity * sizeof(DartTimelineEvent*)));
+    for (intptr_t i = dart_events_capacity_; i < new_capacity; i++) {
+      // Fill with NULLs.
+      dart_events_[i] = NULL;
+    }
+    dart_events_capacity_ = new_capacity;
+  }
+  ASSERT(dart_events_cursor_ < dart_events_capacity_);
+  DartTimelineEvent* dart_event = new DartTimelineEvent();
+  dart_event->Init(isolate, event);
+  ASSERT(dart_events_[dart_events_cursor_] == NULL);
+  dart_events_[dart_events_cursor_++] = dart_event;
 }
 
 
@@ -830,6 +998,19 @@ TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlockLocked(
     }
   }
   return head_;
+}
+
+
+intptr_t TimelineEventEndlessRecorder::NumDartEventsLocked() {
+  return dart_events_cursor_;
+}
+
+
+DartTimelineEvent* TimelineEventEndlessRecorder::DartEventAtLocked(
+    intptr_t i) {
+  ASSERT(i >= 0);
+  ASSERT(i < dart_events_cursor_);
+  return dart_events_[i];
 }
 
 
@@ -998,6 +1179,82 @@ TimelineEventBlock* TimelineEventBlockIterator::Next() {
   TimelineEventBlock* r = current_;
   current_ = current_->next();
   return r;
+}
+
+
+DartTimelineEventIterator::DartTimelineEventIterator(
+    TimelineEventRecorder* recorder)
+    : cursor_(0),
+      num_events_(0),
+      recorder_(NULL) {
+  Reset(recorder);
+}
+
+
+DartTimelineEventIterator::~DartTimelineEventIterator() {
+  Reset(NULL);
+}
+
+
+void DartTimelineEventIterator::Reset(TimelineEventRecorder* recorder) {
+  // Clear state.
+  cursor_ = 0;
+  num_events_ = 0;
+  if (recorder_ != NULL) {
+    // Unlock old recorder.
+    recorder_->lock_.Unlock();
+  }
+  recorder_ = recorder;
+  if (recorder_ == NULL) {
+    return;
+  }
+  // Lock new recorder.
+  recorder_->lock_.Lock();
+  cursor_ = 0;
+  num_events_ = recorder_->NumDartEventsLocked();
+}
+
+
+bool DartTimelineEventIterator::HasNext() const {
+  return cursor_ < num_events_;
+}
+
+
+DartTimelineEvent* DartTimelineEventIterator::Next() {
+  ASSERT(cursor_ < num_events_);
+  DartTimelineEvent* r = recorder_->DartEventAtLocked(cursor_);
+  cursor_++;
+  return r;
+}
+
+const char* DartTimelineEventIterator::PrintTraceEvents(
+    TimelineEventRecorder* recorder,
+    Zone* zone,
+    Isolate* isolate) {
+  if (recorder == NULL) {
+    return NULL;
+  }
+
+  if (zone == NULL) {
+    return NULL;
+  }
+
+  char* result = NULL;
+  DartTimelineEventIterator iterator(recorder);
+  while (iterator.HasNext()) {
+    DartTimelineEvent* event = iterator.Next();
+    if (!event->IsValid()) {
+      // Skip invalid
+      continue;
+    }
+    if ((isolate != NULL) && (isolate != event->isolate())) {
+      // If an isolate was specified, skip events from other isolates.
+      continue;
+    }
+    ASSERT(event->event_as_json() != NULL);
+    result = zone->ConcatStrings(result, event->event_as_json());
+  }
+  return result;
 }
 
 }  // namespace dart
