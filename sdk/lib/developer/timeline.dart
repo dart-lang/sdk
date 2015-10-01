@@ -41,7 +41,7 @@ class Timeline {
   static dynamic timeSync(String name,
                           TimelineSyncFunction function,
                           {Map arguments}) {
-    beginSync(name, arguments: arguments);
+    startSync(name, arguments: arguments);
     try {
       return function();
     } finally {
