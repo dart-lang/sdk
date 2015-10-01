@@ -36,7 +36,7 @@ void checkAnnotation(String name, String declaration,
     Expect.equals(1, element.metadata.length,
         'Unexpected metadata count on $element.');
     PartialMetadataAnnotation annotation = element.metadata.first;
-    annotation.ensureResolved(compiler);
+    annotation.ensureResolved(compiler.resolution);
     PrimitiveConstantValue value =
         compiler.constants.getConstantValue(annotation.constant);
     Expect.stringEquals('xyz', value.primitiveValue.slowToString());
@@ -56,8 +56,8 @@ void checkAnnotation(String name, String declaration,
     Expect.equals(2, element.metadata.length);
     PartialMetadataAnnotation annotation1 = element.metadata.elementAt(0);
     PartialMetadataAnnotation annotation2 = element.metadata.elementAt(1);
-    annotation1.ensureResolved(compiler);
-    annotation2.ensureResolved(compiler);
+    annotation1.ensureResolved(compiler.resolution);
+    annotation2.ensureResolved(compiler.resolution);
     Expect.isFalse(identical(annotation1, annotation2),
                    'expected unique instances');
     Expect.notEquals(annotation1, annotation2, 'expected unequal instances');
@@ -87,12 +87,12 @@ void checkAnnotation(String name, String declaration,
   compileAndCheck(source3, 'Foo', (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(0, element.metadata.length);
-    element.ensureResolved(compiler);
+    element.ensureResolved(compiler.resolution);
     Expect.equals(0, element.metadata.length);
     element = element.lookupLocalMember(name);
     Expect.equals(1, element.metadata.length);
     PartialMetadataAnnotation annotation = element.metadata.first;
-    annotation.ensureResolved(compiler);
+    annotation.ensureResolved(compiler.resolution);
     PrimitiveConstantValue value =
         compiler.constants.getConstantValue(annotation.constant);
     Expect.stringEquals('xyz', value.primitiveValue.slowToString());
@@ -112,14 +112,14 @@ void checkAnnotation(String name, String declaration,
   compileAndCheck(source4, 'Foo', (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(0, element.metadata.length);
-    element.ensureResolved(compiler);
+    element.ensureResolved(compiler.resolution);
     Expect.equals(0, element.metadata.length);
     element = element.lookupLocalMember(name);
     Expect.equals(2, element.metadata.length);
     PartialMetadataAnnotation annotation1 = element.metadata.elementAt(0);
     PartialMetadataAnnotation annotation2 = element.metadata.elementAt(1);
-    annotation1.ensureResolved(compiler);
-    annotation2.ensureResolved(compiler);
+    annotation1.ensureResolved(compiler.resolution);
+    annotation2.ensureResolved(compiler.resolution);
     Expect.isFalse(identical(annotation1, annotation2),
                    'expected unique instances');
     Expect.notEquals(annotation1, annotation2, 'expected unequal instances');
@@ -174,7 +174,7 @@ void testLibraryTags() {
       Expect.equals(1, metadata.length);
 
       PartialMetadataAnnotation annotation = metadata.first;
-      annotation.ensureResolved(compiler);
+      annotation.ensureResolved(compiler.resolution);
       PrimitiveConstantValue value =
           compiler.constants.getConstantValue(annotation.constant);
       Expect.stringEquals('xyz', value.primitiveValue.slowToString());

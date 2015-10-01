@@ -4,6 +4,8 @@
 
 library dart2js.js_backend.patch_resolver;
 
+import '../common/resolution.dart' show
+    Resolution;
 import '../common/tasks.dart' show
     CompilerTask;
 import '../compiler.dart' show
@@ -22,14 +24,15 @@ import '../tree/tree.dart';
 class PatchResolverTask extends CompilerTask {
   PatchResolverTask(Compiler compiler) : super(compiler);
 
+  Resolution get resolution => compiler.resolution;
+
   String get name => 'JavaScript patch resolver';
 
   FunctionElement resolveExternalFunction(FunctionElementX element) {
     if (element.isPatched) {
       FunctionElementX patch = element.patch;
       compiler.withCurrentElement(patch, () {
-        patch.parseNode(compiler);
-        patch.computeType(compiler);
+        patch.computeType(resolution);
       });
       checkMatchingPatchSignatures(element, patch);
       element = patch;
@@ -56,12 +59,12 @@ class PatchResolverTask extends CompilerTask {
         assert(invariant(origin, originParameter.patch == patchParameter,
                message: "Inconsistent repatch of $originParameter."));
       }
-      DartType originParameterType = originParameter.computeType(compiler);
-      DartType patchParameterType = patchParameter.computeType(compiler);
+      DartType originParameterType = originParameter.computeType(resolution);
+      DartType patchParameterType = patchParameter.computeType(resolution);
       if (originParameterType != patchParameterType) {
         compiler.reportError(
             compiler.createMessage(
-                originParameter.parseNode(compiler),
+                originParameter,
                 MessageKind.PATCH_PARAMETER_TYPE_MISMATCH,
                 {'methodName': origin.name,
                  'parameterName': originParameter.name,
@@ -80,17 +83,15 @@ class PatchResolverTask extends CompilerTask {
 
         // The node contains the type, so there is a potential overlap.
         // Therefore we only check the text if the types are identical.
-        String originParameterText =
-            originParameter.parseNode(compiler).toString();
-        String patchParameterText =
-            patchParameter.parseNode(compiler).toString();
+        String originParameterText = originParameter.node.toString();
+        String patchParameterText = patchParameter.node.toString();
         if (originParameterText != patchParameterText
             // We special case the list constructor because of the
             // optional parameter.
             && origin != compiler.unnamedListConstructor) {
           compiler.reportError(
               compiler.createMessage(
-                  originParameter.parseNode(compiler),
+                  originParameter,
                   MessageKind.PATCH_PARAMETER_MISMATCH,
                   {'methodName': origin.name,
                    'originParameter': originParameterText,

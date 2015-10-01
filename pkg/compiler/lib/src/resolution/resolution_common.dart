@@ -4,6 +4,8 @@
 
 library dart2js.resolution.common;
 
+import '../common/resolution.dart' show
+    Resolution;
 import '../common/tasks.dart' show
     DeferredAction;
 import '../compiler.dart' show
@@ -28,6 +30,8 @@ class CommonResolverVisitor<R> extends Visitor<R> {
   final Compiler compiler;
 
   CommonResolverVisitor(Compiler this.compiler);
+
+  Resolution get resolution => compiler.resolution;
 
   R visitNode(Node node) {
     return compiler.internalError(node,

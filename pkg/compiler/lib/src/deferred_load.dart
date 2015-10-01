@@ -6,6 +6,8 @@ library deferred_load;
 
 import 'common/backend_api.dart' show
     Backend;
+import 'common/resolution.dart' show
+    Resolution;
 import 'common/tasks.dart' show
     CompilerTask;
 import 'compiler.dart' show
@@ -283,7 +285,7 @@ class DeferredLoadTask extends CompilerTask {
         collectTypeDependencies(type.returnType);
       } else if (type is TypedefType) {
         elements.add(type.element);
-        collectTypeDependencies(type.unalias(compiler));
+        collectTypeDependencies(type.unalias(compiler.resolution));
       } else if (type is InterfaceType) {
         elements.add(type.element);
       }
@@ -724,7 +726,7 @@ class DeferredLoadTask extends CompilerTask {
           List<MetadataAnnotation> metadataList = import.metadata;
           if (metadataList != null) {
             for (MetadataAnnotation metadata in metadataList) {
-              metadata.ensureResolved(compiler);
+              metadata.ensureResolved(compiler.resolution);
               ConstantValue value =
                   compiler.constants.getConstantValue(metadata.constant);
               Element element = value.getType(compiler.coreTypes).element;
@@ -922,7 +924,7 @@ class _DeclaredDeferredImport implements _DeferredImport {
       List<MetadataAnnotation> metadatas = declaration.metadata;
       assert(metadatas != null);
       for (MetadataAnnotation metadata in metadatas) {
-        metadata.ensureResolved(compiler);
+        metadata.ensureResolved(compiler.resolution);
         ConstantValue value =
             compiler.constants.getConstantValue(metadata.constant);
         Element element = value.getType(compiler.coreTypes).element;

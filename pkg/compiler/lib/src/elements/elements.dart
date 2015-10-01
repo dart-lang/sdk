@@ -4,6 +4,8 @@
 
 library elements;
 
+import '../common/resolution.dart' show
+    Resolution;
 import '../compiler.dart' show
     Compiler;
 import '../constants/constructors.dart';
@@ -967,7 +969,7 @@ abstract class TypedefElement extends Element
   /// For instance `(int)->void` for `typedef void F(int)`.
   DartType get alias;
 
-  void checkCyclicReference(Compiler compiler);
+  void checkCyclicReference(Resolution resolution);
 }
 
 /// An executable element is an element that can hold code.
@@ -1315,7 +1317,7 @@ abstract class TypeDeclarationElement extends Element implements AstElement {
   /// error and calling [computeType] covers that error.
   /// This method will go away!
   @deprecated
-  GenericType computeType(Compiler compiler);
+  GenericType computeType(Resolution resolution);
 
   /**
    * The `this type` for this type declaration.
@@ -1355,7 +1357,7 @@ abstract class TypeDeclarationElement extends Element implements AstElement {
 
   bool get isResolved;
 
-  void ensureResolved(Compiler compiler);
+  void ensureResolved(Resolution resolution);
 }
 
 abstract class ClassElement extends TypeDeclarationElement
@@ -1570,7 +1572,7 @@ abstract class MetadataAnnotation implements Spannable {
   bool get hasNode;
   Node get node;
 
-  MetadataAnnotation ensureResolved(Compiler compiler);
+  MetadataAnnotation ensureResolved(Resolution resolution);
 }
 
 /// An [Element] that has a type.
@@ -1582,7 +1584,7 @@ abstract class TypedElement extends Element {
   /// error and calling [computeType] covers that error.
   /// This method will go away!
   @deprecated
-  DartType computeType(Compiler compiler);
+  DartType computeType(Resolution resolution);
 
   DartType get type;
 }

@@ -1,3 +1,4 @@
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -6,18 +7,29 @@ library dart2js.common.resolution;
 
 import '../compiler.dart' show
     Compiler;
+import '../core_types.dart' show
+    CoreTypes;
 import '../dart_types.dart' show
     DartType;
+import '../diagnostics/diagnostic_listener.dart' show
+    DiagnosticListener;
 import '../elements/elements.dart' show
     AstElement,
+    ClassElement,
+    Element,
     ErroneousElement,
+    FunctionElement,
+    FunctionSignature,
+    MetadataAnnotation,
+    TypedefElement,
     TypeVariableElement;
 import '../enqueue.dart' show
     ResolutionEnqueuer,
     WorldImpact;
 import '../tree/tree.dart' show
     AsyncForIn,
-    Send;
+    Send,
+    TypeAnnotation;
 import 'registry.dart' show
     Registry;
 import 'work.dart' show
@@ -119,4 +131,25 @@ class ResolutionCallbacks {
 
   /// Called when resolving a prefix or postfix expression.
   void onIncDecOperation(Registry registry) {}
+}
+
+// TODO(johnniwinther): Rename to `Resolver` or `ResolverContext`.
+abstract class Resolution {
+  Parsing get parsing;
+  DiagnosticListener get listener;
+  CoreTypes get coreTypes;
+
+  void resolveTypedef(TypedefElement typdef);
+  void resolveClass(ClassElement cls);
+  void registerClass(ClassElement cls);
+  void resolveMetadataAnnotation(MetadataAnnotation metadataAnnotation);
+  FunctionSignature resolveSignature(FunctionElement function);
+  DartType resolveTypeAnnotation(Element element, TypeAnnotation node);
+}
+
+// TODO(johnniwinther): Rename to `Parser` or `ParsingContext`.
+abstract class Parsing {
+  DiagnosticListener get listener;
+  void parsePatchClass(ClassElement cls);
+  measure(f());
 }

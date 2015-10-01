@@ -1105,6 +1105,9 @@ class SsaBuilder extends ast.Visitor
             work.element.implementation);
   }
 
+  // TODO(johnniwinther): Avoid the need for this.
+  Resolution get resolution => compiler.resolution;
+
   @override
   SemanticSendVisitor get sendVisitor => this;
 
@@ -2479,7 +2482,7 @@ class SsaBuilder extends ast.Visitor
                                    DartType type,
                                    int kind) {
     if (type == null) return original;
-    type = type.unalias(compiler);
+    type = type.unalias(resolution);
     assert(assertTypeInContext(type, original));
     if (type.isInterfaceType && !type.treatAsRaw) {
       TypeMask subtype = new TypeMask.subtype(type.element, compiler.world);
@@ -2515,7 +2518,7 @@ class SsaBuilder extends ast.Visitor
     assert(compiler.trustTypeAnnotations);
     assert(type != null);
     type = localsHandler.substInContext(type);
-    type = type.unalias(compiler);
+    type = type.unalias(resolution);
     if (type.isDynamic) return original;
     if (!type.isInterfaceType) return original;
     // The type element is either a class or the void element.
@@ -3810,7 +3813,7 @@ class SsaBuilder extends ast.Visitor
   HInstruction buildIsNode(ast.Node node,
                            DartType type,
                            HInstruction expression) {
-    type = localsHandler.substInContext(type).unalias(compiler);
+    type = localsHandler.substInContext(type).unalias(resolution);
     if (type.isFunctionType) {
       List arguments = [buildFunctionType(type), expression];
       pushInvokeDynamic(
@@ -8984,7 +8987,7 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
   }
 
   void visitTypedefType(TypedefType type, SsaBuilder builder) {
-    DartType unaliased = type.unalias(builder.compiler);
+    DartType unaliased = type.unalias(builder.compiler.resolution);
     if (unaliased is TypedefType) throw 'unable to unalias $type';
     unaliased.accept(this, builder);
   }

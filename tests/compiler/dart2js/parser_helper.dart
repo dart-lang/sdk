@@ -118,7 +118,7 @@ Node parseFunction(String text, Compiler compiler) {
   ElementX element = parseUnit(text, compiler, compiler.mainApp).head;
   Expect.isNotNull(element);
   Expect.equals(ElementKind.FUNCTION, element.kind);
-  return element.parseNode(compiler);
+  return element.parseNode(compiler.parsing);
 }
 
 Node parseMember(String text, {DiagnosticListener diagnosticHandler}) {

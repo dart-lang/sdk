@@ -466,7 +466,7 @@ class NativeBehavior {
     dynamic resolveType(String typeString) {
       return _parseType(
           typeString,
-          compiler,
+          compiler.resolution,
           (name) => resolver.resolveTypeFromString(specArgument, name),
           specArgument);
     }
@@ -501,8 +501,8 @@ class NativeBehavior {
         resolveType: resolveType,
         typesReturned: behavior.typesReturned,
         typesInstantiated: behavior.typesInstantiated,
-        objectType: compiler.objectClass.computeType(compiler),
-        nullType: compiler.nullClass.computeType(compiler));
+        objectType: compiler.coreTypes.objectType,
+        nullType: compiler.coreTypes.nullType);
 
     if (!sideEffectsAreEncodedInSpecString) {
       new SideEffectsVisitor(behavior.sideEffects)
@@ -564,7 +564,7 @@ class NativeBehavior {
     dynamic resolveType(String typeString) {
       return _parseType(
           typeString,
-          compiler,
+          compiler.resolution,
           (name) => resolver.resolveTypeFromString(specLiteral, name),
           jsBuiltinOrEmbeddedGlobalCall);
     }
@@ -580,8 +580,8 @@ class NativeBehavior {
                       setSideEffects: setSideEffects,
                       typesReturned: behavior.typesReturned,
                       typesInstantiated: behavior.typesInstantiated,
-                      objectType: compiler.objectClass.computeType(compiler),
-                      nullType: compiler.nullClass.computeType(compiler));
+                      objectType: compiler.coreTypes.objectType,
+                      nullType: compiler.coreTypes.nullType);
   }
 
   static NativeBehavior ofJsBuiltinCall(Send jsBuiltinCall,
@@ -614,22 +614,22 @@ class NativeBehavior {
     return behavior;
   }
 
-  static NativeBehavior ofMethod(FunctionElement method, Compiler compiler) {
-    FunctionType type = method.computeType(compiler);
+  static NativeBehavior ofMethod(FunctionElement method,  Compiler compiler) {
+    FunctionType type = method.computeType(compiler.resolution);
     var behavior = new NativeBehavior();
     behavior.typesReturned.add(type.returnType);
     if (!type.returnType.isVoid) {
       // Declared types are nullable.
-      behavior.typesReturned.add(compiler.nullClass.computeType(compiler));
+      behavior.typesReturned.add(compiler.coreTypes.nullType);
     }
-    behavior._capture(type, compiler);
+    behavior._capture(type, compiler.resolution);
 
     // TODO(sra): Optional arguments are currently missing from the
     // DartType. This should be fixed so the following work-around can be
     // removed.
     method.functionSignature.forEachOptionalParameter(
         (ParameterElement parameter) {
-          behavior._escape(parameter.type, compiler);
+          behavior._escape(parameter.type, compiler.resolution);
         });
 
     behavior._overrideWithAnnotations(method, compiler);
@@ -637,20 +637,20 @@ class NativeBehavior {
   }
 
   static NativeBehavior ofFieldLoad(MemberElement field, Compiler compiler) {
-    DartType type = field.computeType(compiler);
+    DartType type = field.computeType(compiler.resolution);
     var behavior = new NativeBehavior();
     behavior.typesReturned.add(type);
     // Declared types are nullable.
-    behavior.typesReturned.add(compiler.nullClass.computeType(compiler));
-    behavior._capture(type, compiler);
+    behavior.typesReturned.add(compiler.coreTypes.nullType);
+    behavior._capture(type, compiler.resolution);
     behavior._overrideWithAnnotations(field, compiler);
     return behavior;
   }
 
   static NativeBehavior ofFieldStore(MemberElement field, Compiler compiler) {
-    DartType type = field.computeType(compiler);
+    DartType type = field.computeType(compiler.resolution);
     var behavior = new NativeBehavior();
-    behavior._escape(type, compiler);
+    behavior._escape(type, compiler.resolution);
     // We don't override the default behaviour - the annotations apply to
     // loading the field.
     return behavior;
@@ -664,7 +664,7 @@ class NativeBehavior {
       if (e == null) return null;
       if (e is! ClassElement) return null;
       ClassElement cls = e;
-      cls.ensureResolved(compiler);
+      cls.ensureResolved(compiler.resolution);
       return cls.thisType;
     }
 
@@ -691,7 +691,7 @@ class NativeBehavior {
                   lookup(str)) {
     var types = null;
     for (MetadataAnnotation annotation in element.implementation.metadata) {
-      annotation.ensureResolved(compiler);
+      annotation.ensureResolved(compiler.resolution);
       ConstantValue value =
           compiler.constants.getConstantValue(annotation.constant);
       if (!value.isConstructedObject) continue;
@@ -701,14 +701,14 @@ class NativeBehavior {
       Iterable<ConstantValue> fields = constructedObject.fields.values;
       // TODO(sra): Better validation of the constant.
       if (fields.length != 1 || !fields.single.isString) {
-        PartialMetadataAnnotation partial = annotation;
         compiler.internalError(annotation,
-            'Annotations needs one string: ${partial.parseNode(compiler)}');
+            'Annotations needs one string: ${annotation.node}');
       }
       StringConstantValue specStringConstant = fields.single;
       String specString = specStringConstant.toDartString().slowToString();
       for (final typeString in specString.split('|')) {
-        var type = _parseType(typeString, compiler, lookup, annotation);
+        var type =
+            _parseType(typeString, compiler.resolution, lookup, annotation);
         if (types == null) types = [];
         types.add(type);
       }
@@ -718,15 +718,15 @@ class NativeBehavior {
 
   /// Models the behavior of having intances of [type] escape from Dart code
   /// into native code.
-  void _escape(DartType type, Compiler compiler) {
-    type = type.unalias(compiler);
+  void _escape(DartType type, Resolution resolution) {
+    type = type.unalias(resolution);
     if (type is FunctionType) {
       FunctionType functionType = type;
       // A function might be called from native code, passing us novel
       // parameters.
-      _escape(functionType.returnType, compiler);
+      _escape(functionType.returnType, resolution);
       for (DartType parameter in functionType.parameterTypes) {
-        _capture(parameter, compiler);
+        _capture(parameter, resolution);
       }
     }
   }
@@ -734,20 +734,22 @@ class NativeBehavior {
   /// Models the behavior of Dart code receiving instances and methods of [type]
   /// from native code.  We usually start the analysis by capturing a native
   /// method that has been used.
-  void _capture(DartType type, Compiler compiler) {
-    type = type.unalias(compiler);
+  void _capture(DartType type, Resolution resolution) {
+    type = type.unalias(resolution);
     if (type is FunctionType) {
       FunctionType functionType = type;
-      _capture(functionType.returnType, compiler);
+      _capture(functionType.returnType, resolution);
       for (DartType parameter in functionType.parameterTypes) {
-        _escape(parameter, compiler);
+        _escape(parameter, resolution);
       }
     } else {
       typesInstantiated.add(type);
     }
   }
 
-  static dynamic _parseType(String typeString, Compiler compiler,
+  static dynamic _parseType(
+      String typeString,
+      Resolution resolution,
       lookup(name), locationNodeOrElement) {
     if (typeString == '=Object') return SpecialType.JsObject;
     if (typeString == 'dynamic') {
@@ -758,8 +760,8 @@ class NativeBehavior {
 
     int index = typeString.indexOf('<');
     if (index < 1) {
-      compiler.reportErrorMessage(
-          _errorNode(locationNodeOrElement, compiler),
+      resolution.listener.reportErrorMessage(
+          _errorNode(locationNodeOrElement, resolution.parsing),
           MessageKind.GENERIC,
           {'text': "Type '$typeString' not found."});
       return const DynamicType();
@@ -769,15 +771,15 @@ class NativeBehavior {
       // TODO(sra): Parse type parameters.
       return type;
     }
-    compiler.reportErrorMessage(
-        _errorNode(locationNodeOrElement, compiler),
+    resolution.listener.reportErrorMessage(
+        _errorNode(locationNodeOrElement, resolution.parsing),
         MessageKind.GENERIC,
         {'text': "Type '$typeString' not found."});
     return const DynamicType();
   }
 
-  static _errorNode(locationNodeOrElement, compiler) {
+  static _errorNode(locationNodeOrElement, Parsing parsing) {
     if (locationNodeOrElement is Node) return locationNodeOrElement;
-    return locationNodeOrElement.parseNode(compiler);
+    return locationNodeOrElement.parseNode(parsing);
   }
 }

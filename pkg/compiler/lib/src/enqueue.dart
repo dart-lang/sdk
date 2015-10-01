@@ -9,6 +9,8 @@ import 'dart:collection' show
 
 import 'common/names.dart' show
     Identifiers;
+import 'common/resolution.dart' show
+    Resolution;
 import 'common/work.dart' show
     ItemCompilationContext,
     WorkItem;
@@ -141,6 +143,9 @@ abstract class Enqueuer {
            this.itemCompilationContextCreator,
            this.strategy);
 
+  // TODO(johnniwinther): Move this to [ResolutionEnqueuer].
+  Resolution get resolution => compiler.resolution;
+
   Queue<WorkItem> get queue;
   bool get queueIsEmpty => queue.isEmpty;
 
@@ -192,7 +197,7 @@ abstract class Enqueuer {
                                 {bool mirrorUsage: false}) {
     task.measure(() {
       ClassElement cls = type.element;
-      cls.ensureResolved(compiler);
+      cls.ensureResolved(resolution);
       universe.registerTypeInstantiation(
           type,
           byMirrors: mirrorUsage,
@@ -261,7 +266,7 @@ abstract class Enqueuer {
       }
     } else if (member.isFunction) {
       FunctionElement function = member;
-      function.computeType(compiler);
+      function.computeType(resolution);
       if (function.name == Identifiers.noSuchMethod_) {
         registerNoSuchMethod(function);
       }
@@ -286,7 +291,7 @@ abstract class Enqueuer {
       }
     } else if (member.isGetter) {
       FunctionElement getter = member;
-      getter.computeType(compiler);
+      getter.computeType(resolution);
       if (universe.hasInvokedGetter(getter, compiler.world)) {
         addToWorkList(getter);
         return;
@@ -299,7 +304,7 @@ abstract class Enqueuer {
       }
     } else if (member.isSetter) {
       FunctionElement setter = member;
-      setter.computeType(compiler);
+      setter.computeType(resolution);
       if (universe.hasInvokedSetter(setter, compiler.world)) {
         addToWorkList(setter);
         return;
@@ -321,14 +326,14 @@ abstract class Enqueuer {
       if (_processedClasses.contains(cls)) return;
       // The class must be resolved to compute the set of all
       // supertypes.
-      cls.ensureResolved(compiler);
+      cls.ensureResolved(resolution);
 
       void processClass(ClassElement superclass) {
         if (_processedClasses.contains(superclass)) return;
 
         _processedClasses.add(superclass);
         recentClasses.add(superclass);
-        superclass.ensureResolved(compiler);
+        superclass.ensureResolved(resolution);
         superclass.implementation.forEachMember(processInstantiatedClassMember);
         if (isResolutionQueue && !superclass.isSynthesized) {
           compiler.resolver.checkClass(superclass);
@@ -416,7 +421,7 @@ abstract class Enqueuer {
       logEnqueueReflectiveAction(element);
       if (element.isTypedef) {
         TypedefElement typedef = element;
-        typedef.ensureResolved(compiler);
+        typedef.ensureResolved(resolution);
         compiler.world.allTypedefs.add(element);
       } else if (Elements.isStaticOrTopLevel(element)) {
         registerStaticUse(element.declaration);
@@ -450,7 +455,7 @@ abstract class Enqueuer {
     if (includeClass) {
       logEnqueueReflectiveAction(cls, "register");
       ClassElement decl = cls.declaration;
-      decl.ensureResolved(compiler);
+      decl.ensureResolved(resolution);
       compiler.backend.registerInstantiatedType(
           decl.rawType,
           this,
@@ -484,7 +489,7 @@ abstract class Enqueuer {
     for (ClassElement cls in classes) {
       if (compiler.backend.referencedFromMirrorSystem(cls)) {
         logEnqueueReflectiveAction(cls);
-        cls.ensureResolved(compiler);
+        cls.ensureResolved(resolution);
         compiler.backend.registerInstantiatedType(
             cls.rawType,
             this,
@@ -700,7 +705,7 @@ abstract class Enqueuer {
 
   void registerClosurizedMember(TypedElement element) {
     assert(element.isInstanceMember);
-    if (element.computeType(compiler).containsTypeVariables) {
+    if (element.computeType(resolution).containsTypeVariables) {
       compiler.backend.registerClosureWithFreeTypeVariables(
           element, this, compiler.globalDependencies);
     }

@@ -148,7 +148,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
         assert(invariant(currentDefinitions,
             link.head.asIdentifier() != null || link.head.asSend() != null));
         if (fieldElement != null) {
-          element.typeCache = fieldElement.computeType(compiler);
+          element.typeCache = fieldElement.computeType(resolution);
         } else {
           element.typeCache = const DynamicType();
         }

@@ -6,6 +6,8 @@ library dart2js.resolution.compute_members;
 
 import '../common/names.dart' show
     Identifiers;
+import '../common/resolution.dart' show
+    Resolution;
 import '../compiler.dart' show
     Compiler;
 import '../dart_types.dart';
@@ -46,6 +48,8 @@ abstract class MembersCreator {
     assert(invariant(cls, cls.isDeclaration,
         message: "Members may only be computed on declarations."));
   }
+
+  Resolution get resolution => compiler.resolution;
 
   void reportMessage(var marker, MessageKind kind, report()) {
     Set<MessageKind> messages =
@@ -194,7 +198,7 @@ abstract class MembersCreator {
 
         Name name = new Name(element.name, library);
         if (element.isField) {
-          DartType type = element.computeType(compiler);
+          DartType type = element.computeType(resolution);
           addDeclaredMember(name, type, new FunctionType.synthesized(type));
           if (!element.isConst && !element.isFinal) {
             addDeclaredMember(name.setter, type,
@@ -203,11 +207,11 @@ abstract class MembersCreator {
                                  <DartType>[type]));
           }
         } else if (element.isGetter) {
-          FunctionType functionType = element.computeType(compiler);
+          FunctionType functionType = element.computeType(resolution);
           DartType type = functionType.returnType;
           addDeclaredMember(name, type, functionType);
         } else if (element.isSetter) {
-          FunctionType functionType = element.computeType(compiler);
+          FunctionType functionType = element.computeType(resolution);
           DartType type;
           if (!functionType.parameterTypes.isEmpty) {
             type = functionType.parameterTypes.first;
@@ -218,7 +222,7 @@ abstract class MembersCreator {
           addDeclaredMember(name, type, functionType);
         } else {
           assert(invariant(element, element.isFunction));
-          FunctionType type = element.computeType(compiler);
+          FunctionType type = element.computeType(resolution);
           addDeclaredMember(name, type, type);
         }
       }

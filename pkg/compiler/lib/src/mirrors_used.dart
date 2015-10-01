@@ -261,7 +261,7 @@ class MirrorUsageAnalyzer {
     }
     List<MirrorUsage> result = <MirrorUsage>[];
     for (MetadataAnnotation metadata in import.metadata) {
-      metadata.ensureResolved(compiler);
+      metadata.ensureResolved(compiler.resolution);
       ConstantValue value =
           compiler.constants.getConstantValue(metadata.constant);
       Element element = value.getType(compiler.coreTypes).element;
@@ -440,7 +440,7 @@ class MirrorUsageBuilder {
     if (type.isInterfaceType && library.isInternalLibrary) {
       InterfaceType interface = type;
       ClassElement cls = type.element;
-      cls.ensureResolved(compiler);
+      cls.ensureResolved(compiler.resolution);
       for (DartType supertype in cls.allSupertypes) {
         if (supertype.isInterfaceType
             && !supertype.element.library.isInternalLibrary) {
@@ -553,7 +553,7 @@ class MirrorUsageBuilder {
       ScopeContainerElement scope = element;
       if (element.isClass) {
         ClassElement cls = element;
-        cls.ensureResolved(compiler);
+        cls.ensureResolved(compiler.resolution);
       }
       return scope.localLookup(name);
     }

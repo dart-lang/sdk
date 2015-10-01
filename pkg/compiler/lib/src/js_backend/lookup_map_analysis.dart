@@ -174,7 +174,7 @@ class LookupMapAnalysis {
     }
 
     ClassElement cls = lookupMapLibrary.findLocal('LookupMap');
-    cls.computeType(backend.compiler);
+    cls.computeType(backend.resolution);
     entriesField = cls.lookupMember('_entries');
     keyField = cls.lookupMember('_key');
     valueField = cls.lookupMember('_value');

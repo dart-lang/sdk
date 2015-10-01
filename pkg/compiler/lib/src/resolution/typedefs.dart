@@ -4,9 +4,13 @@
 
 library dart2js.resolution.typedefs;
 
+import '../common/resolution.dart' show
+    Resolution;
 import '../compiler.dart' show
     Compiler;
 import '../dart_types.dart';
+import '../diagnostics/diagnostic_listener.dart' show
+    DiagnosticListener;
 import '../diagnostics/messages.dart' show
     MessageKind;
 import '../elements/elements.dart' show
@@ -39,7 +43,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
       : super(compiler, typedefElement, registry);
 
   visitTypedef(Typedef node) {
-    element.computeType(compiler);
+    element.computeType(resolution);
     scope = new TypeDeclarationScope(scope, element);
     resolveTypeVariableBounds(node.typeParameters);
 
@@ -54,7 +58,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
     element.alias = signature.type;
 
     void checkCyclicReference() {
-      element.checkCyclicReference(compiler);
+      element.checkCyclicReference(resolution);
     }
     addDeferredAction(element, checkCyclicReference);
   }
@@ -63,7 +67,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
 // TODO(johnniwinther): Replace with a traversal on the AST when the type
 // annotations in typedef alias are stored in a [TreeElements] mapping.
 class TypedefCyclicVisitor extends BaseDartTypeVisitor {
-  final Compiler compiler;
+  final DiagnosticListener listener;
   final TypedefElementX element;
   bool hasCyclicReference = false;
 
@@ -74,7 +78,7 @@ class TypedefCyclicVisitor extends BaseDartTypeVisitor {
   Link<TypeVariableElement> seenTypeVariables =
       const Link<TypeVariableElement>();
 
-  TypedefCyclicVisitor(Compiler this.compiler, TypedefElement this.element);
+  TypedefCyclicVisitor(this.listener, this.element);
 
   visitType(DartType type, _) {
     // Do nothing.
@@ -89,13 +93,13 @@ class TypedefCyclicVisitor extends BaseDartTypeVisitor {
         hasCyclicReference = true;
         if (seenTypedefsCount == 1) {
           // Direct cyclicity.
-          compiler.reportErrorMessage(
+          listener.reportErrorMessage(
               element,
               MessageKind.CYCLIC_TYPEDEF,
               {'typedefName': element.name});
         } else if (seenTypedefsCount == 2) {
           // Cyclicity through one other typedef.
-          compiler.reportErrorMessage(
+          listener.reportErrorMessage(
               element,
               MessageKind.CYCLIC_TYPEDEF_ONE,
               {'typedefName': element.name,
@@ -104,7 +108,7 @@ class TypedefCyclicVisitor extends BaseDartTypeVisitor {
           // Cyclicity through more than one other typedef.
           for (TypedefElement cycle in seenTypedefs) {
             if (!identical(typedefElement, cycle)) {
-              compiler.reportErrorMessage(
+              listener.reportErrorMessage(
                   element,
                   MessageKind.CYCLIC_TYPEDEF_ONE,
                   {'typedefName': element.name,

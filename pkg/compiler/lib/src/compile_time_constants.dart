@@ -4,6 +4,8 @@
 
 library dart2js.compile_time_constant_evaluator;
 
+import 'common/resolution.dart' show
+    Resolution;
 import 'common/tasks.dart' show
     CompilerTask;
 import 'compiler.dart' show
@@ -366,6 +368,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       : this.isEvaluatingConstant = isConst;
 
   ConstantSystem get constantSystem => handler.constantSystem;
+  Resolution get resolution => compiler.resolution;
 
   AstConstant evaluate(Node node) {
     // TODO(johnniwinther): should there be a visitErrorNode?
@@ -573,7 +576,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       AstConstant result;
       if (Elements.isStaticOrTopLevelFunction(element)) {
         FunctionElementX function = element;
-        function.computeType(compiler);
+        function.computeType(resolution);
         result = new AstConstant(context, send,
             new FunctionConstantExpression(function),
             new FunctionConstantValue(function));
@@ -766,7 +769,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       return new AstConstant.fromDefaultValue(
           element, constant, handler.getConstantValue(constant));
     }
-    target.computeType(compiler);
+    target.computeType(resolution);
 
     FunctionSignature signature = target.functionSignature;
     if (!callStructure.signatureApplies(signature)) {

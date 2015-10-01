@@ -19,6 +19,7 @@ import '../common/names.dart' show
 import '../common/registry.dart' show
     Registry;
 import '../common/resolution.dart' show
+    Resolution,
     ResolutionCallbacks;
 import '../common/tasks.dart' show
     CompilerTask;

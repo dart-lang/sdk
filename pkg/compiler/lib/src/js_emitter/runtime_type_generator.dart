@@ -228,7 +228,7 @@ class RuntimeTypeGenerator {
                                     generateSubstitution,
                                     generated);
         }
-        FunctionType callType = callFunction.computeType(compiler);
+        FunctionType callType = callFunction.computeType(compiler.resolution);
         generateFunctionTypeSignature(callFunction, callType);
       }
     }

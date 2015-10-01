@@ -405,7 +405,7 @@ class ResolutionRegistry implements Registry {
   // Use [registerInstantiatedType] of `rawType` instead.
   @deprecated
   void registerInstantiatedClass(ClassElement element) {
-    element.ensureResolved(compiler);
+    element.ensureResolved(compiler.resolution);
     registerInstantiatedType(element.rawType);
   }
 
@@ -447,7 +447,7 @@ class ResolutionRegistry implements Registry {
   }
 
   void registerClosure(LocalFunctionElement element) {
-    if (element.computeType(compiler).containsTypeVariables) {
+    if (element.computeType(compiler.resolution).containsTypeVariables) {
       backend.registerClosureWithFreeTypeVariables(element, world, this);
     }
     world.registerClosure(element);

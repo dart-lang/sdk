@@ -6,30 +6,21 @@ library universe;
 
 import 'dart:collection';
 
-import '../common/names.dart' show
-    Identifiers,
-    Names,
-    Selectors;
+import '../common/resolution.dart' show
+    Resolution;
 import '../compiler.dart' show
     Compiler;
 import '../diagnostics/invariant.dart' show
     invariant;
-import '../diagnostics/spannable.dart' show
-    SpannableAssertionFailure;
 import '../elements/elements.dart';
 import '../dart_types.dart';
-import '../tree/tree.dart';
-import '../types/types.dart';
 import '../util/util.dart';
 import '../world.dart' show
     ClassWorld,
     World;
 
-import 'call_structure.dart';
 import 'selector.dart' show
     Selector;
-import 'function_set.dart';
-import 'side_effects.dart';
 
 class UniverseSelector {
   final Selector selector;
@@ -393,7 +384,7 @@ class Universe {
   }
 
   DartType registerIsCheck(DartType type, Compiler compiler) {
-    type = type.unalias(compiler);
+    type = type.unalias(compiler.resolution);
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
     // against the type variable of a typedef.

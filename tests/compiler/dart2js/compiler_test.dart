@@ -50,7 +50,7 @@ Future testErrorHandling() {
     FunctionElement foo = compiler.mainApp.find('foo');
     compiler.setOnWarning(
         (c, n, m) => Expect.equals(foo, compiler.currentElement));
-    foo.computeType(compiler);
+    foo.computeType(compiler.resolution);
     Expect.equals(1, compiler.warnings.length);
   });
 }

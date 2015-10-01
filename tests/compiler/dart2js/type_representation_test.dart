@@ -133,7 +133,8 @@ void testTypeRepresentations() {
     expect(dynamic_, 'null');
 
     // List<E>
-    expect(List_.computeType(env.compiler), '[$List_rep, $List_E_rep]');
+    expect(List_.computeType(env.compiler.resolution),
+        '[$List_rep, $List_E_rep]');
     // List
     expect(List_.rawType, '$List_rep');
     // List<dynamic>
@@ -194,7 +195,7 @@ void testTypeRepresentations() {
           '$args: [$int_rep], $opt: [,]}], $typedefTag: $Typedef10_rep}]');
 
     // Map<K,V>
-    expect(Map_.computeType(env.compiler),
+    expect(Map_.computeType(env.compiler.resolution),
            '[$Map_rep, $Map_K_rep, $Map_V_rep]');
     // Map
     expect(Map_.rawType, '$Map_rep');
@@ -206,49 +207,49 @@ void testTypeRepresentations() {
 
 
     // void m1() {}
-    expect(env.getElement('m1').computeType(env.compiler),
+    expect(env.getElement('m1').computeType(env.compiler.resolution),
            '{$func: 1, $retvoid: true}');
 
     // int m2() => 0;
-    expect(env.getElement('m2').computeType(env.compiler),
+    expect(env.getElement('m2').computeType(env.compiler.resolution),
            '{$func: 1, $ret: $int_rep}');
 
     // List<int> m3() => null;
-    expect(env.getElement('m3').computeType(env.compiler),
+    expect(env.getElement('m3').computeType(env.compiler.resolution),
            '{$func: 1, $ret: [$List_rep, $int_rep]}');
 
     // m4() {}
-    expect(env.getElement('m4').computeType(env.compiler),
+    expect(env.getElement('m4').computeType(env.compiler.resolution),
            '{$func: 1}');
 
     // m5(int a, String b) {}
-    expect(env.getElement('m5').computeType(env.compiler),
+    expect(env.getElement('m5').computeType(env.compiler.resolution),
            '{$func: 1, $args: [$int_rep, $String_rep]}');
 
     // m6(int a, [String b]) {}
-    expect(env.getElement('m6').computeType(env.compiler),
+    expect(env.getElement('m6').computeType(env.compiler.resolution),
            '{$func: 1, $args: [$int_rep],'
            ' $opt: [$String_rep]}');
 
     // m7(int a, String b, [List<int> c, d]) {}
-    expect(env.getElement('m7').computeType(env.compiler),
+    expect(env.getElement('m7').computeType(env.compiler.resolution),
            '{$func: 1,'
            ' $args: [$int_rep, $String_rep],'
            ' $opt: [[$List_rep, $int_rep],,]}');
 
     // m8(int a, {String b}) {}
-    expect(env.getElement('m8').computeType(env.compiler),
+    expect(env.getElement('m8').computeType(env.compiler.resolution),
            '{$func: 1,'
            ' $args: [$int_rep], $named: {b: $String_rep}}');
 
     // m9(int a, String b, {List<int> c, d}) {}
-    expect(env.getElement('m9').computeType(env.compiler),
+    expect(env.getElement('m9').computeType(env.compiler.resolution),
            '{$func: 1,'
            ' $args: [$int_rep, $String_rep],'
            ' $named: {c: [$List_rep, $int_rep], d: null}}');
 
     // m10(void f(int a, [b])) {}
-    expect(env.getElement('m10').computeType(env.compiler),
+    expect(env.getElement('m10').computeType(env.compiler.resolution),
            '{$func: 1, $args:'
            ' [{$func: 1,'
            ' $retvoid: true, $args: [$int_rep], $opt: [,]}]}');

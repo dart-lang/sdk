@@ -142,7 +142,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
           'cyclic resolution of class $element');
     }
 
-    element.computeType(compiler);
+    element.computeType(resolution);
     scope = new TypeDeclarationScope(scope, element);
     // TODO(ahe): It is not safe to call resolveTypeVariableBounds yet.
     // As a side-effect, this may get us back here trying to
@@ -178,9 +178,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
           compiler.internalError(node,
               "Cannot resolve default superclass for $element.");
         } else {
-          superElement.ensureResolved(compiler);
+          superElement.ensureResolved(resolution);
         }
-        element.supertype = superElement.computeType(compiler);
+        element.supertype = superElement.computeType(resolution);
       }
     }
 
@@ -204,7 +204,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         registry.registerThrowNoSuchMethod();
       } else {
         ConstructorElement superConstructor = superMember;
-        superConstructor.computeType(compiler);
+        superConstructor.computeType(resolution);
         if (!CallStructure.NO_ARGS.signatureApplies(
                 superConstructor.functionSignature)) {
           MessageKind kind = MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT;
@@ -219,7 +219,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       }
       element.setDefaultConstructor(constructor, compiler);
     }
-    return element.computeType(compiler);
+    return element.computeType(resolution);
   }
 
   @override
@@ -232,8 +232,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
           'cyclic resolution of class $element');
     }
 
-    InterfaceType enumType = element.computeType(compiler);
-    element.supertype = compiler.objectClass.computeType(compiler);
+    InterfaceType enumType = element.computeType(resolution);
+    element.supertype = compiler.coreTypes.objectType;
     element.interfaces = const Link<DartType>();
     calculateAllSupertypes(element);
 
@@ -293,7 +293,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
           MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX);
     }
 
-    element.computeType(compiler);
+    element.computeType(resolution);
     scope = new TypeDeclarationScope(scope, element);
     resolveTypeVariableBounds(node.typeParameters);
 
@@ -306,7 +306,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       link = link.tail;
     }
     doApplyMixinTo(element, supertype, checkMixinType(link.head));
-    return element.computeType(compiler);
+    return element.computeType(resolution);
   }
 
   DartType applyMixin(DartType supertype, DartType mixinType, Node node) {
@@ -337,7 +337,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
           type.element.bound.subst(typeVariables, element.typeVariables);
     }
     // Setup this and raw type for the mixin application.
-    mixinApplication.computeThisAndRawType(compiler, typeVariables);
+    mixinApplication.computeThisAndRawType(resolution, typeVariables);
     // Substitute in synthetic type variables in super and mixin types.
     supertype = supertype.subst(typeVariables, element.typeVariables);
     mixinType = mixinType.subst(typeVariables, element.typeVariables);
@@ -354,7 +354,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
   bool isDefaultConstructor(FunctionElement constructor) {
     if (constructor.name != '') return false;
-    constructor.computeType(compiler);
+    constructor.computeType(resolution);
     return constructor.functionSignature.parameterCount == 0;
   }
 
@@ -363,14 +363,14 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     FunctionElement constructor =
         new SynthesizedConstructorElementX.notForDefault(
             target.name, target, enclosing);
-    constructor.computeType(compiler);
+    constructor.computeType(resolution);
     return constructor;
   }
 
   void doApplyMixinTo(MixinApplicationElementX mixinApplication,
                       DartType supertype,
                       DartType mixinType) {
-    Node node = mixinApplication.parseNode(compiler);
+    Node node = mixinApplication.parseNode(resolution.parsing);
 
     if (mixinApplication.supertype != null) {
       // [supertype] is not null if there was a cycle.
@@ -435,7 +435,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   InterfaceType resolveMixinFor(MixinApplicationElement mixinApplication,
                                 DartType mixinType) {
     ClassElement mixin = mixinType.element;
-    mixin.ensureResolved(compiler);
+    mixin.ensureResolved(resolution);
 
     // Check for cycles in the mixin chain.
     ClassElement previous = mixinApplication;  // For better error messages.
@@ -581,12 +581,12 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
            interfaces = interfaces.tail) {
         addAllSupertypes(allSupertypes, interfaces.head);
       }
-      allSupertypes.add(compiler, cls.computeType(compiler));
+      allSupertypes.add(compiler, cls.computeType(resolution));
       cls.allSupertypesAndSelf = allSupertypes.toTypeSet();
     } else {
       assert(identical(cls, compiler.objectClass));
       cls.allSupertypesAndSelf =
-          new OrderedTypeSet.singleton(cls.computeType(compiler));
+          new OrderedTypeSet.singleton(cls.computeType(resolution));
     }
   }
 
@@ -635,7 +635,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
   void loadSupertype(ClassElement element, Node from) {
     if (!element.isResolved) {
       compiler.resolver.loadSupertypes(element, from);
-      element.ensureResolved(compiler);
+      element.ensureResolved(resolution);
     }
   }
 

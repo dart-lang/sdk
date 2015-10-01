@@ -8,6 +8,9 @@ import 'dart:collection' show Queue;
 
 import '../common/names.dart' show
     Identifiers;
+import '../common/resolution.dart' show
+    Parsing,
+    Resolution;
 import '../common/tasks.dart' show
     CompilerTask,
     DeferredAction;
@@ -69,6 +72,10 @@ class ResolverTask extends CompilerTask {
 
   String get name => 'Resolver';
 
+  Resolution get resolution => compiler.resolution;
+
+  Parsing get parsing => compiler.parsing;
+
   WorldImpact resolve(Element element) {
     return measure(() {
       if (Elements.isErroneous(element)) {
@@ -81,7 +88,7 @@ class ResolverTask extends CompilerTask {
 
       WorldImpact processMetadata([WorldImpact result]) {
         for (MetadataAnnotation metadata in element.implementation.metadata) {
-          metadata.ensureResolved(compiler);
+          metadata.ensureResolved(resolution);
         }
         return result;
       }
@@ -99,7 +106,7 @@ class ResolverTask extends CompilerTask {
       }
       if (element.isClass) {
         ClassElement cls = element;
-        cls.ensureResolved(compiler);
+        cls.ensureResolved(resolution);
         return processMetadata(const WorldImpact());
       } else if (element.isTypedef) {
         TypedefElement typdef = element;
@@ -135,6 +142,7 @@ class ResolverTask extends CompilerTask {
   static void processAsyncMarker(Compiler compiler,
                                  BaseFunctionElementX element,
                                  ResolutionRegistry registry) {
+    Resolution resolution = compiler.resolution;
     FunctionExpression functionExpression = element.node;
     AsyncModifier asyncModifier = functionExpression.asyncModifier;
     if (asyncModifier != null) {
@@ -174,13 +182,13 @@ class ResolverTask extends CompilerTask {
       registry.registerAsyncMarker(element);
       switch (element.asyncMarker) {
       case AsyncMarker.ASYNC:
-        compiler.futureClass.ensureResolved(compiler);
+        compiler.futureClass.ensureResolved(resolution);
         break;
       case AsyncMarker.ASYNC_STAR:
-        compiler.streamClass.ensureResolved(compiler);
+        compiler.streamClass.ensureResolved(resolution);
         break;
       case AsyncMarker.SYNC_STAR:
-        compiler.iterableClass.ensureResolved(compiler);
+        compiler.iterableClass.ensureResolved(resolution);
         break;
       }
     }
@@ -293,7 +301,7 @@ class ResolverTask extends CompilerTask {
           // Ensure the signature of the synthesized element is
           // resolved. This is the only place where the resolver is
           // seeing this element.
-          element.computeSignature(compiler);
+          element.computeType(resolution);
           if (!target.isErroneous) {
             registry.registerStaticUse(target);
             registry.registerImplicitSuperCall(target);
@@ -305,8 +313,8 @@ class ResolverTask extends CompilerTask {
           return const WorldImpact();
         }
       } else {
-        element.parseNode(compiler);
-        element.computeType(compiler);
+        element.parseNode(resolution.parsing);
+        element.computeType(resolution);
         FunctionElementX implementation = element;
         if (element.isExternal) {
           implementation = compiler.backend.resolveExternalFunction(element);
@@ -330,7 +338,7 @@ class ResolverTask extends CompilerTask {
   }
 
   WorldImpact resolveField(FieldElementX element) {
-    VariableDefinitions tree = element.parseNode(compiler);
+    VariableDefinitions tree = element.parseNode(parsing);
     if(element.modifiers.isStatic && element.isTopLevel) {
       compiler.reportErrorMessage(
           element.modifiers.getStatic(),
@@ -383,7 +391,7 @@ class ResolverTask extends CompilerTask {
     }
 
     // Perform various checks as side effect of "computing" the type.
-    element.computeType(compiler);
+    element.computeType(resolution);
 
     return registry.worldImpact;
   }
@@ -455,7 +463,7 @@ class ResolverTask extends CompilerTask {
       TreeElements treeElements = factory.treeElements;
       assert(invariant(node, treeElements != null,
           message: 'No TreeElements cached for $factory.'));
-      FunctionExpression functionNode = factory.parseNode(compiler);
+      FunctionExpression functionNode = factory.parseNode(parsing);
       RedirectingFactoryBody redirectionNode = functionNode.body;
       DartType factoryType = treeElements.getType(redirectionNode);
       if (!factoryType.isDynamic) {
@@ -484,7 +492,7 @@ class ResolverTask extends CompilerTask {
         cls.hasIncompleteHierarchy = true;
         cls.allSupertypesAndSelf =
             compiler.objectClass.allSupertypesAndSelf.extendClass(
-                cls.computeType(compiler));
+                cls.computeType(resolution));
         cls.supertype = cls.allSupertypes.head;
         assert(invariant(from, cls.supertype != null,
             message: 'Missing supertype on cyclic class $cls.'));
@@ -494,7 +502,7 @@ class ResolverTask extends CompilerTask {
       cls.supertypeLoadState = STATE_STARTED;
       compiler.withCurrentElement(cls, () {
         // TODO(ahe): Cache the node in cls.
-        cls.parseNode(compiler).accept(
+        cls.parseNode(parsing).accept(
             new ClassSupertypeResolver(compiler, cls));
         if (cls.supertypeLoadState != STATE_DONE) {
           cls.supertypeLoadState = STATE_DONE;
@@ -528,7 +536,7 @@ class ResolverTask extends CompilerTask {
         if (previousResolvedTypeDeclaration == null) {
           do {
             while (!pendingClassesToBeResolved.isEmpty) {
-              pendingClassesToBeResolved.removeFirst().ensureResolved(compiler);
+              pendingClassesToBeResolved.removeFirst().ensureResolved(resolution);
             }
             while (!pendingClassesToBePostProcessed.isEmpty) {
               _postProcessClassElement(
@@ -553,7 +561,7 @@ class ResolverTask extends CompilerTask {
    * resolved.
    *
    * Warning: Do not call this method directly. Instead use
-   * [:element.ensureResolved(compiler):].
+   * [:element.ensureResolved(resolution):].
    */
   TreeElements resolveClass(BaseClassElementX element) {
     return _resolveTypeDeclaration(element, () {
@@ -567,7 +575,7 @@ class ResolverTask extends CompilerTask {
 
   void ensureClassWillBeResolvedInternal(ClassElement element) {
     if (currentlyResolvedTypeDeclaration == null) {
-      element.ensureResolved(compiler);
+      element.ensureResolved(resolution);
     } else {
       pendingClassesToBeResolved.add(element);
     }
@@ -579,7 +587,7 @@ class ResolverTask extends CompilerTask {
       compiler.withCurrentElement(element, () => measure(() {
         assert(element.resolutionState == STATE_NOT_STARTED);
         element.resolutionState = STATE_STARTED;
-        Node tree = element.parseNode(compiler);
+        Node tree = element.parseNode(parsing);
         loadSupertypes(element, tree);
 
         ClassResolverVisitor visitor =
@@ -591,14 +599,14 @@ class ResolverTask extends CompilerTask {
       }));
       if (element.isPatched) {
         // Ensure handling patch after origin.
-        element.patch.ensureResolved(compiler);
+        element.patch.ensureResolved(resolution);
       }
     } else { // Handle patch classes:
       element.resolutionState = STATE_STARTED;
       // Ensure handling origin before patch.
-      element.origin.ensureResolved(compiler);
+      element.origin.ensureResolved(resolution);
       // Ensure that the type is computed.
-      element.computeType(compiler);
+      element.computeType(resolution);
       // Copy class hierarchy from origin.
       element.supertype = element.origin.supertype;
       element.interfaces = element.origin.interfaces;
@@ -614,7 +622,7 @@ class ResolverTask extends CompilerTask {
 
   void _postProcessClassElement(BaseClassElementX element) {
     for (MetadataAnnotation metadata in element.implementation.metadata) {
-      metadata.ensureResolved(compiler);
+      metadata.ensureResolved(resolution);
       ConstantValue value =
           compiler.constants.getConstantValue(metadata.constant);
       if (!element.isProxy && compiler.isProxyConstant(value)) {
@@ -631,7 +639,7 @@ class ResolverTask extends CompilerTask {
       if (!member.isInstanceMember) {
         compiler.withCurrentElement(member, () {
           for (MetadataAnnotation metadata in member.implementation.metadata) {
-            metadata.ensureResolved(compiler);
+            metadata.ensureResolved(resolution);
           }
         });
       }
@@ -748,7 +756,7 @@ class ResolverTask extends CompilerTask {
     cls.forEachMember((holder, member) {
       compiler.withCurrentElement(member, () {
         // Perform various checks as side effect of "computing" the type.
-        member.computeType(compiler);
+        member.computeType(resolution);
 
         // Check modifiers.
         if (member.isFunction && member.modifiers.isFinal) {
@@ -968,14 +976,13 @@ class ResolverTask extends CompilerTask {
   FunctionSignature resolveSignature(FunctionElementX element) {
     MessageKind defaultValuesError = null;
     if (element.isFactoryConstructor) {
-      FunctionExpression body = element.parseNode(compiler);
+      FunctionExpression body = element.parseNode(parsing);
       if (body.isRedirectingFactory) {
         defaultValuesError = MessageKind.REDIRECTING_FACTORY_WITH_DEFAULT;
       }
     }
     return compiler.withCurrentElement(element, () {
-      FunctionExpression node =
-          compiler.parser.measure(() => element.parseNode(compiler));
+      FunctionExpression node = element.parseNode(parsing);
       return measure(() => SignatureResolver.analyze(
           compiler, node.parameters, node.returnType, element,
           new ResolutionRegistry(compiler, _ensureTreeElements(element)),
@@ -994,8 +1001,7 @@ class ResolverTask extends CompilerTask {
         return measure(() {
           assert(element.resolutionState == STATE_NOT_STARTED);
           element.resolutionState = STATE_STARTED;
-          Typedef node =
-            compiler.parser.measure(() => element.parseNode(compiler));
+          Typedef node = element.parseNode(parsing);
           TypedefResolverVisitor visitor =
             new TypedefResolverVisitor(compiler, element, registry);
           visitor.visit(node);
@@ -1011,13 +1017,13 @@ class ResolverTask extends CompilerTask {
       assert(annotation.resolutionState == STATE_NOT_STARTED);
       annotation.resolutionState = STATE_STARTED;
 
-      Node node = annotation.parseNode(compiler);
+      Node node = annotation.parseNode(parsing);
       Element annotatedElement = annotation.annotatedElement;
       AnalyzableElement context = annotatedElement.analyzableElement;
       ClassElement classElement = annotatedElement.enclosingClass;
       if (classElement != null) {
         // The annotation is resolved in the scope of [classElement].
-        classElement.ensureResolved(compiler);
+        classElement.ensureResolved(resolution);
       }
       assert(invariant(node, context != null,
           message: "No context found for metadata annotation "
@@ -1046,7 +1052,7 @@ class ResolverTask extends CompilerTask {
       ParameterMetadataAnnotation metadataAnnotation =
           new ParameterMetadataAnnotation(annotation);
       metadataAnnotation.annotatedElement = element;
-      metadata.add(metadataAnnotation.ensureResolved(compiler));
+      metadata.add(metadataAnnotation.ensureResolved(resolution));
     }
     return metadata;
   }

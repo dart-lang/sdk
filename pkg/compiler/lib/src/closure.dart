@@ -6,6 +6,9 @@ library closureToClassMapper;
 
 import 'common/names.dart' show
     Identifiers;
+import 'common/resolution.dart' show
+    Parsing,
+    Resolution;
 import 'common/tasks.dart' show
     CompilerTask;
 import 'compiler.dart' show
@@ -140,7 +143,7 @@ class ClosureFieldElement extends ElementX
   bool get isInstanceMember => true;
   bool get isAssignable => false;
 
-  DartType computeType(Compiler compiler) => type;
+  DartType computeType(Resolution resolution) => type;
 
   DartType get type {
     if (local is LocalElement) {
@@ -197,7 +200,7 @@ class ClosureClassElement extends ClassElementX {
     ClassElement superclass = methodElement.isInstanceMember
         ? backend.boundClosureClass
         : backend.closureClass;
-    superclass.ensureResolved(compiler);
+    superclass.ensureResolved(compiler.resolution);
     supertype = superclass.thisType;
     interfaces = const Link<DartType>();
     thisType = rawType = new InterfaceType(this);
@@ -219,7 +222,7 @@ class ClosureClassElement extends ClassElementX {
 
   Token get position => node.getBeginToken();
 
-  Node parseNode(DiagnosticListener listener) => node;
+  Node parseNode(Parsing parsing) => node;
 
   // A [ClosureClassElement] is nested inside a function or initializer in terms
   // of [enclosingElement], but still has to be treated as a top-level
@@ -252,7 +255,7 @@ class BoxFieldElement extends ElementX
       : this.box = box,
         super(name, ElementKind.FIELD, box.executableContext);
 
-  DartType computeType(Compiler compiler) => type;
+  DartType computeType(Resolution resolution) => type;
 
   DartType get type => variableElement.type;
 
@@ -332,7 +335,7 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
 
   FunctionExpression get node => expression.node;
 
-  FunctionExpression parseNode(DiagnosticListener listener) => node;
+  FunctionExpression parseNode(Parsing parsing) => node;
 
   ResolvedAst get resolvedAst {
     return new ResolvedAst(this, node, treeElements);

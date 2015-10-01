@@ -154,7 +154,6 @@ import 'script.dart';
 import 'tokens/token.dart' show
     StringToken,
     Token;
-import 'util/util.dart';
 
 class PatchParserTask extends CompilerTask {
   final String name = "Patching Parser";
@@ -399,7 +398,7 @@ abstract class EagerAnnotationHandler<T> {
         // TODO(johnniwinther): Perform this check in
         // [Compiler.onLibrariesLoaded].
         compiler.enqueuer.resolution.addDeferredAction(element, () {
-          annotation.ensureResolved(compiler);
+          annotation.ensureResolved(compiler.resolution);
           handler.validate(
               compiler, element, annotation,
               compiler.constants.getConstantValue(annotation.constant));

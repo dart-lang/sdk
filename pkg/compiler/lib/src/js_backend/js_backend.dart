@@ -25,6 +25,7 @@ import '../common/registry.dart' show
 import '../common/tasks.dart' show
     CompilerTask;
 import '../common/resolution.dart' show
+    Resolution,
     ResolutionCallbacks;
 import '../common/work.dart' show
     ItemCompilationContext;

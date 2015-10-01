@@ -218,7 +218,7 @@ void doTest(String test, bool enableInlining, Function f) {
     enableInlining,
     (compiler, element) {
       var expectedTypes = f(compiler);
-      var signature = element.computeSignature(compiler);
+      var signature = element.computeSignature(compiler.resolution);
       int index = 0;
       var inferrer = compiler.typesTask.typesInferrer;
       signature.forEachParameter((Element element) {

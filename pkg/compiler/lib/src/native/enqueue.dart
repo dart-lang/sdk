@@ -131,6 +131,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         processedLibraries = compiler.cacheStrategy.newSet();
 
   JavaScriptBackend get backend => compiler.backend;
+  Resolution get resolution => compiler.resolution;
 
   void processNativeClasses(Iterable<LibraryElement> libraries) {
     if (compiler.hasIncrementalSupport) {
@@ -163,7 +164,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     nativeClasses.add(classElement);
     unusedClasses.add(classElement);
     // Resolve class to ensure the class has valid inheritance info.
-    classElement.ensureResolved(compiler);
+    classElement.ensureResolved(resolution);
   }
 
   void processSubclassesOfNativeClasses(Iterable<LibraryElement> libraries) {
@@ -202,7 +203,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
     void walkPotentialSubclasses(ClassElement element) {
       if (nativeClassesAndSubclasses.contains(element)) return;
-      element.ensureResolved(compiler);
+      element.ensureResolved(resolution);
       ClassElement nativeSuperclass = nativeSuperclassOf(element);
       if (nativeSuperclass != null) {
         nativeClassesAndSubclasses.add(element);
@@ -319,7 +320,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     String name = null;
     ClassElement annotationClass = annotationJsNameClass;
     for (MetadataAnnotation annotation in element.implementation.metadata) {
-      annotation.ensureResolved(compiler);
+      annotation.ensureResolved(resolution);
       ConstantValue value =
           compiler.constants.getConstantValue(annotation.constant);
       if (!value.isConstructedObject) continue;
@@ -329,18 +330,16 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       Iterable<ConstantValue> fields = constructedObject.fields.values;
       // TODO(sra): Better validation of the constant.
       if (fields.length != 1 || fields.single is! StringConstantValue) {
-        PartialMetadataAnnotation partial = annotation;
         compiler.internalError(annotation,
-            'Annotations needs one string: ${partial.parseNode(compiler)}');
+            'Annotations needs one string: ${annotation.node}');
       }
       StringConstantValue specStringConstant = fields.single;
       String specString = specStringConstant.toDartString().slowToString();
       if (name == null) {
         name = specString;
       } else {
-        PartialMetadataAnnotation partial = annotation;
         compiler.internalError(annotation,
-            'Too many JSName annotations: ${partial.parseNode(compiler)}');
+            'Too many JSName annotations: ${annotation.node}');
       }
     }
     return name;
@@ -372,13 +371,9 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     registeredClasses.add(classElement);
 
     // TODO(ahe): Is this really a global dependency?
-    classElement.ensureResolved(compiler);
+    classElement.ensureResolved(resolution);
     compiler.backend.registerInstantiatedType(
         classElement.rawType, world, compiler.globalDependencies);
-
-    // Also parse the node to know all its methods because otherwise it will
-    // only be parsed if there is a call to one of its constructors.
-    classElement.parseNode(compiler);
 
     if (firstTime) {
       queue.add(onFirstNativeClass);
@@ -462,7 +457,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     if (!element.library.canUseNative) return false;
     // Native method?
     return compiler.withCurrentElement(element, () {
-      Node node = element.parseNode(compiler);
+      Node node = element.parseNode(resolution.parsing);
       if (node is! FunctionExpression) return false;
       FunctionExpression functionExpression = node;
       node = functionExpression.body;

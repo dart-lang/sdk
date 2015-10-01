@@ -116,6 +116,8 @@ class DartBackend extends Backend {
     resolutionCallbacks = new DartResolutionCallbacks(this);
   }
 
+  Resolution get resolution => compiler.resolution;
+
   bool classNeedsRti(ClassElement cls) => false;
   bool methodNeedsRti(FunctionElement function) => false;
 
@@ -128,7 +130,7 @@ class DartBackend extends Backend {
     final coreLibrary = compiler.coreLibrary;
     for (final name in LITERAL_TYPE_NAMES) {
       ClassElement classElement = coreLibrary.findLocal(name);
-      classElement.ensureResolved(compiler);
+      classElement.ensureResolved(resolution);
     }
     // Enqueue the methods that the VM might invoke on user objects because
     // we don't trust the resolution to always get these included.
@@ -225,7 +227,7 @@ class DartBackend extends Backend {
         library.forEachLocalMember((Element element) {
           if (element.isClass) {
             ClassElement classElement = element;
-            classElement.ensureResolved(compiler);
+            classElement.ensureResolved(resolution);
           }
         });
       }
@@ -306,7 +308,7 @@ class DartBackend extends Backend {
               if (element.isConstructor || element.isStatic) return;
 
               FunctionElement function = element.asFunctionElement();
-              element.computeType(compiler);
+              element.computeType(resolution);
               Selector selector = new Selector.fromElement(element);
               if (selector.isGetter) {
                 registry.registerDynamicGetter(

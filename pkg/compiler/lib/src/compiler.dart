@@ -24,6 +24,8 @@ import 'common/names.dart' show
 import 'common/registry.dart' show
     Registry;
 import 'common/resolution.dart' show
+    Parsing,
+    Resolution,
     ResolutionWorkItem;
 import 'common/tasks.dart' show
     CompilerTask,
@@ -120,7 +122,8 @@ import 'tokens/token_constants.dart' as Tokens show
 import 'tokens/token_map.dart' show
     TokenMap;
 import 'tree/tree.dart' show
-    Node;
+    Node,
+    TypeAnnotation;
 import 'typechecker.dart' show
     TypeCheckerTask;
 import 'types/types.dart' as ti;
@@ -143,6 +146,8 @@ abstract class Compiler extends DiagnosticListener {
   World world;
   Types types;
   _CompilerCoreTypes _coreTypes;
+  _CompilerResolution _resolution;
+  _CompilerParsing _parsing;
 
   final CacheStrategy cacheStrategy;
 
@@ -314,6 +319,8 @@ abstract class Compiler extends DiagnosticListener {
   ClassElement get streamClass => _coreTypes.streamClass;
 
   CoreTypes get coreTypes => _coreTypes;
+  Resolution get resolution => _resolution;
+  Parsing get parsing => _parsing;
 
   ClassElement typedDataClass;
 
@@ -542,7 +549,9 @@ abstract class Compiler extends DiagnosticListener {
     world = new World(this);
     // TODO(johnniwinther): Initialize core types in [initializeCoreClasses] and
     // make its field final.
-    _coreTypes = new _CompilerCoreTypes(this);
+    _parsing = new _CompilerParsing(this);
+    _resolution = new _CompilerResolution(this);
+    _coreTypes = new _CompilerCoreTypes(_resolution);
     types = new Types(this);
     tracer = new Tracer(this, this.outputProvider);
 
@@ -889,7 +898,7 @@ abstract class Compiler extends DiagnosticListener {
                  MessageTemplate.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)});
       }
 
-      functionClass.ensureResolved(this);
+      functionClass.ensureResolved(resolution);
       functionApplyMethod = functionClass.lookupLocalMember('apply');
 
       if (preserveComments) {
@@ -1064,7 +1073,7 @@ abstract class Compiler extends DiagnosticListener {
       mainFunction = backend.helperForBadMain();
     } else {
       mainFunction = main;
-      mainFunction.computeType(this);
+      mainFunction.computeType(resolution);
       FunctionSignature parameters = mainFunction.functionSignature;
       if (parameters.requiredParameterCount > 2) {
         int index = 0;
@@ -1241,7 +1250,7 @@ abstract class Compiler extends DiagnosticListener {
   void fullyEnqueueTopLevelElement(Element element, Enqueuer world) {
     if (element.isClass) {
       ClassElement cls = element;
-      cls.ensureResolved(this);
+      cls.ensureResolved(resolution);
       cls.forEachLocalMember(enqueuer.resolution.addToWorkList);
       backend.registerInstantiatedType(
           cls.rawType, world, globalDependencies);
@@ -1257,7 +1266,7 @@ abstract class Compiler extends DiagnosticListener {
     for (LibraryElement library in libraryLoader.libraries) {
       if (library.metadata != null) {
         for (MetadataAnnotation metadata in library.metadata) {
-          metadata.ensureResolved(this);
+          metadata.ensureResolved(resolution);
         }
       }
     }
@@ -1278,13 +1287,13 @@ abstract class Compiler extends DiagnosticListener {
     world.nativeEnqueuer.processNativeClasses(libraryLoader.libraries);
     if (main != null && !main.isErroneous) {
       FunctionElement mainMethod = main;
-      mainMethod.computeType(this);
+      mainMethod.computeType(resolution);
       if (mainMethod.functionSignature.parameterCount != 0) {
         // The first argument could be a list of strings.
-        backend.listImplementation.ensureResolved(this);
+        backend.listImplementation.ensureResolved(resolution);
         backend.registerInstantiatedType(
             backend.listImplementation.rawType, world, globalDependencies);
-        backend.stringImplementation.ensureResolved(this);
+        backend.stringImplementation.ensureResolved(resolution);
         backend.registerInstantiatedType(
             backend.stringImplementation.rawType, world, globalDependencies);
 
@@ -1754,7 +1763,7 @@ class SuppressionInfo {
 }
 
 class _CompilerCoreTypes implements CoreTypes {
-  final Compiler compiler;
+  final Resolution resolution;
 
   ClassElement objectClass;
   ClassElement boolClass;
@@ -1774,29 +1783,29 @@ class _CompilerCoreTypes implements CoreTypes {
   ClassElement streamClass;
   ClassElement resourceClass;
 
-  _CompilerCoreTypes(this.compiler);
+  _CompilerCoreTypes(this.resolution);
 
   @override
-  InterfaceType get objectType => objectClass.computeType(compiler);
+  InterfaceType get objectType => objectClass.computeType(resolution);
 
   @override
-  InterfaceType get boolType => boolClass.computeType(compiler);
+  InterfaceType get boolType => boolClass.computeType(resolution);
 
   @override
-  InterfaceType get doubleType => doubleClass.computeType(compiler);
+  InterfaceType get doubleType => doubleClass.computeType(resolution);
 
   @override
-  InterfaceType get functionType => functionClass.computeType(compiler);
+  InterfaceType get functionType => functionClass.computeType(resolution);
 
   @override
-  InterfaceType get intType => intClass.computeType(compiler);
+  InterfaceType get intType => intClass.computeType(resolution);
 
   @override
-  InterfaceType get resourceType => resourceClass.computeType(compiler);
+  InterfaceType get resourceType => resourceClass.computeType(resolution);
 
   @override
   InterfaceType listType([DartType elementType]) {
-    InterfaceType type = listClass.computeType(compiler);
+    InterfaceType type = listClass.computeType(resolution);
     if (elementType == null) {
       return listClass.rawType;
     }
@@ -1806,7 +1815,7 @@ class _CompilerCoreTypes implements CoreTypes {
   @override
   InterfaceType mapType([DartType keyType,
                          DartType valueType]) {
-    InterfaceType type = mapClass.computeType(compiler);
+    InterfaceType type = mapClass.computeType(resolution);
     if (keyType == null && valueType == null) {
       return mapClass.rawType;
     } else if (keyType == null) {
@@ -1818,23 +1827,23 @@ class _CompilerCoreTypes implements CoreTypes {
   }
 
   @override
-  InterfaceType get nullType => nullClass.computeType(compiler);
+  InterfaceType get nullType => nullClass.computeType(resolution);
 
   @override
-  InterfaceType get numType => numClass.computeType(compiler);
+  InterfaceType get numType => numClass.computeType(resolution);
 
   @override
-  InterfaceType get stringType => stringClass.computeType(compiler);
+  InterfaceType get stringType => stringClass.computeType(resolution);
 
   @override
-  InterfaceType get symbolType => symbolClass.computeType(compiler);
+  InterfaceType get symbolType => symbolClass.computeType(resolution);
 
   @override
-  InterfaceType get typeType => typeClass.computeType(compiler);
+  InterfaceType get typeType => typeClass.computeType(resolution);
 
   @override
   InterfaceType iterableType([DartType elementType]) {
-    InterfaceType type = iterableClass.computeType(compiler);
+    InterfaceType type = iterableClass.computeType(resolution);
     if (elementType == null) {
       return iterableClass.rawType;
     }
@@ -1843,7 +1852,7 @@ class _CompilerCoreTypes implements CoreTypes {
 
   @override
   InterfaceType futureType([DartType elementType]) {
-    InterfaceType type = futureClass.computeType(compiler);
+    InterfaceType type = futureClass.computeType(resolution);
     if (elementType == null) {
       return futureClass.rawType;
     }
@@ -1852,10 +1861,79 @@ class _CompilerCoreTypes implements CoreTypes {
 
   @override
   InterfaceType streamType([DartType elementType]) {
-    InterfaceType type = streamClass.computeType(compiler);
+    InterfaceType type = streamClass.computeType(resolution);
     if (elementType == null) {
       return streamClass.rawType;
     }
     return type.createInstantiation([elementType]);
+  }
+}
+
+// TODO(johnniwinther): Move [ResolverTask] here.
+class _CompilerResolution implements Resolution {
+  final Compiler compiler;
+
+  _CompilerResolution(this.compiler);
+
+  @override
+  DiagnosticListener get listener => compiler;
+
+  @override
+  Parsing get parsing => compiler.parsing;
+
+  @override
+  CoreTypes get coreTypes => compiler.coreTypes;
+
+  @override
+  void registerClass(ClassElement cls) {
+    compiler.world.registerClass(cls);
+  }
+
+  @override
+  void resolveClass(ClassElement cls) {
+    compiler.resolver.resolveClass(cls);
+  }
+
+  @override
+  void resolveTypedef(TypedefElement typdef) {
+    compiler.resolver.resolve(typdef);
+  }
+
+  @override
+  void resolveMetadataAnnotation(MetadataAnnotation metadataAnnotation) {
+    compiler.resolver.resolveMetadataAnnotation(metadataAnnotation);
+  }
+
+  @override
+  FunctionSignature resolveSignature(FunctionElement function) {
+    return compiler.resolver.resolveSignature(function);
+  }
+
+  @override
+  DartType resolveTypeAnnotation(Element element, TypeAnnotation node) {
+    return compiler.resolver.resolveTypeAnnotation(element, node);
+  }
+}
+
+// TODO(johnniwinther): Move [ParserTask], [PatchParserTask], [DietParserTask]
+// and [ScannerTask] here.
+class _CompilerParsing implements Parsing {
+  final Compiler compiler;
+
+  _CompilerParsing(this.compiler);
+
+  @override
+  DiagnosticListener get listener => compiler;
+
+  @override
+  measure(f()) => compiler.parser.measure(f);
+
+  @override
+  void parsePatchClass(ClassElement cls) {
+    compiler.patchParser.measure(() {
+      if (cls.isPatch) {
+        compiler.patchParser.parsePatchClassNode(cls);
+      }
+    });
   }
 }

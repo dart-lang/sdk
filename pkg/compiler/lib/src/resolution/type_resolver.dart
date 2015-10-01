@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library dart2js.resolution.types;
+
+import '../common/resolution.dart' show
+    Resolution;
 import '../compiler.dart' show
     Compiler;
 import '../dart_backend/dart_backend.dart' show
@@ -43,6 +46,7 @@ class TypeResolver {
   TypeResolver(this.compiler);
 
   DiagnosticListener get listener => compiler;
+  Resolution get resolution => compiler.resolution;
 
   /// Tries to resolve the type name as an element.
   Element resolveTypeName(Identifier prefixName,
@@ -182,7 +186,7 @@ class TypeResolver {
         // TODO(johnniwinther): [ensureClassWillBeResolvedInternal] should imply
         // [computeType].
         compiler.resolver.ensureClassWillBeResolvedInternal(cls);
-        cls.computeType(compiler);
+        cls.computeType(resolution);
         List<DartType> arguments = <DartType>[];
         bool hasTypeArgumentMismatch = resolveTypeArguments(
             visitor, node, cls.typeVariables, arguments);
@@ -202,8 +206,8 @@ class TypeResolver {
       } else if (element.isTypedef) {
         TypedefElement typdef = element;
         // TODO(johnniwinther): [ensureResolved] should imply [computeType].
-        typdef.ensureResolved(compiler);
-        typdef.computeType(compiler);
+        typdef.ensureResolved(resolution);
+        typdef.computeType(resolution);
         List<DartType> arguments = <DartType>[];
         bool hasTypeArgumentMismatch = resolveTypeArguments(
             visitor, node, typdef.typeVariables, arguments);

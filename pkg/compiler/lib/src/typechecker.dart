@@ -6,6 +6,8 @@ library dart2js.typechecker;
 
 import 'common/names.dart' show
     Identifiers;
+import 'common/resolution.dart' show
+    Resolution;
 import 'common/tasks.dart' show
     CompilerTask;
 import 'compiler.dart' show
@@ -104,7 +106,7 @@ abstract class ElementAccess {
 
   String get name => element.name;
 
-  DartType computeType(Compiler compiler);
+  DartType computeType(Resolution resolution);
 
   /// Returns [: true :] if the element can be access as an invocation.
   bool isCallable(Compiler compiler) {
@@ -116,7 +118,7 @@ abstract class ElementAccess {
       }
     }
     return compiler.types.isAssignable(
-        computeType(compiler), compiler.coreTypes.functionType);
+        computeType(compiler.resolution), compiler.coreTypes.functionType);
   }
 }
 
@@ -128,7 +130,7 @@ class MemberAccess extends ElementAccess {
 
   Element get element => member.declarations.first.element;
 
-  DartType computeType(Compiler compiler) => member.type;
+  DartType computeType(Resolution resolution) => member.type;
 
   String toString() => 'MemberAccess($member)';
 }
@@ -141,7 +143,7 @@ class DynamicAccess implements ElementAccess {
 
   String get name => 'dynamic';
 
-  DartType computeType(Compiler compiler) => const DynamicType();
+  DartType computeType(Resolution resolution) => const DynamicType();
 
   bool isCallable(Compiler compiler) => true;
 
@@ -159,14 +161,14 @@ class ResolvedAccess extends ElementAccess {
     assert(element != null);
   }
 
-  DartType computeType(Compiler compiler) {
+  DartType computeType(Resolution resolution) {
     if (element.isGetter) {
       GetterElement getter = element;
-      FunctionType functionType = getter.computeType(compiler);
+      FunctionType functionType = getter.computeType(resolution);
       return functionType.returnType;
     } else if (element.isSetter) {
       SetterElement setter = element;
-      FunctionType functionType = setter.computeType(compiler);
+      FunctionType functionType = setter.computeType(resolution);
       if (functionType.parameterTypes.length != 1) {
         // TODO(johnniwinther,karlklose): this happens for malformed static
         // setters. Treat them the same as instance members.
@@ -175,11 +177,11 @@ class ResolvedAccess extends ElementAccess {
       return functionType.parameterTypes.first;
     } else if (element.isTypedef || element.isClass) {
       TypeDeclarationElement typeDeclaration = element;
-      typeDeclaration.computeType(compiler);
+      typeDeclaration.computeType(resolution);
       return typeDeclaration.thisType;
     } else {
       TypedElement typedElement = element;
-      typedElement.computeType(compiler);
+      typedElement.computeType(resolution);
       return typedElement.type;
     }
   }
@@ -197,7 +199,7 @@ class PromotedAccess extends ElementAccess {
     assert(type != null);
   }
 
-  DartType computeType(Compiler compiler) => type;
+  DartType computeType(Resolution resolution) => type;
 
   String toString() => 'PromotedAccess($element,$type)';
 }
@@ -214,7 +216,7 @@ class TypeAccess extends ElementAccess {
 
   Element get element => type.element;
 
-  DartType computeType(Compiler compiler) => type;
+  DartType computeType(Resolution resolution) => type;
 
   String toString() => 'TypeAccess($type)';
 }
@@ -233,7 +235,7 @@ class TypeLiteralAccess extends ElementAccess {
 
   String get name => type.name;
 
-  DartType computeType(Compiler compiler) => compiler.typeClass.rawType;
+  DartType computeType(Resolution resolution) => resolution.coreTypes.typeType;
 
   String toString() => 'TypeLiteralAccess($type)';
 }
@@ -248,7 +250,7 @@ class FunctionCallAccess implements ElementAccess {
 
   String get name => 'call';
 
-  DartType computeType(Compiler compiler) => type;
+  DartType computeType(Resolution resolution) => type;
 
   bool isCallable(Compiler compiler) => true;
 
@@ -304,6 +306,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   ExecutableElement executableContext;
 
   CoreTypes get coreTypes => compiler.coreTypes;
+  Resolution get resolution => compiler.resolution;
 
   InterfaceType get intType => coreTypes.intType;
   InterfaceType get doubleType => coreTypes.doubleType;
@@ -656,14 +659,14 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         if (parameter.isInitializingFormal) {
           InitializingFormalElement fieldParameter = parameter;
           checkAssignable(parameter, parameter.type,
-              fieldParameter.fieldElement.computeType(compiler));
+              fieldParameter.fieldElement.computeType(resolution));
         }
       });
       if (node.initializers != null) {
         analyze(node.initializers, inInitializer: true);
       }
     } else {
-      FunctionType functionType = element.computeType(compiler);
+      FunctionType functionType = element.computeType(resolution);
       returnType = functionType.returnType;
       type = functionType;
     }
@@ -695,7 +698,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
                              element.isParameter ||
                              element.isField,
           message: 'Unexpected context element ${element}'));
-      return element.computeType(compiler);
+      return element.computeType(resolution);
     }
   }
 
@@ -878,13 +881,13 @@ class TypeCheckerVisitor extends Visitor<DartType> {
                             MemberKind memberKind,
                             {bool isHint: false}) {
     return lookupMember(node, type, name, memberKind, null, isHint: isHint)
-        .computeType(compiler);
+        .computeType(resolution);
   }
 
   void analyzeArguments(Send send, Element element, DartType type,
                         [LinkBuilder<DartType> argumentTypes]) {
     Link<Node> arguments = send.arguments;
-    DartType unaliasedType = type.unalias(compiler);
+    DartType unaliasedType = type.unalias(resolution);
     if (identical(unaliasedType.kind, TypeKind.FUNCTION)) {
 
       /// Report [warning] including info(s) about the declaration of [element]
@@ -997,7 +1000,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   // analysis.
   DartType analyzeInvocation(Send node, ElementAccess elementAccess,
                              [LinkBuilder<DartType> argumentTypes]) {
-    DartType type = elementAccess.computeType(compiler);
+    DartType type = elementAccess.computeType(resolution);
     if (elementAccess.isCallable(compiler)) {
       analyzeArguments(node, elementAccess.element, type, argumentTypes);
     } else {
@@ -1006,7 +1009,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       analyzeArguments(node, elementAccess.element, const DynamicType(),
                        argumentTypes);
     }
-    type = type.unalias(compiler);
+    type = type.unalias(resolution);
     if (identical(type.kind, TypeKind.FUNCTION)) {
       FunctionType funType = type;
       return funType.returnType;
@@ -1117,7 +1120,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
                              {bool lookupClassMember: false}) {
     DartType type =
         computeAccess(node, name, element, memberKind,
-            lookupClassMember: lookupClassMember).computeType(compiler);
+            lookupClassMember: lookupClassMember).computeType(resolution);
     if (type == null) {
       compiler.internalError(node, 'Type is null on access of $name on $node.');
     }
@@ -1334,7 +1337,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     } else if (node.isPropertyAccess) {
       ElementAccess access =
           computeAccess(node, selector.source, element, MemberKind.GETTER);
-      return access.computeType(compiler);
+      return access.computeType(resolution);
     } else if (node.isFunctionObjectInvocation) {
       return unhandledExpression();
     } else {
@@ -1578,7 +1581,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   DartType computeConstructorType(ConstructorElement constructor,
                                   DartType type) {
     if (Elements.isUnresolved(constructor)) return const DynamicType();
-    DartType constructorType = constructor.computeType(compiler);
+    DartType constructorType = constructor.computeType(resolution);
     if (identical(type.kind, TypeKind.INTERFACE)) {
       if (constructor.isSynthesized) {
         // TODO(johnniwinther): Remove this when synthesized constructors handle
@@ -1801,7 +1804,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     DartType elementType = computeForInElementType(node);
     DartType expressionType = analyze(node.expression);
     // TODO(johnniwinther): Move this to _CompilerCoreTypes.
-    compiler.streamClass.ensureResolved(compiler);
+    compiler.streamClass.ensureResolved(resolution);
     DartType streamOfDynamic = coreTypes.streamType();
     if (!types.isAssignable(expressionType, streamOfDynamic)) {
       reportMessage(node.expression,

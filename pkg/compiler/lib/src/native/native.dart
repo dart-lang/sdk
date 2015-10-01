@@ -8,6 +8,9 @@ import 'dart:collection' show Queue;
 
 import '../common/registry.dart' show
     Registry;
+import '../common/resolution.dart' show
+    Parsing,
+    Resolution;
 import '../compiler.dart' show
     Compiler;
 import '../constants/values.dart';

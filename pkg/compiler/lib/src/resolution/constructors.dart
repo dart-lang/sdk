@@ -92,7 +92,7 @@ class InitializerResolver {
     if (initialized.containsKey(field)) {
       reportDuplicateInitializerError(field, init, initialized[field]);
     } else if (field.isFinal) {
-      field.parseNode(visitor.compiler);
+      field.parseNode(visitor.resolution.parsing);
       Expression initializer = field.initializer;
       if (initializer != null) {
         reportDuplicateInitializerError(field, init, initializer);
@@ -268,7 +268,7 @@ class InitializerResolver {
           diagnosticNode, kind, {'constructorName': fullConstructorName});
       isValidAsConstant = false;
     } else {
-      lookedupConstructor.computeType(visitor.compiler);
+      lookedupConstructor.computeType(visitor.resolution);
       if (!call.signatureApplies(lookedupConstructor.functionSignature)) {
         MessageKind kind = isImplicitSuperCall
                            ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
@@ -481,7 +481,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       Node diagnosticNode,
       String constructorName) {
     ClassElement cls = type.element;
-    cls.ensureResolved(compiler);
+    cls.ensureResolved(resolution);
     ConstructorElement constructor = findConstructor(
         resolver.enclosingElement.library, cls, constructorName);
     if (constructor == null) {
@@ -641,13 +641,13 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       return constructorResultForErroneous(node, element);
     } else if (element.isClass) {
       ClassElement cls = element;
-      cls.computeType(compiler);
+      cls.computeType(resolution);
       return constructorResultForType(node, cls.rawType);
     } else if (element.isPrefix) {
       return new ConstructorResult.forElement(element);
     } else if (element.isTypedef) {
       TypedefElement typdef = element;
-      typdef.ensureResolved(compiler);
+      typdef.ensureResolved(resolution);
       return constructorResultForType(node, typdef.rawType);
     } else if (element.isTypeVariable) {
       TypeVariableElement typeVariableElement = element;

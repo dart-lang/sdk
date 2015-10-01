@@ -665,6 +665,8 @@ class JavaScriptBackend extends Backend {
 
   ConstantSystem get constantSystem => constants.constantSystem;
 
+  Resolution get resolution => compiler.resolution;
+
   /// Returns constant environment for the JavaScript interpretation of the
   /// constants.
   JavaScriptConstantCompiler get constants {
@@ -886,7 +888,7 @@ class JavaScriptBackend extends Backend {
   void validateInterceptorImplementsAllObjectMethods(
       ClassElement interceptorClass) {
     if (interceptorClass == null) return;
-    interceptorClass.ensureResolved(compiler);
+    interceptorClass.ensureResolved(resolution);
     compiler.objectClass.forEachMember((_, Element member) {
       if (member.isGenerativeConstructor) return;
       Element interceptorMember = interceptorClass.lookupMember(member.name);
@@ -899,7 +901,7 @@ class JavaScriptBackend extends Backend {
   void addInterceptorsForNativeClassMembers(
       ClassElement cls, Enqueuer enqueuer) {
     if (enqueuer.isResolutionQueue) {
-      cls.ensureResolved(compiler);
+      cls.ensureResolved(resolution);
       cls.forEachMember((ClassElement classElement, Element member) {
         if (member.name == Identifiers.call) {
           compiler.reportErrorMessage(
@@ -932,7 +934,7 @@ class JavaScriptBackend extends Backend {
     if (enqueuer.isResolutionQueue) {
       _interceptedClasses.add(jsInterceptorClass);
       _interceptedClasses.add(cls);
-      cls.ensureResolved(compiler);
+      cls.ensureResolved(resolution);
       cls.forEachMember((ClassElement classElement, Element member) {
           // All methods on [Object] are shadowed by [Interceptor].
           if (classElement == compiler.objectClass) return;
@@ -1264,7 +1266,7 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerBoundClosure(Enqueuer enqueuer) {
-    boundClosureClass.ensureResolved(compiler);
+    boundClosureClass.ensureResolved(resolution);
     registerInstantiatedType(
         boundClosureClass.rawType,
         enqueuer,
@@ -1273,7 +1275,7 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerGetOfStaticFunction(Enqueuer enqueuer) {
-    closureClass.ensureResolved(compiler);
+    closureClass.ensureResolved(resolution);
     registerInstantiatedType(
         closureClass.rawType,
         enqueuer,
@@ -1303,7 +1305,7 @@ class JavaScriptBackend extends Backend {
                                  Enqueuer world,
                                  Registry registry) {
     assert(!registry.isForResolution);
-    type = type.unalias(compiler);
+    type = type.unalias(resolution);
     enqueueClass(world, compiler.boolClass, registry);
     bool inCheckedMode = compiler.enableTypeAssertions;
     // [registerIsCheck] is also called for checked mode checks, so we
@@ -1462,7 +1464,7 @@ class JavaScriptBackend extends Backend {
     if (cls.declaration != cls.implementation) {
       helpersUsed.add(cls.implementation);
     }
-    cls.ensureResolved(compiler);
+    cls.ensureResolved(resolution);
     registerInstantiatedType(cls.rawType, enqueuer, registry);
   }
 
@@ -1902,19 +1904,19 @@ class JavaScriptBackend extends Backend {
 
   Element getYieldStar() {
     ClassElement classElement = findAsyncHelper("_IterationMarker");
-    classElement.ensureResolved(compiler);
+    classElement.ensureResolved(resolution);
     return classElement.lookupLocalMember("yieldStar");
   }
 
   Element getYieldSingle() {
     ClassElement classElement = findAsyncHelper("_IterationMarker");
-    classElement.ensureResolved(compiler);
+    classElement.ensureResolved(resolution);
     return classElement.lookupLocalMember("yieldSingle");
   }
 
   Element getSyncStarUncaughtError() {
     ClassElement classElement = findAsyncHelper("_IterationMarker");
-    classElement.ensureResolved(compiler);
+    classElement.ensureResolved(resolution);
     return classElement.lookupLocalMember("uncaughtError");
   }
 
@@ -1928,32 +1930,32 @@ class JavaScriptBackend extends Backend {
 
   Element getEndOfIteration() {
     ClassElement classElement = findAsyncHelper("_IterationMarker");
-    classElement.ensureResolved(compiler);
+    classElement.ensureResolved(resolution);
     return classElement.lookupLocalMember("endOfIteration");
   }
 
   Element getSyncStarIterable() {
     ClassElement classElement = findAsyncHelper("_SyncStarIterable");
-    classElement.ensureResolved(compiler);
+    classElement.ensureResolved(resolution);
     return classElement;
   }
 
   Element getSyncStarIterableConstructor() {
     ClassElement classElement = getSyncStarIterable();
-    classElement.ensureResolved(compiler);
+    classElement.ensureResolved(resolution);
     return classElement.lookupConstructor("");
   }
 
   Element getSyncCompleterConstructor() {
     ClassElement classElement = find(compiler.asyncLibrary, "Completer");
-    classElement.ensureResolved(compiler);
+    classElement.ensureResolved(resolution);
     return classElement.lookupConstructor("sync");
   }
 
   Element getASyncStarController() {
     ClassElement classElement =
         findAsyncHelper("_AsyncStarStreamController");
-    classElement.ensureResolved(compiler);
+    classElement.ensureResolved(resolution);
     return classElement;
   }
 
@@ -1964,7 +1966,7 @@ class JavaScriptBackend extends Backend {
 
   Element getStreamIteratorConstructor() {
     ClassElement classElement = find(compiler.asyncLibrary, "StreamIterator");
-    classElement.ensureResolved(compiler);
+    classElement.ensureResolved(resolution);
     return classElement.lookupConstructor("");
   }
 
@@ -2052,7 +2054,7 @@ class JavaScriptBackend extends Backend {
     if (mustRetainMetadata) hasRetainedMetadata = true;
     if (mustRetainMetadata && referencedFromMirrorSystem(element)) {
       for (MetadataAnnotation metadata in element.metadata) {
-        metadata.ensureResolved(compiler);
+        metadata.ensureResolved(resolution);
         ConstantValue constant =
             constants.getConstantValueForMetadata(metadata);
         constants.addCompileTimeConstantForEmission(constant);
@@ -2199,7 +2201,7 @@ class JavaScriptBackend extends Backend {
     assert(loadedLibraries.containsLibrary(DART_JS_HELPER));
 
     if (jsInvocationMirrorClass != null) {
-      jsInvocationMirrorClass.ensureResolved(compiler);
+      jsInvocationMirrorClass.ensureResolved(resolution);
       invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(INVOKE_ON);
     }
 
@@ -2225,16 +2227,16 @@ class JavaScriptBackend extends Backend {
     // subclasses, so we check to see if they are defined before
     // trying to resolve them.
     if (jsFixedArrayClass != null) {
-      jsFixedArrayClass.ensureResolved(compiler);
+      jsFixedArrayClass.ensureResolved(resolution);
     }
     if (jsExtendableArrayClass != null) {
-      jsExtendableArrayClass.ensureResolved(compiler);
+      jsExtendableArrayClass.ensureResolved(resolution);
     }
     if (jsUnmodifiableArrayClass != null) {
-      jsUnmodifiableArrayClass.ensureResolved(compiler);
+      jsUnmodifiableArrayClass.ensureResolved(resolution);
     }
 
-    jsIndexableClass.ensureResolved(compiler);
+    jsIndexableClass.ensureResolved(resolution);
     jsIndexableLength = compiler.lookupElementIn(
         jsIndexableClass, 'length');
     if (jsIndexableLength != null && jsIndexableLength.isAbstractField) {
@@ -2242,12 +2244,12 @@ class JavaScriptBackend extends Backend {
       jsIndexableLength = element.getter;
     }
 
-    jsArrayClass.ensureResolved(compiler);
+    jsArrayClass.ensureResolved(resolution);
     jsArrayTypedConstructor = compiler.lookupElementIn(jsArrayClass, 'typed');
     jsArrayRemoveLast = compiler.lookupElementIn(jsArrayClass, 'removeLast');
     jsArrayAdd = compiler.lookupElementIn(jsArrayClass, 'add');
 
-    jsStringClass.ensureResolved(compiler);
+    jsStringClass.ensureResolved(resolution);
     jsStringSplit = compiler.lookupElementIn(jsStringClass, 'split');
     jsStringOperatorAdd = compiler.lookupElementIn(jsStringClass, '+');
     jsStringToString = compiler.lookupElementIn(jsStringClass, 'toString');
@@ -2341,7 +2343,7 @@ class JavaScriptBackend extends Backend {
       // TODO(kasperl): It would be nice if we didn't have to resolve
       // all metadata but only stuff that potentially would match one
       // of the used meta targets.
-      metadata.ensureResolved(compiler);
+      metadata.ensureResolved(resolution);
       ConstantValue value =
           compiler.constants.getConstantValue(metadata.constant);
       if (value == null) continue;
@@ -2649,7 +2651,7 @@ class JavaScriptBackend extends Backend {
     bool hasNoThrows = false;
     bool hasNoSideEffects = false;
     for (MetadataAnnotation metadata in element.implementation.metadata) {
-      metadata.ensureResolved(compiler);
+      metadata.ensureResolved(resolution);
       ConstantValue constantValue =
           compiler.constants.getConstantValue(metadata.constant);
       if (!constantValue.isConstructedObject) continue;
@@ -2767,7 +2769,7 @@ class JavaScriptBackend extends Backend {
       enqueue(enqueuer, getWrapBody(), registry);
     } else if (element.asyncMarker == AsyncMarker.SYNC_STAR) {
       ClassElement clsSyncStarIterable = getSyncStarIterable();
-      clsSyncStarIterable.ensureResolved(compiler);
+      clsSyncStarIterable.ensureResolved(resolution);
       registerInstantiatedType(clsSyncStarIterable.rawType, enqueuer, registry);
       enqueue(enqueuer, getSyncStarIterableConstructor(), registry);
       enqueue(enqueuer, getEndOfIteration(), registry);
@@ -2775,7 +2777,7 @@ class JavaScriptBackend extends Backend {
       enqueue(enqueuer, getSyncStarUncaughtError(), registry);
     } else if (element.asyncMarker == AsyncMarker.ASYNC_STAR) {
       ClassElement clsASyncStarController = getASyncStarController();
-      clsASyncStarController.ensureResolved(compiler);
+      clsASyncStarController.ensureResolved(resolution);
       registerInstantiatedType(
           clsASyncStarController.rawType, enqueuer, registry);
       enqueue(enqueuer, getAsyncStarHelper(), registry);
@@ -2950,7 +2952,7 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
 
   void registerBackendInstantiation(ClassElement element, Registry registry) {
     backend.registerBackendUse(element);
-    element.ensureResolved(backend.compiler);
+    element.ensureResolved(backend.resolution);
     registry.registerInstantiation(element.rawType);
   }
 
@@ -3041,7 +3043,7 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
   // TODO(johnniwinther): Maybe split this into [onAssertType] and [onTestType].
   void onIsCheck(DartType type, Registry registry) {
     assert(registry.isForResolution);
-    type = type.unalias(backend.compiler);
+    type = type.unalias(backend.resolution);
     registerBackendInstantiation(backend.compiler.boolClass, registry);
     bool inCheckedMode = backend.compiler.enableTypeAssertions;
     if (inCheckedMode) {

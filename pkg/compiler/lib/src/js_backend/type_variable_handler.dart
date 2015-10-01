@@ -44,7 +44,7 @@ class TypeVariableHandler {
       // resolved.
       if (!_seenClassesWithTypeVariables) {
         _backend.enqueueClass(enqueuer, _typeVariableClass, registry);
-        _typeVariableClass.ensureResolved(_compiler);
+        _typeVariableClass.ensureResolved(_compiler.resolution);
         Link constructors = _typeVariableClass.constructors;
         if (constructors.isEmpty && constructors.tail.isEmpty) {
           _compiler.internalError(_typeVariableClass,

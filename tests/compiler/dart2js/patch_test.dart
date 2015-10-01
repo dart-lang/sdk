@@ -45,7 +45,7 @@ Future<Compiler> applyPatch(String script, String patch,
 }
 
 void expectHasBody(compiler, ElementX element) {
-    var node = element.parseNode(compiler);
+    var node = element.parseNode(compiler.parsing);
     Expect.isNotNull(node, "Element isn't parseable, when a body was expected");
     Expect.isNotNull(node.body);
     // If the element has a body it is either a Block or a Return statement,
@@ -55,7 +55,7 @@ void expectHasBody(compiler, ElementX element) {
 }
 
 void expectHasNoBody(compiler, ElementX element) {
-    var node = element.parseNode(compiler);
+    var node = element.parseNode(compiler.parsing);
     Expect.isNotNull(node, "Element isn't parseable, when a body was expected");
     Expect.isFalse(node.hasBody());
 }
@@ -248,7 +248,7 @@ Future testPatchConstructor() async {
       """);
   var classOrigin = ensure(compiler, "Class", compiler.coreLibrary.find,
                            expectIsPatched: true);
-  classOrigin.ensureResolved(compiler);
+  classOrigin.ensureResolved(compiler.resolution);
   var classPatch = ensure(compiler, "Class", compiler.coreLibrary.patch.find,
                           expectIsPatch: true);
 
@@ -287,7 +287,7 @@ Future testPatchRedirectingConstructor() async {
       """);
   var classOrigin = ensure(compiler, "Class", compiler.coreLibrary.find,
                            expectIsPatched: true);
-  classOrigin.ensureResolved(compiler);
+  classOrigin.ensureResolved(compiler.resolution);
 
   var classPatch = ensure(compiler, "Class", compiler.coreLibrary.patch.find,
                           expectIsPatch: true);
@@ -331,7 +331,7 @@ Future testPatchMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler);
+  container.parseNode(compiler.parsing);
   ensure(compiler, "Class", compiler.coreLibrary.patch.find,
          expectIsPatch: true);
 
@@ -360,7 +360,7 @@ Future testPatchGetter() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler);
+  container.parseNode(compiler.parsing);
   ensure(compiler,
          "field",
          container.lookupLocalMember,
@@ -393,7 +393,7 @@ Future testRegularMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler);
+  container.parseNode(compiler.parsing);
   ensure(compiler, "Class", compiler.coreLibrary.patch.find,
          expectIsPatch: true);
 
@@ -421,7 +421,7 @@ Future testGhostMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler);
+  container.parseNode(compiler.parsing);
   ensure(compiler, "Class", compiler.coreLibrary.patch.find,
          expectIsPatch: true);
 
@@ -489,8 +489,8 @@ Future testPatchSignatureCheck() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.ensureResolved(compiler);
-  container.parseNode(compiler);
+  container.ensureResolved(compiler.resolution);
+  container.parseNode(compiler.parsing);
 
   void expect(String methodName, List infos, List errors) {
     compiler.clearMessages();
@@ -568,7 +568,7 @@ Future testExternalWithoutImplementationMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler);
+  container.parseNode(compiler.parsing);
 
   compiler.warnings.clear();
   compiler.errors.clear();
@@ -629,7 +629,7 @@ Future testPatchNonExistingMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler);
+  container.parseNode(compiler.parsing);
 
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
@@ -712,7 +712,7 @@ Future testPatchNonExternalMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler);
+  container.parseNode(compiler.parsing);
 
   print('testPatchNonExternalMember.errors:${compiler.errors}');
   print('testPatchNonExternalMember.warnings:${compiler.warnings}');
@@ -866,7 +866,7 @@ Future testPatchAndSelector() async {
 
   ClassElement cls = ensure(compiler, "A", compiler.coreLibrary.find,
                             expectIsPatched: true);
-  cls.ensureResolved(compiler);
+  cls.ensureResolved(compiler.resolution);
 
   ensure(compiler, "method", cls.patch.lookupLocalMember,
          checkHasBody: true, expectIsRegular: true);
@@ -882,7 +882,7 @@ Future testPatchAndSelector() async {
       new Selector.call(const PublicName('method'), CallStructure.NO_ARGS);
   TypeMask typeMask = new TypeMask.exact(cls, world);
   FunctionElement method = cls.implementation.lookupLocalMember('method');
-  method.computeType(compiler);
+  method.computeType(compiler.resolution);
   Expect.isTrue(selector.applies(method, world));
   Expect.isTrue(typeMask.canHit(method, selector, world));
 
@@ -892,14 +892,14 @@ Future testPatchAndSelector() async {
       new Selector.call(const PublicName('clear'), CallStructure.NO_ARGS);
   typeMask = new TypeMask.exact(cls, world);
   method = cls.lookupLocalMember('clear');
-  method.computeType(compiler);
+  method.computeType(compiler.resolution);
   Expect.isTrue(selector.applies(method, world));
   Expect.isTrue(typeMask.canHit(method, selector, world));
 
   // Check that the declaration method in the declaration class is a target
   // for a typed selector on a subclass.
   cls = ensure(compiler, "B", compiler.coreLibrary.find);
-  cls.ensureResolved(compiler);
+  cls.ensureResolved(compiler.resolution);
   typeMask = new TypeMask.exact(cls, world);
   Expect.isTrue(selector.applies(method, world));
   Expect.isTrue(typeMask.canHit(method, selector, world));

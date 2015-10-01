@@ -2496,7 +2496,7 @@ class GlobalProgramInformation {
 
   ClassElement get nullClass => _compiler.nullClass;
 
-  DartType unaliasType(DartType type) => type.unalias(_compiler);
+  DartType unaliasType(DartType type) => type.unalias(_compiler.resolution);
 
   TypeMask getTypeMaskForForeign(NativeBehavior behavior) {
     if (behavior == null) {

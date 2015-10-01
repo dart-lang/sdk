@@ -401,7 +401,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       }
       if (!Elements.isUnresolved(element) && element.isClass) {
         ClassElement classElement = element;
-        classElement.ensureResolved(compiler);
+        classElement.ensureResolved(resolution);
       }
       if (element != null) {
         registry.useElement(node, element);
@@ -437,7 +437,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   FunctionElement resolveConstructorRedirection(FunctionElementX constructor) {
-    FunctionExpression node = constructor.parseNode(compiler);
+    FunctionExpression node = constructor.parseNode(resolution.parsing);
 
     // A synthetic constructor does not have a node.
     if (node == null) return null;
@@ -1620,7 +1620,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       switch (semantics.kind) {
         case AccessKind.SUPER_METHOD:
           MethodElementX superMethod = semantics.element;
-          superMethod.computeSignature(compiler);
+          superMethod.computeType(resolution);
           if (!callStructure.signatureApplies(
                   superMethod.functionSignature)) {
             registry.registerThrowNoSuchMethod();
@@ -1878,7 +1878,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult handleStaticMemberAccess(
       Send node, Name memberName, ClassElement receiverClass) {
     String name = memberName.text;
-    receiverClass.ensureResolved(compiler);
+    receiverClass.ensureResolved(resolution);
     if (node.isOperator) {
       // When the resolved receiver is a class, we can have two cases:
       //  1) a static send: C.foo, or
@@ -1912,7 +1912,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult handleStaticMemberUpdate(
       Send node, Name memberName, ClassElement receiverClass) {
     String name = memberName.text;
-    receiverClass.ensureResolved(compiler);
+    receiverClass.ensureResolved(resolution);
     MembersCreator.computeClassMembersByName(
         compiler, receiverClass.declaration, name);
     Element member = receiverClass.lookupLocalMember(name);
@@ -2109,7 +2109,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Send node,
       Name name,
       TypedefElement typdef) {
-    typdef.ensureResolved(compiler);
+    typdef.ensureResolved(resolution);
     DartType type = typdef.rawType;
     ConstantExpression constant = new TypeConstantExpression(type);
     AccessSemantics semantics = new ConstantAccess.typedefTypeLiteral(constant);
@@ -2122,7 +2122,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       SendSet node,
       Name name,
       TypedefElement typdef) {
-    typdef.ensureResolved(compiler);
+    typdef.ensureResolved(resolution);
     DartType type = typdef.rawType;
     ConstantExpression constant = new TypeConstantExpression(type);
     AccessSemantics semantics = new ConstantAccess.typedefTypeLiteral(constant);
@@ -2159,7 +2159,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Send node,
       Name name,
       ClassElement cls) {
-    cls.ensureResolved(compiler);
+    cls.ensureResolved(resolution);
     DartType type = cls.rawType;
     ConstantExpression constant = new TypeConstantExpression(type);
     AccessSemantics semantics = new ConstantAccess.classTypeLiteral(constant);
@@ -2172,7 +2172,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       SendSet node,
       Name name,
       ClassElement cls) {
-    cls.ensureResolved(compiler);
+    cls.ensureResolved(resolution);
     DartType type = cls.rawType;
     ConstantExpression constant = new TypeConstantExpression(type);
     AccessSemantics semantics = new ConstantAccess.classTypeLiteral(constant);
@@ -2186,7 +2186,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Send node,
       Name name,
       ClassElement cls) {
-    cls.ensureResolved(compiler);
+    cls.ensureResolved(resolution);
     if (sendIsMemberAccess) {
       registry.useElement(node, cls);
       return new PrefixResult(null, cls);
@@ -2576,7 +2576,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       switch (semantics.kind) {
         case AccessKind.LOCAL_FUNCTION:
           LocalFunctionElementX function = semantics.element;
-          function.computeSignature(compiler);
+          function.computeType(resolution);
           if (!callStructure.signatureApplies(function.functionSignature)) {
             registry.registerThrowNoSuchMethod();
             registry.registerDynamicInvocation(
@@ -2724,7 +2724,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
     // TODO(johnniwinther): Needed to provoke a parsing and with it discovery
     // of parse errors to make [element] erroneous. Fix this!
-    member.computeType(compiler);
+    member.computeType(resolution);
 
 
     if (member == compiler.mirrorSystemGetNameFunction &&
@@ -2749,7 +2749,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         case AccessKind.STATIC_METHOD:
         case AccessKind.TOPLEVEL_METHOD:
           MethodElement method = semantics.element;
-          method.computeType(compiler);
+          method.computeType(resolution);
           if (!callStructure.signatureApplies(method.functionSignature)) {
             registry.registerThrowNoSuchMethod();
             registry.registerDynamicInvocation(
@@ -2907,7 +2907,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       MemberElement member = element;
       // TODO(johnniwinther): Needed to provoke a parsing and with it discovery
       // of parse errors to make [element] erroneous. Fix this!
-      member.computeType(compiler);
+      member.computeType(resolution);
       registry.registerStaticUse(member);
       if (member.isErroneous) {
         // [member] has parse errors.
@@ -3136,8 +3136,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (element == null) return null;
     if (element is! ClassElement) return null;
     ClassElement cls = element;
-    cls.ensureResolved(compiler);
-    return cls.computeType(compiler);
+    cls.ensureResolved(resolution);
+    return cls.computeType(resolution);
   }
 
   /// Handle index operations like `a[b] = c`, `a[b] += c`, and `a[b]++`.
@@ -3628,8 +3628,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitYield(Yield node) {
-    compiler.streamClass.ensureResolved(compiler);
-    compiler.iterableClass.ensureResolved(compiler);
+    compiler.streamClass.ensureResolved(resolution);
+    compiler.iterableClass.ensureResolved(resolution);
     visit(node.expression);
     return const NoneResult();
   }
@@ -3680,9 +3680,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     // redirecting constructor.
     ClassElement targetClass = redirectionTarget.enclosingClass;
     InterfaceType type = registry.getType(node);
-    FunctionType targetType = redirectionTarget.computeType(compiler)
+    FunctionType targetType = redirectionTarget.computeType(resolution)
         .subst(type.typeArguments, targetClass.typeVariables);
-    FunctionType constructorType = constructor.computeType(compiler);
+    FunctionType constructorType = constructor.computeType(resolution);
     bool isSubtype = compiler.types.isSubtype(targetType, constructorType);
     if (!isSubtype) {
       compiler.reportWarningMessage(
@@ -3693,9 +3693,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       isValidAsConstant = false;
     }
 
-    redirectionTarget.computeType(compiler);
+    redirectionTarget.computeType(resolution);
     FunctionSignature targetSignature = redirectionTarget.functionSignature;
-    constructor.computeType(compiler);
+    constructor.computeType(resolution);
     FunctionSignature constructorSignature = constructor.functionSignature;
     if (!targetSignature.isCompatibleWith(constructorSignature)) {
       assert(!isSubtype);
@@ -3750,7 +3750,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAwait(Await node) {
-    compiler.futureClass.ensureResolved(compiler);
+    compiler.futureClass.ensureResolved(resolution);
     visit(node.expression);
     return const NoneResult();
   }
@@ -3845,7 +3845,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (Elements.isUnresolved(constructor)) {
       return new ResolutionResult.forElement(constructor);
     }
-    constructor.computeType(compiler);
+    constructor.computeType(resolution);
     if (!callSelector.applies(constructor, compiler.world)) {
       registry.registerThrowNoSuchMethod();
     }

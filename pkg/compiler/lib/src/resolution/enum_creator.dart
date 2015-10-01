@@ -5,6 +5,7 @@
 library dart2js.resolution.enum_creator;
 
 import '../compiler.dart';
+import '../core_types.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
@@ -184,13 +185,15 @@ class EnumCreator {
 
   EnumCreator(this.compiler, this.enumClass);
 
+  CoreTypes get coreTypes => compiler.coreTypes;
+
   void createMembers() {
     Enum node = enumClass.node;
     InterfaceType enumType = enumClass.thisType;
     AstBuilder builder = new AstBuilder(enumClass.position.charOffset);
 
-    InterfaceType intType = compiler.intClass.computeType(compiler);
-    InterfaceType stringType = compiler.stringClass.computeType(compiler);
+    InterfaceType intType = coreTypes.intType;
+    InterfaceType stringType = coreTypes.stringType;
 
     EnumFieldElementX addInstanceMember(String name, InterfaceType type) {
       Identifier identifier = builder.identifier(name);
@@ -268,8 +271,7 @@ class EnumCreator {
 
     VariableList valuesVariableList =
         new VariableList(builder.modifiers(isStatic: true, isConst: true));
-    InterfaceType listType = compiler.listClass.computeType(compiler);
-    valuesVariableList.type = listType.createInstantiation([enumType]);
+    valuesVariableList.type = coreTypes.listType(enumType);
 
     Identifier valuesIdentifier = builder.identifier('values');
     // TODO(johnniwinther): Add type argument.

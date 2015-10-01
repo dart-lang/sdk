@@ -129,7 +129,7 @@ class TypeTestRegistry {
     backend.generatedCode.keys.where((element) {
       return canBeReflectedAsFunction(element) && canBeReified(element);
     }).forEach((FunctionElement function) {
-      DartType type = function.computeType(compiler);
+      DartType type = function.type;
       for (ClassElement cls in backend.rti.getReferencedClasses(type)) {
         while (cls != null) {
           rtiNeededClasses.add(cls);
