@@ -791,7 +791,7 @@ class StrongAssignabilityTest {
     DartType top = TypeBuilder.functionType(<DartType>[intType], objectType);
     InterfaceType bottom = classBottom.type;
 
-    _checkIsAssignableTo(top, bottom);
+    _checkIsStrictAssignableTo(bottom, top);
   }
 
   void test_isAssignableTo_fuzzy_arrows() {

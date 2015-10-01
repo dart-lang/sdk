@@ -15101,7 +15101,7 @@ class StrongTypeSystemImpl implements TypeSystem {
 
   // TODO(leafp): Document the rules in play here
   @override
-  bool isAssignableTo(DartType toType, DartType fromType) {
+  bool isAssignableTo(DartType fromType, DartType toType) {
     // An actual subtype
     if (isSubtypeOf(fromType, toType)) {
       return true;
