@@ -272,14 +272,14 @@ class Scavenger {
 
   intptr_t NewSizeInWords(intptr_t old_size_in_words) const;
 
-  SemiSpace* to_;
-
-  Heap* heap_;
-
   // Current allocation top and end. These values are being accessed directly
   // from generated code.
   uword top_;
   uword end_;
+
+  SemiSpace* to_;
+
+  Heap* heap_;
 
   // A pointer to the first unscanned object.  Scanning completes when
   // this value meets the allocation top.

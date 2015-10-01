@@ -1612,11 +1612,12 @@ class RawSmi : public RawInteger {
 class RawMint : public RawInteger {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Mint);
 
-  int64_t value_;
+  ALIGN8 int64_t value_;
 
   friend class Api;
   friend class SnapshotReader;
 };
+COMPILE_ASSERT(sizeof(RawMint) == 16);
 
 
 class RawBigint : public RawInteger {
@@ -1633,11 +1634,12 @@ class RawBigint : public RawInteger {
 class RawDouble : public RawNumber {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Double);
 
-  double value_;
+  ALIGN8 double value_;
 
   friend class Api;
   friend class SnapshotReader;
 };
+COMPILE_ASSERT(sizeof(RawDouble) == 16);
 
 
 class RawString : public RawInstance {

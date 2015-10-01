@@ -311,11 +311,11 @@ class Heap {
   // of this heap.
   void GetMergedAddressRange(uword* start, uword* end) const;
 
-  Isolate* isolate_;
-
   // The different spaces used for allocation.
   Scavenger new_space_;
   PageSpace old_space_;
+
+  Isolate* isolate_;
 
   WeakTable* new_weak_tables_[kNumWeakSelectors];
   WeakTable* old_weak_tables_[kNumWeakSelectors];

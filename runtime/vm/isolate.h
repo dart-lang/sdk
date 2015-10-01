@@ -217,9 +217,6 @@ class Isolate : public BaseIsolate {
 
   ObjectStore* object_store() const { return object_store_; }
   void set_object_store(ObjectStore* value) { object_store_ = value; }
-  static intptr_t object_store_offset() {
-    return OFFSET_OF(Isolate, object_store_);
-  }
 
   // DEPRECATED: Use Thread's methods instead. During migration, these default
   // to using the mutator thread (which must also be the current thread).
@@ -830,11 +827,18 @@ class Isolate : public BaseIsolate {
 
   template<class T> T* AllocateReusableHandle();
 
-  uword vm_tag_;
+  // Accessed from generated code:
+  uword stack_limit_;
   StoreBuffer* store_buffer_;
   Heap* heap_;
-  ThreadRegistry* thread_registry_;
+  uword vm_tag_;
+  uword user_tag_;
+  RawUserTag* current_tag_;
+  RawUserTag* default_tag_;
   ClassTable class_table_;
+  bool single_step_;
+
+  ThreadRegistry* thread_registry_;
   Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
   char* debugger_name_;
@@ -851,7 +855,6 @@ class Isolate : public BaseIsolate {
   Dart_LibraryTagHandler library_tag_handler_;
   ApiState* api_state_;
   Debugger* debugger_;
-  bool single_step_;
   bool resume_request_;
   int64_t last_resume_timestamp_;
   bool has_compiled_;
@@ -860,7 +863,6 @@ class Isolate : public BaseIsolate {
   Simulator* simulator_;
   intptr_t deopt_id_;
   Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.
-  uword stack_limit_;
   uword saved_stack_limit_;
   uword stack_base_;
   uword stack_overflow_flags_;
@@ -895,10 +897,8 @@ class Isolate : public BaseIsolate {
   Mutex profiler_data_mutex_;
 
   VMTagCounters vm_tag_counters_;
-  uword user_tag_;
   RawGrowableObjectArray* tag_table_;
-  RawUserTag* current_tag_;
-  RawUserTag* default_tag_;
+
 
   RawGrowableObjectArray* collected_closures_;
   RawGrowableObjectArray* deoptimized_code_array_;
