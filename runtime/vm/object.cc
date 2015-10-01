@@ -5862,7 +5862,9 @@ bool Function::AreValidArgumentCounts(intptr_t num_arguments,
                   "%" Pd " named passed, at most %" Pd " expected",
                   num_named_arguments,
                   NumOptionalNamedParameters());
-      *error_message = String::New(message_buffer);
+      // Allocate in old space because it can be invoked in background
+      // optimizing compilation.
+      *error_message = String::New(message_buffer, Heap::kOld);
     }
     return false;  // Too many named arguments.
   }
@@ -5882,7 +5884,9 @@ bool Function::AreValidArgumentCounts(intptr_t num_arguments,
                   num_opt_pos_params > 0 ? " positional" : "",
                   num_opt_pos_params > 0 ? "at most " : "",
                   num_pos_params - num_hidden_params);
-      *error_message = String::New(message_buffer);
+      // Allocate in old space because it can be invoked in background
+      // optimizing compilation.
+      *error_message = String::New(message_buffer, Heap::kOld);
     }
     return false;  // Too many fixed and/or positional arguments.
   }
@@ -5899,7 +5903,9 @@ bool Function::AreValidArgumentCounts(intptr_t num_arguments,
                   num_opt_pos_params > 0 ? " positional" : "",
                   num_opt_pos_params > 0 ? "at least " : "",
                   num_fixed_parameters() - num_hidden_params);
-      *error_message = String::New(message_buffer);
+      // Allocate in old space because it can be invoked in background
+      // optimizing compilation.
+      *error_message = String::New(message_buffer, Heap::kOld);
     }
     return false;  // Too few fixed and/or positional arguments.
   }
@@ -5944,7 +5950,9 @@ bool Function::AreValidArguments(intptr_t num_arguments,
                     kMessageBufferSize,
                     "no optional formal parameter named '%s'",
                     argument_name.ToCString());
-        *error_message = String::New(message_buffer);
+        // Allocate in old space because it can be invoked in background
+        // optimizing compilation.
+        *error_message = String::New(message_buffer, Heap::kOld);
       }
       return false;
     }
@@ -5990,7 +5998,9 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
                     kMessageBufferSize,
                     "no optional formal parameter named '%s'",
                     argument_name.ToCString());
-        *error_message = String::New(message_buffer);
+        // Allocate in old space because it can be invoked in background
+        // optimizing compilation.
+        *error_message = String::New(message_buffer, Heap::kOld);
       }
       return false;
     }
@@ -14530,8 +14540,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   }
   Isolate* isolate = Isolate::Current();
   const Class& cls = Class::Handle(isolate, clazz());
-  TypeArguments& type_arguments =
-      TypeArguments::Handle(isolate);
+  TypeArguments& type_arguments = TypeArguments::Handle(isolate);
   if (cls.NumTypeArguments() > 0) {
     type_arguments = GetTypeArguments();
     ASSERT(type_arguments.IsNull() || type_arguments.IsCanonical());
