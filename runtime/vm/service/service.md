@@ -1437,7 +1437,7 @@ class Instance extends Object {
   @Class parameterizedClass [optional];
 
   // The fields of this Instance.
-  BoundField fields [optional];
+  BoundField[] fields [optional];
 
   // The elements of a List instance.
   //
