@@ -2129,7 +2129,7 @@ class VM extends Response {
   string version;
 
   // The process id for the VM.
-  string pid;
+  int pid;
 
   // The time that the VM started in milliseconds since the epoch.
   //
@@ -2147,7 +2147,7 @@ version | comments
 ------- | --------
 1.0 | initial revision
 2.0 | Describe protocol version 2.0.
-3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry.
+3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.
 
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

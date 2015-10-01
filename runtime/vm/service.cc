@@ -2952,10 +2952,7 @@ static bool GetVM(Isolate* isolate, JSONStream* js) {
   jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
   jsobj.AddProperty("version", Version::String());
-  // Send pid as a string because it allows us to avoid any issues with
-  // pids > 53-bits (when consumed by JavaScript).
-  // TODO(johnmccutchan): Codify how integers are sent across the service.
-  jsobj.AddPropertyF("pid", "%" Pd "", OS::ProcessId());
+  jsobj.AddProperty("pid", OS::ProcessId());
   jsobj.AddProperty("_assertsEnabled", isolate->flags().asserts());
   jsobj.AddProperty("_typeChecksEnabled", isolate->flags().type_checks());
   int64_t start_time_millis = (Dart::vm_isolate()->start_time() /

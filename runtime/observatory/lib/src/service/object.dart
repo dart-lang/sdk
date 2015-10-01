@@ -637,7 +637,7 @@ abstract class VM extends ServiceObjectOwner {
   @observable int architectureBits;
   @observable bool assertsEnabled = false;
   @observable bool typeChecksEnabled = false;
-  @observable String pid = '';
+  @observable int pid = 0;
   @observable DateTime startTime;
   @observable DateTime refreshTime;
   @observable Duration get upTime =>
@@ -877,7 +877,7 @@ abstract class VM extends ServiceObjectOwner {
     version = map['version'];
     targetCPU = map['targetCPU'];
     architectureBits = map['architectureBits'];
-    var startTimeMillis = map['startTime'].toInt();
+    int startTimeMillis = map['startTime'];
     startTime = new DateTime.fromMillisecondsSinceEpoch(startTimeMillis);
     refreshTime = new DateTime.now();
     notifyPropertyChange(#upTime, 0, 1);
@@ -1345,7 +1345,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
       entry = map['entry'];
     }
     var savedStartTime = startTime;
-    var startTimeInMillis = map['startTime'].toInt();
+    int startTimeInMillis = map['startTime'];
     startTime = new DateTime.fromMillisecondsSinceEpoch(startTimeInMillis);
     notifyPropertyChange(#upTime, 0, 1);
     var countersMap = map['_tagCounters'];
@@ -1879,7 +1879,7 @@ class ServiceEvent extends ServiceObject {
     _upgradeCollection(map, owner);
     assert(map['isolate'] == null || owner == map['isolate']);
     timestamp =
-        new DateTime.fromMillisecondsSinceEpoch(map['timestamp'].toInt());
+        new DateTime.fromMillisecondsSinceEpoch(map['timestamp']);
     kind = map['kind'];
     notifyPropertyChange(#isPauseEvent, 0, 1);
     name = 'ServiceEvent $kind';
@@ -1934,7 +1934,7 @@ class ServiceEvent extends ServiceObject {
     if (map['logRecord'] != null) {
       logRecord = map['logRecord'];
       logRecord['time'] =
-          new DateTime.fromMillisecondsSinceEpoch(logRecord['time'].toInt());
+          new DateTime.fromMillisecondsSinceEpoch(logRecord['time']);
       logRecord['level'] = _findLogLevel(logRecord['level']);
     }
   }

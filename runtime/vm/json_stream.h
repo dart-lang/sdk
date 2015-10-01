@@ -172,6 +172,9 @@ class JSONStream : ValueObject {
 
   intptr_t nesting_level() const { return open_objects_; }
 
+  // Debug only fatal assertion.
+  static void EnsureIntegerIsRepresentableInJavaScript(int64_t i);
+
   intptr_t open_objects_;
   TextBuffer buffer_;
   // Default service id zone.
