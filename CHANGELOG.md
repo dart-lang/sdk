@@ -1,5 +1,10 @@
 ## 1.13.0
 
+* `dart:async`
+  * `StreamTransformer` instances created with `fromHandlers` with no
+    `handleError` callback now forward stack traces along with errors to the
+    resulting streams.
+
 * `dart:core`
   * `Uri` added `removeFragment` method.
   * `String.allMatches` (implementing `Pattern.allMatches`) is now lazy,
@@ -10,11 +15,6 @@
     allowed by the HTTP protocol.
     The `HttpServer` still gracefully receives fragments, but discards them
     before delivering the request.
-
-* `dart:async`
-  * `StreamTransformer`s created with `fromHandlers` with no `handleError`
-    callback now forward stack traces along with errors to the resulting
-    streams.
 
 ### Tool changes
 
