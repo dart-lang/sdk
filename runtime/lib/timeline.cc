@@ -41,8 +41,8 @@ DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
   int64_t tid = OSThread::ThreadIdToIntPtr(OSThread::GetCurrentThreadTraceId());
 
   char* event = OS::SCreate(zone,
-      "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%"Pd64",\"pid\":%"Pd64","
-      "\"ts\":%"Pd64",\"ph\":\"X\",\"dur\":%"Pd64",\"args\":%s}",
+      "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64 ","
+      "\"ts\":%" Pd64 ",\"ph\":\"X\",\"dur\":%" Pd64 ",\"args\":%s}",
       name.ToCString(),
       category.ToCString(),
       tid,
