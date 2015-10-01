@@ -18,7 +18,8 @@ custom/element_upgrade_test: RuntimeError # Dartium JSInterop failure
 custom/js_custom_test: RuntimeError # Dartium JSInterop failure
 custom_elements_test/register: RuntimeError # Dartium JSInterop failure
 indexeddb_2_test: Skip # Dartium JSInterop failure
-js_test: RuntimeError # Dartium JSInterop failure
+js_test/transferrables: RuntimeError # Dartium JSInterop failure
+js_test/JsArray: RuntimeError # Dartium JSInterop failure
 native_gc_test: Skip # Dartium JSInterop failure
 speechrecognition_test/types: RuntimeError # Dartium JSInterop failure
 storage_quota_test/missingenumcheck: RuntimeError # Dartium JSInterop failure

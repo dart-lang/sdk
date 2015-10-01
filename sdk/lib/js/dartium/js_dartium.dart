@@ -489,6 +489,12 @@ class JsObject extends NativeFieldWrapperClass2 {
   JsObject.internal();
 
   /**
+   * If this JsObject is wrapped, e.g. DOM objects, then we can save the
+   * wrapper here and preserve its identity.
+   */
+  var dartWrapper;
+
+  /**
    * Constructs a new JavaScript object from [constructor] and returns a proxy
    * to it.
    */

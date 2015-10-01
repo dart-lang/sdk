@@ -11,7 +11,7 @@ import 'dart:indexed_db' show IdbFactory, KeyRange;
 import 'dart:js';
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:unittest/html_individual_config.dart';
 
 _injectJs() {
   final script = new ScriptElement();
@@ -230,7 +230,7 @@ class Callable {
 
 main() {
   _injectJs();
-  useHtmlConfiguration();
+  useHtmlIndividualConfiguration();
 
   group('identity', () {
 
@@ -552,7 +552,7 @@ main() {
       array.length = 3;
       expect(array, [1, 2, null]);
     });
- 
+
      test('add', () {
       var array = new JsArray();
       array.add('a');
