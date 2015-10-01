@@ -65,6 +65,7 @@ static bool IsSplitClassId(intptr_t class_id) {
   return class_id >= kNumPredefinedCids ||
          class_id == kArrayCid ||
          class_id == kImmutableArrayCid ||
+         class_id == kObjectPoolCid ||
          RawObject::IsImplicitFieldClassId(class_id);
 }
 
@@ -483,6 +484,16 @@ RawObject* SnapshotReader::ReadObjectRef(intptr_t object_id,
     AddBackRef(object_id, &array, kIsNotDeserialized);
 
     return array.raw();
+  }
+  if (class_id == kObjectPoolCid) {
+    ASSERT(kind_ == Snapshot::kFull);
+    // Read the length and allocate an object based on the len.
+    intptr_t len = Read<intptr_t>();
+    ObjectPool& pool = ObjectPool::ZoneHandle(zone(),
+                                              NewObjectPool(len));
+    AddBackRef(object_id, &pool, kIsNotDeserialized);
+
+    return pool.raw();
   }
 
   // For all other internal VM classes we read the object inline.
@@ -2259,6 +2270,29 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
 
     // Write out the length field.
     Write<RawObject*>(rawarray->ptr()->length_);
+
+    return;
+  }
+  if (class_id == kObjectPoolCid) {
+    intptr_t tags = GetObjectTags(raw);
+
+    // Object is being referenced, add it to the forward ref list and mark
+    // it so that future references to this object in the snapshot will use
+    // this object id. Mark it as not having been serialized yet so that we
+    // will serialize the object when we go through the forward list.
+    forward_list_->MarkAndAddObject(raw, kIsNotSerialized);
+
+    RawObjectPool* rawpool = reinterpret_cast<RawObjectPool*>(raw);
+
+    // Write out the serialization header value for this object.
+    WriteInlinedObjectHeader(kOmittedObjectId);
+
+    // Write out the class information.
+    WriteVMIsolateObject(kObjectPoolCid);
+    WriteTags(tags);
+
+    // Write out the length field.
+    Write<intptr_t>(rawpool->ptr()->length_);
 
     return;
   }
