@@ -875,11 +875,7 @@ void SSLFilter::Connect(const char* hostname,
   status = BIO_new_bio_pair(&ssl_side, 10000, &socket_side_, 10000);
   CheckStatus(status, "BIO_new_bio_pair", __LINE__);
 
-  if (context == NULL) {
-    DART_CHECK_VALID(Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "Default SecurityContext not implemented, context cannot be null.")));
-  }
-
+  assert(context != NULL);
   ssl_ = SSL_new(context);
   SSL_set_bio(ssl_, ssl_side, ssl_side);
   SSL_set_mode(ssl_, SSL_MODE_AUTO_RETRY);  // TODO(whesse): Is this right?
@@ -891,6 +887,8 @@ void SSLFilter::Connect(const char* hostname,
     SSL_set_verify(ssl_, SSL_VERIFY_NONE, NULL);
   } else {
     SetAlpnProtocolList(protocols_handle, ssl_, NULL, false);
+    status = SSL_set_tlsext_host_name(ssl_, hostname);
+    CheckStatus(status, "Set SNI host name", __LINE__);
     // Sets the hostname in the certificate-checking object, so it is checked
     // against the certificate presented by the server.
     X509_VERIFY_PARAM* certificate_checking_parameters = SSL_get0_param(ssl_);
