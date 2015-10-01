@@ -1517,7 +1517,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     if (col != null) {
       params['column'] = col.toString();
     }
-    return invokeRpc('addBreakpoint', params);
+    return invokeRpc('addBreakpointWithScriptUri', params);
   }
 
   Future<ServiceObject> addBreakpointAtEntry(ServiceFunction function) {

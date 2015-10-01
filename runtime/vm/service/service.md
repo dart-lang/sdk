@@ -25,6 +25,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 - [Private RPCs, Types, and Properties](#private-rpcs-types-and-properties)
 - [Public RPCs](#public-rpcs)
 	- [addBreakpoint](#addbreakpoint)
+	- [addBreakpointWithScriptUri](#addbreakpointwithscripturi)
 	- [addBreakpointAtEntry](#addbreakpointatentry)
 	- [evaluate](#evaluate)
 	- [evaluateInFrame](#evaluateinframe)
@@ -372,8 +373,7 @@ in the section on [public types](#public-types).
 
 ```
 Breakpoint addBreakpoint(string isolateId,
-                         string scriptId [optional],
-                         string scriptUri [optional],
+                         string scriptId,
                          int line,
                          int column [optional])
 ```
@@ -381,8 +381,41 @@ Breakpoint addBreakpoint(string isolateId,
 The _addBreakpoint_ RPC is used to add a breakpoint at a specific line
 of some script.
 
-The _scriptId_ or _scriptUri_ parameter is used to specify the target
-script. One of these two parameters must always be provided.
+The _scriptId_ parameter is used to specify the target script.
+
+The _line_ parameter is used to specify the target line for the
+breakpoint. If there are multiple possible breakpoints on the target
+line, then the VM will place the breakpoint at the location which
+would execute soonest. If it is not possible to set a breakpoint at
+the target line, the breakpoint will be added at the next possible
+breakpoint location within the same function.
+
+The _column_ parameter may be optionally specified.  This is useful
+for targeting a specific breakpoint on a line with multiple possible
+breakpoints.
+
+If no breakpoint is possible at that line, the _102_ (Cannot add
+breakpoint) error code is returned.
+
+Note that breakpoints are added and removed on a per-isolate basis.
+
+See [Breakpoint](#breakpoint).
+
+### addBreakpointWithScriptUri
+
+```
+Breakpoint addBreakpointWithScriptUri(string isolateId,
+                                      string scriptUri,
+                                      int line,
+                                      int column [optional])
+```
+
+The _addBreakpoint_ RPC is used to add a breakpoint at a specific line
+of some script.  This RPC is useful when a script has not yet been
+assigned an id, for example, if a script is in a deferred library
+which has not yet been loaded.
+
+The _scriptUri_ parameter is used to specify the target script.
 
 The _line_ parameter is used to specify the target line for the
 breakpoint. If there are multiple possible breakpoints on the target
@@ -1655,11 +1688,6 @@ class Isolate extends Response {
   // running, this will be a resume event.
   Event pauseEvent;
 
-  // The entry function for this isolate.
-  //
-  // Guaranteed to be initialized when the IsolateRunnable event fires.
-  @Function entry [optional];
-
   // The root library for this isolate.
   //
   // Guaranteed to be initialized when the IsolateRunnable event fires.
@@ -2117,9 +2145,9 @@ class VM extends Response {
 
 version | comments
 ------- | --------
-1.0 draft 1 | initial revision
-1.1 | Describe protocol version 2.0.
-1.2 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.
+1.0 | initial revision
+2.0 | Describe protocol version 2.0.
+3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry.
 
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

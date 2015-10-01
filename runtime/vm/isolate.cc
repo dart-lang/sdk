@@ -1812,15 +1812,6 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   }
   int64_t start_time_millis = start_time() / kMicrosecondsPerMillisecond;
   jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
-  IsolateSpawnState* state = spawn_state();
-  if (state != NULL) {
-    const Object& entry = Object::Handle(this, state->ResolveFunction());
-    if (!entry.IsNull() && entry.IsFunction()) {
-      Function& func = Function::Handle(this);
-      func ^= entry.raw();
-      jsobj.AddProperty("entry", func);
-    }
-  }
   {
     JSONObject jsheap(&jsobj, "_heaps");
     heap()->PrintToJSONObject(Heap::kNew, &jsheap);

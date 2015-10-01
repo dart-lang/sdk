@@ -2041,17 +2041,9 @@ static bool GetCallSiteData(Isolate* isolate, JSONStream* js) {
 }
 
 
-static const MethodParameter* add_breakpoint_params[] = {
-  ISOLATE_PARAMETER,
-  new IdParameter("scriptId", false),
-  new IdParameter("scriptUri", false),
-  new UIntParameter("line", true),
-  new UIntParameter("column", false),
-  NULL,
-};
-
-
-static bool AddBreakpoint(Isolate* isolate, JSONStream* js) {
+static bool AddBreakpointCommon(Isolate* isolate,
+                                JSONStream* js,
+                                const String& script_uri) {
   const char* line_param = js->LookupParam("line");
   intptr_t line = UIntParameter::Parse(line_param);
   const char* col_param = js->LookupParam("column");
@@ -2064,28 +2056,6 @@ static bool AddBreakpoint(Isolate* isolate, JSONStream* js) {
       return true;
     }
   }
-  const char* script_id_param = js->LookupParam("scriptId");
-  const char* script_uri_param = js->LookupParam("scriptUri");
-  if (script_id_param == NULL && script_uri_param == NULL) {
-    js->PrintError(kInvalidParams,
-                   "%s expects the 'scriptId' or the 'scriptUri' parameter",
-                   js->method());
-    return true;
-  }
-  String& script_uri = String::Handle(isolate);
-  if (script_id_param != NULL) {
-    Object& obj =
-        Object::Handle(LookupHeapObject(isolate, script_id_param, NULL));
-    if (obj.raw() == Object::sentinel().raw() || !obj.IsScript()) {
-      PrintInvalidParamError(js, "scriptId");
-      return true;
-    }
-    const Script& script = Script::Cast(obj);
-    script_uri = script.url();
-  }
-  if (script_uri_param != NULL) {
-    script_uri = String::New(script_uri_param);
-  }
   ASSERT(!script_uri.IsNull());
   Breakpoint* bpt = NULL;
   bpt = isolate->debugger()->SetBreakpointAtLineCol(script_uri, line, col);
@@ -2097,6 +2067,46 @@ static bool AddBreakpoint(Isolate* isolate, JSONStream* js) {
   }
   bpt->PrintJSON(js);
   return true;
+}
+
+
+static const MethodParameter* add_breakpoint_params[] = {
+  ISOLATE_PARAMETER,
+  new IdParameter("scriptId", true),
+  new UIntParameter("line", true),
+  new UIntParameter("column", false),
+  NULL,
+};
+
+
+static bool AddBreakpoint(Isolate* isolate, JSONStream* js) {
+  const char* script_id_param = js->LookupParam("scriptId");
+  Object& obj =
+      Object::Handle(LookupHeapObject(isolate, script_id_param, NULL));
+  if (obj.raw() == Object::sentinel().raw() || !obj.IsScript()) {
+    PrintInvalidParamError(js, "scriptId");
+    return true;
+  }
+  const Script& script = Script::Cast(obj);
+  const String& script_uri = String::Handle(script.url());
+  ASSERT(!script_uri.IsNull());
+  return AddBreakpointCommon(isolate, js, script_uri);
+}
+
+
+static const MethodParameter* add_breakpoint_with_script_uri_params[] = {
+  ISOLATE_PARAMETER,
+  new IdParameter("scriptUri", true),
+  new UIntParameter("line", true),
+  new UIntParameter("column", false),
+  NULL,
+};
+
+
+static bool AddBreakpointWithScriptUri(Isolate* isolate, JSONStream* js) {
+  const char* script_uri_param = js->LookupParam("scriptUri");
+  const String& script_uri = String::Handle(String::New(script_uri_param));
+  return AddBreakpointCommon(isolate, js, script_uri);
 }
 
 
@@ -3121,6 +3131,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     NULL },
   { "addBreakpoint", AddBreakpoint,
     add_breakpoint_params },
+  { "addBreakpointWithScriptUri", AddBreakpointWithScriptUri,
+    add_breakpoint_with_script_uri_params },
   { "addBreakpointAtEntry", AddBreakpointAtEntry,
     add_breakpoint_at_entry_params },
   { "_addBreakpointAtActivation", AddBreakpointAtActivation,

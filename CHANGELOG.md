@@ -25,6 +25,10 @@
 * This is the last release to ship the VM's "legacy debug protocol".
   We intend to remove the legacy debug protocol in Dart VM 1.14.
 
+* The VM's Service Protocol has been updated to version 3.0 to take care
+  of a number of issues uncovered by the first few non-observatory
+  clients.  This is a potentially breaking change for clients.
+
 ## 1.12.0
 
 ### Language changes
