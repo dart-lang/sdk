@@ -312,8 +312,8 @@ class B extends A {
         return new Future.value();
       }
       return new Future.delayed(
-          Duration.ZERO, () => waitForNotification(times - 1));
+          new Duration(milliseconds:1), () => waitForNotification(times - 1));
     }
-    return waitForNotification(100);
+    return waitForNotification(30000);
   }
 }
