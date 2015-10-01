@@ -928,10 +928,11 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         return containerTypeMask.elementType;
       } else if (inferrer.returnsMapValueType(selector, typeMask)) {
         if (typeMask.isDictionary &&
-            arguments.positional[0].type.isValue) {
+            arguments.positional[0].type.isValue &&
+            arguments.positional[0].type.value.isString) {
           DictionaryTypeMask dictionaryTypeMask = typeMask;
           ValueTypeMask arg = arguments.positional[0].type;
-          String key = arg.value;
+          String key = arg.value.primitiveValue.slowToString();
           if (dictionaryTypeMask.typeMap.containsKey(key)) {
             if (_VERBOSE) {
               print("Dictionary lookup for $key yields "
@@ -1116,7 +1117,7 @@ class StringLiteralTypeInformation extends ConcreteTypeInformation {
   final ast.DartString value;
 
   StringLiteralTypeInformation(value, TypeMask mask)
-      : super(new ValueTypeMask(mask, value.slowToString())),
+      : super(new ValueTypeMask(mask, new StringConstantValue(value))),
         this.value = value;
 
   String asString() => value.slowToString();
@@ -1131,7 +1132,8 @@ class BoolLiteralTypeInformation extends ConcreteTypeInformation {
   final ast.LiteralBool value;
 
   BoolLiteralTypeInformation(value, TypeMask mask)
-      : super(new ValueTypeMask(mask, value.value)),
+      : super(new ValueTypeMask(mask,
+            value.value ? new TrueConstantValue() : new FalseConstantValue())),
         this.value = value;
 
   String toString() => 'Type $type value ${value.value}';

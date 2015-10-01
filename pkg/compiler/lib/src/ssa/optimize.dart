@@ -200,6 +200,41 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return node;
   }
 
+  ConstantValue getConstantFromType(HInstruction node) {
+    if (node.isValue() && !node.canBeNull()) {
+      ValueTypeMask valueMask = node.instructionType;
+      if (valueMask.value.isBool) {
+        return valueMask.value;
+      }
+      // TODO(het): consider supporting other values (short strings?)
+    }
+    return null;
+  }
+
+  void propagateConstantValueToUses(HInstruction node) {
+    if (node.usedBy.isEmpty) return;
+    ConstantValue value = getConstantFromType(node);
+    if (value != null) {
+      HConstant constant = graph.addConstant(value, compiler);
+      for (HInstruction user in node.usedBy.toList()) {
+        user.changeUse(node, constant);
+      }
+    }
+  }
+
+  HInstruction visitParameterValue(HParameterValue node) {
+    // It is possible for the parameter value to be assigned to in the function
+    // body. If that happens then we should not forward the constant value to
+    // its uses since since the uses reachable from the assignment may have
+    // values in addition to the constant passed to the function.
+    if (node.usedBy.any((user) =>
+            user is HLocalSet && identical(user.local, node))) {
+      return node;
+    }
+    propagateConstantValueToUses(node);
+    return node;
+  }
+
   HInstruction visitBoolify(HBoolify node) {
     List<HInstruction> inputs = node.inputs;
     assert(inputs.length == 1);
@@ -372,6 +407,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
+    propagateConstantValueToUses(node);
     if (node.isInterceptedCall) {
       HInstruction folded = handleInterceptedCall(node);
       if (folded != node) return folded;
@@ -806,6 +842,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
+    propagateConstantValueToUses(node);
     if (node.isInterceptedCall) {
       HInstruction folded = handleInterceptedCall(node);
       if (folded != node) return folded;
@@ -867,6 +904,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitInvokeStatic(HInvokeStatic node) {
+    propagateConstantValueToUses(node);
     if (node.element == backend.getCheckConcurrentModificationError()) {
       if (node.inputs.length == 2) {
         HInstruction firstArgument = node.inputs[0];
@@ -1302,13 +1340,6 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor {
     HInstruction condition = instruction.condition;
     if (condition.isConstant()) {
       if (condition.isConstantTrue()) {
-        markBlockLive(instruction.thenBlock);
-      } else {
-        markBlockLive(instruction.elseBlock);
-      }
-    } else if (condition.isValue()) {
-      ValueTypeMask valueType = condition.instructionType;
-      if (valueType.value == true) {
         markBlockLive(instruction.thenBlock);
       } else {
         markBlockLive(instruction.elseBlock);

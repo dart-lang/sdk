@@ -133,10 +133,7 @@ class TypeMaskSystem {
     if (!mask.isValue) return null;
     if (mask.isNullable) return null;  // e.g. 'true or null'.
     ValueTypeMask valueMask = mask;
-    var value = valueMask.value;
-    // TODO(sra): Why is ValueTypeMask.value not a ConstantValue?
-    if (value == false) return new FalseConstantValue();
-    if (value == true) return new TrueConstantValue();
+    if (valueMask.value.isBool) return valueMask.value;
     // TODO(sra): Consider other values. Be careful with large strings.
     return null;
   }
