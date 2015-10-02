@@ -90,6 +90,17 @@ class ArgListContributorTest extends AbstractCompletionTest {
     contributor = new ArgListContributor();
   }
 
+  test_Annotation_local_constructor_named_param() {
+    //
+    addTestSource('''
+class A { A({int one, String two: 'defaultValue'}) { } }
+@A(^) main() { }''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestArguments(namedArguments: ['one', 'two']);
+    });
+  }
+
   test_ArgumentList_getter() {
     addTestSource('class A {int get foo => 7; main() {foo(^)}');
     computeFast();

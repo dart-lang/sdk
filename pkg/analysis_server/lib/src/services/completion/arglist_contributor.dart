@@ -141,23 +141,20 @@ class _ArgListAstVisitor extends GeneralizingAstVisitor<_ArgSuggestionBuilder> {
           }
         }
       }
-      if (parent is InstanceCreationExpression) {
-        ConstructorName constructorName = parent.constructorName;
-        if (constructorName != null) {
-          String name = constructorName.toSource();
-          if (name.length > 0) {
-            /*
-             * If a local declaration is found, then return null
-             * indicating that suggestions were added
-             * and no further action is necessary
-             */
-            if (new _LocalArgSuggestionBuilder(request, request.offset, name)
-                .visit(node)) {
-              return null;
-            }
-            return new _ArgSuggestionBuilder(request, name);
-          }
+      String constructorName;
+      if (parent is Annotation && parent.name != null) {
+        constructorName = parent.name.toSource();
+      }
+      if (parent is InstanceCreationExpression &&
+          parent.constructorName != null) {
+        constructorName = parent.constructorName.toSource();
+      }
+      if (constructorName != null && constructorName.length > 0) {
+        if (new _LocalArgSuggestionBuilder(
+            request, request.offset, constructorName).visit(node)) {
+          return null;
         }
+        return new _ArgSuggestionBuilder(request, constructorName);
       }
     }
     return null;
