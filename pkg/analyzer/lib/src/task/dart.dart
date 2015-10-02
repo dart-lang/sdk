@@ -537,7 +537,7 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     //
     // Build or reuse CompilationUnitElement.
     //
-    unit = AstCloner.clone(unit);
+//    unit = AstCloner.clone(unit);
     AnalysisCache analysisCache =
         (context as InternalAnalysisContext).analysisCache;
     CompilationUnitElement element =
@@ -573,7 +573,7 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      PARSED_UNIT_INPUT_NAME: PARSED_UNIT.of(unit.unit)
+      PARSED_UNIT_INPUT_NAME: PARSED_UNIT.of(unit.unit, flushOnAccess: true)
     };
   }
 
@@ -4109,6 +4109,9 @@ class _SourceClosureTaskInputBuilder implements TaskInputBuilder<List<Source>> {
       }
     }
   }
+
+  @override
+  bool get flushOnAccess => false;
 
   @override
   List<Source> get inputValue {

@@ -37,6 +37,9 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
     if (length == -1) {
       length = findIdentifierLength(search);
     }
+    if (implementedClasses == null) {
+      fail('No notification of impemented classes was received');
+    }
     for (ImplementedClass clazz in implementedClasses) {
       if (clazz.offset == offset && clazz.length == length) {
         return;
@@ -57,6 +60,9 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
     if (length == -1) {
       length = findIdentifierLength(search);
     }
+    if (implementedMembers == null) {
+      fail('No notification of impemented members was received');
+    }
     for (ImplementedMember member in implementedMembers) {
       if (member.offset == offset && member.length == length) {
         return;
@@ -76,6 +82,9 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
     int offset = findOffset(search);
     if (length == -1) {
       length = findIdentifierLength(search);
+    }
+    if (implementedMembers == null) {
+      fail('No notification of impemented members was received');
     }
     for (ImplementedMember member in implementedMembers) {
       if (member.offset == offset) {

@@ -1500,7 +1500,7 @@ part of lib;
         reason: "part changed 3");
     _analyzeAll_assertFinished();
     expect(context.getResolvedCompilationUnit2(libSource, libSource), isNotNull,
-        reason: "library resolved 2");
+        reason: "library resolved 3");
     expect(
         context.getResolvedCompilationUnit2(partSource, libSource), isNotNull,
         reason: "part resolved 3");

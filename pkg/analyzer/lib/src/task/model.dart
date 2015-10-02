@@ -29,8 +29,12 @@ class ListResultDescriptorImpl<E> extends ResultDescriptorImpl<List<E>>
       : super(name, defaultValue, cachingPolicy: cachingPolicy);
 
   @override
-  ListTaskInput<E> of(AnalysisTarget target) =>
-      new ListTaskInputImpl<E>(target, this);
+  ListTaskInput<E> of(AnalysisTarget target, {bool flushOnAccess: false}) {
+    if (flushOnAccess) {
+      throw new StateError('Cannot flush a list of values');
+    }
+    return new ListTaskInputImpl<E>(target, this);
+  }
 }
 
 /**
@@ -71,8 +75,8 @@ class ResultDescriptorImpl<V> implements ResultDescriptor<V> {
   }
 
   @override
-  TaskInput<V> of(AnalysisTarget target) =>
-      new SimpleTaskInput<V>(target, this);
+  TaskInput<V> of(AnalysisTarget target, {bool flushOnAccess: false}) =>
+      new SimpleTaskInput<V>(target, this, flushOnAccess: flushOnAccess);
 
   @override
   String toString() => name;

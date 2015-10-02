@@ -5,6 +5,7 @@
 library analyzer.task.model;
 
 import 'dart:collection';
+import 'dart:developer';
 
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
 import 'package:analyzer/src/generated/error.dart' show AnalysisError;
@@ -82,6 +83,12 @@ abstract class AnalysisTask {
    * kind of task has been performed.
    */
   static final Map<Type, int> countMap = new HashMap<Type, int>();
+
+  /**
+   * A table mapping the types of analysis tasks to user tags used to collect
+   * timing data for the Observatory.
+   */
+  static Map<Type, UserTag> tagMap = new HashMap<Type, UserTag>();
 
   /**
    * A table mapping the types of analysis tasks to stopwatches used to compute
@@ -228,11 +235,15 @@ abstract class AnalysisTask {
       //
       int count = countMap[runtimeType];
       countMap[runtimeType] = count == null ? 1 : count + 1;
+//      UserTag tag = tagMap.putIfAbsent(
+//          runtimeType, () => new UserTag(runtimeType.toString()));
       Stopwatch stopwatch = stopwatchMap[runtimeType];
       if (stopwatch == null) {
         stopwatch = new Stopwatch();
         stopwatchMap[runtimeType] = stopwatch;
       }
+//      UserTag previousTag = tag.makeCurrent();
+//      try {
       stopwatch.start();
       //
       // Actually perform the task.
@@ -245,6 +256,9 @@ abstract class AnalysisTask {
       } finally {
         stopwatch.stop();
       }
+//      } finally {
+//        previousTag.makeCurrent();
+//      }
     } on AnalysisException {
       rethrow;
     } catch (exception, stackTrace) {
@@ -272,7 +286,7 @@ abstract class ListResultDescriptor<E> implements ResultDescriptor<List<E>> {
       E>;
 
   @override
-  ListTaskInput<E> of(AnalysisTarget target);
+  ListTaskInput<E> of(AnalysisTarget target, {bool flushOnAccess: false});
 }
 
 /**
@@ -387,9 +401,10 @@ abstract class ResultDescriptor<V> {
 
   /**
    * Return a task input that can be used to compute this result for the given
-   * [target].
+   * [target]. If [flushOnAccess] is `true` then the value of this result that
+   * is associated with the [target] will be flushed when it is accessed.
    */
-  TaskInput<V> of(AnalysisTarget target);
+  TaskInput<V> of(AnalysisTarget target, {bool flushOnAccess: false});
 }
 
 /**
@@ -528,6 +543,12 @@ abstract class TaskInputBuilder<V> {
    * invocation of [moveNext] returned `false`.
    */
   void set currentValue(Object value);
+
+  /**
+   * Return `true` if the value accessed by this input builder should be flushed
+   * from the cache at the time it is retrieved.
+   */
+  bool get flushOnAccess;
 
   /**
    * Return the [value] that was computed by this builder.

@@ -55,6 +55,9 @@ class ConstantTaskInputBuilder<V> implements TaskInputBuilder<V> {
   }
 
   @override
+  bool get flushOnAccess => false;
+
+  @override
   V get inputValue => input.value;
 
   @override
@@ -78,7 +81,7 @@ class ListTaskInputImpl<E> extends SimpleTaskInput<List<E>>
    * the given [result] associated with the given [target].
    */
   ListTaskInputImpl(AnalysisTarget target, ResultDescriptor<List<E>> result)
-      : super(target, result);
+      : super._unflushable(target, result);
 }
 
 /**
@@ -289,6 +292,9 @@ class MapToFlattenListTaskInputBuilder<K, V, E>
   }
 
   @override
+  bool get flushOnAccess => currentBuilder.flushOnAccess;
+
+  @override
   void currentValueNotAvailable() {
     if (currentBuilder == null) {
       throw new StateError(
@@ -440,6 +446,9 @@ class ObjectToListTaskInputBuilder<E> implements TaskInputBuilder<List<E>> {
   }
 
   @override
+  bool get flushOnAccess => builder.flushOnAccess;
+
+  @override
   List<E> get inputValue {
     if (builder != null) {
       throw new StateError('Result value has not been created');
@@ -491,10 +500,23 @@ class SimpleTaskInput<V> extends TaskInputImpl<V> {
   final ResultDescriptor<V> result;
 
   /**
+   * Return `true` if the value accessed by this input builder should be flushed
+   * from the cache at the time it is retrieved.
+   */
+  final bool flushOnAccess;
+
+  /**
    * Initialize a newly created task input that computes the input by accessing
    * the given [result] associated with the given [target].
    */
-  SimpleTaskInput(this.target, this.result);
+  SimpleTaskInput(this.target, this.result, {this.flushOnAccess: false});
+
+  /**
+   * Initialize a newly created task input that computes the input by accessing
+   * the given [result] associated with the given [target].
+   */
+  SimpleTaskInput._unflushable(this.target, this.result)
+      : flushOnAccess = false;
 
   @override
   TaskInputBuilder<V> createBuilder() => new SimpleTaskInputBuilder<V>(this);
@@ -564,6 +586,9 @@ class SimpleTaskInputBuilder<V> implements TaskInputBuilder<V> {
     _resultValue = value as V;
     _resultSet = true;
   }
+
+  @override
+  bool get flushOnAccess => input.flushOnAccess;
 
   @override
   V get inputValue {
@@ -672,6 +697,9 @@ class TopLevelTaskInputBuilder
     }
     currentBuilder.currentValue = value;
   }
+
+  @override
+  bool get flushOnAccess => currentBuilder.flushOnAccess;
 
   @override
   Map<String, Object> get inputValue {
@@ -825,6 +853,9 @@ abstract class _ListToCollectionTaskInputBuilder<B, E, C>
     }
     currentBuilder.currentValue = value;
   }
+
+  @override
+  bool get flushOnAccess => currentBuilder.flushOnAccess;
 
   @override
   C get inputValue {
