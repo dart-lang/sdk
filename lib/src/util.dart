@@ -1,4 +1,8 @@
-library compiler.tool.util;
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library dart2js_info.src.util;
 
 import 'package:dart2js_info/info.dart';
 import 'graph.dart';
@@ -72,4 +76,51 @@ pad(value, n, {bool right: false}) {
   if (s.length >= n) return s;
   var pad = ' ' * (n - s.length);
   return right ? '$s$pad' : '$pad$s';
+}
+
+/// Color-highlighted string used mainly to debug invariants.
+String recursiveDiagnosticString(Measurements measurements, Metric metric) {
+  var sb = new StringBuffer();
+  helper(Metric m) {
+    int value = measurements.counters[m];
+    if (value == null) value = 0;
+    if (m is! GroupedMetric) {
+      sb.write(value);
+      sb.write(' ${m.name}');
+      return;
+    }
+    GroupedMetric group = m;
+
+    int expected = 0;
+    for (var sub in group.submetrics) {
+      var n = measurements.counters[sub];
+      if (n != null) expected += n;
+    }
+    if (value == expected) {
+      sb.write('[32m');
+      sb.write(value);
+    } else {
+      sb.write('[31m');
+      sb.write(value);
+      sb.write('[33m[');
+      sb.write(expected);
+      sb.write(']');
+    }
+    sb.write('[0m');
+    sb.write(' ${group.name}');
+
+    bool first = true;
+    sb.write('(');
+    for (var sub in group.submetrics) {
+      if (first) {
+        first = false;
+      } else {
+        sb.write(' + ');
+      }
+      helper(sub);
+    }
+    sb.write(')');
+  }
+  helper(metric);
+  return sb.toString();
 }

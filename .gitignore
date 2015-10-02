@@ -7,3 +7,4 @@ build/
 packages
 .packages
 pubspec.lock
+bin/inference/client.dart.js*
