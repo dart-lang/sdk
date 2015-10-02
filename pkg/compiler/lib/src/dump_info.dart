@@ -31,6 +31,7 @@ import 'js_emitter/full_emitter/emitter.dart' as full show
 import 'js/js.dart' as jsAst;
 import 'universe/universe.dart' show
     UniverseSelector;
+import 'stats/builder.dart';
 
 class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   final Compiler compiler;
@@ -226,6 +227,8 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
 
   FunctionInfo visitFunctionElement(FunctionElement element, _) {
     int size = compiler.dumpInfoTask.sizeOf(element);
+    // TODO(sigmund): consider adding a small info to represent unreachable
+    // code here.
     if (size == 0 && !shouldKeep(element)) return null;
 
     String name = element.name;
@@ -317,6 +320,9 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     }
     info.closures = nestedClosures;
     result.functions.add(info);
+    if (const bool.fromEnvironment('send_stats')) {
+      info.measurements = collectSendMeasurements(element, compiler);
+    }
     return info;
   }
 
@@ -486,16 +492,9 @@ class DumpInfoTask extends CompilerTask {
     return sb.toString();
   }
 
-  void collectInfo() {
-    infoCollector = new ElementInfoCollector(compiler)..run();
-  }
-
   void dumpInfo() {
     measure(() {
-      if (infoCollector == null) {
-        collectInfo();
-      }
-
+      infoCollector = new ElementInfoCollector(compiler)..run();
       StringBuffer jsonBuffer = new StringBuffer();
       dumpInfoJson(jsonBuffer);
       compiler.outputProvider('', 'info.json')

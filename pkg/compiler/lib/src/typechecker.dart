@@ -454,7 +454,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (result == null) {
       compiler.internalError(node, 'Type is null.');
     }
-    return result;
+    return _record(node, result);
   }
 
   void checkTypePromotion(Node node, TypePromotion typePromotion,
@@ -1162,6 +1162,23 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   }
 
+  static bool _fyiShown = false;
+  DartType _record(Node node, DartType type) {
+    if (node is! Expression) return type;
+    if (const bool.fromEnvironment('send_stats') &&
+        executableContext != null &&
+        // TODO(sigmund): enable also in core libs.
+        !executableContext.library.isPlatformLibrary && !type.isDynamic) {
+      if (!_fyiShown) {
+        print('FYI experiment to collect send stats is on: '
+            'caching types of expressions');
+        _fyiShown = true;
+      }
+      elements.typesCache[node] = type;
+    }
+    return type;
+  }
+
   DartType visitSend(Send node) {
     Element element = elements[node];
 
@@ -1735,6 +1752,17 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         SendSet initialization = definition;
         DartType initializer = analyzeNonVoid(initialization.arguments.head);
         checkAssignable(initialization.assignmentOperator, initializer, type);
+        // TODO(sigmund): explore inferring a type for `var` using the RHS (like
+        // DDC does), for example:
+        // if (node.type == null && node.modifiers.isVar &&
+        //     !initializer.isDynamic) {
+        //   var variable = elements[definition];
+        //   if (variable != null) {
+        //     var typePromotion = new TypePromotion(
+        //         node, variable, initializer);
+        //     registerKnownTypePromotion(typePromotion);
+        //   }
+        // }
       }
     }
     return const StatementType();

@@ -87,6 +87,10 @@ abstract class ClassWorld {
   /// including [cls] itself.
   Iterable<ClassElement> strictSubclassesOf(ClassElement cls);
 
+  /// Returns an iterable over the directly instantiated that implement [cls]
+  /// possibly including [cls] itself, if it is live.
+  Iterable<ClassElement> subtypesOf(ClassElement cls);
+
   /// Returns an iterable over the live classes that implement [cls] _not_
   /// including [cls] if it is live.
   Iterable<ClassElement> strictSubtypesOf(ClassElement cls);
@@ -215,6 +219,19 @@ class World implements ClassWorld {
         strict: true,
         includeIndirectlyInstantiated: false,
         includeUninstantiated: false);
+  }
+
+  /// Returns an iterable over the directly instantiated that implement [cls]
+  /// possibly including [cls] itself, if it is live.
+  Iterable<ClassElement> subtypesOf(ClassElement cls) {
+    ClassSet classSet = _classSets[cls.declaration];
+    if (classSet == null) {
+      return const <ClassElement>[];
+    } else {
+      return classSet.subtypes(
+          includeIndirectlyInstantiated: false,
+          includeUninstantiated: false);
+    }
   }
 
   /// Returns an iterable over the directly instantiated that implement [cls]
