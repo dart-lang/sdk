@@ -31,7 +31,7 @@ import 'js_emitter/full_emitter/emitter.dart' as full show
 import 'js/js.dart' as jsAst;
 import 'universe/universe.dart' show
     UniverseSelector;
-import 'stats/builder.dart';
+import 'info/send_info.dart' show collectSendMeasurements;
 
 class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   final Compiler compiler;

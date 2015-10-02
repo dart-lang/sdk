@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Computes statistical data about a program. See `stats.dart` for more details
-/// on the kind of data we collect.
-library compiler.src.stats.stats_builder;
+/// Computes measurements about sends in a function.
+library compiler.src.info.send_info;
 
 import 'dart:convert';
 import 'package:dart2js_info/src/measurements.dart';
