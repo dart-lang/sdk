@@ -1376,7 +1376,14 @@ void RawObjectPool::WriteTo(SnapshotWriter* writer,
     Entry& entry = ptr()->data()[i];
     switch (entry_type) {
       case ObjectPool::kTaggedObject: {
-        writer->WriteObjectImpl(entry.raw_obj_, kAsReference);
+        if (entry.raw_obj_ == StubCode::CallNativeCFunction_entry()->code()) {
+          // Natives can run while precompiling, becoming linked and switching
+          // their stub. Reset to the initial stub used for lazy-linking.
+          writer->WriteObjectImpl(
+              StubCode::CallBootstrapCFunction_entry()->code(), kAsReference);
+        } else {
+          writer->WriteObjectImpl(entry.raw_obj_, kAsReference);
+        }
         break;
       }
       case ObjectPool::kImmediate: {
