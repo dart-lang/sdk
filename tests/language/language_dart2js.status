@@ -51,6 +51,8 @@ mixin_super_constructor_positionals_test/01: Fail # Issue 15101
 mixin_super_test: CompileTimeError # Issue 23773
 mixin_super_2_test: CompileTimeError # Issue 23773
 mixin_super_bound2_test: CompileTimeError # Issue 23773
+mixin_super_use_test: CompileTimeError # Issue 23773
+mixin_superclass_test: CompileTimeError # Issue 23773
 
 ref_before_declaration_test/00: MissingCompileTimeError
 ref_before_declaration_test/01: MissingCompileTimeError

@@ -19,7 +19,6 @@ namespace dart {
 DEFINE_FLAG(bool, print_classes, false, "Prints details about loaded classes.");
 DEFINE_FLAG(bool, trace_class_finalization, false, "Trace class finalization.");
 DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
-DECLARE_FLAG(bool, supermixin);
 DECLARE_FLAG(bool, use_cha_deopt);
 
 
@@ -2030,25 +2029,6 @@ void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class,
     ReportError(mixin_class, mixin_class.token_pos(),
                 "mixin class '%s' illegally refers to itself",
                 class_name.ToCString());
-  }
-
-  if (!FLAG_supermixin) {
-    // Check that the super class of the mixin class is class Object.
-    Class& mixin_super_class = Class::Handle(mixin_class.SuperClass());
-    // Skip over mixin application alias classes, which are implemented as
-    // subclasses of the mixin application classes they name.
-    if (!mixin_super_class.IsNull() && mixin_class.is_mixin_app_alias()) {
-      while (mixin_super_class.is_mixin_app_alias()) {
-        mixin_super_class = mixin_super_class.SuperClass();
-      }
-      mixin_super_class = mixin_super_class.SuperClass();
-    }
-    if (mixin_super_class.IsNull() || !mixin_super_class.IsObjectClass()) {
-      const String& class_name = String::Handle(mixin_class.Name());
-      ReportError(mixin_app_class, mixin_app_class.token_pos(),
-                  "mixin class '%s' must extend class 'Object'",
-                  class_name.ToCString());
-    }
   }
 
   // Copy type parameters to mixin application class.

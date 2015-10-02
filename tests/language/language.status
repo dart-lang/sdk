@@ -97,7 +97,4 @@ gc_test: SkipSlow # Times out flakily. Issue 20956
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
-mixin_super_test: Fail # Can't pass VMOptions to dartium.
-mixin_super_2_test: Fail # Can't pass VMOptions to dartium.
-mixin_super_bound2_test: Fail # Can't pass VMOptions to dartium.
 issue23244_test: Fail # Can't run spawnFunction on dartium.

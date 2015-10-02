@@ -1226,7 +1226,6 @@ class StoreLocalNode : public AstNode {
 };
 
 
-
 class LoadInstanceFieldNode : public AstNode {
  public:
   LoadInstanceFieldNode(intptr_t token_pos,
