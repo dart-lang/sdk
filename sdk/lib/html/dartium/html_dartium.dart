@@ -1159,12 +1159,6 @@ wrap_jso(jsObject) {
       return wrapper;
     }
 
-    if (jsObject is js.JsArray) {
-      var wrappingList = new _DartHtmlWrappingList(jsObject);
-      js.setDartHtmlWrapperFor(jsObject, wrappingList);
-      return wrappingList;
-    }
-
     // Try the most general type conversions on it.
     // TODO(alanknight): We may be able to do better. This maintains identity,
     // which is useful, but expensive. And if we nest something that only
@@ -1309,22 +1303,6 @@ convertDartToNative_List(List input) => new js.JsArray()..addAll(input);
 
 // Conversion function place holder (currently not used in dart2js or dartium).
 List convertDartToNative_StringArray(List<String> input) => input;
-
-/**
- * Wraps a JsArray and will call wrap_jso on its entries.
- */
-class _DartHtmlWrappingList extends ListBase {
-  _DartHtmlWrappingList(this._basicList);
-
-  final js.JsArray _basicList;
-
-  operator [](int index) => wrap_jso(_basicList[index]);
-
-  operator []=(int index, value) => _basicList[index] = unwrap_jso(value);
-
-  int get length => _basicList.length;
-  int set length(int newLength) => _basicList.length = newLength;
-}
 
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27262,7 +27240,7 @@ class MutationObserver extends NativeFieldWrapperClass2 {
   }
   @DocsEditable()
   static MutationObserver _create(callback) => wrap_jso(_blink.BlinkMutationObserver.instance.constructorCallback_1_((mutations, observer) {
-    callback(wrap_jso(mutations), wrap_jso(observer));
+    callback(mutations, wrap_jso(observer));
   }));
 
   /**

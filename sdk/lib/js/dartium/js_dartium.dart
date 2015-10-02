@@ -807,7 +807,11 @@ class JsArray<E> extends JsObject with ListMixin<E> {
       _checkIndex(index);
     }
 
-    return super[index];
+    // Lazily create the Dart class that wraps the JS object when the object in
+    // a list if fetched.
+    var wrap_entry = html.wrap_jso(super[index]);
+    super[index] = wrap_entry;
+    return wrap_entry;
   }
 
   void operator []=(index, E value) {
