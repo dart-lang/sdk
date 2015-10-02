@@ -2462,6 +2462,12 @@ abstract class Element implements AnalysisTarget {
   String get displayName;
 
   /**
+   * Return the source range of the documentation comment for this element,
+   * or `null` if this element does not or cannot have a documentation.
+   */
+  SourceRange get docRange;
+
+  /**
    * Return the element that either physically or logically encloses this
    * element. This will be `null` if this element is a library because libraries
    * are the top-level elements in the model.
@@ -2828,6 +2834,17 @@ abstract class ElementImpl implements Element {
   ElementLocation _cachedLocation;
 
   /**
+   * The offset to the beginning of the documentation comment,
+   * or `null` if this element does not have a documentation comment.
+   */
+  int _docRangeOffset;
+
+  /**
+   * The length of the documentation comment range for this element.
+   */
+  int _docRangeLength;
+
+  /**
    * Initialize a newly created element to have the given [name] at the given
    * [_nameOffset].
    */
@@ -2851,6 +2868,14 @@ abstract class ElementImpl implements Element {
 
   @override
   String get displayName => _name;
+
+  @override
+  SourceRange get docRange {
+    if (_docRangeOffset != null && _docRangeLength != null) {
+      return new SourceRange(_docRangeOffset, _docRangeLength);
+    }
+    return null;
+  }
 
   @override
   Element get enclosingElement => _enclosingElement;
@@ -3099,6 +3124,14 @@ abstract class ElementImpl implements Element {
         child.accept(visitor);
       }
     }
+  }
+
+  /**
+   * Set the documentation comment source range for this element.
+   */
+  void setDocRange(int offset, int length) {
+    _docRangeOffset = offset;
+    _docRangeLength = length;
   }
 
   /**
@@ -7917,6 +7950,9 @@ abstract class Member implements Element {
   @override
   String get displayName => _baseElement.displayName;
 
+  @override
+  SourceRange get docRange => _baseElement.docRange;
+
   int get id => _baseElement.id;
 
   @override
@@ -8425,6 +8461,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   String get displayName => _name;
+
+  @override
+  SourceRange get docRange => null;
 
   @override
   Element get enclosingElement => null;

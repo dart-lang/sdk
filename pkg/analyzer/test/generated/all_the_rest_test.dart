@@ -5052,6 +5052,8 @@ class ElementBuilderTest extends EngineTestCase {
     String className = "C";
     ClassDeclaration classDeclaration =
         AstFactory.classDeclaration(null, className, null, null, null, null);
+    classDeclaration.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     classDeclaration.accept(builder);
     List<ClassElement> types = holder.types;
     expect(types, hasLength(1));
@@ -5063,6 +5065,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(type.isAbstract, isFalse);
     expect(type.isMixinApplication, isFalse);
     expect(type.isSynthetic, isFalse);
+    _assertHasDocRange(type, 50, 7);
   }
 
   void test_visitClassDeclaration_parameterized() {
@@ -5296,11 +5299,16 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.formalParameterList(),
             null,
             AstFactory.blockFunctionBody2());
+    constructorDeclaration.documentationComment = AstFactory
+        .documentationComment(
+            [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     constructorDeclaration.accept(builder);
+
     List<ConstructorElement> constructors = holder.constructors;
     expect(constructors, hasLength(1));
     ConstructorElement constructor = constructors[0];
     expect(constructor, isNotNull);
+    _assertHasDocRange(constructor, 50, 7);
     expect(constructor.isExternal, isFalse);
     expect(constructor.isFactory, isFalse);
     expect(constructor.name, "");
@@ -5478,11 +5486,14 @@ class ElementBuilderTest extends EngineTestCase {
     String enumName = "E";
     EnumDeclaration enumDeclaration =
         AstFactory.enumDeclaration2(enumName, ["ONE"]);
+    enumDeclaration.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     enumDeclaration.accept(builder);
     List<ClassElement> enums = holder.enums;
     expect(enums, hasLength(1));
     ClassElement enumElement = enums[0];
     expect(enumElement, isNotNull);
+    _assertHasDocRange(enumElement, 50, 7);
     expect(enumElement.name, enumName);
   }
 
@@ -5496,18 +5507,25 @@ class ElementBuilderTest extends EngineTestCase {
       AstFactory.variableDeclaration(firstFieldName),
       AstFactory.variableDeclaration(secondFieldName)
     ]);
+    fieldDeclaration.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     fieldDeclaration.accept(builder);
+
     List<FieldElement> fields = holder.fields;
     expect(fields, hasLength(2));
+
     FieldElement firstField = fields[0];
     expect(firstField, isNotNull);
+    _assertHasDocRange(firstField, 50, 7);
     expect(firstField.name, firstFieldName);
     expect(firstField.initializer, isNull);
     expect(firstField.isConst, isFalse);
     expect(firstField.isFinal, isFalse);
     expect(firstField.isSynthetic, isFalse);
+
     FieldElement secondField = fields[1];
     expect(secondField, isNotNull);
+    _assertHasDocRange(secondField, 50, 7);
     expect(secondField.name, secondFieldName);
     expect(secondField.initializer, isNull);
     expect(secondField.isConst, isFalse);
@@ -5614,12 +5632,15 @@ class ElementBuilderTest extends EngineTestCase {
         functionName,
         AstFactory.functionExpression2(
             AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
+    declaration.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     declaration.accept(builder);
 
     List<PropertyAccessorElement> accessors = holder.accessors;
     expect(accessors, hasLength(1));
     PropertyAccessorElement accessor = accessors[0];
     expect(accessor, isNotNull);
+    _assertHasDocRange(accessor, 50, 7);
     expect(accessor.name, functionName);
     expect(declaration.element, same(accessor));
     expect(declaration.functionExpression.element, same(accessor));
@@ -5646,12 +5667,15 @@ class ElementBuilderTest extends EngineTestCase {
         functionName,
         AstFactory.functionExpression2(
             AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
+    declaration.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     declaration.accept(builder);
 
     List<FunctionElement> functions = holder.functions;
     expect(functions, hasLength(1));
     FunctionElement function = functions[0];
     expect(function, isNotNull);
+    _assertHasDocRange(function, 50, 7);
     expect(function.hasImplicitReturnType, isFalse);
     expect(function.name, functionName);
     expect(declaration.element, same(function));
@@ -5672,12 +5696,15 @@ class ElementBuilderTest extends EngineTestCase {
         functionName,
         AstFactory.functionExpression2(
             AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
+    declaration.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     declaration.accept(builder);
 
     List<PropertyAccessorElement> accessors = holder.accessors;
     expect(accessors, hasLength(1));
     PropertyAccessorElement accessor = accessors[0];
     expect(accessor, isNotNull);
+    _assertHasDocRange(accessor, 50, 7);
     expect(accessor.hasImplicitReturnType, isFalse);
     expect(accessor.name, "$functionName=");
     expect(declaration.element, same(accessor));
@@ -5747,11 +5774,15 @@ class ElementBuilderTest extends EngineTestCase {
     String parameterName = "E";
     FunctionTypeAlias aliasNode = AstFactory.typeAlias(
         null, aliasName, AstFactory.typeParameterList([parameterName]), null);
+    aliasNode.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     aliasNode.accept(builder);
+
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
     expect(aliases, hasLength(1));
     FunctionTypeAliasElement alias = aliases[0];
     expect(alias, isNotNull);
+    _assertHasDocRange(alias, 50, 7);
     expect(alias.name, aliasName);
     expect(alias.parameters, hasLength(0));
     List<TypeParameterElement> typeParameters = alias.typeParameters;
@@ -5903,6 +5934,8 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.identifier3(methodName),
         AstFactory.formalParameterList(),
         AstFactory.blockFunctionBody2());
+    methodDeclaration.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     methodDeclaration.accept(builder);
 
     List<FieldElement> fields = holder.fields;
@@ -5914,6 +5947,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(field.setter, isNull);
     PropertyAccessorElement getter = field.getter;
     expect(getter, isNotNull);
+    _assertHasDocRange(getter, 50, 7);
     expect(getter.hasImplicitReturnType, isTrue);
     expect(getter.isAbstract, isFalse);
     expect(getter.isExternal, isFalse);
@@ -6015,11 +6049,15 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.identifier3(methodName),
         AstFactory.formalParameterList(),
         AstFactory.blockFunctionBody2());
+    methodDeclaration.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     methodDeclaration.accept(builder);
+
     List<MethodElement> methods = holder.methods;
     expect(methods, hasLength(1));
     MethodElement method = methods[0];
     expect(method, isNotNull);
+    _assertHasDocRange(method, 50, 7);
     expect(method.hasImplicitReturnType, isFalse);
     expect(method.name, methodName);
     expect(method.functions, hasLength(0));
@@ -6079,6 +6117,8 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.identifier3(methodName),
         AstFactory.formalParameterList(),
         AstFactory.blockFunctionBody2());
+    methodDeclaration.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     methodDeclaration.accept(builder);
 
     List<FieldElement> fields = holder.fields;
@@ -6088,8 +6128,10 @@ class ElementBuilderTest extends EngineTestCase {
     expect(field.name, methodName);
     expect(field.isSynthetic, isTrue);
     expect(field.getter, isNull);
+
     PropertyAccessorElement setter = field.setter;
     expect(setter, isNotNull);
+    _assertHasDocRange(setter, 50, 7);
     expect(setter.hasImplicitReturnType, isFalse);
     expect(setter.isAbstract, isFalse);
     expect(setter.isExternal, isFalse);
@@ -6652,6 +6694,14 @@ class ElementBuilderTest extends EngineTestCase {
     expect(variable.isSynthetic, isFalse);
     expect(variable.getter, isNotNull);
     expect(variable.setter, isNull);
+  }
+
+  void _assertHasDocRange(
+      Element element, int expectedOffset, int expectedLength) {
+    SourceRange docRange = element.docRange;
+    expect(docRange, isNotNull);
+    expect(docRange.offset, expectedOffset);
+    expect(docRange.length, expectedLength);
   }
 
   void _useParameterInMethod(

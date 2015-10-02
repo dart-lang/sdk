@@ -27,7 +27,6 @@ import 'package:analyzer/src/generated/incremental_resolver.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -572,31 +571,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (source == null) {
       return null;
     }
-    CompilationUnit unit = parseCompilationUnit(source);
-    if (unit == null) {
+    SourceRange docRange = element.docRange;
+    if (docRange == null) {
       return null;
     }
-    NodeLocator locator = new NodeLocator(element.nameOffset);
-    AstNode nameNode = locator.searchWithin(unit);
-    while (nameNode != null) {
-      if (nameNode is AnnotatedNode) {
-        Comment comment = nameNode.documentationComment;
-        if (comment == null) {
-          return null;
-        }
-        StringBuffer buffer = new StringBuffer();
-        List<Token> tokens = comment.tokens;
-        for (int i = 0; i < tokens.length; i++) {
-          if (i > 0) {
-            buffer.write("\n");
-          }
-          buffer.write(tokens[i].lexeme);
-        }
-        return buffer.toString();
-      }
-      nameNode = nameNode.parent;
-    }
-    return null;
+    String code = getContents(source).data;
+    String comment = code.substring(docRange.offset, docRange.end);
+    return comment.replaceAll('\r\n', '\n');
   }
 
   @override
