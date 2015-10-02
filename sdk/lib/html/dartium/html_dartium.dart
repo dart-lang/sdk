@@ -1159,6 +1159,12 @@ wrap_jso(jsObject) {
       return wrapper;
     }
 
+    if (jsObject is js.JsArray) {
+      var wrappingList = new _DartHtmlWrappingList(jsObject);
+      js.setDartHtmlWrapperFor(jsObject, wrappingList);
+      return wrappingList;
+    }
+
     // Try the most general type conversions on it.
     // TODO(alanknight): We may be able to do better. This maintains identity,
     // which is useful, but expensive. And if we nest something that only
@@ -1303,6 +1309,22 @@ convertDartToNative_List(List input) => new js.JsArray()..addAll(input);
 
 // Conversion function place holder (currently not used in dart2js or dartium).
 List convertDartToNative_StringArray(List<String> input) => input;
+
+/**
+ * Wraps a JsArray and will call wrap_jso on its entries.
+ */
+class _DartHtmlWrappingList extends ListBase {
+  _DartHtmlWrappingList(this._basicList);
+
+  final js.JsArray _basicList;
+
+  operator [](int index) => wrap_jso(_basicList[index]);
+
+  operator []=(int index, value) => _basicList[index] = unwrap_jso(value);
+
+  int get length => _basicList.length;
+  int set length(int newLength) => _basicList.length = newLength;
+}
 
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10138,10 +10160,10 @@ class DirectoryReader extends NativeFieldWrapperClass2 {
 
   void _readEntries(_EntriesCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkDirectoryReader.instance.readEntries_Callback_2_(unwrap_jso(this), unwrap_jso((entries) => successCallback(entries)), unwrap_jso((error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkDirectoryReader.instance.readEntries_Callback_2_(unwrap_jso(this), unwrap_jso((entries) => successCallback(wrap_jso(entries))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkDirectoryReader.instance.readEntries_Callback_1_(unwrap_jso(this), unwrap_jso((entries) => successCallback(entries)));
+    _blink.BlinkDirectoryReader.instance.readEntries_Callback_1_(unwrap_jso(this), unwrap_jso((entries) => successCallback(wrap_jso(entries))));
     return;
   }
 
@@ -18438,7 +18460,7 @@ class FontFaceSetLoadEvent extends Event {
   @DomName('FontFaceSetLoadEvent.fontfaces')
   @DocsEditable()
   @Experimental() // untriaged
-  List<FontFace> get fontfaces => _blink.BlinkFontFaceSetLoadEvent.instance.fontfaces_Getter_(unwrap_jso(this));
+  List<FontFace> get fontfaces => wrap_jso(_blink.BlinkFontFaceSetLoadEvent.instance.fontfaces_Getter_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18668,7 +18690,7 @@ class Gamepad extends NativeFieldWrapperClass2 {
 
   @DomName('Gamepad.axes')
   @DocsEditable()
-  List<num> get axes => _blink.BlinkGamepad.instance.axes_Getter_(unwrap_jso(this));
+  List<num> get axes => wrap_jso(_blink.BlinkGamepad.instance.axes_Getter_(unwrap_jso(this)));
   
   @DomName('Gamepad.connected')
   @DocsEditable()
@@ -22881,7 +22903,7 @@ class InputElement extends HtmlElement implements
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#concept-input-type-file-selected
-  List<Entry> get entries => _blink.BlinkHTMLInputElement.instance.webkitEntries_Getter_(unwrap_jso(this));
+  List<Entry> get entries => wrap_jso(_blink.BlinkHTMLInputElement.instance.webkitEntries_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLInputElement.webkitdirectory')
   @DocsEditable()
@@ -26134,7 +26156,7 @@ class MessageEvent extends Event {
   
   @DomName('MessageEvent.initMessageEvent')
   @DocsEditable()
-  void _initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List<MessagePort> messagePorts) => _blink.BlinkMessageEvent.instance.initMessageEvent_Callback_8_(unwrap_jso(this), typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, unwrap_jso(sourceArg), messagePorts);
+  void _initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List<MessagePort> messagePorts) => _blink.BlinkMessageEvent.instance.initMessageEvent_Callback_8_(unwrap_jso(this), typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, unwrap_jso(sourceArg), unwrap_jso(messagePorts));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27240,7 +27262,7 @@ class MutationObserver extends NativeFieldWrapperClass2 {
   }
   @DocsEditable()
   static MutationObserver _create(callback) => wrap_jso(_blink.BlinkMutationObserver.instance.constructorCallback_1_((mutations, observer) {
-    callback(mutations, wrap_jso(observer));
+    callback(wrap_jso(mutations), wrap_jso(observer));
   }));
 
   /**
