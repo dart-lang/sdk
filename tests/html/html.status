@@ -136,7 +136,6 @@ native_gc_test: Pass, Slow
 
 [$runtime == ie10 || $runtime == ie11]
 indexeddb_5_test: Fail # Issue 12893
-js_test: Fail # Issue 14246
 element_test/click: Fail                # IE does not support firing this event.
 serialized_script_value_test: Fail
 websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
