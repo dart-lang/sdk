@@ -582,6 +582,43 @@ main(var a) {
     assertPotentialEdits(['test(); // 1', 'test(); // 2']);
   }
 
+  test_createChange_MethodElement_potential_inPubCache() async {
+    String pkgLib = '/.pub-cache/lib.dart';
+    indexUnit(
+        pkgLib,
+        r'''
+processObj(p) {
+  p.test();
+}
+''');
+    indexTestUnit('''
+import '$pkgLib';
+class A {
+  test() {}
+}
+main(var a) {
+  a.test();
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test() {}');
+    expect(refactoring.refactoringName, 'Rename Method');
+    expect(refactoring.oldName, 'test');
+    refactoring.newName = 'newName';
+    // validate change
+    await assertSuccessfulRefactoring('''
+import '/.pub-cache/lib.dart';
+class A {
+  newName() {}
+}
+main(var a) {
+  a.newName();
+}
+''');
+    SourceFileEdit fileEdit = refactoringChange.getFileEdit(pkgLib);
+    expect(fileEdit, isNull);
+  }
+
   test_createChange_MethodElement_potential_private_otherLibrary() async {
     indexUnit(
         '/lib.dart',

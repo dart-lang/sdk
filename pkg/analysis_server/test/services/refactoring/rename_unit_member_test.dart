@@ -224,6 +224,48 @@ class B {
     assertRefactoringStatusOK(status);
   }
 
+  test_checkInitialConditions_inPubCache_posix() async {
+    addSource(
+        '/.pub-cache/lib.dart',
+        r'''
+class A {}
+''');
+    indexTestUnit('''
+import '/.pub-cache/lib.dart';
+main() {
+  A a;
+}
+''');
+    createRenameRefactoringAtString('A a');
+    // check status
+    refactoring.newName = 'NewName';
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            "The class 'A' is defined in a pub package, so cannot be renamed.");
+  }
+
+  test_checkInitialConditions_inPubCache_windows() async {
+    addSource(
+        '/Pub/Cache/lib.dart',
+        r'''
+class A {}
+''');
+    indexTestUnit('''
+import '/Pub/Cache/lib.dart';
+main() {
+  A a;
+}
+''');
+    createRenameRefactoringAtString('A a');
+    // check status
+    refactoring.newName = 'NewName';
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            "The class 'A' is defined in a pub package, so cannot be renamed.");
+  }
+
   test_checkInitialConditions_inSDK() async {
     indexTestUnit('''
 main() {
