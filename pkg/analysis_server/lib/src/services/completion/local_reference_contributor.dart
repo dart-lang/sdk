@@ -351,9 +351,20 @@ class _LabelVisitor extends LocalDeclarationVisitor {
 class _LocalVisitor extends LocalDeclarationVisitor {
   final DartCompletionRequest request;
   final OpType optype;
+  int privateMemberRelevance = DART_RELEVANCE_DEFAULT;
 
   _LocalVisitor(this.request, int offset, this.optype) : super(offset) {
     includeLocalInheritedTypes = !optype.inStaticMethodBody;
+    if (request.replacementLength > 0) {
+      var contents = request.source.contents;
+      if (contents != null &&
+          contents.data != null &&
+          contents.data.startsWith('_', request.replacementOffset)) {
+        // If user typed identifier starting with '_'
+        // then do not suppress the relevance of private members
+        privateMemberRelevance = null;
+      }
+    }
   }
 
   @override
@@ -554,6 +565,10 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         id, isDeprecated, relevance, typeName,
         classDecl: classDecl);
     if (suggestion != null) {
+      if (privateMemberRelevance != null &&
+          suggestion.completion.startsWith('_')) {
+        suggestion.relevance = privateMemberRelevance;
+      }
       request.addSuggestion(suggestion);
       suggestion.element = createElement(request.source, elemKind, id,
           isAbstract: isAbstract,
