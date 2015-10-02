@@ -71,17 +71,22 @@ bool compile(CompilerOptions options) {
   return new BatchCompiler(context, options, reporter: reporter).run();
 }
 
+// Callback on each individual compiled library
+typedef void CompilationNotifier(String path);
+
 class BatchCompiler extends AbstractCompiler {
   JSGenerator _jsGen;
   LibraryElement _dartCore;
   String _runtimeOutputDir;
 
-  /// Already compiled sources, so we don't compile them again.
-  final _compiled = new HashSet<LibraryElement>();
+  /// Already compiled sources, so we don't check or compile them again.
+  final _compilationRecord = <LibraryElement, bool>{};
   bool _sdkCopied = false;
 
   bool _failure = false;
   bool get failure => _failure;
+
+  final _pendingLibraries = <LibraryUnit>[];
 
   BatchCompiler(AnalysisContext context, CompilerOptions options,
       {AnalysisErrorListener reporter})
@@ -100,11 +105,6 @@ class BatchCompiler extends AbstractCompiler {
 
   ErrorCollector get reporter => checker.reporter;
 
-  void reset() {
-    _compiled.clear();
-    _sdkCopied = false;
-  }
-
   /// Compiles every file in [options.inputs].
   /// Returns true on successful compile.
   bool run() {
@@ -112,16 +112,17 @@ class BatchCompiler extends AbstractCompiler {
     options.inputs.forEach(compileFromUriString);
     clock.stop();
     var time = (clock.elapsedMilliseconds / 1000).toStringAsFixed(2);
-    _log.fine('Compiled ${_compiled.length} libraries in ${time} s\n');
+    _log.fine('Compiled ${_compilationRecord.length} libraries in ${time} s\n');
 
     return !_failure;
   }
 
-  void compileFromUriString(String uriString) {
-    _compileFromUri(stringToUri(uriString));
+  void compileFromUriString(String uriString, [CompilationNotifier notifier]) {
+    _compileFromUri(stringToUri(uriString), notifier);
   }
 
-  void _compileFromUri(Uri uri) {
+  void _compileFromUri(Uri uri, CompilationNotifier notifier) {
+    _failure = false;
     if (!uri.isAbsolute) {
       throw new ArgumentError.value('$uri', 'uri', 'must be absolute');
     }
@@ -129,32 +130,82 @@ class BatchCompiler extends AbstractCompiler {
     if (source == null) {
       throw new ArgumentError.value('$uri', 'uri', 'could not find source for');
     }
-    compileSource(source);
+    _compileSource(source, notifier);
   }
 
-  void compileSource(Source source) {
+  void _compileSource(Source source, CompilationNotifier notifier) {
     if (AnalysisEngine.isHtmlFileName(source.uri.path)) {
-      _compileHtml(source);
+      _compileHtml(source, notifier);
     } else {
-      _compileLibrary(context.computeLibraryElement(source));
+      _compileLibrary(context.computeLibraryElement(source), notifier);
     }
+    _processPending();
     reporter.flush();
   }
 
-  void _compileLibrary(LibraryElement library) {
-    if (!_compiled.add(library)) return;
+  void _processPending() {
+    // _pendingLibraries was recorded in post-order.  Process from the end
+    // to ensure reverse post-order.  This will ensure that we handle back
+    // edges from the original depth-first search correctly.
 
-    if (!options.checkSdk && library.source.uri.scheme == 'dart') {
-      if (_jsGen != null) _copyDartRuntime();
-      return;
+    while (_pendingLibraries.isNotEmpty) {
+      var unit = _pendingLibraries.removeLast();
+      var library = unit.library.element.enclosingElement;
+      assert(_compilationRecord[library] == true);
+
+      // Process dependences one more time to propagate failure from cycles
+      for (var import in library.imports) {
+        if (!_compilationRecord[import.importedLibrary]) {
+          _compilationRecord[library] = false;
+        }
+      }
+      for (var export in library.exports) {
+        if (!_compilationRecord[export.exportedLibrary]) {
+          _compilationRecord[library] = false;
+        }
+      }
+
+      // Generate code if still valid
+      if (_jsGen != null &&
+          (_compilationRecord[library] ||
+              options.codegenOptions.forceCompile)) {
+        _jsGen.generateLibrary(unit);
+      }
+    }
+  }
+
+  bool _compileLibrary(LibraryElement library, CompilationNotifier notifier) {
+    var success = _compilationRecord[library];
+    if (success != null) {
+      if (!success) _failure = true;
+      return success;
     }
 
+    // Optimistically mark a library valid until proven otherwise
+    _compilationRecord[library] = true;
+
+    if (!options.checkSdk && library.source.uri.scheme == 'dart') {
+      // We assume the Dart SDK is always valid
+      if (_jsGen != null) _copyDartRuntime();
+      return true;
+    }
+
+    // Check dependences to determine if this library type checks
     // TODO(jmesserly): in incremental mode, we can skip the transitive
     // compile of imports/exports.
-    _compileLibrary(_dartCore); // implicit dart:core dependency
-    for (var import in library.imports) _compileLibrary(import.importedLibrary);
-    for (var export in library.exports) _compileLibrary(export.exportedLibrary);
+    _compileLibrary(_dartCore, notifier); // implicit dart:core dependency
+    for (var import in library.imports) {
+      if (!_compileLibrary(import.importedLibrary, notifier)) {
+        _compilationRecord[library] = false;
+      }
+    }
+    for (var export in library.exports) {
+      if (!_compileLibrary(export.exportedLibrary, notifier)) {
+        _compilationRecord[library] = false;
+      }
+    }
 
+    // Check this library's own code
     var unitElements = [library.definingCompilationUnit]..addAll(library.parts);
     var units = <CompilationUnit>[];
 
@@ -163,20 +214,35 @@ class BatchCompiler extends AbstractCompiler {
       var unit = context.resolveCompilationUnit(element.source, library);
       units.add(unit);
       failureInLib = logErrors(element.source) || failureInLib;
+      checker.reset();
       checker.visitCompilationUnit(unit);
       if (checker.failure) failureInLib = true;
     }
+    if (failureInLib) _compilationRecord[library] = false;
 
-    if (failureInLib) {
-      _failure = true;
-      if (!options.codegenOptions.forceCompile) return;
+    // Notifier framework if requested
+    if (notifier != null) {
+      reporter.flush();
+      notifier(getOutputPath(library.source.uri));
     }
 
-    if (_jsGen != null) {
+    // Record valid libraries for further dependence checking (cycles) and
+    // codegen.
+
+    // TODO(vsm): Restructure this to not delay code generation more than
+    // necessary.  We'd like to process the AST before there is any chance
+    // it's cached out.  We should refactor common logic in
+    // server/dependency_graph and perhaps the analyzer itself.
+    success = _compilationRecord[library];
+    if (success || options.codegenOptions.forceCompile) {
       var unit = units.first;
       var parts = units.skip(1).toList();
-      _jsGen.generateLibrary(new LibraryUnit(unit, parts));
+      _pendingLibraries.add(new LibraryUnit(unit, parts));
     }
+
+    // Return tentative success status.
+    if (!success) _failure = true;
+    return success;
   }
 
   void _copyDartRuntime() {
@@ -194,7 +260,7 @@ class BatchCompiler extends AbstractCompiler {
     }
   }
 
-  void _compileHtml(Source source) {
+  void _compileHtml(Source source, CompilationNotifier notifier) {
     // TODO(jmesserly): reuse DartScriptsTask instead of copy/paste.
     var contents = context.getContents(source);
     var document = html.parse(contents.data, generateSpans: true);
@@ -224,7 +290,7 @@ class BatchCompiler extends AbstractCompiler {
 
       if (scriptSource != null) {
         var lib = context.computeLibraryElement(scriptSource);
-        _compileLibrary(lib);
+        _compileLibrary(lib, notifier);
         script.replaceWith(_linkLibraries(lib, loadedLibs, from: htmlOutDir));
       }
     }

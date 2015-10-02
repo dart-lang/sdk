@@ -1,0 +1,12 @@
+// Messages from compiling priority_queue.dart
+warning: [DownCastComposite] comparison ((dynamic, dynamic) → int) will need runtime check to cast to type (E, E) → int (package:collection/priority_queue.dart, line 240, col 15)
+warning: [DownCastComposite] comparison ((dynamic, dynamic) → int) will need runtime check to cast to type (E, E) → int (package:collection/priority_queue.dart, line 245, col 38)
+info: [InferredType] (comparison != null) ? comparison : Comparable.compare has inferred type (dynamic, dynamic) → int (package:collection/priority_queue.dart, line 172, col 22)
+info: [InferredTypeLiteral] const [] has inferred type List<E> (package:collection/priority_queue.dart, line 185, col 14)
+info: [DynamicInvoke] comparison(last, element) requires dynamic invoke (package:collection/priority_queue.dart, line 209, col 18)
+info: [InferredTypeLiteral] const [] has inferred type List<E> (package:collection/priority_queue.dart, line 222, col 14)
+info: [DynamicInvoke] comparison(element, object) requires dynamic invoke (package:collection/priority_queue.dart, line 290, col 18)
+info: [DynamicInvoke] comparison(element, parent) requires dynamic invoke (package:collection/priority_queue.dart, line 333, col 11)
+info: [DynamicInvoke] comparison(leftChild, rightChild) requires dynamic invoke (package:collection/priority_queue.dart, line 353, col 18)
+info: [DynamicInvoke] comparison(element, minChild) requires dynamic invoke (package:collection/priority_queue.dart, line 363, col 14)
+info: [DynamicInvoke] comparison(element, child) requires dynamic invoke (package:collection/priority_queue.dart, line 375, col 18)

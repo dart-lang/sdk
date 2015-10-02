@@ -331,6 +331,11 @@ class CodeChecker extends RecursiveAstVisitor {
   bool _failure = false;
   bool get failure => _failure || _overrideChecker._failure;
 
+  void reset() {
+    _failure = false;
+    _overrideChecker._failure = false;
+  }
+
   CodeChecker(TypeRules rules, AnalysisErrorListener reporter,
       StrongModeOptions options)
       : rules = rules,

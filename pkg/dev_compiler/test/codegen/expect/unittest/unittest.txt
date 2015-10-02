@@ -1,0 +1,8 @@
+// Messages from compiling unittest.dart
+info: [DynamicInvoke] (window as dynamic).suite(name, body) requires dynamic invoke (package:unittest/unittest.dart, line 14, col 41)
+info: [DynamicInvoke] (window as dynamic).test(name, (done) {_finishTest(f) {if (f is Future) {f.then(_finishTest);} else {done();}} _finishTest(body());}) requires dynamic invoke (package:unittest/unittest.dart, line 21, col 3)
+info: [DynamicInvoke] f.then(_finishTest) requires dynamic invoke (package:unittest/unittest.dart, line 24, col 9)
+info: [DynamicInvoke] done() requires dynamic invoke (package:unittest/unittest.dart, line 26, col 9)
+info: [DynamicCast] matcher.matches(actual, matchState) (dynamic) will need runtime check to cast to type bool (package:unittest/unittest.dart, line 71, col 9)
+info: [DynamicInvoke] matcher.matches(actual, matchState) requires dynamic invoke (package:unittest/unittest.dart, line 71, col 9)
+info: [DynamicInvoke] formatter(actual, matcher, reason, matchState, verbose) requires dynamic invoke (package:unittest/unittest.dart, line 78, col 8)

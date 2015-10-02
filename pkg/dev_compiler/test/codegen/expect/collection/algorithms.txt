@@ -1,0 +1,7 @@
+// Messages from compiling algorithms.dart
+warning: [DownCastComposite] sortedList (List<dynamic>) will need runtime check to cast to type List<Comparable<dynamic>> (package:collection/algorithms.dart, line 44, col 36)
+info: [DynamicCast] key (dynamic) will need runtime check to cast to type Comparable<dynamic> (package:collection/algorithms.dart, line 44, col 48)
+info: [DynamicInvoke] compare(element, key) requires dynamic invoke (package:collection/algorithms.dart, line 51, col 16)
+info: [DynamicInvoke] compare(element, list[mid]) requires dynamic invoke (package:collection/algorithms.dart, line 138, col 24)
+info: [DynamicInvoke] compare(element, target[mid]) requires dynamic invoke (package:collection/algorithms.dart, line 212, col 11)
+info: [DynamicInvoke] compare(firstElement, secondElement) requires dynamic invoke (package:collection/algorithms.dart, line 280, col 9)

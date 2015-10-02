@@ -1,0 +1,4 @@
+// Messages from compiling iterable_zip.dart
+warning: [DownCastComposite] iterators (List<dynamic>) will need runtime check to cast to type List<Iterator<dynamic>> (package:collection/iterable_zip.dart, line 42, col 47)
+info: [InferredTypeClosure] (x) => x.iterator has inferred type (Iterable<dynamic>) → dynamic (package:collection/iterable_zip.dart, line 33, col 37)
+info: [DynamicInvoke] x.iterator requires dynamic invoke (package:collection/iterable_zip.dart, line 33, col 44)

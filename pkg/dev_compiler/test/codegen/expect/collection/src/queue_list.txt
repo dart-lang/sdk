@@ -1,0 +1,9 @@
+// Messages from compiling queue_list.dart
+warning: [DownCastComposite] sourceList (List<dynamic>) will need runtime check to cast to type Iterable<E> (package:collection/src/queue_list.dart, line 45, col 40)
+warning: [DownCastComposite] list (List<dynamic>) will need runtime check to cast to type Iterable<E> (package:collection/src/queue_list.dart, line 67, col 52)
+warning: [DownCastComposite] list (List<dynamic>) will need runtime check to cast to type Iterable<E> (package:collection/src/queue_list.dart, line 73, col 52)
+warning: [DownCastComposite] list (List<dynamic>) will need runtime check to cast to type Iterable<E> (package:collection/src/queue_list.dart, line 77, col 52)
+warning: [DownCastComposite] list (List<dynamic>) will need runtime check to cast to type Iterable<E> (package:collection/src/queue_list.dart, line 78, col 40)
+info: [InferredTypeAllocation] new QueueList(length + 1) has inferred type QueueList<E> (package:collection/src/queue_list.dart, line 42, col 28)
+info: [AssignmentCast] source (Iterable<E>) will need runtime check to cast to type List<dynamic> (package:collection/src/queue_list.dart, line 44, col 25)
+info: [AssignmentCast] elements (Iterable<E>) will need runtime check to cast to type List<dynamic> (package:collection/src/queue_list.dart, line 61, col 19)

@@ -65,7 +65,7 @@ main(arguments) {
 
   var expectDir = path.join(inputDir, 'expect');
 
-  bool compile(String entryPoint, AnalysisContext context,
+  BatchCompiler createCompiler(AnalysisContext context,
       {bool checkSdk: false, bool sourceMaps: false, bool closure: false}) {
     // TODO(jmesserly): add a way to specify flags in the test file, so
     // they're more self-contained.
@@ -79,10 +79,23 @@ main(arguments) {
         useColors: false,
         checkSdk: checkSdk,
         runtimeDir: runtimeDir,
-        inputs: [entryPoint],
         inputBaseDir: inputDir);
     var reporter = createErrorReporter(context, options);
-    return new BatchCompiler(context, options, reporter: reporter).run();
+    return new BatchCompiler(context, options, reporter: reporter);
+  }
+
+  bool compile(BatchCompiler compiler, String filePath) {
+    compiler.compileFromUriString(filePath, (String url) {
+      // Write compiler messages to disk.
+      var messagePath = '${path.withoutExtension(url)}.txt';
+      var file = new File(messagePath);
+      var message = '''
+// Messages from compiling ${path.basenameWithoutExtension(url)}.dart
+$compilerMessages''';
+      file.writeAsStringSync(message);
+      compilerMessages.clear();
+    });
+    return !compiler.failure;
   }
 
   var multitests = new Set<String>();
@@ -112,6 +125,8 @@ main(arguments) {
     }
   }
 
+  var batchCompiler = createCompiler(realSdkContext);
+
   for (var dir in [null, 'language']) {
     if (codeCoverage && dir == 'language') continue;
 
@@ -126,19 +141,20 @@ main(arguments) {
         var filename = path.basenameWithoutExtension(filePath);
 
         test('$filename.dart', () {
-          compilerMessages.writeln('// Messages from compiling $filename.dart');
-
           // TODO(jmesserly): this was added to get some coverage of source maps
           // and closure annotations.
           // We need a more comprehensive strategy to test them.
           var sourceMaps = filename == 'map_keys';
           var closure = filename == 'closure';
-          var success = compile(filePath, realSdkContext,
-              sourceMaps: sourceMaps, closure: closure);
-
-          // Write compiler messages to disk.
-          new File(path.join(outDir.path, '$filename.txt'))
-              .writeAsStringSync('$compilerMessages');
+          var success;
+          // TODO(vsm): Is it okay to reuse the same context here?  If there is
+          // overlap between test files, we may need separate ones for each
+          // compiler.
+          var compiler = (sourceMaps || closure)
+              ? createCompiler(realSdkContext,
+                  sourceMaps: sourceMaps, closure: closure)
+              : batchCompiler;
+          success = compile(compiler, filePath);
 
           var outFile = new File(path.join(outDir.path, '$filename.js'));
           expect(!success || outFile.existsSync(), true,
@@ -173,7 +189,8 @@ main(arguments) {
 
         // Get the test SDK. We use a checked in copy so test expectations can
         // be generated against a specific SDK version.
-        compile('dart:core', testSdkContext, checkSdk: true);
+        var compiler = createCompiler(testSdkContext, checkSdk: true);
+        compile(compiler, 'dart:core');
         var outFile = new File(path.join(expectDir, 'dart/core.js'));
         expect(outFile.existsSync(), true,
             reason: '${outFile.path} was created for dart:core');
@@ -186,13 +203,7 @@ main(arguments) {
 
   test('devc jscodegen sunflower.html', () {
     var filePath = path.join(inputDir, 'sunflower', 'sunflower.html');
-    compilerMessages.writeln('// Messages from compiling sunflower.html');
-
-    var success = compile(filePath, realSdkContext);
-
-    // Write compiler messages to disk.
-    new File(path.join(expectDir, 'sunflower', 'sunflower.txt'))
-        .writeAsStringSync(compilerMessages.toString());
+    var success = compile(batchCompiler, filePath);
 
     var expectedFiles = ['sunflower.html', 'sunflower.js',];
 
@@ -205,13 +216,7 @@ main(arguments) {
 
   test('devc jscodegen html_input.html', () {
     var filePath = path.join(inputDir, 'html_input.html');
-    compilerMessages.writeln('// Messages from compiling html_input.html');
-
-    var success = compile(filePath, realSdkContext);
-
-    // Write compiler messages to disk.
-    new File(path.join(expectDir, 'html_input.txt'))
-        .writeAsStringSync(compilerMessages.toString());
+    var success = compile(batchCompiler, filePath);
 
     var expectedFiles = [
       'html_input.html',
