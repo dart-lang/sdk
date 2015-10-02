@@ -36,7 +36,7 @@ import 'trusted_types_analysis_result.dart';
 Measurements collectSendMeasurements(FunctionElement f, Compiler compiler) {
   return compiler.withCurrentElement(f, () {
     // TODO(sigmund): enable for platform too.
-    if (f.library.isPlatformLibrary) return;
+    if (f.library.isPlatformLibrary) return null;
     var name = _qualifiedName(f);
     if (!f.hasNode) {
       if (f is PartialElement) return const Measurements.unreachableFunction();
