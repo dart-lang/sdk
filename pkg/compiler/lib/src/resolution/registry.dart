@@ -5,7 +5,8 @@
 library dart2js.resolution.registry;
 
 import '../common/backend_api.dart' show
-    Backend;
+    Backend,
+    ForeignResolver;
 import '../common/registry.dart' show
     Registry;
 import '../compiler.dart' show
@@ -21,6 +22,8 @@ import '../elements/elements.dart';
 import '../tree/tree.dart';
 import '../util/util.dart' show
     Setlet;
+import '../universe/call_structure.dart' show
+    CallStructure;
 import '../universe/selector.dart' show
     Selector;
 import '../universe/universe.dart' show
@@ -480,22 +483,13 @@ class ResolutionRegistry implements Registry {
     backend.resolutionCallbacks.onMapLiteral(this, type, isConstant);
   }
 
-  // TODO(johnniwinther): Remove the [ResolverVisitor] dependency. Its only
-  // needed to lookup types in the current scope.
-  void registerJsCall(Node node, ResolverVisitor visitor) {
-    world.registerJsCall(node, visitor);
-  }
-
-  // TODO(johnniwinther): Remove the [ResolverVisitor] dependency. Its only
-  // needed to lookup types in the current scope.
-  void registerJsEmbeddedGlobalCall(Node node, ResolverVisitor visitor) {
-    world.registerJsEmbeddedGlobalCall(node, visitor);
-  }
-
-  // TODO(johnniwinther): Remove the [ResolverVisitor] dependency. Its only
-  // needed to lookup types in the current scope.
-  void registerJsBuiltinCall(Node node, ResolverVisitor visitor) {
-    world.registerJsBuiltinCall(node, visitor);
+  void registerForeignCall(Node node,
+                           Element element,
+                           CallStructure callStructure,
+                           ResolverVisitor visitor) {
+    backend.registerForeignCall(
+        node, element, callStructure,
+        new ForeignResolutionResolver(visitor, this));
   }
 
   void registerGetOfStaticFunction(FunctionElement element) {
@@ -617,5 +611,27 @@ class ResolutionRegistry implements Registry {
 
   void registerTryStatement() {
     mapping.containsTryStatement = true;
+  }
+}
+
+class ForeignResolutionResolver implements ForeignResolver {
+  final ResolverVisitor visitor;
+  final ResolutionRegistry registry;
+
+  ForeignResolutionResolver(this.visitor, this.registry);
+
+  @override
+  ConstantExpression getConstant(Node node) {
+    return registry.getConstant(node);
+  }
+
+  @override
+  void registerInstantiatedType(InterfaceType type) {
+    registry.registerInstantiatedType(type);
+  }
+
+  @override
+  DartType resolveTypeFromString(Node node, String typeName) {
+    return visitor.resolveTypeFromString(node, typeName);
   }
 }

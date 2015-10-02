@@ -6,6 +6,8 @@ library native;
 
 import 'dart:collection' show Queue;
 
+import '../common/backend_api.dart' show
+    ForeignResolver;
 import '../common/registry.dart' show
     Registry;
 import '../common/resolution.dart' show
@@ -41,8 +43,6 @@ import '../parser/element_listener.dart' show
     ElementListener;
 import '../parser/partial_elements.dart' show
     PartialMetadataAnnotation;
-import '../resolution/members.dart' show
-    ResolverVisitor;
 import '../ssa/ssa.dart';
 import '../tokens/token.dart' show
     BeginGroupToken,

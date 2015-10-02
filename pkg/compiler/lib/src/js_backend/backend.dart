@@ -1351,6 +1351,40 @@ class JavaScriptBackend extends Backend {
     noSuchMethodRegistry.registerNoSuchMethod(noSuchMethod);
   }
 
+  /// Called when resolving a call to a foreign function.
+  void registerForeignCall(Send node,
+                           Element element,
+                           CallStructure callStructure,
+                           ForeignResolver resolver) {
+    native.NativeResolutionEnqueuer nativeEnqueuer =
+        compiler.enqueuer.resolution.nativeEnqueuer;
+    if (element.name == 'JS') {
+      nativeEnqueuer.registerJsCall(node, resolver);
+    } else if (element.name == 'JS_EMBEDDED_GLOBAL') {
+      nativeEnqueuer.registerJsEmbeddedGlobalCall(node, resolver);
+    } else if (element.name == 'JS_BUILTIN') {
+      nativeEnqueuer.registerJsBuiltinCall(node, resolver);
+    } else if (element.name == 'JS_INTERCEPTOR_CONSTANT') {
+      // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
+      // a class that will be instantiated outside the program by attaching a
+      // native class dispatch record referencing the interceptor.
+      if (!node.argumentsNode.isEmpty) {
+        Node argument = node.argumentsNode.nodes.head;
+        ConstantExpression constant = resolver.getConstant(argument);
+        if (constant != null && constant.kind == ConstantExpressionKind.TYPE) {
+          TypeConstantExpression typeConstant = constant;
+          if (typeConstant.type is InterfaceType) {
+            resolver.registerInstantiatedType(typeConstant.type);
+            return;
+          }
+        }
+      }
+      compiler.reportErrorMessage(
+          node,
+          MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
+    }
+  }
+
   void enableNoSuchMethod(Enqueuer world) {
     enqueue(world, getCreateInvocationMirror(), compiler.globalDependencies);
     world.registerInvocation(

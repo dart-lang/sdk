@@ -34,42 +34,6 @@ class NativeEnqueuer {
   /// Returns whether native classes are being used.
   bool hasInstantiatedNativeClasses() => false;
 
-  /**
-   * Handles JS-calls, which can be an instantiation point for types.
-   *
-   * For example, the following code instantiates and returns native classes
-   * that are `_DOMWindowImpl` or a subtype.
-   *
-   *     JS('_DOMWindowImpl', 'window')
-   *
-   */
-  // TODO(sra): The entry from codegen will not have a resolver.
-  void registerJsCall(Send node, ResolverVisitor resolver) {}
-
-  /**
-   * Handles JS-embedded global calls, which can be an instantiation point for
-   * types.
-   *
-   * For example, the following code instantiates and returns a String class
-   *
-   *     JS_EMBEDDED_GLOBAL('String', 'foo')
-   *
-   */
-  // TODO(sra): The entry from codegen will not have a resolver.
-  void registerJsEmbeddedGlobalCall(Send node, ResolverVisitor resolver) {}
-
-  /**
-   * Handles JS-compiler builtin calls, which can be an instantiation point for
-   * types.
-   *
-   * For example, the following code instantiates and returns a String class
-   *
-   *     JS_BUILTIN('String', 'int2string', 0)
-   *
-   */
-  // TODO(sra): The entry from codegen will not have a resolver.
-  void registerJsBuiltinCall(Send node, ResolverVisitor resolver) {}
-
   /// Emits a summary information using the [log] function.
   void logSummary(log(message)) {}
 
@@ -484,26 +448,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     registerNativeBehavior(NativeBehavior.ofFieldStore(field, compiler), field);
   }
 
-  void registerJsCall(Send node, ResolverVisitor resolver) {
-    NativeBehavior behavior = NativeBehavior.ofJsCall(node, compiler, resolver);
-    registerNativeBehavior(behavior, node);
-    nativeBehaviors[node] = behavior;
-  }
-
-  void registerJsEmbeddedGlobalCall(Send node, ResolverVisitor resolver) {
-    NativeBehavior behavior =
-        NativeBehavior.ofJsEmbeddedGlobalCall(node, compiler, resolver);
-    registerNativeBehavior(behavior, node);
-    nativeBehaviors[node] = behavior;
-  }
-
-  void registerJsBuiltinCall(Send node, ResolverVisitor resolver) {
-    NativeBehavior behavior =
-        NativeBehavior.ofJsBuiltinCall(node, compiler, resolver);
-    registerNativeBehavior(behavior, node);
-    nativeBehaviors[node] = behavior;
-  }
-
   NativeBehavior getNativeBehaviorOf(Send node) => nativeBehaviors[node];
 
   processNativeBehavior(NativeBehavior behavior, cause) {
@@ -616,6 +560,55 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
   void logSummary(log(message)) {
     log('Resolved ${registeredClasses.length} native elements used, '
         '${unusedClasses.length} native elements dead.');
+  }
+
+  /**
+   * Handles JS-calls, which can be an instantiation point for types.
+   *
+   * For example, the following code instantiates and returns native classes
+   * that are `_DOMWindowImpl` or a subtype.
+   *
+   *     JS('_DOMWindowImpl', 'window')
+   *
+   */
+  void registerJsCall(Send node, ForeignResolver resolver) {
+    NativeBehavior behavior = NativeBehavior.ofJsCall(node, compiler, resolver);
+    registerNativeBehavior(behavior, node);
+    nativeBehaviors[node] = behavior;
+  }
+
+
+  /**
+   * Handles JS-embedded global calls, which can be an instantiation point for
+   * types.
+   *
+   * For example, the following code instantiates and returns a String class
+   *
+   *     JS_EMBEDDED_GLOBAL('String', 'foo')
+   *
+   */
+  void registerJsEmbeddedGlobalCall(Send node, ForeignResolver resolver) {
+    NativeBehavior behavior =
+        NativeBehavior.ofJsEmbeddedGlobalCall(node, compiler, resolver);
+    registerNativeBehavior(behavior, node);
+    nativeBehaviors[node] = behavior;
+  }
+
+
+  /**
+   * Handles JS-compiler builtin calls, which can be an instantiation point for
+   * types.
+   *
+   * For example, the following code instantiates and returns a String class
+   *
+   *     JS_BUILTIN('String', 'int2string', 0)
+   *
+   */
+  void registerJsBuiltinCall(Send node, ForeignResolver resolver) {
+    NativeBehavior behavior =
+        NativeBehavior.ofJsBuiltinCall(node, compiler, resolver);
+    registerNativeBehavior(behavior, node);
+    nativeBehaviors[node] = behavior;
   }
 }
 

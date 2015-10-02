@@ -520,7 +520,7 @@ class NativeBehavior {
       NativeBehavior behavior,
       Send jsBuiltinOrEmbeddedGlobalCall,
       Compiler compiler,
-      ResolverVisitor resolver,
+      ForeignResolver resolver,
       {bool isBuiltin,
        List<String> validTags}) {
     // The first argument of a JS-embedded global call is a string encoding
@@ -586,7 +586,7 @@ class NativeBehavior {
 
   static NativeBehavior ofJsBuiltinCall(Send jsBuiltinCall,
                                         Compiler compiler,
-                                        ResolverVisitor resolver) {
+                                        ForeignResolver resolver) {
     NativeBehavior behavior = new NativeBehavior();
     behavior.sideEffects.setTo(new SideEffects());
 
@@ -598,7 +598,7 @@ class NativeBehavior {
 
   static NativeBehavior ofJsEmbeddedGlobalCall(Send jsEmbeddedGlobalCall,
                                                Compiler compiler,
-                                               ResolverVisitor resolver) {
+                                               ForeignResolver resolver) {
     NativeBehavior behavior = new NativeBehavior();
     // TODO(sra): Allow the use site to override these defaults.
     // Embedded globals are usually pre-computed data structures or JavaScript

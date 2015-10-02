@@ -12,7 +12,8 @@ import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
 
 import '../closure.dart';
 import '../common/backend_api.dart' show
-    Backend;
+    Backend,
+    ForeignResolver;
 import '../common/codegen.dart' show
     CodegenRegistry,
     CodegenWorkItem;

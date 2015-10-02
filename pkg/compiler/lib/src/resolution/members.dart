@@ -125,12 +125,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   int allowedCategory = ElementCategory.VARIABLE | ElementCategory.FUNCTION
       | ElementCategory.IMPLIES_TYPE;
 
-  /**
-   * Record of argument nodes to JS_INTERCEPTOR_CONSTANT for deferred
-   * processing.
-   */
-  Set<Node> argumentsToJsInterceptorConstant = null;
-
   /// When visiting the type declaration of the variable in a [ForIn] loop,
   /// the initializer of the variable is implicit and we should not emit an
   /// error when verifying that all final variables are initialized.
@@ -2058,7 +2052,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else {
       analyzeConstantDeferred(node, enforceConst: false);
 
-      // TODO(johnniwinther): Avoid the need for a [Selector] here.
+      registry.setConstant(node, semantics.constant);
       registry.registerSendStructure(node, new GetStructure(semantics));
       return new ConstantResult(node, semantics.constant);
     }
@@ -2757,7 +2751,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             isIncompatibleInvoke = true;
           } else {
             registry.registerStaticUse(semantics.element);
-            handleForeignCall(node, semantics.element, selector);
+            handleForeignCall(node, semantics.element, callStructure);
             if (method == compiler.identicalFunction &&
                 argumentsResult.isValidAsConstant) {
               result = new ConstantResult(node,
@@ -3110,23 +3104,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   // TODO(johnniwinther): Move this to the backend resolution callbacks.
-  void handleForeignCall(Send node, Element target, Selector selector) {
+  void handleForeignCall(Send node,
+                         Element target,
+                         CallStructure callStructure) {
     if (target != null && compiler.backend.isForeign(target)) {
-      if (selector.name == 'JS') {
-        registry.registerJsCall(node, this);
-      } else if (selector.name == 'JS_EMBEDDED_GLOBAL') {
-        registry.registerJsEmbeddedGlobalCall(node, this);
-      } else if (selector.name == 'JS_BUILTIN') {
-        registry.registerJsBuiltinCall(node, this);
-      } else if (selector.name == 'JS_INTERCEPTOR_CONSTANT') {
-        if (!node.argumentsNode.isEmpty) {
-          Node argument = node.argumentsNode.nodes.head;
-          if (argumentsToJsInterceptorConstant == null) {
-            argumentsToJsInterceptorConstant = new Set<Node>();
-          }
-          argumentsToJsInterceptorConstant.add(argument);
-        }
-      }
+      registry.registerForeignCall(node, target, callStructure, this);
     }
   }
 
@@ -3974,27 +3956,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     ConstantValue value = compiler.constants.getConstantValue(constant);
     if (value.isMap) {
       checkConstMapKeysDontOverrideEquals(node, value);
-    }
-
-    // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
-    // a class that will be instantiated outside the program by attaching a
-    // native class dispatch record referencing the interceptor.
-    if (argumentsToJsInterceptorConstant != null &&
-        argumentsToJsInterceptorConstant.contains(node)) {
-      if (value.isType) {
-        TypeConstantValue typeConstant = value;
-        if (typeConstant.representedType is InterfaceType) {
-          registry.registerInstantiatedType(typeConstant.representedType);
-        } else {
-          compiler.reportErrorMessage(
-              node,
-              MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
-        }
-      } else {
-        compiler.reportErrorMessage(
-            node,
-            MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
-      }
     }
   }
 

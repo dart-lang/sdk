@@ -907,18 +907,6 @@ class ResolutionEnqueuer extends Enqueuer {
     }
   }
 
-  void registerJsCall(Send node, ResolverVisitor resolver) {
-    nativeEnqueuer.registerJsCall(node, resolver);
-  }
-
-  void registerJsEmbeddedGlobalCall(Send node, ResolverVisitor resolver) {
-    nativeEnqueuer.registerJsEmbeddedGlobalCall(node, resolver);
-  }
-
-  void registerJsBuiltinCall(Send node, ResolverVisitor resolver) {
-    nativeEnqueuer.registerJsBuiltinCall(node, resolver);
-  }
-
   void _logSpecificSummary(log(message)) {
     log('Resolved ${resolvedElements.length} elements.');
   }
