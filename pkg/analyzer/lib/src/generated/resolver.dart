@@ -9261,8 +9261,7 @@ class Namespace {
    *
    * @return a table containing the same mappings as those defined by this namespace
    */
-  Map<String, Element> get definedNames =>
-      new HashMap<String, Element>.from(_definedNames);
+  Map<String, Element> get definedNames => _definedNames;
 
   /**
    * Return the element in this namespace that is available to the containing scope using the given
@@ -9412,7 +9411,7 @@ class NamespaceBuilder {
       List<NamespaceCombinator> combinators) {
     for (NamespaceCombinator combinator in combinators) {
       if (combinator is HideElementCombinator) {
-        _hide(definedNames, combinator.hiddenNames);
+        definedNames = _hide(definedNames, combinator.hiddenNames);
       } else if (combinator is ShowElementCombinator) {
         definedNames = _show(definedNames, combinator.shownNames);
       } else {
@@ -9491,24 +9490,22 @@ class NamespaceBuilder {
   }
 
   /**
-   * Hide all of the given names by removing them from the given collection of defined names.
-   *
-   * @param definedNames the names that were defined before this operation
-   * @param hiddenNames the names to be hidden
+   * Return a new map of names which has all the names from [definedNames]
+   * with exception of [hiddenNames].
    */
-  void _hide(HashMap<String, Element> definedNames, List<String> hiddenNames) {
+  Map<String, Element> _hide(
+      HashMap<String, Element> definedNames, List<String> hiddenNames) {
+    HashMap<String, Element> newNames =
+        new HashMap<String, Element>.from(definedNames);
     for (String name in hiddenNames) {
-      definedNames.remove(name);
-      definedNames.remove("$name=");
+      newNames.remove(name);
+      newNames.remove("$name=");
     }
+    return newNames;
   }
 
   /**
-   * Show only the given names by removing all other names from the given collection of defined
-   * names.
-   *
-   * @param definedNames the names that were defined before this operation
-   * @param shownNames the names to be shown
+   * Return a new map of names which has only [shownNames] from [definedNames].
    */
   HashMap<String, Element> _show(
       HashMap<String, Element> definedNames, List<String> shownNames) {
