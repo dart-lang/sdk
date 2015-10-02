@@ -85,7 +85,6 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Keyword.FOR,
     Keyword.IF,
     Keyword.NEW,
-    Keyword.RETHROW,
     Keyword.RETURN,
     Keyword.SUPER,
     Keyword.SWITCH,
@@ -107,7 +106,6 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Keyword.FOR,
     Keyword.IF,
     Keyword.NEW,
-    Keyword.RETHROW,
     Keyword.RETURN,
     Keyword.SUPER,
     Keyword.SWITCH,
@@ -130,7 +128,6 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Keyword.FOR,
     Keyword.IF,
     Keyword.NEW,
-    Keyword.RETHROW,
     Keyword.RETURN,
     Keyword.SUPER,
     Keyword.SWITCH,
@@ -153,7 +150,6 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Keyword.FOR,
     Keyword.IF,
     Keyword.NEW,
-    Keyword.RETHROW,
     Keyword.RETURN,
     Keyword.SWITCH,
     Keyword.THROW,
@@ -171,7 +167,6 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Keyword.FOR,
     Keyword.IF,
     Keyword.NEW,
-    Keyword.RETHROW,
     Keyword.RETURN,
     Keyword.SWITCH,
     Keyword.THROW,
@@ -191,7 +186,6 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Keyword.FOR,
     Keyword.IF,
     Keyword.NEW,
-    Keyword.RETHROW,
     Keyword.RETURN,
     Keyword.SWITCH,
     Keyword.THROW,
@@ -610,6 +604,16 @@ class KeywordContributorTest extends AbstractCompletionTest {
     addTestSource('main() {for (int x in myList) {^}}');
     expect(computeFast(), isTrue);
     assertSuggestKeywords(STMT_START_IN_LOOP_OUTSIDE_CLASS,
+        relevance: DART_RELEVANCE_KEYWORD);
+  }
+
+  test_catch() {
+    addTestSource('main() {try {} catch (e) {^}}}');
+    expect(computeFast(), isTrue);
+    var keywords = <Keyword>[];
+    keywords.addAll(STMT_START_OUTSIDE_CLASS);
+    keywords.add(Keyword.RETHROW);
+    assertSuggestKeywords(keywords,
         relevance: DART_RELEVANCE_KEYWORD);
   }
 
