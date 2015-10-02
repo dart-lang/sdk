@@ -65,6 +65,28 @@ main() {}
         response, isResponseFailure('0', RequestErrorCode.FILE_NOT_ANALYZED));
   }
 
+  Future test_OK_remove_duplicateImports_withSamePrefix() {
+    addTestFile('''
+library lib;
+
+import 'dart:async' as async;
+import 'dart:async' as async;
+
+main() {
+  async.Future f;
+}
+''');
+    return _assertOrganized(r'''
+library lib;
+
+import 'dart:async' as async;
+
+main() {
+  async.Future f;
+}
+''');
+  }
+
   Future test_OK_remove_unresolvedDirectives() {
     addFile('$testFolder/existing_part1.dart', 'part of lib;');
     addFile('$testFolder/existing_part2.dart', 'part of lib;');

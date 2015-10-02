@@ -22,6 +22,29 @@ main() {
 class OrganizeDirectivesTest extends AbstractSingleUnitTest {
   List<AnalysisError> testErrors;
 
+  void test_keep_duplicateImports_withDifferentPrefix() {
+    _computeUnitAndErrors(r'''
+import 'dart:async' as async1;
+import 'dart:async' as async2;
+
+main() {
+  async1.Future f;
+  async2.Stream s;
+}''');
+    // validate change
+    _assertOrganize(
+        r'''
+import 'dart:async' as async1;
+import 'dart:async' as async2;
+
+main() {
+  async1.Future f;
+  async2.Stream s;
+}''',
+        removeUnresolved: true,
+        removeUnused: true);
+  }
+
   void test_remove_duplicateImports() {
     _computeUnitAndErrors(r'''
 import 'dart:async';
@@ -37,6 +60,46 @@ import 'dart:async';
 
 main() {
   Future f;
+}''',
+        removeUnresolved: true,
+        removeUnused: true);
+  }
+
+  void test_remove_duplicateImports_differentText_uri() {
+    _computeUnitAndErrors(r'''
+import 'dart:async' as async;
+import "dart:async" as async;
+
+main() {
+  async.Future f;
+}''');
+    // validate change
+    _assertOrganize(
+        r'''
+import 'dart:async' as async;
+
+main() {
+  async.Future f;
+}''',
+        removeUnresolved: true,
+        removeUnused: true);
+  }
+
+  void test_remove_duplicateImports_withSamePrefix() {
+    _computeUnitAndErrors(r'''
+import 'dart:async' as async;
+import 'dart:async' as async;
+
+main() {
+  async.Future f;
+}''');
+    // validate change
+    _assertOrganize(
+        r'''
+import 'dart:async' as async;
+
+main() {
+  async.Future f;
 }''',
         removeUnresolved: true,
         removeUnused: true);
