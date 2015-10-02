@@ -2065,8 +2065,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive bulkHandleError(ast.Send node, ErroneousElement error, _) {
-    assert(compiler.compilationFailed);
+  ir.Primitive bulkHandleError(ast.Node node, ErroneousElement error, _) {
     return irBuilder.buildNullConstant();
   }
 
