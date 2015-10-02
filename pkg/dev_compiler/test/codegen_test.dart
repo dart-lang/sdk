@@ -92,6 +92,8 @@ main(arguments) {
       var message = '''
 // Messages from compiling ${path.basenameWithoutExtension(url)}.dart
 $compilerMessages''';
+      var dir = file.parent;
+      if (!dir.existsSync()) dir.createSync(recursive: true);
       file.writeAsStringSync(message);
       compilerMessages.clear();
     });
