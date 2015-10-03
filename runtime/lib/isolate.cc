@@ -259,17 +259,25 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 7) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 10) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(1));
+
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, args, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(3));
+
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, paused, arguments->NativeArgAt(4));
-  GET_NATIVE_ARGUMENT(Bool, checked, arguments->NativeArgAt(5));
-  GET_NATIVE_ARGUMENT(String, package_root, arguments->NativeArgAt(6));
+  GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(5));
+  GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(6));
+
   GET_NATIVE_ARGUMENT(Bool, fatalErrors, arguments->NativeArgAt(7));
-  GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(8));
-  GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(9));
+  GET_NATIVE_ARGUMENT(Bool, checked, arguments->NativeArgAt(8));
+
+  GET_NATIVE_ARGUMENT(Array, environment, arguments->NativeArgAt(9));
+
+  GET_NATIVE_ARGUMENT(String, package_root, arguments->NativeArgAt(10));
+  GET_NATIVE_ARGUMENT(Array, packages, arguments->NativeArgAt(11));
+
 
   // Canonicalize the uri with respect to the current isolate.
   char* error = NULL;
