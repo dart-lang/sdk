@@ -120,7 +120,9 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
       bool isDeprecated: false,
       bool isPotential: false,
       String elemFile,
-      int elemOffset}) {
+      int elemOffset,
+      docCompleteMatcher,
+      docSummaryMatcher}) {
     CompletionSuggestion cs =
         getSuggest(completion: completion, csKind: csKind, elemKind: elemKind);
     if (cs == null) {
@@ -152,6 +154,12 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     if (elemOffset != null) {
       expect(cs.element.location.offset, elemOffset);
     }
+    if (docCompleteMatcher != null) {
+      expect(cs.docComplete, docCompleteMatcher);
+    }
+    if (docSummaryMatcher != null) {
+      expect(cs.docSummary, docSummaryMatcher);
+    }
     return cs;
   }
 
@@ -161,14 +169,18 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       bool isDeprecated: false,
       String elemFile,
-      int elemOffset}) {
+      int elemOffset,
+      docCompleteMatcher,
+      docSummaryMatcher}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
         relevance: relevance,
         importUri: importUri,
         isDeprecated: isDeprecated,
         elemFile: elemFile,
-        elemOffset: elemOffset);
+        elemOffset: elemOffset,
+        docCompleteMatcher: docCompleteMatcher,
+        docSummaryMatcher: docSummaryMatcher);
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.CLASS));
@@ -236,12 +248,16 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       bool deprecated: false,
       int relevance: DART_RELEVANCE_DEFAULT,
-      String importUri}) {
+      String importUri,
+      docCompleteMatcher,
+      docSummaryMatcher}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
         relevance: relevance,
         importUri: importUri,
-        isDeprecated: deprecated);
+        isDeprecated: deprecated,
+        docCompleteMatcher: docCompleteMatcher,
+        docSummaryMatcher: docSummaryMatcher);
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
     protocol.Element element = cs.element;
     expect(element, isNotNull);
@@ -338,12 +354,16 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
       {int relevance: DART_RELEVANCE_DEFAULT,
       String importUri,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      bool isDeprecated: false}) {
+      bool isDeprecated: false,
+      docCompleteMatcher,
+      docSummaryMatcher}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
         relevance: relevance,
         importUri: importUri,
-        isDeprecated: isDeprecated);
+        isDeprecated: isDeprecated,
+        docCompleteMatcher: docCompleteMatcher,
+        docSummaryMatcher: docSummaryMatcher);
     expect(cs.declaringType, equals(declaringType));
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
     protocol.Element element = cs.element;

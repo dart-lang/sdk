@@ -337,6 +337,46 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
     });
   }
 
+  test_doc_class() {
+    addSource(
+        '/libA.dart',
+        r'''
+library A;
+/// My class.
+/// Short description.
+///
+/// Longer description.
+class A {}
+''');
+    addTestSource('import "/libA.dart"; main() {^}');
+    return computeFull((bool result) {
+      assertSuggestClass('A',
+          docSummaryMatcher: 'My class.\nShort description.',
+          docCompleteMatcher:
+              'My class.\nShort description.\n\nLonger description.');
+    });
+  }
+
+  test_doc_function() {
+    addSource(
+        '/libA.dart',
+        r'''
+library A;
+/// My function.
+/// Short description.
+///
+/// Longer description.
+int myFunc() {}
+''');
+    addTestSource('import "/libA.dart"; main() {^}');
+    return computeFull((bool result) {
+      assertSuggestFunction('myFunc', 'int',
+          docSummaryMatcher: 'My function.\nShort description.',
+          docCompleteMatcher:
+              'My function.\nShort description.\n\nLonger description.');
+    });
+  }
+
   test_enum() {
     addSource('/libA.dart', 'library A; enum E { one, two }');
     addTestSource('import "/libA.dart"; main() {^}');
