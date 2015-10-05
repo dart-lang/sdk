@@ -46,14 +46,15 @@ static const bool SSL_LOG_DATA = false;
 static const int SSL_ERROR_MESSAGE_BUFFER_SIZE = 200;
 
 /* Handle an error reported from the BoringSSL library. */
-static void ThrowIOException(const char* exception_type,
+static void ThrowIOException(int status,
+                             const char* exception_type,
                              const char* message,
                              bool free_message = false) {
   // TODO(24068): Get the error code and message from the error stack.
   // There may be more than one error on the stack - should we
   // concatenate the error messages?
-  int error_code = 0;
-  const char* error_message = "Unknown error from BoringSSL library";
+  int error_code = status;
+  const char* error_message = "Error from BoringSSL library";
   OSError os_error_struct(error_code, error_message, OSError::kBoringSSL);
   Dart_Handle os_error = DartUtils::NewDartOSError(&os_error_struct);
   Dart_Handle exception =
@@ -332,28 +333,26 @@ void FUNCTION_NAME(SecurityContext_Allocate)(Dart_NativeArguments args) {
 
 int PasswordCallback(char* buf, int size, int rwflag, void* userdata) {
   char* password = static_cast<char*>(userdata);
-  if (static_cast<size_t>(size) < strlen(password) + 1) {
-    Log::PrintErr("Password buffer too small.\n");
-    exit(1);
-    // TODO(24182): Find the actual value of size passed in here, and
-    // check for password length longer than this in the Dart function
-    // that passes in the password, so we never have this problem.
-  }
-  strncpy(buf, static_cast<char*>(userdata), size);
-  return strlen(static_cast<char*>(userdata));
+  ASSERT(size == PEM_BUFSIZE);
+  strncpy(buf, password, size);
+  return strlen(password);
 }
 
 
-void CheckStatus(int status, const char* message, int line) {
+void CheckStatus(int status,
+                 const char* type,
+                 const char* message) {
   // TODO(24183): Take appropriate action on failed calls,
   // throw exception that includes all messages from the error stack.
-  if (status != 1 && SSL_LOG_STATUS) {
+  if (status == 1) return;
+  if (SSL_LOG_STATUS) {
     int error = ERR_get_error();
-    Log::PrintErr("Failed: %s line %d\n", message, line);
+    Log::PrintErr("Failed: %s status %d", message, status);
     char error_string[SSL_ERROR_MESSAGE_BUFFER_SIZE];
     ERR_error_string_n(error, error_string, SSL_ERROR_MESSAGE_BUFFER_SIZE);
     Log::PrintErr("ERROR: %d %s\n", error, error_string);
   }
+  ThrowIOException(status, type, message);
 }
 
 
@@ -371,12 +370,16 @@ void FUNCTION_NAME(SecurityContext_UsePrivateKey)(Dart_NativeArguments args) {
   const char* password = NULL;
   if (Dart_IsString(password_object)) {
     ThrowIfError(Dart_StringToCString(password_object, &password));
+    if (strlen(password) > PEM_BUFSIZE - 1) {
+      Dart_ThrowException(DartUtils::NewDartArgumentError(
+        "SecurityContext.usePrivateKey password length is greater than"
+        " 1023 (PEM_BUFSIZE)"));
+    }
   } else if (Dart_IsNull(password_object)) {
     password = "";
   } else {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "Password argument to SecurityContext.usePrivateKey is not "
-        "a String or null"));
+        "SecurityContext.usePrivateKey password is not a String or null"));
   }
 
   SSL_CTX_set_default_passwd_cb(context, PasswordCallback);
@@ -387,7 +390,7 @@ void FUNCTION_NAME(SecurityContext_UsePrivateKey)(Dart_NativeArguments args) {
   // TODO(24184): Handle different expected errors here - file missing,
   // incorrect password, file not a PEM, and throw exceptions.
   // CheckStatus should also throw an exception in uncaught cases.
-  CheckStatus(status, "SSL_CTX_use_PrivateKey_file", __LINE__);
+  CheckStatus(status, "TlsException", "Failure in usePrivateKey");
   SSL_CTX_set_default_passwd_cb_userdata(context, NULL);
 }
 
@@ -413,7 +416,8 @@ void FUNCTION_NAME(SecurityContext_SetTrustedCertificates)(
   }
 
   int status = SSL_CTX_load_verify_locations(context, filename, directory);
-  CheckStatus(status, "SSL_CTX_load_verify_locations", __LINE__);
+  CheckStatus(
+      status, "TlsException", "SSL_CTX_load_verify_locations");
 }
 
 
@@ -448,7 +452,9 @@ void FUNCTION_NAME(SecurityContext_UseCertificateChain)(
         " is not a String"));
   }
   int status = SSL_CTX_use_certificate_chain_file(context, filename);
-  CheckStatus(status, "SSL_CTX_use_certificate_chain_file", __LINE__);
+  CheckStatus(status,
+              "TlsException",
+              "Failure in useCertificateChain");
 }
 
 
@@ -873,7 +879,7 @@ void SSLFilter::Connect(const char* hostname,
   int error;
   BIO* ssl_side;
   status = BIO_new_bio_pair(&ssl_side, 10000, &socket_side_, 10000);
-  CheckStatus(status, "BIO_new_bio_pair", __LINE__);
+  CheckStatus(status, "TlsException", "BIO_new_bio_pair");
 
   assert(context != NULL);
   ssl_ = SSL_new(context);
@@ -888,7 +894,7 @@ void SSLFilter::Connect(const char* hostname,
   } else {
     SetAlpnProtocolList(protocols_handle, ssl_, NULL, false);
     status = SSL_set_tlsext_host_name(ssl_, hostname);
-    CheckStatus(status, "Set SNI host name", __LINE__);
+    CheckStatus(status, "TlsException", "Set SNI host name");
     // Sets the hostname in the certificate-checking object, so it is checked
     // against the certificate presented by the server.
     X509_VERIFY_PARAM* certificate_checking_parameters = SSL_get0_param(ssl_);
@@ -899,7 +905,8 @@ void SSLFilter::Connect(const char* hostname,
     X509_VERIFY_PARAM_set_hostflags(certificate_checking_parameters, 0);
     status = X509_VERIFY_PARAM_set1_host(certificate_checking_parameters,
                                          hostname_, strlen(hostname_));
-    CheckStatus(status, "Set hostname for certificate checking", __LINE__);
+    CheckStatus(status, "TlsException",
+                "Set hostname for certificate checking");
   }
   // Make the connection:
   if (is_server_) {
@@ -944,7 +951,6 @@ int printErrorCallback(const char *str, size_t len, void *ctx) {
 void SSLFilter::Handshake() {
   // Try and push handshake along.
   int status;
-  int error;
   status = SSL_do_handshake(ssl_);
   if (callback_error != NULL) {
     // The SSL_do_handshake will try performing a handshake and might call
@@ -953,57 +959,33 @@ void SSLFilter::Handshake() {
     // logic and we propagate the error"
     Dart_PropagateError(callback_error);
   }
-  if (SSL_LOG_STATUS) Log::Print("SSL_handshake status: %d\n", status);
-  if (status != 1) {
-    error = SSL_get_error(ssl_, status);
-    if (SSL_LOG_STATUS) {
-      Log::Print("ERROR: %d\n", error);
-      ERR_print_errors_cb(printErrorCallback, NULL);
-    }
+  if (SSL_want_write(ssl_) || SSL_want_read(ssl_)) {
+    in_handshake_ = true;
+    return;
   }
-  if (status == 1) {
-    if (in_handshake_) {
-      // TODO(24071): Check return value of SSL_get_verify_result, this
-      //    should give us the hostname check.
-      int result = SSL_get_verify_result(ssl_);
-      if (SSL_LOG_STATUS) {
-        Log::Print("Handshake verification status: %d\n", result);
-        X509* peer_certificate = SSL_get_peer_certificate(ssl_);
-        if (peer_certificate == NULL) {
-          Log::Print("No peer certificate received\n");
-        } else {
-          X509_NAME* s_name = X509_get_subject_name(peer_certificate);
-          printf("Peer certificate SN: ");
-          X509_NAME_print_ex_fp(stdout, s_name, 4, 0);
-          printf("\n");
-        }
-      }
-      ThrowIfError(Dart_InvokeClosure(
-          Dart_HandleFromPersistent(handshake_complete_), 0, NULL));
-      in_handshake_ = false;
-    }
-  } else if (status == 0) {
-    if (is_server_) {
-      ThrowIOException("HandshakeException",
-                       "Handshake error in server");
-    } else {
-      ThrowIOException("HandshakeException",
-                       "Handshake error in client");
-    }
-  } else if (status < 0) {
-    if (SSL_want_write(ssl_) || SSL_want_read(ssl_)) {
-      if (!in_handshake_) {
-        in_handshake_ = true;
-      }
-    } else {
-      if (is_server_) {
-        ThrowIOException("HandshakeException",
-                         "Handshake error in server");
+  CheckStatus(status,
+      "HandshakeException",
+      is_server_ ? "Handshake error in server" : "Handshake error in client");
+  // Handshake succeeded.
+  if (in_handshake_) {
+    // TODO(24071): Check return value of SSL_get_verify_result, this
+    //    should give us the hostname check.
+    int result = SSL_get_verify_result(ssl_);
+    if (SSL_LOG_STATUS) {
+      Log::Print("Handshake verification status: %d\n", result);
+      X509* peer_certificate = SSL_get_peer_certificate(ssl_);
+      if (peer_certificate == NULL) {
+        Log::Print("No peer certificate received\n");
       } else {
-        ThrowIOException("HandshakeException",
-                         "Handshake error in client");
+        X509_NAME* s_name = X509_get_subject_name(peer_certificate);
+        printf("Peer certificate SN: ");
+        X509_NAME_print_ex_fp(stdout, s_name, 4, 0);
+        printf("\n");
       }
     }
+    ThrowIfError(Dart_InvokeClosure(
+        Dart_HandleFromPersistent(handshake_complete_), 0, NULL));
+    in_handshake_ = false;
   }
 }
 
