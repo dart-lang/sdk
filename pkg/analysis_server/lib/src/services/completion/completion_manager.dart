@@ -273,11 +273,9 @@ class CompletionResultImpl implements CompletionResult {
   CompletionResultImpl(this.replacementOffset, this.replacementLength,
       this.suggestions, this.last);
 
-  @override
-  // TODO(brianwilkerson) Figure out whether this is correct.
-  bool get hasNewSuggestions => suggestions.isNotEmpty;
-
-  @override
+  /**
+   * Return `true` if this is the last completion result that will be produced.
+   */
   bool get isLast => last;
 }
 

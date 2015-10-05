@@ -8956,46 +8956,6 @@ class LibraryResolver2 {
 }
 
 /**
- * Instances of the class `TypeAliasInfo` hold information about a [TypeAlias].
- */
-class LibraryResolver2_TypeAliasInfo {
-  final ResolvableLibrary _library;
-
-  final Source _source;
-
-  final FunctionTypeAlias _typeAlias;
-
-  /**
-   * Initialize a newly created information holder with the given information.
-   *
-   * @param library the library containing the type alias
-   * @param source the source of the file containing the type alias
-   * @param typeAlias the type alias being remembered
-   */
-  LibraryResolver2_TypeAliasInfo(this._library, this._source, this._typeAlias);
-}
-
-/**
- * Instances of the class `TypeAliasInfo` hold information about a [TypeAlias].
- */
-class LibraryResolver_TypeAliasInfo {
-  final Library _library;
-
-  final Source _source;
-
-  final FunctionTypeAlias _typeAlias;
-
-  /**
-   * Initialize a newly created information holder with the given information.
-   *
-   * @param library the library containing the type alias
-   * @param source the source of the file containing the type alias
-   * @param typeAlias the type alias being remembered
-   */
-  LibraryResolver_TypeAliasInfo(this._library, this._source, this._typeAlias);
-}
-
-/**
  * Instances of the class `LibraryScope` implement a scope containing all of the names defined
  * in a given library.
  */

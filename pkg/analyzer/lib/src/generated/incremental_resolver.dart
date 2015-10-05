@@ -1391,7 +1391,6 @@ class PoorMansIncrementalResolver {
   CacheEntry _newUnitEntry;
 
   final CompilationUnit _oldUnit;
-  final AnalysisOptions _options;
   CompilationUnitElement _unitElement;
 
   int _updateOffset;
@@ -1410,8 +1409,7 @@ class PoorMansIncrementalResolver {
       this._newSourceEntry,
       this._newUnitEntry,
       this._oldUnit,
-      bool resolveApiChanges,
-      this._options) {
+      bool resolveApiChanges) {
     _resolveApiChanges = resolveApiChanges;
   }
 

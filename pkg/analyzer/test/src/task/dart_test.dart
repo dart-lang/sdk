@@ -2887,7 +2887,6 @@ var tau = piFirst ? pi * 2 : 6.28;
 
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
-    DartType dynamicType = context.typeProvider.dynamicType;
 
     assertVariableDeclarationTypes(
         getTopLevelVariable(unit1, "x"), intType, intType);
@@ -2938,7 +2937,6 @@ var tau = piFirst ? pi * 2 : 6.28;
     CompilationUnit unit2 = outputs[RESOLVED_UNIT8];
 
     InterfaceType intType = context.typeProvider.intType;
-    InterfaceType stringType = context.typeProvider.stringType;
 
     assertVariableDeclarationTypes(
         getTopLevelVariable(unit1, "x"), intType, intType);

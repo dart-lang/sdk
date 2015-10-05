@@ -252,9 +252,6 @@ class B extends A {
   final $fieldName = 0;
 }
 ''');
-    ClassElement classA = unit.getType('A');
-    FieldElement fieldA = classA.getField(fieldName);
-    PropertyAccessorElement getterA = classA.getGetter(fieldName);
     ClassElement classB = unit.getType('B');
     FieldElement fieldB = classB.getField(fieldName);
     PropertyAccessorElement getterB = classB.getGetter(fieldName);
@@ -564,7 +561,6 @@ class B extends A {
 }
 ''');
     ClassElement classA = unit.getType('A');
-    FieldElement fieldA = classA.getField(getterName);
     PropertyAccessorElement setterA = classA.getSetter(getterName);
     ClassElement classB = unit.getType('B');
     FieldElement fieldB = classB.getField(getterName);

@@ -943,7 +943,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitPropertyAccess(PropertyAccess node) {
-    bool isConditional = node.operator.type == sc.TokenType.QUESTION_PERIOD;
     ClassElement typeReference =
         ElementResolver.getTypeReference(node.realTarget);
     SimpleIdentifier propertyName = node.propertyName;

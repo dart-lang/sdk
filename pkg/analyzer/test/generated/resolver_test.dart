@@ -12055,10 +12055,6 @@ main() {
     SimpleIdentifier identifier = _findIdentifier('foo');
     VariableDeclaration declaration =
         identifier.getAncestor((node) => node is VariableDeclaration);
-    InterfaceType stringType = typeProvider.stringType;
-    InterfaceType futureType = typeProvider.futureType;
-    InterfaceType futureOfStringType =
-        futureType.substitute4(<DartType>[stringType]);
 
     expect(declaration.initializer.staticType.toString(), "Future<String>");
     expect(declaration.initializer.propagatedType, isNull);

@@ -4868,8 +4868,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           null,
           null,
           oldUnit,
-          analysisOptions.incrementalApi,
-          analysisOptions);
+          analysisOptions.incrementalApi);
       bool success = resolver.resolve(newCode);
       AnalysisEngine.instance.instrumentationService.logPerformance(
           AnalysisPerformanceKind.INCREMENTAL,
