@@ -82,69 +82,6 @@ Future testBindDifferentAddresses(InternetAddress addr1,
   });
 }
 
-testSocketReferenceInteroperability(String host) {
-  asyncStart();
-    ServerSocket.bind(host, 0).then((ServerSocket socket) {
-      Expect.isTrue(socket.port > 0);
-
-      asyncStart();
-      socket.reference.create().then((socket2) {
-        bool gotResponseFrom1;
-        bool gotResponseFrom2;
-
-        Expect.isTrue(socket.port > 0);
-        Expect.equals(socket.port, socket2.port);
-
-        asyncStart();
-        asyncStart();
-        asyncStart();
-        socket.listen((client) {
-          client.drain().whenComplete(asyncEnd);
-          client.write('1: hello world');
-          client.close().whenComplete(asyncEnd);
-          // NOTE: Closing the socket un-subscribes as well, which means the
-          // other client connection must go to the other socket.
-          socket.close().whenComplete(asyncEnd);
-        }, onDone: asyncEnd);
-
-        asyncStart();
-        asyncStart();
-        asyncStart();
-        socket2.listen((client) {
-          client.drain().whenComplete(asyncEnd);
-          client.write('2: hello world');
-          client.close().whenComplete(asyncEnd);
-          // NOTE: Closing the socket un-subscribes as well, which means the
-          // other client connection must go to the other socket.
-          socket2.close().whenComplete(asyncEnd);
-        }, onDone: asyncEnd);
-
-        var futures = [];
-        for (int i = 0; i < 2; i++) {
-          asyncStart();
-          futures.add(
-              Socket.connect(socket.address, socket.port).then((Socket socket) {
-            socket.close().whenComplete(asyncEnd);
-            asyncStart();
-            return socket
-                .transform(ASCII.decoder).join('').then((String result) {
-                if (result == '1: hello world') gotResponseFrom1 = true;
-                else if (result == '2: hello world') gotResponseFrom2 = true;
-                else throw 'Unexpected result from server: $result';
-                asyncEnd();
-             });
-          }));
-        }
-        asyncStart();
-        Future.wait(futures).then((_) {
-          Expect.isTrue(gotResponseFrom1);
-          Expect.isTrue(gotResponseFrom2);
-          asyncEnd();
-        });
-      });
-   });
-}
-
 testListenCloseListenClose(String host) async {
   asyncStart();
 
@@ -183,8 +120,6 @@ void main() {
 
     negTestBindV6OnlyMismatch(host, true);
     negTestBindV6OnlyMismatch(host, false);
-
-    testSocketReferenceInteroperability(host);
 
     testListenCloseListenClose(host);
   }
