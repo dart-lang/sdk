@@ -506,3 +506,8 @@ class _SyncStarIterable extends IterableBase {
 
   Iterator get iterator => new _SyncStarIterator(JS('', '#()', _outerHelper));
 }
+
+@patch
+void _rethrow(Object error, StackTrace stackTrace) {
+  throw new AsyncError(error, stackTrace);
+}
