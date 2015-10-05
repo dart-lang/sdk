@@ -1391,7 +1391,7 @@ class Namer {
 
   String get functionTypeTag => r'func';
 
-  String get functionTypeVoidReturnTag => r'void';
+  String get functionTypeVoidReturnTag => r'v';
 
   String get functionTypeReturnTypeTag => r'ret';
 
