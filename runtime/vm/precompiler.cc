@@ -4,6 +4,7 @@
 
 #include "vm/precompiler.h"
 
+#include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/isolate.h"
 #include "vm/log.h"
@@ -328,6 +329,8 @@ void Precompiler::CleanUp() {
   DropUncompiledFunctions();
 
   // TODO(rmacnak): DropEmptyClasses();
+
+  BindStaticCalls();
 }
 
 
@@ -689,6 +692,70 @@ void Precompiler::DropUncompiledFunctions() {
       }
     }
   }
+}
+
+
+void Precompiler::BindStaticCalls() {
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+  Array& functions = Array::Handle(Z);
+  Function& function = Function::Handle(Z);
+  GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      if (cls.IsDynamicClass()) {
+        continue;  // class 'dynamic' is in the read-only VM isolate.
+      }
+
+      functions = cls.functions();
+      for (intptr_t j = 0; j < functions.Length(); j++) {
+        function ^= functions.At(j);
+        BindStaticCalls(function);
+      }
+
+      closures = cls.closures();
+      if (!closures.IsNull()) {
+        for (intptr_t j = 0; j < closures.Length(); j++) {
+          function ^= closures.At(j);
+          BindStaticCalls(function);
+        }
+      }
+    }
+  }
+}
+
+
+void Precompiler::BindStaticCalls(const Function& function) {
+  ASSERT(function.HasCode());
+
+  const Code& code = Code::Handle(Z, function.CurrentCode());
+
+  const Array& table = Array::Handle(Z, code.static_calls_target_table());
+  Smi& pc_offset = Smi::Handle(Z);
+  Function& target = Function::Handle(Z);
+  Code& target_code = Code::Handle(Z);
+
+  for (intptr_t i = 0; i < table.Length(); i += Code::kSCallTableEntryLength) {
+    pc_offset ^= table.At(i + Code::kSCallTableOffsetEntry);
+    target ^= table.At(i + Code::kSCallTableFunctionEntry);
+    if (target.IsNull()) {
+      target_code ^= table.At(i + Code::kSCallTableCodeEntry);
+      ASSERT(!target_code.IsNull());
+      ASSERT(!target_code.IsFunctionCode());
+      // Allocation stub or AllocateContext or AllocateArray or ...
+    } else {
+      // Cf. runtime entry PatchStaticCall called from CallStaticFunction stub.
+      ASSERT(target.HasCode());
+      target_code ^= target.CurrentCode();
+      CodePatcher::PatchStaticCallAt(pc_offset.Value() + code.EntryPoint(),
+                                     code, target_code);
+    }
+  }
+  code.set_static_calls_target_table(Object::empty_array());
 }
 
 }  // namespace dart

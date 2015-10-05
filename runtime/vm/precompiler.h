@@ -104,6 +104,8 @@ class Precompiler : public ValueObject {
   void CheckForNewDynamicFunctions();
 
   void DropUncompiledFunctions();
+  void BindStaticCalls();
+  void BindStaticCalls(const Function& function);
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
