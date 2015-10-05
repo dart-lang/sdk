@@ -748,6 +748,9 @@ void Precompiler::BindStaticCalls(const Function& function) {
       ASSERT(!target_code.IsFunctionCode());
       // Allocation stub or AllocateContext or AllocateArray or ...
     } else {
+      // Static calls initially call the CallStaticFunction stub because
+      // their target might not be compiled yet. After tree shaking, all
+      // static call targets are compiled.
       // Cf. runtime entry PatchStaticCall called from CallStaticFunction stub.
       ASSERT(target.HasCode());
       target_code ^= target.CurrentCode();
@@ -755,6 +758,9 @@ void Precompiler::BindStaticCalls(const Function& function) {
                                      code, target_code);
     }
   }
+
+  // We won't patch static calls anymore, so drop the static call table to save
+  // space.
   code.set_static_calls_target_table(Object::empty_array());
 }
 
