@@ -4,7 +4,7 @@
 
 library test.services.completion.target;
 
-import 'package:analysis_server/completion/dart/completion_target.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

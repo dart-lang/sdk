@@ -6,12 +6,13 @@ library services.completion.dart;
 
 import 'dart:async';
 
-import 'package:analysis_server/completion/completion_core.dart'
-    show CompletionRequest;
-import 'package:analysis_server/completion/completion_dart.dart' as newApi;
-import 'package:analysis_server/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/provisional/completion/completion_core.dart'
+    show CompletionRequest;
+import 'package:analysis_server/src/provisional/completion/completion_dart.dart'
+    as newApi;
+import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/common_usage_computer.dart';

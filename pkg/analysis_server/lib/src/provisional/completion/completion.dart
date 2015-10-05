@@ -23,10 +23,10 @@
  *       ...
  *     }
  */
-library analysis_server.plugin.completion;
+library analysis_server.src.provisional.completion.completion;
 
-import 'package:analysis_server/completion/completion_core.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
+import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:plugin/plugin.dart';
 
 /**
