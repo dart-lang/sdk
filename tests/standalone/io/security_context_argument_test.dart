@@ -9,6 +9,7 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 bool printException(e) { print(e); return true; }
 bool argumentError(e) => e is ArgumentError;
+bool argumentOrTypeError(e) => e is ArgumentError || e is TypeError;
 bool tlsException(e) => e is TlsException;
 
 void testUsePrivateKeyArguments() {
@@ -26,11 +27,11 @@ void testUsePrivateKeyArguments() {
     Expect.throws(() => c.usePrivateKey(
           localFile('certificates/server_key_oops.pem'), password: "dartdart"),
         tlsException);
-    Expect.throws(() => c.usePrivateKey(1), argumentError);
+    Expect.throws(() => c.usePrivateKey(1), argumentOrTypeError);
     Expect.throws(() => c.usePrivateKey(null), argumentError);
     Expect.throws(() => c.usePrivateKey(
           localFile('certificates/server_key_oops.pem'), password: 3),
-        argumentError);
+        argumentOrTypeError);
     c.usePrivateKey(
         localFile('certificates/server_key.pem'), password: "dartdart");
 }    
