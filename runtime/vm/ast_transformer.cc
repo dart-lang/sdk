@@ -567,12 +567,21 @@ void AwaitTransformer::VisitLetNode(LetNode* node) {
                    node->TempAt(i),
                    new_init_val));
   }
-  // The transformed LetNode does not have any temporary variables.
-  LetNode* result = new(Z) LetNode(node->token_pos());
-  for (intptr_t i = 0; i < node->nodes().length(); i++) {
-    result->AddNode(Transform(node->nodes()[i]));
+
+  // Add all expressions but the last to the preamble. We must do
+  // this because subexpressions of the awaitable expression we
+  // are currently transforming may depend on each other,
+  // e.g. await foo(a++, a++). Thus we must preserve the order of the
+  // transformed subexpressions.
+  for (intptr_t i = 0; i < node->nodes().length() - 1; i++) {
+    preamble_->Add(Transform(node->nodes()[i]));
   }
-  result_ = result;
+
+  // The last expression in the let node is the value of the node.
+  // The result of the transformed let node is this expression.
+  ASSERT(node->nodes().length() > 0);
+  const intptr_t last_node_index = node->nodes().length() - 1;
+  result_ = Transform(node->nodes()[last_node_index]);
 }
 
 
