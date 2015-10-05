@@ -137,6 +137,7 @@ const String FILE_STAMP = 'fileStamp';
 const String FILES = 'files';
 const String FIXES = 'fixes';
 const String FLAGS = 'flags';
+const String HAS_FIX = 'hasFix';
 const String HIERARCHY_ITEMS = 'hierarchyItems';
 const String HOVERS = 'hovers';
 const String ID = 'id';

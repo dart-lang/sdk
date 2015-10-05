@@ -72,7 +72,8 @@ class AnalysisErrorTest {
         START_COLUMN: 2
       },
       MESSAGE: 'my message',
-      CORRECTION: 'my correction'
+      CORRECTION: 'my correction',
+      HAS_FIX : false
     });
   }
 
@@ -89,7 +90,8 @@ class AnalysisErrorTest {
         START_LINE: 3,
         START_COLUMN: 2
       },
-      MESSAGE: 'my message'
+      MESSAGE: 'my message',
+      HAS_FIX : false
     });
   }
 
@@ -106,7 +108,8 @@ class AnalysisErrorTest {
         START_LINE: -1,
         START_COLUMN: -1
       },
-      MESSAGE: 'my message'
+      MESSAGE: 'my message',
+      HAS_FIX : false
     });
   }
 }

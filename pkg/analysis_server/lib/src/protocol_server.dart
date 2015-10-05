@@ -5,6 +5,7 @@
 library protocol.server;
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart'
     as engine;
 import 'package:analyzer/src/generated/ast.dart' as engine;
@@ -92,8 +93,9 @@ AnalysisError newAnalysisError_fromEngine(
   var type = new AnalysisErrorType(errorCode.type.name);
   String message = error.message;
   String correction = error.correction;
+  bool fix = hasFix(error.errorCode);
   return new AnalysisError(severity, type, location, message,
-      correction: correction);
+      correction: correction, hasFix: fix);
 }
 
 /**

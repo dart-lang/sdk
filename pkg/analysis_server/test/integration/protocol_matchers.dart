@@ -1029,6 +1029,7 @@ final Matcher isAddContentOverlay = new LazyMatcher(() => new MatchesJsonObject(
  *   "location": Location
  *   "message": String
  *   "correction": optional String
+ *   "hasFix": optional bool
  * }
  */
 final Matcher isAnalysisError = new LazyMatcher(() => new MatchesJsonObject(
@@ -1038,7 +1039,8 @@ final Matcher isAnalysisError = new LazyMatcher(() => new MatchesJsonObject(
     "location": isLocation,
     "message": isString
   }, optionalFields: {
-    "correction": isString
+    "correction": isString,
+    "hasFix": isBool
   }));
 
 /**

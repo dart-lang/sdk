@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.10.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.11.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -2025,6 +2025,21 @@
               correction message should indicate how the user can fix
               the error. The field is omitted if there is no correction
               message associated with the error code.
+            </p>
+          </field>
+          <field name="hasFix" optional="true">
+            <ref>bool</ref>
+            <p>
+              A hint to indicate to interested clients that this error has
+              an associated fix (or fixes).  The absence of this field implies
+              there are not known to be fixes.  Note that since the operation
+              to calculate whether fixes apply needs to be performant it is
+              possible that complicated tests will be skipped and a false
+              negative returned.  For this reason, this attribute should be
+              treated as a "hint".  Despite the possibility of false negatives,
+              no false positives should be returned.  If a client sees this
+              flag set they can proceed with the confidence that there are in
+              fact associated fixes.
             </p>
           </field>
         </object>

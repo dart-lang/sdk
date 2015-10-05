@@ -7347,6 +7347,7 @@ class AddContentOverlay implements HasToJson {
  *   "location": Location
  *   "message": String
  *   "correction": optional String
+ *   "hasFix": optional bool
  * }
  */
 class AnalysisError implements HasToJson {
@@ -7359,6 +7360,8 @@ class AnalysisError implements HasToJson {
   String _message;
 
   String _correction;
+
+  bool _hasFix;
 
   /**
    * The severity of the error.
@@ -7430,12 +7433,39 @@ class AnalysisError implements HasToJson {
     this._correction = value;
   }
 
-  AnalysisError(AnalysisErrorSeverity severity, AnalysisErrorType type, Location location, String message, {String correction}) {
+  /**
+   * A hint to indicate to interested clients that this error has an associated
+   * fix (or fixes). The absence of this field implies there are not known to
+   * be fixes. Note that since the operation to calculate whether fixes apply
+   * needs to be performant it is possible that complicated tests will be
+   * skipped and a false negative returned. For this reason, this attribute
+   * should be treated as a "hint". Despite the possibility of false negatives,
+   * no false positives should be returned. If a client sees this flag set they
+   * can proceed with the confidence that there are in fact associated fixes.
+   */
+  bool get hasFix => _hasFix;
+
+  /**
+   * A hint to indicate to interested clients that this error has an associated
+   * fix (or fixes). The absence of this field implies there are not known to
+   * be fixes. Note that since the operation to calculate whether fixes apply
+   * needs to be performant it is possible that complicated tests will be
+   * skipped and a false negative returned. For this reason, this attribute
+   * should be treated as a "hint". Despite the possibility of false negatives,
+   * no false positives should be returned. If a client sees this flag set they
+   * can proceed with the confidence that there are in fact associated fixes.
+   */
+  void set hasFix(bool value) {
+    this._hasFix = value;
+  }
+
+  AnalysisError(AnalysisErrorSeverity severity, AnalysisErrorType type, Location location, String message, {String correction, bool hasFix}) {
     this.severity = severity;
     this.type = type;
     this.location = location;
     this.message = message;
     this.correction = correction;
+    this.hasFix = hasFix;
   }
 
   factory AnalysisError.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
@@ -7471,7 +7501,11 @@ class AnalysisError implements HasToJson {
       if (json.containsKey("correction")) {
         correction = jsonDecoder._decodeString(jsonPath + ".correction", json["correction"]);
       }
-      return new AnalysisError(severity, type, location, message, correction: correction);
+      bool hasFix;
+      if (json.containsKey("hasFix")) {
+        hasFix = jsonDecoder._decodeBool(jsonPath + ".hasFix", json["hasFix"]);
+      }
+      return new AnalysisError(severity, type, location, message, correction: correction, hasFix: hasFix);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisError", json);
     }
@@ -7486,6 +7520,9 @@ class AnalysisError implements HasToJson {
     if (correction != null) {
       result["correction"] = correction;
     }
+    if (hasFix != null) {
+      result["hasFix"] = hasFix;
+    }
     return result;
   }
 
@@ -7499,7 +7536,8 @@ class AnalysisError implements HasToJson {
           type == other.type &&
           location == other.location &&
           message == other.message &&
-          correction == other.correction;
+          correction == other.correction &&
+          hasFix == other.hasFix;
     }
     return false;
   }
@@ -7512,6 +7550,7 @@ class AnalysisError implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, location.hashCode);
     hash = _JenkinsSmiHash.combine(hash, message.hashCode);
     hash = _JenkinsSmiHash.combine(hash, correction.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, hasFix.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
