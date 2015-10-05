@@ -370,19 +370,7 @@ bool __interop_checks = true;
 /**
  * Return the JsObject associated with a Dart class [dartClass_instance].
  */
-unwrap_jso(dartClass_instance) {
-  try {
-    if (dartClass_instance != null)
-      return dartClass_instance is NativeFieldWrapperClass2 ?
-          dartClass_instance.blink_jsObject : dartClass_instance;
-    else
-      return null;
-  } catch(NoSuchMethodException) {
-    // No blink_jsObject then return the dartClass_instance is probably an
-    // array that was already converted to a Dart class e.g., Uint8ClampedList.
-    return dartClass_instance;
-  }
-}
+unwrap_jso(dartClass_instance) => js.unwrap_jso(dartClass_instance);
 
 /**
  * Create Dart class that maps to the JS Type, add the JsObject as an expando
@@ -571,6 +559,25 @@ class _DartHtmlWrappingList extends ListBase {
   int set length(int newLength) => _basicList.length = newLength;
 }
 
+/**
+ * Upgrade the JS HTMLElement to the Dart class.  Used by Dart's Polymer.
+ */
+createCustomUpgrader(Type customElementClass, $this) {
+  var dartClass;
+  try {
+    dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
+  } catch (e) {
+    throw e;
+  } finally {
+    // Need to remember the Dart class that was created for this custom so
+    // return it and setup the blink_jsObject to the $this that we'll be working
+    // with as we talk to blink. 
+    $this['dart_class'] = dartClass;
+  }
+
+  return dartClass;
+}
+
 $else
 class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
 
@@ -580,5 +587,6 @@ make_dart_rectangle(r) => r;
 convertDartToNative_Dictionary(Map dict) => dict;
 List convertDartToNative_StringArray(List<String> input) => input;
 convertDartToNative_List(List input) => input;
+createCustomUpgrader(Type customElementClass, $this) => $this;
 
 $endif

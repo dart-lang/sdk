@@ -1125,19 +1125,7 @@ bool __interop_checks = true;
 /**
  * Return the JsObject associated with a Dart class [dartClass_instance].
  */
-unwrap_jso(dartClass_instance) {
-  try {
-    if (dartClass_instance != null)
-      return dartClass_instance is NativeFieldWrapperClass2 ?
-          dartClass_instance.blink_jsObject : dartClass_instance;
-    else
-      return null;
-  } catch(NoSuchMethodException) {
-    // No blink_jsObject then return the dartClass_instance is probably an
-    // array that was already converted to a Dart class e.g., Uint8ClampedList.
-    return dartClass_instance;
-  }
-}
+unwrap_jso(dartClass_instance) => js.unwrap_jso(dartClass_instance);
 
 /**
  * Create Dart class that maps to the JS Type, add the JsObject as an expando
@@ -1324,6 +1312,25 @@ class _DartHtmlWrappingList extends ListBase {
 
   int get length => _basicList.length;
   int set length(int newLength) => _basicList.length = newLength;
+}
+
+/**
+ * Upgrade the JS HTMLElement to the Dart class.  Used by Dart's Polymer.
+ */
+createCustomUpgrader(Type customElementClass, $this) {
+  var dartClass;
+  try {
+    dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
+  } catch (e) {
+    throw e;
+  } finally {
+    // Need to remember the Dart class that was created for this custom so
+    // return it and setup the blink_jsObject to the $this that we'll be working
+    // with as we talk to blink. 
+    $this['dart_class'] = dartClass;
+  }
+
+  return dartClass;
 }
 
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -11086,6 +11093,8 @@ class Document extends Node
       wrapped = wrap_jso(newElement);
       if (wrapped == null) {
         wrapped = wrap_jso_custom_element(newElement);
+      } else {
+        wrapped.blink_jsObject['dart_class'] = wrapped;
       }
     }
 
@@ -11108,6 +11117,8 @@ class Document extends Node
       wrapped = wrap_jso(newElement);
       if (wrapped == null) {
         wrapped = wrap_jso_custom_element(newElement);
+      } else {
+        wrapped.blink_jsObject['dart_class'] = wrapped;
       }
     }
 
@@ -37201,10 +37212,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -47250,11 +47261,12 @@ class _VMElementUpgrader implements ElementUpgrader {
     }
   }
 
-  Element upgrade(Element element) {
-    if (element.runtimeType != _nativeType) {
+  Element upgrade(element) {
+    if (element.runtimeType != js.JsObjectImpl) {
       throw new UnsupportedError('Element is incorrect type');
     }
-    return _Utils.changeElementWrapper(element, _type);
+
+    return createCustomUpgrader(_nativeType, element);
   }
 }
 

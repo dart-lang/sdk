@@ -83,6 +83,8 @@ $else
       wrapped = wrap_jso(newElement);
       if (wrapped == null) {
         wrapped = wrap_jso_custom_element(newElement);
+      } else {
+        wrapped.blink_jsObject['dart_class'] = wrapped;
       }
     }
 
@@ -126,6 +128,8 @@ $else
       wrapped = wrap_jso(newElement);
       if (wrapped == null) {
         wrapped = wrap_jso_custom_element(newElement);
+      } else {
+        wrapped.blink_jsObject['dart_class'] = wrapped;
       }
     }
 

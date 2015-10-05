@@ -496,6 +496,25 @@ void setDartHtmlWrapperFor(JsObject object, wrapper) {
 }
 
 /**
+ * Used by callMethod to get the JS object for each argument passed if the
+ * argument is a Dart class instance that delegates to a DOM object.  See
+ * wrap_jso defined in dart:html.
+ */
+unwrap_jso(dartClass_instance) {
+  try {
+    if (dartClass_instance != null)
+      return dartClass_instance is NativeFieldWrapperClass2 ?
+          dartClass_instance.blink_jsObject : dartClass_instance;
+    else
+      return null;
+  } catch(NoSuchMethodException) {
+    // No blink_jsObject then return the dartClass_instance is probably an
+    // array that was already converted to a Dart class e.g., Uint8ClampedList.
+    return dartClass_instance;
+  }
+}
+
+/**
  * Proxies a JavaScript object to Dart.
  *
  * The properties of the JavaScript object are accessible via the `[]` and
@@ -666,6 +685,10 @@ class JsObject extends NativeFieldWrapperClass2 {
    */
   callMethod(String method, [List args]) {
     try {
+      if (args != null) {
+        for (var i = 0; i < args.length; i++)
+          args[i] = unwrap_jso(args[i]);
+      }
       return _callMethod(method, args);
     } catch (e) {
       if (hasProperty(method)) {
