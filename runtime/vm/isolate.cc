@@ -8,7 +8,9 @@
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
 #include "platform/json.h"
+#include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
+#include "vm/compiler.h"
 #include "vm/compiler_stats.h"
 #include "vm/coverage.h"
 #include "vm/dart_api_message.h"
@@ -24,7 +26,6 @@
 #include "vm/object_store.h"
 #include "vm/object.h"
 #include "vm/os_thread.h"
-#include "vm/parser.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
 #include "vm/reusable_handles.h"
@@ -745,6 +746,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       gc_epilogue_callback_(NULL),
       defer_finalization_count_(0),
       deopt_context_(NULL),
+      background_compiler_(NULL),
       compiler_stats_(NULL),
       is_service_isolate_(false),
       stacktrace_(NULL),
@@ -757,6 +759,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       tag_table_(GrowableObjectArray::null()),
       collected_closures_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
+      background_compilation_queue_(GrowableObjectArray::null()),
       pending_service_extension_calls_(GrowableObjectArray::null()),
       registered_service_extension_handlers_(GrowableObjectArray::null()),
       metrics_list_head_(NULL),
@@ -1685,6 +1688,8 @@ void Isolate::Shutdown() {
   }
 #endif
 
+  BackgroundCompiler::Stop(background_compiler_);
+
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   Thread::ExitIsolate();
@@ -1759,6 +1764,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit array of closures pending precompilation.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&collected_closures_));
+
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(
+      &background_compilation_queue_));
 
   // Visit the deoptimized code array which is stored in the isolate.
   visitor->VisitPointer(
@@ -1966,6 +1974,12 @@ void Isolate::set_collected_closures(const GrowableObjectArray& value) {
 
 void Isolate::set_deoptimized_code_array(const GrowableObjectArray& value) {
   deoptimized_code_array_ = value.raw();
+}
+
+
+void Isolate::set_background_compilation_queue(
+    const GrowableObjectArray& value) {
+  background_compilation_queue_ = value.raw();
 }
 
 

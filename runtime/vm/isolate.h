@@ -27,6 +27,7 @@ namespace dart {
 class AbstractType;
 class ApiState;
 class Array;
+class BackgroundCompiler;
 class Capability;
 class CHA;
 class Class;
@@ -600,6 +601,13 @@ class Isolate : public BaseIsolate {
     deopt_context_ = value;
   }
 
+  BackgroundCompiler* background_compiler() const {
+    return background_compiler_;
+  }
+  void set_background_compiler(BackgroundCompiler* value) {
+    background_compiler_ = value;
+  }
+
   void UpdateLastAllocationProfileAccumulatorResetTimestamp() {
     last_allocationprofile_accumulator_reset_timestamp_ =
         OS::GetCurrentTimeMillis();
@@ -695,6 +703,11 @@ class Isolate : public BaseIsolate {
     return collected_closures_;
   }
   void set_collected_closures(const GrowableObjectArray& value);
+
+  RawGrowableObjectArray* background_compilation_queue() const {
+    return background_compilation_queue_;
+  }
+  void set_background_compilation_queue(const GrowableObjectArray& value);
 
   Metric* metrics_list_head() {
     return metrics_list_head_;
@@ -874,6 +887,7 @@ class Isolate : public BaseIsolate {
   Dart_GcEpilogueCallback gc_epilogue_callback_;
   intptr_t defer_finalization_count_;
   DeoptContext* deopt_context_;
+  BackgroundCompiler* background_compiler_;
 
   CompilerStats* compiler_stats_;
 
@@ -902,6 +916,7 @@ class Isolate : public BaseIsolate {
 
   RawGrowableObjectArray* collected_closures_;
   RawGrowableObjectArray* deoptimized_code_array_;
+  RawGrowableObjectArray* background_compilation_queue_;
 
   // We use 6 list entries for each pending service extension calls.
   enum {

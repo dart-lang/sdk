@@ -2306,10 +2306,10 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
 
 
 // Using field class
-static RawField* GetField(intptr_t class_id, const String& field_name) {
-  Isolate* isolate = Isolate::Current();
-  Class& cls = Class::Handle(isolate, isolate->class_table()->At(class_id));
-  Field& field = Field::Handle(isolate);
+RawField* FlowGraphOptimizer::GetField(intptr_t class_id,
+                                       const String& field_name) {
+  Class& cls = Class::Handle(Z, isolate()->class_table()->At(class_id));
+  Field& field = Field::Handle(Z);
   while (!cls.IsNull()) {
     field = cls.LookupInstanceField(field_name);
     if (!field.IsNull()) {

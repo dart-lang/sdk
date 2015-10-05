@@ -31,6 +31,8 @@ namespace dart {
 DEFINE_FLAG(bool, deoptimize_alot, false,
     "Deoptimizes all live frames when we are about to return to Dart code from"
     " native entries.");
+DEFINE_FLAG(bool, background_compilation, false,
+    "Run optimizing compilation in background");
 DEFINE_FLAG(int, max_subtype_cache_entries, 100,
     "Maximum number of subtype cache entries (number of checks cached).");
 DEFINE_FLAG(int, optimization_counter_threshold, 30000,
@@ -1449,6 +1451,14 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     // Reset usage counter for reoptimization before calling optimizer to
     // prevent recursive triggering of function optimization.
     function.set_usage_counter(0);
+    if (FLAG_background_compilation) {
+      BackgroundCompiler::EnsureInit(isolate);
+      ASSERT(isolate->background_compiler() != NULL);
+      isolate->background_compiler()->CompileOptimized(function);
+      // Continue in the same code.
+      arguments.SetReturn(Code::Handle(isolate, function.CurrentCode()));
+      return;
+    }
     if (FLAG_trace_compiler) {
       if (function.HasOptimizedCode()) {
         THR_Print("ReCompiling function: '%s' \n",
