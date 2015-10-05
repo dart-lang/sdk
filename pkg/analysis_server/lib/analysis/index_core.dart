@@ -12,10 +12,14 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
- * Return the integer value that corresponds to the given [str].
- * The value of [str] may be `null`.
+ * Return the integer value that corresponds to the given [string]. The value of
+ * [string] may be `null`.
+ *
+ * Clients are not expected to implement this signature. A function of this type
+ * is provided by the framework to clients in order to implement the method
+ * [IndexableObjectKind.encodeHash].
  */
-typedef int StringToInt(String str);
+typedef int StringToInt(String string);
 
 /**
  * An object that can have a [Relationship] with various [Location]s in a code
@@ -123,20 +127,6 @@ abstract class IndexableObjectKind {
     _registry[index] = kind;
   }
 }
-
-// A sketch of what the driver routine might look like:
-//
-//void buildIndexForSource(AnalysisContext context, Source source) {
-//  IndexStoreImpl store;
-//  store.aboutToIndex(context, source);
-//  try {
-//    for (IndexContributor contributor in contributors) {
-//      contributor.contributeTo(store, context, source);
-//    }
-//  } finally {
-//    store.doneIndexing();
-//  }
-//}
 
 /**
  * An object used to add relationships to the index.

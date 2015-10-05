@@ -5,6 +5,23 @@
 /**
  * Support for client code that extends the analysis server by adding new
  * occurrences contributors.
+ *
+ * Plugins can register occurrences contributors. The registered contributors
+ * will be used to get occurrence information any time the server is about to
+ * send an 'analysis.occurrences' notification.
+ *
+ * If a plugin wants to add occurrence information, it should implement the
+ * class [OccurrencesContributor] and then register the contributor by including
+ * code like the following in the plugin's registerExtensions method:
+ *
+ *     @override
+ *     void registerExtensions(RegisterExtension registerExtension) {
+ *       ...
+ *       registerExtension(
+ *           OCCURRENCES_CONTRIBUTOR_EXTENSION_POINT_ID,
+ *           new MyOccurrencesContributor());
+ *       ...
+ *     }
  */
 library analysis_server.plugin.occurrences;
 
@@ -14,8 +31,8 @@ import 'package:plugin/plugin.dart';
 
 /**
  * The identifier of the extension point that allows plugins to register
- * element occurrences. The object used as an extension must be
- * a [OccurrencesContributor].
+ * occurrence information. The object used as an extension must be an
+ * [OccurrencesContributor].
  */
 final String OCCURRENCES_CONTRIBUTOR_EXTENSION_POINT_ID = Plugin.join(
     ServerPlugin.UNIQUE_IDENTIFIER,

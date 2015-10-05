@@ -25,8 +25,7 @@ abstract class NavigationContributor {
 }
 
 /**
- * An object that [NavigationContributor]s use to record navigation regions
- * into.
+ * An object that [NavigationContributor]s use to record navigation regions.
  *
  * Clients are not expected to subtype this class.
  */
