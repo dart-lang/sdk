@@ -1005,8 +1005,8 @@ class SplitIndexStore implements InternalIndexStore {
       nodeDeclarations[_currentNodeNameId] = declarations;
     }
     // record LocationData
-    declarations
-        .add(new _TopElementData(_elementCodec, new IndexableElement(element)));
+    declarations.add(new _TopElementData(
+        _elementCodec, element.displayName, new IndexableElement(element)));
   }
 
   @override
@@ -1154,12 +1154,9 @@ class _TopElementData {
   final int elementId3;
 
   factory _TopElementData(
-      ElementCodec elementCodec, IndexableObject indexable) {
-    return new _TopElementData._(
-        indexable.name,
-        elementCodec.encode1(indexable),
-        elementCodec.encode2(indexable),
-        elementCodec.encode3(indexable));
+      ElementCodec elementCodec, String name, IndexableObject indexable) {
+    return new _TopElementData._(name, elementCodec.encode1(indexable),
+        elementCodec.encode2(indexable), elementCodec.encode3(indexable));
   }
 
   _TopElementData._(

@@ -8,11 +8,8 @@ import 'dart:collection';
 
 import 'package:analysis_server/analysis/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/indexable_element.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 
 /**
  * A helper that encodes/decodes [AnalysisContext]s from/to integers.
@@ -79,7 +76,6 @@ class ElementCodec {
    */
   IndexableObject decode(
       AnalysisContext context, int fileId, int offset, int kindId) {
-    String filePath = _stringCodec.decode(fileId);
     IndexableObjectKind kind = IndexableObjectKind.getKind(kindId);
     if (kind == null) {
       return null;
@@ -87,6 +83,7 @@ class ElementCodec {
       String name = _stringCodec.decode(offset);
       return new IndexableName(name);
     }
+    String filePath = _stringCodec.decode(fileId);
     return kind.decode(context, filePath, offset);
   }
 
@@ -113,11 +110,7 @@ class ElementCodec {
       String name = indexable.name;
       return _stringCodec.encode(name);
     }
-    int offset = indexable.offset;
-    if (offset < 0) {
-      return _stringCodec.encode(indexable.name);
-    }
-    return offset;
+    return indexable.offset;
   }
 
   /**
@@ -132,19 +125,7 @@ class ElementCodec {
    * Returns an integer that corresponds to the name of [indexable].
    */
   int encodeHash(IndexableObject indexable) {
-    // TODO(brianwilkerson) Consider moving this to IndexableObjectKind so that
-    // we don't have to break encapsulation.
-    String elementName = indexable.name; // was: indexable.displayName;
-    int elementNameId = _stringCodec.encode(elementName);
-    if (indexable is IndexableElement) {
-      LibraryElement libraryElement = indexable.element.library;
-      if (libraryElement != null) {
-        String libraryPath = libraryElement.source.fullName;
-        int libraryPathId = _stringCodec.encode(libraryPath);
-        return JenkinsSmiHash.combine(libraryPathId, elementNameId);
-      }
-    }
-    return elementNameId;
+    return indexable.kind.encodeHash(_stringCodec.encode, indexable);
   }
 }
 

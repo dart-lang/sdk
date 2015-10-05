@@ -778,8 +778,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void _recordTopLevelElementDefinition(Element element) {
     if (element != null) {
       IndexableElement indexable = new IndexableElement(element);
-      int offset = indexable.offset;
-      int length = indexable.length;
+      int offset = element.nameOffset;
+      int length = element.nameLength;
       LocationImpl location = new LocationImpl(indexable, offset, length);
       recordRelationshipElement(
           _libraryElement, IndexConstants.DEFINES, location);

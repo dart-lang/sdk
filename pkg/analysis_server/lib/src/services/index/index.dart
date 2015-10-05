@@ -82,9 +82,6 @@ class IndexableName implements IndexableObject {
   IndexableObjectKind get kind => IndexableNameKind.INSTANCE;
 
   @override
-  int get length => 0;
-
-  @override
   int get offset {
     return -1;
   }
@@ -126,6 +123,12 @@ class IndexableNameKind implements IndexableObjectKind {
   IndexableObject decode(AnalysisContext context, String filePath, int offset) {
     throw new UnsupportedError(
         'Indexable names cannot be decoded through their kind');
+  }
+
+  @override
+  int encodeHash(StringToInt stringToInt, IndexableObject indexable) {
+    String name = (indexable as IndexableName).name;
+    return stringToInt(name);
   }
 }
 

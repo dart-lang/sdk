@@ -12,6 +12,12 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
+ * Return the integer value that corresponds to the given [str].
+ * The value of [str] may be `null`.
+ */
+typedef int StringToInt(String str);
+
+/**
  * An object that can have a [Relationship] with various [Location]s in a code
  * base. The object is abstractly represented by a [kind] and an [offset] within
  * a [source].
@@ -27,17 +33,6 @@ abstract class IndexableObject {
    * Return the kind of this object.
    */
   IndexableObjectKind get kind;
-
-  /**
-   * Return the length of the indexable object within its source.
-   */
-  int get length;
-
-  /**
-   * Return the name of this element.
-   */
-  // TODO(brianwilkerson) Remove the need for this getter.
-  String get name;
 
   /**
    * Return the offset of the indexable object within its source.
@@ -88,6 +83,27 @@ abstract class IndexableObjectKind {
   IndexableObject decode(AnalysisContext context, String filePath, int offset);
 
   /**
+   * Returns the hash value that corresponds to the given [indexable].
+   *
+   * This hash is used to remember buckets with relations of the given
+   * [indexable]. Usually the name of the indexable object is encoded
+   * using [stringToInt] and mixed with other information to produce the final
+   * result.
+   *
+   * Clients must ensure that the same value is returned for the same object.
+   *
+   * Returned values must have good selectivity, e.g. if it is possible that
+   * there are many different objects with the same name, then additional
+   * information should be mixed in, for example the hash of the source that
+   * declares the given [indexable].
+   *
+   * Clients don't have to use name to compute this result, so if an indexable
+   * object does not have a name, some other value may be returned, but it still
+   * must be always the same for the same object and have good selectivity.
+   */
+  int encodeHash(StringToInt stringToInt, IndexableObject indexable);
+
+  /**
    * Return the object kind with the given [index].
    */
   static IndexableObjectKind getKind(int index) {
@@ -108,19 +124,6 @@ abstract class IndexableObjectKind {
   }
 }
 
-/**
- * An object used to add relationships to the index.
- *
- * Clients are expected to subtype this class when implementing plugins.
- */
-abstract class IndexContributor {
-  /**
-   * Contribute relationships existing in the given [object] to the given
-   * index [store] in the given [context].
-   */
-  void contributeTo(IndexStore store, AnalysisContext context, Object object);
-}
-
 // A sketch of what the driver routine might look like:
 //
 //void buildIndexForSource(AnalysisContext context, Source source) {
@@ -134,6 +137,19 @@ abstract class IndexContributor {
 //    store.doneIndexing();
 //  }
 //}
+
+/**
+ * An object used to add relationships to the index.
+ *
+ * Clients are expected to subtype this class when implementing plugins.
+ */
+abstract class IndexContributor {
+  /**
+   * Contribute relationships existing in the given [object] to the given
+   * index [store] in the given [context].
+   */
+  void contributeTo(IndexStore store, AnalysisContext context, Object object);
+}
 
 /**
  * An object that stores information about the relationships between locations
