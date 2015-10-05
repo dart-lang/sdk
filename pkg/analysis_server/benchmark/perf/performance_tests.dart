@@ -25,9 +25,8 @@ abstract class AbstractAnalysisServerPerformanceTest
    * Send the server an 'analysis.setAnalysisRoots' command directing it to
    * analyze [sourceDirectory].
    */
-  Future setAnalysisRoot() {
-    return sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
-  }
+  Future setAnalysisRoot() =>
+      sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
 
   /**
    * Enable [SERVER_STATUS] notifications so that [analysisFinished]
@@ -69,7 +68,5 @@ abstract class AbstractAnalysisServerPerformanceTest
    * After every test, the server is stopped.
    */
   @override
-  Future tearDown() {
-    return shutdownIfNeeded();
-  }
+  Future tearDown() => shutdownIfNeeded();
 }
