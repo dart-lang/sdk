@@ -135,9 +135,10 @@ native_gc_test: Pass, Slow
 
 [$runtime == ie10 || $runtime == ie11]
 indexeddb_5_test: Fail # Issue 12893
-element_test/click: Fail                # IE does not support firing this event.
+js_test/transferrables: RuntimeError # Issue 14246
+element_test/click: Fail # IE does not support firing this event.
 serialized_script_value_test: Fail
-websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
+websocket_test/websocket: Fail # Issue 7875. Closed with "working as intended".
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
 no_linked_scripts_htmltest: Skip # Times out on IE.  Issue 21537
