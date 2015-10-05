@@ -88,24 +88,6 @@ void f(Derived d) {
     contributor = new PrefixedElementContributor();
   }
 
-  test_doc_method() {
-    addTestSource('''
-class C {
-  /// My method.
-  ///
-  /// Longer documentation.
-  void m() {}
-}
-void main() {new C().^}''');
-    return computeFull((bool result) {
-      CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void',
-          docSummaryMatcher: 'My method.',
-          docCompleteMatcher: 'My method.\n\nLonger documentation.');
-      expect(suggestion.requiredParameterCount, 0);
-      expect(suggestion.hasNamedParameters, false);
-    });
-  }
-
   test_enumConst() {
     addTestSource('enum E { one, two } main() {E.^}');
     return computeFull((bool result) {

@@ -11,11 +11,10 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
-import 'package:analysis_server/src/utilities/documentation.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart' as path;
 
 const String DYNAMIC = 'dynamic';
@@ -47,12 +46,6 @@ CompletionSuggestion createSuggestion(Element element,
       0,
       isDeprecated,
       false);
-  {
-    String doc = element.computeDocumentationComment();
-    doc = removeDartDocDelimiters(doc);
-    suggestion.docComplete = doc;
-    suggestion.docSummary = getDartDocSummary(doc);
-  }
   suggestion.element = protocol.newElement_fromEngine(element);
   Element enclosingElement = element.enclosingElement;
   if (enclosingElement is ClassElement) {
