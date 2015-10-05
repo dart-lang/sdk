@@ -61,7 +61,7 @@ dt.typeDefinition {
 </style></head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version 1.11.0</h1>
+    <h1 style="color:#999999">Version 1.12.0</h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -3955,16 +3955,28 @@ dt.typeDefinition {
         </p>
       <h4>Feedback</h4><p>none</p><h4>Options</h4><p>none</p></dd><dt class="refactoring">EXTRACT_LOCAL_VARIABLE</dt><dd>
         <p>
-          Create a local variable initialized by a specified
-          expression.
+          Create a local variable initialized by the expression that covers
+          the specified selection.
         </p>
         <p>
-          It is an error if the range contains anything other than a
-          complete expression (no partial expressions are allowed).
+          It is an error if the selection range is not covered by a
+          complete expression.
         </p>
         
         
-      <h4>Feedback</h4><dl><dt class="field"><b><i>names ( List&lt;String&gt; )</i></b></dt><dd>
+      <h4>Feedback</h4><dl><dt class="field"><b><i>coveringExpressionOffsets ( List&lt;int&gt; )</i></b></dt><dd>
+            
+            <p>
+              The offsets of the expressions that cover the specified
+              selection, from the down most to the up most.
+            </p>
+          </dd><dt class="field"><b><i>coveringExpressionLengths ( List&lt;int&gt; )</i></b></dt><dd>
+            
+            <p>
+              The lengths of the expressions that cover the specified
+              selection, from the down most to the up most.
+            </p>
+          </dd><dt class="field"><b><i>names ( List&lt;String&gt; )</i></b></dt><dd>
             
             <p>
               The proposed names for the local variable.

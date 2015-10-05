@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.11.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.12.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -4026,14 +4026,28 @@
       </refactoring>
       <refactoring kind="EXTRACT_LOCAL_VARIABLE">
         <p>
-          Create a local variable initialized by a specified
-          expression.
+          Create a local variable initialized by the expression that covers
+          the specified selection.
         </p>
         <p>
-          It is an error if the range contains anything other than a
-          complete expression (no partial expressions are allowed).
+          It is an error if the selection range is not covered by a
+          complete expression.
         </p>
         <feedback>
+          <field name="coveringExpressionOffsets">
+            <list><ref>int</ref></list>
+            <p>
+              The offsets of the expressions that cover the specified
+              selection, from the down most to the up most.
+            </p>
+          </field>
+          <field name="coveringExpressionLengths">
+            <list><ref>int</ref></list>
+            <p>
+              The lengths of the expressions that cover the specified
+              selection, from the down most to the up most.
+            </p>
+          </field>
           <field name="names">
             <list><ref>String</ref></list>
             <p>

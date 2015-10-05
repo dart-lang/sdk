@@ -14720,17 +14720,53 @@ class ConvertMethodToGetterOptions {
  * extractLocalVariable feedback
  *
  * {
+ *   "coveringExpressionOffsets": List<int>
+ *   "coveringExpressionLengths": List<int>
  *   "names": List<String>
  *   "offsets": List<int>
  *   "lengths": List<int>
  * }
  */
 class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJson {
+  List<int> _coveringExpressionOffsets;
+
+  List<int> _coveringExpressionLengths;
+
   List<String> _names;
 
   List<int> _offsets;
 
   List<int> _lengths;
+
+  /**
+   * The offsets of the expressions that cover the specified selection, from
+   * the down most to the up most.
+   */
+  List<int> get coveringExpressionOffsets => _coveringExpressionOffsets;
+
+  /**
+   * The offsets of the expressions that cover the specified selection, from
+   * the down most to the up most.
+   */
+  void set coveringExpressionOffsets(List<int> value) {
+    assert(value != null);
+    this._coveringExpressionOffsets = value;
+  }
+
+  /**
+   * The lengths of the expressions that cover the specified selection, from
+   * the down most to the up most.
+   */
+  List<int> get coveringExpressionLengths => _coveringExpressionLengths;
+
+  /**
+   * The lengths of the expressions that cover the specified selection, from
+   * the down most to the up most.
+   */
+  void set coveringExpressionLengths(List<int> value) {
+    assert(value != null);
+    this._coveringExpressionLengths = value;
+  }
 
   /**
    * The proposed names for the local variable.
@@ -14779,7 +14815,9 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
     this._lengths = value;
   }
 
-  ExtractLocalVariableFeedback(List<String> names, List<int> offsets, List<int> lengths) {
+  ExtractLocalVariableFeedback(List<int> coveringExpressionOffsets, List<int> coveringExpressionLengths, List<String> names, List<int> offsets, List<int> lengths) {
+    this.coveringExpressionOffsets = coveringExpressionOffsets;
+    this.coveringExpressionLengths = coveringExpressionLengths;
     this.names = names;
     this.offsets = offsets;
     this.lengths = lengths;
@@ -14790,6 +14828,18 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
       json = {};
     }
     if (json is Map) {
+      List<int> coveringExpressionOffsets;
+      if (json.containsKey("coveringExpressionOffsets")) {
+        coveringExpressionOffsets = jsonDecoder._decodeList(jsonPath + ".coveringExpressionOffsets", json["coveringExpressionOffsets"], jsonDecoder._decodeInt);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "coveringExpressionOffsets");
+      }
+      List<int> coveringExpressionLengths;
+      if (json.containsKey("coveringExpressionLengths")) {
+        coveringExpressionLengths = jsonDecoder._decodeList(jsonPath + ".coveringExpressionLengths", json["coveringExpressionLengths"], jsonDecoder._decodeInt);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "coveringExpressionLengths");
+      }
       List<String> names;
       if (json.containsKey("names")) {
         names = jsonDecoder._decodeList(jsonPath + ".names", json["names"], jsonDecoder._decodeString);
@@ -14808,7 +14858,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
       } else {
         throw jsonDecoder.missingKey(jsonPath, "lengths");
       }
-      return new ExtractLocalVariableFeedback(names, offsets, lengths);
+      return new ExtractLocalVariableFeedback(coveringExpressionOffsets, coveringExpressionLengths, names, offsets, lengths);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "extractLocalVariable feedback", json);
     }
@@ -14816,6 +14866,8 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
+    result["coveringExpressionOffsets"] = coveringExpressionOffsets;
+    result["coveringExpressionLengths"] = coveringExpressionLengths;
     result["names"] = names;
     result["offsets"] = offsets;
     result["lengths"] = lengths;
@@ -14828,7 +14880,9 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
   @override
   bool operator==(other) {
     if (other is ExtractLocalVariableFeedback) {
-      return _listEqual(names, other.names, (String a, String b) => a == b) &&
+      return _listEqual(coveringExpressionOffsets, other.coveringExpressionOffsets, (int a, int b) => a == b) &&
+          _listEqual(coveringExpressionLengths, other.coveringExpressionLengths, (int a, int b) => a == b) &&
+          _listEqual(names, other.names, (String a, String b) => a == b) &&
           _listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
           _listEqual(lengths, other.lengths, (int a, int b) => a == b);
     }
@@ -14838,6 +14892,8 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
   @override
   int get hashCode {
     int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, coveringExpressionOffsets.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, coveringExpressionLengths.hashCode);
     hash = _JenkinsSmiHash.combine(hash, names.hashCode);
     hash = _JenkinsSmiHash.combine(hash, offsets.hashCode);
     hash = _JenkinsSmiHash.combine(hash, lengths.hashCode);
