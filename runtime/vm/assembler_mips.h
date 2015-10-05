@@ -1593,6 +1593,10 @@ class Assembler : public ValueObject {
                                     Register array,
                                     Register index);
 
+  static Address VMTagAddress() {
+    return Address(THR, Thread::vm_tag_offset());
+  }
+
   // On some other platforms, we draw a distinction between safe and unsafe
   // smis.
   static bool IsSafe(const Object& object) { return true; }

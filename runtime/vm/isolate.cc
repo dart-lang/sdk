@@ -771,7 +771,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_() {
   flags_.CopyFrom(api_flags);
-  set_vm_tag(VMTag::kEmbedderTagId);
+  Thread::Current()->set_vm_tag(VMTag::kEmbedderTagId);
   set_user_tag(UserTags::kDefaultUserTag);
 }
 
@@ -1945,7 +1945,8 @@ intptr_t Isolate::ProfileInterrupt() {
 
 
 void Isolate::ProfileIdle() {
-  vm_tag_counters_.Increment(vm_tag());
+  // Currently we are only sampling the mutator thread.
+  vm_tag_counters_.Increment(VMTag::kIdleTagId);
 }
 
 

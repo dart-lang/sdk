@@ -282,6 +282,16 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
     state_.long_jump_base = value;
   }
 
+  uword vm_tag() const {
+    return vm_tag_;
+  }
+  void set_vm_tag(uword tag) {
+    vm_tag_ = tag;
+  }
+  static intptr_t vm_tag_offset() {
+    return OFFSET_OF(Thread, vm_tag_);
+  }
+
   ThreadId id() const {
     ASSERT(id_ != OSThread::kInvalidThreadId);
     return id_;
@@ -304,6 +314,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   Mutex timeline_block_lock_;
   StoreBufferBlock* store_buffer_block_;
   class Log* log_;
+  uword vm_tag_;
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;
 CACHED_CONSTANTS_LIST(DECLARE_MEMBERS)

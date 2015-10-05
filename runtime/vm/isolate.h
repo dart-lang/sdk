@@ -239,16 +239,6 @@ class Isolate : public BaseIsolate {
     mutator_thread_->set_top_exit_frame_info(value);
   }
 
-  uword vm_tag() const {
-    return vm_tag_;
-  }
-  void set_vm_tag(uword tag) {
-    vm_tag_ = tag;
-  }
-  static intptr_t vm_tag_offset() {
-    return OFFSET_OF(Isolate, vm_tag_);
-  }
-
   ApiState* api_state() const { return api_state_; }
   void set_api_state(ApiState* value) { api_state_ = value; }
 

@@ -113,7 +113,8 @@ Thread::Thread(bool init_vm_constants)
       isolate_(NULL),
       heap_(NULL),
       store_buffer_block_(NULL),
-      log_(new class Log()) {
+      log_(new class Log()),
+      vm_tag_(0) {
   ClearState();
 
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
@@ -188,7 +189,7 @@ void Thread::EnterIsolate(Isolate* isolate) {
   ASSERT(!isolate->HasMutatorThread());
   thread->isolate_ = isolate;
   isolate->MakeCurrentThreadMutator(thread);
-  isolate->set_vm_tag(VMTag::kVMTagId);
+  thread->set_vm_tag(VMTag::kVMTagId);
   ASSERT(thread->store_buffer_block_ == NULL);
   thread->StoreBufferAcquire();
   ASSERT(isolate->heap() != NULL);
@@ -209,9 +210,9 @@ void Thread::ExitIsolate() {
   // TODO(koda): Move store_buffer_block_ into State.
   thread->StoreBufferRelease();
   if (isolate->is_runnable()) {
-    isolate->set_vm_tag(VMTag::kIdleTagId);
+    thread->set_vm_tag(VMTag::kIdleTagId);
   } else {
-    isolate->set_vm_tag(VMTag::kLoadWaitTagId);
+    thread->set_vm_tag(VMTag::kLoadWaitTagId);
   }
   isolate->ClearMutatorThread();
   thread->isolate_ = NULL;

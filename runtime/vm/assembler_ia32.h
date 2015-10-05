@@ -787,6 +787,10 @@ class Assembler : public ValueObject {
                                            Register array,
                                            Register index);
 
+  static Address VMTagAddress() {
+    return Address(THR, Thread::vm_tag_offset());
+  }
+
   /*
    * Misc. functionality
    */

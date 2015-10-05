@@ -46,9 +46,6 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ Comment("CallToRuntimeStub");
   __ EnterStubFrame();
 
-  COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R28)) != 0);
-  __ LoadIsolate(R28);
-
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
   __ StoreToOffset(FP, THR, Thread::top_exit_frame_info_offset());
@@ -56,7 +53,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ LoadFromOffset(R8, R28, Isolate::vm_tag_offset());
+    __ LoadFromOffset(R8, THR, Thread::vm_tag_offset());
     __ CompareImmediate(R8, VMTag::kDartTagId);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
@@ -64,8 +61,8 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   }
 #endif
 
-  // Mark that the isolate is executing VM code.
-  __ StoreToOffset(R5, R28, Isolate::vm_tag_offset());
+  // Mark that the thread is executing VM code.
+  __ StoreToOffset(R5, THR, Thread::vm_tag_offset());
 
   // Reserve space for arguments and align frame before entering C++ world.
   // NativeArguments are passed in registers.
@@ -115,9 +112,9 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ mov(CSP, R26);
 
   // Retval is next to 1st argument.
-  // Mark that the isolate is executing Dart code.
+  // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
-  __ StoreToOffset(R2, R28, Isolate::vm_tag_offset());
+  __ StoreToOffset(R2, THR, Thread::vm_tag_offset());
 
   // Reset exit frame information in Isolate structure.
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
@@ -153,9 +150,6 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   __ EnterStubFrame();
 
-  COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R28)) != 0);
-  __ LoadIsolate(R28);
-
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
   __ StoreToOffset(FP, THR, Thread::top_exit_frame_info_offset());
@@ -163,7 +157,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ LoadFromOffset(R6, R28, Isolate::vm_tag_offset());
+    __ LoadFromOffset(R6, THR, Thread::vm_tag_offset());
     __ CompareImmediate(R6, VMTag::kDartTagId);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
@@ -171,8 +165,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   }
 #endif
 
-  // Mark that the isolate is executing Native code.
-  __ StoreToOffset(R5, R28, Isolate::vm_tag_offset());
+  // Mark that the thread is executing native code.
+  __ StoreToOffset(R5, THR, Thread::vm_tag_offset());
 
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
@@ -223,9 +217,9 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ mov(SP, CSP);
   __ mov(CSP, R26);
 
-  // Mark that the isolate is executing Dart code.
+  // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
-  __ StoreToOffset(R2, R28, Isolate::vm_tag_offset());
+  __ StoreToOffset(R2, THR, Thread::vm_tag_offset());
 
   // Reset exit frame information in Isolate structure.
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
@@ -249,9 +243,6 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   __ EnterStubFrame();
 
-  COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R28)) != 0);
-  __ LoadIsolate(R28);
-
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
   __ StoreToOffset(FP, THR, Thread::top_exit_frame_info_offset());
@@ -259,7 +250,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ LoadFromOffset(R6, R28, Isolate::vm_tag_offset());
+    __ LoadFromOffset(R6, THR, Thread::vm_tag_offset());
     __ CompareImmediate(R6, VMTag::kDartTagId);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
@@ -267,8 +258,8 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   }
 #endif
 
-  // Mark that the isolate is executing Native code.
-  __ StoreToOffset(R5, R28, Isolate::vm_tag_offset());
+  // Mark that the thread is executing native code.
+  __ StoreToOffset(R5, THR, Thread::vm_tag_offset());
 
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
@@ -316,9 +307,9 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ mov(SP, CSP);
   __ mov(CSP, R26);
 
-  // Mark that the isolate is executing Dart code.
+  // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
-  __ StoreToOffset(R2, R28, Isolate::vm_tag_offset());
+  __ StoreToOffset(R2, THR, Thread::vm_tag_offset());
 
   // Reset exit frame information in Isolate structure.
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
@@ -821,16 +812,14 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   if (THR != R3) {
     __ mov(THR, R3);
   }
-  // Load Isolate pointer into temporary register R5.
-  __ LoadIsolate(R5);
 
   // Save the current VMTag on the stack.
-  __ LoadFromOffset(R4, R5, Isolate::vm_tag_offset());
+  __ LoadFromOffset(R4, THR, Thread::vm_tag_offset());
   __ Push(R4);
 
-  // Mark that the isolate is executing Dart code.
+  // Mark that the thread is executing Dart code.
   __ LoadImmediate(R6, VMTag::kDartTagId);
-  __ StoreToOffset(R6, R5, Isolate::vm_tag_offset());
+  __ StoreToOffset(R6, THR, Thread::vm_tag_offset());
 
   // Save top resource and top exit frame info. Use R6 as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
@@ -883,8 +872,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Get rid of arguments pushed on the stack.
   __ AddImmediate(SP, FP, kExitLinkSlotFromEntryFp * kWordSize);
 
-  __ LoadIsolate(R28);
-
   // Restore the saved top exit frame info and top resource back into the
   // Isolate structure. Uses R6 as a temporary register for this.
   __ Pop(R6);
@@ -894,7 +881,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the current VMTag from the stack.
   __ Pop(R4);
-  __ StoreToOffset(R4, R28, Isolate::vm_tag_offset());
+  __ StoreToOffset(R4, THR, Thread::vm_tag_offset());
 
   // Restore the bottom 64-bits of callee-saved V registers.
   for (int i = kAbiLastPreservedFpuReg; i >= kAbiFirstPreservedFpuReg; i--) {
@@ -1973,10 +1960,9 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ mov(R0, R3);  // Exception object.
   __ mov(R1, R4);  // StackTrace object.
   __ mov(THR, R5);
-  __ LoadIsolate(R5);
   // Set the tag.
   __ LoadImmediate(R2, VMTag::kDartTagId);
-  __ StoreToOffset(R2, R5, Isolate::vm_tag_offset());
+  __ StoreToOffset(R2, THR, Thread::vm_tag_offset());
   // Clear top exit frame.
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
   __ ret();  // Jump to the exception handler code.
