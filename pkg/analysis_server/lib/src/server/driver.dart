@@ -206,6 +206,11 @@ class Driver implements ServerStarter {
   static const String CLIENT_VERSION = "client-version";
 
   /**
+   * The name of the option used to disable the use of the new task model.
+   */
+  static const String DISABLE_NEW_TASK_MODEL = "disable-new-task-model";
+
+  /**
    * The name of the option used to enable incremental resolution of API
    * changes.
    */
@@ -216,11 +221,6 @@ class Driver implements ServerStarter {
    * The name of the option used to enable instrumentation.
    */
   static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
-
-  /**
-   * The name of the option used to enable the use of the new task model.
-   */
-  static const String ENABLE_NEW_TASK_MODEL = "enable-new-task-model";
 
   /**
    * The name of the option used to set the file read mode.
@@ -395,9 +395,7 @@ class Driver implements ServerStarter {
     //
     // Enable the new task model, if appropriate.
     //
-    if (results[ENABLE_NEW_TASK_MODEL]) {
-      AnalysisEngine.instance.useTaskModel = true;
-    }
+    AnalysisEngine.instance.useTaskModel = !results[DISABLE_NEW_TASK_MODEL];
     //
     // Process all of the plugins so that extensions are registered.
     //
@@ -470,6 +468,11 @@ class Driver implements ServerStarter {
     parser.addOption(CLIENT_ID,
         help: "an identifier used to identify the client");
     parser.addOption(CLIENT_VERSION, help: "the version of the client");
+    parser.addFlag(DISABLE_NEW_TASK_MODEL,
+        help: "disable the use of the new task model",
+        defaultsTo: false,
+        hide: true,
+        negatable: false);
     parser.addFlag(ENABLE_INCREMENTAL_RESOLUTION_API,
         help: "enable using incremental resolution for API changes",
         defaultsTo: false,
@@ -477,11 +480,6 @@ class Driver implements ServerStarter {
     parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
         help: "enable sending instrumentation information to a server",
         defaultsTo: false,
-        negatable: false);
-    parser.addFlag(ENABLE_NEW_TASK_MODEL,
-        help: "enable the use of the new task model",
-        defaultsTo: false,
-        hide: true,
         negatable: false);
     parser.addFlag(HELP_OPTION,
         help: "print this help message without starting a server",
