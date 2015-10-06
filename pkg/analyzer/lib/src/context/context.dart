@@ -1138,7 +1138,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           new LibrarySpecificUnit(librarySource, librarySource);
       entry = getCacheEntry(unit);
       setValue(HINTS, AnalysisError.NO_ERRORS);
-      // dartEntry.setValue(LINTS, AnalysisError.NO_ERRORS);
+      setValue(LINTS, AnalysisError.NO_ERRORS);
       setValue(INFER_STATIC_VARIABLE_TYPES_ERRORS, AnalysisError.NO_ERRORS);
       setValue(LIBRARY_UNIT_ERRORS, AnalysisError.NO_ERRORS);
       setValue(PARTIALLY_RESOLVE_REFERENCES_ERRORS, AnalysisError.NO_ERRORS);
@@ -1635,16 +1635,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               return;
             }
           }
-//          if (lintsEnabled) {
-//            state = unitEntry.getState(LINTS);
-//            if (state == CacheState.INVALID ||
-//                (isPriority && state == CacheState.FLUSHED)) {
-//              sources.add(source);
-//              return;
-//            } else if (state == CacheState.ERROR) {
-//              return;
-//            }
-//          }
+          if (lintsEnabled) {
+            state = unitEntry.getState(LINTS);
+            if (state == CacheState.INVALID ||
+                (isPriority && state == CacheState.FLUSHED)) {
+              sources.add(source);
+              return;
+            } else if (state == CacheState.ERROR) {
+              return;
+            }
+          }
         }
       }
 //    } else if (kind == SourceKind.HTML) {

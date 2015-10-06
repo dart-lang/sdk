@@ -1239,6 +1239,7 @@ class IncrementalResolver {
 
   void _shiftEntryErrors_NEW() {
     _shiftErrors_NEW(HINTS);
+    _shiftErrors_NEW(LINTS);
     _shiftErrors_NEW(INFER_STATIC_VARIABLE_TYPES_ERRORS);
     _shiftErrors_NEW(LIBRARY_UNIT_ERRORS);
     _shiftErrors_NEW(PARTIALLY_RESOLVE_REFERENCES_ERRORS);
@@ -1320,6 +1321,7 @@ class IncrementalResolver {
     newUnitEntry.setState(USED_IMPORTED_ELEMENTS, CacheState.INVALID);
     newUnitEntry.setState(USED_LOCAL_ELEMENTS, CacheState.INVALID);
     newUnitEntry.setState(HINTS, CacheState.INVALID);
+    newUnitEntry.setState(LINTS, CacheState.INVALID);
   }
 
   void _updateEntry_OLD() {

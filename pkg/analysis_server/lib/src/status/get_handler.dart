@@ -323,6 +323,7 @@ class GetHandler {
       results.add(COMPILATION_UNIT_CONSTANTS);
       results.add(COMPILATION_UNIT_ELEMENT);
       results.add(HINTS);
+      results.add(LINTS);
       results.add(INFER_STATIC_VARIABLE_TYPES_ERRORS);
       results.add(INFERABLE_STATIC_VARIABLES_IN_UNIT);
       results.add(LIBRARY_UNIT_ERRORS);

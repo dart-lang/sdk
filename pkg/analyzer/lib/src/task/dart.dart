@@ -21,7 +21,9 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/visitors.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
+import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/html.dart';
@@ -289,6 +291,17 @@ final ResultDescriptor<bool> LIBRARY_ERRORS_READY =
 final ListResultDescriptor<AnalysisError> LIBRARY_UNIT_ERRORS =
     new ListResultDescriptor<AnalysisError>(
         'LIBRARY_UNIT_ERRORS', AnalysisError.NO_ERRORS);
+
+/**
+ * The errors produced while generating lints for a compilation unit.
+ *
+ * The list will be empty if there were no errors, but will not be `null`.
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ListResultDescriptor<AnalysisError> LINTS =
+    new ListResultDescriptor<AnalysisError>(
+        'LINT_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
  * The errors produced while parsing a compilation unit.
@@ -2419,6 +2432,92 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
 }
 
 /**
+ * A task that generates [LINTS] for a unit.
+ */
+class GenerateLintsTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [RESOLVED_UNIT8] input.
+   */
+  static const String RESOLVED_UNIT_INPUT = 'RESOLVED_UNIT';
+
+  /**
+   * The name of a list of [USED_LOCAL_ELEMENTS] for each library unit input.
+   */
+  static const String USED_LOCAL_ELEMENTS_INPUT = 'USED_LOCAL_ELEMENTS';
+
+  /**
+   * The name of a list of [USED_IMPORTED_ELEMENTS] for each library unit input.
+   */
+  static const String USED_IMPORTED_ELEMENTS_INPUT = 'USED_IMPORTED_ELEMENTS';
+
+  /**
+   * The name of the [TYPE_PROVIDER] input.
+   */
+  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'GenerateLintsTask', createTask, buildInputs, <ResultDescriptor>[LINTS]);
+
+  GenerateLintsTask(InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    AnalysisOptions analysisOptions = context.analysisOptions;
+    if (!analysisOptions.lint) {
+      outputs[LINTS] = AnalysisError.NO_ERRORS;
+      return;
+    }
+    //
+    // Prepare collectors.
+    //
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    Source source = getRequiredSource();
+    ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
+    //
+    // Prepare inputs.
+    //
+    CompilationUnit unit = getRequiredInput(RESOLVED_UNIT_INPUT);
+
+    //
+    // Generate lints.
+    //
+    LintGenerator.LINTERS.forEach((l) => l.reporter = errorReporter);
+    Iterable<AstVisitor> visitors =
+        LintGenerator.LINTERS.map((l) => l.getVisitor()).toList();
+    unit.accept(new DelegatingAstVisitor(visitors.where((v) => v != null)));
+
+    //
+    // Record outputs.
+    //
+    outputs[LINTS] = errorListener.errors;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) =>
+      <String, TaskInput>{RESOLVED_UNIT_INPUT: RESOLVED_UNIT.of(target)};
+
+  /**
+   * Create a [GenerateLintsTask] based on the given [target] in
+   * the given [context].
+   */
+  static GenerateLintsTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new GenerateLintsTask(context, target);
+  }
+}
+
+/**
  * A task that ensures that all of the inferrable instance members in a
  * compilation unit have had their type inferred.
  */
@@ -2819,6 +2918,11 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
   static const String HINTS_INPUT = 'HINTS';
 
   /**
+   * The name of the [LINTS] input.
+   */
+  static const String LINTS_INPUT = 'LINTS';
+
+  /**
    * The name of the [INFER_STATIC_VARIABLE_TYPES_ERRORS] input.
    */
   static const String INFER_STATIC_VARIABLE_TYPES_ERRORS_INPUT =
@@ -2877,6 +2981,7 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
     errorLists.add(getRequiredInput(BUILD_DIRECTIVES_ERRORS_INPUT));
     errorLists.add(getRequiredInput(BUILD_LIBRARY_ERRORS_INPUT));
     errorLists.add(getRequiredInput(HINTS_INPUT));
+    errorLists.add(getRequiredInput(LINTS_INPUT));
     errorLists.add(getRequiredInput(INFER_STATIC_VARIABLE_TYPES_ERRORS_INPUT));
     errorLists.add(getRequiredInput(PARTIALLY_RESOLVE_REFERENCES_ERRORS_INPUT));
     errorLists.add(getRequiredInput(RESOLVE_FUNCTION_BODIES_ERRORS_INPUT));
@@ -2898,6 +3003,7 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
     LibrarySpecificUnit unit = target;
     Map<String, TaskInput> inputs = <String, TaskInput>{
       HINTS_INPUT: HINTS.of(unit),
+      LINTS_INPUT: LINTS.of(unit),
       INFER_STATIC_VARIABLE_TYPES_ERRORS_INPUT:
           INFER_STATIC_VARIABLE_TYPES_ERRORS.of(unit),
       PARTIALLY_RESOLVE_REFERENCES_ERRORS_INPUT:
