@@ -8773,8 +8773,10 @@ class GetContentTask extends AnalysisTask {
       AnalysisEngine.instance.instrumentationService
           .logFileRead(source.fullName, _modificationTime, _content);
     } catch (exception, stackTrace) {
-      errors.add(new AnalysisError(
-          source, 0, 0, ScannerErrorCode.UNABLE_GET_CONTENT, [exception]));
+      if (source.exists()) {
+        errors.add(new AnalysisError(
+            source, 0, 0, ScannerErrorCode.UNABLE_GET_CONTENT, [exception]));
+      }
       throw new AnalysisException("Could not get contents of $source",
           new CaughtException(exception, stackTrace));
     }

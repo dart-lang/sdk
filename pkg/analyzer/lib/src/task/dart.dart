@@ -3812,8 +3812,10 @@ class ScanDartTask extends SourceBasedAnalysisTask {
           message = exception.toString();
         }
       }
-      errorListener.onError(new AnalysisError(
-          source, 0, 0, ScannerErrorCode.UNABLE_GET_CONTENT, [message]));
+      if (source.exists()) {
+        errorListener.onError(new AnalysisError(
+            source, 0, 0, ScannerErrorCode.UNABLE_GET_CONTENT, [message]));
+      }
     }
     if (target is DartScript) {
       DartScript script = target;
