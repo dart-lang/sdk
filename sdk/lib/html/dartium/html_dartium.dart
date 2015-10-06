@@ -1106,6 +1106,9 @@ Function _getSvgFunction(String key) {
  **********                                                          **********
  ******************************************************************************/
 
+// List of known tagName to DartClass for custom elements, used for upgrade.
+var _knownCustomeElements = new Map<String, Type>();
+
 Rectangle make_dart_rectangle(r) =>
     r == null ? null : new Rectangle(r['left'], r['top'], r['width'], r['height']);
 
@@ -1175,11 +1178,24 @@ wrap_jso(jsObject) {
       // Got a dart_class (it's a custom element) use it it's already set up.
       dartClass_instance = jsObject['dart_class'];
     } else {
-      var func = getHtmlCreateFunction(jsTypeName);
-      if (func != null) {
-        dartClass_instance = func();
-        dartClass_instance.blink_jsObject = jsObject;
-        js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
+      var localName = jsObject['localName'];
+      var customElementClass = _knownCustomeElements[localName];
+      // Custom Element to upgrade.
+      if (jsTypeName == 'HTMLElement' && customElementClass != null) {
+        try {
+          dartClass_instance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
+        } finally {
+          dartClass_instance.blink_jsObject = jsObject;
+          jsObject['dart_class'] = dartClass_instance;
+          js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
+       }
+      } else {
+        var func = getHtmlCreateFunction(jsTypeName);
+        if (func != null) {
+          dartClass_instance = func();
+          dartClass_instance.blink_jsObject = jsObject;
+          js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
+        }
       }
     }
     return dartClass_instance;
@@ -20364,6 +20380,9 @@ class HtmlDocument extends Document {
         baseElement = js.context['HTMLElement'];
       }
       var elemProto = js.context['Object'].callMethod("create", [baseElement['prototype']]);
+
+      // Remember for any upgrading done in wrap_jso.
+      _knownCustomeElements[tag] = customElementClass;
 
       // TODO(terry): Hack to stop recursion re-creating custom element when the
       //              created() constructor of the custom element does e.g.,
