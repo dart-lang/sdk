@@ -322,8 +322,10 @@ main() {
   testLoopbackMulticast();
   testSendReceive(InternetAddress.LOOPBACK_IP_V4, 1000);
   testSendReceive(InternetAddress.LOOPBACK_IP_V6, 1000);
-  testSendReceive(InternetAddress.LOOPBACK_IP_V4, 32 * 1024);
-  testSendReceive(InternetAddress.LOOPBACK_IP_V6, 32 * 1024);
-  testSendReceive(InternetAddress.LOOPBACK_IP_V4, 64 * 1024 - 32);
-  testSendReceive(InternetAddress.LOOPBACK_IP_V6, 64 * 1024 - 32);
+  if (!Platform.isMacOS) {
+    testSendReceive(InternetAddress.LOOPBACK_IP_V4, 32 * 1024);
+    testSendReceive(InternetAddress.LOOPBACK_IP_V6, 32 * 1024);
+    testSendReceive(InternetAddress.LOOPBACK_IP_V4, 64 * 1024 - 32);
+    testSendReceive(InternetAddress.LOOPBACK_IP_V6, 64 * 1024 - 32);
+  }
 }
