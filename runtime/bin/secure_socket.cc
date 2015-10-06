@@ -54,7 +54,7 @@ static void ThrowIOException(int status,
   error_string[0] = '\0';
   int error = ERR_get_error();
   while (error != 0) {
-    int length = strnlen(error_string, SSL_ERROR_MESSAGE_BUFFER_SIZE);
+    int length = strlen(error_string);
     int free_length = SSL_ERROR_MESSAGE_BUFFER_SIZE - length;
     if (free_length > 16) {
       // Enough room for error code at least.
@@ -65,6 +65,7 @@ static void ThrowIOException(int status,
         free_length--;
       }
       ERR_error_string_n(error, error_string + length, free_length);
+      // ERR_error_string_n is guaranteed to leave a null-terminated string.
     }
     error = ERR_get_error();
   }
