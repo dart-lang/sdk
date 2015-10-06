@@ -268,6 +268,8 @@ class Scavenger {
     return end_ < to_->end();
   }
 
+  void UpdateMaxHeapCapacity();
+
   void ProcessWeakTables();
 
   intptr_t NewSizeInWords(intptr_t old_size_in_words) const;

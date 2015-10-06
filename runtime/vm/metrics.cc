@@ -307,4 +307,30 @@ void Metric::Cleanup() {
   }
 }
 
+
+MaxMetric::MaxMetric()
+    : Metric() {
+  set_value(kMinInt64);
+}
+
+
+void MaxMetric::SetValue(int64_t new_value) {
+  if (new_value > value()) {
+    set_value(new_value);
+  }
+}
+
+
+MinMetric::MinMetric()
+    : Metric() {
+  set_value(kMaxInt64);
+}
+
+
+void MinMetric::SetValue(int64_t new_value) {
+  if (new_value < value()) {
+    set_value(new_value);
+  }
+}
+
 }  // namespace dart

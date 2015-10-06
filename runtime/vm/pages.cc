@@ -169,6 +169,8 @@ PageSpace::PageSpace(Heap* heap,
                              FLAG_old_gen_growth_time_ratio),
       gc_time_micros_(0),
       collections_(0) {
+  // We aren't holding the lock but no one can reference us yet.
+  UpdateMaxCapacityLocked();
 }
 
 
@@ -529,6 +531,15 @@ void PageSpace::AbandonBumpAllocation() {
     bump_top_ = 0;
     bump_end_ = 0;
   }
+}
+
+
+void PageSpace::UpdateMaxCapacityLocked() {
+  ASSERT(heap_ != NULL);
+  ASSERT(heap_->isolate() != NULL);
+  Isolate* isolate = heap_->isolate();
+  isolate->GetHeapOldCapacityMaxMetric()->SetValue(
+      static_cast<int64_t>(usage_.capacity_in_words) * kWordSize);
 }
 
 

@@ -415,7 +415,7 @@ Scavenger::Scavenger(Heap* heap,
   if (to_ == NULL) {
     FATAL("Out of memory.\n");
   }
-
+  UpdateMaxHeapCapacity();
   // Setup local fields.
   top_ = FirstObjectStart();
   resolved_top_ = top_;
@@ -459,6 +459,7 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
     // isolate to finish scavenge, etc.).
     FATAL("Out of memory.\n");
   }
+  UpdateMaxHeapCapacity();
   top_ = FirstObjectStart();
   resolved_top_ = top_;
   end_ = to_->end();
@@ -702,6 +703,20 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
       weak_property->VisitPointers(visitor);
     }
   }
+}
+
+
+void Scavenger::UpdateMaxHeapCapacity() {
+  if (heap_ == NULL) {
+    // Some unit tests.
+    return;
+  }
+  ASSERT(to_ != NULL);
+  ASSERT(heap_ != NULL);
+  Isolate* isolate = heap_->isolate();
+  ASSERT(isolate != NULL);
+  isolate->GetHeapNewCapacityMaxMetric()->SetValue(
+      to_->size_in_words() * kWordSize);
 }
 
 

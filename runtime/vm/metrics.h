@@ -16,13 +16,15 @@ class JSONStream;
 #define ISOLATE_METRIC_LIST(V)                                                 \
   V(MetricHeapOldUsed, HeapOldUsed, "heap.old.used", kByte)                    \
   V(MetricHeapOldCapacity, HeapOldCapacity, "heap.old.capacity", kByte)        \
+  V(MaxMetric, HeapOldCapacityMax, "heap.old.capacity.max", kByte)             \
   V(MetricHeapOldExternal, HeapOldExternal, "heap.old.external", kByte)        \
   V(MetricHeapNewUsed, HeapNewUsed, "heap.new.used", kByte)                    \
   V(MetricHeapNewCapacity, HeapNewCapacity, "heap.new.capacity", kByte)        \
-  V(MetricHeapNewExternal, HeapNewExternal, "heap.new.external", kByte)        \
+  V(MaxMetric, HeapNewCapacityMax, "heap.new.capacity.max", kByte)             \
+  V(MetricHeapNewExternal, HeapNewExternal, "heap.new.external", kByte)
 
 #define VM_METRIC_LIST(V)                                                      \
-  V(MetricIsolateCount, IsolateCount, "vm.isolate.count", kCounter)            \
+  V(MetricIsolateCount, IsolateCount, "vm.isolate.count", kCounter)
 
 class Metric {
  public:
@@ -99,6 +101,26 @@ class Metric {
 
   static Metric* vm_list_head_;
   DISALLOW_COPY_AND_ASSIGN(Metric);
+};
+
+
+// A Metric class that reports the maximum value observed.
+// Initial maximum is kMinInt64.
+class MaxMetric : public Metric {
+ public:
+  MaxMetric();
+
+  void SetValue(int64_t new_value);
+};
+
+
+// A Metric class that reports the minimum value observed.
+// Initial minimum is kMaxInt64.
+class MinMetric : public Metric {
+ public:
+  MinMetric();
+
+  void SetValue(int64_t new_value);
 };
 
 

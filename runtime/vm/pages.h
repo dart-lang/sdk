@@ -230,7 +230,11 @@ class PageSpace {
   void IncreaseCapacityInWordsLocked(intptr_t increase_in_words) {
     DEBUG_ASSERT(pages_lock_->IsOwnedByCurrentThread());
     usage_.capacity_in_words += increase_in_words;
+    UpdateMaxCapacityLocked();
   }
+
+  void UpdateMaxCapacityLocked();
+
   intptr_t ExternalInWords() const {
     return usage_.external_in_words;
   }
