@@ -83,7 +83,7 @@ DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target) {
 
   if (obj.IsType()) {
     const Class& cls = Class::Handle(Z, Type::Cast(obj).type_class());
-    const Error& error = Error::Handle(Z, cls.EnsureIsFinalized(I));
+    const Error& error = Error::Handle(Z, cls.EnsureIsFinalized(T));
     if (!error.IsNull()) {
       return Api::NewHandle(I, error.raw());
     }

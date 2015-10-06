@@ -3904,7 +3904,7 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
     RETURN_TYPE_ERROR(I, type, Type);
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
-  const Error& error = Error::Handle(Z, cls.EnsureIsFinalized(I));
+  const Error& error = Error::Handle(Z, cls.EnsureIsFinalized(T));
   if (!error.IsNull()) {
     // An error occurred, return error object.
     return Api::NewHandle(I, error.raw());
@@ -3929,7 +3929,7 @@ DART_EXPORT Dart_Handle Dart_AllocateWithNativeFields(
     RETURN_NULL_ERROR(native_fields);
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
-  const Error& error = Error::Handle(Z, cls.EnsureIsFinalized(I));
+  const Error& error = Error::Handle(Z, cls.EnsureIsFinalized(T));
   if (!error.IsNull()) {
     // An error occurred, return error object.
     return Api::NewHandle(I, error.raw());

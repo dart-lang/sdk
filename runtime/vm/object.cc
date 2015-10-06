@@ -2210,8 +2210,9 @@ void Class::RemoveFunction(const Function& function) const {
 
 
 intptr_t Class::FindFunctionIndex(const Function& needle) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
   REUSABLE_ARRAY_HANDLESCOPE(isolate);
@@ -2263,8 +2264,9 @@ RawFunction* Class::ImplicitClosureFunctionFromIndex(intptr_t idx) const {
 
 
 intptr_t Class::FindImplicitClosureFunctionIndex(const Function& needle) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
   REUSABLE_ARRAY_HANDLESCOPE(isolate);
@@ -2294,8 +2296,9 @@ intptr_t Class::FindImplicitClosureFunctionIndex(const Function& needle) const {
 
 intptr_t Class::FindInvocationDispatcherFunctionIndex(
     const Function& needle) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
   REUSABLE_ARRAY_HANDLESCOPE(isolate);
@@ -2432,13 +2435,14 @@ void Class::set_type_parameters(const TypeArguments& value) const {
 }
 
 
-intptr_t Class::NumTypeParameters(Isolate* isolate) const {
+intptr_t Class::NumTypeParameters(Thread* thread) const {
   if (IsMixinApplication() && !is_mixin_type_applied()) {
     ClassFinalizer::ApplyMixinType(*this);
   }
   if (type_parameters() == TypeArguments::null()) {
     return 0;
   }
+  Isolate* isolate = thread->isolate();
   REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(isolate);
   TypeArguments& type_params = isolate->TypeArgumentsHandle();
   type_params = type_parameters();
@@ -3030,16 +3034,17 @@ RawObject* Class::Evaluate(const String& expr,
 
 // Ensure that top level parsing of the class has been done.
 // TODO(24109): Migrate interface to Thread*.
-RawError* Class::EnsureIsFinalized(Isolate* isolate) const {
+RawError* Class::EnsureIsFinalized(Thread* thread) const {
   // Finalized classes have already been parsed.
   if (is_finalized()) {
     return Error::null();
   }
-  ASSERT(isolate != NULL);
-  const Error& error = Error::Handle(isolate, Compiler::CompileClass(*this));
+  ASSERT(thread != NULL);
+  const Error& error = Error::Handle(
+      thread->zone(), Compiler::CompileClass(*this));
   if (!error.IsNull()) {
-    ASSERT(isolate == Thread::Current()->isolate());
-    if (Thread::Current()->long_jump_base() != NULL) {
+    ASSERT(thread == Thread::Current());
+    if (thread->long_jump_base() != NULL) {
       Report::LongJump(error);
       UNREACHABLE();
     }
@@ -3087,8 +3092,9 @@ void Class::AddFields(const GrowableArray<const Field*>& new_fields) const {
 
 
 intptr_t Class::FindFieldIndex(const Field& needle) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
   REUSABLE_ARRAY_HANDLESCOPE(isolate);
@@ -3701,8 +3707,9 @@ void Class::SetCanonicalType(const Type& type) const {
 
 
 intptr_t Class::FindCanonicalTypeIndex(const Type& needle) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
   if (needle.raw() == CanonicalType()) {
@@ -4098,8 +4105,9 @@ RawFunction* Class::CheckFunctionType(const Function& func, MemberKind kind) {
 
 
 RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
   }
   REUSABLE_ARRAY_HANDLESCOPE(isolate);
@@ -4145,8 +4153,9 @@ RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
 
 RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
                                                MemberKind kind) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
   }
   REUSABLE_ARRAY_HANDLESCOPE(isolate);
@@ -4183,8 +4192,9 @@ RawFunction* Class::LookupSetterFunction(const String& name) const {
 RawFunction* Class::LookupAccessorFunction(const char* prefix,
                                            intptr_t prefix_length,
                                            const String& name) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
   }
   REUSABLE_ARRAY_HANDLESCOPE(isolate);
@@ -4211,8 +4221,9 @@ RawFunction* Class::LookupAccessorFunction(const char* prefix,
 RawFunction* Class::LookupFunctionAtToken(intptr_t token_pos) const {
   // TODO(hausner): we can shortcut the negative case if we knew the
   // beginning and end token position of the class.
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
   }
   Function& func = Function::Handle(isolate);
@@ -4250,8 +4261,9 @@ RawField* Class::LookupField(const String& name) const {
 
 
 RawField* Class::LookupField(const String& name, MemberKind kind) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return Field::null();
   }
   REUSABLE_ARRAY_HANDLESCOPE(isolate);
@@ -4324,7 +4336,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
 
-  const Error& err = Error::Handle(EnsureIsFinalized(Isolate::Current()));
+  const Error& err = Error::Handle(EnsureIsFinalized(Thread::Current()));
   if (!err.IsNull()) {
     jsobj.AddProperty("error", err);
   }
@@ -7129,7 +7141,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Class& cls = Class::Handle(Owner());
   ASSERT(!cls.IsNull());
   Error& err = Error::Handle();
-  err ^= cls.EnsureIsFinalized(Isolate::Current());
+  err ^= cls.EnsureIsFinalized(Thread::Current());
   ASSERT(err.IsNull());
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Function", ref);
@@ -10857,7 +10869,7 @@ RawError* Library::CompileAll() {
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      error = cls.EnsureIsFinalized(Isolate::Current());
+      error = cls.EnsureIsFinalized(Thread::Current());
       if (!error.IsNull()) {
         return error.raw();
       }
@@ -14671,8 +14683,8 @@ bool Instance::IsCallable(Function* function) const {
 
 
 RawInstance* Instance::New(const Class& cls, Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-  if (cls.EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  if (cls.EnsureIsFinalized(thread) != Error::null()) {
     return Instance::null();
   }
   intptr_t instance_size = cls.instance_size();
@@ -15652,18 +15664,19 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
   if (arguments() == other_type.arguments()) {
     return true;
   }
-  Isolate* isolate = Isolate::Current();
-  const Class& cls = Class::Handle(isolate, type_class());
-  const intptr_t num_type_params = cls.NumTypeParameters(isolate);
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Class& cls = Class::Handle(zone, type_class());
+  const intptr_t num_type_params = cls.NumTypeParameters(thread);
   if (num_type_params == 0) {
     // Shortcut unnecessary handle allocation below.
     return true;
   }
   const intptr_t num_type_args = cls.NumTypeArguments();
   const intptr_t from_index = num_type_args - num_type_params;
-  const TypeArguments& type_args = TypeArguments::Handle(isolate, arguments());
+  const TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
   const TypeArguments& other_type_args = TypeArguments::Handle(
-      isolate, other_type.arguments());
+      zone, other_type.arguments());
   if (type_args.IsNull()) {
     // Ignore from_index.
     return other_type_args.IsRaw(0, num_type_args);
@@ -15683,8 +15696,8 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
     // depend solely on the type parameters that were just verified to match.
     ASSERT(type_args.Length() >= (from_index + num_type_params));
     ASSERT(other_type_args.Length() >= (from_index + num_type_params));
-    AbstractType& type_arg = AbstractType::Handle(isolate);
-    AbstractType& other_type_arg = AbstractType::Handle(isolate);
+    AbstractType& type_arg = AbstractType::Handle(zone);
+    AbstractType& other_type_arg = AbstractType::Handle(zone);
     for (intptr_t i = 0; i < from_index; i++) {
       type_arg = type_args.TypeAt(i);
       other_type_arg = other_type_args.TypeAt(i);

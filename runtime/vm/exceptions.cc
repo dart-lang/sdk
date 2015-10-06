@@ -132,7 +132,7 @@ static void BuildStackTrace(Isolate* isolate, StacktraceBuilder* builder) {
 // exception handler. Once found, set the pc, sp and fp so that execution
 // can continue in that frame. Sets 'needs_stacktrace' if there is no
 // cath-all handler or if a stack-trace is specified in the catch.
-static bool FindExceptionHandler(Isolate* isolate,
+static bool FindExceptionHandler(Thread* thread,
                                  uword* handler_pc,
                                  uword* handler_sp,
                                  uword* handler_fp,
@@ -146,7 +146,7 @@ static bool FindExceptionHandler(Isolate* isolate,
   uword temp_handler_pc = kUwordMax;
   while (!frame->IsEntryFrame()) {
     if (frame->IsDartFrame()) {
-      if (frame->FindExceptionHandler(isolate,
+      if (frame->FindExceptionHandler(thread,
                                       &temp_handler_pc,
                                       needs_stacktrace,
                                       &is_catch_all)) {
@@ -311,7 +311,7 @@ static void ThrowExceptionHelper(Thread* thread,
   if (use_preallocated_stacktrace) {
     stacktrace ^= isolate->object_store()->preallocated_stack_trace();
     PreallocatedStacktraceBuilder frame_builder(stacktrace);
-    handler_exists = FindExceptionHandler(isolate,
+    handler_exists = FindExceptionHandler(thread,
                                           &handler_pc,
                                           &handler_sp,
                                           &handler_fp,
@@ -327,7 +327,7 @@ static void ThrowExceptionHelper(Thread* thread,
 
     // Find the exception handler and determine if the handler needs a
     // stacktrace.
-    handler_exists = FindExceptionHandler(isolate,
+    handler_exists = FindExceptionHandler(thread,
                                           &handler_pc,
                                           &handler_sp,
                                           &handler_fp,

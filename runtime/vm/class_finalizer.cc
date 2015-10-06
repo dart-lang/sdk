@@ -3136,21 +3136,23 @@ void ClassFinalizer::ReportError(const Class& cls,
 
 void ClassFinalizer::VerifyImplicitFieldOffsets() {
 #ifdef DEBUG
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   const ClassTable& class_table = *(isolate->class_table());
-  Class& cls = Class::Handle(isolate);
-  Array& fields_array = Array::Handle(isolate);
-  Field& field = Field::Handle(isolate);
-  String& name = String::Handle(isolate);
-  String& expected_name = String::Handle(isolate);
-  Error& error = Error::Handle(isolate);
+  Class& cls = Class::Handle(zone);
+  Array& fields_array = Array::Handle(zone);
+  Field& field = Field::Handle(zone);
+  String& name = String::Handle(zone);
+  String& expected_name = String::Handle(zone);
+  Error& error = Error::Handle(zone);
 
   // First verify field offsets of all the TypedDataView classes.
   for (intptr_t cid = kTypedDataInt8ArrayViewCid;
        cid <= kTypedDataFloat32x4ArrayViewCid;
        cid++) {
     cls = class_table.At(cid);  // Get the TypedDataView class.
-    error = cls.EnsureIsFinalized(isolate);
+    error = cls.EnsureIsFinalized(thread);
     ASSERT(error.IsNull());
     cls = cls.SuperClass();  // Get it's super class '_TypedListView'.
     cls = cls.SuperClass();
@@ -3173,7 +3175,7 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
 
   // Now verify field offsets of '_ByteDataView' class.
   cls = class_table.At(kByteDataViewCid);
-  error = cls.EnsureIsFinalized(isolate);
+  error = cls.EnsureIsFinalized(thread);
   ASSERT(error.IsNull());
   fields_array ^= cls.fields();
   ASSERT(fields_array.Length() == TypedDataView::NumberOfFields());
@@ -3194,7 +3196,7 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
 
   // Now verify field offsets of '_ByteBuffer' class.
   cls = class_table.At(kByteBufferCid);
-  error = cls.EnsureIsFinalized(isolate);
+  error = cls.EnsureIsFinalized(thread);
   ASSERT(error.IsNull());
   fields_array ^= cls.fields();
   ASSERT(fields_array.Length() == ByteBuffer::NumberOfFields());

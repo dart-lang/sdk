@@ -6,6 +6,7 @@
 #define VM_GC_MARKER_H_
 
 #include "vm/allocation.h"
+#include "vm/os_thread.h"  // Mutex.
 
 namespace dart {
 

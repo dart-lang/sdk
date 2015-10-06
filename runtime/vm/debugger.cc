@@ -1956,7 +1956,7 @@ RawFunction* Debugger::FindBestFit(const Script& script,
         continue;
       }
       // Parse class definition if not done yet.
-      error = cls.EnsureIsFinalized(isolate_);
+      error = cls.EnsureIsFinalized(Thread::Current());
       if (!error.IsNull()) {
         // Ignore functions in this class.
         // TODO(hausner): Should we propagate this error? How?
@@ -2776,7 +2776,7 @@ void Debugger::Initialize(Isolate* isolate) {
   // Use the isolate's control port as the isolate_id for debugging.
   // This port will be used as a unique ID to represent the isolate in the
   // debugger wire protocol messages.
-  isolate_id_ = isolate->main_port();
+  isolate_id_ = isolate_->main_port();
   initialized_ = true;
 }
 

@@ -36,12 +36,13 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
 
 #if defined(DART_NO_SNAPSHOT)
 void Intrinsifier::InitializeState() {
-  Isolate* isolate = Isolate::Current();
-  Library& lib = Library::Handle(isolate);
-  Class& cls = Class::Handle(isolate);
-  Function& func = Function::Handle(isolate);
-  String& str = String::Handle(isolate);
-  Error& error = Error::Handle(isolate);
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Library& lib = Library::Handle(zone);
+  Class& cls = Class::Handle(zone);
+  Function& func = Function::Handle(zone);
+  String& str = String::Handle(zone);
+  Error& error = Error::Handle(zone);
 
 #define SETUP_FUNCTION(class_name, function_name, destination, fp)             \
   if (strcmp(#class_name, "::") == 0) {                                        \
@@ -51,7 +52,7 @@ void Intrinsifier::InitializeState() {
     str = String::New(#class_name);                                            \
     cls = lib.LookupClassAllowPrivate(str);                                    \
     ASSERT(!cls.IsNull());                                                     \
-    error = cls.EnsureIsFinalized(isolate);                                    \
+    error = cls.EnsureIsFinalized(thread);                                     \
     if (!error.IsNull()) {                                                     \
       OS::PrintErr("%s\n", error.ToErrorCString());                            \
     }                                                                          \

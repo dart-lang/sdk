@@ -8,6 +8,7 @@
 #include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/handles.h"
+#include "vm/thread.h"
 #include "vm/memory_region.h"
 
 namespace dart {

@@ -203,10 +203,11 @@ RawCode* StackFrame::GetCodeObject() const {
 }
 
 
-bool StackFrame::FindExceptionHandler(Isolate* isolate,
+bool StackFrame::FindExceptionHandler(Thread* thread,
                                       uword* handler_pc,
                                       bool* needs_stacktrace,
                                       bool* has_catch_all) const {
+  Isolate* isolate = thread->isolate();
   REUSABLE_CODE_HANDLESCOPE(isolate);
   Code& code = reused_code_handle.Handle();
   code = LookupDartCode();

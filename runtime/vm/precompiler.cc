@@ -107,7 +107,7 @@ void Precompiler::ClearAllCode() {
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      error_ = cls.EnsureIsFinalized(I);
+      error_ = cls.EnsureIsFinalized(thread_);
       if (!error_.IsNull()) {
         Jump(error_);
       }

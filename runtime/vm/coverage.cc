@@ -142,8 +142,7 @@ void CodeCoverage::PrintClass(const Library& lib,
                               CoverageFilter* filter,
                               bool as_call_sites) {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  if (cls.EnsureIsFinalized(isolate) != Error::null()) {
+  if (cls.EnsureIsFinalized(thread) != Error::null()) {
     // Only classes that have been finalized do have a meaningful list of
     // functions.
     return;

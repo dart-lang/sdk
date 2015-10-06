@@ -854,10 +854,10 @@ class PassiveObject : public Object {
     return Handle(I->current_zone(), raw_ptr);
   }
   static PassiveObject& Handle(RawObject* raw_ptr) {
-    return Handle(Isolate::Current(), raw_ptr);
+    return Handle(Thread::Current()->zone(), raw_ptr);
   }
   static PassiveObject& Handle() {
-    return Handle(Isolate::Current(), Object::null());
+    return Handle(Thread::Current()->zone(), Object::null());
   }
   static PassiveObject& Handle(Zone* zone) {
     return Handle(zone, Object::null());
@@ -993,9 +993,9 @@ class Class : public Object {
       return raw_ptr()->type_parameters_;
   }
   void set_type_parameters(const TypeArguments& value) const;
-  intptr_t NumTypeParameters(Isolate* isolate) const;
+  intptr_t NumTypeParameters(Thread* thread) const;
   intptr_t NumTypeParameters() const {
-    return NumTypeParameters(Isolate::Current());
+    return NumTypeParameters(Thread::Current());
   }
   static intptr_t type_parameters_offset() {
     return OFFSET_OF(RawClass, type_parameters_);
@@ -1331,7 +1331,7 @@ class Class : public Object {
                       const Array& param_names,
                       const Array& param_values) const;
 
-  RawError* EnsureIsFinalized(Isolate* isolate) const;
+  RawError* EnsureIsFinalized(Thread* thread) const;
 
   // Allocate a class used for VM internal objects.
   template <class FakeObject> static RawClass* New();

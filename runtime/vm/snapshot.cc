@@ -260,7 +260,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   if (cls.IsNull()) {
     SetReadException("Invalid object found in message.");
   }
-  cls.EnsureIsFinalized(isolate());
+  cls.EnsureIsFinalized(thread());
   return cls.raw();
 }
 
@@ -291,7 +291,7 @@ RawFunction* SnapshotReader::ReadFunctionId(intptr_t object_id) {
     if (cls_.IsNull()) {
       SetReadException("Expected a class name, but found an invalid name.");
     }
-    cls_.EnsureIsFinalized(isolate());
+    cls_.EnsureIsFinalized(thread());
     str_ ^= ReadObjectImpl(kAsInlinedObject);
     func ^= cls_.LookupFunctionAllowPrivate(str_);
   }
@@ -328,7 +328,7 @@ RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
       OS::Print("Name of class not found %s\n", str_.ToCString());
       SetReadException("Invalid Class object found in message.");
     }
-    cls_.EnsureIsFinalized(isolate());
+    cls_.EnsureIsFinalized(thread());
     str_ ^= ReadObjectImpl(kAsInlinedObject);
     func = cls_.LookupFunctionAllowPrivate(str_);
   }
