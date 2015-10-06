@@ -130,6 +130,7 @@ class Isolate : public BaseIsolate {
     // Internal message ids.
     kInterruptMsg = 10,     // Break in the debugger.
     kInternalKillMsg = 11,  // Like kill, but does not run exit listeners, etc.
+    kVMRestartMsg = 12,     // Sent to isolates when vm is restarting.
   };
   // The different Isolate API message priorities for ping and kill messages.
   enum LibMsgPriority {
@@ -766,8 +767,8 @@ class Isolate : public BaseIsolate {
 
   bool is_service_isolate() const { return is_service_isolate_; }
 
-  static void KillAllIsolates();
-  static void KillIfExists(Isolate* isolate);
+  static void KillAllIsolates(LibMsgId msg_id);
+  static void KillIfExists(Isolate* isolate, LibMsgId msg_id);
 
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
@@ -784,7 +785,7 @@ class Isolate : public BaseIsolate {
                        bool is_vm_isolate = false);
 
   // The isolates_list_monitor_ should be held when calling Kill().
-  void KillLocked();
+  void KillLocked(LibMsgId msg_id);
 
   void LowLevelShutdown();
   void Shutdown();

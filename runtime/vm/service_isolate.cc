@@ -436,7 +436,7 @@ void ServiceIsolate::KillServiceIsolate() {
     MonitorLocker ml(monitor_);
     shutting_down_ = true;
   }
-  Isolate::KillIfExists(isolate_);
+  Isolate::KillIfExists(isolate_, Isolate::kInternalKillMsg);
   {
     MonitorLocker ml(monitor_);
     while (shutting_down_) {

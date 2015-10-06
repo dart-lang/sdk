@@ -233,7 +233,7 @@ const char* Dart::Cleanup() {
     Isolate::DisableIsolateCreation();
 
     // Send the OOB Kill message to all remaining application isolates.
-    Isolate::KillAllIsolates();
+    Isolate::KillAllIsolates(Isolate::kInternalKillMsg);
 
     // Shutdown the service isolate.
     ServiceIsolate::Shutdown();

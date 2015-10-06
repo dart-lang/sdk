@@ -803,6 +803,10 @@ abstract class VM extends ServiceObjectOwner {
     }
   }
 
+  Future restart() {
+    return invokeRpc('_restartVM', {});
+  }
+
   Future<ObservableMap> _fetchDirect() async {
     if (!loaded) {
       // The vm service relies on these events to keep the VM and

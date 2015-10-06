@@ -747,6 +747,13 @@ DART_EXPORT bool Dart_IsFatalError(Dart_Handle object) {
 }
 
 
+DART_EXPORT bool Dart_IsVMRestartRequest(Dart_Handle handle) {
+  DARTSCOPE(Thread::Current());
+  const Object& obj = Object::Handle(Z, Api::UnwrapHandle(handle));
+  return (obj.IsUnwindError() && UnwindError::Cast(obj).is_vm_restart());
+}
+
+
 DART_EXPORT const char* Dart_GetError(Dart_Handle handle) {
   DARTSCOPE(Thread::Current());
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(handle));
@@ -1674,7 +1681,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE_SCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
-  if (!isolate->message_handler()->HandleNextMessage()) {
+  if (isolate->message_handler()->HandleNextMessage() != MessageHandler::kOK) {
     Dart_Handle error = Api::NewHandle(isolate,
                                        isolate->object_store()->sticky_error());
     isolate->object_store()->clear_sticky_error();
@@ -1690,8 +1697,10 @@ DART_EXPORT bool Dart_HandleServiceMessages() {
   CHECK_CALLBACK_STATE(isolate);
 
   ASSERT(isolate->GetAndClearResumeRequest() == false);
-  isolate->message_handler()->HandleOOBMessages();
-  return isolate->GetAndClearResumeRequest();
+  MessageHandler::MessageStatus status =
+      isolate->message_handler()->HandleOOBMessages();
+  bool resume = isolate->GetAndClearResumeRequest();
+  return (status != MessageHandler::kOK) || resume;
 }
 
 

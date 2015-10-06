@@ -672,9 +672,9 @@ void Service::SendEvent(const char* stream_id,
   writer.WriteMessage(list);
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
-    OS::Print(
-        "vm-service: Pushing event of type %s to stream %s (%s), len %" Pd "\n",
-        event_type, stream_id, isolate->name(), len);
+    OS::Print("vm-service: Pushing ServiceEvent(isolate='%s', kind='%s',"
+              " len=%" Pd ") to stream %s\n",
+              isolate->name(), event_type, len, stream_id);
   }
   // TODO(turnidge): For now we ignore failure to send an event.  Revisit?
   PortMap::PostMessage(
@@ -770,9 +770,9 @@ void Service::PostEvent(const char* stream_id,
     if (isolate != NULL) {
       isolate_name = isolate->name();
     }
-    OS::Print(
-        "vm-service: Pushing event of type %s to stream %s (%s)\n",
-        kind, stream_id, isolate_name);
+    OS::Print("vm-service: Pushing ServiceEvent(isolate='%s', kind='%s') "
+              "to stream %s\n",
+              isolate_name, kind, stream_id);
   }
 
   Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
@@ -2968,6 +2968,19 @@ static bool GetVM(Isolate* isolate, JSONStream* js) {
 }
 
 
+static const MethodParameter* restart_vm_params[] = {
+  NO_ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool RestartVM(Isolate* isolate, JSONStream* js) {
+  Isolate::KillAllIsolates(Isolate::kVMRestartMsg);
+  PrintSuccess(js);
+  return true;
+}
+
+
 static const MethodParameter* set_exception_pause_info_params[] = {
   ISOLATE_PARAMETER,
   NULL,
@@ -3194,6 +3207,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     pause_params },
   { "removeBreakpoint", RemoveBreakpoint,
     remove_breakpoint_params },
+  { "_restartVM", RestartVM,
+    restart_vm_params },
   { "resume", Resume,
     resume_params },
   { "_requestHeapSnapshot", RequestHeapSnapshot,

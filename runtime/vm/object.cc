@@ -14315,9 +14315,10 @@ RawUnwindError* UnwindError::New(const String& message, Heap::Space space) {
                                       space);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.StoreNonPointer(&result.raw_ptr()->is_user_initiated_, false);
   }
   result.set_message(message);
+  result.set_is_user_initiated(false);
+  result.set_is_vm_restart(false);
   return result.raw();
 }
 
@@ -14329,6 +14330,11 @@ void UnwindError::set_message(const String& message) const {
 
 void UnwindError::set_is_user_initiated(bool value) const {
   StoreNonPointer(&raw_ptr()->is_user_initiated_, value);
+}
+
+
+void UnwindError::set_is_vm_restart(bool value) const {
+  StoreNonPointer(&raw_ptr()->is_vm_restart_, value);
 }
 
 
@@ -14349,6 +14355,8 @@ void UnwindError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("kind", "TerminationError");
   jsobj.AddServiceId(*this);
   jsobj.AddProperty("message", ToErrorCString());
+  jsobj.AddProperty("_is_user_initiated", is_user_initiated());
+  jsobj.AddProperty("_is_vm_restart", is_vm_restart());
 }
 
 

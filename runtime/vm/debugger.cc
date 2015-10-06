@@ -310,9 +310,16 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
 
   if (ServiceNeedsDebuggerEvent(event->type()) && event->IsPauseEvent()) {
     // If we were paused, notify the service that we have resumed.
-    ServiceEvent service_event(event->isolate(), ServiceEvent::kResume);
-    service_event.set_top_frame(event->top_frame());
-    Service::HandleEvent(&service_event);
+    const Error& error =
+        Error::Handle(isolate_, isolate_->object_store()->sticky_error());
+    ASSERT(error.IsNull() || error.IsUnwindError());
+
+    // Only send a resume event when the isolate is not unwinding.
+    if (!error.IsUnwindError()) {
+      ServiceEvent service_event(event->isolate(), ServiceEvent::kResume);
+      service_event.set_top_frame(event->top_frame());
+      Service::HandleEvent(&service_event);
+    }
   }
 }
 
@@ -350,9 +357,6 @@ RawError* Debugger::SignalIsolateInterrupted() {
         OS::Print("[!] Embedder api: terminating isolate:\n"
                   "\tisolate:    %s\n", isolate_->name());
       }
-      // TODO(turnidge): We should give the message handler a way to
-      // detect when an isolate is unwinding.
-      isolate_->message_handler()->set_pause_on_exit(false);
       const String& msg =
           String::Handle(String::New("isolate terminated by embedder"));
       return UnwindError::New(msg);
@@ -362,6 +366,7 @@ RawError* Debugger::SignalIsolateInterrupted() {
   // If any error occurred while in the debug message loop, return it here.
   const Error& error =
       Error::Handle(isolate_, isolate_->object_store()->sticky_error());
+  ASSERT(error.IsNull() || error.IsUnwindError());
   isolate_->object_store()->clear_sticky_error();
   return error.raw();
 }

@@ -39,7 +39,7 @@ class TestMessageHandler : public MessageHandler {
         message_count_(0),
         start_called_(false),
         end_called_(false),
-        result_(true) {
+        results_(NULL) {
   }
 
   ~TestMessageHandler() {
@@ -50,18 +50,23 @@ class TestMessageHandler : public MessageHandler {
     notify_count_++;
   }
 
-  bool HandleMessage(Message* message) {
+  MessageStatus HandleMessage(Message* message) {
     // For testing purposes, keep a list of the ports
     // for all messages we receive.
     AddPortToBuffer(message->dest_port());
     delete message;
     message_count_++;
-    return result_;
+    MessageStatus status = kOK;
+    if (results_ != NULL) {
+      status = results_[0];
+      results_++;
+    }
+    return status;
   }
 
-  bool Start() {
+  MessageStatus Start() {
     start_called_ = true;
-    return true;
+    return kOK;
   }
 
   void End() {
@@ -75,7 +80,7 @@ class TestMessageHandler : public MessageHandler {
   bool start_called() const { return start_called_; }
   bool end_called() const { return end_called_; }
 
-  void set_result(bool result) { result_ = result; }
+  void set_results(MessageStatus* results) { results_ = results; }
 
  private:
   void AddPortToBuffer(Dart_Port port) {
@@ -101,13 +106,13 @@ class TestMessageHandler : public MessageHandler {
   int message_count_;
   bool start_called_;
   bool end_called_;
-  bool result_;
+  MessageStatus* results_;
 
   DISALLOW_COPY_AND_ASSIGN(TestMessageHandler);
 };
 
 
-bool TestStartFunction(uword data) {
+MessageHandler::MessageStatus TestStartFunction(uword data) {
   return (reinterpret_cast<TestMessageHandler*>(data))->Start();
 }
 
@@ -232,13 +237,82 @@ UNIT_TEST_CASE(MessageHandler_HandleNextMessage) {
   handler_peer.PostMessage(oob_message2);
 
   // We handle both oob messages and a single normal message.
-  EXPECT(handler.HandleNextMessage());
+  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_EQ(3, handler.message_count());
   Dart_Port* ports = handler.port_buffer();
   EXPECT_EQ(port2, ports[0]);
   EXPECT_EQ(port3, ports[1]);
   EXPECT_EQ(port1, ports[2]);
   PortMap::ClosePorts(&handler);
+}
+
+
+UNIT_TEST_CASE(MessageHandler_HandleNextMessage_ProcessOOBAfterError) {
+  TestMessageHandler handler;
+  MessageHandler::MessageStatus results[] = {
+    MessageHandler::kError,     // oob_message1
+    MessageHandler::kOK,        // oob_message2
+    MessageHandler::kOK,        // unused
+  };
+  handler.set_results(results);
+  MessageHandlerTestPeer handler_peer(&handler);
+  Dart_Port port1 = PortMap::CreatePort(&handler);
+  Dart_Port port2 = PortMap::CreatePort(&handler);
+  Dart_Port port3 = PortMap::CreatePort(&handler);
+  Message* message1 = new Message(port1, NULL, 0, Message::kNormalPriority);
+  handler_peer.PostMessage(message1);
+  Message* oob_message1 = new Message(port2, NULL, 0, Message::kOOBPriority);
+  handler_peer.PostMessage(oob_message1);
+  Message* oob_message2 = new Message(port3, NULL, 0, Message::kOOBPriority);
+  handler_peer.PostMessage(oob_message2);
+
+  // When we get an error, we continue processing oob messages but
+  // stop handling normal messages.
+  EXPECT_EQ(MessageHandler::kError, handler.HandleNextMessage());
+  EXPECT_EQ(2, handler.message_count());
+  Dart_Port* ports = handler.port_buffer();
+  EXPECT_EQ(port2, ports[0]);  // oob_message1, error
+  EXPECT_EQ(port3, ports[1]);  // oob_message2, ok
+  handler_peer.CloseAllPorts();
+}
+
+
+UNIT_TEST_CASE(MessageHandler_HandleNextMessage_Shutdown) {
+  TestMessageHandler handler;
+  MessageHandler::MessageStatus results[] = {
+    MessageHandler::kOK,        // oob_message1
+    MessageHandler::kShutdown,  // oob_message2
+    MessageHandler::kOK,        // unused
+    MessageHandler::kOK,        // unused
+  };
+  handler.set_results(results);
+  MessageHandlerTestPeer handler_peer(&handler);
+  Dart_Port port1 = PortMap::CreatePort(&handler);
+  Dart_Port port2 = PortMap::CreatePort(&handler);
+  Dart_Port port3 = PortMap::CreatePort(&handler);
+  Dart_Port port4 = PortMap::CreatePort(&handler);
+  Message* message1 = new Message(port1, NULL, 0, Message::kNormalPriority);
+  handler_peer.PostMessage(message1);
+  Message* oob_message1 = new Message(port2, NULL, 0, Message::kOOBPriority);
+  handler_peer.PostMessage(oob_message1);
+  Message* oob_message2 = new Message(port3, NULL, 0, Message::kOOBPriority);
+  handler_peer.PostMessage(oob_message2);
+  Message* oob_message3 = new Message(port4, NULL, 0, Message::kOOBPriority);
+  handler_peer.PostMessage(oob_message3);
+
+  // When we get a shutdown message, we stop processing all messages.
+  EXPECT_EQ(MessageHandler::kShutdown, handler.HandleNextMessage());
+  EXPECT_EQ(2, handler.message_count());
+  Dart_Port* ports = handler.port_buffer();
+  EXPECT_EQ(port2, ports[0]);  // oob_message1, ok
+  EXPECT_EQ(port3, ports[1]);  // oob_message2, shutdown
+  {
+    // The oob queue has been cleared.  oob_message3 is gone.
+    MessageHandler::AcquiredQueues aq;
+    handler.AcquireQueues(&aq);
+    EXPECT(aq.oob_queue()->Length() == 0);
+  }
+  handler_peer.CloseAllPorts();
 }
 
 
@@ -259,7 +333,7 @@ UNIT_TEST_CASE(MessageHandler_HandleOOBMessages) {
   handler_peer.PostMessage(oob_message2);
 
   // We handle both oob messages but no normal messages.
-  EXPECT(handler.HandleOOBMessages());
+  EXPECT_EQ(MessageHandler::kOK, handler.HandleOOBMessages());
   EXPECT_EQ(2, handler.message_count());
   Dart_Port* ports = handler.port_buffer();
   EXPECT_EQ(port3, ports[0]);
