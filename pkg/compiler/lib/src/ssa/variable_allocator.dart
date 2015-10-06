@@ -209,10 +209,12 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
     : liveInstructions = new Map<HBasicBlock, LiveEnvironment>(),
       liveIntervals = new Map<HInstruction, LiveInterval>();
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   void visitGraph(HGraph graph) {
     visitPostDominatorTree(graph);
     if (!liveInstructions[graph.entry].isEmpty) {
-      compiler.internalError(CURRENT_ELEMENT_SPANNABLE, 'LiveIntervalBuilder.');
+      reporter.internalError(CURRENT_ELEMENT_SPANNABLE, 'LiveIntervalBuilder.');
     }
   }
 

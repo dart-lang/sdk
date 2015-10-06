@@ -2550,7 +2550,7 @@ analyze(MockCompiler compiler,
   compiler.diagnosticHandler = createHandler(compiler, text);
 
   Token tokens = scan(text);
-  NodeListener listener = new NodeListener(compiler, null);
+  NodeListener listener = new NodeListener(compiler.reporter, null);
   Parser parser = new Parser(listener);
   parser.parseStatement(tokens);
   Node node = listener.popNode();
@@ -2597,7 +2597,7 @@ analyzeIn(MockCompiler compiler,
 
   compiler.resolver.resolve(element);
   Token tokens = scan(text);
-  NodeListener listener = new NodeListener(compiler, null);
+  NodeListener listener = new NodeListener(compiler.reporter, null);
   Parser parser = new Parser(listener,
       yieldIsKeyword: element.asyncMarker.isYielding,
       awaitIsKeyword: element.asyncMarker.isAsync);

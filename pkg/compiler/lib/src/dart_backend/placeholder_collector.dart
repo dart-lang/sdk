@@ -170,7 +170,7 @@ class SendVisitor extends Visitor {
 }
 
 class PlaceholderCollector extends Visitor {
-  final DiagnosticListener listener;
+  final DiagnosticReporter reporter;
   final MirrorRenamer mirrorRenamer;
   final FunctionElement mainFunction;
   final Set<String> fixedMemberNames; // member names which cannot be renamed.
@@ -196,7 +196,7 @@ class PlaceholderCollector extends Visitor {
   get currentFunctionScope => functionScopes.putIfAbsent(
       topmostEnclosingFunction, () => new FunctionScope());
 
-  PlaceholderCollector(this.listener, this.mirrorRenamer,
+  PlaceholderCollector(this.reporter, this.mirrorRenamer,
                        this.fixedMemberNames, this.elementAsts,
                        this.mainFunction);
 
@@ -258,7 +258,7 @@ class PlaceholderCollector extends Visitor {
     currentLocalPlaceholders = new Map<String, LocalPlaceholder>();
     if (!(element is ConstructorElement && element.isRedirectingFactory)) {
       // Do not visit the body of redirecting factories.
-      listener.withCurrentElement(element, () {
+      reporter.withCurrentElement(element, () {
         elementNode.accept(this);
       });
     }
@@ -475,7 +475,7 @@ class PlaceholderCollector extends Visitor {
   }
 
   void internalError(String reason, {Node node}) {
-    listener.internalError(node, reason);
+    reporter.internalError(node, reason);
   }
 
   visit(Node node) => (node == null) ? null : node.accept(this);

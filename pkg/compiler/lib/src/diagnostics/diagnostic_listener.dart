@@ -12,8 +12,21 @@ import '../elements/elements.dart' show
     Element;
 import 'messages.dart';
 
+class DiagnosticOptions {
+  final bool suppressWarnings;
+  final bool terseDiagnostics;
+  final bool showPackageWarnings;
+
+  const DiagnosticOptions({
+    this.suppressWarnings: false,
+    this.terseDiagnostics: false,
+    this.showPackageWarnings: false});
+}
+
 // TODO(johnniwinther): Rename and cleanup this interface. Add severity enum.
-abstract class DiagnosticListener {
+abstract class DiagnosticReporter {
+  DiagnosticOptions get options => const DiagnosticOptions();
+
   // TODO(karlklose): rename log to something like reportInfo.
   void log(message);
 

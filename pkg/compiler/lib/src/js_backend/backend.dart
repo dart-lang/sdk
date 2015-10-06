@@ -652,7 +652,7 @@ class JavaScriptBackend extends Backend {
         compiler, namer, generateSourceMap, useStartupEmitter);
     typeVariableHandler = new TypeVariableHandler(compiler);
     customElementsAnalysis = new CustomElementsAnalysis(this);
-    lookupMapAnalysis = new LookupMapAnalysis(this);
+    lookupMapAnalysis = new LookupMapAnalysis(this, reporter);
     noSuchMethodRegistry = new NoSuchMethodRegistry(this);
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     resolutionCallbacks = new JavaScriptResolutionCallbacks(this);
@@ -664,6 +664,8 @@ class JavaScriptBackend extends Backend {
   }
 
   ConstantSystem get constantSystem => constants.constantSystem;
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   Resolution get resolution => compiler.resolution;
 
@@ -904,7 +906,7 @@ class JavaScriptBackend extends Backend {
       cls.ensureResolved(resolution);
       cls.forEachMember((ClassElement classElement, Element member) {
         if (member.name == Identifiers.call) {
-          compiler.reportErrorMessage(
+          reporter.reportErrorMessage(
               member,
               MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS);
           return;
@@ -1089,7 +1091,7 @@ class JavaScriptBackend extends Backend {
           if (ctor == null
               || (Name.isPrivateName(name)
                   && ctor.library != mapLiteralClass.library)) {
-            compiler.internalError(mapLiteralClass,
+            reporter.internalError(mapLiteralClass,
                                    "Map literal class $mapLiteralClass missing "
                                    "'$name' constructor"
                                    "  ${mapLiteralClass.constructors}");
@@ -1102,7 +1104,7 @@ class JavaScriptBackend extends Backend {
           ClassElement implementation = cls.patch != null ? cls.patch : cls;
           Element element = implementation.lookupLocalMember(name);
           if (element == null || !element.isFunction || !element.isStatic) {
-            compiler.internalError(mapLiteralClass,
+            reporter.internalError(mapLiteralClass,
                 "Map literal class $mapLiteralClass missing "
                 "'$name' static member function");
           }
@@ -1379,7 +1381,7 @@ class JavaScriptBackend extends Backend {
           }
         }
       }
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           node,
           MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
     }
@@ -1571,7 +1573,7 @@ class JavaScriptBackend extends Backend {
     if (totalMethodCount != preMirrorsMethodCount) {
       int mirrorCount = totalMethodCount - preMirrorsMethodCount;
       double percentage = (mirrorCount / totalMethodCount) * 100;
-      DiagnosticMessage hint = compiler.createMessage(
+      DiagnosticMessage hint = reporter.createMessage(
           compiler.mainApp, MessageKind.MIRROR_BLOAT,
           {'count': mirrorCount,
            'total': totalMethodCount,
@@ -1587,12 +1589,12 @@ class JavaScriptBackend extends Backend {
               compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(library)
               ? MessageKind.MIRROR_IMPORT
               : MessageKind.MIRROR_IMPORT_NO_USAGE;
-          compiler.withCurrentElement(library, () {
-            infos.add(compiler.createMessage(import, kind));
+          reporter.withCurrentElement(library, () {
+            infos.add(reporter.createMessage(import, kind));
           });
         }
       }
-      compiler.reportHint(hint, infos);
+      reporter.reportHint(hint, infos);
     }
     return programSize;
   }
@@ -2128,7 +2130,7 @@ class JavaScriptBackend extends Backend {
     boundClosureClass = lookupHelperClass('BoundClosure');
     closureClass = lookupHelperClass('Closure');
     if (!missingHelperClasses.isEmpty) {
-      compiler.internalError(jsHelperLibrary,
+      reporter.internalError(jsHelperLibrary,
           'dart:_js_helper library does not contain required classes: '
           '$missingHelperClasses');
     }
@@ -2644,10 +2646,10 @@ class JavaScriptBackend extends Backend {
       enqueuer.enqueueReflectiveStaticFields(_findStaticFieldTargets());
     }
 
-    if (mustPreserveNames) compiler.log('Preserving names.');
+    if (mustPreserveNames) reporter.log('Preserving names.');
 
     if (mustRetainMetadata) {
-      compiler.log('Retaining metadata.');
+      reporter.log('Retaining metadata.');
 
       compiler.libraryLoader.libraries.forEach(retainMetadataOf);
       if (!enqueuer.isResolutionQueue) {
@@ -2694,7 +2696,7 @@ class JavaScriptBackend extends Backend {
       if (cls == forceInlineClass) {
         hasForceInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
-          compiler.reportHintMessage(
+          reporter.reportHintMessage(
               element,
               MessageKind.GENERIC,
               {'text': "Must inline"});
@@ -2703,7 +2705,7 @@ class JavaScriptBackend extends Backend {
       } else if (cls == noInlineClass) {
         hasNoInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
-          compiler.reportHintMessage(
+          reporter.reportHintMessage(
               element,
               MessageKind.GENERIC,
               {'text': "Cannot inline"});
@@ -2712,12 +2714,12 @@ class JavaScriptBackend extends Backend {
       } else if (cls == noThrowsClass) {
         hasNoThrows = true;
         if (!Elements.isStaticOrTopLevelFunction(element)) {
-          compiler.internalError(element,
+          reporter.internalError(element,
               "@NoThrows() is currently limited to top-level"
               " or static functions");
         }
         if (VERBOSE_OPTIMIZER_HINTS) {
-          compiler.reportHintMessage(
+          reporter.reportHintMessage(
               element,
               MessageKind.GENERIC,
               {'text': "Cannot throw"});
@@ -2726,7 +2728,7 @@ class JavaScriptBackend extends Backend {
       } else if (cls == noSideEffectsClass) {
         hasNoSideEffects = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
-          compiler.reportHintMessage(
+          reporter.reportHintMessage(
               element,
               MessageKind.GENERIC,
               {'text': "Has no side effects"});
@@ -2735,15 +2737,15 @@ class JavaScriptBackend extends Backend {
       }
     }
     if (hasForceInline && hasNoInline) {
-      compiler.internalError(element,
+      reporter.internalError(element,
           "@ForceInline() must not be used with @NoInline.");
     }
     if (hasNoThrows && !hasNoInline) {
-      compiler.internalError(element,
+      reporter.internalError(element,
           "@NoThrows() should always be combined with @NoInline.");
     }
     if (hasNoSideEffects && !hasNoInline) {
-      compiler.internalError(element,
+      reporter.internalError(element,
           "@NoSideEffects() should always be combined with @NoInline.");
     }
     if (element == invokeOnMethod) {
@@ -2833,7 +2835,7 @@ class JavaScriptBackend extends Backend {
   @override
   bool enableCodegenWithErrorsIfSupported(Spannable node) {
     if (compiler.useCpsIr) {
-      compiler.reportHintMessage(
+      reporter.reportHintMessage(
           node,
           MessageKind.GENERIC,
           {'text': "Generation of code with compile time errors is currently "
@@ -2850,8 +2852,8 @@ class JavaScriptBackend extends Backend {
     switch (element.asyncMarker) {
       case AsyncMarker.ASYNC:
         rewriter = new AsyncRewriter(
-            compiler,
-            compiler.currentElement,
+            reporter,
+            element,
             asyncHelper:
                 emitter.staticFunctionAccess(getAsyncHelper()),
             wrapBody:
@@ -2863,8 +2865,8 @@ class JavaScriptBackend extends Backend {
         break;
       case AsyncMarker.SYNC_STAR:
         rewriter = new SyncStarRewriter(
-            compiler,
-            compiler.currentElement,
+            reporter,
+            element,
             endOfIteration: emitter.staticFunctionAccess(
                 getEndOfIteration()),
             newIterable: emitter.staticFunctionAccess(
@@ -2878,8 +2880,8 @@ class JavaScriptBackend extends Backend {
          break;
       case AsyncMarker.ASYNC_STAR:
         rewriter = new AsyncStarRewriter(
-            compiler,
-            compiler.currentElement,
+            reporter,
+            element,
             asyncStarHelper: emitter.staticFunctionAccess(
                 getAsyncStarHelper()),
             streamOfController: emitter.staticFunctionAccess(
@@ -2915,6 +2917,8 @@ class Annotations {
   ClassElement expectAssumeDynamicClass;
 
   JavaScriptBackend get backend => compiler.backend;
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   Annotations(this.compiler);
 
@@ -2957,7 +2961,7 @@ class Annotations {
   /// Returns `true` if [element] is annotated with [annotationClass].
   bool _hasAnnotation(Element element, ClassElement annotationClass) {
     if (annotationClass == null) return false;
-    return compiler.withCurrentElement(element, () {
+    return reporter.withCurrentElement(element, () {
       for (MetadataAnnotation metadata in element.metadata) {
         assert(invariant(metadata, metadata.constant != null,
             message: "Unevaluated metadata constant."));

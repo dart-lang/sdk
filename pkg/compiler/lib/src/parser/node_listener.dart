@@ -31,9 +31,9 @@ import 'partial_elements.dart' show
 
 class NodeListener extends ElementListener {
   NodeListener(
-      DiagnosticListener listener,
+      DiagnosticReporter reporter,
       CompilationUnitElement element)
-    : super(listener, element, null);
+    : super(reporter, element, null);
 
   void addLibraryTag(LibraryTag tag) {
     pushNode(tag);
@@ -199,7 +199,7 @@ class NodeListener extends ElementListener {
   }
 
   void handleOnError(Token token, var errorInformation) {
-    listener.internalError(token, "'${token.value}': ${errorInformation}");
+    reporter.internalError(token, "'${token.value}': ${errorInformation}");
   }
 
   Token expectedFunctionBody(Token token) {
@@ -270,13 +270,13 @@ class NodeListener extends ElementListener {
       pushNode(new Send(receiver, new Operator(token), arguments));
     }
     if (identical(tokenString, '===')) {
-      listener.reportErrorMessage(
+      reporter.reportErrorMessage(
           token,
           MessageKind.UNSUPPORTED_EQ_EQ_EQ,
           {'lhs': receiver, 'rhs': argument});
     }
     if (identical(tokenString, '!==')) {
-      listener.reportErrorMessage(
+      reporter.reportErrorMessage(
           token,
           MessageKind.UNSUPPORTED_BANG_EQ_EQ,
           {'lhs': receiver, 'rhs': argument});
@@ -451,7 +451,7 @@ class NodeListener extends ElementListener {
   void endRethrowStatement(Token throwToken, Token endToken) {
     pushNode(new Rethrow(throwToken, endToken));
     if (identical(throwToken.stringValue, 'throw')) {
-      listener.reportErrorMessage(
+      reporter.reportErrorMessage(
           throwToken, MessageKind.UNSUPPORTED_THROW_WITHOUT_EXP);
     }
   }
@@ -814,11 +814,11 @@ class NodeListener extends ElementListener {
   }
 
   void log(message) {
-    listener.log(message);
+    reporter.log(message);
   }
 
   void internalError({Token token, Node node}) {
-    // TODO(ahe): This should call listener.internalError.
+    // TODO(ahe): This should call reporter.internalError.
     Spannable spannable = (token == null) ? node : token;
     throw new SpannableAssertionFailure(spannable, 'Internal error in parser.');
   }

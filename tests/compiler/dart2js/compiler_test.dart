@@ -5,15 +5,26 @@
 import "dart:async";
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import "package:compiler/src/diagnostics/messages.dart";
 import "package:compiler/src/elements/elements.dart";
 import "package:compiler/src/resolution/members.dart";
 import "package:compiler/src/diagnostics/diagnostic_listener.dart";
 import "mock_compiler.dart";
+import "diagnostic_reporter_helper.dart";
 
 
 class CallbackMockCompiler extends MockCompiler {
-  CallbackMockCompiler() : super.internal();
+  CallbackReporter reporter;
+
+  CallbackMockCompiler() : super.internal() {
+    reporter = new CallbackReporter(super.reporter);
+  }
+
+}
+
+class CallbackReporter extends DiagnosticReporterWrapper {
+  final DiagnosticReporter reporter;
+
+  CallbackReporter(this.reporter);
 
   var onError;
   var onWarning;
@@ -48,7 +59,7 @@ Future testErrorHandling() {
     ResolverVisitor visitor = compiler.resolverVisitor();
     compiler.parseScript('NoSuchPrefix.NoSuchType foo() {}');
     FunctionElement foo = compiler.mainApp.find('foo');
-    compiler.setOnWarning(
+    compiler.reporter.setOnWarning(
         (c, n, m) => Expect.equals(foo, compiler.currentElement));
     foo.computeType(compiler.resolution);
     Expect.equals(1, compiler.warnings.length);

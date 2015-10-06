@@ -7,6 +7,8 @@ library ordered_typeset;
 import 'compiler.dart' show
     Compiler;
 import 'dart_types.dart';
+import 'diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
 import 'diagnostics/invariant.dart' show
     invariant;
 import 'diagnostics/messages.dart' show
@@ -163,23 +165,25 @@ class OrderedTypeSetBuilder {
       if (type.element != compiler.objectClass) {
         allSupertypes.addLast(compiler.objectClass.rawType);
       }
-      _addAtDepth(compiler, type, maxDepth + 1);
+      DiagnosticReporter reporter = compiler.reporter;
+      _addAtDepth(reporter, type, maxDepth + 1);
     } else {
       if (type.element != compiler.objectClass) {
         allSupertypes.addLast(type);
       }
-      _addAtDepth(compiler, type, type.element.hierarchyDepth);
+      DiagnosticReporter reporter = compiler.reporter;
+      _addAtDepth(reporter, type, type.element.hierarchyDepth);
     }
   }
 
-  void _addAtDepth(Compiler compiler, InterfaceType type, int depth) {
+  void _addAtDepth(DiagnosticReporter reporter, InterfaceType type, int depth) {
     LinkEntry<DartType> prev = null;
     LinkEntry<DartType> link = map[depth];
     while (link != null) {
       DartType existingType = link.head;
       if (existingType == type) return;
       if (existingType.element == type.element) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             cls,
             MessageKind.MULTI_INHERITANCE,
             {'thisType': cls.thisType,

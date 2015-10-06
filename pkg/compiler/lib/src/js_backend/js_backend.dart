@@ -38,11 +38,13 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../dart_types.dart';
 import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage;
+    DiagnosticMessage,
+    DiagnosticReporter;
 import '../diagnostics/invariant.dart' show
     invariant;
 import '../diagnostics/messages.dart' show MessageKind;
 import '../diagnostics/spannable.dart' show
+    CURRENT_ELEMENT_SPANNABLE,
     NO_LOCATION_SPANNABLE,
     Spannable,
     SpannableAssertionFailure;

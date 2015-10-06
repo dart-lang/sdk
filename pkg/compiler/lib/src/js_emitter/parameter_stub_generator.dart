@@ -15,6 +15,7 @@ class ParameterStubGenerator {
 
   Emitter get emitter => backend.emitter.emitter;
   CodeEmitterTask get emitterTask => backend.emitter;
+  DiagnosticReporter get reporter => compiler.reporter;
 
   bool needsSuperGetter(FunctionElement element) =>
     compiler.codegenWorld.methodsNeedingSuperGetter.contains(element);
@@ -190,10 +191,10 @@ class ParameterStubGenerator {
     if (member.enclosingElement.isClosure) {
       ClosureClassElement cls = member.enclosingElement;
       if (cls.supertype.element == backend.boundClosureClass) {
-        compiler.internalError(cls.methodElement, 'Bound closure1.');
+        reporter.internalError(cls.methodElement, 'Bound closure1.');
       }
       if (cls.methodElement.isInstanceMember) {
-        compiler.internalError(cls.methodElement, 'Bound closure2.');
+        reporter.internalError(cls.methodElement, 'Bound closure2.');
       }
     }
 

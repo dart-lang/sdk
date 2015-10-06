@@ -7,10 +7,9 @@ library dart2js.parser.partial_elements;
 import '../common/resolution.dart' show
     Parsing,
     Resolution;
-import '../compiler.dart' show
-    Compiler;
 import '../dart_types.dart' show DynamicType;
-import '../diagnostics/diagnostic_listener.dart';
+import '../diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
 import '../diagnostics/invariant.dart' show
     invariant;
 import '../diagnostics/messages.dart';
@@ -273,8 +272,8 @@ class PartialFieldList extends VariableList with PartialElement {
 
   VariableDefinitions parseNode(Element element, Parsing parsing) {
     if (definitions != null) return definitions;
-    DiagnosticListener listener = parsing.listener;
-    listener.withCurrentElement(element, () {
+    DiagnosticReporter reporter = parsing.reporter;
+    reporter.withCurrentElement(element, () {
       definitions = parse(
           parsing, element, declarationSite,
           (Parser parser) => parser.parseMember(beginToken));
@@ -285,7 +284,7 @@ class PartialFieldList extends VariableList with PartialElement {
           !definitions.modifiers.isConst &&
           definitions.type == null &&
           !definitions.isErroneous) {
-        listener.reportErrorMessage(
+        reporter.reportErrorMessage(
             definitions,
             MessageKind.GENERIC,
             { 'text': 'A field declaration must start with var, final, '
@@ -423,10 +422,10 @@ class PartialClassElement extends ClassElementX with PartialElement {
 
   ClassNode parseNode(Parsing parsing) {
     if (cachedNode != null) return cachedNode;
-    DiagnosticListener diagnosticListener = parsing.listener;
-    diagnosticListener.withCurrentElement(this, () {
+    DiagnosticReporter reporter = parsing.reporter;
+    reporter.withCurrentElement(this, () {
       parsing.measure(() {
-        MemberListener listener = new MemberListener(diagnosticListener, this);
+        MemberListener listener = new MemberListener(reporter, this);
         Parser parser = new ClassElementParser(listener);
         try {
           Token token = parser.parseTopLevelDeclaration(beginToken);
@@ -480,11 +479,11 @@ Node parse(
     ElementX element,
     PartialElement partial,
     doParse(Parser parser)) {
-  DiagnosticListener diagnosticListener = parsing.listener;
+  DiagnosticReporter reporter = parsing.reporter;
   return parsing.measure(() {
-    return diagnosticListener.withCurrentElement(element, () {
+    return reporter.withCurrentElement(element, () {
       CompilationUnitElement unit = element.compilationUnit;
-      NodeListener listener = new NodeListener(diagnosticListener, unit);
+      NodeListener listener = new NodeListener(reporter, unit);
       listener.memberErrors = listener.memberErrors.prepend(false);
       try {
         if (partial.hasParseError) {

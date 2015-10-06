@@ -14,6 +14,10 @@ import '../../dart_types.dart' show
     DartType,
     TypeVariableType,
     InterfaceType;
+import '../../diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
+import '../../diagnostics/spannable.dart' show
+    CURRENT_ELEMENT_SPANNABLE;
 import '../../enqueue.dart' show
     CodegenEnqueuer;
 import '../../elements/elements.dart';
@@ -46,12 +50,14 @@ class Glue {
 
   ClassWorld get classWorld => _compiler.world;
 
+  DiagnosticReporter get reporter => _compiler.reporter;
+
   js.Expression constantReference(ConstantValue value) {
     return _emitter.constantReference(value);
   }
 
   reportInternalError(String message) {
-    _compiler.internalError(_compiler.currentElement, message);
+    reporter.internalError(CURRENT_ELEMENT_SPANNABLE, message);
   }
 
   bool isUsedAsMixin(ClassElement classElement) {

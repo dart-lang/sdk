@@ -427,7 +427,7 @@ class Elements {
 
   /// Unwraps [element] reporting any warnings attached to it, if any.
   static Element unwrap(Element element,
-                        DiagnosticListener listener,
+                        DiagnosticReporter listener,
                         Spannable spannable) {
     if (element != null && element.isWarnOnUse) {
       WarnOnUseElement wrappedElement = element;
@@ -806,7 +806,7 @@ abstract class WarnOnUseElement extends Element {
   /// Reports the attached warning and returns the wrapped element.
   /// [usageSpannable] is used to report messages on the reference of
   /// [wrappedElement].
-  Element unwrap(DiagnosticListener listener, Spannable usageSpannable);
+  Element unwrap(DiagnosticReporter listener, Spannable usageSpannable);
 }
 
 /// An ambiguous element represents multiple elements accessible by the same
@@ -823,7 +823,7 @@ abstract class AmbiguousElement extends Element {
 
   /// Compute the info messages associated with an error/warning on [context].
   List<DiagnosticMessage> computeInfos(
-      Element context, DiagnosticListener listener);
+      Element context, DiagnosticReporter listener);
 }
 
 // TODO(kasperl): This probably shouldn't be called an element. It's

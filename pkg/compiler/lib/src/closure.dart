@@ -78,7 +78,7 @@ class ClosureTask extends CompilerTask {
     return measure(() {
       ClosureClassMap nestedClosureData = closureMappingCache[node];
       if (nestedClosureData == null) {
-        compiler.internalError(node, "No closure cache.");
+        reporter.internalError(node, "No closure cache.");
       }
       return nestedClosureData;
     });
@@ -211,7 +211,7 @@ class ClosureClassElement extends ClassElementX {
 
   Iterable<ClosureFieldElement> get closureFields => _closureFields;
 
-  void addField(ClosureFieldElement field, DiagnosticListener listener) {
+  void addField(ClosureFieldElement field, DiagnosticReporter listener) {
     _closureFields.add(field);
     addMember(field, listener);
   }
@@ -510,6 +510,8 @@ class ClosureTranslator extends Visitor {
                     this.elements,
                     this.closureMappingCache);
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   /// Generate a unique name for the [id]th closure field, with proposed name
   /// [name].
   ///
@@ -542,7 +544,7 @@ class ClosureTranslator extends Visitor {
 
   void addCapturedVariable(Node node, Local variable) {
     if (_capturedVariableMapping[variable] != null) {
-      compiler.internalError(node, 'In closure analyzer.');
+      reporter.internalError(node, 'In closure analyzer.');
     }
     _capturedVariableMapping[variable] = null;
   }
@@ -612,7 +614,7 @@ class ClosureTranslator extends Visitor {
       void addClosureField(Local local, String name) {
         ClosureFieldElement closureField =
             new ClosureFieldElement(name, local, closureClass);
-        closureClass.addField(closureField, compiler);
+        closureClass.addField(closureField, reporter);
         data.freeVariableMap[local] = closureField;
       }
 
@@ -1002,7 +1004,7 @@ class ClosureTranslator extends Visitor {
         globalizedElement, callElement, element);
     MemberElement enclosing = element.memberContext;
     enclosing.nestedClosures.add(callElement);
-    globalizedElement.addMember(callElement, compiler);
+    globalizedElement.addMember(callElement, reporter);
     globalizedElement.computeAllClassMembers(compiler);
     // The nested function's 'this' is the same as the one for the outer
     // function. It could be [null] if we are inside a static method.

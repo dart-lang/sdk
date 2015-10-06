@@ -5,7 +5,7 @@
 library dart2js.parser.member_listener;
 
 import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticListener;
+    DiagnosticReporter;
 import '../diagnostics/messages.dart' show
     MessageKind;
 import '../elements/elements.dart' show
@@ -34,7 +34,7 @@ import 'node_listener.dart' show
 class MemberListener extends NodeListener {
   final ClassElementX enclosingClass;
 
-  MemberListener(DiagnosticListener listener,
+  MemberListener(DiagnosticReporter listener,
                  ClassElementX enclosingElement)
       : this.enclosingClass = enclosingElement,
         super(listener, enclosingElement.compilationUnit);
@@ -72,7 +72,7 @@ class MemberListener extends NodeListener {
       return Elements.constructOperatorName(operator.source, isUnary);
     } else {
       if (receiver == null || receiver.source != enclosingClass.name) {
-        listener.reportErrorMessage(
+        reporter.reportErrorMessage(
             send.receiver,
             MessageKind.INVALID_CONSTRUCTOR_NAME,
             {'name': enclosingClass.name});
@@ -113,7 +113,7 @@ class MemberListener extends NodeListener {
     Identifier singleIdentifierName = method.name.asIdentifier();
     if (singleIdentifierName != null && singleIdentifierName.source == name) {
       if (name != enclosingClass.name) {
-        listener.reportErrorMessage(
+        reporter.reportErrorMessage(
             singleIdentifierName,
             MessageKind.INVALID_UNNAMED_CONSTRUCTOR_NAME,
             {'name': enclosingClass.name});
@@ -160,7 +160,7 @@ class MemberListener extends NodeListener {
 
   void addMember(ElementX memberElement) {
     addMetadata(memberElement);
-    enclosingClass.addMember(memberElement, listener);
+    enclosingClass.addMember(memberElement, reporter);
   }
 
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {

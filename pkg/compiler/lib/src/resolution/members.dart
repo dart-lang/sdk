@@ -15,7 +15,8 @@ import '../constants/values.dart';
 import '../core_types.dart';
 import '../dart_types.dart';
 import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage;
+    DiagnosticMessage,
+    DiagnosticReporter;
 import '../diagnostics/invariant.dart' show
     invariant;
 import '../diagnostics/messages.dart' show
@@ -204,7 +205,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   Element reportLookupErrorIfAny(Element result, Node node, String name) {
     if (!Elements.isUnresolved(result)) {
       if (!inInstanceContext && result.isInstanceMember) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node, MessageKind.NO_INSTANCE_AVAILABLE, {'name': name});
         return new ErroneousElementX(MessageKind.NO_INSTANCE_AVAILABLE,
                                      {'name': name},
@@ -216,7 +217,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               name,
               ambiguous.messageKind,
               ambiguous.messageArguments,
-              infos: ambiguous.computeInfos(enclosingElement, compiler),
+              infos: ambiguous.computeInfos(enclosingElement, reporter),
               isError: true);
       }
     }
@@ -301,11 +302,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       {List<DiagnosticMessage> infos: const <DiagnosticMessage>[],
        bool isError: false}) {
     if (isError) {
-      compiler.reportError(
-          compiler.createMessage(node, kind, arguments), infos);
+      reporter.reportError(
+          reporter.createMessage(node, kind, arguments), infos);
     } else {
-      compiler.reportWarning(
-          compiler.createMessage(node, kind, arguments), infos);
+      reporter.reportWarning(
+          reporter.createMessage(node, kind, arguments), infos);
     }
     // TODO(ahe): Use [allowedCategory] to synthesize a more precise subclass
     // of [ErroneousElementX]. For example, [ErroneousFieldElementX],
@@ -354,23 +355,23 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult visitIdentifier(Identifier node) {
     if (node.isThis()) {
       if (!inInstanceContext) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node, MessageKind.NO_INSTANCE_AVAILABLE, {'name': node});
       }
       return const NoneResult();
     } else if (node.isSuper()) {
       if (!inInstanceContext) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node, MessageKind.NO_SUPER_IN_STATIC);
       }
       if ((ElementCategory.SUPER & allowedCategory) == 0) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node, MessageKind.INVALID_USE_OF_SUPER);
       }
       return const NoneResult();
     } else {
       String name = node.source;
-      Element element = lookupInScope(compiler, node, scope, name);
+      Element element = lookupInScope(reporter, node, scope, name);
       if (Elements.isUnresolved(element) && name == 'dynamic') {
         // TODO(johnniwinther): Remove this hack when we can return more complex
         // objects than [Element] from this method.
@@ -451,7 +452,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     Element enclosingElement = function.enclosingElement;
     if (node.modifiers.isStatic &&
         enclosingElement.kind != ElementKind.CLASS) {
-      compiler.reportErrorMessage(node, MessageKind.ILLEGAL_STATIC);
+      reporter.reportErrorMessage(node, MessageKind.ILLEGAL_STATIC);
     }
 
     scope = new MethodScope(scope, function);
@@ -507,7 +508,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult visitAssert(Assert node) {
     if (!compiler.enableAssertMessage) {
       if (node.hasMessage) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node, MessageKind.EXPERIMENTAL_ASSERT_MESSAGE);
       }
     }
@@ -602,7 +603,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       {bool inFunctionDeclaration: false}) {
     bool doAddToScope = inFunctionDeclaration;
     if (!inFunctionDeclaration && node.name != null) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           node.name,
           MessageKind.NAMED_FUNCTION_EXPRESSION,
           {'name': node.name});
@@ -767,7 +768,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           seenNamedArguments[source] = namedArgument;
         }
       } else if (!seenNamedArguments.isEmpty) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             argument, MessageKind.INVALID_ARGUMENT_AFTER_NAMED);
         isValidAsConstant = false;
       }
@@ -1253,7 +1254,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
                 knownExpressionType == coreTypes.doubleType;
             break;
           case UnaryOperatorKind.NOT:
-            compiler.internalError(node,
+            reporter.internalError(node,
                 "Unexpected user definable unary operator: $operator");
         }
         if (isValidConstant) {
@@ -1471,7 +1472,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           case BinaryOperatorKind.LOGICAL_AND:
           case BinaryOperatorKind.LOGICAL_OR:
           case BinaryOperatorKind.IF_NULL:
-            compiler.internalError(
+            reporter.internalError(
                 node, "Unexpected binary operator '${operator}'.");
             break;
         }
@@ -1522,7 +1523,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         case BinaryOperatorKind.LOGICAL_AND:
         case BinaryOperatorKind.LOGICAL_OR:
         case BinaryOperatorKind.IF_NULL:
-          compiler.internalError(
+          reporter.internalError(
               node, "Unexpected binary operator '${operator}'.");
           break;
       }
@@ -1587,7 +1588,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       return const NoneResult();
     } else {
       // TODO(johnniwinther): Handle get of `this` when it is a [Send] node.
-      compiler.internalError(
+      reporter.internalError(
           node, "Unexpected node '$node'.");
     }
     return const NoneResult();
@@ -1642,7 +1643,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           // 'super' is not allowed.
           break;
         default:
-          compiler.internalError(
+          reporter.internalError(
               node, "Unexpected super property access $semantics.");
           break;
       }
@@ -1670,7 +1671,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           // 'super' is not allowed.
           break;
         default:
-          compiler.internalError(
+          reporter.internalError(
               node, "Unexpected super property access $semantics.");
           break;
       }
@@ -2518,7 +2519,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         name.text,
         element.messageKind,
         element.messageArguments,
-        infos: element.computeInfos(enclosingElement, compiler));
+        infos: element.computeInfos(enclosingElement, reporter));
     registry.registerThrowNoSuchMethod();
 
     // TODO(johnniwinther): Support ambiguous access as an [AccessSemantics].
@@ -2537,7 +2538,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         name.text,
         element.messageKind,
         element.messageArguments,
-        infos: element.computeInfos(enclosingElement, compiler));
+        infos: element.computeInfos(enclosingElement, reporter));
     registry.registerThrowNoSuchMethod();
 
     // TODO(johnniwinther): Support ambiguous access as an [AccessSemantics].
@@ -2587,7 +2588,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               new UniverseSelector(selector, null));
           break;
         default:
-          compiler.internalError(node,
+          reporter.internalError(node,
               "Unexpected local access $semantics.");
           break;
       }
@@ -2633,7 +2634,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           }
           break;
         default:
-          compiler.internalError(node,
+          reporter.internalError(node,
               "Unexpected local access $semantics.");
           break;
       }
@@ -2723,7 +2724,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     if (member == compiler.mirrorSystemGetNameFunction &&
         !compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(enclosingElement)) {
-      compiler.reportHintMessage(
+      reporter.reportHintMessage(
           node.selector, MessageKind.STATIC_FUNCTION_BLOAT,
           {'class': compiler.mirrorSystemClass.name,
            'name': compiler.mirrorSystemGetNameFunction.name});
@@ -2781,7 +2782,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               MessageKind.CANNOT_RESOLVE_GETTER, const {});
           break;
         default:
-          compiler.internalError(node,
+          reporter.internalError(node,
               "Unexpected statically resolved access $semantics.");
           break;
       }
@@ -2816,7 +2817,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               MessageKind.CANNOT_RESOLVE_GETTER, const {});
           break;
         default:
-          compiler.internalError(node,
+          reporter.internalError(node,
               "Unexpected statically resolved access $semantics.");
           break;
       }
@@ -2979,7 +2980,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else if (element.isStatic || element.isTopLevel) {
       return handleStaticOrTopLevelAccess(node, name, element);
     }
-    return compiler.internalError(node, "Unexpected resolved send: $element");
+    return reporter.internalError(node, "Unexpected resolved send: $element");
   }
 
   /// Handle update to resolved [element].
@@ -3017,7 +3018,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else if (element.isStatic || element.isTopLevel) {
       return handleStaticOrTopLevelUpdate(node, name, element);
     }
-    return compiler.internalError(node, "Unexpected resolved send: $element");
+    return reporter.internalError(node, "Unexpected resolved send: $element");
   }
 
   /// Handle an unqualified [Send], that is where the `node.receiver` is null,
@@ -3035,7 +3036,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
     // `name` or `name()`
     Name name = new Name(text, enclosingElement.library);
-    Element element = lookupInScope(compiler, node, scope, text);
+    Element element = lookupInScope(reporter, node, scope, text);
     if (element == null) {
       if (text == 'dynamic') {
         // `dynamic` or `dynamic()` where 'dynamic' is not declared in the
@@ -3060,7 +3061,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     Identifier selector = node.selector.asIdentifier();
     String text = selector.source;
     Name name = new Name(text, enclosingElement.library);
-    Element element = lookupInScope(compiler, node, scope, text);
+    Element element = lookupInScope(reporter, node, scope, text);
     if (element == null) {
       if (text == 'dynamic') {
         // `dynamic = b`, `dynamic++`, or `dynamic += b` where 'dynamic' is not
@@ -3114,7 +3115,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   /// Callback for native enqueuer to parse a type.  Returns [:null:] on error.
   DartType resolveTypeFromString(Node node, String typeName) {
-    Element element = lookupInScope(compiler, node, scope, typeName);
+    Element element = lookupInScope(reporter, node, scope, typeName);
     if (element == null) return null;
     if (element is! ClassElement) return null;
     ClassElement cls = element;
@@ -3336,7 +3337,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           registry.registerStaticInvocation(semantics.setter);
           switch (semantics.kind) {
             case AccessKind.SUPER_FINAL_FIELD:
-              compiler.reportWarningMessage(
+              reporter.reportWarningMessage(
                   node,
                   MessageKind.ASSIGNING_FINAL_FIELD_IN_SUPER,
                   {'name': name,
@@ -3347,7 +3348,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               registry.registerSuperNoSuchMethod();
               break;
             case AccessKind.SUPER_METHOD:
-              compiler.reportWarningMessage(
+              reporter.reportWarningMessage(
                   node, MessageKind.ASSIGNING_METHOD_IN_SUPER,
                   {'name': name,
                    'superclassName': semantics.setter.enclosingClass.name});
@@ -3549,7 +3550,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     String name = node.slowNameString;
     registry.registerConstSymbol(name);
     if (!validateSymbol(node, name, reportError: false)) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           node,
           MessageKind.UNSUPPORTED_LITERAL_SYMBOL,
           {'value': name});
@@ -3582,7 +3583,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolutionResult visitRethrow(Rethrow node) {
     if (!inCatchBlock) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           node, MessageKind.THROW_WITHOUT_EXPRESSION);
     }
     return const NoneResult();
@@ -3595,11 +3596,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         // It is a compile-time error if a return statement of the form
         // `return e;` appears in a generative constructor.  (Dart Language
         // Specification 13.12.)
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             expression,
             MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR);
       } else if (!node.isArrowBody && currentAsyncMarker.isYielding) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node,
             MessageKind.RETURN_IN_GENERATOR,
             {'modifier': currentAsyncMarker});
@@ -3619,9 +3620,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult visitRedirectingFactoryBody(RedirectingFactoryBody node) {
     final isSymbolConstructor = enclosingElement == compiler.symbolConstructor;
     if (!enclosingElement.isFactoryConstructor) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           node, MessageKind.FACTORY_REDIRECTION_IN_NON_FACTORY);
-      compiler.reportHintMessage(
+      reporter.reportHintMessage(
           enclosingElement, MessageKind.MISSING_FACTORY_KEYWORD);
     }
     ConstructorElementX constructor = enclosingElement;
@@ -3645,12 +3646,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else {
       if (isConstConstructor &&
           !redirectionTarget.isConst) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
         isValidAsConstant = false;
       }
       if (redirectionTarget == constructor) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
         // TODO(johnniwinther): Create constant constructor for this case and
         // let evaluation detect the cyclicity.
@@ -3667,7 +3668,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     FunctionType constructorType = constructor.computeType(resolution);
     bool isSubtype = compiler.types.isSubtype(targetType, constructorType);
     if (!isSubtype) {
-      compiler.reportWarningMessage(
+      reporter.reportWarningMessage(
           node,
           MessageKind.NOT_ASSIGNABLE,
           {'fromType': targetType, 'toType': constructorType});
@@ -3760,7 +3761,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         }
       }
       assert(modifierNode != null);
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           modifierNode, MessageKind.EXTRANEOUS_MODIFIER,
           {'modifier': modifier});
     }
@@ -3837,7 +3838,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     registry.registerStaticUse(constructor.declaration);
     ClassElement cls = constructor.enclosingClass;
     if (cls.isEnumClass && currentClass != cls) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           node,
           MessageKind.CANNOT_INSTANTIATE_ENUM,
           {'enumName': cls.name});
@@ -3846,7 +3847,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     InterfaceType type = registry.getType(node);
     if (node.isConst && type.containsTypeVariables) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           node.send.selector,
           MessageKind.TYPE_VARIABLE_IN_CONSTANT);
       isValidAsConstant = false;
@@ -3867,7 +3868,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         ConstantValue name = compiler.constants.getConstantValue(constant);
         if (!name.isString) {
           DartType type = name.getType(coreTypes);
-          compiler.reportErrorMessage(
+          reporter.reportErrorMessage(
               argumentNode,
               MessageKind.STRING_EXPECTED,
               {'type': type});
@@ -3881,7 +3882,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       } else {
         if (!compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(
                 enclosingElement)) {
-          compiler.reportHintMessage(
+          reporter.reportHintMessage(
               node.newToken, MessageKind.NON_CONST_BLOAT,
               {'name': compiler.symbolClass.name});
         }
@@ -3935,7 +3936,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (cls == compiler.stringClass) continue;
       Element equals = cls.lookupMember('==');
       if (equals.enclosingClass != compiler.objectClass) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             spannable,
             MessageKind.CONST_MAP_KEY_OVERRIDES_EQUALS,
             {'type': keyType});
@@ -3969,14 +3970,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (name.isEmpty) return true;
     if (name.startsWith('_')) {
       if (reportError) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node, MessageKind.PRIVATE_IDENTIFIER, {'value': name});
       }
       return false;
     }
     if (!symbolValidationPattern.hasMatch(name)) {
       if (reportError) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node, MessageKind.INVALID_SYMBOL, {'value': name});
       }
       return false;
@@ -4023,13 +4024,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Link<Node> nodes = arguments.nodes;
       if (nodes.isEmpty) {
         // The syntax [: <>[] :] is not allowed.
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             arguments, MessageKind.MISSING_TYPE_ARGUMENT);
         isValidAsConstant = false;
       } else {
         typeArgument = resolveTypeAnnotation(nodes.head);
         for (nodes = nodes.tail; !nodes.isEmpty; nodes = nodes.tail) {
-          compiler.reportWarningMessage(
+          reporter.reportWarningMessage(
               nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
           resolveTypeAnnotation(nodes.head);
         }
@@ -4038,7 +4039,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     DartType listType;
     if (typeArgument != null) {
       if (node.isConst && typeArgument.containsTypeVariables) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             arguments.nodes.head,
             MessageKind.TYPE_VARIABLE_IN_CONSTANT);
         isValidAsConstant = false;
@@ -4133,7 +4134,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (node.target == null) {
       target = statementScope.currentBreakTarget();
       if (target == null) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node, MessageKind.NO_BREAK_TARGET);
         return const NoneResult();
       }
@@ -4142,13 +4143,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       String labelName = node.target.source;
       LabelDefinition label = statementScope.lookupLabel(labelName);
       if (label == null) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node.target, MessageKind.UNBOUND_LABEL, {'labelName': labelName});
         return const NoneResult();
       }
       target = label.target;
       if (!target.statement.isValidBreakTarget()) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node.target, MessageKind.INVALID_BREAK);
         return const NoneResult();
       }
@@ -4164,7 +4165,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (node.target == null) {
       target = statementScope.currentContinueTarget();
       if (target == null) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node, MessageKind.NO_CONTINUE_TARGET);
         return const NoneResult();
       }
@@ -4173,13 +4174,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       String labelName = node.target.source;
       LabelDefinition label = statementScope.lookupLabel(labelName);
       if (label == null) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node.target, MessageKind.UNBOUND_LABEL, {'labelName': labelName});
         return const NoneResult();
       }
       target = label.target;
       if (!target.statement.isValidContinueTarget()) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node.target, MessageKind.INVALID_CONTINUE);
       }
       label.setContinueTarget();
@@ -4250,26 +4251,26 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       loopVariable = registry.getDefinition(send);
       Identifier identifier = send.selector.asIdentifier();
       if (identifier == null) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             send.selector, MessageKind.INVALID_FOR_IN);
       } else {
         loopVariableSelector = new Selector.setter(
             new Name(identifier.source, library));
       }
       if (send.receiver != null) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             send.receiver, MessageKind.INVALID_FOR_IN);
       }
     } else if (variableDefinitions != null) {
       Link<Node> nodes = variableDefinitions.definitions.nodes;
       if (!nodes.tail.isEmpty) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             nodes.tail.head, MessageKind.INVALID_FOR_IN);
       }
       Node first = nodes.head;
       Identifier identifier = first.asIdentifier();
       if (identifier == null) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             first, MessageKind.INVALID_FOR_IN);
       } else {
         loopVariableSelector = new Selector.setter(
@@ -4277,7 +4278,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         loopVariable = registry.getDefinition(identifier);
       }
     } else {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           declaration, MessageKind.INVALID_FOR_IN);
     }
     if (loopVariableSelector != null) {
@@ -4314,7 +4315,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (element.isTarget) {
         registry.defineLabel(element.label, element);
       } else {
-        compiler.reportWarningMessage(
+        reporter.reportWarningMessage(
             element.label,
             MessageKind.UNUSED_LABEL,
             {'labelName': labelName});
@@ -4337,19 +4338,19 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Link<Node> nodes = arguments.nodes;
       if (nodes.isEmpty) {
         // The syntax [: <>{} :] is not allowed.
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             arguments, MessageKind.MISSING_TYPE_ARGUMENT);
         isValidAsConstant = false;
       } else {
         keyTypeArgument = resolveTypeAnnotation(nodes.head);
         nodes = nodes.tail;
         if (nodes.isEmpty) {
-          compiler.reportWarningMessage(
+          reporter.reportWarningMessage(
               arguments, MessageKind.MISSING_TYPE_ARGUMENT);
         } else {
           valueTypeArgument = resolveTypeAnnotation(nodes.head);
           for (nodes = nodes.tail; !nodes.isEmpty; nodes = nodes.tail) {
-            compiler.reportWarningMessage(
+            reporter.reportWarningMessage(
                 nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
             resolveTypeAnnotation(nodes.head);
           }
@@ -4363,7 +4364,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       mapType = coreTypes.mapType();
     }
     if (node.isConst && mapType.containsTypeVariables) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           arguments,
           MessageKind.TYPE_VARIABLE_IN_CONSTANT);
       isValidAsConstant = false;
@@ -4461,16 +4462,16 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           // We only report the bad type on the first class element. All others
           // get a "type differs" error.
           if (caseType.element == compiler.doubleClass) {
-            compiler.reportErrorMessage(
+            reporter.reportErrorMessage(
                 node,
                 MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
                 {'type': "double"});
           } else if (caseType.element == compiler.functionClass) {
-            compiler.reportErrorMessage(
+            reporter.reportErrorMessage(
                 node, MessageKind.SWITCH_CASE_FORBIDDEN,
                 {'type': "Function"});
           } else if (value.isObject && overridesEquals(caseType)) {
-            compiler.reportErrorMessage(
+            reporter.reportErrorMessage(
                 firstCase.expression,
                 MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
                 {'type': caseType});
@@ -4478,16 +4479,16 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         } else {
           if (caseType != firstCaseType) {
             if (error == null) {
-              error = compiler.createMessage(
+              error = reporter.createMessage(
                   node,
                   MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL,
                   {'type': firstCaseType});
-              infos.add(compiler.createMessage(
+              infos.add(reporter.createMessage(
                   firstCase.expression,
                   MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
                   {'type': firstCaseType}));
             }
-            infos.add(compiler.createMessage(
+            infos.add(reporter.createMessage(
                 caseMatch.expression,
                 MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
                 {'type': caseType}));
@@ -4496,7 +4497,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       }
     }
     if (error != null) {
-      compiler.reportError(error, infos);
+      reporter.reportError(error, infos);
     }
   }
 
@@ -4520,13 +4521,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         LabelDefinition existingElement = continueLabels[labelName];
         if (existingElement != null) {
           // It's an error if the same label occurs twice in the same switch.
-          compiler.reportError(
-              compiler.createMessage(
+          reporter.reportError(
+              reporter.createMessage(
                   label,
                   MessageKind.DUPLICATE_LABEL,
                   {'labelName': labelName}),
               <DiagnosticMessage>[
-                  compiler.createMessage(
+                  reporter.createMessage(
                     existingElement.label,
                     MessageKind.EXISTING_LABEL,
                     {'labelName': labelName}),
@@ -4535,13 +4536,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           // It's only a warning if it shadows another label.
           existingElement = statementScope.lookupLabel(labelName);
           if (existingElement != null) {
-            compiler.reportWarning(
-                compiler.createMessage(
+            reporter.reportWarning(
+                reporter.createMessage(
                     label,
                     MessageKind.DUPLICATE_LABEL,
                     {'labelName': labelName}),
                 <DiagnosticMessage>[
-                    compiler.createMessage(
+                    reporter.createMessage(
                         existingElement.label,
                         MessageKind.EXISTING_LABEL,
                         {'labelName': labelName}),
@@ -4557,7 +4558,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       cases = cases.tail;
       // Test that only the last case, if any, is a default case.
       if (switchCase.defaultKeyword != null && !cases.isEmpty) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             switchCase, MessageKind.INVALID_CASE_DEFAULT);
       }
     }
@@ -4603,7 +4604,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     visit(node.tryBlock);
     if (node.catchBlocks.isEmpty && node.finallyBlock == null) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           node.getEndToken().next, MessageKind.NO_CATCH_NOR_FINALLY);
     }
     visit(node.catchBlocks);
@@ -4620,7 +4621,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (node.formals != null) {
       Link<Node> formalsToProcess = node.formals.nodes;
       if (formalsToProcess.isEmpty) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node, MessageKind.EMPTY_CATCH_DECLARATION);
       } else {
         exceptionDefinition = formalsToProcess.head.asVariableDefinitions();
@@ -4630,7 +4631,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           formalsToProcess = formalsToProcess.tail;
           if (!formalsToProcess.isEmpty) {
             for (Node extra in formalsToProcess) {
-              compiler.reportErrorMessage(
+              reporter.reportErrorMessage(
                   extra, MessageKind.EXTRA_CATCH_DECLARATION);
             }
           }
@@ -4647,17 +4648,17 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         // sequence of optional parameters.
         NodeList nodeList = link.head.asNodeList();
         if (nodeList != null) {
-          compiler.reportErrorMessage(
+          reporter.reportErrorMessage(
               nodeList, MessageKind.OPTIONAL_PARAMETER_IN_CATCH);
         } else {
           VariableDefinitions declaration = link.head;
           for (Node modifier in declaration.modifiers.nodes) {
-            compiler.reportErrorMessage(
+            reporter.reportErrorMessage(
                 modifier, MessageKind.PARAMETER_WITH_MODIFIER_IN_CATCH);
           }
           TypeAnnotation type = declaration.type;
           if (type != null) {
-            compiler.reportErrorMessage(
+            reporter.reportErrorMessage(
                 type, MessageKind.PARAMETER_WITH_TYPE_IN_CATCH);
           }
         }
@@ -4691,7 +4692,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 }
 
 /// Looks up [name] in [scope] and unwraps the result.
-Element lookupInScope(Compiler compiler, Node node,
+Element lookupInScope(DiagnosticReporter reporter, Node node,
                       Scope scope, String name) {
-  return Elements.unwrap(scope.lookup(name), compiler, node);
+  return Elements.unwrap(scope.lookup(name), reporter, node);
 }

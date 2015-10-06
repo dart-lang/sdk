@@ -31,6 +31,9 @@ import '../../js_backend/js_backend.dart' show
     Namer,
     ConstantEmitter;
 
+import '../../diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
+
 import '../../diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE;
 
@@ -99,6 +102,8 @@ class ModelEmitter {
         compiler, namer, this.generateConstantReference,
         constantListGenerator);
   }
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   js.Expression constantListGenerator(js.Expression array) {
     // TODO(floitsch): remove hard-coded name.
@@ -211,7 +216,7 @@ class ModelEmitter {
 
     if (backend.requiresPreamble &&
         !backend.htmlLibraryIsLoaded) {
-      compiler.reportHintMessage(
+      reporter.reportHintMessage(
           NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
 

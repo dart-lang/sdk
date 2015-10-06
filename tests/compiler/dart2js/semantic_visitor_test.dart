@@ -330,7 +330,7 @@ Future test(Set<VisitKind> unvisitedKinds,
       ResolvedAst resolvedAst = astElement.resolvedAst;
       SemanticTestVisitor visitor = createVisitor(resolvedAst.elements);
       try {
-        compiler.withCurrentElement(resolvedAst.element, () {
+        compiler.reporter.withCurrentElement(resolvedAst.element, () {
           //print(resolvedAst.node.toDebugString());
           resolvedAst.node.accept(visitor);
         });

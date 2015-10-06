@@ -156,7 +156,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
           int code = field.getterFlags + (field.setterFlags << 2);
           if (code == 0) {
-            compiler.internalError(fieldElement,
+            reporter.internalError(fieldElement,
                 'Field code is 0 ($fieldElement).');
           }
           fieldNameParts.add(
@@ -212,7 +212,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
     for (Field field in cls.fields) {
       Element member = field.element;
-      compiler.withCurrentElement(member, () {
+      reporter.withCurrentElement(member, () {
         if (field.needsGetter) {
           emitGetterForCSP(member, field.name, field.accessorName, builder);
         }

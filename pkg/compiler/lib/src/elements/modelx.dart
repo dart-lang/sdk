@@ -71,7 +71,7 @@ abstract class ElementX extends Element with ElementCommon {
   Modifiers get modifiers => Modifiers.EMPTY;
 
   Node parseNode(Parsing parsing) {
-    parsing.listener.internalError(this,
+    parsing.reporter.internalError(this,
         'parseNode not implemented on $this.');
     return null;
   }
@@ -471,24 +471,24 @@ class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
       : this.wrappedElement = wrappedElement,
         super(wrappedElement.name, ElementKind.WARN_ON_USE, enclosingElement);
 
-  Element unwrap(DiagnosticListener listener, Spannable usageSpannable) {
+  Element unwrap(DiagnosticReporter reporter, Spannable usageSpannable) {
     var unwrapped = wrappedElement;
     if (warning != null) {
       Spannable spannable = warning.spannable;
       if (spannable == null) spannable = usageSpannable;
-      DiagnosticMessage warningMessage = listener.createMessage(
+      DiagnosticMessage warningMessage = reporter.createMessage(
           spannable, warning.messageKind, warning.messageArguments);
       List<DiagnosticMessage> infos = <DiagnosticMessage>[];
       if (info != null) {
         Spannable spannable = info.spannable;
         if (spannable == null) spannable = usageSpannable;
-        infos.add(listener.createMessage(
+        infos.add(reporter.createMessage(
             spannable, info.messageKind, info.messageArguments));
       }
-      listener.reportWarning(warningMessage, infos);
+      reporter.reportWarning(warningMessage, infos);
     }
     if (unwrapped.isWarnOnUse) {
-      unwrapped = unwrapped.unwrap(listener, usageSpannable);
+      unwrapped = unwrapped.unwrap(reporter, usageSpannable);
     }
     return unwrapped;
   }
@@ -538,7 +538,7 @@ abstract class AmbiguousElementX extends ElementX implements AmbiguousElement {
   }
 
   List<DiagnosticMessage> computeInfos(Element context,
-                                   DiagnosticListener listener) {
+                                       DiagnosticReporter reporter) {
     return const <DiagnosticMessage>[];
   }
 
@@ -562,7 +562,7 @@ class AmbiguousImportX extends AmbiguousElementX {
 
   List<DiagnosticMessage> computeInfos(
       Element context,
-      DiagnosticListener listener) {
+      DiagnosticReporter reporter) {
     List<DiagnosticMessage> infos = <DiagnosticMessage>[];
     Setlet ambiguousElements = flatten();
     MessageKind code = (ambiguousElements.length == 1)
@@ -570,10 +570,10 @@ class AmbiguousImportX extends AmbiguousElementX {
     LibraryElementX importer = context.library;
     for (Element element in ambiguousElements) {
       Map arguments = {'name': element.name};
-      infos.add(listener.createMessage(element, code, arguments));
-      listener.withCurrentElement(importer, () {
+      infos.add(reporter.createMessage(element, code, arguments));
+      reporter.withCurrentElement(importer, () {
         for (ImportElement import in importer.importers.getImports(element)) {
-          infos.add(listener.createMessage(
+          infos.add(reporter.createMessage(
               import, MessageKind.IMPORTED_HERE, arguments));
         }
       });
@@ -604,20 +604,20 @@ class ScopeX {
     return contents[name];
   }
 
-  void add(Element element, DiagnosticListener listener) {
+  void add(Element element, DiagnosticReporter reporter) {
     String name = element.name;
     if (element.isAccessor) {
-      addAccessor(element, contents[name], listener);
+      addAccessor(element, contents[name], reporter);
     } else {
       Element existing = contents.putIfAbsent(name, () => element);
       if (!identical(existing, element)) {
-        listener.reportError(
-            listener.createMessage(
+        reporter.reportError(
+            reporter.createMessage(
                 element,
                 MessageKind.DUPLICATE_DEFINITION,
                 {'name': name}),
             <DiagnosticMessage>[
-                listener.createMessage(
+                reporter.createMessage(
                     existing,
                     MessageKind.EXISTING_DEFINITION,
                     {'name': name}),
@@ -641,15 +641,15 @@ class ScopeX {
    */
   void addAccessor(AccessorElementX accessor,
                    Element existing,
-                   DiagnosticListener listener) {
+                   DiagnosticReporter reporter) {
     void reportError(Element other) {
-      listener.reportError(
-          listener.createMessage(
+      reporter.reportError(
+          reporter.createMessage(
               accessor,
               MessageKind.DUPLICATE_DEFINITION,
               {'name': accessor.name}),
           <DiagnosticMessage>[
-              listener.createMessage(
+              reporter.createMessage(
                   other,
                   MessageKind.EXISTING_DEFINITION,
                   {'name': accessor.name}),
@@ -692,7 +692,7 @@ class ScopeX {
       } else {
         field.setter = accessor;
       }
-      add(field, listener);
+      add(field, reporter);
     }
   }
 }
@@ -732,32 +732,32 @@ class CompilationUnitElementX extends ElementX
     localMembers.forEach(f);
   }
 
-  void addMember(Element element, DiagnosticListener listener) {
+  void addMember(Element element, DiagnosticReporter reporter) {
     // Keep a list of top level members.
     localMembers = localMembers.prepend(element);
     // Provide the member to the library to build scope.
     if (enclosingElement.isPatch) {
-      implementationLibrary.addMember(element, listener);
+      implementationLibrary.addMember(element, reporter);
     } else {
-      library.addMember(element, listener);
+      library.addMember(element, reporter);
     }
   }
 
-  void setPartOf(PartOf tag, DiagnosticListener listener) {
+  void setPartOf(PartOf tag, DiagnosticReporter reporter) {
     LibraryElementX library = enclosingElement;
     if (library.entryCompilationUnit == this) {
       partTag = tag;
-      listener.reportErrorMessage(
+      reporter.reportErrorMessage(
           tag, MessageKind.IMPORT_PART_OF);
       return;
     }
     if (!localMembers.isEmpty) {
-      listener.reportErrorMessage(
+      reporter.reportErrorMessage(
           tag, MessageKind.BEFORE_TOP_LEVEL);
       return;
     }
     if (partTag != null) {
-      listener.reportWarningMessage(tag, MessageKind.DUPLICATED_PART_OF);
+      reporter.reportWarningMessage(tag, MessageKind.DUPLICATED_PART_OF);
       return;
     }
     partTag = tag;
@@ -766,19 +766,19 @@ class CompilationUnitElementX extends ElementX
     if (libraryTag != null) {
       String expectedName = libraryTag.name.toString();
       if (expectedName != actualName) {
-        listener.reportWarningMessage(
+        reporter.reportWarningMessage(
             tag.name,
             MessageKind.LIBRARY_NAME_MISMATCH,
             {'libraryName': expectedName});
       }
     } else {
-      listener.reportWarning(
-          listener.createMessage(
+      reporter.reportWarning(
+          reporter.createMessage(
               library,
               MessageKind.MISSING_LIBRARY_NAME,
               {'libraryName': actualName}),
           <DiagnosticMessage>[
-              listener.createMessage(
+              reporter.createMessage(
                   tag.name,
                   MessageKind.THIS_IS_THE_PART_OF_TAG),
           ]);
@@ -837,7 +837,7 @@ class ImportScope {
   void addImport(Element enclosingElement,
                  Element element,
                  ImportElement import,
-                 DiagnosticListener listener) {
+                 DiagnosticReporter reporter) {
     LibraryElementX library = enclosingElement.library;
     Importers importers = library.importers;
 
@@ -863,7 +863,7 @@ class ImportScope {
               messageKind,
               {'name': name, 'hiddenUri': hiddenUri, 'hidingUri': hidingUri}),
           new WrappedMessage(
-              listener.spanFromSpannable(import),
+              reporter.spanFromSpannable(import),
               MessageKind.IMPORTED_HERE,
               {'name': name}),
           enclosingElement, hidingElement);
@@ -1065,9 +1065,9 @@ class LibraryElementX
     compilationUnits = compilationUnits.prepend(element);
   }
 
-  void addTag(LibraryTag tag, DiagnosticListener listener) {
+  void addTag(LibraryTag tag, DiagnosticReporter reporter) {
     if (tagsCache != null) {
-      listener.internalError(tag,
+      reporter.internalError(tag,
           "Library tags for $this have already been computed.");
     }
     tagsBuilder.addLast(tag);
@@ -1102,17 +1102,17 @@ class LibraryElementX
    */
   void addImport(Element element,
                  ImportElement import,
-                 DiagnosticListener listener) {
-    importScope.addImport(this, element, import, listener);
+                 DiagnosticReporter reporter) {
+    importScope.addImport(this, element, import, reporter);
   }
 
-  void addMember(Element element, DiagnosticListener listener) {
+  void addMember(Element element, DiagnosticReporter reporter) {
     localMembers = localMembers.prepend(element);
-    addToScope(element, listener);
+    addToScope(element, reporter);
   }
 
-  void addToScope(Element element, DiagnosticListener listener) {
-    localScope.add(element, listener);
+  void addToScope(Element element, DiagnosticReporter reporter) {
+    localScope.add(element, reporter);
   }
 
   Element localLookup(String elementName) {
@@ -1290,8 +1290,8 @@ class PrefixElementX extends ElementX implements PrefixElement {
 
   void addImport(Element element,
                  ImportElement import,
-                 DiagnosticListener listener) {
-    importScope.addImport(this, element, import, listener);
+                 DiagnosticReporter reporter) {
+    importScope.addImport(this, element, import, reporter);
   }
 
   accept(ElementVisitor visitor, arg) {
@@ -1363,7 +1363,8 @@ class TypedefElementX extends ElementX
 
   void checkCyclicReference(Resolution resolution) {
     if (hasBeenCheckedForCycles) return;
-    var visitor = new TypedefCyclicVisitor(resolution.listener, this);
+    TypedefCyclicVisitor visitor =
+        new TypedefCyclicVisitor(resolution.reporter, this);
     computeType(resolution).accept(visitor, null);
     hasBeenCheckedForCycles = true;
   }
@@ -2284,7 +2285,8 @@ class ConstructorBodyElementX extends BaseFunctionElementX
   bool get isInstanceMember => true;
 
   FunctionType computeType(Resolution resolution) {
-    resolution.listener.internalError(this, '$this.computeType.');
+    DiagnosticReporter reporter = resolution.reporter;
+    reporter.internalError(this, '$this.computeType.');
     return null;
   }
 
@@ -2552,7 +2554,7 @@ abstract class BaseClassElementX extends ElementX
   }
 
   void setDefaultConstructor(FunctionElement constructor,
-                             DiagnosticListener listener);
+                             DiagnosticReporter reporter);
 
   void addBackendMember(Element member) {
     // TODO(ngeoffray): Deprecate this method.
@@ -2645,18 +2647,18 @@ abstract class ClassElementX extends BaseClassElementX {
   bool get isMixinApplication => false;
   bool get hasLocalScopeMembers => !localScope.isEmpty;
 
-  void addMember(Element element, DiagnosticListener listener) {
+  void addMember(Element element, DiagnosticReporter reporter) {
     localMembersCache = null;
     localMembersReversed = localMembersReversed.prepend(element);
-    addToScope(element, listener);
+    addToScope(element, reporter);
   }
 
-  void addToScope(Element element, DiagnosticListener listener) {
+  void addToScope(Element element, DiagnosticReporter reporter) {
     if (element.isField && element.name == name) {
-      listener.reportErrorMessage(
+      reporter.reportErrorMessage(
           element, MessageKind.MEMBER_USES_CLASS_NAME);
     }
-    localScope.add(element, listener);
+    localScope.add(element, reporter);
   }
 
   Element localLookup(String elementName) {
@@ -2680,9 +2682,9 @@ abstract class ClassElementX extends BaseClassElementX {
   }
 
   void setDefaultConstructor(FunctionElement constructor,
-                             DiagnosticListener listener) {
+                             DiagnosticReporter reporter) {
     // The default constructor, although synthetic, is part of a class' API.
-    addMember(constructor, listener);
+    addMember(constructor, reporter);
   }
 
   List<DartType> computeTypeParameters(Parsing parsing) {
@@ -2854,12 +2856,12 @@ class MixinApplicationElementX extends BaseClassElementX
     });
   }
 
-  void addMember(Element element, DiagnosticListener listener) {
+  void addMember(Element element, DiagnosticReporter reporter) {
     throw new UnsupportedError("Cannot add member to $this.");
   }
 
-  void addToScope(Element element, DiagnosticListener listener) {
-    listener.internalError(this, 'Cannot add to scope of $this.');
+  void addToScope(Element element, DiagnosticReporter reporter) {
+    reporter.internalError(this, 'Cannot add to scope of $this.');
   }
 
   void addConstructor(FunctionElement constructor) {
@@ -2867,7 +2869,7 @@ class MixinApplicationElementX extends BaseClassElementX
   }
 
   void setDefaultConstructor(FunctionElement constructor,
-                             DiagnosticListener listener) {
+                             DiagnosticReporter reporter) {
     assert(!hasConstructor);
     addConstructor(constructor);
   }

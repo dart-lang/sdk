@@ -97,6 +97,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   JavaScriptBackend get backend => compiler.backend;
   Resolution get resolution => compiler.resolution;
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   void processNativeClasses(Iterable<LibraryElement> libraries) {
     if (compiler.hasIncrementalSupport) {
       // Since [Set.add] returns bool if an element was added, this restricts
@@ -243,7 +245,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       return id.value;
     }
 
-    return compiler.withCurrentElement(classElement, () {
+    return reporter.withCurrentElement(classElement, () {
       return scanForExtendsName(classElement.position);
     });
   }
@@ -268,7 +270,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     ClassElement find(name) {
       Element e = backend.findHelper(name);
       if (e == null || e is! ClassElement) {
-        compiler.internalError(NO_LOCATION_SPANNABLE,
+        reporter.internalError(NO_LOCATION_SPANNABLE,
             "Could not find implementation class '${name}'.");
       }
       return e;
@@ -294,7 +296,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       Iterable<ConstantValue> fields = constructedObject.fields.values;
       // TODO(sra): Better validation of the constant.
       if (fields.length != 1 || fields.single is! StringConstantValue) {
-        compiler.internalError(annotation,
+        reporter.internalError(annotation,
             'Annotations needs one string: ${annotation.node}');
       }
       StringConstantValue specStringConstant = fields.single;
@@ -302,7 +304,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       if (name == null) {
         name = specString;
       } else {
-        compiler.internalError(annotation,
+        reporter.internalError(annotation,
             'Too many JSName annotations: ${annotation.node}');
       }
     }
@@ -345,7 +347,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   }
 
   registerElement(Element element) {
-    compiler.withCurrentElement(element, () {
+    reporter.withCurrentElement(element, () {
       if (element.isFunction || element.isGetter || element.isSetter) {
         handleMethodAnnotations(element);
         if (element.isNative) {
@@ -405,7 +407,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     if (isIdentifier(name)) {
       List<String> nativeNames = nativeTagsOfClassRaw(element.enclosingClass);
       if (nativeNames.length != 1) {
-        compiler.internalError(element,
+        reporter.internalError(element,
             'Unable to determine a native name for the enclosing class, '
             'options: $nativeNames');
       }
@@ -420,7 +422,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   bool isNativeMethod(FunctionElementX element) {
     if (!element.library.canUseNative) return false;
     // Native method?
-    return compiler.withCurrentElement(element, () {
+    return reporter.withCurrentElement(element, () {
       Node node = element.parseNode(resolution.parsing);
       if (node is! FunctionExpression) return false;
       FunctionExpression functionExpression = node;
@@ -495,7 +497,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     // Give an info so that library developers can compile with -v to find why
     // all the native classes are included.
     if (unusedClasses.isEmpty && !allUsedBefore) {
-      compiler.log('All native types marked as used due to $cause.');
+      reporter.log('All native types marked as used due to $cause.');
     }
   }
 
@@ -548,7 +550,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
       ClassElement owner = tagOwner[tag];
       if (owner != null) {
         if (owner != classElement) {
-          compiler.internalError(
+          reporter.internalError(
               classElement, "Tag '$tag' already in use by '${owner.name}'");
         }
       } else {
@@ -572,7 +574,8 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
    *
    */
   void registerJsCall(Send node, ForeignResolver resolver) {
-    NativeBehavior behavior = NativeBehavior.ofJsCall(node, compiler, resolver);
+    NativeBehavior behavior = NativeBehavior.ofJsCall(
+        node, reporter, compiler.parsing, compiler.coreTypes, resolver);
     registerNativeBehavior(behavior, node);
     nativeBehaviors[node] = behavior;
   }
@@ -588,8 +591,8 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
    *
    */
   void registerJsEmbeddedGlobalCall(Send node, ForeignResolver resolver) {
-    NativeBehavior behavior =
-        NativeBehavior.ofJsEmbeddedGlobalCall(node, compiler, resolver);
+    NativeBehavior behavior = NativeBehavior.ofJsEmbeddedGlobalCall(
+        node, reporter, compiler.parsing, compiler.coreTypes, resolver);
     registerNativeBehavior(behavior, node);
     nativeBehaviors[node] = behavior;
   }
@@ -605,8 +608,8 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
    *
    */
   void registerJsBuiltinCall(Send node, ForeignResolver resolver) {
-    NativeBehavior behavior =
-        NativeBehavior.ofJsBuiltinCall(node, compiler, resolver);
+    NativeBehavior behavior = NativeBehavior.ofJsBuiltinCall(
+        node, reporter, compiler.parsing, compiler.coreTypes, resolver);
     registerNativeBehavior(behavior, node);
     nativeBehaviors[node] = behavior;
   }

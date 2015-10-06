@@ -46,7 +46,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
         new VariableDefinitionScope(resolver.scope, name);
     resolver.visitIn(node.arguments.head, scope);
     if (scope.variableReferencedInInitializer) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           identifier, MessageKind.REFERENCE_IN_INITIALIZATION,
           {'variableName': name});
     }
@@ -57,12 +57,12 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
     // The variable is initialized to null.
     registry.registerInstantiatedClass(compiler.nullClass);
     if (definitions.modifiers.isConst) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           node, MessageKind.CONST_WITHOUT_INITIALIZER);
     }
     if (definitions.modifiers.isFinal &&
         !resolver.allowFinalWithoutInitializer) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           node, MessageKind.FINAL_WITHOUT_INITIALIZER);
     }
     return node;

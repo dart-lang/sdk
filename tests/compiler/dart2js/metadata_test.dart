@@ -9,9 +9,14 @@ import 'package:expect/expect.dart';
 import 'compiler_helper.dart';
 import 'package:compiler/src/parser/partial_elements.dart' show
     PartialMetadataAnnotation;
+import 'package:compiler/src/diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
 
-void checkPosition(Spannable spannable, Node node, String source, compiler) {
-  SourceSpan span = compiler.spanFromSpannable(spannable);
+void checkPosition(Spannable spannable,
+                   Node node,
+                   String source,
+                   DiagnosticReporter reporter) {
+  SourceSpan span = reporter.spanFromSpannable(spannable);
   Expect.isTrue(span.begin < span.end,
                 'begin = ${span.begin}; end = ${span.end}');
   Expect.isTrue(span.end < source.length,
@@ -41,7 +46,8 @@ void checkAnnotation(String name, String declaration,
         compiler.constants.getConstantValue(annotation.constant);
     Expect.stringEquals('xyz', value.primitiveValue.slowToString());
 
-    checkPosition(annotation, annotation.cachedNode, source1, compiler);
+    checkPosition(
+        annotation, annotation.cachedNode, source1, compiler.reporter);
   });
 
   // Ensure that each repeated annotation has a unique instance of
@@ -69,8 +75,10 @@ void checkAnnotation(String name, String declaration,
     Expect.stringEquals('xyz', value1.primitiveValue.slowToString());
     Expect.stringEquals('xyz', value2.primitiveValue.slowToString());
 
-    checkPosition(annotation1, annotation1.cachedNode, source2, compiler);
-    checkPosition(annotation2, annotation2.cachedNode, source2, compiler);
+    checkPosition(
+        annotation1, annotation1.cachedNode, source2, compiler.reporter);
+    checkPosition(
+        annotation2, annotation2.cachedNode, source2, compiler.reporter);
   });
 
   if (isTopLevelOnly) return;
@@ -97,7 +105,8 @@ void checkAnnotation(String name, String declaration,
         compiler.constants.getConstantValue(annotation.constant);
     Expect.stringEquals('xyz', value.primitiveValue.slowToString());
 
-    checkPosition(annotation, annotation.cachedNode, source3, compiler);
+    checkPosition(
+        annotation, annotation.cachedNode, source3, compiler.reporter);
   });
 
   // Ensure that each repeated annotation has a unique instance of
@@ -131,8 +140,10 @@ void checkAnnotation(String name, String declaration,
     Expect.stringEquals('xyz', value1.primitiveValue.slowToString());
     Expect.stringEquals('xyz', value2.primitiveValue.slowToString());
 
-    checkPosition(annotation1, annotation1.cachedNode, source4, compiler);
-    checkPosition(annotation1, annotation2.cachedNode, source4, compiler);
+    checkPosition(
+        annotation1, annotation1.cachedNode, source4, compiler.reporter);
+    checkPosition(
+        annotation1, annotation2.cachedNode, source4, compiler.reporter);
   });
 }
 
@@ -179,7 +190,8 @@ void testLibraryTags() {
           compiler.constants.getConstantValue(annotation.constant);
       Expect.stringEquals('xyz', value.primitiveValue.slowToString());
 
-      checkPosition(annotation, annotation.cachedNode, source, compiler);
+      checkPosition(
+          annotation, annotation.cachedNode, source, compiler.reporter);
     }));
   }
 

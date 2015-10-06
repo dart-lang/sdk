@@ -20,6 +20,9 @@ import '../closure.dart' show
 import '../dart_types.dart' show
     TypedefType;
 
+import '../diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
+
 import '../diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE;
 

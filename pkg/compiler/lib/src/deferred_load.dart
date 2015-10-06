@@ -203,7 +203,7 @@ class DeferredLoadTask extends CompilerTask {
     String name =
         _importDeferName[new _DeclaredDeferredImport(prefix.deferredImport)];
     if (name == null) {
-      compiler.internalError(node, "No deferred name for $prefix.");
+      reporter.internalError(node, "No deferred name for $prefix.");
     }
     return name;
   }
@@ -716,7 +716,7 @@ class DeferredLoadTask extends CompilerTask {
     Map<String, ImportElement> prefixDeferredImport =
         new Map<String, ImportElement>();
     for (LibraryElement library in compiler.libraryLoader.libraries) {
-      compiler.withCurrentElement(library, () {
+      reporter.withCurrentElement(library, () {
         prefixDeferredImport.clear();
         usedPrefixes.clear();
         // TODO(sigurdm): Make helper getLibraryImportTags when tags is a List
@@ -731,7 +731,7 @@ class DeferredLoadTask extends CompilerTask {
                   compiler.constants.getConstantValue(metadata.constant);
               Element element = value.getType(compiler.coreTypes).element;
               if (element == deferredLibraryClass) {
-                 compiler.reportErrorMessage(
+                 reporter.reportErrorMessage(
                      import, MessageKind.DEFERRED_OLD_SYNTAX);
               }
             }
@@ -748,7 +748,7 @@ class DeferredLoadTask extends CompilerTask {
             _allDeferredImports[key] = importedLibrary;
 
             if (prefix == null) {
-              compiler.reportErrorMessage(
+              reporter.reportErrorMessage(
                   import,
                   MessageKind.DEFERRED_LIBRARY_WITHOUT_PREFIX);
             } else {
@@ -765,7 +765,7 @@ class DeferredLoadTask extends CompilerTask {
               ImportElement failingImport = (previousDeferredImport != null)
                   ? previousDeferredImport
                   : import;
-              compiler.reportErrorMessage(
+              reporter.reportErrorMessage(
                   failingImport.prefix,
                   MessageKind.DEFERRED_LIBRARY_DUPLICATE_PREFIX);
             }

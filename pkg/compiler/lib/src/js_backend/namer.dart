@@ -457,6 +457,8 @@ class Namer {
 
   JavaScriptBackend get backend => compiler.backend;
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   String get deferredTypesName => 'deferredTypes';
   String get isolateName => 'Isolate';
   String get isolatePropertiesName => r'$isolateProperties';
@@ -513,7 +515,7 @@ class Namer {
       case JsGetName.FUNCTION_CLASS_TYPE_NAME:
         return runtimeTypeName(compiler.functionClass);
       default:
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
           node,
           MessageKind.GENERIC,
           {'text': 'Error: Namer has no name for "$name".'});
@@ -705,7 +707,8 @@ class Namer {
         return disambiguatedName; // Methods other than call are not annotated.
 
       default:
-        compiler.internalError(compiler.currentElement,
+        reporter.internalError(
+            CURRENT_ELEMENT_SPANNABLE,
             'Unexpected selector kind: ${selector.kind}');
         return null;
     }
@@ -1581,6 +1584,8 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
 
   ConstantNamingVisitor(this.compiler, this.hasher);
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   String getName(ConstantValue constant) {
     _visit(constant);
     if (root == null) return 'CONSTANT';
@@ -1743,7 +1748,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
         add('name');
         break;
       default:
-        compiler.internalError(compiler.currentElement,
+        reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
                                "Unexpected SyntheticConstantValue");
     }
   }
@@ -1772,6 +1777,8 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   final Map<ConstantValue, int> hashes = new Map<ConstantValue, int>();
 
   ConstantCanonicalHasher(this.compiler);
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   int getHash(ConstantValue constant) => _visit(constant);
 
@@ -1856,9 +1863,10 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
         // resolve to integer indexes, they're always part of a larger constant.
         return 0;
       default:
-        compiler.internalError(NO_LOCATION_SPANNABLE,
-                               'SyntheticConstantValue should never be named and '
-                               'never be subconstant');
+        reporter.internalError(
+            NO_LOCATION_SPANNABLE,
+            'SyntheticConstantValue should never be named and '
+            'never be subconstant');
         return 0;
     }
   }

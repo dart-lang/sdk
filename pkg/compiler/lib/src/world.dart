@@ -13,6 +13,8 @@ import 'common/registry.dart' show
 import 'compiler.dart' show
     Compiler;
 import 'dart_types.dart';
+import 'diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
 import 'diagnostics/invariant.dart' show
     invariant;
 import 'elements/elements.dart' show
@@ -434,6 +436,8 @@ class World implements ClassWorld {
         this.compiler = compiler,
         alreadyPopulated = compiler.cacheStrategy.newSet();
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   /// Called to add [cls] to the set of known classes.
   ///
   /// This ensures that class hierarchy queries can be performed on [cls] and
@@ -517,7 +521,7 @@ class World implements ClassWorld {
       }
       assert(cls.isDeclaration);
       if (!cls.isResolved) {
-        compiler.internalError(cls, 'Class "${cls.name}" is not resolved.');
+        reporter.internalError(cls, 'Class "${cls.name}" is not resolved.');
       }
 
       updateClassHierarchyNodeForClass(cls, directlyInstantiated: true);

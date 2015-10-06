@@ -17,7 +17,8 @@ import 'constants/values.dart';
 import 'core_types.dart';
 import 'dart_types.dart';
 import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage;
+    DiagnosticMessage,
+    DiagnosticReporter;
 import 'diagnostics/invariant.dart' show
     invariant;
 import 'diagnostics/messages.dart';
@@ -68,7 +69,7 @@ class TypeCheckerTask extends CompilerTask {
     if (element.isClass) return;
     if (element.isTypedef) return;
     ResolvedAst resolvedAst = element.resolvedAst;
-    compiler.withCurrentElement(element.implementation, () {
+    reporter.withCurrentElement(element.implementation, () {
       measure(() {
         TypeCheckerVisitor visitor = new TypeCheckerVisitor(
             compiler, resolvedAst.elements, compiler.types);
@@ -306,6 +307,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   ExecutableElement executableContext;
 
   CoreTypes get coreTypes => compiler.coreTypes;
+
+  DiagnosticReporter get reporter => compiler.reporter;
+
   Resolution get resolution => compiler.resolution;
 
   InterfaceType get intType => coreTypes.intType;
@@ -397,16 +401,16 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   reportTypeWarning(Spannable spannable, MessageKind kind,
                     [Map arguments = const {}]) {
-    compiler.reportWarningMessage(spannable, kind, arguments);
+    reporter.reportWarningMessage(spannable, kind, arguments);
   }
 
   reportMessage(Spannable spannable, MessageKind kind,
                 Map arguments,
                 {bool isHint: false}) {
     if (isHint) {
-      compiler.reportHintMessage(spannable, kind, arguments);
+      reporter.reportHintMessage(spannable, kind, arguments);
     } else {
-      compiler.reportWarningMessage(spannable, kind, arguments);
+      reporter.reportWarningMessage(spannable, kind, arguments);
     }
   }
 
@@ -414,7 +418,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (!reportedTypePromotions.contains(typePromotion)) {
       reportedTypePromotions.add(typePromotion);
       for (TypePromotionMessage message in typePromotion.messages) {
-        compiler.reportHint(message.hint, message.infos);
+        reporter.reportHint(message.hint, message.infos);
       }
     }
   }
@@ -440,9 +444,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (node == null) {
       final String error = 'Unexpected node: null';
       if (lastSeenNode != null) {
-        compiler.internalError(lastSeenNode, error);
+        reporter.internalError(lastSeenNode, error);
       } else {
-        compiler.internalError(executableContext, error);
+        reporter.internalError(executableContext, error);
       }
     } else {
       lastSeenNode = node;
@@ -452,7 +456,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     DartType result = node.accept(this);
     analyzingInitializer = previouslyInitializer;
     if (result == null) {
-      compiler.internalError(node, 'Type is null.');
+      reporter.internalError(node, 'Type is null.');
     }
     return _record(node, result);
   }
@@ -464,13 +468,13 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     List<Node> potentialMutationsIn =
         elements.getPotentialMutationsIn(node, variable);
     if (!potentialMutationsIn.isEmpty) {
-      DiagnosticMessage hint = compiler.createMessage(
+      DiagnosticMessage hint = reporter.createMessage(
           typePromotion.node,
           MessageKind.POTENTIAL_MUTATION,
           {'variableName': variableName, 'shownType': typePromotion.type});
       List<DiagnosticMessage> infos = <DiagnosticMessage>[];
       for (Node mutation in potentialMutationsIn) {
-        infos.add(compiler.createMessage(mutation,
+        infos.add(reporter.createMessage(mutation,
             MessageKind.POTENTIAL_MUTATION_HERE,
             {'variableName': variableName}));
       }
@@ -479,13 +483,13 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     List<Node> potentialMutationsInClosures =
         elements.getPotentialMutationsInClosure(variable);
     if (!potentialMutationsInClosures.isEmpty) {
-      DiagnosticMessage hint = compiler.createMessage(
+      DiagnosticMessage hint = reporter.createMessage(
           typePromotion.node,
           MessageKind.POTENTIAL_MUTATION_IN_CLOSURE,
           {'variableName': variableName, 'shownType': typePromotion.type});
       List<DiagnosticMessage> infos = <DiagnosticMessage>[];
       for (Node mutation in potentialMutationsInClosures) {
-        infos.add(compiler.createMessage(
+        infos.add(reporter.createMessage(
             mutation,
             MessageKind.POTENTIAL_MUTATION_IN_CLOSURE_HERE,
             {'variableName': variableName}));
@@ -496,19 +500,19 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       List<Node> accesses = elements.getAccessesByClosureIn(node, variable);
       List<Node> mutations = elements.getPotentialMutations(variable);
       if (!accesses.isEmpty && !mutations.isEmpty) {
-        DiagnosticMessage hint = compiler.createMessage(
+        DiagnosticMessage hint = reporter.createMessage(
             typePromotion.node,
             MessageKind.ACCESSED_IN_CLOSURE,
             {'variableName': variableName, 'shownType': typePromotion.type});
         List<DiagnosticMessage> infos = <DiagnosticMessage>[];
         for (Node access in accesses) {
-          infos.add(compiler.createMessage(
+          infos.add(reporter.createMessage(
               access,
               MessageKind.ACCESSED_IN_CLOSURE_HERE,
               {'variableName': variableName}));
         }
         for (Node mutation in mutations) {
-          infos.add(compiler.createMessage(
+          infos.add(reporter.createMessage(
               mutation,
               MessageKind.POTENTIAL_MUTATION_HERE,
               {'variableName': variableName}));
@@ -563,12 +567,12 @@ class TypeCheckerVisitor extends Visitor<DartType> {
                        {bool isConst: false}) {
     if (!types.isAssignable(from, to)) {
       if (compiler.enableTypeAssertions && isConst) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             spannable,
             MessageKind.NOT_ASSIGNABLE,
             {'fromType': from, 'toType': to});
       } else {
-        compiler.reportWarningMessage(
+        reporter.reportWarningMessage(
             spannable,
             MessageKind.NOT_ASSIGNABLE,
             {'fromType': from, 'toType': to});
@@ -900,17 +904,17 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         if (declaration == null) {
           declaration = type.element;
         } else if (type.isTypedef) {
-          infos.add(compiler.createMessage(
+          infos.add(reporter.createMessage(
               declaration,
               MessageKind.THIS_IS_THE_DECLARATION,
               {'name': element.name}));
           declaration = type.element;
         }
         if (declaration != null) {
-          infos.add(compiler.createMessage(
+          infos.add(reporter.createMessage(
               declaration, MessageKind.THIS_IS_THE_METHOD));
         }
-        compiler.reportWarning(warning, infos);
+        reporter.reportWarning(warning, infos);
       }
 
       /// Report a warning on [node] if [argumentType] is not assignable to
@@ -919,7 +923,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
                            DartType argumentType,
                            DartType parameterType) {
         if (!types.isAssignable(argumentType, parameterType)) {
-          reportWarning(compiler.createMessage(
+          reportWarning(reporter.createMessage(
               node,
               MessageKind.NOT_ASSIGNABLE,
               {'fromType': argumentType, 'toType': parameterType}));
@@ -941,7 +945,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           if (namedParameterType == null) {
             // TODO(johnniwinther): Provide better information on the called
             // function.
-            reportWarning(compiler.createMessage(
+            reportWarning(reporter.createMessage(
                 argument,
                 MessageKind.NAMED_ARGUMENT_NOT_FOUND,
                 {'argumentName': argumentName}));
@@ -959,7 +963,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
               // TODO(johnniwinther): Provide better information on the
               // called function.
-              reportWarning(compiler.createMessage(
+              reportWarning(reporter.createMessage(
                   argument, MessageKind.ADDITIONAL_ARGUMENT));
 
               DartType argumentType = analyze(argument);
@@ -981,7 +985,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       if (parameterTypes.moveNext()) {
         // TODO(johnniwinther): Provide better information on the called
         // function.
-        reportWarning(compiler.createMessage(
+        reportWarning(reporter.createMessage(
             send, MessageKind.MISSING_ARGUMENT,
             {'argumentType': parameterTypes.current}));
       }
@@ -1089,7 +1093,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     } else if (element.isGetter || element.isSetter) {
       return createResolvedAccess(node, name, element);
     } else {
-      compiler.internalError(element,
+      reporter.internalError(element,
           'Unexpected element kind ${element.kind}.');
       return null;
     }
@@ -1122,7 +1126,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         computeAccess(node, name, element, memberKind,
             lookupClassMember: lookupClassMember).computeType(resolution);
     if (type == null) {
-      compiler.internalError(node, 'Type is null on access of $name on $node.');
+      reporter.internalError(node, 'Type is null on access of $name on $node.');
     }
     return type;
   }
@@ -1241,7 +1245,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
             if (!types.isMoreSpecific(shownType, knownType)) {
               String variableName = variable.name;
               if (!types.isSubtype(shownType, knownType)) {
-                typePromotion.addHint(compiler.createMessage(
+                typePromotion.addHint(reporter.createMessage(
                     node,
                     MessageKind.NOT_MORE_SPECIFIC_SUBTYPE,
                     {'variableName': variableName,
@@ -1251,7 +1255,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
                 DartType shownTypeSuggestion =
                     computeMoreSpecificType(shownType, knownType);
                 if (shownTypeSuggestion != null) {
-                  typePromotion.addHint(compiler.createMessage(
+                  typePromotion.addHint(reporter.createMessage(
                       node,
                       MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
                       {'variableName': variableName,
@@ -1259,7 +1263,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
                        'shownTypeSuggestion': shownTypeSuggestion,
                        'knownType': knownType}));
                 } else {
-                  typePromotion.addHint(compiler.createMessage(
+                  typePromotion.addHint(reporter.createMessage(
                       node,
                       MessageKind.NOT_MORE_SPECIFIC,
                       {'variableName': variableName,
@@ -1548,7 +1552,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         case '<<=': operatorName = '<<'; break;
         case '>>=': operatorName = '>>'; break;
         default:
-          compiler.internalError(node, 'Unexpected assignment operator $name.');
+          reporter.internalError(node, 'Unexpected assignment operator $name.');
       }
       if (node.isIndex) {
         // base[key] o= value for some operator o.
@@ -1967,7 +1971,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         }
         unreferencedFields.addAll(enumValues.values);
         if (!unreferencedFields.isEmpty) {
-          compiler.reportWarningMessage(
+          reporter.reportWarningMessage(
               node, MessageKind.MISSING_ENUM_CASES,
               {'enumType': expressionType,
                'enumValues': unreferencedFields.map(
@@ -2004,7 +2008,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   visitNode(Node node) {
-    compiler.internalError(node,
+    reporter.internalError(node,
         'Unexpected node ${node.getObjectDescription()} in the type checker.');
   }
 }

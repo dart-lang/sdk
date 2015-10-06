@@ -20,6 +20,8 @@ import '../../constants/constant_system.dart';
 import '../../cps_ir/cps_ir_nodes.dart' as cps;
 import '../../cps_ir/cps_ir_integrity.dart';
 import '../../cps_ir/cps_ir_builder_task.dart';
+import '../../diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
 import '../../diagnostics/invariant.dart' show
     DEBUG_MODE;
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
@@ -76,16 +78,18 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   JavaScriptBackend get backend => compiler.backend;
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   /// Generates JavaScript code for `work.element`.
   js.Fun compile(CodegenWorkItem work) {
     AstElement element = work.element;
-    return compiler.withCurrentElement(element, () {
+    return reporter.withCurrentElement(element, () {
       typeSystem = new TypeMaskSystem(compiler);
       try {
         // TODO(karlklose): remove this fallback when we do not need it for
         // testing anymore.
         if (false) {
-          compiler.log('Using SSA compiler for platform element $element');
+          reporter.log('Using SSA compiler for platform element $element');
           return fallbackCompiler.compile(work);
         }
 
@@ -100,7 +104,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
       } on CodegenBailout catch (e) {
         String message = "Unable to compile $element with the new compiler.\n"
             "  Reason: ${e.message}";
-        compiler.internalError(element, message);
+        reporter.internalError(element, message);
       }
     });
   }
@@ -203,7 +207,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   tree_ir.FunctionDefinition compileToTreeIr(cps.FunctionDefinition cpsNode) {
     tree_builder.Builder builder = new tree_builder.Builder(
-        compiler.internalError);
+        reporter.internalError);
     tree_ir.FunctionDefinition treeNode =
         treeBuilderTask.measure(() => builder.buildFunction(cpsNode));
     assert(treeNode != null);

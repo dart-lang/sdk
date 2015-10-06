@@ -4,13 +4,11 @@
 
 library dart2js.resolution.typedefs;
 
-import '../common/resolution.dart' show
-    Resolution;
 import '../compiler.dart' show
     Compiler;
 import '../dart_types.dart';
 import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticListener;
+    DiagnosticReporter;
 import '../diagnostics/messages.dart' show
     MessageKind;
 import '../elements/elements.dart' show
@@ -67,7 +65,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
 // TODO(johnniwinther): Replace with a traversal on the AST when the type
 // annotations in typedef alias are stored in a [TreeElements] mapping.
 class TypedefCyclicVisitor extends BaseDartTypeVisitor {
-  final DiagnosticListener listener;
+  final DiagnosticReporter reporter;
   final TypedefElementX element;
   bool hasCyclicReference = false;
 
@@ -78,7 +76,7 @@ class TypedefCyclicVisitor extends BaseDartTypeVisitor {
   Link<TypeVariableElement> seenTypeVariables =
       const Link<TypeVariableElement>();
 
-  TypedefCyclicVisitor(this.listener, this.element);
+  TypedefCyclicVisitor(this.reporter, TypedefElement this.element);
 
   visitType(DartType type, _) {
     // Do nothing.
@@ -93,13 +91,13 @@ class TypedefCyclicVisitor extends BaseDartTypeVisitor {
         hasCyclicReference = true;
         if (seenTypedefsCount == 1) {
           // Direct cyclicity.
-          listener.reportErrorMessage(
+          reporter.reportErrorMessage(
               element,
               MessageKind.CYCLIC_TYPEDEF,
               {'typedefName': element.name});
         } else if (seenTypedefsCount == 2) {
           // Cyclicity through one other typedef.
-          listener.reportErrorMessage(
+          reporter.reportErrorMessage(
               element,
               MessageKind.CYCLIC_TYPEDEF_ONE,
               {'typedefName': element.name,
@@ -108,7 +106,7 @@ class TypedefCyclicVisitor extends BaseDartTypeVisitor {
           // Cyclicity through more than one other typedef.
           for (TypedefElement cycle in seenTypedefs) {
             if (!identical(typedefElement, cycle)) {
-              listener.reportErrorMessage(
+              reporter.reportErrorMessage(
                   element,
                   MessageKind.CYCLIC_TYPEDEF_ONE,
                   {'typedefName': element.name,

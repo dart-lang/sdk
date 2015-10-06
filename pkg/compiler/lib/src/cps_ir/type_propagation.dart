@@ -355,7 +355,7 @@ class TypePropagator extends Pass {
                  TypeMaskSystem typeSystem,
                  this._functionCompiler)
       : _compiler = compiler,
-        _internalError = compiler.internalError,
+        _internalError = compiler.reporter.internalError,
         _typeSystem = typeSystem,
         _lattice = new ConstantPropagationLattice(
             typeSystem,

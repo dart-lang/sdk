@@ -16,6 +16,8 @@ import 'constants/evaluation.dart';
 import 'constants/expressions.dart';
 import 'constants/values.dart';
 import 'dart_types.dart';
+import 'diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
 import 'diagnostics/invariant.dart' show
     invariant;
 import 'diagnostics/messages.dart' show
@@ -163,6 +165,8 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
 
   ConstantCompilerBase(this.compiler, this.constantSystem);
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   @override
   ConstantValue getConstantValueForVariable(VariableElement element) {
     return getConstantValue(initialVariableValues[element.declaration]);
@@ -200,7 +204,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
       return result;
     }
     AstElement currentElement = element.analyzableElement;
-    return compiler.withCurrentElement(currentElement, () {
+    return reporter.withCurrentElement(currentElement, () {
       // TODO(johnniwinther): Avoid this eager analysis.
       _analyzeElementEagerly(compiler, currentElement);
 
@@ -223,7 +227,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
     Node node = element.node;
     if (pendingVariables.contains(element)) {
       if (isConst) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node, MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS);
         ConstantExpression expression = new ErroneousConstantExpression();
         constantValueMap[expression] = constantSystem.createNull();
@@ -251,7 +255,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
         if (elementType.isMalformed && !value.isNull) {
           if (isConst) {
             ErroneousElement element = elementType.element;
-            compiler.reportErrorMessage(
+            reporter.reportErrorMessage(
                 node, element.messageKind, element.messageArguments);
           } else {
             // We need to throw an exception at runtime.
@@ -262,7 +266,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
           if (!constantSystem.isSubtype(
               compiler.types, constantType, elementType)) {
             if (isConst) {
-              compiler.reportErrorMessage(
+              reporter.reportErrorMessage(
                   node,
                   MessageKind.NOT_ASSIGNABLE,
                   {'fromType': constantType,
@@ -370,6 +374,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
   ConstantSystem get constantSystem => handler.constantSystem;
   Resolution get resolution => compiler.resolution;
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   AstConstant evaluate(Node node) {
     // TODO(johnniwinther): should there be a visitErrorNode?
     if (node is ErrorNode) return new ErroneousAstConstant(context, node);
@@ -451,7 +457,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       if (!map.containsKey(key.value)) {
         keyValues.add(key.value);
       } else {
-        compiler.reportWarningMessage(
+        reporter.reportWarningMessage(
             entry.key, MessageKind.EQUAL_MAP_ENTRY_KEY);
       }
       keyExpressions.add(key.expression);
@@ -626,7 +632,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       }
       if (isDeferredUse(send)) {
         if (isEvaluatingConstant) {
-          compiler.reportErrorMessage(
+          reporter.reportErrorMessage(
               send, MessageKind.DEFERRED_COMPILE_TIME_CONSTANT);
         }
         PrefixElement prefix =
@@ -663,7 +669,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       UnaryOperator operator = UnaryOperator.parse(node.source);
       UnaryOperation operation = constantSystem.lookupUnary(operator);
       if (operation == null) {
-        compiler.internalError(send.selector, "Unexpected operator.");
+        reporter.internalError(send.selector, "Unexpected operator.");
       }
       ConstantValue folded = operation.fold(receiverConstant.value);
       if (folded == null) {
@@ -726,7 +732,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     } else if (!condition.value.isBool) {
       DartType conditionType = condition.value.getType(compiler.coreTypes);
       if (isEvaluatingConstant) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node.condition,
             MessageKind.NOT_ASSIGNABLE,
             {'fromType': conditionType,
@@ -775,7 +781,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     if (!callStructure.signatureApplies(signature)) {
       String name = Elements.constructorNameForDiagnostics(
           target.enclosingClass.name, target.name);
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           node, MessageKind.INVALID_CONSTRUCTOR_ARGUMENTS,
           {'constructorName': name});
 
@@ -879,14 +885,14 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     ConstantValue defaultValue = normalizedArguments[1].value;
 
     if (firstArgument.isNull) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           normalizedArguments[0].node, MessageKind.NULL_NOT_ALLOWED);
       return null;
     }
 
     if (!firstArgument.isString) {
       DartType type = defaultValue.getType(compiler.coreTypes);
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           normalizedArguments[0].node,
           MessageKind.NOT_ASSIGNABLE,
           {'fromType': type,
@@ -897,7 +903,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     if (constructor == compiler.intEnvironment &&
         !(defaultValue.isNull || defaultValue.isInt)) {
       DartType type = defaultValue.getType(compiler.coreTypes);
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           normalizedArguments[1].node,
           MessageKind.NOT_ASSIGNABLE,
           {'fromType': type,
@@ -908,7 +914,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     if (constructor == compiler.boolEnvironment &&
         !(defaultValue.isNull || defaultValue.isBool)) {
       DartType type = defaultValue.getType(compiler.coreTypes);
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           normalizedArguments[1].node,
           MessageKind.NOT_ASSIGNABLE,
           {'fromType': type,
@@ -919,7 +925,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     if (constructor == compiler.stringEnvironment &&
         !(defaultValue.isNull || defaultValue.isString)) {
       DartType type = defaultValue.getType(compiler.coreTypes);
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           normalizedArguments[1].node,
           MessageKind.NOT_ASSIGNABLE,
           {'fromType': type,
@@ -1013,7 +1019,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
   AstConstant signalNotCompileTimeConstant(Node node,
       {MessageKind message: MessageKind.NOT_A_COMPILE_TIME_CONSTANT}) {
     if (isEvaluatingConstant) {
-      compiler.reportErrorMessage(node, message);
+      reporter.reportErrorMessage(node, message);
 
       return new AstConstant(context, node, new ErroneousConstantExpression(),
           new NullConstantValue());
@@ -1053,7 +1059,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     if (Elements.isLocal(element)) {
       AstConstant constant = definitions[element];
       if (constant == null) {
-        compiler.internalError(send, "Local variable without value.");
+        reporter.internalError(send, "Local variable without value.");
       }
       return constant;
     }
@@ -1066,8 +1072,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       DartType constantType = constant.value.getType(compiler.coreTypes);
       if (!constantSystem.isSubtype(
           compiler.types, constantType, elementType)) {
-        compiler.withCurrentElement(constant.element, () {
-          compiler.reportErrorMessage(
+        reporter.withCurrentElement(constant.element, () {
+          reporter.reportErrorMessage(
               constant.node,
               MessageKind.NOT_ASSIGNABLE,
               {'fromType': constantType,
@@ -1193,7 +1199,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    */
   void evaluateConstructorFieldValues(List<AstConstant> arguments) {
     if (constructor.isErroneous) return;
-    compiler.withCurrentElement(constructor, () {
+    reporter.withCurrentElement(constructor, () {
       assignArgumentsToParameters(arguments);
       evaluateConstructorInitializers();
     });

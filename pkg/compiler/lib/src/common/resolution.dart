@@ -12,7 +12,7 @@ import '../core_types.dart' show
 import '../dart_types.dart' show
     DartType;
 import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticListener;
+    DiagnosticReporter;
 import '../elements/elements.dart' show
     AstElement,
     ClassElement,
@@ -136,7 +136,7 @@ class ResolutionCallbacks {
 // TODO(johnniwinther): Rename to `Resolver` or `ResolverContext`.
 abstract class Resolution {
   Parsing get parsing;
-  DiagnosticListener get listener;
+  DiagnosticReporter get reporter;
   CoreTypes get coreTypes;
 
   void resolveTypedef(TypedefElement typdef);
@@ -149,7 +149,7 @@ abstract class Resolution {
 
 // TODO(johnniwinther): Rename to `Parser` or `ParsingContext`.
 abstract class Parsing {
-  DiagnosticListener get listener;
+  DiagnosticReporter get reporter;
   void parsePatchClass(ClassElement cls);
   measure(f());
 }

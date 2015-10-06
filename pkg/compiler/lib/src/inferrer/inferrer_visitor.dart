@@ -12,6 +12,8 @@ import '../compiler.dart' show
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
+import '../diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
 import '../diagnostics/spannable.dart' show
     Spannable;
 import '../elements/elements.dart';
@@ -749,6 +751,8 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
     locals = new LocalsHandler<T>(inferrer, types, compiler, node, fieldScope);
   }
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   @override
   SemanticSendVisitor get sendVisitor => this;
 
@@ -1463,7 +1467,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
   }
 
   internalError(Spannable node, String reason) {
-    compiler.internalError(node, reason);
+    reporter.internalError(node, reason);
   }
 
   T visitSwitchStatement(SwitchStatement node) {

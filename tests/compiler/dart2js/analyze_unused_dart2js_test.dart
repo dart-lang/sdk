@@ -86,23 +86,23 @@ bool checkResults(Compiler compiler, CollectingDiagnosticHandler handler) {
   void checkLive(member) {
     if (member.isFunction) {
       if (compiler.enqueuer.resolution.hasBeenResolved(member)) {
-        compiler.reportHint(compiler.createMessage(
+        compiler.reporter.reportHintMessage(
             member, MessageKind.GENERIC,
-            {'text': "Helper function in production code '$member'."}));
+            {'text': "Helper function in production code '$member'."});
       }
     } else if (member.isClass) {
       if (member.isResolved) {
-        compiler.reportHint(compiler.createMessage(
+        compiler.reporter.reportHintMessage(
             member, MessageKind.GENERIC,
-            {'text': "Helper class in production code '$member'."}));
+            {'text': "Helper class in production code '$member'."});
       } else {
         member.forEachLocalMember(checkLive);
       }
     } else if (member.isTypedef) {
       if (member.isResolved) {
-        compiler.reportHint(compiler.createMessage(
+        compiler.reporter.reportHintMessage(
             member, MessageKind.GENERIC,
-            {'text': "Helper typedef in production code '$member'."}));
+            {'text': "Helper typedef in production code '$member'."});
       }
     }
   }

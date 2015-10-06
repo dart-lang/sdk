@@ -16,8 +16,11 @@ import '../common/resolution.dart' show
 import '../compiler.dart' show
     Compiler;
 import '../constants/values.dart';
+import '../core_types.dart' show
+    CoreTypes;
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart';
+import '../diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
 import '../diagnostics/messages.dart' show
     MessageKind;
 import '../diagnostics/spannable.dart' show

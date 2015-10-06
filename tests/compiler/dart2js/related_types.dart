@@ -8,6 +8,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/core_types.dart';
 import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/filenames.dart';
@@ -61,7 +62,7 @@ void checkMemberElement(Compiler compiler, MemberElement member) {
   RelatedTypesChecker relatedTypesChecker =
       new RelatedTypesChecker(compiler, resolvedAst);
   if (resolvedAst.node != null) {
-    compiler.withCurrentElement(member.implementation, () {
+    compiler.reporter.withCurrentElement(member.implementation, () {
       relatedTypesChecker.apply(resolvedAst.node);
     });
   }
@@ -78,6 +79,8 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
   ClassWorld get world => compiler.world;
 
   CoreTypes get coreTypes => compiler.coreTypes;
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   InterfaceType get thisType => resolvedAst.element.enclosingClass.thisType;
 
@@ -97,10 +100,10 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
   /// a hint otherwise.
   void checkRelated(Node node, DartType left, DartType right) {
     if (hasEmptyIntersection(left, right)) {
-      compiler.reportHint(compiler.createMessage(
+      reporter.reportHintMessage(
           node,
           MessageKind.NO_COMMON_SUBTYPES,
-          {'left': left, 'right': right}));
+          {'left': left, 'right': right});
     }
   }
 

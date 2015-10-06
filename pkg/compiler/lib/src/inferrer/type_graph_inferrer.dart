@@ -21,6 +21,8 @@ import '../dart_types.dart' show
     FunctionType,
     InterfaceType,
     TypeKind;
+import '../diagnostics/diagnostic_listener.dart' show
+  DiagnosticReporter;
 import '../diagnostics/invariant.dart' show
     invariant;
 import '../diagnostics/spannable.dart' show
@@ -588,6 +590,7 @@ class TypeGraphInferrerEngine
 
   JavaScriptBackend get backend => compiler.backend;
   Annotations get annotations => backend.annotations;
+  DiagnosticReporter get reporter => compiler.reporter;
 
   /**
    * A set of selector names that [List] implements, that we know return
@@ -669,14 +672,14 @@ class TypeGraphInferrerEngine
     }
     sortResolvedElements().forEach((Element element) {
       if (compiler.shouldPrintProgress) {
-        compiler.log('Added $addedInGraph elements in inferencing graph.');
+        reporter.log('Added $addedInGraph elements in inferencing graph.');
         compiler.progress.reset();
       }
       // This also forces the creation of the [ElementTypeInformation] to ensure
       // it is in the graph.
       types.withMember(element, () => analyze(element, null));
     });
-    compiler.log('Added $addedInGraph elements in inferencing graph.');
+    reporter.log('Added $addedInGraph elements in inferencing graph.');
 
     buildWorkQueue();
     refine();
@@ -820,7 +823,7 @@ class TypeGraphInferrerEngine
       });
     }
 
-    compiler.log('Inferred $overallRefineCount types.');
+    reporter.log('Inferred $overallRefineCount types.');
 
     processLoopInformation();
   }
@@ -833,7 +836,7 @@ class TypeGraphInferrerEngine
     SimpleTypeInferrerVisitor visitor =
         new SimpleTypeInferrerVisitor(element, compiler, this);
     TypeInformation type;
-    compiler.withCurrentElement(element, () {
+    reporter.withCurrentElement(element, () {
       type = visitor.run();
     });
     addedInGraph++;
@@ -913,7 +916,7 @@ class TypeGraphInferrerEngine
   void refine() {
     while (!workQueue.isEmpty) {
       if (compiler.shouldPrintProgress) {
-        compiler.log('Inferred $overallRefineCount types.');
+        reporter.log('Inferred $overallRefineCount types.');
         compiler.progress.reset();
       }
       TypeInformation info = workQueue.remove();

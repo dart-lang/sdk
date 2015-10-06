@@ -614,7 +614,8 @@ class DynoMap implements Map<Element, ElementAst> {
 
 PlaceholderCollector collectPlaceholders(compiler, element) {
   DartBackend backend = compiler.backend;
-  return new PlaceholderCollector(compiler,
+  return new PlaceholderCollector(
+      compiler.reporter,
       backend.mirrorRenamer,
       new Set<String>(),
       new DynoMap(compiler),

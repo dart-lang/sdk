@@ -11,6 +11,8 @@ import 'common/resolution.dart' show
 import 'compiler.dart' show
     Compiler;
 import 'core_types.dart';
+import 'diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
 import 'diagnostics/invariant.dart' show
     invariant;
 import 'diagnostics/spannable.dart' show
@@ -1242,6 +1244,9 @@ class Types implements DartTypes {
   final PotentialSubtypeVisitor potentialSubtypeVisitor;
 
   CoreTypes get coreTypes => compiler.coreTypes;
+
+  DiagnosticReporter get reporter => compiler.reporter;
+
   Resolution get resolution => compiler.resolution;
 
   Types(Compiler compiler)
@@ -1543,7 +1548,7 @@ class Types implements DartTypes {
       }
     }
 
-    compiler.internalError(CURRENT_ELEMENT_SPANNABLE,
+    reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
         'No least upper bound computed for $a and $b.');
     return null;
   }

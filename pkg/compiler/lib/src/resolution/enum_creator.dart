@@ -4,9 +4,11 @@
 
 library dart2js.resolution.enum_creator;
 
-import '../compiler.dart';
-import '../core_types.dart';
+import '../core_types.dart' show
+    CoreTypes;
 import '../dart_types.dart';
+import '../diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
 import '../tokens/keyword.dart' show
@@ -180,12 +182,11 @@ class AstBuilder {
 }
 
 class EnumCreator {
-  final Compiler compiler;
+  final DiagnosticReporter reporter;
+  final CoreTypes coreTypes;
   final EnumClassElementX enumClass;
 
-  EnumCreator(this.compiler, this.enumClass);
-
-  CoreTypes get coreTypes => compiler.coreTypes;
+  EnumCreator(this.reporter, this.coreTypes, this.enumClass);
 
   void createMembers() {
     Enum node = enumClass.node;
@@ -202,7 +203,7 @@ class EnumCreator {
       variableList.type = type;
       EnumFieldElementX variable = new EnumFieldElementX(
           identifier, enumClass, variableList, identifier);
-      enumClass.addMember(variable, compiler);
+      enumClass.addMember(variable, reporter);
       return variable;
     }
 
@@ -233,7 +234,7 @@ class EnumCreator {
         type: new FunctionType(constructor, const VoidType(),
             <DartType>[intType]));
     constructor.functionSignatureCache = constructorSignature;
-    enumClass.addMember(constructor, compiler);
+    enumClass.addMember(constructor, reporter);
 
     List<FieldElement> enumValues = <FieldElement>[];
     VariableList variableList =
@@ -265,7 +266,7 @@ class EnumCreator {
       EnumFieldElementX field = new EnumFieldElementX(
           name, enumClass, variableList, definition, initializer);
       enumValues.add(field);
-      enumClass.addMember(field, compiler);
+      enumClass.addMember(field, reporter);
       index++;
     }
 
@@ -284,7 +285,7 @@ class EnumCreator {
         valuesIdentifier, enumClass, valuesVariableList,
         definition, initializer);
 
-    enumClass.addMember(valuesVariable, compiler);
+    enumClass.addMember(valuesVariable, reporter);
 
     // TODO(johnniwinther): Support return type. Note `String` might be prefixed
     // or not imported within the current library.
@@ -304,7 +305,7 @@ class EnumCreator {
     FunctionSignatureX toStringSignature = new FunctionSignatureX(
         type: new FunctionType(toString, stringType));
     toString.functionSignatureCache = toStringSignature;
-    enumClass.addMember(toString, compiler);
+    enumClass.addMember(toString, reporter);
 
     enumClass.enumValues = enumValues;
   }

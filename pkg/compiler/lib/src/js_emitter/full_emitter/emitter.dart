@@ -26,7 +26,11 @@ import '../../constants/values.dart';
 
 import '../../deferred_load.dart' show OutputUnit;
 
-import '../../diagnostics/messages.dart' show MessageKind;
+import '../../diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
+
+import '../../diagnostics/messages.dart' show
+    MessageKind;
 
 import '../../diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE;
@@ -191,6 +195,8 @@ class Emitter implements js_emitter.Emitter {
     nsmEmitter.emitter = this;
     interceptorEmitter.emitter = this;
   }
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   List<jsAst.Node> cspPrecompiledFunctionFor(OutputUnit outputUnit) {
     return _cspPrecompiledFunctions.putIfAbsent(
@@ -415,7 +421,7 @@ class Emitter implements js_emitter.Emitter {
         return jsAst.js.expressionTemplateFor("$functionGettersMap[#]()");
 
       default:
-        compiler.internalError(NO_LOCATION_SPANNABLE,
+        reporter.internalError(NO_LOCATION_SPANNABLE,
             "Unhandled Builtin: $builtin");
         return null;
     }
@@ -554,7 +560,7 @@ class Emitter implements js_emitter.Emitter {
     } else if (element.isTypedef) {
       return element.name;
     }
-    throw compiler.internalError(element,
+    throw reporter.internalError(element,
         'Do not know how to reflect on this $element.');
   }
 
@@ -592,7 +598,7 @@ class Emitter implements js_emitter.Emitter {
   void assembleClass(Class cls, ClassBuilder enclosingBuilder,
                      Fragment fragment) {
     ClassElement classElement = cls.element;
-    compiler.withCurrentElement(classElement, () {
+    reporter.withCurrentElement(classElement, () {
       if (compiler.hasIncrementalSupport) {
         ClassBuilder cachedBuilder =
             cachedClassBuilders.putIfAbsent(classElement, () {
@@ -645,7 +651,7 @@ class Emitter implements js_emitter.Emitter {
     // [fields] is `null`.
     if (fields != null) {
       for (Element element in fields) {
-        compiler.withCurrentElement(element, () {
+        reporter.withCurrentElement(element, () {
           ConstantValue constant = handler.getInitialValueFor(element);
           parts.add(buildInitialization(element, constantReference(constant)));
         });
@@ -659,7 +665,7 @@ class Emitter implements js_emitter.Emitter {
           (OutputUnit fieldsOutputUnit, Iterable<VariableElement> fields) {
         if (fieldsOutputUnit == outputUnit) return;  // Skip the main unit.
         for (Element element in fields) {
-          compiler.withCurrentElement(element, () {
+          reporter.withCurrentElement(element, () {
             parts.add(buildInitialization(element, jsAst.number(0)));
           });
         }
@@ -900,8 +906,8 @@ class Emitter implements js_emitter.Emitter {
         #finishedClasses = map();
 
         if (#needsLazyInitializer) {
-          // [staticName] is only provided in non-minified mode. If missing, we 
-          // fall back to [fieldName]. Likewise, [prototype] is optional and 
+          // [staticName] is only provided in non-minified mode. If missing, we
+          // fall back to [fieldName]. Likewise, [prototype] is optional and
           // defaults to the isolateProperties object.
           $lazyInitializerName = function (fieldName, getterName, lazyValue,
                                            staticName, prototype) {
@@ -1332,12 +1338,12 @@ class Emitter implements js_emitter.Emitter {
           Elements.sortedByPosition(elements.where((e) => !e.isLibrary));
 
       pendingStatics.forEach((element) =>
-          compiler.reportInfo(
+          reporter.reportInfo(
               element, MessageKind.GENERIC, {'text': 'Pending statics.'}));
     }
 
     if (pendingStatics != null && !pendingStatics.isEmpty) {
-      compiler.internalError(pendingStatics.first,
+      reporter.internalError(pendingStatics.first,
           'Pending statics (see above).');
     }
   }
@@ -1812,7 +1818,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
     if (backend.requiresPreamble &&
         !backend.htmlLibraryIsLoaded) {
-      compiler.reportHintMessage(
+      reporter.reportHintMessage(
           NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
     // Return the total program size.
@@ -1846,7 +1852,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       }
     }
     if (owner == null) {
-      compiler.internalError(element, 'Owner is null.');
+      reporter.internalError(element, 'Owner is null.');
     }
     return elementDescriptors
         .putIfAbsent(fragment, () => new Map<Element, ClassBuilder>())

@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:dart2js_info/src/measurements.dart';
 import 'package:dart2js_info/src/util.dart' show recursiveDiagnosticString;
 
+import '../diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
 import '../diagnostics/messages.dart' show MessageKind;
 import '../compiler.dart' show Compiler;
 import '../common/tasks.dart' show CompilerTask;
@@ -32,8 +33,10 @@ import 'trusted_types_analysis_result.dart';
 
 /// Collects a set of [Measurements] about send expressions in the function [f].
 // TODO(sigmund): collect information on initializers too.
-Measurements collectSendMeasurements(FunctionElement f, Compiler compiler) {
-  return compiler.withCurrentElement(f, () {
+Measurements collectSendMeasurements(FunctionElement f,
+                                     Compiler compiler) {
+  DiagnosticReporter reporter = compiler.reporter;
+  return reporter.withCurrentElement(f, () {
     // TODO(sigmund): enable for platform too.
     if (f.library.isPlatformLibrary) return null;
     var name = _qualifiedName(f);
@@ -61,7 +64,7 @@ Measurements collectSendMeasurements(FunctionElement f, Compiler compiler) {
 
     var visitor = new _StatsTraversalVisitor(
         compiler, resolvedAst.elements,
-        compiler.spanFromNode(resolvedAst.node).uri);
+        reporter.spanFromSpannable(resolvedAst.node).uri);
     resolvedAst.node.accept(visitor);
     return visitor.measurements;
   });
@@ -85,12 +88,12 @@ class _StatsVisitor<T> extends Visitor
   /// Results from this function.
   final Measurements measurements;
 
-  final Compiler compiler;
+  final DiagnosticReporter reporter;
   final TreeElements elements;
 
   SemanticSendVisitor<dynamic, T> get sendVisitor => this;
 
-  _StatsVisitor(this.compiler, this.elements, this.info, Uri sourceUri)
+  _StatsVisitor(this.reporter, this.elements, this.info, Uri sourceUri)
       : measurements = new Measurements.reachableFunction(sourceUri);
 
   visitNode(Node node) => throw "unhandled ${node.runtimeType}: $node";
@@ -99,7 +102,7 @@ class _StatsVisitor<T> extends Visitor
 
   visitSend(Send node) {
     _checkInvariant(node, 'before');
-    var span = compiler.spanFromNode(node);
+    var span = reporter.spanFromSpannable(node);
     measurements.record(Metric.send, span.begin, span.end);
     if (node is SendSet) {
       if ((node.assignmentOperator != null &&
@@ -121,7 +124,7 @@ class _StatsVisitor<T> extends Visitor
 
   visitNewExpression(NewExpression node) {
     _checkInvariant(node, 'before');
-    var span = compiler.spanFromNode(node);
+    var span = reporter.spanFromSpannable(node);
     measurements.record(Metric.send, span.begin, span.end);
     super.visitNewExpression(node);
     _checkInvariant(node, 'after ');
@@ -131,7 +134,7 @@ class _StatsVisitor<T> extends Visitor
   ///
   /// See [Metric.send] for a full categorization of sends.
   handleLocal(Node node) {
-    var span = compiler.spanFromNode(node);
+    var span = reporter.spanFromSpannable(node);
     measurements.record(Metric.monomorphicSend, span.begin, span.end);
     measurements.record(Metric.localSend, span.begin, span.end);
   }
@@ -142,7 +145,7 @@ class _StatsVisitor<T> extends Visitor
   ///
   /// See [Metric.send] for a full categorization of sends.
   handleSingleInstance(Node node) {
-    var span = compiler.spanFromNode(node);
+    var span = reporter.spanFromSpannable(node);
     measurements.record(Metric.monomorphicSend, span.begin, span.end);
     measurements.record(Metric.instanceSend, span.begin, span.end);
   }
@@ -154,7 +157,7 @@ class _StatsVisitor<T> extends Visitor
   ///
   /// See [Metric.send] for a full categorization of sends.
   handleSingleInterceptor(Node node) {
-    var span = compiler.spanFromNode(node);
+    var span = reporter.spanFromSpannable(node);
     measurements.record(Metric.monomorphicSend, span.begin, span.end);
     measurements.record(Metric.interceptorSend, span.begin, span.end);
   }
@@ -163,37 +166,37 @@ class _StatsVisitor<T> extends Visitor
   ///
   /// See [Metric.send] for a full categorization of sends.
   handleMultiInterceptor(Node node) {
-    var span = compiler.spanFromNode(node);
+    var span = reporter.spanFromSpannable(node);
     measurements.record(Metric.polymorphicSend, span.begin, span.end);
     measurements.record(Metric.multiInterceptorSend, span.begin, span.end);
   }
 
   handleConstructor(Node node) {
-    var span = compiler.spanFromNode(node);
+    var span = reporter.spanFromSpannable(node);
     measurements.record(Metric.monomorphicSend, span.begin, span.end);
     measurements.record(Metric.constructorSend, span.begin, span.end);
   }
 
   handleDynamic(Node node) {
-    var span = compiler.spanFromNode(node);
+    var span = reporter.spanFromSpannable(node);
     measurements.record(Metric.polymorphicSend, span.begin, span.end);
     measurements.record(Metric.dynamicSend, span.begin, span.end);
   }
 
   handleVirtual(Node node) {
-    var span = compiler.spanFromNode(node);
+    var span = reporter.spanFromSpannable(node);
     measurements.record(Metric.polymorphicSend, span.begin, span.end);
     measurements.record(Metric.virtualSend, span.begin, span.end);
   }
 
   handleNSMError(Node node) {
-    var span = compiler.spanFromNode(node);
+    var span = reporter.spanFromSpannable(node);
     measurements.record(Metric.monomorphicSend, span.begin, span.end);
     measurements.record(Metric.nsmErrorSend, span.begin, span.end);
   }
 
   handleNSMSingle(Node node) {
-    var span = compiler.spanFromNode(node);
+    var span = reporter.spanFromSpannable(node);
     measurements.record(Metric.monomorphicSend, span.begin, span.end);
     measurements.record(Metric.singleNsmCallSend, span.begin, span.end);
   }
@@ -209,23 +212,23 @@ class _StatsVisitor<T> extends Visitor
   }
 
   handleNSMAny(Node node) {
-    var span = compiler.spanFromNode(node);
+    var span = reporter.spanFromSpannable(node);
     measurements.record(Metric.polymorphicSend, span.begin, span.end);
     measurements.record(Metric.multiNsmCallSend, span.begin, span.end);
   }
 
   handleSuper(Node node) {
-    var span = compiler.spanFromNode(node);
+    var span = reporter.spanFromSpannable(node);
     measurements.record(Metric.monomorphicSend, span.begin, span.end);
     measurements.record(Metric.superSend, span.begin, span.end);
   }
   handleTypeVariable(Node node) {
-    var span = compiler.spanFromNode(node);
+    var span = reporter.spanFromSpannable(node);
     measurements.record(Metric.monomorphicSend, span.begin, span.end);
     measurements.record(Metric.typeVariableSend, span.begin, span.end);
   }
   handleStatic(Node node) {
-    var span = compiler.spanFromNode(node);
+    var span = reporter.spanFromSpannable(node);
     measurements.record(Metric.monomorphicSend, span.begin, span.end);
     measurements.record(Metric.staticSend, span.begin, span.end);
   }
@@ -2246,7 +2249,7 @@ class _StatsVisitor<T> extends Visitor
     if (!measurements.checkInvariant(Metric.send) ||
         !measurements.checkInvariant(Metric.monomorphicSend) ||
         !measurements.checkInvariant(Metric.polymorphicSend)) {
-      compiler.reportErrorMessage(node,
+      reporter.reportErrorMessage(node,
           MessageKind.GENERIC, {'text': 'bad\n-- $msg\nlast:\n-- $last\n'});
       last = msg;
     } else {
@@ -2258,13 +2261,13 @@ class _StatsVisitor<T> extends Visitor
 /// Visitor that collects statistics for a single function.
 class _StatsTraversalVisitor<T> extends TraversalVisitor<dynamic, T>
     implements SemanticSendVisitor<dynamic, T> {
-  final Compiler compiler;
+  final DiagnosticReporter reporter;
   final _StatsVisitor statsVisitor;
   Measurements get measurements => statsVisitor.measurements;
   _StatsTraversalVisitor(
       Compiler compiler, TreeElements elements, Uri sourceUri)
-      : compiler = compiler,
-        statsVisitor = new _StatsVisitor(compiler, elements,
+      : reporter = compiler.reporter,
+        statsVisitor = new _StatsVisitor(compiler.reporter, elements,
             // TODO(sigmund): accept a list of analyses, so we can compare them
             // together.
             true
@@ -2277,7 +2280,7 @@ class _StatsTraversalVisitor<T> extends TraversalVisitor<dynamic, T>
     try {
       node.accept(statsVisitor);
     } catch (e, t) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           node, MessageKind.GENERIC, {'text': '$e\n$t'});
     }
     super.visitSend(node);
@@ -2287,7 +2290,7 @@ class _StatsTraversalVisitor<T> extends TraversalVisitor<dynamic, T>
     try {
       node.accept(statsVisitor);
     } catch (e, t) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           node, MessageKind.GENERIC, {'text': '$e\n$t'});
     }
     super.visitNewExpression(node);

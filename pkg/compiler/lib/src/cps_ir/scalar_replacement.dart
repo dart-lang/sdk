@@ -43,7 +43,7 @@ class ScalarReplacer extends Pass {
   final World _classWorld;
 
   ScalarReplacer(dart2js.Compiler compiler)
-      : _internalError = compiler.internalError,
+      : _internalError = compiler.reporter.internalError,
         _classWorld = compiler.world;
 
   @override

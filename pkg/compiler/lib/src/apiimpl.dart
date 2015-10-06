@@ -235,7 +235,7 @@ class Compiler extends leg.Compiler {
   Future<Script> readScript(Spannable node, Uri readableUri) {
     if (!readableUri.isAbsolute) {
       if (node == null) node = NO_LOCATION_SPANNABLE;
-      internalError(node,
+      reporter.internalError(node,
           'Relative uri $readableUri provided to readScript(Uri).');
     }
 
@@ -245,13 +245,13 @@ class Compiler extends leg.Compiler {
     elements.Element element = currentElement;
     void reportReadError(exception) {
       if (element == null || node == null) {
-        reportErrorMessage(
+        reporter.reportErrorMessage(
             new SourceSpan(readableUri, 0, 0),
             MessageKind.READ_SELF_ERROR,
             {'uri': readableUri, 'exception': exception});
       } else {
-        withCurrentElement(element, () {
-          reportErrorMessage(
+        reporter.withCurrentElement(element, () {
+          reporter.reportErrorMessage(
               node,
               MessageKind.READ_SCRIPT_ERROR,
               {'uri': readableUri, 'exception': exception});
@@ -263,8 +263,8 @@ class Compiler extends leg.Compiler {
     if (resourceUri == null) return synthesizeScript(node, readableUri);
     if (resourceUri.scheme == 'dart-ext') {
       if (!allowNativeExtensions) {
-        withCurrentElement(element, () {
-          reportErrorMessage(
+        reporter.withCurrentElement(element, () {
+          reporter.reportErrorMessage(
               node, MessageKind.DART_EXT_NOT_SUPPORTED);
         });
       }
@@ -335,13 +335,13 @@ class Compiler extends leg.Compiler {
       }
       if (!allowInternalLibraryAccess) {
         if (importingLibrary != null) {
-          reportErrorMessage(
+          reporter.reportErrorMessage(
               spannable,
               MessageKind.INTERNAL_LIBRARY_FROM,
               {'resolvedUri': resolvedUri,
                'importingUri': importingLibrary.canonicalUri});
         } else {
-          reportErrorMessage(
+          reporter.reportErrorMessage(
               spannable,
               MessageKind.INTERNAL_LIBRARY,
               {'resolvedUri': resolvedUri});
@@ -350,12 +350,12 @@ class Compiler extends leg.Compiler {
     }
     if (path == null) {
       if (libraryInfo == null) {
-        reportErrorMessage(
+        reporter.reportErrorMessage(
             spannable,
             MessageKind.LIBRARY_NOT_FOUND,
             {'resolvedUri': resolvedUri});
       } else {
-        reportErrorMessage(
+        reporter.reportErrorMessage(
             spannable,
             MessageKind.LIBRARY_NOT_SUPPORTED,
             {'resolvedUri': resolvedUri});
@@ -383,7 +383,7 @@ class Compiler extends leg.Compiler {
     try {
       checkValidPackageUri(uri);
     } on ArgumentError catch (e) {
-      reportErrorMessage(
+      reporter.reportErrorMessage(
           node,
           MessageKind.INVALID_PACKAGE_URI,
           {'uri': uri, 'exception': e.message});
@@ -391,7 +391,7 @@ class Compiler extends leg.Compiler {
     }
     return packages.resolve(uri,
         notFound: (Uri notFound) {
-          reportErrorMessage(
+          reporter.reportErrorMessage(
               node,
               MessageKind.LIBRARY_NOT_FOUND,
               {'resolvedUri': uri});
@@ -429,7 +429,7 @@ class Compiler extends leg.Compiler {
         packages =
             new MapPackages(pkgs.parse(packageConfigContents, packageConfig));
       }).catchError((error) {
-        reportErrorMessage(
+        reporter.reportErrorMessage(
             NO_LOCATION_SPANNABLE,
             MessageKind.INVALID_PACKAGE_CONFIG,
             {'uri': packageConfig, 'exception': error});
@@ -539,11 +539,6 @@ class Compiler extends leg.Compiler {
     }
   }
 
-  void diagnoseCrashInUserCode(String message, exception, stackTrace) {
-    hasCrashed = true;
-    print('$message: ${tryToString(exception)}');
-    print(tryToString(stackTrace));
-  }
 
   fromEnvironment(String name) => environment[name];
 

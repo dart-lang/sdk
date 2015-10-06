@@ -52,7 +52,7 @@ class DartBackend extends Backend {
       new Set<ClassElement>();
 
   bool enableCodegenWithErrorsIfSupported(Spannable node) {
-    compiler.reportHintMessage(
+    reporter.reportHintMessage(
         node,
         MessageKind.GENERIC,
         {'text': "Generation of code with compile time errors is not "
@@ -108,13 +108,16 @@ class DartBackend extends Backend {
         stripAsserts = strips.indexOf('asserts') != -1,
         constantCompilerTask = new DartConstantTask(compiler),
         outputter = new DartOutputter(
-            compiler, compiler.outputProvider,
+            compiler.reporter, compiler.outputProvider,
             forceStripTypes: strips.indexOf('types') != -1,
             multiFile: multiFile,
             enableMinification: compiler.enableMinification),
         super(compiler) {
     resolutionCallbacks = new DartResolutionCallbacks(this);
   }
+
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   Resolution get resolution => compiler.resolution;
 
@@ -169,7 +172,7 @@ class DartBackend extends Backend {
         newTypedefElementCallback,
         newClassElementCallback) {
       ReferencedElementCollector collector =
-          new ReferencedElementCollector(compiler,
+          new ReferencedElementCollector(reporter,
                                          element,
                                          elementAst,
                                          newTypedefElementCallback,
@@ -216,7 +219,7 @@ class DartBackend extends Backend {
         'Output total size: $totalOutputSize bytes (${percentage}%)');
   }
 
-  log(String message) => compiler.log('[DartBackend] $message');
+  log(String message) => reporter.log('[DartBackend] $message');
 
   @override
   Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
@@ -332,7 +335,7 @@ class DartBackend extends Backend {
   @override
   bool enableDeferredLoadingIfSupported(Spannable node, Registry registry) {
     // TODO(sigurdm): Implement deferred loading for dart2dart.
-    compiler.reportWarningMessage(
+    reporter.reportWarningMessage(
         node, MessageKind.DEFERRED_LIBRARY_DART_2_DART);
     return false;
   }
@@ -387,13 +390,13 @@ class EmitterUnparser extends Unparser {
  * (just to name a few).  Retraverse AST to pick those up.
  */
 class ReferencedElementCollector extends Visitor {
-  final Compiler compiler;
+  final DiagnosticReporter reporter;
   final Element element;
   final ElementAst elementAst;
   final newTypedefElementCallback;
   final newClassElementCallback;
 
-  ReferencedElementCollector(this.compiler,
+  ReferencedElementCollector(this.reporter,
                              this.element,
                              this.elementAst,
                              this.newTypedefElementCallback,
@@ -414,7 +417,7 @@ class ReferencedElementCollector extends Visitor {
   }
 
   void collect() {
-    compiler.withCurrentElement(element, () {
+    reporter.withCurrentElement(element, () {
       elementAst.ast.accept(this);
     });
   }

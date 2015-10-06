@@ -11,7 +11,8 @@ import '../common/tasks.dart' show
 import '../compiler.dart' show
     Compiler;
 import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage;
+    DiagnosticMessage,
+    DiagnosticReporter;
 import '../diagnostics/messages.dart' show
     MessageKind;
 import '../diagnostics/spannable.dart' show
@@ -31,10 +32,12 @@ class CommonResolverVisitor<R> extends Visitor<R> {
 
   CommonResolverVisitor(Compiler this.compiler);
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   Resolution get resolution => compiler.resolution;
 
   R visitNode(Node node) {
-    return compiler.internalError(node,
+    return reporter.internalError(node,
         'internal error: Unhandled node: ${node.getObjectDescription()}');
   }
 
@@ -79,7 +82,7 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
       if (element.name == 'yield' ||
           element.name == 'async' ||
           element.name == 'await') {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             node, MessageKind.ASYNC_KEYWORD_AS_IDENTIFIER,
             {'keyword': element.name,
              'modifier': currentAsyncMarker});
@@ -90,7 +93,7 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
   /// Register [node] as the definition of [element].
   void defineLocalVariable(Node node, LocalVariableElement element) {
     if (element == null) {
-      throw compiler.internalError(node, 'element is null');
+      throw reporter.internalError(node, 'element is null');
     }
     checkLocalDefinitionName(node, element);
     registry.defineElement(node, element);
@@ -99,13 +102,13 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
   void reportDuplicateDefinition(String name,
                                  Spannable definition,
                                  Spannable existing) {
-    compiler.reportError(
-        compiler.createMessage(
+    reporter.reportError(
+        reporter.createMessage(
             definition,
             MessageKind.DUPLICATE_DEFINITION,
             {'name': name}),
         <DiagnosticMessage>[
-            compiler.createMessage(
+            reporter.createMessage(
                 existing,
                 MessageKind.EXISTING_DEFINITION,
                 {'name': name}),

@@ -36,6 +36,7 @@ class TypeVariableHandler {
   CodeEmitterTask get _task => _backend.emitter;
   MetadataCollector get _metadataCollector => _task.metadataCollector;
   JavaScriptBackend get _backend => _compiler.backend;
+  DiagnosticReporter get reporter => _compiler.reporter;
 
   void registerClassWithTypeVariables(ClassElement cls, Enqueuer enqueuer,
                                       Registry registry) {
@@ -47,7 +48,7 @@ class TypeVariableHandler {
         _typeVariableClass.ensureResolved(_compiler.resolution);
         Link constructors = _typeVariableClass.constructors;
         if (constructors.isEmpty && constructors.tail.isEmpty) {
-          _compiler.internalError(_typeVariableClass,
+          reporter.internalError(_typeVariableClass,
               "Class '$_typeVariableClass' should only have one constructor");
         }
         _typeVariableConstructor = _typeVariableClass.constructors.head;

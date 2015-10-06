@@ -560,7 +560,7 @@ class DumpInfoTask extends CompilerTask {
     ChunkedConversionSink<Object> sink = encoder.startChunkedConversion(
         new StringConversionSink.fromStringSink(buffer));
     sink.add(result.toJson());
-    compiler.reportInfo(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+    reporter.reportInfo(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
       'text': "View the dumped .info.json file at "
           "https://dart-lang.github.io/dump-info-visualizer"
     });

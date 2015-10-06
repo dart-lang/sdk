@@ -15,9 +15,9 @@ import 'tree/tree.dart';
 import 'util/characters.dart';
 
 class StringValidator {
-  final DiagnosticListener listener;
+  final DiagnosticReporter reporter;
 
-  StringValidator(this.listener);
+  StringValidator(this.reporter);
 
   DartString validateInterpolationPart(Token token, StringQuoting quoting,
                                        {bool isFirst: false,
@@ -102,7 +102,7 @@ class StringValidator {
   }
 
   void stringParseError(String message, Token token, int offset) {
-    listener.reportErrorMessage(
+    reporter.reportErrorMessage(
         token, MessageKind.GENERIC, {'text': "$message @ $offset"});
   }
 

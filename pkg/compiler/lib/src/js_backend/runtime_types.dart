@@ -623,6 +623,7 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
 
   JavaScriptBackend get backend => compiler.backend;
   Namer get namer => backend.namer;
+  DiagnosticReporter get reporter => compiler.reporter;
 
   TypeRepresentationGenerator(Compiler this.compiler);
 
@@ -762,7 +763,7 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
   }
 
   visitStatementType(StatementType type, _) {
-    compiler.internalError(NO_LOCATION_SPANNABLE,
+    reporter.internalError(NO_LOCATION_SPANNABLE,
         'Unexpected type: $type (${type.kind}).');
   }
 }

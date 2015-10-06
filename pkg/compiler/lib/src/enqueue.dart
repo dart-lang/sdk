@@ -27,6 +27,8 @@ import 'compiler.dart' show
 import 'dart_types.dart' show
     DartType,
     InterfaceType;
+import 'diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
 import 'diagnostics/invariant.dart' show
     invariant;
 import 'diagnostics/spannable.dart' show
@@ -153,6 +155,8 @@ abstract class Enqueuer {
   bool get isResolutionQueue => false;
 
   QueueFilter get filter => compiler.enqueuerFilter;
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   /// Returns [:true:] if [member] has been processed by this enqueuer.
   bool isProcessed(Element member);
@@ -526,7 +530,7 @@ abstract class Enqueuer {
       // have run before tree shaking is disabled and thus everything is
       // enqueued.
       recents = _processedClasses.toSet();
-      compiler.log('Enqueuing everything');
+      reporter.log('Enqueuing everything');
       for (LibraryElement lib in compiler.libraryLoader.libraries) {
         enqueueReflectiveElementsInLibrary(lib, recents);
       }
@@ -903,7 +907,7 @@ class ResolutionEnqueuer extends Enqueuer {
   void emptyDeferredTaskQueue() {
     while (!deferredTaskQueue.isEmpty) {
       DeferredTask task = deferredTaskQueue.removeFirst();
-      compiler.withCurrentElement(task.element, task.action);
+      reporter.withCurrentElement(task.element, task.action);
     }
   }
 

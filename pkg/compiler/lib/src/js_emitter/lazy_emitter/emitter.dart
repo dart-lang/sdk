@@ -26,6 +26,9 @@ import '../js_emitter.dart' show
 import '../js_emitter.dart' as emitterTask show
     Emitter;
 
+import '../../diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
+
 import '../../diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE;
 
@@ -40,6 +43,8 @@ class Emitter implements emitterTask.Emitter {
       : this._compiler = compiler,
         this.namer = namer,
         _emitter = new ModelEmitter(compiler, namer, nativeEmitter);
+
+  DiagnosticReporter get reporter => _compiler.reporter;
 
   @override
   String get patchVersion => "lazy";
@@ -181,7 +186,7 @@ class Emitter implements emitterTask.Emitter {
         throw new UnsupportedError('createDartClosureFromNameOfStaticFunction');
 
       default:
-        _compiler.internalError(NO_LOCATION_SPANNABLE,
+        reporter.internalError(NO_LOCATION_SPANNABLE,
                                 "Unhandled Builtin: $builtin");
         return null;
     }
