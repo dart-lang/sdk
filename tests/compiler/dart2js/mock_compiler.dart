@@ -12,6 +12,7 @@ import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/common/names.dart' show
     Uris;
 import 'package:compiler/src/constants/expressions.dart';
+import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
@@ -105,7 +106,8 @@ class MockCompiler extends Compiler {
               emitJavaScript: emitJavaScript,
               preserveComments: preserveComments,
               trustTypeAnnotations: trustTypeAnnotations,
-              showPackageWarnings: true,
+              diagnosticOptions:
+                  new DiagnosticOptions(showPackageWarnings: true),
               outputProvider: new LegacyCompilerOutput(outputProvider)) {
     this.disableInlining = disableInlining;
 

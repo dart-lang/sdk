@@ -246,15 +246,6 @@ abstract class Compiler {
    */
   final Uri outputUri;
 
-  /// Emit terse diagnostics without howToFix.
-  final bool terseDiagnostics;
-
-  /// If `true`, warnings and hints not from user code are reported.
-  final bool showPackageWarnings;
-
-  final bool suppressWarnings;
-  final bool fatalWarnings;
-
   /// If `true`, some values are cached for reuse in incremental compilation.
   /// Incremental compilation is basically calling [run] more than once.
   final bool hasIncrementalSupport;
@@ -469,20 +460,17 @@ abstract class Compiler {
             this.sourceMapUri: null,
             this.outputUri: null,
             this.buildId: UNDETERMINED_BUILD_ID,
-            this.terseDiagnostics: false,
             this.deferredMapUri: null,
             this.dumpInfo: false,
-            this.showPackageWarnings: false,
             bool useStartupEmitter: false,
             this.useContentSecurityPolicy: false,
-            this.suppressWarnings: false,
-            this.fatalWarnings: false,
             bool hasIncrementalSupport: false,
             this.enableExperimentalMirrors: false,
             this.enableAssertMessage: false,
             this.allowNativeExtensions: false,
             this.generateCodeWithCompileTimeErrors: false,
             this.testMode: false,
+            DiagnosticOptions diagnosticOptions,
             api.CompilerOutput outputProvider,
             List<String> strips: const []})
       : this.disableTypeInferenceFlag =
@@ -503,11 +491,7 @@ abstract class Compiler {
     world = new World(this);
     // TODO(johnniwinther): Initialize core types in [initializeCoreClasses] and
     // make its field final.
-    _reporter = new _CompilerDiagnosticReporter(this,
-        new DiagnosticOptions(
-            suppressWarnings: suppressWarnings,
-            terseDiagnostics: terseDiagnostics,
-            showPackageWarnings: showPackageWarnings));
+    _reporter = new _CompilerDiagnosticReporter(this, diagnosticOptions);
     _parsing = new _CompilerParsing(this);
     _resolution = new _CompilerResolution(this);
     _coreTypes = new _CompilerCoreTypes(_resolution);
@@ -1207,7 +1191,9 @@ abstract class Compiler {
     Node tree = parser.parse(element);
     assert(invariant(element, !element.isSynthesized || tree == null));
     WorldImpact worldImpact = resolver.resolve(element);
-    if (tree != null && !analyzeSignaturesOnly && !suppressWarnings) {
+    if (tree != null &&
+        !analyzeSignaturesOnly &&
+        !reporter.options.suppressWarnings) {
       // Only analyze nodes with a corresponding [TreeElements].
       checker.check(element);
     }

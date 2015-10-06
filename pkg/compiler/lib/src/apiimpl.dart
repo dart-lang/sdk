@@ -24,7 +24,8 @@ import 'common/tasks.dart' show
     GenericTask;
 import 'compiler.dart' as leg;
 import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage;
+    DiagnosticMessage,
+    DiagnosticOptions;
 import 'diagnostics/messages.dart';
 import 'diagnostics/source_span.dart' show
     SourceSpan;
@@ -97,22 +98,24 @@ class Compiler extends leg.Compiler {
             verbose: hasOption(options, Flags.verbose),
             sourceMapUri: extractUriOption(options, '--source-map='),
             outputUri: extractUriOption(options, '--out='),
-            terseDiagnostics: hasOption(options, Flags.terse),
             deferredMapUri: extractUriOption(options, '--deferred-map='),
             dumpInfo: hasOption(options, Flags.dumpInfo),
             buildId: extractStringOption(
                 options, '--build-id=',
                 "build number could not be determined"),
-            showPackageWarnings:
-                hasOption(options, Flags.showPackageWarnings),
             useContentSecurityPolicy:
               hasOption(options, Flags.useContentSecurityPolicy),
             useStartupEmitter: hasOption(options, Flags.fastStartup),
             hasIncrementalSupport:
                 forceIncrementalSupport ||
                 hasOption(options, Flags.incrementalSupport),
-            suppressWarnings: hasOption(options, Flags.suppressWarnings),
-            fatalWarnings: hasOption(options, Flags.fatalWarnings),
+            diagnosticOptions: new DiagnosticOptions(
+                suppressWarnings: hasOption(options, Flags.suppressWarnings),
+                fatalWarnings: hasOption(options, Flags.fatalWarnings),
+                suppressHints: hasOption(options, Flags.suppressHints),
+                terseDiagnostics: hasOption(options, Flags.terse),
+                showPackageWarnings:
+                    hasOption(options, Flags.showPackageWarnings)),
             enableExperimentalMirrors:
                 hasOption(options, Flags.enableExperimentalMirrors),
             enableAssertMessage:
@@ -477,9 +480,11 @@ class Compiler extends leg.Compiler {
   void reportDiagnostic(DiagnosticMessage message,
                         List<DiagnosticMessage> infos,
                         api.Diagnostic kind) {
+    // TODO(johnniwinther): Move this to the [DiagnosticReporter]?
     if (kind == api.Diagnostic.ERROR ||
         kind == api.Diagnostic.CRASH ||
-        (fatalWarnings && kind == api.Diagnostic.WARNING)) {
+        (reporter.options.fatalWarnings &&
+         kind == api.Diagnostic.WARNING)) {
       compilationFailed = true;
     }
     _reportDiagnosticMessage(message, kind);

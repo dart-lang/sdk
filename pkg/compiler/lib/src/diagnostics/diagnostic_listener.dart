@@ -13,12 +13,26 @@ import '../elements/elements.dart' show
 import 'messages.dart';
 
 class DiagnosticOptions {
-  final bool suppressWarnings;
+
+  /// Emit terse diagnostics without howToFix.
   final bool terseDiagnostics;
+
+  /// If `true`, warnings and hints not from user code are reported.
   final bool showPackageWarnings;
+
+  /// If `true`, warnings are not reported.
+  final bool suppressWarnings;
+
+  /// If `true`, warnings cause the compilation to fail.
+  final bool fatalWarnings;
+
+  /// If `true`, hints are not reported.
+  final bool suppressHints;
 
   const DiagnosticOptions({
     this.suppressWarnings: false,
+    this.fatalWarnings: false,
+    this.suppressHints: false,
     this.terseDiagnostics: false,
     this.showPackageWarnings: false});
 }

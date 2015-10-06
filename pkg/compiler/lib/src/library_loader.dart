@@ -899,9 +899,11 @@ class LibraryDependencyNode {
         pendingExportMap[exportedElement] = exports.prepend(export);
       }
     });
-    reporter.withCurrentElement(library, () {
-      checkLibraryDependency(reporter, export.node, exportedLibraryElement);
-    });
+    if (!reporter.options.suppressHints) {
+      reporter.withCurrentElement(library, () {
+        checkLibraryDependency(reporter, export.node, exportedLibraryElement);
+      });
+    }
   }
 
   /**
@@ -1069,12 +1071,26 @@ class LibraryDependencyNode {
         String name = identifier.source;
         Element element = library.findExported(name);
         if (element == null) {
-          reporter.reportHintMessage(
-              identifier,
-              combinator.isHide
-                  ? MessageKind.EMPTY_HIDE : MessageKind.EMPTY_SHOW,
-              {'uri': library.canonicalUri,
-               'name': name});
+          if (combinator.isHide) {
+            if (library.isPackageLibrary &&
+                !reporter.options.showPackageWarnings) {
+              // Only report hide hint on packages if we show warnings on these:
+              // The hide may be non-empty in some versions of the package, in
+              // which case you shouldn't remove the combinator.
+              continue;
+            }
+            reporter.reportHintMessage(
+                identifier,
+                MessageKind.EMPTY_HIDE,
+                {'uri': library.canonicalUri,
+                 'name': name});
+          } else {
+            reporter.reportHintMessage(
+                identifier,
+                MessageKind.EMPTY_SHOW,
+                {'uri': library.canonicalUri,
+                 'name': name});
+          }
         }
       }
     }
@@ -1156,9 +1172,11 @@ class LibraryDependencyHandler implements LibraryLoader {
       node.registerImports(reporter);
     });
 
-    nodeMap.forEach((LibraryElement library, LibraryDependencyNode node) {
-      node.checkCombinators(reporter);
-    });
+    if (!reporter.options.suppressHints) {
+      nodeMap.forEach((LibraryElement library, LibraryDependencyNode node) {
+        node.checkCombinators(reporter);
+      });
+    }
   }
 
   /// Registers that [library] depends on [loadedLibrary] through
