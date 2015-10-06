@@ -666,6 +666,8 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
   /**
    * Receive a datagram. If there are no datagrams available `null` is
    * returned.
+   *
+   * The maximum length of the datagram that can be received is 65503 bytes.
    */
   Datagram receive();
 
