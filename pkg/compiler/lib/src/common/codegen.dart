@@ -191,7 +191,7 @@ class CodegenWorkItem extends WorkItem {
     // generation could spuriously be adding dependencies on things we know we
     // don't need.
     assert(invariant(element,
-        compiler.enqueuer.resolution.hasBeenProcessed(element),
+        compiler.enqueuer.resolution.hasBeenResolved(element),
         message: "$element has not been resolved."));
     assert(invariant(element, element.resolvedAst.elements != null,
         message: 'Resolution tree is null for $element in codegen work item'));

@@ -65,7 +65,7 @@ class DeserializedResolutionWorkItem implements ResolutionWorkItem {
   @override
   WorldImpact run(Compiler compiler, ResolutionEnqueuer world) {
     _isAnalyzed = true;
-    world.registerProcessedElement(element);
+    world.registerResolvedElement(element);
     return worldImpact;
   }
 }

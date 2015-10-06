@@ -414,7 +414,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   TypeResult visitTypeAnnotation(TypeAnnotation node) {
     DartType type = resolveTypeAnnotation(node);
     if (inCheckContext) {
-      registry.registerCheckedModeCheck(type);
+      registry.registerIsCheck(type);
     }
     return new TypeResult(type);
   }
@@ -500,7 +500,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     });
     if (inCheckContext) {
       functionParameters.forEachParameter((ParameterElement element) {
-        registry.registerCheckedModeCheck(element.type);
+        registry.registerIsCheck(element.type);
       });
     }
   }
@@ -1190,7 +1190,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     Node typeNode = node.arguments.head;
     DartType type = resolveTypeAnnotation(typeNode);
-    registry.registerAsCast(type);
+    registry.registerAsCheck(type);
     registry.registerSendStructure(node, new AsStructure(type));
     return const NoneResult();
   }
@@ -1952,6 +1952,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else {
       semantics = new StaticAccess.typeParameterTypeLiteral(element);
     }
+    registry.registerTypeVariableExpression(element);
 
     registry.useElement(node, element);
     registry.registerTypeLiteral(node, element.type);
@@ -2004,10 +2005,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             MessageKind.ASSIGNING_TYPE, const {});
       }
 
+      if (node.isComplex) {
+        // We read the type variable before trying write to it.
+        registry.registerTypeVariableExpression(element);
+      }
+
       // TODO(23998): Remove this when all information goes through
       // the [SendStructure].
       registry.useElement(node, error);
-      // TODO(johnniwinther): Register only on read?
       registry.registerTypeLiteral(node, element.type);
       registry.registerThrowNoSuchMethod();
       semantics = new StaticAccess.typeParameterTypeLiteral(element);
@@ -4003,7 +4008,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         this, node, malformedIsError: malformedIsError,
         deferredIsMalformed: deferredIsMalformed);
     if (inCheckContext) {
-      registry.registerCheckedModeCheck(type);
+      registry.registerIsCheck(type);
       registry.registerRequiredType(type, enclosingElement);
     }
     return type;
@@ -4043,11 +4048,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else {
       listType = coreTypes.listType();
     }
-    registry.registerLiteralList(
-        node,
-        listType,
-        isConstant: node.isConst,
-        isEmpty: node.elements.isEmpty);
+    registry.setType(node, listType);
+    registry.registerInstantiatedType(listType);
     registry.registerRequiredType(listType, enclosingElement);
     if (node.isConst) {
       List<ConstantExpression> constantExpressions = <ConstantExpression>[];
@@ -4367,11 +4369,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           MessageKind.TYPE_VARIABLE_IN_CONSTANT);
       isValidAsConstant = false;
     }
-    registry.registerMapLiteral(
-        node,
-        mapType,
-        isConstant: node.isConst,
-        isEmpty: node.entries.isEmpty);
+    registry.registerMapLiteral(node, mapType, node.isConst);
     registry.registerRequiredType(mapType, enclosingElement);
     if (node.isConst) {
 

@@ -183,7 +183,7 @@ class DartBackend extends Backend {
     int totalSize = outputter.assembleProgram(
         libraries: compiler.libraryLoader.libraries,
         instantiatedClasses: compiler.resolverWorld.directlyInstantiatedClasses,
-        resolvedElements: compiler.enqueuer.resolution.processedElements,
+        resolvedElements: compiler.enqueuer.resolution.resolvedElements,
         usedTypeLiterals: usedTypeLiterals,
         postProcessElementAst: postProcessElementAst,
         computeElementAst: computeElementAst,
@@ -346,24 +346,6 @@ class DartResolutionCallbacks extends ResolutionCallbacks {
 
   DartResolutionCallbacks(this.backend);
 
-  @override
-  WorldImpact transformImpact(ResolutionWorldImpact worldImpact) {
-    TransformedWorldImpact transformed =
-        new TransformedWorldImpact(worldImpact);
-    for (DartType typeLiteral in worldImpact.typeLiterals) {
-      onTypeLiteral(typeLiteral, transformed);
-    }
-    for (InterfaceType instantiatedType in worldImpact.instantiatedTypes) {
-      // TODO(johnniwinther): Remove this when dependency tracking is done on
-      // the world impact itself.
-      transformed.registerInstantiation(instantiatedType);
-      backend.registerInstantiatedType(
-          instantiatedType, backend.compiler.enqueuer.resolution, transformed);
-    }
-    return transformed;
-  }
-
-  @override
   void onTypeLiteral(DartType type, Registry registry) {
     if (type.isInterfaceType) {
       backend.usedTypeLiterals.add(type.element);

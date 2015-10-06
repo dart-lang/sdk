@@ -112,15 +112,9 @@ class WorldImpact {
 
   // TODO(johnniwinther): Collect checked types for checked mode separately to
   // support serialization.
-  Iterable<DartType> get isChecks => const <DartType>[];
-
-  Iterable<DartType> get checkedModeChecks => const <DartType>[];
-
-  Iterable<DartType> get asCasts => const <DartType>[];
+  Iterable<DartType> get checkedTypes => const <DartType>[];
 
   Iterable<MethodElement> get closurizedFunctions => const <MethodElement>[];
-
-  Iterable<LocalFunctionElement> get closures => const <LocalFunctionElement>[];
 }
 
 abstract class Enqueuer {
@@ -167,10 +161,6 @@ abstract class Enqueuer {
   /// Returns [:true:] if [member] has been processed by this enqueuer.
   bool isProcessed(Element member);
 
-  bool isClassProcessed(ClassElement cls) => _processedClasses.contains(cls);
-
-  Iterable<ClassElement> get processedClasses => _processedClasses;
-
   /**
    * Documentation wanted -- johnniwinther
    *
@@ -200,14 +190,10 @@ abstract class Enqueuer {
     worldImpact.dynamicGetters.forEach(registerDynamicGetter);
     worldImpact.dynamicSetters.forEach(registerDynamicSetter);
     worldImpact.staticUses.forEach(registerStaticUse);
-    worldImpact.instantiatedTypes.forEach(registerInstantiatedType);
-    worldImpact.isChecks.forEach(registerIsCheck);
-    worldImpact.asCasts.forEach(registerIsCheck);
-    if (compiler.enableTypeAssertions) {
-      worldImpact.checkedModeChecks.forEach(registerIsCheck);
-    }
+    // TODO(johnniwinther): Register [worldImpact.instantiatedTypes] when it
+    // doesn't require a [Registry].
+    worldImpact.checkedTypes.forEach(registerIsCheck);
     worldImpact.closurizedFunctions.forEach(registerGetOfStaticFunction);
-    worldImpact.closures.forEach(registerClosure);
   }
 
   // TODO(johnniwinther): Remove the need for passing the [registry].
@@ -348,15 +334,6 @@ abstract class Enqueuer {
 
       void processClass(ClassElement superclass) {
         if (_processedClasses.contains(superclass)) return;
-        // TODO(johnniwinther): Re-insert this invariant when unittests don't
-        // fail. There is already a similar invariant on the members.
-        /*if (!isResolutionQueue) {
-          assert(invariant(superclass,
-              superclass.isClosure ||
-              compiler.enqueuer.resolution.isClassProcessed(superclass),
-              message: "Class $superclass has not been "
-                       "processed in resolution."));
-        }*/
 
         _processedClasses.add(superclass);
         recentClasses.add(superclass);
@@ -790,7 +767,7 @@ class ResolutionEnqueuer extends Enqueuer {
    *
    * Invariant: Key elements are declaration elements.
    */
-  final Set<AstElement> processedElements;
+  final Set<AstElement> resolvedElements;
 
   final Queue<ResolutionWorkItem> queue;
 
@@ -807,22 +784,22 @@ class ResolutionEnqueuer extends Enqueuer {
               compiler,
               itemCompilationContextCreator,
               strategy),
-        processedElements = new Set<AstElement>(),
+        resolvedElements = new Set<AstElement>(),
         queue = new Queue<ResolutionWorkItem>(),
         deferredTaskQueue = new Queue<DeferredTask>();
 
   bool get isResolutionQueue => true;
 
-  bool isProcessed(Element member) => processedElements.contains(member);
+  bool isProcessed(Element member) => resolvedElements.contains(member);
 
   /// Returns `true` if [element] has been processed by the resolution enqueuer.
-  bool hasBeenProcessed(Element element) {
-    return processedElements.contains(element.analyzableElement.declaration);
+  bool hasBeenResolved(Element element) {
+    return resolvedElements.contains(element.analyzableElement.declaration);
   }
 
-  /// Registers [element] as processed by the resolution enqueuer.
-  void registerProcessedElement(AstElement element) {
-    processedElements.add(element);
+  /// Registers [element] as resolved for the resolution enqueuer.
+  void registerResolvedElement(AstElement element) {
+    resolvedElements.add(element);
   }
 
   /**
@@ -843,7 +820,7 @@ class ResolutionEnqueuer extends Enqueuer {
 
     assert(invariant(element, element is AnalyzableElement,
         message: 'Element $element is not analyzable.'));
-    if (hasBeenProcessed(element)) return false;
+    if (hasBeenResolved(element)) return false;
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(element,
           "Resolution work list is closed. Trying to add $element.");
@@ -935,12 +912,12 @@ class ResolutionEnqueuer extends Enqueuer {
   }
 
   void _logSpecificSummary(log(message)) {
-    log('Resolved ${processedElements.length} elements.');
+    log('Resolved ${resolvedElements.length} elements.');
   }
 
   void forgetElement(Element element) {
     super.forgetElement(element);
-    processedElements.remove(element);
+    resolvedElements.remove(element);
   }
 }
 

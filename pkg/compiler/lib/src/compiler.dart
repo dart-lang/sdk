@@ -26,8 +26,7 @@ import 'common/registry.dart' show
 import 'common/resolution.dart' show
     Parsing,
     Resolution,
-    ResolutionWorkItem,
-    ResolutionWorldImpact;
+    ResolutionWorkItem;
 import 'common/tasks.dart' show
     CompilerTask,
     GenericTask;
@@ -770,7 +769,7 @@ abstract class Compiler {
   bool isProxyConstant(ConstantValue value) {
     FieldElement field = coreLibrary.find('proxy');
     if (field == null) return false;
-    if (!resolution.hasBeenResolved(field)) return false;
+    if (!enqueuer.resolution.hasBeenResolved(field)) return false;
     if (proxyConstant == null) {
       proxyConstant =
           constants.getConstantValue(
@@ -1161,7 +1160,7 @@ abstract class Compiler {
       });
     }
     if (!REPORT_EXCESS_RESOLUTION) return;
-    var resolved = new Set.from(enqueuer.resolution.processedElements);
+    var resolved = new Set.from(enqueuer.resolution.resolvedElements);
     for (Element e in enqueuer.codegen.generatedCode.keys) {
       resolved.remove(e);
     }
@@ -1188,7 +1187,7 @@ abstract class Compiler {
     }
   }
 
-  ResolutionWorldImpact analyzeElement(Element element) {
+  WorldImpact analyzeElement(Element element) {
     assert(invariant(element,
            element.impliesType ||
            element.isField ||
@@ -1200,11 +1199,23 @@ abstract class Compiler {
     assert(invariant(element, element is AnalyzableElement,
         message: 'Element $element is not analyzable.'));
     assert(invariant(element, element.isDeclaration));
-    return resolution.analyzeElement(element);
+    ResolutionEnqueuer world = enqueuer.resolution;
+    if (world.hasBeenResolved(element)) {
+      return const WorldImpact();
+    }
+    assert(parser != null);
+    Node tree = parser.parse(element);
+    assert(invariant(element, !element.isSynthesized || tree == null));
+    WorldImpact worldImpact = resolver.resolve(element);
+    if (tree != null && !analyzeSignaturesOnly && !suppressWarnings) {
+      // Only analyze nodes with a corresponding [TreeElements].
+      checker.check(element);
+    }
+    world.registerResolvedElement(element);
+    return worldImpact;
   }
 
-  ResolutionWorldImpact analyze(ResolutionWorkItem work,
-                                ResolutionEnqueuer world) {
+  WorldImpact analyze(ResolutionWorkItem work, ResolutionEnqueuer world) {
     assert(invariant(work.element, identical(world, enqueuer.resolution)));
     assert(invariant(work.element, !work.isAnalyzed,
         message: 'Element ${work.element} has already been analyzed'));
@@ -1212,19 +1223,18 @@ abstract class Compiler {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
       if (phase == PHASE_RESOLVING) {
-        reporter.log(
-            'Resolved ${enqueuer.resolution.processedElements.length} '
+      reporter.log(
+            'Resolved ${enqueuer.resolution.resolvedElements.length} '
             'elements.');
         progress.reset();
       }
     }
     AstElement element = work.element;
-    if (world.hasBeenProcessed(element)) {
-      return const ResolutionWorldImpact();
+    if (world.hasBeenResolved(element)) {
+      return const WorldImpact();
     }
-    ResolutionWorldImpact worldImpact = analyzeElement(element);
+    WorldImpact worldImpact = analyzeElement(element);
     backend.onElementResolved(element, element.resolvedAst.elements);
-    world.registerProcessedElement(element);
     return worldImpact;
   }
 
@@ -1320,7 +1330,7 @@ abstract class Compiler {
     void checkLive(member) {
       if (member.isErroneous) return;
       if (member.isFunction) {
-        if (!enqueuer.resolution.hasBeenProcessed(member)) {
+        if (!enqueuer.resolution.hasBeenResolved(member)) {
           reporter.reportHintMessage(
               member, MessageKind.UNUSED_METHOD, {'name': member.name});
         }
@@ -1480,47 +1490,28 @@ class _CompilerCoreTypes implements CoreTypes {
   _CompilerCoreTypes(this.resolution);
 
   @override
-  InterfaceType get objectType {
-    objectClass.ensureResolved(resolution);
-    return objectClass.rawType;
-  }
+  InterfaceType get objectType => objectClass.computeType(resolution);
 
   @override
-  InterfaceType get boolType {
-    boolClass.ensureResolved(resolution);
-    return boolClass.rawType;
-  }
+  InterfaceType get boolType => boolClass.computeType(resolution);
 
   @override
-  InterfaceType get doubleType {
-    doubleClass.ensureResolved(resolution);
-    return doubleClass.rawType;
-  }
+  InterfaceType get doubleType => doubleClass.computeType(resolution);
 
   @override
-  InterfaceType get functionType {
-    functionClass.ensureResolved(resolution);
-    return functionClass.rawType;
-  }
+  InterfaceType get functionType => functionClass.computeType(resolution);
 
   @override
-  InterfaceType get intType {
-    intClass.ensureResolved(resolution);
-    return intClass.rawType;
-  }
+  InterfaceType get intType => intClass.computeType(resolution);
 
   @override
-  InterfaceType get resourceType {
-    resourceClass.ensureResolved(resolution);
-    return resourceClass.rawType;
-  }
+  InterfaceType get resourceType => resourceClass.computeType(resolution);
 
   @override
   InterfaceType listType([DartType elementType]) {
-    listClass.ensureResolved(resolution);
-    InterfaceType type = listClass.rawType;
+    InterfaceType type = listClass.computeType(resolution);
     if (elementType == null) {
-      return type;
+      return listClass.rawType;
     }
     return type.createInstantiation([elementType]);
   }
@@ -1528,10 +1519,9 @@ class _CompilerCoreTypes implements CoreTypes {
   @override
   InterfaceType mapType([DartType keyType,
                          DartType valueType]) {
-    mapClass.ensureResolved(resolution);
-    InterfaceType type = mapClass.rawType;
+    InterfaceType type = mapClass.computeType(resolution);
     if (keyType == null && valueType == null) {
-      return type;
+      return mapClass.rawType;
     } else if (keyType == null) {
       keyType = const DynamicType();
     } else if (valueType == null) {
@@ -1541,61 +1531,43 @@ class _CompilerCoreTypes implements CoreTypes {
   }
 
   @override
-  InterfaceType get nullType {
-    nullClass.ensureResolved(resolution);
-    return nullClass.rawType;
-  }
+  InterfaceType get nullType => nullClass.computeType(resolution);
 
   @override
-  InterfaceType get numType {
-    numClass.ensureResolved(resolution);
-    return numClass.rawType;
-  }
+  InterfaceType get numType => numClass.computeType(resolution);
 
   @override
-  InterfaceType get stringType {
-    stringClass.ensureResolved(resolution);
-    return stringClass.rawType;
-  }
+  InterfaceType get stringType => stringClass.computeType(resolution);
 
   @override
-  InterfaceType get symbolType {
-    symbolClass.ensureResolved(resolution);
-    return symbolClass.rawType;
-  }
+  InterfaceType get symbolType => symbolClass.computeType(resolution);
 
   @override
-  InterfaceType get typeType {
-    typeClass.ensureResolved(resolution);
-    return typeClass.rawType;
-  }
+  InterfaceType get typeType => typeClass.computeType(resolution);
 
   @override
   InterfaceType iterableType([DartType elementType]) {
-    iterableClass.ensureResolved(resolution);
-    InterfaceType type = iterableClass.rawType;
+    InterfaceType type = iterableClass.computeType(resolution);
     if (elementType == null) {
-      return type;
+      return iterableClass.rawType;
     }
     return type.createInstantiation([elementType]);
   }
 
   @override
   InterfaceType futureType([DartType elementType]) {
-    futureClass.ensureResolved(resolution);
-    InterfaceType type = futureClass.rawType;
+    InterfaceType type = futureClass.computeType(resolution);
     if (elementType == null) {
-      return type;
+      return futureClass.rawType;
     }
     return type.createInstantiation([elementType]);
   }
 
   @override
   InterfaceType streamType([DartType elementType]) {
-    streamClass.ensureResolved(resolution);
-    InterfaceType type = streamClass.rawType;
+    InterfaceType type = streamClass.computeType(resolution);
     if (elementType == null) {
-      return type;
+      return streamClass.rawType;
     }
     return type.createInstantiation([elementType]);
   }
@@ -1948,8 +1920,6 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
 // TODO(johnniwinther): Move [ResolverTask] here.
 class _CompilerResolution implements Resolution {
   final Compiler compiler;
-  final Map<Element, ResolutionWorldImpact> _worldImpactCache =
-      <Element, ResolutionWorldImpact>{};
 
   _CompilerResolution(this.compiler);
 
@@ -1990,27 +1960,6 @@ class _CompilerResolution implements Resolution {
   @override
   DartType resolveTypeAnnotation(Element element, TypeAnnotation node) {
     return compiler.resolver.resolveTypeAnnotation(element, node);
-  }
-
-  ResolutionWorldImpact analyzeElement(Element element) {
-    return _worldImpactCache.putIfAbsent(element, () {
-      assert(compiler.parser != null);
-      Node tree = compiler.parser.parse(element);
-      assert(invariant(element, !element.isSynthesized || tree == null));
-      ResolutionWorldImpact worldImpact = compiler.resolver.resolve(element);
-      if (tree != null &&
-          !compiler.analyzeSignaturesOnly &&
-          !compiler.suppressWarnings) {
-        // Only analyze nodes with a corresponding [TreeElements].
-        compiler.checker.check(element);
-      }
-      return worldImpact;
-    });
-  }
-
-  @override
-  bool hasBeenResolved(Element element) {
-    return _worldImpactCache.containsKey(element);
   }
 }
 

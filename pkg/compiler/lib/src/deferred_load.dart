@@ -304,7 +304,7 @@ class DeferredLoadTask extends CompilerTask {
       // TODO(sigurdm): We want to be more specific about this - need a better
       // way to query "liveness".
       if (astElement is! TypedefElement &&
-          !compiler.enqueuer.resolution.hasBeenProcessed(astElement)) {
+          !compiler.enqueuer.resolution.hasBeenResolved(astElement)) {
         return;
       }
 
@@ -356,7 +356,7 @@ class DeferredLoadTask extends CompilerTask {
       // to.  Static members are not relevant, unless we are processing
       // extra dependencies due to mirrors.
       void addLiveInstanceMember(Element element) {
-        if (!compiler.enqueuer.resolution.hasBeenProcessed(element)) return;
+        if (!compiler.enqueuer.resolution.hasBeenResolved(element)) return;
         if (!isMirrorUsage && !element.isInstanceMember) return;
         collectDependencies(element.implementation);
       }

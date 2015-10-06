@@ -85,7 +85,7 @@ bool checkResults(Compiler compiler, CollectingDiagnosticHandler handler) {
       'pkg/compiler/lib/src/helpers/helpers.dart');
   void checkLive(member) {
     if (member.isFunction) {
-      if (compiler.enqueuer.resolution.hasBeenProcessed(member)) {
+      if (compiler.enqueuer.resolution.hasBeenResolved(member)) {
         compiler.reporter.reportHintMessage(
             member, MessageKind.GENERIC,
             {'text': "Helper function in production code '$member'."});

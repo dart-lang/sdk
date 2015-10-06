@@ -853,7 +853,6 @@ abstract class ClassMemberMixin implements ClassElement {
   /// this class.
   MembersCreator _prepareCreator(Compiler compiler) {
     if (classMembers == null) {
-      ensureResolved(compiler.resolution);
       classMembers = new Map<Name, Member>();
 
       if (interfaceMembersAreClassMembers) {

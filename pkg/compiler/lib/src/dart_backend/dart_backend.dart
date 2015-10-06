@@ -20,9 +20,7 @@ import '../common/registry.dart' show
     Registry;
 import '../common/resolution.dart' show
     Resolution,
-    ResolutionCallbacks,
-    ResolutionWorldImpact,
-    TransformedWorldImpact;
+    ResolutionCallbacks;
 import '../common/tasks.dart' show
     CompilerTask;
 import '../compiler.dart' show

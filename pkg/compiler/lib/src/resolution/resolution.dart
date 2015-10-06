@@ -10,8 +10,7 @@ import '../common/names.dart' show
     Identifiers;
 import '../common/resolution.dart' show
     Parsing,
-    Resolution,
-    ResolutionWorldImpact;
+    Resolution;
 import '../common/tasks.dart' show
     CompilerTask,
     DeferredAction;
@@ -78,14 +77,14 @@ class ResolverTask extends CompilerTask {
 
   Parsing get parsing => compiler.parsing;
 
-  ResolutionWorldImpact resolve(Element element) {
+  WorldImpact resolve(Element element) {
     return measure(() {
       if (Elements.isErroneous(element)) {
         // TODO(johnniwinther): Add a predicate for this.
         assert(invariant(element, element is! ErroneousElement,
             message: "Element $element expected to have parse errors."));
         _ensureTreeElements(element);
-        return const ResolutionWorldImpact();
+        return const WorldImpact();
       }
 
       WorldImpact processMetadata([WorldImpact result]) {
@@ -109,7 +108,7 @@ class ResolverTask extends CompilerTask {
       if (element.isClass) {
         ClassElement cls = element;
         cls.ensureResolved(resolution);
-        return processMetadata(const ResolutionWorldImpact());
+        return processMetadata(const WorldImpact());
       } else if (element.isTypedef) {
         TypedefElement typdef = element;
         return processMetadata(resolveTypedef(typdef));
@@ -287,13 +286,13 @@ class ResolverTask extends CompilerTask {
   WorldImpact resolveMethodElement(FunctionElementX element) {
     assert(invariant(element, element.isDeclaration));
     return reporter.withCurrentElement(element, () {
-      if (compiler.enqueuer.resolution.hasBeenProcessed(element)) {
+      if (compiler.enqueuer.resolution.hasBeenResolved(element)) {
         // TODO(karlklose): Remove the check for [isConstructor]. [elememts]
         // should never be non-null, not even for constructors.
         assert(invariant(element, element.isConstructor,
             message: 'Non-constructor element $element '
                      'has already been analyzed.'));
-        return const ResolutionWorldImpact();
+        return const WorldImpact();
       }
       if (element.isSynthesized) {
         if (element.isGenerativeConstructor) {
@@ -313,7 +312,7 @@ class ResolverTask extends CompilerTask {
         } else {
           assert(element.isDeferredLoaderGetter || element.isErroneous);
           _ensureTreeElements(element);
-          return const ResolutionWorldImpact();
+          return const WorldImpact();
         }
       } else {
         element.parseNode(resolution.parsing);
@@ -718,7 +717,7 @@ class ResolverTask extends CompilerTask {
         // mixin application has been performed.
         // TODO(johnniwinther): Obtain the [TreeElements] for [member]
         // differently.
-        if (compiler.enqueuer.resolution.hasBeenProcessed(member)) {
+        if (compiler.enqueuer.resolution.hasBeenResolved(member)) {
           checkMixinSuperUses(
               member.resolvedAst.elements,
               mixinApplication,
@@ -995,7 +994,7 @@ class ResolverTask extends CompilerTask {
   }
 
   WorldImpact resolveTypedef(TypedefElementX element) {
-    if (element.isResolved) return const ResolutionWorldImpact();
+    if (element.isResolved) return const WorldImpact();
     compiler.world.allTypedefs.add(element);
     return _resolveTypeDeclaration(element, () {
       ResolutionRegistry registry = new ResolutionRegistry(
@@ -1043,7 +1042,7 @@ class ResolverTask extends CompilerTask {
       // and the annotated element instead. This will allow the backend to
       // retrieve the backend constant and only register metadata on the
       // elements for which it is needed. (Issue 17732).
-      registry.registerMetadataConstant(annotation);
+      registry.registerMetadataConstant(annotation, annotatedElement);
       annotation.resolutionState = STATE_DONE;
     }));
   }

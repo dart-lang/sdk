@@ -56,7 +56,7 @@ void checkLibraryElement(Compiler compiler, LibraryElement library) {
 
 /// Check [member] for unrelated types.
 void checkMemberElement(Compiler compiler, MemberElement member) {
-  if (!compiler.resolution.hasBeenResolved(member)) return;
+  if (!compiler.enqueuer.resolution.hasBeenResolved(member)) return;
 
   ResolvedAst resolvedAst = member.resolvedAst;
   RelatedTypesChecker relatedTypesChecker =

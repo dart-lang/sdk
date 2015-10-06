@@ -679,6 +679,11 @@ class World implements ClassWorld {
     return elementsThatCannotThrow.contains(element);
   }
 
+  void registerImplicitSuperCall(Registry registry,
+                                 FunctionElement superConstructor) {
+    registry.registerDependency(superConstructor);
+  }
+
   void registerMightBePassedToApply(Element element) {
     functionsThatMightBePassedToApply.add(element);
   }
