@@ -37,8 +37,14 @@ main(List<String> arguments) {
     case 'analysis':
       defineReflectiveTests(AnalysisTimingIntegrationTest);
       break;
+    case 'highlighting':
+      defineReflectiveTests(HighlightingTimingIntegrationTest);
+      break;
     case 'navigation':
       defineReflectiveTests(NavigationTimingIntegrationTest);
+      break;
+    case 'outline':
+      defineReflectiveTests(OutlineTimingIntegrationTest);
       break;
     default:
       print('unrecognized test name $testName');
@@ -85,25 +91,65 @@ class AnalysisTimingIntegrationTest extends AbstractTimingTest {
 }
 
 @reflectiveTest
-class NavigationTimingIntegrationTest extends AbstractTimingTest {
-  Future test_detect_navigation_done() {
-    expect(priorityFile, isNotNull);
+class HighlightingTimingIntegrationTest extends PriorityFileTimer {
+  @override
+  String get description => 'highlighting';
+
+  @override
+  Stream get eventStream => onAnalysisHighlights;
+
+  @override
+  AnalysisService get service => AnalysisService.HIGHLIGHTS;
+}
+
+@reflectiveTest
+class NavigationTimingIntegrationTest extends PriorityFileTimer {
+  @override
+  String get description => 'navigation';
+
+  @override
+  Stream get eventStream => onAnalysisNavigation;
+
+  @override
+  AnalysisService get service => AnalysisService.NAVIGATION;
+}
+
+@reflectiveTest
+class OutlineTimingIntegrationTest extends PriorityFileTimer {
+  @override
+  String get description => 'outline';
+
+  @override
+  Stream get eventStream => onAnalysisOutline;
+
+  @override
+  AnalysisService get service => AnalysisService.OUTLINE;
+}
+
+abstract class PriorityFileTimer extends AbstractTimingTest {
+  String get description;
+  Stream get eventStream;
+  AnalysisService get service;
+
+  Future test_timing() {
+    expect(priorityFile, isNotNull,
+        reason: 'A priority file must be specified for $description testing.');
     stopwatch.start();
 
     Duration elapsed;
-    onAnalysisNavigation.listen((AnalysisNavigationParams params) {
+    eventStream.listen((_) {
       elapsed = stopwatch.elapsed;
     });
 
     setAnalysisRoot();
     sendAnalysisSetSubscriptions({
-      AnalysisService.NAVIGATION: [priorityFile]
+      service: [priorityFile]
     });
 
     sendAnalysisSetPriorityFiles([priorityFile]);
 
     return analysisFinished.then((_) {
-      print('navigation completed in ${elapsed}');
+      print('$description completed in ${elapsed}');
       stopwatch.reset();
     });
   }
