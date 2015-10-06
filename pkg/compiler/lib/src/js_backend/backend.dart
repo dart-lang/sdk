@@ -1420,7 +1420,7 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerRequiredType(DartType type, Element enclosingElement) {
+  void registerRequiredType(DartType type) {
     // If [argument] has type variables or is a type variable, this method
     // registers a RTI dependency between the class where the type variable is
     // defined (that is the enclosing class of the current element being
@@ -1428,7 +1428,6 @@ class JavaScriptBackend extends Backend {
     // then the class of the type variable does too.
     ClassElement contextClass = Types.getClassContext(type);
     if (contextClass != null) {
-      assert(contextClass == enclosingElement.enclosingClass.declaration);
       rti.registerRtiDependency(type.element, contextClass);
     }
   }
@@ -2427,13 +2426,13 @@ class JavaScriptBackend extends Backend {
         reflectableMembers.add(cls);
         // 2) its constructors (if resolved)
         cls.constructors.forEach((Element constructor) {
-          if (resolution.hasBeenResolved(constructor)) {
+          if (resolution.hasBeenProcessed(constructor)) {
             reflectableMembers.add(constructor);
           }
         });
         // 3) all members, including fields via getter/setters (if resolved)
         cls.forEachClassMember((Member member) {
-          if (resolution.hasBeenResolved(member.element)) {
+          if (resolution.hasBeenProcessed(member.element)) {
             memberNames.add(member.name);
             reflectableMembers.add(member.element);
           }
@@ -2445,8 +2444,8 @@ class JavaScriptBackend extends Backend {
               if (memberNames.contains(member.name)) {
                 // TODO(20993): find out why this assertion fails.
                 // assert(invariant(member.element,
-                //    resolution.hasBeenResolved(member.element)));
-                if (resolution.hasBeenResolved(member.element)) {
+                //    resolution.hasBeenProcessed(member.element)));
+                if (resolution.hasBeenProcessed(member.element)) {
                   reflectableMembers.add(member.element);
                 }
               }
@@ -2462,13 +2461,13 @@ class JavaScriptBackend extends Backend {
       } else {
         // check members themselves
         cls.constructors.forEach((ConstructorElement element) {
-          if (!resolution.hasBeenResolved(element)) return;
+          if (!resolution.hasBeenProcessed(element)) return;
           if (referencedFromMirrorSystem(element, false)) {
             reflectableMembers.add(element);
           }
         });
         cls.forEachClassMember((Member member) {
-          if (!resolution.hasBeenResolved(member.element)) return;
+          if (!resolution.hasBeenProcessed(member.element)) return;
           if (referencedFromMirrorSystem(member.element, false)) {
             reflectableMembers.add(member.element);
           }
@@ -2493,7 +2492,7 @@ class JavaScriptBackend extends Backend {
       if (lib.isInternalLibrary) continue;
       lib.forEachLocalMember((Element member) {
         if (!member.isClass &&
-            resolution.hasBeenResolved(member) &&
+            resolution.hasBeenProcessed(member) &&
             referencedFromMirrorSystem(member)) {
           reflectableMembers.add(member);
         }
@@ -2652,7 +2651,15 @@ class JavaScriptBackend extends Backend {
       reporter.log('Retaining metadata.');
 
       compiler.libraryLoader.libraries.forEach(retainMetadataOf);
-      if (!enqueuer.isResolutionQueue) {
+      if (enqueuer.isResolutionQueue) {
+        for (Dependency dependency in metadataConstants) {
+          registerCompileTimeConstant(
+              dependency.constant,
+              new EagerRegistry(compiler,
+                  dependency.annotatedElement.analyzableElement.treeElements),
+              addForEmission: false);
+        }
+      } else {
         for (Dependency dependency in metadataConstants) {
           registerCompileTimeConstant(
               dependency.constant,
@@ -2799,31 +2806,46 @@ class JavaScriptBackend extends Backend {
                            Enqueuer enqueuer,
                            Registry registry) {
     if (element.asyncMarker == AsyncMarker.ASYNC) {
-      enqueue(enqueuer, getAsyncHelper(), registry);
-      enqueue(enqueuer, getSyncCompleterConstructor(), registry);
-      enqueue(enqueuer, getStreamIteratorConstructor(), registry);
-      enqueue(enqueuer, getWrapBody(), registry);
+      _registerAsync(enqueuer, registry);
     } else if (element.asyncMarker == AsyncMarker.SYNC_STAR) {
-      ClassElement clsSyncStarIterable = getSyncStarIterable();
-      clsSyncStarIterable.ensureResolved(resolution);
-      registerInstantiatedType(clsSyncStarIterable.rawType, enqueuer, registry);
-      enqueue(enqueuer, getSyncStarIterableConstructor(), registry);
-      enqueue(enqueuer, getEndOfIteration(), registry);
-      enqueue(enqueuer, getYieldStar(), registry);
-      enqueue(enqueuer, getSyncStarUncaughtError(), registry);
+      _registerSyncStar(enqueuer, registry);
     } else if (element.asyncMarker == AsyncMarker.ASYNC_STAR) {
-      ClassElement clsASyncStarController = getASyncStarController();
-      clsASyncStarController.ensureResolved(resolution);
-      registerInstantiatedType(
-          clsASyncStarController.rawType, enqueuer, registry);
-      enqueue(enqueuer, getAsyncStarHelper(), registry);
-      enqueue(enqueuer, getStreamOfController(), registry);
-      enqueue(enqueuer, getYieldSingle(), registry);
-      enqueue(enqueuer, getYieldStar(), registry);
-      enqueue(enqueuer, getASyncStarControllerConstructor(), registry);
-      enqueue(enqueuer, getStreamIteratorConstructor(), registry);
-      enqueue(enqueuer, getWrapBody(), registry);
+      _registerAsyncStar(enqueuer, registry);
     }
+  }
+
+  void _registerAsync(Enqueuer enqueuer,
+                      Registry registry) {
+    enqueue(enqueuer, getAsyncHelper(), registry);
+    enqueue(enqueuer, getSyncCompleterConstructor(), registry);
+    enqueue(enqueuer, getStreamIteratorConstructor(), registry);
+    enqueue(enqueuer, getWrapBody(), registry);
+  }
+
+  void _registerSyncStar(Enqueuer enqueuer,
+                         Registry registry) {
+    ClassElement clsSyncStarIterable = getSyncStarIterable();
+    clsSyncStarIterable.ensureResolved(compiler.resolution);
+    registerInstantiatedType(clsSyncStarIterable.rawType, enqueuer, registry);
+    enqueue(enqueuer, getSyncStarIterableConstructor(), registry);
+    enqueue(enqueuer, getEndOfIteration(), registry);
+    enqueue(enqueuer, getYieldStar(), registry);
+    enqueue(enqueuer, getSyncStarUncaughtError(), registry);
+  }
+
+  void _registerAsyncStar(Enqueuer enqueuer,
+                          Registry registry) {
+    ClassElement clsASyncStarController = getASyncStarController();
+    clsASyncStarController.ensureResolved(compiler.resolution);
+    registerInstantiatedType(
+        clsASyncStarController.rawType, enqueuer, registry);
+    enqueue(enqueuer, getAsyncStarHelper(), registry);
+    enqueue(enqueuer, getStreamOfController(), registry);
+    enqueue(enqueuer, getYieldSingle(), registry);
+    enqueue(enqueuer, getYieldStar(), registry);
+    enqueue(enqueuer, getASyncStarControllerConstructor(), registry);
+    enqueue(enqueuer, getStreamIteratorConstructor(), registry);
+    enqueue(enqueuer, getWrapBody(), registry);
   }
 
   @override
@@ -2983,6 +3005,132 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
   final JavaScriptBackend backend;
 
   JavaScriptResolutionCallbacks(this.backend);
+
+  WorldImpact transformImpact(ResolutionWorldImpact worldImpact) {
+    TransformedWorldImpact transformed =
+        new TransformedWorldImpact(worldImpact);
+    for (Feature feature in worldImpact.features) {
+      switch (feature) {
+        case Feature.ABSTRACT_CLASS_INSTANTIATION:
+          onAbstractClassInstantiation(transformed);
+          break;
+        case Feature.ASSERT:
+          onAssert(false, transformed);
+          break;
+        case Feature.ASSERT_WITH_MESSAGE:
+          onAssert(true, transformed);
+          break;
+        case Feature.ASYNC:
+          backend._registerAsync(
+              backend.compiler.enqueuer.resolution, transformed);
+          break;
+        case Feature.ASYNC_FOR_IN:
+          onAsyncForIn(null, transformed);
+          break;
+        case Feature.ASYNC_STAR:
+          backend._registerAsyncStar(
+              backend.compiler.enqueuer.resolution, transformed);
+          break;
+        case Feature.CATCH_STATEMENT:
+          onCatchStatement(transformed);
+          break;
+        case Feature.COMPILE_TIME_ERROR:
+          onCompileTimeError(transformed, null);
+          break;
+        case Feature.FALL_THROUGH_ERROR:
+          onFallThroughError(transformed);
+          break;
+        case Feature.INC_DEC_OPERATION:
+          onIncDecOperation(transformed);
+          break;
+        case Feature.LAZY_FIELD:
+          onLazyField(transformed);
+          break;
+        case Feature.NEW_SYMBOL:
+          backend.registerNewSymbol(transformed);
+          break;
+        case Feature.STACK_TRACE_IN_CATCH:
+          onStackTraceInCatch(transformed);
+          break;
+        case Feature.STRING_INTERPOLATION:
+          onStringInterpolation(transformed);
+          break;
+        case Feature.SUPER_NO_SUCH_METHOD:
+          onSuperNoSuchMethod(transformed);
+          break;
+        case Feature.SYMBOL_CONSTRUCTOR:
+          onSymbolConstructor(transformed);
+          break;
+        case Feature.SYNC_FOR_IN:
+          onSyncForIn(transformed);
+          break;
+        case Feature.SYNC_STAR:
+          backend._registerSyncStar(
+              backend.compiler.enqueuer.resolution, transformed);
+          break;
+        case Feature.THROW_EXPRESSION:
+          onThrowExpression(transformed);
+          break;
+        case Feature.THROW_NO_SUCH_METHOD:
+          onThrowNoSuchMethod(transformed);
+          break;
+        case Feature.THROW_RUNTIME_ERROR:
+          onThrowRuntimeError(transformed);
+          break;
+        case Feature.TYPE_VARIABLE_BOUNDS_CHECK:
+          onTypeVariableBoundCheck(transformed);
+          break;
+      }
+    }
+    for (DartType type in worldImpact.isChecks) {
+      onIsCheck(type, transformed);
+    }
+    for (DartType type in worldImpact.asCasts) {
+      onIsCheck(type, transformed);
+      onAsCheck(type, transformed);
+    }
+    if (backend.compiler.enableTypeAssertions) {
+      for (DartType type in worldImpact.checkedModeChecks) {
+        onIsCheck(type, transformed);
+      }
+    }
+    for (DartType requiredType in worldImpact.requiredTypes) {
+      backend.registerRequiredType(requiredType);
+    }
+    for (MapLiteralUse mapLiteralUse in worldImpact.mapLiterals) {
+      // TODO(johnniwinther): Use the [isEmpty] property when factory
+      // constructors are registered directly.
+      onMapLiteral(transformed, mapLiteralUse.type, mapLiteralUse.isConstant);
+    }
+    for (ListLiteralUse listLiteralUse in worldImpact.listLiterals) {
+      // TODO(johnniwinther): Use the [isConstant] and [isEmpty] property when
+      // factory constructors are registered directly.
+      transformed.registerInstantiation(listLiteralUse.type);
+    }
+    for (DartType typeLiteral in worldImpact.typeLiterals) {
+      onTypeLiteral(typeLiteral, transformed);
+      transformed.registerInstantiation(backend.compiler.coreTypes.typeType);
+      if (typeLiteral.isTypeVariable) {
+        onTypeVariableExpression(transformed, typeLiteral.element);
+      }
+    }
+    for (String constSymbolName in worldImpact.constSymbolNames) {
+      backend.registerConstSymbol(constSymbolName, transformed);
+    }
+    for (LocalFunctionElement closure in worldImpact.closures) {
+      if (closure.computeType(backend.resolution).containsTypeVariables) {
+        backend.registerClosureWithFreeTypeVariables(
+            closure, backend.compiler.enqueuer.resolution, transformed);
+      }
+    }
+    // TODO(johnniwinther): Remove this when dependency tracking is done on
+    // the world impact itself.
+    for (InterfaceType instantiatedType in worldImpact.instantiatedTypes) {
+      transformed.registerInstantiation(instantiatedType);
+    }
+
+    return transformed;
+  }
 
   void registerBackendStaticInvocation(Element element, Registry registry) {
     registry.registerStaticInvocation(backend.registerBackendUse(element));
@@ -3189,7 +3337,7 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
         'Needed to encode the name of super.noSuchMethod.');
   }
 
-  void onMapLiteral(ResolutionRegistry registry,
+  void onMapLiteral(Registry registry,
                     DartType type,
                     bool isConstant) {
     assert(registry.isForResolution);
@@ -3204,7 +3352,7 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
       enqueue(JavaScriptMapConstant.DART_STRING_CLASS);
       enqueue(JavaScriptMapConstant.DART_GENERAL_CLASS);
     } else {
-      registry.registerInstantiatedType(type);
+      registry.registerInstantiation(type);
     }
   }
 

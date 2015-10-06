@@ -671,6 +671,7 @@ class TypeGraphInferrerEngine
       compiler.progress.reset();
     }
     sortResolvedElements().forEach((Element element) {
+      assert(compiler.enqueuer.resolution.hasBeenProcessed(element));
       if (compiler.shouldPrintProgress) {
         reporter.log('Added $addedInGraph elements in inferencing graph.');
         compiler.progress.reset();
@@ -1220,10 +1221,10 @@ class TypeGraphInferrerEngine
   Iterable<Element> sortResolvedElements() {
     int max = 0;
     Map<int, Setlet<Element>> methodSizes = new Map<int, Setlet<Element>>();
-    compiler.enqueuer.resolution.resolvedElements.forEach((AstElement element) {
+    compiler.enqueuer.resolution.processedElements.forEach((AstElement element) {
         // TODO(ngeoffray): Not sure why the resolver would put a null
         // mapping.
-        if (!compiler.enqueuer.resolution.hasBeenResolved(element)) return;
+        if (!compiler.enqueuer.resolution.hasBeenProcessed(element)) return;
         TreeElementMapping mapping = element.resolvedAst.elements;
         element = element.implementation;
         if (element.impliesType) return;

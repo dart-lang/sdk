@@ -26,8 +26,13 @@ import '../common/registry.dart' show
 import '../common/tasks.dart' show
     CompilerTask;
 import '../common/resolution.dart' show
+    Feature,
+    ListLiteralUse,
+    MapLiteralUse,
     Resolution,
-    ResolutionCallbacks;
+    ResolutionCallbacks,
+    ResolutionWorldImpact,
+    TransformedWorldImpact;
 import '../common/work.dart' show
     ItemCompilationContext;
 import '../compiler.dart' show
@@ -77,7 +82,7 @@ import '../js_emitter/js_emitter.dart' show
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
 import '../resolution/registry.dart' show
-    ResolutionRegistry;
+    EagerRegistry;
 import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../ssa/ssa.dart';

@@ -2595,7 +2595,8 @@ abstract class BaseClassElementX extends ElementX
    * The returned element may not be resolved yet.
    */
   ClassElement get superclass {
-    assert(supertypeLoadState == STATE_DONE);
+    assert(invariant(this, supertypeLoadState == STATE_DONE,
+        message: "Superclass has not been computed for $this."));
     return supertype == null ? null : supertype.element;
   }
 
