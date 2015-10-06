@@ -356,7 +356,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   _LocalVisitor(this.request, int offset, this.optype) : super(offset) {
     includeLocalInheritedTypes = !optype.inStaticMethodBody;
     if (request.replacementLength > 0) {
-      var contents = request.source.contents;
+      var contents = request.context.getContents(request.source);
       if (contents != null &&
           contents.data != null &&
           contents.data.startsWith('_', request.replacementOffset)) {
