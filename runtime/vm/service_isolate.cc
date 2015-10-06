@@ -37,15 +37,6 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 }
 
 
-static Dart_Port ExtractPort(Isolate* isolate, Dart_Handle receivePort) {
-  const ReceivePort& rp = Api::UnwrapReceivePortHandle(isolate, receivePort);
-  if (rp.IsNull()) {
-    return ILLEGAL_PORT;
-  }
-  return rp.Id();
-}
-
-
 // These must be kept in sync with service/constants.dart
 #define VM_SERVICE_ISOLATE_EXIT_MESSAGE_ID 0
 #define VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID 1
@@ -87,217 +78,6 @@ intptr_t ServiceIsolate::exit_message_length_ = 0;
 Monitor* ServiceIsolate::monitor_ = NULL;
 bool ServiceIsolate::initializing_ = true;
 bool ServiceIsolate::shutting_down_ = false;
-
-
-class RegisterRunningIsolatesVisitor : public IsolateVisitor {
- public:
-  explicit RegisterRunningIsolatesVisitor(Isolate* service_isolate)
-      : IsolateVisitor(),
-        register_function_(Function::Handle(service_isolate)),
-        service_isolate_(service_isolate) {
-    ASSERT(ServiceIsolate::IsServiceIsolate(Isolate::Current()));
-    // Get library.
-    const String& library_url = Symbols::DartVMService();
-    ASSERT(!library_url.IsNull());
-    const Library& library =
-        Library::Handle(Library::LookupLibrary(library_url));
-    ASSERT(!library.IsNull());
-    // Get function.
-    const String& function_name =
-        String::Handle(String::New("_registerIsolate"));
-    ASSERT(!function_name.IsNull());
-    register_function_ = library.LookupFunctionAllowPrivate(function_name);
-    ASSERT(!register_function_.IsNull());
-  }
-
-  virtual void VisitIsolate(Isolate* isolate) {
-    ASSERT(ServiceIsolate::IsServiceIsolate(Isolate::Current()));
-    if (ServiceIsolate::IsServiceIsolateDescendant(isolate) ||
-        (isolate == Dart::vm_isolate())) {
-      // We do not register the service (and descendants) or the vm-isolate.
-      return;
-    }
-    // Setup arguments for call.
-    Dart_Port port_id = isolate->main_port();
-    const Integer& port_int = Integer::Handle(Integer::New(port_id));
-    ASSERT(!port_int.IsNull());
-    const SendPort& send_port = SendPort::Handle(SendPort::New(port_id));
-    const String& name = String::Handle(String::New(isolate->name()));
-    ASSERT(!name.IsNull());
-    const Array& args = Array::Handle(Array::New(3));
-    ASSERT(!args.IsNull());
-    args.SetAt(0, port_int);
-    args.SetAt(1, send_port);
-    args.SetAt(2, name);
-    Object& r = Object::Handle(service_isolate_);
-    r = DartEntry::InvokeFunction(register_function_, args);
-    if (FLAG_trace_service) {
-      OS::Print("vm-service: Isolate %s %" Pd64 " registered.\n",
-                name.ToCString(),
-                port_id);
-    }
-    ASSERT(!r.IsError());
-  }
-
- private:
-  Function& register_function_;
-  Isolate* service_isolate_;
-};
-
-
-
-class ServiceIsolateNatives : public AllStatic {
- public:
-  static void SendIsolateServiceMessage(Dart_NativeArguments args) {
-    NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Thread* thread = arguments->thread();
-    StackZone stack_zone(thread);
-    Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
-    HANDLESCOPE(thread);
-    GET_NON_NULL_NATIVE_ARGUMENT(SendPort, sp, arguments->NativeArgAt(0));
-    GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(1));
-
-    // Set the type of the OOB message.
-    message.SetAt(0, Smi::Handle(thread->zone(),
-                                 Smi::New(Message::kServiceOOBMsg)));
-
-    // Serialize message.
-    uint8_t* data = NULL;
-    MessageWriter writer(&data, &allocator, false);
-    writer.WriteMessage(message);
-
-    // TODO(turnidge): Throw an exception when the return value is false?
-    bool result = PortMap::PostMessage(
-        new Message(sp.Id(), data, writer.BytesWritten(),
-                    Message::kOOBPriority));
-    arguments->SetReturn(Bool::Get(result));
-  }
-
-  static void SendRootServiceMessage(Dart_NativeArguments args) {
-    NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Thread* thread = arguments->thread();
-    StackZone stack_zone(thread);
-    Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
-    HANDLESCOPE(thread);
-    GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
-    Service::HandleRootMessage(message);
-  }
-
-  static void OnStart(Dart_NativeArguments args) {
-    NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Thread* thread = arguments->thread();
-    Isolate* isolate = thread->isolate();
-    StackZone zone(thread);
-    HANDLESCOPE(thread);
-    {
-      if (FLAG_trace_service) {
-        OS::Print("vm-service: Booting dart:vmservice library.\n");
-      }
-      // Boot the dart:vmservice library.
-      Dart_EnterScope();
-      Dart_Handle url_str =
-          Dart_NewStringFromCString(Symbols::Name(Symbols::kDartVMServiceId));
-      Dart_Handle library = Dart_LookupLibrary(url_str);
-      ASSERT(Dart_IsLibrary(library));
-      Dart_Handle result =
-          Dart_Invoke(library, Dart_NewStringFromCString("boot"), 0, NULL);
-      ASSERT(!Dart_IsError(result));
-      Dart_Port port = ExtractPort(isolate, result);
-      ASSERT(port != ILLEGAL_PORT);
-      ServiceIsolate::SetServicePort(port);
-      Dart_ExitScope();
-    }
-
-    {
-      if (FLAG_trace_service) {
-        OS::Print("vm-service: Registering running isolates.\n");
-      }
-      // Register running isolates with service.
-      RegisterRunningIsolatesVisitor register_isolates(isolate);
-      Isolate::VisitIsolates(&register_isolates);
-    }
-  }
-
-  static void OnExit(Dart_NativeArguments args) {
-    NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Thread* thread = arguments->thread();
-    StackZone zone(thread);
-    HANDLESCOPE(thread);
-    {
-      if (FLAG_trace_service) {
-        OS::Print("vm-service: processed exit message.\n");
-      }
-    }
-  }
-
-  static void ListenStream(Dart_NativeArguments args) {
-    NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Thread* thread = arguments->thread();
-    StackZone stack_zone(thread);
-    Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
-    HANDLESCOPE(thread);
-    GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
-    bool result = Service::ListenStream(stream_id.ToCString());
-    arguments->SetReturn(Bool::Get(result));
-  }
-
-  static void CancelStream(Dart_NativeArguments args) {
-    NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Thread* thread = arguments->thread();
-    StackZone stack_zone(thread);
-    Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
-    HANDLESCOPE(thread);
-    GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
-    Service::CancelStream(stream_id.ToCString());
-  }
-};
-
-
-struct ServiceNativeEntry {
-  const char* name;
-  int num_arguments;
-  Dart_NativeFunction function;
-};
-
-
-static ServiceNativeEntry _ServiceNativeEntries[] = {
-  {"VMService_SendIsolateServiceMessage", 2,
-    ServiceIsolateNatives::SendIsolateServiceMessage},
-  {"VMService_SendRootServiceMessage", 1,
-    ServiceIsolateNatives::SendRootServiceMessage},
-  {"VMService_OnStart", 0,
-    ServiceIsolateNatives::OnStart },
-  {"VMService_OnExit", 0,
-    ServiceIsolateNatives::OnExit },
-  {"VMService_ListenStream", 1,
-    ServiceIsolateNatives::ListenStream },
-  {"VMService_CancelStream", 1,
-    ServiceIsolateNatives::CancelStream },
-};
-
-
-Dart_NativeFunction ServiceIsolate::NativeResolver(Dart_Handle name,
-                                                   int num_arguments,
-                                                   bool* auto_setup_scope) {
-  const Object& obj = Object::Handle(Api::UnwrapHandle(name));
-  if (!obj.IsString()) {
-    return NULL;
-  }
-  const char* function_name = obj.ToCString();
-  ASSERT(function_name != NULL);
-  ASSERT(auto_setup_scope != NULL);
-  *auto_setup_scope = true;
-  intptr_t n = sizeof(_ServiceNativeEntries) /
-               sizeof(_ServiceNativeEntries[0]);
-  for (intptr_t i = 0; i < n; i++) {
-    ServiceNativeEntry entry = _ServiceNativeEntries[i];
-    if ((strcmp(function_name, entry.name) == 0) &&
-        (num_arguments == entry.num_arguments)) {
-      return entry.function;
-    }
-  }
-  return NULL;
-}
 
 
 bool ServiceIsolate::NameEquals(const char* name) {
@@ -688,6 +468,28 @@ void ServiceIsolate::Shutdown() {
       ml.Wait();
     }
   }
+}
+
+
+void ServiceIsolate::BootVmServiceLibrary() {
+  const Library& vmservice_library =
+      Library::Handle(Library::LookupLibrary(Symbols::DartVMService()));
+  ASSERT(!vmservice_library.IsNull());
+  const String& boot_function_name = String::Handle(String::New("boot"));
+  const Function& boot_function =
+      Function::Handle(
+          vmservice_library.LookupFunctionAllowPrivate(boot_function_name));
+  ASSERT(!boot_function.IsNull());
+  const Object& result =
+      Object::Handle(
+          DartEntry::InvokeFunction(boot_function, Object::empty_array()));
+  ASSERT(!result.IsNull());
+  Dart_Port port = ILLEGAL_PORT;
+  if (result.IsReceivePort()) {
+    port = ReceivePort::Cast(result).Id();
+  }
+  ASSERT(port != ILLEGAL_PORT);
+  ServiceIsolate::SetServicePort(port);
 }
 
 }  // namespace dart

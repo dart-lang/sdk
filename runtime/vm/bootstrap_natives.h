@@ -394,7 +394,12 @@ namespace dart {
   V(Profiler_getCurrentTag, 0)                                                 \
   V(ClassID_getID, 1)                                                          \
   V(Num_toString, 1)                                                           \
-
+  V(VMService_SendIsolateServiceMessage, 2)                                    \
+  V(VMService_SendRootServiceMessage, 1)                                       \
+  V(VMService_OnStart, 0)                                                      \
+  V(VMService_OnExit, 0)                                                       \
+  V(VMService_ListenStream, 1)                                                 \
+  V(VMService_CancelStream, 1)                                                 \
 
 class BootstrapNatives : public AllStatic {
  public:

@@ -133,9 +133,8 @@ void Bootstrap::SetupNativeResolver() {
 
   library = Library::VMServiceLibrary();
   ASSERT(!library.IsNull());
-  library.set_native_entry_resolver(
-      reinterpret_cast<Dart_NativeEntryResolver>(
-          &ServiceIsolate::NativeResolver));
+  library.set_native_entry_resolver(resolver);
+  library.set_native_entry_symbol_resolver(symbol_resolver);
 }
 
 

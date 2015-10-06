@@ -14,5 +14,6 @@
     'vmservice/running_isolates.dart',
     'vmservice/message.dart',
     'vmservice/message_router.dart',
+    'vmservice.cc',
   ],
 }

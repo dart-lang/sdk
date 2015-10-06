@@ -195,6 +195,7 @@
         '../lib/math_sources.gypi',
         '../lib/mirrors_sources.gypi',
         '../lib/typed_data_sources.gypi',
+        '../lib/vmservice_sources.gypi',
       ],
       'sources': [
         'bootstrap.cc',

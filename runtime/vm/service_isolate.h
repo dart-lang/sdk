@@ -32,6 +32,8 @@ class ServiceIsolate : public AllStatic {
   static void SendServiceExitMessage();
   static void Shutdown();
 
+  static void BootVmServiceLibrary();
+
  private:
   static void KillServiceIsolate();
 
@@ -47,10 +49,6 @@ class ServiceIsolate : public AllStatic {
     return create_callback_;
   }
 
-  static Dart_NativeFunction NativeResolver(Dart_Handle name,
-                                            int num_arguments,
-                                            bool* auto_setup_scope);
-
   static Dart_IsolateCreateCallback create_callback_;
   static uint8_t* exit_message_;
   static intptr_t exit_message_length_;
@@ -65,7 +63,6 @@ class ServiceIsolate : public AllStatic {
   friend class Dart;
   friend class RunServiceTask;
   friend class ServiceIsolateNatives;
-  friend class Bootstrap;
 };
 
 }  // namespace dart
