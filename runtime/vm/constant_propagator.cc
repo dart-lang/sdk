@@ -1020,7 +1020,7 @@ void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
   if (IsConstant(value) && value.IsInteger()) {
     SetValue(instr, Double::Handle(I,
         Double::New(Integer::Cast(value).AsDoubleValue(), Heap::kOld)));
-  } else if (IsNonConstant(value)) {
+  } else if (!IsUnknown(value)) {
     SetValue(instr, non_constant_);
   }
 }
@@ -1031,7 +1031,7 @@ void ConstantPropagator::VisitMintToDouble(MintToDoubleInstr* instr) {
   if (IsConstant(value) && value.IsInteger()) {
     SetValue(instr, Double::Handle(I,
         Double::New(Integer::Cast(value).AsDoubleValue(), Heap::kOld)));
-  } else if (IsNonConstant(value)) {
+  } else if (!IsUnknown(value)) {
     SetValue(instr, non_constant_);
   }
 }
@@ -1042,7 +1042,7 @@ void ConstantPropagator::VisitInt32ToDouble(Int32ToDoubleInstr* instr) {
   if (IsConstant(value) && value.IsInteger()) {
     SetValue(instr, Double::Handle(I,
         Double::New(Integer::Cast(value).AsDoubleValue(), Heap::kOld)));
-  } else if (IsNonConstant(value)) {
+  } else if (!IsUnknown(value)) {
     SetValue(instr, non_constant_);
   }
 }
