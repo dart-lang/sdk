@@ -14472,9 +14472,12 @@ RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
   if (!CheckAndCanonicalizeFields(error_str)) {
     return Instance::null();
   }
-  Instance& result = Instance::Handle();
-  const Class& cls = Class::Handle(this->clazz());
-  Array& constants = Array::Handle(cls.constants());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  Instance& result = Instance::Handle(zone);
+  const Class& cls = Class::Handle(zone, this->clazz());
+  Array& constants = Array::Handle(zone, cls.constants());
   const intptr_t constants_len = constants.Length();
   // Linear search to see whether this value is already present in the
   // list of canonicalized constants.
@@ -14493,7 +14496,23 @@ RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
   // The value needs to be added to the list. Grow the list if
   // it is full.
   result ^= this->raw();
-  if (result.IsNew()) {
+  if (result.IsNew() ||
+      (result.InVMHeap() && (isolate != Dart::vm_isolate()))) {
+    /**
+     * When a snapshot is generated on a 64 bit architecture and then read
+     * into a 32 bit architecture, values which are Smi on the 64 bit
+     * architecture could potentially be converted to Mint objects, however
+     * since Smi values do not have any notion of canonical bits we lose
+     * that information when the object becomes a Mint.
+     * Some of these values could be literal values and end up in the
+     * VM isolate heap. Later when these values are referenced in a
+     * constant list we try to ensure that all the objects in the list
+     * are canonical and try to canonicalize them. When these Mint objects
+     * are encountered they do not have the canonical bit set and
+     * canonicalizing them won't work as the VM heap is read only now.
+     * In these cases we clone the object into the isolate and then
+     * canonicalize it.
+     */
     // Create a canonical object in old space.
     result ^= Object::Clone(result, Heap::kOld);
   }
