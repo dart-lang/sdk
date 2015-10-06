@@ -183,7 +183,10 @@ class DartCompletionManager extends CompletionManager {
       });
       contributionSorter.sort(
           new OldRequestWrapper(request), request.suggestions);
-      sendResults(request, todo.isEmpty);
+
+      if (todo.isEmpty) {
+        sendResults(request, todo.isEmpty);
+      }
       return todo;
     });
   }
