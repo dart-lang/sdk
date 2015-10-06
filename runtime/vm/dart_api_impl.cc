@@ -5075,6 +5075,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                          CURRENT_FUNC);
   }
   CHECK_CALLBACK_STATE(I);
+  CHECK_COMPILATION_ALLOWED(I);
 
   NoHeapGrowthControlScope no_growth_control;
 
@@ -5118,6 +5119,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
                          CURRENT_FUNC, library_url.ToCString());
   }
   CHECK_CALLBACK_STATE(I);
+  CHECK_COMPILATION_ALLOWED(I);
 
   ASSERT(snapshot->kind() == Snapshot::kScript);
   ScriptSnapshotReader reader(snapshot->content(), snapshot->length(), T);
@@ -5311,6 +5313,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                          CURRENT_FUNC);
   }
   CHECK_CALLBACK_STATE(I);
+  CHECK_COMPILATION_ALLOWED(I);
 
   NoHeapGrowthControlScope no_growth_control;
 
@@ -5368,6 +5371,7 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
     RETURN_TYPE_ERROR(I, prefix, String);
   }
   CHECK_CALLBACK_STATE(I);
+  CHECK_COMPILATION_ALLOWED(I);
 
   const String& prefix_symbol = String::Handle(Z, Symbols::New(prefix_vm));
   const Namespace& import_ns = Namespace::Handle(Z,
@@ -5416,6 +5420,7 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                          CURRENT_FUNC);
   }
   CHECK_CALLBACK_STATE(I);
+  CHECK_COMPILATION_ALLOWED(I);
 
   NoHeapGrowthControlScope no_growth_control;
 
@@ -5445,6 +5450,7 @@ DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
     RETURN_TYPE_ERROR(I, patch_source, String);
   }
   CHECK_CALLBACK_STATE(I);
+  CHECK_COMPILATION_ALLOWED(I);
 
   NoHeapGrowthControlScope no_growth_control;
 

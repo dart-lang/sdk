@@ -316,6 +316,12 @@ class IsolateSaver {
     return reinterpret_cast<Dart_Handle>(Api::AcquiredError(isolate));         \
   }                                                                            \
 
+#define CHECK_COMPILATION_ALLOWED(isolate)                                     \
+  if (!isolate->compilation_allowed()) {                                       \
+    return Api::NewError("%s: Cannot load after Dart_Precompile",              \
+                         CURRENT_FUNC);                                        \
+  }                                                                            \
+
 #define ASSERT_CALLBACK_STATE(isolate)                                         \
   ASSERT(isolate->no_callback_scope_depth() == 0)
 
