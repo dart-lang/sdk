@@ -535,6 +535,10 @@ void PageSpace::AbandonBumpAllocation() {
 
 
 void PageSpace::UpdateMaxCapacityLocked() {
+  if (heap_ == NULL) {
+    // Some unit tests.
+    return;
+  }
   ASSERT(heap_ != NULL);
   ASSERT(heap_->isolate() != NULL);
   Isolate* isolate = heap_->isolate();
