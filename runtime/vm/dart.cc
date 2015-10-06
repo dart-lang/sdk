@@ -363,7 +363,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     I->class_table()->Print();
   }
 
-  ServiceIsolate::MaybeInjectVMServiceLibrary(I);
+  ServiceIsolate::MaybeMakeServiceIsolate(I);
 
   ServiceIsolate::SendIsolateStartupMessage();
   I->debugger()->NotifyIsolateCreated();

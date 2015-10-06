@@ -42,14 +42,14 @@ class ServiceIsolate : public AllStatic {
   static void ConstructExitMessageAndCache(Isolate* isolate);
   static void FinishedExiting();
   static void FinishedInitializing();
-  static void MaybeInjectVMServiceLibrary(Isolate* isolate);
+  static void MaybeMakeServiceIsolate(Isolate* isolate);
   static Dart_IsolateCreateCallback create_callback() {
     return create_callback_;
   }
 
-  static Dart_Handle GetSource(const char* name);
-  static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
-                                       Dart_Handle url);
+  static Dart_NativeFunction NativeResolver(Dart_Handle name,
+                                            int num_arguments,
+                                            bool* auto_setup_scope);
 
   static Dart_IsolateCreateCallback create_callback_;
   static uint8_t* exit_message_;
@@ -65,6 +65,7 @@ class ServiceIsolate : public AllStatic {
   friend class Dart;
   friend class RunServiceTask;
   friend class ServiceIsolateNatives;
+  friend class Bootstrap;
 };
 
 }  // namespace dart

@@ -31,80 +31,6 @@ DEFINE_FLAG(bool, trace_service, false, "Trace VM service requests.");
 DEFINE_FLAG(bool, trace_service_pause_events, false,
             "Trace VM service isolate pause events.");
 
-struct ResourcesEntry {
-  const char* path_;
-  const char* resource_;
-  int length_;
-};
-
-extern ResourcesEntry __service_resources_[];
-
-class Resources {
- public:
-  static const int kNoSuchInstance = -1;
-  static int ResourceLookup(const char* path, const char** resource) {
-    ResourcesEntry* table = ResourceTable();
-    for (int i = 0; table[i].path_ != NULL; i++) {
-      const ResourcesEntry& entry = table[i];
-      if (strcmp(path, entry.path_) == 0) {
-        *resource = entry.resource_;
-        ASSERT(entry.length_ > 0);
-        return entry.length_;
-      }
-    }
-    return kNoSuchInstance;
-  }
-
-  static const char* Path(int idx) {
-    ASSERT(idx >= 0);
-    ResourcesEntry* entry = At(idx);
-    if (entry == NULL) {
-      return NULL;
-    }
-    ASSERT(entry->path_ != NULL);
-    return entry->path_;
-  }
-
-  static int Length(int idx) {
-    ASSERT(idx >= 0);
-    ResourcesEntry* entry = At(idx);
-    if (entry == NULL) {
-      return kNoSuchInstance;
-    }
-    ASSERT(entry->path_ != NULL);
-    return entry->length_;
-  }
-
-  static const uint8_t* Resource(int idx) {
-    ASSERT(idx >= 0);
-    ResourcesEntry* entry = At(idx);
-    if (entry == NULL) {
-      return NULL;
-    }
-    return reinterpret_cast<const uint8_t*>(entry->resource_);
-  }
-
- private:
-  static ResourcesEntry* At(int idx) {
-    ASSERT(idx >= 0);
-    ResourcesEntry* table = ResourceTable();
-    for (int i = 0; table[i].path_ != NULL; i++) {
-      if (idx == i) {
-        return &table[i];
-      }
-    }
-    return NULL;
-  }
-
-  static ResourcesEntry* ResourceTable() {
-    return &__service_resources_[0];
-  }
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_IMPLICIT_CONSTRUCTORS(Resources);
-};
-
-
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
@@ -350,9 +276,9 @@ static ServiceNativeEntry _ServiceNativeEntries[] = {
 };
 
 
-static Dart_NativeFunction ServiceNativeResolver(Dart_Handle name,
-                                                 int num_arguments,
-                                                 bool* auto_setup_scope) {
+Dart_NativeFunction ServiceIsolate::NativeResolver(Dart_Handle name,
+                                                   int num_arguments,
+                                                   bool* auto_setup_scope) {
   const Object& obj = Object::Handle(Api::UnwrapHandle(name));
   if (!obj.IsString()) {
     return NULL;
@@ -529,7 +455,7 @@ void ServiceIsolate::SetLoadPort(Dart_Port port) {
 }
 
 
-void ServiceIsolate::MaybeInjectVMServiceLibrary(Isolate* I) {
+void ServiceIsolate::MaybeMakeServiceIsolate(Isolate* I) {
   Thread* T = Thread::Current();
   ASSERT(I == T->isolate());
   ASSERT(I != NULL);
@@ -543,46 +469,6 @@ void ServiceIsolate::MaybeInjectVMServiceLibrary(Isolate* I) {
     return;
   }
   SetServiceIsolate(I);
-
-  StackZone zone(T);
-  HANDLESCOPE(T);
-
-  // Register dart:vmservice library.
-  const String& url_str = String::Handle(Z, Symbols::DartVMService().raw());
-  const Library& library = Library::Handle(Z, Library::New(url_str));
-  library.Register();
-  library.set_native_entry_resolver(ServiceNativeResolver);
-
-  // Temporarily install our library tag handler.
-  I->set_library_tag_handler(LibraryTagHandler);
-
-  // Get script source.
-  const char* resource = NULL;
-  const char* path = "/vmservice.dart";
-  intptr_t r = Resources::ResourceLookup(path, &resource);
-  ASSERT(r != Resources::kNoSuchInstance);
-  ASSERT(resource != NULL);
-  const String& source_str = String::Handle(Z,
-      String::FromUTF8(reinterpret_cast<const uint8_t*>(resource), r));
-  ASSERT(!source_str.IsNull());
-  const Script& script = Script::Handle(Z,
-      Script::New(url_str, source_str, RawScript::kLibraryTag));
-
-  // Compile script.
-  Dart_EnterScope();  // Need to enter scope for tag handler.
-  library.SetLoadInProgress();
-  const Error& error = Error::Handle(Z, Compiler::Compile(library, script));
-  if (!error.IsNull()) {
-    OS::PrintErr("vm-service: Isolate creation error: %s\n",
-          error.ToErrorCString());
-  }
-  ASSERT(error.IsNull());
-  Dart_Handle result = Dart_FinalizeLoading(false);
-  ASSERT(!Dart_IsError(result));
-  Dart_ExitScope();
-
-  // Uninstall our library tag handler.
-  I->set_library_tag_handler(NULL);
 }
 
 
@@ -802,53 +688,6 @@ void ServiceIsolate::Shutdown() {
       ml.Wait();
     }
   }
-}
-
-
-Dart_Handle ServiceIsolate::GetSource(const char* name) {
-  ASSERT(name != NULL);
-  int i = 0;
-  while (true) {
-    const char* path = Resources::Path(i);
-    if (path == NULL) {
-      break;
-    }
-    ASSERT(*path != '\0');
-    // Skip the '/'.
-    path++;
-    if (strcmp(name, path) == 0) {
-      const uint8_t* str = Resources::Resource(i);
-      intptr_t length = Resources::Length(i);
-      return Dart_NewStringFromUTF8(str, length);
-    }
-    i++;
-  }
-  FATAL1("vm-service: Could not find embedded source file: %s ", name);
-  return Dart_Null();
-}
-
-
-Dart_Handle ServiceIsolate::LibraryTagHandler(Dart_LibraryTag tag,
-                                              Dart_Handle library,
-                                              Dart_Handle url) {
-  if (tag == Dart_kCanonicalizeUrl) {
-    // url is already canonicalized.
-    return url;
-  }
-  if (tag != Dart_kSourceTag) {
-    FATAL("ServiceIsolate::LibraryTagHandler encountered an unexpected tag.");
-  }
-  ASSERT(tag == Dart_kSourceTag);
-  const char* url_string = NULL;
-  Dart_Handle result = Dart_StringToCString(url, &url_string);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  Dart_Handle source = GetSource(url_string);
-  if (Dart_IsError(source)) {
-    return source;
-  }
-  return Dart_LoadSource(library, url, source, 0, 0);
 }
 
 }  // namespace dart

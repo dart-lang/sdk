@@ -382,9 +382,17 @@ static RawInstance* CreateLibraryMirror(const Library& lib) {
   str = lib.name();
   args.SetAt(1, str);
   str = lib.url();
-  if (str.Equals("dart:_builtin") || str.Equals("dart:_blink")) {
-    // Censored library (grumble).
-    return Instance::null();
+  const char* censored_libraries[] = {
+    "dart:_builtin",
+    "dart:_blink",
+    "dart:_vmservice",
+    NULL,
+  };
+  for (intptr_t i = 0; censored_libraries[i] != NULL; i++) {
+    if (str.Equals(censored_libraries[i])) {
+      // Censored library (grumble).
+      return Instance::null();
+    }
   }
   if (str.Equals("dart:io")) {
     // Hack around dart:io being loaded into non-service isolates in Dartium.

@@ -10259,6 +10259,11 @@ RawLibrary* Library::TypedDataLibrary() {
 }
 
 
+RawLibrary* Library::VMServiceLibrary() {
+  return Isolate::Current()->object_store()->vmservice_library();
+}
+
+
 const char* Library::ToCString() const {
   const String& name = String::Handle(url());
   return OS::SCreate(Thread::Current()->zone(),

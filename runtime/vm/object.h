@@ -3491,6 +3491,7 @@ class Library : public Object {
   static RawLibrary* NativeWrappersLibrary();
   static RawLibrary* ProfilerLibrary();
   static RawLibrary* TypedDataLibrary();
+  static RawLibrary* VMServiceLibrary();
 
   // Eagerly compile all classes and functions in the library.
   static RawError* CompileAll();
