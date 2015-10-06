@@ -290,7 +290,7 @@ void testProxyIPV6() {
   setupProxyServer(ipV6: true).then((proxyServer) {
   setupServer(1, directRequestPaths: ["/4"]).then((server) {
   setupServer(1, directRequestPaths: ["/4"], secure: true).then((secureServer) {
-    HttpClient client = new HttpClient();
+    HttpClient client = new HttpClient(context: clientContext);
 
     List<String> proxy = ["PROXY [::1]:${proxyServer.port}"];
     client.findProxy = (Uri uri) {
@@ -340,7 +340,7 @@ void testProxyFromEnviroment() {
   setupProxyServer().then((proxyServer) {
   setupServer(1).then((server) {
   setupServer(1, secure: true).then((secureServer) {
-    HttpClient client = new HttpClient();
+    HttpClient client = new HttpClient(context: clientContext);
 
     client.findProxy = (Uri uri) {
       return HttpClient.findProxyFromEnvironment(
@@ -394,7 +394,7 @@ Future testProxyAuthenticate(bool useDigestAuthentication) {
   setupProxyServer().then((proxyServer) {
   setupServer(1).then((server) {
   setupServer(1, secure: true).then((secureServer) {
-    HttpClient client = new HttpClient();
+    HttpClient client = new HttpClient(context: clientContext);
 
     Completer step1 = new Completer();
     Completer step2 = new Completer();
@@ -543,7 +543,7 @@ Future testProxyAuthenticate(bool useDigestAuthentication) {
 int testRealProxyDoneCount = 0;
 void testRealProxy() {
   setupServer(1).then((server) {
-    HttpClient client = new HttpClient();
+    HttpClient client = new HttpClient(context: clientContext);
      client.addProxyCredentials(
          "localhost",
          8080,
@@ -586,7 +586,7 @@ void testRealProxy() {
 int testRealProxyAuthDoneCount = 0;
 void testRealProxyAuth() {
   setupServer(1).then((server) {
-    HttpClient client = new HttpClient();
+    HttpClient client = new HttpClient(context: clientContext);
 
     List<String> proxy =
         ["PROXY dart:password@localhost:8080",

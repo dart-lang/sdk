@@ -285,7 +285,7 @@ Future<ProxyServer> setupProxyServer({ipV6: false}) {
 }
 
 testInvalidProxy() {
-  HttpClient client = new HttpClient();
+  HttpClient client = new HttpClient(context: clientContext);
 
   client.findProxy = (Uri uri) => "";
   client.getUrl(Uri.parse("http://www.google.com/test"))
@@ -307,7 +307,7 @@ testInvalidProxy() {
 int testDirectDoneCount = 0;
 void testDirectProxy() {
   setupServer(0).then((server) {
-    HttpClient client = new HttpClient();
+    HttpClient client = new HttpClient(context: clientContext);
     List<String> proxy =
         ["DIRECT", " DIRECT ", "DIRECT ;", " DIRECT ; ",
          ";DIRECT", " ; DIRECT ", ";;DIRECT;;"];
@@ -416,7 +416,7 @@ void testProxyChain() {
   proxyServer1.client.findProxy = (_) => "PROXY localhost:${proxyServer2.port}";
 
   setupServer(2, directRequestPaths: ["/4"]).then((server) {
-    HttpClient client = new HttpClient();
+    HttpClient client = new HttpClient(context: clientContext);
 
     List<String> proxy;
     if (Platform.operatingSystem == "windows") {

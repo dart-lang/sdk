@@ -43,19 +43,32 @@ static const int kX509NativeFieldIndex = 0;
 static const bool SSL_LOG_STATUS = false;
 static const bool SSL_LOG_DATA = false;
 
-static const int SSL_ERROR_MESSAGE_BUFFER_SIZE = 200;
+static const int SSL_ERROR_MESSAGE_BUFFER_SIZE = 1000;
 
 /* Handle an error reported from the BoringSSL library. */
 static void ThrowIOException(int status,
                              const char* exception_type,
                              const char* message,
                              bool free_message = false) {
-  // TODO(24068): Get the error code and message from the error stack.
-  // There may be more than one error on the stack - should we
-  // concatenate the error messages?
-  int error_code = status;
-  const char* error_message = "Error from BoringSSL library";
-  OSError os_error_struct(error_code, error_message, OSError::kBoringSSL);
+  char error_string[SSL_ERROR_MESSAGE_BUFFER_SIZE];
+  error_string[0] = '\0';
+  int error = ERR_get_error();
+  while (error != 0) {
+    int length = strnlen(error_string, SSL_ERROR_MESSAGE_BUFFER_SIZE);
+    int free_length = SSL_ERROR_MESSAGE_BUFFER_SIZE - length;
+    if (free_length > 16) {
+      // Enough room for error code at least.
+      if (length > 0) {
+        error_string[length] = '\n';
+        error_string[length + 1] = '\0';
+        length++;
+        free_length--;
+      }
+      ERR_error_string_n(error, error_string + length, free_length);
+    }
+    error = ERR_get_error();
+  }
+  OSError os_error_struct(status, error_string, OSError::kBoringSSL);
   Dart_Handle os_error = DartUtils::NewDartOSError(&os_error_struct);
   Dart_Handle exception =
       DartUtils::NewDartIOException(exception_type, message, os_error);
