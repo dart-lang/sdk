@@ -7088,6 +7088,7 @@ class LibraryElementBuilder {
         .buildCompilationUnit(
             librarySource, definingCompilationUnit, librarySource);
     NodeList<Directive> directives = definingCompilationUnit.directives;
+    LibraryDirective libraryDirective = null;
     LibraryIdentifier libraryNameNode = null;
     bool hasPartDirective = false;
     FunctionElement entryPoint =
@@ -7105,6 +7106,7 @@ class LibraryElementBuilder {
       //
       if (directive is LibraryDirective) {
         if (libraryNameNode == null) {
+          libraryDirective = directive;
           libraryNameNode = directive.name;
           directivesToResolve.add(directive);
         }
@@ -7163,6 +7165,7 @@ class LibraryElementBuilder {
     //
     LibraryElementImpl libraryElement = new LibraryElementImpl.forNode(
         _analysisContext.getContextFor(librarySource), libraryNameNode);
+    _setDocRange(libraryElement, libraryDirective);
     libraryElement.definingCompilationUnit = definingCompilationUnitElement;
     if (entryPoint != null) {
       libraryElement.entryPoint = entryPoint;
@@ -7194,6 +7197,7 @@ class LibraryElementBuilder {
         .buildCompilationUnit(
             librarySource, definingCompilationUnit, librarySource);
     NodeList<Directive> directives = definingCompilationUnit.directives;
+    LibraryDirective libraryDirective = null;
     LibraryIdentifier libraryNameNode = null;
     bool hasPartDirective = false;
     FunctionElement entryPoint =
@@ -7211,6 +7215,7 @@ class LibraryElementBuilder {
       //
       if (directive is LibraryDirective) {
         if (libraryNameNode == null) {
+          libraryDirective = directive;
           libraryNameNode = directive.name;
           directivesToResolve.add(directive);
         }
@@ -7271,6 +7276,7 @@ class LibraryElementBuilder {
     //
     LibraryElementImpl libraryElement = new LibraryElementImpl.forNode(
         _analysisContext.getContextFor(librarySource), libraryNameNode);
+    _setDocRange(libraryElement, libraryDirective);
     libraryElement.definingCompilationUnit = definingCompilationUnitElement;
     if (entryPoint != null) {
       libraryElement.entryPoint = entryPoint;
@@ -7371,6 +7377,19 @@ class LibraryElementBuilder {
             getter.variable as PropertyInducingElementImpl;
         variable.setter = setter;
         (setter as PropertyAccessorElementImpl).variable = variable;
+      }
+    }
+  }
+
+  /**
+   * If the given [node] has a documentation comment, remember its range
+   * into the given [element].
+   */
+  void _setDocRange(ElementImpl element, LibraryDirective node) {
+    if (node != null) {
+      Comment comment = node.documentationComment;
+      if (comment != null && comment.isDocumentation) {
+        element.setDocRange(comment.offset, comment.length);
       }
     }
   }

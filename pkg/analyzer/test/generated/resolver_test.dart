@@ -5931,6 +5931,21 @@ void set V(int v) {}''');
     expect(unit.topLevelVariables, hasLength(0));
   }
 
+  void test_libraryElement_docRange() {
+    String code = r'''
+/// My dart doc.
+library lib;
+
+class A {}''';
+    Source librarySource = addSource("/lib.dart", code);
+    LibraryElement element = _buildLibrary(librarySource);
+    expect(element, isNotNull);
+    SourceRange docRange = element.docRange;
+    expect(docRange, isNotNull);
+    expect(docRange.offset, code.indexOf('/// My dart doc.'));
+    expect(docRange.length, '/// My dart doc.'.length);
+  }
+
   void test_missingLibraryDirectiveWithPart() {
     addSource("/a.dart", "part of lib;");
     Source librarySource = addSource("/lib.dart", "part 'a.dart';");
@@ -5989,6 +6004,7 @@ class C {}''');
     Source librarySource = addSource(
         "/lib.dart",
         r'''
+/// My dart doc.
 library lib;
 
 class A {}''');
