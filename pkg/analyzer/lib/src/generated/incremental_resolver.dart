@@ -493,6 +493,24 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       _assertCompatibleParameter(node.parameter, element);
     } else if (node is FieldFormalParameter) {
       _assertTrue(element.isInitializingFormal);
+      DartType parameterType = element.type;
+      if (node.type == null && node.parameters == null) {
+        FieldFormalParameterElement parameterElement = element;
+        if (!parameterElement.hasImplicitType) {
+          _assertTrue(parameterType == null || parameterType.isDynamic);
+        }
+        if (parameterElement.field != null) {
+          _assertEquals(node.identifier.name, element.name);
+        }
+      } else {
+        if (node.parameters != null) {
+          _assertTrue(parameterType is FunctionType);
+          FunctionType parameterFunctionType = parameterType;
+          _assertSameType(node.type, parameterFunctionType.returnType);
+        } else {
+          _assertSameType(node.type, parameterType);
+        }
+      }
       _assertCompatibleParameters(node.parameters, element.parameters);
     } else if (node is FunctionTypedFormalParameter) {
       _assertFalse(element.isInitializingFormal);
