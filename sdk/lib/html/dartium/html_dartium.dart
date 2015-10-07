@@ -1175,8 +1175,9 @@ wrap_jso(jsObject) {
 
     var dartClass_instance;
     if (jsObject.hasProperty('dart_class')) {
-      // Got a dart_class (it's a custom element) use it it's already set up.
-      dartClass_instance = jsObject['dart_class'];
+      // Got a dart_class (it's a custom element) use it it's already set up
+      // make sure it's upgraded.
+      dartClass_instance = _upgradeHtmlElement(jsObject['dart_class']);
     } else {
       var localName = jsObject['localName'];
       var customElementClass = _knownCustomeElements[localName];
@@ -1248,6 +1249,29 @@ wrap_jso_custom_element(jsObject) {
     // Problem?
     return null;
   }
+}
+
+// Upgrade a Dart HtmlElement to the user's Dart custom element class.
+_upgradeHtmlElement(dartInstance) {
+  var dartInstanceMirror = reflect(dartInstance);
+  if (dartInstanceMirror.type.qualifiedName == #dart.dom.html.HtmlElement) {
+    // Must be exactly HtmlElement not something derived from it.
+    var jsObject = dartInstance.blink_jsObject;
+    var localName = dartInstance.localName;
+    var customElementClass = _knownCustomeElements[localName];
+    // Custom Element to upgrade.
+    if (customElementClass != null) {
+      try {
+        dartInstance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
+      } finally {
+        dartInstance.blink_jsObject = jsObject;
+        jsObject['dart_class'] = dartInstance;
+        js.setDartHtmlWrapperFor(jsObject, dartInstance);
+     }
+   }
+  }
+
+  return dartInstance;
 }
 
 class DebugAssertException implements Exception {
@@ -9168,6 +9192,9 @@ class CustomEvent extends Event {
     } else {
       e._initCustomEvent(type, canBubble, cancelable, null);
     }
+
+    // Need for identity.
+    e.blink_jsObject['dart_class'] = e;
 
     return e;
   }
@@ -47284,6 +47311,10 @@ class _VMElementUpgrader implements ElementUpgrader {
     if (element.runtimeType != js.JsObjectImpl) {
       throw new UnsupportedError('Element is incorrect type');
     }
+
+    // Remember Dart class to tagName for any upgrading done in wrap_jso.
+    var tag = element['localName'];
+    _knownCustomeElements[tag] = _type;
 
     return createCustomUpgrader(_nativeType, element);
   }

@@ -31,6 +31,10 @@ class _VMElementUpgrader implements ElementUpgrader {
       throw new UnsupportedError('Element is incorrect type');
     }
 
+    // Remember Dart class to tagName for any upgrading done in wrap_jso.
+    var tag = element['localName'];
+    _knownCustomeElements[tag] = _type;
+
     return createCustomUpgrader(_nativeType, element);
   }
 }
