@@ -4079,11 +4079,6 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   ASSERT((node->label() == NULL) || !is_top_level_sequence);
   NestedBlock nested_block(owner(), node);
 
-  if (FLAG_support_debugger && is_top_level_sequence) {
-    AddInstruction(new(Z) DebugStepCheckInstr(function.token_pos(),
-                                              RawPcDescriptors::kRuntimeCall));
-  }
-
   if (num_context_variables > 0) {
     // The local scope declares variables that are captured.
     // Allocate and chain a new context (Except don't chain when at the function
@@ -4144,6 +4139,27 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         }
       }
     }
+  }
+
+  if (FLAG_support_debugger &&
+      is_top_level_sequence &&
+      function.is_debuggable()) {
+    // Place a debug check at method entry to ensure breaking on a method always
+    // happens, even if there are no assignments/calls/runtimecalls in the first
+    // basic block. Place this check at the last parameter to ensure parameters
+    // are in scope in the debugger at method entry.
+    const int num_params = function.NumParameters();
+    intptr_t check_pos = Scanner::kNoSourcePos;
+    if (num_params > 0) {
+      const LocalVariable& parameter = *scope->VariableAt(num_params - 1);
+      check_pos = parameter.token_pos();
+    }
+    if (check_pos == Scanner::kNoSourcePos) {
+      // No parameters or synthetic parameters.
+      check_pos = node->token_pos();
+    }
+    AddInstruction(new(Z) DebugStepCheckInstr(check_pos,
+                                              RawPcDescriptors::kRuntimeCall));
   }
 
   // This check may be deleted if the generated code is leaf.

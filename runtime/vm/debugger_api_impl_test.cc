@@ -663,6 +663,7 @@ static const char* step_into_expected_bpts[] = {
       "foo",       // entry
       "foo",       // call f1
         "f1",      // entry
+        "f1",      // return
       "foo",       // call initializer
       "foo",       // call kvmk
         "X.kvmk",  // entry
@@ -832,7 +833,7 @@ void TestSingleStepHandler(Dart_IsolateId isolate_id,
   Dart_StackTrace trace;
   Dart_GetStackTrace(&trace);
   const char* expected_bpts[] = {
-      "moo", "foo", "moo", "foo", "moo", "foo", "main"};
+      "moo", "moo", "foo", "moo", "moo", "foo", "moo", "moo", "foo", "main"};
   const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
