@@ -151,8 +151,7 @@ class VMService extends MessageRouter {
         return;
       }
     }
-    Logger.root.severe(
-        'Internal vm-service error: ignoring illegal message: $message');
+    print('Internal vm-service error: ignoring illegal message: $message');
   }
 
   void _notSupported(_) {
