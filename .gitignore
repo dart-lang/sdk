@@ -6,3 +6,4 @@ build
 .settings
 pubspec.lock
 .packages
+linter.iml
