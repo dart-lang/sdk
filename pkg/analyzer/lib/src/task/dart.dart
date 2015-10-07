@@ -3860,7 +3860,7 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
       LIBRARY_INPUT: LIBRARY_ELEMENT1.of(unit.library),
-      UNIT_INPUT: RESOLVED_UNIT1.of(unit),
+      UNIT_INPUT: RESOLVED_UNIT3.of(unit),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }
