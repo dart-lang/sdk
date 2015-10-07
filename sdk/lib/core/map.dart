@@ -149,7 +149,7 @@ abstract class Map<K, V> {
   /**
    * Returns true if this map contains the given [key].
    *
-   * Returns true if any of the keys in the map ar equal to `key`
+   * Returns true if any of the keys in the map are equal to `key`
    * according to the equality used by the map.
    */
   bool containsKey(Object key);
