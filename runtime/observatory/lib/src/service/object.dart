@@ -1109,6 +1109,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @reflectable VM get vm => owner;
   @reflectable Isolate get isolate => this;
   @observable int number;
+  @observable int originNumber;
   @observable DateTime startTime;
   @observable Duration get upTime =>
       (new DateTime.now().difference(startTime));
@@ -1349,6 +1350,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     loading = false;
 
     _upgradeCollection(map, isolate);
+    originNumber = int.parse(map['_originNumber'], onError:(_) => null);
     rootLibrary = map['rootLib'];
     if (map['entry'] != null) {
       entry = map['entry'];

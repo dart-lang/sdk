@@ -969,21 +969,59 @@ class IsolateCommand extends DebuggerCommand {
       '        isolate <name>\n';
 }
 
+String _isolateRunState(Isolate isolate) {
+  if (isolate.paused) {
+    return 'paused';
+  } else if (isolate.running) {
+    return 'running';
+  } else if (isolate.idle) {
+    return 'idle';
+  } else {
+    return 'unknown';
+  }
+}
+
 class IsolateListCommand extends DebuggerCommand {
   IsolateListCommand(Debugger debugger) : super(debugger, 'list', []);
 
-  Future run(List<String> args) {
+  Future run(List<String> args) async {
     if (debugger.vm == null) {
       debugger.console.print(
           "Internal error: vm has not been set");
-      return new Future.value(null);
+      return;
     }
+
+    // Refresh all isolates first.
+    var pending = [];
     for (var isolate in debugger.vm.isolates) {
-      String current = (isolate == debugger.isolate ? ' *' : '');
-      debugger.console.print(
-          "Isolate ${isolate.number} '${isolate.name}'${current}");
+      pending.add(isolate.reload());
     }
-    return new Future.value(null);
+    await Future.wait(pending);
+
+    const maxIdLen = 9;
+    const maxRunStateLen = 7;
+    var maxNameLen = 0;
+    for (var isolate in debugger.vm.isolates) {
+      if (isolate.name.length > maxNameLen) {
+        maxNameLen = isolate.name.length;
+      }
+    }
+
+    debugger.console.print("${'ID'.padLeft(maxIdLen, ' ')} "
+                           "${'ORIGIN'.padLeft(maxIdLen, ' ')} "
+                           "${'NAME'.padRight(maxNameLen, ' ')} "
+                           "${'STATE'.padRight(maxRunStateLen, ' ')} "
+                           "CURRENT");
+    for (var isolate in debugger.vm.isolates) {
+      String current = (isolate == debugger.isolate ? '*' : '');
+      debugger.console.print(
+          "${isolate.number.toString().padLeft(maxIdLen, ' ')} "
+          "${isolate.originNumber.toString().padLeft(maxIdLen, ' ')} "
+          "${isolate.name.padRight(maxNameLen, ' ')} "
+          "${_isolateRunState(isolate).padRight(maxRunStateLen, ' ')} "
+          "${current}");
+    }
+    debugger.console.newline();
   }
 
   String helpShort = 'List all isolates';

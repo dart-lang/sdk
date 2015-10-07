@@ -1846,6 +1846,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   if (ref) {
     return;
   }
+  jsobj.AddPropertyF("_originNumber", "%" Pd "",
+                     static_cast<intptr_t>(origin_id()));
   int64_t start_time_millis = start_time() / kMicrosecondsPerMillisecond;
   jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
   {

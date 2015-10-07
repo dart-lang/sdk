@@ -17,6 +17,7 @@ var tests = [
     expect(result['type'], equals('Isolate'));
     expect(result['id'], startsWith('isolates/'));
     expect(result['number'], new isInstanceOf<String>());
+    expect(result['_originNumber'], equals(result['number']));
     expect(result['startTime'], isPositive);
     expect(result['livePorts'], isPositive);
     expect(result['pauseOnExit'], isFalse);
