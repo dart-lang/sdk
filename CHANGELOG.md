@@ -19,6 +19,9 @@
     allowed by the HTTP protocol.
     The `HttpServer` still gracefully receives fragments, but discards them
     before delivering the request.
+  * Removed server socket references. The use of server socket references
+    was deprecated back in 1.9. Use the `shared` flag when creating listening
+    sockets and `HttpServer` to distribute accepted sockets between isolates.
 
 ### Tool changes
 
