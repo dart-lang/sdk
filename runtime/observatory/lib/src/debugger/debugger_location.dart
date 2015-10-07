@@ -420,7 +420,7 @@ class DebuggerLocation {
         }
         var sharedPrefix = '${script.name}:${lineStr}:';
         List completions = [];
-        int maxCol = scriptLine.text.runes.length;
+        int maxCol = scriptLine.text.trimRight().runes.length;
         for (int i = 1; i <= maxCol; i++) {
           var currentColStr = i.toString();
           if (currentColStr.startsWith(colStr)) {
