@@ -197,6 +197,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'CanvasRenderingContext2D.arc',
   'CanvasRenderingContext2D.drawImage',
   'CanvasRenderingContext2D.getLineDash',
+  'Crypto.getRandomValues',
   'CSSStyleDeclaration.getPropertyValue',
   'CSSStyleDeclaration.setProperty',
   'CSSStyleDeclaration.var',

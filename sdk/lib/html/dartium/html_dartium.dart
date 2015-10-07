@@ -5136,20 +5136,30 @@ class CredentialsContainer extends NativeFieldWrapperClass2 {
   }
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DocsEditable()
 @DomName('Crypto')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental()
 // http://www.w3.org/TR/WebCryptoAPI/
 class Crypto extends NativeFieldWrapperClass2 {
+
+  TypedData getRandomValues(TypedData array) {
+    var random = _getRandomValues(array);
+    // The semantics of the operation are that it modifies the argument, but we
+    // have no way of making a Dart typed data created initially in Dart reference
+    // externalized storage. So we copy the values back from the returned copy.
+    // TODO(alanknight): Make this less ridiculously slow.
+    for (var i = 0; i < random.length; i++) {
+      array[i] = random[i];
+    }
+    return array;
+  }
+
   // To suppress missing implicit constructor warnings.
   factory Crypto._() { throw new UnsupportedError("Not supported"); }
 
@@ -5178,7 +5188,7 @@ class Crypto extends NativeFieldWrapperClass2 {
   
   @DomName('Crypto.getRandomValues')
   @DocsEditable()
-  TypedData getRandomValues(TypedData array) => wrap_jso(_blink.BlinkCrypto.instance.getRandomValues_Callback_1_(unwrap_jso(this), unwrap_jso(array)));
+  TypedData _getRandomValues(TypedData array) => wrap_jso(_blink.BlinkCrypto.instance.getRandomValues_Callback_1_(unwrap_jso(this), unwrap_jso(array)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -37258,10 +37268,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");

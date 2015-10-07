@@ -2945,12 +2945,11 @@ class CredentialsContainer extends Interceptor {
   @Experimental() // untriaged
   Future _request_2() native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable()
 @DomName('Crypto')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -2958,6 +2957,11 @@ class CredentialsContainer extends Interceptor {
 // http://www.w3.org/TR/WebCryptoAPI/
 @Native("Crypto")
 class Crypto extends Interceptor {
+
+  TypedData getRandomValues(TypedData array) {
+    return _getRandomValues(array);
+  }
+
   // To suppress missing implicit constructor warnings.
   factory Crypto._() { throw new UnsupportedError("Not supported"); }
 
@@ -2969,11 +2973,13 @@ class Crypto extends Interceptor {
   @Experimental() // untriaged
   final _SubtleCrypto subtle;
 
+  @JSName('getRandomValues')
   @DomName('Crypto.getRandomValues')
   @DocsEditable()
   @Creates('TypedData')
   @Returns('TypedData|Null')
-  TypedData getRandomValues(TypedData array) native;
+  TypedData _getRandomValues(TypedData array) native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

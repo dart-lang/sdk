@@ -12,7 +12,6 @@ LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeEr
 LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow_t01: Pass, RuntimeError # Issue 21605
 
 [ $compiler == none && $runtime == dartium ]
-LayoutTests/fast/canvas/canvas-lineDash-input-sequence_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: RuntimeError # Dartium JSInterop failure
@@ -21,6 +20,7 @@ LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInt
 LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/axes_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/dom/custom/element-type_t01: RuntimeError # Dartium JsInterop failure (element upgrade)
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Pass, RuntimeError # Flaky with Dartium JsInterop. Seems like timing issues in the test.
 
 [ $compiler == none && $runtime == dartium && $checked ]
 LayoutTests/fast/css/style-scoped/style-scoped-scoping-nodes-different-order_t01: RuntimeError # Dartium JSInterop failure
