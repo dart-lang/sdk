@@ -87,6 +87,8 @@ class TimelineEvent {
   // Keep in sync with StateBits below.
   enum EventType {
     kNone,
+    kBegin,
+    kEnd,
     kDuration,
     kInstant,
     kAsyncBegin,
@@ -120,6 +122,12 @@ class TimelineEvent {
   void Duration(const char* label,
                 int64_t start_micros,
                 int64_t end_micros);
+
+  void Begin(const char* label,
+             int64_t micros);
+
+  void End(const char* label,
+           int64_t micros);
 
   // Set the number of arguments in the event.
   void SetNumArguments(intptr_t length);
@@ -166,23 +174,50 @@ class TimelineEvent {
     return TimeEnd() <= micros;
   }
 
+  bool IsDuration() const {
+    return (event_type() == kDuration);
+  }
+
+  bool IsBegin() const {
+    return (event_type() == kBegin);
+  }
+
+  bool IsEnd() const {
+    return (event_type() == kEnd);
+  }
+
+  // Is this event a synchronous begin or end event?
+  bool IsBeginOrEnd() const {
+    return IsBegin() || IsEnd();
+  }
+
   // Does this duration fully contain |other| ?
   bool DurationContains(TimelineEvent* other) const {
     ASSERT(IsFinishedDuration());
-    ASSERT(other->IsFinishedDuration());
-    if (other->TimeOrigin() < TimeOrigin()) {
-      return false;
+    if (other->IsBegin()) {
+      if (other->TimeOrigin() < TimeOrigin()) {
+        return false;
+      }
+      if (other->TimeOrigin() > TimeEnd()) {
+        return false;
+      }
+      return true;
+    } else {
+      ASSERT(other->IsFinishedDuration());
+      if (other->TimeOrigin() < TimeOrigin()) {
+        return false;
+      }
+      if (other->TimeEnd() < TimeOrigin()) {
+        return false;
+      }
+      if (other->TimeOrigin() > TimeEnd()) {
+        return false;
+      }
+      if (other->TimeEnd() > TimeEnd()) {
+        return false;
+      }
+      return true;
     }
-    if (other->TimeEnd() < TimeOrigin()) {
-      return false;
-    }
-    if (other->TimeOrigin() > TimeEnd()) {
-      return false;
-    }
-    if (other->TimeEnd() > TimeEnd()) {
-      return false;
-    }
-    return true;
   }
 
  private:

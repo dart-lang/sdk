@@ -260,6 +260,20 @@ void TimelineEvent::Duration(const char* label,
 }
 
 
+void TimelineEvent::Begin(const char* label,
+                          int64_t micros) {
+  Init(kBegin, label);
+  timestamp0_ = micros;
+}
+
+
+void TimelineEvent::End(const char* label,
+                        int64_t micros) {
+  Init(kEnd, label);
+  timestamp0_ = micros;
+}
+
+
 void TimelineEvent::SetNumArguments(intptr_t length) {
   // Cannot call this twice.
   ASSERT(arguments_ == NULL);
@@ -358,6 +372,14 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
   obj.AddPropertyTimeMicros("ts", TimeOrigin());
 
   switch (event_type()) {
+    case kBegin: {
+      obj.AddProperty("ph", "B");
+    }
+    break;
+    case kEnd: {
+      obj.AddProperty("ph", "E");
+    }
+    break;
     case kDuration: {
       obj.AddProperty("ph", "X");
       obj.AddPropertyTimeMicros("dur", TimeDuration());
