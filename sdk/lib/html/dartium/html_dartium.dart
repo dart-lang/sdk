@@ -89,7 +89,7 @@ Window get window {
   if (_window != null) {
     return _window;
   }
-  _window = wrap_jso(js.context['window']);
+  _window = wrap_jso(js.JsNative.getProperty(js.context, 'window'));
   return _window;
 }
 
@@ -1110,7 +1110,11 @@ Function _getSvgFunction(String key) {
 var _knownCustomeElements = new Map<String, Type>();
 
 Rectangle make_dart_rectangle(r) =>
-    r == null ? null : new Rectangle(r['left'], r['top'], r['width'], r['height']);
+    r == null ? null : new Rectangle(
+    js.JsNative.getProperty(r, 'left'),
+    js.JsNative.getProperty(r, 'top'),
+    js.JsNative.getProperty(r, 'width'),
+    js.JsNative.getProperty(r, 'height'));
 
 // Need a default constructor for constructing classes with mixins that are
 // also extending NativeFieldWrapperClass2.  Defining JsoNativeFieldWrapper
@@ -1164,11 +1168,12 @@ wrap_jso(jsObject) {
     if (!identical(converted, jsObject)) {
       return converted;
     }
-    var constructor = jsObject['constructor'];
+
+    var constructor = js.JsNative.getProperty(jsObject, 'constructor');
     if (__interop_checks) {
       debug_or_assert("constructor != null", constructor != null);
     }
-    var jsTypeName = constructor['name'];
+    var jsTypeName = js.JsNative.getProperty(constructor, 'name');
     if (__interop_checks) {
       debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
     }
@@ -1199,7 +1204,63 @@ wrap_jso(jsObject) {
         }
       }
     }
+    // TODO(jacobr): cache that this is not a dart:html JS class.
     return dartClass_instance;
+  } catch(e, stacktrace){
+    if (__interop_checks) {
+      if (e is DebugAssertException)
+        window.console.log("${e.message}\n ${stacktrace}");
+      else
+        window.console.log("${stacktrace}");
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Create Dart class that maps to the JS Type, add the JsObject as an expando
+ * on the Dart class and return the created Dart class.
+ */
+wrap_jso_no_SerializedScriptvalue(jsObject) {
+  try {
+    if (jsObject is! js.JsObject || jsObject == null) {
+      // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
+      // or it's a simple type.
+      return jsObject;
+    }
+
+    // TODO(alanknight): With upgraded custom elements this causes a failure because
+    // we need a new wrapper after the type changes. We could possibly invalidate this
+    // if the constructor name didn't match?
+    var wrapper = js.getDartHtmlWrapperFor(jsObject);
+    if (wrapper != null) {
+      return wrapper;
+    }
+
+    if (jsObject is js.JsArray) {
+      var wrappingList = new _DartHtmlWrappingList(jsObject);
+      js.setDartHtmlWrapperFor(jsObject, wrappingList);
+      return wrappingList;
+    }
+
+    var constructor = js.JsNative.getProperty(jsObject, 'constructor');
+    if (__interop_checks) {
+      debug_or_assert("constructor != null", constructor != null);
+    }
+    var jsTypeName = js.JsNative.getProperty(constructor, 'name');
+    if (__interop_checks) {
+      debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
+    }
+
+    var func = getHtmlCreateFunction(jsTypeName);
+    if (func != null) {
+      var dartClass_instance = func();
+      dartClass_instance.blink_jsObject = jsObject;
+      js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
+      return dartClass_instance;
+    }
+    return jsObject;
   } catch(e, stacktrace){
     if (__interop_checks) {
       if (e is DebugAssertException)
@@ -1304,9 +1365,9 @@ js.JsFunction wrap_event_listener(theObject, Function listener) {
 
 Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
   var result = new Map();
-  var keys = js.context['Object'].callMethod('keys', [jsObject]);
+  var keys = js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'Object'), 'keys', [jsObject]);
   for (var key in keys) {
-    result[key] = wrap_jso(jsObject[key]);
+    result[key] = wrap_jso(js.JsNative.getProperty(jsObject, key));
   }
   return result;
 }
@@ -1317,7 +1378,7 @@ Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
 // code in html_common and be more general.
 convertDartToNative_Dictionary(Map dict) {
   if (dict == null) return null;
-  var jsObject = new js.JsObject(js.context['Object']);
+  var jsObject = new js.JsObject(js.JsNative.getProperty(js.context, 'Object'));
   dict.forEach((String key, value) {
     if (value is List) {
       var jsArray = new js.JsArray();
@@ -1341,17 +1402,17 @@ List convertDartToNative_StringArray(List<String> input) => input;
 /**
  * Wraps a JsArray and will call wrap_jso on its entries.
  */
-class _DartHtmlWrappingList extends ListBase {
-  _DartHtmlWrappingList(this._basicList);
+class _DartHtmlWrappingList extends ListBase implements NativeFieldWrapperClass2 {
+  _DartHtmlWrappingList(this.blink_jsObject);
 
-  final js.JsArray _basicList;
+  final js.JsArray blink_jsObject;
 
-  operator [](int index) => wrap_jso(_basicList[index]);
+  operator [](int index) => wrap_jso(js.JsNative.getArrayIndex(blink_jsObject, index));
 
-  operator []=(int index, value) => _basicList[index] = unwrap_jso(value);
+  operator []=(int index, value) => blink_jsObject[index] = value;
 
-  int get length => _basicList.length;
-  int set length(int newLength) => _basicList.length = newLength;
+  int get length => blink_jsObject.length;
+  int set length(int newLength) => blink_jsObject.length = newLength;
 }
 
 /**
@@ -1367,7 +1428,7 @@ createCustomUpgrader(Type customElementClass, $this) {
     // Need to remember the Dart class that was created for this custom so
     // return it and setup the blink_jsObject to the $this that we'll be working
     // with as we talk to blink. 
-    $this['dart_class'] = dartClass;
+    js.setDartHtmlWrapperFor($this, dartClass);
   }
 
   return dartClass;
@@ -11137,17 +11198,15 @@ class Document extends Node
       _blink.BlinkDocument.instance.createElement_Callback_1_(unwrap_jso(this), tagName) :
       _blink.BlinkDocument.instance.createElement_Callback_2_(unwrap_jso(this), tagName, typeExtension);
 
-    var wrapped;
-
-    if (newElement['dart_class'] != null) {
-      wrapped = newElement['dart_class'];         // Here's our Dart class.
+    var wrapped = js.getDartHtmlWrapperFor(newElement);  // Here's our Dart class.
+    if (wrapped != null) {
       wrapped.blink_jsObject = newElement;
     } else {
       wrapped = wrap_jso(newElement);
       if (wrapped == null) {
         wrapped = wrap_jso_custom_element(newElement);
       } else {
-        wrapped.blink_jsObject['dart_class'] = wrapped;
+        js.setDartHtmlWrapperFor(wrapped.blink_jsObject, wrapped);
       }
     }
 
@@ -11163,15 +11222,15 @@ class Document extends Node
 
     var wrapped;
 
-    if (newElement['dart_class'] != null) {
-      wrapped = newElement['dart_class'];         // Here's our Dart class.
+    wrapped = js.getDartHtmlWrapperFor(newElement);  // Here's our Dart class.
+    if (wrapped != null) {
       wrapped.blink_jsObject = newElement;
     } else {
       wrapped = wrap_jso(newElement);
       if (wrapped == null) {
         wrapped = wrap_jso_custom_element(newElement);
       } else {
-        wrapped.blink_jsObject['dart_class'] = wrapped;
+        js.setDartHtmlWrapperFor(wrapped.blink_jsObject, wrapped);  // Here's our Dart class.
       }
     }
 
@@ -20411,12 +20470,12 @@ class HtmlDocument extends Document {
       //
       //     var myProto = Object.create(HTMLElement.prototype);
       //     var myElement = document.registerElement('x-foo', {prototype: myProto});
-      var baseElement = js.context[jsClassName];
+      var baseElement = js.JsNative.getProperty(js.context, jsClassName);
       if (baseElement == null) {
         // Couldn't find the HTML element so use a generic one.
-        baseElement = js.context['HTMLElement'];
+        baseElement = js.JsNative.getProperty(js.context, 'HTMLElement');
       }
-      var elemProto = js.context['Object'].callMethod("create", [baseElement['prototype']]);
+      var elemProto = js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'Object'), "create", [js.JsNative.getProperty(baseElement, 'prototype')]);
 
       // Remember for any upgrading done in wrap_jso.
       _knownCustomeElements[tag] = customElementClass;
@@ -20433,7 +20492,8 @@ class HtmlDocument extends Document {
       //
       //              See https://github.com/dart-lang/sdk/issues/23666
       int creating = 0;
-      elemProto['createdCallback'] = new js.JsFunction.withThis(($this) {
+      // TODO(jacobr): warning: 
+      elemProto['createdCallback'] = js.JsNative.withThis(($this) {
         if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
           creating++;
 
@@ -20447,30 +20507,24 @@ class HtmlDocument extends Document {
             // Need to remember the Dart class that was created for this custom so
             // return it and setup the blink_jsObject to the $this that we'll be working
             // with as we talk to blink. 
-            $this['dart_class'] = dartClass;
+            js.setDartHtmlWrapperFor($this, dartClass);
 
             creating--;
           }
         }
       });
       elemProto['attributeChangedCallback'] = new js.JsFunction.withThis(($this, attrName, oldVal, newVal) {
-        if ($this["dart_class"] != null && $this['dart_class'].attributeChanged != null) {
-          $this['dart_class'].attributeChanged(attrName, oldVal, newVal);
-        }
+        $this.attributeChanged(attrName, oldVal, newVal);
       });
       elemProto['attachedCallback'] = new js.JsFunction.withThis(($this) {
-        if ($this["dart_class"] != null && $this['dart_class'].attached != null) {
-          $this['dart_class'].attached();
-        }
+        $this.attached();
       });
       elemProto['detachedCallback'] = new js.JsFunction.withThis(($this) {
-        if ($this["dart_class"] != null && $this['dart_class'].detached != null) {
-          $this['dart_class'].detached();
-        }
+        $this.detached();
       });
       // document.registerElement('x-foo', {prototype: elemProto, extends: extendsTag});
       var jsMap = new js.JsObject.jsify({'prototype': elemProto, 'extends': extendsTag});
-      js.context['document'].callMethod('registerElement', [tag, jsMap]);
+      js.Jsnative.callMethod(js.JsNative.getProperty(js.context, 'document'), 'registerElement', [tag, jsMap]);
     }
   }
 
@@ -37268,10 +37322,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -47862,6 +47916,8 @@ class _Utils {
     }
   }
 
+  static maybeUnwrapJso(obj) => unwrap_jso(obj);
+
   static List convertToList(List list) {
     // FIXME: [possible optimization]: do not copy the array if Dart_IsArray is fine w/ it.
     final length = list.length;
@@ -48507,7 +48563,7 @@ class _Utils {
     return [
         "inspect",
         (o) {
-          host.inspect(o, null);
+          host.callMethod("inspect", [o]);
           return o;
         },
         "dir",

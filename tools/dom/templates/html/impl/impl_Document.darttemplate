@@ -74,17 +74,15 @@ $else
       _blink.BlinkDocument.instance.createElement_Callback_1_(unwrap_jso(this), tagName) :
       _blink.BlinkDocument.instance.createElement_Callback_2_(unwrap_jso(this), tagName, typeExtension);
 
-    var wrapped;
-
-    if (newElement['dart_class'] != null) {
-      wrapped = newElement['dart_class'];         // Here's our Dart class.
+    var wrapped = js.getDartHtmlWrapperFor(newElement);  // Here's our Dart class.
+    if (wrapped != null) {
       wrapped.blink_jsObject = newElement;
     } else {
       wrapped = wrap_jso(newElement);
       if (wrapped == null) {
         wrapped = wrap_jso_custom_element(newElement);
       } else {
-        wrapped.blink_jsObject['dart_class'] = wrapped;
+        js.setDartHtmlWrapperFor(wrapped.blink_jsObject, wrapped);
       }
     }
 
@@ -121,15 +119,15 @@ $else
 
     var wrapped;
 
-    if (newElement['dart_class'] != null) {
-      wrapped = newElement['dart_class'];         // Here's our Dart class.
+    wrapped = js.getDartHtmlWrapperFor(newElement);  // Here's our Dart class.
+    if (wrapped != null) {
       wrapped.blink_jsObject = newElement;
     } else {
       wrapped = wrap_jso(newElement);
       if (wrapped == null) {
         wrapped = wrap_jso_custom_element(newElement);
       } else {
-        wrapped.blink_jsObject['dart_class'] = wrapped;
+        js.setDartHtmlWrapperFor(wrapped.blink_jsObject, wrapped);  // Here's our Dart class.
       }
     }
 

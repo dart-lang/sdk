@@ -124,6 +124,8 @@ class _Utils {
     }
   }
 
+  static maybeUnwrapJso(obj) => unwrap_jso(obj);
+
   static List convertToList(List list) {
     // FIXME: [possible optimization]: do not copy the array if Dart_IsArray is fine w/ it.
     final length = list.length;
@@ -769,7 +771,7 @@ class _Utils {
     return [
         "inspect",
         (o) {
-          host.inspect(o, null);
+          host.callMethod("inspect", [o]);
           return o;
         },
         "dir",
