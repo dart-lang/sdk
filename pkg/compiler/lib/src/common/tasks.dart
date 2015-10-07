@@ -4,7 +4,7 @@
 
 library dart2js.common.tasks;
 
-import 'dart:profiler' show
+import 'dart:developer' show
     UserTag;
 import '../compiler.dart' show
     Compiler;

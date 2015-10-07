@@ -358,7 +358,7 @@ TEST_CASE(SafepointTestDart) {
 #endif  // USING_SIMULATOR
   char buffer[1024];
   OS::SNPrint(buffer, sizeof(buffer),
-      "import 'dart:profiler';\n"
+      "import 'dart:developer';\n"
       "int dummy = 0;\n"
       "main() {\n"
       "  new UserTag('foo').makeCurrent();\n"

@@ -4,7 +4,7 @@
 
 library engine.utilities.general;
 
-import 'dart:profiler';
+import 'dart:developer' show UserTag;
 
 /**
  * Jenkins hash function, optimized for small integers.
@@ -33,7 +33,7 @@ class JenkinsSmiHash {
 
 /**
  * Helper class for gathering performance statistics.  This class is modeled on
- * the UserTag class in dart:profiler so that it can interoperate easily with
+ * the UserTag class in dart:developer so that it can interoperate easily with
  * it.
  */
 abstract class PerformanceTag {
