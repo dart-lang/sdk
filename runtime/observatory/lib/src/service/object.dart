@@ -674,6 +674,11 @@ abstract class VM extends ServiceObjectOwner {
         _isolateCache.remove(isolate.id);
         _buildIsolateList();
       }
+      if (event.kind == ServiceEvent.kIsolateRunnable) {
+        // Force reload once the isolate becomes runnable so that we
+        // update the root library.
+        isolate.reload();
+      }
     }
     var eventStream = _eventStreams[streamId];
     if (eventStream != null) {
