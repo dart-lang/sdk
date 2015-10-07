@@ -402,6 +402,7 @@ $else
             dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
           } catch (e) {
             dartClass = HtmlElement.internalCreateHtmlElement();
+            dartClass.badUpgrade();
             throw e;
           } finally {
             // Need to remember the Dart class that was created for this custom so

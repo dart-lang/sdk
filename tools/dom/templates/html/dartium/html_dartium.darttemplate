@@ -569,8 +569,9 @@ wrap_jso_custom_element(jsObject) {
 
 // Upgrade a Dart HtmlElement to the user's Dart custom element class.
 _upgradeHtmlElement(dartInstance) {
-  var dartInstanceMirror = reflect(dartInstance);
-  if (dartInstanceMirror.type.qualifiedName == #dart.dom.html.HtmlElement) {
+  // Only try upgrading HtmlElement (Dart class) if there is a failure then
+  // don't try it again - one failure is enough.
+  if (dartInstance.runtimeType == HtmlElement && !dartInstance.isBadUpgrade) {
     // Must be exactly HtmlElement not something derived from it.
     var jsObject = dartInstance.blink_jsObject;
     var localName = dartInstance.localName;
@@ -579,6 +580,8 @@ _upgradeHtmlElement(dartInstance) {
     if (customElementClass != null) {
       try {
         dartInstance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
+      } catch (e) {
+        dartInstance.badUpgrade();
       } finally {
         dartInstance.blink_jsObject = jsObject;
         jsObject['dart_class'] = dartInstance;
@@ -678,6 +681,7 @@ createCustomUpgrader(Type customElementClass, $this) {
   try {
     dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
   } catch (e) {
+    dartClass.badUpgrade();
     throw e;
   } finally {
     // Need to remember the Dart class that was created for this custom so

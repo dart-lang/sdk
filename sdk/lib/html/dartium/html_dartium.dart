@@ -1324,8 +1324,9 @@ wrap_jso_custom_element(jsObject) {
 
 // Upgrade a Dart HtmlElement to the user's Dart custom element class.
 _upgradeHtmlElement(dartInstance) {
-  var dartInstanceMirror = reflect(dartInstance);
-  if (dartInstanceMirror.type.qualifiedName == #dart.dom.html.HtmlElement) {
+  // Only try upgrading HtmlElement (Dart class) if there is a failure then
+  // don't try it again - one failure is enough.
+  if (dartInstance.runtimeType == HtmlElement && !dartInstance.isBadUpgrade) {
     // Must be exactly HtmlElement not something derived from it.
     var jsObject = dartInstance.blink_jsObject;
     var localName = dartInstance.localName;
@@ -1334,6 +1335,8 @@ _upgradeHtmlElement(dartInstance) {
     if (customElementClass != null) {
       try {
         dartInstance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
+      } catch (e) {
+        dartInstance.badUpgrade();
       } finally {
         dartInstance.blink_jsObject = jsObject;
         jsObject['dart_class'] = dartInstance;
@@ -1433,6 +1436,7 @@ createCustomUpgrader(Type customElementClass, $this) {
   try {
     dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
   } catch (e) {
+    dartClass.badUpgrade();
     throw e;
   } finally {
     // Need to remember the Dart class that was created for this custom so
@@ -20512,6 +20516,7 @@ class HtmlDocument extends Document {
             dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
           } catch (e) {
             dartClass = HtmlElement.internalCreateHtmlElement();
+            dartClass.badUpgrade();
             throw e;
           } finally {
             // Need to remember the Dart class that was created for this custom so
@@ -20587,8 +20592,6 @@ class HtmlDocument extends Document {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable()
@@ -21250,6 +21253,11 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   @Experimental() // untriaged
   ElementStream<Event> get onWaiting => waitingEvent.forElement(this);
 
+  // Flags to only try upgrading once if there's a failure don't try upgrading
+  // anymore.
+  bool _badUpgrade = false;
+  bool get isBadUpgrade => _badUpgrade;
+  void badUpgrade() { _badUpgrade = true; }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
