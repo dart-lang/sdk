@@ -1028,6 +1028,11 @@ RawObject* ActivationFrame::GetReceiver() {
 }
 
 
+bool IsPrivateVariableName(const String& var_name) {
+  return (var_name.Length() >= 1) && (var_name.CharAt(0) == '_');
+}
+
+
 RawObject* ActivationFrame::Evaluate(const String& expr) {
   GetDescIndices();
   const GrowableObjectArray& param_names =
@@ -1041,6 +1046,9 @@ RawObject* ActivationFrame::Evaluate(const String& expr) {
     intptr_t ignore;
     VariableAt(i, &name, &ignore, &ignore, &value);
     if (!name.Equals(Symbols::This())) {
+      if (IsPrivateVariableName(name)) {
+        name = String::IdentifierPrettyName(name);
+      }
       param_names.Add(name);
       param_values.Add(value);
     }
