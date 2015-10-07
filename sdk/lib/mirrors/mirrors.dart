@@ -480,16 +480,18 @@ abstract class InstanceMirror implements ObjectMirror {
   ClassMirror get type;
 
   /**
-   * Does [reflectee] contain the instance reflected by this mirror?
-   * This will always be true in the local case (reflecting instances
-   * in the same isolate), but only true in the remote case if this
-   * mirror reflects a simple value.
+   * Whether [reflectee] will return the instance reflected by this mirror.
+   *
+   * This will always be true in the local case (reflecting instances in the
+   * same isolate), but only true in the remote case if this mirror reflects a
+   * simple value.
    *
    * A value is simple if one of the following holds:
-   *  - the value is [:null:]
-   *  - the value is of type [num]
-   *  - the value is of type [bool]
-   *  - the value is of type [String]
+   *
+   * * the value is [:null:]
+   * * the value is of type [num]
+   * * the value is of type [bool]
+   * * the value is of type [String]
    */
   bool get hasReflectee;
 
@@ -504,16 +506,18 @@ abstract class InstanceMirror implements ObjectMirror {
   get reflectee;
 
   /**
-   * Returns true if this mirror is equal to [other].
+   * Whether this mirror is equal to [other].
+   *
    * The equality holds if and only if
-   * (1) [other] is a mirror of the same kind
-   * and
-   * (2) either
-   * (a) [hasReflectee] is true and so is
-   * [:identical(reflectee, other.reflectee):]
-   * or
-   * (b) the remote objects reflected by this mirror and
-   * by [other] are identical.
+   *
+   * 1. [other] is a mirror of the same kind, and
+   * 2. either
+   *
+   *    a. [hasReflectee] is true and so is
+   *    [:identical(reflectee, other.reflectee):], or
+   *
+   *    b. the remote objects reflected by this mirror and by [other] are
+   *    identical.
    */
   bool operator == (other);
 }
@@ -548,20 +552,24 @@ abstract class ClosureMirror implements InstanceMirror {
 
   /**
    * Executes the closure and returns a mirror on the result.
+   *
    * Let *f* be the closure reflected by this mirror,
-   * let *a1, ..., an* be the elements of [positionalArguments]
+   * let *a1, ..., an* be the elements of [positionalArguments],
    * let *k1, ..., km* be the identifiers denoted by the elements of
-   * [namedArguments.keys]
+   * [namedArguments.keys],
    * and let *v1, ..., vm* be the elements of [namedArguments.values].
+   *
    * Then this method will perform the method invocation
-   *  *f(a1, ..., an, k1: v1, ..., km: vm)*
-   * If the invocation returns a result *r*, this method returns
-   * the result of calling [reflect]\(*r*\).
-   * If the invocation causes a compilation error
-   * the effect is the same as if a non-reflective compilation error
-   * had been encountered.
-   * If the invocation throws an exception *e* (that it does not catch)
-   * this method throws *e*.
+   * *f(a1, ..., an, k1: v1, ..., km: vm)*.
+   *
+   * If the invocation returns a result *r*, this method returns the result of
+   * calling [reflect]\(*r*\).
+   *
+   * If the invocation causes a compilation error, the effect is the same as if
+   * a non-reflective compilation error had been encountered.
+   *
+   * If the invocation throws an exception *e* (that it does not catch), this
+   * method throws *e*.
    */
   InstanceMirror apply(List positionalArguments,
                        [Map<Symbol, dynamic> namedArguments]);
@@ -588,18 +596,15 @@ abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
   Map<Symbol, DeclarationMirror> get declarations;
 
   /**
-   * Returns [:true:] if this mirror is equal to [other].
-   * Otherwise returns [:false:].
+   * Whether this mirror is equal to [other].
    *
    * The equality holds if and only if
-   * (1) [other] is a mirror of the same kind
-   * and
-   * (2)  The library being reflected by this mirror
-   * and the library being reflected by [other]
-   * are
-   * the same library in the same isolate.
+   *
+   * 1. [other] is a mirror of the same kind, and
+   * 2. The library being reflected by this mirror and the library being
+   *    reflected by [other] are the same library in the same isolate.
    */
-   bool operator ==(other);
+  bool operator ==(other);
 
   /**
    * Returns a list of the imports and exports in this library;
@@ -726,15 +731,18 @@ abstract class TypeMirror implements DeclarationMirror {
 
 
   /**
-   * Checks the subtype relationship, denoted by [:<::] in the language
-   * specification. This is the type relationship used in [:is:] test checks.
+   * Checks the subtype relationship, denoted by `<:` in the language
+   * specification.
+   *
+   * This is the type relationship used in `is` test checks.
    */
   bool isSubtypeOf(TypeMirror other);
 
   /**
-   * Checks the assignability relationship, denoted by [:<=>:] in the language
-   * specification. This is the type relationship tested on assignment in
-   * checked mode.
+   * Checks the assignability relationship, denoted by `<=>` in the language
+   * specification.
+   *
+   * This is the type relationship tested on assignment in checked mode.
    */
   bool isAssignableTo(TypeMirror other);
 }
@@ -806,9 +814,10 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
 
   /**
    * The mixin of this class.
-   * If this class is the result of a mixin application of the
-   * form S with M, returns a class mirror on M.
-   * Otherwise returns a class mirror on [reflectee].
+   *
+   * If this class is the result of a mixin application of the form S with M,
+   * returns a class mirror on M. Otherwise returns a class mirror on
+   * [reflectee].
    */
   ClassMirror get mixin;
 
@@ -817,52 +826,50 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
   // /// reflected class.
   // DeclarationMirror instanceLookup(Symbol name);
 
-   /**
+  /**
    * Invokes the named constructor and returns a mirror on the result.
    *
-   * Let *c* be the class reflected by this mirror
-   * let *a1, ..., an* be the elements of [positionalArguments]
+   * Let *c* be the class reflected by this mirror,
+   * let *a1, ..., an* be the elements of [positionalArguments],
    * let *k1, ..., km* be the identifiers denoted by the elements of
-   * [namedArguments.keys]
+   * [namedArguments.keys],
    * and let *v1, ..., vm* be the elements of [namedArguments.values].
-   * If [constructorName] was created from the empty string
-   * Then this method will execute the instance creation expression
-   * *new c(a1, ..., an, k1: v1, ..., km: vm)*
-   * in a scope that has access to the private members
-   * of *c*. Otherwise, let
-   * *f* be the simple name of the constructor denoted by [constructorName]
-   * Then this method will execute the instance creation expression
-   *  *new c.f(a1, ..., an, k1: v1, ..., km: vm)*
-   * in a scope that has access to the private members
-   * of *c*.
+   *
+   * If [constructorName] was created from the empty string, then this method
+   * will execute the instance creation expression
+   * *new c(a1, ..., an, k1: v1, ..., km: vm)* in a scope that has access to
+   * the private members of *c*.
+   *
+   * Otherwise, let *f* be the simple name of the constructor denoted by
+   * [constructorName]. Then this method will execute the instance creation
+   * expression *new c.f(a1, ..., an, k1: v1, ..., km: vm)* in a scope that has
+   * access to the private members of *c*.
+   *
    * In either case:
-   * If the expression evaluates to a result *r*, this method returns
-   * the result of calling [reflect]\(*r*\).
-   * If evaluating the expression causes a compilation error
-   * the effect is the same as if a non-reflective compilation error
-   * had been encountered.
-   * If evaluating the expression throws an exception *e*
-   * (that it does not catch)
-   * this method throws *e*.
+   *
+   * * If the expression evaluates to a result *r*, this method returns the
+   *   result of calling [reflect]\(*r*\).
+   * * If evaluating the expression causes a compilation error, the effect is
+   *   the same as if a non-reflective compilation error had been encountered.
+   * * If evaluating the expression throws an exception *e* (that it does not
+   *   catch), this method throws *e*.
    */
   InstanceMirror newInstance(Symbol constructorName,
                              List positionalArguments,
                              [Map<Symbol,dynamic> namedArguments]);
 
   /**
-   * Returns [:true:] if this mirror is equal to [other].
-   * Otherwise returns [:false:].
+   * Whether this mirror is equal to [other].
    *
    * The equality holds if and only if
-   * (1) [other] is a mirror of the same kind
-   * and
-   * (2) This mirror and [other] reflect the same class.
    *
-   * Note that if the reflected class is an invocation of
-   * a generic class,(2) implies that the reflected class
-   * and [other] have equal type arguments.
+   * 1. [other] is a mirror of the same kind, and
+   * 2. This mirror and [other] reflect the same class.
+   *
+   * Note that if the reflected class is an invocation of a generic class, 2.
+   * implies that the reflected class and [other] have equal type arguments.
    */
-   bool operator == (other);
+  bool operator == (other);
 
   /**
    * Returns whether the class denoted by the receiver is a subclass of the
@@ -897,8 +904,7 @@ abstract class FunctionTypeMirror implements ClassMirror {
 }
 
 /**
- * A [TypeVariableMirror] represents a type parameter of a generic
- * type.
+ * A [TypeVariableMirror] represents a type parameter of a generic type.
  */
 abstract class TypeVariableMirror extends TypeMirror {
   /**
@@ -915,16 +921,15 @@ abstract class TypeVariableMirror extends TypeMirror {
   bool get isStatic;
 
   /**
-   * Returns [:true:] if this mirror is equal to [other].
-   * Otherwise returns [:false:].
+   * Whether [other] is a [TypeVariableMirror] on the same type variable as this
+   * mirror.
    *
    * The equality holds if and only if
-   * (1) [other] is a mirror of the same kind
-   * and
-   * (2)  [:simpleName == other.simpleName:] and
-   * [:owner == other.owner:].
+   *
+   * 1. [other] is a mirror of the same kind, and
+   * 2. [:simpleName == other.simpleName:] and [:owner == other.owner:].
    */
-   bool operator == (other);
+  bool operator == (other);
 }
 
 /**
@@ -933,11 +938,10 @@ abstract class TypeVariableMirror extends TypeMirror {
 abstract class TypedefMirror implements TypeMirror {
   /**
    * The defining type for this typedef.
-   * If the the type referred to by the reflectee is a function type 
-   * *F*, the result will be [:FunctionTypeMirror:] reflecting *F*
-   * which is abstract and has an abstract method [:call:] whose 
-   * signature corresponds to *F*.
    *
+   * If the the type referred to by the reflectee is a function type *F*, the
+   * result will be [:FunctionTypeMirror:] reflecting *F* which is abstract
+   * and has an abstract method [:call:] whose signature corresponds to *F*.
    * For instance [:void f(int):] is the referent for [:typedef void f(int):].
    */
   FunctionTypeMirror get referent;
@@ -1046,15 +1050,14 @@ abstract class MethodMirror implements DeclarationMirror {
   bool get isFactoryConstructor;
 
   /**
-   * Returns true if this mirror is equal to [other].
+   * Whether this mirror is equal to [other].
    *
    * The equality holds if and only if
-   * (1) [other] is a mirror of the same kind
-   * and
-   * (2) [:simpleName == other.simpleName:] and
-   * [:owner == other.owner:].
+   *
+   * 1. [other] is a mirror of the same kind, and
+   * 2. [:simpleName == other.simpleName:] and [:owner == other.owner:].
    */
-   bool operator == (other);
+  bool operator == (other);
 }
 
 /**
@@ -1088,15 +1091,14 @@ abstract class VariableMirror implements DeclarationMirror {
   bool get isConst;
 
   /**
-   * Returns true if this mirror is equal to [other].
+   * Whether this mirror is equal to [other].
    *
    * The equality holds if and only if
-   * (1) [other] is a mirror of the same kind
-   * and
-   * (2)  [:simpleName == other.simpleName:] and
-   * [:owner == other.owner:].
+   *
+   * 1. [other] is a mirror of the same kind, and
+   * 2. [:simpleName == other.simpleName:] and [:owner == other.owner:].
    */
-   bool operator == (other);
+  bool operator == (other);
 }
 
 /**
@@ -1127,10 +1129,14 @@ abstract class ParameterMirror implements VariableMirror {
   bool get hasDefaultValue;
 
   /**
-   * If this is a required parameter, returns [:null:]. Otherwise returns a
-   * mirror on the default value for this parameter. If no default is declared
-   * for an optional parameter, the default is [:null:] and a mirror on [:null:]
-   * is returned.
+   * Returns the default value of an optional parameter.
+   *
+   * Returns an [InstanceMirror] on the (compile-time constant)
+   * default value for an optional parameter.
+   * If no default value is declared, it defaults to `null`
+   * and a mirror of `null` is returned.
+   *
+   * Returns `null` for a required parameter.
    */
   InstanceMirror get defaultValue;
 }
