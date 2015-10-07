@@ -103,37 +103,6 @@ enum BuiltinOperator {
   ///
   /// Compiles to `typeof x === 'number' && Math.floor(x) === x`
   IsNumberAndFloor,
-
-  /// Returns true if the argument is a fixed length Array.
-  ///
-  /// Uses one argument.
-  ///
-  /// Precondition: Argument is a JavaScript Array.
-  IsFixedLengthJSArray,
-
-  // TODO(sra): Remove this and replace with IsFalsy(IsFixedLengthJSArray(x)).
-  IsExtendableJSArray,
-
-  /// Returns true if the argument is an unmodifiable Array.
-  ///
-  /// Uses one argument.
-  ///
-  /// Precondition: Argument is a JavaScript Array.
-  IsUnmodifiableJSArray,
-
-  // TODO(sra): Remove this and replace with IsFalsy(IsUnmodifiableArray(x)).
-  IsModifiableJSArray,
-
-
-  /// Compiles to
-  ///
-  ///     typeof x === 'object' && x !== null && x.constructor === Array
-  ///
-  /// TODO(sra): Break into individual tests.
-  IsJSArray,
-  ISJSArrayNotNull,
-  IsJSArrayObject,
-  IsJSArrayConstructor,
 }
 
 /// A method supported natively in the CPS and Tree IRs using the

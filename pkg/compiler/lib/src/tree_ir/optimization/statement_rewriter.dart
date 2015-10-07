@@ -737,11 +737,6 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
-  Expression visitGetTypeTestProperty(GetTypeTestProperty node) {
-    node.object = visitExpression(node.object);
-    return node;
-  }
-
   Expression visitCreateBox(CreateBox node) {
     return node;
   }

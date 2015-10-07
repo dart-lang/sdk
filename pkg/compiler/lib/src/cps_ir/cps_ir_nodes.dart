@@ -589,48 +589,26 @@ class TypeTest extends Primitive {
   Reference<Primitive> value;
   final DartType dartType;
 
-  /// If [dartType] is an [InterfaceType], this holds the internal
-  /// representation of the type arguments to [dartType]. Since these may
-  /// reference type variables from the enclosing class, they are not constant.
+  /// If [type] is an [InterfaceType], this holds the internal representation of
+  /// the type arguments to [type]. Since these may reference type variables
+  /// from the enclosing class, they are not constant.
   ///
-  /// If [dartType] is a [TypeVariableType], this is a singleton list with the
-  /// internal representation of the type held in that type variable.
+  /// If [type] is a [TypeVariableType], this is a singleton list with
+  /// the internal representation of the type held in that type variable.
   ///
-  /// If [dartType] is a [FunctionType], this is a singleton list with the
+  /// If [type] is a [FunctionType], this is a singleton list with the
   /// internal representation of that type,
   ///
   /// Otherwise the list is empty.
   final List<Reference<Primitive>> typeArguments;
 
-  /// The Interceptor for [value].  May be `null` if the test can be done
-  /// without an interceptor.  May be the same as [value] after self-interceptor
-  /// optimization.
-  // TODO(24523): Remove this field.
-  Reference<Primitive> interceptor;
-
   TypeTest(Primitive value,
            this.dartType,
            List<Primitive> typeArguments)
-      : this.value = new Reference<Primitive>(value),
-        this.typeArguments = _referenceList(typeArguments);
+  : this.value = new Reference<Primitive>(value),
+    this.typeArguments = _referenceList(typeArguments);
 
   accept(Visitor visitor) => visitor.visitTypeTest(this);
-
-  bool get isSafeForElimination => true;
-  bool get isSafeForReordering => true;
-}
-
-/// An "is" type test for a raw type, performed by testing a flag property.
-///
-/// Returns `true` if [interceptor] is for [dartType].
-class TypeTestViaFlag extends Primitive {
-  Reference<Primitive> interceptor;
-  final DartType dartType;
-
-  TypeTestViaFlag(Primitive interceptor, this.dartType)
-      : this.interceptor = new Reference<Primitive>(interceptor);
-
-  accept(Visitor visitor) => visitor.visitTypeTestViaFlag(this);
 
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
@@ -1393,7 +1371,6 @@ abstract class Visitor<T> {
   T visitTypeExpression(TypeExpression node);
   T visitCreateInvocationMirror(CreateInvocationMirror node);
   T visitTypeTest(TypeTest node);
-  T visitTypeTestViaFlag(TypeTestViaFlag node);
   T visitApplyBuiltinOperator(ApplyBuiltinOperator node);
   T visitApplyBuiltinMethod(ApplyBuiltinMethod node);
   T visitGetLength(GetLength node);
@@ -1519,14 +1496,7 @@ class LeafVisitor implements Visitor {
   visitTypeTest(TypeTest node) {
     processTypeTest(node);
     processReference(node.value);
-    if (node.interceptor != null) processReference(node.interceptor);
     node.typeArguments.forEach(processReference);
-  }
-
-  processTypeTestViaFlag(TypeTestViaFlag node) {}
-  visitTypeTestViaFlag(TypeTestViaFlag node) {
-    processTypeTestViaFlag(node);
-    processReference(node.interceptor);
   }
 
   processSetMutable(SetMutable node) {}

@@ -357,6 +357,18 @@ class CodeGenerator extends tree_ir.StatementVisitor
       glue.registerIsCheck(type, registry);
       ClassElement clazz = type.element;
 
+      // Handle some special checks against classes that exist only in
+      // the compile-time class hierarchy, not at runtime.
+      // TODO(sra): Is this correct? The field tests are only valid with the
+      // precondition that [value] is an Array. They will crash on `null`.
+      if (clazz == glue.jsExtendableArrayClass) {
+        assert(node.isTypeTest);
+        return js.js(r'!#.fixed$length', <js.Expression>[value]);
+      } else if (clazz == glue.jsMutableArrayClass) {
+        assert(node.isTypeTest);
+        return js.js(r'!#.immutable$list', <js.Expression>[value]);
+      }
+
       if (glue.isStringClass(clazz)) {
         if (node.isTypeTest) {
           return js.js(r'typeof # === "string"', <js.Expression>[value]);
@@ -413,16 +425,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
           <js.Expression>[value, typeValue]);
     }
     return giveup(node, 'type check unimplemented for $type.');
-  }
-
-  @override
-  js.Expression visitGetTypeTestProperty(tree_ir.GetTypeTestProperty node) {
-    js.Expression object = visitExpression(node.object);
-    DartType dartType = node.dartType;
-    assert(dartType.isInterfaceType);
-    glue.registerIsCheck(dartType, registry);
-    js.Expression property = glue.getTypeTestTag(dartType);
-    return js.js(r'#.#', [object, property]);
   }
 
   @override
@@ -817,13 +819,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitTypeExpression(tree_ir.TypeExpression node) {
     List<js.Expression> arguments = visitExpressionList(node.arguments);
-    return glue.generateTypeRepresentation(node.dartType, arguments, registry);
+    return glue.generateTypeRepresentation(node.dartType, arguments);
   }
 
   js.Node handleForeignCode(tree_ir.ForeignCode node) {
     registry.registerStaticUse(node.dependency);
-    // TODO(sra): Should this be in CodegenRegistry?
-    glue.registerNativeBehavior(node.nativeBehavior, node);
     return node.codeTemplate.instantiate(visitExpressionList(node.arguments));
   }
 
@@ -893,16 +893,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
         return js.js('Math.floor(#) === #', args);
       case BuiltinOperator.IsNumberAndFloor:
         return js.js('typeof # === "number" && Math.floor(#) === #', args);
-      case BuiltinOperator.IsFixedLengthJSArray:
-        // TODO(sra): Remove boolify (i.e. !!).
-        return js.js(r'!!#.fixed$length', args);
-      case BuiltinOperator.IsExtendableJSArray:
-        return js.js(r'!#.fixed$length', args);
-      case BuiltinOperator.IsModifiableJSArray:
-        return js.js(r'!#.immutable$list', args);
-      case BuiltinOperator.IsUnmodifiableJSArray:
-        // TODO(sra): Remove boolify (i.e. !!).
-        return js.js(r'!!#.immutable$list', args);
     }
   }
 

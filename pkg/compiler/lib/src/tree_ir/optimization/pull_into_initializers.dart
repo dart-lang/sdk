@@ -315,11 +315,6 @@ class PullIntoInitializers extends RecursiveTransformer
     return node;
   }
 
-  Expression visitGetTypeTestProperty(GetTypeTestProperty node) {
-    super.visitGetTypeTestProperty(node);
-    return node;
-  }
-
   Expression visitGetLength(GetLength node) {
     super.visitGetLength(node);
     ++impureCounter;

@@ -237,17 +237,11 @@ substitute(var substitution, var arguments) {
   assert(arguments == null || isJsArray(arguments));
   if (isJsFunction(substitution)) {
     substitution = invoke(substitution, arguments);
-    if (substitution == null) return substitution;
-    if (isJsArray(substitution)) {
-      // Substitutions are generated too late to mark Array as used, so use a
-      // tautological JS 'cast' to mark Array as used. This is needed only in
-      // some tiny tests where the substition is the only thing that creates an
-      // Array.
-      return JS('JSArray', '#', substitution);
-    }
-    if (isJsFunction(substitution)) {
+    if (substitution == null || isJsArray(substitution)) {
+      arguments = substitution;
+    } else if (isJsFunction(substitution)) {
       // TODO(johnniwinther): Check if this is still needed.
-      return invoke(substitution, arguments);
+      arguments = invoke(substitution, arguments);
     }
   }
   return arguments;

@@ -229,18 +229,6 @@ class UnsugarVisitor extends RecursiveVisitor implements Pass {
     // worry about unlinking.
   }
 
-  // TODO(24523): Insert interceptor on demand when we discover we want to use
-  // one rather than on every check.
-  processTypeTest(TypeTest node) {
-    assert(node.interceptor == null);
-    Primitive receiver = node.value.definition;
-    Primitive interceptor = new Interceptor(receiver, node.sourceInformation)
-        ..interceptedClasses.addAll(_glue.interceptedClasses);
-    insertLetPrim(interceptor, node.parent);
-    node.interceptor = new Reference<Primitive>(interceptor);
-    node.interceptor.parent = node;
-  }
-
   processInvokeMethod(InvokeMethod node) {
     Selector selector = node.selector;
     if (!_glue.isInterceptedSelector(selector)) return;

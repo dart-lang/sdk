@@ -7,8 +7,6 @@ library code_generator_dependencies;
 import '../js_backend.dart';
 import '../../common/registry.dart' show
     Registry;
-import '../../common/codegen.dart' show
-    CodegenRegistry;
 import '../../compiler.dart' show
     Compiler;
 import '../../constants/values.dart';
@@ -25,7 +23,6 @@ import '../../enqueue.dart' show
 import '../../elements/elements.dart';
 import '../../js_emitter/js_emitter.dart';
 import '../../js/js.dart' as js;
-import '../../native/native.dart' show NativeBehavior;
 import '../../universe/selector.dart' show
     Selector;
 import '../../world.dart' show
@@ -135,10 +132,6 @@ class Glue {
     return _backend.getInterceptedClassesOn(selector.name);
   }
 
-  Set<ClassElement> get interceptedClasses {
-    return _backend.interceptedClasses;
-  }
-
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
     _backend.registerSpecializedGetInterceptor(classes);
   }
@@ -241,15 +234,12 @@ class Glue {
   }
 
   js.Expression generateTypeRepresentation(DartType dartType,
-                                           List<js.Expression> arguments,
-                                           CodegenRegistry registry) {
+                                           List<js.Expression> arguments) {
     int variableIndex = 0;
     js.Expression representation = _backend.rti.getTypeRepresentation(
         dartType,
         (_) => arguments[variableIndex++]);
     assert(variableIndex == arguments.length);
-    // Representation contains JavaScript Arrays.
-    registry.registerInstantiatedClass(_backend.jsArrayClass);
     return representation;
   }
 
@@ -274,10 +264,7 @@ class Glue {
     return _compiler.world.hasAnyStrictSubtype(element);
   }
 
-  ClassElement get jsFixedArrayClass => _backend.jsFixedArrayClass;
   ClassElement get jsExtendableArrayClass => _backend.jsExtendableArrayClass;
-  ClassElement get jsUnmodifiableArrayClass =>
-      _backend.jsUnmodifiableArrayClass;
   ClassElement get jsMutableArrayClass => _backend.jsMutableArrayClass;
 
   bool isStringClass(ClassElement classElement) =>
@@ -287,10 +274,4 @@ class Glue {
   bool isBoolClass(ClassElement classElement) =>
       classElement == _backend.jsBoolClass ||
       classElement == _compiler.boolClass;
-
-  // TODO(sra): Should this be part of CodegenRegistry?
-  void registerNativeBehavior(NativeBehavior nativeBehavior, node) {
-    if (nativeBehavior == null) return;
-    _enqueuer.nativeEnqueuer.registerNativeBehavior(nativeBehavior, node);
-  }
 }
