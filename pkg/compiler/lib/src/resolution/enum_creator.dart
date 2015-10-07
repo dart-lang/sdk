@@ -233,7 +233,7 @@ class EnumCreator {
         requiredParameterCount: 1,
         type: new FunctionType(constructor, const VoidType(),
             <DartType>[intType]));
-    constructor.functionSignatureCache = constructorSignature;
+    constructor.functionSignature = constructorSignature;
     enumClass.addMember(constructor, reporter);
 
     List<FieldElement> enumValues = <FieldElement>[];
@@ -304,7 +304,7 @@ class EnumCreator {
         enumClass, Modifiers.EMPTY, toStringNode);
     FunctionSignatureX toStringSignature = new FunctionSignatureX(
         type: new FunctionType(toString, stringType));
-    toString.functionSignatureCache = toStringSignature;
+    toString.functionSignature = toStringSignature;
     enumClass.addMember(toString, reporter);
 
     enumClass.enumValues = enumValues;

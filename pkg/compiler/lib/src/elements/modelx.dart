@@ -315,7 +315,6 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   bool get isRedirectingGenerative => unsupported();
   bool get isRedirectingFactory => unsupported();
 
-  computeSignature(Resolution resolution) => unsupported();
   computeType(Resolution resolution) => unsupported();
 
   bool get hasFunctionSignature => false;
@@ -396,6 +395,10 @@ class ErroneousConstructorElementX extends ErroneousElementX
     throw new UnsupportedError("effectiveTargetType=");
   }
 
+  void _computeSignature(Resolution resolution) {
+    throw new UnsupportedError("_computeSignature");
+  }
+
   get typeCache {
     throw new UnsupportedError("typeCache");
   }
@@ -412,12 +415,16 @@ class ErroneousConstructorElementX extends ErroneousElementX
     throw new UnsupportedError("immediateRedirectionTarget=");
   }
 
-  get functionSignatureCache {
+  get _functionSignatureCache {
     throw new UnsupportedError("functionSignatureCache");
   }
 
-  set functionSignatureCache(_) {
+  set _functionSignatureCache(_) {
     throw new UnsupportedError("functionSignatureCache=");
+  }
+
+  set functionSignature(_) {
+    throw new UnsupportedError("functionSignature=");
   }
 
   get nestedClosures {
@@ -1701,7 +1708,7 @@ class FormalElementX extends ElementX
    * kept to provide full information about parameter names through the mirror
    * system.
    */
-  FunctionSignature functionSignatureCache;
+  FunctionSignature _functionSignatureCache;
 
   FormalElementX(ElementKind elementKind,
                  FunctionTypedElement enclosingElement,
@@ -1731,9 +1738,16 @@ class FormalElementX extends ElementX
   }
 
   FunctionSignature get functionSignature {
-    assert(invariant(this, typeCache != null,
-            message: "Parameter signature has not been set for $this."));
-    return functionSignatureCache;
+    assert(invariant(this, _functionSignatureCache != null,
+        message: "Parameter signature has not been computed for $this."));
+    return _functionSignatureCache;
+  }
+
+  void set functionSignature(FunctionSignature value) {
+    assert(invariant(this, _functionSignatureCache == null,
+        message: "Parameter signature has already been computed for $this."));
+    _functionSignatureCache = value;
+    typeCache = _functionSignatureCache.type;
   }
 
   bool get hasNode => true;
@@ -1953,7 +1967,7 @@ abstract class BaseFunctionElementX
 
   List<FunctionElement> nestedClosures = new List<FunctionElement>();
 
-  FunctionSignature functionSignatureCache;
+  FunctionSignature _functionSignatureCache;
 
   AsyncMarker asyncMarker = AsyncMarker.SYNC;
 
@@ -1973,18 +1987,26 @@ abstract class BaseFunctionElementX
            && !isStatic;
   }
 
-  bool get hasFunctionSignature => functionSignatureCache != null;
+  bool get hasFunctionSignature => _functionSignatureCache != null;
 
-  FunctionSignature computeSignature(Resolution resolution) {
-    if (functionSignatureCache != null) return functionSignatureCache;
-    functionSignatureCache = resolution.resolveSignature(this);
-    return functionSignatureCache;
+  void _computeSignature(Resolution resolution) {
+    if (hasFunctionSignature) return;
+    functionSignature = resolution.resolveSignature(this);
   }
 
   FunctionSignature get functionSignature {
-    assert(invariant(this, functionSignatureCache != null,
+    assert(invariant(this, hasFunctionSignature,
         message: "Function signature has not been computed for $this."));
-    return functionSignatureCache;
+    return _functionSignatureCache;
+  }
+
+  void set functionSignature(FunctionSignature value) {
+    // TODO(johnniwinther): Strengthen the invariant to `!hasFunctionSignature`
+    // when checked mode checks are not enqueued eagerly.
+    assert(invariant(this, !hasFunctionSignature || type == value.type,
+        message: "Function signature has already been computed for $this."));
+    _functionSignatureCache = value;
+    typeCache = _functionSignatureCache.type;
   }
 
   List<ParameterElement> get parameters {
@@ -1997,7 +2019,9 @@ abstract class BaseFunctionElementX
 
   FunctionType computeType(Resolution resolution) {
     if (typeCache != null) return typeCache;
-    typeCache = computeSignature(resolution).type;
+    _computeSignature(resolution);
+    assert(invariant(this, typeCache != null,
+        message: "Type cache expected to be set on $this."));
     return typeCache;
   }
 
@@ -2043,7 +2067,7 @@ abstract class FunctionElementX extends BaseFunctionElementX
   void reuseElement() {
     super.reuseElement();
     nestedClosures.clear();
-    functionSignatureCache = null;
+    _functionSignatureCache = null;
     typeCache = null;
   }
 }
@@ -2233,13 +2257,8 @@ class DeferredLoaderGetterElementX extends GetterElementX
         super("loadLibrary",
               Modifiers.EMPTY,
               prefix,
-              false);
-
-  FunctionSignature computeSignature(Resolution resolution) {
-    if (functionSignatureCache != null) return functionSignature;
-    functionSignatureCache =
-        new FunctionSignatureX(type: new FunctionType(this));
-    return functionSignatureCache;
+              false) {
+    functionSignature = new FunctionSignatureX(type: new FunctionType(this));
   }
 
   bool get isClassMember => false;
@@ -2273,7 +2292,7 @@ class ConstructorBodyElementX extends BaseFunctionElementX
               ElementKind.GENERATIVE_CONSTRUCTOR_BODY,
               Modifiers.EMPTY,
               constructor.enclosingElement) {
-    functionSignatureCache = constructor.functionSignature;
+    functionSignature = constructor.functionSignature;
   }
 
   bool get hasNode => constructor.hasNode;
@@ -2330,8 +2349,8 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
               ElementKind.GENERATIVE_CONSTRUCTOR,
               Modifiers.EMPTY,
               enclosing) {
-    typeCache = new FunctionType.synthesized(enclosingClass.thisType);
-    functionSignatureCache = new FunctionSignatureX(type: type);
+    functionSignature = new FunctionSignatureX(
+        type: new FunctionType.synthesized(enclosingClass.thisType));
   }
 
   FunctionExpression parseNode(Parsing parsing) => null;
@@ -2354,18 +2373,16 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
     }
   }
 
-  FunctionSignature computeSignature(Resolution resolution) {
-    if (functionSignatureCache != null) return functionSignatureCache;
+  void _computeSignature(Resolution resolution) {
+    if (hasFunctionSignature) return;
     if (definingConstructor.isErroneous) {
-      typeCache = new FunctionType.synthesized(enclosingClass.thisType);
-      return functionSignatureCache = new FunctionSignatureX(type: type);
+      functionSignature = new FunctionSignatureX(
+          type: new FunctionType.synthesized(enclosingClass.thisType));
     }
     // TODO(johnniwinther): Ensure that the function signature (and with it the
     // function type) substitutes type variables correctly.
     definingConstructor.computeType(resolution);
-    functionSignatureCache = definingConstructor.functionSignature;
-    typeCache = definingConstructor.type;
-    return functionSignatureCache;
+    functionSignature = definingConstructor.functionSignature;
   }
 
   accept(ElementVisitor visitor, arg) {

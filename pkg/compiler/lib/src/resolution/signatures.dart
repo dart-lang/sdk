@@ -126,8 +126,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
           compiler, functionExpression.parameters,
           functionExpression.returnType, element, registry,
           defaultValuesError: MessageKind.FUNCTION_TYPE_FORMAL_WITH_DEFAULT);
-      element.functionSignatureCache = functionSignature;
-      element.typeCache = functionSignature.type;
+      element.functionSignature = functionSignature;
     }
 
     if (currentDefinitions.type != null) {

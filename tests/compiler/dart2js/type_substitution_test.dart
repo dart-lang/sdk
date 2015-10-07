@@ -16,8 +16,8 @@ DartType getType(compiler, String name) {
   var element = clazz.buildScope().lookup(name);
   Expect.isNotNull(element);
   Expect.equals(element.kind, ElementKind.FUNCTION);
-  FunctionSignature signature =
-      element.computeSignature(compiler.resolution);
+  element.computeType(compiler.resolution);
+  FunctionSignature signature = element.functionSignature;
 
   // Function signatures are used to be to provide void types (only occuring as
   // as return types) and (inlined) function types (only occuring as method

@@ -23,8 +23,7 @@ void checkPrintType(String expression, checkType(compiler, type)) {
       'print',
       (compiler, printElement) {
         var parameter =
-          printElement.computeSignature(compiler.resolution)
-              .requiredParameters.first;
+          printElement.functionSignature.requiredParameters.first;
         var type = compiler.typesTask.getGuaranteedTypeOfElement(parameter);
         checkType(compiler, type);
       }));
@@ -34,8 +33,7 @@ void checkPrintType(String expression, checkType(compiler, type)) {
       'print',
       (compiler, printElement) {
         var parameter =
-          printElement.computeSignature(compiler.resolution)
-              .requiredParameters.first;
+          printElement.functionSignature.requiredParameters.first;
         var type = compiler.typesTask.getGuaranteedTypeOfElement(parameter);
         checkType(compiler, type);
       }));
@@ -45,8 +43,7 @@ void checkPrintType(String expression, checkType(compiler, type)) {
       'print',
       (compiler, printElement) {
         var parameter =
-          printElement.computeSignature(compiler.resolution)
-              .requiredParameters.first;
+          printElement.functionSignature.requiredParameters.first;
         var type = compiler.typesTask.getGuaranteedTypeOfElement(parameter);
         checkType(compiler, type);
       }));
@@ -81,11 +78,11 @@ void testOptionalParameters() {
       'fisk(a, [b, c]) {} main() { fisk(1); }',
       'fisk',
       (compiler, fiskElement) {
-        var firstParameter = fiskElement.computeSignature(compiler.resolution)
+        var firstParameter = fiskElement.functionSignature
             .requiredParameters[0];
-        var secondParameter = fiskElement.computeSignature(compiler.resolution)
+        var secondParameter = fiskElement.functionSignature
           .optionalParameters[0];
-        var thirdParameter = fiskElement.computeSignature(compiler.resolution)
+        var thirdParameter = fiskElement.functionSignature
           .optionalParameters[1];
         var typesTask = compiler.typesTask;
         Expect.identical(

@@ -17,10 +17,10 @@ bool test(compiler, String name1, String name2, {bool expect}) {
   Expect.isNotNull(element2);
   Expect.equals(element1.kind, ElementKind.FUNCTION);
   Expect.equals(element2.kind, ElementKind.FUNCTION);
-  FunctionSignature signature1 =
-      element1.computeSignature(compiler.resolution);
-  FunctionSignature signature2 =
-      element2.computeSignature(compiler.resolution);
+  element1.computeType(compiler.resolution);
+  element2.computeType(compiler.resolution);
+  FunctionSignature signature1 = element1.functionSignature;
+  FunctionSignature signature2 = element2.functionSignature;
 
   // Function signatures are used to be to provide void types (only occuring as
   // as return types) and (inlined) function types (only occuring as method

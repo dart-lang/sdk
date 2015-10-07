@@ -619,7 +619,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         name, node, ElementKind.FUNCTION, Modifiers.EMPTY,
         enclosingElement);
     ResolverTask.processAsyncMarker(compiler, function, registry);
-    function.functionSignatureCache = SignatureResolver.analyze(
+    function.functionSignature = SignatureResolver.analyze(
         compiler,
         node.parameters,
         node.returnType,
