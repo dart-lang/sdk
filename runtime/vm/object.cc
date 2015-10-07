@@ -66,6 +66,8 @@ DEFINE_FLAG(bool, trace_cha, false, "Trace CHA operations");
 DEFINE_FLAG(bool, use_field_guards, true, "Guard field cids.");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
 DEFINE_FLAG(bool, trace_field_guards, false, "Trace changes in field's cids.");
+DEFINE_FLAG(bool, ignore_patch_signature_mismatch, false,
+            "Ignore patch file member signature mismatch.");
 
 DECLARE_FLAG(charp, coverage_dir);
 DECLARE_FLAG(bool, load_deferred_eagerly);
@@ -2899,7 +2901,8 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
         new_functions.Add(orig_func);
       }
     } else if (func.UserVisibleSignature() !=
-               orig_func.UserVisibleSignature()) {
+               orig_func.UserVisibleSignature()
+               && !FLAG_ignore_patch_signature_mismatch) {
       // Compare user visible signatures to ignore different implicit parameters
       // when patching a constructor with a factory.
       *error = LanguageError::NewFormatted(
