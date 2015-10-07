@@ -1,8 +1,8 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library vmservice;
+library dart._vmservice;
 
 import 'dart:async';
 import 'dart:convert';
@@ -322,10 +322,11 @@ void _registerIsolate(int port_id, SendPort sp, String name) {
   service.runningIsolates.isolateStartup(port_id, sp, name);
 }
 
-void _onStart() native "VMService_OnStart";
+external void _onStart();
 
-void _onExit() native "VMService_OnExit";
+external void _onExit();
 
-bool _vmListenStream(String streamId) native "VMService_ListenStream";
+external bool _vmListenStream(String streamId);
 
-void _vmCancelStream(String streamId) native "VMService_CancelStream";
+external void _vmCancelStream(String streamId);
+

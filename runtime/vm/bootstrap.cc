@@ -73,8 +73,8 @@ static bootstrap_lib_props bootstrap_libraries[] = {
                Bootstrap::typed_data_patch_paths_),
   INIT_LIBRARY(ObjectStore::kVMService,
                _vmservice,
-               Bootstrap::vmservice_source_paths_,
-               NULL),
+               Bootstrap::_vmservice_source_paths_,
+               Bootstrap::_vmservice_patch_paths_),
   { ObjectStore::kNone, NULL, NULL, NULL, NULL }
 };
 
