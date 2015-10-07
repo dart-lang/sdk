@@ -1170,12 +1170,17 @@ wrap_jso(jsObject) {
     }
 
     var constructor = js.JsNative.getProperty(jsObject, 'constructor');
-    if (__interop_checks) {
-      debug_or_assert("constructor != null", constructor != null);
+    if (constructor == null) {
+      // Perfectly valid case for JavaScript objects where __proto__ has
+      // intentionally been set to null.
+      js.setDartHtmlWrapperFor(jsObject, jsObject);
+      return jsObject;
     }
     var jsTypeName = js.JsNative.getProperty(constructor, 'name');
-    if (__interop_checks) {
-      debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
+    if (jsTypeName is! String || jsTypeName.length == 0) {
+      // Not an html type.
+      js.setDartHtmlWrapperFor(jsObject, jsObject);
+      return jsObject;
     }
 
     var dartClass_instance;
@@ -1245,12 +1250,17 @@ wrap_jso_no_SerializedScriptvalue(jsObject) {
     }
 
     var constructor = js.JsNative.getProperty(jsObject, 'constructor');
-    if (__interop_checks) {
-      debug_or_assert("constructor != null", constructor != null);
+    if (constructor == null) {
+      // Perfectly valid case for JavaScript objects where __proto__ has
+      // intentionally been set to null.
+      js.setDartHtmlWrapperFor(jsObject, jsObject);
+      return jsObject;
     }
     var jsTypeName = js.JsNative.getProperty(constructor, 'name');
-    if (__interop_checks) {
-      debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
+    if (jsTypeName is! String || jsTypeName.length == 0) {
+      // Not an html type.
+      js.setDartHtmlWrapperFor(jsObject, jsObject);
+      return jsObject;
     }
 
     var func = getHtmlCreateFunction(jsTypeName);
@@ -20524,7 +20534,7 @@ class HtmlDocument extends Document {
       });
       // document.registerElement('x-foo', {prototype: elemProto, extends: extendsTag});
       var jsMap = new js.JsObject.jsify({'prototype': elemProto, 'extends': extendsTag});
-      js.Jsnative.callMethod(js.JsNative.getProperty(js.context, 'document'), 'registerElement', [tag, jsMap]);
+      js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'document'), 'registerElement', [tag, jsMap]);
     }
   }
 

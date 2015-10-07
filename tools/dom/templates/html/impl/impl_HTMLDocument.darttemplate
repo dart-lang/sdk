@@ -424,7 +424,7 @@ $else
       });
       // document.registerElement('x-foo', {prototype: elemProto, extends: extendsTag});
       var jsMap = new js.JsObject.jsify({'prototype': elemProto, 'extends': extendsTag});
-      js.Jsnative.callMethod(js.JsNative.getProperty(js.context, 'document'), 'registerElement', [tag, jsMap]);
+      js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'document'), 'registerElement', [tag, jsMap]);
     }
 $endif
   }
