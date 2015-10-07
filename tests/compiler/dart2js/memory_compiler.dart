@@ -245,10 +245,10 @@ Compiler compilerFor(
     compiler.deferredLibraryClass = cachedCompiler.deferredLibraryClass;
 
     Iterable cachedTreeElements =
-        cachedCompiler.enqueuer.resolution.resolvedElements;
+        cachedCompiler.enqueuer.resolution.processedElements;
     cachedTreeElements.forEach((element) {
       if (element.library.isPlatformLibrary) {
-        compiler.enqueuer.resolution.registerResolvedElement(element);
+        compiler.enqueuer.resolution.registerProcessedElement(element);
       }
     });
 

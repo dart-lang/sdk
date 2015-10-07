@@ -1265,10 +1265,9 @@ class ErroneousAstConstant extends AstConstant {
           new ErroneousConstantExpression(), new NullConstantValue());
 }
 
-// TODO(johnniwinther): Avoid the need for this hack.
+// TODO(johnniwinther): Clean this up.
 TreeElements _analyzeElementEagerly(Compiler compiler, AstElement element) {
-  WorldImpact worldImpact = compiler.analyzeElement(element.declaration);
-  compiler.enqueuer.resolution.applyImpact(element.declaration, worldImpact);
+  compiler.resolution.analyzeElement(element.declaration);
   return element.resolvedAst.elements;
 }
 
