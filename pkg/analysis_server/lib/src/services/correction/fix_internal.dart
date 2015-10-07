@@ -271,6 +271,9 @@ class FixProcessor {
     if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
       _addFix_removeParentheses_inGetterInvocation();
     }
+    if (errorCode == StaticTypeWarningCode.NON_BOOL_CONDITION) {
+      _addFix_nonBoolCondition_addNotNull();
+    }
     if (errorCode == StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT) {
       _addFix_importLibrary_withType();
       _addFix_createClass();
@@ -1516,6 +1519,11 @@ class FixProcessor {
     String className = enclosingClass.name.name;
     _addInsertEdit(enclosingClass.classKeyword.offset, 'abstract ');
     _addFix(DartFixKind.MAKE_CLASS_ABSTRACT, [className]);
+  }
+
+  void _addFix_nonBoolCondition_addNotNull() {
+    _addInsertEdit(error.offset + error.length, ' != null');
+    _addFix(DartFixKind.ADD_NE_NULL, []);
   }
 
   void _addFix_removeDeadCode() {

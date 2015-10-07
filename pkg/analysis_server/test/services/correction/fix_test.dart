@@ -3097,6 +3097,25 @@ main(p) {
     }
   }
 
+  void test_nonBoolCondition_addNotNull() {
+    resolveTestUnit('''
+main(String p) {
+  if (p) {
+    print(p);
+  }
+}
+''');
+    assertHasFix(
+        DartFixKind.ADD_NE_NULL,
+        '''
+main(String p) {
+  if (p != null) {
+    print(p);
+  }
+}
+''');
+  }
+
   void test_removeDeadCode_condition() {
     resolveTestUnit('''
 main(int p) {
