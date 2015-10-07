@@ -1506,7 +1506,9 @@ class Isolate extends ServiceObjectOwner with Coverage {
     } on ServerRpcException catch(e) {
       if (e.code == ServerRpcException.kCannotAddBreakpoint) {
         // Unable to set a breakpoint at the desired line.
-        script.getLine(line).possibleBpt = false;
+        if (script.loaded) {
+          script.getLine(line).possibleBpt = false;
+        }
       }
       rethrow;
     }

@@ -425,7 +425,12 @@ class ScriptInsetElement extends ObservatoryElement {
       case ServiceEvent.kBreakpointRemoved:
         var loc = event.breakpoint.location;
         if (loc.script == script) {
-          int line = script.tokenToLine(loc.tokenPos);
+          int line;
+          if (loc.tokenPos != null) {
+            line = script.tokenToLine(loc.tokenPos);
+          } else {
+            line = script.tokenToLine(loc.line);
+          }
           if ((line >= _startLine) && (line <= _endLine)) {
             _updateTask.queue();
           }

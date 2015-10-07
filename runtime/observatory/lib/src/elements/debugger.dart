@@ -2321,13 +2321,13 @@ class DebuggerInputElement extends ObservatoryElement {
   var modalCallback = null;
 
   void enterMode(String prompt, callback) {
-    assert(prompt == null);
+    assert(modalPrompt == null);
     modalPrompt = prompt;
     modalCallback = callback;
   }
 
   void exitMode() {
-    assert(prompt != null);
+    assert(modalPrompt != null);
     modalPrompt = null;
     modalCallback = null;
   }
