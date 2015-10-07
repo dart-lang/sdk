@@ -5,6 +5,7 @@
 library engine.element;
 
 import 'dart:collection';
+import 'dart:math' show min;
 
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -7340,6 +7341,15 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   List<ExportElement> _exports = ExportElement.EMPTY_LIST;
 
   /**
+   * A list containing the strongly connected component in the import/export
+   * graph in which the current library resides.  Computed on demand, null
+   * if not present.  If _libraryCycle is set, then the _libraryCycle field
+   * for all libraries reachable from this library in the import/export graph
+   * is also set.
+   */
+  List<LibraryElement> _libraryCycle = null;
+
+  /**
    * A list containing all of the compilation units that are included in this
    * library using a `part` directive.
    */
@@ -7526,6 +7536,69 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   LibraryElement get library => this;
+
+  List<LibraryElement> get libraryCycle {
+    if (_libraryCycle != null) {
+      return _libraryCycle;
+    }
+
+    // Global counter for this run of the algorithm
+    int counter = 0;
+    // The discovery times of each library
+    Map<LibraryElementImpl, int> indices = {};
+    // The set of scc candidates
+    Set<LibraryElementImpl> active = new Set();
+    // The stack of discovered elements
+    List<LibraryElementImpl> stack = [];
+    // For a given library that has not yet been processed by this run of the
+    // algorithm, compute the strongly connected components.
+    int scc(LibraryElementImpl library) {
+      int index = counter++;
+      int root = index;
+      indices[library] = index;
+      active.add(library);
+      stack.add(library);
+      void recurse(LibraryElementImpl child) {
+        if (!indices.containsKey(child)) {
+          // We haven't visited this child yet, so recurse on the child,
+          // returning the lowest numbered node reachable from the child.  If
+          // the child can reach a root which is lower numbered than anything
+          // we've reached so far, update the root.
+          root = min(root, scc(child));
+        } else if (active.contains(child)) {
+          // The child has been visited, but has not yet been placed into a
+          // component.  If the child is higher than anything we've seen so far
+          // update the root appropriately.
+          root = min(root, indices[child]);
+        }
+      }
+      // Recurse on all of the children in the import/export graph, filtering
+      // out those for which library cycles have already been computed.
+      library.exportedLibraries
+          .where((l) => l._libraryCycle == null)
+          .forEach(recurse);
+      library.importedLibraries
+          .where((l) => l._libraryCycle == null)
+          .forEach(recurse);
+
+      if (root == index) {
+        // This is the root of a strongly connected component.
+        // Pop the elements, and share the component across all
+        // of the elements.
+        List<LibraryElement> component = <LibraryElement>[];
+        LibraryElementImpl cur = null;
+        do {
+          cur = stack.removeLast();
+          active.remove(cur);
+          component.add(cur);
+          cur._libraryCycle = component;
+        } while (cur != library);
+      }
+      return root;
+    }
+    scc(library);
+    return _libraryCycle;
+  }
 
   @override
   FunctionElement get loadLibraryFunction {

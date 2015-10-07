@@ -9676,7 +9676,7 @@ class PartialResolverVisitor extends ResolverVisitor {
 
   @override
   Object visitFieldDeclaration(FieldDeclaration node) {
-    if (strongMode) {
+    if (strongMode && node.isStatic) {
       _addVariables(node.fields.variables);
       bool wasDiscarding = discardErrorsInInitializer;
       discardErrorsInInitializer = true;

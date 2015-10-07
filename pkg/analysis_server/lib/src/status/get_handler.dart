@@ -324,12 +324,10 @@ class GetHandler {
       results.add(COMPILATION_UNIT_ELEMENT);
       results.add(HINTS);
       results.add(LINTS);
-      results.add(INFER_STATIC_VARIABLE_TYPES_ERRORS);
       results.add(INFERABLE_STATIC_VARIABLES_IN_UNIT);
       results.add(LIBRARY_UNIT_ERRORS);
-      results.add(PARTIALLY_RESOLVE_REFERENCES_ERRORS);
-      results.add(RESOLVE_FUNCTION_BODIES_ERRORS);
       results.add(RESOLVE_TYPE_NAMES_ERRORS);
+      results.add(RESOLVE_UNIT_ERRORS);
       results.add(RESOLVED_UNIT1);
       results.add(RESOLVED_UNIT2);
       results.add(RESOLVED_UNIT3);
@@ -347,7 +345,6 @@ class GetHandler {
       results.add(CONSTANT_DEPENDENCIES);
       results.add(CONSTANT_VALUE);
       if (target is VariableElement) {
-        results.add(INFER_STATIC_VARIABLE_ERRORS);
         results.add(INFERABLE_STATIC_VARIABLE_DEPENDENCIES);
         results.add(INFERRED_STATIC_VARIABLE);
       }
@@ -723,7 +720,8 @@ class GetHandler {
             buffer.write('<dt>$descriptorName ($descriptorState)</dt><dd>');
             if (state == CacheState.VALID) {
               try {
-                _writeValueAsHtml(buffer, entry.getValue(result), linkParameters);
+                _writeValueAsHtml(
+                    buffer, entry.getValue(result), linkParameters);
               } catch (exception) {
                 buffer.write('(${HTML_ESCAPE.convert(exception.toString())})');
               }
