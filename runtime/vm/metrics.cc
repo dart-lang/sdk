@@ -276,6 +276,12 @@ int64_t MetricHeapNewExternal::Value() const {
 }
 
 
+int64_t MetricHeapUsed::Value() const {
+  ASSERT(isolate() == Isolate::Current());
+  return isolate()->heap()->UsedInWords(Heap::kNew) * kWordSize +
+         isolate()->heap()->UsedInWords(Heap::kOld) * kWordSize;
+}
+
 int64_t MetricIsolateCount::Value() const {
   return Isolate::IsolateListLength();
 }

@@ -171,6 +171,7 @@ PageSpace::PageSpace(Heap* heap,
       collections_(0) {
   // We aren't holding the lock but no one can reference us yet.
   UpdateMaxCapacityLocked();
+  UpdateMaxUsed();
 }
 
 
@@ -547,6 +548,19 @@ void PageSpace::UpdateMaxCapacityLocked() {
 }
 
 
+void PageSpace::UpdateMaxUsed() {
+  if (heap_ == NULL) {
+    // Some unit tests.
+    return;
+  }
+  ASSERT(heap_ != NULL);
+  ASSERT(heap_->isolate() != NULL);
+  Isolate* isolate = heap_->isolate();
+  isolate->GetHeapOldUsedMaxMetric()->SetValue(
+      UsedInWords() * kWordSize);
+}
+
+
 bool PageSpace::Contains(uword addr) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     if (it.page()->Contains(addr)) {
@@ -662,9 +676,9 @@ void PageSpace::PrintToJSONObject(JSONObject* object) const {
   space.AddProperty("name", "old");
   space.AddProperty("vmName", "PageSpace");
   space.AddProperty("collections", collections());
-  space.AddProperty("used", UsedInWords() * kWordSize);
-  space.AddProperty("capacity", CapacityInWords() * kWordSize);
-  space.AddProperty("external", ExternalInWords() * kWordSize);
+  space.AddProperty64("used", UsedInWords() * kWordSize);
+  space.AddProperty64("capacity", CapacityInWords() * kWordSize);
+  space.AddProperty64("external", ExternalInWords() * kWordSize);
   space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
   if (collections() > 0) {
     int64_t run_time = OS::GetCurrentTimeMicros() - isolate->start_time();
@@ -930,6 +944,11 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     freelist_[HeapPage::kData].Print();
     OS::Print("Executable Freelist (after GC):\n");
     freelist_[HeapPage::kExecutable].Print();
+  }
+
+  UpdateMaxUsed();
+  if (heap_ != NULL) {
+    heap_->UpdateGlobalMaxUsed();
   }
 
   isolate->thread_registry()->ResumeAllThreads();

@@ -158,9 +158,9 @@ class Heap {
   void PrintSizes() const;
 
   // Return amount of memory used and capacity in a space, excluding external.
-  intptr_t UsedInWords(Space space) const;
-  intptr_t CapacityInWords(Space space) const;
-  intptr_t ExternalInWords(Space space) const;
+  int64_t UsedInWords(Space space) const;
+  int64_t CapacityInWords(Space space) const;
+  int64_t ExternalInWords(Space space) const;
   // Return the amount of GCing in microseconds.
   int64_t GCTimeInMicros(Space space) const;
 
@@ -221,6 +221,8 @@ class Heap {
   }
 
   bool gc_in_progress();
+
+  void UpdateGlobalMaxUsed();
 
   static bool IsAllocatableInNewSpace(intptr_t size) {
     return size <= kNewAllocatableSize;

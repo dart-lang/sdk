@@ -218,8 +218,8 @@ class PageSpace {
            NeedsExternalGC();
   }
 
-  intptr_t UsedInWords() const { return usage_.used_in_words; }
-  intptr_t CapacityInWords() const {
+  int64_t UsedInWords() const { return usage_.used_in_words; }
+  int64_t CapacityInWords() const {
     MutexLocker ml(pages_lock_);
     return usage_.capacity_in_words;
   }
@@ -234,8 +234,9 @@ class PageSpace {
   }
 
   void UpdateMaxCapacityLocked();
+  void UpdateMaxUsed();
 
-  intptr_t ExternalInWords() const {
+  int64_t ExternalInWords() const {
     return usage_.external_in_words;
   }
   SpaceUsage GetCurrentUsage() const {

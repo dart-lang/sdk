@@ -453,6 +453,16 @@ void Heap::UpdatePretenurePolicy() {
 }
 
 
+void Heap::UpdateGlobalMaxUsed() {
+  ASSERT(isolate_ != NULL);
+  // We are accessing the used in words count for both new and old space
+  // without synchronizing. The value of this metric is approximate.
+  isolate_->GetHeapGlobalUsedMaxMetric()->SetValue(
+      (UsedInWords(Heap::kNew) * kWordSize) +
+      (UsedInWords(Heap::kOld) * kWordSize));
+}
+
+
 void Heap::SetGrowthControlState(bool state) {
   old_space_.SetGrowthControlState(state);
 }
@@ -568,8 +578,8 @@ bool Heap::VerifyGC(MarkExpectation mark_expectation) const {
 
 
 void Heap::PrintSizes() const {
-  OS::PrintErr("New space (%" Pd "k of %" Pd "k) "
-               "Old space (%" Pd "k of %" Pd "k)\n",
+  OS::PrintErr("New space (%" Pd64 "k of %" Pd64 "k) "
+               "Old space (%" Pd64 "k of %" Pd64 "k)\n",
                (UsedInWords(kNew) / KBInWords),
                (CapacityInWords(kNew) / KBInWords),
                (UsedInWords(kOld) / KBInWords),
@@ -577,20 +587,22 @@ void Heap::PrintSizes() const {
 }
 
 
-intptr_t Heap::UsedInWords(Space space) const {
+int64_t Heap::UsedInWords(Space space) const {
   return space == kNew ? new_space_.UsedInWords() : old_space_.UsedInWords();
 }
 
 
-intptr_t Heap::CapacityInWords(Space space) const {
+int64_t Heap::CapacityInWords(Space space) const {
   return space == kNew ? new_space_.CapacityInWords() :
                          old_space_.CapacityInWords();
 }
 
-intptr_t Heap::ExternalInWords(Space space) const {
+
+int64_t Heap::ExternalInWords(Space space) const {
   return space == kNew ? new_space_.ExternalInWords() :
                          old_space_.ExternalInWords();
 }
+
 
 int64_t Heap::GCTimeInMicros(Space space) const {
   if (space == kNew) {

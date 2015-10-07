@@ -164,13 +164,13 @@ class Scavenger {
   static intptr_t top_offset() { return OFFSET_OF(Scavenger, top_); }
   static intptr_t end_offset() { return OFFSET_OF(Scavenger, end_); }
 
-  intptr_t UsedInWords() const {
+  int64_t UsedInWords() const {
     return (top_ - FirstObjectStart()) >> kWordSizeLog2;
   }
-  intptr_t CapacityInWords() const {
+  int64_t CapacityInWords() const {
     return to_->size_in_words();
   }
-  intptr_t ExternalInWords() const {
+  int64_t ExternalInWords() const {
     return external_size_ >> kWordSizeLog2;
   }
   SpaceUsage GetCurrentUsage() const {
@@ -269,6 +269,7 @@ class Scavenger {
   }
 
   void UpdateMaxHeapCapacity();
+  void UpdateMaxHeapUsage();
 
   void ProcessWeakTables();
 
