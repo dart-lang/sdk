@@ -20,60 +20,49 @@ class GrowableObjectArray;
 class RawError;
 class String;
 
-class SymbolPair {
+class SymbolKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
   typedef const String* Key;
-  typedef bool Value;
-  typedef SymbolPair Pair;
+  typedef const String* Value;
+  typedef const String* Pair;
 
-  SymbolPair() : key_(NULL), value_(false) {}
-  SymbolPair(Key key, Value value) : key_(key), value_(value) {
-    ASSERT(key->IsNotTemporaryScopedHandle());
-  }
+  static Key KeyOf(Pair kv) { return kv; }
 
-  static Key KeyOf(Pair kv) { return kv.key_; }
-
-  static Value ValueOf(Pair kv) { return kv.value_; }
+  static Value ValueOf(Pair kv) { return kv; }
 
   static inline intptr_t Hashcode(Key key) {
     return key->Hash();
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair.key_->raw() == key->raw();
+    return pair->raw() == key->raw();
   }
-
- private:
-  Key key_;
-  Value value_;
 };
 
+typedef DirectChainedHashMap<SymbolKeyValueTrait> SymbolSet;
 
-class SymbolSet : public ValueObject {
+class StackmapKeyValueTrait {
  public:
-  explicit SymbolSet(Zone* zone) : zone_(zone), map_() {}
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Stackmap* Key;
+  typedef const Stackmap* Value;
+  typedef const Stackmap* Pair;
 
-  void Add(const String& symbol) {
-    ASSERT(symbol.IsSymbol());
-    if (symbol.IsNotTemporaryScopedHandle()) {
-      SymbolPair pair(&symbol, true);
-      map_.Insert(pair);
-    } else {
-      SymbolPair pair(&String::ZoneHandle(zone_, symbol.raw()), true);
-      map_.Insert(pair);
-    }
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->PcOffset();
   }
 
-  bool Includes(const String& symbol) {
-    ASSERT(symbol.IsSymbol());
-    return map_.Lookup(&symbol);
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->Equals(*key);
   }
-
- private:
-  Zone* zone_;
-  DirectChainedHashMap<SymbolPair> map_;
 };
+
+typedef DirectChainedHashMap<StackmapKeyValueTrait> StackmapSet;
 
 
 class Precompiler : public ValueObject {
@@ -105,7 +94,15 @@ class Precompiler : public ValueObject {
 
   void DropUncompiledFunctions();
   void BindStaticCalls();
-  void BindStaticCalls(const Function& function);
+  void DedupStackmaps();
+
+  class FunctionVisitor : public ValueObject {
+   public:
+    virtual ~FunctionVisitor() {}
+    virtual void VisitFunction(const Function& function) = 0;
+  };
+
+  void VisitFunctions(FunctionVisitor* visitor);
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }

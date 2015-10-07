@@ -3955,6 +3955,14 @@ class Stackmap : public Object {
     StoreNonPointer(&raw_ptr()->register_bit_count_, register_bit_count);
   }
 
+  bool Equals(const Stackmap& other) const {
+    if (Length() != other.Length()) {
+      return false;
+    }
+    NoSafepointScope no_safepoint;
+    return memcmp(raw_ptr(), other.raw_ptr(), InstanceSize(Length())) == 0;
+  }
+
   static const intptr_t kMaxLengthInBytes = kSmiMax;
 
   static intptr_t InstanceSize() {
