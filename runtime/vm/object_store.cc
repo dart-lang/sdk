@@ -71,6 +71,7 @@ ObjectStore::ObjectStore()
     profiler_library_(Library::null()),
     root_library_(Library::null()),
     typed_data_library_(Library::null()),
+    vmservice_library_(Library::null()),
     libraries_(GrowableObjectArray::null()),
     pending_classes_(GrowableObjectArray::null()),
     pending_functions_(GrowableObjectArray::null()),

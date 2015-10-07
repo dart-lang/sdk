@@ -114,7 +114,7 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
         }
       }
       Expect.isTrue(messageFound, '"$pattern" does not match any in $messages');
-      Expect.isFalse(compiler.hasCrashed);
+      Expect.isFalse(compiler.reporter.hasCrashed);
       if (!unexpectedMessages.isEmpty) {
         for (String message in unexpectedMessages) {
           print("Unexpected message: $message");
@@ -129,13 +129,13 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
       bool pendingStuff = false;
       for (var e in compiler.resolver.pendingClassesToBePostProcessed) {
         pendingStuff = true;
-        compiler.reportInfo(
+        compiler.reporter.reportInfo(
             e, MessageKind.GENERIC,
             {'text': 'Pending class to be post-processed.'});
       }
       for (var e in compiler.resolver.pendingClassesToBeResolved) {
         pendingStuff = true;
-        compiler.reportInfo(
+        compiler.reporter.reportInfo(
             e, MessageKind.GENERIC,
             {'text': 'Pending class to be resolved.'});
       }

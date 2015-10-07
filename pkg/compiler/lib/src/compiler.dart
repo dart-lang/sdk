@@ -24,7 +24,10 @@ import 'common/names.dart' show
 import 'common/registry.dart' show
     Registry;
 import 'common/resolution.dart' show
-    ResolutionWorkItem;
+    Parsing,
+    Resolution,
+    ResolutionWorkItem,
+    ResolutionWorldImpact;
 import 'common/tasks.dart' show
     CompilerTask,
     GenericTask;
@@ -42,7 +45,10 @@ import 'dart_types.dart' show
     Types;
 import 'deferred_load.dart' show DeferredLoadTask, OutputUnit;
 import 'diagnostics/code_location.dart';
-import 'diagnostics/diagnostic_listener.dart';
+import 'diagnostics/diagnostic_listener.dart' show
+    DiagnosticMessage,
+    DiagnosticOptions,
+    DiagnosticReporter;
 import 'diagnostics/invariant.dart' show
     invariant,
     REPORT_EXCESS_RESOLUTION;
@@ -120,7 +126,8 @@ import 'tokens/token_constants.dart' as Tokens show
 import 'tokens/token_map.dart' show
     TokenMap;
 import 'tree/tree.dart' show
-    Node;
+    Node,
+    TypeAnnotation;
 import 'typechecker.dart' show
     TypeCheckerTask;
 import 'types/types.dart' as ti;
@@ -136,13 +143,16 @@ import 'util/util.dart' show
 import 'world.dart' show
     World;
 
-abstract class Compiler extends DiagnosticListener {
+abstract class Compiler {
 
   final Stopwatch totalCompileTime = new Stopwatch();
   int nextFreeClassId = 0;
   World world;
   Types types;
   _CompilerCoreTypes _coreTypes;
+  _CompilerDiagnosticReporter _reporter;
+  _CompilerResolution _resolution;
+  _CompilerParsing _parsing;
 
   final CacheStrategy cacheStrategy;
 
@@ -181,7 +191,6 @@ abstract class Compiler extends DiagnosticListener {
   final bool enableUserAssertions;
   final bool trustTypeAnnotations;
   final bool trustPrimitives;
-  final bool enableConcreteTypeInference;
   final bool disableTypeInferenceFlag;
   final Uri deferredMapUri;
   final bool dumpInfo;
@@ -238,23 +247,6 @@ abstract class Compiler extends DiagnosticListener {
    */
   final Uri outputUri;
 
-  /// Emit terse diagnostics without howToFix.
-  final bool terseDiagnostics;
-
-  /// If `true`, warnings and hints not from user code are reported.
-  final bool showPackageWarnings;
-
-  /// `true` if the last diagnostic was filtered, in which case the
-  /// accompanying info message should be filtered as well.
-  bool lastDiagnosticWasFiltered = false;
-
-  /// Map containing information about the warnings and hints that have been
-  /// suppressed for each library.
-  Map<Uri, SuppressionInfo> suppressedWarnings = <Uri, SuppressionInfo>{};
-
-  final bool suppressWarnings;
-  final bool fatalWarnings;
-
   /// If `true`, some values are cached for reuse in incremental compilation.
   /// Incremental compilation is basically calling [run] more than once.
   final bool hasIncrementalSupport;
@@ -283,7 +275,6 @@ abstract class Compiler extends DiagnosticListener {
   Tracer tracer;
 
   CompilerTask measuredTask;
-  Element _currentElement;
   LibraryElement coreLibrary;
   LibraryElement asyncLibrary;
 
@@ -314,7 +305,10 @@ abstract class Compiler extends DiagnosticListener {
   ClassElement get iterableClass => _coreTypes.iterableClass;
   ClassElement get streamClass => _coreTypes.streamClass;
 
+  DiagnosticReporter get reporter => _reporter;
   CoreTypes get coreTypes => _coreTypes;
+  Resolution get resolution => _resolution;
+  Parsing get parsing => _parsing;
 
   ClassElement typedDataClass;
 
@@ -372,49 +366,7 @@ abstract class Compiler extends DiagnosticListener {
 
   fromEnvironment(String name) => null;
 
-  Element get currentElement => _currentElement;
-
-  String tryToString(object) {
-    try {
-      return object.toString();
-    } catch (_) {
-      return '<exception in toString()>';
-    }
-  }
-
-  /**
-   * Perform an operation, [f], returning the return value from [f].  If an
-   * error occurs then report it as having occurred during compilation of
-   * [element].  Can be nested.
-   */
-  withCurrentElement(Element element, f()) {
-    Element old = currentElement;
-    _currentElement = element;
-    try {
-      return f();
-    } on SpannableAssertionFailure catch (ex) {
-      if (!hasCrashed) {
-        reportAssertionFailure(ex);
-        pleaseReportCrash();
-      }
-      hasCrashed = true;
-      rethrow;
-    } on StackOverflowError {
-      // We cannot report anything useful in this case, because we
-      // do not have enough stack space.
-      rethrow;
-    } catch (ex) {
-      if (hasCrashed) rethrow;
-      try {
-        unhandledExceptionOnElement(element);
-      } catch (doubleFault) {
-        // Ignoring exceptions in exception handling.
-      }
-      rethrow;
-    } finally {
-      _currentElement = old;
-    }
-  }
+  Element get currentElement => _reporter.currentElement;
 
   List<CompilerTask> tasks;
   ScannerTask scanner;
@@ -458,6 +410,8 @@ abstract class Compiler extends DiagnosticListener {
   bool enabledInvokeOn = false;
   bool hasIsolateSupport = false;
 
+  bool get hasCrashed => _reporter.hasCrashed;
+
   Stopwatch progress;
 
   bool get shouldPrintProgress {
@@ -481,8 +435,6 @@ abstract class Compiler extends DiagnosticListener {
     compilationFailedInternal = value;
   }
 
-  bool hasCrashed = false;
-
   /// Set by the backend if real reflection is detected in use of dart:mirrors.
   bool disableTypeInferenceForMirrors = false;
 
@@ -490,7 +442,6 @@ abstract class Compiler extends DiagnosticListener {
             this.enableUserAssertions: false,
             this.trustTypeAnnotations: false,
             this.trustPrimitives: false,
-            this.enableConcreteTypeInference: false,
             bool disableTypeInferenceFlag: false,
             this.maxConcreteTypeSize: 5,
             this.enableMinification: false,
@@ -510,20 +461,17 @@ abstract class Compiler extends DiagnosticListener {
             this.sourceMapUri: null,
             this.outputUri: null,
             this.buildId: UNDETERMINED_BUILD_ID,
-            this.terseDiagnostics: false,
             this.deferredMapUri: null,
             this.dumpInfo: false,
-            this.showPackageWarnings: false,
             bool useStartupEmitter: false,
             this.useContentSecurityPolicy: false,
-            this.suppressWarnings: false,
-            this.fatalWarnings: false,
             bool hasIncrementalSupport: false,
             this.enableExperimentalMirrors: false,
             this.enableAssertMessage: false,
             this.allowNativeExtensions: false,
             this.generateCodeWithCompileTimeErrors: false,
             this.testMode: false,
+            DiagnosticOptions diagnosticOptions,
             api.CompilerOutput outputProvider,
             List<String> strips: const []})
       : this.disableTypeInferenceFlag =
@@ -544,7 +492,10 @@ abstract class Compiler extends DiagnosticListener {
     world = new World(this);
     // TODO(johnniwinther): Initialize core types in [initializeCoreClasses] and
     // make its field final.
-    _coreTypes = new _CompilerCoreTypes(this);
+    _reporter = new _CompilerDiagnosticReporter(this, diagnosticOptions);
+    _parsing = new _CompilerParsing(this);
+    _resolution = new _CompilerResolution(this);
+    _coreTypes = new _CompilerCoreTypes(_resolution);
     types = new Types(this);
     tracer = new Tracer(this, this.outputProvider);
 
@@ -609,118 +560,15 @@ abstract class Compiler extends DiagnosticListener {
   int getNextFreeClassId() => nextFreeClassId++;
 
   void unimplemented(Spannable spannable, String methodName) {
-    internalError(spannable, "$methodName not implemented.");
-  }
-
-  internalError(Spannable node, reason) {
-    String message = tryToString(reason);
-    reportDiagnosticInternal(
-        createMessage(node, MessageKind.GENERIC, {'text': message}),
-        const <DiagnosticMessage>[],
-        api.Diagnostic.CRASH);
-    throw 'Internal Error: $message';
-  }
-
-  void unhandledExceptionOnElement(Element element) {
-    if (hasCrashed) return;
-    hasCrashed = true;
-    reportDiagnostic(
-        createMessage(element, MessageKind.COMPILER_CRASHED),
-        const <DiagnosticMessage>[],
-        api.Diagnostic.CRASH);
-    pleaseReportCrash();
-  }
-
-  void pleaseReportCrash() {
-    print(
-        MessageTemplate.TEMPLATES[MessageKind.PLEASE_REPORT_THE_CRASH]
-            .message({'buildId': buildId}));
-  }
-
-  SourceSpan spanFromSpannable(Spannable node) {
-    // TODO(johnniwinther): Disallow `node == null` ?
-    if (node == null) return null;
-    if (node == CURRENT_ELEMENT_SPANNABLE) {
-      node = currentElement;
-    } else if (node == NO_LOCATION_SPANNABLE) {
-      if (currentElement == null) return null;
-      node = currentElement;
-    }
-    if (node is SourceSpan) {
-      return node;
-    } else if (node is Node) {
-      return spanFromNode(node);
-    } else if (node is TokenPair) {
-      return spanFromTokens(node.begin, node.end);
-    } else if (node is Token) {
-      return spanFromTokens(node, node);
-    } else if (node is HInstruction) {
-      return spanFromHInstruction(node);
-    } else if (node is Element) {
-      return spanFromElement(node);
-    } else if (node is MetadataAnnotation) {
-      Uri uri = node.annotatedElement.compilationUnit.script.resourceUri;
-      return spanFromTokens(node.beginToken, node.endToken, uri);
-    } else if (node is Local) {
-      Local local = node;
-      return spanFromElement(local.executableContext);
-    } else {
-      throw 'No error location.';
-    }
-  }
-
-  Element _elementFromHInstruction(HInstruction instruction) {
-    return instruction.sourceElement is Element
-        ? instruction.sourceElement : null;
-  }
-
-  /// Finds the approximate [Element] for [node]. [currentElement] is used as
-  /// the default value.
-  Element elementFromSpannable(Spannable node) {
-    Element element;
-    if (node is Element) {
-      element = node;
-    } else if (node is HInstruction) {
-      element = _elementFromHInstruction(node);
-    } else if (node is MetadataAnnotation) {
-      element = node.annotatedElement;
-    }
-    return element != null ? element : currentElement;
-  }
-
-  void log(message) {
-    Message msg = MessageTemplate.TEMPLATES[MessageKind.GENERIC]
-        .message({'text': '$message'});
-    reportDiagnostic(
-        new DiagnosticMessage(null, null, msg),
-        const <DiagnosticMessage>[],
-        api.Diagnostic.VERBOSE_INFO);
+    reporter.internalError(spannable, "$methodName not implemented.");
   }
 
   Future<bool> run(Uri uri) {
     totalCompileTime.start();
 
-    return new Future.sync(() => runCompiler(uri)).catchError((error) {
-      try {
-        if (!hasCrashed) {
-          hasCrashed = true;
-          if (error is SpannableAssertionFailure) {
-            reportAssertionFailure(error);
-          } else {
-            reportDiagnostic(
-                createMessage(
-                    new SourceSpan(uri, 0, 0),
-                    MessageKind.COMPILER_CRASHED),
-                const <DiagnosticMessage>[],
-                api.Diagnostic.CRASH);
-          }
-          pleaseReportCrash();
-        }
-      } catch (doubleFault) {
-        // Ignoring exceptions in exception handling.
-      }
-      throw error;
-    }).whenComplete(() {
+    return new Future.sync(() => runCompiler(uri))
+        .catchError((error) => _reporter.onError(uri, error))
+        .whenComplete(() {
       tracer.close();
       totalCompileTime.stop();
     }).then((_) {
@@ -859,7 +707,7 @@ abstract class Compiler extends DiagnosticListener {
         if (loadedLibraries.containsLibrary(uri)) {
           Set<String> importChains =
               computeImportChainsFor(loadedLibraries, Uri.parse('dart:io'));
-          reportInfo(NO_LOCATION_SPANNABLE,
+          reporter.reportInfo(NO_LOCATION_SPANNABLE,
              MessageKind.DISALLOWED_LIBRARY_IMPORT,
               {'uri': uri,
                'importChain': importChains.join(
@@ -871,24 +719,27 @@ abstract class Compiler extends DiagnosticListener {
         return null;
       }
 
-      if (!enableExperimentalMirrors &&
-          loadedLibraries.containsLibrary(Uris.dart_mirrors)) {
+      bool importsMirrorsLibrary =
+          loadedLibraries.containsLibrary(Uris.dart_mirrors);
+      if (importsMirrorsLibrary && !backend.supportsReflection) {
         Set<String> importChains =
             computeImportChainsFor(loadedLibraries, Uris.dart_mirrors);
-        if (!backend.supportsReflection) {
-          reportErrorMessage(
-              NO_LOCATION_SPANNABLE,
-              MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND);
-        } else {
-          reportWarningMessage(
-              NO_LOCATION_SPANNABLE,
-              MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
-              {'importChain': importChains.join(
-                   MessageTemplate.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)});
-        }
+        reporter.reportErrorMessage(
+            NO_LOCATION_SPANNABLE,
+            MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND,
+            {'importChain': importChains.join(
+                MessageTemplate.MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING)});
+      } else if (importsMirrorsLibrary && !enableExperimentalMirrors) {
+        Set<String> importChains =
+            computeImportChainsFor(loadedLibraries, Uris.dart_mirrors);
+        reporter.reportWarningMessage(
+            NO_LOCATION_SPANNABLE,
+            MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
+            {'importChain': importChains.join(
+                 MessageTemplate.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)});
       }
 
-      functionClass.ensureResolved(this);
+      functionClass.ensureResolved(resolution);
       functionApplyMethod = functionClass.lookupLocalMember('apply');
 
       if (preserveComments) {
@@ -903,7 +754,7 @@ abstract class Compiler extends DiagnosticListener {
   bool isProxyConstant(ConstantValue value) {
     FieldElement field = coreLibrary.find('proxy');
     if (field == null) return false;
-    if (!enqueuer.resolution.hasBeenResolved(field)) return false;
+    if (!resolution.hasBeenResolved(field)) return false;
     if (proxyConstant == null) {
       proxyConstant =
           constants.getConstantValue(
@@ -915,10 +766,10 @@ abstract class Compiler extends DiagnosticListener {
   Element findRequiredElement(LibraryElement library, String name) {
     var element = library.find(name);
     if (element == null) {
-      internalError(library,
+      reporter.internalError(library,
           "The library '${library.canonicalUri}' does not contain required "
           "element: '$name'.");
-      }
+    }
     return element;
   }
 
@@ -973,7 +824,7 @@ abstract class Compiler extends DiagnosticListener {
     _coreTypes.iterableClass = lookupCoreClass('Iterable');
     _coreTypes.symbolClass = lookupCoreClass('Symbol');
     if (!missingCoreClasses.isEmpty) {
-      internalError(
+      reporter.internalError(
           coreLibrary,
           'dart:core library does not contain required classes: '
           '$missingCoreClasses');
@@ -1010,16 +861,16 @@ abstract class Compiler extends DiagnosticListener {
     return new Future.sync(() {
       if (librariesToAnalyzeWhenRun != null) {
         return Future.forEach(librariesToAnalyzeWhenRun, (libraryUri) {
-          log('Analyzing $libraryUri ($buildId)');
+          reporter.log('Analyzing $libraryUri ($buildId)');
           return libraryLoader.loadLibrary(libraryUri);
         });
       }
     }).then((_) {
       if (uri != null) {
         if (analyzeOnly) {
-          log('Analyzing $uri ($buildId)');
+          reporter.log('Analyzing $uri ($buildId)');
         } else {
-          log('Compiling $uri ($buildId)');
+          reporter.log('Compiling $uri ($buildId)');
         }
         return libraryLoader.loadLibrary(uri).then((LibraryElement library) {
           mainApp = library;
@@ -1053,7 +904,7 @@ abstract class Compiler extends DiagnosticListener {
       if (main is ErroneousElement) {
         errorElement = main;
       } else {
-        internalError(main, 'Problem with ${Identifiers.main}.');
+        reporter.internalError(main, 'Problem with ${Identifiers.main}.');
       }
       mainFunction = backend.helperForBadMain();
     } else if (!main.isFunction) {
@@ -1063,7 +914,7 @@ abstract class Compiler extends DiagnosticListener {
       mainFunction = backend.helperForBadMain();
     } else {
       mainFunction = main;
-      mainFunction.computeType(this);
+      mainFunction.computeType(resolution);
       FunctionSignature parameters = mainFunction.functionSignature;
       if (parameters.requiredParameterCount > 2) {
         int index = 0;
@@ -1081,7 +932,7 @@ abstract class Compiler extends DiagnosticListener {
     }
     if (mainFunction == null) {
       if (errorElement == null && !analyzeOnly && !analyzeAll) {
-        internalError(mainApp, "Problem with '${Identifiers.main}'.");
+        reporter.internalError(mainApp, "Problem with '${Identifiers.main}'.");
       } else {
         mainFunction = errorElement;
       }
@@ -1089,7 +940,7 @@ abstract class Compiler extends DiagnosticListener {
     if (errorElement != null &&
         errorElement.isSynthesized &&
         !mainApp.isSynthesized) {
-      reportWarningMessage(
+      reporter.reportWarningMessage(
           errorElement, errorElement.messageKind,
           errorElement.messageArguments);
     }
@@ -1106,7 +957,7 @@ abstract class Compiler extends DiagnosticListener {
       Uri libraryUri,
       {bool skipLibraryWithPartOfTag: true}) {
     assert(analyzeMain);
-    log('Analyzing $libraryUri ($buildId)');
+    reporter.log('Analyzing $libraryUri ($buildId)');
     return libraryLoader.loadLibrary(libraryUri).then((LibraryElement library) {
       var compilationUnit = library.compilationUnit;
       if (skipLibraryWithPartOfTag && compilationUnit.partTag != null) {
@@ -1114,7 +965,7 @@ abstract class Compiler extends DiagnosticListener {
       }
       fullyEnqueueLibrary(library, enqueuer.resolution);
       emptyQueue(enqueuer.resolution);
-      enqueuer.resolution.logSummary(log);
+      enqueuer.resolution.logSummary(reporter.log);
       return library;
     });
   }
@@ -1134,7 +985,7 @@ abstract class Compiler extends DiagnosticListener {
     phase = PHASE_RESOLVING;
     if (analyzeAll) {
       libraryLoader.libraries.forEach((LibraryElement library) {
-        log('Enqueuing ${library.canonicalUri}');
+      reporter.log('Enqueuing ${library.canonicalUri}');
         fullyEnqueueLibrary(library, enqueuer.resolution);
       });
     } else if (analyzeMain && mainApp != null) {
@@ -1144,30 +995,11 @@ abstract class Compiler extends DiagnosticListener {
     // that are not pulled in by a particular element.
     backend.enqueueHelpers(enqueuer.resolution, globalDependencies);
     resolveLibraryMetadata();
-    log('Resolving...');
+    reporter.log('Resolving...');
     processQueue(enqueuer.resolution, mainFunction);
-    enqueuer.resolution.logSummary(log);
+    enqueuer.resolution.logSummary(reporter.log);
 
-    if (!showPackageWarnings && !suppressWarnings) {
-      suppressedWarnings.forEach((Uri uri, SuppressionInfo info) {
-        MessageKind kind = MessageKind.HIDDEN_WARNINGS_HINTS;
-        if (info.warnings == 0) {
-          kind = MessageKind.HIDDEN_HINTS;
-        } else if (info.hints == 0) {
-          kind = MessageKind.HIDDEN_WARNINGS;
-        }
-        MessageTemplate template = MessageTemplate.TEMPLATES[kind];
-        Message message = template.message(
-            {'warnings': info.warnings,
-             'hints': info.hints,
-             'uri': uri},
-            terseDiagnostics);
-        reportDiagnostic(
-            new DiagnosticMessage(null, null, message),
-            const <DiagnosticMessage>[],
-            api.Diagnostic.HINT);
-      });
-    }
+    _reporter.reportSuppressedMessagesSummary();
 
     if (compilationFailed){
       if (!generateCodeWithCompileTimeErrors) return;
@@ -1198,14 +1030,14 @@ abstract class Compiler extends DiagnosticListener {
 
     deferredLoadTask.onResolutionComplete(mainFunction);
 
-    log('Inferring types...');
+    reporter.log('Inferring types...');
     typesTask.onResolutionComplete(mainFunction);
 
     if (stopAfterTypeInference) return;
 
     backend.onTypeInferenceComplete();
 
-    log('Compiling...');
+    reporter.log('Compiling...');
     phase = PHASE_COMPILING;
     backend.onCodegenStart();
     // TODO(johnniwinther): Move these to [CodegenEnqueuer].
@@ -1218,7 +1050,7 @@ abstract class Compiler extends DiagnosticListener {
       });
     }
     processQueue(enqueuer.codegen, mainFunction);
-    enqueuer.codegen.logSummary(log);
+    enqueuer.codegen.logSummary(reporter.log);
 
     int programSize = backend.assembleProgram();
 
@@ -1240,7 +1072,7 @@ abstract class Compiler extends DiagnosticListener {
   void fullyEnqueueTopLevelElement(Element element, Enqueuer world) {
     if (element.isClass) {
       ClassElement cls = element;
-      cls.ensureResolved(this);
+      cls.ensureResolved(resolution);
       cls.forEachLocalMember(enqueuer.resolution.addToWorkList);
       backend.registerInstantiatedType(
           cls.rawType, world, globalDependencies);
@@ -1256,7 +1088,7 @@ abstract class Compiler extends DiagnosticListener {
     for (LibraryElement library in libraryLoader.libraries) {
       if (library.metadata != null) {
         for (MetadataAnnotation metadata in library.metadata) {
-          metadata.ensureResolved(this);
+          metadata.ensureResolved(resolution);
         }
       }
     }
@@ -1267,7 +1099,7 @@ abstract class Compiler extends DiagnosticListener {
    */
   void emptyQueue(Enqueuer world) {
     world.forEach((WorkItem work) {
-      withCurrentElement(work.element, () {
+    reporter.withCurrentElement(work.element, () {
         world.applyImpact(work.element, work.run(this, world));
       });
     });
@@ -1277,13 +1109,13 @@ abstract class Compiler extends DiagnosticListener {
     world.nativeEnqueuer.processNativeClasses(libraryLoader.libraries);
     if (main != null && !main.isErroneous) {
       FunctionElement mainMethod = main;
-      mainMethod.computeType(this);
+      mainMethod.computeType(resolution);
       if (mainMethod.functionSignature.parameterCount != 0) {
         // The first argument could be a list of strings.
-        backend.listImplementation.ensureResolved(this);
+        backend.listImplementation.ensureResolved(resolution);
         backend.registerInstantiatedType(
             backend.listImplementation.rawType, world, globalDependencies);
-        backend.stringImplementation.ensureResolved(this);
+        backend.stringImplementation.ensureResolved(resolution);
         backend.registerInstantiatedType(
             backend.stringImplementation.rawType, world, globalDependencies);
 
@@ -1309,11 +1141,11 @@ abstract class Compiler extends DiagnosticListener {
   checkQueues() {
     for (Enqueuer world in [enqueuer.resolution, enqueuer.codegen]) {
       world.forEach((WorkItem work) {
-        internalError(work.element, "Work list is not empty.");
+        reporter.internalError(work.element, "Work list is not empty.");
       });
     }
     if (!REPORT_EXCESS_RESOLUTION) return;
-    var resolved = new Set.from(enqueuer.resolution.resolvedElements);
+    var resolved = new Set.from(enqueuer.resolution.processedElements);
     for (Element e in enqueuer.codegen.generatedCode.keys) {
       resolved.remove(e);
     }
@@ -1332,15 +1164,15 @@ abstract class Compiler extends DiagnosticListener {
         resolved.remove(e);
       }
     }
-    log('Excess resolution work: ${resolved.length}.');
+    reporter.log('Excess resolution work: ${resolved.length}.');
     for (Element e in resolved) {
-      reportWarningMessage(e,
+      reporter.reportWarningMessage(e,
           MessageKind.GENERIC,
           {'text': 'Warning: $e resolved but not compiled.'});
     }
   }
 
-  WorldImpact analyzeElement(Element element) {
+  ResolutionWorldImpact analyzeElement(Element element) {
     assert(invariant(element,
            element.impliesType ||
            element.isField ||
@@ -1352,23 +1184,11 @@ abstract class Compiler extends DiagnosticListener {
     assert(invariant(element, element is AnalyzableElement,
         message: 'Element $element is not analyzable.'));
     assert(invariant(element, element.isDeclaration));
-    ResolutionEnqueuer world = enqueuer.resolution;
-    if (world.hasBeenResolved(element)) {
-      return const WorldImpact();
-    }
-    assert(parser != null);
-    Node tree = parser.parse(element);
-    assert(invariant(element, !element.isSynthesized || tree == null));
-    WorldImpact worldImpact = resolver.resolve(element);
-    if (tree != null && !analyzeSignaturesOnly && !suppressWarnings) {
-      // Only analyze nodes with a corresponding [TreeElements].
-      checker.check(element);
-    }
-    world.registerResolvedElement(element);
-    return worldImpact;
+    return resolution.analyzeElement(element);
   }
 
-  WorldImpact analyze(ResolutionWorkItem work, ResolutionEnqueuer world) {
+  ResolutionWorldImpact analyze(ResolutionWorkItem work,
+                                ResolutionEnqueuer world) {
     assert(invariant(work.element, identical(world, enqueuer.resolution)));
     assert(invariant(work.element, !work.isAnalyzed,
         message: 'Element ${work.element} has already been analyzed'));
@@ -1376,17 +1196,19 @@ abstract class Compiler extends DiagnosticListener {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
       if (phase == PHASE_RESOLVING) {
-        log('Resolved ${enqueuer.resolution.resolvedElements.length} '
+        reporter.log(
+            'Resolved ${enqueuer.resolution.processedElements.length} '
             'elements.');
         progress.reset();
       }
     }
     AstElement element = work.element;
-    if (world.hasBeenResolved(element)) {
-      return const WorldImpact();
+    if (world.hasBeenProcessed(element)) {
+      return const ResolutionWorldImpact();
     }
-    WorldImpact worldImpact = analyzeElement(element);
+    ResolutionWorldImpact worldImpact = analyzeElement(element);
     backend.onElementResolved(element, element.resolvedAst.elements);
+    world.registerProcessedElement(element);
     return worldImpact;
   }
 
@@ -1395,153 +1217,19 @@ abstract class Compiler extends DiagnosticListener {
     if (shouldPrintProgress) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
-      log('Compiled ${enqueuer.codegen.generatedCode.length} methods.');
+      reporter.log(
+          'Compiled ${enqueuer.codegen.generatedCode.length} methods.');
       progress.reset();
     }
     return backend.codegen(work);
-  }
-
-  DiagnosticMessage createMessage(
-      Spannable spannable,
-      MessageKind messageKind,
-      [Map arguments = const {}]) {
-    SourceSpan span = spanFromSpannable(spannable);
-    MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
-    Message message = template.message(arguments, terseDiagnostics);
-    return new DiagnosticMessage(span, spannable, message);
-  }
-
-  void reportError(
-      DiagnosticMessage message,
-      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
-    reportDiagnosticInternal(message, infos, api.Diagnostic.ERROR);
-  }
-
-  void reportWarning(
-      DiagnosticMessage message,
-      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
-    reportDiagnosticInternal(message, infos, api.Diagnostic.WARNING);
-  }
-
-  void reportHint(
-      DiagnosticMessage message,
-      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
-    reportDiagnosticInternal(message, infos, api.Diagnostic.HINT);
-  }
-
-  @deprecated
-  void reportInfo(Spannable node, MessageKind messageKind,
-                  [Map arguments = const {}]) {
-    reportDiagnosticInternal(
-        createMessage(node, messageKind, arguments),
-        const <DiagnosticMessage>[],
-        api.Diagnostic.INFO);
-  }
-
-  void reportDiagnosticInternal(DiagnosticMessage message,
-                                List<DiagnosticMessage> infos,
-                                api.Diagnostic kind) {
-    if (!showPackageWarnings && message.spannable != NO_LOCATION_SPANNABLE) {
-      switch (kind) {
-      case api.Diagnostic.WARNING:
-      case api.Diagnostic.HINT:
-        Element element = elementFromSpannable(message.spannable);
-        if (!inUserCode(element, assumeInUserCode: true)) {
-          Uri uri = getCanonicalUri(element);
-          SuppressionInfo info =
-              suppressedWarnings.putIfAbsent(uri, () => new SuppressionInfo());
-          if (kind == api.Diagnostic.WARNING) {
-            info.warnings++;
-          } else {
-            info.hints++;
-          }
-          lastDiagnosticWasFiltered = true;
-          return;
-        }
-        break;
-      case api.Diagnostic.INFO:
-        if (lastDiagnosticWasFiltered) {
-          return;
-        }
-        break;
-      }
-    }
-    lastDiagnosticWasFiltered = false;
-    reportDiagnostic(message, infos, kind);
   }
 
   void reportDiagnostic(DiagnosticMessage message,
                         List<DiagnosticMessage> infos,
                         api.Diagnostic kind);
 
-  void reportAssertionFailure(SpannableAssertionFailure ex) {
-    String message = (ex.message != null) ? tryToString(ex.message)
-                                          : tryToString(ex);
-    reportDiagnosticInternal(
-        createMessage(ex.node, MessageKind.GENERIC, {'text': message}),
-        const <DiagnosticMessage>[],
-        api.Diagnostic.CRASH);
-  }
-
-  SourceSpan spanFromTokens(Token begin, Token end, [Uri uri]) {
-    if (begin == null || end == null) {
-      // TODO(ahe): We can almost always do better. Often it is only
-      // end that is null. Otherwise, we probably know the current
-      // URI.
-      throw 'Cannot find tokens to produce error message.';
-    }
-    if (uri == null && currentElement != null) {
-      uri = currentElement.compilationUnit.script.resourceUri;
-    }
-    return new SourceSpan.fromTokens(uri, begin, end);
-  }
-
-  SourceSpan spanFromNode(Node node) {
-    return spanFromTokens(node.getBeginToken(), node.getEndToken());
-  }
-
-  SourceSpan spanFromElement(Element element) {
-    if (element != null && element.sourcePosition != null) {
-      return element.sourcePosition;
-    }
-    while (element != null && element.isSynthesized) {
-      element = element.enclosingElement;
-    }
-    if (element != null &&
-        element.sourcePosition == null &&
-        !element.isLibrary &&
-        !element.isCompilationUnit) {
-      // Sometimes, the backend fakes up elements that have no
-      // position. So we use the enclosing element instead. It is
-      // not a good error location, but cancel really is "internal
-      // error" or "not implemented yet", so the vicinity is good
-      // enough for now.
-      element = element.enclosingElement;
-      // TODO(ahe): I plan to overhaul this infrastructure anyways.
-    }
-    if (element == null) {
-      element = currentElement;
-    }
-    if (element == null) {
-      return null;
-    }
-
-    if (element.sourcePosition != null) {
-      return element.sourcePosition;
-    }
-    Token position = element.position;
-    Uri uri = element.compilationUnit.script.resourceUri;
-    return (position == null)
-        ? new SourceSpan(uri, 0, 0)
-        : spanFromTokens(position, position, uri);
-  }
-
-  SourceSpan spanFromHInstruction(HInstruction instruction) {
-    Element element = _elementFromHInstruction(instruction);
-    if (element == null) element = currentElement;
-    SourceInformation position = instruction.sourceInformation;
-    if (position == null) return spanFromElement(element);
-    return position.sourceSpan;
+  void reportCrashInUserCode(String message, exception, stackTrace) {
+    _reporter.onCrashInUserCode(message, exception, stackTrace);
   }
 
   /**
@@ -1616,20 +1304,20 @@ abstract class Compiler extends DiagnosticListener {
     void checkLive(member) {
       if (member.isErroneous) return;
       if (member.isFunction) {
-        if (!enqueuer.resolution.hasBeenResolved(member)) {
-          reportHintMessage(
+        if (!enqueuer.resolution.hasBeenProcessed(member)) {
+          reporter.reportHintMessage(
               member, MessageKind.UNUSED_METHOD, {'name': member.name});
         }
       } else if (member.isClass) {
         if (!member.isResolved) {
-          reportHintMessage(
+          reporter.reportHintMessage(
               member, MessageKind.UNUSED_CLASS, {'name': member.name});
         } else {
           member.forEachLocalMember(checkLive);
         }
       } else if (member.isTypedef) {
         if (!member.isResolved) {
-          reportHintMessage(
+          reporter.reportHintMessage(
               member, MessageKind.UNUSED_TYPEDEF, {'name': member.name});
         }
       }
@@ -1753,7 +1441,7 @@ class SuppressionInfo {
 }
 
 class _CompilerCoreTypes implements CoreTypes {
-  final Compiler compiler;
+  final Resolution resolution;
 
   ClassElement objectClass;
   ClassElement boolClass;
@@ -1773,31 +1461,50 @@ class _CompilerCoreTypes implements CoreTypes {
   ClassElement streamClass;
   ClassElement resourceClass;
 
-  _CompilerCoreTypes(this.compiler);
+  _CompilerCoreTypes(this.resolution);
 
   @override
-  InterfaceType get objectType => objectClass.computeType(compiler);
+  InterfaceType get objectType {
+    objectClass.ensureResolved(resolution);
+    return objectClass.rawType;
+  }
 
   @override
-  InterfaceType get boolType => boolClass.computeType(compiler);
+  InterfaceType get boolType {
+    boolClass.ensureResolved(resolution);
+    return boolClass.rawType;
+  }
 
   @override
-  InterfaceType get doubleType => doubleClass.computeType(compiler);
+  InterfaceType get doubleType {
+    doubleClass.ensureResolved(resolution);
+    return doubleClass.rawType;
+  }
 
   @override
-  InterfaceType get functionType => functionClass.computeType(compiler);
+  InterfaceType get functionType {
+    functionClass.ensureResolved(resolution);
+    return functionClass.rawType;
+  }
 
   @override
-  InterfaceType get intType => intClass.computeType(compiler);
+  InterfaceType get intType {
+    intClass.ensureResolved(resolution);
+    return intClass.rawType;
+  }
 
   @override
-  InterfaceType get resourceType => resourceClass.computeType(compiler);
+  InterfaceType get resourceType {
+    resourceClass.ensureResolved(resolution);
+    return resourceClass.rawType;
+  }
 
   @override
   InterfaceType listType([DartType elementType]) {
-    InterfaceType type = listClass.computeType(compiler);
+    listClass.ensureResolved(resolution);
+    InterfaceType type = listClass.rawType;
     if (elementType == null) {
-      return listClass.rawType;
+      return type;
     }
     return type.createInstantiation([elementType]);
   }
@@ -1805,9 +1512,10 @@ class _CompilerCoreTypes implements CoreTypes {
   @override
   InterfaceType mapType([DartType keyType,
                          DartType valueType]) {
-    InterfaceType type = mapClass.computeType(compiler);
+    mapClass.ensureResolved(resolution);
+    InterfaceType type = mapClass.rawType;
     if (keyType == null && valueType == null) {
-      return mapClass.rawType;
+      return type;
     } else if (keyType == null) {
       keyType = const DynamicType();
     } else if (valueType == null) {
@@ -1817,44 +1525,498 @@ class _CompilerCoreTypes implements CoreTypes {
   }
 
   @override
-  InterfaceType get nullType => nullClass.computeType(compiler);
+  InterfaceType get nullType {
+    nullClass.ensureResolved(resolution);
+    return nullClass.rawType;
+  }
 
   @override
-  InterfaceType get numType => numClass.computeType(compiler);
+  InterfaceType get numType {
+    numClass.ensureResolved(resolution);
+    return numClass.rawType;
+  }
 
   @override
-  InterfaceType get stringType => stringClass.computeType(compiler);
+  InterfaceType get stringType {
+    stringClass.ensureResolved(resolution);
+    return stringClass.rawType;
+  }
 
   @override
-  InterfaceType get symbolType => symbolClass.computeType(compiler);
+  InterfaceType get symbolType {
+    symbolClass.ensureResolved(resolution);
+    return symbolClass.rawType;
+  }
 
   @override
-  InterfaceType get typeType => typeClass.computeType(compiler);
+  InterfaceType get typeType {
+    typeClass.ensureResolved(resolution);
+    return typeClass.rawType;
+  }
 
   @override
   InterfaceType iterableType([DartType elementType]) {
-    InterfaceType type = iterableClass.computeType(compiler);
+    iterableClass.ensureResolved(resolution);
+    InterfaceType type = iterableClass.rawType;
     if (elementType == null) {
-      return iterableClass.rawType;
+      return type;
     }
     return type.createInstantiation([elementType]);
   }
 
   @override
   InterfaceType futureType([DartType elementType]) {
-    InterfaceType type = futureClass.computeType(compiler);
+    futureClass.ensureResolved(resolution);
+    InterfaceType type = futureClass.rawType;
     if (elementType == null) {
-      return futureClass.rawType;
+      return type;
     }
     return type.createInstantiation([elementType]);
   }
 
   @override
   InterfaceType streamType([DartType elementType]) {
-    InterfaceType type = streamClass.computeType(compiler);
+    streamClass.ensureResolved(resolution);
+    InterfaceType type = streamClass.rawType;
     if (elementType == null) {
-      return streamClass.rawType;
+      return type;
     }
     return type.createInstantiation([elementType]);
+  }
+}
+
+class _CompilerDiagnosticReporter extends DiagnosticReporter {
+  final Compiler compiler;
+  final DiagnosticOptions options;
+
+  Element _currentElement;
+  bool hasCrashed = false;
+
+  /// `true` if the last diagnostic was filtered, in which case the
+  /// accompanying info message should be filtered as well.
+  bool lastDiagnosticWasFiltered = false;
+
+  /// Map containing information about the warnings and hints that have been
+  /// suppressed for each library.
+  Map<Uri, SuppressionInfo> suppressedWarnings = <Uri, SuppressionInfo>{};
+
+  _CompilerDiagnosticReporter(this.compiler, this.options);
+
+  Element get currentElement => _currentElement;
+
+  DiagnosticMessage createMessage(
+      Spannable spannable,
+      MessageKind messageKind,
+      [Map arguments = const {}]) {
+    SourceSpan span = spanFromSpannable(spannable);
+    MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
+    Message message = template.message(arguments, options.terseDiagnostics);
+    return new DiagnosticMessage(span, spannable, message);
+  }
+
+  void reportError(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    reportDiagnosticInternal(message, infos, api.Diagnostic.ERROR);
+  }
+
+  void reportWarning(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    reportDiagnosticInternal(message, infos, api.Diagnostic.WARNING);
+  }
+
+  void reportHint(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    reportDiagnosticInternal(message, infos, api.Diagnostic.HINT);
+  }
+
+  @deprecated
+  void reportInfo(Spannable node, MessageKind messageKind,
+                  [Map arguments = const {}]) {
+    reportDiagnosticInternal(
+        createMessage(node, messageKind, arguments),
+        const <DiagnosticMessage>[],
+        api.Diagnostic.INFO);
+  }
+
+  void reportDiagnosticInternal(DiagnosticMessage message,
+                                List<DiagnosticMessage> infos,
+                                api.Diagnostic kind) {
+    if (!options.showPackageWarnings &&
+        message.spannable != NO_LOCATION_SPANNABLE) {
+      switch (kind) {
+      case api.Diagnostic.WARNING:
+      case api.Diagnostic.HINT:
+        Element element = elementFromSpannable(message.spannable);
+        if (!compiler.inUserCode(element, assumeInUserCode: true)) {
+          Uri uri = compiler.getCanonicalUri(element);
+          SuppressionInfo info =
+              suppressedWarnings.putIfAbsent(uri, () => new SuppressionInfo());
+          if (kind == api.Diagnostic.WARNING) {
+            info.warnings++;
+          } else {
+            info.hints++;
+          }
+          lastDiagnosticWasFiltered = true;
+          return;
+        }
+        break;
+      case api.Diagnostic.INFO:
+        if (lastDiagnosticWasFiltered) {
+          return;
+        }
+        break;
+      }
+    }
+    lastDiagnosticWasFiltered = false;
+    reportDiagnostic(message, infos, kind);
+  }
+
+  void reportDiagnostic(DiagnosticMessage message,
+                        List<DiagnosticMessage> infos,
+                        api.Diagnostic kind) {
+    compiler.reportDiagnostic(message, infos, kind);
+  }
+
+  /**
+   * Perform an operation, [f], returning the return value from [f].  If an
+   * error occurs then report it as having occurred during compilation of
+   * [element].  Can be nested.
+   */
+  withCurrentElement(Element element, f()) {
+    Element old = currentElement;
+    _currentElement = element;
+    try {
+      return f();
+    } on SpannableAssertionFailure catch (ex) {
+      if (!hasCrashed) {
+        reportAssertionFailure(ex);
+        pleaseReportCrash();
+      }
+      hasCrashed = true;
+      rethrow;
+    } on StackOverflowError {
+      // We cannot report anything useful in this case, because we
+      // do not have enough stack space.
+      rethrow;
+    } catch (ex) {
+      if (hasCrashed) rethrow;
+      try {
+        unhandledExceptionOnElement(element);
+      } catch (doubleFault) {
+        // Ignoring exceptions in exception handling.
+      }
+      rethrow;
+    } finally {
+      _currentElement = old;
+    }
+  }
+
+  void reportAssertionFailure(SpannableAssertionFailure ex) {
+    String message = (ex.message != null) ? tryToString(ex.message)
+                                          : tryToString(ex);
+    reportDiagnosticInternal(
+        createMessage(ex.node, MessageKind.GENERIC, {'text': message}),
+        const <DiagnosticMessage>[],
+        api.Diagnostic.CRASH);
+  }
+
+  SourceSpan spanFromTokens(Token begin, Token end, [Uri uri]) {
+    if (begin == null || end == null) {
+      // TODO(ahe): We can almost always do better. Often it is only
+      // end that is null. Otherwise, we probably know the current
+      // URI.
+      throw 'Cannot find tokens to produce error message.';
+    }
+    if (uri == null && currentElement != null) {
+      uri = currentElement.compilationUnit.script.resourceUri;
+    }
+    return new SourceSpan.fromTokens(uri, begin, end);
+  }
+
+  SourceSpan spanFromNode(Node node) {
+    return spanFromTokens(node.getBeginToken(), node.getEndToken());
+  }
+
+  SourceSpan spanFromElement(Element element) {
+    if (element != null && element.sourcePosition != null) {
+      return element.sourcePosition;
+    }
+    while (element != null && element.isSynthesized) {
+      element = element.enclosingElement;
+    }
+    if (element != null &&
+        element.sourcePosition == null &&
+        !element.isLibrary &&
+        !element.isCompilationUnit) {
+      // Sometimes, the backend fakes up elements that have no
+      // position. So we use the enclosing element instead. It is
+      // not a good error location, but cancel really is "internal
+      // error" or "not implemented yet", so the vicinity is good
+      // enough for now.
+      element = element.enclosingElement;
+      // TODO(ahe): I plan to overhaul this infrastructure anyways.
+    }
+    if (element == null) {
+      element = currentElement;
+    }
+    if (element == null) {
+      return null;
+    }
+
+    if (element.sourcePosition != null) {
+      return element.sourcePosition;
+    }
+    Token position = element.position;
+    Uri uri = element.compilationUnit.script.resourceUri;
+    return (position == null)
+        ? new SourceSpan(uri, 0, 0)
+        : spanFromTokens(position, position, uri);
+  }
+
+  SourceSpan spanFromHInstruction(HInstruction instruction) {
+    Element element = _elementFromHInstruction(instruction);
+    if (element == null) element = currentElement;
+    SourceInformation position = instruction.sourceInformation;
+    if (position == null) return spanFromElement(element);
+    return position.sourceSpan;
+  }
+
+  SourceSpan spanFromSpannable(Spannable node) {
+    // TODO(johnniwinther): Disallow `node == null` ?
+    if (node == null) return null;
+    if (node == CURRENT_ELEMENT_SPANNABLE) {
+      node = currentElement;
+    } else if (node == NO_LOCATION_SPANNABLE) {
+      if (currentElement == null) return null;
+      node = currentElement;
+    }
+    if (node is SourceSpan) {
+      return node;
+    } else if (node is Node) {
+      return spanFromNode(node);
+    } else if (node is TokenPair) {
+      return spanFromTokens(node.begin, node.end);
+    } else if (node is Token) {
+      return spanFromTokens(node, node);
+    } else if (node is HInstruction) {
+      return spanFromHInstruction(node);
+    } else if (node is Element) {
+      return spanFromElement(node);
+    } else if (node is MetadataAnnotation) {
+      Uri uri = node.annotatedElement.compilationUnit.script.resourceUri;
+      return spanFromTokens(node.beginToken, node.endToken, uri);
+    } else if (node is Local) {
+      Local local = node;
+      return spanFromElement(local.executableContext);
+    } else {
+      throw 'No error location.';
+    }
+  }
+
+  Element _elementFromHInstruction(HInstruction instruction) {
+    return instruction.sourceElement is Element
+        ? instruction.sourceElement : null;
+  }
+
+  internalError(Spannable node, reason) {
+    String message = tryToString(reason);
+    reportDiagnosticInternal(
+        createMessage(node, MessageKind.GENERIC, {'text': message}),
+        const <DiagnosticMessage>[],
+        api.Diagnostic.CRASH);
+    throw 'Internal Error: $message';
+  }
+
+  void unhandledExceptionOnElement(Element element) {
+    if (hasCrashed) return;
+    hasCrashed = true;
+    reportDiagnostic(
+        createMessage(element, MessageKind.COMPILER_CRASHED),
+        const <DiagnosticMessage>[],
+        api.Diagnostic.CRASH);
+    pleaseReportCrash();
+  }
+
+  void pleaseReportCrash() {
+    print(
+        MessageTemplate.TEMPLATES[MessageKind.PLEASE_REPORT_THE_CRASH]
+            .message({'buildId': compiler.buildId}));
+  }
+
+  /// Finds the approximate [Element] for [node]. [currentElement] is used as
+  /// the default value.
+  Element elementFromSpannable(Spannable node) {
+    Element element;
+    if (node is Element) {
+      element = node;
+    } else if (node is HInstruction) {
+      element = _elementFromHInstruction(node);
+    } else if (node is MetadataAnnotation) {
+      element = node.annotatedElement;
+    }
+    return element != null ? element : currentElement;
+  }
+
+  void log(message) {
+    Message msg = MessageTemplate.TEMPLATES[MessageKind.GENERIC]
+        .message({'text': '$message'});
+    reportDiagnostic(
+        new DiagnosticMessage(null, null, msg),
+        const <DiagnosticMessage>[],
+        api.Diagnostic.VERBOSE_INFO);
+  }
+
+  String tryToString(object) {
+    try {
+      return object.toString();
+    } catch (_) {
+      return '<exception in toString()>';
+    }
+  }
+
+  onError(Uri uri, error) {
+    try {
+      if (!hasCrashed) {
+        hasCrashed = true;
+        if (error is SpannableAssertionFailure) {
+          reportAssertionFailure(error);
+        } else {
+          reportDiagnostic(
+              createMessage(
+                  new SourceSpan(uri, 0, 0),
+                  MessageKind.COMPILER_CRASHED),
+              const <DiagnosticMessage>[],
+              api.Diagnostic.CRASH);
+        }
+        pleaseReportCrash();
+      }
+    } catch (doubleFault) {
+      // Ignoring exceptions in exception handling.
+    }
+    throw error;
+  }
+
+  void onCrashInUserCode(String message, exception, stackTrace) {
+    hasCrashed = true;
+    print('$message: ${tryToString(exception)}');
+    print(tryToString(stackTrace));
+  }
+
+  void reportSuppressedMessagesSummary() {
+    if (!options.showPackageWarnings && !options.suppressWarnings) {
+      suppressedWarnings.forEach((Uri uri, SuppressionInfo info) {
+        MessageKind kind = MessageKind.HIDDEN_WARNINGS_HINTS;
+        if (info.warnings == 0) {
+          kind = MessageKind.HIDDEN_HINTS;
+        } else if (info.hints == 0) {
+          kind = MessageKind.HIDDEN_WARNINGS;
+        }
+        MessageTemplate template = MessageTemplate.TEMPLATES[kind];
+        Message message = template.message(
+            {'warnings': info.warnings,
+             'hints': info.hints,
+             'uri': uri},
+             options.terseDiagnostics);
+        reportDiagnostic(
+            new DiagnosticMessage(null, null, message),
+            const <DiagnosticMessage>[],
+            api.Diagnostic.HINT);
+      });
+    }
+  }
+}
+
+// TODO(johnniwinther): Move [ResolverTask] here.
+class _CompilerResolution implements Resolution {
+  final Compiler compiler;
+  final Map<Element, ResolutionWorldImpact> _worldImpactCache =
+      <Element, ResolutionWorldImpact>{};
+
+  _CompilerResolution(this.compiler);
+
+  @override
+  DiagnosticReporter get reporter => compiler.reporter;
+
+  @override
+  Parsing get parsing => compiler.parsing;
+
+  @override
+  CoreTypes get coreTypes => compiler.coreTypes;
+
+  @override
+  void registerClass(ClassElement cls) {
+    compiler.world.registerClass(cls);
+  }
+
+  @override
+  void resolveClass(ClassElement cls) {
+    compiler.resolver.resolveClass(cls);
+  }
+
+  @override
+  void resolveTypedef(TypedefElement typdef) {
+    compiler.resolver.resolve(typdef);
+  }
+
+  @override
+  void resolveMetadataAnnotation(MetadataAnnotation metadataAnnotation) {
+    compiler.resolver.resolveMetadataAnnotation(metadataAnnotation);
+  }
+
+  @override
+  FunctionSignature resolveSignature(FunctionElement function) {
+    return compiler.resolver.resolveSignature(function);
+  }
+
+  @override
+  DartType resolveTypeAnnotation(Element element, TypeAnnotation node) {
+    return compiler.resolver.resolveTypeAnnotation(element, node);
+  }
+
+  ResolutionWorldImpact analyzeElement(Element element) {
+    return _worldImpactCache.putIfAbsent(element, () {
+      assert(compiler.parser != null);
+      Node tree = compiler.parser.parse(element);
+      assert(invariant(element, !element.isSynthesized || tree == null));
+      ResolutionWorldImpact worldImpact = compiler.resolver.resolve(element);
+      if (tree != null &&
+          !compiler.analyzeSignaturesOnly &&
+          !reporter.options.suppressWarnings) {
+        // Only analyze nodes with a corresponding [TreeElements].
+        compiler.checker.check(element);
+      }
+      return worldImpact;
+    });
+  }
+
+  @override
+  bool hasBeenResolved(Element element) {
+    return _worldImpactCache.containsKey(element);
+  }
+}
+
+// TODO(johnniwinther): Move [ParserTask], [PatchParserTask], [DietParserTask]
+// and [ScannerTask] here.
+class _CompilerParsing implements Parsing {
+  final Compiler compiler;
+
+  _CompilerParsing(this.compiler);
+
+  @override
+  DiagnosticReporter get reporter => compiler.reporter;
+
+  @override
+  measure(f()) => compiler.parser.measure(f);
+
+  @override
+  void parsePatchClass(ClassElement cls) {
+    compiler.patchParser.measure(() {
+      if (cls.isPatch) {
+        compiler.patchParser.parsePatchClassNode(cls);
+      }
+    });
   }
 }

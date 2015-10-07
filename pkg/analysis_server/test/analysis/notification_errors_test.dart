@@ -7,6 +7,7 @@ library test.analysis.notification_errors;
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -33,6 +34,24 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     server.handlers = [new AnalysisDomainHandler(server),];
+  }
+
+  test_importError() {
+    createProject();
+
+    addTestFile('''
+import 'does_not_exist.dart';
+''');
+    return waitForTasksFinished().then((_) {
+      List<AnalysisError> errors = filesErrors[testFile];
+      // Verify that we are generating only 1 error for the bad URI.
+      // https://github.com/dart-lang/sdk/issues/23754
+      expect(errors, hasLength(1));
+      AnalysisError error = errors[0];
+      expect(error.severity, AnalysisErrorSeverity.ERROR);
+      expect(error.type, AnalysisErrorType.COMPILE_TIME_ERROR);
+      expect(error.message, startsWith('Target of URI does not exist'));
+    });
   }
 
   test_notInAnalysisRoot() {

@@ -292,23 +292,27 @@ void JSONStream::PrintValueBool(bool b) {
 
 
 void JSONStream::PrintValue(intptr_t i) {
+  EnsureIntegerIsRepresentableInJavaScript(static_cast<int64_t>(i));
   PrintCommaIfNeeded();
   buffer_.Printf("%" Pd "", i);
 }
 
 
 void JSONStream::PrintValue64(int64_t i) {
+  EnsureIntegerIsRepresentableInJavaScript(i);
   PrintCommaIfNeeded();
   buffer_.Printf("%" Pd64 "", i);
 }
 
 
 void JSONStream::PrintValueTimeMillis(int64_t millis) {
-  PrintValue(static_cast<double>(millis));
+  EnsureIntegerIsRepresentableInJavaScript(millis);
+  PrintValue64(millis);
 }
 
 
 void JSONStream::PrintValueTimeMicros(int64_t micros) {
+  EnsureIntegerIsRepresentableInJavaScript(micros);
   PrintValue64(micros);
 }
 
@@ -452,21 +456,19 @@ void JSONStream::PrintPropertyBool(const char* name, bool b) {
 
 
 void JSONStream::PrintProperty(const char* name, intptr_t i) {
-  ASSERT(Utils::IsJavascriptInt(i));
   PrintPropertyName(name);
   PrintValue(i);
 }
 
 
 void JSONStream::PrintProperty64(const char* name, int64_t i) {
-  ASSERT(Utils::IsJavascriptInt64(i));
   PrintPropertyName(name);
   PrintValue64(i);
 }
 
 
 void JSONStream::PrintPropertyTimeMillis(const char* name, int64_t millis) {
-  PrintProperty(name, static_cast<double>(millis));
+  PrintProperty64(name, millis);
 }
 
 
@@ -617,6 +619,17 @@ bool JSONStream::NeedComma() {
   }
   char ch = buffer[length-1];
   return (ch != '[') && (ch != '{') && (ch != ':') && (ch != ',');
+}
+
+
+void JSONStream::EnsureIntegerIsRepresentableInJavaScript(int64_t i) {
+#ifdef DEBUG
+  if (!Utils::IsJavascriptInt(i)) {
+    OS::Print("JSONStream::EnsureIntegerIsRepresentableInJavaScript failed on "
+              "%" Pd64 "\n", i);
+    UNREACHABLE();
+  }
+#endif
 }
 
 

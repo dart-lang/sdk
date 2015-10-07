@@ -10,9 +10,9 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol.dart' as protocol
     show Element, ElementKind;
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
+import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/common_usage_computer.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
-import 'package:analysis_server/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
@@ -1357,7 +1357,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       //assertSuggestImportedTopLevelVar('T3', 'int', COMPLETION_RELEVANCE_LOW);
       assertNotSuggested('_T4');
       assertSuggestLocalTopLevelVar('T5', 'int');
-      assertSuggestLocalTopLevelVar('_T6', null);
+      assertSuggestLocalTopLevelVar('_T6', null,
+          relevance: DART_RELEVANCE_DEFAULT);
       assertNotSuggested('==');
       assertSuggestLocalGetter('T7', 'String');
       assertSuggestLocalSetter('T8');
@@ -3473,7 +3474,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         expect(getterF.element.isDeprecated, isTrue);
         expect(getterF.element.isPrivate, isFalse);
       }
-      CompletionSuggestion getterG = assertSuggestLocalGetter('_g', null);
+      CompletionSuggestion getterG = assertSuggestLocalGetter('_g', null,
+          relevance: DART_RELEVANCE_DEFAULT);
       if (getterG != null) {
         expect(getterG.element.isDeprecated, isFalse);
         expect(getterG.element.isPrivate, isTrue);
@@ -3528,7 +3530,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      CompletionSuggestion methodA = assertSuggestLocalMethod('_a', 'A', 'Z');
+      CompletionSuggestion methodA = assertSuggestLocalMethod('_a', 'A', 'Z',
+          relevance: DART_RELEVANCE_DEFAULT);
       if (methodA != null) {
         expect(methodA.element.isDeprecated, isFalse);
         expect(methodA.element.isPrivate, isTrue);

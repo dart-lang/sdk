@@ -1020,7 +1020,10 @@ void FlowGraphCompiler::EmitFrameEntry() {
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
 
-  TryIntrinsify();
+  if (TryIntrinsify()) {
+    // Skip regular code generation.
+    return;
+  }
 
   EmitFrameEntry();
   ASSERT(assembler()->constant_pool_allowed());

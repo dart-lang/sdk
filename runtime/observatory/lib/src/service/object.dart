@@ -637,7 +637,7 @@ abstract class VM extends ServiceObjectOwner {
   @observable int architectureBits;
   @observable bool assertsEnabled = false;
   @observable bool typeChecksEnabled = false;
-  @observable String pid = '';
+  @observable int pid = 0;
   @observable DateTime startTime;
   @observable DateTime refreshTime;
   @observable Duration get upTime =>
@@ -803,6 +803,10 @@ abstract class VM extends ServiceObjectOwner {
     }
   }
 
+  Future restart() {
+    return invokeRpc('_restartVM', {});
+  }
+
   Future<ObservableMap> _fetchDirect() async {
     if (!loaded) {
       // The vm service relies on these events to keep the VM and
@@ -877,7 +881,7 @@ abstract class VM extends ServiceObjectOwner {
     version = map['version'];
     targetCPU = map['targetCPU'];
     architectureBits = map['architectureBits'];
-    var startTimeMillis = map['startTime'].toInt();
+    int startTimeMillis = map['startTime'];
     startTime = new DateTime.fromMillisecondsSinceEpoch(startTimeMillis);
     refreshTime = new DateTime.now();
     notifyPropertyChange(#upTime, 0, 1);
@@ -1270,9 +1274,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @observable String vmName;
   @observable ServiceFunction entry;
 
-  @observable final Map<String, double> timers =
-      toObservable(new Map<String, double>());
-
   final HeapSpace newSpace = new HeapSpace();
   final HeapSpace oldSpace = new HeapSpace();
 
@@ -1348,7 +1349,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
       entry = map['entry'];
     }
     var savedStartTime = startTime;
-    var startTimeInMillis = map['startTime'].toInt();
+    int startTimeInMillis = map['startTime'];
     startTime = new DateTime.fromMillisecondsSinceEpoch(startTimeInMillis);
     notifyPropertyChange(#upTime, 0, 1);
     var countersMap = map['_tagCounters'];
@@ -1373,18 +1374,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
         }
       }
     }
-    var timerMap = {};
-    map['timers'].forEach((timer) {
-        timerMap[timer['name']] = timer['time'];
-      });
-    timers['total'] = timerMap['time_total_runtime'];
-    timers['compile'] = timerMap['time_compilation'];
-    timers['gc'] = 0.0;  // TODO(turnidge): Export this from VM.
-    timers['init'] = (timerMap['time_script_loading'] +
-                      timerMap['time_creating_snapshot'] +
-                      timerMap['time_isolate_initialization'] +
-                      timerMap['time_bootstrap']);
-    timers['dart'] = timerMap['time_dart_execution'];
 
     updateHeapsFromMap(map['_heaps']);
     _updateBreakpoints(map['breakpoints']);
@@ -1532,7 +1521,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     if (col != null) {
       params['column'] = col.toString();
     }
-    return invokeRpc('addBreakpoint', params);
+    return invokeRpc('addBreakpointWithScriptUri', params);
   }
 
   Future<ServiceObject> addBreakpointAtEntry(ServiceFunction function) {
@@ -1894,7 +1883,7 @@ class ServiceEvent extends ServiceObject {
     _upgradeCollection(map, owner);
     assert(map['isolate'] == null || owner == map['isolate']);
     timestamp =
-        new DateTime.fromMillisecondsSinceEpoch(map['timestamp'].toInt());
+        new DateTime.fromMillisecondsSinceEpoch(map['timestamp']);
     kind = map['kind'];
     notifyPropertyChange(#isPauseEvent, 0, 1);
     name = 'ServiceEvent $kind';
@@ -1949,7 +1938,7 @@ class ServiceEvent extends ServiceObject {
     if (map['logRecord'] != null) {
       logRecord = map['logRecord'];
       logRecord['time'] =
-          new DateTime.fromMillisecondsSinceEpoch(logRecord['time'].toInt());
+          new DateTime.fromMillisecondsSinceEpoch(logRecord['time']);
       logRecord['level'] = _findLogLevel(logRecord['level']);
     }
   }

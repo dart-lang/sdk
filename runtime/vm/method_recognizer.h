@@ -130,8 +130,6 @@ namespace dart {
   V(_Uint16Array, []=, Uint16ArraySetIndexed, 1594961463)                      \
   V(_Int32Array, [], Int32ArrayGetIndexed, 2052925823)                         \
   V(_Int32Array, []=, Int32ArraySetIndexed, 504626978)                         \
-  V(_Uint32Array, [], Uint32ArrayGetIndexed, 1034114777)                       \
-  V(_Uint32Array, []=, Uint32ArraySetIndexed, 918159348)                       \
   V(_Int64Array, [], Int64ArrayGetIndexed, 297668331)                          \
   V(_Int64Array, []=, Int64ArraySetIndexed, 36465128)                          \
   V(_Float32x4Array, [], Float32x4ArrayGetIndexed, 35821240)                   \
@@ -278,6 +276,8 @@ namespace dart {
   V(_Uint8Array, []=, Uint8ArraySetIndexed, 447309008)                         \
   V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 1293647140)         \
   V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 1593599192)        \
+  V(_Uint32Array, [], Uint32ArrayGetIndexed, 1034114777)                       \
+  V(_Uint32Array, []=, Uint32ArraySetIndexed, 918159348)                       \
   V(_Float64Array, []=, Float64ArraySetIndexed, 887301703)                     \
   V(_Float64Array, [], Float64ArrayGetIndexed, 1959896670)                     \
   V(_TypedList, get:length, TypedDataLength, 522684521)                        \

@@ -73,6 +73,9 @@ main_test/42: Fail # Issue 20028
 mirror_in_static_init_test: Fail # Issue 22071
 vm/debug_break_enabled_vm_test/*: Skip # Issue 14651.
 
+[ $compiler == none && $runtime == dartium && $system == linux && $arch != x64 ]
+issue_22780_test/01 : Pass, Timeout # Issue 24473
+
 [ $compiler == none && $runtime == drt ]
 disassemble_test: Pass, Fail # Issue 18122
 
@@ -94,6 +97,4 @@ gc_test: SkipSlow # Times out flakily. Issue 20956
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
-mixin_super_test: Fail # Can't pass VMOptions to dartium.
-mixin_super_bound2_test: Fail # Can't pass VMOptions to dartium.
 issue23244_test: Fail # Can't run spawnFunction on dartium.

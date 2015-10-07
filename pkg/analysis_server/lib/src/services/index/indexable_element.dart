@@ -10,6 +10,7 @@ import 'package:analysis_server/analysis/index_core.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 /**
  * A wrapper around an [Element] that implements the [IndexableObject] interface.
@@ -34,12 +35,6 @@ class IndexableElement implements IndexableObject {
 
   @override
   IndexableObjectKind get kind => IndexableElementKind.forElement(element);
-
-  @override
-  int get length => element.nameLength;
-
-  @override
-  String get name => element.displayName;
 
   @override
   int get offset {
@@ -67,7 +62,7 @@ class IndexableElementKind implements IndexableObjectKind {
   /**
    * A table mapping element kinds to the corresponding indexable element kind.
    */
-  static Map<ElementKind, IndexableElementKind> _kindMap =
+  static final Map<ElementKind, IndexableElementKind> _kindMap =
       new HashMap<ElementKind, IndexableElementKind>();
 
   /**
@@ -75,7 +70,7 @@ class IndexableElementKind implements IndexableObjectKind {
    * of constructors associated with a class) to the indexable element kind used
    * to represent it.
    */
-  static Map<int, IndexableElementKind> _constructorKinds =
+  static final Map<int, IndexableElementKind> _constructorKinds =
       new HashMap<int, IndexableElementKind>();
 
   @override
@@ -143,6 +138,22 @@ class IndexableElementKind implements IndexableObjectKind {
       }
     }
     return null;
+  }
+
+  @override
+  int encodeHash(StringToInt stringToInt, IndexableObject indexable) {
+    Element element = (indexable as IndexableElement).element;
+    String elementName = element.displayName;
+    int elementNameId = stringToInt(elementName);
+    if (indexable is IndexableElement) {
+      LibraryElement libraryElement = indexable.element.library;
+      if (libraryElement != null) {
+        String libraryPath = libraryElement.source.fullName;
+        int libraryPathId = stringToInt(libraryPath);
+        return JenkinsSmiHash.combine(libraryPathId, elementNameId);
+      }
+    }
+    return elementNameId;
   }
 
   /**

@@ -33,53 +33,14 @@ DECLARE_FLAG(bool, interpret_irregexp);
 intptr_t Intrinsifier::ParameterSlotFromSp() { return -1; }
 
 
-static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const Class& cls = Class::Handle(
-      core_lib.LookupClassAllowPrivate(Symbols::_List()));
-  ASSERT(!cls.IsNull());
-  ASSERT(cls.NumTypeArguments() == 1);
-  const intptr_t field_offset = cls.type_arguments_field_offset();
-  ASSERT(field_offset != Class::kNoTypeArguments);
-  return field_offset;
-}
-
-
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
 // update. Array length is always a Smi.
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
-  Label fall_through;
-
   if (Isolate::Current()->flags().type_checks()) {
-    const intptr_t type_args_field_offset =
-        ComputeObjectArrayTypeArgumentsOffset();
-    // Inline simple tests (Smi, null), fallthrough if not positive.
-    Label checked_ok;
-    __ lw(T2, Address(SP, 0 * kWordSize));  // Value.
-
-    // Null value is valid for any type.
-    __ LoadObject(T7, Object::null_object());
-    __ beq(T2, T7, &checked_ok);
-
-    __ lw(T1, Address(SP, 2 * kWordSize));  // Array.
-    __ lw(T1, FieldAddress(T1, type_args_field_offset));
-
-    // T1: Type arguments of array.
-    __ beq(T1, T7, &checked_ok);
-
-    // Check if it's dynamic.
-    // Get type at index 0.
-    __ lw(T0, FieldAddress(T1, TypeArguments::type_at_offset(0)));
-    __ BranchEqual(T0, Type::ZoneHandle(Type::DynamicType()), &checked_ok);
-
-    // Check for int and num.
-    __ andi(CMPRES1, T2, Immediate(kSmiTagMask));
-    __ bne(CMPRES1, ZR, &fall_through);  // Non-smi value.
-
-    __ BranchEqual(T0, Type::ZoneHandle(Type::IntType()), &checked_ok);
-    __ BranchNotEqual(T0, Type::ZoneHandle(Type::Number()), &fall_through);
-    __ Bind(&checked_ok);
+    return;
   }
+
+  Label fall_through;
   __ lw(T1, Address(SP, 1 * kWordSize));  // Index.
   __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
   // Index not Smi.

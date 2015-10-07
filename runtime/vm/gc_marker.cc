@@ -595,7 +595,7 @@ class MarkTask : public ThreadPool::Task {
       StackZone stack_zone(Thread::Current());
       Zone* zone = stack_zone.GetZone();
       SkippedCodeFunctions* skipped_code_functions =
-        collect_code_ ? new(zone) SkippedCodeFunctions() : NULL;
+          collect_code_ ? new(zone) SkippedCodeFunctions() : NULL;
       MarkingVisitor visitor(isolate_, heap_, page_space_, marking_stack_,
                              delay_set_, skipped_code_functions);
       // Phase 1: Populate and drain marking stack in task.

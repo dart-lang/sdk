@@ -10,6 +10,8 @@
     'developer.dart',
     'profiler.cc',
     'profiler.dart',
+    'timeline.cc',
+    'timeline.dart',
   ],
 }
 

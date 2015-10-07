@@ -11,6 +11,8 @@ library dart2js.serialization.modelz;
 
 import 'serialization.dart';
 import 'keys.dart';
+import '../common/resolution.dart' show
+    Resolution;
 import '../compiler.dart'
     show Compiler;
 import '../constants/constructors.dart';
@@ -18,7 +20,6 @@ import '../constants/expressions.dart';
 import '../diagnostics/source_span.dart'
     show SourceSpan;
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
     FunctionSignatureX;
@@ -662,7 +663,7 @@ abstract class TypedElementMixin
   }
 
   @override
-  DartType computeType(Compiler compiler) => type;
+  DartType computeType(Resolution resolution) => type;
 }
 
 abstract class ParametersMixin
@@ -897,8 +898,8 @@ class ClassElementZ extends DeserializedElementZ
   ClassElement get superclass => supertype != null ? supertype.element : null;
 
   @override
-  void ensureResolved(Compiler compiler) {
-    compiler.world.registerClass(this);
+  void ensureResolved(Resolution resolution) {
+    resolution.registerClass(this);
   }
 }
 
@@ -1236,7 +1237,7 @@ abstract class TypeDeclarationMixin<T extends GenericType>
   }
 
   @override
-  T computeType(Compiler compiler) => thisType;
+  T computeType(Resolution resolution) => thisType;
 
   @override
   bool get isResolved => true;
@@ -1275,10 +1276,10 @@ class TypedefElementZ extends DeserializedElementZ
   }
 
   @override
-  void ensureResolved(Compiler compiler) {}
+  void ensureResolved(Resolution resolution) {}
 
   @override
-  void checkCyclicReference(Compiler compiler) {}
+  void checkCyclicReference(Resolution resolution) {}
 }
 
 class TypeVariableElementZ extends DeserializedElementZ

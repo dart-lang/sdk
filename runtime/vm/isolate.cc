@@ -8,7 +8,9 @@
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
 #include "platform/json.h"
+#include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
+#include "vm/compiler.h"
 #include "vm/compiler_stats.h"
 #include "vm/coverage.h"
 #include "vm/dart_api_message.h"
@@ -24,7 +26,6 @@
 #include "vm/object_store.h"
 #include "vm/object.h"
 #include "vm/os_thread.h"
-#include "vm/parser.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
 #include "vm/reusable_handles.h"
@@ -177,7 +178,7 @@ class IsolateMessageHandler : public MessageHandler {
 
   const char* name() const;
   void MessageNotify(Message::Priority priority);
-  bool HandleMessage(Message* message);
+  MessageStatus HandleMessage(Message* message);
   void NotifyPauseOnStart();
   void NotifyPauseOnExit();
 
@@ -193,7 +194,7 @@ class IsolateMessageHandler : public MessageHandler {
   // processing of further events.
   RawError* HandleLibMessage(const Array& message);
 
-  bool ProcessUnhandledException(const Error& result);
+  MessageStatus ProcessUnhandledException(const Error& result);
   Isolate* isolate_;
 };
 
@@ -284,7 +285,8 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
       break;
     }
     case Isolate::kKillMsg:
-    case Isolate::kInternalKillMsg: {
+    case Isolate::kInternalKillMsg:
+    case Isolate::kVMRestartMsg: {
       // [ OOB, kKillMsg, terminate capability, priority ]
       if (message.Length() != 4) return Error::null();
       Object& obj = Object::Handle(I, message.At(3));
@@ -292,8 +294,8 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
       const intptr_t priority = Smi::Cast(obj).Value();
       if (priority == Isolate::kImmediateAction) {
         obj = message.At(2);
-        // Signal that the isolate should stop execution.
         if (I->VerifyTerminateCapability(obj)) {
+          // We will kill the current isolate by returning an UnwindError.
           if (msg_type == Isolate::kKillMsg) {
             const String& msg = String::Handle(String::New(
                 "isolate terminated by Isolate.kill"));
@@ -301,14 +303,22 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
                 UnwindError::Handle(UnwindError::New(msg));
             error.set_is_user_initiated(true);
             return error.raw();
-          } else {
-            // TODO(turnidge): We should give the message handler a way
-            // to detect when an isolate is unwinding.
-            I->message_handler()->set_pause_on_start(false);
-            I->message_handler()->set_pause_on_exit(false);
+          } else if (msg_type == Isolate::kInternalKillMsg) {
             const String& msg = String::Handle(String::New(
                 "isolate terminated by vm"));
             return UnwindError::New(msg);
+          } else if (msg_type == Isolate::kVMRestartMsg) {
+            // If this is the main isolate, this request to restart
+            // will be caught and handled in the embedder.  Otherwise
+            // this unwind error will cause the isolate to exit.
+            const String& msg = String::Handle(String::New(
+                "isolate terminated for vm restart"));
+            const UnwindError& error =
+                UnwindError::Handle(UnwindError::New(msg));
+            error.set_is_vm_restart(true);
+            return error.raw();
+          } else {
+            UNREACHABLE();
           }
         } else {
           return Error::null();
@@ -420,7 +430,8 @@ void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
 }
 
 
-bool IsolateMessageHandler::HandleMessage(Message* message) {
+MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
+    Message* message) {
   ASSERT(IsCurrentIsolate());
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
@@ -429,10 +440,6 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   TimelineDurationScope tds(thread, I->GetIsolateStream(), "HandleMessage");
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "isolateName", I->name());
-
-  // TODO(turnidge): Rework collection total dart execution.  This can
-  // overcount when other things (gc, compilation) are active.
-  TIMERSCOPE(thread, time_dart_execution);
 
   // If the message is in band we lookup the handler to dispatch to.  If the
   // receive port was closed, we drop the message without deserializing it.
@@ -453,7 +460,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
       } else {
         delete message;
       }
-      return true;
+      return kOK;
     }
   }
 
@@ -477,7 +484,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   Instance& msg = Instance::Handle(zone);
   msg ^= msg_obj.raw();  // Can't use Instance::Cast because may be null.
 
-  bool success = true;
+  MessageStatus status = kOK;
   if (message->IsOOB()) {
     // OOB messages are expected to be fixed length arrays where the first
     // element is a Smi describing the OOB destination. Messages that do not
@@ -495,7 +502,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
             case Message::kIsolateLibOOBMsg: {
               const Error& error = Error::Handle(HandleLibMessage(oob_msg));
               if (!error.IsNull()) {
-                success = ProcessUnhandledException(error);
+                status = ProcessUnhandledException(error);
               }
               break;
             }
@@ -522,7 +529,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
             (Smi::Cast(oob_tag).Value() == Message::kDelayedIsolateLibOOBMsg)) {
           const Error& error = Error::Handle(HandleLibMessage(msg_arr));
           if (!error.IsNull()) {
-            success = ProcessUnhandledException(error);
+            status = ProcessUnhandledException(error);
           }
         }
       }
@@ -531,22 +538,22 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
     const Object& result = Object::Handle(zone,
         DartLibraryCalls::HandleMessage(msg_handler, msg));
     if (result.IsError()) {
-      success = ProcessUnhandledException(Error::Cast(result));
+      status = ProcessUnhandledException(Error::Cast(result));
     } else {
       ASSERT(result.IsNull());
     }
   }
   delete message;
-  if (success) {
+  if (status == kOK) {
     const Object& result =
         Object::Handle(zone, I->InvokePendingServiceExtensionCalls());
     if (result.IsError()) {
-      success = ProcessUnhandledException(Error::Cast(result));
+      status = ProcessUnhandledException(Error::Cast(result));
     } else {
       ASSERT(result.IsNull());
     }
   }
-  return success;
+  return status;
 }
 
 
@@ -590,7 +597,25 @@ bool IsolateMessageHandler::IsCurrentIsolate() const {
 }
 
 
-bool IsolateMessageHandler::ProcessUnhandledException(const Error& result) {
+static MessageHandler::MessageStatus StoreError(Isolate* isolate,
+                                                const Error& error) {
+  isolate->object_store()->set_sticky_error(error);
+  if (error.IsUnwindError()) {
+    const UnwindError& unwind = UnwindError::Cast(error);
+    if (!unwind.is_user_initiated()) {
+      if (unwind.is_vm_restart()) {
+        return MessageHandler::kRestart;
+      } else {
+        return MessageHandler::kShutdown;
+      }
+    }
+  }
+  return MessageHandler::kError;
+}
+
+
+MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
+    const Error& result) {
   // Notify the debugger about specific unhandled exceptions which are withheld
   // when being thrown.
   if (result.IsUnhandledException()) {
@@ -634,9 +659,9 @@ bool IsolateMessageHandler::ProcessUnhandledException(const Error& result) {
     exc_str = String::New(result.ToErrorCString());
   }
   if (result.IsUnwindError()) {
-    // Unwind errors are always fatal and don't notify listeners.
-    I->object_store()->set_sticky_error(result);
-    return false;
+    // When unwinding we don't notify error listeners and we ignore
+    // whether errors are fatal for the current isolate.
+    return StoreError(I, result);
   } else {
     bool has_listener = I->NotifyErrorListeners(exc_str, stacktrace_str);
     if (I->ErrorsFatal()) {
@@ -645,10 +670,10 @@ bool IsolateMessageHandler::ProcessUnhandledException(const Error& result) {
       } else {
         I->object_store()->set_sticky_error(result);
       }
-      return false;
+      return kError;
     }
   }
-  return true;
+  return kOK;
 }
 
 
@@ -704,9 +729,15 @@ void BaseIsolate::AssertCurrentThreadIsMutator() const {
   object##_handle_(NULL),
 
 Isolate::Isolate(const Dart_IsolateFlags& api_flags)
-  :   vm_tag_(0),
+  :   stack_limit_(0),
       store_buffer_(new StoreBuffer()),
       heap_(NULL),
+      vm_tag_(0),
+      user_tag_(0),
+      current_tag_(UserTag::null()),
+      default_tag_(UserTag::null()),
+      class_table_(),
+      single_step_(false),
       thread_registry_(new ThreadRegistry()),
       message_notify_callback_(NULL),
       name_(NULL),
@@ -724,17 +755,14 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       library_tag_handler_(NULL),
       api_state_(NULL),
       debugger_(NULL),
-      single_step_(false),
       resume_request_(false),
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
       has_compiled_(false),
       flags_(),
       random_(),
       simulator_(NULL),
-      timer_list_(),
       deopt_id_(0),
       mutex_(new Mutex()),
-      stack_limit_(0),
       saved_stack_limit_(0),
       stack_base_(0),
       stack_overflow_flags_(0),
@@ -746,6 +774,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       gc_epilogue_callback_(NULL),
       defer_finalization_count_(0),
       deopt_context_(NULL),
+      background_compiler_(NULL),
       compiler_stats_(NULL),
       is_service_isolate_(false),
       stacktrace_(NULL),
@@ -756,10 +785,9 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       trace_buffer_(NULL),
       profiler_data_(NULL),
       tag_table_(GrowableObjectArray::null()),
-      current_tag_(UserTag::null()),
-      default_tag_(UserTag::null()),
       collected_closures_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
+      background_compilation_queue_(GrowableObjectArray::null()),
       pending_service_extension_calls_(GrowableObjectArray::null()),
       registered_service_extension_handlers_(GrowableObjectArray::null()),
       metrics_list_head_(NULL),
@@ -771,7 +799,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_() {
   flags_.CopyFrom(api_flags);
-  set_vm_tag(VMTag::kEmbedderTagId);
+  Thread::Current()->set_vm_tag(VMTag::kEmbedderTagId);
   set_user_tag(UserTags::kDefaultUserTag);
 }
 
@@ -1308,13 +1336,7 @@ bool Isolate::NotifyErrorListeners(const String& msg,
 }
 
 
-static void StoreError(Isolate* isolate, const Object& obj) {
-  ASSERT(obj.IsError());
-  isolate->object_store()->set_sticky_error(Error::Cast(obj));
-}
-
-
-static bool RunIsolate(uword parameter) {
+static MessageHandler::MessageStatus RunIsolate(uword parameter) {
   Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
   IsolateSpawnState* state = NULL;
   Thread* thread = Thread::Current();
@@ -1348,15 +1370,19 @@ static bool RunIsolate(uword parameter) {
 
     if (!ClassFinalizer::ProcessPendingClasses()) {
       // Error is in sticky error already.
-      return false;
+#if defined(DEBUG)
+      const Error& error =
+          Error::Handle(isolate->object_store()->sticky_error());
+      ASSERT(!error.IsUnwindError());
+#endif
+      return MessageHandler::kError;
     }
 
     Object& result = Object::Handle();
     result = state->ResolveFunction();
     bool is_spawn_uri = state->is_spawn_uri();
     if (result.IsError()) {
-      StoreError(isolate, result);
-      return false;
+      return StoreError(isolate, Error::Cast(result));
     }
     ASSERT(result.IsFunction());
     Function& func = Function::Handle(isolate);
@@ -1411,11 +1437,10 @@ static bool RunIsolate(uword parameter) {
 
     result = DartEntry::InvokeFunction(entry_point, args);
     if (result.IsError()) {
-      StoreError(isolate, result);
-      return false;
+      return StoreError(isolate, Error::Cast(result));
     }
   }
-  return true;
+  return MessageHandler::kOK;
 }
 
 
@@ -1474,8 +1499,9 @@ RawError* Isolate::HandleInterrupts() {
     }
   }
   if ((interrupt_bits & kMessageInterrupt) != 0) {
-    bool ok = message_handler()->HandleOOBMessages();
-    if (!ok) {
+    MessageHandler::MessageStatus status =
+        message_handler()->HandleOOBMessages();
+    if (status != MessageHandler::kOK) {
       // False result from HandleOOBMessages signals that the isolate should
       // be terminating.
       if (FLAG_trace_isolates) {
@@ -1483,8 +1509,8 @@ RawError* Isolate::HandleInterrupts() {
                   "\tisolate:    %s\n", name());
       }
       const Error& error = Error::Handle(object_store()->sticky_error());
+      ASSERT(!error.IsNull() && error.IsUnwindError());
       object_store()->clear_sticky_error();
-      ASSERT(!error.IsNull());
       return error.raw();
     }
   }
@@ -1596,9 +1622,6 @@ void Isolate::LowLevelShutdown() {
   delete message_handler();
   set_message_handler(NULL);
 
-  // Dump all accumulated timer data for the isolate.
-  timer_list_.ReportTimers();
-
   // Before analyzing the isolate's timeline blocks- reclaim all cached blocks.
   ReclaimTimelineBlocks();
 
@@ -1691,6 +1714,8 @@ void Isolate::Shutdown() {
   }
 #endif
 
+  BackgroundCompiler::Stop(background_compiler_);
+
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   Thread::ExitIsolate();
@@ -1766,6 +1791,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit array of closures pending precompilation.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&collected_closures_));
 
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(
+      &background_compilation_queue_));
+
   // Visit the deoptimized code array which is stored in the isolate.
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&deoptimized_code_array_));
@@ -1820,15 +1848,6 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   }
   int64_t start_time_millis = start_time() / kMicrosecondsPerMillisecond;
   jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
-  IsolateSpawnState* state = spawn_state();
-  if (state != NULL) {
-    const Object& entry = Object::Handle(this, state->ResolveFunction());
-    if (!entry.IsNull() && entry.IsFunction()) {
-      Function& func = Function::Handle(this);
-      func ^= entry.raw();
-      jsobj.AddProperty("entry", func);
-    }
-  }
   {
     JSONObject jsheap(&jsobj, "_heaps");
     heap()->PrintToJSONObject(Heap::kNew, &jsheap);
@@ -1866,7 +1885,6 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     jsobj.AddProperty("rootLib", lib);
   }
 
-  timer_list().PrintTimersToJSONProperty(&jsobj);
   {
     JSONObject tagCounters(&jsobj, "_tagCounters");
     vm_tag_counters()->PrintToJSONObject(&tagCounters);
@@ -1953,7 +1971,8 @@ intptr_t Isolate::ProfileInterrupt() {
 
 
 void Isolate::ProfileIdle() {
-  vm_tag_counters_.Increment(vm_tag());
+  // Currently we are only sampling the mutator thread.
+  vm_tag_counters_.Increment(VMTag::kIdleTagId);
 }
 
 
@@ -1982,6 +2001,12 @@ void Isolate::set_collected_closures(const GrowableObjectArray& value) {
 
 void Isolate::set_deoptimized_code_array(const GrowableObjectArray& value) {
   deoptimized_code_array_ = value.raw();
+}
+
+
+void Isolate::set_background_compilation_queue(
+    const GrowableObjectArray& value) {
+  background_compilation_queue_ = value.raw();
 }
 
 
@@ -2294,7 +2319,7 @@ C* Isolate::AllocateReusableHandle() {
 }
 
 
-void Isolate::KillLocked() {
+void Isolate::KillLocked(LibMsgId msg_id) {
   Dart_CObject kill_msg;
   Dart_CObject* list_values[4];
   kill_msg.type = Dart_CObject_kArray;
@@ -2308,7 +2333,7 @@ void Isolate::KillLocked() {
 
   Dart_CObject msg_type;
   msg_type.type = Dart_CObject_kInt32;
-  msg_type.value.as_int32 = Isolate::kInternalKillMsg;
+  msg_type.value.as_int32 = msg_id;
   list_values[1] = &msg_type;
 
   Dart_CObject cap;
@@ -2339,10 +2364,11 @@ void Isolate::KillLocked() {
 
 class IsolateKillerVisitor : public IsolateVisitor {
  public:
-  IsolateKillerVisitor() : target_(NULL) {}
+  explicit IsolateKillerVisitor(Isolate::LibMsgId msg_id)
+      : target_(NULL), msg_id_(msg_id) {}
 
-  explicit IsolateKillerVisitor(Isolate* isolate)
-      : target_(isolate) {
+  IsolateKillerVisitor(Isolate* isolate, Isolate::LibMsgId msg_id)
+      : target_(isolate), msg_id_(msg_id) {
     ASSERT(isolate != Dart::vm_isolate());
   }
 
@@ -2351,7 +2377,7 @@ class IsolateKillerVisitor : public IsolateVisitor {
   void VisitIsolate(Isolate* isolate) {
     ASSERT(isolate != NULL);
     if (ShouldKill(isolate)) {
-      isolate->KillLocked();
+      isolate->KillLocked(msg_id_);
     }
   }
 
@@ -2366,17 +2392,18 @@ class IsolateKillerVisitor : public IsolateVisitor {
   }
 
   Isolate* target_;
+  Isolate::LibMsgId msg_id_;
 };
 
 
-void Isolate::KillAllIsolates() {
-  IsolateKillerVisitor visitor;
+void Isolate::KillAllIsolates(LibMsgId msg_id) {
+  IsolateKillerVisitor visitor(msg_id);
   VisitIsolates(&visitor);
 }
 
 
-void Isolate::KillIfExists(Isolate* isolate) {
-  IsolateKillerVisitor visitor(isolate);
+void Isolate::KillIfExists(Isolate* isolate, LibMsgId msg_id) {
+  IsolateKillerVisitor visitor(isolate, msg_id);
   VisitIsolates(&visitor);
 }
 

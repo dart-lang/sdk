@@ -623,6 +623,7 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
 
   JavaScriptBackend get backend => compiler.backend;
   Namer get namer => backend.namer;
+  DiagnosticReporter get reporter => compiler.reporter;
 
   TypeRepresentationGenerator(Compiler this.compiler);
 
@@ -744,7 +745,7 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
 
   visitTypedefType(TypedefType type, _) {
     bool shouldEncode = shouldEncodeTypedef(type);
-    DartType unaliasedType = type.unalias(compiler);
+    DartType unaliasedType = type.unalias(compiler.resolution);
     if (shouldEncode) {
       jsAst.ObjectInitializer initializer = unaliasedType.accept(this, null);
       // We have to encode the aliased type.
@@ -762,7 +763,7 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
   }
 
   visitStatementType(StatementType type, _) {
-    compiler.internalError(NO_LOCATION_SPANNABLE,
+    reporter.internalError(NO_LOCATION_SPANNABLE,
         'Unexpected type: $type (${type.kind}).');
   }
 }
@@ -814,7 +815,7 @@ class ArgumentCollector extends DartTypeVisitor {
   }
 
   visitTypedefType(TypedefType type, bool isTypeArgument) {
-    type.unalias(backend.compiler).accept(this, isTypeArgument);
+    type.unalias(backend.resolution).accept(this, isTypeArgument);
   }
 
   visitInterfaceType(InterfaceType type, bool isTypeArgument) {
@@ -846,7 +847,7 @@ class FunctionArgumentCollector extends DartTypeVisitor {
   }
 
   visitTypedefType(TypedefType type, bool inFunctionType) {
-    type.unalias(backend.compiler).accept(this, inFunctionType);
+    type.unalias(backend.resolution).accept(this, inFunctionType);
   }
 
   visitInterfaceType(InterfaceType type, bool inFunctionType) {

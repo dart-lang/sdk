@@ -12,6 +12,7 @@ import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/common/names.dart' show
     Uris;
 import 'package:compiler/src/constants/expressions.dart';
+import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
@@ -76,7 +77,6 @@ class MockCompiler extends Compiler {
        bool enableTypeAssertions: false,
        bool enableUserAssertions: false,
        bool enableMinification: false,
-       bool enableConcreteTypeInference: false,
        int maxConcreteTypeSize: 5,
        bool disableTypeInference: false,
        bool analyzeAll: false,
@@ -99,7 +99,6 @@ class MockCompiler extends Compiler {
               enableUserAssertions: enableUserAssertions,
               enableAssertMessage: true,
               enableMinification: enableMinification,
-              enableConcreteTypeInference: enableConcreteTypeInference,
               maxConcreteTypeSize: maxConcreteTypeSize,
               disableTypeInferenceFlag: disableTypeInference,
               analyzeAllFlag: analyzeAll,
@@ -107,7 +106,8 @@ class MockCompiler extends Compiler {
               emitJavaScript: emitJavaScript,
               preserveComments: preserveComments,
               trustTypeAnnotations: trustTypeAnnotations,
-              showPackageWarnings: true,
+              diagnosticOptions:
+                  new DiagnosticOptions(showPackageWarnings: true),
               outputProvider: new LegacyCompilerOutput(outputProvider)) {
     this.disableInlining = disableInlining;
 
@@ -157,7 +157,7 @@ class MockCompiler extends Compiler {
       // dynamic invocation the ArgumentTypesRegistry eventually iterates over
       // the interfaces of the Object class which would be 'null' if the class
       // wasn't resolved.
-      objectClass.ensureResolved(this);
+      objectClass.ensureResolved(resolution);
     }).then((_) => uri);
   }
 

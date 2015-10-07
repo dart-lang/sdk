@@ -347,11 +347,11 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
         operator &(other) => 42;
         operator ^(other) => 42;
 
-        operator >(other) => true;
-        operator >=(other) => true;
-        operator <(other) => true;
-        operator <=(other) => true;
-        operator ==(other) => true;
+        operator >(other) => !identical(this, other);
+        operator >=(other) => !identical(this, other);
+        operator <(other) => !identical(this, other);
+        operator <=(other) => !identical(this, other);
+        operator ==(other) => identical(this, other);
         get hashCode => throw "JSNumber.hashCode not implemented.";
 
         // We force side effects on _tdivFast to mimic the shortcomings of

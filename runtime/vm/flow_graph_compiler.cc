@@ -46,6 +46,7 @@ DEFINE_FLAG(bool, trace_inlining_intervals, false,
     "Inlining interval diagnostics");
 DEFINE_FLAG(bool, use_megamorphic_stub, true, "Out of line megamorphic lookup");
 
+DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, deoptimize_alot);
 DECLARE_FLAG(int, deoptimize_every);
@@ -71,10 +72,17 @@ DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(bool, precompile_collect_closures);
 DECLARE_FLAG(bool, print_stop_message);
+DECLARE_FLAG(bool, lazy_dispatchers);
+DECLARE_FLAG(bool, interpret_irregexp);
+DECLARE_FLAG(bool, enable_mirrors);
+DECLARE_FLAG(bool, link_natives_lazily);
 
-
-static void NooptModeHandler(bool value) {
+static void PrecompilationModeHandler(bool value) {
   if (value) {
+#if defined(TARGET_ARCH_IA32)
+    FATAL("Precompilation not supported on IA32");
+#endif
+
     FLAG_always_megamorphic_calls = true;
     FLAG_polymorphic_with_deopt = false;
     FLAG_optimization_counter_threshold = -1;
@@ -99,29 +107,7 @@ static void NooptModeHandler(bool value) {
     // Calling the PrintStopMessage stub is not supported in precompiled code
     // since it is done at places where no pool pointer is loaded.
     FLAG_print_stop_message = false;
-  }
-}
 
-
-// --noopt disables optimizer and tunes unoptimized code to run as fast
-// as possible.
-DEFINE_FLAG_HANDLER(NooptModeHandler,
-                    noopt,
-                    "Run fast unoptimized code only.");
-
-
-DECLARE_FLAG(bool, lazy_dispatchers);
-DECLARE_FLAG(bool, interpret_irregexp);
-DECLARE_FLAG(bool, enable_mirrors);
-DECLARE_FLAG(bool, link_natives_lazily);
-
-static void PrecompileModeHandler(bool value) {
-  if (value) {
-#if defined(TARGET_ARCH_IA32)
-    FATAL("Precompilation not supported on IA32");
-#endif
-
-    NooptModeHandler(true);
     FLAG_lazy_dispatchers = false;
     FLAG_interpret_irregexp = true;
     FLAG_enable_mirrors = false;
@@ -129,12 +115,16 @@ static void PrecompileModeHandler(bool value) {
     FLAG_link_natives_lazily = true;
     FLAG_fields_may_be_reset = true;
     FLAG_allow_absolute_addresses = false;
+
+    // Background compilation relies on two-stage compilation pipeline,
+    // while precompilation has only one.
+    FLAG_background_compilation = false;
   }
 }
 
 
-DEFINE_FLAG_HANDLER(PrecompileModeHandler,
-                    precompile,
+DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
+                    precompilation,
                     "Precompilation mode");
 
 
@@ -1039,9 +1029,8 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
 }
 
 
-// Returns 'true' if code generation for this function is complete, i.e.,
-// no fall-through to regular code is needed.
-void FlowGraphCompiler::TryIntrinsify() {
+// Returns 'true' if regular code generation should be skipped.
+bool FlowGraphCompiler::TryIntrinsify() {
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
   if (FLAG_intrinsify && !isolate()->flags().type_checks()) {
@@ -1058,8 +1047,9 @@ void FlowGraphCompiler::TryIntrinsify() {
       // Reading from a mutable double box requires allocating a fresh double.
       if (load_node.field().guarded_cid() == kDynamicCid) {
         GenerateInlinedGetter(load_node.field().Offset());
+        return true;
       }
-      return;
+      return false;
     }
     if (parsed_function().function().kind() == RawFunction::kImplicitSetter) {
       // An implicit setter must have a specific AST structure.
@@ -1072,7 +1062,7 @@ void FlowGraphCompiler::TryIntrinsify() {
           *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
       if (store_node.field().guarded_cid() == kDynamicCid) {
         GenerateInlinedSetter(store_node.field().Offset());
-        return;
+        return true;
       }
     }
   }
@@ -1089,6 +1079,7 @@ void FlowGraphCompiler::TryIntrinsify() {
   // before any deoptimization point.
   ASSERT(!intrinsic_slow_path_label_.IsBound());
   assembler()->Bind(&intrinsic_slow_path_label_);
+  return false;
 }
 
 

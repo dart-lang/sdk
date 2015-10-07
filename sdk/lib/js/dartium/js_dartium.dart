@@ -480,6 +480,41 @@ JsObject get context {
 }
 
 /**
+ * Get the dart wrapper object for object. Top-level so we
+ * we can access it from other libraries without it being
+ * a public instance field on JsObject.
+ */
+getDartHtmlWrapperFor(JsObject object) => object._dartHtmlWrapper;
+
+/**
+ * Set the dart wrapper object for object. Top-level so we
+ * we can access it from other libraries without it being
+ * a public instance field on JsObject.
+ */
+void setDartHtmlWrapperFor(JsObject object, wrapper) {
+  object._dartHtmlWrapper = wrapper;
+}
+
+/**
+ * Used by callMethod to get the JS object for each argument passed if the
+ * argument is a Dart class instance that delegates to a DOM object.  See
+ * wrap_jso defined in dart:html.
+ */
+unwrap_jso(dartClass_instance) {
+  try {
+    if (dartClass_instance != null)
+      return dartClass_instance is NativeFieldWrapperClass2 ?
+          dartClass_instance.blink_jsObject : dartClass_instance;
+    else
+      return null;
+  } catch(NoSuchMethodException) {
+    // No blink_jsObject then return the dartClass_instance is probably an
+    // array that was already converted to a Dart class e.g., Uint8ClampedList.
+    return dartClass_instance;
+  }
+}
+
+/**
  * Proxies a JavaScript object to Dart.
  *
  * The properties of the JavaScript object are accessible via the `[]` and
@@ -487,6 +522,12 @@ JsObject get context {
  */
 class JsObject extends NativeFieldWrapperClass2 {
   JsObject.internal();
+
+  /**
+   * If this JsObject is wrapped, e.g. DOM objects, then we can save the
+   * wrapper here and preserve its identity.
+   */
+  var _dartHtmlWrapper;
 
   /**
    * Constructs a new JavaScript object from [constructor] and returns a proxy
@@ -644,6 +685,10 @@ class JsObject extends NativeFieldWrapperClass2 {
    */
   callMethod(String method, [List args]) {
     try {
+      if (args != null) {
+        for (var i = 0; i < args.length; i++)
+          args[i] = unwrap_jso(args[i]);
+      }
       return _callMethod(method, args);
     } catch (e) {
       if (hasProperty(method)) {
@@ -785,11 +830,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
       _checkIndex(index);
     }
 
-    // Lazily create the Dart class that wraps the JS object when the object in
-    // a list if fetched.
-    var wrap_entry = html.wrap_jso(super[index]);
-    super[index] = wrap_entry;
-    return wrap_entry;
+    return super[index];
   }
 
   void operator []=(index, E value) {

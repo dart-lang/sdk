@@ -11,7 +11,7 @@ import '../constants/constructors.dart' show
 import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticListener,
+    DiagnosticReporter,
     DiagnosticMessage;
 import '../diagnostics/invariant.dart' show
     invariant;
@@ -62,7 +62,7 @@ class InitializerResolver {
 
   ResolutionRegistry get registry => visitor.registry;
 
-  DiagnosticListener get listener => visitor.compiler;
+  DiagnosticReporter get reporter => visitor.reporter;
 
   bool isFieldInitializer(SendSet node) {
     if (node.selector.asIdentifier() == null) return false;
@@ -72,13 +72,13 @@ class InitializerResolver {
   }
 
   reportDuplicateInitializerError(Element field, Node init, Node existing) {
-    listener.reportError(
-        listener.createMessage(
+    reporter.reportError(
+        reporter.createMessage(
             init,
             MessageKind.DUPLICATE_INITIALIZER,
             {'fieldName': field.name}),
         <DiagnosticMessage>[
-            listener.createMessage(
+            reporter.createMessage(
                 existing,
                 MessageKind.ALREADY_INITIALIZED,
                 {'fieldName': field.name}),
@@ -92,7 +92,7 @@ class InitializerResolver {
     if (initialized.containsKey(field)) {
       reportDuplicateInitializerError(field, init, initialized[field]);
     } else if (field.isFinal) {
-      field.parseNode(visitor.compiler);
+      field.parseNode(visitor.resolution.parsing);
       Expression initializer = field.initializer;
       if (initializer != null) {
         reportDuplicateInitializerError(field, init, initializer);
@@ -111,23 +111,23 @@ class InitializerResolver {
     if (isFieldInitializer(init)) {
       target = constructor.enclosingClass.lookupLocalMember(name);
       if (target == null) {
-        listener.reportErrorMessage(
+        reporter.reportErrorMessage(
             selector, MessageKind.CANNOT_RESOLVE, {'name': name});
         target = new ErroneousFieldElementX(
             selector.asIdentifier(), constructor.enclosingClass);
       } else if (target.kind != ElementKind.FIELD) {
-        listener.reportErrorMessage(
+        reporter.reportErrorMessage(
             selector, MessageKind.NOT_A_FIELD, {'fieldName': name});
         target = new ErroneousFieldElementX(
             selector.asIdentifier(), constructor.enclosingClass);
       } else if (!target.isInstanceMember) {
-        listener.reportErrorMessage(
+        reporter.reportErrorMessage(
             selector, MessageKind.INIT_STATIC_FIELD, {'fieldName': name});
       } else {
         field = target;
       }
     } else {
-      listener.reportErrorMessage(
+      reporter.reportErrorMessage(
           init, MessageKind.INVALID_RECEIVER_IN_INITIALIZER);
     }
     registry.useElement(init, target);
@@ -152,7 +152,7 @@ class InitializerResolver {
     if (isSuperCall) {
       // Calculate correct lookup target and constructor name.
       if (identical(constructor.enclosingClass, visitor.compiler.objectClass)) {
-        listener.reportErrorMessage(
+        reporter.reportErrorMessage(
             diagnosticNode, MessageKind.SUPER_INITIALIZER_IN_OBJECT);
         isValidAsConstant = false;
       } else {
@@ -264,23 +264,23 @@ class InitializerResolver {
       MessageKind kind = isImplicitSuperCall
           ? MessageKind.CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT
           : MessageKind.CANNOT_RESOLVE_CONSTRUCTOR;
-      listener.reportErrorMessage(
+      reporter.reportErrorMessage(
           diagnosticNode, kind, {'constructorName': fullConstructorName});
       isValidAsConstant = false;
     } else {
-      lookedupConstructor.computeType(visitor.compiler);
+      lookedupConstructor.computeType(visitor.resolution);
       if (!call.signatureApplies(lookedupConstructor.functionSignature)) {
         MessageKind kind = isImplicitSuperCall
                            ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
                            : MessageKind.NO_MATCHING_CONSTRUCTOR;
-        listener.reportErrorMessage(diagnosticNode, kind);
+        reporter.reportErrorMessage(diagnosticNode, kind);
         isValidAsConstant = false;
       } else if (constructor.isConst
                  && !lookedupConstructor.isConst) {
         MessageKind kind = isImplicitSuperCall
                            ? MessageKind.CONST_CALLS_NON_CONST_FOR_IMPLICIT
                            : MessageKind.CONST_CALLS_NON_CONST;
-        listener.reportErrorMessage(diagnosticNode, kind);
+        reporter.reportErrorMessage(diagnosticNode, kind);
         isValidAsConstant = false;
       }
     }
@@ -350,13 +350,13 @@ class InitializerResolver {
       } else if (link.head.asSend() != null) {
         final Send call = link.head.asSend();
         if (call.argumentsNode == null) {
-          listener.reportErrorMessage(
+          reporter.reportErrorMessage(
               link.head, MessageKind.INVALID_INITIALIZER);
           continue;
         }
         if (Initializers.isSuperConstructorCall(call)) {
           if (resolvedSuper) {
-            listener.reportErrorMessage(
+            reporter.reportErrorMessage(
                 call, MessageKind.DUPLICATE_SUPER_INITIALIZER);
           }
           ResolutionResult result = resolveSuperOrThisForSend(call);
@@ -373,12 +373,12 @@ class InitializerResolver {
           // constructor is also const, we already reported an error in
           // [resolveMethodElement].
           if (functionNode.hasBody() && !constructor.isConst) {
-            listener.reportErrorMessage(
+            reporter.reportErrorMessage(
                 functionNode, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY);
           }
           // Check that there are no other initializers.
           if (!initializers.tail.isEmpty) {
-            listener.reportErrorMessage(
+            reporter.reportErrorMessage(
                 call, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER);
           } else {
             constructor.isRedirectingGenerative = true;
@@ -388,7 +388,7 @@ class InitializerResolver {
           signature.forEachParameter((ParameterElement parameter) {
             if (parameter.isInitializingFormal) {
               Node node = parameter.node;
-              listener.reportErrorMessage(
+              reporter.reportErrorMessage(
                   node, MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED);
               isValidAsConstant = false;
             }
@@ -409,12 +409,12 @@ class InitializerResolver {
           }
           return result.element;
         } else {
-          listener.reportErrorMessage(
+          reporter.reportErrorMessage(
               call, MessageKind.CONSTRUCTOR_CALL_EXPECTED);
           return null;
         }
       } else {
-        listener.reportErrorMessage(
+        reporter.reportErrorMessage(
             link.head, MessageKind.INVALID_INITIALIZER);
       }
     }
@@ -462,10 +462,10 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       registry.registerThrowRuntimeError();
     }
     if (isError || inConstContext) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           diagnosticNode, kind, arguments);
     } else {
-      compiler.reportWarningMessage(
+      reporter.reportWarningMessage(
           diagnosticNode, kind, arguments);
     }
     ErroneousElement error = new ErroneousConstructorElementX(
@@ -481,7 +481,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       Node diagnosticNode,
       String constructorName) {
     ClassElement cls = type.element;
-    cls.ensureResolved(compiler);
+    cls.ensureResolved(resolution);
     ConstructorElement constructor = findConstructor(
         resolver.enclosingElement.library, cls, constructorName);
     if (constructor == null) {
@@ -495,14 +495,14 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
           {'constructorName': fullConstructorName},
           missingConstructor: true);
     } else if (inConstContext && !constructor.isConst) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           diagnosticNode, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
       return new ConstructorResult(
           ConstructorResultKind.NON_CONSTANT, constructor, type);
     } else {
       if (constructor.isGenerativeConstructor) {
         if (cls.isAbstract) {
-          compiler.reportWarningMessage(
+          reporter.reportWarningMessage(
               diagnosticNode, MessageKind.ABSTRACT_CLASS_INSTANTIATION);
           registry.registerAbstractClassInstantiation();
           return new ConstructorResult(
@@ -587,7 +587,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
 
     Identifier name = node.selector.asIdentifier();
     if (name == null) {
-      compiler.internalError(node.selector, 'unexpected node');
+      reporter.internalError(node.selector, 'unexpected node');
     }
 
     if (receiver.type != null) {
@@ -606,7 +606,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       Element member = prefix.lookupLocalMember(name.source);
       return constructorResultForElement(node, name.source, member);
     } else {
-      return compiler.internalError(
+      return reporter.internalError(
           node.receiver, 'unexpected receiver $receiver');
     }
   }
@@ -614,7 +614,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
   ConstructorResult visitIdentifier(Identifier node) {
     String name = node.source;
     Element element = resolver.reportLookupErrorIfAny(
-        lookupInScope(compiler, node, resolver.scope, name), node, name);
+        lookupInScope(reporter, node, resolver.scope, name), node, name);
     registry.useElement(node, element);
     // TODO(johnniwinther): Change errors to warnings, cf. 11.11.1.
     return constructorResultForElement(node, name, element);
@@ -629,7 +629,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
 
   ConstructorResult constructorResultForElement(
       Node node, String name, Element element) {
-    element = Elements.unwrap(element, compiler, node);
+    element = Elements.unwrap(element, reporter, node);
     if (element == null) {
       return reportAndCreateErroneousConstructorElement(
           node,
@@ -641,13 +641,13 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       return constructorResultForErroneous(node, element);
     } else if (element.isClass) {
       ClassElement cls = element;
-      cls.computeType(compiler);
+      cls.computeType(resolution);
       return constructorResultForType(node, cls.rawType);
     } else if (element.isPrefix) {
       return new ConstructorResult.forElement(element);
     } else if (element.isTypedef) {
       TypedefElement typdef = element;
-      typdef.ensureResolved(compiler);
+      typdef.ensureResolved(resolution);
       return constructorResultForType(node, typdef.rawType);
     } else if (element.isTypeVariable) {
       TypeVariableElement typeVariableElement = element;
@@ -699,7 +699,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
           MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
           {'typeVariableName': name});
     }
-    return compiler.internalError(node, "Unexpected constructor type $type");
+    return reporter.internalError(node, "Unexpected constructor type $type");
   }
 
 }

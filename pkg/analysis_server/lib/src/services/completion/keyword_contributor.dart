@@ -1,4 +1,5 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -70,6 +71,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       }
     }
     _addStatementKeywords(node);
+    if (_inCatchClause(node)) {
+      _addSuggestion(Keyword.RETHROW, DART_RELEVANCE_KEYWORD - 1);
+    }
   }
 
   @override
@@ -446,7 +450,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       Keyword.VOID,
       Keyword.WHILE
     ]);
-    _addSuggestion(Keyword.RETHROW, DART_RELEVANCE_KEYWORD - 1);
   }
 
   void _addSuggestion(Keyword keyword,
@@ -480,6 +483,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     FunctionBody body = node.getAncestor((n) => n is FunctionBody);
     return body != null && body.isAsynchronous;
   }
+
+  bool _inCatchClause(Block node) =>
+      node.getAncestor((p) => p is CatchClause) != null;
 
   bool _inClassMemberBody(AstNode node) {
     while (true) {

@@ -28,7 +28,6 @@ import 'elements/elements.dart' as elements;
 import 'elements/modelx.dart' as modelx;
 import 'elements/visitor.dart' as elements_visitor;
 import 'filenames.dart' as filenames;
-import 'inferrer/concrete_types_inferrer.dart' as concrete_types_inferrer;
 import 'inferrer/type_graph_inferrer.dart' as type_graph_inferrer;
 import 'io/line_column_provider.dart' as io;
 import 'io/source_map_builder.dart' as io;
@@ -69,7 +68,6 @@ void main(List<String> arguments) {
   useJsNode(new js.ArrayHole());
   useJsOther(new js.SimpleJavaScriptPrintingContext());
   useJsBackend(null);
-  useConcreteTypesInferrer(null);
   useColor();
   useFilenames();
   useSsa(null);
@@ -228,10 +226,6 @@ useJsOther(js.SimpleJavaScriptPrintingContext context) {
 
 useJsBackend(js_backend.JavaScriptBackend backend) {
   backend.getGeneratedCode(null);
-}
-
-useConcreteTypesInferrer(concrete_types_inferrer.ConcreteTypesInferrer c) {
-  c.debug();
 }
 
 useColor() {

@@ -26,11 +26,12 @@ class _VMElementUpgrader implements ElementUpgrader {
     }
   }
 
-  Element upgrade(Element element) {
-    if (element.runtimeType != _nativeType) {
+  Element upgrade(element) {
+    if (element.runtimeType != js.JsObjectImpl) {
       throw new UnsupportedError('Element is incorrect type');
     }
-    return _Utils.changeElementWrapper(element, _type);
+
+    return createCustomUpgrader(_nativeType, element);
   }
 }
 

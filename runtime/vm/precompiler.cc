@@ -4,6 +4,7 @@
 
 #include "vm/precompiler.h"
 
+#include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/isolate.h"
 #include "vm/log.h"
@@ -29,10 +30,11 @@ static void Jump(const Error& error) {
 
 
 RawError* Precompiler::CompileAll(
-    Dart_QualifiedFunctionName embedder_entry_points[]) {
+    Dart_QualifiedFunctionName embedder_entry_points[],
+    bool reset_fields) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Precompiler precompiler(Thread::Current());
+    Precompiler precompiler(Thread::Current(), reset_fields);
     precompiler.DoCompileAll(embedder_entry_points);
     return Error::null();
   } else {
@@ -44,10 +46,11 @@ RawError* Precompiler::CompileAll(
 }
 
 
-Precompiler::Precompiler(Thread* thread) :
+Precompiler::Precompiler(Thread* thread, bool reset_fields) :
   thread_(thread),
   zone_(thread->zone()),
   isolate_(thread->isolate()),
+  reset_fields_(reset_fields),
   changed_(false),
   function_count_(0),
   class_count_(0),
@@ -104,7 +107,7 @@ void Precompiler::ClearAllCode() {
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      error_ = cls.EnsureIsFinalized(I);
+      error_ = cls.EnsureIsFinalized(thread_);
       if (!error_.IsNull()) {
         Jump(error_);
       }
@@ -326,6 +329,8 @@ void Precompiler::CleanUp() {
   DropUncompiledFunctions();
 
   // TODO(rmacnak): DropEmptyClasses();
+
+  BindStaticCalls();
 }
 
 
@@ -443,6 +448,12 @@ void Precompiler::AddField(const Field& field) {
     AddClass(cls);
 
     if (field.has_initializer()) {
+      // Should not be in the middle of initialization while precompiling.
+      ASSERT(value.raw() != Object::transition_sentinel().raw());
+
+      const bool is_initialized = value.raw() != Object::sentinel().raw();
+      if (is_initialized && !reset_fields_) return;
+
       if (field.HasPrecompiledInitializer()) return;
 
       if (FLAG_trace_precompiler) {
@@ -681,6 +692,76 @@ void Precompiler::DropUncompiledFunctions() {
       }
     }
   }
+}
+
+
+void Precompiler::BindStaticCalls() {
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+  Array& functions = Array::Handle(Z);
+  Function& function = Function::Handle(Z);
+  GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      if (cls.IsDynamicClass()) {
+        continue;  // class 'dynamic' is in the read-only VM isolate.
+      }
+
+      functions = cls.functions();
+      for (intptr_t j = 0; j < functions.Length(); j++) {
+        function ^= functions.At(j);
+        BindStaticCalls(function);
+      }
+
+      closures = cls.closures();
+      if (!closures.IsNull()) {
+        for (intptr_t j = 0; j < closures.Length(); j++) {
+          function ^= closures.At(j);
+          BindStaticCalls(function);
+        }
+      }
+    }
+  }
+}
+
+
+void Precompiler::BindStaticCalls(const Function& function) {
+  ASSERT(function.HasCode());
+
+  const Code& code = Code::Handle(Z, function.CurrentCode());
+
+  const Array& table = Array::Handle(Z, code.static_calls_target_table());
+  Smi& pc_offset = Smi::Handle(Z);
+  Function& target = Function::Handle(Z);
+  Code& target_code = Code::Handle(Z);
+
+  for (intptr_t i = 0; i < table.Length(); i += Code::kSCallTableEntryLength) {
+    pc_offset ^= table.At(i + Code::kSCallTableOffsetEntry);
+    target ^= table.At(i + Code::kSCallTableFunctionEntry);
+    if (target.IsNull()) {
+      target_code ^= table.At(i + Code::kSCallTableCodeEntry);
+      ASSERT(!target_code.IsNull());
+      ASSERT(!target_code.IsFunctionCode());
+      // Allocation stub or AllocateContext or AllocateArray or ...
+    } else {
+      // Static calls initially call the CallStaticFunction stub because
+      // their target might not be compiled yet. After tree shaking, all
+      // static call targets are compiled.
+      // Cf. runtime entry PatchStaticCall called from CallStaticFunction stub.
+      ASSERT(target.HasCode());
+      target_code ^= target.CurrentCode();
+      CodePatcher::PatchStaticCallAt(pc_offset.Value() + code.EntryPoint(),
+                                     code, target_code);
+    }
+  }
+
+  // We won't patch static calls anymore, so drop the static call table to save
+  // space.
+  code.set_static_calls_target_table(Object::empty_array());
 }
 
 }  // namespace dart

@@ -263,7 +263,8 @@ class JavaScriptConstantSystem extends ConstantSystem {
   @override
   ConstantValue createType(Compiler compiler, DartType type) {
     return new TypeConstantValue(
-        type, compiler.backend.typeImplementation.computeType(compiler));
+        type,
+        compiler.backend.typeImplementation.computeType(compiler.resolution));
   }
 
   // Integer checks don't verify that the number is not -0.0.
@@ -321,7 +322,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
                        : JavaScriptMapConstant.DART_STRING_CLASS)
         : JavaScriptMapConstant.DART_GENERAL_CLASS;
     ClassElement classElement = backend.jsHelperLibrary.find(className);
-    classElement.ensureResolved(compiler);
+    classElement.ensureResolved(compiler.resolution);
     List<DartType> typeArgument = sourceType.typeArguments;
     InterfaceType type;
     if (sourceType.treatAsRaw) {

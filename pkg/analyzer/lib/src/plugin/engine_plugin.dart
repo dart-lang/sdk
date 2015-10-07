@@ -159,8 +159,6 @@ class EnginePlugin implements Plugin {
 
   void _registerDartErrorsForSource(RegisterExtension registerExtension) {
     String id = DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID;
-    registerExtension(id, BUILD_DIRECTIVES_ERRORS);
-    registerExtension(id, BUILD_LIBRARY_ERRORS);
     registerExtension(id, PARSE_ERRORS);
     registerExtension(id, SCAN_ERRORS);
   }
@@ -203,6 +201,7 @@ class EnginePlugin implements Plugin {
     registerExtension(taskId, GatherUsedImportedElementsTask.DESCRIPTOR);
     registerExtension(taskId, GatherUsedLocalElementsTask.DESCRIPTOR);
     registerExtension(taskId, GenerateHintsTask.DESCRIPTOR);
+    registerExtension(taskId, GenerateLintsTask.DESCRIPTOR);
     registerExtension(taskId, InferInstanceMembersInUnitTask.DESCRIPTOR);
     registerExtension(taskId, InferStaticVariableTypesInUnitTask.DESCRIPTOR);
     registerExtension(taskId, InferStaticVariableTypeTask.DESCRIPTOR);

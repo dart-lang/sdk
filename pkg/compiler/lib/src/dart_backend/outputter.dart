@@ -18,7 +18,7 @@ typedef List<Element> ElementSorter(Iterable<Element> elements);
 /// Output engine for dart2dart that is shared between the dart2js and the
 /// analyzer implementations of dart2dart.
 class DartOutputter {
-  final DiagnosticListener listener;
+  final DiagnosticReporter reporter;
   final CompilerOutputProvider outputProvider;
   final bool forceStripTypes;
 
@@ -37,7 +37,7 @@ class DartOutputter {
   ElementInfo elementInfo;
 
   // TODO(johnniwinther): Support recompilation.
-  DartOutputter(this.listener, this.outputProvider,
+  DartOutputter(this.reporter, this.outputProvider,
                 {bool this.forceStripTypes: false,
                  bool this.enableMinification: false,
                  bool this.multiFile: false});
@@ -97,7 +97,7 @@ class DartOutputter {
     }
 
     libraryInfo = LibraryInfo.processLibraries(
-        listener, libraries, resolvedElements);
+        reporter, libraries, resolvedElements);
 
     elementInfo = ElementInfoProcessor.createElementInfo(
         instantiatedClasses,
@@ -109,7 +109,7 @@ class DartOutputter {
         sortElements: sortElements);
 
     PlaceholderCollector collector = collectPlaceholders(
-        listener,
+        reporter,
         mirrorRenamer,
         mainFunction,
         libraryInfo,
@@ -124,7 +124,7 @@ class DartOutputter {
         isSafeToRemoveTypeDeclarations: isSafeToRemoveTypeDeclarations);
 
     if (outputAst) {
-      String code = astOutput(listener, elementInfo);
+      String code = astOutput(reporter, elementInfo);
       outputProvider("", "dart")
                  ..add(code)
                  ..close();
@@ -147,14 +147,14 @@ class DartOutputter {
   }
 
   static PlaceholderCollector collectPlaceholders(
-      DiagnosticListener listener,
+      DiagnosticReporter reporter,
       MirrorRenamer mirrorRenamer,
       FunctionElement mainFunction,
       LibraryInfo libraryInfo,
       ElementInfo elementInfo) {
     // Create all necessary placeholders.
     PlaceholderCollector collector = new PlaceholderCollector(
-        listener,
+        reporter,
         mirrorRenamer,
         libraryInfo.fixedDynamicNames,
         elementInfo.elementAsts,
@@ -194,13 +194,13 @@ class DartOutputter {
     return placeholderRenamer;
   }
 
-  static String astOutput(DiagnosticListener listener,
+  static String astOutput(DiagnosticReporter reporter,
                           ElementInfo elementInfo) {
     // TODO(antonm): Ideally XML should be a separate backend.
     // TODO(antonm): obey renames and minification, at least as an option.
     StringBuffer sb = new StringBuffer();
     outputElement(element) {
-      sb.write(element.parseNode(listener).toDebugString());
+      sb.write(element.parseNode(reporter).toDebugString());
     }
 
     // Emit XML for AST instead of the program.
@@ -229,7 +229,7 @@ class LibraryInfo {
               this.userLibraries);
 
   static LibraryInfo processLibraries(
-      DiagnosticListener listener,
+      DiagnosticReporter reporter,
       Iterable<LibraryElement> libraries,
       Iterable<AstElement> resolvedElements) {
     Set<String> fixedStaticNames = new Set<String>();
@@ -299,14 +299,14 @@ class LibraryInfo {
         ClassElement existingEnumClass =
             enumClassMap.putIfAbsent(cls.name, () => cls);
         if (existingEnumClass != cls) {
-          listener.reportError(
-              listener.createMessage(
+          reporter.reportError(
+              reporter.createMessage(
                   cls,
                   MessageKind.GENERIC,
                   {'text': "Duplicate enum names are not supported "
                            "in dart2dart."}),
           <DiagnosticMessage>[
-              listener.createMessage(
+              reporter.createMessage(
                   existingEnumClass,
                   MessageKind.GENERIC,
                   {'text': "This is the other declaration of '${cls.name}'."}),

@@ -854,10 +854,10 @@ class PassiveObject : public Object {
     return Handle(I->current_zone(), raw_ptr);
   }
   static PassiveObject& Handle(RawObject* raw_ptr) {
-    return Handle(Isolate::Current(), raw_ptr);
+    return Handle(Thread::Current()->zone(), raw_ptr);
   }
   static PassiveObject& Handle() {
-    return Handle(Isolate::Current(), Object::null());
+    return Handle(Thread::Current()->zone(), Object::null());
   }
   static PassiveObject& Handle(Zone* zone) {
     return Handle(zone, Object::null());
@@ -993,9 +993,9 @@ class Class : public Object {
       return raw_ptr()->type_parameters_;
   }
   void set_type_parameters(const TypeArguments& value) const;
-  intptr_t NumTypeParameters(Isolate* isolate) const;
+  intptr_t NumTypeParameters(Thread* thread) const;
   intptr_t NumTypeParameters() const {
-    return NumTypeParameters(Isolate::Current());
+    return NumTypeParameters(Thread::Current());
   }
   static intptr_t type_parameters_offset() {
     return OFFSET_OF(RawClass, type_parameters_);
@@ -1331,7 +1331,7 @@ class Class : public Object {
                       const Array& param_names,
                       const Array& param_values) const;
 
-  RawError* EnsureIsFinalized(Isolate* isolate) const;
+  RawError* EnsureIsFinalized(Thread* thread) const;
 
   // Allocate a class used for VM internal objects.
   template <class FakeObject> static RawClass* New();
@@ -3491,6 +3491,7 @@ class Library : public Object {
   static RawLibrary* NativeWrappersLibrary();
   static RawLibrary* ProfilerLibrary();
   static RawLibrary* TypedDataLibrary();
+  static RawLibrary* VMServiceLibrary();
 
   // Eagerly compile all classes and functions in the library.
   static RawError* CompileAll();
@@ -4353,6 +4354,20 @@ class Code : public Object {
   bool IsStubCode() const;
   bool IsFunctionCode() const;
 
+  void DisableDartCode() const;
+
+  void DisableStubCode() const;
+
+  void Enable() const {
+    if (!IsDisabled()) return;
+    ASSERT(instructions() != active_instructions());
+    set_active_instructions(instructions());
+  }
+
+  bool IsDisabled() const {
+    return instructions() != active_instructions();
+  }
+
  private:
   void set_state_bits(intptr_t bits) const;
 
@@ -4812,6 +4827,9 @@ class UnwindError : public Error {
  public:
   bool is_user_initiated() const { return raw_ptr()->is_user_initiated_; }
   void set_is_user_initiated(bool value) const;
+
+  bool is_vm_restart() const { return raw_ptr()->is_vm_restart_; }
+  void set_is_vm_restart(bool value) const;
 
   RawString* message() const { return raw_ptr()->message_; }
 

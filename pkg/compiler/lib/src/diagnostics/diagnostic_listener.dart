@@ -12,8 +12,35 @@ import '../elements/elements.dart' show
     Element;
 import 'messages.dart';
 
+class DiagnosticOptions {
+
+  /// Emit terse diagnostics without howToFix.
+  final bool terseDiagnostics;
+
+  /// If `true`, warnings and hints not from user code are reported.
+  final bool showPackageWarnings;
+
+  /// If `true`, warnings are not reported.
+  final bool suppressWarnings;
+
+  /// If `true`, warnings cause the compilation to fail.
+  final bool fatalWarnings;
+
+  /// If `true`, hints are not reported.
+  final bool suppressHints;
+
+  const DiagnosticOptions({
+    this.suppressWarnings: false,
+    this.fatalWarnings: false,
+    this.suppressHints: false,
+    this.terseDiagnostics: false,
+    this.showPackageWarnings: false});
+}
+
 // TODO(johnniwinther): Rename and cleanup this interface. Add severity enum.
-abstract class DiagnosticListener {
+abstract class DiagnosticReporter {
+  DiagnosticOptions get options => const DiagnosticOptions();
+
   // TODO(karlklose): rename log to something like reportInfo.
   void log(message);
 

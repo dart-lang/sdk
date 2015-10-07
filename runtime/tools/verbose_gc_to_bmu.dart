@@ -1,7 +1,9 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
+//
+// NOTE: See also wrapper script sdk/runtime/tools/bmu_benchmark_gallery.sh
+//
 // Tool to compute bounded mutator utilization (BMU) from a --verbose_gc log.
 // Outputs CSV suitable for, e.g., gnuplot:
 //

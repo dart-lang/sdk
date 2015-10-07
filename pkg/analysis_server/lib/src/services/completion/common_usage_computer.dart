@@ -4,10 +4,10 @@
 
 library services.completion.computer.dart.relevance;
 
-import 'package:analysis_server/completion/completion_dart.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
+import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart'
     show DART_RELEVANCE_COMMON_USAGE;

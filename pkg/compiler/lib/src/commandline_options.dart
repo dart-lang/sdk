@@ -19,8 +19,6 @@ class Flags {
   static const String dumpInfo = '--dump-info';
   static const String enableAssertMessage = '--assert-message';
   static const String enableCheckedMode = '--enable-checked-mode';
-  static const String enableConcreteTypeInference =
-      '--enable-concrete-type-inference';
   static const String enableDiagnosticColors = '--enable-diagnostic-colors';
   static const String enableExperimentalMirrors =
       '--enable-experimental-mirrors';

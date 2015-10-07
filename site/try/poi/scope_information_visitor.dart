@@ -120,7 +120,7 @@ class ScopeInformationVisitor extends BaseElementVisitor/* <void> */ {
       {bool isStatic: false,
        bool omitEnclosing: false,
        bool includeSuper: false}) {
-    e.ensureResolved(compiler);
+    e.ensureResolved(compiler.resolution);
     bool isFirst = true;
     var serializeEnclosing;
     String kind;
@@ -231,7 +231,7 @@ class ScopeInformationVisitor extends BaseElementVisitor/* <void> */ {
     if (category == ElementCategory.FUNCTION ||
         category == ElementCategory.VARIABLE ||
         element.isConstructor) {
-      type = element.computeType(compiler);
+      type = element.computeType(compiler.resolution);
     }
     if (name == null) {
       name = element.name;

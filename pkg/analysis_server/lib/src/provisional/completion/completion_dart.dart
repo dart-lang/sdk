@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.completion.completion_dart;
+library analysis_server.src.provisional.completion.completion_dart;
 
-import 'package:analysis_server/completion/completion_core.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/provisional/completion/completion_core.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analysis_server/completion/dart/completion_target.dart';
 
 /**
  * An object used to produce completions for a specific error within a Dart
@@ -66,9 +66,10 @@ abstract class DartCompletionRequest extends CompletionRequest {
   bool get isResolved;
 
   /**
-   * Return the compilation unit in which the completion was requested.
+   * Return the completion target.  This determines what part of the parse tree
+   * will receive the newly inserted text.
    */
-  CompilationUnit get unit;
+  CompletionTarget get target;
 
   /**
    * Cached information from a prior code completion operation.
@@ -76,10 +77,9 @@ abstract class DartCompletionRequest extends CompletionRequest {
   //DartCompletionCache get cache;
 
   /**
-   * Return the completion target.  This determines what part of the parse tree
-   * will receive the newly inserted text.
+   * Return the compilation unit in which the completion was requested.
    */
-  CompletionTarget get target;
+  CompilationUnit get unit;
 
   /**
    * Information about the types of suggestions that should be included.

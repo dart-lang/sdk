@@ -11,6 +11,8 @@ import '../compiler.dart' show
 import '../compile_time_constants.dart' show
     BackendConstantEnvironment,
     ConstantCompilerTask;
+import '../constants/expressions.dart' show
+    ConstantExpression;
 import '../constants/constant_system.dart' show
     ConstantSystem;
 import '../constants/values.dart' show
@@ -48,6 +50,11 @@ import '../patch_parser.dart' show
     checkNativeAnnotation;
 import '../resolution/tree_elements.dart' show
     TreeElements;
+import '../tree/tree.dart' show
+    Node,
+    Send;
+import '../universe/call_structure.dart' show
+    CallStructure;
 
 import 'codegen.dart' show
     CodegenWorkItem;
@@ -220,7 +227,7 @@ abstract class Backend {
   /// Call this method to enable support for isolates.
   void enableIsolateSupport(Enqueuer enqueuer) {}
 
-  void registerRequiredType(DartType type, Element enclosingElement) {}
+  void registerRequiredType(DartType type) {}
 
   void registerConstSymbol(String name, Registry registry) {}
   void registerNewSymbol(Registry registry) {}
@@ -375,5 +382,23 @@ abstract class Backend {
   void registerAsyncMarker(FunctionElement element,
                            Enqueuer enqueuer,
                            Registry registry) {}
+
+  /// Called when resolving a call to a foreign function.
+  void registerForeignCall(Send node,
+                           Element element,
+                           CallStructure callStructure,
+                           ForeignResolver resolver) {}
 }
 
+/// Interface for resolving calls to foreign functions.
+abstract class ForeignResolver {
+  /// Returns the constant expression of [node], or `null` if [node] is not
+  /// a constant expression.
+  ConstantExpression getConstant(Node node);
+
+  /// Registers [type] as instantiated.
+  void registerInstantiatedType(InterfaceType type);
+
+  /// Resolves [typeName] to a type in the context of [node].
+  DartType resolveTypeFromString(Node node, String typeName);
+}

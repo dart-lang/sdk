@@ -36,12 +36,13 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
 
 #if defined(DART_NO_SNAPSHOT)
 void Intrinsifier::InitializeState() {
-  Isolate* isolate = Isolate::Current();
-  Library& lib = Library::Handle(isolate);
-  Class& cls = Class::Handle(isolate);
-  Function& func = Function::Handle(isolate);
-  String& str = String::Handle(isolate);
-  Error& error = Error::Handle(isolate);
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Library& lib = Library::Handle(zone);
+  Class& cls = Class::Handle(zone);
+  Function& func = Function::Handle(zone);
+  String& str = String::Handle(zone);
+  Error& error = Error::Handle(zone);
 
 #define SETUP_FUNCTION(class_name, function_name, destination, fp)             \
   if (strcmp(#class_name, "::") == 0) {                                        \
@@ -51,7 +52,7 @@ void Intrinsifier::InitializeState() {
     str = String::New(#class_name);                                            \
     cls = lib.LookupClassAllowPrivate(str);                                    \
     ASSERT(!cls.IsNull());                                                     \
-    error = cls.EnsureIsFinalized(isolate);                                    \
+    error = cls.EnsureIsFinalized(thread);                                     \
     if (!error.IsNull()) {                                                     \
       OS::PrintErr("%s\n", error.ToErrorCString());                            \
     }                                                                          \
@@ -217,6 +218,8 @@ static intptr_t CidForRepresentation(Representation rep) {
       return kDoubleCid;
     case kUnboxedFloat32x4:
       return kFloat32x4Cid;
+    case kUnboxedUint32:
+      return kDynamicCid;  // smi or mint.
     default:
       UNREACHABLE();
       return kIllegalCid;
@@ -444,6 +447,60 @@ bool Intrinsifier::Build_ExternalUint8ArraySetIndexed(FlowGraph* flow_graph) {
   // Return null.
   Definition* null_def = builder.AddNullDefinition();
   builder.AddIntrinsicReturn(new Value(null_def));
+  return true;
+}
+
+
+bool Intrinsifier::Build_Uint32ArraySetIndexed(FlowGraph* flow_graph) {
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  Definition* value = builder.AddParameter(1);
+  Definition* index = builder.AddParameter(2);
+  Definition* array = builder.AddParameter(3);
+
+  PrepareIndexedOp(&builder, array, index, TypedData::length_offset());
+
+  Definition* unboxed_value =
+      builder.AddUnboxInstr(kUnboxedUint32, new Value(value));
+
+  builder.AddInstruction(
+      new StoreIndexedInstr(new Value(array),
+                            new Value(index),
+                            new Value(unboxed_value),
+                            kNoStoreBarrier,
+                            4,  // index scale
+                            kTypedDataUint32ArrayCid,
+                            Isolate::kNoDeoptId,
+                            builder.TokenPos()));
+  // Return null.
+  Definition* null_def = builder.AddNullDefinition();
+  builder.AddIntrinsicReturn(new Value(null_def));
+  return true;
+}
+
+
+bool Intrinsifier::Build_Uint32ArrayGetIndexed(FlowGraph* flow_graph) {
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  Definition* index = builder.AddParameter(1);
+  Definition* array = builder.AddParameter(2);
+
+  PrepareIndexedOp(&builder, array, index, TypedData::length_offset());
+
+  Definition* unboxed_value = builder.AddDefinition(
+      new LoadIndexedInstr(new Value(array),
+                           new Value(index),
+                           4,  // index scale
+                           kTypedDataUint32ArrayCid,
+                           Isolate::kNoDeoptId,
+                           builder.TokenPos()));
+  Definition* result = builder.AddDefinition(
+      BoxInstr::Create(kUnboxedUint32, new Value(unboxed_value)));
+  builder.AddIntrinsicReturn(new Value(result));
   return true;
 }
 

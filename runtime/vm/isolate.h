@@ -27,6 +27,7 @@ namespace dart {
 class AbstractType;
 class ApiState;
 class Array;
+class BackgroundCompiler;
 class Capability;
 class CHA;
 class Class;
@@ -129,6 +130,7 @@ class Isolate : public BaseIsolate {
     // Internal message ids.
     kInterruptMsg = 10,     // Break in the debugger.
     kInternalKillMsg = 11,  // Like kill, but does not run exit listeners, etc.
+    kVMRestartMsg = 12,     // Sent to isolates when vm is restarting.
   };
   // The different Isolate API message priorities for ping and kill messages.
   enum LibMsgPriority {
@@ -217,9 +219,6 @@ class Isolate : public BaseIsolate {
 
   ObjectStore* object_store() const { return object_store_; }
   void set_object_store(ObjectStore* value) { object_store_ = value; }
-  static intptr_t object_store_offset() {
-    return OFFSET_OF(Isolate, object_store_);
-  }
 
   // DEPRECATED: Use Thread's methods instead. During migration, these default
   // to using the mutator thread (which must also be the current thread).
@@ -241,20 +240,8 @@ class Isolate : public BaseIsolate {
     mutator_thread_->set_top_exit_frame_info(value);
   }
 
-  uword vm_tag() const {
-    return vm_tag_;
-  }
-  void set_vm_tag(uword tag) {
-    vm_tag_ = tag;
-  }
-  static intptr_t vm_tag_offset() {
-    return OFFSET_OF(Isolate, vm_tag_);
-  }
-
   ApiState* api_state() const { return api_state_; }
   void set_api_state(ApiState* value) { api_state_ = value; }
-
-  TimerList& timer_list() { return timer_list_; }
 
   void set_init_callback_data(void* value) {
     init_callback_data_ = value;
@@ -605,6 +592,13 @@ class Isolate : public BaseIsolate {
     deopt_context_ = value;
   }
 
+  BackgroundCompiler* background_compiler() const {
+    return background_compiler_;
+  }
+  void set_background_compiler(BackgroundCompiler* value) {
+    background_compiler_ = value;
+  }
+
   void UpdateLastAllocationProfileAccumulatorResetTimestamp() {
     last_allocationprofile_accumulator_reset_timestamp_ =
         OS::GetCurrentTimeMillis();
@@ -701,6 +695,11 @@ class Isolate : public BaseIsolate {
   }
   void set_collected_closures(const GrowableObjectArray& value);
 
+  RawGrowableObjectArray* background_compilation_queue() const {
+    return background_compilation_queue_;
+  }
+  void set_background_compilation_queue(const GrowableObjectArray& value);
+
   Metric* metrics_list_head() {
     return metrics_list_head_;
   }
@@ -768,8 +767,8 @@ class Isolate : public BaseIsolate {
 
   bool is_service_isolate() const { return is_service_isolate_; }
 
-  static void KillAllIsolates();
-  static void KillIfExists(Isolate* isolate);
+  static void KillAllIsolates(LibMsgId msg_id);
+  static void KillIfExists(Isolate* isolate, LibMsgId msg_id);
 
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
@@ -786,7 +785,7 @@ class Isolate : public BaseIsolate {
                        bool is_vm_isolate = false);
 
   // The isolates_list_monitor_ should be held when calling Kill().
-  void KillLocked();
+  void KillLocked(LibMsgId msg_id);
 
   void LowLevelShutdown();
   void Shutdown();
@@ -832,11 +831,18 @@ class Isolate : public BaseIsolate {
 
   template<class T> T* AllocateReusableHandle();
 
-  uword vm_tag_;
+  // Accessed from generated code:
+  uword stack_limit_;
   StoreBuffer* store_buffer_;
   Heap* heap_;
-  ThreadRegistry* thread_registry_;
+  uword vm_tag_;
+  uword user_tag_;
+  RawUserTag* current_tag_;
+  RawUserTag* default_tag_;
   ClassTable class_table_;
+  bool single_step_;
+
+  ThreadRegistry* thread_registry_;
   Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
   char* debugger_name_;
@@ -853,17 +859,14 @@ class Isolate : public BaseIsolate {
   Dart_LibraryTagHandler library_tag_handler_;
   ApiState* api_state_;
   Debugger* debugger_;
-  bool single_step_;
   bool resume_request_;
   int64_t last_resume_timestamp_;
   bool has_compiled_;
   Flags flags_;
   Random random_;
   Simulator* simulator_;
-  TimerList timer_list_;
   intptr_t deopt_id_;
   Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.
-  uword stack_limit_;
   uword saved_stack_limit_;
   uword stack_base_;
   uword stack_overflow_flags_;
@@ -875,6 +878,7 @@ class Isolate : public BaseIsolate {
   Dart_GcEpilogueCallback gc_epilogue_callback_;
   intptr_t defer_finalization_count_;
   DeoptContext* deopt_context_;
+  BackgroundCompiler* background_compiler_;
 
   CompilerStats* compiler_stats_;
 
@@ -898,13 +902,12 @@ class Isolate : public BaseIsolate {
   Mutex profiler_data_mutex_;
 
   VMTagCounters vm_tag_counters_;
-  uword user_tag_;
   RawGrowableObjectArray* tag_table_;
-  RawUserTag* current_tag_;
-  RawUserTag* default_tag_;
+
 
   RawGrowableObjectArray* collected_closures_;
   RawGrowableObjectArray* deoptimized_code_array_;
+  RawGrowableObjectArray* background_compilation_queue_;
 
   // We use 6 list entries for each pending service extension calls.
   enum {

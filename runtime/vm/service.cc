@@ -672,9 +672,9 @@ void Service::SendEvent(const char* stream_id,
   writer.WriteMessage(list);
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
-    OS::Print(
-        "vm-service: Pushing event of type %s to stream %s (%s), len %" Pd "\n",
-        event_type, stream_id, isolate->name(), len);
+    OS::Print("vm-service: Pushing ServiceEvent(isolate='%s', kind='%s',"
+              " len=%" Pd ") to stream %s\n",
+              isolate->name(), event_type, len, stream_id);
   }
   // TODO(turnidge): For now we ignore failure to send an event.  Revisit?
   PortMap::PostMessage(
@@ -770,9 +770,9 @@ void Service::PostEvent(const char* stream_id,
     if (isolate != NULL) {
       isolate_name = isolate->name();
     }
-    OS::Print(
-        "vm-service: Pushing event of type %s to stream %s (%s)\n",
-        kind, stream_id, isolate_name);
+    OS::Print("vm-service: Pushing ServiceEvent(isolate='%s', kind='%s') "
+              "to stream %s\n",
+              isolate_name, kind, stream_id);
   }
 
   Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
@@ -2041,17 +2041,9 @@ static bool GetCallSiteData(Isolate* isolate, JSONStream* js) {
 }
 
 
-static const MethodParameter* add_breakpoint_params[] = {
-  ISOLATE_PARAMETER,
-  new IdParameter("scriptId", false),
-  new IdParameter("scriptUri", false),
-  new UIntParameter("line", true),
-  new UIntParameter("column", false),
-  NULL,
-};
-
-
-static bool AddBreakpoint(Isolate* isolate, JSONStream* js) {
+static bool AddBreakpointCommon(Isolate* isolate,
+                                JSONStream* js,
+                                const String& script_uri) {
   const char* line_param = js->LookupParam("line");
   intptr_t line = UIntParameter::Parse(line_param);
   const char* col_param = js->LookupParam("column");
@@ -2064,28 +2056,6 @@ static bool AddBreakpoint(Isolate* isolate, JSONStream* js) {
       return true;
     }
   }
-  const char* script_id_param = js->LookupParam("scriptId");
-  const char* script_uri_param = js->LookupParam("scriptUri");
-  if (script_id_param == NULL && script_uri_param == NULL) {
-    js->PrintError(kInvalidParams,
-                   "%s expects the 'scriptId' or the 'scriptUri' parameter",
-                   js->method());
-    return true;
-  }
-  String& script_uri = String::Handle(isolate);
-  if (script_id_param != NULL) {
-    Object& obj =
-        Object::Handle(LookupHeapObject(isolate, script_id_param, NULL));
-    if (obj.raw() == Object::sentinel().raw() || !obj.IsScript()) {
-      PrintInvalidParamError(js, "scriptId");
-      return true;
-    }
-    const Script& script = Script::Cast(obj);
-    script_uri = script.url();
-  }
-  if (script_uri_param != NULL) {
-    script_uri = String::New(script_uri_param);
-  }
   ASSERT(!script_uri.IsNull());
   Breakpoint* bpt = NULL;
   bpt = isolate->debugger()->SetBreakpointAtLineCol(script_uri, line, col);
@@ -2097,6 +2067,46 @@ static bool AddBreakpoint(Isolate* isolate, JSONStream* js) {
   }
   bpt->PrintJSON(js);
   return true;
+}
+
+
+static const MethodParameter* add_breakpoint_params[] = {
+  ISOLATE_PARAMETER,
+  new IdParameter("scriptId", true),
+  new UIntParameter("line", true),
+  new UIntParameter("column", false),
+  NULL,
+};
+
+
+static bool AddBreakpoint(Isolate* isolate, JSONStream* js) {
+  const char* script_id_param = js->LookupParam("scriptId");
+  Object& obj =
+      Object::Handle(LookupHeapObject(isolate, script_id_param, NULL));
+  if (obj.raw() == Object::sentinel().raw() || !obj.IsScript()) {
+    PrintInvalidParamError(js, "scriptId");
+    return true;
+  }
+  const Script& script = Script::Cast(obj);
+  const String& script_uri = String::Handle(script.url());
+  ASSERT(!script_uri.IsNull());
+  return AddBreakpointCommon(isolate, js, script_uri);
+}
+
+
+static const MethodParameter* add_breakpoint_with_script_uri_params[] = {
+  ISOLATE_PARAMETER,
+  new IdParameter("scriptUri", true),
+  new UIntParameter("line", true),
+  new UIntParameter("column", false),
+  NULL,
+};
+
+
+static bool AddBreakpointWithScriptUri(Isolate* isolate, JSONStream* js) {
+  const char* script_uri_param = js->LookupParam("scriptUri");
+  const String& script_uri = String::Handle(String::New(script_uri_param));
+  return AddBreakpointCommon(isolate, js, script_uri);
 }
 
 
@@ -2942,10 +2952,7 @@ static bool GetVM(Isolate* isolate, JSONStream* js) {
   jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
   jsobj.AddProperty("version", Version::String());
-  // Send pid as a string because it allows us to avoid any issues with
-  // pids > 53-bits (when consumed by JavaScript).
-  // TODO(johnmccutchan): Codify how integers are sent across the service.
-  jsobj.AddPropertyF("pid", "%" Pd "", OS::ProcessId());
+  jsobj.AddProperty("pid", OS::ProcessId());
   jsobj.AddProperty("_assertsEnabled", isolate->flags().asserts());
   jsobj.AddProperty("_typeChecksEnabled", isolate->flags().type_checks());
   int64_t start_time_millis = (Dart::vm_isolate()->start_time() /
@@ -2957,6 +2964,19 @@ static bool GetVM(Isolate* isolate, JSONStream* js) {
     ServiceIsolateVisitor visitor(&jsarr);
     Isolate::VisitIsolates(&visitor);
   }
+  return true;
+}
+
+
+static const MethodParameter* restart_vm_params[] = {
+  NO_ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool RestartVM(Isolate* isolate, JSONStream* js) {
+  Isolate::KillAllIsolates(Isolate::kVMRestartMsg);
+  PrintSuccess(js);
   return true;
 }
 
@@ -3121,6 +3141,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     NULL },
   { "addBreakpoint", AddBreakpoint,
     add_breakpoint_params },
+  { "addBreakpointWithScriptUri", AddBreakpointWithScriptUri,
+    add_breakpoint_with_script_uri_params },
   { "addBreakpointAtEntry", AddBreakpointAtEntry,
     add_breakpoint_at_entry_params },
   { "_addBreakpointAtActivation", AddBreakpointAtActivation,
@@ -3185,6 +3207,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     pause_params },
   { "removeBreakpoint", RemoveBreakpoint,
     remove_breakpoint_params },
+  { "_restartVM", RestartVM,
+    restart_vm_params },
   { "resume", Resume,
     resume_params },
   { "_requestHeapSnapshot", RequestHeapSnapshot,

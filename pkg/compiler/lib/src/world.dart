@@ -13,6 +13,8 @@ import 'common/registry.dart' show
 import 'compiler.dart' show
     Compiler;
 import 'dart_types.dart';
+import 'diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
 import 'diagnostics/invariant.dart' show
     invariant;
 import 'elements/elements.dart' show
@@ -86,6 +88,10 @@ abstract class ClassWorld {
   /// Returns an iterable over the live classes that extend [cls] _not_
   /// including [cls] itself.
   Iterable<ClassElement> strictSubclassesOf(ClassElement cls);
+
+  /// Returns an iterable over the directly instantiated that implement [cls]
+  /// possibly including [cls] itself, if it is live.
+  Iterable<ClassElement> subtypesOf(ClassElement cls);
 
   /// Returns an iterable over the live classes that implement [cls] _not_
   /// including [cls] if it is live.
@@ -215,6 +221,19 @@ class World implements ClassWorld {
         strict: true,
         includeIndirectlyInstantiated: false,
         includeUninstantiated: false);
+  }
+
+  /// Returns an iterable over the directly instantiated that implement [cls]
+  /// possibly including [cls] itself, if it is live.
+  Iterable<ClassElement> subtypesOf(ClassElement cls) {
+    ClassSet classSet = _classSets[cls.declaration];
+    if (classSet == null) {
+      return const <ClassElement>[];
+    } else {
+      return classSet.subtypes(
+          includeIndirectlyInstantiated: false,
+          includeUninstantiated: false);
+    }
   }
 
   /// Returns an iterable over the directly instantiated that implement [cls]
@@ -417,6 +436,8 @@ class World implements ClassWorld {
         this.compiler = compiler,
         alreadyPopulated = compiler.cacheStrategy.newSet();
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   /// Called to add [cls] to the set of known classes.
   ///
   /// This ensures that class hierarchy queries can be performed on [cls] and
@@ -500,7 +521,7 @@ class World implements ClassWorld {
       }
       assert(cls.isDeclaration);
       if (!cls.isResolved) {
-        compiler.internalError(cls, 'Class "${cls.name}" is not resolved.');
+        reporter.internalError(cls, 'Class "${cls.name}" is not resolved.');
       }
 
       updateClassHierarchyNodeForClass(cls, directlyInstantiated: true);
@@ -656,11 +677,6 @@ class World implements ClassWorld {
 
   bool getCannotThrow(Element element) {
     return elementsThatCannotThrow.contains(element);
-  }
-
-  void registerImplicitSuperCall(Registry registry,
-                                 FunctionElement superConstructor) {
-    registry.registerDependency(superConstructor);
   }
 
   void registerMightBePassedToApply(Element element) {

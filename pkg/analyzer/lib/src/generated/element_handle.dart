@@ -337,6 +337,9 @@ abstract class ElementHandle implements Element {
   String get displayName => actualElement.displayName;
 
   @override
+  SourceRange get docRange => actualElement.docRange;
+
+  @override
   Element get enclosingElement => actualElement.enclosingElement;
 
   @override

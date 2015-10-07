@@ -126,7 +126,7 @@ class Dart2JsLibraryDependencyMirror implements LibraryDependencySourceMirror {
   SourceLocation get location {
     return new Dart2JsSourceLocation(
       _sourceLibrary._element.entryCompilationUnit.script,
-      _sourceLibrary.mirrorSystem.compiler.spanFromNode(_node));
+      _sourceLibrary.mirrorSystem.compiler.reporter.spanFromSpannable(_node));
   }
 
   List<CombinatorMirror> get combinators {

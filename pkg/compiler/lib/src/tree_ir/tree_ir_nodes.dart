@@ -1534,6 +1534,7 @@ class RecursiveTransformer extends Transformer {
 
   visitYield(Yield node) {
     node.input = visitExpression(node.input);
+    node.next = visitStatement(node.next);
     return node;
   }
 }

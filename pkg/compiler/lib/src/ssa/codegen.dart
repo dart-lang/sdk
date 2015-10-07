@@ -152,11 +152,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       continueAction = new Map<Entity, EntityAction>();
 
   Compiler get compiler => backend.compiler;
+
   NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
+
   CodegenRegistry get registry => work.registry;
+
   native.NativeEnqueuer get nativeEnqueuer {
     return compiler.enqueuer.codegen.nativeEnqueuer;
   }
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   bool isGenerateAtUseSite(HInstruction instruction) {
     return generateAtUseSite.contains(instruction);
@@ -935,7 +940,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         currentContainer = oldContainer;
         break;
       default:
-        compiler.internalError(condition.conditionExpression,
+        reporter.internalError(condition.conditionExpression,
             'Unexpected loop kind: ${info.kind}.');
     }
     js.Statement result = loop;
@@ -1336,10 +1341,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // is responsible for visiting the successor.
     if (dominated.isEmpty) return;
     if (dominated.length > 2) {
-      compiler.internalError(node, 'dominated.length = ${dominated.length}');
+      reporter.internalError(node, 'dominated.length = ${dominated.length}');
     }
     if (dominated.length == 2 && block != currentGraph.entry) {
-      compiler.internalError(node, 'node.block != currentGraph.entry');
+      reporter.internalError(node, 'node.block != currentGraph.entry');
     }
     assert(dominated[0] == block.successors[0]);
     visitBasicBlock(dominated[0]);
@@ -1430,7 +1435,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitTry(HTry node) {
     // We should never get here. Try/catch/finally is always handled using block
     // information in [visitTryInfo].
-    compiler.internalError(node, 'visitTry should not be called.');
+    reporter.internalError(node, 'visitTry should not be called.');
   }
 
   bool tryControlFlowOperation(HIf node) {
@@ -2703,7 +2708,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkString(input, '!==', input.sourceInformation);
       return pop();
     }
-    compiler.internalError(input, 'Unexpected check: $checkedType.');
+    reporter.internalError(input, 'Unexpected check: $checkedType.');
     return null;
   }
 

@@ -42,6 +42,7 @@ class DartWorkManager implements WorkManager {
    */
   static final List<ResultDescriptor> _UNIT_ERRORS = <ResultDescriptor>[
     HINTS,
+    LINTS,
     INFER_STATIC_VARIABLE_TYPES_ERRORS,
     LIBRARY_UNIT_ERRORS,
     PARTIALLY_RESOLVE_REFERENCES_ERRORS,

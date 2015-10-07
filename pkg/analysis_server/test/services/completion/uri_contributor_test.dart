@@ -186,6 +186,16 @@ class UriContributorTest extends AbstractCompletionTest {
         csKind: CompletionSuggestionKind.IMPORT);
   }
 
+  test_export_package2() {
+    addPackageSource('foo', 'foo.dart', 'library foo;');
+    addPackageSource('foo', 'baz/too.dart', 'library too;');
+    addPackageSource('bar', 'bar.dart', 'library bar;');
+    addTestSource('export "package:foo/baz/^" import');
+    computeFast();
+    assertSuggest('package:foo/baz/too.dart',
+        csKind: CompletionSuggestionKind.IMPORT);
+  }
+
   test_import_package_missing_lib() {
     var pkgSrc = addPackageSource('bar', 'bar.dart', 'library bar;');
     provider.deleteFolder(dirname(pkgSrc.fullName));

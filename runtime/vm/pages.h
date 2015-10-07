@@ -218,8 +218,8 @@ class PageSpace {
            NeedsExternalGC();
   }
 
-  intptr_t UsedInWords() const { return usage_.used_in_words; }
-  intptr_t CapacityInWords() const {
+  int64_t UsedInWords() const { return usage_.used_in_words; }
+  int64_t CapacityInWords() const {
     MutexLocker ml(pages_lock_);
     return usage_.capacity_in_words;
   }
@@ -230,8 +230,13 @@ class PageSpace {
   void IncreaseCapacityInWordsLocked(intptr_t increase_in_words) {
     DEBUG_ASSERT(pages_lock_->IsOwnedByCurrentThread());
     usage_.capacity_in_words += increase_in_words;
+    UpdateMaxCapacityLocked();
   }
-  intptr_t ExternalInWords() const {
+
+  void UpdateMaxCapacityLocked();
+  void UpdateMaxUsed();
+
+  int64_t ExternalInWords() const {
     return usage_.external_in_words;
   }
   SpaceUsage GetCurrentUsage() const {
@@ -277,7 +282,8 @@ class PageSpace {
         (ExternalInWords() > max_external_in_words_);
   }
 
-  // TODO(koda): Unify protection handling.
+  // Note: Code pages are made executable/non-executable when 'read_only' is
+  // true/false, respectively.
   void WriteProtect(bool read_only);
   void WriteProtectCode(bool read_only);
 

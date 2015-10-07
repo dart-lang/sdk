@@ -102,8 +102,6 @@ jsonTest(String program, JsonTaking testFn) async {
   var compiler = result.compiler;
   Expect.isFalse(compiler.compilationFailed);
   var dumpTask = compiler.dumpInfoTask;
-  dumpTask.collectInfo();
-  var info = dumpTask.infoCollector;
 
   StringBuffer sb = new StringBuffer();
   dumpTask.dumpInfoJson(sb);

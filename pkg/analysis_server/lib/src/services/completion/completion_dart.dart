@@ -4,9 +4,9 @@
 
 library analysis_server.src.services.completion.completion_dart;
 
-import 'package:analysis_server/completion/completion_core.dart';
-import 'package:analysis_server/completion/completion_dart.dart';
-import 'package:analysis_server/completion/dart/completion_target.dart';
+import 'package:analysis_server/src/provisional/completion/completion_core.dart';
+import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analyzer/src/generated/ast.dart';
 

@@ -216,6 +216,10 @@ class EventCounterRecorder : public TimelineEventStreamingRecorder {
     counts_[event->event_type()]++;
   }
 
+  void StreamDartEvent(const char* event) {
+    // NOOP.
+  }
+
   intptr_t CountFor(TimelineEvent::EventType type) {
     return counts_[type];
   }

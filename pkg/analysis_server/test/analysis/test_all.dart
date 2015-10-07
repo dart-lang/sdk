@@ -27,7 +27,7 @@ import 'update_content_test.dart' as update_content_test;
  */
 main() {
   initializeTestEnvironment();
-  group('search', () {
+  group('analysis', () {
     get_errors_test.main();
     get_hover_test.main();
     get_navigation_test.main();

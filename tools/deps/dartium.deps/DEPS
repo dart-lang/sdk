@@ -14,7 +14,7 @@ vars.update({
   "dartium_chromium_commit": "62a7524d4f71c9e0858d24b0aa1bbff3a2d09bff",
   "chromium_base_revision": "297060",
   "dartium_webkit_branch": "/blink/branches/dart/dartium",
-  "dartium_webkit_revision": "202671",
+  "dartium_webkit_revision": "202673",
 
   # We use mirrors of all github repos to guarantee reproducibility and
   # consistency between what users see and what the bots see.
@@ -36,7 +36,7 @@ vars.update({
   "collection_rev": "@1da9a07f32efa2ba0c391b289e2037391e31da0e",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
-  "dart2js_info_rev" : "@bad01369f1f605ab688d505c135db54de927318f",
+  "dart2js_info_rev" : "@ffd03ee45f7459efd3039ff565b4d0aa2e7cd9e7",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "html_tag" : "@0.12.1+1",
   "http_rev" : "@9b93e1542c753090c50b46ef1592d44bc858bfe7",

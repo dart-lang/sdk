@@ -24,7 +24,8 @@ import 'common/tasks.dart' show
     GenericTask;
 import 'compiler.dart' as leg;
 import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage;
+    DiagnosticMessage,
+    DiagnosticOptions;
 import 'diagnostics/messages.dart';
 import 'diagnostics/source_span.dart' show
     SourceSpan;
@@ -90,8 +91,6 @@ class Compiler extends leg.Compiler {
             analyzeSignaturesOnly:
                 hasOption(options, Flags.analyzeSignaturesOnly),
             strips: extractCsvOption(options, '--force-strip='),
-            enableConcreteTypeInference:
-                hasOption(options, Flags.enableConcreteTypeInference),
             disableTypeInferenceFlag:
                 hasOption(options, Flags.disableTypeInference),
             preserveComments: hasOption(options, Flags.preserveComments),
@@ -99,22 +98,24 @@ class Compiler extends leg.Compiler {
             verbose: hasOption(options, Flags.verbose),
             sourceMapUri: extractUriOption(options, '--source-map='),
             outputUri: extractUriOption(options, '--out='),
-            terseDiagnostics: hasOption(options, Flags.terse),
             deferredMapUri: extractUriOption(options, '--deferred-map='),
             dumpInfo: hasOption(options, Flags.dumpInfo),
             buildId: extractStringOption(
                 options, '--build-id=',
                 "build number could not be determined"),
-            showPackageWarnings:
-                hasOption(options, Flags.showPackageWarnings),
             useContentSecurityPolicy:
               hasOption(options, Flags.useContentSecurityPolicy),
             useStartupEmitter: hasOption(options, Flags.fastStartup),
             hasIncrementalSupport:
                 forceIncrementalSupport ||
                 hasOption(options, Flags.incrementalSupport),
-            suppressWarnings: hasOption(options, Flags.suppressWarnings),
-            fatalWarnings: hasOption(options, Flags.fatalWarnings),
+            diagnosticOptions: new DiagnosticOptions(
+                suppressWarnings: hasOption(options, Flags.suppressWarnings),
+                fatalWarnings: hasOption(options, Flags.fatalWarnings),
+                suppressHints: hasOption(options, Flags.suppressHints),
+                terseDiagnostics: hasOption(options, Flags.terse),
+                showPackageWarnings:
+                    hasOption(options, Flags.showPackageWarnings)),
             enableExperimentalMirrors:
                 hasOption(options, Flags.enableExperimentalMirrors),
             enableAssertMessage:
@@ -237,7 +238,7 @@ class Compiler extends leg.Compiler {
   Future<Script> readScript(Spannable node, Uri readableUri) {
     if (!readableUri.isAbsolute) {
       if (node == null) node = NO_LOCATION_SPANNABLE;
-      internalError(node,
+      reporter.internalError(node,
           'Relative uri $readableUri provided to readScript(Uri).');
     }
 
@@ -247,13 +248,13 @@ class Compiler extends leg.Compiler {
     elements.Element element = currentElement;
     void reportReadError(exception) {
       if (element == null || node == null) {
-        reportErrorMessage(
+        reporter.reportErrorMessage(
             new SourceSpan(readableUri, 0, 0),
             MessageKind.READ_SELF_ERROR,
             {'uri': readableUri, 'exception': exception});
       } else {
-        withCurrentElement(element, () {
-          reportErrorMessage(
+        reporter.withCurrentElement(element, () {
+          reporter.reportErrorMessage(
               node,
               MessageKind.READ_SCRIPT_ERROR,
               {'uri': readableUri, 'exception': exception});
@@ -265,8 +266,8 @@ class Compiler extends leg.Compiler {
     if (resourceUri == null) return synthesizeScript(node, readableUri);
     if (resourceUri.scheme == 'dart-ext') {
       if (!allowNativeExtensions) {
-        withCurrentElement(element, () {
-          reportErrorMessage(
+        reporter.withCurrentElement(element, () {
+          reporter.reportErrorMessage(
               node, MessageKind.DART_EXT_NOT_SUPPORTED);
         });
       }
@@ -337,13 +338,13 @@ class Compiler extends leg.Compiler {
       }
       if (!allowInternalLibraryAccess) {
         if (importingLibrary != null) {
-          reportErrorMessage(
+          reporter.reportErrorMessage(
               spannable,
               MessageKind.INTERNAL_LIBRARY_FROM,
               {'resolvedUri': resolvedUri,
                'importingUri': importingLibrary.canonicalUri});
         } else {
-          reportErrorMessage(
+          reporter.reportErrorMessage(
               spannable,
               MessageKind.INTERNAL_LIBRARY,
               {'resolvedUri': resolvedUri});
@@ -352,12 +353,12 @@ class Compiler extends leg.Compiler {
     }
     if (path == null) {
       if (libraryInfo == null) {
-        reportErrorMessage(
+        reporter.reportErrorMessage(
             spannable,
             MessageKind.LIBRARY_NOT_FOUND,
             {'resolvedUri': resolvedUri});
       } else {
-        reportErrorMessage(
+        reporter.reportErrorMessage(
             spannable,
             MessageKind.LIBRARY_NOT_SUPPORTED,
             {'resolvedUri': resolvedUri});
@@ -385,7 +386,7 @@ class Compiler extends leg.Compiler {
     try {
       checkValidPackageUri(uri);
     } on ArgumentError catch (e) {
-      reportErrorMessage(
+      reporter.reportErrorMessage(
           node,
           MessageKind.INVALID_PACKAGE_URI,
           {'uri': uri, 'exception': e.message});
@@ -393,7 +394,7 @@ class Compiler extends leg.Compiler {
     }
     return packages.resolve(uri,
         notFound: (Uri notFound) {
-          reportErrorMessage(
+          reporter.reportErrorMessage(
               node,
               MessageKind.LIBRARY_NOT_FOUND,
               {'resolvedUri': uri});
@@ -431,7 +432,7 @@ class Compiler extends leg.Compiler {
         packages =
             new MapPackages(pkgs.parse(packageConfigContents, packageConfig));
       }).catchError((error) {
-        reportErrorMessage(
+        reporter.reportErrorMessage(
             NO_LOCATION_SPANNABLE,
             MessageKind.INVALID_PACKAGE_CONFIG,
             {'uri': packageConfig, 'exception': error});
@@ -479,9 +480,11 @@ class Compiler extends leg.Compiler {
   void reportDiagnostic(DiagnosticMessage message,
                         List<DiagnosticMessage> infos,
                         api.Diagnostic kind) {
+    // TODO(johnniwinther): Move this to the [DiagnosticReporter]?
     if (kind == api.Diagnostic.ERROR ||
         kind == api.Diagnostic.CRASH ||
-        (fatalWarnings && kind == api.Diagnostic.WARNING)) {
+        (reporter.options.fatalWarnings &&
+         kind == api.Diagnostic.WARNING)) {
       compilationFailed = true;
     }
     _reportDiagnosticMessage(message, kind);
@@ -541,11 +544,6 @@ class Compiler extends leg.Compiler {
     }
   }
 
-  void diagnoseCrashInUserCode(String message, exception, stackTrace) {
-    hasCrashed = true;
-    print('$message: ${tryToString(exception)}');
-    print(tryToString(stackTrace));
-  }
 
   fromEnvironment(String name) => environment[name];
 

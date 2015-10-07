@@ -328,7 +328,8 @@ class FlowGraphCompiler : public ValueObject {
   // Bail out of the flow graph compiler. Does not return to the caller.
   void Bailout(const char* reason);
 
-  void TryIntrinsify();
+  // Returns 'true' if regular code generation should be skipped.
+  bool TryIntrinsify();
 
   void GenerateRuntimeCall(intptr_t token_pos,
                            intptr_t deopt_id,

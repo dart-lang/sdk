@@ -52,6 +52,7 @@ main() {
       var optionsProvider = new AnalysisOptionsProvider();
       Map<String, YamlNode> options =
           optionsProvider.getOptions(resourceProvider.getFolder('/'));
+      expect(options, isNotNull);
     });
   });
   group('AnalysisOptionsProvider', () {
@@ -67,7 +68,8 @@ main() {
       try {
         Map<String, YamlNode> options =
             optionsProvider.getOptions(resourceProvider.getFolder('/'));
-      } catch (e, st) {
+        expect(options, isNotNull);
+      } catch (e) {
         exceptionCaught = true;
       }
       expect(exceptionCaught, isTrue);

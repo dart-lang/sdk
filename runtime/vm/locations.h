@@ -148,7 +148,7 @@ class Location : public ValueObject {
     return (value_ & kLocationTagMask) == kConstantTag;
   }
 
-  static Location Constant(ConstantInstr* obj) {
+  static Location Constant(const ConstantInstr* obj) {
     Location loc(reinterpret_cast<uword>(obj) | kConstantTag);
     ASSERT(obj == loc.constant_instruction());
     return loc;

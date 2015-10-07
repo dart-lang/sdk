@@ -193,9 +193,9 @@ Future testTypeVariables() {
                            '  bar() { g(Foo<T> f) {}; g(); }'
                            '}');
       ClassElement foo = compiler.mainApp.find('Foo');
-      foo.ensureResolved(compiler);
-      foo.lookupLocalMember('t').computeType(compiler);;
-      foo.lookupLocalMember('foo').computeType(compiler);;
+      foo.ensureResolved(compiler.resolution);
+      foo.lookupLocalMember('t').computeType(compiler.resolution);
+      foo.lookupLocalMember('foo').computeType(compiler.resolution);
       compiler.resolver.resolve(foo.lookupLocalMember('bar'));
       Expect.equals(0, compiler.warnings.length);
       Expect.equals(0, compiler.errors.length);
@@ -219,7 +219,8 @@ Future testSuperCalls() {
         new ResolverVisitor(compiler, fooB,
             new ResolutionRegistry(compiler,
                 new CollectingTreeElements(fooB)));
-    FunctionExpression node = (fooB as FunctionElementX).parseNode(compiler);
+    FunctionExpression node =
+        (fooB as FunctionElementX).parseNode(compiler.parsing);
     visitor.visit(node.body);
     Map mapping = map(visitor);
 
@@ -262,7 +263,7 @@ Future testThis() {
               new ResolutionRegistry(compiler,
                   new CollectingTreeElements(funElement)));
       FunctionExpression function =
-          (funElement as FunctionElementX).parseNode(compiler);
+          (funElement as FunctionElementX).parseNode(compiler.parsing);
       visitor.visit(function.body);
       Map mapping = map(visitor);
       List<Element> values = mapping.values.toList();
@@ -285,7 +286,7 @@ Future testThis() {
           new ResolutionRegistry(compiler,
               new CollectingTreeElements(funElement)));
       FunctionExpression function =
-          (funElement as FunctionElementX).parseNode(compiler);
+          (funElement as FunctionElementX).parseNode(compiler.parsing);
       visitor.visit(function.body);
       Expect.equals(0, compiler.warnings.length);
       Expect.equals(1, compiler.errors.length);
@@ -530,7 +531,7 @@ Future testSuperclass() {
 
       ClassElement fooElement = compiler.mainApp.find('Foo');
       ClassElement barElement = compiler.mainApp.find('Bar');
-      Expect.equals(barElement.computeType(compiler),
+      Expect.equals(barElement.computeType(compiler.resolution),
                     fooElement.supertype);
       Expect.isTrue(fooElement.interfaces.isEmpty);
       Expect.isTrue(barElement.interfaces.isEmpty);
@@ -580,7 +581,7 @@ Future testOneInterface() {
     Expect.equals(null, barElement.supertype);
     Expect.isTrue(barElement.interfaces.isEmpty);
 
-    Expect.equals(barElement.computeType(compiler),
+    Expect.equals(barElement.computeType(compiler.resolution),
                   fooElement.interfaces.head);
     Expect.equals(1, length(fooElement.interfaces));
   });
@@ -599,8 +600,8 @@ Future testTwoInterfaces() {
     ClassElement i2 = compiler.mainApp.find('I2');
 
     Expect.equals(2, length(c.interfaces));
-    Expect.equals(i1.computeType(compiler), at(c.interfaces, 0));
-    Expect.equals(i2.computeType(compiler), at(c.interfaces, 1));
+    Expect.equals(i1.computeType(compiler.resolution), at(c.interfaces, 0));
+    Expect.equals(i2.computeType(compiler.resolution), at(c.interfaces, 1));
   });
 }
 
@@ -651,7 +652,8 @@ Future testTopLevelFields() {
     compiler.parseScript("int a;");
     VariableElementX element = compiler.mainApp.find("a");
     Expect.equals(ElementKind.FIELD, element.kind);
-    VariableDefinitions node = element.variables.parseNode(element, compiler);
+    VariableDefinitions node =
+        element.variables.parseNode(element, compiler.parsing);
     Identifier typeName = node.type.typeName;
     Expect.equals(typeName.source, 'int');
 
@@ -662,8 +664,10 @@ Future testTopLevelFields() {
     Expect.equals(ElementKind.FIELD, cElement.kind);
     Expect.isTrue(bElement != cElement);
 
-    VariableDefinitions bNode = bElement.variables.parseNode(bElement, compiler);
-    VariableDefinitions cNode = cElement.variables.parseNode(cElement, compiler);
+    VariableDefinitions bNode =
+        bElement.variables.parseNode(bElement, compiler.parsing);
+    VariableDefinitions cNode =
+        cElement.variables.parseNode(cElement, compiler.parsing);
     Expect.equals(bNode, cNode);
     Expect.isNull(bNode.type);
     Expect.isTrue(bNode.modifiers.isVar);
@@ -1079,7 +1083,7 @@ checkMemberResolved(compiler, className, memberName) {
   Element memberElement = cls.lookupLocalMember(memberName);
   Expect.isNotNull(memberElement);
   Expect.isTrue(
-      compiler.enqueuer.resolution.hasBeenResolved(memberElement));
+      compiler.enqueuer.resolution.hasBeenProcessed(memberElement));
 }
 
 testToString() {

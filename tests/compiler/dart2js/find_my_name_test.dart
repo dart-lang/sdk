@@ -36,7 +36,7 @@ main() {
 testClass(String code, MockCompiler compiler) {
   int skip = code.indexOf('{');
   ClassElementX cls = parseUnit(code, compiler, compiler.mainApp).head;
-  cls.parseNode(compiler);
+  cls.parseNode(compiler.parsing);
   cls.forEachLocalMember((Element e) {
     String name = e.name;
     if (e.isConstructor) {

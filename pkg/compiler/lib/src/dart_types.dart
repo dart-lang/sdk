@@ -6,9 +6,13 @@ library dart_types;
 
 import 'dart:math' show min;
 
-import 'core_types.dart';
+import 'common/resolution.dart' show
+    Resolution;
 import 'compiler.dart' show
     Compiler;
+import 'core_types.dart';
+import 'diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
 import 'diagnostics/invariant.dart' show
     invariant;
 import 'diagnostics/spannable.dart' show
@@ -82,7 +86,7 @@ abstract class DartType {
    * function type [: (B) -> A :] and the unaliased type of
    * [: Func<int,String> :] is the function type [: (String) -> int :].
    */
-  DartType unalias(Compiler compiler);
+  DartType unalias(Resolution resolution);
 
   /**
    * If this type is malformed or a generic type created with the wrong number
@@ -215,7 +219,7 @@ class TypeVariableType extends DartType {
     return this;
   }
 
-  DartType unalias(Compiler compiler) => this;
+  DartType unalias(Resolution resolution) => this;
 
   TypeVariableType get typeVariableOccurrence => this;
 
@@ -249,7 +253,7 @@ class StatementType extends DartType {
 
   DartType subst(List<DartType> arguments, List<DartType> parameters) => this;
 
-  DartType unalias(Compiler compiler) => this;
+  DartType unalias(Resolution resolution) => this;
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitStatementType(this, argument);
@@ -270,7 +274,7 @@ class VoidType extends DartType {
     return this;
   }
 
-  DartType unalias(Compiler compiler) => this;
+  DartType unalias(Resolution resolution) => this;
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitVoidType(this, argument);
@@ -320,7 +324,7 @@ class MalformedType extends DartType {
   // Malformed types are treated as dynamic.
   bool get treatAsDynamic => true;
 
-  DartType unalias(Compiler compiler) => this;
+  DartType unalias(Resolution resolution) => this;
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitMalformedType(this, argument);
@@ -487,7 +491,7 @@ class InterfaceType extends GenericType {
     return null;
   }
 
-  DartType unalias(Compiler compiler) => this;
+  DartType unalias(Resolution resolution) => this;
 
   MemberSignature lookupInterfaceMember(Name name) {
     MemberSignature member = element.lookupInterfaceMember(name);
@@ -613,8 +617,6 @@ class FunctionType extends DartType {
     assert(namedParameters.length == namedParameterTypes.length);
   }
 
-
-
   TypeKind get kind => TypeKind.FUNCTION;
 
   DartType getNamedParameterType(String name) {
@@ -658,7 +660,7 @@ class FunctionType extends DartType {
     return this;
   }
 
-  DartType unalias(Compiler compiler) => this;
+  DartType unalias(Resolution resolution) => this;
 
   TypeVariableType get typeVariableOccurrence {
     TypeVariableType typeVariableType = returnType.typeVariableOccurrence;
@@ -783,10 +785,10 @@ class TypedefType extends GenericType {
     return new TypedefType(element, newTypeArguments);
   }
 
-  DartType unalias(Compiler compiler) {
-    element.ensureResolved(compiler);
-    element.checkCyclicReference(compiler);
-    DartType definition = element.alias.unalias(compiler);
+  DartType unalias(Resolution resolution) {
+    element.ensureResolved(resolution);
+    element.checkCyclicReference(resolution);
+    DartType definition = element.alias.unalias(resolution);
     return definition.substByContext(this);
   }
 
@@ -811,7 +813,7 @@ class ResolvedTypedefType extends TypedefType {
         message: 'Alias must be non-null on $element.'));
   }
 
-  FunctionType unalias(Compiler compiler) => alias;
+  FunctionType unalias(Resolution resolution) => alias;
 }
 
 /**
@@ -828,7 +830,7 @@ class DynamicType extends DartType {
 
   TypeKind get kind => TypeKind.DYNAMIC;
 
-  DartType unalias(Compiler compiler) => this;
+  DartType unalias(Resolution resolution) => this;
 
   DartType subst(List<DartType> arguments, List<DartType> parameters) => this;
 
@@ -949,6 +951,7 @@ abstract class AbstractTypeRelation
     extends BaseDartTypeVisitor<bool, DartType> {
   final Compiler compiler;
   CoreTypes get coreTypes => compiler.coreTypes;
+  Resolution get resolution => compiler.resolution;
 
   AbstractTypeRelation(this.compiler);
 
@@ -977,7 +980,7 @@ abstract class AbstractTypeRelation
 
     // TODO(johnniwinther): Currently needed since literal types like int,
     // double, bool etc. might not have been resolved yet.
-    t.element.ensureResolved(compiler);
+    t.element.ensureResolved(resolution);
 
     bool checkTypeArguments(InterfaceType instance, InterfaceType other) {
       List<DartType> tTypeArgs = instance.typeArguments;
@@ -1142,8 +1145,8 @@ class MoreSpecificVisitor extends AbstractTypeRelation {
     if (s == coreTypes.objectType) {
       return true;
     }
-    t = t.unalias(compiler);
-    s = s.unalias(compiler);
+    t = t.unalias(resolution);
+    s = s.unalias(resolution);
 
     return t.accept(this, s);
   }
@@ -1241,6 +1244,10 @@ class Types implements DartTypes {
   final PotentialSubtypeVisitor potentialSubtypeVisitor;
 
   CoreTypes get coreTypes => compiler.coreTypes;
+
+  DiagnosticReporter get reporter => compiler.reporter;
+
+  Resolution get resolution => compiler.resolution;
 
   Types(Compiler compiler)
       : this.compiler = compiler,
@@ -1541,7 +1548,7 @@ class Types implements DartTypes {
       }
     }
 
-    compiler.internalError(CURRENT_ELEMENT_SPANNABLE,
+    reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
         'No least upper bound computed for $a and $b.');
     return null;
   }
@@ -1642,8 +1649,8 @@ class Types implements DartTypes {
       return computeLeastUpperBoundTypeVariableTypes(a, b);
     }
 
-    a = a.unalias(compiler);
-    b = b.unalias(compiler);
+    a = a.unalias(resolution);
+    b = b.unalias(resolution);
 
     if (a.treatAsDynamic || b.treatAsDynamic) return const DynamicType();
     if (a.isVoid || b.isVoid) return const VoidType();
@@ -1704,7 +1711,7 @@ class Types implements DartTypes {
     if (type.isMalformed) {
       return const DynamicType();
     }
-    return type.unalias(compiler);
+    return type.unalias(compiler.resolution);
   }
 
   /// Computes the interface type of [type], which is the type that defines

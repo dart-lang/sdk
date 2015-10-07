@@ -122,7 +122,11 @@ void Assembler::pushq(const Address& address) {
 
 
 void Assembler::pushq(const Immediate& imm) {
-  if (imm.is_int32()) {
+  if (imm.is_int8()) {
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitUint8(0x6A);
+    EmitUint8(imm.value() & 0xFF);
+  } else if (imm.is_int32()) {
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     EmitUint8(0x68);
     EmitImmediate(imm);

@@ -74,6 +74,9 @@ class _DartNavigationCollector {
   }
 
   void _addRegionForNode(AstNode node, Element element) {
+    if (node == null) {
+      return;
+    }
     int offset = node.offset;
     int length = node.length;
     _addRegion(offset, length, element);
@@ -90,6 +93,30 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   final _DartNavigationCollector computer;
 
   _DartNavigationComputerVisitor(this.computer);
+
+  @override
+  visitAnnotation(Annotation node) {
+    Element element = node.element;
+    if (element is ConstructorElement && element.isSynthetic) {
+      element = element.enclosingElement;
+    }
+    Identifier name = node.name;
+    if (name is PrefixedIdentifier) {
+      // use constructor in: @PrefixClass.constructorName
+      Element prefixElement = name.prefix.staticElement;
+      if (prefixElement is ClassElement) {
+        prefixElement = element;
+      }
+      computer._addRegionForNode(name.prefix, prefixElement);
+      // always constructor
+      computer._addRegionForNode(name.identifier, element);
+    } else {
+      computer._addRegionForNode(name, element);
+    }
+    computer._addRegionForNode(node.constructorName, element);
+    // arguments
+    _safelyVisit(node.arguments);
+  }
 
   @override
   visitAssignmentExpression(AssignmentExpression node) {

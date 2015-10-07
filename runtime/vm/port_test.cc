@@ -38,7 +38,7 @@ class PortTestMessageHandler : public MessageHandler {
     notify_count++;
   }
 
-  bool HandleMessage(Message* message) { return true; }
+  MessageStatus HandleMessage(Message* message) { return kOK; }
 
   int notify_count;
 };

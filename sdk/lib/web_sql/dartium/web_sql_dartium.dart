@@ -412,6 +412,6 @@ class SqlTransaction extends NativeFieldWrapperClass2 {
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable()
-  void executeSql(String sqlStatement, List<Object> arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) => _blink.BlinkSQLTransaction.instance.executeSql_Callback_4_(unwrap_jso(this), sqlStatement, arguments, unwrap_jso((transaction, resultSet) => callback(wrap_jso(transaction), wrap_jso(resultSet))), unwrap_jso((transaction, error) => errorCallback(wrap_jso(transaction), wrap_jso(error))));
+  void executeSql(String sqlStatement, List<Object> arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) => _blink.BlinkSQLTransaction.instance.executeSql_Callback_4_(unwrap_jso(this), sqlStatement, unwrap_jso(arguments), unwrap_jso((transaction, resultSet) => callback(wrap_jso(transaction), wrap_jso(resultSet))), unwrap_jso((transaction, error) => errorCallback(wrap_jso(transaction), wrap_jso(error))));
   
 }

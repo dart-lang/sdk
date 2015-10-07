@@ -99,7 +99,7 @@ String doUnparse(String source) {
   return unparse(node);
 }
 
-class MessageCollector extends DiagnosticListener {
+class MessageCollector extends DiagnosticReporter {
   List<String> messages;
   MessageCollector() {
     messages = [];

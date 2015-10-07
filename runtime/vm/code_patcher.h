@@ -49,15 +49,6 @@ class CodePatcher : public AllStatic {
                                 const Code& code,
                                 const Code& new_target);
 
-  // Patch entry point with a jump as specified in the code's patch region.
-  static void PatchEntry(const Code& code, const Code& new_code);
-
-  // Restore entry point with original code (i.e., before patching).
-  static void RestoreEntry(const Code& code);
-
-  // Has the entry been patched?
-  static bool IsEntryPatched(const Code& code);
-
   // Return the target address of the static call before return_address
   // in given code.
   static RawCode* GetStaticCallTargetAt(uword return_address, const Code& code);

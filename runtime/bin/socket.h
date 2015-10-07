@@ -395,13 +395,6 @@ class ListeningSocketRegistry {
   // this function.
   bool CloseSafe(intptr_t socketfd);
 
-  // Mark an existing socket as sharable if it is not already marked as
-  // sharable.
-  //
-  // NOTE: This is a temporary measure until ServerSocketReference's are
-  // removed.
-  Dart_Handle MarkSocketFdAsSharableHack(intptr_t socketfd);
-
   Mutex *mutex() { return mutex_; }
 
  private:

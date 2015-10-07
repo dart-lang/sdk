@@ -37,6 +37,9 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
     if (length == -1) {
       length = findIdentifierLength(search);
     }
+    if (implementedClasses == null) {
+      fail('No notification of impemented classes was received');
+    }
     for (ImplementedClass clazz in implementedClasses) {
       if (clazz.offset == offset && clazz.length == length) {
         return;
@@ -56,6 +59,9 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
     int offset = findOffset(search);
     if (length == -1) {
       length = findIdentifierLength(search);
+    }
+    if (implementedMembers == null) {
+      fail('No notification of impemented members was received');
     }
     for (ImplementedMember member in implementedMembers) {
       if (member.offset == offset && member.length == length) {
@@ -77,6 +83,9 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
     if (length == -1) {
       length = findIdentifierLength(search);
     }
+    if (implementedMembers == null) {
+      fail('No notification of impemented members was received');
+    }
     for (ImplementedMember member in implementedMembers) {
       if (member.offset == offset) {
         fail('Unexpected implemented member at $offset'
@@ -90,16 +99,12 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
     return createLocalMemoryIndex();
   }
 
+  /**
+   * Subscribe for `IMPLEMENTED` and wait for the notification.
+   */
   Future prepareImplementedElements() {
-    addAnalysisSubscription(AnalysisService.IMPLEMENTED, testFile);
-    Future waitForNotification(int times) {
-      if (times == 0 || implementedClasses != null) {
-        return new Future.value();
-      }
-      return new Future.delayed(
-          Duration.ZERO, () => waitForNotification(times - 1));
-    }
-    return waitForNotification(100);
+    subscribeForImplemented();
+    return waitForImplementedElements();
   }
 
   void processNotification(Notification notification) {
@@ -117,6 +122,10 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
     createProject();
   }
 
+  void subscribeForImplemented() {
+    addAnalysisSubscription(AnalysisService.IMPLEMENTED, testFile);
+  }
+
   test_afterAnalysis() async {
     addTestFile('''
 class A {}
@@ -125,6 +134,25 @@ class B extends A {}
     await waitForTasksFinished();
     await prepareImplementedElements();
     assertHasImplementedClass('A {');
+  }
+
+  test_afterIncrementalResolution() async {
+    subscribeForImplemented();
+    addTestFile('''
+class A {}
+class B extends A {}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedClass('A {');
+    // add a space
+    implementedClasses = null;
+    testCode = '''
+class A  {}
+class B extends A {}
+''';
+    server.updateContent('1', {testFile: new AddContentOverlay(testCode)});
+    await waitForImplementedElements();
+    assertHasImplementedClass('A  {');
   }
 
   test_class_extended() async {
@@ -285,5 +313,16 @@ class B extends A {
 ''');
     await prepareImplementedElements();
     assertHasImplementedMember('f(_) {} // A');
+  }
+
+  Future waitForImplementedElements() {
+    Future waitForNotification(int times) {
+      if (times == 0 || implementedClasses != null) {
+        return new Future.value();
+      }
+      return new Future.delayed(
+          new Duration(milliseconds:1), () => waitForNotification(times - 1));
+    }
+    return waitForNotification(30000);
   }
 }

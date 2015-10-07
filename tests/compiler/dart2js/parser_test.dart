@@ -292,7 +292,7 @@ void testOperatorParse() {
   Expect.isNull(function.getOrSet);
 }
 
-class Collector extends DiagnosticListener {
+class Collector extends DiagnosticReporter {
   int token = -1;
 
   void reportFatalError(Token token) {
@@ -326,7 +326,7 @@ void testMissingCloseParen() {
   return x;
 }''';
   parse() {
-    parseMember(source, diagnosticHandler: new Collector());
+    parseMember(source, reporter: new Collector());
   }
   check(Collector c) {
     Expect.equals(OPEN_CURLY_BRACKET_TOKEN, c.token);
@@ -338,7 +338,7 @@ void testMissingCloseParen() {
 void testMissingCloseBraceInClass() {
   final String source = 'class Foo {'; // Missing close '}'.
   parse() {
-    fullParseUnit(source, diagnosticHandler: new Collector());
+    fullParseUnit(source, reporter: new Collector());
   }
   check(Collector c) {
     Expect.equals(BAD_INPUT_TOKEN, c.token);
@@ -350,7 +350,7 @@ void testMissingCloseBraceInClass() {
 void testUnmatchedAngleBracket() {
   final String source = 'A<'; // unmatched '<'
   parse() {
-    fullParseUnit(source, diagnosticHandler: new Collector());
+    fullParseUnit(source, reporter: new Collector());
   }
   check(Collector c) {
     Expect.equals(LT_TOKEN, c.token);

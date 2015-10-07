@@ -29,12 +29,12 @@ class ParserTask extends CompilerTask {
   String get name => 'Parser';
 
   Node parse(ElementX element) {
-    return measure(() => element.parseNode(compiler));
+    return measure(() => element.parseNode(compiler.parsing));
   }
 
   Node parseCompilationUnit(Token token) {
     return measure(() {
-      NodeListener listener = new NodeListener(compiler, null);
+      NodeListener listener = new NodeListener(reporter, null);
       Parser parser = new Parser(listener);
       try {
         parser.parseUnit(token);

@@ -94,8 +94,9 @@ bool StubCode::InJumpToExceptionHandlerStub(uword pc) {
 
 
 RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
-  Isolate* isolate = Isolate::Current();
-  const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(thread));
   ASSERT(error.IsNull());
   if (cls.id() == kArrayCid) {
     return AllocateArray_entry()->code();

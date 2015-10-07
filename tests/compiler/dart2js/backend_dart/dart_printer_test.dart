@@ -51,7 +51,7 @@ void show(x) {
   print("${x.runtimeType}: ${buf.toString()}");
 }
 
-class PrintDiagnosticListener implements DiagnosticListener {
+class PrintDiagnosticListener implements DiagnosticReporter {
   void log(message) {
     print(message);
   }

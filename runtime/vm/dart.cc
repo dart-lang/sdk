@@ -233,7 +233,7 @@ const char* Dart::Cleanup() {
     Isolate::DisableIsolateCreation();
 
     // Send the OOB Kill message to all remaining application isolates.
-    Isolate::KillAllIsolates();
+    Isolate::KillAllIsolates(Isolate::kInternalKillMsg);
 
     // Shutdown the service isolate.
     ServiceIsolate::Shutdown();
@@ -281,7 +281,6 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
-  TIMERSCOPE(T, time_isolate_initialization);
   TimelineDurationScope tds(I, I->GetIsolateStream(), "InitializeIsolate");
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "isolateName", I->name());
@@ -364,7 +363,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     I->class_table()->Print();
   }
 
-  ServiceIsolate::MaybeInjectVMServiceLibrary(I);
+  ServiceIsolate::MaybeMakeServiceIsolate(I);
 
   ServiceIsolate::SendIsolateStartupMessage();
   I->debugger()->NotifyIsolateCreated();

@@ -215,6 +215,113 @@ AAA aaa;
     });
   }
 
+  test_annotationConstructor_implicit() async {
+    addTestFile('''
+class A {
+}
+@A()
+main() {
+}
+''');
+    await prepareNavigation();
+    assertHasRegionString('A()', 'A'.length);
+    assertHasTarget('A {');
+  }
+
+  test_annotationConstructor_importPrefix() async {
+    addFile(
+        '$testFolder/my_annotation.dart',
+        r'''
+library an;
+class MyAnnotation {
+  const MyAnnotation();
+  const MyAnnotation.named();
+}
+''');
+    addTestFile('''
+import 'my_annotation.dart' as man;
+@man.MyAnnotation()
+@man.MyAnnotation.named()
+main() {
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('MyAnnotation()');
+    assertHasRegion('MyAnnotation.named()');
+    assertHasRegion('named()');
+    {
+      assertHasRegion('man.MyAnnotation()');
+      assertHasTarget('man;');
+    }
+    {
+      assertHasRegion('man.MyAnnotation.named()');
+      assertHasTarget('man;');
+    }
+  }
+
+  test_annotationConstructor_named() async {
+    addTestFile('''
+class A {
+  const A.named(p);
+}
+@A.named(0)
+main() {
+}
+''');
+    await prepareNavigation();
+    {
+      assertHasRegion('A.named(0)');
+      assertHasTarget('named(p);');
+    }
+    {
+      assertHasRegion('named(0)');
+      assertHasTarget('named(p);');
+    }
+  }
+
+  test_annotationConstructor_unnamed() async {
+    addTestFile('''
+class A {
+  const A();
+}
+@A()
+main() {
+}
+''');
+    await prepareNavigation();
+    assertHasRegionString('A()', 'A'.length);
+    assertHasTarget('A();', 0);
+  }
+
+  test_annotationField() async {
+    addTestFile('''
+const myan = new Object();
+@myan // ref
+main() {
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('myan // ref');
+    assertHasTarget('myan = new Object();');
+  }
+
+  test_annotationField_importPrefix() async {
+    addFile(
+        '$testFolder/mayn.dart',
+        r'''
+library an;
+const myan = new Object();
+''');
+    addTestFile('''
+import 'mayn.dart' as man;
+@man.myan // ref
+main() {
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('myan // ref');
+  }
+
   test_class_fromSDK() {
     addTestFile('''
 int V = 42;

@@ -32,6 +32,7 @@ class ObjectStore {
     kMirrors,
     kProfiler,
     kTypedData,
+    kVMService,
   };
 
   ~ObjectStore();
@@ -265,6 +266,7 @@ class ObjectStore {
   RawLibrary* mirrors_library() const { return mirrors_library_; }
   RawLibrary* profiler_library() const { return profiler_library_; }
   RawLibrary* typed_data_library() const { return typed_data_library_; }
+  RawLibrary* vmservice_library() const { return vmservice_library_; }
 
   void set_bootstrap_library(BootstrapLibraryId index, const Library& value) {
     switch (index) {
@@ -300,6 +302,9 @@ class ObjectStore {
         break;
       case kTypedData:
         typed_data_library_ = value.raw();
+        break;
+      case kVMService:
+        vmservice_library_ = value.raw();
         break;
       default:
         UNREACHABLE();
@@ -520,6 +525,7 @@ class ObjectStore {
   RawLibrary* profiler_library_;
   RawLibrary* root_library_;
   RawLibrary* typed_data_library_;
+  RawLibrary* vmservice_library_;
   RawGrowableObjectArray* libraries_;
   RawGrowableObjectArray* pending_classes_;
   RawGrowableObjectArray* pending_functions_;

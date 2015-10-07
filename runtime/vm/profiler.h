@@ -44,7 +44,7 @@ class Profiler : public AllStatic {
     return sample_buffer_;
   }
 
-  static void RecordAllocation(Isolate* isolate, intptr_t cid);
+  static void RecordAllocation(Thread* thread, intptr_t cid);
 
  private:
   static bool initialized_;

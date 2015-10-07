@@ -19,7 +19,6 @@ namespace dart {
 DEFINE_FLAG(bool, print_classes, false, "Prints details about loaded classes.");
 DEFINE_FLAG(bool, trace_class_finalization, false, "Trace class finalization.");
 DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
-DECLARE_FLAG(bool, supermixin);
 DECLARE_FLAG(bool, use_cha_deopt);
 
 
@@ -2032,25 +2031,6 @@ void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class,
                 class_name.ToCString());
   }
 
-  if (!FLAG_supermixin) {
-    // Check that the super class of the mixin class is class Object.
-    Class& mixin_super_class = Class::Handle(mixin_class.SuperClass());
-    // Skip over mixin application alias classes, which are implemented as
-    // subclasses of the mixin application classes they name.
-    if (!mixin_super_class.IsNull() && mixin_class.is_mixin_app_alias()) {
-      while (mixin_super_class.is_mixin_app_alias()) {
-        mixin_super_class = mixin_super_class.SuperClass();
-      }
-      mixin_super_class = mixin_super_class.SuperClass();
-    }
-    if (mixin_super_class.IsNull() || !mixin_super_class.IsObjectClass()) {
-      const String& class_name = String::Handle(mixin_class.Name());
-      ReportError(mixin_app_class, mixin_app_class.token_pos(),
-                  "mixin class '%s' must extend class 'Object'",
-                  class_name.ToCString());
-    }
-  }
-
   // Copy type parameters to mixin application class.
   CloneMixinAppTypeParameters(mixin_app_class);
 
@@ -3156,21 +3136,23 @@ void ClassFinalizer::ReportError(const Class& cls,
 
 void ClassFinalizer::VerifyImplicitFieldOffsets() {
 #ifdef DEBUG
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   const ClassTable& class_table = *(isolate->class_table());
-  Class& cls = Class::Handle(isolate);
-  Array& fields_array = Array::Handle(isolate);
-  Field& field = Field::Handle(isolate);
-  String& name = String::Handle(isolate);
-  String& expected_name = String::Handle(isolate);
-  Error& error = Error::Handle(isolate);
+  Class& cls = Class::Handle(zone);
+  Array& fields_array = Array::Handle(zone);
+  Field& field = Field::Handle(zone);
+  String& name = String::Handle(zone);
+  String& expected_name = String::Handle(zone);
+  Error& error = Error::Handle(zone);
 
   // First verify field offsets of all the TypedDataView classes.
   for (intptr_t cid = kTypedDataInt8ArrayViewCid;
        cid <= kTypedDataFloat32x4ArrayViewCid;
        cid++) {
     cls = class_table.At(cid);  // Get the TypedDataView class.
-    error = cls.EnsureIsFinalized(isolate);
+    error = cls.EnsureIsFinalized(thread);
     ASSERT(error.IsNull());
     cls = cls.SuperClass();  // Get it's super class '_TypedListView'.
     cls = cls.SuperClass();
@@ -3193,7 +3175,7 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
 
   // Now verify field offsets of '_ByteDataView' class.
   cls = class_table.At(kByteDataViewCid);
-  error = cls.EnsureIsFinalized(isolate);
+  error = cls.EnsureIsFinalized(thread);
   ASSERT(error.IsNull());
   fields_array ^= cls.fields();
   ASSERT(fields_array.Length() == TypedDataView::NumberOfFields());
@@ -3214,7 +3196,7 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
 
   // Now verify field offsets of '_ByteBuffer' class.
   cls = class_table.At(kByteBufferCid);
-  error = cls.EnsureIsFinalized(isolate);
+  error = cls.EnsureIsFinalized(thread);
   ASSERT(error.IsNull());
   fields_array ^= cls.fields();
   ASSERT(fields_array.Length() == ByteBuffer::NumberOfFields());

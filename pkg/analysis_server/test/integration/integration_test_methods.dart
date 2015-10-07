@@ -829,6 +829,18 @@ abstract class IntegrationTestMixin {
    *
    *   The file with which the outline is associated.
    *
+   * kind ( FileKind )
+   *
+   *   The kind of the file.
+   *
+   * libraryName ( optional String )
+   *
+   *   The name of the library defined by the file using a "library" directive,
+   *   or referenced by a "part of" directive. If both "library" and "part of"
+   *   directives are present, then the "library" directive takes precedence.
+   *   This field will be omitted if the file has neither "library" nor "part
+   *   of" directives.
+   *
    * outline ( Outline )
    *
    *   The outline associated with the file.

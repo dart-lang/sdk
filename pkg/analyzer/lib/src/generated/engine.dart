@@ -1641,31 +1641,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (source == null) {
       return null;
     }
-    CompilationUnit unit = parseCompilationUnit(source);
-    if (unit == null) {
+    SourceRange docRange = element.docRange;
+    if (docRange == null) {
       return null;
     }
-    NodeLocator locator = new NodeLocator(element.nameOffset);
-    AstNode nameNode = locator.searchWithin(unit);
-    while (nameNode != null) {
-      if (nameNode is AnnotatedNode) {
-        Comment comment = nameNode.documentationComment;
-        if (comment == null) {
-          return null;
-        }
-        StringBuffer buffer = new StringBuffer();
-        List<Token> tokens = comment.tokens;
-        for (int i = 0; i < tokens.length; i++) {
-          if (i > 0) {
-            buffer.write("\n");
-          }
-          buffer.write(tokens[i].lexeme);
-        }
-        return buffer.toString();
-      }
-      nameNode = nameNode.parent;
-    }
-    return null;
+    String code = getContents(source).data;
+    String comment = code.substring(docRange.offset, docRange.end);
+    return comment.replaceAll('\r\n', '\n');
   }
 
   @override
@@ -4886,8 +4868,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           null,
           null,
           oldUnit,
-          analysisOptions.incrementalApi,
-          analysisOptions);
+          analysisOptions.incrementalApi);
       bool success = resolver.resolve(newCode);
       AnalysisEngine.instance.instrumentationService.logPerformance(
           AnalysisPerformanceKind.INCREMENTAL,
@@ -8792,8 +8773,10 @@ class GetContentTask extends AnalysisTask {
       AnalysisEngine.instance.instrumentationService
           .logFileRead(source.fullName, _modificationTime, _content);
     } catch (exception, stackTrace) {
-      errors.add(new AnalysisError(
-          source, 0, 0, ScannerErrorCode.UNABLE_GET_CONTENT, [exception]));
+      if (source.exists()) {
+        errors.add(new AnalysisError(
+            source, 0, 0, ScannerErrorCode.UNABLE_GET_CONTENT, [exception]));
+      }
       throw new AnalysisException("Could not get contents of $source",
           new CaughtException(exception, stackTrace));
     }

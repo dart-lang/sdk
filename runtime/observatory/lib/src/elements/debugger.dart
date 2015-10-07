@@ -1087,6 +1087,51 @@ class RefreshCommand extends DebuggerCommand {
       'Syntax: refresh <subcommand>\n';
 }
 
+class VmRestartCommand extends DebuggerCommand {
+  VmRestartCommand(Debugger debugger) : super(debugger, 'restart', []);
+
+  Future handleModalInput(String line) async {
+    if (line == 'yes') {
+      debugger.console.printRed('Restarting VM...');
+      await debugger.vm.restart();
+      debugger.input.exitMode();
+    } else if (line == 'no') {
+      debugger.console.printRed('VM restart canceled.');
+      debugger.input.exitMode();
+    } else {
+      debugger.console.printRed("Please type 'yes' or 'no'");
+    }
+  }
+
+  Future run(List<String> args) async {
+    debugger.input.enterMode('Restart vm? (yes/no)', handleModalInput);
+  }
+
+  String helpShort = 'Restart a Dart virtual machine';
+
+  String helpLong =
+      'Restart a Dart virtual machine.\n'
+      '\n'
+      'Syntax: vm restart\n';
+}
+
+class VmCommand extends DebuggerCommand {
+  VmCommand(Debugger debugger) : super(debugger, 'vm', [
+      new VmRestartCommand(debugger),
+  ]);
+
+  Future run(List<String> args) async {
+    debugger.console.print("'vm' expects a subcommand (see 'help vm')");
+  }
+
+  String helpShort = 'Manage a Dart virtual machine';
+
+  String helpLong =
+      'Manage a Dart virtual machine.\n'
+      '\n'
+      'Syntax: vm <subcommand>\n';
+}
+
 class _ConsoleStreamPrinter {
   ObservatoryDebugger _debugger;
 
@@ -1234,6 +1279,7 @@ class ObservatoryDebugger extends Debugger {
         new StepCommand(this),
         new SyncNextCommand(this),
         new UpCommand(this),
+        new VmCommand(this),
     ]);
     _consolePrinter = new _ConsoleStreamPrinter(this);
   }
@@ -1254,23 +1300,24 @@ class ObservatoryDebugger extends Debugger {
       }
 
       _isolate.reload().then((response) {
+        if (response.isSentinel) {
+          // The isolate has gone away.  The IsolateExit event will
+          // clear the isolate for the debugger page.
+          return;
+        }
         // TODO(turnidge): Currently the debugger relies on all libs
         // being loaded.  Fix this.
         var pending = [];
-        for (var lib in _isolate.libraries) {
+        for (var lib in response.libraries) {
           if (!lib.loaded) {
             pending.add(lib.load());
           }
         }
         Future.wait(pending).then((_) {
-          _refreshStack(isolate.pauseEvent).then((_) {
-            reportStatus();
-          });
-        }).catchError((_) {
-          // Error loading libraries, try and display stack.
-          _refreshStack(isolate.pauseEvent).then((_) {
-            reportStatus();
-          });
+          refreshStack();
+        }).catchError((e) {
+          print("UNEXPECTED ERROR $e");
+          reportStatus();
         });
       });
     } else {
@@ -1300,10 +1347,16 @@ class ObservatoryDebugger extends Debugger {
     });
   }
 
-  Future refreshStack() {
-    return _refreshStack(isolate.pauseEvent).then((_) {
+  Future refreshStack() async {
+    try {
+      if (_isolate != null) {
+        await _refreshStack(_isolate.pauseEvent);
+      }
+      flushStdio();
       reportStatus();
-    });
+    } catch (e, st) {
+      console.printRed("Unexpected error in refreshStack: $e\n$st");
+    }
   }
 
   bool isolatePaused() {
@@ -1326,9 +1379,12 @@ class ObservatoryDebugger extends Debugger {
 
   Future<ServiceMap> _refreshStack(ServiceEvent pauseEvent) {
     return isolate.getStack().then((result) {
+      if (result.isSentinel) {
+        // The isolate has gone away.  The IsolateExit event will
+        // clear the isolate for the debugger page.
+        return;
+      }
       stack = result;
-      // TODO(turnidge): Replace only the changed part of the stack to
-      // reduce flicker.
       stackElement.updateStack(stack, pauseEvent);
       if (stack['frames'].length > 0) {
         currentFrame = 0;
@@ -1364,8 +1420,7 @@ class ObservatoryDebugger extends Debugger {
       console.print(
           "Paused at isolate exit "
           "(type 'continue' or [F7] to exit the isolate')");
-    }
-    if (stack['frames'].length > 0) {
+    } else if (stack['frames'].length > 0) {
       Frame frame = stack['frames'][0];
       var script = frame.location.script;
       script.load().then((_) {
@@ -1429,6 +1484,10 @@ class ObservatoryDebugger extends Debugger {
           var iso = event.owner;
           console.print(
               "Isolate ${iso.number} '${iso.name}' has been created");
+          if (isolate == null) {
+            console.print("Switching to isolate ${iso.number} '${iso.name}'");
+            isolate = iso;
+          }
         }
         break;
 
@@ -1436,7 +1495,17 @@ class ObservatoryDebugger extends Debugger {
         {
           var iso = event.owner;
           if (iso == isolate) {
-            console.print("The current isolate has exited");
+            console.print("The current isolate ${iso.number} '${iso.name}' "
+                          "has exited");
+            var isolates = vm.isolates;
+            if (isolates.length > 0) {
+              var newIsolate = isolates.first;
+              console.print("Switching to isolate "
+                            "${newIsolate.number} '${newIsolate.name}'");
+              isolate = newIsolate;
+            } else {
+              isolate = null;
+            }
           } else {
             console.print(
                 "Isolate ${iso.number} '${iso.name}' has exited");
@@ -1693,9 +1762,7 @@ class DebuggerPageElement extends ObservatoryElement {
   @published Isolate isolate;
 
   isolateChanged(oldValue) {
-    if (isolate != null) {
-      debugger.updateIsolate(isolate);
-    }
+    debugger.updateIsolate(isolate);
   }
   ObservatoryDebugger debugger = new ObservatoryDebugger();
 
@@ -2250,6 +2317,20 @@ class DebuggerInputElement extends ObservatoryElement {
   @published String text = '';
   @observable ObservatoryDebugger debugger;
   @observable bool busy = false;
+  @observable String modalPrompt = null;
+  var modalCallback = null;
+
+  void enterMode(String prompt, callback) {
+    assert(prompt == null);
+    modalPrompt = prompt;
+    modalCallback = callback;
+  }
+
+  void exitMode() {
+    assert(prompt != null);
+    modalPrompt = null;
+    modalCallback = null;
+  }
 
   @override
   void ready() {
@@ -2262,7 +2343,19 @@ class DebuggerInputElement extends ObservatoryElement {
           return;
         }
         busy = true;
-	switch (e.keyCode) {
+        if (modalCallback != null) {
+          if (e.keyCode == KeyCode.ENTER) {
+            var response = text;
+            modalCallback(response).whenComplete(() {
+              text = '';
+              busy = false;
+            });
+          } else {
+            busy = false;
+          }
+          return;
+        }
+        switch (e.keyCode) {
           case KeyCode.TAB:
             e.preventDefault();
             int cursorPos = textBox.selectionStart;
@@ -2358,7 +2451,7 @@ class DebuggerInputElement extends ObservatoryElement {
           default:
             busy = false;
             break;
-	}
+        }
       });
   }
 

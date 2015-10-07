@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
 #include "vm/runtime_entry.h"
+#include "vm/thread_pool.h"
 
 namespace dart {
 
@@ -97,6 +98,35 @@ class Compiler : public AllStatic {
  private:
   static bool always_optimize_;
   static bool allow_recompilation_;
+};
+
+
+// Class to run optimizing compilation in a background thread.
+// Current implementation: one task per isolate, it dies with the owning
+// isolate.
+class BackgroundCompiler : public ThreadPool::Task {
+ public:
+  static void EnsureInit(Isolate* isolate);
+
+  static void Stop(BackgroundCompiler* task);
+
+  void CompileOptimized(const Function& function);
+
+ private:
+  explicit BackgroundCompiler(Isolate* isolate);
+
+  virtual void Run();
+
+  void Add(const Function& f) const;
+  RawFunction* RemoveOrNull() const;
+
+  Isolate* isolate_;
+  bool running_;
+  bool* done_;
+  Monitor* monitor_;
+  Monitor* done_monitor_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(BackgroundCompiler);
 };
 
 }  // namespace dart

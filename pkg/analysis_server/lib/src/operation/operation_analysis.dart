@@ -77,6 +77,7 @@ void scheduleIndexOperation(AnalysisServer server, String file,
  */
 void scheduleNotificationOperations(
     AnalysisServer server,
+    Source source,
     String file,
     LineInfo lineInfo,
     AnalysisContext context,
@@ -99,12 +100,10 @@ void scheduleNotificationOperations(
     }
     if (server.hasAnalysisSubscription(
         protocol.AnalysisService.NAVIGATION, file)) {
-      Source source = resolvedDartUnit.element.source;
       server.scheduleOperation(new NavigationOperation(context, source));
     }
     if (server.hasAnalysisSubscription(
         protocol.AnalysisService.OCCURRENCES, file)) {
-      Source source = resolvedDartUnit.element.source;
       server.scheduleOperation(new OccurrencesOperation(context, source));
     }
     if (server.hasAnalysisSubscription(
@@ -116,8 +115,9 @@ void scheduleNotificationOperations(
   if (dartUnit != null) {
     if (server.hasAnalysisSubscription(
         protocol.AnalysisService.OUTLINE, file)) {
-      server.scheduleOperation(
-          new _DartOutlineOperation(context, file, lineInfo, dartUnit));
+      SourceKind sourceKind = context.getKindOf(source);
+      server.scheduleOperation(new _DartOutlineOperation(
+          context, file, lineInfo, sourceKind, dartUnit));
     }
   }
   // errors
@@ -213,11 +213,23 @@ void sendAnalysisNotificationOccurrences(
 }
 
 void sendAnalysisNotificationOutline(AnalysisServer server, String file,
-    LineInfo lineInfo, CompilationUnit dartUnit) {
+    LineInfo lineInfo, SourceKind sourceKind, CompilationUnit dartUnit) {
   _sendNotification(server, () {
+    // compute FileKind
+    protocol.FileKind fileKind = protocol.FileKind.LIBRARY;
+    if (sourceKind == SourceKind.LIBRARY) {
+      fileKind = protocol.FileKind.LIBRARY;
+    } else if (sourceKind == SourceKind.PART) {
+      fileKind = protocol.FileKind.PART;
+    }
+    // compute library name
+    String libraryName = _computeLibraryName(dartUnit);
+    // compute Outline
     var computer = new DartUnitOutlineComputer(file, lineInfo, dartUnit);
-    var outline = computer.compute();
-    var params = new protocol.AnalysisOutlineParams(file, outline);
+    protocol.Outline outline = computer.compute();
+    // send notification
+    var params = new protocol.AnalysisOutlineParams(file, fileKind, outline,
+        libraryName: libraryName);
     server.sendNotification(params.toNotification());
   });
 }
@@ -239,6 +251,20 @@ void setCacheSize(AnalysisContext context, int cacheSize) {
       new AnalysisOptionsImpl.from(context.analysisOptions);
   options.cacheSize = cacheSize;
   context.analysisOptions = options;
+}
+
+String _computeLibraryName(CompilationUnit unit) {
+  for (Directive directive in unit.directives) {
+    if (directive is LibraryDirective && directive.name != null) {
+      return directive.name.name;
+    }
+  }
+  for (Directive directive in unit.directives) {
+    if (directive is PartOfDirective && directive.libraryName != null) {
+      return directive.libraryName.name;
+    }
+  }
+  return null;
 }
 
 /**
@@ -371,8 +397,8 @@ class PerformAnalysisOperation extends ServerOperation {
       // Dart
       CompilationUnit parsedDartUnit = notice.parsedDartUnit;
       CompilationUnit resolvedDartUnit = notice.resolvedDartUnit;
-      scheduleNotificationOperations(server, file, notice.lineInfo, context,
-          parsedDartUnit, resolvedDartUnit, notice.errors);
+      scheduleNotificationOperations(server, source, file, notice.lineInfo,
+          context, parsedDartUnit, resolvedDartUnit, notice.errors);
       // done
       server.fileAnalyzed(notice);
     }
@@ -455,14 +481,15 @@ abstract class _DartNotificationOperation extends _SingleFileOperation {
 
 class _DartOutlineOperation extends _DartNotificationOperation {
   final LineInfo lineInfo;
+  final SourceKind sourceKind;
 
-  _DartOutlineOperation(
-      AnalysisContext context, String file, this.lineInfo, CompilationUnit unit)
+  _DartOutlineOperation(AnalysisContext context, String file, this.lineInfo,
+      this.sourceKind, CompilationUnit unit)
       : super(context, file, unit);
 
   @override
   void perform(AnalysisServer server) {
-    sendAnalysisNotificationOutline(server, file, lineInfo, unit);
+    sendAnalysisNotificationOutline(server, file, lineInfo, sourceKind, unit);
   }
 }
 

@@ -15,6 +15,8 @@ import '../compiler.dart' show
     Compiler;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
+import '../diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
 import '../diagnostics/invariant.dart' show
     invariant;
 import '../elements/elements.dart';
@@ -83,7 +85,7 @@ class IrBuilderTask extends CompilerTask {
 
       TreeElements elementsMapping = element.resolvedAst.elements;
       element = element.implementation;
-      return compiler.withCurrentElement(element, () {
+      return reporter.withCurrentElement(element, () {
         SourceInformationBuilder sourceInformationBuilder =
             sourceInformationStrategy.createBuilderForContext(element);
 
@@ -160,6 +162,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
                    this.compiler,
                    this.sourceInformationBuilder);
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   String bailoutMessage = null;
 
   @override
@@ -235,14 +239,14 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
   ir.Primitive visitBreakStatement(ast.BreakStatement node) {
     if (!irBuilder.buildBreak(elements.getTargetOf(node))) {
-      compiler.internalError(node, "'break' target not found");
+      reporter.internalError(node, "'break' target not found");
     }
     return null;
   }
 
   ir.Primitive visitContinueStatement(ast.ContinueStatement node) {
     if (!irBuilder.buildContinue(elements.getTargetOf(node))) {
-      compiler.internalError(node, "'continue' target not found");
+      reporter.internalError(node, "'continue' target not found");
     }
     return null;
   }
@@ -2065,8 +2069,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive bulkHandleError(ast.Send node, ErroneousElement error, _) {
-    assert(compiler.compilationFailed);
+  ir.Primitive bulkHandleError(ast.Node node, ErroneousElement error, _) {
     return irBuilder.buildNullConstant();
   }
 
@@ -2259,7 +2262,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   internalError(ast.Node node, String message) {
-    compiler.internalError(node, message);
+    reporter.internalError(node, message);
   }
 
   @override
@@ -2496,7 +2499,7 @@ class GlobalProgramInformation {
 
   ClassElement get nullClass => _compiler.nullClass;
 
-  DartType unaliasType(DartType type) => type.unalias(_compiler);
+  DartType unaliasType(DartType type) => type.unalias(_compiler.resolution);
 
   TypeMask getTypeMaskForForeign(NativeBehavior behavior) {
     if (behavior == null) {
@@ -2647,7 +2650,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           break;
 
         default:
-          compiler.internalError(element, "Unexpected element type $element");
+          reporter.internalError(element, "Unexpected element type $element");
       }
       return root;
     });
@@ -2906,7 +2909,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
               fieldValues);
           hasConstructorCall = true;
         } else {
-          compiler.internalError(initializer,
+          reporter.internalError(initializer,
                                  "Unexpected initializer type $initializer");
         }
       }
@@ -2916,7 +2919,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       ClassElement superClass = enclosingClass.superclass;
       FunctionElement target = superClass.lookupDefaultConstructor();
       if (target == null) {
-        compiler.internalError(superClass, "No default constructor available.");
+        reporter.internalError(superClass, "No default constructor available.");
       }
       target = target.implementation;
       evaluateConstructorCallFromInitializer(
@@ -3372,7 +3375,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
                                               CallStructure callStructure) {
       Element element = backend.isolateHelperLibrary.find(helperName);
       if (element == null) {
-        compiler.internalError(node,
+        reporter.internalError(node,
             'Isolate library and compiler mismatch.');
       }
       List<ir.Primitive> arguments = translateStaticArguments(argumentList,

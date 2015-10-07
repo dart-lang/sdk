@@ -44,7 +44,6 @@ DEFINE_FLAG(bool, enable_mirrors, true,
 DEFINE_FLAG(bool, load_deferred_eagerly, false,
     "Load deferred libraries eagerly.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
-DEFINE_FLAG(bool, supermixin, false, "Allow super calls in mixins.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
 DEFINE_FLAG(bool, link_natives_lazily, false, "Link native calls lazily");
 
@@ -11982,10 +11981,7 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(const Field& field,
       ASSERT(!func.IsNull());
       ASSERT(func.kind() == RawFunction::kImplicitStaticFinalGetter);
       Object& const_value = Object::Handle(Z);
-      {
-        PAUSETIMERSCOPE(T, time_compilation);
-        const_value = DartEntry::InvokeFunction(func, Object::empty_array());
-      }
+      const_value = DartEntry::InvokeFunction(func, Object::empty_array());
       if (const_value.IsError()) {
         const Error& error = Error::Cast(const_value);
         if (error.IsUnhandledException()) {
@@ -12064,11 +12060,7 @@ RawObject* Parser::EvaluateConstConstructorCall(
   const Array& args_descriptor = Array::Handle(Z,
       ArgumentsDescriptor::New(num_arguments, arguments->names()));
   Object& result = Object::Handle(Z);
-  {
-    PAUSETIMERSCOPE(T, time_compilation);
-    result = DartEntry::InvokeFunction(
-        constructor, arg_values, args_descriptor);
-  }
+  result = DartEntry::InvokeFunction(constructor, arg_values, args_descriptor);
   if (result.IsError()) {
       // An exception may not occur in every parse attempt, i.e., the
       // generated AST is not deterministic. Therefore mark the function as
@@ -13559,10 +13551,7 @@ String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
 
   // Call interpolation function.
   Object& result = Object::Handle(Z);
-  {
-    PAUSETIMERSCOPE(T, time_compilation);
-    result = DartEntry::InvokeFunction(func, interpolate_arg);
-  }
+  result = DartEntry::InvokeFunction(func, interpolate_arg);
   if (result.IsUnhandledException()) {
     ReportError("%s", Error::Cast(result).ToErrorCString());
   }
@@ -13852,16 +13841,6 @@ AstNode* Parser::ParsePrimary() {
     if (current_class().SuperClass() == Class::null()) {
       ReportError("class '%s' does not have a superclass",
                   String::Handle(Z, current_class().Name()).ToCString());
-    }
-    if (!FLAG_supermixin) {
-      if (current_class().IsMixinApplication()) {
-        const Type& mixin_type = Type::Handle(Z, current_class().mixin());
-        if (mixin_type.type_class() == current_function().origin()) {
-          ReportError("method of mixin class '%s' may not refer to 'super'",
-                      String::Handle(Z, Class::Handle(Z,
-                          current_function().origin()).Name()).ToCString());
-        }
-      }
     }
     const intptr_t super_pos = TokenPos();
     ConsumeToken();

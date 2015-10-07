@@ -93,7 +93,7 @@ part 'my_part.dart';
       int id2 = codec.encode2(indexable);
       int id3 = codec.encode3(indexable);
       expect(id1, isNonNegative);
-      expect(id2, isNonNegative);
+      expect(id2, -1);
       expect(id3, IndexableElementKind.forElement(element).index);
       validateDecode(id1, id2, id3, element);
     }
@@ -106,7 +106,7 @@ part 'my_part.dart';
       int id2 = codec.encode2(indexable);
       int id3 = codec.encode3(indexable);
       expect(id1, isNonNegative);
-      expect(id2, isNonNegative);
+      expect(id2, -1);
       expect(id3, IndexableElementKind.forElement(element).index);
       validateDecode(id1, id2, id3, element);
     }
@@ -260,6 +260,7 @@ class A {
     expect(id1, -1);
     expect(id2, isNonNegative);
     expect(id3, IndexableNameKind.INSTANCE.index);
+    expect(codec.decode(context, id1, id2, id3), indexable);
   }
 
   void test_encode_LibraryElement() {
@@ -274,7 +275,7 @@ class A {
     int id2 = codec.encode2(indexable);
     int id3 = codec.encode3(indexable);
     expect(id1, isNonNegative);
-    expect(id2, isNonNegative);
+    expect(id2, -1);
     expect(id3, IndexableElementKind.forElement(element).index);
     validateDecode(id1, id2, id3, element);
   }

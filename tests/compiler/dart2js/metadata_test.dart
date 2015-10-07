@@ -9,9 +9,14 @@ import 'package:expect/expect.dart';
 import 'compiler_helper.dart';
 import 'package:compiler/src/parser/partial_elements.dart' show
     PartialMetadataAnnotation;
+import 'package:compiler/src/diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
 
-void checkPosition(Spannable spannable, Node node, String source, compiler) {
-  SourceSpan span = compiler.spanFromSpannable(spannable);
+void checkPosition(Spannable spannable,
+                   Node node,
+                   String source,
+                   DiagnosticReporter reporter) {
+  SourceSpan span = reporter.spanFromSpannable(spannable);
   Expect.isTrue(span.begin < span.end,
                 'begin = ${span.begin}; end = ${span.end}');
   Expect.isTrue(span.end < source.length,
@@ -36,12 +41,13 @@ void checkAnnotation(String name, String declaration,
     Expect.equals(1, element.metadata.length,
         'Unexpected metadata count on $element.');
     PartialMetadataAnnotation annotation = element.metadata.first;
-    annotation.ensureResolved(compiler);
+    annotation.ensureResolved(compiler.resolution);
     PrimitiveConstantValue value =
         compiler.constants.getConstantValue(annotation.constant);
     Expect.stringEquals('xyz', value.primitiveValue.slowToString());
 
-    checkPosition(annotation, annotation.cachedNode, source1, compiler);
+    checkPosition(
+        annotation, annotation.cachedNode, source1, compiler.reporter);
   });
 
   // Ensure that each repeated annotation has a unique instance of
@@ -56,8 +62,8 @@ void checkAnnotation(String name, String declaration,
     Expect.equals(2, element.metadata.length);
     PartialMetadataAnnotation annotation1 = element.metadata.elementAt(0);
     PartialMetadataAnnotation annotation2 = element.metadata.elementAt(1);
-    annotation1.ensureResolved(compiler);
-    annotation2.ensureResolved(compiler);
+    annotation1.ensureResolved(compiler.resolution);
+    annotation2.ensureResolved(compiler.resolution);
     Expect.isFalse(identical(annotation1, annotation2),
                    'expected unique instances');
     Expect.notEquals(annotation1, annotation2, 'expected unequal instances');
@@ -69,8 +75,10 @@ void checkAnnotation(String name, String declaration,
     Expect.stringEquals('xyz', value1.primitiveValue.slowToString());
     Expect.stringEquals('xyz', value2.primitiveValue.slowToString());
 
-    checkPosition(annotation1, annotation1.cachedNode, source2, compiler);
-    checkPosition(annotation2, annotation2.cachedNode, source2, compiler);
+    checkPosition(
+        annotation1, annotation1.cachedNode, source2, compiler.reporter);
+    checkPosition(
+        annotation2, annotation2.cachedNode, source2, compiler.reporter);
   });
 
   if (isTopLevelOnly) return;
@@ -87,17 +95,18 @@ void checkAnnotation(String name, String declaration,
   compileAndCheck(source3, 'Foo', (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(0, element.metadata.length);
-    element.ensureResolved(compiler);
+    element.ensureResolved(compiler.resolution);
     Expect.equals(0, element.metadata.length);
     element = element.lookupLocalMember(name);
     Expect.equals(1, element.metadata.length);
     PartialMetadataAnnotation annotation = element.metadata.first;
-    annotation.ensureResolved(compiler);
+    annotation.ensureResolved(compiler.resolution);
     PrimitiveConstantValue value =
         compiler.constants.getConstantValue(annotation.constant);
     Expect.stringEquals('xyz', value.primitiveValue.slowToString());
 
-    checkPosition(annotation, annotation.cachedNode, source3, compiler);
+    checkPosition(
+        annotation, annotation.cachedNode, source3, compiler.reporter);
   });
 
   // Ensure that each repeated annotation has a unique instance of
@@ -112,14 +121,14 @@ void checkAnnotation(String name, String declaration,
   compileAndCheck(source4, 'Foo', (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(0, element.metadata.length);
-    element.ensureResolved(compiler);
+    element.ensureResolved(compiler.resolution);
     Expect.equals(0, element.metadata.length);
     element = element.lookupLocalMember(name);
     Expect.equals(2, element.metadata.length);
     PartialMetadataAnnotation annotation1 = element.metadata.elementAt(0);
     PartialMetadataAnnotation annotation2 = element.metadata.elementAt(1);
-    annotation1.ensureResolved(compiler);
-    annotation2.ensureResolved(compiler);
+    annotation1.ensureResolved(compiler.resolution);
+    annotation2.ensureResolved(compiler.resolution);
     Expect.isFalse(identical(annotation1, annotation2),
                    'expected unique instances');
     Expect.notEquals(annotation1, annotation2, 'expected unequal instances');
@@ -131,8 +140,10 @@ void checkAnnotation(String name, String declaration,
     Expect.stringEquals('xyz', value1.primitiveValue.slowToString());
     Expect.stringEquals('xyz', value2.primitiveValue.slowToString());
 
-    checkPosition(annotation1, annotation1.cachedNode, source4, compiler);
-    checkPosition(annotation1, annotation2.cachedNode, source4, compiler);
+    checkPosition(
+        annotation1, annotation1.cachedNode, source4, compiler.reporter);
+    checkPosition(
+        annotation1, annotation2.cachedNode, source4, compiler.reporter);
   });
 }
 
@@ -174,12 +185,13 @@ void testLibraryTags() {
       Expect.equals(1, metadata.length);
 
       PartialMetadataAnnotation annotation = metadata.first;
-      annotation.ensureResolved(compiler);
+      annotation.ensureResolved(compiler.resolution);
       PrimitiveConstantValue value =
           compiler.constants.getConstantValue(annotation.constant);
       Expect.stringEquals('xyz', value.primitiveValue.slowToString());
 
-      checkPosition(annotation, annotation.cachedNode, source, compiler);
+      checkPosition(
+          annotation, annotation.cachedNode, source, compiler.reporter);
     }));
   }
 

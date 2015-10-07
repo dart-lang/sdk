@@ -268,7 +268,7 @@ class NativeEmitter {
       // parameter that was not provided for this stub.
       for (jsAst.Parameter stubParameter in stubParameters) {
         if (stubParameter.name == name) {
-          DartType type = parameter.type.unalias(compiler);
+          DartType type = parameter.type.unalias(compiler.resolution);
           if (type is FunctionType) {
             // The parameter type is a function type either directly or through
             // typedef(s).

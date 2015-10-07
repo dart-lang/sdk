@@ -29,6 +29,7 @@ namespace bin {
 
 static const int kBufferSize = 64 * 1024;
 static const int kStdOverlappedBufferSize = 16 * 1024;
+static const int kMaxUDPPackageLength = 64 * 1024;
 
 OverlappedBuffer* OverlappedBuffer::AllocateBuffer(int buffer_size,
                                                    Operation operation) {
@@ -989,7 +990,8 @@ bool DatagramSocket::IssueRecvFrom() {
   ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
   ASSERT(pending_read_ == NULL);
 
-  OverlappedBuffer* buffer = OverlappedBuffer::AllocateRecvFromBuffer(1024);
+  OverlappedBuffer* buffer =
+      OverlappedBuffer::AllocateRecvFromBuffer(kMaxUDPPackageLength);
 
   DWORD flags;
   flags = 0;
@@ -1212,14 +1214,18 @@ void EventHandlerImplementation::HandleRecvFrom(Handle* handle,
                                                 int bytes,
                                                 OverlappedBuffer* buffer) {
   ASSERT(handle->is_datagram_socket());
-  buffer->set_data_length(bytes);
-  handle->ReadComplete(buffer);
-  if (!handle->IsClosing()) {
-    int event_mask = 1 << kInEvent;
-    if ((handle->Mask() & event_mask) != 0) {
+  if (bytes >= 0) {
+    buffer->set_data_length(bytes);
+    handle->ReadComplete(buffer);
+    if (!handle->IsClosing()) {
+      int event_mask = 1 << kInEvent;
+      if ((handle->Mask() & event_mask) != 0) {
         Dart_Port port = handle->NextNotifyDartPort(event_mask);
-      DartUtils::PostInt32(port, event_mask);
+        DartUtils::PostInt32(port, event_mask);
+      }
     }
+  } else {
+    HandleError(handle);
   }
 
   DeleteIfClosed(handle);
@@ -1413,6 +1419,11 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
           last_error == ERROR_BROKEN_PIPE) {
         ASSERT(bytes == 0);
         handler_impl->HandleIOCompletion(bytes, key, overlapped);
+      } else if (last_error == ERROR_MORE_DATA) {
+        // Don't ASSERT no bytes in this case. This can happen if the receive
+        // buffer for datagram sockets is to small to contain a full datagram,
+        // and in this case bytes hold the bytes that was read.
+        handler_impl->HandleIOCompletion(-1, key, overlapped);
       } else {
         ASSERT(bytes == 0);
         handler_impl->HandleIOCompletion(-1, key, overlapped);

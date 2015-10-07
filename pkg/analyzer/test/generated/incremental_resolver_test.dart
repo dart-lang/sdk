@@ -834,6 +834,24 @@ class A {
 ''');
   }
 
+  void test_false_fieldFormalParameter_differentField() {
+    _assertDoesNotMatch(
+        r'''
+class A {
+  final aaa;
+  final bbb;
+  A(this.aaa, this.bbb);
+}
+''',
+        r'''
+class A {
+  final aaa;
+  final bbb;
+  A(this.bbb, this.aaa);
+}
+''');
+  }
+
   void test_false_fieldFormalParameter_parameters_add() {
     _assertDoesNotMatch(
         r'''
@@ -926,6 +944,54 @@ class A {
 class A {
   final field;
   A(field);
+}
+''');
+  }
+
+  void test_false_fieldFormalParameter_typeAdd() {
+    _assertDoesNotMatch(
+        r'''
+class A {
+  final fff;
+  A(this.fff);
+}
+''',
+        r'''
+class A {
+  final fff;
+  A(int this.fff);
+}
+''');
+  }
+
+  void test_false_fieldFormalParameter_typeEdit() {
+    _assertDoesNotMatch(
+        r'''
+class A {
+  final fff;
+  A(int this.fff);
+}
+''',
+        r'''
+class A {
+  final fff;
+  A(String this.fff);
+}
+''');
+  }
+
+  void test_false_fieldFormalParameter_typeRemove() {
+    _assertDoesNotMatch(
+        r'''
+class A {
+  final fff;
+  A(int this.fff);
+}
+''',
+        r'''
+class A {
+  final fff;
+  A(this.fff);
 }
 ''');
   }
@@ -2383,6 +2449,22 @@ class A {
 ''');
   }
 
+  void test_true_fieldFormalParameter_changeName_wasUnresolvedField() {
+    _assertMatches(
+        r'''
+class A {
+  final fff;
+  A(this.unresolved);
+}
+''',
+        r'''
+class A {
+  final fff;
+  A(this.fff);
+}
+''');
+  }
+
   void test_true_fieldFormalParameter_function() {
     _assertMatches(
         r'''
@@ -2987,15 +3069,6 @@ class A {
     _resolve(_editString('+', '*'), _isFunctionBody);
   }
 
-  void test_constructor_fieldFormalParameter() {
-    _resolveUnit(r'''
-class A {
-  int xy;
-  A(this.x);
-}''');
-    _resolve(_editString('this.x', 'this.xy'), _isDeclaration);
-  }
-
   void test_constructor_fieldInitializer_add() {
     _resolveUnit(r'''
 class A {
@@ -3048,6 +3121,15 @@ class B extends A {
 }
 ''');
     _resolve(_editString('+', '*'), _isExpression);
+  }
+
+  void test_fieldFormalParameter() {
+    _resolveUnit(r'''
+class A {
+  int xy;
+  A(this.x);
+}''');
+    _resolve(_editString('this.x', 'this.xy'), _isDeclaration);
   }
 
   void test_function_localFunction_add() {
@@ -4091,6 +4173,28 @@ foo(String p) {}
 ''');
   }
 
+  void test_true_todoHint() {
+    _resolveUnit(r'''
+main() {
+  print(1);
+}
+foo() {
+ // TODO
+}
+''');
+    List<AnalysisError> oldErrors = analysisContext.computeErrors(source);
+    _updateAndValidate(r'''
+main() {
+  print(2);
+}
+foo() {
+ // TODO
+}
+''');
+    List<AnalysisError> newErrors = analysisContext.computeErrors(source);
+    _assertEqualErrors(newErrors, oldErrors);
+  }
+
   void test_true_wholeConstructor() {
     _resolveUnit(r'''
 class A {
@@ -4166,28 +4270,6 @@ class A {
   }
 }
 ''');
-  }
-
-  void test_true_todoHint() {
-    _resolveUnit(r'''
-main() {
-  print(1);
-}
-foo() {
- // TODO
-}
-''');
-    List<AnalysisError> oldErrors = analysisContext.computeErrors(source);
-    _updateAndValidate(r'''
-main() {
-  print(2);
-}
-foo() {
- // TODO
-}
-''');
-    List<AnalysisError> newErrors = analysisContext.computeErrors(source);
-    _assertEqualErrors(newErrors, oldErrors);
   }
 
   void test_unusedHint_add_wasUsedOnlyInPart() {
@@ -4438,6 +4520,36 @@ f3() {
   print(333)
 }
 ''');
+  }
+
+  void test_whitespace_getElementAt() {
+    _resolveUnit(r'''
+class A {}
+class B extends A {}
+''');
+    {
+      ClassElement typeA = oldUnitElement.getType('A');
+      expect(oldUnitElement.getElementAt(typeA.nameOffset), typeA);
+    }
+    {
+      ClassElement typeB = oldUnitElement.getType('B');
+      expect(oldUnitElement.getElementAt(typeB.nameOffset), typeB);
+    }
+    _updateAndValidate(r'''
+class A {}
+
+class B extends A {}
+''');
+    // getElementAt() caches results, it should be notified when offset
+    // are changed.
+    {
+      ClassElement typeA = oldUnitElement.getType('A');
+      expect(oldUnitElement.getElementAt(typeA.nameOffset), typeA);
+    }
+    {
+      ClassElement typeB = oldUnitElement.getType('B');
+      expect(oldUnitElement.getElementAt(typeB.nameOffset), typeB);
+    }
   }
 
   void _assertEqualLineInfo(LineInfo incrLineInfo, LineInfo fullLineInfo) {

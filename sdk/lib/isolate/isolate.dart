@@ -127,6 +127,29 @@ class Isolate {
   external static Isolate get current;
 
   /**
+   * Returns the package root of the current isolate, if any.
+   *
+   * If the isolate is using a [packageMap], this getter returns `null`,
+   * otherwise it returns the package root - a directory that package
+   * URIs are resolved against.
+   */
+  external static Future<Uri> get packageRoot;
+
+  /**
+   * Returns the package mapping of the current isolate, if any.
+   *
+   * If the current isolate is using a [packageRoot], this getter
+   * returns `null`.
+   *
+   * The package map maps the name of a package that is available to the
+   * program, to a URI that package URIs for that package are resolved against.
+   *
+   * Returns an empty map if the isolate does not have a way to resolve package
+   * URIs.
+   */
+  external static Future<Map<String, Uri>> get packageMap;
+
+  /**
    * Creates and spawns an isolate that shares the same code as the current
    * isolate.
    *

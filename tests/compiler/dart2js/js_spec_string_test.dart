@@ -14,7 +14,7 @@ import 'package:compiler/src/universe/side_effects.dart'
 const OBJECT = 'Object';
 const NULL = 'Null';
 
-class Listener extends DiagnosticListener {
+class Listener extends DiagnosticReporter {
   String errorMessage;
   internalError(spannable, message) {
     errorMessage = message;

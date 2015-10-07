@@ -32,7 +32,8 @@ void NativeMessageHandler::CheckAccess() {
 #endif
 
 
-bool NativeMessageHandler::HandleMessage(Message* message) {
+MessageHandler::MessageStatus NativeMessageHandler::HandleMessage(
+    Message* message) {
   if (message->IsOOB()) {
     // We currently do not use OOB messages for native ports.
     UNREACHABLE();
@@ -45,7 +46,7 @@ bool NativeMessageHandler::HandleMessage(Message* message) {
   Dart_CObject* object = reader.ReadMessage();
   (*func())(message->dest_port(), object);
   delete message;
-  return true;
+  return kOK;
 }
 
 }  // namespace dart

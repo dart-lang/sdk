@@ -557,7 +557,8 @@ class _RefactoringManager {
       List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
       if (units.isNotEmpty) {
         refactoring = new ExtractLocalRefactoring(units[0], offset, length);
-        feedback = new ExtractLocalVariableFeedback([], [], []);
+        feedback = new ExtractLocalVariableFeedback(
+            <int>[], <int>[], <String>[], <int>[], <int>[]);
       }
     }
     if (kind == RefactoringKind.EXTRACT_METHOD) {
@@ -565,8 +566,8 @@ class _RefactoringManager {
       if (units.isNotEmpty) {
         refactoring = new ExtractMethodRefactoring(
             searchEngine, units[0], offset, length);
-        feedback = new ExtractMethodFeedback(
-            offset, length, '', [], false, [], [], []);
+        feedback = new ExtractMethodFeedback(offset, length, '', <String>[],
+            false, <RefactoringMethodParameter>[], <int>[], <int>[]);
       }
     }
     if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {

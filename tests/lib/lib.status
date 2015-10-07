@@ -350,3 +350,6 @@ mirrors/delegate_test: RuntimeError # Please triage this failure.
 mirrors/library_enumeration_deferred_loading_test: RuntimeError # L.loadLibrary is not a function
 mirrors/symbol_validation_test/none: RuntimeError # Please triage this failure.
 mirrors/typedef_deferred_library_test: RuntimeError # G.loadLibrary is not a function
+
+[ $compiler == dart2js && $cps_ir && $host_checked ]
+mirrors/circular_factory_redirection_test/02: Crash # Assertion failure: Constant constructor already computed for generative_constructor(A#circular2)

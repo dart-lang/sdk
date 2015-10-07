@@ -1306,14 +1306,18 @@ RawObjectPool* ObjectPool::ReadFrom(SnapshotReader* reader,
 
   intptr_t length = reader->Read<intptr_t>();
 
-  ObjectPool& result =
-      ObjectPool::ZoneHandle(reader->zone(),
-                             NEW_OBJECT_WITH_LEN(ObjectPool, length));
-  reader->AddBackRef(object_id, &result, kIsDeserialized);
+  ObjectPool* result =
+      reinterpret_cast<ObjectPool*>(reader->GetBackRef(object_id));
+  if (result == NULL) {
+    result =
+        &(ObjectPool::ZoneHandle(reader->zone(),
+                                 NEW_OBJECT_WITH_LEN(ObjectPool, length)));
+    reader->AddBackRef(object_id, result, kIsDeserialized);
+  }
 
   const TypedData& info_array =
       TypedData::Handle(reader->NewTypedData(kTypedDataInt8ArrayCid, length));
-  result.set_info_array(info_array);
+  result->set_info_array(info_array);
 
   NoSafepointScope no_safepoint;
   for (intptr_t i = 0; i < length; i++) {
@@ -1323,19 +1327,19 @@ RawObjectPool* ObjectPool::ReadFrom(SnapshotReader* reader,
     switch (entry_type) {
       case ObjectPool::kTaggedObject: {
         (*reader->PassiveObjectHandle()) =
-            reader->ReadObjectImpl(kAsInlinedObject);
-        result.SetObjectAt(i, *(reader->PassiveObjectHandle()));
+            reader->ReadObjectImpl(kAsReference);
+        result->SetObjectAt(i, *(reader->PassiveObjectHandle()));
         break;
       }
       case ObjectPool::kImmediate: {
         intptr_t raw_value = reader->Read<intptr_t>();
-        result.SetRawValueAt(i, raw_value);
+        result->SetRawValueAt(i, raw_value);
         break;
       }
       case ObjectPool::kNativeEntry: {
         // Read nothing. Initialize with the lazy link entry.
         uword new_entry = NativeEntry::LinkNativeCallEntry();
-        result.SetRawValueAt(i, static_cast<intptr_t>(new_entry));
+        result->SetRawValueAt(i, static_cast<intptr_t>(new_entry));
         break;
       }
       default:
@@ -1343,7 +1347,7 @@ RawObjectPool* ObjectPool::ReadFrom(SnapshotReader* reader,
     }
   }
 
-  return result.raw();
+  return result->raw();
 }
 
 
@@ -1372,7 +1376,14 @@ void RawObjectPool::WriteTo(SnapshotWriter* writer,
     Entry& entry = ptr()->data()[i];
     switch (entry_type) {
       case ObjectPool::kTaggedObject: {
-        writer->WriteObjectImpl(entry.raw_obj_, kAsInlinedObject);
+        if (entry.raw_obj_ == StubCode::CallNativeCFunction_entry()->code()) {
+          // Natives can run while precompiling, becoming linked and switching
+          // their stub. Reset to the initial stub used for lazy-linking.
+          writer->WriteObjectImpl(
+              StubCode::CallBootstrapCFunction_entry()->code(), kAsReference);
+        } else {
+          writer->WriteObjectImpl(entry.raw_obj_, kAsReference);
+        }
         break;
       }
       case ObjectPool::kImmediate: {
@@ -1720,7 +1731,7 @@ RawICData* ICData::ReadFrom(SnapshotReader* reader,
   // Set all the object fields.
   READ_OBJECT_FIELDS(result,
                      result.raw()->from(), result.raw()->to(),
-                     kAsInlinedObject);
+                     kAsReference);
 
   return result.raw();
 }
@@ -1743,7 +1754,7 @@ void RawICData::WriteTo(SnapshotWriter* writer,
   writer->Write<uint32_t>(ptr()->state_bits_);
 
   // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer, kAsInlinedObject);
+  SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 }
 

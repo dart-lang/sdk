@@ -53,8 +53,8 @@ class JsonCyclicError extends JsonUnsupportedObjectError {
  *
  * Examples:
  *
- *     var encoded = JSON.encode([1, 2, { "a": null }]);
- *     var decoded = JSON.decode('["foo", { "bar": 499 }]');
+ *    var encoded = JSON.encode([1, 2, { "a": null }]);
+ *    var decoded = JSON.decode('["foo", { "bar": 499 }]');
  */
 const JsonCodec JSON = const JsonCodec();
 
@@ -65,6 +65,11 @@ typedef _ToEncodable(var o);
 /**
  * A [JsonCodec] encodes JSON objects to strings and decodes strings to
  * JSON objects.
+ *
+ * Examples:
+ *
+ *    var encoded = JSON.encode([1, 2, { "a": null }]);
+ *    var decoded = JSON.decode('["foo", { "bar": 499 }]');
  */
 class JsonCodec extends Codec<Object, String> {
   final _Reviver _reviver;

@@ -30,7 +30,7 @@ class DietParserTask extends CompilerTask {
     measure(() {
       Function idGenerator = compiler.getNextFreeClassId;
       ElementListener listener =
-          new ElementListener(compiler, compilationUnit, idGenerator);
+          new ElementListener(compiler.reporter, compilationUnit, idGenerator);
       PartialParser parser = new PartialParser(listener);
       try {
         parser.parseUnit(tokens);

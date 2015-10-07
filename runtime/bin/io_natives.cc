@@ -132,7 +132,6 @@ namespace bin {
   V(Socket_SetOption, 4)                                                       \
   V(Socket_JoinMulticast, 4)                                                   \
   V(Socket_LeaveMulticast, 4)                                                  \
-  V(Socket_MarkSocketAsSharedHack, 1)                                          \
   V(Socket_GetSocketId, 1)                                                     \
   V(Socket_SetSocketId, 2)                                                     \
   V(Stdin_ReadByte, 1)                                                         \

@@ -29,7 +29,7 @@ Future check(String source, {errors, warnings, hints, infos}) {
     compiler.diagnosticHandler = createHandler(compiler, source);
     compiler.parseScript(source);
     var cls = compiler.mainApp.find('Class');
-    cls.ensureResolved(compiler);
+    cls.ensureResolved(compiler.resolution);
     MembersCreator.computeAllClassMembers(compiler, cls);
 
     toList(o) => o == null ? [] : o is List ? o : [o];

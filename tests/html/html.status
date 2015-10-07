@@ -13,12 +13,15 @@ js_typed_interop_test: Skip # Issue 23676, 23677
 cross_domain_iframe_test: RuntimeError # Dartium JSInterop failure
 crypto_test/functional: RuntimeError # Dartium JSInterop failure
 custom/document_register_basic_test: RuntimeError # Dartium JSInterop failure
+custom/document_register_type_extensions_test/construction: RuntimeError # Issue 24516
+custom/document_register_type_extensions_test/parsing: RuntimeError # Issue 24516
 custom/document_register_type_extensions_test/registration: RuntimeError # Dartium JSInterop failure
 custom/element_upgrade_test: RuntimeError # Dartium JSInterop failure
 custom/js_custom_test: RuntimeError # Dartium JSInterop failure
 custom_elements_test/register: RuntimeError # Dartium JSInterop failure
 indexeddb_2_test: Skip # Dartium JSInterop failure
-js_test: RuntimeError # Dartium JSInterop failure
+js_test/transferrables: RuntimeError # Dartium JSInterop failure
+js_test/JsArray: RuntimeError # Dartium JSInterop failure
 native_gc_test: Skip # Dartium JSInterop failure
 speechrecognition_test/types: RuntimeError # Dartium JSInterop failure
 storage_quota_test/missingenumcheck: RuntimeError # Dartium JSInterop failure
@@ -37,6 +40,7 @@ datalistelement_test: Skip # Issue 20540
 
 [ $compiler == dart2js ]
 input_element_test/attributes: Fail # Issue 21555
+wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
 
 [ $compiler == dart2js && $csp && $browser ]
 custom/js_custom_test: Fail # Issue 14643
@@ -59,7 +63,6 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
-postmessage_structured_test/primitives: RuntimeError # Bug 24432
 # Dartium seems to lose the data from the dispatchEvent.
 async_test: Fail # Uses spawn, not implemented from a DOM isolate in Dartium
 keyboard_event_test: Fail # Issue 13902
@@ -134,10 +137,10 @@ native_gc_test: Pass, Slow
 
 [$runtime == ie10 || $runtime == ie11]
 indexeddb_5_test: Fail # Issue 12893
-js_test: Fail # Issue 14246
-element_test/click: Fail                # IE does not support firing this event.
+js_test/transferrables: RuntimeError # Issue 14246
+element_test/click: Fail # IE does not support firing this event.
 serialized_script_value_test: Fail
-websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
+websocket_test/websocket: Fail # Issue 7875. Closed with "working as intended".
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
 no_linked_scripts_htmltest: Skip # Times out on IE.  Issue 21537

@@ -59,6 +59,8 @@ class NoSuchMethodRegistry {
       : this._backend = backend,
         this._compiler = backend.compiler;
 
+  DiagnosticReporter get reporter => _compiler.reporter;
+
   bool get hasThrowingNoSuchMethod => throwingImpls.isNotEmpty;
   bool get hasComplexNoSuchMethod => otherImpls.isNotEmpty;
 
@@ -82,19 +84,19 @@ class NoSuchMethodRegistry {
   void emitDiagnostic() {
     throwingImpls.forEach((e) {
         if (!_hasForwardingSyntax(e)) {
-          _compiler.reportHintMessage(
+          reporter.reportHintMessage(
               e, MessageKind.DIRECTLY_THROWING_NSM);
         }
       });
     complexNoReturnImpls.forEach((e) {
         if (!_hasForwardingSyntax(e)) {
-          _compiler.reportHintMessage(
+          reporter.reportHintMessage(
               e, MessageKind.COMPLEX_THROWING_NSM);
         }
       });
     complexReturningImpls.forEach((e) {
         if (!_hasForwardingSyntax(e)) {
-          _compiler.reportHintMessage(
+          reporter.reportHintMessage(
               e, MessageKind.COMPLEX_RETURNING_NSM);
         }
       });

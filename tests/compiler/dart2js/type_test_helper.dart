@@ -92,15 +92,15 @@ class TypeEnvironment {
     var element = compiler.mainApp.find(name);
     Expect.isNotNull(element);
     if (element.isClass) {
-      element.ensureResolved(compiler);
+      element.ensureResolved(compiler.resolution);
     } else if (element.isTypedef) {
-      element.computeType(compiler);
+      element.computeType(compiler.resolution);
     }
     return element;
   }
 
   DartType getElementType(String name) {
-    return getElement(name).computeType(compiler);
+    return getElement(name).computeType(compiler.resolution);
   }
 
   DartType operator[] (String name) {
@@ -111,7 +111,7 @@ class TypeEnvironment {
 
   DartType getMemberType(ClassElement element, String name) {
     Element member = element.localLookup(name);
-    return member.computeType(compiler);
+    return member.computeType(compiler.resolution);
   }
 
   bool isSubtype(DartType T, DartType S) {

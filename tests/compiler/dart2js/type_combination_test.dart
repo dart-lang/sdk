@@ -734,7 +734,7 @@ void main() {
     World world = compiler.world;
     backend.interceptorsLibrary.forEachLocalMember((element) {
       if (element.isClass) {
-        element.ensureResolved(compiler);
+        element.ensureResolved(compiler.resolution);
         backend.registerInstantiatedType(
             element.rawType,
             compiler.enqueuer.resolution,

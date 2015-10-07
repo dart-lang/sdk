@@ -1,25 +1,39 @@
 ## 1.13.0
 
+### Core library changes
+* `dart:async`
+  * `StreamTransformer` instances created with `fromHandlers` with no
+    `handleError` callback now forward stack traces along with errors to the
+    resulting streams.
+
 * `dart:core`
   * `Uri` added `removeFragment` method.
   * `String.allMatches` (implementing `Pattern.allMatches`) is now lazy,
     as all `allMatches` implementations are intended to be.
+  * `Resource` is deprecated in favor of the resource package.
+    See https://pub.dartlang.org/packages/resource to learn more. This is
+    the last release to contain the Resource class.
 
 * `dart:io`
   * `HttpClient` no longer sends URI fragments in the request. This is not
     allowed by the HTTP protocol.
     The `HttpServer` still gracefully receives fragments, but discards them
     before delivering the request.
-
-* `dart:async`
-  * `StreamTransformer`s created with `fromHandlers` with no `handleError`
-    callback now forward stack traces along with errors to the resulting
-    streams.
+  * Removed server socket references. The use of server socket references
+    was deprecated back in 1.9. Use the `shared` flag when creating listening
+    sockets and `HttpServer` to distribute accepted sockets between isolates.
 
 ### Tool changes
 
 * `docgen` and 'dartdocgen' no longer ship in the sdk. The `docgen` sources have
    been removed from the repository.
+
+* This is the last release to ship the VM's "legacy debug protocol".
+  We intend to remove the legacy debug protocol in Dart VM 1.14.
+
+* The VM's Service Protocol has been updated to version 3.0 to take care
+  of a number of issues uncovered by the first few non-observatory
+  clients.  This is a potentially breaking change for clients.
 
 ## 1.12.0
 

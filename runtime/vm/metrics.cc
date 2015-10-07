@@ -276,6 +276,12 @@ int64_t MetricHeapNewExternal::Value() const {
 }
 
 
+int64_t MetricHeapUsed::Value() const {
+  ASSERT(isolate() == Isolate::Current());
+  return isolate()->heap()->UsedInWords(Heap::kNew) * kWordSize +
+         isolate()->heap()->UsedInWords(Heap::kOld) * kWordSize;
+}
+
 int64_t MetricIsolateCount::Value() const {
   return Isolate::IsolateListLength();
 }
@@ -304,6 +310,32 @@ void Metric::Cleanup() {
       current = current->next();
     }
     OS::Print("\n");
+  }
+}
+
+
+MaxMetric::MaxMetric()
+    : Metric() {
+  set_value(kMinInt64);
+}
+
+
+void MaxMetric::SetValue(int64_t new_value) {
+  if (new_value > value()) {
+    set_value(new_value);
+  }
+}
+
+
+MinMetric::MinMetric()
+    : Metric() {
+  set_value(kMaxInt64);
+}
+
+
+void MinMetric::SetValue(int64_t new_value) {
+  if (new_value < value()) {
+    set_value(new_value);
   }
 }
 

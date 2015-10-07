@@ -27,7 +27,6 @@ import 'package:analyzer/src/generated/incremental_resolver.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -572,31 +571,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (source == null) {
       return null;
     }
-    CompilationUnit unit = parseCompilationUnit(source);
-    if (unit == null) {
+    SourceRange docRange = element.docRange;
+    if (docRange == null) {
       return null;
     }
-    NodeLocator locator = new NodeLocator(element.nameOffset);
-    AstNode nameNode = locator.searchWithin(unit);
-    while (nameNode != null) {
-      if (nameNode is AnnotatedNode) {
-        Comment comment = nameNode.documentationComment;
-        if (comment == null) {
-          return null;
-        }
-        StringBuffer buffer = new StringBuffer();
-        List<Token> tokens = comment.tokens;
-        for (int i = 0; i < tokens.length; i++) {
-          if (i > 0) {
-            buffer.write("\n");
-          }
-          buffer.write(tokens[i].lexeme);
-        }
-        return buffer.toString();
-      }
-      nameNode = nameNode.parent;
-    }
-    return null;
+    String code = getContents(source).data;
+    String comment = code.substring(docRange.offset, docRange.end);
+    return comment.replaceAll('\r\n', '\n');
   }
 
   @override
@@ -1157,7 +1138,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           new LibrarySpecificUnit(librarySource, librarySource);
       entry = getCacheEntry(unit);
       setValue(HINTS, AnalysisError.NO_ERRORS);
-      // dartEntry.setValue(LINTS, AnalysisError.NO_ERRORS);
+      setValue(LINTS, AnalysisError.NO_ERRORS);
       setValue(INFER_STATIC_VARIABLE_TYPES_ERRORS, AnalysisError.NO_ERRORS);
       setValue(LIBRARY_UNIT_ERRORS, AnalysisError.NO_ERRORS);
       setValue(PARTIALLY_RESOLVE_REFERENCES_ERRORS, AnalysisError.NO_ERRORS);
@@ -1654,16 +1635,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               return;
             }
           }
-//          if (lintsEnabled) {
-//            state = unitEntry.getState(LINTS);
-//            if (state == CacheState.INVALID ||
-//                (isPriority && state == CacheState.FLUSHED)) {
-//              sources.add(source);
-//              return;
-//            } else if (state == CacheState.ERROR) {
-//              return;
-//            }
-//          }
+          if (lintsEnabled) {
+            state = unitEntry.getState(LINTS);
+            if (state == CacheState.INVALID ||
+                (isPriority && state == CacheState.FLUSHED)) {
+              sources.add(source);
+              return;
+            } else if (state == CacheState.ERROR) {
+              return;
+            }
+          }
         }
       }
 //    } else if (kind == SourceKind.HTML) {
@@ -1896,8 +1877,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           sourceEntry,
           unitEntry,
           oldUnit,
-          analysisOptions.incrementalApi,
-          analysisOptions);
+          analysisOptions.incrementalApi);
       bool success = resolver.resolve(newCode);
       AnalysisEngine.instance.instrumentationService.logPerformance(
           AnalysisPerformanceKind.INCREMENTAL,

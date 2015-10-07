@@ -415,13 +415,18 @@ Scavenger::Scavenger(Heap* heap,
   if (to_ == NULL) {
     FATAL("Out of memory.\n");
   }
-
   // Setup local fields.
   top_ = FirstObjectStart();
   resolved_top_ = top_;
   end_ = to_->end();
 
   survivor_end_ = FirstObjectStart();
+
+  UpdateMaxHeapCapacity();
+  UpdateMaxHeapUsage();
+  if (heap_ != NULL) {
+    heap_->UpdateGlobalMaxUsed();
+  }
 }
 
 
@@ -459,6 +464,7 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
     // isolate to finish scavenge, etc.).
     FATAL("Out of memory.\n");
   }
+  UpdateMaxHeapCapacity();
   top_ = FirstObjectStart();
   resolved_top_ = top_;
   end_ = to_->end();
@@ -500,6 +506,10 @@ void Scavenger::Epilogue(Isolate* isolate,
   }
 #endif  // defined(DEBUG)
   from->Delete();
+  UpdateMaxHeapUsage();
+  if (heap_ != NULL) {
+    heap_->UpdateGlobalMaxUsed();
+  }
   if (invoke_api_callbacks && (isolate->gc_epilogue_callback() != NULL)) {
     (isolate->gc_epilogue_callback())();
   }
@@ -705,6 +715,33 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
 }
 
 
+void Scavenger::UpdateMaxHeapCapacity() {
+  if (heap_ == NULL) {
+    // Some unit tests.
+    return;
+  }
+  ASSERT(to_ != NULL);
+  ASSERT(heap_ != NULL);
+  Isolate* isolate = heap_->isolate();
+  ASSERT(isolate != NULL);
+  isolate->GetHeapNewCapacityMaxMetric()->SetValue(
+      to_->size_in_words() * kWordSize);
+}
+
+
+void Scavenger::UpdateMaxHeapUsage() {
+  if (heap_ == NULL) {
+    // Some unit tests.
+    return;
+  }
+  ASSERT(to_ != NULL);
+  ASSERT(heap_ != NULL);
+  Isolate* isolate = heap_->isolate();
+  ASSERT(isolate != NULL);
+  isolate->GetHeapNewUsedMaxMetric()->SetValue(UsedInWords() * kWordSize);
+}
+
+
 uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
                                      ScavengerVisitor* visitor) {
   // The fate of the weak property is determined by its key.
@@ -901,9 +938,9 @@ void Scavenger::PrintToJSONObject(JSONObject* object) const {
   } else {
     space.AddProperty("avgCollectionPeriodMillis", 0.0);
   }
-  space.AddProperty("used", UsedInWords() * kWordSize);
-  space.AddProperty("capacity", CapacityInWords() * kWordSize);
-  space.AddProperty("external", ExternalInWords() * kWordSize);
+  space.AddProperty64("used", UsedInWords() * kWordSize);
+  space.AddProperty64("capacity", CapacityInWords() * kWordSize);
+  space.AddProperty64("external", ExternalInWords() * kWordSize);
   space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
 }
 

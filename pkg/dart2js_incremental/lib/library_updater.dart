@@ -74,11 +74,7 @@ import 'package:compiler/src/js/js.dart' show
 import 'package:compiler/src/js/js.dart' as jsAst;
 
 import 'package:compiler/src/js_emitter/js_emitter.dart' show
-    ClassBuilder,
-    ClassEmitter,
     CodeEmitterTask,
-    ContainerBuilder,
-    MemberInfo,
     computeMixinClass;
 
 import 'package:compiler/src/js_emitter/full_emitter/emitter.dart'
@@ -687,7 +683,7 @@ class LibraryUpdater extends JsFeatures {
       PartialFunctionElement before,
       PartialFunctionElement after) {
     FunctionExpression node =
-        after.parseNode(compiler).asFunctionExpression();
+        after.parseNode(compiler.parsing).asFunctionExpression();
     if (node == null) {
       return cannotReuse(after, "Not a function expression: '$node'");
     }
@@ -709,7 +705,7 @@ class LibraryUpdater extends JsFeatures {
       Token diffToken,
       PartialClassElement before,
       PartialClassElement after) {
-    ClassNode node = after.parseNode(compiler).asClassNode();
+    ClassNode node = after.parseNode(compiler.parsing).asClassNode();
     if (node == null) {
       return cannotReuse(after, "Not a ClassNode: '$node'");
     }

@@ -4,7 +4,8 @@
 
 # This file contains the tests that have been identified as broken and
 # have been filed on the co19 issue tracker at
-#    https://code.google.com/p/co19/issues/list .
+#    https://code.google.com/p/co19/issues/list (read-only).
+#    https://github.com/dart-lang/co19/issues .
 #
 # In order to qualify here these tests need to fail both on the VM and dart2js.
 
@@ -12,6 +13,10 @@
 
 [ $runtime == vm || $runtime != vm ]
 # Tests that fail everywhere, including the analyzer.
+
+# Super is now allowed in mixins and mixins may now extend a subclass of Object.
+Language/09_Mixins/09_Mixins_A01_t01: Skip # co19 issue 9.
+Language/09_Mixins/09_Mixins_A03_t01: Skip # co19 issue 9.
 
 # No longer correct, y#$ now has a meaning. github.com/dart-lang/co19/issues/2
 Language/12_Expressions/30_Identifier_Reference_A01_t03: Skip

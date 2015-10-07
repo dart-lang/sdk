@@ -22,6 +22,15 @@ class ImplementedComputer {
 
   compute() async {
     for (ClassElement type in unitElement.types) {
+      // always include Object and its members
+      if (type.supertype == null) {
+        _addImplementedClass(type);
+        type.accessors.forEach(_addImplementedMember);
+        type.fields.forEach(_addImplementedMember);
+        type.methods.forEach(_addImplementedMember);
+        continue;
+      }
+      // analyze ancestors
       subtypes = await getSubClasses(searchEngine, type);
       if (subtypes.isNotEmpty) {
         _addImplementedClass(type);

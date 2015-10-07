@@ -12,7 +12,8 @@ import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
 
 import '../closure.dart';
 import '../common/backend_api.dart' show
-    Backend;
+    Backend,
+    ForeignResolver;
 import '../common/codegen.dart' show
     CodegenRegistry,
     CodegenWorkItem;
@@ -25,7 +26,13 @@ import '../common/registry.dart' show
 import '../common/tasks.dart' show
     CompilerTask;
 import '../common/resolution.dart' show
-    ResolutionCallbacks;
+    Feature,
+    ListLiteralUse,
+    MapLiteralUse,
+    Resolution,
+    ResolutionCallbacks,
+    ResolutionWorldImpact,
+    TransformedWorldImpact;
 import '../common/work.dart' show
     ItemCompilationContext;
 import '../compiler.dart' show
@@ -36,11 +43,13 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../dart_types.dart';
 import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage;
+    DiagnosticMessage,
+    DiagnosticReporter;
 import '../diagnostics/invariant.dart' show
     invariant;
 import '../diagnostics/messages.dart' show MessageKind;
 import '../diagnostics/spannable.dart' show
+    CURRENT_ELEMENT_SPANNABLE,
     NO_LOCATION_SPANNABLE,
     Spannable,
     SpannableAssertionFailure;
@@ -73,7 +82,7 @@ import '../js_emitter/js_emitter.dart' show
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
 import '../resolution/registry.dart' show
-    ResolutionRegistry;
+    EagerRegistry;
 import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../ssa/ssa.dart';

@@ -67,7 +67,7 @@ class CustomElementsAnalysis {
       enqueuer.isResolutionQueue ? resolutionJoin : codegenJoin;
 
   void registerInstantiatedClass(ClassElement classElement, Enqueuer enqueuer) {
-    classElement.ensureResolved(compiler);
+    classElement.ensureResolved(compiler.resolution);
     if (!Elements.isNativeOrExtendsNative(classElement)) return;
     if (classElement.isMixinApplication) return;
     if (classElement.isAbstract) return;
@@ -191,7 +191,7 @@ class CustomElementsAnalysisJoin {
       if (member.isGenerativeConstructor) {
         // Ignore constructors that cannot be called with zero arguments.
         FunctionElement constructor = member;
-        constructor.computeType(compiler);
+        constructor.computeType(compiler.resolution);
         FunctionSignature parameters = constructor.functionSignature;
         if (parameters.requiredParameterCount == 0) {
           result.add(member);

@@ -30,9 +30,9 @@ class ScannerTask extends CompilerTask {
     String canonicalUri = library.canonicalUri.toString();
     String resolvedUri = compilationUnit.script.resourceUri.toString();
     if (canonicalUri == resolvedUri) {
-      compiler.log("Scanning library $canonicalUri");
+      reporter.log("Scanning library $canonicalUri");
     } else {
-      compiler.log("Scanning library $canonicalUri ($resolvedUri)");
+      reporter.log("Scanning library $canonicalUri ($resolvedUri)");
     }
     scan(compilationUnit);
   }

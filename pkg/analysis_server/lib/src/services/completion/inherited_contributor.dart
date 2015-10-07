@@ -4,11 +4,11 @@
 
 library services.completion.computer.dart.invocation;
 
-import 'package:analysis_server/completion/completion_dart.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind, SourceChange;
 import 'package:analysis_server/src/protocol_server.dart' as protocol
     hide CompletionSuggestion, CompletionSuggestionKind;
+import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart'
     show DART_RELEVANCE_HIGH;
 import 'package:analysis_server/utilities/change_builder_dart.dart';

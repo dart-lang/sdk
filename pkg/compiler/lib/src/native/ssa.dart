@@ -11,6 +11,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   FunctionElement element = builder.work.element;
   NativeEmitter nativeEmitter = builder.nativeEmitter;
   JavaScriptBackend backend = builder.backend;
+  DiagnosticReporter reporter = compiler.reporter;
 
   HInstruction convertDartClosure(ParameterElement  parameter,
                                   FunctionType type) {
@@ -40,7 +41,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     LiteralString jsCode = nativeBody.asLiteralString();
     String str = jsCode.dartString.slowToString();
     if (nativeRedirectionRegExp.hasMatch(str)) {
-      compiler.internalError(
+      reporter.internalError(
           nativeBody, "Deprecated syntax, use @JSName('name') instead.");
     }
     hasBody = true;
@@ -60,7 +61,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
       inputs.add(builder.localsHandler.readThis());
     }
     parameters.forEachParameter((ParameterElement parameter) {
-      DartType type = parameter.type.unalias(compiler);
+      DartType type = parameter.type.unalias(compiler.resolution);
       HInstruction input = builder.localsHandler.readLocal(parameter);
       if (type is FunctionType) {
         // The parameter type is a function type either directly or through
@@ -80,7 +81,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     } else if (element.kind == ElementKind.SETTER) {
       nativeMethodCall = '$receiver$nativeMethodName = $foreignParameters';
     } else {
-      builder.compiler.internalError(element,
+      builder.reporter.internalError(element,
                                      'Unexpected kind: "${element.kind}".');
     }
 
@@ -98,7 +99,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
         .addSuccessor(builder.graph.exit);
   } else {
     if (parameters.parameterCount != 0) {
-      compiler.internalError(nativeBody,
+      reporter.internalError(nativeBody,
           'native "..." syntax is restricted to '
           'functions with zero parameters.');
     }

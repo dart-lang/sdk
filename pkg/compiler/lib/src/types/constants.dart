@@ -7,8 +7,13 @@ library types.constants;
 import '../compiler.dart' show
     Compiler;
 import '../constants/values.dart';
+import '../diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
+import '../diagnostics/spannable.dart' show
+    CURRENT_ELEMENT_SPANNABLE;
+import '../js_backend/js_backend.dart' show
+    SyntheticConstantKind;
 import 'types.dart';
-import '../js_backend/js_backend.dart' show SyntheticConstantKind;
 
 /// Computes the [TypeMask] for the constant [value].
 TypeMask computeTypeMask(Compiler compiler, ConstantValue value) {
@@ -58,7 +63,8 @@ class ConstantValueTypeMasks extends ConstantValueVisitor<TypeMask, Compiler> {
       case SyntheticConstantKind.NAME:
         return compiler.typesTask.stringType;
       default:
-        compiler.internalError(compiler.currentElement,
+        DiagnosticReporter reporter = compiler.reporter;
+        reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
                                "Unexpected DummyConstantKind.");
         return null;
     }

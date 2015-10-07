@@ -60,10 +60,12 @@ class SsaBuilderTask extends CompilerTask {
       backend = backend,
       super(backend.compiler);
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   HGraph build(CodegenWorkItem work) {
     return measure(() {
       Element element = work.element.implementation;
-      return compiler.withCurrentElement(element, () {
+      return reporter.withCurrentElement(element, () {
         HInstruction.idCounter = 0;
         SsaBuilder builder =
             new SsaBuilder(
@@ -86,7 +88,7 @@ class SsaBuilderTask extends CompilerTask {
             graph = builder.buildLazyInitializer(element);
           }
         } else {
-          compiler.internalError(element, 'Unexpected element kind $kind.');
+          reporter.internalError(element, 'Unexpected element kind $kind.');
         }
         assert(graph.isValid());
         if (!identical(kind, ElementKind.FIELD)) {
@@ -439,10 +441,10 @@ class LocalsHandler {
     if (isAccessedDirectly(local)) {
       if (directLocals[local] == null) {
         if (local is TypeVariableElement) {
-          builder.compiler.internalError(builder.compiler.currentElement,
+          builder.reporter.internalError(builder.compiler.currentElement,
               "Runtime type information not available for $local.");
         } else {
-          builder.compiler.internalError(local,
+          builder.reporter.internalError(local,
               "Cannot find value $local.");
         }
       }
@@ -792,17 +794,17 @@ abstract class JumpHandler {
 // used as the target of a break, and therefore doesn't need a break
 // handler associated with it.
 class NullJumpHandler implements JumpHandler {
-  final Compiler compiler;
+  final DiagnosticReporter reporter;
 
-  NullJumpHandler(this.compiler);
+  NullJumpHandler(this.reporter);
 
   void generateBreak([LabelDefinition label]) {
-    compiler.internalError(CURRENT_ELEMENT_SPANNABLE,
+    reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
         'NullJumpHandler.generateBreak should not be called.');
   }
 
   void generateContinue([LabelDefinition label]) {
-    compiler.internalError(CURRENT_ELEMENT_SPANNABLE,
+    reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
         'NullJumpHandler.generateContinue should not be called.');
   }
 
@@ -1104,6 +1106,12 @@ class SsaBuilder extends ast.Visitor
         sourceInformationFactory.createBuilderForContext(
             work.element.implementation);
   }
+
+
+  DiagnosticReporter get reporter => compiler.reporter;
+
+  // TODO(johnniwinther): Avoid the need for this.
+  Resolution get resolution => compiler.resolution;
 
   @override
   SemanticSendVisitor get sendVisitor => this;
@@ -1493,7 +1501,7 @@ class SsaBuilder extends ast.Visitor
 
   inlinedFrom(Element element, f()) {
     assert(element is FunctionElement || element is VariableElement);
-    return compiler.withCurrentElement(element, () {
+    return reporter.withCurrentElement(element, () {
       // The [sourceElementStack] contains declaration elements.
       SourceInformationBuilder oldSourceInformationBuilder =
           sourceInformationBuilder;
@@ -1865,7 +1873,7 @@ class SsaBuilder extends ast.Visitor
                              Map<Element, HInstruction> fieldValues,
                              FunctionElement caller) {
     callee = callee.implementation;
-    compiler.withCurrentElement(callee, () {
+    reporter.withCurrentElement(callee, () {
       constructors.add(callee);
       ClassElement enclosingClass = callee.enclosingClass;
       if (backend.classNeedsRti(enclosingClass)) {
@@ -1980,7 +1988,7 @@ class SsaBuilder extends ast.Visitor
         // forwarding constructor in a mixin application did not match the
         // constructor (which, for example, may happen when the libraries are
         // not compatible for private names, see issue 20394).
-        compiler.internalError(constructor,
+        reporter.internalError(constructor,
                                'forwarding constructor call does not match');
       }
       inlineSuperOrRedirect(
@@ -2042,7 +2050,7 @@ class SsaBuilder extends ast.Visitor
         // TODO(johnniwinther): Should we find injected constructors as well?
         FunctionElement target = superClass.lookupDefaultConstructor();
         if (target == null) {
-          compiler.internalError(superClass,
+          reporter.internalError(superClass,
               "No default constructor available.");
         }
         List<HInstruction> arguments =
@@ -2072,7 +2080,7 @@ class SsaBuilder extends ast.Visitor
     classElement.forEachInstanceField(
         (ClassElement enclosingClass, VariableElement member) {
           if (compiler.elementHasCompileTimeError(member)) return;
-          compiler.withCurrentElement(member, () {
+          reporter.withCurrentElement(member, () {
             TreeElements definitions = member.treeElements;
             ast.Node node = member.node;
             ast.Expression initializer = member.initializer;
@@ -2479,7 +2487,7 @@ class SsaBuilder extends ast.Visitor
                                    DartType type,
                                    int kind) {
     if (type == null) return original;
-    type = type.unalias(compiler);
+    type = type.unalias(resolution);
     assert(assertTypeInContext(type, original));
     if (type.isInterfaceType && !type.treatAsRaw) {
       TypeMask subtype = new TypeMask.subtype(type.element, compiler.world);
@@ -2515,7 +2523,7 @@ class SsaBuilder extends ast.Visitor
     assert(compiler.trustTypeAnnotations);
     assert(type != null);
     type = localsHandler.substInContext(type);
-    type = type.unalias(compiler);
+    type = type.unalias(resolution);
     if (type.isDynamic) return original;
     if (!type.isInterfaceType) return original;
     // The type element is either a class or the void element.
@@ -2660,19 +2668,19 @@ class SsaBuilder extends ast.Visitor
       if (!isReachable) {
         // The block has been aborted by a return or a throw.
         if (!stack.isEmpty) {
-          compiler.internalError(node, 'Non-empty instruction stack.');
+          reporter.internalError(node, 'Non-empty instruction stack.');
         }
         return;
       }
     }
     assert(!current.isClosed());
     if (!stack.isEmpty) {
-      compiler.internalError(node, 'Non-empty instruction stack.');
+      reporter.internalError(node, 'Non-empty instruction stack.');
     }
   }
 
   visitClassNode(ast.ClassNode node) {
-    compiler.internalError(node,
+    reporter.internalError(node,
         'SsaBuilder.visitClassNode should not be called.');
   }
 
@@ -3212,7 +3220,7 @@ class SsaBuilder extends ast.Visitor
     if (node.isThis()) {
       visitThisGet(node);
     } else {
-      compiler.internalError(node,
+      reporter.internalError(node,
           "SsaFromAstMixin.visitIdentifier on non-this.");
     }
   }
@@ -3810,7 +3818,7 @@ class SsaBuilder extends ast.Visitor
   HInstruction buildIsNode(ast.Node node,
                            DartType type,
                            HInstruction expression) {
-    type = localsHandler.substInContext(type).unalias(compiler);
+    type = localsHandler.substInContext(type).unalias(resolution);
     if (type.isFunctionType) {
       List arguments = [buildFunctionType(type), expression];
       pushInvokeDynamic(
@@ -4075,7 +4083,7 @@ class SsaBuilder extends ast.Visitor
     // argument, which is the foreign code.
     if (link.isEmpty || link.tail.isEmpty) {
       // We should not get here because the call should be compiled to NSM.
-      compiler.internalError(node.argumentsNode,
+      reporter.internalError(node.argumentsNode,
           'At least two arguments expected.');
     }
     native.NativeBehavior nativeBehavior =
@@ -4085,7 +4093,7 @@ class SsaBuilder extends ast.Visitor
     addGenericSendArgumentsToList(link.tail.tail, inputs);
 
     if (nativeBehavior.codeTemplate.positionalArgumentCount != inputs.length) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           node, MessageKind.GENERIC,
           {'text':
             'Mismatch between number of placeholders'
@@ -4119,14 +4127,14 @@ class SsaBuilder extends ast.Visitor
     List<HInstruction> inputs = <HInstruction>[];
     addGenericSendArgumentsToList(node.arguments, inputs);
     if (inputs.length != 2) {
-      compiler.internalError(node.argumentsNode, 'Two arguments expected.');
+      reporter.internalError(node.argumentsNode, 'Two arguments expected.');
     }
     push(new HStringConcat(inputs[0], inputs[1], node, backend.stringType));
   }
 
   void handleForeignJsCurrentIsolateContext(ast.Send node) {
     if (!node.arguments.isEmpty) {
-      compiler.internalError(node,
+      reporter.internalError(node,
           'Too many arguments to JS_CURRENT_ISOLATE_CONTEXT.');
     }
 
@@ -4143,7 +4151,7 @@ class SsaBuilder extends ast.Visitor
       // Leg's isolate.
       Element element = backend.isolateHelperLibrary.find('_currentIsolate');
       if (element == null) {
-        compiler.internalError(node,
+        reporter.internalError(node,
             'Isolate library and compiler mismatch.');
       }
       pushInvokeStatic(null, element, [], typeMask: backend.dynamicType);
@@ -4155,7 +4163,7 @@ class SsaBuilder extends ast.Visitor
      ast.Node argument;
      switch (arguments.length) {
      case 0:
-       compiler.reportErrorMessage(
+       reporter.reportErrorMessage(
            node, MessageKind.GENERIC,
            {'text': 'Error: Expected one argument to JS_GET_FLAG.'});
        return;
@@ -4164,7 +4172,7 @@ class SsaBuilder extends ast.Visitor
        break;
      default:
        for (int i = 1; i < arguments.length; i++) {
-         compiler.reportErrorMessage(
+         reporter.reportErrorMessage(
              arguments[i], MessageKind.GENERIC,
              {'text': 'Error: Extra argument to JS_GET_FLAG.'});
        }
@@ -4172,7 +4180,7 @@ class SsaBuilder extends ast.Visitor
      }
      ast.LiteralString string = argument.asLiteralString();
      if (string == null) {
-       compiler.reportErrorMessage(
+       reporter.reportErrorMessage(
            argument, MessageKind.GENERIC,
            {'text': 'Error: Expected a literal string.'});
      }
@@ -4186,7 +4194,7 @@ class SsaBuilder extends ast.Visitor
          value = compiler.useContentSecurityPolicy;
          break;
        default:
-         compiler.reportErrorMessage(
+         reporter.reportErrorMessage(
              node, MessageKind.GENERIC,
              {'text': 'Error: Unknown internal flag "$name".'});
      }
@@ -4198,7 +4206,7 @@ class SsaBuilder extends ast.Visitor
     ast.Node argument;
     switch (arguments.length) {
     case 0:
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           node, MessageKind.GENERIC,
           {'text': 'Error: Expected one argument to JS_GET_NAME.'});
       return;
@@ -4207,7 +4215,7 @@ class SsaBuilder extends ast.Visitor
       break;
     default:
       for (int i = 1; i < arguments.length; i++) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             arguments[i], MessageKind.GENERIC,
             {'text': 'Error: Extra argument to JS_GET_NAME.'});
       }
@@ -4217,7 +4225,7 @@ class SsaBuilder extends ast.Visitor
     if (element == null ||
         element is! FieldElement ||
         element.enclosingClass != backend.jsGetNameEnum) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           argument, MessageKind.GENERIC,
           {'text': 'Error: Expected a JsGetName enum value.'});
     }
@@ -4233,7 +4241,7 @@ class SsaBuilder extends ast.Visitor
     List<ast.Node> arguments = node.arguments.toList();
     ast.Node argument;
     if (arguments.length < 2) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           node, MessageKind.GENERIC,
           {'text': 'Error: Expected at least two arguments to JS_BUILTIN.'});
     }
@@ -4242,7 +4250,7 @@ class SsaBuilder extends ast.Visitor
     if (builtinElement == null ||
         (builtinElement is! FieldElement) ||
         builtinElement.enclosingClass != backend.jsBuiltinEnum) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           argument, MessageKind.GENERIC,
           {'text': 'Error: Expected a JsBuiltin enum value.'});
     }
@@ -4276,7 +4284,7 @@ class SsaBuilder extends ast.Visitor
     switch (arguments.length) {
     case 0:
     case 1:
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           node, MessageKind.GENERIC,
           {'text': 'Error: Expected two arguments to JS_EMBEDDED_GLOBAL.'});
       return;
@@ -4287,7 +4295,7 @@ class SsaBuilder extends ast.Visitor
       break;
     default:
       for (int i = 2; i < arguments.length; i++) {
-        compiler.reportErrorMessage(
+        reporter.reportErrorMessage(
             arguments[i], MessageKind.GENERIC,
             {'text': 'Error: Extra argument to JS_EMBEDDED_GLOBAL.'});
       }
@@ -4296,7 +4304,7 @@ class SsaBuilder extends ast.Visitor
     visit(globalNameNode);
     HInstruction globalNameHNode = pop();
     if (!globalNameHNode.isConstantString()) {
-      compiler.reportErrorMessage(
+      reporter.reportErrorMessage(
           arguments[1], MessageKind.GENERIC,
           {'text': 'Error: Expected String as second argument '
                    'to JS_EMBEDDED_GLOBAL.'});
@@ -4333,7 +4341,7 @@ class SsaBuilder extends ast.Visitor
         }
       }
     }
-    compiler.reportErrorMessage(
+    reporter.reportErrorMessage(
         node,
         MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
     stack.add(graph.addConstantNull(compiler));
@@ -4352,7 +4360,7 @@ class SsaBuilder extends ast.Visitor
       // Call a helper method from the isolate library.
       Element element = backend.isolateHelperLibrary.find('_callInIsolate');
       if (element == null) {
-        compiler.internalError(node,
+        reporter.internalError(node,
             'Isolate library and compiler mismatch.');
       }
       List<HInstruction> inputs = <HInstruction>[];
@@ -4363,13 +4371,13 @@ class SsaBuilder extends ast.Visitor
 
   FunctionSignature handleForeignRawFunctionRef(ast.Send node, String name) {
     if (node.arguments.isEmpty || !node.arguments.tail.isEmpty) {
-      compiler.internalError(node.argumentsNode,
+      reporter.internalError(node.argumentsNode,
           '"$name" requires exactly one argument.');
     }
     ast.Node closure = node.arguments.head;
     Element element = elements[closure];
     if (!Elements.isStaticOrTopLevelFunction(element)) {
-      compiler.internalError(closure,
+      reporter.internalError(closure,
           '"$name" requires a static or top-level method.');
     }
     FunctionElement function = element;
@@ -4379,7 +4387,7 @@ class SsaBuilder extends ast.Visitor
     FunctionElement implementation = function.implementation;
     FunctionSignature params = implementation.functionSignature;
     if (params.optionalParameterCount != 0) {
-      compiler.internalError(closure,
+      reporter.internalError(closure,
           '"$name" does not handle closure with optional parameters.');
     }
 
@@ -4402,7 +4410,7 @@ class SsaBuilder extends ast.Visitor
 
   void handleForeignJsSetStaticState(ast.Send node) {
     if (node.arguments.isEmpty || !node.arguments.tail.isEmpty) {
-      compiler.internalError(node.argumentsNode,
+      reporter.internalError(node.argumentsNode,
           'Exactly one argument required.');
     }
     visit(node.arguments.head);
@@ -4419,7 +4427,7 @@ class SsaBuilder extends ast.Visitor
 
   void handleForeignJsGetStaticState(ast.Send node) {
     if (!node.arguments.isEmpty) {
-      compiler.internalError(node.argumentsNode, 'Too many arguments.');
+      reporter.internalError(node.argumentsNode, 'Too many arguments.');
     }
     push(new HForeignCode(js.js.parseForeignJS(backend.namer.staticStateHolder),
                           backend.dynamicType,
@@ -4457,7 +4465,7 @@ class SsaBuilder extends ast.Visitor
     } else if (name == 'JS_STRING_CONCAT') {
       handleJsStringConcat(node);
     } else {
-      compiler.internalError(node, "Unknown foreign: ${element}");
+      reporter.internalError(node, "Unknown foreign: ${element}");
     }
   }
 
@@ -4884,7 +4892,7 @@ class SsaBuilder extends ast.Visitor
           type.element,
           sourceInformation: sourceInformation);
     } else {
-      compiler.internalError(type.element,
+      reporter.internalError(type.element,
           'Unexpected type variable in static context.');
       return null;
     }
@@ -5571,7 +5579,7 @@ class SsaBuilder extends ast.Visitor
 
   // TODO(antonm): migrate rest of SsaFromAstMixin to internalError.
   internalError(Spannable node, String reason) {
-    compiler.internalError(node, reason);
+    reporter.internalError(node, reason);
   }
 
   void generateError(ast.Node node, String message, Element helper) {
@@ -6891,7 +6899,7 @@ class SsaBuilder extends ast.Visitor
   visitNodeList(ast.NodeList node) {
     for (Link<ast.Node> link = node.nodes; !link.isEmpty; link = link.tail) {
       if (isAborted()) {
-        compiler.reportHintMessage(
+        reporter.reportHintMessage(
             link.head,
             MessageKind.GENERIC,
             {'text': 'dead code'});
@@ -6907,7 +6915,7 @@ class SsaBuilder extends ast.Visitor
 
   visitOperator(ast.Operator node) {
     // Operators are intercepted in their surrounding Send nodes.
-    compiler.internalError(node,
+    reporter.internalError(node,
         'SsaBuilder.visitOperator should not be called.');
   }
 
@@ -6934,7 +6942,7 @@ class SsaBuilder extends ast.Visitor
     HInstruction exception = rethrowableException;
     if (exception == null) {
       exception = graph.addConstantNull(compiler);
-      compiler.internalError(node,
+      reporter.internalError(node,
           'rethrowableException should not be null.');
     }
     handleInTryStatement();
@@ -7059,7 +7067,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   visitTypeAnnotation(ast.TypeAnnotation node) {
-    compiler.internalError(node,
+    reporter.internalError(node,
         'Visiting type annotation in SSA builder.');
   }
 
@@ -7135,7 +7143,7 @@ class SsaBuilder extends ast.Visitor
 
   visitStringInterpolationPart(ast.StringInterpolationPart node) {
     // The parts are iterated in visitStringInterpolation.
-    compiler.internalError(node,
+    reporter.internalError(node,
       'SsaBuilder.visitStringInterpolation should not be called.');
   }
 
@@ -7190,7 +7198,7 @@ class SsaBuilder extends ast.Visitor
     JumpTarget element = elements.getTargetDefinition(node);
     if (element == null || !identical(element.statement, node)) {
       // No breaks or continues to this node.
-      return new NullJumpHandler(compiler);
+      return new NullJumpHandler(reporter);
     }
     if (isLoopJump && node is ast.SwitchStatement) {
       // Create a special jump handler for loops created for switch statements
@@ -7457,7 +7465,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   visitLabel(ast.Label node) {
-    compiler.internalError(node, 'SsaFromAstMixin.visitLabel.');
+    reporter.internalError(node, 'SsaFromAstMixin.visitLabel.');
   }
 
   visitLabeledStatement(ast.LabeledStatement node) {
@@ -7787,7 +7795,7 @@ class SsaBuilder extends ast.Visitor
       // is not the generated switch statement but instead the loop generated
       // in the call to [handleLoop] below.
       handleSwitch(node,
-                   new NullJumpHandler(compiler),
+                   new NullJumpHandler(reporter),
                    buildExpression, node.cases, getConstants,
                    (_) => false, // No case is default.
                    buildSwitchCase);
@@ -7954,11 +7962,11 @@ class SsaBuilder extends ast.Visitor
   }
 
   visitSwitchCase(ast.SwitchCase node) {
-    compiler.internalError(node, 'SsaFromAstMixin.visitSwitchCase.');
+    reporter.internalError(node, 'SsaFromAstMixin.visitSwitchCase.');
   }
 
   visitCaseMatch(ast.CaseMatch node) {
-    compiler.internalError(node, 'SsaFromAstMixin.visitCaseMatch.');
+    reporter.internalError(node, 'SsaFromAstMixin.visitCaseMatch.');
   }
 
   /// Calls [buildTry] inside a synthetic try block with [buildFinally] in the
@@ -8109,7 +8117,7 @@ class SsaBuilder extends ast.Visitor
         if (catchBlock.onKeyword != null) {
           DartType type = elements.getType(catchBlock.type);
           if (type == null) {
-            compiler.internalError(catchBlock.type, 'On with no type.');
+            reporter.internalError(catchBlock.type, 'On with no type.');
           }
           HInstruction condition =
               buildIsNode(catchBlock.type, type, unwrappedException);
@@ -8127,7 +8135,7 @@ class SsaBuilder extends ast.Visitor
             // condition.
             DartType type = elements.getType(declaration.type);
             if (type == null) {
-              compiler.internalError(catchBlock, 'Catch with unresolved type.');
+              reporter.internalError(catchBlock, 'Catch with unresolved type.');
             }
             condition = buildIsNode(declaration.type, type, unwrappedException);
             push(condition);
@@ -8266,7 +8274,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   visitTypeVariable(ast.TypeVariable node) {
-    compiler.internalError(node, 'SsaFromAstMixin.visitTypeVariable.');
+    reporter.internalError(node, 'SsaFromAstMixin.visitTypeVariable.');
   }
 
   /**
@@ -8403,7 +8411,7 @@ class StringBuilderVisitor extends ast.Visitor {
   }
 
   visitNode(ast.Node node) {
-    builder.compiler.internalError(node, 'Unexpected node.');
+    builder.reporter.internalError(node, 'Unexpected node.');
   }
 
   void visitExpression(ast.Node node) {
@@ -8984,7 +8992,7 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
   }
 
   void visitTypedefType(TypedefType type, SsaBuilder builder) {
-    DartType unaliased = type.unalias(builder.compiler);
+    DartType unaliased = type.unalias(builder.compiler.resolution);
     if (unaliased is TypedefType) throw 'unable to unalias $type';
     unaliased.accept(this, builder);
   }

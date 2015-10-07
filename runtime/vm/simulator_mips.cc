@@ -2476,7 +2476,7 @@ void Simulator::Longjmp(uword pc,
   set_register(FP, static_cast<int32_t>(fp));
   set_register(THR, reinterpret_cast<int32_t>(thread));
   // Set the tag.
-  isolate->set_vm_tag(VMTag::kDartTagId);
+  thread->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.
   isolate->set_top_exit_frame_info(0);
 

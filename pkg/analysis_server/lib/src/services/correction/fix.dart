@@ -10,6 +10,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/parser.dart';
 
 /**
  * Compute and return the fixes available for the given [error]. The error was
@@ -36,6 +37,63 @@ List<Fix> computeFixes(ServerPlugin plugin, ResourceProvider resourceProvider,
   fixes.sort(Fix.SORT_BY_RELEVANCE);
   return fixes;
 }
+
+/**
+ * Return true if this [errorCode] is likely to have a fix associated with it.
+ */
+bool hasFix(ErrorCode errorCode) => errorCode ==
+        StaticWarningCode.UNDEFINED_CLASS_BOOLEAN ||
+    errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER ||
+    errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS ||
+    errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR ||
+    errorCode ==
+        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE ||
+    errorCode ==
+        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO ||
+    errorCode ==
+        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE ||
+    errorCode ==
+        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR ||
+    errorCode ==
+        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS ||
+    errorCode == StaticWarningCode.CAST_TO_NON_TYPE ||
+    errorCode == StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME ||
+    errorCode == StaticWarningCode.UNDEFINED_CLASS ||
+    errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED ||
+    errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 ||
+    errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 ||
+    errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS ||
+    errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER ||
+    errorCode ==
+        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE ||
+    errorCode == CompileTimeErrorCode.INVALID_ANNOTATION ||
+    errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT ||
+    errorCode == CompileTimeErrorCode.PART_OF_NON_PART ||
+    errorCode ==
+        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT ||
+    errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST ||
+    errorCode == HintCode.DEAD_CODE ||
+    errorCode == HintCode.DIVISION_OPTIMIZATION ||
+    errorCode == HintCode.TYPE_CHECK_IS_NOT_NULL ||
+    errorCode == HintCode.TYPE_CHECK_IS_NULL ||
+    errorCode == HintCode.UNDEFINED_GETTER ||
+    errorCode == HintCode.UNDEFINED_SETTER ||
+    errorCode == HintCode.UNNECESSARY_CAST ||
+    errorCode == HintCode.UNUSED_CATCH_CLAUSE ||
+    errorCode == HintCode.UNUSED_CATCH_STACK ||
+    errorCode == HintCode.UNUSED_IMPORT ||
+    errorCode == HintCode.UNDEFINED_METHOD ||
+    errorCode == ParserErrorCode.EXPECTED_TOKEN ||
+    errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS ||
+    errorCode == ParserErrorCode.VAR_AS_TYPE_NAME ||
+    errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE ||
+    errorCode == StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER ||
+    errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION ||
+    errorCode == StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT ||
+    errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION ||
+    errorCode == StaticTypeWarningCode.UNDEFINED_GETTER ||
+    errorCode == StaticTypeWarningCode.UNDEFINED_METHOD ||
+    errorCode == StaticTypeWarningCode.UNDEFINED_SETTER;
 
 /**
  * An enumeration of possible quick fix kinds.

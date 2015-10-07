@@ -16,7 +16,7 @@ var tests = [
     expect(result['targetCPU'], new isInstanceOf<String>());
     expect(result['hostCPU'], new isInstanceOf<String>());
     expect(result['version'], new isInstanceOf<String>());
-    expect(result['pid'], new isInstanceOf<String>());
+    expect(result['pid'], new isInstanceOf<int>());
     expect(result['startTime'], isPositive);
     expect(result['isolates'].length, isPositive);
     expect(result['isolates'][0]['type'], equals('@Isolate'));

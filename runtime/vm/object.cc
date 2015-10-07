@@ -951,12 +951,14 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   cls = isolate->object_store()->one_byte_string_class();
   cls.set_name(Symbols::OneByteString());
 
-  // Make the VM isolate read-only after setting all objects as marked.
-  PremarkingVisitor premarker(isolate);
-  isolate->heap()->WriteProtect(false);
-  ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
-  isolate->heap()->IterateOldObjects(&premarker);
-  isolate->heap()->WriteProtect(true);
+  {
+    ASSERT(isolate == Dart::vm_isolate());
+    WritableVMIsolateScope scope(Thread::Current());
+    PremarkingVisitor premarker(isolate);
+    ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
+    isolate->heap()->IterateOldObjects(&premarker);
+    // Make the VM isolate read-only again after setting all objects as marked.
+  }
 }
 
 
@@ -1058,7 +1060,6 @@ void Object::RegisterPrivateClass(const Class& cls,
 RawError* Object::Init(Isolate* isolate) {
   Thread* thread = Thread::Current();
   ASSERT(isolate == thread->isolate());
-  TIMERSCOPE(thread, time_bootstrap);
   TimelineDurationScope tds(isolate,
                             isolate->GetIsolateStream(),
                             "Object::Init");
@@ -1761,10 +1762,22 @@ void Object::InitializeObject(uword address,
                               intptr_t class_id,
                               intptr_t size,
                               bool is_vm_object) {
-  uword initial_value = (class_id == kInstructionsCid)
-      ? Assembler::GetBreakInstructionFiller() : reinterpret_cast<uword>(null_);
+  const uword break_instruction_value = Assembler::GetBreakInstructionFiller();
+  const uword null_value = reinterpret_cast<uword>(null_);
+  const bool is_instructions = class_id == kInstructionsCid;
+  uword initial_value =
+      is_instructions ? break_instruction_value : null_value;
   uword cur = address;
   uword end = address + size;
+  if (is_instructions) {
+    // Fill the header with null. The remainder of the Instructions object will
+    // be filled with the break_instruction_value.
+    uword header_end = address + Instructions::HeaderSize();
+    while (cur < header_end) {
+      *reinterpret_cast<uword*>(cur) = null_value;
+      cur += kWordSize;
+    }
+  }
   while (cur < end) {
     *reinterpret_cast<uword*>(cur) = initial_value;
     cur += kWordSize;
@@ -1830,7 +1843,7 @@ RawObject* Object::Allocate(intptr_t cls_id,
   }
   const Class& cls = Class::Handle(class_table->At(cls_id));
   if (cls.TraceAllocation(isolate)) {
-    Profiler::RecordAllocation(isolate, cls_id);
+    Profiler::RecordAllocation(thread, cls_id);
   }
   NoSafepointScope no_safepoint;
   InitializeObject(address, cls_id, size, (isolate == Dart::vm_isolate()));
@@ -2197,8 +2210,9 @@ void Class::RemoveFunction(const Function& function) const {
 
 
 intptr_t Class::FindFunctionIndex(const Function& needle) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
   REUSABLE_ARRAY_HANDLESCOPE(isolate);
@@ -2250,8 +2264,9 @@ RawFunction* Class::ImplicitClosureFunctionFromIndex(intptr_t idx) const {
 
 
 intptr_t Class::FindImplicitClosureFunctionIndex(const Function& needle) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
   REUSABLE_ARRAY_HANDLESCOPE(isolate);
@@ -2281,8 +2296,9 @@ intptr_t Class::FindImplicitClosureFunctionIndex(const Function& needle) const {
 
 intptr_t Class::FindInvocationDispatcherFunctionIndex(
     const Function& needle) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
   REUSABLE_ARRAY_HANDLESCOPE(isolate);
@@ -2419,13 +2435,14 @@ void Class::set_type_parameters(const TypeArguments& value) const {
 }
 
 
-intptr_t Class::NumTypeParameters(Isolate* isolate) const {
+intptr_t Class::NumTypeParameters(Thread* thread) const {
   if (IsMixinApplication() && !is_mixin_type_applied()) {
     ClassFinalizer::ApplyMixinType(*this);
   }
   if (type_parameters() == TypeArguments::null()) {
     return 0;
   }
+  Isolate* isolate = thread->isolate();
   REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(isolate);
   TypeArguments& type_params = isolate->TypeArgumentsHandle();
   type_params = type_parameters();
@@ -3017,16 +3034,17 @@ RawObject* Class::Evaluate(const String& expr,
 
 // Ensure that top level parsing of the class has been done.
 // TODO(24109): Migrate interface to Thread*.
-RawError* Class::EnsureIsFinalized(Isolate* isolate) const {
+RawError* Class::EnsureIsFinalized(Thread* thread) const {
   // Finalized classes have already been parsed.
   if (is_finalized()) {
     return Error::null();
   }
-  ASSERT(isolate != NULL);
-  const Error& error = Error::Handle(isolate, Compiler::CompileClass(*this));
+  ASSERT(thread != NULL);
+  const Error& error = Error::Handle(
+      thread->zone(), Compiler::CompileClass(*this));
   if (!error.IsNull()) {
-    ASSERT(isolate == Thread::Current()->isolate());
-    if (Thread::Current()->long_jump_base() != NULL) {
+    ASSERT(thread == Thread::Current());
+    if (thread->long_jump_base() != NULL) {
       Report::LongJump(error);
       UNREACHABLE();
     }
@@ -3074,8 +3092,9 @@ void Class::AddFields(const GrowableArray<const Field*>& new_fields) const {
 
 
 intptr_t Class::FindFieldIndex(const Field& needle) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
   REUSABLE_ARRAY_HANDLESCOPE(isolate);
@@ -3688,8 +3707,9 @@ void Class::SetCanonicalType(const Type& type) const {
 
 
 intptr_t Class::FindCanonicalTypeIndex(const Type& needle) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
   if (needle.raw() == CanonicalType()) {
@@ -3752,11 +3772,9 @@ void Class::DisableAllocationStub() const {
   if (existing_stub.IsNull()) {
     return;
   }
-  ASSERT(!CodePatcher::IsEntryPatched(existing_stub));
-  // Patch the stub so that the next caller will regenerate the stub.
-  CodePatcher::PatchEntry(
-      existing_stub,
-      Code::Handle(StubCode::FixAllocationStubTarget_entry()->code()));
+  ASSERT(!existing_stub.IsDisabled());
+  // Change the stub so that the next caller will regenerate the stub.
+  existing_stub.DisableStubCode();
   // Disassociate the existing stub from class.
   StorePointer(&raw_ptr()->allocation_stub_, Code::null());
 }
@@ -4087,8 +4105,9 @@ RawFunction* Class::CheckFunctionType(const Function& func, MemberKind kind) {
 
 
 RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
   }
   REUSABLE_ARRAY_HANDLESCOPE(isolate);
@@ -4134,8 +4153,9 @@ RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
 
 RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
                                                MemberKind kind) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
   }
   REUSABLE_ARRAY_HANDLESCOPE(isolate);
@@ -4172,8 +4192,9 @@ RawFunction* Class::LookupSetterFunction(const String& name) const {
 RawFunction* Class::LookupAccessorFunction(const char* prefix,
                                            intptr_t prefix_length,
                                            const String& name) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
   }
   REUSABLE_ARRAY_HANDLESCOPE(isolate);
@@ -4200,8 +4221,9 @@ RawFunction* Class::LookupAccessorFunction(const char* prefix,
 RawFunction* Class::LookupFunctionAtToken(intptr_t token_pos) const {
   // TODO(hausner): we can shortcut the negative case if we knew the
   // beginning and end token position of the class.
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
   }
   Function& func = Function::Handle(isolate);
@@ -4239,8 +4261,9 @@ RawField* Class::LookupField(const String& name) const {
 
 
 RawField* Class::LookupField(const String& name, MemberKind kind) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (EnsureIsFinalized(thread) != Error::null()) {
     return Field::null();
   }
   REUSABLE_ARRAY_HANDLESCOPE(isolate);
@@ -4313,7 +4336,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
 
-  const Error& err = Error::Handle(EnsureIsFinalized(Isolate::Current()));
+  const Error& err = Error::Handle(EnsureIsFinalized(Thread::Current()));
   if (!err.IsNull()) {
     jsobj.AddProperty("error", err);
   }
@@ -5313,9 +5336,7 @@ void Function::SwitchToUnoptimizedCode() const {
       ToFullyQualifiedCString(),
       current_code.EntryPoint());
   }
-  // Patch entry of the optimized code.
-  CodePatcher::PatchEntry(
-      current_code, Code::Handle(StubCode::FixCallersTarget_entry()->code()));
+  current_code.DisableDartCode();
   const Error& error = Error::Handle(zone,
       Compiler::EnsureUnoptimizedCode(thread, *this));
   if (!error.IsNull()) {
@@ -5323,7 +5344,7 @@ void Function::SwitchToUnoptimizedCode() const {
   }
   const Code& unopt_code = Code::Handle(zone, unoptimized_code());
   AttachCode(unopt_code);
-  CodePatcher::RestoreEntry(unopt_code);
+  unopt_code.Enable();
   isolate->TrackDeoptimizedCode(current_code);
 }
 
@@ -5853,7 +5874,9 @@ bool Function::AreValidArgumentCounts(intptr_t num_arguments,
                   "%" Pd " named passed, at most %" Pd " expected",
                   num_named_arguments,
                   NumOptionalNamedParameters());
-      *error_message = String::New(message_buffer);
+      // Allocate in old space because it can be invoked in background
+      // optimizing compilation.
+      *error_message = String::New(message_buffer, Heap::kOld);
     }
     return false;  // Too many named arguments.
   }
@@ -5873,7 +5896,9 @@ bool Function::AreValidArgumentCounts(intptr_t num_arguments,
                   num_opt_pos_params > 0 ? " positional" : "",
                   num_opt_pos_params > 0 ? "at most " : "",
                   num_pos_params - num_hidden_params);
-      *error_message = String::New(message_buffer);
+      // Allocate in old space because it can be invoked in background
+      // optimizing compilation.
+      *error_message = String::New(message_buffer, Heap::kOld);
     }
     return false;  // Too many fixed and/or positional arguments.
   }
@@ -5890,7 +5915,9 @@ bool Function::AreValidArgumentCounts(intptr_t num_arguments,
                   num_opt_pos_params > 0 ? " positional" : "",
                   num_opt_pos_params > 0 ? "at least " : "",
                   num_fixed_parameters() - num_hidden_params);
-      *error_message = String::New(message_buffer);
+      // Allocate in old space because it can be invoked in background
+      // optimizing compilation.
+      *error_message = String::New(message_buffer, Heap::kOld);
     }
     return false;  // Too few fixed and/or positional arguments.
   }
@@ -5935,7 +5962,9 @@ bool Function::AreValidArguments(intptr_t num_arguments,
                     kMessageBufferSize,
                     "no optional formal parameter named '%s'",
                     argument_name.ToCString());
-        *error_message = String::New(message_buffer);
+        // Allocate in old space because it can be invoked in background
+        // optimizing compilation.
+        *error_message = String::New(message_buffer, Heap::kOld);
       }
       return false;
     }
@@ -5981,7 +6010,9 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
                     kMessageBufferSize,
                     "no optional formal parameter named '%s'",
                     argument_name.ToCString());
-        *error_message = String::New(message_buffer);
+        // Allocate in old space because it can be invoked in background
+        // optimizing compilation.
+        *error_message = String::New(message_buffer, Heap::kOld);
       }
       return false;
     }
@@ -7110,7 +7141,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Class& cls = Class::Handle(Owner());
   ASSERT(!cls.IsNull());
   Error& err = Error::Handle();
-  err ^= cls.EnsureIsFinalized(Isolate::Current());
+  err ^= cls.EnsureIsFinalized(Thread::Current());
   ASSERT(err.IsNull());
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Function", ref);
@@ -10240,6 +10271,11 @@ RawLibrary* Library::TypedDataLibrary() {
 }
 
 
+RawLibrary* Library::VMServiceLibrary() {
+  return Isolate::Current()->object_store()->vmservice_library();
+}
+
+
 const char* Library::ToCString() const {
   const String& name = String::Handle(url());
   return OS::SCreate(Thread::Current()->zone(),
@@ -10579,7 +10615,7 @@ class PrefixDependentArray : public WeakCodeReferences {
       THR_Print("Prefix '%s': disabling %s code for %s function '%s'\n",
           String::Handle(prefix_.name()).ToCString(),
           code.is_optimized() ? "optimized" : "unoptimized",
-          CodePatcher::IsEntryPatched(code) ? "patched" : "unpatched",
+          code.IsDisabled() ? "'patched'" : "'unpatched'",
           Function::Handle(code.function()).ToCString());
     }
   }
@@ -10833,7 +10869,7 @@ RawError* Library::CompileAll() {
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      error = cls.EnsureIsFinalized(Isolate::Current());
+      error = cls.EnsureIsFinalized(Thread::Current());
       if (!error.IsNull()) {
         return error.raw();
       }
@@ -13285,6 +13321,24 @@ bool Code::IsFunctionCode() const {
 }
 
 
+void Code::DisableDartCode() const {
+  ASSERT(IsFunctionCode());
+  ASSERT(instructions() == active_instructions());
+  const Code& new_code =
+      Code::Handle(StubCode::FixCallersTarget_entry()->code());
+  set_active_instructions(new_code.instructions());
+}
+
+
+void Code::DisableStubCode() const {
+ASSERT(IsAllocationStubCode());
+  ASSERT(instructions() == active_instructions());
+  const Code& new_code =
+      Code::Handle(StubCode::FixAllocationStubTarget_entry()->code());
+  set_active_instructions(new_code.instructions());
+}
+
+
 void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Code", ref);
@@ -14261,9 +14315,10 @@ RawUnwindError* UnwindError::New(const String& message, Heap::Space space) {
                                       space);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.StoreNonPointer(&result.raw_ptr()->is_user_initiated_, false);
   }
   result.set_message(message);
+  result.set_is_user_initiated(false);
+  result.set_is_vm_restart(false);
   return result.raw();
 }
 
@@ -14275,6 +14330,11 @@ void UnwindError::set_message(const String& message) const {
 
 void UnwindError::set_is_user_initiated(bool value) const {
   StoreNonPointer(&raw_ptr()->is_user_initiated_, value);
+}
+
+
+void UnwindError::set_is_vm_restart(bool value) const {
+  StoreNonPointer(&raw_ptr()->is_vm_restart_, value);
 }
 
 
@@ -14295,6 +14355,8 @@ void UnwindError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("kind", "TerminationError");
   jsobj.AddServiceId(*this);
   jsobj.AddProperty("message", ToErrorCString());
+  jsobj.AddProperty("_is_user_initiated", is_user_initiated());
+  jsobj.AddProperty("_is_vm_restart", is_vm_restart());
 }
 
 
@@ -14418,9 +14480,12 @@ RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
   if (!CheckAndCanonicalizeFields(error_str)) {
     return Instance::null();
   }
-  Instance& result = Instance::Handle();
-  const Class& cls = Class::Handle(this->clazz());
-  Array& constants = Array::Handle(cls.constants());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  Instance& result = Instance::Handle(zone);
+  const Class& cls = Class::Handle(zone, this->clazz());
+  Array& constants = Array::Handle(zone, cls.constants());
   const intptr_t constants_len = constants.Length();
   // Linear search to see whether this value is already present in the
   // list of canonicalized constants.
@@ -14439,7 +14504,23 @@ RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
   // The value needs to be added to the list. Grow the list if
   // it is full.
   result ^= this->raw();
-  if (result.IsNew()) {
+  if (result.IsNew() ||
+      (result.InVMHeap() && (isolate != Dart::vm_isolate()))) {
+    /**
+     * When a snapshot is generated on a 64 bit architecture and then read
+     * into a 32 bit architecture, values which are Smi on the 64 bit
+     * architecture could potentially be converted to Mint objects, however
+     * since Smi values do not have any notion of canonical bits we lose
+     * that information when the object becomes a Mint.
+     * Some of these values could be literal values and end up in the
+     * VM isolate heap. Later when these values are referenced in a
+     * constant list we try to ensure that all the objects in the list
+     * are canonical and try to canonicalize them. When these Mint objects
+     * are encountered they do not have the canonical bit set and
+     * canonicalizing them won't work as the VM heap is read only now.
+     * In these cases we clone the object into the isolate and then
+     * canonicalize it.
+     */
     // Create a canonical object in old space.
     result ^= Object::Clone(result, Heap::kOld);
   }
@@ -14503,8 +14584,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   }
   Isolate* isolate = Isolate::Current();
   const Class& cls = Class::Handle(isolate, clazz());
-  TypeArguments& type_arguments =
-      TypeArguments::Handle(isolate);
+  TypeArguments& type_arguments = TypeArguments::Handle(isolate);
   if (cls.NumTypeArguments() > 0) {
     type_arguments = GetTypeArguments();
     ASSERT(type_arguments.IsNull() || type_arguments.IsCanonical());
@@ -14630,8 +14710,8 @@ bool Instance::IsCallable(Function* function) const {
 
 
 RawInstance* Instance::New(const Class& cls, Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-  if (cls.EnsureIsFinalized(isolate) != Error::null()) {
+  Thread* thread = Thread::Current();
+  if (cls.EnsureIsFinalized(thread) != Error::null()) {
     return Instance::null();
   }
   intptr_t instance_size = cls.instance_size();
@@ -15611,18 +15691,19 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
   if (arguments() == other_type.arguments()) {
     return true;
   }
-  Isolate* isolate = Isolate::Current();
-  const Class& cls = Class::Handle(isolate, type_class());
-  const intptr_t num_type_params = cls.NumTypeParameters(isolate);
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Class& cls = Class::Handle(zone, type_class());
+  const intptr_t num_type_params = cls.NumTypeParameters(thread);
   if (num_type_params == 0) {
     // Shortcut unnecessary handle allocation below.
     return true;
   }
   const intptr_t num_type_args = cls.NumTypeArguments();
   const intptr_t from_index = num_type_args - num_type_params;
-  const TypeArguments& type_args = TypeArguments::Handle(isolate, arguments());
+  const TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
   const TypeArguments& other_type_args = TypeArguments::Handle(
-      isolate, other_type.arguments());
+      zone, other_type.arguments());
   if (type_args.IsNull()) {
     // Ignore from_index.
     return other_type_args.IsRaw(0, num_type_args);
@@ -15642,8 +15723,8 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
     // depend solely on the type parameters that were just verified to match.
     ASSERT(type_args.Length() >= (from_index + num_type_params));
     ASSERT(other_type_args.Length() >= (from_index + num_type_params));
-    AbstractType& type_arg = AbstractType::Handle(isolate);
-    AbstractType& other_type_arg = AbstractType::Handle(isolate);
+    AbstractType& type_arg = AbstractType::Handle(zone);
+    AbstractType& other_type_arg = AbstractType::Handle(zone);
     for (intptr_t i = 0; i < from_index; i++) {
       type_arg = type_args.TypeAt(i);
       other_type_arg = other_type_args.TypeAt(i);

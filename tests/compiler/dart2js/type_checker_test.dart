@@ -75,10 +75,11 @@ testSimpleTypes(MockCompiler compiler) {
     Expect.equals(type, analyzeType(compiler, code));
   }
 
-  checkType(compiler.intClass.computeType(compiler), "3");
-  checkType(compiler.boolClass.computeType(compiler), "false");
-  checkType(compiler.boolClass.computeType(compiler), "true");
-  checkType(compiler.stringClass.computeType(compiler), "'hestfisk'");
+  checkType(compiler.intClass.computeType(compiler.resolution), "3");
+  checkType(compiler.boolClass.computeType(compiler.resolution), "false");
+  checkType(compiler.boolClass.computeType(compiler.resolution), "true");
+  checkType(
+      compiler.stringClass.computeType(compiler.resolution), "'hestfisk'");
 }
 
 Future testReturn(MockCompiler compiler) {
@@ -175,7 +176,7 @@ class Class {
 """;
   compiler.parseScript(script);
   ClassElement foo = compiler.mainApp.find("Class");
-  foo.ensureResolved(compiler);
+  foo.ensureResolved(compiler.resolution);
   FunctionElement method = foo.lookupLocalMember('forIn');
 
   analyzeIn(compiler, method, """{ 
@@ -308,7 +309,7 @@ class Class {
 """;
   compiler.parseScript(script);
   ClassElement foo = compiler.mainApp.find("Class");
-  foo.ensureResolved(compiler);
+  foo.ensureResolved(compiler.resolution);
   FunctionElement method = foo.lookupLocalMember('forIn');
 
   analyzeIn(compiler, method, """{
@@ -894,11 +895,11 @@ Future testMethodInvocationsInClass(MockCompiler compiler) {
     LibraryElement library = compiler.mainApp;
     compiler.parseScript(CLASS_WITH_METHODS, library);
     ClassElement ClassWithMethods = library.find("ClassWithMethods");
-    ClassWithMethods.ensureResolved(compiler);
+    ClassWithMethods.ensureResolved(compiler.resolution);
     Element c = ClassWithMethods.lookupLocalMember('method');
     assert(c != null);
     ClassElement SubClass = library.find("SubClass");
-    SubClass.ensureResolved(compiler);
+    SubClass.ensureResolved(compiler.resolution);
     Element d = SubClass.lookupLocalMember('method');
     assert(d != null);
 
@@ -1190,7 +1191,7 @@ testThis(MockCompiler compiler) {
                      }""";
   compiler.parseScript(script);
   ClassElement foo = compiler.mainApp.find("Foo");
-  foo.ensureResolved(compiler);
+  foo.ensureResolved(compiler.resolution);
   Element method = foo.lookupLocalMember('method');
   analyzeIn(compiler, method, "{ int i = this; }", warnings: NOT_ASSIGNABLE);
   analyzeIn(compiler, method, "{ Object o = this; }");
@@ -1210,7 +1211,7 @@ testSuper(MockCompiler compiler) {
     ''';
   compiler.parseScript(script);
   ClassElement B = compiler.mainApp.find("B");
-  B.ensureResolved(compiler);
+  B.ensureResolved(compiler.resolution);
   Element method = B.lookupLocalMember('method');
   analyzeIn(compiler, method, "{ int i = super.field; }",
       warnings: NOT_ASSIGNABLE);
@@ -1517,7 +1518,7 @@ void testTypeVariableExpressions(MockCompiler compiler) {
                      }""";
   compiler.parseScript(script);
   ClassElement foo = compiler.mainApp.find("Foo");
-  foo.ensureResolved(compiler);
+  foo.ensureResolved(compiler.resolution);
   Element method = foo.lookupLocalMember('method');
 
   analyzeIn(compiler, method, "{ Type type = T; }");
@@ -1552,7 +1553,7 @@ class Test<S extends Foo, T> {
 
   compiler.parseScript(script);
   ClassElement classTest = compiler.mainApp.find("Test");
-  classTest.ensureResolved(compiler);
+  classTest.ensureResolved(compiler.resolution);
   FunctionElement methodTest = classTest.lookupLocalMember("test");
 
   test(String expression, [message]) {
@@ -1592,7 +1593,7 @@ class Test<S extends T, T extends Foo> {
 
   compiler.parseScript(script);
   ClassElement classTest = compiler.mainApp.find("Test");
-  classTest.ensureResolved(compiler);
+  classTest.ensureResolved(compiler.resolution);
   FunctionElement methodTest = classTest.lookupLocalMember("test");
 
   test(String expression, [message]) {
@@ -1614,7 +1615,7 @@ class Test<S extends T, T extends S> {
 
   compiler.parseScript(script);
   ClassElement classTest = compiler.mainApp.find("Test");
-  classTest.ensureResolved(compiler);
+  classTest.ensureResolved(compiler.resolution);
   FunctionElement methodTest = classTest.lookupLocalMember("test");
 
   test(String expression, [message]) {
@@ -2325,7 +2326,7 @@ testAwait(MockCompiler compiler) {
                      }""";
   compiler.parseScript(script);
   ClassElement foo = compiler.mainApp.find("Foo");
-  foo.ensureResolved(compiler);
+  foo.ensureResolved(compiler.resolution);
   FunctionElement method = foo.lookupLocalMember('method');
   analyzeIn(compiler, method, "{ await 0; }");
   analyzeIn(compiler, method, "{ int i = await 0; }");
@@ -2505,17 +2506,17 @@ analyzeTopLevel(String text, [expectedWarnings]) {
       element = elements.head;
       if (element.isClass) {
         ClassElementX classElement = element;
-        classElement.ensureResolved(compiler);
+        classElement.ensureResolved(compiler.resolution);
         classElement.forEachLocalMember((Element e) {
           if (!e.isSynthesized) {
             element = e;
-            node = element.parseNode(compiler);
+            node = element.parseNode(compiler.parsing);
             compiler.resolver.resolve(element);
             mapping = element.treeElements;
           }
         });
       } else {
-        node = element.parseNode(compiler);
+        node = element.parseNode(compiler.parsing);
         compiler.resolver.resolve(element);
         mapping = element.treeElements;
       }
@@ -2549,7 +2550,7 @@ analyze(MockCompiler compiler,
   compiler.diagnosticHandler = createHandler(compiler, text);
 
   Token tokens = scan(text);
-  NodeListener listener = new NodeListener(compiler, null);
+  NodeListener listener = new NodeListener(compiler.reporter, null);
   Parser parser = new Parser(listener);
   parser.parseStatement(tokens);
   Node node = listener.popNode();
@@ -2596,7 +2597,7 @@ analyzeIn(MockCompiler compiler,
 
   compiler.resolver.resolve(element);
   Token tokens = scan(text);
-  NodeListener listener = new NodeListener(compiler, null);
+  NodeListener listener = new NodeListener(compiler.reporter, null);
   Parser parser = new Parser(listener,
       yieldIsKeyword: element.asyncMarker.isYielding,
       awaitIsKeyword: element.asyncMarker.isAsync);

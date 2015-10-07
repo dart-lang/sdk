@@ -21,7 +21,9 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/visitors.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
+import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/html.dart';
@@ -291,6 +293,17 @@ final ListResultDescriptor<AnalysisError> LIBRARY_UNIT_ERRORS =
         'LIBRARY_UNIT_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
+ * The errors produced while generating lints for a compilation unit.
+ *
+ * The list will be empty if there were no errors, but will not be `null`.
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ListResultDescriptor<AnalysisError> LINTS =
+    new ListResultDescriptor<AnalysisError>(
+        'LINT_ERRORS', AnalysisError.NO_ERRORS);
+
+/**
  * The errors produced while parsing a compilation unit.
  *
  * The list will be empty if there were no errors, but will not be `null`.
@@ -537,7 +550,7 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     //
     // Build or reuse CompilationUnitElement.
     //
-    unit = AstCloner.clone(unit);
+//    unit = AstCloner.clone(unit);
     AnalysisCache analysisCache =
         (context as InternalAnalysisContext).analysisCache;
     CompilationUnitElement element =
@@ -573,7 +586,7 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      PARSED_UNIT_INPUT_NAME: PARSED_UNIT.of(unit.unit)
+      PARSED_UNIT_INPUT_NAME: PARSED_UNIT.of(unit.unit, flushOnAccess: true)
     };
   }
 
@@ -2419,6 +2432,92 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
 }
 
 /**
+ * A task that generates [LINTS] for a unit.
+ */
+class GenerateLintsTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [RESOLVED_UNIT8] input.
+   */
+  static const String RESOLVED_UNIT_INPUT = 'RESOLVED_UNIT';
+
+  /**
+   * The name of a list of [USED_LOCAL_ELEMENTS] for each library unit input.
+   */
+  static const String USED_LOCAL_ELEMENTS_INPUT = 'USED_LOCAL_ELEMENTS';
+
+  /**
+   * The name of a list of [USED_IMPORTED_ELEMENTS] for each library unit input.
+   */
+  static const String USED_IMPORTED_ELEMENTS_INPUT = 'USED_IMPORTED_ELEMENTS';
+
+  /**
+   * The name of the [TYPE_PROVIDER] input.
+   */
+  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'GenerateLintsTask', createTask, buildInputs, <ResultDescriptor>[LINTS]);
+
+  GenerateLintsTask(InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    AnalysisOptions analysisOptions = context.analysisOptions;
+    if (!analysisOptions.lint) {
+      outputs[LINTS] = AnalysisError.NO_ERRORS;
+      return;
+    }
+    //
+    // Prepare collectors.
+    //
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    Source source = getRequiredSource();
+    ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
+    //
+    // Prepare inputs.
+    //
+    CompilationUnit unit = getRequiredInput(RESOLVED_UNIT_INPUT);
+
+    //
+    // Generate lints.
+    //
+    LintGenerator.LINTERS.forEach((l) => l.reporter = errorReporter);
+    Iterable<AstVisitor> visitors =
+        LintGenerator.LINTERS.map((l) => l.getVisitor()).toList();
+    unit.accept(new DelegatingAstVisitor(visitors.where((v) => v != null)));
+
+    //
+    // Record outputs.
+    //
+    outputs[LINTS] = errorListener.errors;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) =>
+      <String, TaskInput>{RESOLVED_UNIT_INPUT: RESOLVED_UNIT.of(target)};
+
+  /**
+   * Create a [GenerateLintsTask] based on the given [target] in
+   * the given [context].
+   */
+  static GenerateLintsTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new GenerateLintsTask(context, target);
+  }
+}
+
+/**
  * A task that ensures that all of the inferrable instance members in a
  * compilation unit have had their type inferred.
  */
@@ -2804,9 +2903,24 @@ class LibraryErrorsReadyTask extends SourceBasedAnalysisTask {
  */
 class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
   /**
+   * The name of the [BUILD_DIRECTIVES_ERRORS] input.
+   */
+  static const String BUILD_DIRECTIVES_ERRORS_INPUT = 'BUILD_DIRECTIVES_ERRORS';
+
+  /**
+   * The name of the [BUILD_LIBRARY_ERRORS] input.
+   */
+  static const String BUILD_LIBRARY_ERRORS_INPUT = 'BUILD_LIBRARY_ERRORS';
+
+  /**
    * The name of the [HINTS] input.
    */
   static const String HINTS_INPUT = 'HINTS';
+
+  /**
+   * The name of the [LINTS] input.
+   */
+  static const String LINTS_INPUT = 'LINTS';
 
   /**
    * The name of the [INFER_STATIC_VARIABLE_TYPES_ERRORS] input.
@@ -2864,7 +2978,10 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
     // Prepare inputs.
     //
     List<List<AnalysisError>> errorLists = <List<AnalysisError>>[];
+    errorLists.add(getRequiredInput(BUILD_DIRECTIVES_ERRORS_INPUT));
+    errorLists.add(getRequiredInput(BUILD_LIBRARY_ERRORS_INPUT));
     errorLists.add(getRequiredInput(HINTS_INPUT));
+    errorLists.add(getRequiredInput(LINTS_INPUT));
     errorLists.add(getRequiredInput(INFER_STATIC_VARIABLE_TYPES_ERRORS_INPUT));
     errorLists.add(getRequiredInput(PARTIALLY_RESOLVE_REFERENCES_ERRORS_INPUT));
     errorLists.add(getRequiredInput(RESOLVE_FUNCTION_BODIES_ERRORS_INPUT));
@@ -2884,8 +3001,9 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
-    return <String, TaskInput>{
+    Map<String, TaskInput> inputs = <String, TaskInput>{
       HINTS_INPUT: HINTS.of(unit),
+      LINTS_INPUT: LINTS.of(unit),
       INFER_STATIC_VARIABLE_TYPES_ERRORS_INPUT:
           INFER_STATIC_VARIABLE_TYPES_ERRORS.of(unit),
       PARTIALLY_RESOLVE_REFERENCES_ERRORS_INPUT:
@@ -2896,6 +3014,18 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
       VARIABLE_REFERENCE_ERRORS_INPUT: VARIABLE_REFERENCE_ERRORS.of(unit),
       VERIFY_ERRORS_INPUT: VERIFY_ERRORS.of(unit)
     };
+    Source source = unit.source;
+    if (unit.library == source) {
+      inputs[BUILD_DIRECTIVES_ERRORS_INPUT] =
+          BUILD_DIRECTIVES_ERRORS.of(source);
+      inputs[BUILD_LIBRARY_ERRORS_INPUT] = BUILD_LIBRARY_ERRORS.of(source);
+    } else {
+      inputs[BUILD_DIRECTIVES_ERRORS_INPUT] =
+          new ConstantTaskInput(AnalysisError.NO_ERRORS);
+      inputs[BUILD_LIBRARY_ERRORS_INPUT] =
+          new ConstantTaskInput(AnalysisError.NO_ERRORS);
+    }
+    return inputs;
   }
 
   /**
@@ -3730,7 +3860,7 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
       LIBRARY_INPUT: LIBRARY_ELEMENT1.of(unit.library),
-      UNIT_INPUT: RESOLVED_UNIT1.of(unit),
+      UNIT_INPUT: RESOLVED_UNIT3.of(unit),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }
@@ -3788,8 +3918,10 @@ class ScanDartTask extends SourceBasedAnalysisTask {
           message = exception.toString();
         }
       }
-      errorListener.onError(new AnalysisError(
-          source, 0, 0, ScannerErrorCode.UNABLE_GET_CONTENT, [message]));
+      if (source.exists()) {
+        errorListener.onError(new AnalysisError(
+            source, 0, 0, ScannerErrorCode.UNABLE_GET_CONTENT, [message]));
+      }
     }
     if (target is DartScript) {
       DartScript script = target;
@@ -4085,6 +4217,9 @@ class _SourceClosureTaskInputBuilder implements TaskInputBuilder<List<Source>> {
       }
     }
   }
+
+  @override
+  bool get flushOnAccess => false;
 
   @override
   List<Source> get inputValue {

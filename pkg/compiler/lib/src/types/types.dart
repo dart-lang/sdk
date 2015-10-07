@@ -10,13 +10,13 @@ import '../common/tasks.dart' show
     CompilerTask;
 import '../compiler.dart' show
     Compiler;
+import '../constants/values.dart' show
+    PrimitiveConstantValue;
 import '../diagnostics/invariant.dart' show
     invariant;
 import '../diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE;
 import '../elements/elements.dart';
-import '../inferrer/concrete_types_inferrer.dart' show
-    ConcreteTypesInferrer;
 import '../inferrer/type_graph_inferrer.dart' show
     TypeGraphInferrer;
 import '../tree/tree.dart';
@@ -64,15 +64,11 @@ class TypesTask extends CompilerTask {
   final String name = 'Type inference';
   final ClassWorld classWorld;
   TypesInferrer typesInferrer;
-  ConcreteTypesInferrer concreteTypesInferrer;
 
   TypesTask(Compiler compiler)
       : this.classWorld = compiler.world,
         super(compiler) {
     typesInferrer = new TypeGraphInferrer(compiler);
-    if (compiler.enableConcreteTypeInference) {
-      concreteTypesInferrer = new ConcreteTypesInferrer(compiler);
-    }
   }
 
   TypeMask dynamicTypeCache;
@@ -284,15 +280,6 @@ class TypesTask extends CompilerTask {
   void onResolutionComplete(Element mainElement) {
     measure(() {
       typesInferrer.analyzeMain(mainElement);
-      if (concreteTypesInferrer != null) {
-        bool success = concreteTypesInferrer.analyzeMain(mainElement);
-        if (!success) {
-          // If the concrete type inference bailed out, we pretend it didn't
-          // happen. In the future we might want to record that it failed but
-          // use the partial results as hints.
-          concreteTypesInferrer = null;
-        }
-      }
     });
     typesInferrer.clear();
   }
@@ -303,11 +290,7 @@ class TypesTask extends CompilerTask {
   TypeMask getGuaranteedTypeOfElement(Element element) {
     return measure(() {
       TypeMask guaranteedType = typesInferrer.getTypeOfElement(element);
-      return (concreteTypesInferrer == null)
-          ? guaranteedType
-          : intersection(guaranteedType,
-                         concreteTypesInferrer.getTypeOfElement(element),
-                         element);
+      return guaranteedType;
     });
   }
 
@@ -315,11 +298,7 @@ class TypesTask extends CompilerTask {
     return measure(() {
       TypeMask guaranteedType =
           typesInferrer.getReturnTypeOfElement(element);
-      return (concreteTypesInferrer == null)
-          ? guaranteedType
-          : intersection(guaranteedType,
-                         concreteTypesInferrer.getReturnTypeOfElement(element),
-                         element);
+      return guaranteedType;
     });
   }
 
@@ -330,11 +309,7 @@ class TypesTask extends CompilerTask {
   TypeMask getGuaranteedTypeOfNode(owner, node) {
     return measure(() {
       TypeMask guaranteedType = typesInferrer.getTypeOfNode(owner, node);
-      return (concreteTypesInferrer == null)
-          ? guaranteedType
-          : intersection(guaranteedType,
-                         concreteTypesInferrer.getTypeOfNode(owner, node),
-                         node);
+      return guaranteedType;
     });
   }
 
@@ -345,12 +320,7 @@ class TypesTask extends CompilerTask {
     return measure(() {
       TypeMask guaranteedType =
           typesInferrer.getTypeOfSelector(selector, mask);
-      return (concreteTypesInferrer == null)
-          ? guaranteedType
-          : intersection(
-              guaranteedType,
-              concreteTypesInferrer.getTypeOfSelector(selector, mask),
-              selector);
+      return guaranteedType;
     });
   }
 }

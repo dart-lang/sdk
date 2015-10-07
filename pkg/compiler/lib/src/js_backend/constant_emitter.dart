@@ -39,6 +39,8 @@ class ConstantEmitter
       jsAst.Expression this.constantReferenceGenerator(ConstantValue constant),
       this.makeConstantList);
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   /**
    * Constructs a literal expression that evaluates to the constant. Uses a
    * canonical name unless the constant can be emitted multiple times (as for
@@ -54,7 +56,7 @@ class ConstantEmitter
 
   @override
   jsAst.Expression visitFunction(FunctionConstantValue constant, [_]) {
-    compiler.internalError(NO_LOCATION_SPANNABLE,
+    reporter.internalError(NO_LOCATION_SPANNABLE,
         "The function constant does not need specific JS code.");
     return null;
   }
@@ -220,7 +222,7 @@ class ConstantEmitter
           } else if (field.name == JavaScriptMapConstant.JS_DATA_NAME) {
             arguments.add(jsGeneralMap());
           } else {
-            compiler.internalError(field,
+            reporter.internalError(field,
                 "Compiler has unexpected field ${field.name} for "
                 "${className}.");
           }
@@ -233,7 +235,7 @@ class ConstantEmitter
          emittedArgumentCount != 4) ||
         (className == JavaScriptMapConstant.DART_GENERAL_CLASS &&
          emittedArgumentCount != 1)) {
-      compiler.internalError(classElement,
+      reporter.internalError(classElement,
           "Compiler and ${className} disagree on number of fields.");
     }
 
@@ -273,7 +275,7 @@ class ConstantEmitter
       case SyntheticConstantKind.NAME:
         return constant.payload;
       default:
-        compiler.internalError(NO_LOCATION_SPANNABLE,
+        reporter.internalError(NO_LOCATION_SPANNABLE,
                                "Unexpected DummyConstantKind ${constant.kind}");
         return null;
     }

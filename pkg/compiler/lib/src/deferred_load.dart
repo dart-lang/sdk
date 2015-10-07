@@ -6,6 +6,8 @@ library deferred_load;
 
 import 'common/backend_api.dart' show
     Backend;
+import 'common/resolution.dart' show
+    Resolution;
 import 'common/tasks.dart' show
     CompilerTask;
 import 'compiler.dart' show
@@ -201,7 +203,7 @@ class DeferredLoadTask extends CompilerTask {
     String name =
         _importDeferName[new _DeclaredDeferredImport(prefix.deferredImport)];
     if (name == null) {
-      compiler.internalError(node, "No deferred name for $prefix.");
+      reporter.internalError(node, "No deferred name for $prefix.");
     }
     return name;
   }
@@ -283,7 +285,7 @@ class DeferredLoadTask extends CompilerTask {
         collectTypeDependencies(type.returnType);
       } else if (type is TypedefType) {
         elements.add(type.element);
-        collectTypeDependencies(type.unalias(compiler));
+        collectTypeDependencies(type.unalias(compiler.resolution));
       } else if (type is InterfaceType) {
         elements.add(type.element);
       }
@@ -302,7 +304,7 @@ class DeferredLoadTask extends CompilerTask {
       // TODO(sigurdm): We want to be more specific about this - need a better
       // way to query "liveness".
       if (astElement is! TypedefElement &&
-          !compiler.enqueuer.resolution.hasBeenResolved(astElement)) {
+          !compiler.enqueuer.resolution.hasBeenProcessed(astElement)) {
         return;
       }
 
@@ -354,7 +356,7 @@ class DeferredLoadTask extends CompilerTask {
       // to.  Static members are not relevant, unless we are processing
       // extra dependencies due to mirrors.
       void addLiveInstanceMember(Element element) {
-        if (!compiler.enqueuer.resolution.hasBeenResolved(element)) return;
+        if (!compiler.enqueuer.resolution.hasBeenProcessed(element)) return;
         if (!isMirrorUsage && !element.isInstanceMember) return;
         collectDependencies(element.implementation);
       }
@@ -714,7 +716,7 @@ class DeferredLoadTask extends CompilerTask {
     Map<String, ImportElement> prefixDeferredImport =
         new Map<String, ImportElement>();
     for (LibraryElement library in compiler.libraryLoader.libraries) {
-      compiler.withCurrentElement(library, () {
+      reporter.withCurrentElement(library, () {
         prefixDeferredImport.clear();
         usedPrefixes.clear();
         // TODO(sigurdm): Make helper getLibraryImportTags when tags is a List
@@ -724,12 +726,12 @@ class DeferredLoadTask extends CompilerTask {
           List<MetadataAnnotation> metadataList = import.metadata;
           if (metadataList != null) {
             for (MetadataAnnotation metadata in metadataList) {
-              metadata.ensureResolved(compiler);
+              metadata.ensureResolved(compiler.resolution);
               ConstantValue value =
                   compiler.constants.getConstantValue(metadata.constant);
               Element element = value.getType(compiler.coreTypes).element;
               if (element == deferredLibraryClass) {
-                 compiler.reportErrorMessage(
+                 reporter.reportErrorMessage(
                      import, MessageKind.DEFERRED_OLD_SYNTAX);
               }
             }
@@ -746,7 +748,7 @@ class DeferredLoadTask extends CompilerTask {
             _allDeferredImports[key] = importedLibrary;
 
             if (prefix == null) {
-              compiler.reportErrorMessage(
+              reporter.reportErrorMessage(
                   import,
                   MessageKind.DEFERRED_LIBRARY_WITHOUT_PREFIX);
             } else {
@@ -763,7 +765,7 @@ class DeferredLoadTask extends CompilerTask {
               ImportElement failingImport = (previousDeferredImport != null)
                   ? previousDeferredImport
                   : import;
-              compiler.reportErrorMessage(
+              reporter.reportErrorMessage(
                   failingImport.prefix,
                   MessageKind.DEFERRED_LIBRARY_DUPLICATE_PREFIX);
             }
@@ -922,7 +924,7 @@ class _DeclaredDeferredImport implements _DeferredImport {
       List<MetadataAnnotation> metadatas = declaration.metadata;
       assert(metadatas != null);
       for (MetadataAnnotation metadata in metadatas) {
-        metadata.ensureResolved(compiler);
+        metadata.ensureResolved(compiler.resolution);
         ConstantValue value =
             compiler.constants.getConstantValue(metadata.constant);
         Element element = value.getType(compiler.coreTypes).element;

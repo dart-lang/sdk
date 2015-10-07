@@ -44,6 +44,10 @@ typedef TypeResolverVisitor TypeResolverVisitorFactory(
 
 typedef void VoidFunction();
 
+typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<Element> visited);
+
+typedef bool _SubtypeChecker<T>(T t1, T t2);
+
 /**
  * Instances of the class `BestPracticesVerifier` traverse an AST structure looking for
  * violations of Dart best practices.
@@ -2511,6 +2515,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       //
       constructors = _createDefaultConstructors(interfaceType);
     }
+    _setDocRange(element, node);
     element.abstract = node.isAbstract;
     element.accessors = holder.accessors;
     element.constructors = constructors;
@@ -2584,6 +2589,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier constructorName = node.name;
     ConstructorElementImpl element =
         new ConstructorElementImpl.forNode(constructorName);
+    _setDocRange(element, node);
     if (node.externalKeyword != null) {
       element.external = true;
     }
@@ -2688,6 +2694,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier enumName = node.name;
     ClassElementImpl enumElement = new ClassElementImpl.forNode(enumName);
     enumElement.enum2 = true;
+    _setDocRange(enumElement, node);
     InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
     enumElement.type = enumType;
     // The equivalent code for enums in the spec shows a single constructor,
@@ -2760,6 +2767,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         SimpleIdentifier functionName = node.name;
         FunctionElementImpl element =
             new FunctionElementImpl.forNode(functionName);
+        _setDocRange(element, node);
         if (node.externalKeyword != null) {
           element.external = true;
         }
@@ -2806,6 +2814,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          _setDocRange(getter, node);
           if (node.externalKeyword != null) {
             getter.external = true;
           }
@@ -2831,6 +2840,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          _setDocRange(setter, node);
           if (node.externalKeyword != null) {
             setter.external = true;
           }
@@ -2917,6 +2927,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     List<TypeParameterElement> typeParameters = holder.typeParameters;
     FunctionTypeAliasElementImpl element =
         new FunctionTypeAliasElementImpl.forNode(aliasName);
+    _setDocRange(element, node);
     element.parameters = parameters;
     element.typeParameters = typeParameters;
     FunctionTypeImpl type = new FunctionTypeImpl.forTypedef(element);
@@ -2988,6 +2999,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         }
         MethodElementImpl element =
             new MethodElementImpl(nameOfMethod, methodName.offset);
+        _setDocRange(element, node);
         element.abstract = node.isAbstract;
         if (node.externalKeyword != null) {
           element.external = true;
@@ -3024,6 +3036,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          _setDocRange(getter, node);
           if (node.externalKeyword != null) {
             getter.external = true;
           }
@@ -3049,6 +3062,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          _setDocRange(setter, node);
           if (node.externalKeyword != null) {
             setter.external = true;
           }
@@ -3185,6 +3199,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         field = new FieldElementImpl.forNode(fieldName);
       }
       element = field;
+      if (node.parent.parent is FieldDeclaration) {
+        _setDocRange(element, node.parent.parent);
+      }
       if ((node.parent as VariableDeclarationList).type == null) {
         field.hasImplicitType = true;
       }
@@ -3347,6 +3364,17 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       parent = parent.parent;
     }
     return null;
+  }
+
+  /**
+   * If the given [node] has a documentation comment, remember its range
+   * into the given [element].
+   */
+  void _setDocRange(ElementImpl element, AnnotatedNode node) {
+    Comment comment = node.documentationComment;
+    if (comment != null && comment.isDocumentation) {
+      element.setDocRange(comment.offset, comment.length);
+    }
   }
 
   /**
@@ -7060,6 +7088,7 @@ class LibraryElementBuilder {
         .buildCompilationUnit(
             librarySource, definingCompilationUnit, librarySource);
     NodeList<Directive> directives = definingCompilationUnit.directives;
+    LibraryDirective libraryDirective = null;
     LibraryIdentifier libraryNameNode = null;
     bool hasPartDirective = false;
     FunctionElement entryPoint =
@@ -7077,6 +7106,7 @@ class LibraryElementBuilder {
       //
       if (directive is LibraryDirective) {
         if (libraryNameNode == null) {
+          libraryDirective = directive;
           libraryNameNode = directive.name;
           directivesToResolve.add(directive);
         }
@@ -7135,6 +7165,7 @@ class LibraryElementBuilder {
     //
     LibraryElementImpl libraryElement = new LibraryElementImpl.forNode(
         _analysisContext.getContextFor(librarySource), libraryNameNode);
+    _setDocRange(libraryElement, libraryDirective);
     libraryElement.definingCompilationUnit = definingCompilationUnitElement;
     if (entryPoint != null) {
       libraryElement.entryPoint = entryPoint;
@@ -7166,6 +7197,7 @@ class LibraryElementBuilder {
         .buildCompilationUnit(
             librarySource, definingCompilationUnit, librarySource);
     NodeList<Directive> directives = definingCompilationUnit.directives;
+    LibraryDirective libraryDirective = null;
     LibraryIdentifier libraryNameNode = null;
     bool hasPartDirective = false;
     FunctionElement entryPoint =
@@ -7183,6 +7215,7 @@ class LibraryElementBuilder {
       //
       if (directive is LibraryDirective) {
         if (libraryNameNode == null) {
+          libraryDirective = directive;
           libraryNameNode = directive.name;
           directivesToResolve.add(directive);
         }
@@ -7243,6 +7276,7 @@ class LibraryElementBuilder {
     //
     LibraryElementImpl libraryElement = new LibraryElementImpl.forNode(
         _analysisContext.getContextFor(librarySource), libraryNameNode);
+    _setDocRange(libraryElement, libraryDirective);
     libraryElement.definingCompilationUnit = definingCompilationUnitElement;
     if (entryPoint != null) {
       libraryElement.entryPoint = entryPoint;
@@ -7343,6 +7377,19 @@ class LibraryElementBuilder {
             getter.variable as PropertyInducingElementImpl;
         variable.setter = setter;
         (setter as PropertyAccessorElementImpl).variable = variable;
+      }
+    }
+  }
+
+  /**
+   * If the given [node] has a documentation comment, remember its range
+   * into the given [element].
+   */
+  void _setDocRange(ElementImpl element, LibraryDirective node) {
+    if (node != null) {
+      Comment comment = node.documentationComment;
+      if (comment != null && comment.isDocumentation) {
+        element.setDocRange(comment.offset, comment.length);
       }
     }
   }
@@ -8928,46 +8975,6 @@ class LibraryResolver2 {
 }
 
 /**
- * Instances of the class `TypeAliasInfo` hold information about a [TypeAlias].
- */
-class LibraryResolver2_TypeAliasInfo {
-  final ResolvableLibrary _library;
-
-  final Source _source;
-
-  final FunctionTypeAlias _typeAlias;
-
-  /**
-   * Initialize a newly created information holder with the given information.
-   *
-   * @param library the library containing the type alias
-   * @param source the source of the file containing the type alias
-   * @param typeAlias the type alias being remembered
-   */
-  LibraryResolver2_TypeAliasInfo(this._library, this._source, this._typeAlias);
-}
-
-/**
- * Instances of the class `TypeAliasInfo` hold information about a [TypeAlias].
- */
-class LibraryResolver_TypeAliasInfo {
-  final Library _library;
-
-  final Source _source;
-
-  final FunctionTypeAlias _typeAlias;
-
-  /**
-   * Initialize a newly created information holder with the given information.
-   *
-   * @param library the library containing the type alias
-   * @param source the source of the file containing the type alias
-   * @param typeAlias the type alias being remembered
-   */
-  LibraryResolver_TypeAliasInfo(this._library, this._source, this._typeAlias);
-}
-
-/**
  * Instances of the class `LibraryScope` implement a scope containing all of the names defined
  * in a given library.
  */
@@ -9261,8 +9268,7 @@ class Namespace {
    *
    * @return a table containing the same mappings as those defined by this namespace
    */
-  Map<String, Element> get definedNames =>
-      new HashMap<String, Element>.from(_definedNames);
+  Map<String, Element> get definedNames => _definedNames;
 
   /**
    * Return the element in this namespace that is available to the containing scope using the given
@@ -9412,7 +9418,7 @@ class NamespaceBuilder {
       List<NamespaceCombinator> combinators) {
     for (NamespaceCombinator combinator in combinators) {
       if (combinator is HideElementCombinator) {
-        _hide(definedNames, combinator.hiddenNames);
+        definedNames = _hide(definedNames, combinator.hiddenNames);
       } else if (combinator is ShowElementCombinator) {
         definedNames = _show(definedNames, combinator.shownNames);
       } else {
@@ -9491,24 +9497,22 @@ class NamespaceBuilder {
   }
 
   /**
-   * Hide all of the given names by removing them from the given collection of defined names.
-   *
-   * @param definedNames the names that were defined before this operation
-   * @param hiddenNames the names to be hidden
+   * Return a new map of names which has all the names from [definedNames]
+   * with exception of [hiddenNames].
    */
-  void _hide(HashMap<String, Element> definedNames, List<String> hiddenNames) {
+  Map<String, Element> _hide(
+      HashMap<String, Element> definedNames, List<String> hiddenNames) {
+    HashMap<String, Element> newNames =
+        new HashMap<String, Element>.from(definedNames);
     for (String name in hiddenNames) {
-      definedNames.remove(name);
-      definedNames.remove("$name=");
+      newNames.remove(name);
+      newNames.remove("$name=");
     }
+    return newNames;
   }
 
   /**
-   * Show only the given names by removing all other names from the given collection of defined
-   * names.
-   *
-   * @param definedNames the names that were defined before this operation
-   * @param shownNames the names to be shown
+   * Return a new map of names which has only [shownNames] from [definedNames].
    */
   HashMap<String, Element> _show(
       HashMap<String, Element> definedNames, List<String> shownNames) {
@@ -10544,6 +10548,14 @@ class ResolverVisitor extends ScopedVisitor {
    */
   DartType overrideVariable(VariableElement element, DartType potentialType,
       bool allowPrecisionLoss) {
+    // TODO(scheglov) type propagation for instance/top-level fields
+    // was disabled because it depends on the order or visiting.
+    // If both field and its client are in the same unit, and we visit
+    // the client before the field, then propagated type is not set yet.
+    if (element is PropertyInducingElement) {
+      return null;
+    }
+
     if (potentialType == null || potentialType.isBottom) {
       return null;
     }
@@ -10576,18 +10588,6 @@ class ResolverVisitor extends ScopedVisitor {
         allowPrecisionLoss ||
         !currentType.isMoreSpecificThan(potentialType) ||
         potentialType.isMoreSpecificThan(currentType)) {
-      // TODO(scheglov) type propagation for instance/top-level fields
-      // was disabled because it depends on the order or visiting.
-      // If both field and its client are in the same unit, and we visit
-      // the client before the field, then propagated type is not set yet.
-//      if (element is PropertyInducingElement) {
-//        PropertyInducingElement variable = element;
-//        if (!variable.isConst && !variable.isFinal) {
-//          return;
-//        }
-//        (variable as PropertyInducingElementImpl).propagatedType =
-//            potentialType;
-//      }
       _overrideManager.setType(element, potentialType);
       return potentialType;
     }
@@ -12719,6 +12719,310 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
         scope.hide(fds.functionDeclaration.element);
       }
     }
+  }
+}
+
+/**
+ * Implementation of [TypeSystem] using the strong mode rules.
+ * https://github.com/dart-lang/dev_compiler/blob/master/STRONG_MODE.md
+ */
+class StrongTypeSystemImpl implements TypeSystem {
+  final _specTypeSystem = new TypeSystemImpl();
+
+  StrongTypeSystemImpl();
+
+  @override
+  DartType getLeastUpperBound(
+      TypeProvider typeProvider, DartType type1, DartType type2) {
+    // TODO(leafp): Implement a strong mode version of this.
+    return _specTypeSystem.getLeastUpperBound(typeProvider, type1, type2);
+  }
+
+  // TODO(leafp): Document the rules in play here
+  @override
+  bool isAssignableTo(DartType fromType, DartType toType) {
+    // An actual subtype
+    if (isSubtypeOf(fromType, toType)) {
+      return true;
+    }
+
+    // Don't allow implicit downcasts between function types
+    // and call method objects, as these will almost always fail.
+    if ((fromType is FunctionType && _getCallMethodType(toType) != null) ||
+        (toType is FunctionType && _getCallMethodType(fromType) != null)) {
+      return false;
+    }
+
+    // If the subtype relation goes the other way, allow the implicit downcast.
+    // TODO(leafp): Emit warnings and hints for these in some way.
+    // TODO(leafp): Consider adding a flag to disable these?  Or just rely on
+    //   --warnings-as-errors?
+    if (isSubtypeOf(toType, fromType) ||
+        _specTypeSystem.isAssignableTo(toType, fromType)) {
+      // TODO(leafp): error if type is known to be exact (literal,
+      //  instance creation).
+      // TODO(leafp): Warn on composite downcast.
+      // TODO(leafp): hint on object/dynamic downcast.
+      // TODO(leafp): Consider allowing assignment casts.
+      return true;
+    }
+
+    return false;
+  }
+
+  @override
+  bool isSubtypeOf(DartType leftType, DartType rightType) {
+    return _isSubtypeOf(leftType, rightType, null);
+  }
+
+  FunctionType _getCallMethodType(DartType t) {
+    if (t is InterfaceType) {
+      ClassElement element = t.element;
+      InheritanceManager manager = new InheritanceManager(element.library);
+      FunctionType callType = manager.lookupMemberType(t, "call");
+      return callType;
+    }
+    return null;
+  }
+
+  // Given a type t, if t is an interface type with a call method
+  // defined, return the function type for the call method, otherwise
+  // return null.
+  _GuardedSubtypeChecker<DartType> _guard(
+      _GuardedSubtypeChecker<DartType> check) {
+    return (DartType t1, DartType t2, Set<Element> visited) {
+      Element element = t1.element;
+      if (visited == null) {
+        visited = new HashSet<Element>();
+      }
+      if (element == null || !visited.add(element)) {
+        return false;
+      }
+      try {
+        return check(t1, t2, visited);
+      } finally {
+        visited.remove(element);
+      }
+    };
+  }
+
+  bool _isBottom(DartType t, {bool dynamicIsBottom: false}) {
+    return (t.isDynamic && dynamicIsBottom) || t.isBottom;
+  }
+
+  // Guard against loops in the class hierarchy
+  /**
+   * Check that [f1] is a subtype of [f2].
+   * [fuzzyArrows] indicates whether or not the f1 and f2 should be
+   * treated as fuzzy arrow types (and hence dynamic parameters to f2 treated
+   * as bottom).
+   */
+  bool _isFunctionSubtypeOf(FunctionType f1, FunctionType f2,
+      {bool fuzzyArrows: true}) {
+    final r1s = f1.normalParameterTypes;
+    final o1s = f1.optionalParameterTypes;
+    final n1s = f1.namedParameterTypes;
+    final r2s = f2.normalParameterTypes;
+    final o2s = f2.optionalParameterTypes;
+    final n2s = f2.namedParameterTypes;
+    final ret1 = f1.returnType;
+    final ret2 = f2.returnType;
+
+    // A -> B <: C -> D if C <: A and
+    // either D is void or B <: D
+    if (!ret2.isVoid && !isSubtypeOf(ret1, ret2)) {
+      return false;
+    }
+
+    // Reject if one has named and the other has optional
+    if (n1s.length > 0 && o2s.length > 0) {
+      return false;
+    }
+    if (n2s.length > 0 && o1s.length > 0) {
+      return false;
+    }
+
+    // Rebind _isSubtypeOf for convenience
+    _SubtypeChecker<DartType> parameterSubtype = (DartType t1, DartType t2) =>
+        _isSubtypeOf(t1, t2, null, dynamicIsBottom: fuzzyArrows);
+
+    // f2 has named parameters
+    if (n2s.length > 0) {
+      // Check that every named parameter in f2 has a match in f1
+      for (String k2 in n2s.keys) {
+        if (!n1s.containsKey(k2)) {
+          return false;
+        }
+        if (!parameterSubtype(n2s[k2], n1s[k2])) {
+          return false;
+        }
+      }
+    }
+    // If we get here, we either have no named parameters,
+    // or else the named parameters match and we have no optional
+    // parameters
+
+    // If f1 has more required parameters, reject
+    if (r1s.length > r2s.length) {
+      return false;
+    }
+
+    // If f2 has more required + optional parameters, reject
+    if (r2s.length + o2s.length > r1s.length + o1s.length) {
+      return false;
+    }
+
+    // The parameter lists must look like the following at this point
+    // where rrr is a region of required, and ooo is a region of optionals.
+    // f1: rrr ooo ooo ooo
+    // f2: rrr rrr ooo
+    int rr = r1s.length; // required in both
+    int or = r2s.length - r1s.length; // optional in f1, required in f2
+    int oo = o2s.length; // optional in both
+
+    for (int i = 0; i < rr; ++i) {
+      if (!parameterSubtype(r2s[i], r1s[i])) {
+        return false;
+      }
+    }
+    for (int i = 0, j = rr; i < or; ++i, ++j) {
+      if (!parameterSubtype(r2s[j], o1s[i])) {
+        return false;
+      }
+    }
+    for (int i = or, j = 0; i < oo; ++i, ++j) {
+      if (!parameterSubtype(o2s[j], o1s[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool _isInterfaceSubtypeOf(
+      InterfaceType i1, InterfaceType i2, Set<Element> visited) {
+    // Guard recursive calls
+    _GuardedSubtypeChecker<InterfaceType> guardedInterfaceSubtype =
+        _guard(_isInterfaceSubtypeOf);
+
+    if (i1 == i2) {
+      return true;
+    }
+
+    if (i1.element == i2.element) {
+      List<DartType> tArgs1 = i1.typeArguments;
+      List<DartType> tArgs2 = i2.typeArguments;
+
+      assert(tArgs1.length == tArgs2.length);
+
+      for (int i = 0; i < tArgs1.length; i++) {
+        DartType t1 = tArgs1[i];
+        DartType t2 = tArgs2[i];
+        if (!isSubtypeOf(t1, t2)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    if (i2.isDartCoreFunction && i1.element.getMethod("call") != null) {
+      return true;
+    }
+
+    if (i1.isObject) {
+      return false;
+    }
+
+    if (guardedInterfaceSubtype(i1.superclass, i2, visited)) {
+      return true;
+    }
+
+    for (final parent in i1.interfaces) {
+      if (guardedInterfaceSubtype(parent, i2, visited)) {
+        return true;
+      }
+    }
+
+    for (final parent in i1.mixins) {
+      if (guardedInterfaceSubtype(parent, i2, visited)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  bool _isSubtypeOf(DartType t1, DartType t2, Set<Element> visited,
+      {bool dynamicIsBottom: false}) {
+    // Guard recursive calls
+    _GuardedSubtypeChecker<DartType> guardedSubtype = _guard(_isSubtypeOf);
+
+    if (t1 == t2) {
+      return true;
+    }
+
+    // The types are void, dynamic, bottom, interface types, function types
+    // and type parameters.  We proceed by eliminating these different classes
+    // from consideration.
+
+    // Trivially true.
+    if (_isTop(t2, dynamicIsBottom: dynamicIsBottom) ||
+        _isBottom(t1, dynamicIsBottom: dynamicIsBottom)) {
+      return true;
+    }
+
+    // Trivially false.
+    if (_isTop(t1, dynamicIsBottom: dynamicIsBottom) ||
+        _isBottom(t2, dynamicIsBottom: dynamicIsBottom)) {
+      return false;
+    }
+
+    // S <: T where S is a type variable
+    //  T is not dynamic or object (handled above)
+    //  S != T (handled above)
+    //  So only true if bound of S is S' and
+    //  S' <: T
+    if (t1 is TypeParameterType) {
+      DartType bound = t1.element.bound;
+      if (bound == null) return false;
+      return guardedSubtype(bound, t2, visited);
+    }
+
+    if (t2 is TypeParameterType) {
+      return false;
+    }
+
+    if (t1.isVoid || t2.isVoid) {
+      return false;
+    }
+
+    // We've eliminated void, dynamic, bottom, and type parameters.  The only
+    // cases are the combinations of interface type and function type.
+
+    // A function type can only subtype an interface type if
+    // the interface type is Function
+    if (t1 is FunctionType && t2 is InterfaceType) {
+      return t2.isDartCoreFunction;
+    }
+
+    // An interface type can only subtype a function type if
+    // the interface type declares a call method with a type
+    // which is a super type of the function type.
+    if (t1 is InterfaceType && t2 is FunctionType) {
+      var callType = _getCallMethodType(t1);
+      return (callType != null) && _isFunctionSubtypeOf(callType, t2);
+    }
+
+    // Two interface types
+    if (t1 is InterfaceType && t2 is InterfaceType) {
+      return _isInterfaceSubtypeOf(t1, t2, visited);
+    }
+
+    return _isFunctionSubtypeOf(t1 as FunctionType, t2 as FunctionType);
+  }
+
+  // TODO(leafp): Document the rules in play here
+  bool _isTop(DartType t, {bool dynamicIsBottom: false}) {
+    return (t.isDynamic && !dynamicIsBottom) || t.isObject;
   }
 }
 
@@ -14956,15 +15260,6 @@ class TypeResolverVisitor extends ScopedVisitor {
  */
 abstract class TypeSystem {
   /**
-   * Create either a strong mode or regular type system based on context.
-   */
-  static TypeSystem create(AnalysisContext context) {
-    return (context.analysisOptions.strongMode)
-        ? new StrongTypeSystemImpl()
-        : new TypeSystemImpl();
-  }
-
-  /**
    * Compute the least upper bound of two types.
    */
   DartType getLeastUpperBound(
@@ -14981,6 +15276,15 @@ abstract class TypeSystem {
    * if leftType <: rightType).
    */
   bool isSubtypeOf(DartType leftType, DartType rightType);
+
+  /**
+   * Create either a strong mode or regular type system based on context.
+   */
+  static TypeSystem create(AnalysisContext context) {
+    return (context.analysisOptions.strongMode)
+        ? new StrongTypeSystemImpl()
+        : new TypeSystemImpl();
+  }
 }
 
 /**
@@ -15077,313 +15381,6 @@ class TypeSystemImpl implements TypeSystem {
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return leftType.isSubtypeOf(rightType);
-  }
-}
-
-typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<Element> visited);
-typedef bool _SubtypeChecker<T>(T t1, T t2);
-
-/**
- * Implementation of [TypeSystem] using the strong mode rules.
- * https://github.com/dart-lang/dev_compiler/blob/master/STRONG_MODE.md
- */
-class StrongTypeSystemImpl implements TypeSystem {
-  StrongTypeSystemImpl();
-
-  final _specTypeSystem = new TypeSystemImpl();
-
-  @override
-  DartType getLeastUpperBound(
-      TypeProvider typeProvider, DartType type1, DartType type2) {
-    // TODO(leafp): Implement a strong mode version of this.
-    return _specTypeSystem.getLeastUpperBound(typeProvider, type1, type2);
-  }
-
-  // TODO(leafp): Document the rules in play here
-  @override
-  bool isAssignableTo(DartType toType, DartType fromType) {
-    // An actual subtype
-    if (isSubtypeOf(fromType, toType)) {
-      return true;
-    }
-
-    // Don't allow implicit downcasts between function types
-    // and call method objects, as these will almost always fail.
-    if ((fromType is FunctionType && _getCallMethodType(toType) != null) ||
-        (toType is FunctionType && _getCallMethodType(fromType) != null)) {
-      return false;
-    }
-
-    // If the subtype relation goes the other way, allow the implicit downcast.
-    // TODO(leafp): Emit warnings and hints for these in some way.
-    // TODO(leafp): Consider adding a flag to disable these?  Or just rely on
-    //   --warnings-as-errors?
-    if (isSubtypeOf(toType, fromType) ||
-        _specTypeSystem.isAssignableTo(toType, fromType)) {
-      // TODO(leafp): error if type is known to be exact (literal,
-      //  instance creation).
-      // TODO(leafp): Warn on composite downcast.
-      // TODO(leafp): hint on object/dynamic downcast.
-      // TODO(leafp): Consider allowing assignment casts.
-      return true;
-    }
-
-    return false;
-  }
-
-  bool _isBottom(DartType t, {bool dynamicIsBottom: false}) {
-    return (t.isDynamic && dynamicIsBottom) || t.isBottom;
-  }
-
-  bool _isTop(DartType t, {bool dynamicIsBottom: false}) {
-    return (t.isDynamic && !dynamicIsBottom) || t.isObject;
-  }
-
-  // Given a type t, if t is an interface type with a call method
-  // defined, return the function type for the call method, otherwise
-  // return null.
-  FunctionType _getCallMethodType(DartType t) {
-    if (t is InterfaceType) {
-      ClassElement element = t.element;
-      InheritanceManager manager = new InheritanceManager(element.library);
-      FunctionType callType = manager.lookupMemberType(t, "call");
-      return callType;
-    }
-    return null;
-  }
-
-  /**
-   * Check that [f1] is a subtype of [f2].
-   * [fuzzyArrows] indicates whether or not the f1 and f2 should be
-   * treated as fuzzy arrow types (and hence dynamic parameters to f2 treated
-   * as bottom).
-   */
-  bool _isFunctionSubtypeOf(FunctionType f1, FunctionType f2,
-      {bool fuzzyArrows: true}) {
-    final r1s = f1.normalParameterTypes;
-    final o1s = f1.optionalParameterTypes;
-    final n1s = f1.namedParameterTypes;
-    final r2s = f2.normalParameterTypes;
-    final o2s = f2.optionalParameterTypes;
-    final n2s = f2.namedParameterTypes;
-    final ret1 = f1.returnType;
-    final ret2 = f2.returnType;
-
-    // A -> B <: C -> D if C <: A and
-    // either D is void or B <: D
-    if (!ret2.isVoid && !isSubtypeOf(ret1, ret2)) {
-      return false;
-    }
-
-    // Reject if one has named and the other has optional
-    if (n1s.length > 0 && o2s.length > 0) {
-      return false;
-    }
-    if (n2s.length > 0 && o1s.length > 0) {
-      return false;
-    }
-
-    // Rebind _isSubtypeOf for convenience
-    _SubtypeChecker<DartType> parameterSubtype = (DartType t1, DartType t2) =>
-        _isSubtypeOf(t1, t2, null, dynamicIsBottom: fuzzyArrows);
-
-    // f2 has named parameters
-    if (n2s.length > 0) {
-      // Check that every named parameter in f2 has a match in f1
-      for (String k2 in n2s.keys) {
-        if (!n1s.containsKey(k2)) {
-          return false;
-        }
-        if (!parameterSubtype(n2s[k2], n1s[k2])) {
-          return false;
-        }
-      }
-    }
-    // If we get here, we either have no named parameters,
-    // or else the named parameters match and we have no optional
-    // parameters
-
-    // If f1 has more required parameters, reject
-    if (r1s.length > r2s.length) {
-      return false;
-    }
-
-    // If f2 has more required + optional parameters, reject
-    if (r2s.length + o2s.length > r1s.length + o1s.length) {
-      return false;
-    }
-
-    // The parameter lists must look like the following at this point
-    // where rrr is a region of required, and ooo is a region of optionals.
-    // f1: rrr ooo ooo ooo
-    // f2: rrr rrr ooo
-    int rr = r1s.length; // required in both
-    int or = r2s.length - r1s.length; // optional in f1, required in f2
-    int oo = o2s.length; // optional in both
-
-    for (int i = 0; i < rr; ++i) {
-      if (!parameterSubtype(r2s[i], r1s[i])) {
-        return false;
-      }
-    }
-    for (int i = 0, j = rr; i < or; ++i, ++j) {
-      if (!parameterSubtype(r2s[j], o1s[i])) {
-        return false;
-      }
-    }
-    for (int i = or, j = 0; i < oo; ++i, ++j) {
-      if (!parameterSubtype(o2s[j], o1s[i])) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  // Guard against loops in the class hierarchy
-  _GuardedSubtypeChecker<DartType> _guard(
-      _GuardedSubtypeChecker<DartType> check) {
-    return (DartType t1, DartType t2, Set<Element> visited) {
-      Element element = t1.element;
-      if (visited == null) {
-        visited = new HashSet<Element>();
-      }
-      if (element == null || !visited.add(element)) {
-        return false;
-      }
-      try {
-        return check(t1, t2, visited);
-      } finally {
-        visited.remove(element);
-      }
-    };
-  }
-
-  bool _isInterfaceSubtypeOf(
-      InterfaceType i1, InterfaceType i2, Set<Element> visited) {
-    // Guard recursive calls
-    _GuardedSubtypeChecker<InterfaceType> guardedInterfaceSubtype =
-        _guard(_isInterfaceSubtypeOf);
-
-    if (i1 == i2) {
-      return true;
-    }
-
-    if (i1.element == i2.element) {
-      List<DartType> tArgs1 = i1.typeArguments;
-      List<DartType> tArgs2 = i2.typeArguments;
-
-      assert(tArgs1.length == tArgs2.length);
-
-      for (int i = 0; i < tArgs1.length; i++) {
-        DartType t1 = tArgs1[i];
-        DartType t2 = tArgs2[i];
-        if (!isSubtypeOf(t1, t2)) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    if (i2.isDartCoreFunction && i1.element.getMethod("call") != null) {
-      return true;
-    }
-
-    if (i1.isObject) {
-      return false;
-    }
-
-    if (guardedInterfaceSubtype(i1.superclass, i2, visited)) {
-      return true;
-    }
-
-    for (final parent in i1.interfaces) {
-      if (guardedInterfaceSubtype(parent, i2, visited)) {
-        return true;
-      }
-    }
-
-    for (final parent in i1.mixins) {
-      if (guardedInterfaceSubtype(parent, i2, visited)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  bool _isSubtypeOf(DartType t1, DartType t2, Set<Element> visited,
-      {bool dynamicIsBottom: false}) {
-    // Guard recursive calls
-    _GuardedSubtypeChecker<DartType> guardedSubtype = _guard(_isSubtypeOf);
-
-    if (t1 == t2) {
-      return true;
-    }
-
-    // The types are void, dynamic, bottom, interface types, function types
-    // and type parameters.  We proceed by eliminating these different classes
-    // from consideration.
-
-    // Trivially true.
-    if (_isTop(t2, dynamicIsBottom: dynamicIsBottom) ||
-        _isBottom(t1, dynamicIsBottom: dynamicIsBottom)) {
-      return true;
-    }
-
-    // Trivially false.
-    if (_isTop(t1, dynamicIsBottom: dynamicIsBottom) ||
-        _isBottom(t2, dynamicIsBottom: dynamicIsBottom)) {
-      return false;
-    }
-
-    // S <: T where S is a type variable
-    //  T is not dynamic or object (handled above)
-    //  S != T (handled above)
-    //  So only true if bound of S is S' and
-    //  S' <: T
-    if (t1 is TypeParameterType) {
-      DartType bound = t1.element.bound;
-      if (bound == null) return false;
-      return guardedSubtype(bound, t2, visited);
-    }
-
-    if (t2 is TypeParameterType) {
-      return false;
-    }
-
-    if (t1.isVoid || t2.isVoid) {
-      return false;
-    }
-
-    // We've eliminated void, dynamic, bottom, and type parameters.  The only
-    // cases are the combinations of interface type and function type.
-
-    // A function type can only subtype an interface type if
-    // the interface type is Function
-    if (t1 is FunctionType && t2 is InterfaceType) {
-      return t2.isDartCoreFunction;
-    }
-
-    // An interface type can only subtype a function type if
-    // the interface type declares a call method with a type
-    // which is a super type of the function type.
-    if (t1 is InterfaceType && t2 is FunctionType) {
-      var callType = _getCallMethodType(t1);
-      return (callType != null) && _isFunctionSubtypeOf(callType, t2);
-    }
-
-    // Two interface types
-    if (t1 is InterfaceType && t2 is InterfaceType) {
-      return _isInterfaceSubtypeOf(t1, t2, visited);
-    }
-
-    return _isFunctionSubtypeOf(t1 as FunctionType, t2 as FunctionType);
-  }
-
-  // TODO(leafp): Document the rules in play here
-  @override
-  bool isSubtypeOf(DartType leftType, DartType rightType) {
-    return _isSubtypeOf(leftType, rightType, null);
   }
 }
 

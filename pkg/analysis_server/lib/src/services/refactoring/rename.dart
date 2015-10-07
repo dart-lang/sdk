@@ -17,6 +17,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:path/path.dart' as pathos;
 
 /**
  * Returns `true` if two given [Element]s are [LocalElement]s and have
@@ -52,11 +53,40 @@ bool isDefinedInLibrary(
   return librarySourcesOfSource.contains(librarySourceOfElement);
 }
 
+bool isElementInPubCache(Element element) {
+  Source source = element.source;
+  String path = source.fullName;
+  return isPathInPubCache(path);
+}
+
+bool isElementInSdkOrPubCache(Element element) {
+  Source source = element.source;
+  String path = source.fullName;
+  return source.isInSystemLibrary || isPathInPubCache(path);
+}
+
 /**
  * Checks if the given [Element] is in the given [AnalysisContext].
  */
 bool isInContext(Element element, AnalysisContext context) {
   return element.context == context;
+}
+
+bool isPathInPubCache(String path) {
+  List<String> parts = pathos.split(path);
+  if (parts.contains('.pub-cache')) {
+    return true;
+  }
+  for (int i = 0; i < parts.length - 1; i++) {
+    if (parts[i] == 'Pub' && parts[i + 1] == 'Cache') {
+      return true;
+    }
+    if (parts[i] == 'third_party' &&
+        (parts[i + 1] == 'pkg' || parts[i + 1] == 'pkg_tested')) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
@@ -141,6 +171,13 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
     if (element.source.isInSystemLibrary) {
       String message = format(
           "The {0} '{1}' is defined in the SDK, so cannot be renamed.",
+          getElementKindName(element),
+          getElementQualifiedName(element));
+      result.addFatalError(message);
+    }
+    if (isElementInPubCache(element)) {
+      String message = format(
+          "The {0} '{1}' is defined in a pub package, so cannot be renamed.",
           getElementKindName(element),
           getElementQualifiedName(element));
       result.addFatalError(message);

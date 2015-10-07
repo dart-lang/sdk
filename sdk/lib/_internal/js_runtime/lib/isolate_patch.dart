@@ -20,6 +20,16 @@ class Isolate {
   static Isolate get current => _currentIsolateCache;
 
   @patch
+  static Future<Uri> get packageRoot {
+    throw new UnsupportedError("Isolate.packageRoot");
+  }
+
+  @patch
+  static Future<Map<String, Uri>> get packageMap {
+    throw new UnsupportedError("Isolate.packageMap");
+  }
+
+  @patch
   static Future<Isolate> spawn(void entryPoint(message), var message,
                                {bool paused: false, bool errorsAreFatal,
                                 SendPort onExit, SendPort onError}) {

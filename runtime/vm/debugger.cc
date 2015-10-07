@@ -310,9 +310,16 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
 
   if (ServiceNeedsDebuggerEvent(event->type()) && event->IsPauseEvent()) {
     // If we were paused, notify the service that we have resumed.
-    ServiceEvent service_event(event->isolate(), ServiceEvent::kResume);
-    service_event.set_top_frame(event->top_frame());
-    Service::HandleEvent(&service_event);
+    const Error& error =
+        Error::Handle(isolate_, isolate_->object_store()->sticky_error());
+    ASSERT(error.IsNull() || error.IsUnwindError());
+
+    // Only send a resume event when the isolate is not unwinding.
+    if (!error.IsUnwindError()) {
+      ServiceEvent service_event(event->isolate(), ServiceEvent::kResume);
+      service_event.set_top_frame(event->top_frame());
+      Service::HandleEvent(&service_event);
+    }
   }
 }
 
@@ -350,9 +357,6 @@ RawError* Debugger::SignalIsolateInterrupted() {
         OS::Print("[!] Embedder api: terminating isolate:\n"
                   "\tisolate:    %s\n", isolate_->name());
       }
-      // TODO(turnidge): We should give the message handler a way to
-      // detect when an isolate is unwinding.
-      isolate_->message_handler()->set_pause_on_exit(false);
       const String& msg =
           String::Handle(String::New("isolate terminated by embedder"));
       return UnwindError::New(msg);
@@ -362,6 +366,7 @@ RawError* Debugger::SignalIsolateInterrupted() {
   // If any error occurred while in the debug message loop, return it here.
   const Error& error =
       Error::Handle(isolate_, isolate_->object_store()->sticky_error());
+  ASSERT(error.IsNull() || error.IsUnwindError());
   isolate_->object_store()->clear_sticky_error();
   return error.raw();
 }
@@ -1956,7 +1961,7 @@ RawFunction* Debugger::FindBestFit(const Script& script,
         continue;
       }
       // Parse class definition if not done yet.
-      error = cls.EnsureIsFinalized(isolate_);
+      error = cls.EnsureIsFinalized(Thread::Current());
       if (!error.IsNull()) {
         // Ignore functions in this class.
         // TODO(hausner): Should we propagate this error? How?
@@ -2776,7 +2781,7 @@ void Debugger::Initialize(Isolate* isolate) {
   // Use the isolate's control port as the isolate_id for debugging.
   // This port will be used as a unique ID to represent the isolate in the
   // debugger wire protocol messages.
-  isolate_id_ = isolate->main_port();
+  isolate_id_ = isolate_->main_port();
   initialized_ = true;
 }
 

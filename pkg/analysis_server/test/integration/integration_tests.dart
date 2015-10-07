@@ -597,7 +597,7 @@ class Server {
       {bool debugServer: false,
       int diagnosticPort,
       bool profileServer: false,
-      bool newTaskModel: false,
+      bool newTaskModel: true,
       bool useAnalysisHighlight2: false}) {
     if (_process != null) {
       throw new Exception('Process already started');
@@ -627,9 +627,11 @@ class Server {
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
     }
-    if (newTaskModel) {
-      arguments.add('--${analysisServer.Driver.ENABLE_NEW_TASK_MODEL}');
+    if (!newTaskModel) {
+      arguments.add('--${analysisServer.Driver.DISABLE_NEW_TASK_MODEL}');
     }
+    print('Launching $serverPath');
+    print('$dartBinary ${arguments.join(' ')}');
     return Process.start(dartBinary, arguments).then((Process process) {
       _process = process;
       process.exitCode.then((int code) {

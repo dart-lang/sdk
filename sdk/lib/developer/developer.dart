@@ -17,6 +17,7 @@ import 'dart:isolate' show SendPort;
 
 part 'extension.dart';
 part 'profiler.dart';
+part 'timeline.dart';
 
 /// If [when] is true, stop the program as if a breakpoint were hit at the
 /// following statement.

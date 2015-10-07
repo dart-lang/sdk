@@ -275,6 +275,22 @@ patch class Isolate {
 
   /* patch */ static Isolate get current => _currentIsolate;
 
+  /* patch */ static Future<Uri> get packageRoot {
+    var hook = VMLibraryHooks.getPackageRoot;
+    if (hook == null) {
+      throw new UnimplementedError("Isolate.packageRoot");
+    }
+    return hook();
+  }
+
+  /* patch */ static Future<Map<String, Uri>> get packageMap {
+    var hook = VMLibraryHooks.getPackageMap;
+    if (hook == null) {
+      throw new UnimplementedError("Isolate.packageMap");
+    }
+    return hook();
+  }
+
   /* patch */ static Future<Isolate> spawn(
       void entryPoint(message), var message,
       {bool paused: false, bool errorsAreFatal,
@@ -318,15 +334,21 @@ patch class Isolate {
        Map<String, Uri> packages}) {
     RawReceivePort readyPort;
     if (environment != null) throw new UnimplementedError("environment");
+    if (packages != null) throw new UnimplementedError("packages");
     try {
       // The VM will invoke [_startIsolate] and not `main`.
       // TODO: Handle [packages].
       readyPort = new RawReceivePort();
       var packageRootString =
           (packageRoot == null) ? null : packageRoot.toString();
-      _spawnUri(readyPort.sendPort, uri.toString(), args, message,
-                paused, checked, packageRootString,
-                errorsAreFatal, onExit, onError);
+      var packagesList = null;
+
+      _spawnUri(readyPort.sendPort, uri.toString(),
+                args, message,
+                paused, onExit, onError,
+                errorsAreFatal, checked,
+                null, /* environment */
+                packageRootString, packagesList);
       Completer completer = new Completer<Isolate>.sync();
       readyPort.handler = (readyMessage) {
         readyPort.close();
@@ -369,8 +391,10 @@ patch class Isolate {
 
   static void _spawnUri(SendPort readyPort, String uri,
                         List<String> args, var message,
-                        bool paused, bool checked, String packageRoot,
-                        bool errorsAreFatal, SendPort onExit, SendPort onError)
+                        bool paused, SendPort onExit, SendPort onError,
+                        bool errorsAreFatal, bool checked,
+                        List environment,
+                        String packageRoot, List packages)
       native "Isolate_spawnUri";
 
   static void _sendOOB(port, msg) native "Isolate_sendOOB";

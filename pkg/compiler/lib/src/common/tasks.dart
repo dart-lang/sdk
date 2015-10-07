@@ -8,6 +8,8 @@ import 'dart:profiler' show
     UserTag;
 import '../compiler.dart' show
     Compiler;
+import '../diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
 import '../elements/elements.dart' show
     Element;
 
@@ -29,6 +31,8 @@ class CompilerTask {
   CompilerTask(Compiler compiler)
       : this.compiler = compiler,
         watch = (compiler.verbose) ? new Stopwatch() : null;
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   String get name => "Unknown task '${this.runtimeType}'";
 
@@ -66,7 +70,7 @@ class CompilerTask {
   }
 
   measureElement(Element element, action()) {
-    compiler.withCurrentElement(element, () => measure(action));
+    reporter.withCurrentElement(element, () => measure(action));
   }
 
   /// Measure the time spent in [action] (if in verbose mode) and accumulate it

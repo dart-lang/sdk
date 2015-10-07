@@ -4,8 +4,8 @@
 
 library services.completion.sorter;
 
-import 'package:analysis_server/completion/completion_dart.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
 
 /**
  * The abstract class `ContributionSorter` defines the behavior of objects

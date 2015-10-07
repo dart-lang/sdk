@@ -68,7 +68,6 @@ DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_inlining_intervals);
 DECLARE_FLAG(bool, trace_irregexp);
-DECLARE_FLAG(bool, trace_patching);
 
 
 bool Compiler::always_optimize_ = false;
@@ -758,17 +757,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         if (optimized) {
           // We may not have previous code if 'always_optimize' is set.
           if ((osr_id == Isolate::kNoDeoptId) && function.HasCode()) {
-            CodePatcher::PatchEntry(
-                Code::Handle(function.CurrentCode()),
-                Code::Handle(StubCode::FixCallersTarget_entry()->code()));
-            if (FLAG_trace_compiler || FLAG_trace_patching) {
-              if (FLAG_trace_compiler) {
-                THR_Print("  ");
-              }
-              THR_Print("Patch unoptimized '%s' entry point %#" Px "\n",
-                  function.ToFullyQualifiedCString(),
-                  Code::Handle(function.unoptimized_code()).EntryPoint());
-            }
+            Code::Handle(function.CurrentCode()).DisableDartCode();
           }
           function.AttachCode(code);
 
@@ -1021,7 +1010,6 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     Isolate* const isolate = thread->isolate();
     StackZone stack_zone(thread);
     Zone* const zone = stack_zone.GetZone();
-    TIMERSCOPE(thread, time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
     per_compile_timer.Start();
 
@@ -1412,6 +1400,166 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
   }
   UNREACHABLE();
   return Object::null();
+}
+
+
+// A simple work queue containing functions to be optimized. Use
+// PushFront and PopBack to add and read from queue.
+// TODO(srdjan): Write a more efficient implementation.
+class CompilationWorkQueue : public ValueObject {
+ public:
+  explicit CompilationWorkQueue(Isolate* isolate) :
+      data_(GrowableObjectArray::Handle()) {
+    data_ = isolate->background_compilation_queue();
+  }
+
+  intptr_t IsEmpty() const { return data_.Length() == 0; }
+
+  // Adds to the queue only if 'function' is not already in there.
+  void PushFront(const Function& function) {
+    for (intptr_t i = 0; i < data_.Length(); i++) {
+      if (data_.At(i) == function.raw()) {
+        return;
+      }
+    }
+    // Insert new element in front.
+    Object& f = Object::Handle();
+    data_.Add(f);
+    for (intptr_t i = data_.Length() - 1; i > 0; i--) {
+      f = data_.At(i - 1);
+      data_.SetAt(i, f);
+    }
+    data_.SetAt(0, function);
+  }
+
+  RawFunction* PopBack() {
+    ASSERT(!IsEmpty());
+    Object& result = Object::Handle();
+    result = data_.At(data_.Length() - 1);
+    data_.SetLength(data_.Length() - 1);
+    return Function::Cast(result).raw();
+  }
+
+ private:
+  GrowableObjectArray& data_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(CompilationWorkQueue);
+};
+
+
+BackgroundCompiler::BackgroundCompiler(Isolate* isolate)
+    : isolate_(isolate), running_(true), done_(new bool()),
+      monitor_(new Monitor()), done_monitor_(new Monitor())  {
+  *done_ = false;
+}
+
+
+void BackgroundCompiler::Run() {
+  while (running_) {
+    {
+      // Wait to be notified when the work queue is not empty.
+      MonitorLocker ml(monitor_);
+      ml.Wait();
+    }
+
+    Thread::EnterIsolateAsHelper(isolate_);
+    {
+      Thread* thread = Thread::Current();
+      StackZone stack_zone(thread);
+      HANDLESCOPE(thread);
+      Function& function = Function::Handle();
+      function = RemoveOrNull();
+      while (!function.IsNull()) {
+        if (true) {
+          // Debugging printing
+          THR_Print("Background compilation: %s\n",
+              function.ToQualifiedCString());
+        } else {
+          const Error& error = Error::Handle(
+              Compiler::CompileOptimizedFunction(thread, function));
+          // TODO(srdjan): We do not expect errors while compiling optimized
+          // code, any errors should have been caught when compiling
+          // unotpimized code.
+          // If it still happens mark function as not optimizable.
+          ASSERT(error.IsNull());
+        }
+        function = RemoveOrNull();
+      }
+    }
+    Thread::ExitIsolateAsHelper();
+  }
+  {
+    // Notify that the thread is done.
+    MonitorLocker ml_done(done_monitor_);
+    *done_ = true;
+    ml_done.Notify();
+  }
+}
+
+
+void BackgroundCompiler::CompileOptimized(const Function& function) {
+  Add(function);
+}
+
+
+void BackgroundCompiler::Add(const Function& f) const {
+  MonitorLocker ml(monitor_);
+  CompilationWorkQueue queue(isolate_);
+  queue.PushFront(f);
+  ml.Notify();
+}
+
+
+RawFunction* BackgroundCompiler::RemoveOrNull() const {
+  MonitorLocker ml(monitor_);
+  CompilationWorkQueue queue(isolate_);
+  return queue.IsEmpty() ? Function::null() : queue.PopBack();
+}
+
+
+void BackgroundCompiler::Stop(BackgroundCompiler* task) {
+  if (task == NULL) {
+    return;
+  }
+  Monitor* monitor = task->monitor_;
+  Monitor* done_monitor = task->done_monitor_;
+  bool* task_done = task->done_;
+  // Wake up compiler task and stop it.
+  {
+    MonitorLocker ml(task->monitor_);
+    task->running_ = false;
+    // 'task' will be deleted by thread pool.
+    task = NULL;
+    ml.Notify();
+  }
+
+  {
+    MonitorLocker ml_done(done_monitor);
+    while (!(*task_done)) {
+      ml_done.Wait();
+    }
+  }
+  delete task_done;
+  delete done_monitor;
+  delete monitor;
+}
+
+
+void BackgroundCompiler::EnsureInit(Isolate* isolate) {
+  bool start_task = false;
+  {
+    MutexLocker ml(isolate->mutex());
+    if (isolate->background_compiler() == NULL) {
+      BackgroundCompiler* task = new BackgroundCompiler(isolate);
+      isolate->set_background_compiler(task);
+      isolate->set_background_compilation_queue(
+          GrowableObjectArray::Handle(isolate, GrowableObjectArray::New()));
+      start_task = true;
+    }
+  }
+  if (start_task) {
+    Dart::thread_pool()->Run(isolate->background_compiler());
+  }
 }
 
 }  // namespace dart

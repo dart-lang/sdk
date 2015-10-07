@@ -9378,7 +9378,7 @@ struct AppendData {
 
 static void AppendStreamConsumer(Dart_StreamConsumer_State state,
                                  const char* stream_name,
-                                 uint8_t* buffer,
+                                 const uint8_t* buffer,
                                  intptr_t buffer_length,
                                  void* user_data) {
   if (state == Dart_StreamConsumer_kFinish) {
@@ -9445,6 +9445,99 @@ TEST_CASE(Timeline_Dart_TimelineGetTrace) {
   free(data.buffer);
 }
 
+
+TEST_CASE(Timeline_Dart_TimelineGetTraceOnlyDartEvents) {
+  const char* kScriptChars =
+    "import 'dart:developer';\n"
+    ""
+    "main() {\n"
+    "  Timeline.startSync('DART_NAME');\n"
+    "  Timeline.finishSync();\n"
+    "}\n";
+
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, NULL);
+
+  const char* buffer = NULL;
+  intptr_t buffer_length = 0;
+  bool success = false;
+
+  // Enable recording of the Dart stream.
+  Dart_TimelineSetRecordedStreams(DART_TIMELINE_STREAM_DART);
+
+  // Invoke main, which will add a new timeline event from Dart.
+  Dart_Handle result = Dart_Invoke(lib,
+                                   NewString("main"),
+                                   0,
+                                   NULL);
+  EXPECT_VALID(result);
+
+  // Grab the trace.
+  AppendData data;
+  data.buffer = NULL;
+  data.buffer_length = 0;
+  success = Dart_TimelineGetTrace(AppendStreamConsumer, &data);
+  EXPECT(success);
+  buffer = reinterpret_cast<char*>(data.buffer);
+  buffer_length = data.buffer_length;
+  EXPECT(buffer_length > 0);
+  EXPECT(buffer != NULL);
+
+  // Heartbeat test.
+  EXPECT_SUBSTRING("\"cat\":\"Dart\"", buffer);
+  EXPECT_SUBSTRING("\"name\":\"DART_NAME\"", buffer);
+
+  // Free buffer allocated by AppendStreamConsumer
+  free(data.buffer);
+}
+
+
+TEST_CASE(Timeline_Dart_TimelineGetTraceWithDartEvents) {
+  const char* kScriptChars =
+    "import 'dart:developer';\n"
+    "\n"
+    "main() {\n"
+    "  Timeline.startSync('DART_NAME');\n"
+    "  Timeline.finishSync();\n"
+    "}\n";
+
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, NULL);
+
+  const char* buffer = NULL;
+  intptr_t buffer_length = 0;
+  bool success = false;
+
+  // Enable recording of all streams.
+  Dart_TimelineSetRecordedStreams(DART_TIMELINE_STREAM_ALL);
+
+  // Invoke main, which will be compiled resulting in a compiler event in
+  // the timeline.
+  Dart_Handle result = Dart_Invoke(lib,
+                                   NewString("main"),
+                                   0,
+                                   NULL);
+  EXPECT_VALID(result);
+
+  // Grab the trace.
+  AppendData data;
+  success = Dart_TimelineGetTrace(AppendStreamConsumer, &data);
+  EXPECT(success);
+  buffer = reinterpret_cast<char*>(data.buffer);
+  buffer_length = data.buffer_length;
+  EXPECT(buffer_length > 0);
+  EXPECT(buffer != NULL);
+
+  // Heartbeat test.
+  EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
+  EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
+  EXPECT_SUBSTRING("\"function\":\"::_main\"", buffer);
+  EXPECT_SUBSTRING("\"cat\":\"Dart\"", buffer);
+  EXPECT_SUBSTRING("\"name\":\"DART_NAME\"", buffer);
+
+  // Free buffer allocated by AppendStreamConsumer
+  free(data.buffer);
+}
 
 TEST_CASE(Timeline_Dart_TimelineGetTraceGlobalOverride) {
   const char* kScriptChars =

@@ -52,7 +52,7 @@ class DartBackend extends Backend {
       new Set<ClassElement>();
 
   bool enableCodegenWithErrorsIfSupported(Spannable node) {
-    compiler.reportHintMessage(
+    reporter.reportHintMessage(
         node,
         MessageKind.GENERIC,
         {'text': "Generation of code with compile time errors is not "
@@ -108,13 +108,18 @@ class DartBackend extends Backend {
         stripAsserts = strips.indexOf('asserts') != -1,
         constantCompilerTask = new DartConstantTask(compiler),
         outputter = new DartOutputter(
-            compiler, compiler.outputProvider,
+            compiler.reporter, compiler.outputProvider,
             forceStripTypes: strips.indexOf('types') != -1,
             multiFile: multiFile,
             enableMinification: compiler.enableMinification),
         super(compiler) {
     resolutionCallbacks = new DartResolutionCallbacks(this);
   }
+
+
+  DiagnosticReporter get reporter => compiler.reporter;
+
+  Resolution get resolution => compiler.resolution;
 
   bool classNeedsRti(ClassElement cls) => false;
   bool methodNeedsRti(FunctionElement function) => false;
@@ -128,7 +133,7 @@ class DartBackend extends Backend {
     final coreLibrary = compiler.coreLibrary;
     for (final name in LITERAL_TYPE_NAMES) {
       ClassElement classElement = coreLibrary.findLocal(name);
-      classElement.ensureResolved(compiler);
+      classElement.ensureResolved(resolution);
     }
     // Enqueue the methods that the VM might invoke on user objects because
     // we don't trust the resolution to always get these included.
@@ -167,7 +172,7 @@ class DartBackend extends Backend {
         newTypedefElementCallback,
         newClassElementCallback) {
       ReferencedElementCollector collector =
-          new ReferencedElementCollector(compiler,
+          new ReferencedElementCollector(reporter,
                                          element,
                                          elementAst,
                                          newTypedefElementCallback,
@@ -178,7 +183,7 @@ class DartBackend extends Backend {
     int totalSize = outputter.assembleProgram(
         libraries: compiler.libraryLoader.libraries,
         instantiatedClasses: compiler.resolverWorld.directlyInstantiatedClasses,
-        resolvedElements: compiler.enqueuer.resolution.resolvedElements,
+        resolvedElements: compiler.enqueuer.resolution.processedElements,
         usedTypeLiterals: usedTypeLiterals,
         postProcessElementAst: postProcessElementAst,
         computeElementAst: computeElementAst,
@@ -214,7 +219,7 @@ class DartBackend extends Backend {
         'Output total size: $totalOutputSize bytes (${percentage}%)');
   }
 
-  log(String message) => compiler.log('[DartBackend] $message');
+  log(String message) => reporter.log('[DartBackend] $message');
 
   @override
   Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
@@ -225,7 +230,7 @@ class DartBackend extends Backend {
         library.forEachLocalMember((Element element) {
           if (element.isClass) {
             ClassElement classElement = element;
-            classElement.ensureResolved(compiler);
+            classElement.ensureResolved(resolution);
           }
         });
       }
@@ -306,7 +311,7 @@ class DartBackend extends Backend {
               if (element.isConstructor || element.isStatic) return;
 
               FunctionElement function = element.asFunctionElement();
-              element.computeType(compiler);
+              element.computeType(resolution);
               Selector selector = new Selector.fromElement(element);
               if (selector.isGetter) {
                 registry.registerDynamicGetter(
@@ -330,7 +335,7 @@ class DartBackend extends Backend {
   @override
   bool enableDeferredLoadingIfSupported(Spannable node, Registry registry) {
     // TODO(sigurdm): Implement deferred loading for dart2dart.
-    compiler.reportWarningMessage(
+    reporter.reportWarningMessage(
         node, MessageKind.DEFERRED_LIBRARY_DART_2_DART);
     return false;
   }
@@ -341,6 +346,24 @@ class DartResolutionCallbacks extends ResolutionCallbacks {
 
   DartResolutionCallbacks(this.backend);
 
+  @override
+  WorldImpact transformImpact(ResolutionWorldImpact worldImpact) {
+    TransformedWorldImpact transformed =
+        new TransformedWorldImpact(worldImpact);
+    for (DartType typeLiteral in worldImpact.typeLiterals) {
+      onTypeLiteral(typeLiteral, transformed);
+    }
+    for (InterfaceType instantiatedType in worldImpact.instantiatedTypes) {
+      // TODO(johnniwinther): Remove this when dependency tracking is done on
+      // the world impact itself.
+      transformed.registerInstantiation(instantiatedType);
+      backend.registerInstantiatedType(
+          instantiatedType, backend.compiler.enqueuer.resolution, transformed);
+    }
+    return transformed;
+  }
+
+  @override
   void onTypeLiteral(DartType type, Registry registry) {
     if (type.isInterfaceType) {
       backend.usedTypeLiterals.add(type.element);
@@ -385,13 +408,13 @@ class EmitterUnparser extends Unparser {
  * (just to name a few).  Retraverse AST to pick those up.
  */
 class ReferencedElementCollector extends Visitor {
-  final Compiler compiler;
+  final DiagnosticReporter reporter;
   final Element element;
   final ElementAst elementAst;
   final newTypedefElementCallback;
   final newClassElementCallback;
 
-  ReferencedElementCollector(this.compiler,
+  ReferencedElementCollector(this.reporter,
                              this.element,
                              this.elementAst,
                              this.newTypedefElementCallback,
@@ -412,7 +435,7 @@ class ReferencedElementCollector extends Visitor {
   }
 
   void collect() {
-    compiler.withCurrentElement(element, () {
+    reporter.withCurrentElement(element, () {
       elementAst.ast.accept(this);
     });
   }

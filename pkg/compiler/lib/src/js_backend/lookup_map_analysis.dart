@@ -7,14 +7,17 @@ library compiler.src.js_backend.lookup_map_analysis;
 
 import '../common/registry.dart' show Registry;
 import '../compiler.dart' show Compiler;
-import '../diagnostics/messages.dart' show MessageKind;
+import '../diagnostics/diagnostic_listener.dart' show
+    DiagnosticReporter;
+import '../diagnostics/messages.dart' show
+    MessageKind;
 import '../constants/values.dart' show
-     ConstantValue,
-     ConstructedConstantValue,
-     ListConstantValue,
-     NullConstantValue,
-     StringConstantValue,
-     TypeConstantValue;
+    ConstantValue,
+    ConstructedConstantValue,
+    ListConstantValue,
+    NullConstantValue,
+    StringConstantValue,
+    TypeConstantValue;
 import '../dart_types.dart' show DartType;
 import '../elements/elements.dart' show
     ClassElement,
@@ -72,6 +75,10 @@ class LookupMapAnalysis {
   /// discover that a key in a map is potentially used.
   final JavaScriptBackend backend;
 
+  /// Reference the diagnostic reporting system for logging and reporting issues
+  /// to the end-user.
+  final DiagnosticReporter reporter;
+
   /// The resolved [VariableElement] associated with the top-level `_version`.
   VariableElement lookupMapVersionVariable;
 
@@ -119,7 +126,7 @@ class LookupMapAnalysis {
   /// Whether the backend is currently processing the codegen queue.
   bool _inCodegen = false;
 
-  LookupMapAnalysis(this.backend);
+  LookupMapAnalysis(this.backend, this.reporter);
 
   /// Whether this analysis and optimization is enabled.
   bool get _isEnabled {
@@ -136,7 +143,7 @@ class LookupMapAnalysis {
     // the lookup_map package. We otherwise produce a warning.
     lookupMapVersionVariable = library.implementation.findLocal('_version');
     if (lookupMapVersionVariable == null) {
-      backend.compiler.reportInfo(library,
+      reporter.reportInfo(library,
           MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
     } else {
       backend.compiler.enqueuer.resolution.addToWorkList(
@@ -155,7 +162,7 @@ class LookupMapAnalysis {
     StringConstantValue value =
         backend.constants.getConstantValueForVariable(lookupMapVersionVariable);
     if (value == null) {
-      backend.compiler.reportInfo(lookupMapVersionVariable,
+      reporter.reportInfo(lookupMapVersionVariable,
           MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
       return;
     }
@@ -168,13 +175,13 @@ class LookupMapAnalysis {
     } catch (e) {}
 
     if (version == null || !_validLookupMapVersionConstraint.allows(version)) {
-      backend.compiler.reportInfo(lookupMapVersionVariable,
+      reporter.reportInfo(lookupMapVersionVariable,
           MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
       return;
     }
 
     ClassElement cls = lookupMapLibrary.findLocal('LookupMap');
-    cls.computeType(backend.compiler);
+    cls.computeType(backend.resolution);
     entriesField = cls.lookupMember('_entries');
     keyField = cls.lookupMember('_key');
     valueField = cls.lookupMember('_value');
@@ -311,7 +318,7 @@ class LookupMapAnalysis {
           count++;
         }
       }
-      compiler.log(count == 0
+      reporter.log(count == 0
           ? 'lookup-map: nothing was tree-shaken'
           : 'lookup-map: found $count unused keys ($sb)');
     }

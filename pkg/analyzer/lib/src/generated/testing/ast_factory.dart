@@ -377,6 +377,11 @@ class AstFactory {
           TypeName type, String identifier) =>
       declaredIdentifier2(null, type, identifier);
 
+  static Comment documentationComment(
+      List<Token> tokens, List<CommentReference> references) {
+    return new Comment(tokens, CommentType.DOCUMENTATION, references);
+  }
+
   static DoStatement doStatement(Statement body, Expression condition) =>
       new DoStatement(
           TokenFactory.tokenFromKeyword(Keyword.DO),

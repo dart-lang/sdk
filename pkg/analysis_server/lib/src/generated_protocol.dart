@@ -3158,11 +3158,17 @@ class AnalysisOccurrencesParams implements HasToJson {
  *
  * {
  *   "file": FilePath
+ *   "kind": FileKind
+ *   "libraryName": optional String
  *   "outline": Outline
  * }
  */
 class AnalysisOutlineParams implements HasToJson {
   String _file;
+
+  FileKind _kind;
+
+  String _libraryName;
 
   Outline _outline;
 
@@ -3180,6 +3186,39 @@ class AnalysisOutlineParams implements HasToJson {
   }
 
   /**
+   * The kind of the file.
+   */
+  FileKind get kind => _kind;
+
+  /**
+   * The kind of the file.
+   */
+  void set kind(FileKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
+
+  /**
+   * The name of the library defined by the file using a "library" directive,
+   * or referenced by a "part of" directive. If both "library" and "part of"
+   * directives are present, then the "library" directive takes precedence.
+   * This field will be omitted if the file has neither "library" nor "part of"
+   * directives.
+   */
+  String get libraryName => _libraryName;
+
+  /**
+   * The name of the library defined by the file using a "library" directive,
+   * or referenced by a "part of" directive. If both "library" and "part of"
+   * directives are present, then the "library" directive takes precedence.
+   * This field will be omitted if the file has neither "library" nor "part of"
+   * directives.
+   */
+  void set libraryName(String value) {
+    this._libraryName = value;
+  }
+
+  /**
    * The outline associated with the file.
    */
   Outline get outline => _outline;
@@ -3192,8 +3231,10 @@ class AnalysisOutlineParams implements HasToJson {
     this._outline = value;
   }
 
-  AnalysisOutlineParams(String file, Outline outline) {
+  AnalysisOutlineParams(String file, FileKind kind, Outline outline, {String libraryName}) {
     this.file = file;
+    this.kind = kind;
+    this.libraryName = libraryName;
     this.outline = outline;
   }
 
@@ -3208,13 +3249,23 @@ class AnalysisOutlineParams implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
+      FileKind kind;
+      if (json.containsKey("kind")) {
+        kind = new FileKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "kind");
+      }
+      String libraryName;
+      if (json.containsKey("libraryName")) {
+        libraryName = jsonDecoder._decodeString(jsonPath + ".libraryName", json["libraryName"]);
+      }
       Outline outline;
       if (json.containsKey("outline")) {
         outline = new Outline.fromJson(jsonDecoder, jsonPath + ".outline", json["outline"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "outline");
       }
-      return new AnalysisOutlineParams(file, outline);
+      return new AnalysisOutlineParams(file, kind, outline, libraryName: libraryName);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.outline params", json);
     }
@@ -3228,6 +3279,10 @@ class AnalysisOutlineParams implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
+    result["kind"] = kind.toJson();
+    if (libraryName != null) {
+      result["libraryName"] = libraryName;
+    }
     result["outline"] = outline.toJson();
     return result;
   }
@@ -3243,6 +3298,8 @@ class AnalysisOutlineParams implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisOutlineParams) {
       return file == other.file &&
+          kind == other.kind &&
+          libraryName == other.libraryName &&
           outline == other.outline;
     }
     return false;
@@ -3252,6 +3309,8 @@ class AnalysisOutlineParams implements HasToJson {
   int get hashCode {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, libraryName.hashCode);
     hash = _JenkinsSmiHash.combine(hash, outline.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
@@ -7288,6 +7347,7 @@ class AddContentOverlay implements HasToJson {
  *   "location": Location
  *   "message": String
  *   "correction": optional String
+ *   "hasFix": optional bool
  * }
  */
 class AnalysisError implements HasToJson {
@@ -7300,6 +7360,8 @@ class AnalysisError implements HasToJson {
   String _message;
 
   String _correction;
+
+  bool _hasFix;
 
   /**
    * The severity of the error.
@@ -7371,12 +7433,39 @@ class AnalysisError implements HasToJson {
     this._correction = value;
   }
 
-  AnalysisError(AnalysisErrorSeverity severity, AnalysisErrorType type, Location location, String message, {String correction}) {
+  /**
+   * A hint to indicate to interested clients that this error has an associated
+   * fix (or fixes). The absence of this field implies there are not known to
+   * be fixes. Note that since the operation to calculate whether fixes apply
+   * needs to be performant it is possible that complicated tests will be
+   * skipped and a false negative returned. For this reason, this attribute
+   * should be treated as a "hint". Despite the possibility of false negatives,
+   * no false positives should be returned. If a client sees this flag set they
+   * can proceed with the confidence that there are in fact associated fixes.
+   */
+  bool get hasFix => _hasFix;
+
+  /**
+   * A hint to indicate to interested clients that this error has an associated
+   * fix (or fixes). The absence of this field implies there are not known to
+   * be fixes. Note that since the operation to calculate whether fixes apply
+   * needs to be performant it is possible that complicated tests will be
+   * skipped and a false negative returned. For this reason, this attribute
+   * should be treated as a "hint". Despite the possibility of false negatives,
+   * no false positives should be returned. If a client sees this flag set they
+   * can proceed with the confidence that there are in fact associated fixes.
+   */
+  void set hasFix(bool value) {
+    this._hasFix = value;
+  }
+
+  AnalysisError(AnalysisErrorSeverity severity, AnalysisErrorType type, Location location, String message, {String correction, bool hasFix}) {
     this.severity = severity;
     this.type = type;
     this.location = location;
     this.message = message;
     this.correction = correction;
+    this.hasFix = hasFix;
   }
 
   factory AnalysisError.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
@@ -7412,7 +7501,11 @@ class AnalysisError implements HasToJson {
       if (json.containsKey("correction")) {
         correction = jsonDecoder._decodeString(jsonPath + ".correction", json["correction"]);
       }
-      return new AnalysisError(severity, type, location, message, correction: correction);
+      bool hasFix;
+      if (json.containsKey("hasFix")) {
+        hasFix = jsonDecoder._decodeBool(jsonPath + ".hasFix", json["hasFix"]);
+      }
+      return new AnalysisError(severity, type, location, message, correction: correction, hasFix: hasFix);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisError", json);
     }
@@ -7427,6 +7520,9 @@ class AnalysisError implements HasToJson {
     if (correction != null) {
       result["correction"] = correction;
     }
+    if (hasFix != null) {
+      result["hasFix"] = hasFix;
+    }
     return result;
   }
 
@@ -7440,7 +7536,8 @@ class AnalysisError implements HasToJson {
           type == other.type &&
           location == other.location &&
           message == other.message &&
-          correction == other.correction;
+          correction == other.correction &&
+          hasFix == other.hasFix;
     }
     return false;
   }
@@ -7453,6 +7550,7 @@ class AnalysisError implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, location.hashCode);
     hash = _JenkinsSmiHash.combine(hash, message.hashCode);
     hash = _JenkinsSmiHash.combine(hash, correction.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, hasFix.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
@@ -9506,6 +9604,55 @@ class ExecutionService implements Enum {
 
   @override
   String toString() => "ExecutionService.$name";
+
+  String toJson() => name;
+}
+
+/**
+ * FileKind
+ *
+ * enum {
+ *   LIBRARY
+ *   PART
+ * }
+ */
+class FileKind implements Enum {
+  static const LIBRARY = const FileKind._("LIBRARY");
+
+  static const PART = const FileKind._("PART");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<FileKind> VALUES = const <FileKind>[LIBRARY, PART];
+
+  final String name;
+
+  const FileKind._(this.name);
+
+  factory FileKind(String name) {
+    switch (name) {
+      case "LIBRARY":
+        return LIBRARY;
+      case "PART":
+        return PART;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory FileKind.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new FileKind(json);
+      } catch(_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "FileKind", json);
+  }
+
+  @override
+  String toString() => "FileKind.$name";
 
   String toJson() => name;
 }
@@ -14573,17 +14720,53 @@ class ConvertMethodToGetterOptions {
  * extractLocalVariable feedback
  *
  * {
+ *   "coveringExpressionOffsets": List<int>
+ *   "coveringExpressionLengths": List<int>
  *   "names": List<String>
  *   "offsets": List<int>
  *   "lengths": List<int>
  * }
  */
 class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJson {
+  List<int> _coveringExpressionOffsets;
+
+  List<int> _coveringExpressionLengths;
+
   List<String> _names;
 
   List<int> _offsets;
 
   List<int> _lengths;
+
+  /**
+   * The offsets of the expressions that cover the specified selection, from
+   * the down most to the up most.
+   */
+  List<int> get coveringExpressionOffsets => _coveringExpressionOffsets;
+
+  /**
+   * The offsets of the expressions that cover the specified selection, from
+   * the down most to the up most.
+   */
+  void set coveringExpressionOffsets(List<int> value) {
+    assert(value != null);
+    this._coveringExpressionOffsets = value;
+  }
+
+  /**
+   * The lengths of the expressions that cover the specified selection, from
+   * the down most to the up most.
+   */
+  List<int> get coveringExpressionLengths => _coveringExpressionLengths;
+
+  /**
+   * The lengths of the expressions that cover the specified selection, from
+   * the down most to the up most.
+   */
+  void set coveringExpressionLengths(List<int> value) {
+    assert(value != null);
+    this._coveringExpressionLengths = value;
+  }
 
   /**
    * The proposed names for the local variable.
@@ -14632,7 +14815,9 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
     this._lengths = value;
   }
 
-  ExtractLocalVariableFeedback(List<String> names, List<int> offsets, List<int> lengths) {
+  ExtractLocalVariableFeedback(List<int> coveringExpressionOffsets, List<int> coveringExpressionLengths, List<String> names, List<int> offsets, List<int> lengths) {
+    this.coveringExpressionOffsets = coveringExpressionOffsets;
+    this.coveringExpressionLengths = coveringExpressionLengths;
     this.names = names;
     this.offsets = offsets;
     this.lengths = lengths;
@@ -14643,6 +14828,18 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
       json = {};
     }
     if (json is Map) {
+      List<int> coveringExpressionOffsets;
+      if (json.containsKey("coveringExpressionOffsets")) {
+        coveringExpressionOffsets = jsonDecoder._decodeList(jsonPath + ".coveringExpressionOffsets", json["coveringExpressionOffsets"], jsonDecoder._decodeInt);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "coveringExpressionOffsets");
+      }
+      List<int> coveringExpressionLengths;
+      if (json.containsKey("coveringExpressionLengths")) {
+        coveringExpressionLengths = jsonDecoder._decodeList(jsonPath + ".coveringExpressionLengths", json["coveringExpressionLengths"], jsonDecoder._decodeInt);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "coveringExpressionLengths");
+      }
       List<String> names;
       if (json.containsKey("names")) {
         names = jsonDecoder._decodeList(jsonPath + ".names", json["names"], jsonDecoder._decodeString);
@@ -14661,7 +14858,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
       } else {
         throw jsonDecoder.missingKey(jsonPath, "lengths");
       }
-      return new ExtractLocalVariableFeedback(names, offsets, lengths);
+      return new ExtractLocalVariableFeedback(coveringExpressionOffsets, coveringExpressionLengths, names, offsets, lengths);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "extractLocalVariable feedback", json);
     }
@@ -14669,6 +14866,8 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
+    result["coveringExpressionOffsets"] = coveringExpressionOffsets;
+    result["coveringExpressionLengths"] = coveringExpressionLengths;
     result["names"] = names;
     result["offsets"] = offsets;
     result["lengths"] = lengths;
@@ -14681,7 +14880,9 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
   @override
   bool operator==(other) {
     if (other is ExtractLocalVariableFeedback) {
-      return _listEqual(names, other.names, (String a, String b) => a == b) &&
+      return _listEqual(coveringExpressionOffsets, other.coveringExpressionOffsets, (int a, int b) => a == b) &&
+          _listEqual(coveringExpressionLengths, other.coveringExpressionLengths, (int a, int b) => a == b) &&
+          _listEqual(names, other.names, (String a, String b) => a == b) &&
           _listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
           _listEqual(lengths, other.lengths, (int a, int b) => a == b);
     }
@@ -14691,6 +14892,8 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
   @override
   int get hashCode {
     int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, coveringExpressionOffsets.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, coveringExpressionLengths.hashCode);
     hash = _JenkinsSmiHash.combine(hash, names.hashCode);
     hash = _JenkinsSmiHash.combine(hash, offsets.hashCode);
     hash = _JenkinsSmiHash.combine(hash, lengths.hashCode);

@@ -793,6 +793,20 @@ class B extends A {m() {^}}
     assertSuggestMethod('m', 'B', null, relevance: DART_RELEVANCE_LOCAL_METHOD);
   }
 
+  test_prioritization_private() {
+    addTestSource('main() {var ab; var _ab; _^}');
+    expect(computeFast(), isTrue);
+    assertSuggestLocalVariable('ab', null);
+    assertSuggestLocalVariable('_ab', null);
+  }
+
+  test_prioritization_public() {
+    addTestSource('main() {var ab; var _ab; a^}');
+    expect(computeFast(), isTrue);
+    assertSuggestLocalVariable('ab', null);
+    assertSuggestLocalVariable('_ab', null, relevance: DART_RELEVANCE_DEFAULT);
+  }
+
   test_shadowed_name() {
     addTestSource('var a; class A { var a; m() { ^ } }');
     expect(computeFast(), isTrue);

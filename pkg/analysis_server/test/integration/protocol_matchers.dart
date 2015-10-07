@@ -468,13 +468,18 @@ final Matcher isAnalysisOccurrencesParams = new LazyMatcher(() => new MatchesJso
  *
  * {
  *   "file": FilePath
+ *   "kind": FileKind
+ *   "libraryName": optional String
  *   "outline": Outline
  * }
  */
 final Matcher isAnalysisOutlineParams = new LazyMatcher(() => new MatchesJsonObject(
   "analysis.outline params", {
     "file": isFilePath,
+    "kind": isFileKind,
     "outline": isOutline
+  }, optionalFields: {
+    "libraryName": isString
   }));
 
 /**
@@ -1024,6 +1029,7 @@ final Matcher isAddContentOverlay = new LazyMatcher(() => new MatchesJsonObject(
  *   "location": Location
  *   "message": String
  *   "correction": optional String
+ *   "hasFix": optional bool
  * }
  */
 final Matcher isAnalysisError = new LazyMatcher(() => new MatchesJsonObject(
@@ -1033,7 +1039,8 @@ final Matcher isAnalysisError = new LazyMatcher(() => new MatchesJsonObject(
     "location": isLocation,
     "message": isString
   }, optionalFields: {
-    "correction": isString
+    "correction": isString,
+    "hasFix": isBool
   }));
 
 /**
@@ -1376,6 +1383,19 @@ final Matcher isExecutionContextId = isString;
  */
 final Matcher isExecutionService = new MatchesEnum("ExecutionService", [
   "LAUNCH_DATA"
+]);
+
+/**
+ * FileKind
+ *
+ * enum {
+ *   LIBRARY
+ *   PART
+ * }
+ */
+final Matcher isFileKind = new MatchesEnum("FileKind", [
+  "LIBRARY",
+  "PART"
 ]);
 
 /**
@@ -2221,6 +2241,8 @@ final Matcher isConvertMethodToGetterOptions = isNull;
  * extractLocalVariable feedback
  *
  * {
+ *   "coveringExpressionOffsets": List<int>
+ *   "coveringExpressionLengths": List<int>
  *   "names": List<String>
  *   "offsets": List<int>
  *   "lengths": List<int>
@@ -2228,6 +2250,8 @@ final Matcher isConvertMethodToGetterOptions = isNull;
  */
 final Matcher isExtractLocalVariableFeedback = new LazyMatcher(() => new MatchesJsonObject(
   "extractLocalVariable feedback", {
+    "coveringExpressionOffsets": isListOf(isInt),
+    "coveringExpressionLengths": isListOf(isInt),
     "names": isListOf(isString),
     "offsets": isListOf(isInt),
     "lengths": isListOf(isInt)

@@ -515,7 +515,7 @@ class OperationInfo(object):
     return ', '.join(map(param_name, self.param_infos[:parameter_count]))
 
   def isCallback(self, type_registry, type_id):
-    if type_id:
+    if type_id and not type_id.endswith('[]'):
       callback_type = type_registry._database._all_interfaces[type_id]
       return callback_type.operations[0].id == 'handleEvent' if len(callback_type.operations) > 0 else False
     else:
@@ -1446,7 +1446,8 @@ def wrap_unwrap_type_blink(return_type, type_registry):
             return_type == 'Future' or
             return_type == 'SqlDatabase' or # renamed to Database
             return_type == 'HTMLElement' or
-            return_type == 'MutationObserver')
+            return_type == 'MutationObserver' or
+            return_type.endswith('[]'))
 
 def wrap_type_blink(return_type, type_registry):
     """Returns True if the type is a blink type that requires wrap_jso but

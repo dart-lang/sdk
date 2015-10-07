@@ -131,7 +131,10 @@ typedef struct _Dart_Isolate* Dart_Isolate;
  *   occur in any function which triggers the execution of Dart code.
  *
  * - Fatal error handles are produced when the system wants to shut
- *   down the current isolate.
+ *   down the current isolate. Sometimes a fatal error may be a
+ *   restart request (see Dart_IsRestartRequest). If the embedder does
+ *   not support restarting the VM, then this should be treated as a
+ *   normal fatal error.
  *
  * --- Propagating errors ---
  *
@@ -266,6 +269,17 @@ DART_EXPORT bool Dart_IsCompilationError(Dart_Handle handle);
  * Requires there to be a current isolate.
  */
 DART_EXPORT bool Dart_IsFatalError(Dart_Handle handle);
+
+/**
+ * Is this error a request to restart the VM?
+ *
+ * If an embedder chooses to support restarting the VM from tools
+ * (such as a debugger), then this function is used to distinguish
+ * restart requests from other fatal errors.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT bool Dart_IsVMRestartRequest(Dart_Handle handle);
 
 /**
  * Gets the error message from an error handle.
@@ -2877,8 +2891,29 @@ typedef struct {
 } Dart_QualifiedFunctionName;
 
 
+/**
+ * Compiles all functions reachable from the provided entry points and marks
+ * the isolate to disallow future compilation.
+ *
+ * \param entry_points A list of functions that may be invoked through the
+ * embedding API, e.g. Dart_Invoke/GetField/SetField/New/InvokeClosure.
+ *
+ * \param reset_fields Controls whether static fields are reset. Fields without
+ * an initializer will be set to null, and fields with an initializer will have
+ * their initializer run the next time they are accessed.
+ *
+ * reset_fields is true when we are about to create a precompilated snapshot.
+ * Some fields are already been initialized as part of the loading logic, and
+ * we want them to be reinitialized in the new process that will load the
+ * snapshot. reset_fields is false for --noopt, which will continue running in
+ * the same process.
+ *
+ * \return An error handle if a compilation error or runtime error running const
+ * constructors was encountered.
+ */
 DART_EXPORT Dart_Handle Dart_Precompile(
-    Dart_QualifiedFunctionName entry_points[]);
+    Dart_QualifiedFunctionName entry_points[],
+    bool reset_fields);
 
 
 DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(

@@ -7,43 +7,82 @@ library server.performance.analysis.timing;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analysis_server/src/protocol.dart';
 import 'package:args/args.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:unittest/unittest.dart';
 
 import '../../test/utils.dart';
 import 'performance_tests.dart';
 
-const String SOURCE_OPTION = 'source';
-
 /**
- * Pass in the directory of the source to be analyzed as option --source
+ * Pass in the directory of the source to be analyzed as option `--source`,
+ * optionally specify a priority file with `--priority` and the specific
+ * test to run with `--test`.  If no test is specified, the default is
+ * `analysis`.
  */
-main(List<String> arguements) {
+main(List<String> arguments) {
   initializeTestEnvironment();
   ArgParser parser = _createArgParser();
-  var args = parser.parse(arguements);
+  var args = parser.parse(arguments);
   if (args[SOURCE_OPTION] == null) {
     print('path to source directory must be specified');
     exit(1);
   }
   source = args[SOURCE_OPTION];
-  defineReflectiveTests(AnalysisTimingIntegrationTest);
+  priorityFile = args[PRIORITY_FILE_OPTION];
+  testName = args[TEST_NAME_OPTION] ?? DEFAULT_TEST;
+
+  switch (testName) {
+    case 'analysis':
+      defineReflectiveTests(AnalysisTimingIntegrationTest);
+      break;
+    case 'highlighting':
+      defineReflectiveTests(HighlightingTimingIntegrationTest);
+      break;
+    case 'navigation':
+      defineReflectiveTests(NavigationTimingIntegrationTest);
+      break;
+    case 'outline':
+      defineReflectiveTests(OutlineTimingIntegrationTest);
+      break;
+    default:
+      print('unrecognized test name $testName');
+      exit(1);
+  }
 }
 
+const DEFAULT_TEST = 'analysis';
+const PRIORITY_FILE_OPTION = 'priority';
+const SOURCE_OPTION = 'source';
+const TEST_NAME_OPTION = 'test';
+
+String priorityFile;
 String source;
+String testName;
+
+ArgParser _createArgParser() => new ArgParser()
+  ..addOption(TEST_NAME_OPTION, help: 'test name (defaults to `analysis`)')
+  ..addOption(SOURCE_OPTION, help: 'full path to source directory for analysis')
+  ..addOption(PRIORITY_FILE_OPTION,
+      help: '(optional) full path to a priority file');
+
+class AbstractTimingTest extends AbstractAnalysisServerPerformanceTest {
+  @override
+  Future setUp() => super.setUp().then((_) {
+        sourceDirectory = new Directory(source);
+        subscribeToStatusNotifications();
+      });
+}
 
 @reflectiveTest
-class AnalysisTimingIntegrationTest
-    extends AbstractAnalysisServerPerformanceTest {
+class AnalysisTimingIntegrationTest extends AbstractTimingTest {
   test_detect_analysis_done() {
-    sourceDirectory = new Directory(source);
-    subscribeToStatusNotifications();
-    return _runAndTimeAnalysis();
-  }
-
-  Future _runAndTimeAnalysis() {
     stopwatch.start();
     setAnalysisRoot();
+    if (priorityFile != null) {
+      sendAnalysisSetPriorityFiles([priorityFile]);
+    }
     return analysisFinished.then((_) {
       print('analysis completed in ${stopwatch.elapsed}');
       stopwatch.reset();
@@ -51,9 +90,67 @@ class AnalysisTimingIntegrationTest
   }
 }
 
-ArgParser _createArgParser() {
-  ArgParser parser = new ArgParser();
-  parser.addOption('source',
-      help: 'full path to source directory for analysis');
-  return parser;
+@reflectiveTest
+class HighlightingTimingIntegrationTest extends PriorityFileTimer {
+  @override
+  String get description => 'highlighting';
+
+  @override
+  Stream get eventStream => onAnalysisHighlights;
+
+  @override
+  AnalysisService get service => AnalysisService.HIGHLIGHTS;
+}
+
+@reflectiveTest
+class NavigationTimingIntegrationTest extends PriorityFileTimer {
+  @override
+  String get description => 'navigation';
+
+  @override
+  Stream get eventStream => onAnalysisNavigation;
+
+  @override
+  AnalysisService get service => AnalysisService.NAVIGATION;
+}
+
+@reflectiveTest
+class OutlineTimingIntegrationTest extends PriorityFileTimer {
+  @override
+  String get description => 'outline';
+
+  @override
+  Stream get eventStream => onAnalysisOutline;
+
+  @override
+  AnalysisService get service => AnalysisService.OUTLINE;
+}
+
+abstract class PriorityFileTimer extends AbstractTimingTest {
+  String get description;
+  Stream get eventStream;
+  AnalysisService get service;
+
+  Future test_timing() {
+    expect(priorityFile, isNotNull,
+        reason: 'A priority file must be specified for $description testing.');
+    stopwatch.start();
+
+    Duration elapsed;
+    eventStream.listen((_) {
+      elapsed = stopwatch.elapsed;
+    });
+
+    setAnalysisRoot();
+    sendAnalysisSetSubscriptions({
+      service: [priorityFile]
+    });
+
+    sendAnalysisSetPriorityFiles([priorityFile]);
+
+    return analysisFinished.then((_) {
+      print('$description completed in ${elapsed}');
+      stopwatch.reset();
+    });
+  }
 }

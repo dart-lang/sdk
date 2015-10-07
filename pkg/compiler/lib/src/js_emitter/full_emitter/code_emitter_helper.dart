@@ -15,6 +15,8 @@ class CodeEmitterHelper {
 
   Compiler get compiler => emitter.compiler;
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   String get n => emitter.n;
 
   String get _ => emitter._;

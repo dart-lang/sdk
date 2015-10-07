@@ -4,7 +4,7 @@
 
 library services.completion.dart.optype;
 
-import 'package:analysis_server/completion/dart/completion_target.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
@@ -295,6 +295,16 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    if (entity == node.identifier) {
+      optype.isPrefixed = true;
+    } else {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitForEachStatement(ForEachStatement node) {
     if (identical(entity, node.identifier)) {
       optype.includeTypeNameSuggestions = true;
@@ -446,16 +456,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   @override
   void visitNode(AstNode node) {
     // no suggestion by default
-  }
-
-  @override
-  void visitFieldFormalParameter(FieldFormalParameter node) {
-    if (entity == node.identifier) {
-      optype.isPrefixed = true;
-    } else {
-      optype.includeReturnValueSuggestions = true;
-      optype.includeTypeNameSuggestions = true;
-    }
   }
 
   @override

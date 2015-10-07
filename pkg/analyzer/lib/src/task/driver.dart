@@ -667,6 +667,9 @@ class WorkItem {
         }
       } else {
         builder.currentValue = inputEntry.getValue(inputResult);
+        if (builder.flushOnAccess) {
+          inputEntry.setState(inputResult, CacheState.FLUSHED);
+        }
       }
       if (!builder.moveNext()) {
         inputs = builder.inputValue;

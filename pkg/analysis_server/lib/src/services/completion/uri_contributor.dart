@@ -48,13 +48,22 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
   }
 
   @override
+  visitExportDirective(ExportDirective node) {
+    visitNamespaceDirective(node);
+  }
+
+  @override
   visitImportDirective(ImportDirective node) {
+    visitNamespaceDirective(node);
+  }
+
+  visitNamespaceDirective(NamespaceDirective node) {
     StringLiteral uri = node.uri;
     if (uri is SimpleStringLiteral) {
       int offset = request.offset;
       if (uri.offset < offset &&
           (offset < uri.end || offset == uri.offset + 1)) {
-        // Handle degenerate case where import is only line in file
+        // Handle degenerate case where import or export is only line in file
         // and there is no semicolon
         visitSimpleStringLiteral(uri);
       }
@@ -64,7 +73,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
   @override
   visitSimpleStringLiteral(SimpleStringLiteral node) {
     AstNode parent = node.parent;
-    if (parent is ImportDirective && parent.uri == node) {
+    if (parent is NamespaceDirective && parent.uri == node) {
       String partial = node.literal.lexeme.substring(
           node.contentsOffset - node.offset, request.offset - node.offset);
       request.replacementOffset = node.contentsOffset;

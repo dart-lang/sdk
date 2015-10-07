@@ -158,7 +158,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   js.VariableUse get self => new js.VariableUse(selfName);
   String selfName;
 
-  final DiagnosticListener diagnosticListener;
+  final DiagnosticReporter reporter;
   // For error reporting only.
   Spannable get spannable {
     return (_spannable == null) ? NO_LOCATION_SPANNABLE : _spannable;
@@ -178,11 +178,10 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   bool get isSyncStar => false;
   bool get isAsyncStar => false;
 
-  AsyncRewriterBase(this.diagnosticListener,
-                    spannable,
+  AsyncRewriterBase(this.reporter,
+                    this._spannable,
                     this.safeVariableName,
-                    this.bodyName)
-      : _spannable = spannable;
+                    this.bodyName);
 
   /// Initialize names used by the subClass.
   void initializeNames();
@@ -352,7 +351,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   }
 
   void unreachable(js.Node node) {
-    diagnosticListener.internalError(
+    reporter.internalError(
         spannable, "Internal error, trying to visit $node");
   }
 
@@ -1376,7 +1375,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
           clauses.add(new js.Default(gotoAndBreak(labels[i])));
           hasDefault = true;
         } else {
-          diagnosticListener.internalError(
+          reporter.internalError(
               spannable, "Unknown clause type $clause");
         }
         i++;
@@ -1695,21 +1694,21 @@ class AsyncRewriter extends AsyncRewriterBase {
 
   final js.Expression wrapBody;
 
-  AsyncRewriter(DiagnosticListener diagnosticListener,
-                spannable,
+  AsyncRewriter(DiagnosticReporter reporter,
+                Spannable spannable,
                 {this.asyncHelper,
                  this.newCompleter,
                  this.wrapBody,
                  String safeVariableName(String proposedName),
                  js.Name bodyName})
-        : super(diagnosticListener,
+        : super(reporter,
                 spannable,
                 safeVariableName,
                 bodyName);
 
   @override
   void addYield(js.DartYield node, js.Expression expression) {
-    diagnosticListener.internalError(spannable,
+    reporter.internalError(spannable,
         "Yield in non-generating async function");
   }
 
@@ -1827,7 +1826,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
   /// Used by sync* functions to throw exeptions.
   final js.Expression uncaughtErrorExpression;
 
-  SyncStarRewriter(DiagnosticListener diagnosticListener,
+  SyncStarRewriter(DiagnosticReporter diagnosticListener,
                 spannable,
                 {this.endOfIteration,
                  this.newIterable,
@@ -1937,7 +1936,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
 
   @override
   js.Statement awaitStatement(js.Expression value) {
-    throw diagnosticListener.internalError(spannable,
+    throw reporter.internalError(spannable,
         "Sync* functions cannot contain await statements.");
   }
 
@@ -1998,17 +1997,17 @@ class AsyncStarRewriter extends AsyncRewriterBase {
 
   final js.Expression wrapBody;
 
-  AsyncStarRewriter(DiagnosticListener diagnosticListener,
-                spannable,
-                {this.asyncStarHelper,
-                 this.streamOfController,
-                 this.newController,
-                 this.yieldExpression,
-                 this.yieldStarExpression,
-                 this.wrapBody,
-                 String safeVariableName(String proposedName),
-                 js.Name bodyName})
-        : super(diagnosticListener,
+  AsyncStarRewriter(DiagnosticReporter reporter,
+                    Spannable spannable,
+                    {this.asyncStarHelper,
+                     this.streamOfController,
+                     this.newController,
+                     this.yieldExpression,
+                     this.yieldStarExpression,
+                     this.wrapBody,
+                     String safeVariableName(String proposedName),
+                     js.Name bodyName})
+        : super(reporter,
                 spannable,
                 safeVariableName,
                 bodyName);

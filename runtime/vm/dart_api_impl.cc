@@ -747,6 +747,13 @@ DART_EXPORT bool Dart_IsFatalError(Dart_Handle object) {
 }
 
 
+DART_EXPORT bool Dart_IsVMRestartRequest(Dart_Handle handle) {
+  DARTSCOPE(Thread::Current());
+  const Object& obj = Object::Handle(Z, Api::UnwrapHandle(handle));
+  return (obj.IsUnwindError() && UnwindError::Cast(obj).is_vm_restart());
+}
+
+
 DART_EXPORT const char* Dart_GetError(Dart_Handle handle) {
   DARTSCOPE(Thread::Current());
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(handle));
@@ -1378,7 +1385,6 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
   #endif  // defined(DART_NO_SNAPSHOT).
       // We exit the API scope entered above.
       Dart_ExitScope();
-      START_TIMER(I, time_total_runtime);
       return Api::CastIsolate(I);
     }
     *error = strdup(error_obj.ToErrorCString());
@@ -1399,7 +1405,6 @@ DART_EXPORT void Dart_ShutdownIsolate() {
     HandleScope handle_scope(T);
     Dart::RunShutdownCallback();
   }
-  STOP_TIMER(I, time_total_runtime);
   Dart::ShutdownIsolate();
 }
 
@@ -1506,7 +1511,6 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
     intptr_t* isolate_snapshot_size) {
   ASSERT(FLAG_load_deferred_eagerly);
   DARTSCOPE(Thread::Current());
-  TIMERSCOPE(T, time_creating_snapshot);
   if (vm_isolate_snapshot_buffer != NULL &&
       vm_isolate_snapshot_size == NULL) {
     RETURN_NULL_ERROR(vm_isolate_snapshot_size);
@@ -1547,7 +1551,6 @@ static Dart_Handle createLibrarySnapshot(Dart_Handle library,
                                          uint8_t** buffer,
                                          intptr_t* size) {
   DARTSCOPE(Thread::Current());
-  TIMERSCOPE(T, time_creating_snapshot);
   if (buffer == NULL) {
     RETURN_NULL_ERROR(buffer);
   }
@@ -1678,7 +1681,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE_SCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
-  if (!isolate->message_handler()->HandleNextMessage()) {
+  if (isolate->message_handler()->HandleNextMessage() != MessageHandler::kOK) {
     Dart_Handle error = Api::NewHandle(isolate,
                                        isolate->object_store()->sticky_error());
     isolate->object_store()->clear_sticky_error();
@@ -1694,8 +1697,10 @@ DART_EXPORT bool Dart_HandleServiceMessages() {
   CHECK_CALLBACK_STATE(isolate);
 
   ASSERT(isolate->GetAndClearResumeRequest() == false);
-  isolate->message_handler()->HandleOOBMessages();
-  return isolate->GetAndClearResumeRequest();
+  MessageHandler::MessageStatus status =
+      isolate->message_handler()->HandleOOBMessages();
+  bool resume = isolate->GetAndClearResumeRequest();
+  return (status != MessageHandler::kOK) || resume;
 }
 
 
@@ -3908,7 +3913,7 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
     RETURN_TYPE_ERROR(I, type, Type);
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
-  const Error& error = Error::Handle(Z, cls.EnsureIsFinalized(I));
+  const Error& error = Error::Handle(Z, cls.EnsureIsFinalized(T));
   if (!error.IsNull()) {
     // An error occurred, return error object.
     return Api::NewHandle(I, error.raw());
@@ -3933,7 +3938,7 @@ DART_EXPORT Dart_Handle Dart_AllocateWithNativeFields(
     RETURN_NULL_ERROR(native_fields);
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
-  const Error& error = Error::Handle(Z, cls.EnsureIsFinalized(I));
+  const Error& error = Error::Handle(Z, cls.EnsureIsFinalized(T));
   if (!error.IsNull()) {
     // An error occurred, return error object.
     return Api::NewHandle(I, error.raw());
@@ -4058,9 +4063,6 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                                     Dart_Handle* arguments) {
   DARTSCOPE(Thread::Current());
   CHECK_CALLBACK_STATE(I);
-  // TODO(turnidge): This is a bit simplistic.  It overcounts when
-  // other operations (gc, compilation) are active.
-  TIMERSCOPE(T, time_dart_execution);
 
   const String& function_name = Api::UnwrapStringHandle(I, name);
   if (function_name.IsNull()) {
@@ -5059,7 +5061,6 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         intptr_t line_offset,
                                         intptr_t column_offset) {
   DARTSCOPE(Thread::Current());
-  TIMERSCOPE(T, time_script_loading);
   const String& url_str = Api::UnwrapStringHandle(I, url);
   if (url_str.IsNull()) {
     RETURN_TYPE_ERROR(I, url, String);
@@ -5083,6 +5084,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                          CURRENT_FUNC);
   }
   CHECK_CALLBACK_STATE(I);
+  CHECK_COMPILATION_ALLOWED(I);
 
   NoHeapGrowthControlScope no_growth_control;
 
@@ -5103,7 +5105,6 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
 DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
                                                     intptr_t buffer_len) {
   DARTSCOPE(Thread::Current());
-  TIMERSCOPE(T, time_script_loading);
   StackZone zone(T);
   if (buffer == NULL) {
     RETURN_NULL_ERROR(buffer);
@@ -5127,6 +5128,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
                          CURRENT_FUNC, library_url.ToCString());
   }
   CHECK_CALLBACK_STATE(I);
+  CHECK_COMPILATION_ALLOWED(I);
 
   ASSERT(snapshot->kind() == Snapshot::kScript);
   ScriptSnapshotReader reader(snapshot->content(), snapshot->length(), T);
@@ -5303,7 +5305,6 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                                          intptr_t line_offset,
                                          intptr_t column_offset) {
   DARTSCOPE(Thread::Current());
-  TIMERSCOPE(T, time_script_loading);
   const String& url_str = Api::UnwrapStringHandle(I, url);
   if (url_str.IsNull()) {
     RETURN_TYPE_ERROR(I, url, String);
@@ -5321,6 +5322,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                          CURRENT_FUNC);
   }
   CHECK_CALLBACK_STATE(I);
+  CHECK_COMPILATION_ALLOWED(I);
 
   NoHeapGrowthControlScope no_growth_control;
 
@@ -5378,6 +5380,7 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
     RETURN_TYPE_ERROR(I, prefix, String);
   }
   CHECK_CALLBACK_STATE(I);
+  CHECK_COMPILATION_ALLOWED(I);
 
   const String& prefix_symbol = String::Handle(Z, Symbols::New(prefix_vm));
   const Namespace& import_ns = Namespace::Handle(Z,
@@ -5405,7 +5408,6 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         intptr_t line_offset,
                                         intptr_t column_offset) {
   DARTSCOPE(Thread::Current());
-  TIMERSCOPE(T, time_script_loading);
   const Library& lib = Api::UnwrapLibraryHandle(I, library);
   if (lib.IsNull()) {
     RETURN_TYPE_ERROR(I, library, Library);
@@ -5427,6 +5429,7 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                          CURRENT_FUNC);
   }
   CHECK_CALLBACK_STATE(I);
+  CHECK_COMPILATION_ALLOWED(I);
 
   NoHeapGrowthControlScope no_growth_control;
 
@@ -5443,7 +5446,6 @@ DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
                                               Dart_Handle url,
                                               Dart_Handle patch_source) {
   DARTSCOPE(Thread::Current());
-  TIMERSCOPE(T, time_script_loading);
   const Library& lib = Api::UnwrapLibraryHandle(I, library);
   if (lib.IsNull()) {
     RETURN_TYPE_ERROR(I, library, Library);
@@ -5457,6 +5459,7 @@ DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
     RETURN_TYPE_ERROR(I, patch_source, String);
   }
   CHECK_CALLBACK_STATE(I);
+  CHECK_COMPILATION_ALLOWED(I);
 
   NoHeapGrowthControlScope no_growth_control;
 
@@ -5680,6 +5683,8 @@ DART_EXPORT void Dart_TimelineSetRecordedStreams(int64_t stream_mask) {
       (stream_mask & DART_TIMELINE_STREAM_API) != 0);
   isolate->GetCompilerStream()->set_enabled(
       (stream_mask & DART_TIMELINE_STREAM_COMPILER) != 0);
+  isolate->GetDartStream()->set_enabled(
+      (stream_mask & DART_TIMELINE_STREAM_DART) != 0);
   isolate->GetEmbedderStream()->set_enabled(
       (stream_mask & DART_TIMELINE_STREAM_EMBEDDER) != 0);
   isolate->GetGCStream()->set_enabled(
@@ -5694,6 +5699,8 @@ DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
   const bool api_enabled = (stream_mask & DART_TIMELINE_STREAM_API) != 0;
   const bool compiler_enabled =
       (stream_mask & DART_TIMELINE_STREAM_COMPILER) != 0;
+  const bool dart_enabled =
+      (stream_mask & DART_TIMELINE_STREAM_DART) != 0;
   const bool embedder_enabled =
       (stream_mask & DART_TIMELINE_STREAM_EMBEDDER) != 0;
   const bool gc_enabled = (stream_mask & DART_TIMELINE_STREAM_GC) != 0;
@@ -5701,6 +5708,7 @@ DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
       (stream_mask & DART_TIMELINE_STREAM_ISOLATE) != 0;
   Timeline::SetStreamAPIEnabled(api_enabled);
   Timeline::SetStreamCompilerEnabled(compiler_enabled);
+  Timeline::SetStreamDartEnabled(dart_enabled);
   Timeline::SetStreamEmbedderEnabled(embedder_enabled);
   Timeline::SetStreamGCEnabled(gc_enabled);
   Timeline::SetStreamIsolateEnabled(isolate_enabled);
@@ -5714,40 +5722,71 @@ DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
 // '[' + ']' + '\0'.
 #define MINIMUM_OUTPUT_LENGTH 3
 
-static void StreamToConsumer(Dart_StreamConsumer consumer,
-                             void* user_data,
-                             char* output,
-                             intptr_t output_length) {
-  if (output == NULL) {
-    return;
-  }
-  if (output_length <= MINIMUM_OUTPUT_LENGTH) {
-    return;
-  }
+// Trims the '[' and ']' characters and, depending on whether or not more events
+// will follow, adjusts the last character of the string to either a '\0' or
+// ','.
+static char* TrimOutput(char* output,
+                        intptr_t* output_length,
+                        bool events_will_follow) {
+  ASSERT(output != NULL);
+  ASSERT(output_length != NULL);
+  ASSERT(*output_length > MINIMUM_OUTPUT_LENGTH);
   // We expect the first character to be the opening of an array.
   ASSERT(output[0] == '[');
   // We expect the last character to be the closing of an array.
-  ASSERT(output[output_length - 2] == ']');
+  ASSERT(output[*output_length - 2] == ']');
+  if (events_will_follow) {
+    // Replace array closing character (']') with ','.
+    output[*output_length - 2] = ',';
+  } else {
+    // Replace array closing character (']') with '\0'.
+    output[*output_length - 2] = '\0';
+  }
+  // Skip the array opening character ('[').
+  *output_length -= 2;
+  return &output[1];
+}
+
+
+static void StartStreamToConsumer(Dart_StreamConsumer consumer,
+                                  void* user_data,
+                                  const char* stream_name) {
   // Start stream.
-  const char* kStreamName = "timeline";
-  const intptr_t kDataSize = 64 * KB;
   consumer(Dart_StreamConsumer_kStart,
-           kStreamName,
+           stream_name,
            NULL,
            0,
            user_data);
+}
 
-  // Stream out data. Skipping the array characters.
-  // Replace array close with '\0'.
-  output[output_length - 2] = '\0';
-  intptr_t cursor = 1;
-  output_length -= 1;
-  intptr_t remaining = output_length - 1;
 
+static void FinishStreamToConsumer(Dart_StreamConsumer consumer,
+                                   void* user_data,
+                                   const char* stream_name) {
+  // Finish stream.
+  consumer(Dart_StreamConsumer_kFinish,
+           stream_name,
+           NULL,
+           0,
+           user_data);
+}
+
+
+static void DataStreamToConsumer(Dart_StreamConsumer consumer,
+                                 void* user_data,
+                                 const char* output,
+                                 intptr_t output_length,
+                                 const char* stream_name) {
+  if (output == NULL) {
+    return;
+  }
+  const intptr_t kDataSize = 64 * KB;
+  intptr_t cursor = 0;
+  intptr_t remaining = output_length;
   while (remaining >= kDataSize) {
     consumer(Dart_StreamConsumer_kData,
-             kStreamName,
-             reinterpret_cast<uint8_t*>(&output[cursor]),
+             stream_name,
+             reinterpret_cast<const uint8_t*>(&output[cursor]),
              kDataSize,
              user_data);
     cursor += kDataSize;
@@ -5756,8 +5795,8 @@ static void StreamToConsumer(Dart_StreamConsumer consumer,
   if (remaining > 0) {
     ASSERT(remaining < kDataSize);
     consumer(Dart_StreamConsumer_kData,
-             kStreamName,
-             reinterpret_cast<uint8_t*>(&output[cursor]),
+             stream_name,
+             reinterpret_cast<const uint8_t*>(&output[cursor]),
              remaining,
              user_data);
     cursor += remaining;
@@ -5765,13 +5804,53 @@ static void StreamToConsumer(Dart_StreamConsumer consumer,
   }
   ASSERT(cursor == output_length);
   ASSERT(remaining == 0);
+}
 
-  // Finish stream.
-  consumer(Dart_StreamConsumer_kFinish,
-           kStreamName,
-           NULL,
-           0,
-           user_data);
+
+static bool StreamTraceEvents(Dart_StreamConsumer consumer,
+                              void* user_data,
+                              JSONStream* js,
+                              const char* dart_events) {
+  ASSERT(js != NULL);
+  // Steal output from JSONStream.
+  char* output = NULL;
+  intptr_t output_length = 0;
+  js->Steal(const_cast<const char**>(&output), &output_length);
+
+  const bool output_vm = output_length > MINIMUM_OUTPUT_LENGTH;
+  const bool output_dart = dart_events != NULL;
+
+  if (!output_vm && !output_dart) {
+    // We stole the JSONStream's output buffer, free it.
+    free(output);
+    // Nothing will be emitted.
+    return false;
+  }
+
+  // Start the stream.
+  StartStreamToConsumer(consumer, user_data, "timeline");
+
+  // Send events from the VM.
+  if (output_vm) {
+    // Add one for the '\0' character.
+    output_length++;
+    char* trimmed_output = TrimOutput(output, &output_length, output_dart);
+    DataStreamToConsumer(consumer, user_data,
+                         trimmed_output, output_length, "timeline");
+  }
+  // We stole the JSONStream's output buffer, free it.
+  free(output);
+
+  // Send events from dart.
+  if (output_dart) {
+    const intptr_t dart_events_len = strlen(dart_events) + 1;  // +1 for '\0'.
+    DataStreamToConsumer(consumer, user_data,
+                         dart_events, dart_events_len, "timeline");
+  }
+
+  // Finish the stream.
+  FinishStreamToConsumer(consumer, user_data, "timeline");
+  return true;
 }
 
 
@@ -5787,25 +5866,18 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
     // Nothing has been recorded.
     return false;
   }
+  Thread* T = Thread::Current();
+  StackZone zone(T);
   // Reclaim all blocks cached by isolate.
   Timeline::ReclaimIsolateBlocks();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate);
   timeline_recorder->PrintTraceEvent(&js, &filter);
-
-  // Copy output.
-  char* output = NULL;
-  intptr_t output_length = 0;
-  js.Steal(const_cast<const char**>(&output), &output_length);
-  if (output != NULL) {
-    // Add one for the '\0' character.
-    output_length++;
-    StreamToConsumer(consumer, user_data, output, output_length);
-    // We stole the JSONStream's output buffer, free it.
-    free(output);
-    return output_length > MINIMUM_OUTPUT_LENGTH;
-  }
-  return false;
+  const char* dart_events =
+      DartTimelineEventIterator::PrintTraceEvents(timeline_recorder,
+                                                  zone.GetZone(),
+                                                  isolate);
+  return StreamTraceEvents(consumer, user_data, &js, dart_events);
 }
 
 
@@ -5819,26 +5891,18 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
     // Nothing has been recorded.
     return false;
   }
-
+  Thread* T = Thread::Current();
+  StackZone zone(T);
   // Reclaim all blocks cached in the system.
   Timeline::ReclaimAllBlocks();
   JSONStream js;
   TimelineEventFilter filter;
   timeline_recorder->PrintTraceEvent(&js, &filter);
-
-  // Copy output.
-  char* output = NULL;
-  intptr_t output_length = 0;
-  js.Steal(const_cast<const char**>(&output), &output_length);
-  if (output != NULL) {
-    // Add one for the '\0' character.
-    output_length++;
-    StreamToConsumer(consumer, user_data, output, output_length);
-    // We stole the JSONStream's output buffer, free it.
-    free(output);
-    return output_length > MINIMUM_OUTPUT_LENGTH;
-  }
-  return false;
+  const char* dart_events =
+      DartTimelineEventIterator::PrintTraceEvents(timeline_recorder,
+                                                  zone.GetZone(),
+                                                  NULL);
+  return StreamTraceEvents(consumer, user_data, &js, dart_events);
 }
 
 
@@ -5950,14 +6014,16 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
 
 
 DART_EXPORT Dart_Handle Dart_Precompile(
-    Dart_QualifiedFunctionName entry_points[]) {
+    Dart_QualifiedFunctionName entry_points[],
+    bool reset_fields) {
   DARTSCOPE(Thread::Current());
   Dart_Handle result = Api::CheckAndFinalizePendingClasses(I);
   if (::Dart_IsError(result)) {
     return result;
   }
   CHECK_CALLBACK_STATE(I);
-  const Error& error = Error::Handle(Precompiler::CompileAll(entry_points));
+  const Error& error = Error::Handle(Precompiler::CompileAll(entry_points,
+                                                             reset_fields));
   if (!error.IsNull()) {
     return Api::NewHandle(I, error.raw());
   }

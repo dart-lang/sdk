@@ -111,9 +111,7 @@ class DartUnitHoverComputer {
           }
         }
         // documentation
-        String dartDoc = element.computeDocumentationComment();
-        dartDoc = _removeDartDocDelimiters(dartDoc);
-        hover.dartdoc = dartDoc;
+        hover.dartdoc = _computeDocumentation(element);
       }
       // parameter
       hover.parameter = _safeToString(expression.bestParameterElement);
@@ -125,6 +123,14 @@ class DartUnitHoverComputer {
     }
     // not an expression
     return null;
+  }
+
+  String _computeDocumentation(Element element) {
+    if (element is ParameterElement) {
+      element = element.enclosingElement;
+    }
+    String dartDoc = element.computeDocumentationComment();
+    return _removeDartDocDelimiters(dartDoc);
   }
 
   static _safeToString(obj) => obj != null ? obj.toString() : null;

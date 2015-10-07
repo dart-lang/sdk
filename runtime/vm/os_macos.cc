@@ -15,6 +15,9 @@
 #include <sys/time.h>  // NOLINT
 #include <sys/resource.h>  // NOLINT
 #include <unistd.h>  // NOLINT
+#if defined(TARGET_OS_IOS)
+#include <sys/sysctl.h>
+#endif
 
 #include "platform/utils.h"
 #include "vm/isolate.h"
@@ -91,7 +94,7 @@ int64_t OS::GetCurrentTraceMicros() {
   struct timeval boottime;
   int mib[2] = {CTL_KERN, KERN_BOOTTIME};
   size_t size = sizeof(boottime);
-  int kr = sysctl(mib, arraysize(mib), &boottime, &size, NULL, 0);
+  int kr = sysctl(mib, sizeof(mib) / sizeof(mib[0]), &boottime, &size, NULL, 0);
   ASSERT(KERN_SUCCESS == kr);
   int64_t now = GetCurrentTimeMicros();
   int64_t origin = boottime.tv_sec * kMicrosecondsPerSecond;

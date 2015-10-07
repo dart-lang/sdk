@@ -49,7 +49,10 @@ mixin_forwarding_constructor4_test/03: MissingCompileTimeError # Issue 15101
 mixin_super_constructor_named_test/01: Fail # Issue 15101
 mixin_super_constructor_positionals_test/01: Fail # Issue 15101
 mixin_super_test: CompileTimeError # Issue 23773
+mixin_super_2_test: CompileTimeError # Issue 23773
 mixin_super_bound2_test: CompileTimeError # Issue 23773
+mixin_super_use_test: CompileTimeError # Issue 23773
+mixin_superclass_test: CompileTimeError # Issue 23773
 
 ref_before_declaration_test/00: MissingCompileTimeError
 ref_before_declaration_test/01: MissingCompileTimeError
@@ -368,8 +371,8 @@ super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSe
 switch_label2_test: Crash # (switch (target){cas...  continue to a labeled switch case
 switch_label_test: Crash # (switch (animal){cas...  continue to a labeled switch case
 switch_try_catch_test: Crash # (switch (0){_0:case ...  continue to a labeled switch case
-sync_generator1_test/01: Timeout # Please triage this failure.
-sync_generator1_test/none: Timeout # Please triage this failure.
+sync_generator1_test/01: RuntimeError # Expect.equals(expected: <(1, 2, 3, 5, [6])>, actual: <(1)>) fails.
+sync_generator1_test/none: RuntimeError # Expect.equals(expected: <(1, 2, 3, 5, [6])>, actual: <(1)>) fails.
 sync_generator3_test/test1: RuntimeError # Please triage this failure.
 sync_generator3_test/test2: RuntimeError # Please triage this failure.
 syncstar_yield_test/copyParameters: RuntimeError # Please triage this failure.
@@ -379,3 +382,10 @@ type_variable_closure2_test: RuntimeError # Please triage this failure.
 type_variable_field_initializer_closure_test: RuntimeError # Please triage this failure.
 type_variable_field_initializer_test: RuntimeError # Please triage this failure.
 type_variable_nested_test: RuntimeError # Please triage this failure.
+
+[ $compiler == dart2js && $cps_ir && $host_checked ]
+async_throw_in_catch_test/forceAwait: Crash # Issue 24485
+async_throw_in_catch_test/none: Crash # Issue 24485
+execute_finally9_test: Crash # Issue 24485
+regress_21795_test: Crash # Issue 24485
+regress_23537_test: Crash # Issue 24485

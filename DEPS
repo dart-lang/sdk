@@ -38,7 +38,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "7zip_rev" : "@19997",
-  "analyzer_cli_rev" : "@0b89a16c0566f36676fa8f2016eb2c332178f616",
+  "analyzer_cli_rev" : "@c8a60be821be07df64cde2efb8f87b462a91a521",
   "args_tag": "@0.13.0",
   "async_tag": "@1.2.0",
   "barback_tag" : "@0.15.2+7",
@@ -50,8 +50,8 @@ vars = {
   "collection_rev": "@1da9a07f32efa2ba0c391b289e2037391e31da0e",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
-  "dart2js_info_rev" : "@bad01369f1f605ab688d505c135db54de927318f",
-  "dartdoc_rev" : "@786426c4bbea96729d5eab2add744def41a5a690",
+  "dart2js_info_rev" : "@ffd03ee45f7459efd3039ff565b4d0aa2e7cd9e7",
+  "dartdoc_rev" : "@d51211b7c0a30862a691aa6dc0631009bd926004",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.0",
   "dev_compiler_rev": "@0.1.8",

@@ -70,7 +70,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.9.0';
+  static final String VERSION = '1.12.0';
 
   /**
    * The number of milliseconds to perform operations before inserting
@@ -1002,7 +1002,9 @@ class AnalysisServer {
               case AnalysisService.OUTLINE:
                 AnalysisContext context = dartUnit.element.context;
                 LineInfo lineInfo = context.getLineInfo(source);
-                sendAnalysisNotificationOutline(this, file, lineInfo, dartUnit);
+                SourceKind kind = context.getKindOf(source);
+                sendAnalysisNotificationOutline(
+                    this, file, lineInfo, kind, dartUnit);
                 break;
               case AnalysisService.OVERRIDES:
                 sendAnalysisNotificationOverrides(this, file, dartUnit);
@@ -1221,8 +1223,15 @@ class AnalysisServer {
               if (dartUnits != null) {
                 AnalysisErrorInfo errorInfo = context.getErrors(source);
                 for (var dartUnit in dartUnits) {
-                  scheduleNotificationOperations(this, file, errorInfo.lineInfo,
-                      context, null, dartUnit, errorInfo.errors);
+                  scheduleNotificationOperations(
+                      this,
+                      source,
+                      file,
+                      errorInfo.lineInfo,
+                      context,
+                      null,
+                      dartUnit,
+                      errorInfo.errors);
                   scheduleIndexOperation(this, file, context, dartUnit);
                 }
               } else {

@@ -351,6 +351,9 @@ Function _getSvgFunction(String key) {
  **********                                                          **********
  ******************************************************************************/
 
+// List of known tagName to DartClass for custom elements, used for upgrade.
+var _knownCustomeElements = new Map<String, Type>();
+
 Rectangle make_dart_rectangle(r) =>
     r == null ? null : new Rectangle(r['left'], r['top'], r['width'], r['height']);
 
@@ -370,19 +373,7 @@ bool __interop_checks = true;
 /**
  * Return the JsObject associated with a Dart class [dartClass_instance].
  */
-unwrap_jso(dartClass_instance) {
-  try {
-    if (dartClass_instance != null)
-      return dartClass_instance is NativeFieldWrapperClass2 ?
-          dartClass_instance.blink_jsObject : dartClass_instance;
-    else
-      return null;
-  } catch(NoSuchMethodException) {
-    // No blink_jsObject then return the dartClass_instance is probably an
-    // array that was already converted to a Dart class e.g., Uint8ClampedList.
-    return dartClass_instance;
-  }
-}
+unwrap_jso(dartClass_instance) => js.unwrap_jso(dartClass_instance);
 
 /**
  * Create Dart class that maps to the JS Type, add the JsObject as an expando
@@ -390,10 +381,26 @@ unwrap_jso(dartClass_instance) {
  */
 wrap_jso(jsObject) {
   try {
-    if (jsObject is! js.JsObject) {
+    if (jsObject is! js.JsObject || jsObject == null) {
       // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
+      // or it's a simple type.
       return jsObject;
     }
+
+    // TODO(alanknight): With upgraded custom elements this causes a failure because
+    // we need a new wrapper after the type changes. We could possibly invalidate this
+    // if the constructor name didn't match?
+    var wrapper = js.getDartHtmlWrapperFor(jsObject);
+    if (wrapper != null) {
+      return wrapper;
+    }
+
+    if (jsObject is js.JsArray) {
+      var wrappingList = new _DartHtmlWrappingList(jsObject);
+      js.setDartHtmlWrapperFor(jsObject, wrappingList);
+      return wrappingList;
+    }
+
     // Try the most general type conversions on it.
     // TODO(alanknight): We may be able to do better. This maintains identity,
     // which is useful, but expensive. And if we nest something that only
@@ -416,10 +423,24 @@ wrap_jso(jsObject) {
       // Got a dart_class (it's a custom element) use it it's already set up.
       dartClass_instance = jsObject['dart_class'];
     } else {
-      var func = getHtmlCreateFunction(jsTypeName);
-      if (func != null) {
-        dartClass_instance = func();
-        dartClass_instance.blink_jsObject = jsObject;
+      var localName = jsObject['localName'];
+      var customElementClass = _knownCustomeElements[localName];
+      // Custom Element to upgrade.
+      if (jsTypeName == 'HTMLElement' && customElementClass != null) {
+        try {
+          dartClass_instance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
+        } finally {
+          dartClass_instance.blink_jsObject = jsObject;
+          jsObject['dart_class'] = dartClass_instance;
+          js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
+       }
+      } else {
+        var func = getHtmlCreateFunction(jsTypeName);
+        if (func != null) {
+          dartClass_instance = func();
+          dartClass_instance.blink_jsObject = jsObject;
+          js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
+        }
       }
     }
     return dartClass_instance;
@@ -538,6 +559,41 @@ convertDartToNative_List(List input) => new js.JsArray()..addAll(input);
 // Conversion function place holder (currently not used in dart2js or dartium).
 List convertDartToNative_StringArray(List<String> input) => input;
 
+/**
+ * Wraps a JsArray and will call wrap_jso on its entries.
+ */
+class _DartHtmlWrappingList extends ListBase {
+  _DartHtmlWrappingList(this._basicList);
+
+  final js.JsArray _basicList;
+
+  operator [](int index) => wrap_jso(_basicList[index]);
+
+  operator []=(int index, value) => _basicList[index] = unwrap_jso(value);
+
+  int get length => _basicList.length;
+  int set length(int newLength) => _basicList.length = newLength;
+}
+
+/**
+ * Upgrade the JS HTMLElement to the Dart class.  Used by Dart's Polymer.
+ */
+createCustomUpgrader(Type customElementClass, $this) {
+  var dartClass;
+  try {
+    dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
+  } catch (e) {
+    throw e;
+  } finally {
+    // Need to remember the Dart class that was created for this custom so
+    // return it and setup the blink_jsObject to the $this that we'll be working
+    // with as we talk to blink. 
+    $this['dart_class'] = dartClass;
+  }
+
+  return dartClass;
+}
+
 $else
 class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
 
@@ -547,5 +603,6 @@ make_dart_rectangle(r) => r;
 convertDartToNative_Dictionary(Map dict) => dict;
 List convertDartToNative_StringArray(List<String> input) => input;
 convertDartToNative_List(List input) => input;
+createCustomUpgrader(Type customElementClass, $this) => $this;
 
 $endif

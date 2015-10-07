@@ -34,26 +34,4 @@ WritableInstructionsScope::~WritableInstructionsScope() {
   }
 }
 
-
-// The patch code buffer contains the jmp code which will be inserted at
-// entry point.
-void CodePatcher::PatchEntry(const Code& code, const Code& new_code) {
-  ASSERT(code.instructions() == code.active_instructions());
-  code.set_active_instructions(new_code.instructions());
-}
-
-
-// The entry point is a jmp instruction, the patch code buffer contains
-// original code, the entry point contains the jump instruction.
-void CodePatcher::RestoreEntry(const Code& code) {
-  if (!IsEntryPatched(code)) return;
-  ASSERT(code.instructions() != code.active_instructions());
-  code.set_active_instructions(code.instructions());
-}
-
-
-bool CodePatcher::IsEntryPatched(const Code& code) {
-  return code.instructions() != code.active_instructions();
-}
-
 }  // namespace dart

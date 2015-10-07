@@ -77,7 +77,7 @@ class StackFrame : public ValueObject {
 
   RawFunction* LookupDartFunction() const;
   RawCode* LookupDartCode() const;
-  bool FindExceptionHandler(Isolate* isolate,
+  bool FindExceptionHandler(Thread* thread,
                             uword* handler_pc,
                             bool* needs_stacktrace,
                             bool* is_catch_all) const;

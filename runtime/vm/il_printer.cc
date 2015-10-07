@@ -237,8 +237,8 @@ void FlowGraphPrinter::PrintICData(const ICData& ic_data) {
 static void PrintUse(BufferFormatter* f, const Definition& definition) {
   if (definition.HasSSATemp()) {
     if (definition.HasPairRepresentation()) {
-      f->Print("v%" Pd ", v%" Pd "", definition.ssa_temp_index(),
-                                     definition.ssa_temp_index() + 1);
+      f->Print("(v%" Pd ", v%" Pd ")", definition.ssa_temp_index(),
+                                       definition.ssa_temp_index() + 1);
     } else {
       f->Print("v%" Pd "", definition.ssa_temp_index());
     }
