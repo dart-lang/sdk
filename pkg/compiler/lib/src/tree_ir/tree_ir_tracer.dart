@@ -498,6 +498,15 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return '$element = $value';
   }
 
+  String visitGetTypeTestProperty(GetTypeTestProperty node) {
+    String object = visitExpression(node.object);
+    if (usesInfixNotation(node.object)) {
+      object = '($object)';
+    }
+    // TODO(sra): Fix up this.
+    return '$object."is-${node.dartType}"';
+  }
+
   String visitCreateBox(CreateBox node) {
     return 'CreateBox';
   }

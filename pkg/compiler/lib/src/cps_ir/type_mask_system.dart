@@ -42,6 +42,7 @@ class TypeMaskSystem {
   TypeMask get extendableNativeListType => backend.extendableArrayType;
 
   TypeMask numStringBoolType;
+  TypeMask interceptorType;
 
   ClassElement get jsNullClass => backend.jsNullClass;
 
@@ -63,6 +64,8 @@ class TypeMaskSystem {
     numStringBoolType =
         new TypeMask.unionOf(<TypeMask>[anyNum, anyString, anyBool],
             classWorld);
+    interceptorType =
+        new TypeMask.nonNullSubtype(backend.jsInterceptorClass, classWorld);
   }
 
   bool methodUsesReceiverArgument(FunctionElement function) {
@@ -199,6 +202,9 @@ class TypeMaskSystem {
     return t.satisfies(backend.jsIntClass, classWorld);
   }
 
+  // TODO(sra): Find a better name.  'NativeList' is a bad name because there
+  // are many native classes in dart:html that implement List but are not (and
+  // should not be) included in this predicate.
   bool isDefinitelyNativeList(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
     return t.nonNullable().satisfies(backend.jsArrayClass, classWorld);

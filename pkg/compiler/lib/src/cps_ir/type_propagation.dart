@@ -1806,8 +1806,29 @@ class TransformingVisitor extends LeafVisitor {
 
   Primitive visitTypeTest(TypeTest node) {
     Primitive prim = node.value.definition;
+
+    Primitive unaryBuiltinOperator(BuiltinOperator operator) =>
+        new ApplyBuiltinOperator(
+            operator, <Primitive>[prim], node.sourceInformation);
+
+    void unlinkInterceptor() {
+      if (node.interceptor != null) {
+        node.interceptor.unlink();
+        node.interceptor = null;
+      }
+    }
+
     AbstractValue value = getValue(prim);
-    if (node.dartType == dartTypes.coreTypes.intType) {
+    types.DartType dartType = node.dartType;
+
+    if (!(dartType.isInterfaceType && dartType.isRaw)) {
+      // TODO(23685): Efficient function arity check.
+      // TODO(sra): Pass interceptor to runtime subtype functions.
+      unlinkInterceptor();
+      return null;
+    }
+
+    if (dartType == dartTypes.coreTypes.intType) {
       // Compile as typeof x === 'number' && Math.floor(x) === x
       if (lattice.isDefinitelyNum(value, allowNull: true)) {
         // If value is null or a number, we can skip the typeof test.
@@ -1819,23 +1840,52 @@ class TransformingVisitor extends LeafVisitor {
       if (lattice.isDefinitelyNotNonIntegerDouble(value)) {
         // If the value cannot be a non-integer double, but might not be a
         // number at all, we can skip the Math.floor test.
-        return new ApplyBuiltinOperator(
-            BuiltinOperator.IsNumber,
-            <Primitive>[prim],
-            node.sourceInformation);
+        return unaryBuiltinOperator(BuiltinOperator.IsNumber);
       }
       return new ApplyBuiltinOperator(
           BuiltinOperator.IsNumberAndFloor,
           <Primitive>[prim, prim, prim],
           node.sourceInformation);
     }
-    if (node.dartType == dartTypes.coreTypes.numType ||
-        node.dartType == dartTypes.coreTypes.doubleType) {
-      return new ApplyBuiltinOperator(
-          BuiltinOperator.IsNumber,
-          <Primitive>[prim],
-          node.sourceInformation);
+    if (dartType == dartTypes.coreTypes.numType ||
+        dartType == dartTypes.coreTypes.doubleType) {
+      return unaryBuiltinOperator(BuiltinOperator.IsNumber);
     }
+
+    if (dartType.element == functionCompiler.glue.jsFixedArrayClass) {
+      // TODO(sra): Check input is restricted to JSArray.
+      return unaryBuiltinOperator(BuiltinOperator.IsFixedLengthJSArray);
+    }
+
+    if (dartType.element == functionCompiler.glue.jsExtendableArrayClass) {
+      // TODO(sra): Check input is restricted to JSArray.
+      return unaryBuiltinOperator(BuiltinOperator.IsExtendableJSArray);
+    }
+
+    if (dartType.element == functionCompiler.glue.jsMutableArrayClass) {
+      // TODO(sra): Check input is restricted to JSArray.
+      return unaryBuiltinOperator(BuiltinOperator.IsModifiableJSArray);
+    }
+
+    if (dartType.element == functionCompiler.glue.jsUnmodifiableArrayClass) {
+      // TODO(sra): Check input is restricted to JSArray.
+      return unaryBuiltinOperator(BuiltinOperator.IsUnmodifiableJSArray);
+    }
+
+    if (dartType == dartTypes.coreTypes.stringType ||
+        dartType == dartTypes.coreTypes.boolType) {
+      // These types are recognized in tree_ir TypeOperator codegen.
+      unlinkInterceptor();
+      return null;
+    }
+
+    // TODO(sra): Propagate sourceInformation.
+    // TODO(sra): If getInterceptor(x) === x or JSNull, rewrite
+    //     getInterceptor(x).$isFoo ---> x != null && x.$isFoo
+    return new TypeTestViaFlag(node.interceptor.definition, dartType);
+  }
+
+  Primitive visitTypeTestViaFlag(TypeTestViaFlag node) {
     return null;
   }
 
@@ -2316,9 +2366,21 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitTypeTest(TypeTest node) {
-    AbstractValue input = getValue(node.value.definition);
+    handleTypeTest(node, getValue(node.value.definition), node.dartType);
+  }
+
+  void visitTypeTestViaFlag(TypeTestViaFlag node) {
+    // TODO(sra): We could see if we can find the value in the interceptor
+    // expression. It would p[robably have no benefit - we only see
+    // TypeTestViaFlag after rewriting TypeTest and the rewrite of TypeTest
+    // would already have done the interesting optimizations.
+    setValue(node, nonConstant(typeSystem.boolType));
+  }
+
+  void handleTypeTest(
+      Primitive node, AbstractValue input, types.DartType dartType) {
     TypeMask boolType = typeSystem.boolType;
-    switch(lattice.isSubtypeOf(input, node.dartType, allowNull: false)) {
+    switch(lattice.isSubtypeOf(input, dartType, allowNull: false)) {
       case AbstractBool.Nothing:
         break; // And come back later.
 

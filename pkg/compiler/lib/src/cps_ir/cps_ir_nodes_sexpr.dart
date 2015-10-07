@@ -243,7 +243,15 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   String visitTypeTest(TypeTest node) {
     String value = access(node.value);
     String typeArguments = node.typeArguments.map(access).join(' ');
-    return '(TypeTest $value ${node.dartType} ($typeArguments))';
+    String interceptor = node.interceptor == null
+        ? ''
+        : access(node.interceptor);
+    return '(TypeTest $value ${node.dartType} ($typeArguments) ($interceptor))';
+  }
+
+  String visitTypeTestViaFlag(TypeTestViaFlag node) {
+    String interceptor = access(node.interceptor);
+    return '(TypeTestViaFlag $interceptor ${node.dartType})';
   }
 
   String visitLiteralList(LiteralList node) {

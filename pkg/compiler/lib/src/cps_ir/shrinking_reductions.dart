@@ -571,6 +571,11 @@ class ParentVisitor extends RecursiveVisitor {
   processTypeTest(TypeTest node) {
     node.typeArguments.forEach((Reference ref) => ref.parent = node);
     node.value.parent = node;
+    if (node.interceptor != null) node.interceptor.parent = node;
+  }
+
+  processTypeTestViaFlag(TypeTestViaFlag node) {
+    node.interceptor.parent = node;
   }
 
   processSetMutable(SetMutable node) {
