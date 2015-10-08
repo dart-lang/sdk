@@ -30,6 +30,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
     hide AnalysisCache, AnalysisContextImpl, AnalysisTask;
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -578,22 +579,27 @@ class GetHandler {
           buffer.write('<p>Not found.</p>');
           return;
         }
-        CacheEntry entry = context.analysisCache.get(source);
-        if (entry == null) {
-          buffer.write('<p>Not found.</p>');
-          return;
-        }
-        CompilationUnit ast = _getAnyAst(entry);
-        if (ast == null) {
-          buffer.write('<p>null</p>');
-          return;
-        }
-        AstWriter writer = new AstWriter(buffer);
-        ast.accept(writer);
-        if (writer.exceptions.isNotEmpty) {
-          buffer.write('<h3>Exceptions while creating page</h3>');
-          for (CaughtException exception in writer.exceptions) {
-            _writeException(buffer, exception);
+        List<Source> libraries = context.getLibrariesContaining(source);
+        for (Source library in libraries) {
+          AnalysisTarget target = new LibrarySpecificUnit(library, source);
+          CacheEntry entry = context.analysisCache.get(target);
+          buffer.write('<b>$target</b><br>');
+          if (entry == null) {
+            buffer.write('<p>Not found.</p>');
+            continue;
+          }
+          CompilationUnit ast = _getAnyAst(entry);
+          if (ast == null) {
+            buffer.write('<p>null</p>');
+            continue;
+          }
+          AstWriter writer = new AstWriter(buffer);
+          ast.accept(writer);
+          if (writer.exceptions.isNotEmpty) {
+            buffer.write('<h3>Exceptions while creating page</h3>');
+            for (CaughtException exception in writer.exceptions) {
+              _writeException(buffer, exception);
+            }
           }
         }
       });
@@ -1465,6 +1471,24 @@ class GetHandler {
     }
   }
 
+  void _writeListOfStrings(
+      StringBuffer buffer, String listName, Iterable<String> items) {
+    List<String> itemList = items.toList();
+    itemList.sort((String a, String b) {
+      a = a.toLowerCase();
+      b = b.toLowerCase();
+      return a.compareTo(b);
+    });
+    buffer.write('List "listName" containing ${itemList.length} entries:');
+    buffer.write('<ul>');
+    for (String member in itemList) {
+      buffer.write('<li>');
+      buffer.write(member);
+      buffer.write('</li>');
+    }
+    buffer.write('</ul>');
+  }
+
   /**
    * Write a representation of an analysis option with the given [name] and
    * [value] to the given [buffer]. The option should be separated from other
@@ -1831,6 +1855,22 @@ class GetHandler {
       String link =
           makeLink(ELEMENT_PATH, linkParameters, value.runtimeType.toString());
       buffer.write('<i>$link</i>');
+    } else if (value is UsedLocalElements) {
+      buffer.write('<ul>');
+      {
+        HashSet<Element> elements = value.elements;
+        buffer.write('List "elements" containing ${elements.length} entries');
+        buffer.write('<ul>');
+        for (Element element in elements) {
+          buffer.write('<li>');
+          buffer.write('<i>${element.runtimeType}</i>  $element');
+          buffer.write('</li>');
+        }
+        buffer.write('</ul>');
+      }
+      _writeListOfStrings(buffer, 'members', value.members);
+      _writeListOfStrings(buffer, 'readMembers', value.readMembers);
+      buffer.write('</ul>');
     } else {
       buffer.write(HTML_ESCAPE.convert(value.toString()));
       buffer.write(' <i>(${value.runtimeType.toString()})</i>');
