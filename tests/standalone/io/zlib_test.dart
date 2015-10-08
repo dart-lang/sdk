@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
@@ -39,9 +40,8 @@ void testZLibDeflateEmptyGzip() {
   controller.close();
 }
 
-void testZLibDeflate() {
+void testZLibDeflate(List<int> data) {
   asyncStart();
-  var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   var controller = new StreamController(sync: true);
   controller.stream.transform(new ZLibEncoder(gzip: false, level: 6))
       .fold([], (buffer, data) {
@@ -59,9 +59,8 @@ void testZLibDeflate() {
   controller.close();
 }
 
-void testZLibDeflateGZip() {
+void testZLibDeflateGZip(List<int> data) {
   asyncStart();
-  var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   var controller = new StreamController(sync: true);
   controller.stream.transform(new ZLibEncoder(gzip: true))
       .fold([], (buffer, data) {
@@ -80,9 +79,8 @@ void testZLibDeflateGZip() {
   controller.close();
 }
 
-void testZLibDeflateRaw() {
+void testZLibDeflateRaw(List<int> data) {
   asyncStart();
-  var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   var controller = new StreamController(sync: true);
   controller.stream.transform(new ZLibEncoder(raw: true, level: 6))
       .fold([], (buffer, data) {
@@ -112,9 +110,7 @@ void testZLibDeflateInvalidLevel() {
   };
 }
 
-void testZLibInflate() {
-  var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-
+void testZLibInflate(List<int> data) {
   [true, false].forEach((gzip) {
     [ZLibOption.STRATEGY_FILTERED, ZLibOption.STRATEGY_HUFFMAN_ONLY,
         ZLibOption.STRATEGY_RLE, ZLibOption.STRATEGY_FIXED,
@@ -141,9 +137,7 @@ void testZLibInflate() {
   });
 }
 
-void testZLibInflateRaw() {
-  var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-
+void testZLibInflateRaw(List<int> data) {
   [3, 6, 9].forEach((level) {
     asyncStart();
     var controller = new StreamController(sync: true);
@@ -163,9 +157,7 @@ void testZLibInflateRaw() {
   });
 }
 
-void testZLibInflateSync() {
-  var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-
+void testZLibInflateSync(List<int> data) {
   [true, false].forEach((gzip) {
     [3, 6, 9].forEach((level) {
       var encoded = new ZLibEncoder(gzip: gzip, level: level).convert(data);
@@ -219,19 +211,48 @@ void testZlibWithDictionary() {
   });
 }
 
+var generateListTypes = [
+  (list) => list,
+  (list) => new Uint8List.fromList(list),
+  (list) => new Int8List.fromList(list),
+  (list) => new Uint16List.fromList(list),
+  (list) => new Int16List.fromList(list),
+  (list) => new Uint32List.fromList(list),
+  (list) => new Int32List.fromList(list),
+];
+
+var generateViewTypes = [
+  (list) => new Uint8List.view((new Uint8List.fromList(list)).buffer, 1, 8),
+  (list) => new Int8List.view((new Int8List.fromList(list)).buffer, 1, 8),
+  (list) => new Uint16List.view((new Uint16List.fromList(list)).buffer, 2, 6),
+  (list) => new Int16List.view((new Int16List.fromList(list)).buffer, 2, 6),
+  (list) => new Uint32List.view((new Uint32List.fromList(list)).buffer, 4, 4),
+  (list) => new Int32List.view((new Int32List.fromList(list)).buffer, 4, 4),
+];
+
+
 void main() {
   asyncStart();
-  testZLibDeflate();
   testZLibDeflateEmpty();
   testZLibDeflateEmptyGzip();
-  testZLibDeflateGZip();
   testZLibDeflateInvalidLevel();
-  testZLibInflate();
-  testZLibInflateSync();
+  generateListTypes.forEach((f) {
+    var data = f([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    testZLibDeflate(data);
+    testZLibDeflateGZip(data);
+    testZLibDeflateRaw(data);
+    testZLibInflate(data);
+    testZLibInflateSync(data);
+    testZLibInflateRaw(data);
+  });
+  generateViewTypes.forEach((f) {
+    var data = f([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    testZLibInflate(data);
+    testZLibInflateSync(data);
+    testZLibInflateRaw(data);
+  });
   testZlibInflateThrowsWithSmallerWindow();
   testZlibInflateWithLargerWindow();
-  testZLibDeflateRaw();
-  testZLibInflateRaw();
   testZlibWithDictionary();
   asyncEnd();
 }
