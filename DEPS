@@ -38,7 +38,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "7zip_rev" : "@19997",
-  "analyzer_cli_rev" : "@d047a520e67e6372a721d922c0b1108623851f59",
+  "analyzer_cli_rev" : "@e94667cad73423686d63d83ed0ccbcb2c491aac1",
   "args_tag": "@0.13.0",
   "async_tag": "@1.2.0",
   "barback_tag" : "@0.15.2+7",
@@ -68,7 +68,7 @@ vars = {
   "intl_rev": "@32047558bd220a53c1f4d93a26d54b83533b1475",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@1.1.1",
-  "linter_rev": "@1df9178fbb475c77658531b3d702ac9e615f9714",
+  "linter_rev": "@b01bba400d28925e4610a2f472581b686d06c3c6",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "markdown_rev": "@4aaadf3d940bb172e1f6285af4d2b1710d309982",
   "matcher_tag": "@0.12.0",
