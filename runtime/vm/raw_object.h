@@ -344,6 +344,11 @@ class RawObject {
     ASSERT(IsMarked());
     UpdateTagBit<MarkBit>(false);
   }
+  // Returns false if the bit was already set.
+  // TODO(koda): Add "must use result" annotation here, after we add support.
+  bool TryAcquireMarkBit() {
+    return TryAcquireTagBit<MarkBit>();
+  }
 
   // Support for GC watched bit.
   // TODO(iposva): Get rid of this.
@@ -396,6 +401,11 @@ class RawObject {
   void ClearRememberedBitUnsynchronized() {
     uword tags = ptr()->tags_;
     ptr()->tags_ = RememberedBit::update(false, tags);
+  }
+  // Returns false if the bit was already set.
+  // TODO(koda): Add "must use result" annotation here, after we add support.
+  bool TryAcquireRememberedBit() {
+    return TryAcquireTagBit<RememberedBit>();
   }
 
   bool IsDartInstance() {
@@ -517,6 +527,20 @@ class RawObject {
     } while (tags != old_tags);
   }
 
+  template<class TagBitField>
+  bool TryAcquireTagBit() {
+    uword tags = ptr()->tags_;
+    uword old_tags;
+    do {
+      old_tags = tags;
+      if (TagBitField::decode(tags)) return false;
+      uword new_tags = TagBitField::update(true, old_tags);
+      tags = AtomicOperations::CompareAndSwapWord(
+          &ptr()->tags_, old_tags, new_tags);
+    } while (tags != old_tags);
+    return true;
+  }
+
   // All writes to heap objects should ultimately pass through one of the
   // methods below or their counterparts in Object, to ensure that the
   // write barrier is correctly applied.
@@ -577,7 +601,7 @@ class RawObject {
   friend class Heap;
   friend class HeapMapAsJSONVisitor;
   friend class ClassStatsVisitor;
-  friend class MarkingVisitor;
+  template<bool> friend class MarkingVisitorBase;
   friend class Mint;
   friend class Object;
   friend class OneByteString;  // StoreSmi
@@ -1052,7 +1076,7 @@ class RawCode : public RawObject {
   static bool ContainsPC(RawObject* raw_obj, uword pc);
 
   friend class Function;
-  friend class MarkingVisitor;
+  template<bool> friend class MarkingVisitorBase;
   friend class SkippedCodeFunctions;
   friend class StackFrame;
   friend class Profiler;
@@ -1106,7 +1130,7 @@ class RawInstructions : public RawObject {
   friend class RawFunction;
   friend class Code;
   friend class StackFrame;
-  friend class MarkingVisitor;
+  template<bool> friend class MarkingVisitorBase;
   friend class SkippedCodeFunctions;
   friend class Function;
   friend class InstructionsReader;
@@ -1986,7 +2010,7 @@ class RawWeakProperty : public RawInstance {
 
   friend class DelaySet;
   friend class GCMarker;
-  friend class MarkingVisitor;
+  template<bool> friend class MarkingVisitorBase;
   friend class Scavenger;
   friend class ScavengerVisitor;
 };
