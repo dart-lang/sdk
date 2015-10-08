@@ -189,7 +189,7 @@ class JsObject {
    *
    * The type of [property] must be either [String] or [num].
    */
-  dynamic operator [](property) {
+  dynamic operator [](Object property) {
     if (property is! String && property is! num) {
       throw new ArgumentError("property is not a String or num");
     }
@@ -202,7 +202,7 @@ class JsObject {
    *
    * The type of [property] must be either [String] or [num].
    */
-  operator []=(property, value) {
+  operator []=(Object property, value) {
     if (property is! String && property is! num) {
       throw new ArgumentError("property is not a String or num");
     }
@@ -349,7 +349,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 
   // Methods required by ListMixin
 
-  E operator [](index) {
+  E operator [](Object index) {
     // TODO(justinfagnani): fix the semantics for non-ints
     // dartbug.com/14605
     if (index is num && index == index.toInt()) {
@@ -358,7 +358,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     return super[index];
   }
 
-  void operator []=(index, E value) {
+  void operator []=(Object index, E value) {
     // TODO(justinfagnani): fix the semantics for non-ints
     // dartbug.com/14605
     if (index is num && index == index.toInt()) {
@@ -492,7 +492,7 @@ Object _convertToDart(o) {
   }
 }
 
-_wrapToDart(o) {
+JsObject _wrapToDart(o) {
   if (JS('bool', 'typeof # == "function"', o)) {
     return new JsFunction._fromJs(o);
   }

@@ -22,6 +22,7 @@ import 'options.dart';
 AnalysisContext createAnalysisContextWithSources(
     StrongModeOptions strongOptions, SourceResolverOptions srcOptions,
     {DartUriResolver sdkResolver, List<UriResolver> fileResolvers}) {
+  AnalysisEngine.instance.useTaskModel = true;
   var srcFactory = createSourceFactory(srcOptions,
       sdkResolver: sdkResolver, fileResolvers: fileResolvers);
   return createAnalysisContext(strongOptions)..sourceFactory = srcFactory;
@@ -29,8 +30,8 @@ AnalysisContext createAnalysisContextWithSources(
 
 /// Creates an analysis context that contains our restricted typing rules.
 AnalysisContext createAnalysisContext(StrongModeOptions options) {
-  AnalysisContextImpl res = AnalysisEngine.instance.createAnalysisContext();
-  enableDevCompilerInference(res, options);
+  var res = AnalysisEngine.instance.createAnalysisContext();
+  res.analysisOptions.strongMode = true;
   return res;
 }
 
@@ -79,6 +80,9 @@ DartUriResolver createMockSdkResolver(Map<String, String> mockSources) =>
     new MockDartSdk(mockSources, reportMissing: true).resolver;
 
 /// Creates a [DartUriResolver] that uses the SDK at the given [sdkPath].
-DartUriResolver createSdkPathResolver(String sdkPath) =>
-    new DartUriResolver(new DirectoryBasedDartSdk(
-        new JavaFile(sdkPath), /*useDart2jsPaths:*/ true));
+DartUriResolver createSdkPathResolver(String sdkPath) {
+  var sdk = new DirectoryBasedDartSdk(
+      new JavaFile(sdkPath), /*useDart2jsPaths:*/ true);
+  sdk.context.analysisOptions.strongMode = true;
+  return new DartUriResolver(sdk);
+}

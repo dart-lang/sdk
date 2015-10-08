@@ -151,7 +151,8 @@ class BatchCompiler extends AbstractCompiler {
     while (_pendingLibraries.isNotEmpty) {
       var unit = _pendingLibraries.removeLast();
       var library = unit.library.element.enclosingElement;
-      assert(_compilationRecord[library] == true);
+      assert(_compilationRecord[library] == true ||
+          options.codegenOptions.forceCompile);
 
       // Process dependences one more time to propagate failure from cycles
       for (var import in library.imports) {

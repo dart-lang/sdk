@@ -38,7 +38,7 @@ final realSdkContext = createAnalysisContextWithSources(
               _testCodegenPath('async_helper.dart'),
           'package:unittest/unittest.dart': _testCodegenPath('unittest.dart'),
           'package:dom/dom.dart': _testCodegenPath('sunflower', 'dom.dart')
-        }))..analysisOptions = (new AnalysisOptionsImpl()..cacheSize = 512);
+        }))..analysisOptions.cacheSize = 512;
 
 String _testCodegenPath(String p1, [String p2]) =>
     path.join(testDirectory, 'codegen', p1, p2);
@@ -86,7 +86,10 @@ void testChecker(String name, Map<String, String> testFiles,
 
     var provider = createTestResourceProvider(testFiles);
     var uriResolver = new TestUriResolver(provider);
+    // Enable task model strong mode
+    AnalysisEngine.instance.useTaskModel = true;
     var context = AnalysisEngine.instance.createAnalysisContext();
+    context.analysisOptions.strongMode = true;
     context.sourceFactory = createSourceFactory(
         new SourceResolverOptions(
             customUrlMappings: customUrlMappings,

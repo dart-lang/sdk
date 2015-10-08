@@ -1372,31 +1372,6 @@ void main() {
       inferFromOverrides: true);
 
   testChecker(
-      'field/field override 2',
-      {
-        '/main.dart': '''
-          class A {}
-          class B extends A {}
-          class C extends B {}
-
-          class Base {
-            B f1;
-            B f2;
-            B f3;
-            B f4;
-          }
-
-          class Child extends Base {
-            /*severe:InvalidMethodOverride*/A f1; // invalid for getter
-            /*severe:InvalidMethodOverride*/C f2; // invalid for setter
-            /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/var f3;
-            /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/dynamic f4;
-          }
-       '''
-      },
-      inferFromOverrides: false);
-
-  testChecker(
       'getter/getter override',
       {
         '/main.dart': '''
@@ -1420,31 +1395,6 @@ void main() {
        '''
       },
       inferFromOverrides: true);
-
-  testChecker(
-      'getter/getter override 2',
-      {
-        '/main.dart': '''
-          class A {}
-          class B extends A {}
-          class C extends B {}
-
-          abstract class Base {
-            B get f1;
-            B get f2;
-            B get f3;
-            B get f4;
-          }
-
-          class Child extends Base {
-            /*severe:InvalidMethodOverride*/A get f1 => null;
-            C get f2 => null;
-            /*severe:InvalidMethodOverride*/get f3 => null;
-            /*severe:InvalidMethodOverride*/dynamic get f4 => null;
-          }
-       '''
-      },
-      inferFromOverrides: false);
 
   testChecker(
       'field/getter override',
@@ -2025,14 +1975,14 @@ void main() {
                 implements I1 {}
 
             class T2 extends Base implements I1 {
-                /*severe:InvalidMethodOverride*/m(a) {}
+                /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/m(a) {}
             }
 
             class T3 extends Object with /*severe:InvalidMethodOverride*/Base
                 implements I1 {}
 
             class T4 extends Object with Base implements I1 {
-                /*severe:InvalidMethodOverride*/m(a) {}
+                /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/m(a) {}
             }
          '''
     });
@@ -2478,22 +2428,6 @@ void main() {
            '''
     });
   });
-
-  // This is a regression test: we used to report it twice because it was
-  // the top super class and top super interface.
-  // TODO(sigmund): maybe we generalize this and don't report again errors
-  // when an interface is also a superclass.
-  testChecker(
-      'no reporting of overrides with Object twice.',
-      {
-        '/main.dart': '''
-            class A {}
-            class T1 implements A {
-                /*severe:InvalidMethodOverride*/toString() {}
-            }
-         '''
-      },
-      inferFromOverrides: false);
 
   testChecker('invalid runtime checks', {
     '/main.dart': '''

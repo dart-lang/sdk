@@ -9,7 +9,7 @@ dart_library.library('dart/js', null, /* Imports */[
   let dartx = dart.dartx;
   dart.defineLazyProperties(exports, {
     get context() {
-      return dart.as(_wrapToDart(dart.global), JsObject);
+      return _wrapToDart(dart.global);
     }
   });
   let _jsObject = Symbol('_jsObject');
@@ -23,21 +23,21 @@ dart_library.library('dart/js', null, /* Imports */[
         arguments$ = null;
       let ctor = constructor[_jsObject];
       if (arguments$ == null) {
-        return dart.as(_wrapToDart(new ctor()), JsObject);
+        return _wrapToDart(new ctor());
       }
-      return dart.as(_wrapToDart(new ctor(...arguments$)), JsObject);
+      return _wrapToDart(new ctor(...arguments$));
     }
     static fromBrowserObject(object) {
       if (typeof object == 'number' || typeof object == 'string' || typeof object == 'boolean' || object == null) {
         dart.throw(new core.ArgumentError("object cannot be a num, string, bool, or null"));
       }
-      return dart.as(_wrapToDart(_convertToJS(object)), JsObject);
+      return _wrapToDart(_convertToJS(object));
     }
     static jsify(object) {
       if (!dart.is(object, core.Map) && !dart.is(object, core.Iterable)) {
         dart.throw(new core.ArgumentError("object must be a Map or Iterable"));
       }
-      return dart.as(_wrapToDart(JsObject._convertDataTree(object)), JsObject);
+      return _wrapToDart(JsObject._convertDataTree(object));
     }
     static _convertDataTree(data) {
       let _convertedObjects = collection.HashMap.identity();
@@ -130,8 +130,8 @@ dart_library.library('dart/js', null, /* Imports */[
       jsify: [JsObject, [dart.dynamic]]
     }),
     methods: () => ({
-      get: [dart.dynamic, [dart.dynamic]],
-      set: [dart.dynamic, [dart.dynamic, dart.dynamic]],
+      get: [dart.dynamic, [core.Object]],
+      set: [dart.dynamic, [core.Object, dart.dynamic]],
       hasProperty: [core.bool, [dart.dynamic]],
       deleteProperty: [dart.void, [dart.dynamic]],
       instanceof: [core.bool, [JsFunction]],
@@ -203,14 +203,14 @@ dart_library.library('dart/js', null, /* Imports */[
       }
       get(index) {
         if (typeof index == 'number' && index == index[dartx.toInt]()) {
-          this[_checkIndex](index);
+          this[_checkIndex](dart.asInt(index));
         }
         return dart.as(super.get(index), E);
       }
       set(index, value) {
         dart.as(value, E);
         if (typeof index == 'number' && index == index[dartx.toInt]()) {
-          this[_checkIndex](index);
+          this[_checkIndex](dart.asInt(index));
         }
         super.set(index, value);
         return value;
@@ -284,8 +284,8 @@ dart_library.library('dart/js', null, /* Imports */[
       methods: () => ({
         [_checkIndex]: [dart.dynamic, [core.int]],
         [_checkInsertIndex]: [dart.dynamic, [core.int]],
-        get: [E, [core.int]],
-        set: [dart.void, [core.int, E]],
+        get: [E, [core.Object]],
+        set: [dart.void, [core.Object, E]],
         add: [dart.void, [E]],
         addAll: [dart.void, [core.Iterable$(E)]],
         insert: [dart.void, [core.int, E]],
@@ -372,7 +372,7 @@ dart_library.library('dart/js', null, /* Imports */[
     }
     return new JsObject._fromJs(o);
   }
-  dart.fn(_wrapToDart);
+  dart.fn(_wrapToDart, JsObject, [dart.dynamic]);
   dart.defineLazyProperties(exports, {
     get _dartProxies() {
       return new WeakMap();

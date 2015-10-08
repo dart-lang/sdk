@@ -7,7 +7,12 @@
 library dev_compiler.strong_mode;
 
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContextImpl, AnalysisErrorInfo, AnalysisErrorInfoImpl;
+    show
+        AnalysisContext,
+        AnalysisContextImpl,
+        AnalysisEngine,
+        AnalysisErrorInfo,
+        AnalysisErrorInfoImpl;
 import 'package:analyzer/src/generated/error.dart'
     show
         AnalysisError,
@@ -27,15 +32,17 @@ import 'src/checker/rules.dart' show RestrictedRules;
 /// A type checker for Dart code that operates under stronger rules, and has
 /// the ability to do local type inference in some situations.
 class StrongChecker {
-  final AnalysisContextImpl _context;
+  final AnalysisContext _context;
   final CodeChecker _checker;
   final _ErrorCollector _reporter;
 
   StrongChecker._(this._context, this._checker, this._reporter);
 
-  factory StrongChecker(
-      AnalysisContextImpl context, StrongModeOptions options) {
-    enableDevCompilerInference(context, options);
+  factory StrongChecker(AnalysisContext context, StrongModeOptions options) {
+    // TODO(vsm): Remove this once analyzer_cli is completely switched to the
+    // task model.
+    if (!AnalysisEngine
+        .instance.useTaskModel) enableDevCompilerInference(context, options);
     var rules = new RestrictedRules(context.typeProvider, options: options);
     var reporter = new _ErrorCollector(options.hints);
     var checker = new CodeChecker(rules, reporter, options);

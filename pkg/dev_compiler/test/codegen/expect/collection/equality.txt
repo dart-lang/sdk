@@ -1,4 +1,5 @@
 // Messages from compiling equality.dart
+severe: [AnalyzerMessage] The redirected constructor '() → DefaultEquality' has incompatible parameters with '() → Equality<E>' (package:collection/equality.dart, line 18, col 30)
 severe: [StaticTypeError] Type check failed: const DefaultEquality() (DefaultEquality) is not of type Equality<E> (package:collection/equality.dart, line 75, col 31)
 severe: [StaticTypeError] Type check failed: const DefaultEquality() (DefaultEquality) is not of type Equality<E> (package:collection/equality.dart, line 120, col 53)
 severe: [StaticTypeError] Type check failed: const DefaultEquality() (DefaultEquality) is not of type Equality<E> (package:collection/equality.dart, line 205, col 38)

@@ -7,9 +7,11 @@
 /// definitions to provide mock sdks.
 library dev_compiler.src.dart_sdk;
 
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisContext, TimestampedData;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/context/context.dart';
 
 /// Dart SDK which contains a mock implementation of the SDK libraries. May be
 /// used to speed up execution when most of the core libraries is not needed.
