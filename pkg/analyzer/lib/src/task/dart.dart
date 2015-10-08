@@ -341,7 +341,7 @@ final ResultDescriptor<ReferencedNames> REFERENCED_NAMES =
     new ResultDescriptor<ReferencedNames>('REFERENCED_NAMES', null);
 
 /**
- * The errors produced while resolving a full compilation unit. 
+ * The errors produced while resolving a full compilation unit.
  *
  * The list will be empty if there were no errors, but will not be `null`.
  *

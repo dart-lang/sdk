@@ -1460,68 +1460,11 @@ const b = 0;
 }
 
 @reflectiveTest
-class ContainingLibrariesTaskTest extends _AbstractDartTaskTest {
-  test_perform_definingCompilationUnit() {
-    AnalysisTarget library = newSource('/test.dart', 'library test;');
-    computeResult(library, INCLUDED_PARTS);
-    computeResult(library, CONTAINING_LIBRARIES,
-        matcher: isContainingLibrariesTask);
-    expect(outputs, hasLength(1));
-    List<Source> containingLibraries = outputs[CONTAINING_LIBRARIES];
-    expect(containingLibraries, unorderedEquals([library]));
-  }
-
-  test_perform_partInMultipleLibraries() {
-    AnalysisTarget library1 =
-        newSource('/lib1.dart', 'library test; part "part.dart";');
-    AnalysisTarget library2 =
-        newSource('/lib2.dart', 'library test; part "part.dart";');
-    AnalysisTarget part = newSource('/part.dart', 'part of test;');
-    computeResult(library1, INCLUDED_PARTS);
-    computeResult(library2, INCLUDED_PARTS);
-    computeResult(part, SOURCE_KIND);
-    computeResult(part, CONTAINING_LIBRARIES,
-        matcher: isContainingLibrariesTask);
-    expect(outputs, hasLength(1));
-    List<Source> containingLibraries = outputs[CONTAINING_LIBRARIES];
-    expect(containingLibraries, unorderedEquals([library1, library2]));
-  }
-
-  test_perform_partInSingleLibrary() {
-    AnalysisTarget library =
-        newSource('/lib.dart', 'library test; part "part.dart";');
-    AnalysisTarget part = newSource('/part.dart', 'part of test;');
-    computeResult(library, INCLUDED_PARTS);
-    computeResult(part, SOURCE_KIND);
-    computeResult(part, CONTAINING_LIBRARIES,
-        matcher: isContainingLibrariesTask);
-    expect(outputs, hasLength(1));
-    List<Source> containingLibraries = outputs[CONTAINING_LIBRARIES];
-    expect(containingLibraries, unorderedEquals([library]));
-  }
-}
-
-@reflectiveTest
 class ComputeLibraryCycleTaskTest extends _AbstractDartTaskTest {
   @override
   void setUp() {
     super.setUp();
     enableStrongMode();
-  }
-
-  void test_library_cycle_singleton() {
-    Source source = newSource(
-        '/test.dart',
-        '''
-import 'dart:core';
-''');
-    computeResult(new LibrarySpecificUnit(source, source), LIBRARY_CYCLE);
-    List<LibraryElement> component = outputs[LIBRARY_CYCLE];
-    List<CompilationUnitElement> units = outputs[LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> deps = outputs[LIBRARY_CYCLE_DEPENDENCIES];
-    expect(component, hasLength(1));
-    expect(units, hasLength(1));
-    expect(deps, hasLength(1));
   }
 
   void test_library_cycle_linear() {
@@ -1548,41 +1491,6 @@ import 'a.dart';
     List<CompilationUnitElement> dep1 = results[1][LIBRARY_CYCLE_DEPENDENCIES];
     expect(dep0, hasLength(1)); // dart:core
     expect(dep1, hasLength(2)); // dart:core, a.dart
-  }
-
-  void test_library_cycle_tree() {
-    List<Source> sources = newSources({
-      '/a.dart': '''
-''',
-      '/b.dart': '''
-  ''',
-      '/c.dart': '''
-  import 'a.dart';
-  import 'b.dart';
-  '''
-    });
-    List<Map<ResultDescriptor, dynamic>> results =
-        computeLibraryResultsMap(sources, LIBRARY_CYCLE);
-    List<LibraryElement> component0 = results[0][LIBRARY_CYCLE];
-    List<LibraryElement> component1 = results[1][LIBRARY_CYCLE];
-    List<LibraryElement> component2 = results[2][LIBRARY_CYCLE];
-    expect(component0, hasLength(1));
-    expect(component1, hasLength(1));
-    expect(component2, hasLength(1));
-
-    List<CompilationUnitElement> units0 = results[0][LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> units1 = results[1][LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> units2 = results[2][LIBRARY_CYCLE_UNITS];
-    expect(units0, hasLength(1));
-    expect(units1, hasLength(1));
-    expect(units2, hasLength(1));
-
-    List<CompilationUnitElement> dep0 = results[0][LIBRARY_CYCLE_DEPENDENCIES];
-    List<CompilationUnitElement> dep1 = results[1][LIBRARY_CYCLE_DEPENDENCIES];
-    List<CompilationUnitElement> dep2 = results[2][LIBRARY_CYCLE_DEPENDENCIES];
-    expect(dep0, hasLength(1)); // dart:core
-    expect(dep1, hasLength(1)); // dart:core,
-    expect(dep2, hasLength(3)); // dart:core, a.dart, b.dart
   }
 
   void test_library_cycle_loop() {
@@ -1638,6 +1546,56 @@ import 'a.dart';
 
     List<CompilationUnitElement> dep0 = results[0][LIBRARY_CYCLE_DEPENDENCIES];
     expect(dep0, hasLength(1)); // dart:core
+  }
+
+  void test_library_cycle_singleton() {
+    Source source = newSource(
+        '/test.dart',
+        '''
+import 'dart:core';
+''');
+    computeResult(new LibrarySpecificUnit(source, source), LIBRARY_CYCLE);
+    List<LibraryElement> component = outputs[LIBRARY_CYCLE];
+    List<CompilationUnitElement> units = outputs[LIBRARY_CYCLE_UNITS];
+    List<CompilationUnitElement> deps = outputs[LIBRARY_CYCLE_DEPENDENCIES];
+    expect(component, hasLength(1));
+    expect(units, hasLength(1));
+    expect(deps, hasLength(1));
+  }
+
+  void test_library_cycle_tree() {
+    List<Source> sources = newSources({
+      '/a.dart': '''
+''',
+      '/b.dart': '''
+  ''',
+      '/c.dart': '''
+  import 'a.dart';
+  import 'b.dart';
+  '''
+    });
+    List<Map<ResultDescriptor, dynamic>> results =
+        computeLibraryResultsMap(sources, LIBRARY_CYCLE);
+    List<LibraryElement> component0 = results[0][LIBRARY_CYCLE];
+    List<LibraryElement> component1 = results[1][LIBRARY_CYCLE];
+    List<LibraryElement> component2 = results[2][LIBRARY_CYCLE];
+    expect(component0, hasLength(1));
+    expect(component1, hasLength(1));
+    expect(component2, hasLength(1));
+
+    List<CompilationUnitElement> units0 = results[0][LIBRARY_CYCLE_UNITS];
+    List<CompilationUnitElement> units1 = results[1][LIBRARY_CYCLE_UNITS];
+    List<CompilationUnitElement> units2 = results[2][LIBRARY_CYCLE_UNITS];
+    expect(units0, hasLength(1));
+    expect(units1, hasLength(1));
+    expect(units2, hasLength(1));
+
+    List<CompilationUnitElement> dep0 = results[0][LIBRARY_CYCLE_DEPENDENCIES];
+    List<CompilationUnitElement> dep1 = results[1][LIBRARY_CYCLE_DEPENDENCIES];
+    List<CompilationUnitElement> dep2 = results[2][LIBRARY_CYCLE_DEPENDENCIES];
+    expect(dep0, hasLength(1)); // dart:core
+    expect(dep1, hasLength(1)); // dart:core,
+    expect(dep2, hasLength(3)); // dart:core, a.dart, b.dart
   }
 
   void test_library_double_loop() {
@@ -1801,6 +1759,48 @@ import 'a.dart';
 }
 
 @reflectiveTest
+class ContainingLibrariesTaskTest extends _AbstractDartTaskTest {
+  test_perform_definingCompilationUnit() {
+    AnalysisTarget library = newSource('/test.dart', 'library test;');
+    computeResult(library, INCLUDED_PARTS);
+    computeResult(library, CONTAINING_LIBRARIES,
+        matcher: isContainingLibrariesTask);
+    expect(outputs, hasLength(1));
+    List<Source> containingLibraries = outputs[CONTAINING_LIBRARIES];
+    expect(containingLibraries, unorderedEquals([library]));
+  }
+
+  test_perform_partInMultipleLibraries() {
+    AnalysisTarget library1 =
+        newSource('/lib1.dart', 'library test; part "part.dart";');
+    AnalysisTarget library2 =
+        newSource('/lib2.dart', 'library test; part "part.dart";');
+    AnalysisTarget part = newSource('/part.dart', 'part of test;');
+    computeResult(library1, INCLUDED_PARTS);
+    computeResult(library2, INCLUDED_PARTS);
+    computeResult(part, SOURCE_KIND);
+    computeResult(part, CONTAINING_LIBRARIES,
+        matcher: isContainingLibrariesTask);
+    expect(outputs, hasLength(1));
+    List<Source> containingLibraries = outputs[CONTAINING_LIBRARIES];
+    expect(containingLibraries, unorderedEquals([library1, library2]));
+  }
+
+  test_perform_partInSingleLibrary() {
+    AnalysisTarget library =
+        newSource('/lib.dart', 'library test; part "part.dart";');
+    AnalysisTarget part = newSource('/part.dart', 'part of test;');
+    computeResult(library, INCLUDED_PARTS);
+    computeResult(part, SOURCE_KIND);
+    computeResult(part, CONTAINING_LIBRARIES,
+        matcher: isContainingLibrariesTask);
+    expect(outputs, hasLength(1));
+    List<Source> containingLibraries = outputs[CONTAINING_LIBRARIES];
+    expect(containingLibraries, unorderedEquals([library]));
+  }
+}
+
+@reflectiveTest
 class DartErrorsTaskTest extends _AbstractDartTaskTest {
   test_perform_definingCompilationUnit() {
     AnalysisTarget library =
@@ -1906,6 +1906,56 @@ main() {
 class GatherUsedLocalElementsTaskTest extends _AbstractDartTaskTest {
   UsedLocalElements usedElements;
   Set<String> usedElementNames;
+
+  fail_perform_forPart_afterLibraryUpdate() {
+    Source libSource = newSource(
+        '/my_lib.dart',
+        '''
+library my_lib;
+part 'my_part.dart';
+foo() => null;
+class _LocalClass {}
+''');
+    Source partSource = newSource(
+        '/my_part.dart',
+        '''
+part of my_lib;
+bar() {
+  print(_LocalClass);
+}
+''');
+    AnalysisTarget libTarget = new LibrarySpecificUnit(libSource, libSource);
+    AnalysisTarget partTarget = new LibrarySpecificUnit(libSource, partSource);
+    computeResult(libTarget, USED_LOCAL_ELEMENTS);
+    computeResult(partTarget, USED_LOCAL_ELEMENTS);
+    // _LocalClass is used in my_part.dart
+    {
+      UsedLocalElements usedElements =
+          analysisCache.getValue(partTarget, USED_LOCAL_ELEMENTS);
+      expect(usedElements.elements, contains(predicate((Element e) {
+        return e.displayName == '_LocalClass';
+      })));
+    }
+    // change my_lib.dart and recompute
+    context.setContents(
+        libSource,
+        '''
+library my_lib;
+part 'my_part.dart';
+String foo() => null;
+class _LocalClass {}
+''');
+    computeResult(libTarget, USED_LOCAL_ELEMENTS);
+    computeResult(partTarget, USED_LOCAL_ELEMENTS);
+    // _LocalClass should still be used in my_part.dart
+    {
+      UsedLocalElements usedElements =
+          analysisCache.getValue(partTarget, USED_LOCAL_ELEMENTS);
+      expect(usedElements.elements, contains(predicate((Element e) {
+        return e.displayName == '_LocalClass';
+      })));
+    }
+  }
 
   test_perform_localVariable() {
     Source source = newSource(
@@ -2906,56 +2956,6 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
   }
 
   // Test inference of instance fields across units
-  void test_perform_inference_instance() {
-    List<Source> sources = newSources({
-      '/a.dart': '''
-          import 'b.dart';
-          class A {
-            final a2 = new B().b2;
-          }
-
-          class B {
-            final b2 = 1;
-          }
-      ''',
-      '/main.dart': '''
-          import "a.dart";
-
-          test1() {
-            int x = 0;
-            x = new A().a2;
-          }
-    '''
-    });
-    InterfaceType intType = context.typeProvider.intType;
-    DartType dynamicType = context.typeProvider.dynamicType;
-
-    computeResult(
-        new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT7);
-    CompilationUnit unit0 = outputs[RESOLVED_UNIT7];
-
-    // A.a2 should now be resolved on the rhs, but not yet inferred.
-    assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
-
-    // B.b2 shoud be resolved on the rhs, but not yet inferred.
-    assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "B", "b2"), dynamicType, intType);
-
-    computeResult(
-        new LibrarySpecificUnit(sources[1], sources[1]), RESOLVED_UNIT7);
-    CompilationUnit unit1 = outputs[RESOLVED_UNIT7];
-
-    // A.a2 should now be fully resolved and inferred.
-    assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
-
-    // B.b2 should now be fully resolved and inferred.
-    assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "B", "b2"), intType, intType);
-  }
-
-  // Test inference of instance fields across units
   void test_perform_inference_cross_unit_instance() {
     List<Source> sources = newSources({
       '/a.dart': '''
@@ -3013,7 +3013,7 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
         getFieldInClass(unit1, "B", "b2"), intType, intType);
   }
 
-  // Test inference of instance fields across units with cycles
+  // Test inference of instance fields across units
   void test_perform_inference_cross_unit_instance_cyclic() {
     List<Source> sources = newSources({
       '/a.dart': '''
@@ -3057,7 +3057,7 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
         getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
   }
 
-  // Test inference between static and instance fields
+  // Test inference of instance fields across units with cycles
   void test_perform_inference_cross_unit_static_instance() {
     List<Source> sources = newSources({
       '/a.dart': '''
@@ -3123,6 +3123,56 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
         getFieldInClass(unit1, "B", "b1"), intType, intType);
     assertVariableDeclarationTypes(
         getFieldInClass(unit1, "B", "b2"), intType, intType);
+  }
+
+  // Test inference between static and instance fields
+  void test_perform_inference_instance() {
+    List<Source> sources = newSources({
+      '/a.dart': '''
+          import 'b.dart';
+          class A {
+            final a2 = new B().b2;
+          }
+
+          class B {
+            final b2 = 1;
+          }
+      ''',
+      '/main.dart': '''
+          import "a.dart";
+
+          test1() {
+            int x = 0;
+            x = new A().a2;
+          }
+    '''
+    });
+    InterfaceType intType = context.typeProvider.intType;
+    DartType dynamicType = context.typeProvider.dynamicType;
+
+    computeResult(
+        new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT7);
+    CompilationUnit unit0 = outputs[RESOLVED_UNIT7];
+
+    // A.a2 should now be resolved on the rhs, but not yet inferred.
+    assertVariableDeclarationTypes(
+        getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
+
+    // B.b2 shoud be resolved on the rhs, but not yet inferred.
+    assertVariableDeclarationTypes(
+        getFieldInClass(unit0, "B", "b2"), dynamicType, intType);
+
+    computeResult(
+        new LibrarySpecificUnit(sources[1], sources[1]), RESOLVED_UNIT7);
+    CompilationUnit unit1 = outputs[RESOLVED_UNIT7];
+
+    // A.a2 should now be fully resolved and inferred.
+    assertVariableDeclarationTypes(
+        getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
+
+    // B.b2 should now be fully resolved and inferred.
+    assertVariableDeclarationTypes(
+        getFieldInClass(unit0, "B", "b2"), intType, intType);
   }
 }
 
@@ -3473,34 +3523,245 @@ var tau = piFirst ? pi * 2 : 6.28;
     expect(tau.type.isDynamic, isTrue);
   }
 
-  void test_perform_local_explicit_disabled() {
-    AnalysisTarget source = newSource(
+  void test_perform_inference_cross_unit_cyclic() {
+    AnalysisTarget firstSource = newSource(
+        '/a.dart',
+        '''
+          import 'test.dart';
+          var x = 2;
+          class A { static var x = 2; }
+''');
+    AnalysisTarget secondSource = newSource(
         '/test.dart',
         '''
-      test() {
-        int x = 3;
-        x = "hi";
-      }
+          import 'a.dart';
+          var y = x;
+          class B { static var y = A.x; }
+
+          test1() {
+            int t = 3;
+            t = x;
+            t = y;
+            t = A.x;
+            t = B.y;
+          }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT9);
-    CompilationUnit unit = outputs[RESOLVED_UNIT9];
+    computeResult(
+        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT9);
+    CompilationUnit unit1 = outputs[RESOLVED_UNIT9];
+    computeResult(
+        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT9);
+    CompilationUnit unit2 = outputs[RESOLVED_UNIT9];
+
+    InterfaceType intType = context.typeProvider.intType;
+
+    assertVariableDeclarationTypes(
+        getTopLevelVariable(unit1, "x"), intType, intType);
+    assertVariableDeclarationTypes(
+        getFieldInClass(unit1, "A", "x"), intType, intType);
+
+    assertVariableDeclarationTypes(
+        getTopLevelVariable(unit2, "y"), intType, intType);
+    assertVariableDeclarationTypes(
+        getFieldInClass(unit2, "B", "y"), intType, intType);
+
+    List<Statement> statements =
+        getStatementsInTopLevelFunction(unit2, "test1");
+
+    assertAssignmentStatementTypes(statements[1], intType, intType);
+    assertAssignmentStatementTypes(statements[2], intType, intType);
+    assertAssignmentStatementTypes(statements[3], intType, intType);
+    assertAssignmentStatementTypes(statements[4], intType, intType);
+  }
+
+  // Test that local variables in method bodies are inferred appropriately
+  void test_perform_inference_cross_unit_instance() {
+    List<Source> sources = newSources({
+      '/a.dart': '''
+          import 'b.dart';
+          class A {
+            final a2 = new B().b2;
+          }
+      ''',
+      '/b.dart': '''
+          class B {
+            final b2 = 1;
+          }
+      ''',
+      '/main.dart': '''
+          import "a.dart";
+
+          test1() {
+            int x = 0;
+            x = new A().a2;
+          }
+    '''
+    });
+    List<dynamic> units =
+        computeLibraryResults(sources, RESOLVED_UNIT9).toList();
+    CompilationUnit unit0 = units[0];
+    CompilationUnit unit1 = units[1];
+    CompilationUnit unit2 = units[2];
+
+    InterfaceType intType = context.typeProvider.intType;
+
+    assertVariableDeclarationTypes(
+        getFieldInClass(unit0, "A", "a2"), intType, intType);
+
+    assertVariableDeclarationTypes(
+        getFieldInClass(unit1, "B", "b2"), intType, intType);
+
+    List<Statement> statements =
+        getStatementsInTopLevelFunction(unit2, "test1");
+
+    assertAssignmentStatementTypes(statements[1], intType, intType);
+  }
+
+  // Test inference interactions between local variables and fields
+  void test_perform_inference_cross_unit_instance_member() {
+    List<Source> sources = newSources({
+      '/a.dart': '''
+          import 'b.dart';
+            var bar = new B();
+            void foo() {
+              String x = bar.f.z;
+            }
+      ''',
+      '/b.dart': '''
+        class C {
+          var z = 3;
+        }
+
+        class B {
+          var f = new C();
+        }
+      ''',
+      '/c.dart': '''
+          import 'b.dart';
+            var bar = new B();
+            void foo() {
+              String x = bar.f.z;
+            }
+    '''
+    });
+    List<dynamic> units =
+        computeLibraryResults(sources, RESOLVED_UNIT9).toList();
+    CompilationUnit unit0 = units[0];
+    CompilationUnit unit1 = units[1];
+    CompilationUnit unit2 = units[2];
 
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
 
-    List<Statement> statements = getStatementsInTopLevelFunction(unit, "test");
-    VariableDeclaration decl =
-        (statements[0] as VariableDeclarationStatement).variables.variables[0];
-    expect(decl.element.type, intType);
-    expect(decl.initializer.staticType, intType);
-
-    ExpressionStatement statement = statements[1];
-    AssignmentExpression assgn = statement.expression;
-    expect(assgn.leftHandSide.staticType, intType);
-    expect(assgn.rightHandSide.staticType, stringType);
+    assertVariableDeclarationStatementTypes(
+        getStatementsInTopLevelFunction(unit0, "foo")[0], stringType, intType);
+    assertVariableDeclarationStatementTypes(
+        getStatementsInTopLevelFunction(unit2, "foo")[0], stringType, intType);
   }
 
-  // Test that local variables in method bodies are inferred appropriately
+  // Test inference interactions between local variables and top level
+  // variables
+  void test_perform_inference_cross_unit_non_cyclic() {
+    AnalysisTarget firstSource = newSource(
+        '/a.dart',
+        '''
+          var x = 2;
+          class A { static var x = 2; }
+''');
+    AnalysisTarget secondSource = newSource(
+        '/test.dart',
+        '''
+          import 'a.dart';
+          var y = x;
+          class B { static var y = A.x; }
+
+          test1() {
+            x = /*severe:StaticTypeError*/"hi";
+            y = /*severe:StaticTypeError*/"hi";
+            A.x = /*severe:StaticTypeError*/"hi";
+            B.y = /*severe:StaticTypeError*/"hi";
+          }
+''');
+    computeResult(
+        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT9);
+    CompilationUnit unit1 = outputs[RESOLVED_UNIT9];
+    computeResult(
+        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT9);
+    CompilationUnit unit2 = outputs[RESOLVED_UNIT9];
+
+    InterfaceType intType = context.typeProvider.intType;
+    InterfaceType stringType = context.typeProvider.stringType;
+
+    assertVariableDeclarationTypes(
+        getTopLevelVariable(unit1, "x"), intType, intType);
+    assertVariableDeclarationTypes(
+        getFieldInClass(unit1, "A", "x"), intType, intType);
+
+    assertVariableDeclarationTypes(
+        getTopLevelVariable(unit2, "y"), intType, intType);
+    assertVariableDeclarationTypes(
+        getFieldInClass(unit2, "B", "y"), intType, intType);
+
+    List<Statement> statements =
+        getStatementsInTopLevelFunction(unit2, "test1");
+
+    assertAssignmentStatementTypes(statements[0], intType, stringType);
+    assertAssignmentStatementTypes(statements[1], intType, stringType);
+  }
+
+  // Test that inference does not propagate from null
+  void test_perform_inference_cross_unit_static_instance() {
+    List<Source> sources = newSources({
+      '/a.dart': '''
+          import 'b.dart';
+          class A {
+            static final a1 = B.b1;
+            final a2 = new B().b2;
+          }
+      ''',
+      '/b.dart': '''
+          class B {
+            static final b1 = 1;
+            final b2 = 1;
+          }
+      ''',
+      '/main.dart': '''
+          import "a.dart";
+
+          test1() {
+            int x = 0;
+            // inference in A now works.
+            x = A.a1;
+            x = new A().a2;
+          }
+    '''
+    });
+    List<dynamic> units =
+        computeLibraryResults(sources, RESOLVED_UNIT9).toList();
+    CompilationUnit unit0 = units[0];
+    CompilationUnit unit1 = units[1];
+    CompilationUnit unit2 = units[2];
+
+    InterfaceType intType = context.typeProvider.intType;
+
+    assertVariableDeclarationTypes(
+        getFieldInClass(unit0, "A", "a1"), intType, intType);
+    assertVariableDeclarationTypes(
+        getFieldInClass(unit0, "A", "a2"), intType, intType);
+
+    assertVariableDeclarationTypes(
+        getFieldInClass(unit1, "B", "b1"), intType, intType);
+    assertVariableDeclarationTypes(
+        getFieldInClass(unit1, "B", "b2"), intType, intType);
+
+    List<Statement> statements =
+        getStatementsInTopLevelFunction(unit2, "test1");
+
+    assertAssignmentStatementTypes(statements[1], intType, intType);
+    assertAssignmentStatementTypes(statements[2], intType, intType);
+  }
+
+  // Test inference across units (non-cyclic)
   void test_perform_inference_local_variables() {
     AnalysisTarget source = newSource(
         '/test.dart',
@@ -3526,7 +3787,7 @@ var tau = piFirst ? pi * 2 : 6.28;
     assertAssignmentStatementTypes(statements[3], intType, stringType);
   }
 
-  // Test inference interactions between local variables and fields
+  // Test inference across units (cyclic)
   void test_perform_inference_local_variables_fields() {
     AnalysisTarget source = newSource(
         '/test.dart',
@@ -3576,8 +3837,7 @@ var tau = piFirst ? pi * 2 : 6.28;
         getFieldInClass(unit, "A", "z"), intType, intType);
   }
 
-  // Test inference interactions between local variables and top level
-  // variables
+  // Test inference of instance fields across units
   void test_perform_inference_local_variables_topLevel() {
     AnalysisTarget source = newSource(
         '/test.dart',
@@ -3627,7 +3887,7 @@ var tau = piFirst ? pi * 2 : 6.28;
         getTopLevelVariable(unit, "z"), intType, intType);
   }
 
-  // Test that inference does not propagate from null
+  // Test inference between static and instance fields
   void test_perform_inference_null() {
     AnalysisTarget source = newSource(
         '/test.dart',
@@ -3682,242 +3942,32 @@ var tau = piFirst ? pi * 2 : 6.28;
     assertAssignmentStatementTypes(statements[5], intType, stringType);
   }
 
-  // Test inference across units (non-cyclic)
-  void test_perform_inference_cross_unit_non_cyclic() {
-    AnalysisTarget firstSource = newSource(
-        '/a.dart',
-        '''
-          var x = 2;
-          class A { static var x = 2; }
-''');
-    AnalysisTarget secondSource = newSource(
-        '/test.dart',
-        '''
-          import 'a.dart';
-          var y = x;
-          class B { static var y = A.x; }
-
-          test1() {
-            x = /*severe:StaticTypeError*/"hi";
-            y = /*severe:StaticTypeError*/"hi";
-            A.x = /*severe:StaticTypeError*/"hi";
-            B.y = /*severe:StaticTypeError*/"hi";
-          }
-''');
-    computeResult(
-        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT9);
-    CompilationUnit unit1 = outputs[RESOLVED_UNIT9];
-    computeResult(
-        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT9);
-    CompilationUnit unit2 = outputs[RESOLVED_UNIT9];
-
-    InterfaceType intType = context.typeProvider.intType;
-    InterfaceType stringType = context.typeProvider.stringType;
-
-    assertVariableDeclarationTypes(
-        getTopLevelVariable(unit1, "x"), intType, intType);
-    assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "A", "x"), intType, intType);
-
-    assertVariableDeclarationTypes(
-        getTopLevelVariable(unit2, "y"), intType, intType);
-    assertVariableDeclarationTypes(
-        getFieldInClass(unit2, "B", "y"), intType, intType);
-
-    List<Statement> statements =
-        getStatementsInTopLevelFunction(unit2, "test1");
-
-    assertAssignmentStatementTypes(statements[0], intType, stringType);
-    assertAssignmentStatementTypes(statements[1], intType, stringType);
-  }
-
-  // Test inference across units (cyclic)
-  void test_perform_inference_cross_unit_cyclic() {
-    AnalysisTarget firstSource = newSource(
-        '/a.dart',
-        '''
-          import 'test.dart';
-          var x = 2;
-          class A { static var x = 2; }
-''');
-    AnalysisTarget secondSource = newSource(
-        '/test.dart',
-        '''
-          import 'a.dart';
-          var y = x;
-          class B { static var y = A.x; }
-
-          test1() {
-            int t = 3;
-            t = x;
-            t = y;
-            t = A.x;
-            t = B.y;
-          }
-''');
-    computeResult(
-        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT9);
-    CompilationUnit unit1 = outputs[RESOLVED_UNIT9];
-    computeResult(
-        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT9);
-    CompilationUnit unit2 = outputs[RESOLVED_UNIT9];
-
-    InterfaceType intType = context.typeProvider.intType;
-
-    assertVariableDeclarationTypes(
-        getTopLevelVariable(unit1, "x"), intType, intType);
-    assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "A", "x"), intType, intType);
-
-    assertVariableDeclarationTypes(
-        getTopLevelVariable(unit2, "y"), intType, intType);
-    assertVariableDeclarationTypes(
-        getFieldInClass(unit2, "B", "y"), intType, intType);
-
-    List<Statement> statements =
-        getStatementsInTopLevelFunction(unit2, "test1");
-
-    assertAssignmentStatementTypes(statements[1], intType, intType);
-    assertAssignmentStatementTypes(statements[2], intType, intType);
-    assertAssignmentStatementTypes(statements[3], intType, intType);
-    assertAssignmentStatementTypes(statements[4], intType, intType);
-  }
-
-  // Test inference of instance fields across units
-  void test_perform_inference_cross_unit_instance() {
-    List<Source> sources = newSources({
-      '/a.dart': '''
-          import 'b.dart';
-          class A {
-            final a2 = new B().b2;
-          }
-      ''',
-      '/b.dart': '''
-          class B {
-            final b2 = 1;
-          }
-      ''',
-      '/main.dart': '''
-          import "a.dart";
-
-          test1() {
-            int x = 0;
-            x = new A().a2;
-          }
-    '''
-    });
-    List<dynamic> units =
-        computeLibraryResults(sources, RESOLVED_UNIT9).toList();
-    CompilationUnit unit0 = units[0];
-    CompilationUnit unit1 = units[1];
-    CompilationUnit unit2 = units[2];
-
-    InterfaceType intType = context.typeProvider.intType;
-
-    assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), intType, intType);
-
-    assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b2"), intType, intType);
-
-    List<Statement> statements =
-        getStatementsInTopLevelFunction(unit2, "test1");
-
-    assertAssignmentStatementTypes(statements[1], intType, intType);
-  }
-
-  // Test inference between static and instance fields
-  void test_perform_inference_cross_unit_static_instance() {
-    List<Source> sources = newSources({
-      '/a.dart': '''
-          import 'b.dart';
-          class A {
-            static final a1 = B.b1;
-            final a2 = new B().b2;
-          }
-      ''',
-      '/b.dart': '''
-          class B {
-            static final b1 = 1;
-            final b2 = 1;
-          }
-      ''',
-      '/main.dart': '''
-          import "a.dart";
-
-          test1() {
-            int x = 0;
-            // inference in A now works.
-            x = A.a1;
-            x = new A().a2;
-          }
-    '''
-    });
-    List<dynamic> units =
-        computeLibraryResults(sources, RESOLVED_UNIT9).toList();
-    CompilationUnit unit0 = units[0];
-    CompilationUnit unit1 = units[1];
-    CompilationUnit unit2 = units[2];
-
-    InterfaceType intType = context.typeProvider.intType;
-
-    assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a1"), intType, intType);
-    assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), intType, intType);
-
-    assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b1"), intType, intType);
-    assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b2"), intType, intType);
-
-    List<Statement> statements =
-        getStatementsInTopLevelFunction(unit2, "test1");
-
-    assertAssignmentStatementTypes(statements[1], intType, intType);
-    assertAssignmentStatementTypes(statements[2], intType, intType);
-  }
-
   // Test inference between fields and method bodies
-  void test_perform_inference_cross_unit_instance_member() {
-    List<Source> sources = newSources({
-      '/a.dart': '''
-          import 'b.dart';
-            var bar = new B();
-            void foo() {
-              String x = bar.f.z;
-            }
-      ''',
-      '/b.dart': '''
-        class C {
-          var z = 3;
-        }
-
-        class B {
-          var f = new C();
-        }
-      ''',
-      '/c.dart': '''
-          import 'b.dart';
-            var bar = new B();
-            void foo() {
-              String x = bar.f.z;
-            }
-    '''
-    });
-    List<dynamic> units =
-        computeLibraryResults(sources, RESOLVED_UNIT9).toList();
-    CompilationUnit unit0 = units[0];
-    CompilationUnit unit1 = units[1];
-    CompilationUnit unit2 = units[2];
+  void test_perform_local_explicit_disabled() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+      test() {
+        int x = 3;
+        x = "hi";
+      }
+''');
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT9);
+    CompilationUnit unit = outputs[RESOLVED_UNIT9];
 
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
 
-    assertVariableDeclarationStatementTypes(
-        getStatementsInTopLevelFunction(unit0, "foo")[0], stringType, intType);
-    assertVariableDeclarationStatementTypes(
-        getStatementsInTopLevelFunction(unit2, "foo")[0], stringType, intType);
+    List<Statement> statements = getStatementsInTopLevelFunction(unit, "test");
+    VariableDeclaration decl =
+        (statements[0] as VariableDeclarationStatement).variables.variables[0];
+    expect(decl.element.type, intType);
+    expect(decl.initializer.staticType, intType);
+
+    ExpressionStatement statement = statements[1];
+    AssignmentExpression assgn = statement.expression;
+    expect(assgn.leftHandSide.staticType, intType);
+    expect(assgn.rightHandSide.staticType, stringType);
   }
 }
 
@@ -4020,17 +4070,17 @@ class _AbstractDartTaskTest extends AbstractContextTest {
     });
   }
 
-  void assertVariableDeclarationTypes(
-      VariableDeclaration decl, DartType varType, DartType initializerType) {
-    expect(decl.element.type, varType);
-    expect(decl.initializer.staticType, initializerType);
-  }
-
   void assertVariableDeclarationStatementTypes(
       Statement stmt, DartType varType, DartType initializerType) {
     VariableDeclaration decl =
         (stmt as VariableDeclarationStatement).variables.variables[0];
     assertVariableDeclarationTypes(decl, varType, initializerType);
+  }
+
+  void assertVariableDeclarationTypes(
+      VariableDeclaration decl, DartType varType, DartType initializerType) {
+    expect(decl.element.type, varType);
+    expect(decl.initializer.staticType, initializerType);
   }
 
   List<dynamic> computeLibraryResults(
