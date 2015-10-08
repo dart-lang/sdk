@@ -483,7 +483,7 @@ class _FilterSink extends ByteConversionSink {
 
   void addSlice(List<int> data, int start, int end, bool isLast) {
     if (_closed) return;
-    if (end == null) throw ArgumentError.notNull("end");
+    if (end == null) throw new ArgumentError.notNull("end");
     RangeError.checkValidRange(start, end, data.length);
     try {
       _empty = false;
