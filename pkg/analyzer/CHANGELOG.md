@@ -1,3 +1,7 @@
+## 0.26.1+9
+* `OptionsProcessor` extension point API changed to pass associated
+  `AnalysisContext` instance into the `optionsProcessed` call-back.
+
 ## 0.26.1+6
 * Provisional (internal) plugin manifest parsing.
 
