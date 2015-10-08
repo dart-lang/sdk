@@ -14,6 +14,8 @@
     See https://pub.dartlang.org/packages/resource to learn more. This is
     the last release to contain the Resource class.
 
+* `dart:developer`
+
 * `dart:io`
   * `HttpClient` no longer sends URI fragments in the request. This is not
     allowed by the HTTP protocol.
