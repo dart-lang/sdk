@@ -1,0 +1,4 @@
+analyzer:
+  exclude:
+    - test/_data/p4/lib/lib1.dart
+    - test/_data/p5/p5.dart

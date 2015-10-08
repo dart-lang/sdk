@@ -5,6 +5,7 @@
 library linter.src.config;
 
 import 'package:analyzer/plugin/options.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:yaml/yaml.dart';
 
 /// Process the given option [fileContents] and produce a corresponding
@@ -41,7 +42,8 @@ class AnalysisOptionsProcessor extends OptionsProcessor {
   }
 
   @override
-  void optionsProcessed(Map<String, YamlNode> options) {
+  void optionsProcessed(
+      AnalysisContext context, Map<String, YamlNode> options) {
     this.options = options;
   }
 }
