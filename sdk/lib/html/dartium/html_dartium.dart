@@ -1330,7 +1330,7 @@ wrap_jso_custom_element(jsObject) {
 _upgradeHtmlElement(dartInstance) {
   // Only try upgrading HtmlElement (Dart class) if there is a failure then
   // don't try it again - one failure is enough.
-  if (dartInstance.runtimeType == HtmlElement && !dartInstance.isBadUpgrade) {
+  if (dartInstance.runtimeType == HtmlElement && !dartInstance._isBadUpgrade) {
     // Must be exactly HtmlElement not something derived from it.
     var jsObject = dartInstance.blink_jsObject;
     var localName = dartInstance.localName;
@@ -1340,7 +1340,7 @@ _upgradeHtmlElement(dartInstance) {
       try {
         dartInstance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
       } catch (e) {
-        dartInstance.badUpgrade();
+        dartInstance._badUpgrade();
       } finally {
         dartInstance.blink_jsObject = jsObject;
         jsObject['dart_class'] = dartInstance;
@@ -1440,7 +1440,7 @@ createCustomUpgrader(Type customElementClass, $this) {
   try {
     dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
   } catch (e) {
-    dartClass.badUpgrade();
+    dartClass._badUpgrade();
     throw e;
   } finally {
     // Need to remember the Dart class that was created for this custom so
@@ -20410,7 +20410,7 @@ class HtmlDocument extends Document {
             dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
           } catch (e) {
             dartClass = HtmlElement.internalCreateHtmlElement();
-            dartClass.badUpgrade();
+            dartClass._badUpgrade();
             throw e;
           } finally {
             // Need to remember the Dart class that was created for this custom so
@@ -21149,9 +21149,9 @@ class HtmlElement extends Element implements GlobalEventHandlers {
 
   // Flags to only try upgrading once if there's a failure don't try upgrading
   // anymore.
-  bool _badUpgrade = false;
-  bool get isBadUpgrade => _badUpgrade;
-  void badUpgrade() { _badUpgrade = true; }
+  bool _badUpgradeOccurred = false;
+  bool get _isBadUpgrade => _badUpgradeOccurred;
+  void _badUpgrade() { _badUpgradeOccurred = true; }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37110,10 +37110,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");

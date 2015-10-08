@@ -10,8 +10,8 @@ $!MEMBERS
 $if DARTIUM
   // Flags to only try upgrading once if there's a failure don't try upgrading
   // anymore.
-  bool _badUpgrade = false;
-  bool get isBadUpgrade => _badUpgrade;
-  void badUpgrade() { _badUpgrade = true; }
+  bool _badUpgradeOccurred = false;
+  bool get _isBadUpgrade => _badUpgradeOccurred;
+  void _badUpgrade() { _badUpgradeOccurred = true; }
 $endif
 }

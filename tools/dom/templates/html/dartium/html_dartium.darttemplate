@@ -575,7 +575,7 @@ wrap_jso_custom_element(jsObject) {
 _upgradeHtmlElement(dartInstance) {
   // Only try upgrading HtmlElement (Dart class) if there is a failure then
   // don't try it again - one failure is enough.
-  if (dartInstance.runtimeType == HtmlElement && !dartInstance.isBadUpgrade) {
+  if (dartInstance.runtimeType == HtmlElement && !dartInstance._isBadUpgrade) {
     // Must be exactly HtmlElement not something derived from it.
     var jsObject = dartInstance.blink_jsObject;
     var localName = dartInstance.localName;
@@ -585,7 +585,7 @@ _upgradeHtmlElement(dartInstance) {
       try {
         dartInstance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
       } catch (e) {
-        dartInstance.badUpgrade();
+        dartInstance._badUpgrade();
       } finally {
         dartInstance.blink_jsObject = jsObject;
         jsObject['dart_class'] = dartInstance;
@@ -685,7 +685,7 @@ createCustomUpgrader(Type customElementClass, $this) {
   try {
     dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
   } catch (e) {
-    dartClass.badUpgrade();
+    dartClass._badUpgrade();
     throw e;
   } finally {
     // Need to remember the Dart class that was created for this custom so
