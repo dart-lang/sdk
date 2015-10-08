@@ -17245,7 +17245,7 @@ class Blink_DOMStringMap {
 
 // Calls through JsNative but returns DomException instead of error strings.
 class Blink_JsNative_DomException {
-  static getProperty(JsObject o, name) {
+  static getProperty(js.JsObject o, name) {
     try {
       return js.JsNative.getProperty(o, name);
     } catch (e) {
@@ -17254,7 +17254,7 @@ class Blink_JsNative_DomException {
     }
   }
 
-  static callMethod(JsObject o, String method, List args) {
+  static callMethod(js.JsObject o, String method, List args) {
     try {
       return js.JsNative.callMethod(o, method, args);
     } catch (e) {
