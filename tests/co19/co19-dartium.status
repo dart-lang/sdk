@@ -17,9 +17,9 @@ LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: R
 LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/events/remove-event-listener_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
+LayoutTests/fast/xpath/attr-namespace_t01: RuntimeError # Dartium JsInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/axes_t01: RuntimeError # Dartium JSInterop failure
-LayoutTests/fast/dom/custom/element-type_t01: RuntimeError # Dartium JsInterop failure (element upgrade)
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Pass, RuntimeError # Flaky with Dartium JsInterop. Seems like timing issues in the test.
 
 [ $compiler == none && $runtime == dartium && $checked ]
