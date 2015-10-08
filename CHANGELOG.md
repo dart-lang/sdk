@@ -15,6 +15,8 @@
     the last release to contain the Resource class.
 
 * `dart:developer`
+  * new `ServiceExtensionResponse`
+  * new `Timeline`
 
 * `dart:io`
   * `HttpClient` no longer sends URI fragments in the request. This is not
