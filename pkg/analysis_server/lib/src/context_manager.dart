@@ -472,9 +472,8 @@ class ContextManagerImpl implements ContextManager {
     }
 
     // Notify options processors.
-    AnalysisEngine.instance.optionsPlugin.optionsProcessors
-        .forEach(
-        (OptionsProcessor p) => p.optionsProcessed(options, info.context));
+    AnalysisEngine.instance.optionsPlugin.optionsProcessors.forEach(
+        (OptionsProcessor p) => p.optionsProcessed(info.context, options));
 
     // Analysis options are processed 'in-line'.
     // TODO(pq): consider pushing exclude handling into a plugin.
@@ -825,7 +824,7 @@ class ContextManagerImpl implements ContextManager {
       Map<String, YamlNode> options =
           analysisOptionsProvider.getOptions(folder);
       processOptionsForContext(info, options);
-    } on Exception catch (e) {
+    } catch (e) {
       // TODO(pquitslund): contribute plugin that sends error notification on options file.
       // Related test: context_manager_test.test_analysis_options_parse_failure()
       // AnalysisEngine.instance.optionsPlugin.optionsProcessors

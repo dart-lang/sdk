@@ -401,7 +401,7 @@ class Driver implements ServerStarter {
     //
     ServerPlugin serverPlugin = new ServerPlugin();
     List<Plugin> plugins = <Plugin>[];
-    plugins.add(AnalysisEngine.instance.enginePlugin);
+    plugins.addAll(AnalysisEngine.instance.supportedPlugins);
     plugins.add(serverPlugin);
     plugins.addAll(_userDefinedPlugins);
     ExtensionManager manager = new ExtensionManager();
