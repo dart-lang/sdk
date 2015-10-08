@@ -1434,8 +1434,8 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
     // Store fpu registers with the lowest register number at the lowest
     // address.
     intptr_t offset = 0;
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfFpuRegisters; ++reg_idx) {
-      DRegister fpu_reg = static_cast<DRegister>(reg_idx);
+    for (intptr_t i = 0; i < kNumberOfFpuRegisters; ++i) {
+      DRegister fpu_reg = static_cast<DRegister>(i);
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
         __ StoreDToOffset(fpu_reg, SP, offset);
         offset += kFpuRegisterSize;
@@ -1444,16 +1444,15 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
     ASSERT(offset == (fpu_regs_count * kFpuRegisterSize));
   }
 
-  // Store general purpose registers with the highest register number at the
-  // lowest address. The order in which the registers are pushed must match the
-  // order in which the registers are encoded in the safe point's stack map.
+  // The order in which the registers are pushed must match the order
+  // in which the registers are encoded in the safe point's stack map.
   const intptr_t cpu_registers = locs->live_registers()->cpu_registers();
   ASSERT((cpu_registers & ~kAllCpuRegistersList) == 0);
   const int register_count = Utils::CountOneBits(cpu_registers);
   if (register_count > 0) {
     __ addiu(SP, SP, Immediate(-register_count * kWordSize));
     intptr_t offset = register_count * kWordSize;
-    for (int i = 0; i < kNumberOfCpuRegisters; i++) {
+    for (int i = kNumberOfCpuRegisters; i >= 0; --i) {
       Register r = static_cast<Register>(i);
       if (locs->live_registers()->ContainsRegister(r)) {
         offset -= kWordSize;
@@ -1466,15 +1465,13 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
-  // General purpose registers have the highest register number at the
-  // lowest address.
   __ Comment("RestoreLiveRegisters");
   const intptr_t cpu_registers = locs->live_registers()->cpu_registers();
   ASSERT((cpu_registers & ~kAllCpuRegistersList) == 0);
   const int register_count = Utils::CountOneBits(cpu_registers);
   if (register_count > 0) {
     intptr_t offset = register_count * kWordSize;
-    for (int i = 0; i < kNumberOfCpuRegisters; i++) {
+    for (int i = kNumberOfCpuRegisters; i >= 0; --i) {
       Register r = static_cast<Register>(i);
       if (locs->live_registers()->ContainsRegister(r)) {
         offset -= kWordSize;
@@ -1489,8 +1486,8 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
   if (fpu_regs_count > 0) {
     // Fpu registers have the lowest register number at the lowest address.
     intptr_t offset = 0;
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfFpuRegisters; ++reg_idx) {
-      DRegister fpu_reg = static_cast<DRegister>(reg_idx);
+    for (intptr_t i = 0; i < kNumberOfFpuRegisters; ++i) {
+      DRegister fpu_reg = static_cast<DRegister>(i);
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
         __ LoadDFromOffset(fpu_reg, SP, offset);
         offset += kFpuRegisterSize;

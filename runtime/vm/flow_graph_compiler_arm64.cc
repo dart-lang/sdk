@@ -1395,20 +1395,18 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   if (fpu_regs_count > 0) {
     // Store fpu registers with the lowest register number at the lowest
     // address.
-    for (intptr_t reg_idx = kNumberOfVRegisters - 1;
-                  reg_idx >= 0; --reg_idx) {
-      VRegister fpu_reg = static_cast<VRegister>(reg_idx);
+    for (intptr_t i = kNumberOfVRegisters - 1; i >= 0; --i) {
+      VRegister fpu_reg = static_cast<VRegister>(i);
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
         __ PushQuad(fpu_reg);
       }
     }
   }
 
-  // Store general purpose registers with the highest register number at the
-  // lowest address. The order in which the registers are pushed must match the
-  // order in which the registers are encoded in the safe point's stack map.
-  for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
-    Register reg = static_cast<Register>(reg_idx);
+  // The order in which the registers are pushed must match the order
+  // in which the registers are encoded in the safe point's stack map.
+  for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
+    Register reg = static_cast<Register>(i);
     if (locs->live_registers()->ContainsRegister(reg)) {
       __ Push(reg);
     }
@@ -1417,10 +1415,8 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
-  // General purpose registers have the highest register number at the
-  // lowest address.
-  for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
-    Register reg = static_cast<Register>(reg_idx);
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+    Register reg = static_cast<Register>(i);
     if (locs->live_registers()->ContainsRegister(reg)) {
       __ Pop(reg);
     }
@@ -1429,8 +1425,8 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
   const intptr_t fpu_regs_count = locs->live_registers()->FpuRegisterCount();
   if (fpu_regs_count > 0) {
     // Fpu registers have the lowest register number at the lowest address.
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfVRegisters; ++reg_idx) {
-      VRegister fpu_reg = static_cast<VRegister>(reg_idx);
+    for (intptr_t i = 0; i < kNumberOfVRegisters; ++i) {
+      VRegister fpu_reg = static_cast<VRegister>(i);
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
         __ PopQuad(fpu_reg);
       }

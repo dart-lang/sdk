@@ -1414,8 +1414,8 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
     // Store XMM registers with the lowest register number at the lowest
     // address.
     intptr_t offset = 0;
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
-      XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
+    for (intptr_t i = 0; i < kNumberOfXmmRegisters; ++i) {
+      XmmRegister xmm_reg = static_cast<XmmRegister>(i);
       if (locs->live_registers()->ContainsFpuRegister(xmm_reg)) {
         __ movups(Address(ESP, offset), xmm_reg);
         offset += kFpuRegisterSize;
@@ -1424,11 +1424,10 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
     ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
   }
 
-  // Store general purpose registers with the highest register number at the
-  // lowest address. The order in which the registers are pushed must match the
-  // order in which the registers are encoded in the safe point's stack map.
-  for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
-    Register reg = static_cast<Register>(reg_idx);
+  // The order in which the registers are pushed must match the order
+  // in which the registers are encoded in the safe point's stack map.
+  for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
+    Register reg = static_cast<Register>(i);
     if (locs->live_registers()->ContainsRegister(reg)) {
       __ pushl(reg);
     }
@@ -1437,10 +1436,8 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
-  // General purpose registers have the highest register number at the
-  // lowest address.
-  for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
-    Register reg = static_cast<Register>(reg_idx);
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+    Register reg = static_cast<Register>(i);
     if (locs->live_registers()->ContainsRegister(reg)) {
       __ popl(reg);
     }
@@ -1450,8 +1447,8 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
   if (xmm_regs_count > 0) {
     // XMM registers have the lowest register number at the lowest address.
     intptr_t offset = 0;
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
-      XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
+    for (intptr_t i = 0; i < kNumberOfXmmRegisters; ++i) {
+      XmmRegister xmm_reg = static_cast<XmmRegister>(i);
       if (locs->live_registers()->ContainsFpuRegister(xmm_reg)) {
         __ movups(xmm_reg, Address(ESP, offset));
         offset += kFpuRegisterSize;

@@ -1408,8 +1408,8 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
     // Store fpu registers with the lowest register number at the lowest
     // address.
     intptr_t offset = 0;
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfFpuRegisters; ++reg_idx) {
-      QRegister fpu_reg = static_cast<QRegister>(reg_idx);
+    for (intptr_t i = 0; i < kNumberOfFpuRegisters; ++i) {
+      QRegister fpu_reg = static_cast<QRegister>(i);
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
         DRegister d1 = EvenDRegisterOf(fpu_reg);
         DRegister d2 = OddDRegisterOf(fpu_reg);
@@ -1422,36 +1422,40 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
     ASSERT(offset == (fpu_regs_count * kFpuRegisterSize));
   }
 
-  // Store general purpose registers with the highest register number at the
-  // lowest address. The order in which the registers are pushed must match the
-  // order in which the registers are encoded in the safe point's stack map.
-  // NOTE: Using ARM's multi-register push, pushes the registers in the wrong
-  // order.
-  for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
-    Register reg = static_cast<Register>(reg_idx);
+  // The order in which the registers are pushed must match the order
+  // in which the registers are encoded in the safe point's stack map.
+  // NOTE: This matches the order of ARM's multi-register push.
+  RegList reg_list = 0;
+  for (intptr_t i = kNumberOfCpuRegisters; i >= 0; --i) {
+    Register reg = static_cast<Register>(i);
     if (locs->live_registers()->ContainsRegister(reg)) {
-      __ Push(reg);
+      reg_list |= (1 << reg);
     }
+  }
+  if (reg_list != 0) {
+    __ PushList(reg_list);
   }
 }
 
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
-  // General purpose registers have the highest register number at the
-  // lowest address.
-  for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
-    Register reg = static_cast<Register>(reg_idx);
+  RegList reg_list = 0;
+  for (intptr_t i = kNumberOfCpuRegisters; i >= 0; --i) {
+    Register reg = static_cast<Register>(i);
     if (locs->live_registers()->ContainsRegister(reg)) {
-      __ Pop(reg);
+      reg_list |= (1 << reg);
     }
+  }
+  if (reg_list != 0) {
+    __ PopList(reg_list);
   }
 
   const intptr_t fpu_regs_count = locs->live_registers()->FpuRegisterCount();
   if (fpu_regs_count > 0) {
     // Fpu registers have the lowest register number at the lowest address.
     intptr_t offset = 0;
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfFpuRegisters; ++reg_idx) {
-      QRegister fpu_reg = static_cast<QRegister>(reg_idx);
+    for (intptr_t i = 0; i < kNumberOfFpuRegisters; ++i) {
+      QRegister fpu_reg = static_cast<QRegister>(i);
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
         DRegister d1 = EvenDRegisterOf(fpu_reg);
         DRegister d2 = OddDRegisterOf(fpu_reg);
