@@ -175,6 +175,8 @@ const_switch_test/04: RuntimeError # Issue 17960
 const_dynamic_type_literal_test/02: CompileTimeError # Issue 23009
 const_dynamic_type_literal_test/03: CompileTimeError # Issue 23009
 
+generic_field_mixin4_test: Crash # Issue 18651
+
 # Compilation errors.
 method_override5_test: RuntimeError # Issue 12809
 external_test/10: CompileTimeError # Issue 12887
@@ -225,7 +227,6 @@ cha_deopt*: Pass,RuntimeError # Issue 17458
 regress_22443_test: Pass,RuntimeError # Issue 17458
 
 [ $compiler == dart2js && $cps_ir == false ]
-generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
 many_method_calls_test: Crash # Stack overflow in HGraphVisitor.visitPostDominatorTree.visitBasicBlockAndSuccessors
 
