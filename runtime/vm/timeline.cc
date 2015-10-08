@@ -278,6 +278,9 @@ void TimelineEvent::SetNumArguments(intptr_t length) {
   // Cannot call this twice.
   ASSERT(arguments_ == NULL);
   ASSERT(arguments_length_ == 0);
+  if (length == 0) {
+    return;
+  }
   arguments_length_ = length;
   arguments_ = reinterpret_cast<TimelineEventArgument*>(
       calloc(sizeof(TimelineEventArgument), length));
@@ -315,6 +318,13 @@ void TimelineEvent::CopyArgument(intptr_t i,
                                  const char* name,
                                  const char* argument) {
   SetArgument(i, name, strdup(argument));
+}
+
+
+void TimelineEvent::StealArguments(intptr_t arguments_length,
+                                   TimelineEventArgument* arguments) {
+  arguments_length_ = arguments_length;
+  arguments_ = arguments;
 }
 
 
@@ -467,10 +477,106 @@ TimelineEvent* TimelineStream::StartEvent() {
 }
 
 
+TimelineDurationScope::TimelineDurationScope(TimelineStream* stream,
+                                             const char* label)
+    : StackResource(reinterpret_cast<Thread*>(NULL)),
+      timestamp_(0),
+      stream_(stream),
+      label_(label),
+      arguments_(NULL),
+      arguments_length_(0),
+      enabled_(false) {
+  Init();
+}
+
+
+TimelineDurationScope::TimelineDurationScope(Thread* thread,
+                                             TimelineStream* stream,
+                                             const char* label)
+    : StackResource(thread),
+      timestamp_(0),
+      stream_(stream),
+      label_(label),
+      arguments_(NULL),
+      arguments_length_(0),
+      enabled_(false) {
+  ASSERT(thread != NULL);
+  Init();
+}
+
+
+TimelineDurationScope::~TimelineDurationScope() {
+  if (!enabled_) {
+    FreeArguments();
+    return;
+  }
+  TimelineEvent* event = stream_->StartEvent();
+  ASSERT(event != NULL);
+  event->Duration(label_, timestamp_, OS::GetCurrentTraceMicros());
+  event->StealArguments(arguments_length_, arguments_);
+  event->Complete();
+  arguments_length_ = 0;
+  arguments_ = NULL;
+}
+
+
+void TimelineDurationScope::Init() {
+  ASSERT(enabled_ == false);
+  ASSERT(label_ != NULL);
+  ASSERT(stream_ != NULL);
+  if (!stream_->Enabled()) {
+    // Stream is not enabled, do nothing.
+    return;
+  }
+  timestamp_ = OS::GetCurrentTraceMicros();
+  enabled_ = true;
+}
+
+
+void TimelineDurationScope::SetNumArguments(intptr_t length) {
+  if (!enabled()) {
+    return;
+  }
+  ASSERT(arguments_ == NULL);
+  ASSERT(arguments_length_ == 0);
+  arguments_length_ = length;
+  if (arguments_length_ == 0) {
+    return;
+  }
+  arguments_ = reinterpret_cast<TimelineEventArgument*>(
+      calloc(sizeof(TimelineEventArgument), length));
+}
+
+
+// |name| must be a compile time constant. Takes ownership of |argumentp|.
+void TimelineDurationScope::SetArgument(intptr_t i,
+                                        const char* name,
+                                        char* argument) {
+  if (!enabled()) {
+    return;
+  }
+  ASSERT(i >= 0);
+  ASSERT(i < arguments_length_);
+  arguments_[i].name = name;
+  arguments_[i].value = argument;
+}
+
+
+// |name| must be a compile time constant. Copies |argument|.
+void TimelineDurationScope::CopyArgument(intptr_t i,
+                                         const char* name,
+                                         const char* argument) {
+  if (!enabled()) {
+    return;
+  }
+  SetArgument(i, name, strdup(argument));
+}
+
+
 void TimelineDurationScope::FormatArgument(intptr_t i,
                                            const char* name,
                                            const char* fmt, ...) {
-  if (event_ == NULL) {
+  if (!enabled()) {
     return;
   }
   va_list args;
@@ -484,7 +590,20 @@ void TimelineDurationScope::FormatArgument(intptr_t i,
   OS::VSNPrint(buffer, (len + 1), fmt, args2);
   va_end(args2);
 
-  event_->SetArgument(i, name, buffer);
+  SetArgument(i, name, buffer);
+}
+
+
+void TimelineDurationScope::FreeArguments() {
+  if (arguments_ == NULL) {
+    return;
+  }
+  for (intptr_t i = 0; i < arguments_length_; i++) {
+    free(arguments_[i].value);
+  }
+  free(arguments_);
+  arguments_ = NULL;
+  arguments_length_ = 0;
 }
 
 
@@ -545,13 +664,12 @@ TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
   // Grab the current thread.
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);
-  // We are accessing the thread's timeline block- so take the lock.
-  MutexLocker ml(thread->timeline_block_lock());
-
-  if (thread->isolate() == NULL) {
-    // Non-isolate thread case. This should be infrequent.
-    return GlobalBlockStartEvent();
-  }
+  ASSERT(thread->isolate() != NULL);
+  Mutex* thread_block_lock = thread->timeline_block_lock();
+  ASSERT(thread_block_lock != NULL);
+  // We are accessing the thread's timeline block- so take the lock here.
+  // This lock will be held until the call to |CompleteEvent| is made.
+  thread_block_lock->Lock();
 
   TimelineEventBlock* thread_block = thread->timeline_block();
 
@@ -570,16 +688,24 @@ TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
     thread->set_timeline_block(thread_block);
   }
   if (thread_block != NULL) {
+    // NOTE: We are exiting this function with the thread's block lock held.
     ASSERT(!thread_block->IsFull());
-    return thread_block->StartEvent();
+    TimelineEvent* event = thread_block->StartEvent();
+    if (event != NULL) {
+      event->set_global_block(false);
+    }
+    return event;
   }
+  // Drop lock here as no event is being handed out.
+  thread_block_lock->Unlock();
   return NULL;
 }
 
 
-
 TimelineEvent* TimelineEventRecorder::GlobalBlockStartEvent() {
-  MutexLocker ml(&lock_);
+  // Take recorder lock. This lock will be held until the call to
+  // |CompleteEvent| is made.
+  lock_.Lock();
   if (FLAG_trace_timeline) {
     OS::Print("GlobalBlockStartEvent in block %p for thread %" Px "\n",
               global_block_, OSThread::CurrentCurrentThreadIdAsIntPtr());
@@ -595,10 +721,45 @@ TimelineEvent* TimelineEventRecorder::GlobalBlockStartEvent() {
     ASSERT(global_block_ != NULL);
   }
   if (global_block_ != NULL) {
+    // NOTE: We are exiting this function with the recorder's lock held.
     ASSERT(!global_block_->IsFull());
-    return global_block_->StartEvent();
+    TimelineEvent* event = global_block_->StartEvent();
+    if (event != NULL) {
+      event->set_global_block(true);
+    }
+    return event;
   }
+  // Drop lock here as no event is being handed out.
+  lock_.Unlock();
   return NULL;
+}
+
+
+void TimelineEventRecorder::ThreadBlockCompleteEvent(TimelineEvent* event) {
+  if (event == NULL) {
+    return;
+  }
+  ASSERT(!event->global_block());
+  // Grab the current thread.
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
+  ASSERT(thread->isolate() != NULL);
+  // This event came from the isolate's thread local block. Unlock the
+  // thread's block lock.
+  Mutex* thread_block_lock = thread->timeline_block_lock();
+  ASSERT(thread_block_lock != NULL);
+  thread_block_lock->Unlock();
+}
+
+
+void TimelineEventRecorder::GlobalBlockCompleteEvent(TimelineEvent* event) {
+  if (event == NULL) {
+    return;
+  }
+  ASSERT(event->global_block());
+  // This event came from the global block, unlock the recorder's lock now
+  // that the event is filled.
+  lock_.Unlock();
 }
 
 
@@ -869,12 +1030,26 @@ intptr_t TimelineEventRingRecorder::FindOldestBlockIndex() const {
 
 
 TimelineEvent* TimelineEventRingRecorder::StartEvent() {
+  // Grab the current thread.
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
+  if (thread->isolate() == NULL) {
+    // Non-isolate thread case. This should be infrequent.
+    return GlobalBlockStartEvent();
+  }
   return ThreadBlockStartEvent();
 }
 
 
 void TimelineEventRingRecorder::CompleteEvent(TimelineEvent* event) {
-  // no-op.
+  if (event == NULL) {
+    return;
+  }
+  if (event->global_block()) {
+    GlobalBlockCompleteEvent(event);
+  } else {
+    ThreadBlockCompleteEvent(event);
+  }
 }
 
 
@@ -996,12 +1171,26 @@ TimelineEventBlock* TimelineEventEndlessRecorder::GetHeadBlockLocked() {
 
 
 TimelineEvent* TimelineEventEndlessRecorder::StartEvent() {
+  // Grab the current thread.
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
+  if (thread->isolate() == NULL) {
+    // Non-isolate thread case. This should be infrequent.
+    return GlobalBlockStartEvent();
+  }
   return ThreadBlockStartEvent();
 }
 
 
 void TimelineEventEndlessRecorder::CompleteEvent(TimelineEvent* event) {
-  // no-op.
+  if (event == NULL) {
+    return;
+  }
+  if (event->global_block()) {
+    GlobalBlockCompleteEvent(event);
+  } else {
+    ThreadBlockCompleteEvent(event);
+  }
 }
 
 

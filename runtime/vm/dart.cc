@@ -90,8 +90,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   OS::InitOnce();
   VirtualMemory::InitOnce();
   Thread::InitOnceBeforeIsolate();
-  Timeline::InitOnce();
   Thread::EnsureInit();
+  Timeline::InitOnce();
   TimelineDurationScope tds(Timeline::GetVMStream(),
                             "Dart::InitOnce");
   Isolate::InitOnce();
@@ -281,7 +281,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
-  TimelineDurationScope tds(I, I->GetIsolateStream(), "InitializeIsolate");
+  TimelineDurationScope tds(T, I->GetIsolateStream(), "InitializeIsolate");
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "isolateName", I->name());
 
@@ -289,7 +289,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   StackZone zone(T);
   HandleScope handle_scope(T);
   {
-    TimelineDurationScope tds(I, I->GetIsolateStream(), "ObjectStore::Init");
+    TimelineDurationScope tds(T, I->GetIsolateStream(), "ObjectStore::Init");
     ObjectStore::Init(I);
   }
 
@@ -303,7 +303,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   if (snapshot_buffer != NULL) {
     // Read the snapshot and setup the initial state.
     TimelineDurationScope tds(
-        I, I->GetIsolateStream(), "IsolateSnapshotReader");
+        T, I->GetIsolateStream(), "IsolateSnapshotReader");
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
     if (snapshot == NULL) {
@@ -341,7 +341,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
 #endif
 
   {
-    TimelineDurationScope tds(I, I->GetIsolateStream(), "StubCode::Init");
+    TimelineDurationScope tds(T, I->GetIsolateStream(), "StubCode::Init");
     StubCode::Init(I);
   }
 

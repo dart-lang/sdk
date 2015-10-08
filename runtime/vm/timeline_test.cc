@@ -37,7 +37,7 @@ class TimelineTestHelper : public AllStatic {
     event->StreamInit(stream);
   }
 
-  static TimelineEvent* FakeThreadEvent(
+  static void FakeThreadEvent(
       TimelineEventBlock* block,
       intptr_t ftid,
       const char* label = "fake",
@@ -49,7 +49,6 @@ class TimelineTestHelper : public AllStatic {
     if (stream != NULL) {
       event->StreamInit(stream);
     }
-    return event;
   }
 
   static void FakeDuration(
@@ -63,6 +62,7 @@ class TimelineTestHelper : public AllStatic {
     TimelineEvent* event = recorder->StartEvent();
     ASSERT(event != NULL);
     event->Duration(label, start, end);
+    event->Complete();
   }
 
   static void FakeBegin(
@@ -75,6 +75,7 @@ class TimelineTestHelper : public AllStatic {
     TimelineEvent* event = recorder->StartEvent();
     ASSERT(event != NULL);
     event->Begin(label, start);
+    event->Complete();
   }
 
   static void FakeEnd(
@@ -87,6 +88,7 @@ class TimelineTestHelper : public AllStatic {
     TimelineEvent* event = recorder->StartEvent();
     ASSERT(event != NULL);
     event->End(label, end);
+    event->Complete();
   }
 
   static void Clear(TimelineEventEndlessRecorder* recorder) {

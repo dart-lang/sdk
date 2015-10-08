@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
+#include "vm/os.h"
 
 namespace dart {
 
@@ -81,6 +82,12 @@ class Timeline : public AllStatic {
 };
 
 
+struct TimelineEventArgument {
+  const char* name;
+  char* value;
+};
+
+
 // You should get a |TimelineEvent| from a |TimelineStream|.
 class TimelineEvent {
  public:
@@ -124,10 +131,10 @@ class TimelineEvent {
                 int64_t end_micros);
 
   void Begin(const char* label,
-             int64_t micros);
+             int64_t micros = OS::GetCurrentTraceMicros());
 
   void End(const char* label,
-           int64_t micros);
+           int64_t micros = OS::GetCurrentTraceMicros());
 
   // Set the number of arguments in the event.
   void SetNumArguments(intptr_t length);
@@ -140,6 +147,8 @@ class TimelineEvent {
                       const char* name,
                       const char* fmt, ...) PRINTF_ATTRIBUTE(4, 5);
 
+  void StealArguments(intptr_t arguments_length,
+                      TimelineEventArgument* arguments);
   // Mandatory to call when this event is completely filled out.
   void Complete();
 
@@ -221,11 +230,6 @@ class TimelineEvent {
   }
 
  private:
-  struct TimelineEventArgument {
-    const char* name;
-    char* value;
-  };
-
   int64_t timestamp0_;
   int64_t timestamp1_;
   TimelineEventArgument* arguments_;
@@ -247,16 +251,29 @@ class TimelineEvent {
     state_ = EventTypeField::update(event_type, state_);
   }
 
+  void set_global_block(bool global_block) {
+    state_ = GlobalBlockField::update(global_block, state_);
+  }
+
+  bool global_block() const {
+    return GlobalBlockField::decode(state_);
+  }
+
   enum StateBits {
-    kEventTypeBit = 0,
-    // reserve 4 bits for type.
-    kNextBit = 4,
+    kEventTypeBit = 0,  // reserve 4 bits for type.
+    // Was this event allocated from the global block?
+    kGlobalBlockBit = 4,
+    kNextBit = 5,
   };
 
   class EventTypeField : public BitField<EventType, kEventTypeBit, 4> {};
+  class GlobalBlockField : public BitField<bool, kGlobalBlockBit, 1> {};
 
-  friend class TimelineTestHelper;
+  friend class TimelineEventRecorder;
+  friend class TimelineEventEndlessRecorder;
+  friend class TimelineEventRingRecorder;
   friend class TimelineStream;
+  friend class TimelineTestHelper;
   DISALLOW_COPY_AND_ASSIGN(TimelineEvent);
 };
 
@@ -290,6 +307,8 @@ class TimelineStream {
 
   // Records an event. Will return |NULL| if not enabled. The returned
   // |TimelineEvent| is in an undefined state and must be initialized.
+  // NOTE: It is not allowed to call StartEvent again without completing
+  // the first event.
   TimelineEvent* StartEvent();
 
  private:
@@ -311,77 +330,43 @@ class TimelineStream {
   }
 
 
-// TODO(johnmccutchan): TimelineDurationScope should only allocate the
-// event when complete.
 class TimelineDurationScope : public StackResource {
  public:
-  TimelineDurationScope(Isolate* isolate,
-                        TimelineStream* stream,
-                        const char* label)
-      : StackResource(isolate) {
-    Init(stream, label);
-  }
+  TimelineDurationScope(TimelineStream* stream,
+                        const char* label);
 
   TimelineDurationScope(Thread* thread,
                         TimelineStream* stream,
-                        const char* label)
-      : StackResource(thread) {
-    Init(stream, label);
-  }
+                        const char* label);
 
-  TimelineDurationScope(TimelineStream* stream,
-                        const char* label)
-      : StackResource(reinterpret_cast<Thread*>(NULL)) {
-    Init(stream, label);
-  }
-
-  void Init(TimelineStream* stream, const char* label) {
-    event_ = stream->StartEvent();
-    if (event_ == NULL) {
-      return;
-    }
-    event_->DurationBegin(label);
-  }
+  ~TimelineDurationScope();
 
   bool enabled() const {
-    return event_ != NULL;
+    return enabled_;
   }
 
-  void SetNumArguments(intptr_t length) {
-    if (event_ == NULL) {
-      return;
-    }
-    event_->SetNumArguments(length);
-  }
+  void SetNumArguments(intptr_t length);
 
-  void SetArgument(intptr_t i, const char* name, char* argument) {
-    if (event_ == NULL) {
-      return;
-    }
-    event_->SetArgument(i, name, argument);
-  }
+  void SetArgument(intptr_t i, const char* name, char* argument);
 
-  void CopyArgument(intptr_t i, const char* name, const char* argument) {
-    if (event_ == NULL) {
-      return;
-    }
-    event_->CopyArgument(i, name, argument);
-  }
+  void CopyArgument(intptr_t i, const char* name, const char* argument);
 
   void FormatArgument(intptr_t i,
                       const char* name,
                       const char* fmt, ...)  PRINTF_ATTRIBUTE(4, 5);
 
-  ~TimelineDurationScope() {
-    if (event_ == NULL) {
-      return;
-    }
-    event_->DurationEnd();
-    event_->Complete();
-  }
-
  private:
-  TimelineEvent* event_;
+  void Init();
+  void FreeArguments();
+
+  int64_t timestamp_;
+  TimelineStream* stream_;
+  const char* label_;
+  TimelineEventArgument* arguments_;
+  intptr_t arguments_length_;
+  bool enabled_;
+
+  DISALLOW_COPY_AND_ASSIGN(TimelineDurationScope);
 };
 
 
@@ -587,6 +572,8 @@ class TimelineEventRecorder {
   void PrintJSONMeta(JSONArray* array) const;
   TimelineEvent* ThreadBlockStartEvent();
   TimelineEvent* GlobalBlockStartEvent();
+  void ThreadBlockCompleteEvent(TimelineEvent* event);
+  void GlobalBlockCompleteEvent(TimelineEvent* event);
 
   Mutex lock_;
   // Only accessed under |lock_|.
