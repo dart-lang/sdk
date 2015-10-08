@@ -361,10 +361,14 @@ Rectangle make_dart_rectangle(r) =>
     js.JsNative.getProperty(r, 'width'),
     js.JsNative.getProperty(r, 'height'));
 
-// Need a default constructor for constructing classes with mixins that are
-// also extending NativeFieldWrapperClass2.  Defining JsoNativeFieldWrapper
-// extending NativeFieldWrapperClass2 creates a default constructor.
-class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
+/// An abstract class for all DOM objects we wrap in dart:html and related
+///  libraries.
+class DartHtmlDomObject {
+
+  /// The underlying JS DOM object.
+  js.JsObject blink_jsObject;
+
+}
 
 // Flag to disable JS interop asserts.  Setting to false will speed up the
 // wrap_jso calls.
@@ -686,7 +690,7 @@ createCustomUpgrader(Type customElementClass, $this) {
   } finally {
     // Need to remember the Dart class that was created for this custom so
     // return it and setup the blink_jsObject to the $this that we'll be working
-    // with as we talk to blink. 
+    // with as we talk to blink.
     js.setDartHtmlWrapperFor($this, dartClass);
   }
 
@@ -694,7 +698,7 @@ createCustomUpgrader(Type customElementClass, $this) {
 }
 
 $else
-class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
+class DartHtmlDomObject extends NativeFieldWrapperClass2 {}
 
 unwrap_jso(dartClass_instance) => dartClass_instance;
 wrap_jso(jsObject) => jsObject;

@@ -145,7 +145,7 @@ final indexed_dbBlinkFunctionMap = {
 
 @DomName('IDBCursor')
 @Unstable()
-class Cursor extends NativeFieldWrapperClass2 {
+class Cursor extends DartHtmlDomObject {
   @DomName('IDBCursor.delete')
   Future delete() {
    try {
@@ -170,8 +170,6 @@ class Cursor extends NativeFieldWrapperClass2 {
   static Cursor internalCreateCursor() {
     return new Cursor._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Cursor._internalWrap() {
     return new Cursor.internal_();
@@ -449,7 +447,7 @@ class Database extends EventTarget {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @Experimental()
 @Unstable()
-class IdbFactory extends NativeFieldWrapperClass2 {
+class IdbFactory extends DartHtmlDomObject {
   /**
    * Checks to see if Indexed DB is supported on the current platform.
    */
@@ -532,8 +530,6 @@ class IdbFactory extends NativeFieldWrapperClass2 {
     return new IdbFactory._internalWrap();
   }
 
-  js.JsObject blink_jsObject;
-
   factory IdbFactory._internalWrap() {
     return new IdbFactory.internal_();
   }
@@ -589,7 +585,7 @@ Future _completeRequest(Request request) {
 
 @DomName('IDBIndex')
 @Unstable()
-class Index extends NativeFieldWrapperClass2 {
+class Index extends DartHtmlDomObject {
   @DomName('IDBIndex.count')
   Future<int> count([key_OR_range]) {
    try {
@@ -685,8 +681,6 @@ class Index extends NativeFieldWrapperClass2 {
     return new Index._internalWrap();
   }
 
-  js.JsObject blink_jsObject;
-
   factory Index._internalWrap() {
     return new Index.internal_();
   }
@@ -750,7 +744,7 @@ class Index extends NativeFieldWrapperClass2 {
 
 @DomName('IDBKeyRange')
 @Unstable()
-class KeyRange extends NativeFieldWrapperClass2 {
+class KeyRange extends DartHtmlDomObject {
   @DomName('IDBKeyRange.only')
   factory KeyRange.only(/*Key*/ value) =>
       _KeyRangeFactoryProvider.createKeyRange_only(value);
@@ -775,8 +769,6 @@ class KeyRange extends NativeFieldWrapperClass2 {
   static KeyRange internalCreateKeyRange() {
     return new KeyRange._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory KeyRange._internalWrap() {
     return new KeyRange.internal_();
@@ -840,7 +832,7 @@ class KeyRange extends NativeFieldWrapperClass2 {
 
 @DomName('IDBObjectStore')
 @Unstable()
-class ObjectStore extends NativeFieldWrapperClass2 {
+class ObjectStore extends DartHtmlDomObject {
 
   @DomName('IDBObjectStore.add')
   Future add(value, [key]) {
@@ -974,8 +966,6 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   static ObjectStore internalCreateObjectStore() {
     return new ObjectStore._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ObjectStore._internalWrap() {
     return new ObjectStore.internal_();

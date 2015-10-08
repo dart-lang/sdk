@@ -810,7 +810,7 @@ class _Utils {
     _blink.Blink_Utils.changeElementWrapper(unwrap_jso(element), type);
 }
 
-class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements
+class _DOMWindowCrossFrame extends DartHtmlDomObject implements
     WindowBase {
   /** Needed because KeyboardEvent is implements.
    *  TODO(terry): Consider making blink_jsObject private (add underscore) for
@@ -861,7 +861,7 @@ class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements
     'You can only attach EventListeners to your own window.');
 }
 
-class _HistoryCrossFrame extends NativeFieldWrapperClass2 implements HistoryBase {
+class _HistoryCrossFrame extends DartHtmlDomObject implements HistoryBase {
   _HistoryCrossFrame.internal();
 
   // Methods.
@@ -873,7 +873,7 @@ class _HistoryCrossFrame extends NativeFieldWrapperClass2 implements HistoryBase
   String get typeName => "History";
 }
 
-class _LocationCrossFrame extends NativeFieldWrapperClass2 implements LocationBase {
+class _LocationCrossFrame extends DartHtmlDomObject implements LocationBase {
   _LocationCrossFrame.internal();
 
   // Fields.
@@ -883,7 +883,7 @@ class _LocationCrossFrame extends NativeFieldWrapperClass2 implements LocationBa
   String get typeName => "Location";
 }
 
-class _DOMStringMap extends NativeFieldWrapperClass2 implements Map<String, String> {
+class _DOMStringMap extends DartHtmlDomObject implements Map<String, String> {
   _DOMStringMap.internal();
 
   bool containsValue(String value) => Maps.containsValue(this, value);
@@ -1114,5 +1114,5 @@ get _pureIsolateScheduleImmediateClosure => ((void callback()) =>
                                "are not supported in the browser"));
 
 // Class for unsupported native browser 'DOM' objects.
-class _UnsupportedBrowserObject extends NativeFieldWrapperClass2 {
+class _UnsupportedBrowserObject extends DartHtmlDomObject {
 }

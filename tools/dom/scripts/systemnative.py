@@ -516,7 +516,7 @@ class DartiumBackend(HtmlDartGenerator):
     return template
 
   def RootClassName(self):
-    return 'NativeFieldWrapperClass2'
+    return 'DartHtmlDomObject'
 
   # This code matches up with the _generate_native_entry code in
   # dart_utilities.py in the dartium repository.  Any changes to this

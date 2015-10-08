@@ -733,7 +733,7 @@ void setDartHtmlWrapperFor(JsObject object, wrapper) {
  * wrap_jso defined in dart:html.
  */
 unwrap_jso(dartClass_instance) {
-  if (dartClass_instance is NativeFieldWrapperClass2 && dartClass_instance is! JsObject)
+  if (dartClass_instance is html.DartHtmlDomObject)
     return dartClass_instance.blink_jsObject;
   else
     return dartClass_instance;

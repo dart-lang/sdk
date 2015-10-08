@@ -22,11 +22,6 @@ import 'dart:js' as js;
 
 
 
-// Need a default constructor for constructing classes with mixins that are
-// also extending NativeFieldWrapperClass2.  Defining JsoNativeFieldWrapper
-// extending NativeFieldWrapperClass2 creates a default constructor.
-class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
-
 
 // FIXME: Can we make this private?
 final svgBlinkMap = {
@@ -446,15 +441,13 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
 @DocsEditable()
 @DomName('SVGAngle')
 @Unstable()
-class Angle extends NativeFieldWrapperClass2 {
+class Angle extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Angle._() { throw new UnsupportedError("Not supported"); }
 
   static Angle internalCreateAngle() {
     return new Angle._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Angle._internalWrap() {
     return new Angle.internal_();
@@ -661,15 +654,13 @@ class AnimateTransformElement extends AnimationElement {
 @DocsEditable()
 @DomName('SVGAnimatedAngle')
 @Unstable()
-class AnimatedAngle extends NativeFieldWrapperClass2 {
+class AnimatedAngle extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedAngle._() { throw new UnsupportedError("Not supported"); }
 
   static AnimatedAngle internalCreateAnimatedAngle() {
     return new AnimatedAngle._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedAngle._internalWrap() {
     return new AnimatedAngle.internal_();
@@ -699,15 +690,13 @@ class AnimatedAngle extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedBoolean')
 @Unstable()
-class AnimatedBoolean extends NativeFieldWrapperClass2 {
+class AnimatedBoolean extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedBoolean._() { throw new UnsupportedError("Not supported"); }
 
   static AnimatedBoolean internalCreateAnimatedBoolean() {
     return new AnimatedBoolean._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedBoolean._internalWrap() {
     return new AnimatedBoolean.internal_();
@@ -741,15 +730,13 @@ class AnimatedBoolean extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedEnumeration')
 @Unstable()
-class AnimatedEnumeration extends NativeFieldWrapperClass2 {
+class AnimatedEnumeration extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedEnumeration._() { throw new UnsupportedError("Not supported"); }
 
   static AnimatedEnumeration internalCreateAnimatedEnumeration() {
     return new AnimatedEnumeration._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedEnumeration._internalWrap() {
     return new AnimatedEnumeration.internal_();
@@ -783,15 +770,13 @@ class AnimatedEnumeration extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedInteger')
 @Unstable()
-class AnimatedInteger extends NativeFieldWrapperClass2 {
+class AnimatedInteger extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedInteger._() { throw new UnsupportedError("Not supported"); }
 
   static AnimatedInteger internalCreateAnimatedInteger() {
     return new AnimatedInteger._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedInteger._internalWrap() {
     return new AnimatedInteger.internal_();
@@ -825,15 +810,13 @@ class AnimatedInteger extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedLength')
 @Unstable()
-class AnimatedLength extends NativeFieldWrapperClass2 {
+class AnimatedLength extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedLength._() { throw new UnsupportedError("Not supported"); }
 
   static AnimatedLength internalCreateAnimatedLength() {
     return new AnimatedLength._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedLength._internalWrap() {
     return new AnimatedLength.internal_();
@@ -863,15 +846,13 @@ class AnimatedLength extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedLengthList')
 @Unstable()
-class AnimatedLengthList extends NativeFieldWrapperClass2 {
+class AnimatedLengthList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedLengthList._() { throw new UnsupportedError("Not supported"); }
 
   static AnimatedLengthList internalCreateAnimatedLengthList() {
     return new AnimatedLengthList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedLengthList._internalWrap() {
     return new AnimatedLengthList.internal_();
@@ -901,15 +882,13 @@ class AnimatedLengthList extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedNumber')
 @Unstable()
-class AnimatedNumber extends NativeFieldWrapperClass2 {
+class AnimatedNumber extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedNumber._() { throw new UnsupportedError("Not supported"); }
 
   static AnimatedNumber internalCreateAnimatedNumber() {
     return new AnimatedNumber._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedNumber._internalWrap() {
     return new AnimatedNumber.internal_();
@@ -943,15 +922,13 @@ class AnimatedNumber extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedNumberList')
 @Unstable()
-class AnimatedNumberList extends NativeFieldWrapperClass2 {
+class AnimatedNumberList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedNumberList._() { throw new UnsupportedError("Not supported"); }
 
   static AnimatedNumberList internalCreateAnimatedNumberList() {
     return new AnimatedNumberList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedNumberList._internalWrap() {
     return new AnimatedNumberList.internal_();
@@ -981,15 +958,13 @@ class AnimatedNumberList extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedPreserveAspectRatio')
 @Unstable()
-class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass2 {
+class AnimatedPreserveAspectRatio extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedPreserveAspectRatio._() { throw new UnsupportedError("Not supported"); }
 
   static AnimatedPreserveAspectRatio internalCreateAnimatedPreserveAspectRatio() {
     return new AnimatedPreserveAspectRatio._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedPreserveAspectRatio._internalWrap() {
     return new AnimatedPreserveAspectRatio.internal_();
@@ -1019,15 +994,13 @@ class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedRect')
 @Unstable()
-class AnimatedRect extends NativeFieldWrapperClass2 {
+class AnimatedRect extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedRect._() { throw new UnsupportedError("Not supported"); }
 
   static AnimatedRect internalCreateAnimatedRect() {
     return new AnimatedRect._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedRect._internalWrap() {
     return new AnimatedRect.internal_();
@@ -1057,15 +1030,13 @@ class AnimatedRect extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedString')
 @Unstable()
-class AnimatedString extends NativeFieldWrapperClass2 {
+class AnimatedString extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedString._() { throw new UnsupportedError("Not supported"); }
 
   static AnimatedString internalCreateAnimatedString() {
     return new AnimatedString._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedString._internalWrap() {
     return new AnimatedString.internal_();
@@ -1099,15 +1070,13 @@ class AnimatedString extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedTransformList')
 @Unstable()
-class AnimatedTransformList extends NativeFieldWrapperClass2 {
+class AnimatedTransformList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedTransformList._() { throw new UnsupportedError("Not supported"); }
 
   static AnimatedTransformList internalCreateAnimatedTransformList() {
     return new AnimatedTransformList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedTransformList._internalWrap() {
     return new AnimatedTransformList.internal_();
@@ -3354,7 +3323,7 @@ class FilterElement extends SvgElement implements UriReference {
 @DocsEditable()
 @DomName('SVGFilterPrimitiveStandardAttributes')
 @Unstable()
-abstract class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass2 {
+abstract class FilterPrimitiveStandardAttributes extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory FilterPrimitiveStandardAttributes._() { throw new UnsupportedError("Not supported"); }
 
@@ -3389,7 +3358,7 @@ abstract class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass
 @DocsEditable()
 @DomName('SVGFitToViewBox')
 @Unstable()
-abstract class FitToViewBox extends NativeFieldWrapperClass2 {
+abstract class FitToViewBox extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory FitToViewBox._() { throw new UnsupportedError("Not supported"); }
 
@@ -3700,15 +3669,13 @@ class ImageElement extends GraphicsElement implements UriReference {
 @DocsEditable()
 @DomName('SVGLength')
 @Unstable()
-class Length extends NativeFieldWrapperClass2 {
+class Length extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Length._() { throw new UnsupportedError("Not supported"); }
 
   static Length internalCreateLength() {
     return new Length._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Length._internalWrap() {
     return new Length.internal_();
@@ -3810,15 +3777,13 @@ class Length extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGLengthList')
 @Unstable()
-class LengthList extends JsoNativeFieldWrapper with ListMixin<Length>, ImmutableListMixin<Length> implements List<Length> {
+class LengthList extends DartHtmlDomObject with ListMixin<Length>, ImmutableListMixin<Length> implements List<Length> {
   // To suppress missing implicit constructor warnings.
   factory LengthList._() { throw new UnsupportedError("Not supported"); }
 
   static LengthList internalCreateLengthList() {
     return new LengthList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory LengthList._internalWrap() {
     return new LengthList.internal_();
@@ -4214,15 +4179,13 @@ class MaskElement extends SvgElement implements Tests {
 @DocsEditable()
 @DomName('SVGMatrix')
 @Unstable()
-class Matrix extends NativeFieldWrapperClass2 {
+class Matrix extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Matrix._() { throw new UnsupportedError("Not supported"); }
 
   static Matrix internalCreateMatrix() {
     return new Matrix._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Matrix._internalWrap() {
     return new Matrix.internal_();
@@ -4369,15 +4332,13 @@ class MetadataElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGNumber')
 @Unstable()
-class Number extends NativeFieldWrapperClass2 {
+class Number extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Number._() { throw new UnsupportedError("Not supported"); }
 
   static Number internalCreateNumber() {
     return new Number._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Number._internalWrap() {
     return new Number.internal_();
@@ -4407,15 +4368,13 @@ class Number extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGNumberList')
 @Unstable()
-class NumberList extends JsoNativeFieldWrapper with ListMixin<Number>, ImmutableListMixin<Number> implements List<Number> {
+class NumberList extends DartHtmlDomObject with ListMixin<Number>, ImmutableListMixin<Number> implements List<Number> {
   // To suppress missing implicit constructor warnings.
   factory NumberList._() { throw new UnsupportedError("Not supported"); }
 
   static NumberList internalCreateNumberList() {
     return new NumberList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory NumberList._internalWrap() {
     return new NumberList.internal_();
@@ -4668,15 +4627,13 @@ class PathElement extends GeometryElement {
 @DocsEditable()
 @DomName('SVGPathSeg')
 @Unstable()
-class PathSeg extends NativeFieldWrapperClass2 {
+class PathSeg extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PathSeg._() { throw new UnsupportedError("Not supported"); }
 
   static PathSeg internalCreatePathSeg() {
     return new PathSeg._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PathSeg._internalWrap() {
     return new PathSeg.internal_();
@@ -5677,15 +5634,13 @@ class PathSegLinetoVerticalRel extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegList')
 @Unstable()
-class PathSegList extends JsoNativeFieldWrapper with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements List<PathSeg> {
+class PathSegList extends DartHtmlDomObject with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements List<PathSeg> {
   // To suppress missing implicit constructor warnings.
   factory PathSegList._() { throw new UnsupportedError("Not supported"); }
 
   static PathSegList internalCreatePathSegList() {
     return new PathSegList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PathSegList._internalWrap() {
     return new PathSegList.internal_();
@@ -5972,15 +5927,13 @@ class PatternElement extends SvgElement implements FitToViewBox, UriReference, T
 @DocsEditable()
 @DomName('SVGPoint')
 @Unstable()
-class Point extends NativeFieldWrapperClass2 {
+class Point extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Point._() { throw new UnsupportedError("Not supported"); }
 
   static Point internalCreatePoint() {
     return new Point._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Point._internalWrap() {
     return new Point.internal_();
@@ -6022,15 +5975,13 @@ class Point extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGPointList')
 @Unstable()
-class PointList extends NativeFieldWrapperClass2 {
+class PointList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PointList._() { throw new UnsupportedError("Not supported"); }
 
   static PointList internalCreatePointList() {
     return new PointList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PointList._internalWrap() {
     return new PointList.internal_();
@@ -6184,15 +6135,13 @@ class PolylineElement extends GeometryElement {
 @DocsEditable()
 @DomName('SVGPreserveAspectRatio')
 @Unstable()
-class PreserveAspectRatio extends NativeFieldWrapperClass2 {
+class PreserveAspectRatio extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PreserveAspectRatio._() { throw new UnsupportedError("Not supported"); }
 
   static PreserveAspectRatio internalCreatePreserveAspectRatio() {
     return new PreserveAspectRatio._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PreserveAspectRatio._internalWrap() {
     return new PreserveAspectRatio.internal_();
@@ -6347,15 +6296,13 @@ class RadialGradientElement extends _GradientElement {
 @DocsEditable()
 @DomName('SVGRect')
 @Unstable()
-class Rect extends NativeFieldWrapperClass2 {
+class Rect extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Rect._() { throw new UnsupportedError("Not supported"); }
 
   static Rect internalCreateRect() {
     return new Rect._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Rect._internalWrap() {
     return new Rect.internal_();
@@ -6470,15 +6417,13 @@ class RectElement extends GeometryElement {
 @DocsEditable()
 @DomName('SVGRenderingIntent')
 @Unstable()
-class RenderingIntent extends NativeFieldWrapperClass2 {
+class RenderingIntent extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory RenderingIntent._() { throw new UnsupportedError("Not supported"); }
 
   static RenderingIntent internalCreateRenderingIntent() {
     return new RenderingIntent._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory RenderingIntent._internalWrap() {
     return new RenderingIntent.internal_();
@@ -6657,15 +6602,13 @@ class StopElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGStringList')
 @Unstable()
-class StringList extends JsoNativeFieldWrapper with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
+class StringList extends DartHtmlDomObject with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
   // To suppress missing implicit constructor warnings.
   factory StringList._() { throw new UnsupportedError("Not supported"); }
 
   static StringList internalCreateStringList() {
     return new StringList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory StringList._internalWrap() {
     return new StringList.internal_();
@@ -7926,7 +7869,7 @@ class TSpanElement extends TextPositioningElement {
 @DocsEditable()
 @DomName('SVGTests')
 @Unstable()
-abstract class Tests extends NativeFieldWrapperClass2 {
+abstract class Tests extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Tests._() { throw new UnsupportedError("Not supported"); }
 
@@ -8246,15 +8189,13 @@ class TitleElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGTransform')
 @Unstable()
-class Transform extends NativeFieldWrapperClass2 {
+class Transform extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Transform._() { throw new UnsupportedError("Not supported"); }
 
   static Transform internalCreateTransform() {
     return new Transform._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Transform._internalWrap() {
     return new Transform.internal_();
@@ -8340,15 +8281,13 @@ class Transform extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGTransformList')
 @Unstable()
-class TransformList extends JsoNativeFieldWrapper with ListMixin<Transform>, ImmutableListMixin<Transform> implements List<Transform> {
+class TransformList extends DartHtmlDomObject with ListMixin<Transform>, ImmutableListMixin<Transform> implements List<Transform> {
   // To suppress missing implicit constructor warnings.
   factory TransformList._() { throw new UnsupportedError("Not supported"); }
 
   static TransformList internalCreateTransformList() {
     return new TransformList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory TransformList._internalWrap() {
     return new TransformList.internal_();
@@ -8464,15 +8403,13 @@ class TransformList extends JsoNativeFieldWrapper with ListMixin<Transform>, Imm
 @DocsEditable()
 @DomName('SVGUnitTypes')
 @Unstable()
-class UnitTypes extends NativeFieldWrapperClass2 {
+class UnitTypes extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory UnitTypes._() { throw new UnsupportedError("Not supported"); }
 
   static UnitTypes internalCreateUnitTypes() {
     return new UnitTypes._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory UnitTypes._internalWrap() {
     return new UnitTypes.internal_();
@@ -8506,7 +8443,7 @@ class UnitTypes extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGURIReference')
 @Unstable()
-abstract class UriReference extends NativeFieldWrapperClass2 {
+abstract class UriReference extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory UriReference._() { throw new UnsupportedError("Not supported"); }
 
@@ -8639,15 +8576,13 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
 @DocsEditable()
 @DomName('SVGViewSpec')
 @Unstable()
-class ViewSpec extends NativeFieldWrapperClass2 implements FitToViewBox, ZoomAndPan {
+class ViewSpec extends DartHtmlDomObject implements FitToViewBox, ZoomAndPan {
   // To suppress missing implicit constructor warnings.
   factory ViewSpec._() { throw new UnsupportedError("Not supported"); }
 
   static ViewSpec internalCreateViewSpec() {
     return new ViewSpec._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ViewSpec._internalWrap() {
     return new ViewSpec.internal_();
@@ -8713,7 +8648,7 @@ class ViewSpec extends NativeFieldWrapperClass2 implements FitToViewBox, ZoomAnd
 @DocsEditable()
 @DomName('SVGZoomAndPan')
 @Unstable()
-abstract class ZoomAndPan extends NativeFieldWrapperClass2 {
+abstract class ZoomAndPan extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ZoomAndPan._() { throw new UnsupportedError("Not supported"); }
 

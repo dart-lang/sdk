@@ -1116,10 +1116,14 @@ Rectangle make_dart_rectangle(r) =>
     js.JsNative.getProperty(r, 'width'),
     js.JsNative.getProperty(r, 'height'));
 
-// Need a default constructor for constructing classes with mixins that are
-// also extending NativeFieldWrapperClass2.  Defining JsoNativeFieldWrapper
-// extending NativeFieldWrapperClass2 creates a default constructor.
-class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
+/// An abstract class for all DOM objects we wrap in dart:html and related
+///  libraries.
+class DartHtmlDomObject {
+
+  /// The underlying JS DOM object.
+  js.JsObject blink_jsObject;
+
+}
 
 // Flag to disable JS interop asserts.  Setting to false will speed up the
 // wrap_jso calls.
@@ -1441,7 +1445,7 @@ createCustomUpgrader(Type customElementClass, $this) {
   } finally {
     // Need to remember the Dart class that was created for this custom so
     // return it and setup the blink_jsObject to the $this that we'll be working
-    // with as we talk to blink. 
+    // with as we talk to blink.
     js.setDartHtmlWrapperFor($this, dartClass);
   }
 
@@ -1455,7 +1459,7 @@ createCustomUpgrader(Type customElementClass, $this) {
 
 @DocsEditable()
 @DomName('AbstractWorker')
-abstract class AbstractWorker extends NativeFieldWrapperClass2 implements EventTarget {
+abstract class AbstractWorker extends DartHtmlDomObject implements EventTarget {
   // To suppress missing implicit constructor warnings.
   factory AbstractWorker._() { throw new UnsupportedError("Not supported"); }
 
@@ -1711,15 +1715,13 @@ class Animation extends AnimationNode {
 @DocsEditable()
 @DomName('AnimationEffect')
 @Experimental() // untriaged
-class AnimationEffect extends NativeFieldWrapperClass2 {
+class AnimationEffect extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimationEffect._() { throw new UnsupportedError("Not supported"); }
 
   static AnimationEffect internalCreateAnimationEffect() {
     return new AnimationEffect._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimationEffect._internalWrap() {
     return new AnimationEffect.internal_();
@@ -1778,15 +1780,13 @@ class AnimationEvent extends Event {
 @DocsEditable()
 @DomName('AnimationNode')
 @Experimental() // untriaged
-class AnimationNode extends NativeFieldWrapperClass2 {
+class AnimationNode extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimationNode._() { throw new UnsupportedError("Not supported"); }
 
   static AnimationNode internalCreateAnimationNode() {
     return new AnimationNode._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimationNode._internalWrap() {
     return new AnimationNode.internal_();
@@ -1985,15 +1985,13 @@ class AnimationPlayerEvent extends Event {
 @DocsEditable()
 @DomName('AnimationTimeline')
 @Experimental() // untriaged
-class AnimationTimeline extends NativeFieldWrapperClass2 {
+class AnimationTimeline extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimationTimeline._() { throw new UnsupportedError("Not supported"); }
 
   static AnimationTimeline internalCreateAnimationTimeline() {
     return new AnimationTimeline._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimationTimeline._internalWrap() {
     return new AnimationTimeline.internal_();
@@ -2487,15 +2485,13 @@ class AudioElement extends MediaElement {
 @DocsEditable()
 @DomName('AudioTrack')
 @Experimental() // untriaged
-class AudioTrack extends NativeFieldWrapperClass2 {
+class AudioTrack extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AudioTrack._() { throw new UnsupportedError("Not supported"); }
 
   static AudioTrack internalCreateAudioTrack() {
     return new AudioTrack._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AudioTrack._internalWrap() {
     return new AudioTrack.internal_();
@@ -2668,15 +2664,13 @@ class BRElement extends HtmlElement {
 @DomName('BarProp')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#barprop
 @deprecated // standard
-class BarProp extends NativeFieldWrapperClass2 {
+class BarProp extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory BarProp._() { throw new UnsupportedError("Not supported"); }
 
   static BarProp internalCreateBarProp() {
     return new BarProp._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory BarProp._internalWrap() {
     return new BarProp.internal_();
@@ -2828,15 +2822,13 @@ class BeforeUnloadEvent extends Event {
 
 
 @DomName('Blob')
-class Blob extends NativeFieldWrapperClass2 {
+class Blob extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Blob._() { throw new UnsupportedError("Not supported"); }
 
   static Blob internalCreateBlob() {
     return new Blob._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Blob._internalWrap() {
     return new Blob.internal_();
@@ -2898,15 +2890,13 @@ class Blob extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('Body')
 @Experimental() // untriaged
-class Body extends NativeFieldWrapperClass2 {
+class Body extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Body._() { throw new UnsupportedError("Not supported"); }
 
   static Body internalCreateBody() {
     return new Body._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Body._internalWrap() {
     return new Body.internal_();
@@ -3352,15 +3342,13 @@ class CDataSection extends Text {
 @DocsEditable()
 @DomName('CacheStorage')
 @Experimental() // untriaged
-class CacheStorage extends NativeFieldWrapperClass2 {
+class CacheStorage extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CacheStorage._() { throw new UnsupportedError("Not supported"); }
 
   static CacheStorage internalCreateCacheStorage() {
     return new CacheStorage._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory CacheStorage._internalWrap() {
     return new CacheStorage.internal_();
@@ -3408,15 +3396,13 @@ class CacheStorage extends NativeFieldWrapperClass2 {
 @DomName('Canvas2DContextAttributes')
 // http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL
 @Experimental()
-class Canvas2DContextAttributes extends NativeFieldWrapperClass2 {
+class Canvas2DContextAttributes extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Canvas2DContextAttributes._() { throw new UnsupportedError("Not supported"); }
 
   static Canvas2DContextAttributes internalCreateCanvas2DContextAttributes() {
     return new Canvas2DContextAttributes._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Canvas2DContextAttributes._internalWrap() {
     return new Canvas2DContextAttributes.internal_();
@@ -3657,15 +3643,13 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
  * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.
  */
 @DomName('CanvasGradient')
-class CanvasGradient extends NativeFieldWrapperClass2 {
+class CanvasGradient extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CanvasGradient._() { throw new UnsupportedError("Not supported"); }
 
   static CanvasGradient internalCreateCanvasGradient() {
     return new CanvasGradient._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory CanvasGradient._internalWrap() {
     return new CanvasGradient.internal_();
@@ -3726,15 +3710,13 @@ class CanvasGradient extends NativeFieldWrapperClass2 {
  * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.
  */
 @DomName('CanvasPattern')
-class CanvasPattern extends NativeFieldWrapperClass2 {
+class CanvasPattern extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CanvasPattern._() { throw new UnsupportedError("Not supported"); }
 
   static CanvasPattern internalCreateCanvasPattern() {
     return new CanvasPattern._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory CanvasPattern._internalWrap() {
     return new CanvasPattern.internal_();
@@ -3761,15 +3743,13 @@ abstract class CanvasRenderingContext {
 }
 
 @DomName('CanvasRenderingContext2D')
-class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements CanvasRenderingContext {
+class CanvasRenderingContext2D extends DartHtmlDomObject implements CanvasRenderingContext {
   // To suppress missing implicit constructor warnings.
   factory CanvasRenderingContext2D._() { throw new UnsupportedError("Not supported"); }
 
   static CanvasRenderingContext2D internalCreateCanvasRenderingContext2D() {
     return new CanvasRenderingContext2D._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory CanvasRenderingContext2D._internalWrap() {
     return new CanvasRenderingContext2D.internal_();
@@ -4617,7 +4597,7 @@ class CharacterData extends Node implements ChildNode {
 @DocsEditable()
 @DomName('ChildNode')
 @Experimental() // untriaged
-abstract class ChildNode extends NativeFieldWrapperClass2 {
+abstract class ChildNode extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ChildNode._() { throw new UnsupportedError("Not supported"); }
 
@@ -4868,15 +4848,13 @@ class Console extends ConsoleBase {
 @DocsEditable()
 @DomName('ConsoleBase')
 @Experimental() // untriaged
-class ConsoleBase extends NativeFieldWrapperClass2 {
+class ConsoleBase extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ConsoleBase._() { throw new UnsupportedError("Not supported"); }
 
   static ConsoleBase internalCreateConsoleBase() {
     return new ConsoleBase._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ConsoleBase._internalWrap() {
     return new ConsoleBase.internal_();
@@ -5066,15 +5044,13 @@ class ContentElement extends HtmlElement {
 
 @DocsEditable()
 @DomName('Coordinates')
-class Coordinates extends NativeFieldWrapperClass2 {
+class Coordinates extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Coordinates._() { throw new UnsupportedError("Not supported"); }
 
   static Coordinates internalCreateCoordinates() {
     return new Coordinates._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Coordinates._internalWrap() {
     return new Coordinates.internal_();
@@ -5124,15 +5100,13 @@ class Coordinates extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('Credential')
 @Experimental() // untriaged
-class Credential extends NativeFieldWrapperClass2 {
+class Credential extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Credential._() { throw new UnsupportedError("Not supported"); }
 
   static Credential internalCreateCredential() {
     return new Credential._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Credential._internalWrap() {
     return new Credential.internal_();
@@ -5169,15 +5143,13 @@ class Credential extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('CredentialsContainer')
 @Experimental() // untriaged
-class CredentialsContainer extends NativeFieldWrapperClass2 {
+class CredentialsContainer extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CredentialsContainer._() { throw new UnsupportedError("Not supported"); }
 
   static CredentialsContainer internalCreateCredentialsContainer() {
     return new CredentialsContainer._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory CredentialsContainer._internalWrap() {
     return new CredentialsContainer.internal_();
@@ -5221,7 +5193,7 @@ class CredentialsContainer extends NativeFieldWrapperClass2 {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental()
 // http://www.w3.org/TR/WebCryptoAPI/
-class Crypto extends NativeFieldWrapperClass2 {
+class Crypto extends DartHtmlDomObject {
 
   TypedData getRandomValues(TypedData array) {
     var random = _getRandomValues(array);
@@ -5241,8 +5213,6 @@ class Crypto extends NativeFieldWrapperClass2 {
   static Crypto internalCreateCrypto() {
     return new Crypto._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Crypto._internalWrap() {
     return new Crypto.internal_();
@@ -5276,15 +5246,13 @@ class Crypto extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('CryptoKey')
 @Experimental() // untriaged
-class CryptoKey extends NativeFieldWrapperClass2 {
+class CryptoKey extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CryptoKey._() { throw new UnsupportedError("Not supported"); }
 
   static CryptoKey internalCreateCryptoKey() {
     return new CryptoKey._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory CryptoKey._internalWrap() {
     return new CryptoKey.internal_();
@@ -5327,15 +5295,13 @@ class CryptoKey extends NativeFieldWrapperClass2 {
 @DomName('CSS')
 // http://www.w3.org/TR/css3-conditional/#the-css-interface
 @Experimental() // None
-class Css extends NativeFieldWrapperClass2 {
+class Css extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Css._() { throw new UnsupportedError("Not supported"); }
 
   static Css internalCreateCss() {
     return new Css._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Css._internalWrap() {
     return new Css.internal_();
@@ -5686,15 +5652,13 @@ class CssPageRule extends CssRule {
 
 @DocsEditable()
 @DomName('CSSRule')
-class CssRule extends NativeFieldWrapperClass2 {
+class CssRule extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CssRule._() { throw new UnsupportedError("Not supported"); }
 
   static CssRule internalCreateCssRule() {
     return new CssRule._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory CssRule._internalWrap() {
     return new CssRule.internal_();
@@ -5800,7 +5764,7 @@ class CssRule extends NativeFieldWrapperClass2 {
 
 
 @DomName('CSSStyleDeclaration')
-class CssStyleDeclaration  extends JsoNativeFieldWrapper with
+class CssStyleDeclaration  extends DartHtmlDomObject with
     CssStyleDeclarationBase  {
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
@@ -5893,8 +5857,6 @@ class CssStyleDeclaration  extends JsoNativeFieldWrapper with
   static CssStyleDeclaration internalCreateCssStyleDeclaration() {
     return new CssStyleDeclaration._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory CssStyleDeclaration._internalWrap() {
     return new CssStyleDeclaration.internal_();
@@ -9408,15 +9370,13 @@ class DataListElement extends HtmlElement {
 @DocsEditable()
 @DomName('DataTransfer')
 @Experimental() // untriaged
-class DataTransfer extends NativeFieldWrapperClass2 {
+class DataTransfer extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DataTransfer._() { throw new UnsupportedError("Not supported"); }
 
   static DataTransfer internalCreateDataTransfer() {
     return new DataTransfer._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DataTransfer._internalWrap() {
     return new DataTransfer.internal_();
@@ -9498,15 +9458,13 @@ class DataTransfer extends NativeFieldWrapperClass2 {
 @DomName('DataTransferItem')
 // http://www.w3.org/TR/2011/WD-html5-20110113/dnd.html#the-datatransferitem-interface
 @Experimental()
-class DataTransferItem extends NativeFieldWrapperClass2 {
+class DataTransferItem extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DataTransferItem._() { throw new UnsupportedError("Not supported"); }
 
   static DataTransferItem internalCreateDataTransferItem() {
     return new DataTransferItem._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DataTransferItem._internalWrap() {
     return new DataTransferItem.internal_();
@@ -9557,15 +9515,13 @@ class DataTransferItem extends NativeFieldWrapperClass2 {
 @DomName('DataTransferItemList')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-datatransferitemlist-interface
 @Experimental()
-class DataTransferItemList extends NativeFieldWrapperClass2 {
+class DataTransferItemList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DataTransferItemList._() { throw new UnsupportedError("Not supported"); }
 
   static DataTransferItemList internalCreateDataTransferItemList() {
     return new DataTransferItemList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DataTransferItemList._internalWrap() {
     return new DataTransferItemList.internal_();
@@ -9688,15 +9644,13 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
 @DocsEditable()
 @DomName('DeprecatedStorageInfo')
 @Experimental() // untriaged
-class DeprecatedStorageInfo extends NativeFieldWrapperClass2 {
+class DeprecatedStorageInfo extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DeprecatedStorageInfo._() { throw new UnsupportedError("Not supported"); }
 
   static DeprecatedStorageInfo internalCreateDeprecatedStorageInfo() {
     return new DeprecatedStorageInfo._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DeprecatedStorageInfo._internalWrap() {
     return new DeprecatedStorageInfo.internal_();
@@ -9754,15 +9708,13 @@ class DeprecatedStorageInfo extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('DeprecatedStorageQuota')
 @Experimental() // untriaged
-class DeprecatedStorageQuota extends NativeFieldWrapperClass2 {
+class DeprecatedStorageQuota extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DeprecatedStorageQuota._() { throw new UnsupportedError("Not supported"); }
 
   static DeprecatedStorageQuota internalCreateDeprecatedStorageQuota() {
     return new DeprecatedStorageQuota._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DeprecatedStorageQuota._internalWrap() {
     return new DeprecatedStorageQuota.internal_();
@@ -9857,15 +9809,13 @@ class DetailsElement extends HtmlElement {
 @DomName('DeviceAcceleration')
 // http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
 @Experimental()
-class DeviceAcceleration extends NativeFieldWrapperClass2 {
+class DeviceAcceleration extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DeviceAcceleration._() { throw new UnsupportedError("Not supported"); }
 
   static DeviceAcceleration internalCreateDeviceAcceleration() {
     return new DeviceAcceleration._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DeviceAcceleration._internalWrap() {
     return new DeviceAcceleration.internal_();
@@ -10035,15 +9985,13 @@ class DeviceOrientationEvent extends Event {
 @DomName('DeviceRotationRate')
 // http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
 @Experimental()
-class DeviceRotationRate extends NativeFieldWrapperClass2 {
+class DeviceRotationRate extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DeviceRotationRate._() { throw new UnsupportedError("Not supported"); }
 
   static DeviceRotationRate internalCreateDeviceRotationRate() {
     return new DeviceRotationRate._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DeviceRotationRate._internalWrap() {
     return new DeviceRotationRate.internal_();
@@ -10274,15 +10222,13 @@ class DirectoryEntry extends Entry {
 @DomName('DirectoryReader')
 // http://www.w3.org/TR/file-system-api/#the-directoryreader-interface
 @Experimental()
-class DirectoryReader extends NativeFieldWrapperClass2 {
+class DirectoryReader extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DirectoryReader._() { throw new UnsupportedError("Not supported"); }
 
   static DirectoryReader internalCreateDirectoryReader() {
     return new DirectoryReader._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DirectoryReader._internalWrap() {
     return new DirectoryReader.internal_();
@@ -11429,7 +11375,7 @@ class DocumentFragment extends Node implements ParentNode {
 
 @DocsEditable()
 @DomName('DOMError')
-class DomError extends NativeFieldWrapperClass2 {
+class DomError extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomError._() { throw new UnsupportedError("Not supported"); }
 
@@ -11442,8 +11388,6 @@ class DomError extends NativeFieldWrapperClass2 {
   static DomError internalCreateDomError() {
     return new DomError._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DomError._internalWrap() {
     return new DomError.internal_();
@@ -11471,7 +11415,7 @@ class DomError extends NativeFieldWrapperClass2 {
 
 @DomName('DOMException')
 @Unstable()
-class DomException extends NativeFieldWrapperClass2 {
+class DomException extends DartHtmlDomObject {
 
   static const String INDEX_SIZE = 'IndexSizeError';
   static const String HIERARCHY_REQUEST = 'HierarchyRequestError';
@@ -11546,15 +11490,13 @@ class DomException extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('DOMImplementation')
-class DomImplementation extends NativeFieldWrapperClass2 {
+class DomImplementation extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomImplementation._() { throw new UnsupportedError("Not supported"); }
 
   static DomImplementation internalCreateDomImplementation() {
     return new DomImplementation._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DomImplementation._internalWrap() {
     return new DomImplementation.internal_();
@@ -11592,15 +11534,13 @@ class DomImplementation extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('Iterator')
 @Experimental() // untriaged
-class DomIterator extends NativeFieldWrapperClass2 {
+class DomIterator extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomIterator._() { throw new UnsupportedError("Not supported"); }
 
   static DomIterator internalCreateDomIterator() {
     return new DomIterator._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DomIterator._internalWrap() {
     return new DomIterator.internal_();
@@ -11947,15 +11887,13 @@ class DomMatrix extends DomMatrixReadOnly {
 @DocsEditable()
 @DomName('DOMMatrixReadOnly')
 @Experimental() // untriaged
-class DomMatrixReadOnly extends NativeFieldWrapperClass2 {
+class DomMatrixReadOnly extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomMatrixReadOnly._() { throw new UnsupportedError("Not supported"); }
 
   static DomMatrixReadOnly internalCreateDomMatrixReadOnly() {
     return new DomMatrixReadOnly._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DomMatrixReadOnly._internalWrap() {
     return new DomMatrixReadOnly.internal_();
@@ -12160,7 +12098,7 @@ class DomMatrixReadOnly extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('DOMParser')
-class DomParser extends NativeFieldWrapperClass2 {
+class DomParser extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomParser._() { throw new UnsupportedError("Not supported"); }
 
@@ -12173,8 +12111,6 @@ class DomParser extends NativeFieldWrapperClass2 {
   static DomParser internalCreateDomParser() {
     return new DomParser._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DomParser._internalWrap() {
     return new DomParser.internal_();
@@ -12292,7 +12228,7 @@ class DomPoint extends DomPointReadOnly {
 @DocsEditable()
 @DomName('DOMPointReadOnly')
 @Experimental() // untriaged
-class DomPointReadOnly extends NativeFieldWrapperClass2 {
+class DomPointReadOnly extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomPointReadOnly._() { throw new UnsupportedError("Not supported"); }
 
@@ -12305,8 +12241,6 @@ class DomPointReadOnly extends NativeFieldWrapperClass2 {
   static DomPointReadOnly internalCreateDomPointReadOnly() {
     return new DomPointReadOnly._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DomPointReadOnly._internalWrap() {
     return new DomPointReadOnly.internal_();
@@ -12346,7 +12280,7 @@ class DomPointReadOnly extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('DOMRectReadOnly')
 @Experimental() // untriaged
-class DomRectReadOnly extends NativeFieldWrapperClass2 implements Rectangle {
+class DomRectReadOnly extends DartHtmlDomObject implements Rectangle {
 
   // NOTE! All code below should be common with RectangleBase.
    String toString() {
@@ -12450,8 +12384,6 @@ class DomRectReadOnly extends NativeFieldWrapperClass2 implements Rectangle {
     return new DomRectReadOnly._internalWrap();
   }
 
-  js.JsObject blink_jsObject;
-
   factory DomRectReadOnly._internalWrap() {
     return new DomRectReadOnly.internal_();
   }
@@ -12547,15 +12479,13 @@ class DomSettableTokenList extends DomTokenList {
 
 @DocsEditable()
 @DomName('DOMStringList')
-class DomStringList extends JsoNativeFieldWrapper with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
+class DomStringList extends DartHtmlDomObject with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
   // To suppress missing implicit constructor warnings.
   factory DomStringList._() { throw new UnsupportedError("Not supported"); }
 
   static DomStringList internalCreateDomStringList() {
     return new DomStringList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DomStringList._internalWrap() {
     return new DomStringList.internal_();
@@ -12634,7 +12564,7 @@ class DomStringList extends JsoNativeFieldWrapper with ListMixin<String>, Immuta
 
 @DocsEditable()
 @DomName('DOMStringMap')
-class DomStringMap extends NativeFieldWrapperClass2 {
+class DomStringMap extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomStringMap._() { throw new UnsupportedError("Not supported"); }
 
@@ -12680,15 +12610,13 @@ class DomStringMap extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('DOMTokenList')
-class DomTokenList extends NativeFieldWrapperClass2 {
+class DomTokenList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomTokenList._() { throw new UnsupportedError("Not supported"); }
 
   static DomTokenList internalCreateDomTokenList() {
     return new DomTokenList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DomTokenList._internalWrap() {
     return new DomTokenList.internal_();
@@ -16684,15 +16612,13 @@ typedef void _EntriesCallback(List<Entry> entries);
 @DomName('Entry')
 // http://www.w3.org/TR/file-system-api/#the-entry-interface
 @Experimental()
-class Entry extends NativeFieldWrapperClass2 {
+class Entry extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Entry._() { throw new UnsupportedError("Not supported"); }
 
   static Entry internalCreateEntry() {
     return new Entry._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Entry._internalWrap() {
     return new Entry.internal_();
@@ -16912,7 +16838,7 @@ class ErrorEvent extends Event {
 
 
 @DomName('Event')
-class Event extends NativeFieldWrapperClass2 {
+class Event extends DartHtmlDomObject {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
   // default to false (since that's Boolean(undefined)).
@@ -16968,8 +16894,6 @@ class Event extends NativeFieldWrapperClass2 {
   static Event internalCreateEvent() {
     return new Event._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Event._internalWrap() {
     return new Event.internal_();
@@ -17305,7 +17229,7 @@ class ElementEvents extends Events {
  * for compile-time type checks and a more concise API.
  */
 @DomName('EventTarget')
-class EventTarget extends NativeFieldWrapperClass2 {
+class EventTarget extends DartHtmlDomObject {
 
   // Default constructor to allow other classes e.g. GlobalEventHandlers to be
   // constructed using _internalWrap when mapping Blink object to Dart class.
@@ -17344,8 +17268,6 @@ class EventTarget extends NativeFieldWrapperClass2 {
   static EventTarget internalCreateEventTarget() {
     return new EventTarget._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory EventTarget._internalWrap() {
     return new EventTarget.internal_();
@@ -17801,15 +17723,13 @@ class FileError extends DomError {
 
 @DocsEditable()
 @DomName('FileList')
-class FileList extends JsoNativeFieldWrapper with ListMixin<File>, ImmutableListMixin<File> implements List<File> {
+class FileList extends DartHtmlDomObject with ListMixin<File>, ImmutableListMixin<File> implements List<File> {
   // To suppress missing implicit constructor warnings.
   factory FileList._() { throw new UnsupportedError("Not supported"); }
 
   static FileList internalCreateFileList() {
     return new FileList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory FileList._internalWrap() {
     return new FileList.internal_();
@@ -18061,15 +17981,13 @@ class FileReader extends EventTarget {
 @DocsEditable()
 @DomName('Stream')
 @Experimental() // untriaged
-class FileStream extends NativeFieldWrapperClass2 {
+class FileStream extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory FileStream._() { throw new UnsupportedError("Not supported"); }
 
   static FileStream internalCreateFileStream() {
     return new FileStream._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory FileStream._internalWrap() {
     return new FileStream.internal_();
@@ -18098,15 +18016,13 @@ class FileStream extends NativeFieldWrapperClass2 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://www.w3.org/TR/file-system-api/
-class FileSystem extends NativeFieldWrapperClass2 {
+class FileSystem extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory FileSystem._() { throw new UnsupportedError("Not supported"); }
 
   static FileSystem internalCreateFileSystem() {
     return new FileSystem._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory FileSystem._internalWrap() {
     return new FileSystem.internal_();
@@ -18353,7 +18269,7 @@ class FocusEvent extends UIEvent {
 @DocsEditable()
 @DomName('FontFace')
 @Experimental() // untriaged
-class FontFace extends NativeFieldWrapperClass2 {
+class FontFace extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory FontFace._() { throw new UnsupportedError("Not supported"); }
 
@@ -18387,8 +18303,6 @@ class FontFace extends NativeFieldWrapperClass2 {
   static FontFace internalCreateFontFace() {
     return new FontFace._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory FontFace._internalWrap() {
     return new FontFace.internal_();
@@ -18613,7 +18527,7 @@ class FontFaceSetLoadEvent extends Event {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class FormData extends NativeFieldWrapperClass2 {
+class FormData extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory FormData._() { throw new UnsupportedError("Not supported"); }
 
@@ -18627,8 +18541,6 @@ class FormData extends NativeFieldWrapperClass2 {
   static FormData internalCreateFormData() {
     return new FormData._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory FormData._internalWrap() {
     return new FormData.internal_();
@@ -18806,15 +18718,13 @@ class FormElement extends HtmlElement {
 @DomName('Gamepad')
 // https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html#gamepad-interface
 @Experimental()
-class Gamepad extends NativeFieldWrapperClass2 {
+class Gamepad extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Gamepad._() { throw new UnsupportedError("Not supported"); }
 
   static Gamepad internalCreateGamepad() {
     return new Gamepad._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Gamepad._internalWrap() {
     return new Gamepad.internal_();
@@ -18862,15 +18772,13 @@ class Gamepad extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('GamepadButton')
 @Experimental() // untriaged
-class GamepadButton extends NativeFieldWrapperClass2 {
+class GamepadButton extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory GamepadButton._() { throw new UnsupportedError("Not supported"); }
 
   static GamepadButton internalCreateGamepadButton() {
     return new GamepadButton._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory GamepadButton._internalWrap() {
     return new GamepadButton.internal_();
@@ -18934,15 +18842,13 @@ class GamepadEvent extends Event {
 @DocsEditable()
 @DomName('Geofencing')
 @Experimental() // untriaged
-class Geofencing extends NativeFieldWrapperClass2 {
+class Geofencing extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Geofencing._() { throw new UnsupportedError("Not supported"); }
 
   static Geofencing internalCreateGeofencing() {
     return new Geofencing._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Geofencing._internalWrap() {
     return new Geofencing.internal_();
@@ -18979,15 +18885,13 @@ class Geofencing extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('GeofencingRegion')
 @Experimental() // untriaged
-class GeofencingRegion extends NativeFieldWrapperClass2 {
+class GeofencingRegion extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory GeofencingRegion._() { throw new UnsupportedError("Not supported"); }
 
   static GeofencingRegion internalCreateGeofencingRegion() {
     return new GeofencingRegion._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory GeofencingRegion._internalWrap() {
     return new GeofencingRegion.internal_();
@@ -19012,7 +18916,7 @@ class GeofencingRegion extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('Geolocation')
 @Unstable()
-class Geolocation extends NativeFieldWrapperClass2 {
+class Geolocation extends DartHtmlDomObject {
 
   @DomName('Geolocation.getCurrentPosition')
   Future<Geoposition> getCurrentPosition({bool enableHighAccuracy,
@@ -19091,8 +18995,6 @@ class Geolocation extends NativeFieldWrapperClass2 {
     return new Geolocation._internalWrap();
   }
 
-  js.JsObject blink_jsObject;
-
   factory Geolocation._internalWrap() {
     return new Geolocation.internal_();
   }
@@ -19140,15 +19042,13 @@ class Geolocation extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('Geoposition')
 @Unstable()
-class Geoposition extends NativeFieldWrapperClass2 {
+class Geoposition extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Geoposition._() { throw new UnsupportedError("Not supported"); }
 
   static Geoposition internalCreateGeoposition() {
     return new Geoposition._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Geoposition._internalWrap() {
     return new Geoposition.internal_();
@@ -19845,7 +19745,7 @@ class HeadElement extends HtmlElement {
 @DocsEditable()
 @DomName('Headers')
 @Experimental() // untriaged
-class Headers extends NativeFieldWrapperClass2 {
+class Headers extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Headers._() { throw new UnsupportedError("Not supported"); }
 
@@ -19868,8 +19768,6 @@ class Headers extends NativeFieldWrapperClass2 {
   static Headers internalCreateHeaders() {
     return new Headers._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Headers._internalWrap() {
     return new Headers.internal_();
@@ -19967,7 +19865,7 @@ class HeadingElement extends HtmlElement {
 
 
 @DomName('History')
-class History extends NativeFieldWrapperClass2 implements HistoryBase {
+class History extends DartHtmlDomObject implements HistoryBase {
 
   /**
    * Checks if the State APIs are supported on the current platform.
@@ -19985,8 +19883,6 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
   static History internalCreateHistory() {
     return new History._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory History._internalWrap() {
     return new History.internal_();
@@ -20042,15 +19938,13 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
 
 @DocsEditable()
 @DomName('HTMLCollection')
-class HtmlCollection extends JsoNativeFieldWrapper with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class HtmlCollection extends DartHtmlDomObject with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   // To suppress missing implicit constructor warnings.
   factory HtmlCollection._() { throw new UnsupportedError("Not supported"); }
 
   static HtmlCollection internalCreateHtmlCollection() {
     return new HtmlCollection._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory HtmlCollection._internalWrap() {
     return new HtmlCollection.internal_();
@@ -22370,15 +22264,13 @@ class IFrameElement extends HtmlElement {
 @DocsEditable()
 @DomName('ImageBitmap')
 @Experimental() // untriaged
-class ImageBitmap extends NativeFieldWrapperClass2 {
+class ImageBitmap extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ImageBitmap._() { throw new UnsupportedError("Not supported"); }
 
   static ImageBitmap internalCreateImageBitmap() {
     return new ImageBitmap._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ImageBitmap._internalWrap() {
     return new ImageBitmap.internal_();
@@ -22405,7 +22297,7 @@ class ImageBitmap extends NativeFieldWrapperClass2 {
 // BSD-style license that can be found in the LICENSE file.
 
 @DomName('ImageData')
-class ImageData extends NativeFieldWrapperClass2 {
+class ImageData extends DartHtmlDomObject {
   List<int> __data;
 
   List<int> get data {
@@ -22433,8 +22325,6 @@ class ImageData extends NativeFieldWrapperClass2 {
   static ImageData internalCreateImageData() {
     return new ImageData._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ImageData._internalWrap() {
     return new ImageData.internal_();
@@ -22610,15 +22500,13 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
 @DocsEditable()
 @DomName('InjectedScriptHost')
 @Experimental() // untriaged
-class InjectedScriptHost extends NativeFieldWrapperClass2 {
+class InjectedScriptHost extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory InjectedScriptHost._() { throw new UnsupportedError("Not supported"); }
 
   static InjectedScriptHost internalCreateInjectedScriptHost() {
     return new InjectedScriptHost._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory InjectedScriptHost._internalWrap() {
     return new InjectedScriptHost.internal_();
@@ -24296,15 +24184,13 @@ class LocalCredential extends Credential {
 
 @DocsEditable()
 @DomName('Location')
-class Location extends NativeFieldWrapperClass2 implements LocationBase {
+class Location extends DartHtmlDomObject implements LocationBase {
   // To suppress missing implicit constructor warnings.
   factory Location._() { throw new UnsupportedError("Not supported"); }
 
   static Location internalCreateLocation() {
     return new Location._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Location._internalWrap() {
     return new Location.internal_();
@@ -24598,15 +24484,13 @@ class MediaController extends EventTarget {
 @DocsEditable()
 @DomName('MediaDeviceInfo')
 @Experimental() // untriaged
-class MediaDeviceInfo extends NativeFieldWrapperClass2 {
+class MediaDeviceInfo extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MediaDeviceInfo._() { throw new UnsupportedError("Not supported"); }
 
   static MediaDeviceInfo internalCreateMediaDeviceInfo() {
     return new MediaDeviceInfo._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MediaDeviceInfo._internalWrap() {
     return new MediaDeviceInfo.internal_();
@@ -25077,15 +24961,13 @@ class MediaElement extends HtmlElement {
 @DocsEditable()
 @DomName('MediaError')
 @Unstable()
-class MediaError extends NativeFieldWrapperClass2 {
+class MediaError extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MediaError._() { throw new UnsupportedError("Not supported"); }
 
   static MediaError internalCreateMediaError() {
     return new MediaError._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MediaError._internalWrap() {
     return new MediaError.internal_();
@@ -25134,15 +25016,13 @@ class MediaError extends NativeFieldWrapperClass2 {
 @DomName('MediaKeyError')
 // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#error-codes
 @Experimental()
-class MediaKeyError extends NativeFieldWrapperClass2 {
+class MediaKeyError extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MediaKeyError._() { throw new UnsupportedError("Not supported"); }
 
   static MediaKeyError internalCreateMediaKeyError() {
     return new MediaKeyError._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MediaKeyError._internalWrap() {
     return new MediaKeyError.internal_();
@@ -25397,15 +25277,13 @@ class MediaKeySession extends EventTarget {
 @DomName('MediaKeys')
 // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html
 @Experimental()
-class MediaKeys extends NativeFieldWrapperClass2 {
+class MediaKeys extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MediaKeys._() { throw new UnsupportedError("Not supported"); }
 
   static MediaKeys internalCreateMediaKeys() {
     return new MediaKeys._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MediaKeys._internalWrap() {
     return new MediaKeys.internal_();
@@ -25448,15 +25326,13 @@ class MediaKeys extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('MediaList')
 @Unstable()
-class MediaList extends NativeFieldWrapperClass2 {
+class MediaList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MediaList._() { throw new UnsupportedError("Not supported"); }
 
   static MediaList internalCreateMediaList() {
     return new MediaList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MediaList._internalWrap() {
     return new MediaList.internal_();
@@ -26021,15 +25897,13 @@ typedef void MediaStreamTrackSourcesCallback(List<SourceInfo> sources);
 @DocsEditable()
 @DomName('MemoryInfo')
 @Experimental() // nonstandard
-class MemoryInfo extends NativeFieldWrapperClass2 {
+class MemoryInfo extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MemoryInfo._() { throw new UnsupportedError("Not supported"); }
 
   static MemoryInfo internalCreateMemoryInfo() {
     return new MemoryInfo._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MemoryInfo._internalWrap() {
     return new MemoryInfo.internal_();
@@ -26212,15 +26086,13 @@ class MenuItemElement extends HtmlElement {
 @DocsEditable()
 @DomName('MessageChannel')
 @Unstable()
-class MessageChannel extends NativeFieldWrapperClass2 {
+class MessageChannel extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MessageChannel._() { throw new UnsupportedError("Not supported"); }
 
   static MessageChannel internalCreateMessageChannel() {
     return new MessageChannel._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MessageChannel._internalWrap() {
     return new MessageChannel.internal_();
@@ -26423,15 +26295,13 @@ class MetaElement extends HtmlElement {
 @DomName('Metadata')
 // http://www.w3.org/TR/file-system-api/#the-metadata-interface
 @Experimental()
-class Metadata extends NativeFieldWrapperClass2 {
+class Metadata extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Metadata._() { throw new UnsupportedError("Not supported"); }
 
   static Metadata internalCreateMetadata() {
     return new Metadata._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Metadata._internalWrap() {
     return new Metadata.internal_();
@@ -26714,15 +26584,13 @@ class MidiInput extends MidiPort {
 @DocsEditable()
 @DomName('MIDIInputMap')
 @Experimental() // untriaged
-class MidiInputMap extends NativeFieldWrapperClass2 {
+class MidiInputMap extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MidiInputMap._() { throw new UnsupportedError("Not supported"); }
 
   static MidiInputMap internalCreateMidiInputMap() {
     return new MidiInputMap._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MidiInputMap._internalWrap() {
     return new MidiInputMap.internal_();
@@ -26847,15 +26715,13 @@ class MidiOutput extends MidiPort {
 @DocsEditable()
 @DomName('MIDIOutputMap')
 @Experimental() // untriaged
-class MidiOutputMap extends NativeFieldWrapperClass2 {
+class MidiOutputMap extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MidiOutputMap._() { throw new UnsupportedError("Not supported"); }
 
   static MidiOutputMap internalCreateMidiOutputMap() {
     return new MidiOutputMap._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MidiOutputMap._internalWrap() {
     return new MidiOutputMap.internal_();
@@ -26970,15 +26836,13 @@ class MidiPort extends EventTarget {
 @DocsEditable()
 @DomName('MimeType')
 @Experimental() // non-standard
-class MimeType extends NativeFieldWrapperClass2 {
+class MimeType extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MimeType._() { throw new UnsupportedError("Not supported"); }
 
   static MimeType internalCreateMimeType() {
     return new MimeType._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MimeType._internalWrap() {
     return new MimeType.internal_();
@@ -27016,15 +26880,13 @@ class MimeType extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('MimeTypeArray')
 @Experimental() // non-standard
-class MimeTypeArray extends JsoNativeFieldWrapper with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements List<MimeType> {
+class MimeTypeArray extends DartHtmlDomObject with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements List<MimeType> {
   // To suppress missing implicit constructor warnings.
   factory MimeTypeArray._() { throw new UnsupportedError("Not supported"); }
 
   static MimeTypeArray internalCreateMimeTypeArray() {
     return new MimeTypeArray._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MimeTypeArray._internalWrap() {
     return new MimeTypeArray.internal_();
@@ -27359,7 +27221,7 @@ typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver o
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental()
-class MutationObserver extends NativeFieldWrapperClass2 {
+class MutationObserver extends DartHtmlDomObject {
 
   @DomName('MutationObserver.MutationObserver')
   @DocsEditable()
@@ -27368,8 +27230,6 @@ class MutationObserver extends NativeFieldWrapperClass2 {
   static MutationObserver internalCreateMutationObserver() {
     return new MutationObserver._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MutationObserver._internalWrap() {
     return new MutationObserver.internal_();
@@ -27473,15 +27333,13 @@ class MutationObserver extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('MutationRecord')
-class MutationRecord extends NativeFieldWrapperClass2 {
+class MutationRecord extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MutationRecord._() { throw new UnsupportedError("Not supported"); }
 
   static MutationRecord internalCreateMutationRecord() {
     return new MutationRecord._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MutationRecord._internalWrap() {
     return new MutationRecord.internal_();
@@ -27535,7 +27393,7 @@ class MutationRecord extends NativeFieldWrapperClass2 {
 
 
 @DomName('Navigator')
-class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, NavigatorLanguage, NavigatorOnLine, NavigatorID {
+class Navigator extends DartHtmlDomObject implements NavigatorCpu, NavigatorLanguage, NavigatorOnLine, NavigatorID {
 
 
   /**
@@ -27599,8 +27457,6 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, Naviga
   static Navigator internalCreateNavigator() {
     return new Navigator._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Navigator._internalWrap() {
     return new Navigator.internal_();
@@ -27807,7 +27663,7 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, Naviga
 @DocsEditable()
 @DomName('NavigatorCPU')
 @Experimental() // untriaged
-abstract class NavigatorCpu extends NativeFieldWrapperClass2 {
+abstract class NavigatorCpu extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory NavigatorCpu._() { throw new UnsupportedError("Not supported"); }
 
@@ -27827,7 +27683,7 @@ abstract class NavigatorCpu extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('NavigatorID')
 @Experimental() // untriaged
-abstract class NavigatorID extends NativeFieldWrapperClass2 {
+abstract class NavigatorID extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory NavigatorID._() { throw new UnsupportedError("Not supported"); }
 
@@ -27877,7 +27733,7 @@ abstract class NavigatorID extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('NavigatorLanguage')
 @Experimental() // untriaged
-abstract class NavigatorLanguage extends NativeFieldWrapperClass2 {
+abstract class NavigatorLanguage extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory NavigatorLanguage._() { throw new UnsupportedError("Not supported"); }
 
@@ -27902,7 +27758,7 @@ abstract class NavigatorLanguage extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('NavigatorOnLine')
 @Experimental() // untriaged
-abstract class NavigatorOnLine extends NativeFieldWrapperClass2 {
+abstract class NavigatorOnLine extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory NavigatorOnLine._() { throw new UnsupportedError("Not supported"); }
 
@@ -27923,15 +27779,13 @@ abstract class NavigatorOnLine extends NativeFieldWrapperClass2 {
 @DomName('NavigatorUserMediaError')
 // http://dev.w3.org/2011/webrtc/editor/getusermedia.html#idl-def-NavigatorUserMediaError
 @Experimental()
-class NavigatorUserMediaError extends NativeFieldWrapperClass2 {
+class NavigatorUserMediaError extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory NavigatorUserMediaError._() { throw new UnsupportedError("Not supported"); }
 
   static NavigatorUserMediaError internalCreateNavigatorUserMediaError() {
     return new NavigatorUserMediaError._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory NavigatorUserMediaError._internalWrap() {
     return new NavigatorUserMediaError.internal_();
@@ -28631,15 +28485,13 @@ class Node extends EventTarget {
 @DocsEditable()
 @DomName('NodeFilter')
 @Unstable()
-class NodeFilter extends NativeFieldWrapperClass2 {
+class NodeFilter extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory NodeFilter._() { throw new UnsupportedError("Not supported"); }
 
   static NodeFilter internalCreateNodeFilter() {
     return new NodeFilter._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory NodeFilter._internalWrap() {
     return new NodeFilter.internal_();
@@ -28702,7 +28554,7 @@ class NodeFilter extends NativeFieldWrapperClass2 {
 
 @DomName('NodeIterator')
 @Unstable()
-class NodeIterator extends NativeFieldWrapperClass2 {
+class NodeIterator extends DartHtmlDomObject {
   factory NodeIterator(Node root, int whatToShow) {
     return document._createNodeIterator(root, whatToShow, null);
   }
@@ -28712,8 +28564,6 @@ class NodeIterator extends NativeFieldWrapperClass2 {
   static NodeIterator internalCreateNodeIterator() {
     return new NodeIterator._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory NodeIterator._internalWrap() {
     return new NodeIterator.internal_();
@@ -28762,15 +28612,13 @@ class NodeIterator extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('NodeList')
-class NodeList extends JsoNativeFieldWrapper with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class NodeList extends DartHtmlDomObject with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   // To suppress missing implicit constructor warnings.
   factory NodeList._() { throw new UnsupportedError("Not supported"); }
 
   static NodeList internalCreateNodeList() {
     return new NodeList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory NodeList._internalWrap() {
     return new NodeList.internal_();
@@ -29625,7 +29473,7 @@ class ParamElement extends HtmlElement {
 @DocsEditable()
 @DomName('ParentNode')
 @Experimental() // untriaged
-abstract class ParentNode extends NativeFieldWrapperClass2 {
+abstract class ParentNode extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ParentNode._() { throw new UnsupportedError("Not supported"); }
 
@@ -29670,7 +29518,7 @@ abstract class ParentNode extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('Path2D')
 @Experimental() // untriaged
-class Path2D extends NativeFieldWrapperClass2 implements _CanvasPathMethods {
+class Path2D extends DartHtmlDomObject implements _CanvasPathMethods {
   // To suppress missing implicit constructor warnings.
   factory Path2D._() { throw new UnsupportedError("Not supported"); }
 
@@ -29692,8 +29540,6 @@ class Path2D extends NativeFieldWrapperClass2 implements _CanvasPathMethods {
   static Path2D internalCreatePath2D() {
     return new Path2D._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Path2D._internalWrap() {
     return new Path2D.internal_();
@@ -29898,15 +29744,13 @@ class Performance extends EventTarget {
 @DomName('PerformanceEntry')
 // http://www.w3.org/TR/performance-timeline/#sec-PerformanceEntry-interface
 @Experimental()
-class PerformanceEntry extends NativeFieldWrapperClass2 {
+class PerformanceEntry extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PerformanceEntry._() { throw new UnsupportedError("Not supported"); }
 
   static PerformanceEntry internalCreatePerformanceEntry() {
     return new PerformanceEntry._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PerformanceEntry._internalWrap() {
     return new PerformanceEntry.internal_();
@@ -30000,15 +29844,13 @@ class PerformanceMeasure extends PerformanceEntry {
 @DocsEditable()
 @DomName('PerformanceNavigation')
 @Unstable()
-class PerformanceNavigation extends NativeFieldWrapperClass2 {
+class PerformanceNavigation extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PerformanceNavigation._() { throw new UnsupportedError("Not supported"); }
 
   static PerformanceNavigation internalCreatePerformanceNavigation() {
     return new PerformanceNavigation._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PerformanceNavigation._internalWrap() {
     return new PerformanceNavigation.internal_();
@@ -30133,15 +29975,13 @@ class PerformanceResourceTiming extends PerformanceEntry {
 @DocsEditable()
 @DomName('PerformanceTiming')
 @Unstable()
-class PerformanceTiming extends NativeFieldWrapperClass2 {
+class PerformanceTiming extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PerformanceTiming._() { throw new UnsupportedError("Not supported"); }
 
   static PerformanceTiming internalCreatePerformanceTiming() {
     return new PerformanceTiming._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PerformanceTiming._internalWrap() {
     return new PerformanceTiming.internal_();
@@ -30280,15 +30120,13 @@ class PictureElement extends HtmlElement {
 @DocsEditable()
 @DomName('Plugin')
 @Experimental() // non-standard
-class Plugin extends NativeFieldWrapperClass2 {
+class Plugin extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Plugin._() { throw new UnsupportedError("Not supported"); }
 
   static Plugin internalCreatePlugin() {
     return new Plugin._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Plugin._internalWrap() {
     return new Plugin.internal_();
@@ -30338,15 +30176,13 @@ class Plugin extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('PluginArray')
 @Experimental() // non-standard
-class PluginArray extends JsoNativeFieldWrapper with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements List<Plugin> {
+class PluginArray extends DartHtmlDomObject with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements List<Plugin> {
   // To suppress missing implicit constructor warnings.
   factory PluginArray._() { throw new UnsupportedError("Not supported"); }
 
   static PluginArray internalCreatePluginArray() {
     return new PluginArray._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PluginArray._internalWrap() {
     return new PluginArray.internal_();
@@ -30526,15 +30362,13 @@ typedef void _PositionCallback(Geoposition position);
 @DocsEditable()
 @DomName('PositionError')
 @Unstable()
-class PositionError extends NativeFieldWrapperClass2 {
+class PositionError extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PositionError._() { throw new UnsupportedError("Not supported"); }
 
   static PositionError internalCreatePositionError() {
     return new PositionError._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PositionError._internalWrap() {
     return new PositionError.internal_();
@@ -30823,15 +30657,13 @@ class PushEvent extends Event {
 @DocsEditable()
 @DomName('PushManager')
 @Experimental() // untriaged
-class PushManager extends NativeFieldWrapperClass2 {
+class PushManager extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PushManager._() { throw new UnsupportedError("Not supported"); }
 
   static PushManager internalCreatePushManager() {
     return new PushManager._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PushManager._internalWrap() {
     return new PushManager.internal_();
@@ -30858,15 +30690,13 @@ class PushManager extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('PushRegistration')
 @Experimental() // untriaged
-class PushRegistration extends NativeFieldWrapperClass2 {
+class PushRegistration extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PushRegistration._() { throw new UnsupportedError("Not supported"); }
 
   static PushRegistration internalCreatePushRegistration() {
     return new PushRegistration._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PushRegistration._internalWrap() {
     return new PushRegistration.internal_();
@@ -30974,7 +30804,7 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 
 @DomName('Range')
 @Unstable()
-class Range extends NativeFieldWrapperClass2 {
+class Range extends DartHtmlDomObject {
   factory Range() => document.createRange();
 
   factory Range.fromPoint(Point point) =>
@@ -30985,8 +30815,6 @@ class Range extends NativeFieldWrapperClass2 {
   static Range internalCreateRange() {
     return new Range._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Range._internalWrap() {
     return new Range.internal_();
@@ -31176,15 +31004,13 @@ class Range extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('ReadableStream')
 @Experimental() // untriaged
-class ReadableStream extends NativeFieldWrapperClass2 {
+class ReadableStream extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ReadableStream._() { throw new UnsupportedError("Not supported"); }
 
   static ReadableStream internalCreateReadableStream() {
     return new ReadableStream._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ReadableStream._internalWrap() {
     return new ReadableStream.internal_();
@@ -31628,7 +31454,7 @@ class RtcDtmfToneChangeEvent extends Event {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCIceCandidate
-class RtcIceCandidate extends NativeFieldWrapperClass2 {
+class RtcIceCandidate extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory RtcIceCandidate._() { throw new UnsupportedError("Not supported"); }
 
@@ -31642,8 +31468,6 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
   static RtcIceCandidate internalCreateRtcIceCandidate() {
     return new RtcIceCandidate._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory RtcIceCandidate._internalWrap() {
     return new RtcIceCandidate.internal_();
@@ -32017,7 +31841,7 @@ class RtcPeerConnection extends EventTarget {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCSessionDescription
-class RtcSessionDescription extends NativeFieldWrapperClass2 {
+class RtcSessionDescription extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory RtcSessionDescription._() { throw new UnsupportedError("Not supported"); }
 
@@ -32034,8 +31858,6 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
   static RtcSessionDescription internalCreateRtcSessionDescription() {
     return new RtcSessionDescription._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory RtcSessionDescription._internalWrap() {
     return new RtcSessionDescription.internal_();
@@ -32074,15 +31896,13 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
 @DomName('RTCStatsReport')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCStatsReport
 @Experimental()
-class RtcStatsReport extends NativeFieldWrapperClass2 {
+class RtcStatsReport extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory RtcStatsReport._() { throw new UnsupportedError("Not supported"); }
 
   static RtcStatsReport internalCreateRtcStatsReport() {
     return new RtcStatsReport._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory RtcStatsReport._internalWrap() {
     return new RtcStatsReport.internal_();
@@ -32133,15 +31953,13 @@ class RtcStatsReport extends NativeFieldWrapperClass2 {
 @DomName('RTCStatsResponse')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#widl-RTCStatsReport-RTCStats-getter-DOMString-id
 @Experimental()
-class RtcStatsResponse extends NativeFieldWrapperClass2 {
+class RtcStatsResponse extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory RtcStatsResponse._() { throw new UnsupportedError("Not supported"); }
 
   static RtcStatsResponse internalCreateRtcStatsResponse() {
     return new RtcStatsResponse._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory RtcStatsResponse._internalWrap() {
     return new RtcStatsResponse.internal_();
@@ -32172,7 +31990,7 @@ class RtcStatsResponse extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('Screen')
-class Screen extends NativeFieldWrapperClass2 {
+class Screen extends DartHtmlDomObject {
 
   @DomName('Screen.availHeight')
   @DomName('Screen.availLeft')
@@ -32186,8 +32004,6 @@ class Screen extends NativeFieldWrapperClass2 {
   static Screen internalCreateScreen() {
     return new Screen._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Screen._internalWrap() {
     return new Screen.internal_();
@@ -32655,15 +32471,13 @@ class SelectElement extends HtmlElement {
 
 @DocsEditable()
 @DomName('Selection')
-class Selection extends NativeFieldWrapperClass2 {
+class Selection extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Selection._() { throw new UnsupportedError("Not supported"); }
 
   static Selection internalCreateSelection() {
     return new Selection._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Selection._internalWrap() {
     return new Selection.internal_();
@@ -32809,15 +32623,13 @@ class Selection extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('ServiceWorkerClient')
 @Experimental() // untriaged
-class ServiceWorkerClient extends NativeFieldWrapperClass2 {
+class ServiceWorkerClient extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerClient._() { throw new UnsupportedError("Not supported"); }
 
   static ServiceWorkerClient internalCreateServiceWorkerClient() {
     return new ServiceWorkerClient._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ServiceWorkerClient._internalWrap() {
     return new ServiceWorkerClient.internal_();
@@ -32849,15 +32661,13 @@ class ServiceWorkerClient extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('ServiceWorkerClients')
 @Experimental() // untriaged
-class ServiceWorkerClients extends NativeFieldWrapperClass2 {
+class ServiceWorkerClients extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerClients._() { throw new UnsupportedError("Not supported"); }
 
   static ServiceWorkerClients internalCreateServiceWorkerClients() {
     return new ServiceWorkerClients._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ServiceWorkerClients._internalWrap() {
     return new ServiceWorkerClients.internal_();
@@ -32886,15 +32696,13 @@ class ServiceWorkerClients extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('ServiceWorkerContainer')
 @Experimental() // untriaged
-class ServiceWorkerContainer extends NativeFieldWrapperClass2 {
+class ServiceWorkerContainer extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerContainer._() { throw new UnsupportedError("Not supported"); }
 
   static ServiceWorkerContainer internalCreateServiceWorkerContainer() {
     return new ServiceWorkerContainer._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ServiceWorkerContainer._internalWrap() {
     return new ServiceWorkerContainer.internal_();
@@ -33604,15 +33412,13 @@ class SourceElement extends HtmlElement {
 @DocsEditable()
 @DomName('SourceInfo')
 @Experimental() // untriaged
-class SourceInfo extends NativeFieldWrapperClass2 {
+class SourceInfo extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SourceInfo._() { throw new UnsupportedError("Not supported"); }
 
   static SourceInfo internalCreateSourceInfo() {
     return new SourceInfo._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SourceInfo._internalWrap() {
     return new SourceInfo.internal_();
@@ -33691,7 +33497,7 @@ class SpanElement extends HtmlElement {
 @DomName('SpeechGrammar')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#dfn-speechgrammar
 @Experimental()
-class SpeechGrammar extends NativeFieldWrapperClass2 {
+class SpeechGrammar extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SpeechGrammar._() { throw new UnsupportedError("Not supported"); }
 
@@ -33704,8 +33510,6 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
   static SpeechGrammar internalCreateSpeechGrammar() {
     return new SpeechGrammar._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SpeechGrammar._internalWrap() {
     return new SpeechGrammar.internal_();
@@ -33744,7 +33548,7 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
 @DomName('SpeechGrammarList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#dfn-speechgrammarlist
 @Experimental()
-class SpeechGrammarList extends JsoNativeFieldWrapper with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements List<SpeechGrammar> {
+class SpeechGrammarList extends DartHtmlDomObject with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements List<SpeechGrammar> {
   // To suppress missing implicit constructor warnings.
   factory SpeechGrammarList._() { throw new UnsupportedError("Not supported"); }
 
@@ -33757,8 +33561,6 @@ class SpeechGrammarList extends JsoNativeFieldWrapper with ListMixin<SpeechGramm
   static SpeechGrammarList internalCreateSpeechGrammarList() {
     return new SpeechGrammarList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SpeechGrammarList._internalWrap() {
     return new SpeechGrammarList.internal_();
@@ -34109,15 +33911,13 @@ class SpeechRecognition extends EventTarget {
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionalternative
-class SpeechRecognitionAlternative extends NativeFieldWrapperClass2 {
+class SpeechRecognitionAlternative extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionAlternative._() { throw new UnsupportedError("Not supported"); }
 
   static SpeechRecognitionAlternative internalCreateSpeechRecognitionAlternative() {
     return new SpeechRecognitionAlternative._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SpeechRecognitionAlternative._internalWrap() {
     return new SpeechRecognitionAlternative.internal_();
@@ -34231,15 +34031,13 @@ class SpeechRecognitionEvent extends Event {
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionresult
-class SpeechRecognitionResult extends NativeFieldWrapperClass2 {
+class SpeechRecognitionResult extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionResult._() { throw new UnsupportedError("Not supported"); }
 
   static SpeechRecognitionResult internalCreateSpeechRecognitionResult() {
     return new SpeechRecognitionResult._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SpeechRecognitionResult._internalWrap() {
     return new SpeechRecognitionResult.internal_();
@@ -34561,15 +34359,13 @@ class SpeechSynthesisUtterance extends EventTarget {
 @DomName('SpeechSynthesisVoice')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
 @Experimental()
-class SpeechSynthesisVoice extends NativeFieldWrapperClass2 {
+class SpeechSynthesisVoice extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SpeechSynthesisVoice._() { throw new UnsupportedError("Not supported"); }
 
   static SpeechSynthesisVoice internalCreateSpeechSynthesisVoice() {
     return new SpeechSynthesisVoice._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SpeechSynthesisVoice._internalWrap() {
     return new SpeechSynthesisVoice.internal_();
@@ -34633,7 +34429,7 @@ class SpeechSynthesisVoice extends NativeFieldWrapperClass2 {
  */
 @DomName('Storage')
 @Unstable()
-class Storage extends NativeFieldWrapperClass2
+class Storage extends DartHtmlDomObject
     implements Map<String, String> {
 
   void addAll(Map<String, String> other) {
@@ -34694,8 +34490,6 @@ class Storage extends NativeFieldWrapperClass2
   static Storage internalCreateStorage() {
     return new Storage._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Storage._internalWrap() {
     return new Storage.internal_();
@@ -34844,15 +34638,13 @@ class StorageEvent extends Event {
 @DomName('StorageInfo')
 // http://www.w3.org/TR/file-system-api/
 @Experimental()
-class StorageInfo extends NativeFieldWrapperClass2 {
+class StorageInfo extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory StorageInfo._() { throw new UnsupportedError("Not supported"); }
 
   static StorageInfo internalCreateStorageInfo() {
     return new StorageInfo._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory StorageInfo._internalWrap() {
     return new StorageInfo.internal_();
@@ -34885,15 +34677,13 @@ class StorageInfo extends NativeFieldWrapperClass2 {
 @DomName('StorageQuota')
 // http://www.w3.org/TR/quota-api/#idl-def-StorageQuota
 @Experimental()
-class StorageQuota extends NativeFieldWrapperClass2 {
+class StorageQuota extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory StorageQuota._() { throw new UnsupportedError("Not supported"); }
 
   static StorageQuota internalCreateStorageQuota() {
     return new StorageQuota._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory StorageQuota._internalWrap() {
     return new StorageQuota.internal_();
@@ -35028,15 +34818,13 @@ class StyleElement extends HtmlElement {
 @DomName('StyleMedia')
 // http://developer.apple.com/library/safari/#documentation/SafariDOMAdditions/Reference/StyleMedia/StyleMedia/StyleMedia.html
 @Experimental() // nonstandard
-class StyleMedia extends NativeFieldWrapperClass2 {
+class StyleMedia extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory StyleMedia._() { throw new UnsupportedError("Not supported"); }
 
   static StyleMedia internalCreateStyleMedia() {
     return new StyleMedia._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory StyleMedia._internalWrap() {
     return new StyleMedia.internal_();
@@ -35065,15 +34853,13 @@ class StyleMedia extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('StyleSheet')
-class StyleSheet extends NativeFieldWrapperClass2 {
+class StyleSheet extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory StyleSheet._() { throw new UnsupportedError("Not supported"); }
 
   static StyleSheet internalCreateStyleSheet() {
     return new StyleSheet._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory StyleSheet._internalWrap() {
     return new StyleSheet.internal_();
@@ -35902,15 +35688,13 @@ class TextEvent extends UIEvent {
 
 @DocsEditable()
 @DomName('TextMetrics')
-class TextMetrics extends NativeFieldWrapperClass2 {
+class TextMetrics extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory TextMetrics._() { throw new UnsupportedError("Not supported"); }
 
   static TextMetrics internalCreateTextMetrics() {
     return new TextMetrics._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory TextMetrics._internalWrap() {
     return new TextMetrics.internal_();
@@ -36185,15 +35969,13 @@ class TextTrackCue extends EventTarget {
 @DomName('TextTrackCueList')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttrackcuelist
 @Experimental()
-class TextTrackCueList extends JsoNativeFieldWrapper with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue> {
+class TextTrackCueList extends DartHtmlDomObject with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue> {
   // To suppress missing implicit constructor warnings.
   factory TextTrackCueList._() { throw new UnsupportedError("Not supported"); }
 
   static TextTrackCueList internalCreateTextTrackCueList() {
     return new TextTrackCueList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory TextTrackCueList._internalWrap() {
     return new TextTrackCueList.internal_();
@@ -36385,15 +36167,13 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
 @DocsEditable()
 @DomName('TimeRanges')
 @Unstable()
-class TimeRanges extends NativeFieldWrapperClass2 {
+class TimeRanges extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory TimeRanges._() { throw new UnsupportedError("Not supported"); }
 
   static TimeRanges internalCreateTimeRanges() {
     return new TimeRanges._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory TimeRanges._internalWrap() {
     return new TimeRanges.internal_();
@@ -36436,15 +36216,13 @@ typedef void TimeoutHandler();
 @DocsEditable()
 @DomName('Timing')
 @Experimental() // untriaged
-class Timing extends NativeFieldWrapperClass2 {
+class Timing extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Timing._() { throw new UnsupportedError("Not supported"); }
 
   static Timing internalCreateTiming() {
     return new Timing._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Timing._internalWrap() {
     return new Timing.internal_();
@@ -36591,15 +36369,13 @@ class TitleElement extends HtmlElement {
 @DomName('Touch')
 // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
 @Experimental()
-class Touch extends NativeFieldWrapperClass2 {
+class Touch extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Touch._() { throw new UnsupportedError("Not supported"); }
 
   static Touch internalCreateTouch() {
     return new Touch._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Touch._internalWrap() {
     return new Touch.internal_();
@@ -36793,7 +36569,7 @@ class TouchEvent extends UIEvent {
 @DomName('TouchList')
 // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
 @Experimental()
-class TouchList extends JsoNativeFieldWrapper with ListMixin<Touch>, ImmutableListMixin<Touch> implements List<Touch> {
+class TouchList extends DartHtmlDomObject with ListMixin<Touch>, ImmutableListMixin<Touch> implements List<Touch> {
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
   /// with touch enabled. See dartbug.com/8314.
@@ -36805,8 +36581,6 @@ class TouchList extends JsoNativeFieldWrapper with ListMixin<Touch>, ImmutableLi
   static TouchList internalCreateTouchList() {
     return new TouchList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory TouchList._internalWrap() {
     return new TouchList.internal_();
@@ -37069,7 +36843,7 @@ class TransitionEvent extends Event {
 
 @DomName('TreeWalker')
 @Unstable()
-class TreeWalker extends NativeFieldWrapperClass2 {
+class TreeWalker extends DartHtmlDomObject {
   factory TreeWalker(Node root, int whatToShow) {
     return document._createTreeWalker(root, whatToShow, null);
   }
@@ -37079,8 +36853,6 @@ class TreeWalker extends NativeFieldWrapperClass2 {
   static TreeWalker internalCreateTreeWalker() {
     return new TreeWalker._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory TreeWalker._internalWrap() {
     return new TreeWalker.internal_();
@@ -37317,15 +37089,13 @@ class UnknownElement extends HtmlElement {
 
 @DocsEditable()
 @DomName('URL')
-class Url extends NativeFieldWrapperClass2 implements UrlUtils {
+class Url extends DartHtmlDomObject implements UrlUtils {
   // To suppress missing implicit constructor warnings.
   factory Url._() { throw new UnsupportedError("Not supported"); }
 
   static Url internalCreateUrl() {
     return new Url._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Url._internalWrap() {
     return new Url.internal_();
@@ -37340,10 +37110,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -37486,7 +37256,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
 @DocsEditable()
 @DomName('URLUtils')
 @Experimental() // untriaged
-abstract class UrlUtils extends NativeFieldWrapperClass2 {
+abstract class UrlUtils extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory UrlUtils._() { throw new UnsupportedError("Not supported"); }
 
@@ -37611,7 +37381,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('URLUtilsReadOnly')
 @Experimental() // untriaged
-abstract class UrlUtilsReadOnly extends NativeFieldWrapperClass2 {
+abstract class UrlUtilsReadOnly extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory UrlUtilsReadOnly._() { throw new UnsupportedError("Not supported"); }
 
@@ -37675,15 +37445,13 @@ abstract class UrlUtilsReadOnly extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('ValidityState')
-class ValidityState extends NativeFieldWrapperClass2 {
+class ValidityState extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ValidityState._() { throw new UnsupportedError("Not supported"); }
 
   static ValidityState internalCreateValidityState() {
     return new ValidityState._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ValidityState._internalWrap() {
     return new ValidityState.internal_();
@@ -37845,15 +37613,13 @@ class VideoElement extends MediaElement implements CanvasImageSource {
 @DocsEditable()
 @DomName('VideoPlaybackQuality')
 @Experimental() // untriaged
-class VideoPlaybackQuality extends NativeFieldWrapperClass2 {
+class VideoPlaybackQuality extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory VideoPlaybackQuality._() { throw new UnsupportedError("Not supported"); }
 
   static VideoPlaybackQuality internalCreateVideoPlaybackQuality() {
     return new VideoPlaybackQuality._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory VideoPlaybackQuality._internalWrap() {
     return new VideoPlaybackQuality.internal_();
@@ -37895,15 +37661,13 @@ class VideoPlaybackQuality extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('VideoTrack')
 @Experimental() // untriaged
-class VideoTrack extends NativeFieldWrapperClass2 {
+class VideoTrack extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory VideoTrack._() { throw new UnsupportedError("Not supported"); }
 
   static VideoTrack internalCreateVideoTrack() {
     return new VideoTrack._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory VideoTrack._internalWrap() {
     return new VideoTrack.internal_();
@@ -38141,7 +37905,7 @@ class VttCue extends TextTrackCue {
 @DocsEditable()
 @DomName('VTTRegion')
 @Experimental() // untriaged
-class VttRegion extends NativeFieldWrapperClass2 {
+class VttRegion extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory VttRegion._() { throw new UnsupportedError("Not supported"); }
 
@@ -38154,8 +37918,6 @@ class VttRegion extends NativeFieldWrapperClass2 {
   static VttRegion internalCreateVttRegion() {
     return new VttRegion._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory VttRegion._internalWrap() {
     return new VttRegion.internal_();
@@ -38262,15 +38024,13 @@ class VttRegion extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('VTTRegionList')
 @Experimental() // untriaged
-class VttRegionList extends NativeFieldWrapperClass2 {
+class VttRegionList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory VttRegionList._() { throw new UnsupportedError("Not supported"); }
 
   static VttRegionList internalCreateVttRegionList() {
     return new VttRegionList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory VttRegionList._internalWrap() {
     return new VttRegionList.internal_();
@@ -40251,7 +40011,7 @@ class _BeforeUnloadEventStreamProvider implements
 @DocsEditable()
 @DomName('WindowBase64')
 @Experimental() // untriaged
-abstract class WindowBase64 extends NativeFieldWrapperClass2 {
+abstract class WindowBase64 extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory WindowBase64._() { throw new UnsupportedError("Not supported"); }
 
@@ -40649,15 +40409,13 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
 @DocsEditable()
 @DomName('WorkerPerformance')
 @Experimental() // untriaged
-class WorkerPerformance extends NativeFieldWrapperClass2 {
+class WorkerPerformance extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory WorkerPerformance._() { throw new UnsupportedError("Not supported"); }
 
   static WorkerPerformance internalCreateWorkerPerformance() {
     return new WorkerPerformance._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory WorkerPerformance._internalWrap() {
     return new WorkerPerformance.internal_();
@@ -40690,7 +40448,7 @@ class WorkerPerformance extends NativeFieldWrapperClass2 {
 @DomName('XPathEvaluator')
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathEvaluator
 @deprecated // experimental
-class XPathEvaluator extends NativeFieldWrapperClass2 {
+class XPathEvaluator extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory XPathEvaluator._() { throw new UnsupportedError("Not supported"); }
 
@@ -40703,8 +40461,6 @@ class XPathEvaluator extends NativeFieldWrapperClass2 {
   static XPathEvaluator internalCreateXPathEvaluator() {
     return new XPathEvaluator._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory XPathEvaluator._internalWrap() {
     return new XPathEvaluator.internal_();
@@ -40739,15 +40495,13 @@ class XPathEvaluator extends NativeFieldWrapperClass2 {
 @DomName('XPathExpression')
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathExpression
 @deprecated // experimental
-class XPathExpression extends NativeFieldWrapperClass2 {
+class XPathExpression extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory XPathExpression._() { throw new UnsupportedError("Not supported"); }
 
   static XPathExpression internalCreateXPathExpression() {
     return new XPathExpression._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory XPathExpression._internalWrap() {
     return new XPathExpression.internal_();
@@ -40774,15 +40528,13 @@ class XPathExpression extends NativeFieldWrapperClass2 {
 @DomName('XPathNSResolver')
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathNSResolver
 @deprecated // experimental
-class XPathNSResolver extends NativeFieldWrapperClass2 {
+class XPathNSResolver extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory XPathNSResolver._() { throw new UnsupportedError("Not supported"); }
 
   static XPathNSResolver internalCreateXPathNSResolver() {
     return new XPathNSResolver._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory XPathNSResolver._internalWrap() {
     return new XPathNSResolver.internal_();
@@ -40809,15 +40561,13 @@ class XPathNSResolver extends NativeFieldWrapperClass2 {
 @DomName('XPathResult')
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathResult
 @deprecated // experimental
-class XPathResult extends NativeFieldWrapperClass2 {
+class XPathResult extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory XPathResult._() { throw new UnsupportedError("Not supported"); }
 
   static XPathResult internalCreateXPathResult() {
     return new XPathResult._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory XPathResult._internalWrap() {
     return new XPathResult.internal_();
@@ -40943,7 +40693,7 @@ class XmlDocument extends Document {
 @DomName('XMLSerializer')
 // http://domparsing.spec.whatwg.org/#the-xmlserializer-interface
 @deprecated // stable
-class XmlSerializer extends NativeFieldWrapperClass2 {
+class XmlSerializer extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory XmlSerializer._() { throw new UnsupportedError("Not supported"); }
 
@@ -40956,8 +40706,6 @@ class XmlSerializer extends NativeFieldWrapperClass2 {
   static XmlSerializer internalCreateXmlSerializer() {
     return new XmlSerializer._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory XmlSerializer._internalWrap() {
     return new XmlSerializer.internal_();
@@ -40986,7 +40734,7 @@ class XmlSerializer extends NativeFieldWrapperClass2 {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @deprecated // nonstandard
-class XsltProcessor extends NativeFieldWrapperClass2 {
+class XsltProcessor extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory XsltProcessor._() { throw new UnsupportedError("Not supported"); }
 
@@ -40999,8 +40747,6 @@ class XsltProcessor extends NativeFieldWrapperClass2 {
   static XsltProcessor internalCreateXsltProcessor() {
     return new XsltProcessor._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory XsltProcessor._internalWrap() {
     return new XsltProcessor.internal_();
@@ -41177,15 +40923,13 @@ class _CSSUnknownRule extends CssRule {
 @DomName('CSSValue')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-class _CSSValue extends NativeFieldWrapperClass2 {
+class _CSSValue extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _CSSValue._() { throw new UnsupportedError("Not supported"); }
 
   static _CSSValue internalCreate_CSSValue() {
     return new _CSSValue._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _CSSValue._internalWrap() {
     return new _CSSValue.internal_();
@@ -41207,15 +40951,13 @@ class _CSSValue extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('Cache')
 @Experimental() // untriaged
-class _Cache extends NativeFieldWrapperClass2 {
+class _Cache extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _Cache._() { throw new UnsupportedError("Not supported"); }
 
   static _Cache internalCreate_Cache() {
     return new _Cache._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _Cache._internalWrap() {
     return new _Cache.internal_();
@@ -41237,7 +40979,7 @@ class _Cache extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('CanvasPathMethods')
 @Experimental() // untriaged
-class _CanvasPathMethods extends NativeFieldWrapperClass2 {
+class _CanvasPathMethods extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _CanvasPathMethods._() { throw new UnsupportedError("Not supported"); }
 
@@ -41249,7 +40991,7 @@ class _CanvasPathMethods extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('ClientRect')
-class _ClientRect extends NativeFieldWrapperClass2 implements Rectangle {
+class _ClientRect extends DartHtmlDomObject implements Rectangle {
 
   // NOTE! All code below should be common with RectangleBase.
    String toString() {
@@ -41347,8 +41089,6 @@ class _ClientRect extends NativeFieldWrapperClass2 implements Rectangle {
     return new _ClientRect._internalWrap();
   }
 
-  js.JsObject blink_jsObject;
-
   factory _ClientRect._internalWrap() {
     return new _ClientRect.internal_();
   }
@@ -41426,15 +41166,13 @@ class _JenkinsSmiHash {
 
 @DocsEditable()
 @DomName('ClientRectList')
-class _ClientRectList extends JsoNativeFieldWrapper with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List<Rectangle> {
+class _ClientRectList extends DartHtmlDomObject with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List<Rectangle> {
   // To suppress missing implicit constructor warnings.
   factory _ClientRectList._() { throw new UnsupportedError("Not supported"); }
 
   static _ClientRectList internalCreate_ClientRectList() {
     return new _ClientRectList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _ClientRectList._internalWrap() {
     return new _ClientRectList.internal_();
@@ -41511,15 +41249,13 @@ class _ClientRectList extends JsoNativeFieldWrapper with ListMixin<Rectangle>, I
 @DomName('Counter')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-class _Counter extends NativeFieldWrapperClass2 {
+class _Counter extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _Counter._() { throw new UnsupportedError("Not supported"); }
 
   static _Counter internalCreate_Counter() {
     return new _Counter._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _Counter._internalWrap() {
     return new _Counter.internal_();
@@ -41540,15 +41276,13 @@ class _Counter extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('CSSRuleList')
-class _CssRuleList extends JsoNativeFieldWrapper with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements List<CssRule> {
+class _CssRuleList extends DartHtmlDomObject with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements List<CssRule> {
   // To suppress missing implicit constructor warnings.
   factory _CssRuleList._() { throw new UnsupportedError("Not supported"); }
 
   static _CssRuleList internalCreate_CssRuleList() {
     return new _CssRuleList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _CssRuleList._internalWrap() {
     return new _CssRuleList.internal_();
@@ -41708,15 +41442,13 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://www.w3.org/TR/file-system-api/#the-filesystemsync-interface
-class _DOMFileSystemSync extends NativeFieldWrapperClass2 {
+class _DOMFileSystemSync extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _DOMFileSystemSync._() { throw new UnsupportedError("Not supported"); }
 
   static _DOMFileSystemSync internalCreate_DOMFileSystemSync() {
     return new _DOMFileSystemSync._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _DOMFileSystemSync._internalWrap() {
     return new _DOMFileSystemSync.internal_();
@@ -41767,15 +41499,13 @@ class _DirectoryEntrySync extends _EntrySync {
 @DomName('DirectoryReaderSync')
 // http://www.w3.org/TR/file-system-api/#idl-def-DirectoryReaderSync
 @Experimental()
-class _DirectoryReaderSync extends NativeFieldWrapperClass2 {
+class _DirectoryReaderSync extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _DirectoryReaderSync._() { throw new UnsupportedError("Not supported"); }
 
   static _DirectoryReaderSync internalCreate_DirectoryReaderSync() {
     return new _DirectoryReaderSync._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _DirectoryReaderSync._internalWrap() {
     return new _DirectoryReaderSync.internal_();
@@ -41913,15 +41643,13 @@ class _DomRect extends DomRectReadOnly {
 @DomName('EntrySync')
 // http://www.w3.org/TR/file-system-api/#idl-def-EntrySync
 @Experimental()
-class _EntrySync extends NativeFieldWrapperClass2 {
+class _EntrySync extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _EntrySync._() { throw new UnsupportedError("Not supported"); }
 
   static _EntrySync internalCreate_EntrySync() {
     return new _EntrySync._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _EntrySync._internalWrap() {
     return new _EntrySync.internal_();
@@ -41972,7 +41700,7 @@ class _FileEntrySync extends _EntrySync {
 @DomName('FileReaderSync')
 // http://www.w3.org/TR/FileAPI/#FileReaderSync
 @Experimental()
-class _FileReaderSync extends NativeFieldWrapperClass2 {
+class _FileReaderSync extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _FileReaderSync._() { throw new UnsupportedError("Not supported"); }
 
@@ -41985,8 +41713,6 @@ class _FileReaderSync extends NativeFieldWrapperClass2 {
   static _FileReaderSync internalCreate_FileReaderSync() {
     return new _FileReaderSync._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _FileReaderSync._internalWrap() {
     return new _FileReaderSync.internal_();
@@ -42009,15 +41735,13 @@ class _FileReaderSync extends NativeFieldWrapperClass2 {
 @DomName('FileWriterSync')
 // http://www.w3.org/TR/file-writer-api/#idl-def-FileWriterSync
 @Experimental()
-class _FileWriterSync extends NativeFieldWrapperClass2 {
+class _FileWriterSync extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _FileWriterSync._() { throw new UnsupportedError("Not supported"); }
 
   static _FileWriterSync internalCreate_FileWriterSync() {
     return new _FileWriterSync._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _FileWriterSync._internalWrap() {
     return new _FileWriterSync.internal_();
@@ -42040,15 +41764,13 @@ class _FileWriterSync extends NativeFieldWrapperClass2 {
 @DomName('GamepadList')
 // https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html
 @Experimental()
-class _GamepadList extends JsoNativeFieldWrapper with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements List<Gamepad> {
+class _GamepadList extends DartHtmlDomObject with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements List<Gamepad> {
   // To suppress missing implicit constructor warnings.
   factory _GamepadList._() { throw new UnsupportedError("Not supported"); }
 
   static _GamepadList internalCreate_GamepadList() {
     return new _GamepadList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _GamepadList._internalWrap() {
     return new _GamepadList.internal_();
@@ -42125,15 +41847,13 @@ class _GamepadList extends JsoNativeFieldWrapper with ListMixin<Gamepad>, Immuta
 @DomName('HTMLAllCollection')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dom-document-all
 @deprecated // deprecated
-class _HTMLAllCollection extends NativeFieldWrapperClass2 {
+class _HTMLAllCollection extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _HTMLAllCollection._() { throw new UnsupportedError("Not supported"); }
 
   static _HTMLAllCollection internalCreate_HTMLAllCollection() {
     return new _HTMLAllCollection._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _HTMLAllCollection._internalWrap() {
     return new _HTMLAllCollection.internal_();
@@ -42405,15 +42125,13 @@ class _MutationEvent extends Event {
 @DomName('NamedNodeMap')
 // http://dom.spec.whatwg.org/#namednodemap
 @deprecated // deprecated
-class _NamedNodeMap extends JsoNativeFieldWrapper with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class _NamedNodeMap extends DartHtmlDomObject with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   // To suppress missing implicit constructor warnings.
   factory _NamedNodeMap._() { throw new UnsupportedError("Not supported"); }
 
   static _NamedNodeMap internalCreate_NamedNodeMap() {
     return new _NamedNodeMap._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _NamedNodeMap._internalWrap() {
     return new _NamedNodeMap.internal_();
@@ -42517,15 +42235,13 @@ class _NamedNodeMap extends JsoNativeFieldWrapper with ListMixin<Node>, Immutabl
 @DocsEditable()
 @DomName('PagePopupController')
 @deprecated // nonstandard
-class _PagePopupController extends NativeFieldWrapperClass2 {
+class _PagePopupController extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _PagePopupController._() { throw new UnsupportedError("Not supported"); }
 
   static _PagePopupController internalCreate_PagePopupController() {
     return new _PagePopupController._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _PagePopupController._internalWrap() {
     return new _PagePopupController.internal_();
@@ -42548,15 +42264,13 @@ class _PagePopupController extends NativeFieldWrapperClass2 {
 @DomName('RGBColor')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-class _RGBColor extends NativeFieldWrapperClass2 {
+class _RGBColor extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _RGBColor._() { throw new UnsupportedError("Not supported"); }
 
   static _RGBColor internalCreate_RGBColor() {
     return new _RGBColor._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _RGBColor._internalWrap() {
     return new _RGBColor.internal_();
@@ -42602,15 +42316,13 @@ class _RadioNodeList extends NodeList {
 @DomName('Rect')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-class _Rect extends NativeFieldWrapperClass2 {
+class _Rect extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _Rect._() { throw new UnsupportedError("Not supported"); }
 
   static _Rect internalCreate_Rect() {
     return new _Rect._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _Rect._internalWrap() {
     return new _Rect.internal_();
@@ -42799,15 +42511,13 @@ class _ServiceWorker extends EventTarget implements AbstractWorker {
 @DomName('SpeechRecognitionResultList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionresultlist
 @Experimental()
-class _SpeechRecognitionResultList extends JsoNativeFieldWrapper with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements List<SpeechRecognitionResult> {
+class _SpeechRecognitionResultList extends DartHtmlDomObject with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements List<SpeechRecognitionResult> {
   // To suppress missing implicit constructor warnings.
   factory _SpeechRecognitionResultList._() { throw new UnsupportedError("Not supported"); }
 
   static _SpeechRecognitionResultList internalCreate_SpeechRecognitionResultList() {
     return new _SpeechRecognitionResultList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _SpeechRecognitionResultList._internalWrap() {
     return new _SpeechRecognitionResultList.internal_();
@@ -42882,15 +42592,13 @@ class _SpeechRecognitionResultList extends JsoNativeFieldWrapper with ListMixin<
 
 @DocsEditable()
 @DomName('StyleSheetList')
-class _StyleSheetList extends JsoNativeFieldWrapper with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements List<StyleSheet> {
+class _StyleSheetList extends DartHtmlDomObject with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements List<StyleSheet> {
   // To suppress missing implicit constructor warnings.
   factory _StyleSheetList._() { throw new UnsupportedError("Not supported"); }
 
   static _StyleSheetList internalCreate_StyleSheetList() {
     return new _StyleSheetList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _StyleSheetList._internalWrap() {
     return new _StyleSheetList.internal_();
@@ -42970,15 +42678,13 @@ class _StyleSheetList extends JsoNativeFieldWrapper with ListMixin<StyleSheet>, 
 @DocsEditable()
 @DomName('SubtleCrypto')
 @Experimental() // untriaged
-class _SubtleCrypto extends NativeFieldWrapperClass2 {
+class _SubtleCrypto extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _SubtleCrypto._() { throw new UnsupportedError("Not supported"); }
 
   static _SubtleCrypto internalCreate_SubtleCrypto() {
     return new _SubtleCrypto._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _SubtleCrypto._internalWrap() {
     return new _SubtleCrypto.internal_();
@@ -43032,7 +42738,7 @@ class _WebKitCSSFilterValue extends _CssValueList {
 @Experimental()
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
+class _WebKitCSSMatrix extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _WebKitCSSMatrix._() { throw new UnsupportedError("Not supported"); }
 
@@ -43045,8 +42751,6 @@ class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
   static _WebKitCSSMatrix internalCreate_WebKitCSSMatrix() {
     return new _WebKitCSSMatrix._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _WebKitCSSMatrix._internalWrap() {
     return new _WebKitCSSMatrix.internal_();
@@ -43096,7 +42800,7 @@ class _WebKitCSSTransformValue extends _CssValueList {
 @DocsEditable()
 @DomName('WindowTimers')
 @Experimental() // untriaged
-abstract class _WindowTimers extends NativeFieldWrapperClass2 {
+abstract class _WindowTimers extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _WindowTimers._() { throw new UnsupportedError("Not supported"); }
 
@@ -43130,15 +42834,13 @@ abstract class _WindowTimers extends NativeFieldWrapperClass2 {
 @DomName('WorkerLocation')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workerlocation
 @Experimental()
-class _WorkerLocation extends NativeFieldWrapperClass2 implements UrlUtilsReadOnly {
+class _WorkerLocation extends DartHtmlDomObject implements UrlUtilsReadOnly {
   // To suppress missing implicit constructor warnings.
   factory _WorkerLocation._() { throw new UnsupportedError("Not supported"); }
 
   static _WorkerLocation internalCreate_WorkerLocation() {
     return new _WorkerLocation._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _WorkerLocation._internalWrap() {
     return new _WorkerLocation.internal_();
@@ -43170,15 +42872,13 @@ class _WorkerLocation extends NativeFieldWrapperClass2 implements UrlUtilsReadOn
 @DomName('WorkerNavigator')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workernavigator
 @Experimental()
-class _WorkerNavigator extends NativeFieldWrapperClass2 implements NavigatorCpu, NavigatorOnLine, NavigatorID {
+class _WorkerNavigator extends DartHtmlDomObject implements NavigatorCpu, NavigatorOnLine, NavigatorID {
   // To suppress missing implicit constructor warnings.
   factory _WorkerNavigator._() { throw new UnsupportedError("Not supported"); }
 
   static _WorkerNavigator internalCreate_WorkerNavigator() {
     return new _WorkerNavigator._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _WorkerNavigator._internalWrap() {
     return new _WorkerNavigator.internal_();
@@ -48620,7 +48320,7 @@ class _Utils {
     _blink.Blink_Utils.changeElementWrapper(unwrap_jso(element), type);
 }
 
-class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements
+class _DOMWindowCrossFrame extends DartHtmlDomObject implements
     WindowBase {
   /** Needed because KeyboardEvent is implements.
    *  TODO(terry): Consider making blink_jsObject private (add underscore) for
@@ -48671,7 +48371,7 @@ class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements
     'You can only attach EventListeners to your own window.');
 }
 
-class _HistoryCrossFrame extends NativeFieldWrapperClass2 implements HistoryBase {
+class _HistoryCrossFrame extends DartHtmlDomObject implements HistoryBase {
   _HistoryCrossFrame.internal();
 
   // Methods.
@@ -48683,7 +48383,7 @@ class _HistoryCrossFrame extends NativeFieldWrapperClass2 implements HistoryBase
   String get typeName => "History";
 }
 
-class _LocationCrossFrame extends NativeFieldWrapperClass2 implements LocationBase {
+class _LocationCrossFrame extends DartHtmlDomObject implements LocationBase {
   _LocationCrossFrame.internal();
 
   // Fields.
@@ -48693,7 +48393,7 @@ class _LocationCrossFrame extends NativeFieldWrapperClass2 implements LocationBa
   String get typeName => "Location";
 }
 
-class _DOMStringMap extends NativeFieldWrapperClass2 implements Map<String, String> {
+class _DOMStringMap extends DartHtmlDomObject implements Map<String, String> {
   _DOMStringMap.internal();
 
   bool containsValue(String value) => Maps.containsValue(this, value);
@@ -48924,5 +48624,5 @@ get _pureIsolateScheduleImmediateClosure => ((void callback()) =>
                                "are not supported in the browser"));
 
 // Class for unsupported native browser 'DOM' objects.
-class _UnsupportedBrowserObject extends NativeFieldWrapperClass2 {
+class _UnsupportedBrowserObject extends DartHtmlDomObject {
 }

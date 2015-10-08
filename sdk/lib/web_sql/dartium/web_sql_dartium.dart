@@ -25,11 +25,6 @@ import 'dart:js' as js;
 
 
 
-// Need a default constructor for constructing classes with mixins that are
-// also extending NativeFieldWrapperClass2.  Defining JsoNativeFieldWrapper
-// extending NativeFieldWrapperClass2 creates a default constructor.
-class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
-
 
 // FIXME: Can we make this private?
 final web_sqlBlinkMap = {
@@ -108,15 +103,13 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 @Experimental()
 // http://www.w3.org/TR/webdatabase/#asynchronous-database-api
 @Experimental() // deprecated
-class SqlDatabase extends NativeFieldWrapperClass2 {
+class SqlDatabase extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SqlDatabase._() { throw new UnsupportedError("Not supported"); }
 
   static SqlDatabase internalCreateSqlDatabase() {
     return new SqlDatabase._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SqlDatabase._internalWrap() {
     return new SqlDatabase.internal_();
@@ -189,15 +182,13 @@ class SqlDatabase extends NativeFieldWrapperClass2 {
 @DomName('SQLError')
 // http://www.w3.org/TR/webdatabase/#sqlerror
 @Experimental() // deprecated
-class SqlError extends NativeFieldWrapperClass2 {
+class SqlError extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SqlError._() { throw new UnsupportedError("Not supported"); }
 
   static SqlError internalCreateSqlError() {
     return new SqlError._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SqlError._internalWrap() {
     return new SqlError.internal_();
@@ -260,15 +251,13 @@ class SqlError extends NativeFieldWrapperClass2 {
 @DomName('SQLResultSet')
 // http://www.w3.org/TR/webdatabase/#sqlresultset
 @Experimental() // deprecated
-class SqlResultSet extends NativeFieldWrapperClass2 {
+class SqlResultSet extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SqlResultSet._() { throw new UnsupportedError("Not supported"); }
 
   static SqlResultSet internalCreateSqlResultSet() {
     return new SqlResultSet._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SqlResultSet._internalWrap() {
     return new SqlResultSet.internal_();
@@ -303,15 +292,13 @@ class SqlResultSet extends NativeFieldWrapperClass2 {
 @DomName('SQLResultSetRowList')
 // http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
 @Experimental() // deprecated
-class SqlResultSetRowList extends JsoNativeFieldWrapper with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> {
+class SqlResultSetRowList extends DartHtmlDomObject with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> {
   // To suppress missing implicit constructor warnings.
   factory SqlResultSetRowList._() { throw new UnsupportedError("Not supported"); }
 
   static SqlResultSetRowList internalCreateSqlResultSetRowList() {
     return new SqlResultSetRowList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SqlResultSetRowList._internalWrap() {
     return new SqlResultSetRowList.internal_();
@@ -391,15 +378,13 @@ class SqlResultSetRowList extends JsoNativeFieldWrapper with ListMixin<Map>, Imm
 @Experimental()
 // http://www.w3.org/TR/webdatabase/#sqltransaction
 @deprecated // deprecated
-class SqlTransaction extends NativeFieldWrapperClass2 {
+class SqlTransaction extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SqlTransaction._() { throw new UnsupportedError("Not supported"); }
 
   static SqlTransaction internalCreateSqlTransaction() {
     return new SqlTransaction._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SqlTransaction._internalWrap() {
     return new SqlTransaction.internal_();
