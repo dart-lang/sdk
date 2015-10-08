@@ -152,7 +152,7 @@ class Emitter implements emitterTask.Emitter {
         return js.js.expressionTemplateFor('#.substring($isPrefixLength)');
 
       case JsBuiltin.isFunctionType:
-        return _backend.rti.representationGenerator.templateForIsFunctionType;
+        return _backend.rtiEncoder.templateForIsFunctionType;
 
       case JsBuiltin.rawRtiToJsConstructorName:
         return js.js.expressionTemplateFor("#.$typeNameProperty");
@@ -161,8 +161,7 @@ class Emitter implements emitterTask.Emitter {
         return js.js.expressionTemplateFor("#.constructor");
 
       case JsBuiltin.createFunctionTypeRti:
-        return _backend.rti.representationGenerator
-        .templateForCreateFunctionType;
+        return _backend.rtiEncoder.templateForCreateFunctionType;
 
       case JsBuiltin.isSubtype:
       // TODO(floitsch): move this closer to where is-check properties are

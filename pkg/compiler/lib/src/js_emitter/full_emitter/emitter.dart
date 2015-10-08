@@ -381,7 +381,7 @@ class Emitter implements js_emitter.Emitter {
         return jsAst.js.expressionTemplateFor('#.substring($isPrefixLength)');
 
       case JsBuiltin.isFunctionType:
-        return backend.rti.representationGenerator.templateForIsFunctionType;
+        return backend.rtiEncoder.templateForIsFunctionType;
 
       case JsBuiltin.rawRtiToJsConstructorName:
         return jsAst.js.expressionTemplateFor("#.$typeNameProperty");
@@ -390,8 +390,7 @@ class Emitter implements js_emitter.Emitter {
         return jsAst.js.expressionTemplateFor("#.constructor");
 
       case JsBuiltin.createFunctionTypeRti:
-        return backend.rti.representationGenerator
-            .templateForCreateFunctionType;
+        return backend.rtiEncoder.templateForCreateFunctionType;
 
       case JsBuiltin.isSubtype:
         // TODO(floitsch): move this closer to where is-check properties are
@@ -845,12 +844,12 @@ class Emitter implements js_emitter.Emitter {
   jsAst.Statement buildFunctionThatReturnsNull() {
     return js.statement('#.# = function() {}',
                         [namer.isolateName,
-                         backend.rti.getFunctionThatReturnsNullName]);
+                         backend.rtiEncoder.getFunctionThatReturnsNullName]);
   }
 
   jsAst.Expression generateFunctionThatReturnsNull() {
     return js("#.#", [namer.isolateName,
-                      backend.rti.getFunctionThatReturnsNullName]);
+                      backend.rtiEncoder.getFunctionThatReturnsNullName]);
   }
 
   buildMain(jsAst.Statement invokeMain) {
@@ -1017,7 +1016,7 @@ class Emitter implements js_emitter.Emitter {
             'outputContainsConstantList': outputContainsConstantList,
             'makeConstListProperty': makeConstListProperty,
             'functionThatReturnsNullProperty':
-                backend.rti.getFunctionThatReturnsNullName,
+                backend.rtiEncoder.getFunctionThatReturnsNullName,
             'hasIncrementalSupport': compiler.hasIncrementalSupport,
             'lazyInitializerProperty': lazyInitializerProperty,});
   }

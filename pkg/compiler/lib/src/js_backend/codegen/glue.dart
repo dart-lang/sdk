@@ -227,7 +227,7 @@ class Glue {
   }
 
   int getTypeVariableIndex(TypeVariableType variable) {
-    return RuntimeTypes.getTypeVariableIndex(variable.element);
+    return variable.element.index;
   }
 
   bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {
@@ -244,7 +244,7 @@ class Glue {
                                            List<js.Expression> arguments,
                                            CodegenRegistry registry) {
     int variableIndex = 0;
-    js.Expression representation = _backend.rti.getTypeRepresentation(
+    js.Expression representation = _backend.rtiEncoder.getTypeRepresentation(
         dartType,
         (_) => arguments[variableIndex++]);
     assert(variableIndex == arguments.length);

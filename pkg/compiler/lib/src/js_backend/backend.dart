@@ -511,6 +511,7 @@ class JavaScriptBackend extends Backend {
   }
 
   final RuntimeTypes rti;
+  final RuntimeTypesEncoder rtiEncoder;
 
   /// Holds the method "disableTreeShaking" in js_mirrors when
   /// dart:mirrors has been loaded.
@@ -638,7 +639,8 @@ class JavaScriptBackend extends Backend {
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<jsAst.Name, Selector>(),
         interceptedElements = new Map<String, Set<Element>>(),
-        rti = new RuntimeTypes(compiler),
+        rti = new _RuntimeTypes(compiler),
+        rtiEncoder = new _RuntimeTypesEncoder(compiler),
         specializedGetInterceptors = new Map<jsAst.Name, Set<ClassElement>>(),
         annotations = new Annotations(compiler),
         this.sourceInformationStrategy =
@@ -3226,7 +3228,7 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     registerBackendStaticInvocation(backend.getCreateRuntimeType(), registry);
     needsInt(registry, 'Needed for accessing a type variable literal on this.');
     ClassElement cls = variable.enclosingClass;
-    backend.rti.classesUsingTypeVariableExpression.add(cls);
+    backend.rti.registerClassUsingTypeVariableExpression(cls);
   }
 
   // TODO(johnniwinther): Maybe split this into [onAssertType] and [onTestType].

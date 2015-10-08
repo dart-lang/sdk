@@ -1723,7 +1723,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
     String name = type.element?.name;
     if (name == null) {  // e.g. DartType 'dynamic' has no element.
       JavaScriptBackend backend = compiler.backend;
-      name = backend.rti.getTypeRepresentationForTypeConstant(type);
+      name = backend.rtiEncoder.getTypeRepresentationForTypeConstant(type);
     }
     addIdentifier(name);
     add(getHashTag(constant, 3));
@@ -1844,7 +1844,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
     DartType type = constant.representedType;
     JavaScriptBackend backend = compiler.backend;
     // This name includes the library name and type parameters.
-    String name = backend.rti.getTypeRepresentationForTypeConstant(type);
+    String name = backend.rtiEncoder.getTypeRepresentationForTypeConstant(type);
     return _hashString(4, name);
   }
 
@@ -1970,7 +1970,7 @@ class FunctionTypeNamer extends BaseDartTypeVisitor {
   }
 
   visitFunctionType(FunctionType type, _) {
-    if (backend.rti.isSimpleFunctionType(type)) {
+    if (backend.rtiEncoder.isSimpleFunctionType(type)) {
       sb.write('args${type.parameterTypes.length}');
       return;
     }

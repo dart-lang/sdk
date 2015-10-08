@@ -94,8 +94,9 @@ class RuntimeTypeGenerator {
         result.functionTypeIndex =
             emitterTask.metadataCollector.reifyType(type);
       } else {
-        RuntimeTypes rti = backend.rti;
-        jsAst.Expression encoding = rti.getSignatureEncoding(type, thisAccess);
+        RuntimeTypesEncoder rtiEncoder = backend.rtiEncoder;
+        jsAst.Expression encoding =
+            rtiEncoder.getSignatureEncoding(type, thisAccess);
         jsAst.Name operatorSignature =
             namer.asName(namer.operatorSignature);
         result.properties[operatorSignature] = encoding;
@@ -105,10 +106,14 @@ class RuntimeTypeGenerator {
     void generateSubstitution(ClassElement cls, {bool emitNull: false}) {
       if (cls.typeVariables.isEmpty) return;
       RuntimeTypes rti = backend.rti;
+      RuntimeTypesEncoder rtiEncoder = backend.rtiEncoder;
       jsAst.Expression expression;
       bool needsNativeCheck =
           emitterTask.nativeEmitter.requiresNativeIsCheck(cls);
-      expression = rti.getSupertypeSubstitution(classElement, cls);
+      Substitution substitution = rti.getSubstitution(classElement, cls);
+      if (substitution != null) {
+        expression = rtiEncoder.getSubstitutionCode(substitution);
+      }
       if (expression == null && (emitNull || needsNativeCheck)) {
         expression = new jsAst.LiteralNull();
       }
@@ -122,7 +127,8 @@ class RuntimeTypeGenerator {
       generateIsTest(checkedClass);
       Substitution substitution = check.substitution;
       if (substitution != null) {
-        jsAst.Expression body = substitution.getCode(backend.rti);
+        jsAst.Expression body =
+            backend.rtiEncoder.getSubstitutionCode(substitution);
         result.properties[namer.substitutionName(checkedClass)] = body;
       }
     }
@@ -291,16 +297,16 @@ class RuntimeTypeGenerator {
   StubMethod _generateTypeVariableReader(ClassElement cls,
                                          TypeVariableElement element) {
     jsAst.Name name = namer.nameForReadTypeVariable(element);
-    int index = RuntimeTypes.getTypeVariableIndex(element);
+    int index = element.index;
     jsAst.Expression computeTypeVariable;
 
     Substitution substitution =
-        backend.rti.computeSubstitution(
-            cls, element.typeDeclaration, alwaysGenerateFunction: true);
+        backend.rti.getSubstitution(cls, element.typeDeclaration);
     if (substitution != null) {
       computeTypeVariable =
           js(r'#.apply(null, this.$builtinTypeInfo)',
-             substitution.getCodeForVariable(index, backend.rti));
+                 backend.rtiEncoder.getSubstitutionCodeForVariable(
+                     substitution, index));
     } else {
       // TODO(ahe): These can be generated dynamically.
       computeTypeVariable =

@@ -638,7 +638,7 @@ class ProgramBuilder {
   js.Expression _generateFunctionType(DartType type, OutputUnit outputUnit) {
     if (type.containsTypeVariables) {
       js.Expression thisAccess = js.js(r'this.$receiver');
-      return backend.rti.getSignatureEncoding(type, thisAccess);
+      return backend.rtiEncoder.getSignatureEncoding(type, thisAccess);
     } else {
       return backend.emitter.metadataCollector
           .reifyTypeForOutputUnit(type, outputUnit);

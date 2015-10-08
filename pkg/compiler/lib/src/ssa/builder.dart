@@ -1107,6 +1107,7 @@ class SsaBuilder extends ast.Visitor
             work.element.implementation);
   }
 
+  RuntimeTypesEncoder get rtiEncoder => backend.rtiEncoder;
 
   DiagnosticReporter get reporter => compiler.reporter;
 
@@ -3769,7 +3770,8 @@ class SsaBuilder extends ast.Visitor
         // inputs that are later used to instantiate it. We do this by starting
         // the indexing with the number of inputs from previous sub-templates.
         templates.add(
-            rti.getTypeRepresentationWithPlaceholders(argument, (variable) {
+            rtiEncoder.getTypeRepresentationWithPlaceholders(
+                argument, (variable) {
               HInstruction runtimeType = addTypeVariableReference(variable);
               inputs.add(runtimeType);
             }, firstPlaceholderIndex: inputs.length));
@@ -4799,9 +4801,7 @@ class SsaBuilder extends ast.Visitor
     assert(sourceElement.isInstanceMember);
 
     HInstruction target = localsHandler.readThis();
-    HConstant index = graph.addConstantInt(
-        RuntimeTypes.getTypeVariableIndex(variable),
-        compiler);
+    HConstant index = graph.addConstantInt(variable.index, compiler);
 
     if (needsSubstitutionForTypeVariableAccess(cls)) {
       // TODO(ahe): Creating a string here is unfortunate. It is slow (due to
@@ -4916,7 +4916,7 @@ class SsaBuilder extends ast.Visitor
     List<HInstruction> inputs = <HInstruction>[];
 
     js.Expression template =
-        rti.getTypeRepresentationWithPlaceholders(argument, (variable) {
+        rtiEncoder.getTypeRepresentationWithPlaceholders(argument, (variable) {
             inputs.add(addTypeVariableReference(variable));
         });
 

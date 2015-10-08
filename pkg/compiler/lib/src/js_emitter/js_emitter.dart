@@ -50,6 +50,7 @@ import '../js_backend/js_backend.dart' show
     JavaScriptConstantCompiler,
     Namer,
     RuntimeTypes,
+    RuntimeTypesEncoder,
     SetterName,
     Substitution,
     TypeCheck,

@@ -309,10 +309,10 @@ class ConstantEmitter
         !type.treatAsRaw &&
         backend.classNeedsRti(type.element)) {
       InterfaceType interface = type;
-      RuntimeTypes rti = backend.rti;
+      RuntimeTypesEncoder rtiEncoder = backend.rtiEncoder;
       Iterable<jsAst.Expression> arguments = interface.typeArguments
           .map((DartType type) =>
-              rti.getTypeRepresentationWithPlaceholders(type, (_){}));
+              rtiEncoder.getTypeRepresentationWithPlaceholders(type, (_){}));
       jsAst.Expression argumentList =
           new jsAst.ArrayInitializer(arguments.toList());
       return new jsAst.Call(getHelperProperty(backend.getSetRuntimeTypeInfo()),

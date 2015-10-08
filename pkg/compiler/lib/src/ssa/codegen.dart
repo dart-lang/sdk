@@ -2827,7 +2827,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.inputs[0]);
     if (node.hasReceiver) {
       if (backend.isInterceptorClass(element.enclosingClass)) {
-        int index = RuntimeTypes.getTypeVariableIndex(element);
+        int index = element.index;
         js.Expression receiver = pop();
         js.Expression helper = backend.emitter
             .staticFunctionAccess(helperElement);
