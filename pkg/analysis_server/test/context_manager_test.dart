@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart';
+import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -90,6 +91,10 @@ class AbstractContextManagerTest {
     manager.callbacks = callbacks;
     resourceProvider.newFolder(projPath);
     ContextManagerImpl.ENABLE_PACKAGESPEC_SUPPORT = true;
+
+    // Options processing is required in context creation.
+    ExtensionManager em = new ExtensionManager();
+    em.processPlugins([AnalysisEngine.instance.optionsPlugin]);
   }
 
   void tearDown() {

@@ -463,7 +463,7 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Process [options] for the context having info [info].
+   * Process [options] for the given context [info].
    */
   void processOptionsForContext(
       ContextInfo info, Map<String, YamlNode> options) {
@@ -472,9 +472,8 @@ class ContextManagerImpl implements ContextManager {
     }
 
     // Notify options processors.
-    // TODO(pq): breaks AbstractContextManager tests
-//    AnalysisEngine.instance.optionsPlugin.optionsProcessors.forEach(
-//        (OptionsProcessor p) => p.optionsProcessed(info.context, options));
+    AnalysisEngine.instance.optionsPlugin.optionsProcessors.forEach(
+        (OptionsProcessor p) => p.optionsProcessed(info.context, options));
 
     // Analysis options are processed 'in-line'.
     // TODO(pq): consider pushing exclude handling into a plugin.
