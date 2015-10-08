@@ -335,8 +335,13 @@ class LogicalRewriter extends RecursiveTransformer
     return isTrue(e) ||
            isFalse(e) ||
            e is Not ||
-           e is LogicalOperator ||
-           e is ApplyBuiltinOperator && operatorReturnsBool(e.operator);
+           e is LogicalOperator && isBooleanValuedLogicalOperator(e) ||
+           e is ApplyBuiltinOperator && operatorReturnsBool(e.operator) ||
+           e is TypeOperator && isBooleanValuedTypeOperator(e);
+  }
+
+  bool isBooleanValuedLogicalOperator(LogicalOperator e) {
+    return isBooleanValued(e.left) && isBooleanValued(e.right);
   }
 
   /// True if the given operator always returns `true` or `false`.
@@ -359,6 +364,10 @@ class LogicalRewriter extends RecursiveTransformer
       default:
         return false;
     }
+  }
+
+  bool isBooleanValuedTypeOperator(TypeOperator e) {
+    return e.isTypeTest;
   }
 
   BuiltinOperator negateBuiltin(BuiltinOperator operator) {
@@ -552,4 +561,3 @@ class LogicalRewriter extends RecursiveTransformer
     --node.variable.readCount;
   }
 }
-

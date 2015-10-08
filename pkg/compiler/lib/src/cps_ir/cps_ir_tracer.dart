@@ -346,7 +346,15 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitTypeTest(cps_ir.TypeTest node) {
     String value = formatReference(node.value);
     String args = node.typeArguments.map(formatReference).join(', ');
-    return "TypeTest ($value ${node.dartType} ($args))";
+    String interceptor = node.interceptor == null
+        ? ''
+        : ' ${formatReference(node.interceptor)}';
+    return "TypeTest ($value ${node.dartType} ($args)$interceptor)";
+  }
+
+  visitTypeTestViaFlag(cps_ir.TypeTestViaFlag node) {
+    String interceptor = formatReference(node.interceptor);
+    return "TypeTestViaFlag ($interceptor ${node.dartType})";
   }
 
   visitApplyBuiltinOperator(cps_ir.ApplyBuiltinOperator node) {
@@ -640,6 +648,10 @@ class BlockCollector implements cps_ir.Visitor {
   }
 
   visitTypeTest(cps_ir.TypeTest node) {
+    unexpectedNode(node);
+  }
+
+  visitTypeTestViaFlag(cps_ir.TypeTestViaFlag node) {
     unexpectedNode(node);
   }
 
