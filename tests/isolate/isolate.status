@@ -141,7 +141,3 @@ package_root_test: SkipByDesign # Uses dart:io.
 [ $compiler == dart2js && $cps_ir ]
 deferred_in_isolate2_test: RuntimeError # A.loadLibrary is not a function
 isolate_current_test: RuntimeError # Please triage this failure.
-message3_test/byteBuffer: RuntimeError # Please triage this failure.
-message3_test/fun: RuntimeError # Please triage this failure.
-message3_test/int32x4: RuntimeError # Please triage this failure.
-message3_test/none: RuntimeError # Please triage this failure.
