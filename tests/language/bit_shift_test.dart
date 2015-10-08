@@ -1,6 +1,7 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--optimization-counter-threshold=10
 
 import "package:expect/expect.dart";
 
@@ -49,7 +50,9 @@ speculative() {
 // JavaScript shifts by the amount modulo 32. That is x << y is equivalent to
 // x << (y & 0x1F). Dart does not.
 main() {
-  constants();
-  interceptors();
-  speculative();
+  for (var i = 0; i < 10; ++i) {
+    constants();
+    interceptors();
+    speculative();
+  }
 }

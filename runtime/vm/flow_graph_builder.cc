@@ -489,7 +489,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     if (call_->HasUses()) {
       // Add a phi of the return values.
       PhiInstr* phi = new(Z) PhiInstr(join, num_exits);
-      phi->set_ssa_temp_index(caller_graph_->alloc_ssa_temp_index());
+      caller_graph_->AllocateSSAIndexes(phi);
       phi->mark_alive();
       for (intptr_t i = 0; i < num_exits; ++i) {
         ReturnAt(i)->RemoveEnvironment();

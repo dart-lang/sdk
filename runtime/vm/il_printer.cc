@@ -1050,7 +1050,12 @@ static const char *RepresentationToCString(Representation rep) {
 
 
 void PhiInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("v%" Pd " <- phi(", ssa_temp_index());
+  if (HasPairRepresentation()) {
+    f->Print("(v%" Pd ", v%" Pd ") <- phi(",
+             ssa_temp_index(), ssa_temp_index() + 1);
+  } else {
+    f->Print("v%" Pd " <- phi(", ssa_temp_index());
+  }
   for (intptr_t i = 0; i < inputs_.length(); ++i) {
     if (inputs_[i] != NULL) inputs_[i]->PrintTo(f);
     if (i < inputs_.length() - 1) f->Print(", ");

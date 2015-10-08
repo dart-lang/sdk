@@ -626,7 +626,7 @@ static void EnsureSSATempIndex(FlowGraph* graph,
                                Definition* replacement) {
   if ((replacement->ssa_temp_index() == -1) &&
       (defn->ssa_temp_index() != -1)) {
-    replacement->set_ssa_temp_index(graph->alloc_ssa_temp_index());
+    graph->AllocateSSAIndexes(replacement);
   }
 }
 
@@ -838,10 +838,10 @@ static void UnboxPhi(PhiInstr* phi) {
   if ((kSmiBits < 32) &&
       (unboxed == kTagged) &&
       phi->Type()->IsInt() &&
-      RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)) {
+      RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt64)) {
     // On 32-bit platforms conservatively unbox phis that:
     //   - are proven to be of type Int;
-    //   - fit into 32bits range;
+    //   - fit into 64bits range;
     //   - have either constants or Box() operations as inputs;
     //   - have at least one Box() operation as an input;
     //   - are used in at least 1 Unbox() operation.
@@ -850,7 +850,7 @@ static void UnboxPhi(PhiInstr* phi) {
       Definition* input = phi->InputAt(i)->definition();
       if (input->IsBox() &&
           RangeUtils::Fits(input->range(),
-                           RangeBoundary::kRangeBoundaryInt32)) {
+                           RangeBoundary::kRangeBoundaryInt64)) {
         should_unbox = true;
       } else if (!input->IsConstant()) {
         should_unbox = false;
@@ -882,7 +882,9 @@ static void UnboxPhi(PhiInstr* phi) {
     }
 
     if (should_unbox) {
-      unboxed = kUnboxedInt32;
+      unboxed =
+          RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)
+          ? kUnboxedInt32 : kUnboxedMint;
     }
   }
 
@@ -7073,7 +7075,7 @@ class LoadOptimizer : public ValueObject {
       replacement->AddInputUse(input);
     }
 
-    phi->set_ssa_temp_index(graph_->alloc_ssa_temp_index());
+    graph_->AllocateSSAIndexes(phi);
     phis_.Add(phi);  // Postpone phi insertion until after load forwarding.
 
     if (FLAG_trace_load_optimization) {
