@@ -1,4 +1,5 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -55,7 +56,8 @@ rules:
       var yaml = loadYamlNode(src);
 
       AnalysisEngine.instance.optionsPlugin.optionsProcessors
-          .forEach((op) => op.optionsProcessed({'linter': yaml}));
+          .forEach((op) =>
+          op.optionsProcessed(new AnalysisContextImpl(), {'linter': yaml}));
       var rules = linterPlugin.lintRules.map((rule) => rule.name);
       expect(rules,
           unorderedEquals(['camel_case_types', 'constant_identifier_names']));
