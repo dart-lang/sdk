@@ -76,6 +76,14 @@ class VMNavMenuElement extends ObservatoryElement {
   @published bool last = false;
   @published VM vm;
 
+  String nameAndAddress(name, target) {
+    if (name != null && target != null) {
+      return '${name}@${target.networkAddress}';
+    } else {
+      return '<initializing>';
+    }
+  }
+
   VMNavMenuElement.created() : super.created();
 }
 

@@ -6,6 +6,7 @@ library debugger_page_element;
 
 import 'dart:async';
 import 'dart:html';
+import 'dart:math';
 import 'observatory_element.dart';
 import 'package:observatory/app.dart';
 import 'package:observatory/cli.dart';
@@ -963,7 +964,7 @@ class IsolateCommand extends DebuggerCommand {
   String helpShort = 'Switch the current isolate';
 
   String helpLong =
-      'Switch the current isolate.\n'
+      'Switch, list, or rename isolates.\n'
       '\n'
       'Syntax: isolate <number>\n'
       '        isolate <name>\n';
@@ -998,15 +999,12 @@ class IsolateListCommand extends DebuggerCommand {
     }
     await Future.wait(pending);
 
-    const maxIdLen = 9;
+    const maxIdLen = 10;
     const maxRunStateLen = 7;
-    var maxNameLen = 0;
+    var maxNameLen = 'NAME'.length;
     for (var isolate in debugger.vm.isolates) {
-      if (isolate.name.length > maxNameLen) {
-        maxNameLen = isolate.name.length;
-      }
+      maxNameLen = max(maxNameLen, isolate.name.length);
     }
-
     debugger.console.print("${'ID'.padLeft(maxIdLen, ' ')} "
                            "${'ORIGIN'.padLeft(maxIdLen, ' ')} "
                            "${'NAME'.padRight(maxNameLen, ' ')} "
@@ -1125,6 +1123,72 @@ class RefreshCommand extends DebuggerCommand {
       'Syntax: refresh <subcommand>\n';
 }
 
+class VmListCommand extends DebuggerCommand {
+  VmListCommand(Debugger debugger) : super(debugger, 'list', []);
+
+  Future run(List<String> args) async {
+    if (args.length > 0) {
+      debugger.console.print('vm list expects no arguments');
+      return;
+    }
+    if (debugger.vm == null) {
+      debugger.console.print("No connected VMs");
+      return;
+    }
+    // TODO(turnidge): Right now there is only one vm listed.
+    var vmList = [debugger.vm];
+
+    var maxAddrLen = 'ADDRESS'.length;
+    var maxNameLen = 'NAME'.length;
+
+    for (var vm in vmList) {
+      maxAddrLen = max(maxAddrLen, vm.target.networkAddress.length);
+      maxNameLen = max(maxNameLen, vm.name.length);
+    }
+
+    debugger.console.print("${'ADDRESS'.padRight(maxAddrLen, ' ')} "
+                           "${'NAME'.padRight(maxNameLen, ' ')} "
+                           "CURRENT");
+    for (var vm in vmList) {
+      String current = (vm == debugger.vm ? '*' : '');
+      debugger.console.print(
+          "${vm.target.networkAddress.padRight(maxAddrLen, ' ')} "
+          "${vm.name.padRight(maxNameLen, ' ')} "
+          "${current}");
+    }
+  }
+
+  String helpShort = 'List all connected Dart virtual machines';
+
+  String helpLong =
+      'List all connected Dart virtual machines..\n'
+      '\n'
+      'Syntax: vm list\n';
+}
+
+class VmNameCommand extends DebuggerCommand {
+  VmNameCommand(Debugger debugger) : super(debugger, 'name', []);
+
+  Future run(List<String> args) async {
+    if (args.length != 1) {
+      debugger.console.print('vm name expects one argument');
+      return;
+    }
+    if (debugger.vm == null) {
+      debugger.console.print('There is no current vm');
+      return;
+    }
+    await debugger.vm.setName(args[0]);
+  }
+
+  String helpShort = 'Rename the current Dart virtual machine';
+
+  String helpLong =
+      'Rename the current Dart virtual machine.\n'
+      '\n'
+      'Syntax: vm name <name>\n';
+}
+
 class VmRestartCommand extends DebuggerCommand {
   VmRestartCommand(Debugger debugger) : super(debugger, 'restart', []);
 
@@ -1155,6 +1219,8 @@ class VmRestartCommand extends DebuggerCommand {
 
 class VmCommand extends DebuggerCommand {
   VmCommand(Debugger debugger) : super(debugger, 'vm', [
+      new VmListCommand(debugger),
+      new VmNameCommand(debugger),
       new VmRestartCommand(debugger),
   ]);
 
@@ -1517,6 +1583,11 @@ class ObservatoryDebugger extends Debugger {
 
   void onEvent(ServiceEvent event) {
     switch(event.kind) {
+      case ServiceEvent.kVMUpdate:
+        var vm = event.owner;
+        console.print("VM ${vm.target.networkAddress} renamed to '${vm.name}'");
+        break;
+
       case ServiceEvent.kIsolateStart:
         {
           var iso = event.owner;
@@ -1809,6 +1880,7 @@ class DebuggerPageElement extends ObservatoryElement {
   }
 
   StreamSubscription _resizeSubscription;
+  Future<StreamSubscription> _vmSubscriptionFuture;
   Future<StreamSubscription> _isolateSubscriptionFuture;
   Future<StreamSubscription> _debugSubscriptionFuture;
   Future<StreamSubscription> _stdoutSubscriptionFuture;
@@ -1830,6 +1902,8 @@ class DebuggerPageElement extends ObservatoryElement {
     debugger.init();
 
     _resizeSubscription = window.onResize.listen(_onResize);
+    _vmSubscriptionFuture =
+        app.vm.listenEventStream(VM.kVMStream, debugger.onEvent);
     _isolateSubscriptionFuture =
         app.vm.listenEventStream(VM.kIsolateStream, debugger.onEvent);
     _debugSubscriptionFuture =
@@ -1892,6 +1966,8 @@ class DebuggerPageElement extends ObservatoryElement {
     debugger.isolate = null;
     _resizeSubscription.cancel();
     _resizeSubscription = null;
+    cancelFutureSubscription(_vmSubscriptionFuture);
+    _vmSubscriptionFuture = null;
     cancelFutureSubscription(_isolateSubscriptionFuture);
     _isolateSubscriptionFuture = null;
     cancelFutureSubscription(_debugSubscriptionFuture);

@@ -23,6 +23,14 @@
       <h1>VM</h1>
       <div class="memberList">
         <div class="memberItem">
+          <div class="memberName">name</div>
+          <div class="memberValue">{{ vm.name }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">address</div>
+          <div class="memberValue">{{ vm.target.networkAddress }}</div>
+        </div>
+        <div class="memberItem">
           <div class="memberName">version</div>
           <div class="memberValue">{{ vm.version }}</div>
         </div>
@@ -37,14 +45,6 @@
         <div class="memberItem">
           <div class="memberName">refreshed at</div>
           <div class="memberValue">{{ vm.refreshTime.toString() }}</div>
-        </div>
-        <div class="memberItem">
-          <div class="memberName">type checks enabled</div>
-          <div class="memberValue">{{ vm.typeChecksEnabled }}</div>
-        </div>
-        <div class="memberItem">
-          <div class="memberName">asserts enabled</div>
-          <div class="memberValue">{{ vm.assertsEnabled }}</div>
         </div>
         <div class="memberItem">
           <div class="memberName">pid</div>

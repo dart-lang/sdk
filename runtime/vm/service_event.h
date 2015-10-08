@@ -14,6 +14,8 @@ namespace dart {
 class ServiceEvent {
  public:
   enum EventKind {
+    kVMUpdate,           // VM identity information has changed
+
     kIsolateStart,       // New isolate has started
     kIsolateRunnable,    // Isolate is ready to run
     kIsolateExit,        // Isolate has exited

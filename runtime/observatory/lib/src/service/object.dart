@@ -640,14 +640,15 @@ abstract class VM extends ServiceObjectOwner {
   @observable int pid = 0;
   @observable DateTime startTime;
   @observable DateTime refreshTime;
-  @observable Duration get upTime =>
-      (new DateTime.now().difference(startTime));
+  @observable Duration get upTime {
+    if (startTime == null) {
+      return null;
+    }
+    return (new DateTime.now().difference(startTime));
+  }
 
   VM() : super._empty(null) {
-    name = 'vm';
-    vmName = 'vm';
-    _cache['vm'] = this;
-    update(toObservable({'id':'vm', 'type':'@VM'}));
+    update(toObservable({'name':'vm', 'type':'@VM'}));
   }
 
   void postServiceEvent(String streamId, Map response, ByteData data) {
@@ -733,6 +734,14 @@ abstract class VM extends ServiceObjectOwner {
     if (map == null) {
       return null;
     }
+    var type = _stripRef(map['type']);
+    if (type == 'VM') {
+      // Update this VM object.
+      update(map);
+      return this;
+    }
+
+    assert(type == 'Isolate');
     String id = map['id'];
     if (!id.startsWith(_isolateIdPrefix)) {
       // Currently the VM only supports upgrading Isolate ServiceObjects.
@@ -816,11 +825,16 @@ abstract class VM extends ServiceObjectOwner {
     if (!loaded) {
       // The vm service relies on these events to keep the VM and
       // Isolate types up to date.
+      await listenEventStream(kVMStream, _dispatchEventToIsolate);
       await listenEventStream(kIsolateStream, _dispatchEventToIsolate);
       await listenEventStream(kDebugStream, _dispatchEventToIsolate);
       await listenEventStream(_kGraphStream, _dispatchEventToIsolate);
     }
     return await invokeRpcNoUpgrade('getVM', {});
+  }
+
+  Future setName(String newName) {
+    return invokeRpc('setVMName', { 'name': newName });
   }
 
   Future<ServiceObject> getFlagList() {
@@ -845,6 +859,7 @@ abstract class VM extends ServiceObjectOwner {
   Map<String,_EventStreamState> _eventStreams = {};
 
   // Well-known stream ids.
+  static const kVMStream = 'VM';
   static const kIsolateStream = 'Isolate';
   static const kDebugStream = 'Debug';
   static const kGCStream = 'GC';
@@ -875,6 +890,8 @@ abstract class VM extends ServiceObjectOwner {
   Future get onDisconnect;
 
   void _update(ObservableMap map, bool mapIsRef) {
+    name = map['name'];
+    vmName = map.containsKey('_vmName') ? map['_vmName'] : name;
     if (mapIsRef) {
       return;
     }
@@ -1111,8 +1128,12 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @observable int number;
   @observable int originNumber;
   @observable DateTime startTime;
-  @observable Duration get upTime =>
-      (new DateTime.now().difference(startTime));
+  @observable Duration get upTime {
+    if (startTime == null) {
+      return null;
+    }
+    return (new DateTime.now().difference(startTime));
+  }
 
   @observable ObservableMap counters = new ObservableMap();
 
@@ -1341,7 +1362,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   void _update(ObservableMap map, bool mapIsRef) {
     name = map['name'];
-    vmName = map['name'];
+    vmName = map.containsKey('_vmName') ? map['_vmName'] : name;
     number = int.parse(map['number'], onError:(_) => null);
     if (mapIsRef) {
       return;
@@ -1485,8 +1506,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
         break;
 
       default:
-        // Log unrecognized events.
-        Logger.root.severe('Unrecognized event: $event');
+        // Log unexpected events.
+        Logger.root.severe('Unexpected event: $event');
         break;
     }
   }
@@ -1836,6 +1857,7 @@ Level _findLogLevel(int value) {
 /// A [ServiceEvent] is an asynchronous event notification from the vm.
 class ServiceEvent extends ServiceObject {
   /// The possible 'kind' values.
+  static const kVMUpdate               = 'VMUpdate';
   static const kIsolateStart           = 'IsolateStart';
   static const kIsolateRunnable        = 'IsolateRunnable';
   static const kIsolateExit            = 'IsolateExit';
@@ -1953,11 +1975,12 @@ class ServiceEvent extends ServiceObject {
   }
 
   String toString() {
+    var ownerName = owner.id != null ? owner.id.toString() : owner.name;
     if (data == null) {
-      return "ServiceEvent(owner='${owner.id}', kind='${kind}', "
+      return "ServiceEvent(owner='${ownerName}', kind='${kind}', "
           "time=${timestamp})";
     } else {
-      return "ServiceEvent(owner='${owner.id}', kind='${kind}', "
+      return "ServiceEvent(owner='${ownerName}', kind='${kind}', "
           "data.lengthInBytes=${data.lengthInBytes}, time=${timestamp})";
     }
   }

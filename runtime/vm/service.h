@@ -129,6 +129,7 @@ class Service : public AllStatic {
                         const Error& error);
 
   // Well-known streams.
+  static StreamInfo vm_stream;
   static StreamInfo isolate_stream;
   static StreamInfo debug_stream;
   static StreamInfo gc_stream;
@@ -145,6 +146,8 @@ class Service : public AllStatic {
   static Dart_ServiceStreamCancelCallback stream_cancel_callback() {
     return stream_cancel_callback_;
   }
+
+  static void PrintJSONForVM(JSONStream* js, bool ref);
 
  private:
   static void InvokeMethod(Isolate* isolate, const Array& message);

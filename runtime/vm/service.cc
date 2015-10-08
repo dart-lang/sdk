@@ -42,6 +42,21 @@ namespace dart {
 
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, trace_service_pause_events);
+DEFINE_FLAG(charp, vm_name, "vm",
+            "The default name of this vm as reported by the VM service "
+            "protocol");
+
+// The name of this of this vm as reported by the VM service protocol.
+static char* vm_name = NULL;
+
+
+static const char* GetVMName() {
+  if (vm_name == NULL) {
+    return FLAG_vm_name;
+  }
+  return vm_name;
+}
+
 
 ServiceIdZone::ServiceIdZone() {
 }
@@ -91,6 +106,7 @@ Dart_ServiceStreamCancelCallback Service::stream_cancel_callback_ = NULL;
 
 
 // These are the set of streams known to the core VM.
+StreamInfo Service::vm_stream("VM");
 StreamInfo Service::isolate_stream("Isolate");
 StreamInfo Service::debug_stream("Debug");
 StreamInfo Service::gc_stream("GC");
@@ -99,6 +115,7 @@ StreamInfo Service::graph_stream("_Graph");
 StreamInfo Service::logging_stream("_Logging");
 
 static StreamInfo* streams_[] = {
+  &Service::vm_stream,
   &Service::isolate_stream,
   &Service::debug_stream,
   &Service::gc_stream,
@@ -651,13 +668,13 @@ void Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
 void Service::SendEvent(const char* stream_id,
                         const char* event_type,
                         const Object& event_message) {
-  ASSERT(!ServiceIsolate::IsServiceIsolateDescendant(Isolate::Current()));
-  if (!ServiceIsolate::IsRunning()) {
-    return;
-  }
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
+  ASSERT(!ServiceIsolate::IsServiceIsolateDescendant(isolate));
+  if (!ServiceIsolate::IsRunning()) {
+    return;
+  }
   HANDLESCOPE(thread);
 
   const Array& list = Array::Handle(Array::New(2));
@@ -715,7 +732,8 @@ void Service::SendEventWithData(const char* stream_id,
 
 
 void Service::HandleEvent(ServiceEvent* event) {
-  if (ServiceIsolate::IsServiceIsolateDescendant(event->isolate())) {
+  if (event->isolate() != NULL &&
+      ServiceIsolate::IsServiceIsolateDescendant(event->isolate())) {
     return;
   }
   if (!ServiceIsolate::IsRunning()) {
@@ -2945,17 +2963,20 @@ static const MethodParameter* get_vm_params[] = {
 };
 
 
-static bool GetVM(Isolate* isolate, JSONStream* js) {
+void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   JSONObject jsobj(js);
-  jsobj.AddProperty("type", "VM");
+  jsobj.AddProperty("type", (ref ? "@VM" : "VM"));
+  jsobj.AddProperty("name", GetVMName());
+  if (ref) {
+    return;
+  }
+  Isolate* vm_isolate = Dart::vm_isolate();
   jsobj.AddProperty("architectureBits", static_cast<intptr_t>(kBitsPerWord));
   jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
   jsobj.AddProperty("version", Version::String());
   jsobj.AddProperty("pid", OS::ProcessId());
-  jsobj.AddProperty("_assertsEnabled", isolate->flags().asserts());
-  jsobj.AddProperty("_typeChecksEnabled", isolate->flags().type_checks());
-  int64_t start_time_millis = (Dart::vm_isolate()->start_time() /
+  int64_t start_time_millis = (vm_isolate->start_time() /
                                kMicrosecondsPerMillisecond);
   jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
   // Construct the isolate list.
@@ -2964,6 +2985,11 @@ static bool GetVM(Isolate* isolate, JSONStream* js) {
     ServiceIsolateVisitor visitor(&jsarr);
     Isolate::VisitIsolates(&visitor);
   }
+}
+
+
+static bool GetVM(Isolate* isolate, JSONStream* js) {
+  Service::PrintJSONForVM(js, false);
   return true;
 }
 
@@ -3104,6 +3130,25 @@ static bool SetName(Isolate* isolate, JSONStream* js) {
 }
 
 
+static const MethodParameter* set_vm_name_params[] = {
+  new MethodParameter("name", true),
+  NULL,
+};
+
+
+static bool SetVMName(Isolate* isolate, JSONStream* js) {
+  const char* name_param = js->LookupParam("name");
+  free(vm_name);
+  vm_name = strdup(name_param);
+  if (Service::vm_stream.enabled()) {
+    ServiceEvent event(NULL, ServiceEvent::kVMUpdate);
+    Service::HandleEvent(&event);
+  }
+  PrintSuccess(js);
+  return true;
+}
+
+
 static const MethodParameter* set_trace_class_allocation_params[] = {
   ISOLATE_PARAMETER,
   new IdParameter("classId", true),
@@ -3223,6 +3268,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     set_name_params },
   { "_setTraceClassAllocation", SetTraceClassAllocation,
     set_trace_class_allocation_params },
+  { "setVMName", SetVMName,
+    set_vm_name_params },
 };
 
 

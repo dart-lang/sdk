@@ -10,8 +10,8 @@
 #include "vm/message.h"
 #include "vm/metrics.h"
 #include "vm/object.h"
-#include "vm/service_event.h"
 #include "vm/service.h"
+#include "vm/service_event.h"
 #include "vm/timeline.h"
 #include "vm/unicode.h"
 
@@ -443,6 +443,12 @@ void JSONStream::PrintValue(TimelineEvent* timeline_event) {
 }
 
 
+void JSONStream::PrintValueVM(bool ref) {
+  PrintCommaIfNeeded();
+  Service::PrintJSONForVM(this, ref);
+}
+
+
 void JSONStream::PrintServiceId(const Object& o) {
   ASSERT(id_zone_ != NULL);
   PrintProperty("id", id_zone_->GetServiceId(o));
@@ -591,6 +597,12 @@ void JSONStream::SetParams(const char** param_keys,
 void JSONStream::PrintProperty(const char* name, const Object& o, bool ref) {
   PrintPropertyName(name);
   PrintValue(o, ref);
+}
+
+
+void JSONStream::PrintPropertyVM(const char* name, bool ref) {
+  PrintPropertyName(name);
+  PrintValueVM(ref);
 }
 
 

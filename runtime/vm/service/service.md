@@ -38,8 +38,9 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [pause](#pause)
 	- [removeBreakpoint](#removebreakpoint)
 	- [resume](#resume)
-	- [setName](#setname)
 	- [setLibraryDebuggable](#setlibrarydebuggable)
+	- [setName](#setname)
+	- [setVMName](#setvmname)
 	- [streamCancel](#streamcancel)
 	- [streamListen](#streamlisten)
 - [Public Types](#public-types)
@@ -623,6 +624,19 @@ Out | Single step until the current function exits
 
 See [Success](#success), [StepOption](#StepOption).
 
+### setLibraryDebuggable
+
+```
+Success setLibraryDebuggable(string isolateId,
+                             string libraryId,
+                             bool isDebuggable)
+```
+
+The _setLibraryDebuggable_ RPC is used to enable or disable whether
+breakpoints and stepping work for a given library.
+
+See [Success](#success).
+
 ### setName
 
 ```
@@ -634,16 +648,13 @@ The _setName_ RPC is used to change the debugging name for an isolate.
 
 See [Success](#success).
 
-### setLibraryDebuggable
+### setVMName
 
 ```
-Success setLibraryDebuggable(string isolateId,
-                             string libraryId,
-                             bool isDebuggable)
+Success setVMName(string name)
 ```
 
-The _setLibraryDebuggable_ RPC is used to enable or disable whether
-breakpoints and stepping work for a given library.
+The _setVMName_ RPC is used to change the debugging name for the vm.
 
 See [Success](#success).
 
@@ -676,6 +687,7 @@ The _streamId_ parameter may have the following published values:
 
 streamId | event types provided
 -------- | -----------
+VM | VMUpdate
 Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate
 Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect
 GC | GC
@@ -1027,7 +1039,16 @@ class Event extends Response {
   EventKind kind;
 
   // The isolate with which this event is associated.
-  @Isolate isolate;
+  //
+  // This is provided for all event kinds except for:
+  //   VMUpdate
+  @Isolate isolate [optional];
+
+  // The vm with which this event is associated.
+  //
+  // This is provided for the event kind:
+  //   VMUpdate
+  @VM vm [optional];
 
   // The timestamp (in milliseconds since the epoch) associated with this event.
   // For some isolate pause events, the timestamp is from when the isolate was
@@ -2147,7 +2168,7 @@ version | comments
 ------- | --------
 1.0 | initial revision
 2.0 | Describe protocol version 2.0.
-3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.
+3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.
 
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
