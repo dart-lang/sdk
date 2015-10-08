@@ -812,9 +812,9 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
           }
         }
       }
-      // General purpose registers have the lowest register number at the
+      // General purpose registers have the highest register number at the
       // highest address (i.e., first in the stackmap).
-      for (intptr_t i = kNumberOfCpuRegisters; i >= 0; --i) {
+      for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
         Register reg = static_cast<Register>(i);
         if (locs->live_registers()->ContainsRegister(reg)) {
           bitmap->Set(bitmap->Length(), locs->live_registers()->IsTagged(reg));
@@ -865,7 +865,7 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
   }
   // General purpose registers are spilled from highest to lowest register
   // number.
-  for (intptr_t i = kNumberOfCpuRegisters; i >= 0; --i) {
+  for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
     Register reg = static_cast<Register>(i);
     if (regs->ContainsRegister(reg)) {
       cpu_reg_slots[i] = next_slot++;

@@ -1452,7 +1452,7 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   if (register_count > 0) {
     __ addiu(SP, SP, Immediate(-register_count * kWordSize));
     intptr_t offset = register_count * kWordSize;
-    for (int i = kNumberOfCpuRegisters; i >= 0; --i) {
+    for (int i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
       Register r = static_cast<Register>(i);
       if (locs->live_registers()->ContainsRegister(r)) {
         offset -= kWordSize;
@@ -1471,7 +1471,7 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
   const int register_count = Utils::CountOneBits(cpu_registers);
   if (register_count > 0) {
     intptr_t offset = register_count * kWordSize;
-    for (int i = kNumberOfCpuRegisters; i >= 0; --i) {
+    for (int i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
       Register r = static_cast<Register>(i);
       if (locs->live_registers()->ContainsRegister(r)) {
         offset -= kWordSize;

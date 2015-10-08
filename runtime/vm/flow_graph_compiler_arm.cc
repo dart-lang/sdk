@@ -1426,7 +1426,7 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   // in which the registers are encoded in the safe point's stack map.
   // NOTE: This matches the order of ARM's multi-register push.
   RegList reg_list = 0;
-  for (intptr_t i = kNumberOfCpuRegisters; i >= 0; --i) {
+  for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
     Register reg = static_cast<Register>(i);
     if (locs->live_registers()->ContainsRegister(reg)) {
       reg_list |= (1 << reg);
@@ -1440,7 +1440,7 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
   RegList reg_list = 0;
-  for (intptr_t i = kNumberOfCpuRegisters; i >= 0; --i) {
+  for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
     Register reg = static_cast<Register>(i);
     if (locs->live_registers()->ContainsRegister(reg)) {
       reg_list |= (1 << reg);
