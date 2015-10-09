@@ -9,7 +9,6 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart' show Token, TokenType;
 
-import '../../strong_mode.dart' show StrongModeOptions;
 import '../info.dart';
 import '../utils.dart' show getMemberType;
 import 'rules.dart';

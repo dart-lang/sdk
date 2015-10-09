@@ -17,15 +17,12 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/error.dart'
     show AnalysisError, ErrorSeverity, ErrorType;
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/task/html.dart';
 import 'package:html/dom.dart' as html;
 import 'package:html/parser.dart' as html;
 import 'package:logging/logging.dart' show Level, Logger, LogRecord;
 import 'package:path/path.dart' as path;
-
-import '../strong_mode.dart' show StrongModeOptions;
 
 import 'analysis_context.dart';
 import 'checker/checker.dart';
