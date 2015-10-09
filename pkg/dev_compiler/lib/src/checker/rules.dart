@@ -22,8 +22,6 @@ abstract class TypeRules {
       : provider = provider,
         objectMembers = utils.getObjectMemberMap(provider);
 
-  MissingTypeReporter reportMissingType;
-
   bool isSubTypeOf(DartType t1, DartType t2);
   bool isAssignable(DartType t1, DartType t2);
 
@@ -140,42 +138,7 @@ abstract class TypeRules {
   }
 }
 
-// TODO(jmesserly): this is unused.
-class DartRules extends TypeRules {
-  DartRules(TypeProvider provider) : super(provider);
-
-  MissingTypeReporter reportMissingType = null;
-
-  bool isSubTypeOf(DartType t1, DartType t2) {
-    return t1.isSubtypeOf(t2);
-  }
-
-  bool isAssignable(DartType t1, DartType t2) {
-    return t1.isAssignableTo(t2);
-  }
-
-  StaticInfo checkAssignment(Expression expr, DartType toType) {
-    final fromType = getStaticType(expr);
-    if (!isAssignable(fromType, toType)) {
-      return new StaticTypeError(this, expr, toType);
-    }
-    return null;
-  }
-
-  DartType elementType(Element e) {
-    return (e as dynamic).type;
-  }
-
-  /// By default, all invocations are dynamic in Dart.
-  bool isDynamic(DartType t) => true;
-  bool isDynamicTarget(Expression expr) => true;
-  bool isDynamicCall(Expression call) => true;
-}
-
-typedef void MissingTypeReporter(Expression expr);
-
 class RestrictedRules extends TypeRules {
-  MissingTypeReporter reportMissingType = null;
   final StrongModeOptions options;
   final List<DartType> _nonnullableTypes;
   DownwardsInference inferrer;
@@ -206,10 +169,7 @@ class RestrictedRules extends TypeRules {
   }
 
   DartType getStaticType(Expression expr) {
-    var type = expr.staticType;
-    if (type != null) return type;
-    if (reportMissingType != null) reportMissingType(expr);
-    return provider.dynamicType;
+    return expr.staticType ?? provider.dynamicType;
   }
 
   bool _isBottom(DartType t, {bool dynamicIsBottom: false}) {

@@ -340,17 +340,6 @@ class CodeChecker extends RecursiveAstVisitor {
         _overrideChecker = new _OverrideChecker(rules, reporter);
 
   @override
-  void visitCompilationUnit(CompilationUnit unit) {
-    void report(Expression expr) {
-      reporter.onError(new MissingTypeError(expr).toAnalysisError());
-    }
-    var callback = rules.reportMissingType;
-    rules.reportMissingType = report;
-    unit.visitChildren(this);
-    rules.reportMissingType = callback;
-  }
-
-  @override
   void visitComment(Comment node) {
     // skip, no need to do typechecking inside comments (they may contain
     // comment references which would require resolution).
@@ -368,7 +357,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (token.type != TokenType.EQ) {
       _checkCompoundAssignment(node);
     } else {
-      DartType staticType = rules.getStaticType(node.leftHandSide);
+      DartType staticType = _getStaticType(node.leftHandSide);
       checkAssignment(node.rightHandSide, staticType);
     }
     node.visitChildren(this);
@@ -894,8 +883,8 @@ class CodeChecker extends RecursiveAstVisitor {
 
       // Check the lhs type
       var staticInfo;
-      var rhsType = rules.getStaticType(expr.rightHandSide);
-      var lhsType = rules.getStaticType(expr.leftHandSide);
+      var rhsType = _getStaticType(expr.rightHandSide);
+      var lhsType = _getStaticType(expr.leftHandSide);
       var returnType = _specializedBinaryReturnType(
           op, lhsType, rhsType, functionType.returnType);
 
@@ -939,6 +928,14 @@ class CodeChecker extends RecursiveAstVisitor {
 
   bool _isObjectProperty(Expression target, SimpleIdentifier id) {
     return _isObjectGetter(target, id) || _isObjectMethod(target, id);
+  }
+
+  DartType _getStaticType(Expression expr) {
+    var type = expr.staticType;
+    if (type == null) {
+      reporter.onError(new MissingTypeError(expr).toAnalysisError());
+    }
+    return type ?? rules.provider.dynamicType;
   }
 
   void _recordDynamicInvoke(AstNode node, AstNode target) {
