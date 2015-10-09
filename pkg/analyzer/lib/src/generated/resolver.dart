@@ -3234,6 +3234,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         variable = new TopLevelVariableElementImpl.forNode(variableName);
       }
       element = variable;
+      if (node.parent.parent is TopLevelVariableDeclaration) {
+        _setDocRange(element, node.parent.parent);
+      }
       if ((node.parent as VariableDeclarationList).type == null) {
         variable.hasImplicitType = true;
       }

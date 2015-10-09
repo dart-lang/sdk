@@ -6673,6 +6673,34 @@ class ElementBuilderTest extends EngineTestCase {
     expect(variable.setter, isNull);
   }
 
+  void test_visitVariableDeclaration_top_docRange() {
+    // final a, b;
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    VariableDeclaration variableDeclaration1 =
+        AstFactory.variableDeclaration('a');
+    VariableDeclaration variableDeclaration2 =
+        AstFactory.variableDeclaration('b');
+    TopLevelVariableDeclaration topLevelVariableDeclaration = AstFactory
+        .topLevelVariableDeclaration(
+            Keyword.FINAL, null, [variableDeclaration1, variableDeclaration2]);
+    topLevelVariableDeclaration.documentationComment = AstFactory
+        .documentationComment(
+            [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+
+    topLevelVariableDeclaration.accept(builder);
+    List<TopLevelVariableElement> variables = holder.topLevelVariables;
+    expect(variables, hasLength(2));
+
+    TopLevelVariableElement variable1 = variables[0];
+    expect(variable1, isNotNull);
+    _assertHasDocRange(variable1, 50, 7);
+
+    TopLevelVariableElement variable2 = variables[1];
+    expect(variable2, isNotNull);
+    _assertHasDocRange(variable2, 50, 7);
+  }
+
   void test_visitVariableDeclaration_top_final() {
     // final v;
     ElementHolder holder = new ElementHolder();
