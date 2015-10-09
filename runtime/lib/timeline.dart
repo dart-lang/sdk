@@ -6,6 +6,16 @@ import 'dart:_internal';
 
 patch int _getTraceClock() native "Timeline_getTraceClock";
 
+patch int _getNextAsyncId() native "Timeline_getNextAsyncId";
+
+patch void _reportTaskEvent(
+    int start,
+    int taskId,
+    String phase,
+    String category,
+    String name,
+    String argumentsAsJson) native "Timeline_reportTaskEvent";
+
 patch void _reportCompleteEvent(
     int start,
     int end,
