@@ -14422,11 +14422,11 @@ class TypeResolverVisitor extends ScopedVisitor {
       PropertyInducingElementImpl variable =
           accessor.variable as PropertyInducingElementImpl;
       if (accessor.isGetter) {
-        variable.type = type.returnType;
+        variable.type = type.baseReturnType;
       } else if (variable.type == null) {
-        List<DartType> parameterTypes = type.normalParameterTypes;
-        if (parameterTypes != null && parameterTypes.length > 0) {
-          variable.type = parameterTypes[0];
+        List<ParameterElement> parameters = type.baseParameters;
+        if (parameters != null && parameters.length > 0) {
+          variable.type = parameters[0].type;
         }
       }
     }
