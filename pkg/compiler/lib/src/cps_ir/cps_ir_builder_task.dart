@@ -503,7 +503,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     ir.Primitive value = visit(node.expression);
     JumpTarget target = elements.getTargetDefinition(node);
     Element error =
-        (compiler.backend as JavaScriptBackend).getFallThroughError();
+        (compiler.backend as JavaScriptBackend).helpers.fallThroughError;
     irBuilder.buildSimpleSwitch(target, value, cases, defaultCase, error,
         sourceInformationBuilder.buildGeneric(node));
   }
@@ -2492,10 +2492,10 @@ class GlobalProgramInformation {
   }
 
   FunctionElement get stringifyFunction {
-    return _backend.getStringInterpolationHelper();
+    return _backend.helpers.stringInterpolationHelper;
   }
 
-  FunctionElement get throwTypeErrorHelper => _backend.getThrowTypeError();
+  FunctionElement get throwTypeErrorHelper => _backend.helpers.throwTypeError;
 
   ClassElement get nullClass => _compiler.nullClass;
 
@@ -2513,7 +2513,7 @@ class GlobalProgramInformation {
   }
 
   Element get closureConverter {
-    return _backend.getClosureConverter();
+    return _backend.helpers.closureConverter;
   }
 
   void addNativeMethod(FunctionElement function) {
@@ -3288,7 +3288,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   @override
   ir.Primitive buildStaticNoSuchMethod(Selector selector,
                                        List<ir.Primitive> arguments) {
-    Element thrower = backend.getThrowNoSuchMethod();
+    Element thrower = backend.helpers.throwNoSuchMethod;
     ir.Primitive receiver = irBuilder.buildStringConstant('');
     ir.Primitive name = irBuilder.buildStringConstant(selector.name);
     ir.Primitive argumentList = irBuilder.buildListLiteral(null, arguments);
@@ -3313,7 +3313,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   @override
   ir.Primitive buildRuntimeError(String message) {
     return irBuilder.buildStaticFunctionInvocation(
-        backend.getThrowRuntimeError(),
+        backend.helpers.throwRuntimeError,
         new CallStructure.unnamed(1),
         [irBuilder.buildStringConstant(message)]);
   }
@@ -3321,7 +3321,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   @override
   ir.Primitive buildAbstractClassInstantiationError(ClassElement element) {
     return irBuilder.buildStaticFunctionInvocation(
-        backend.getThrowAbstractClassInstantiationError(),
+        backend.helpers.throwAbstractClassInstantiationError,
         new CallStructure.unnamed(1),
         [irBuilder.buildStringConstant(element.name)]);
   }

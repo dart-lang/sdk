@@ -255,7 +255,7 @@ class ConstantEmitter
   jsAst.Expression visitType(TypeConstantValue constant, [_]) {
     DartType type = constant.representedType;
     jsAst.Name typeName = namer.runtimeTypeName(type.element);
-    return new jsAst.Call(getHelperProperty(backend.getCreateRuntimeType()),
+    return new jsAst.Call(getHelperProperty(backend.helpers.createRuntimeType),
                           [js.quoteName(typeName)]);
   }
 
@@ -315,8 +315,9 @@ class ConstantEmitter
               rtiEncoder.getTypeRepresentationWithPlaceholders(type, (_){}));
       jsAst.Expression argumentList =
           new jsAst.ArrayInitializer(arguments.toList());
-      return new jsAst.Call(getHelperProperty(backend.getSetRuntimeTypeInfo()),
-                            [value, argumentList]);
+      return new jsAst.Call(
+          getHelperProperty(backend.helpers.setRuntimeTypeInfo),
+          [value, argumentList]);
     }
     return value;
   }

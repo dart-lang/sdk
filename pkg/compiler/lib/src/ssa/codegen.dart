@@ -1697,7 +1697,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
 
-    if (element == backend.getCheckConcurrentModificationError()) {
+    if (element == backend.helpers.checkConcurrentModificationError) {
       // Manually inline the [checkConcurrentModificationError] function.  This
       // function is only called from a for-loop update.  Ideally we would just
       // generate the conditionalcontrol flow in the builder but it adds basic
@@ -1705,7 +1705,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // confuses loop recognition.
 
       assert(arguments.length == 2);
-      Element throwFunction = backend.getThrowConcurrentModificationError();
+      Element throwFunction = backend.helpers.throwConcurrentModificationError;
       registry.registerStaticInvocation(throwFunction);
 
       // Calling using `(0, #)(#)` instead of `#(#)` separates the property load
@@ -2262,7 +2262,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             .withSourceInformation(node.sourceInformation));
       }
     } else {
-      Element convertToString = backend.getStringInterpolationHelper();
+      Element convertToString = backend.helpers.stringInterpolationHelper;
       registry.registerStaticUse(convertToString);
       js.Expression jsHelper =
           backend.emitter.staticFunctionAccess(convertToString);

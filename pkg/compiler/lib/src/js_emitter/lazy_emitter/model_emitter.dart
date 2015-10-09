@@ -213,7 +213,8 @@ class ModelEmitter {
                 'callName': js.string(namer.callNameField)}),
 
        'cyclicThrow':
-           backend.emitter.staticFunctionAccess(backend.getCyclicThrowHelper()),
+           backend.emitter.staticFunctionAccess(
+               backend.helpers.cyclicThrowHelper),
        'outputContainsConstantList': program.outputContainsConstantList,
        'embeddedGlobals': emitEmbeddedGlobals(program),
        'readMetadataTypeFunction': readMetadataTypeFunction,

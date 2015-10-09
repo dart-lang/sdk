@@ -167,7 +167,7 @@ class ClassStubGenerator {
             'noSuchMethodName': namer.noSuchMethodName,
             'createInvocationMirror':
                 backend.emitter.staticFunctionAccess(
-                    backend.getCreateInvocationMirror()),
+                    backend.helpers.createInvocationMirror),
             'methodName':
                 js.quoteName(compiler.enableMinification
                     ? internalName : methodName),

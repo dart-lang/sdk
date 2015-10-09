@@ -668,10 +668,6 @@ class ResolutionRegistry implements Registry {
     worldImpact.registerFeature(Feature.ABSTRACT_CLASS_INSTANTIATION);
   }
 
-  void registerNewSymbol() {
-    worldImpact.registerFeature(Feature.NEW_SYMBOL);
-  }
-
   void registerRequiredType(DartType type, Element enclosingElement) {
     worldImpact.registerRequiredType(type);
     mapping.addRequiredType(type);

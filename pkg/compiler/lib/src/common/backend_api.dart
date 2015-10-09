@@ -229,8 +229,7 @@ abstract class Backend {
 
   void registerRequiredType(DartType type) {}
 
-  void registerConstSymbol(String name, Registry registry) {}
-  void registerNewSymbol(Registry registry) {}
+  void registerConstSymbol(String name) {}
 
   bool isNullImplementation(ClassElement cls) {
     return cls == compiler.nullClass;

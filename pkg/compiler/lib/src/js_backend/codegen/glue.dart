@@ -112,7 +112,7 @@ class Glue {
   }
 
   FunctionElement get createInvocationMirrorMethod {
-    return _backend.getCreateInvocationMirror();
+    return _backend.helpers.createInvocationMirror;
   }
 
   void registerUseInterceptorInCodegen() {
@@ -171,55 +171,55 @@ class Glue {
   }
 
   FunctionElement getWrapExceptionHelper() {
-    return _backend.getWrapExceptionHelper();
+    return _backend.helpers.wrapExceptionHelper;
   }
 
   FunctionElement getExceptionUnwrapper() {
-    return _backend.getExceptionUnwrapper();
+    return _backend.helpers.exceptionUnwrapper;
   }
 
   FunctionElement getTraceFromException() {
-    return _backend.getTraceFromException();
+    return _backend.helpers.traceFromException;
   }
 
   FunctionElement getCreateRuntimeType() {
-    return _backend.getCreateRuntimeType();
+    return _backend.helpers.createRuntimeType;
   }
 
   FunctionElement getRuntimeTypeToString() {
-    return _backend.getRuntimeTypeToString();
+    return _backend.helpers.runtimeTypeToString;
   }
 
   FunctionElement getRuntimeTypeArgument() {
-    return _backend.getGetRuntimeTypeArgument();
+    return _backend.helpers.getRuntimeTypeArgument;
   }
 
   FunctionElement getTypeArgumentByIndex() {
-    return _backend.getGetTypeArgumentByIndex();
+    return _backend.helpers.getTypeArgumentByIndex;
   }
 
   FunctionElement getAddRuntimeTypeInformation() {
-    return _backend.getSetRuntimeTypeInfo();
+    return _backend.helpers.setRuntimeTypeInfo;
   }
 
   /// checkSubtype(value, $isT, typeArgs, $asT)
   FunctionElement getCheckSubtype() {
-    return _backend.getCheckSubtype();
+    return _backend.helpers.checkSubtype;
   }
 
   /// subtypeCast(value, $isT, typeArgs, $asT)
   FunctionElement getSubtypeCast() {
-    return _backend.getSubtypeCast();
+    return _backend.helpers.subtypeCast;
   }
 
   /// checkSubtypeOfRuntime(value, runtimeType)
   FunctionElement getCheckSubtypeOfRuntimeType() {
-    return _backend.getCheckSubtypeOfRuntimeType();
+    return _backend.helpers.checkSubtypeOfRuntimeType;
   }
 
   /// subtypeOfRuntimeTypeCast(value, runtimeType)
   FunctionElement getSubtypeOfRuntimeTypeCast() {
-    return _backend.getSubtypeOfRuntimeTypeCast();
+    return _backend.helpers.subtypeOfRuntimeTypeCast;
   }
 
   js.Expression getRuntimeTypeName(ClassElement cls) {

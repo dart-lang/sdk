@@ -1107,6 +1107,8 @@ class SsaBuilder extends ast.Visitor
             work.element.implementation);
   }
 
+  BackendHelpers get helpers => backend.helpers;
+
   RuntimeTypesEncoder get rtiEncoder => backend.rtiEncoder;
 
   DiagnosticReporter get reporter => compiler.reporter;
@@ -2241,7 +2243,7 @@ class SsaBuilder extends ast.Visitor
       bool isIndexedTypeArgumentGet(HInstruction instruction) {
         if (instruction is! HInvokeStatic) return false;
         HInvokeStatic invoke = instruction;
-        if (invoke.element != backend.getGetTypeArgumentByIndex()) {
+        if (invoke.element != helpers.getTypeArgumentByIndex) {
           return false;
         }
         HConstant index = invoke.inputs[1];
@@ -2565,7 +2567,7 @@ class SsaBuilder extends ast.Visitor
         analyzeTypeArgument(localsHandler.substInContext(supertype));
     HInstruction messageInstruction =
         graph.addConstantString(new ast.DartString.literal(message), compiler);
-    Element element = backend.getAssertIsSubtype();
+    Element element = helpers.assertIsSubtype;
     var inputs = <HInstruction>[subtypeInstruction, supertypeInstruction,
                                 messageInstruction];
     HInstruction assertIsSubtype = new HInvokeStatic(
@@ -2637,7 +2639,7 @@ class SsaBuilder extends ast.Visitor
       //     assertHelper(condition);
       //
       visit(node.condition);
-      pushInvokeStatic(node, backend.assertHelperMethod, [pop()]);
+      pushInvokeStatic(node, helpers.assertHelper, [pop()]);
       pop();
       return;
     }
@@ -2647,11 +2649,11 @@ class SsaBuilder extends ast.Visitor
     //
     void buildCondition() {
       visit(node.condition);
-      pushInvokeStatic(node, backend.assertTestMethod, [pop()]);
+      pushInvokeStatic(node, helpers.assertTest, [pop()]);
     }
     void fail() {
       visit(node.message);
-      pushInvokeStatic(node, backend.assertThrowMethod, [pop()]);
+      pushInvokeStatic(node, helpers.assertThrow, [pop()]);
       pop();
     }
     handleIf(node,
@@ -3394,7 +3396,7 @@ class SsaBuilder extends ast.Visitor
     HInstruction loadIdConstant = addConstantString(loadId);
     String uri = prefixElement.deferredImport.uri.toString();
     HInstruction uriConstant = addConstantString(uri);
-    Element helper = backend.getCheckDeferredIsLoaded();
+    Element helper = helpers.checkDeferredIsLoaded;
     pushInvokeStatic(location, helper, [loadIdConstant, uriConstant]);
     pop();
   }
@@ -3833,14 +3835,14 @@ class SsaBuilder extends ast.Visitor
       return new HIs.compound(type, expression, pop(), backend.boolType);
     } else if (type.isTypeVariable) {
       HInstruction runtimeType = addTypeVariableReference(type);
-      Element helper = backend.getCheckSubtypeOfRuntimeType();
+      Element helper = helpers.checkSubtypeOfRuntimeType;
       List<HInstruction> inputs = <HInstruction>[expression, runtimeType];
       pushInvokeStatic(null, helper, inputs, typeMask: backend.boolType);
       HInstruction call = pop();
       return new HIs.variable(type, expression, call, backend.boolType);
     } else if (RuntimeTypes.hasTypeArguments(type)) {
       ClassElement element = type.element;
-      Element helper = backend.getCheckSubtype();
+      Element helper = helpers.checkSubtype;
       HInstruction representations =
           buildTypeArgumentRepresentations(type);
       add(representations);
@@ -4510,7 +4512,7 @@ class SsaBuilder extends ast.Visitor
 
     js.Name internalName = backend.namer.invocationName(selector);
 
-    Element createInvocationMirror = backend.getCreateInvocationMirror();
+    Element createInvocationMirror = helpers.createInvocationMirror;
     var argumentsInstruction = buildLiteralList(arguments);
     add(argumentsInstruction);
 
@@ -4811,14 +4813,14 @@ class SsaBuilder extends ast.Visitor
       HInstruction substitutionNameInstr = graph.addConstantStringFromName(
           substitutionName, compiler);
       pushInvokeStatic(null,
-                       backend.getGetRuntimeTypeArgument(),
+                       helpers.getRuntimeTypeArgument,
                        [target, substitutionNameInstr, index],
                        typeMask: backend.dynamicType,
                        sourceInformation: sourceInformation);
     } else {
       pushInvokeStatic(
           null,
-          backend.getGetTypeArgumentByIndex(),
+          helpers.getTypeArgumentByIndex,
           [target, index],
           typeMask: backend.dynamicType,
           sourceInformation: sourceInformation);
@@ -4944,7 +4946,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   void copyRuntimeTypeInfo(HInstruction source, HInstruction target) {
-    Element copyHelper = backend.getCopyTypeArguments();
+    Element copyHelper = helpers.copyTypeArguments;
     pushInvokeStatic(null, copyHelper, [source, target],
         sourceInformation: target.sourceInformation);
     pop();
@@ -4961,7 +4963,7 @@ class SsaBuilder extends ast.Visitor
     add(typeInfo);
 
     // Set the runtime type information on the object.
-    Element typeInfoSetterElement = backend.getSetRuntimeTypeInfo();
+    Element typeInfoSetterElement = helpers.setRuntimeTypeInfo;
     pushInvokeStatic(
         null,
         typeInfoSetterElement,
@@ -5541,11 +5543,11 @@ class SsaBuilder extends ast.Visitor
     HInstruction value = analyzeTypeArgument(type,
         sourceInformation: sourceInformationBuilder.buildGet(node));
     pushInvokeStatic(node,
-                     backend.getRuntimeTypeToString(),
+                     helpers.runtimeTypeToString,
                      [value],
                      typeMask: backend.stringType);
     pushInvokeStatic(node,
-                     backend.getCreateRuntimeType(),
+                     helpers.createRuntimeType,
                      [pop()]);
   }
 
@@ -5588,17 +5590,17 @@ class SsaBuilder extends ast.Visitor
   }
 
   void generateRuntimeError(ast.Node node, String message) {
-    generateError(node, message, backend.getThrowRuntimeError());
+    generateError(node, message, helpers.throwRuntimeError);
   }
 
   void generateTypeError(ast.Node node, String message) {
-    generateError(node, message, backend.getThrowTypeError());
+    generateError(node, message, helpers.throwTypeError);
   }
 
   void generateAbstractClassInstantiationError(ast.Node node, String message) {
     generateError(node,
                   message,
-                  backend.getThrowAbstractClassInstantiationError());
+                  helpers.throwAbstractClassInstantiationError);
   }
 
   void generateThrowNoSuchMethod(ast.Node diagnosticNode,
@@ -5607,7 +5609,7 @@ class SsaBuilder extends ast.Visitor
                                   List<HInstruction> argumentValues,
                                   List<String> existingArguments,
                                   SourceInformation sourceInformation}) {
-    Element helper = backend.getThrowNoSuchMethod();
+    Element helper = helpers.throwNoSuchMethod;
     ConstantValue receiverConstant =
         constantSystem.createString(new ast.DartString.empty());
     HInstruction receiver = graph.addConstant(receiverConstant, compiler);
@@ -7215,7 +7217,7 @@ class SsaBuilder extends ast.Visitor
     visit(node.expression);
     HInstruction expression = pop();
     pushInvokeStatic(node,
-                     backend.getStreamIteratorConstructor(),
+                     helpers.streamIteratorConstructor,
                      [expression, graph.addConstantNull(compiler)]);
     streamIterator = pop();
 
@@ -7400,7 +7402,7 @@ class SsaBuilder extends ast.Visitor
       HInstruction length = buildGetLength();
       push(new HIdentity(length, originalLength, null, boolType));
       pushInvokeStatic(node,
-          backend.getCheckConcurrentModificationError(),
+          helpers.checkConcurrentModificationError,
           [pop(), array]);
       pop();
     }
@@ -7862,7 +7864,7 @@ class SsaBuilder extends ast.Visitor
 
     List<HStatementInformation> statements = <HStatementInformation>[];
     bool hasDefault = false;
-    Element getFallThroughErrorElement = backend.getFallThroughError();
+    Element getFallThroughErrorElement = helpers.fallThroughError;
     HasNextIterator<ast.Node> caseIterator =
         new HasNextIterator<ast.Node>(switchCases.iterator);
     while (caseIterator.hasNext) {
@@ -8108,7 +8110,7 @@ class SsaBuilder extends ast.Visitor
       HInstruction oldRethrowableException = rethrowableException;
       rethrowableException = exception;
 
-      pushInvokeStatic(node, backend.getExceptionUnwrapper(), [exception]);
+      pushInvokeStatic(node, helpers.exceptionUnwrapper, [exception]);
       HInvokeStatic unwrappedException = pop();
       tryInstruction.exception = exception;
       Link<ast.Node> link = node.catchBlocks.nodes;
@@ -8154,7 +8156,7 @@ class SsaBuilder extends ast.Visitor
         }
         ast.Node trace = catchBlock.trace;
         if (trace != null) {
-          pushInvokeStatic(trace, backend.getTraceFromException(), [exception]);
+          pushInvokeStatic(trace, helpers.traceFromException, [exception]);
           HInstruction traceInstruction = pop();
           LocalVariableElement traceVariable = elements[trace];
           localsHandler.updateLocal(traceVariable, traceInstruction);

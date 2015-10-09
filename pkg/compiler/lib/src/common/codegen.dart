@@ -140,7 +140,7 @@ class CodegenRegistry extends Registry {
   }
 
   void registerConstSymbol(String name) {
-    backend.registerConstSymbol(name, this);
+    backend.registerConstSymbol(name);
   }
 
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {

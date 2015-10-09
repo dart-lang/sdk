@@ -3881,7 +3881,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               node.newToken, MessageKind.NON_CONST_BLOAT,
               {'name': compiler.symbolClass.name});
         }
-        registry.registerNewSymbol();
       }
     } else if (isMirrorsUsedConstant) {
       compiler.mirrorUsageAnalyzerTask.validate(node, registry.mapping);

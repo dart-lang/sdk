@@ -60,6 +60,7 @@ import '../enqueue.dart' show
     Enqueuer,
     ResolutionEnqueuer,
     WorldImpact;
+import '../helpers/helpers.dart';
 import '../io/code_output.dart';
 import '../io/source_information.dart' show
     SourceInformationStrategy,
@@ -99,6 +100,8 @@ import '../util/util.dart';
 import '../world.dart' show
     ClassWorld;
 
+import 'backend_helpers.dart';
+import 'backend_impact.dart';
 import 'codegen/task.dart';
 import 'constant_system_javascript.dart';
 import 'patch_resolver.dart';

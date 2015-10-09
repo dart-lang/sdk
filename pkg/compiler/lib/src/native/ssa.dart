@@ -21,7 +21,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     HInstruction arity = builder.graph.addConstant(arityConstant, compiler);
     // TODO(ngeoffray): For static methods, we could pass a method with a
     // defined arity.
-    Element helper = backend.getClosureConverter();
+    Element helper = backend.helpers.closureConverter;
     builder.pushInvokeStatic(nativeBody, helper, [local, arity]);
     HInstruction closure = builder.pop();
     return closure;

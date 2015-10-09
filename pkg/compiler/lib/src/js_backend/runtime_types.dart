@@ -661,7 +661,8 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
       JavaScriptBackend backend = compiler.backend;
       jsAst.Name contextName = backend.namer.className(contextClass);
       return js('function () { return #(#, #, #); }',
-          [ backend.emitter.staticFunctionAccess(backend.getComputeSignature()),
+          [ backend.emitter.staticFunctionAccess(
+                backend.helpers.computeSignature),
               encoding, this_, js.quoteName(contextName) ]);
     } else {
       return encoding;

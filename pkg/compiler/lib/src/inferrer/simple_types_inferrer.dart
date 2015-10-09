@@ -2283,7 +2283,7 @@ class SimpleTypeInferrerVisitor<T>
     TypeMask moveNextMask = elements.getMoveNextTypeMask(node);
 
     js.JavaScriptBackend backend = compiler.backend;
-    Element ctor = backend.getStreamIteratorConstructor();
+    Element ctor = backend.helpers.streamIteratorConstructor;
 
     /// Synthesize a call to the [StreamIterator] constructor.
     T iteratorType = handleStaticSend(node, null, null, ctor,

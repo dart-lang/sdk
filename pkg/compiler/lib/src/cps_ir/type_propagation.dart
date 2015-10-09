@@ -877,7 +877,7 @@ class TransformingVisitor extends LeafVisitor {
         <Primitive>[index, cps.letPrim(new GetLength(list))]);
     cps.ifTruthy(isTooLarge).invokeContinuation(fail);
     cps.insideContinuation(fail).invokeStaticThrower(
-        backend.getThrowIndexOutOfBoundsError(),
+        backend.helpers.throwIndexOutOfBoundsError,
         <Primitive>[list, index]);
     return cps;
   }
@@ -895,7 +895,7 @@ class TransformingVisitor extends LeafVisitor {
         BuiltinOperator.StrictNeq,
         <Primitive>[originalLength, cps.letPrim(new GetLength(list))]);
     cps.ifTruthy(lengthChanged).invokeStaticThrower(
-        backend.getThrowConcurrentModificationError(),
+        backend.helpers.throwConcurrentModificationError,
         <Primitive>[list]);
     return cps;
   }
@@ -1007,7 +1007,7 @@ class TransformingVisitor extends LeafVisitor {
             [length, cps.makeZero()]);
         CpsFragment fail = cps.ifTruthy(isEmpty);
         fail.invokeStaticThrower(
-            backend.getThrowIndexOutOfBoundsError(),
+            backend.helpers.throwIndexOutOfBoundsError,
             [list, fail.makeConstant(new IntConstantValue(-1))]);
         Primitive removedItem = cps.invokeBuiltin(BuiltinMethod.Pop,
             list,

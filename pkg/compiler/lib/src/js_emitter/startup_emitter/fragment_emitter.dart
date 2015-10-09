@@ -444,7 +444,7 @@ class FragmentEmitter {
         {'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
          'typeNameProperty': js.string(ModelEmitter.typeNameProperty),
          'cyclicThrow': backend.emitter.staticFunctionAccess(
-                 backend.getCyclicThrowHelper()),
+                 backend.helpers.cyclicThrowHelper),
          'operatorIsPrefix': js.string(namer.operatorIsPrefix),
          'tearOffCode': new js.Block(buildTearOffCode(backend)),
          'embeddedTypes': generateEmbeddedGlobalAccess(TYPES),
