@@ -10,6 +10,7 @@ import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:plugin/manager.dart';
 import 'package:unittest/unittest.dart';
 import 'package:yaml/yaml.dart';
+import 'package:analyzer/src/services/lint.dart';
 
 main() {
   groupSep = ' | ';
@@ -37,15 +38,13 @@ defineTests() {
   group('plugin', () {
     test('contributed rules', () {
       LinterPlugin linterPlugin = newTestPlugin();
-      var contributedRules = linterPlugin.lintRules.map((rule) => rule.name);
-      expect(contributedRules, unorderedEquals(builtinRules));
+      expect(linterPlugin.contributedRules.map((rule) => rule.name),
+          unorderedEquals(builtinRules));
     });
 
     // Verify that if options are processed only explicitly enabled rules are
     // in the lint rule registry.
     test('option processing', () {
-      LinterPlugin linterPlugin = newTestPlugin();
-
       var src = '''
 rules:
   style_guide:
@@ -54,13 +53,23 @@ rules:
     empty_constructor_bodies: false
 ''';
       var yaml = loadYamlNode(src);
-
+      var context = new AnalysisContextImpl();
       AnalysisEngine.instance.optionsPlugin.optionsProcessors
-          .forEach((op) =>
-          op.optionsProcessed(new AnalysisContextImpl(), {'linter': yaml}));
-      var rules = linterPlugin.lintRules.map((rule) => rule.name);
+          .forEach((op) => op.optionsProcessed(context, {'linter': yaml}));
+      var rules = lintRegistry[context].map((rule) => rule.name);
       expect(rules,
           unorderedEquals(['camel_case_types', 'constant_identifier_names']));
+
+      var src2 = '''
+rules:
+  - camel_case_types
+''';
+      var yaml2 = loadYamlNode(src2);
+      var context2 = new AnalysisContextImpl();
+      AnalysisEngine.instance.optionsPlugin.optionsProcessors
+          .forEach((op) => op.optionsProcessed(context2, {'linter': yaml2}));
+      var rules2 = lintRegistry[context2].map((rule) => rule.name);
+      expect(rules2, unorderedEquals(['camel_case_types']));
     });
   });
 }

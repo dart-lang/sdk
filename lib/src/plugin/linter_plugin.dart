@@ -5,6 +5,8 @@
 library linter.src.plugin.linter_plugin;
 
 import 'package:analyzer/plugin/options.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/services/lint.dart';
 import 'package:linter/plugin/linter.dart';
 import 'package:linter/src/config.dart';
 import 'package:linter/src/linter.dart';
@@ -28,7 +30,6 @@ final LinterPlugin linterPlugin = new LinterPlugin();
 /// A plugin that defines the extension points and extensions that are
 /// inherently defined by the linter.
 class LinterPlugin implements Plugin {
-
   /// The unique identifier of this plugin.
   static const String UNIQUE_IDENTIFIER = 'linter.core';
 
@@ -40,28 +41,25 @@ class LinterPlugin implements Plugin {
   ExtensionPoint lintRuleExtensionPoint;
 
   /// An options processor for creating lint configs from analysis options.
-  final AnalysisOptionsProcessor _optionsProcessor =
-      new AnalysisOptionsProcessor();
+  AnalysisOptionsProcessor _optionsProcessor;
+
+  LinterPlugin() {
+    _optionsProcessor = new AnalysisOptionsProcessor(this);
+  }
 
   /// Return a list of all contributed lint rules.
   List<LintRule> get contributedRules => lintRuleExtensionPoint.extensions;
+
+  /// Cached config (temporary to support legacy `lintRules` getter).
+  LintConfig _config;
 
   /// Return a list of enabled lint rules.
   ///
   /// By default this list includes all [contributedRules].  Specific lints
   /// can be enabled/disabled (and in the future further configured) through
   /// a specified analysis options file.
-  List<LintRule> get lintRules {
-
-    // First check for an options-specified configuration.
-    LintConfig config = _optionsProcessor.createConfig();
-    if (config != null) {
-      return ruleRegistry.enabled(config).toList();
-    }
-
-    // Default to contributed rules.
-    return contributedRules;
-  }
+  @deprecated // Use lintRegistry
+  List<LintRule> get lintRules => _getRules(_config);
 
   @override
   String get uniqueIdentifier => UNIQUE_IDENTIFIER;
@@ -90,6 +88,20 @@ class LinterPlugin implements Plugin {
     ].forEach((LintRule rule) =>
         registerExtension(LINT_RULE_EXTENSION_POINT_ID, rule));
     registerExtension(OPTIONS_PROCESSOR_EXTENSION_POINT_ID, _optionsProcessor);
+  }
+
+  List<Linter> registerLints(AnalysisContext context, LintConfig config) {
+    _config = config;
+    return lintRegistry[context] = _getRules(config);
+  }
+
+  List<Linter> _getRules(LintConfig config) {
+    if (config != null) {
+      return ruleRegistry.enabled(config).toList();
+    }
+
+    // Default to contributed rules.
+    return contributedRules;
   }
 
   void _validateTaskExtension(Object extension) {

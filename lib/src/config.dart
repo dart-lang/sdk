@@ -6,19 +6,11 @@ library linter.src.config;
 
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:yaml/yaml.dart';
 
-/// Process the given option [fileContents] and produce a corresponding
-/// [LintConfig].
-LintConfig processAnalysisOptionsFile(String fileContents, {String fileUrl}) {
-  var yaml = loadYamlNode(fileContents, sourceUrl: fileUrl);
-  if (yaml is YamlMap) {
-    return _parseConfig(yaml);
-  }
-  return null;
-}
-
-LintConfig _parseConfig(Map optionsMap) {
+/// Parse the given map into a lint config.
+LintConfig parseConfig(Map optionsMap) {
   if (optionsMap != null) {
     var options = optionsMap['linter'];
     // Quick check of basic contract.
@@ -29,22 +21,37 @@ LintConfig _parseConfig(Map optionsMap) {
   return null;
 }
 
+/// Process the given option [fileContents] and produce a corresponding
+/// [LintConfig].
+LintConfig processAnalysisOptionsFile(String fileContents, {String fileUrl}) {
+  var yaml = loadYamlNode(fileContents, sourceUrl: fileUrl);
+  if (yaml is YamlMap) {
+    return parseConfig(yaml);
+  }
+  return null;
+}
+
 /// Processes analysis options files and translates them into [LintConfig]s.
 class AnalysisOptionsProcessor extends OptionsProcessor {
-  Map<String, YamlNode> options;
-  Exception exception;
-
-  LintConfig createConfig() => _parseConfig(options);
+  final List<Exception> exceptions = <Exception>[];
+  final LinterPlugin plugin;
+  AnalysisOptionsProcessor(this.plugin);
 
   @override
   void onError(Exception exception) {
-    this.exception = exception;
+    //TODO(pq): handle exceptions
+    exceptions.add(exception);
   }
 
   @override
   void optionsProcessed(
       AnalysisContext context, Map<String, YamlNode> options) {
-    this.options = options;
+    var lints = plugin.registerLints(context, parseConfig(options));
+    if (lints?.isNotEmpty) {
+      var options = new AnalysisOptionsImpl.from(context.analysisOptions);
+      options.lint = true;
+      context.analysisOptions = options;
+    }
   }
 }
 
