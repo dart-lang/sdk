@@ -13709,7 +13709,7 @@ class BlinkSpeechRecognition extends BlinkEventTarget {
 
   abort_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "abort", []);
 
-  constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "SpeechRecognition"), []);
+  constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "webkitSpeechRecognition"), []);
 
   continuous_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "continuous");
 

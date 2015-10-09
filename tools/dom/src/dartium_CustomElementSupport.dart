@@ -27,15 +27,23 @@ class _VMElementUpgrader implements ElementUpgrader {
   }
 
   Element upgrade(element) {
-    if (element.runtimeType != js.JsObjectImpl) {
-      throw new UnsupportedError('Element is incorrect type');
+    var jsObject;
+    var tag;
+    if (element.runtimeType == HtmlElement) {
+      jsObject = unwrap_jso(element);
+      tag = element.localName;
+    } else if (element.runtimeType == js.JsObjectImpl) {
+      // It's a Polymer core element (written in JS).
+      jsObject = element;
+      tag = element['localName'];
+    } else {
+      throw new UnsupportedError('Element is incorrect type. Got ${element.runtimeType}, expected HtmlElement/JsObjectImpl.');
     }
 
     // Remember Dart class to tagName for any upgrading done in wrap_jso.
-    var tag = element['localName'];
     _knownCustomeElements[tag] = _type;
 
-    return createCustomUpgrader(_nativeType, element);
+    return createCustomUpgrader(_nativeType, jsObject);
   }
 }
 
