@@ -18,7 +18,7 @@ import 'performance_tests.dart';
 /**
  * Pass in the directory of the source to be analyzed as option `--source`,
  * optionally specify a priority file with `--priority` and the specific
- * test to run with `--test`.  If no test is specified, the default is
+ * test to run with `--metric`.  If no test is specified, the default is
  * `analysis`.
  */
 main(List<String> arguments) {
@@ -31,11 +31,14 @@ main(List<String> arguments) {
   }
   source = args[SOURCE_OPTION];
   priorityFile = args[PRIORITY_FILE_OPTION];
-  var metricNameParam = args[METRIC_NAME_OPTION] ?? DEFAULT_METRIC;
+  metricNames.addAll(args[METRIC_NAME_OPTION]);
+  unittestConfiguration.timeout = new Duration(minutes: 20);
 
-  metricNames.addAll(metricNameParam);
-
-  defineReflectiveTests(TimingTest);
+  if (metricNames.isEmpty) {
+    defineReflectiveTests(AnalysisTimingTest);
+  } else {
+    defineReflectiveTests(SubscriptionTimingTest);
+  }
 }
 
 const DEFAULT_METRIC = 'analysis';
@@ -62,6 +65,20 @@ class AbstractTimingTest extends AbstractAnalysisServerPerformanceTest {
       });
 }
 
+@reflectiveTest
+class AnalysisTimingTest extends AbstractTimingTest {
+  Future test_timing() {
+    // Set root after subscribing to avoid empty notifications.
+    setAnalysisRoot();
+
+    stopwatch.start();
+    return analysisFinished.then((_) {
+      print('analysis completed in ${stopwatch.elapsed}');
+      stopwatch.reset();
+    });
+  }
+}
+
 class Metric {
   List<Duration> timings = <Duration>[];
   Stream eventStream;
@@ -72,7 +89,7 @@ class Metric {
 }
 
 @reflectiveTest
-class TimingTest extends AbstractTimingTest {
+class SubscriptionTimingTest extends AbstractTimingTest {
   List<Metric> _metrics;
 
   List<Metric> get metrics =>
@@ -105,7 +122,7 @@ class TimingTest extends AbstractTimingTest {
   }
 
   Future test_timing() {
-    //debugStdio();
+//   debugStdio();
 
     expect(metrics, isNotEmpty);
     expect(priorityFile, isNotNull,
