@@ -325,18 +325,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         return js.call('dart.asInt(#)', [fromExpr]);
       }
 
-      if (!rules.isNonNullableType(from) && rules.isNonNullableType(to)) {
-        // Converting from a nullable number to a non-nullable number
-        // only requires a null check.
-        // TODO(jmesserly): a lot of these checks are meaningless, as people use
-        // `num` to mean "any kind of number" rather than "could be null".
-        // The core libraries especially suffer from this problem, with many of
-        // the `num` methods returning `num`.
-        return js.call('dart.notNull(#)', fromExpr);
-      } else {
-        // A no-op in JavaScript.
-        return fromExpr;
-      }
+      // A no-op in JavaScript.
+      return fromExpr;
     }
 
     return js.call('dart.as(#, #)', [fromExpr, _emitTypeName(to)]);
@@ -1126,11 +1116,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       if (fieldNode.initializer != null) {
         value = _visit(fieldNode.initializer);
       } else {
-        var type = rules.elementType(element);
         value = new JS.LiteralNull();
-        if (rules.maybeNonNullableType(type)) {
-          value = js.call('dart.as(#, #)', [value, _emitTypeName(type)]);
-        }
       }
       fields[element] = value;
     });
@@ -2175,18 +2161,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   bool typeIsPrimitiveInJS(DartType t) =>
       _isNumberInJS(t) || t == _types.boolType;
 
-  bool typeIsNonNullablePrimitiveInJS(DartType t) =>
-      typeIsPrimitiveInJS(t) && rules.isNonNullableType(t);
-
   bool binaryOperationIsPrimitive(DartType leftT, DartType rightT) =>
       typeIsPrimitiveInJS(leftT) && typeIsPrimitiveInJS(rightT);
 
   bool unaryOperationIsPrimitive(DartType t) => typeIsPrimitiveInJS(t);
 
   bool _isNonNullableExpression(Expression expr) {
-    // If the type is non-nullable, no further checking needed.
-    if (rules.isNonNullableType(getStaticType(expr))) return true;
-
     // TODO(vsm): Revisit whether we really need this when we get
     // better non-nullability in the type system.
     // TODO(jmesserly): we do recursive calls in a few places. This could

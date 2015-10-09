@@ -108,10 +108,6 @@ class StrongModeOptions {
   /// Whether to inject casts between Dart assignable types.
   final bool relaxedCasts;
 
-  /// A list of non-nullable type names (e.g., 'int')
-  final List<String> nonnullableTypes;
-  static const List<String> NONNULLABLE_TYPES = const <String>[];
-
   /// Whether to include hints about dynamic invokes and runtime checks.
   // TODO(jmesserly): this option is not used yet by DDC server mode or batch
   // compile to JS.
@@ -122,16 +118,13 @@ class StrongModeOptions {
       this.inferTransitively: inferTransitivelyDefault,
       this.onlyInferConstsAndFinalFields: onlyInferConstAndFinalFieldsDefault,
       this.inferDownwards: inferDownwardsDefault,
-      this.relaxedCasts: true,
-      this.nonnullableTypes: StrongModeOptions.NONNULLABLE_TYPES});
+      this.relaxedCasts: true});
 
   StrongModeOptions.fromArguments(ArgResults args, {String prefix: ''})
       : relaxedCasts = args[prefix + 'relaxed-casts'],
         inferDownwards = args[prefix + 'infer-downwards'],
         inferTransitively = args[prefix + 'infer-transitively'],
         onlyInferConstsAndFinalFields = args[prefix + 'infer-only-finals'],
-        nonnullableTypes = _optionsToList(args[prefix + 'nonnullable'],
-            defaultValue: StrongModeOptions.NONNULLABLE_TYPES),
         hints = args[prefix + 'hints'];
 
   static ArgParser addArguments(ArgParser parser,
@@ -170,19 +163,6 @@ class StrongModeOptions {
     return inferTransitively == s.inferTransitively &&
         onlyInferConstsAndFinalFields == s.onlyInferConstsAndFinalFields &&
         inferDownwards == s.inferDownwards &&
-        relaxedCasts == s.relaxedCasts &&
-        nonnullableTypes.length == s.nonnullableTypes.length &&
-        new Set.from(nonnullableTypes).containsAll(s.nonnullableTypes);
-  }
-}
-
-List<String> _optionsToList(String option,
-    {List<String> defaultValue: const <String>[]}) {
-  if (option == null) {
-    return defaultValue;
-  } else if (option.isEmpty) {
-    return <String>[];
-  } else {
-    return option.split(',');
+        relaxedCasts == s.relaxedCasts;
   }
 }

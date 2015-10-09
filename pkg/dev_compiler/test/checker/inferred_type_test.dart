@@ -30,30 +30,6 @@ void main() {
     '''
   });
 
-  testChecker('Error when declared type is `int` and assigned null.', {
-    '/main.dart': '''
-        test1() {
-          int x = 3;
-          x = /*severe:StaticTypeError*/null;
-        }
-      '''
-  }, nonnullableTypes: <String>[
-    'int',
-    'double'
-  ]);
-
-  testChecker('Error when inferred type is `int` and assigned null.', {
-    '/main.dart': '''
-        test1() {
-          var x = 3;
-          x = /*severe:StaticTypeError*/null;
-        }
-      '''
-  }, nonnullableTypes: <String>[
-    'int',
-    'double'
-  ]);
-
   testChecker('No error when declared type is `num` and assigned null.', {
     '/main.dart': '''
         test1() {

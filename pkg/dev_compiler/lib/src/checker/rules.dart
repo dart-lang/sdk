@@ -32,9 +32,6 @@ abstract class TypeRules {
           {bool fuzzyArrows: true, bool ignoreReturn: false}) =>
       isSubTypeOf(f1, f2);
 
-  bool isNonNullableType(DartType t) => false;
-  bool maybeNonNullableType(DartType t) => false;
-
   StaticInfo checkAssignment(Expression expr, DartType t);
 
   DartType getStaticType(Expression expr) => expr.staticType;
@@ -126,31 +123,9 @@ abstract class TypeRules {
 
 class RestrictedRules extends TypeRules {
   final StrongModeOptions options;
-  final List<DartType> _nonnullableTypes;
   DownwardsInference inferrer;
 
-  DartType _typeFromName(String name) {
-    switch (name) {
-      case 'int':
-        return provider.intType;
-      case 'double':
-        return provider.doubleType;
-      case 'num':
-        return provider.numType;
-      case 'bool':
-        return provider.boolType;
-      case 'String':
-        return provider.stringType;
-      default:
-        throw new UnsupportedError('Unsupported non-nullable type $name');
-    }
-  }
-
-  RestrictedRules(TypeProvider provider, {this.options})
-      : _nonnullableTypes = <DartType>[],
-        super(provider) {
-    var types = options.nonnullableTypes;
-    _nonnullableTypes.addAll(types.map(_typeFromName));
+  RestrictedRules(TypeProvider provider, {this.options}) : super(provider) {
     inferrer = new DownwardsInference(this);
   }
 
@@ -162,7 +137,7 @@ class RestrictedRules extends TypeRules {
     if (t.isDynamic && dynamicIsBottom) return true;
     // TODO(vsm): We need direct support for non-nullability in DartType.
     // This should check on "true/nonnullable" Bottom
-    if (t.isBottom && _nonnullableTypes.isEmpty) return true;
+    if (t.isBottom) return true;
     return false;
   }
 
@@ -170,25 +145,6 @@ class RestrictedRules extends TypeRules {
     if (t.isDynamic && !dynamicIsBottom) return true;
     if (t.isObject) return true;
     return false;
-  }
-
-  bool isNonNullableType(DartType t) => _nonnullableTypes.contains(t);
-
-  bool maybeNonNullableType(DartType t) {
-    // Return true iff t *may* be a primitive type.
-    // If t is a generic type parameter, return true if it may be
-    // instantiated as a primitive.
-    if (isNonNullableType(t)) {
-      return true;
-    } else if (t is TypeParameterType) {
-      var bound = t.element.bound;
-      if (bound == null) {
-        bound = provider.dynamicType;
-      }
-      return _nonnullableTypes.any((DartType p) => isSubTypeOf(p, bound));
-    } else {
-      return false;
-    }
   }
 
   bool _anyParameterType(FunctionType ft, bool predicate(DartType t)) {
@@ -343,13 +299,12 @@ class RestrictedRules extends TypeRules {
       return false;
     }
 
-    // The null type is a subtype of any nonnullable type.
+    // The null type is a subtype of any nullable type, which is all Dart types.
     // TODO(vsm): Note, t1.isBottom still allows for null confusingly.
     // _isBottom(t1) does not necessarily imply t1.isBottom if there are
     // nonnullable types in the system.
     if (t1.isBottom) {
-      // Return false iff t2 *may* be a primitive type.
-      return !maybeNonNullableType(t2);
+      return true;
     }
 
     // S <: T where S is a type variable

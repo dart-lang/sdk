@@ -77,8 +77,7 @@ void testChecker(String name, Map<String, String> testFiles,
     customUrlMappings: const {},
     relaxedCasts: true,
     inferDownwards: StrongModeOptions.inferDownwardsDefault,
-    inferTransitively: StrongModeOptions.inferTransitivelyDefault,
-    nonnullableTypes: StrongModeOptions.NONNULLABLE_TYPES}) {
+    inferTransitively: StrongModeOptions.inferTransitivelyDefault}) {
   test(name, () {
     expect(testFiles.containsKey('/main.dart'), isTrue,
         reason: '`/main.dart` is missing in testFiles');
@@ -102,7 +101,6 @@ void testChecker(String name, Map<String, String> testFiles,
             relaxedCasts: relaxedCasts,
             inferDownwards: inferDownwards,
             inferTransitively: inferTransitively,
-            nonnullableTypes: nonnullableTypes,
             hints: true));
 
     // Run the checker on /main.dart.

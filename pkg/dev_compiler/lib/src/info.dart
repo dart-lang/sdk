@@ -222,15 +222,8 @@ abstract class DownCast extends CoercionInfo {
 
     // Handle null call specially.
     if (expression is NullLiteral) {
-      if (rules.isNonNullableType(toT)) {
-        reason = "null is invalid as a $toT";
-        return new StaticTypeError(rules, expression, toT, reason: reason);
-      } else {
-        // We should only get here if some coercion is required.
-        assert(rules.maybeNonNullableType(toT));
-        // TODO(vsm): Create a NullCast for this once we revisit nonnullability.
-        return new DownCastImplicit(rules, expression, cast);
-      }
+      // TODO(vsm): Create a NullCast for this once we revisit nonnullability.
+      return new DownCastImplicit(rules, expression, cast);
     }
 
     // Inference "casts":

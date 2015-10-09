@@ -626,13 +626,7 @@ class CodeChecker extends RecursiveAstVisitor {
     var parameterType = rules.elementType(parameter.element);
     assert(parameterType != null);
     var defaultValue = node.defaultValue;
-    if (defaultValue == null) {
-      if (rules.maybeNonNullableType(parameterType)) {
-        var staticInfo = new InvalidVariableDeclaration(
-            rules, node.identifier, parameterType);
-        _recordMessage(staticInfo);
-      }
-    } else {
+    if (defaultValue != null) {
       checkAssignment(defaultValue, parameterType);
     }
 
@@ -683,19 +677,6 @@ class CodeChecker extends RecursiveAstVisitor {
         var initializer = variable.initializer;
         if (initializer != null) {
           checkAssignment(initializer, dartType);
-        } else if (rules.maybeNonNullableType(dartType)) {
-          var element = variable.element;
-          if (element is FieldElement && !element.isStatic) {
-            // Initialized - possibly implicitly - during construction.
-            // Handle this via a runtime check during code generation.
-
-            // TODO(vsm): Detect statically whether this can fail and
-            // report a static error (must fail) or warning (can fail).
-          } else {
-            var staticInfo =
-                new InvalidVariableDeclaration(rules, variable, dartType);
-            _recordMessage(staticInfo);
-          }
         }
       }
     }
@@ -856,11 +837,14 @@ class CodeChecker extends RecursiveAstVisitor {
       case TokenType.STAR_EQ:
       case TokenType.TILDE_SLASH_EQ:
       case TokenType.PERCENT_EQ:
-        if (t1 == rules.provider.intType && t2 == rules.provider.intType) return t1;
-        if (t1  == rules.provider.doubleType && t2 == rules.provider.doubleType) return t1;
+        if (t1 == rules.provider.intType &&
+            t2 == rules.provider.intType) return t1;
+        if (t1 == rules.provider.doubleType &&
+            t2 == rules.provider.doubleType) return t1;
         // This particular combo is not spelled out in the spec, but all
         // implementations and analyzer seem to follow this.
-        if (t1 == rules.provider.doubleType && t2 == rules.provider.intType) return t1;
+        if (t1 == rules.provider.doubleType &&
+            t2 == rules.provider.intType) return t1;
     }
     return normalReturnType;
   }
