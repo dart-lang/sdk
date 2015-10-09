@@ -30,6 +30,9 @@ final LinterPlugin linterPlugin = new LinterPlugin();
 /// A plugin that defines the extension points and extensions that are
 /// inherently defined by the linter.
 class LinterPlugin implements Plugin {
+
+  static const List<Linter> _noLints = const <Linter>[];
+
   /// The unique identifier of this plugin.
   static const String UNIQUE_IDENTIFIER = 'linter.core';
 
@@ -99,9 +102,7 @@ class LinterPlugin implements Plugin {
     if (config != null) {
       return ruleRegistry.enabled(config).toList();
     }
-
-    // Default to contributed rules.
-    return contributedRules;
+    return _noLints;
   }
 
   void _validateTaskExtension(Object extension) {
