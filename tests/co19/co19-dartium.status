@@ -11,6 +11,9 @@ LayoutTests/fast/css-generated-content/pseudo-animation-before-onload_t01: Skip 
 LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeError # Issue 21605
 LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow_t01: Pass, RuntimeError # Issue 21605
 
+[ $compiler == none && $runtime == dartium && $system == windows ]
+LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeError # Issue 21605
+
 [ $compiler == none && $runtime == dartium ]
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: RuntimeError # Dartium JSInterop failure

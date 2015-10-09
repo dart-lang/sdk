@@ -128,6 +128,24 @@ webgl_1_test: Pass, Fail # Issue 8219
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows]
 websql_test: Skip # Issue 4941: stderr contains a backtrace.
+custom/attribute_changed_callback_test/fully_supported: RuntimeError # Issue 24546
+custom/attribute_changed_callback_test/unsupported_on_polyfill: RuntimeError # Issue 24546
+custom/constructor_calls_created_synchronously_test: RuntimeError # Issue 24546
+custom/created_callback_test: RuntimeError # Issue 24546
+custom/entered_left_view_test/standard_events -- old callback names: RuntimeError # Issue 24546
+custom/entered_left_view_test/shadow_dom: RuntimeError # Issue 24546
+custom/entered_left_view_test/viewless_document: RuntimeError # Issue 24546
+custom/entered_left_view_test/disconnected_subtree: RuntimeError # Issue 24546
+custom/entered_left_view_test/standard_events: RuntimeError # Issue 24546
+custom_elements_23127_test/baseline: RuntimeError # Issue 24546
+custom_elements_23127_test/c1t: RuntimeError # Issue 24546
+custom_elements_23127_test/c2: RuntimeError # Issue 24546
+custom_elements_23127_test/c2t: RuntimeError # Issue 24546
+custom_elements_test/innerHtml: RuntimeError # Issue 24546
+custom_elements_test/lifecycle: RuntimeError # Issue 24546
+custom_element_name_clash_test/test: RuntimeError # Issue 24546
+custom_elements_test/mixins: RuntimeError # Issue 24546
+custom_element_method_clash_test/test: RuntimeError # Issue 24546
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug]
 websql_test: Fail, Pass # Issue 4941: stderr contains a backtrace.
