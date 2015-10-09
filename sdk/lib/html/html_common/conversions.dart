@@ -304,7 +304,7 @@ gl.ContextAttributes convertNativeToDart_ContextAttributes(
 // On Firefox, the returned ImageData is a plain object.
 
 class _TypedImageData implements ImageData {
-  final NativeUint8ClampedList data;
+  final Uint8ClampedList data;
   final int height;
   final int width;
 

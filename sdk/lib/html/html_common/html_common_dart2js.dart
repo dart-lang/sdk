@@ -9,7 +9,7 @@ import 'dart:collection';
 import 'dart:html';
 import 'dart:_internal' show WhereIterable;
 import 'dart:web_gl' as gl;
-import 'dart:_native_typed_data';
+import 'dart:typed_data';
 import 'dart:_js_helper' show Creates, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor, JSExtendableArray;
