@@ -2540,21 +2540,6 @@ class GenerateLintsTask extends SourceBasedAnalysisTask {
   static const String RESOLVED_UNIT_INPUT = 'RESOLVED_UNIT';
 
   /**
-   * The name of a list of [USED_LOCAL_ELEMENTS] for each library unit input.
-   */
-  static const String USED_LOCAL_ELEMENTS_INPUT = 'USED_LOCAL_ELEMENTS';
-
-  /**
-   * The name of a list of [USED_IMPORTED_ELEMENTS] for each library unit input.
-   */
-  static const String USED_IMPORTED_ELEMENTS_INPUT = 'USED_IMPORTED_ELEMENTS';
-
-  /**
-   * The name of the [TYPE_PROVIDER] input.
-   */
-  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
-
-  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
