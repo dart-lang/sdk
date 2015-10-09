@@ -22,7 +22,6 @@ indexeddb_2_test: Skip # Dartium JSInterop failure
 js_test/transferrables: RuntimeError # Dartium JSInterop failure
 js_test/JsArray: RuntimeError # Dartium JSInterop failure
 native_gc_test: Skip # Dartium JSInterop failure
-speechrecognition_test/types: RuntimeError # Dartium JSInterop failure
 storage_quota_test/missingenumcheck: RuntimeError # Dartium JSInterop failure
 storage_quota_test/none: RuntimeError # Dartium JSInterop failure
 transferables_test: RuntimeError # Dartium JSInterop failure
