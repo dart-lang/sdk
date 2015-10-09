@@ -37,13 +37,13 @@ import 'package:sdk_library_metadata/libraries.dart' show
 
 const LibraryInfo mock1LibraryInfo = const LibraryInfo(
     "mock1.dart",
-    categories: "Client,Embedded",
+    category: "Shared",
     documented: false,
     platforms: DART2JS_PLATFORM);
 
 const LibraryInfo mock2LibraryInfo = const LibraryInfo(
     "mock2.dart",
-    categories: "Client,Embedded",
+    category: "Shared",
     documented: false,
     platforms: DART2JS_PLATFORM);
 

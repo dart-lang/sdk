@@ -33,7 +33,7 @@ import 'dart:io';
 import 'dart:mirrors';
 
 import 'package:sdk_library_metadata/libraries.dart'
-    show libraries, LibraryInfo;
+    show LIBRARIES, LibraryInfo;
 
 import 'package:compiler/src/mirrors/analyze.dart'
     show analyze;
@@ -51,7 +51,7 @@ const DART2JS_MIRROR = 'package:compiler/src/mirrors/dart2js_mirrors.dart';
 const SDK_ROOT = '../../../../sdk/';
 
 bool isPublicDart2jsLibrary(String name) {
-  return !name.startsWith('_') && libraries[name].isDart2jsLibrary;
+  return !name.startsWith('_') && LIBRARIES[name].isDart2jsLibrary;
 }
 
 var handler;
@@ -82,7 +82,7 @@ main(List<String> arguments) {
   }
 
   // Get the names of public dart2js libraries.
-  Iterable<String> names = libraries.keys.where(isPublicDart2jsLibrary);
+  Iterable<String> names = LIBRARIES.keys.where(isPublicDart2jsLibrary);
 
   // Prepend "dart:" to the names.
   uris.addAll(names.map((String name) => Uri.parse('dart:$name')));

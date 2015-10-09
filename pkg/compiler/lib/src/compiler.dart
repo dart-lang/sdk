@@ -988,16 +988,8 @@ abstract class Compiler {
       reporter.log('Enqueuing ${library.canonicalUri}');
         fullyEnqueueLibrary(library, enqueuer.resolution);
       });
-    } else if (analyzeMain) {
-      if (mainApp != null) {
-        fullyEnqueueLibrary(mainApp, enqueuer.resolution);
-      }
-      if (librariesToAnalyzeWhenRun != null) {
-        for (Uri libraryUri in librariesToAnalyzeWhenRun) {
-          fullyEnqueueLibrary(libraryLoader.lookupLibrary(libraryUri),
-              enqueuer.resolution);
-        }
-      }
+    } else if (analyzeMain && mainApp != null) {
+      fullyEnqueueLibrary(mainApp, enqueuer.resolution);
     }
     // Elements required by enqueueHelpers are global dependencies
     // that are not pulled in by a particular element.
