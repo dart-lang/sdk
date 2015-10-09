@@ -2572,9 +2572,10 @@ class GenerateLintsTask extends SourceBasedAnalysisTask {
     //
     // Generate lints.
     //
-    LintGenerator.LINTERS.forEach((l) => l.reporter = errorReporter);
+    List<Linter> linters = lintRegistry[context] ?? [];
+    linters.forEach((l) => l.reporter = errorReporter);
     Iterable<AstVisitor> visitors =
-        LintGenerator.LINTERS.map((l) => l.getVisitor()).toList();
+        linters.map((l) => l.getVisitor()).toList();
     unit.accept(new DelegatingAstVisitor(visitors.where((v) => v != null)));
 
     //

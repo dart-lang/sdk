@@ -24,6 +24,7 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:args/args.dart';
+import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 
@@ -404,6 +405,7 @@ class Driver implements ServerStarter {
     plugins.addAll(AnalysisEngine.instance.supportedPlugins);
     plugins.add(serverPlugin);
     plugins.addAll(_userDefinedPlugins);
+    plugins.add(linterPlugin);
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
     //

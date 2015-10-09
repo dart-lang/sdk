@@ -2249,11 +2249,12 @@ class GenerateLintsTaskTest extends _AbstractDartTaskTest {
   void setUp() {
     super.setUp();
     enableLints();
+    lintRegistry[context] = [new GenerateLintsTaskTest_TestLinter()];
   }
 
   @override
   void tearDown() {
-    LintGenerator.LINTERS.clear();
+    lintRegistry[context] = [];
     super.tearDown();
   }
 
@@ -2263,9 +2264,6 @@ class GenerateLintsTaskTest extends _AbstractDartTaskTest {
         '''
 class a { }
 ''');
-
-    LintGenerator.LINTERS.clear();
-    LintGenerator.LINTERS.add(new GenerateLintsTaskTest_TestLinter());
 
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     computeResult(target, LINTS, matcher: isGenerateLintsTask);

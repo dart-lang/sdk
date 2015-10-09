@@ -22,6 +22,7 @@ import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -820,17 +821,6 @@ class ContextManagerImpl implements ContextManager {
     ContextInfo info = new ContextInfo(this, parent, folder, packagespecFile,
         normalizedPackageRoots[folder.path]);
 
-    try {
-      Map<String, YamlNode> options =
-          analysisOptionsProvider.getOptions(folder);
-      processOptionsForContext(info, options);
-    } catch (e) {
-      // TODO(pquitslund): contribute plugin that sends error notification on options file.
-      // Related test: context_manager_test.test_analysis_options_parse_failure()
-      // AnalysisEngine.instance.optionsPlugin.optionsProcessors
-      //      .forEach((OptionsProcessor p) => p.onError(e));
-    }
-
     FolderDisposition disposition;
     List<String> dependencies = <String>[];
 
@@ -843,6 +833,23 @@ class ContextManagerImpl implements ContextManager {
     info.setDependencies(dependencies);
     info.context = callbacks.addContext(folder, disposition);
     info.context.name = folder.path;
+
+    try {
+      Map<String, YamlNode> options =
+          analysisOptionsProvider.getOptions(folder);
+      processOptionsForContext(info, options);
+    } catch (e, stacktrace) {
+      AnalysisEngine.instance.logger.logError(
+          'Error processing .analysis_options',
+          new CaughtException(e, stacktrace));
+      // TODO(pquitslund): contribute plugin that sends error notification on
+      // options file.
+      // Related test:
+      //   context_manager_test.test_analysis_options_parse_failure()
+      // AnalysisEngine.instance.optionsPlugin.optionsProcessors
+      //      .forEach((OptionsProcessor p) => p.onError(e));
+    }
+
     return info;
   }
 
