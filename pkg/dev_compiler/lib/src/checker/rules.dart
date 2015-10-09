@@ -404,7 +404,7 @@ class RestrictedRules extends TypeRules {
     // are likely to succeed.  The canonical example is List<dynamic> and
     // Iterable<T> for some concrete T (e.g. Object).  These are unrelated
     // in the restricted system, but List<dynamic> <: Iterable<T> in dart.
-    if (options.relaxedCasts && fromT.isAssignableTo(toT)) {
+    if (fromT.isAssignableTo(toT)) {
       return Coercion.cast(fromT, toT);
     }
     return Coercion.error();
@@ -416,12 +416,12 @@ class RestrictedRules extends TypeRules {
     if (c is Identity) return null;
     if (c is CoercionError) return new StaticTypeError(this, expr, toT);
     var reason = null;
-    if (options.inferDownwards) {
-      var errors = <String>[];
-      var ok = inferrer.inferExpression(expr, toT, errors);
-      if (ok) return InferredType.create(this, expr, toT);
-      reason = (errors.isNotEmpty) ? errors.first : null;
-    }
+
+    var errors = <String>[];
+    var ok = inferrer.inferExpression(expr, toT, errors);
+    if (ok) return InferredType.create(this, expr, toT);
+    reason = (errors.isNotEmpty) ? errors.first : null;
+
     if (c is Cast) return DownCast.create(this, expr, c, reason: reason);
     assert(false);
     return null;

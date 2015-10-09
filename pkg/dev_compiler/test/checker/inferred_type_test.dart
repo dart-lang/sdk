@@ -125,13 +125,11 @@ void main() {
     '''
   });
 
-  testChecker(
-      'infer from variables in non-cycle imports with flag',
-      {
-        '/a.dart': '''
+  testChecker('infer from variables in non-cycle imports with flag', {
+    '/a.dart': '''
           var x = 2;
       ''',
-        '/main.dart': '''
+    '/main.dart': '''
           import 'a.dart';
           var y = x;
 
@@ -140,16 +138,13 @@ void main() {
             y = /*severe:StaticTypeError*/"hi";
           }
     '''
-      },
-      inferTransitively: true);
+  });
 
-  testChecker(
-      'infer from variables in non-cycle imports with flag 2',
-      {
-        '/a.dart': '''
+  testChecker('infer from variables in non-cycle imports with flag 2', {
+    '/a.dart': '''
           class A { static var x = 2; }
       ''',
-        '/main.dart': '''
+    '/main.dart': '''
           import 'a.dart';
           class B { static var y = A.x; }
 
@@ -158,17 +153,14 @@ void main() {
             B.y = /*severe:StaticTypeError*/"hi";
           }
     '''
-      },
-      inferTransitively: true);
+  });
 
-  testChecker(
-      'infer from variables in cycle libs when flag is on',
-      {
-        '/a.dart': '''
+  testChecker('infer from variables in cycle libs when flag is on', {
+    '/a.dart': '''
           import 'main.dart';
           var x = 2; // ok to infer
       ''',
-        '/main.dart': '''
+    '/main.dart': '''
           import 'a.dart';
           var y = x; // now ok :)
 
@@ -178,17 +170,14 @@ void main() {
             t = y;
           }
     '''
-      },
-      inferTransitively: true);
+  });
 
-  testChecker(
-      'infer from variables in cycle libs when flag is on 2',
-      {
-        '/a.dart': '''
+  testChecker('infer from variables in cycle libs when flag is on 2', {
+    '/a.dart': '''
           import 'main.dart';
           class A { static var x = 2; }
       ''',
-        '/main.dart': '''
+    '/main.dart': '''
           import 'a.dart';
           class B { static var y = A.x; }
 
@@ -198,26 +187,23 @@ void main() {
             t = B.y;
           }
     '''
-      },
-      inferTransitively: true);
+  });
 
-  testChecker(
-      'can infer also from static and instance fields (flag on)',
-      {
-        '/a.dart': '''
+  testChecker('can infer also from static and instance fields (flag on)', {
+    '/a.dart': '''
           import 'b.dart';
           class A {
             static final a1 = B.b1;
             final a2 = new B().b2;
           }
       ''',
-        '/b.dart': '''
+    '/b.dart': '''
           class B {
             static final b1 = 1;
             final b2 = 1;
           }
       ''',
-        '/main.dart': '''
+    '/main.dart': '''
           import "a.dart";
 
           test1() {
@@ -227,26 +213,23 @@ void main() {
             x = new A().a2;
           }
     '''
-      },
-      inferTransitively: true);
+  });
 
-  testChecker(
-      'inference in cycles is deterministic',
-      {
-        '/a.dart': '''
+  testChecker('inference in cycles is deterministic', {
+    '/a.dart': '''
           import 'b.dart';
           class A {
             static final a1 = B.b1;
             final a2 = new B().b2;
           }
       ''',
-        '/b.dart': '''
+    '/b.dart': '''
           class B {
             static final b1 = 1;
             final b2 = 1;
           }
       ''',
-        '/c.dart': '''
+    '/c.dart': '''
           import "main.dart"; // creates a cycle
 
           class C {
@@ -254,7 +237,7 @@ void main() {
             final c2 = 1;
           }
       ''',
-        '/e.dart': '''
+    '/e.dart': '''
           import 'a.dart';
           part 'e2.dart';
 
@@ -267,16 +250,16 @@ void main() {
             final e6 = new A().a2;
           }
       ''',
-        '/f.dart': '''
+    '/f.dart': '''
           part 'f2.dart';
       ''',
-        '/e2.dart': '''
+    '/e2.dart': '''
           class F {
             static final f1 = 1;
             final f2 = 1;
           }
       ''',
-        '/main.dart': '''
+    '/main.dart': '''
           import "a.dart";
           import "c.dart";
           import "e.dart";
@@ -315,8 +298,7 @@ void main() {
             x = new F().f2;
           }
     '''
-      },
-      inferTransitively: true);
+  });
 
   testChecker(
       'infer from complex expressions if the outer-most value is precise', {
@@ -366,15 +348,13 @@ void main() {
   });
 
   // but flags can enable this behavior.
-  testChecker(
-      'infer if complex expressions read possibly inferred field',
-      {
-        '/a.dart': '''
+  testChecker('infer if complex expressions read possibly inferred field', {
+    '/a.dart': '''
         class A {
           var x = 3;
         }
       ''',
-        '/main.dart': '''
+    '/main.dart': '''
         import 'a.dart';
         class B {
           var y = 3;
@@ -395,8 +375,7 @@ void main() {
           i = new B().y; // B.y was inferred though
         }
     '''
-      },
-      inferTransitively: true);
+  });
 
   group('infer types on loop indices', () {
     testChecker('foreach loop', {
@@ -855,19 +834,17 @@ void main() {
     '''
   });
 
-  testChecker(
-      'infer consts transitively',
-      {
-        '/b.dart': '''
+  testChecker('infer consts transitively', {
+    '/b.dart': '''
         const b1 = 2;
       ''',
-        '/a.dart': '''
+    '/a.dart': '''
         import 'main.dart';
         import 'b.dart';
         const a1 = m2;
         const a2 = b1;
       ''',
-        '/main.dart': '''
+    '/main.dart': '''
         import 'a.dart';
         const m1 = a1;
         const m2 = a2;
@@ -877,16 +854,13 @@ void main() {
           i = m1;
         }
     '''
-      },
-      inferTransitively: true);
+  });
 
-  testChecker(
-      'infer statics transitively',
-      {
-        '/b.dart': '''
+  testChecker('infer statics transitively', {
+    '/b.dart': '''
         final b1 = 2;
       ''',
-        '/a.dart': '''
+    '/a.dart': '''
         import 'main.dart';
         import 'b.dart';
         final a1 = m2;
@@ -894,7 +868,7 @@ void main() {
           static final a2 = b1;
         }
       ''',
-        '/main.dart': '''
+    '/main.dart': '''
         import 'a.dart';
         final m1 = a1;
         final m2 = A.a2;
@@ -904,13 +878,10 @@ void main() {
           i = m1;
         }
     '''
-      },
-      inferTransitively: true);
+  });
 
-  testChecker(
-      'infer statics transitively 2',
-      {
-        '/main.dart': '''
+  testChecker('infer statics transitively 2', {
+    '/main.dart': '''
         const x1 = 1;
         final x2 = 1;
         final y1 = x1;
@@ -922,20 +893,17 @@ void main() {
           i = y2;
         }
     '''
-      },
-      inferTransitively: true);
+  });
 
-  testChecker(
-      'infer statics transitively 3',
-      {
-        '/a.dart': '''
+  testChecker('infer statics transitively 3', {
+    '/a.dart': '''
         const a1 = 3;
         const a2 = 4;
         class A {
           a3;
         }
       ''',
-        '/main.dart': '''
+    '/main.dart': '''
         import 'a.dart' show a1, A;
         import 'a.dart' as p show a2, A;
         const t1 = 1;
@@ -953,16 +921,13 @@ void main() {
           i = t4;
         }
     '''
-      },
-      inferTransitively: true);
+  });
 
-  testChecker(
-      'infer statics with method invocations',
-      {
-        '/a.dart': '''
+  testChecker('infer statics with method invocations', {
+    '/a.dart': '''
         m3(String a, String b, [a1,a2]) {}
       ''',
-        '/main.dart': '''
+    '/main.dart': '''
         import 'a.dart';
         class T {
           static final T foo = m1(m2(m3('', '')));
@@ -972,13 +937,10 @@ void main() {
 
 
     '''
-      },
-      inferTransitively: true);
+  });
 
-  testChecker(
-      'downwards inference: miscellaneous',
-      {
-        '/main.dart': '''
+  testChecker('downwards inference: miscellaneous', {
+    '/main.dart': '''
       typedef (T x);
       class A<T> {
         Function2<T> x;
@@ -997,11 +959,11 @@ void main() {
           }
       }
       '''
-      },
-      inferDownwards: true);
+  });
 
   group('downwards inference on instance creations', () {
-    String mk(String info) => '''
+    String info = 'info:InferredTypeAllocation';
+    String code = '''
       class A<S, T> {
         S x;
         T y;
@@ -1095,16 +1057,12 @@ void main() {
         }
       }
         ''';
-    testChecker(
-        'infer downwards', {'/main.dart': mk("info:InferredTypeAllocation")},
-        inferDownwards: true);
-    testChecker(
-        'no infer downwards', {'/main.dart': mk("severe:StaticTypeError")},
-        inferDownwards: false);
+    testChecker('infer downwards', {'/main.dart': code});
   });
 
   group('downwards inference on list literals', () {
-    String mk(String info) => '''
+    String info = "info:InferredTypeLiteral";
+    String code = '''
       void foo([List<String> list1 = /*$info*/const [],
                 List<String> list2 = /*severe:StaticTypeError*/const [42]]) {
       }
@@ -1142,16 +1100,12 @@ void main() {
         }
       }
       ''';
-    testChecker(
-        'infer downwards', {'/main.dart': mk("info:InferredTypeLiteral")},
-        inferDownwards: true);
-    testChecker(
-        'no infer downwards', {'/main.dart': mk("severe:StaticTypeError")},
-        inferDownwards: false);
+    testChecker('infer downwards', {'/main.dart': code});
   });
 
   group('downwards inference on function arguments', () {
-    String mk(String info) => '''
+    String info = "info:InferredTypeLiteral";
+    String code = '''
       void f0(List<int> a) {};
       void f1({List<int> a}) {};
       void f2(Iterable<int> a) {};
@@ -1184,16 +1138,12 @@ void main() {
         f4(a: /*severe:StaticTypeError*/[["hello"], [3]]);
       }
       ''';
-    testChecker(
-        'infer downwards', {'/main.dart': mk("info:InferredTypeLiteral")},
-        inferDownwards: true);
-    testChecker(
-        'no infer downwards', {'/main.dart': mk("severe:StaticTypeError")},
-        inferDownwards: false);
+    testChecker('infer downwards', {'/main.dart': code});
   });
 
   group('downwards inference on map literals', () {
-    String mk(String info) => '''
+    String info = "info:InferredTypeLiteral";
+    String code = '''
       void foo([Map<int, String> m1 = /*$info*/const {1: "hello"},
                 Map<int, String> m1 = /*severe:StaticTypeError*/const {"hello": "world"}]) {
       }
@@ -1240,18 +1190,11 @@ void main() {
         }
       }
       ''';
-    testChecker(
-        'infer downwards', {'/main.dart': mk("info:InferredTypeLiteral")},
-        inferDownwards: true);
-    testChecker(
-        'no infer downwards', {'/main.dart': mk("severe:StaticTypeError")},
-        inferDownwards: false);
+    testChecker('infer downwards', {'/main.dart': code});
   });
 
-  testChecker(
-      'downwards inference on function expressions',
-      {
-        '/main.dart': '''
+  testChecker('downwards inference on function expressions', {
+    '/main.dart': '''
       typedef T Function2<S, T>(S x);
 
       void main () {
@@ -1284,8 +1227,7 @@ void main() {
         }
       }
       '''
-      },
-      inferDownwards: true);
+  });
 
   testChecker('inferred initializing formal checks default value', {
     '/main.dart': '''

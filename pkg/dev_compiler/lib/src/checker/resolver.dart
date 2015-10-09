@@ -124,9 +124,7 @@ class LibraryResolverWithInference extends LibraryResolver {
     }
 
     for (var component in constGraph.computeTopologicalSort()) {
-      if (_options.inferTransitively) {
-        component.forEach((v) => _reanalyzeVar(visitors, v));
-      }
+      component.forEach((v) => _reanalyzeVar(visitors, v));
       _inferVariableFromInitializer(component);
     }
   }
@@ -134,16 +132,15 @@ class LibraryResolverWithInference extends LibraryResolver {
   _inferInstanceFields(List<ClassDeclaration> classes,
       Map<Source, RestrictedResolverVisitor> visitors) {
     // First propagate what was inferred from globals to all instance fields.
-    if (_options.inferTransitively) {
-      // TODO(sigmund): also do a fine-grain propagation between fields. We want
-      // infer-by-override to take precedence, so we would have to include
-      // classes in the dependency graph and ensure that fields depend on their
-      // class, and classes depend on superclasses.
-      classes
-          .expand((c) => c.members.where(_isInstanceField))
-          .expand((f) => f.fields.variables)
-          .forEach((v) => _reanalyzeVar(visitors, v));
-    }
+
+    // TODO(sigmund): also do a fine-grain propagation between fields. We want
+    // infer-by-override to take precedence, so we would have to include
+    // classes in the dependency graph and ensure that fields depend on their
+    // class, and classes depend on superclasses.
+    classes
+        .expand((c) => c.members.where(_isInstanceField))
+        .expand((f) => f.fields.variables)
+        .forEach((v) => _reanalyzeVar(visitors, v));
 
     // Track types in this strongly connected component, ensure we visit
     // supertypes before subtypes.
@@ -264,16 +261,10 @@ class LibraryResolverWithInference extends LibraryResolver {
       var declaration = variable.parent as VariableDeclarationList;
       // Only infer on variables that don't have any declared type.
       if (declaration.type != null) continue;
-      if (_options.onlyInferConstsAndFinalFields &&
-          !declaration.isFinal &&
-          !declaration.isConst) {
-        return;
-      }
       var initializer = variable.initializer;
       if (initializer == null) continue;
       var type = initializer.staticType;
       if (type == null || type.isDynamic || type.isBottom) continue;
-      if (!_canInferFrom(initializer)) continue;
       var element = variable.element as PropertyInducingElement;
       // Note: it's ok to update the type here, since initializer.staticType
       // is already computed for all declarations in the library cycle. The
@@ -285,43 +276,6 @@ class LibraryResolverWithInference extends LibraryResolver {
         element.setter.parameters[0].type = type;
       }
     }
-  }
-
-  bool _canInferFrom(Expression expression) {
-    if (_options.inferTransitively) return true;
-    if (expression is Literal) return true;
-    if (expression is InstanceCreationExpression) return true;
-    if (expression is FunctionExpression) return true;
-    if (expression is AsExpression) return true;
-    if (expression is CascadeExpression) {
-      return _canInferFrom(expression.target);
-    }
-    if (expression is SimpleIdentifier || expression is PropertyAccess) {
-      return false;
-    }
-    if (expression is PrefixedIdentifier) {
-      if (expression.staticElement is PropertyAccessorElement) {
-        return false;
-      }
-      return _canInferFrom(expression.identifier);
-    }
-    if (expression is MethodInvocation) {
-      return _canInferFrom(expression.target);
-    }
-    if (expression is BinaryExpression) {
-      return _canInferFrom(expression.leftOperand);
-    }
-    if (expression is ConditionalExpression) {
-      return _canInferFrom(expression.thenExpression) &&
-          _canInferFrom(expression.elseExpression);
-    }
-    if (expression is PrefixExpression) {
-      return _canInferFrom(expression.operand);
-    }
-    if (expression is PostfixExpression) {
-      return _canInferFrom(expression.operand);
-    }
-    return false;
   }
 }
 

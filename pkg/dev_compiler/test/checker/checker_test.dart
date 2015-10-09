@@ -936,125 +936,8 @@ void main() {
    '''
   });
 
-  testChecker(
-      'Covariant generic subtyping: invariance',
-      {
-        '/main.dart': '''
-
-      class A {}
-      class B extends A {}
-      class C implements A {}
-
-      class L<T> {}
-      class M<T> extends L<T> {}
-      class N extends M<A> {}
-
-      void main() {
-        L<A> lOfAs;
-        L<B> lOfBs;
-        L<C> lOfCs;
-
-        M<A> mOfAs;
-        M<B> mOfBs;
-        M<C> mOfCs;
-
-        N ns;
-
-        // L<T> <: L<S> iff S <: T
-        lOfAs = lOfAs;
-        lOfAs = lOfBs;
-        lOfAs = lOfCs;
-
-        // M<T> <: L<S> iff T <: S
-        lOfAs = mOfAs;
-        lOfAs = mOfBs;
-        lOfAs = mOfCs;
-
-        // N <: L<A>
-        lOfAs = ns;
-
-        // L<T> <: L<S> iff S <: T
-        lOfBs = /*warning:DownCastComposite*/lOfAs;
-        lOfBs = lOfBs;
-        lOfBs = /*severe:StaticTypeError*/lOfCs;
-
-        // M<T> <: L<S> iff T <: S
-        lOfBs = /*severe:StaticTypeError*/mOfAs;
-        lOfBs = mOfBs;
-        lOfBs = /*severe:StaticTypeError*/mOfCs;
-
-        // N </: L<B>
-        lOfBs = /*severe:StaticTypeError*/ns;
-
-        // L<T> <: L<S> iff S <: T
-        lOfCs = /*warning:DownCastComposite*/lOfAs;
-        lOfCs = /*severe:StaticTypeError*/lOfBs;
-        lOfCs = lOfCs;
-
-        // M<T> <: L<S> iff T <: S
-        lOfCs = /*severe:StaticTypeError*/mOfAs;
-        lOfCs = /*severe:StaticTypeError*/mOfBs;
-        lOfCs = mOfCs;
-
-        // N </: L<C>
-        lOfCs = /*severe:StaticTypeError*/ns;
-
-        // M<T> <: L<S> iff T <: S
-        mOfAs = /*warning:DownCastComposite*/lOfAs;
-        mOfAs = /*severe:StaticTypeError*/lOfBs;
-        mOfAs = /*severe:StaticTypeError*/lOfCs;
-
-        // M<T> <: M<S> iff T <: S
-        mOfAs = mOfAs;
-        mOfAs = mOfBs;
-        mOfAs = mOfCs;
-
-        // N <: M<A>
-        mOfAs = ns;
-
-        // M<T> <: L<S> iff T <: S
-        mOfBs = /*warning:DownCastComposite*/lOfAs;
-        mOfBs = /*warning:DownCastComposite*/lOfBs;
-        mOfBs = /*severe:StaticTypeError*/lOfCs;
-
-        // M<T> <: M<S> iff T <: S
-        mOfBs = /*warning:DownCastComposite*/mOfAs;
-        mOfBs = mOfBs;
-        mOfBs = /*severe:StaticTypeError*/mOfCs;
-
-        // N </: M<B>
-        mOfBs = /*severe:StaticTypeError*/ns;
-
-        // M<T> <: L<S> iff T <: S
-        mOfCs = /*warning:DownCastComposite*/lOfAs;
-        mOfCs = /*severe:StaticTypeError*/lOfBs;
-        mOfCs = /*warning:DownCastComposite*/lOfCs;
-
-        // M<T> <: M<S> iff T :< S
-        mOfCs = /*warning:DownCastComposite*/mOfAs;
-        mOfCs = /*severe:StaticTypeError*/mOfBs;
-        mOfCs = mOfCs;
-
-        // N </: L<C>
-        mOfCs = /*severe:StaticTypeError*/ns;
-
-        // Concrete subclass subtyping
-        ns = /*info:DownCastImplicit*/lOfAs;
-        ns = /*severe:StaticTypeError*/lOfBs;
-        ns = /*severe:StaticTypeError*/lOfCs;
-        ns = /*info:DownCastImplicit*/mOfAs;
-        ns = /*severe:StaticTypeError*/mOfBs;
-        ns = /*severe:StaticTypeError*/mOfCs;
-        ns = ns;
-      }
-   '''
-      },
-      relaxedCasts: false);
-
-  testChecker(
-      'Relaxed casts',
-      {
-        '/main.dart': '''
+  testChecker('Relaxed casts', {
+    '/main.dart': '''
 
       class A {}
 
@@ -1129,35 +1012,7 @@ void main() {
 
       }
    '''
-      },
-      relaxedCasts: true);
-  testChecker(
-      'Subtyping literals',
-      {
-        '/main.dart': '''
-          test() {
-            Iterable i1 = [1, 2, 3];
-            i1 = <int>[1, 2, 3];
-
-            List l1 = [1, 2, 3];
-            l1 = <int>[1, 2, 3];
-
-            Iterable<int> i2 = /*severe:StaticTypeError*/[1, 2, 3];
-            i2 = /*warning:DownCastComposite*/i1;
-            i2 = /*warning:DownCastComposite*/l1;
-            i2 = <int>[1, 2, 3];
-
-            List<int> l2 = /*severe:StaticTypeError*/[1, 2, 3];
-            l2 = /*warning:DownCastComposite*/i1;
-            l2 = /*warning:DownCastComposite*/l1;
-
-            l2 = /*severe:StaticTypeError*/new List();
-            l2 = /*severe:StaticTypeError*/new List(10);
-            l2 = /*severe:StaticTypeError*/new List.filled(10, 42);
-          }
-   '''
-      },
-      inferDownwards: false);
+  });
 
   testChecker('Type checking literals', {
     '/main.dart': '''

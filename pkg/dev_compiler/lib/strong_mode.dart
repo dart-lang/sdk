@@ -78,54 +78,18 @@ class _ErrorCollector implements AnalysisErrorListener {
   }
 }
 
+// TODO(jmesserly): this type is dead now. It's preserved because analyzer_cli
+// passes the `hints` option.
 class StrongModeOptions {
-  /// Whether to infer types for consts and fields by looking at initializers on
-  /// the RHS. For example, in a constant declaration like:
-  ///
-  ///      const A = B;
-  ///
-  /// We can infer the type of `A` based on the type of `B`.
-  ///
-  /// The inference algorithm determines what variables depend on others, and
-  /// computes types by visiting the variable dependency graph in topological
-  /// order. This ensures that the inferred type is deterministic when applying
-  /// inference on library cycles.
-  ///
-  /// When this feature is turned off, we don't use the type of `B` to infer the
-  /// type of `A`, even if `B` has a declared type.
-  final bool inferTransitively;
-  static const inferTransitivelyDefault = true;
-
-  /// Restrict inference of fields and top-levels to those that are final and
-  /// const.
-  final bool onlyInferConstsAndFinalFields;
-  static const onlyInferConstAndFinalFieldsDefault = false;
-
-  /// Whether to infer types downwards from local context
-  final bool inferDownwards;
-  static const inferDownwardsDefault = true;
-
-  /// Whether to inject casts between Dart assignable types.
-  final bool relaxedCasts;
-
   /// Whether to include hints about dynamic invokes and runtime checks.
   // TODO(jmesserly): this option is not used yet by DDC server mode or batch
   // compile to JS.
   final bool hints;
 
-  const StrongModeOptions(
-      {this.hints: false,
-      this.inferTransitively: inferTransitivelyDefault,
-      this.onlyInferConstsAndFinalFields: onlyInferConstAndFinalFieldsDefault,
-      this.inferDownwards: inferDownwardsDefault,
-      this.relaxedCasts: true});
+  const StrongModeOptions({this.hints: false});
 
   StrongModeOptions.fromArguments(ArgResults args, {String prefix: ''})
-      : relaxedCasts = args[prefix + 'relaxed-casts'],
-        inferDownwards = args[prefix + 'infer-downwards'],
-        inferTransitively = args[prefix + 'infer-transitively'],
-        onlyInferConstsAndFinalFields = args[prefix + 'infer-only-finals'],
-        hints = args[prefix + 'hints'];
+      : hints = args[prefix + 'hints'];
 
   static ArgParser addArguments(ArgParser parser,
       {String prefix: '', bool hide: false}) {
@@ -133,36 +97,12 @@ class StrongModeOptions {
       ..addFlag(prefix + 'hints',
           help: 'Display hints about dynamic casts and dispatch operations',
           defaultsTo: false,
-          hide: hide)
-      ..addFlag(prefix + 'relaxed-casts',
-          help: 'Cast between Dart assignable types',
-          defaultsTo: true,
-          hide: hide)
-      ..addOption(prefix + 'nonnullable',
-          abbr: prefix == '' ? 'n' : null,
-          help: 'Comma separated string of non-nullable types',
-          defaultsTo: null,
-          hide: hide)
-      ..addFlag(prefix + 'infer-downwards',
-          help: 'Infer types downwards from local context',
-          defaultsTo: inferDownwardsDefault,
-          hide: hide)
-      ..addFlag(prefix + 'infer-transitively',
-          help: 'Infer consts/fields from definitions in other libraries',
-          defaultsTo: inferTransitivelyDefault,
-          hide: hide)
-      ..addFlag(prefix + 'infer-only-finals',
-          help: 'Do not infer non-const or non-final fields',
-          defaultsTo: onlyInferConstAndFinalFieldsDefault,
           hide: hide);
   }
 
   bool operator ==(Object other) {
     if (other is! StrongModeOptions) return false;
     StrongModeOptions s = other;
-    return inferTransitively == s.inferTransitively &&
-        onlyInferConstsAndFinalFields == s.onlyInferConstsAndFinalFields &&
-        inferDownwards == s.inferDownwards &&
-        relaxedCasts == s.relaxedCasts;
+    return hints == s.hints;
   }
 }

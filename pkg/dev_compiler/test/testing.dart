@@ -73,11 +73,7 @@ class _TestUtils {}
 ///     });
 ///
 void testChecker(String name, Map<String, String> testFiles,
-    {String sdkDir,
-    customUrlMappings: const {},
-    relaxedCasts: true,
-    inferDownwards: StrongModeOptions.inferDownwardsDefault,
-    inferTransitively: StrongModeOptions.inferTransitivelyDefault}) {
+    {String sdkDir, customUrlMappings: const {}}) {
   test(name, () {
     expect(testFiles.containsKey('/main.dart'), isTrue,
         reason: '`/main.dart` is missing in testFiles');
@@ -95,13 +91,8 @@ void testChecker(String name, Map<String, String> testFiles,
             dartSdkPath: sdkDir),
         fileResolvers: [uriResolver]);
 
-    var checker = new StrongChecker(
-        context,
-        new StrongModeOptions(
-            relaxedCasts: relaxedCasts,
-            inferDownwards: inferDownwards,
-            inferTransitively: inferTransitively,
-            hints: true));
+    var checker =
+        new StrongChecker(context, new StrongModeOptions(hints: true));
 
     // Run the checker on /main.dart.
     var mainSource = uriResolver.resolveAbsolute(new Uri.file('/main.dart'));
