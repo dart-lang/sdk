@@ -19,7 +19,6 @@ import 'filenames.dart';
 import 'util/uri_extras.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
 import 'util/command_line.dart';
-import 'package:sdk_library_metadata/libraries.dart';
 import 'package:package_config/discovery.dart' show findPackages;
 
 const String LIBRARY_ROOT = '../../../../../sdk';
@@ -246,21 +245,13 @@ Future<api.CompilationResult> compile(List<String> argv) {
 
   setCategories(String argument) {
     List<String> categories = extractParameter(argument).split(',');
-    Set<String> allowedCategories =
-        LIBRARIES.values.map((x) => x.category).toSet();
-    allowedCategories.remove('Shared');
-    allowedCategories.remove('Internal');
-    List<String> allowedCategoriesList =
-        new List<String>.from(allowedCategories);
-    allowedCategoriesList.sort();
     if (categories.contains('all')) {
-      categories = allowedCategoriesList;
+      categories = ["Client", "Server"];
     } else {
-      String allowedCategoriesString = allowedCategoriesList.join(', ');
       for (String category in categories) {
-        if (!allowedCategories.contains(category)) {
+        if (!["Client", "Server"].contains(category)) {
           fail('Unsupported library category "$category", '
-               'supported categories are: $allowedCategoriesString');
+               'supported categories are: Client, Server, all');
         }
       }
     }
