@@ -23,9 +23,9 @@
  *       ...
  *     }
  */
-library analysis_server.plugin.occurrences;
+library analysis_server.plugin.analysis.occurrences.occurrences;
 
-import 'package:analysis_server/analysis/occurrences_core.dart';
+import 'package:analysis_server/plugin/analysis/occurrences/occurrences_core.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:plugin/plugin.dart';
 

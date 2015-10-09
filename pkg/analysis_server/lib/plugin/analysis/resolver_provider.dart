@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.uri.resolver_provider;
+library analysis_server.plugin.analysis.resolver_provider;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';

@@ -9,7 +9,8 @@ import 'dart:collection';
 import 'dart:core' hide Resource;
 import 'dart:math' show max;
 
-import 'package:analysis_server/plugin/analyzed_files.dart';
+import 'package:analysis_server/plugin/analysis/analyzed_files.dart';
+import 'package:analysis_server/plugin/analysis/resolver_provider.dart';
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/context_manager.dart';
@@ -21,7 +22,6 @@ import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';

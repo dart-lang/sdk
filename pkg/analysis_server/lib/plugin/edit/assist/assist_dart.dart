@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.edit.assist.assist_dart;
+library analysis_server.plugin.edit.assist.assist_dart;
 
-import 'package:analysis_server/edit/assist/assist_core.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';

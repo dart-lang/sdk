@@ -2,12 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.analysis.navigation_core;
+library analysis_server.plugin.analysis.navigation.navigation_core;
 
 import 'package:analysis_server/src/protocol.dart'
     show ElementKind, Location, NavigationRegion, NavigationTarget;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source;
+
+/**
+ * An object that [NavigationContributor]s use to record navigation regions.
+ *
+ * Clients are not expected to subtype this class.
+ */
+abstract class NavigationCollector {
+  /**
+   * Record a new navigation region with the given [offset] and [length] that
+   * should navigate to the given [targetLocation].
+   */
+  void addRegion(
+      int offset, int length, ElementKind targetKind, Location targetLocation);
+}
 
 /**
  * An object used to produce navigation regions.
@@ -22,18 +36,4 @@ abstract class NavigationContributor {
    */
   void computeNavigation(NavigationCollector collector, AnalysisContext context,
       Source source, int offset, int length);
-}
-
-/**
- * An object that [NavigationContributor]s use to record navigation regions.
- *
- * Clients are not expected to subtype this class.
- */
-abstract class NavigationCollector {
-  /**
-   * Record a new navigation region with the given [offset] and [length] that
-   * should navigate to the given [targetLocation].
-   */
-  void addRegion(
-      int offset, int length, ElementKind targetKind, Location targetLocation);
 }

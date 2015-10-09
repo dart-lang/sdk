@@ -6,11 +6,11 @@ library test.plugin.analysis_contributor;
 
 import 'dart:async';
 
-import 'package:analysis_server/analysis/analysis_domain.dart';
-import 'package:analysis_server/analysis/navigation_core.dart';
-import 'package:analysis_server/analysis/occurrences_core.dart';
-import 'package:analysis_server/plugin/navigation.dart';
-import 'package:analysis_server/plugin/occurrences.dart';
+import 'package:analysis_server/plugin/analysis/analysis_domain.dart';
+import 'package:analysis_server/plugin/analysis/navigation/navigation.dart';
+import 'package:analysis_server/plugin/analysis/navigation/navigation_core.dart';
+import 'package:analysis_server/plugin/analysis/occurrences/occurrences.dart';
+import 'package:analysis_server/plugin/analysis/occurrences/occurrences_core.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/engine.dart';

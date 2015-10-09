@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.utilities.change_builder_core;
+library analysis_server.plugin.edit.utilities.change_builder_core;
 
-import 'package:analysis_server/src/utilities/change_builder_core.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/utilities/change_builder_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**

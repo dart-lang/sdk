@@ -28,9 +28,9 @@
  *       ...
  *     }
  */
-library analysis_server.plugin.index;
+library analysis_server.plugin.index.index;
 
-import 'package:analysis_server/analysis/index_core.dart';
+import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:plugin/plugin.dart';
 

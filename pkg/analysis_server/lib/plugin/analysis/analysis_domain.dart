@@ -25,7 +25,7 @@
  *       ...
  *     }
  */
-library analysis_server.analysis;
+library analysis_server.plugin.analysis.analysis_domain;
 
 import 'dart:async';
 

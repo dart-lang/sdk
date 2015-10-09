@@ -4,7 +4,7 @@
 
 library domains.analysis.occurrences_dart;
 
-import 'package:analysis_server/analysis/occurrences_core.dart';
+import 'package:analysis_server/plugin/analysis/occurrences/occurrences_core.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';

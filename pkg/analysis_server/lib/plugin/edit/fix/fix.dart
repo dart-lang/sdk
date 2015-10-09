@@ -22,9 +22,9 @@
  *       ...
  *     }
  */
-library analysis_server.plugin.fix;
+library analysis_server.plugin.edit.fix.fix;
 
-import 'package:analysis_server/edit/fix/fix_core.dart';
+import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:plugin/plugin.dart';
 

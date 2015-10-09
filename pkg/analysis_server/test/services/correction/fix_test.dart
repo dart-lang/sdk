@@ -4,7 +4,7 @@
 
 library test.services.correction.fix;
 
-import 'package:analysis_server/edit/fix/fix_core.dart';
+import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/protocol.dart' hide AnalysisError;
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';

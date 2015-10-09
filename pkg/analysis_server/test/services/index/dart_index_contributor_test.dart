@@ -4,7 +4,7 @@
 
 library test.services.src.index.dart_index_contributor;
 
-import 'package:analysis_server/analysis/index_core.dart';
+import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_contributor.dart';
 import 'package:analysis_server/src/services/index/index_store.dart';

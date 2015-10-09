@@ -9,9 +9,9 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:core' hide Resource;
 
+import 'package:analysis_server/plugin/analysis/resolver_provider.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/server_options.dart';
-import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/options.dart';

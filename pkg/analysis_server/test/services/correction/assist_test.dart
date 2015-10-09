@@ -4,7 +4,7 @@
 
 library test.services.correction.assist;
 
-import 'package:analysis_server/edit/assist/assist_core.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
