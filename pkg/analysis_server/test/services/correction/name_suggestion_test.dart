@@ -335,22 +335,4 @@ main(p) {
           unorderedEquals(['goodbyeCruelWorld', 'cruelWorld', 'world2']));
     }
   }
-
-  void test_getCamelWords_empty() {
-    expect(getCamelWords(''), unorderedEquals([]));
-  }
-
-  void test_getCamelWords_multipleUpper() {
-    expect(getCamelWords('sortedHTMLNodes'),
-        unorderedEquals(['sorted', 'HTML', 'Nodes']));
-  }
-
-  void test_getCamelWords_simpleCamel() {
-    expect(getCamelWords('mySimpleText'),
-        unorderedEquals(['my', 'Simple', 'Text']));
-  }
-
-  void test_getCamelWords_simpleName() {
-    expect(getCamelWords('name'), unorderedEquals(['name']));
-  }
 }
