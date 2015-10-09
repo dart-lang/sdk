@@ -630,8 +630,8 @@ class Server {
     if (!newTaskModel) {
       arguments.add('--${analysisServer.Driver.DISABLE_NEW_TASK_MODEL}');
     }
-    print('Launching $serverPath');
-    print('$dartBinary ${arguments.join(' ')}');
+//    print('Launching $serverPath');
+//    print('$dartBinary ${arguments.join(' ')}');
     return Process.start(dartBinary, arguments).then((Process process) {
       _process = process;
       process.exitCode.then((int code) {
