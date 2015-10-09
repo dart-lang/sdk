@@ -322,6 +322,9 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
       List<ParseError> parseErrors = parser.errors;
       List<AnalysisError> errors = <AnalysisError>[];
       for (ParseError parseError in parseErrors) {
+        if (parseError.errorCode == 'expected-doctype-but-got-start-tag') {
+          continue;
+        }
         SourceSpan span = parseError.span;
         errors.add(new AnalysisError(target.source, span.start.offset,
             span.length, HtmlErrorCode.PARSE_ERROR, [parseError.message]));

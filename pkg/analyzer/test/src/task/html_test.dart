@@ -9,6 +9,7 @@ import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:html/dom.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
@@ -228,7 +229,7 @@ class HtmlErrorsTaskTest extends AbstractContextTest {
         r'''
 <html>
   <head>
-    <title>test page</title>
+    <title>test page</not-title>
   </head>
   <body>
     Test
@@ -334,5 +335,34 @@ class ParseHtmlTaskTest extends AbstractContextTest {
         expect(location.columnNumber, 5);
       }
     }
+  }
+
+  test_perform_noDocType() {
+    String code = r'''
+<div>AAA</div>
+<span>BBB</span>
+''';
+    AnalysisTarget target = newSource('/test.html', code);
+    computeResult(target, HTML_DOCUMENT);
+    expect(task, isParseHtmlTask);
+    // validate Document
+    {
+      Document document = outputs[HTML_DOCUMENT];
+      expect(document, isNotNull);
+      // artificial <html>
+      expect(document.nodes, hasLength(1));
+      Element htmlElement = document.nodes[0];
+      expect(htmlElement.localName, 'html');
+      // artificial <body>
+      expect(htmlElement.nodes, hasLength(2));
+      Element bodyElement = htmlElement.nodes[1];
+      expect(bodyElement.localName, 'body');
+      // actual nodes
+      expect(bodyElement.nodes, hasLength(4));
+      expect((bodyElement.nodes[0] as Element).localName, 'div');
+      expect((bodyElement.nodes[2] as Element).localName, 'span');
+    }
+    // it's OK to don't have DOCTYPE
+    expect(outputs[HTML_DOCUMENT_ERRORS], isEmpty);
   }
 }
