@@ -348,14 +348,16 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_ACCESSORS)
 #undef REUSABLE_HANDLE_SCOPE_ACCESSORS
 
-bool IsAnyReusableHandleScopeActive() const {
+  bool IsAnyReusableHandleScopeActive() const {
 #define IS_REUSABLE_HANDLE_SCOPE_ACTIVE(object)                                \
-  if (reusable_##object##_handle_scope_active_) return true;
-  REUSABLE_HANDLE_LIST(IS_REUSABLE_HANDLE_SCOPE_ACTIVE)
-  return false;
+    if (reusable_##object##_handle_scope_active_) return true;
+    REUSABLE_HANDLE_LIST(IS_REUSABLE_HANDLE_SCOPE_ACTIVE)
+    return false;
 #undef IS_REUSABLE_HANDLE_SCOPE_ACTIVE
-}
+  }
 #endif  // defined(DEBUG)
+
+  void ClearReusableHandles();
 
 #define REUSABLE_HANDLE(object)                                                \
   object& object##Handle() const {                                             \

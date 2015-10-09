@@ -129,8 +129,10 @@ class ThreadRegistry {
       if (state.zone != NULL) {
         state.zone->VisitObjectPointers(visitor);
       }
-      ASSERT(entry.thread != NULL);
-      entry.thread->VisitObjectPointers(visitor);
+      if (entry.scheduled) {
+        ASSERT(entry.thread != NULL);
+        entry.thread->VisitObjectPointers(visitor);
+      }
       // Iterate over all the stack frames and visit objects on the stack.
       StackFrameIterator frames_iterator(state.top_exit_frame_info,
                                          validate_frames);

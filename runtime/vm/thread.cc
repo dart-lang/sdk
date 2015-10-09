@@ -223,6 +223,11 @@ void Thread::ExitIsolate() {
   Thread* thread = Thread::Current();
   // TODO(koda): Audit callers; they should know whether they're in an isolate.
   if (thread == NULL || thread->isolate() == NULL) return;
+#if defined(DEBUG)
+  ASSERT(!thread->IsAnyReusableHandleScopeActive());
+#endif  // DEBUG
+  // Clear since GC will not visit the thread once it is unscheduled.
+  thread->ClearReusableHandles();
   Isolate* isolate = thread->isolate();
   Profiler::EndExecution(isolate);
   thread->Unschedule();
@@ -237,9 +242,6 @@ void Thread::ExitIsolate() {
   thread->isolate_ = NULL;
   ASSERT(Isolate::Current() == NULL);
   thread->heap_ = NULL;
-#if defined(DEBUG)
-  ASSERT(!thread->IsAnyReusableHandleScopeActive());
-#endif  // DEBUG
 }
 
 
@@ -345,6 +347,14 @@ C* Thread::AllocateReusableHandle() {
   C* handle = reinterpret_cast<C*>(reusable_handles_.AllocateScopedHandle());
   C::initializeHandle(handle, C::null());
   return handle;
+}
+
+
+void Thread::ClearReusableHandles() {
+#define CLEAR_REUSABLE_HANDLE(object)                                          \
+  *object##_handle_ = object::null();
+  REUSABLE_HANDLE_LIST(CLEAR_REUSABLE_HANDLE)
+#undef CLEAR_REUSABLE_HANDLE
 }
 
 
