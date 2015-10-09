@@ -45,7 +45,7 @@ class StrongChecker {
         .instance.useTaskModel) enableDevCompilerInference(context, options);
     var rules = new RestrictedRules(context.typeProvider, options: options);
     var reporter = new _ErrorCollector(options.hints);
-    var checker = new CodeChecker(rules, reporter, options);
+    var checker = new CodeChecker(rules, reporter);
     return new StrongChecker._(context, checker, reporter);
   }
 
@@ -79,10 +79,6 @@ class _ErrorCollector implements AnalysisErrorListener {
 }
 
 class StrongModeOptions {
-  /// Whether to infer return types and field types from overridden members.
-  final bool inferFromOverrides;
-  static const inferFromOverridesDefault = true;
-
   /// Whether to infer types for consts and fields by looking at initializers on
   /// the RHS. For example, in a constant declaration like:
   ///
@@ -123,7 +119,6 @@ class StrongModeOptions {
 
   const StrongModeOptions(
       {this.hints: false,
-      this.inferFromOverrides: inferFromOverridesDefault,
       this.inferTransitively: inferTransitivelyDefault,
       this.onlyInferConstsAndFinalFields: onlyInferConstAndFinalFieldsDefault,
       this.inferDownwards: inferDownwardsDefault,
@@ -133,7 +128,6 @@ class StrongModeOptions {
   StrongModeOptions.fromArguments(ArgResults args, {String prefix: ''})
       : relaxedCasts = args[prefix + 'relaxed-casts'],
         inferDownwards = args[prefix + 'infer-downwards'],
-        inferFromOverrides = args[prefix + 'infer-from-overrides'],
         inferTransitively = args[prefix + 'infer-transitively'],
         onlyInferConstsAndFinalFields = args[prefix + 'infer-only-finals'],
         nonnullableTypes = _optionsToList(args[prefix + 'nonnullable'],
@@ -160,11 +154,6 @@ class StrongModeOptions {
           help: 'Infer types downwards from local context',
           defaultsTo: inferDownwardsDefault,
           hide: hide)
-      ..addFlag(prefix + 'infer-from-overrides',
-          help: 'Infer unspecified types of fields and return types from\n'
-              'definitions in supertypes',
-          defaultsTo: inferFromOverridesDefault,
-          hide: hide)
       ..addFlag(prefix + 'infer-transitively',
           help: 'Infer consts/fields from definitions in other libraries',
           defaultsTo: inferTransitivelyDefault,
@@ -178,8 +167,7 @@ class StrongModeOptions {
   bool operator ==(Object other) {
     if (other is! StrongModeOptions) return false;
     StrongModeOptions s = other;
-    return inferFromOverrides == s.inferFromOverrides &&
-        inferTransitively == s.inferTransitively &&
+    return inferTransitively == s.inferTransitively &&
         onlyInferConstsAndFinalFields == s.onlyInferConstsAndFinalFields &&
         inferDownwards == s.inferDownwards &&
         relaxedCasts == s.relaxedCasts &&

@@ -559,10 +559,8 @@ void main() {
   });
 
   group('infer type on overridden fields', () {
-    testChecker(
-        '2',
-        {
-          '/main.dart': '''
+    testChecker('2', {
+      '/main.dart': '''
         class A {
           int x = 2;
         }
@@ -576,13 +574,10 @@ void main() {
           int z = new B().x;
         }
     '''
-        },
-        inferFromOverrides: true);
+    });
 
-    testChecker(
-        '4',
-        {
-          '/main.dart': '''
+    testChecker('4', {
+      '/main.dart': '''
         class A {
           int x = 2;
         }
@@ -596,37 +591,29 @@ void main() {
           int z = new B().x;
         }
     '''
-        },
-        inferFromOverrides: true);
+    });
   });
 
   group('infer types on generic instantiations', () {
-    for (bool infer in [true, false]) {
-      testChecker(
-          'infer: $infer',
-          {
-            '/main.dart': '''
-          class A<T> {
-            T x;
-          }
+    testChecker('infer', {
+      '/main.dart': '''
+        class A<T> {
+          T x;
+        }
 
-          class B implements A<int> {
-            /*severe:InvalidMethodOverride*/dynamic get x => 3;
-          }
+        class B implements A<int> {
+          /*severe:InvalidMethodOverride*/dynamic get x => 3;
+        }
 
-          foo() {
-            String y = /*info:DynamicCast*/new B().x;
-            int z = /*info:DynamicCast*/new B().x;
-          }
-      '''
-          },
-          inferFromOverrides: infer);
-    }
+        foo() {
+          String y = /*info:DynamicCast*/new B().x;
+          int z = /*info:DynamicCast*/new B().x;
+        }
+    '''
+    });
 
-    testChecker(
-        '3',
-        {
-          '/main.dart': '''
+    testChecker('3', {
+      '/main.dart': '''
         class A<T> {
           T x;
           T w;
@@ -642,13 +629,10 @@ void main() {
           int z = new B().x;
         }
     '''
-        },
-        inferFromOverrides: true);
+    });
 
-    testChecker(
-        '4',
-        {
-          '/main.dart': '''
+    testChecker('4', {
+      '/main.dart': '''
         class A<T> {
           T x;
         }
@@ -663,13 +647,10 @@ void main() {
           String z = new B<String>().x;
         }
     '''
-        },
-        inferFromOverrides: true);
+    });
 
-    testChecker(
-        '5',
-        {
-          '/main.dart': '''
+    testChecker('5', {
+      '/main.dart': '''
         abstract class I<E> {
           String m(a, String f(v, T e));
         }
@@ -695,19 +676,16 @@ void main() {
           String z = new B().m(null, null);
         }
     '''
-        },
-        inferFromOverrides: true);
+    });
   });
 
-  testChecker(
-      'infer type regardless of declaration order or cycles',
-      {
-        '/b.dart': '''
+  testChecker('infer type regardless of declaration order or cycles', {
+    '/b.dart': '''
         import 'main.dart';
 
         class B extends A { }
       ''',
-        '/main.dart': '''
+    '/main.dart': '''
         import 'b.dart';
         class C extends B {
           get x;
@@ -720,22 +698,19 @@ void main() {
           String y = /*severe:StaticTypeError*/new C().x;
         }
     '''
-      },
-      inferFromOverrides: true);
+  });
 
   // Note: this is a regression test for a non-deterministic behavior we used to
   // have with inference in library cycles. If you see this test flake out,
   // change `test` to `skip_test` and reopen bug #48.
-  testChecker(
-      'infer types on generic instantiations in library cycle',
-      {
-        '/a.dart': '''
+  testChecker('infer types on generic instantiations in library cycle', {
+    '/a.dart': '''
           import 'main.dart';
         abstract class I<E> {
           A<E> m(a, String f(v, int e));
         }
       ''',
-        '/main.dart': '''
+    '/main.dart': '''
           import 'a.dart';
 
         abstract class A<E> implements I<E> {
@@ -760,15 +735,11 @@ void main() {
           String z = new B<String>().m(null, null).value;
         }
     '''
-      },
-      inferFromOverrides: true);
+  });
 
   group('do not infer overridden fields that explicitly say dynamic', () {
-    for (bool infer in [true, false]) {
-      testChecker(
-          'infer: $infer',
-          {
-            '/main.dart': '''
+    testChecker('infer', {
+      '/main.dart': '''
           class A {
             int x = 2;
           }
@@ -782,15 +753,11 @@ void main() {
             int z = /*info:DynamicCast*/new B().x;
           }
       '''
-          },
-          inferFromOverrides: infer);
-    }
+    });
   });
 
-  testChecker(
-      'conflicts can happen',
-      {
-        '/main.dart': '''
+  testChecker('conflicts can happen', {
+    '/main.dart': '''
         class I1 {
           int x;
         }
@@ -815,13 +782,10 @@ void main() {
           /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/get a => null;
         }
     '''
-      },
-      inferFromOverrides: true);
+  });
 
-  testChecker(
-      'conflicts can happen 2',
-      {
-        '/main.dart': '''
+  testChecker('conflicts can happen 2', {
+    '/main.dart': '''
         class I1 {
           int x;
         }
@@ -850,13 +814,11 @@ void main() {
           /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/get a => null;
         }
     '''
-      },
-      inferFromOverrides: true);
+  });
 
   testChecker(
-      'infer from RHS only if it wont conflict with overridden fields',
-      {
-        '/main.dart': '''
+      'infer from RHS only if it wont conflict with overridden fields', {
+    '/main.dart': '''
         class A {
           var x;
         }
@@ -870,13 +832,11 @@ void main() {
           int z = /*info:DynamicCast*/new B().x;
         }
     '''
-      },
-      inferFromOverrides: true);
+  });
 
   testChecker(
-      'infer from RHS only if it wont conflict with overridden fields 2',
-      {
-        '/main.dart': '''
+      'infer from RHS only if it wont conflict with overridden fields 2', {
+    '/main.dart': '''
         class A {
           final x;
         }
@@ -890,13 +850,10 @@ void main() {
           int z = new B().x;
         }
     '''
-      },
-      inferFromOverrides: true);
+  });
 
-  testChecker(
-      'infer correctly on multiple variables declared together',
-      {
-        '/main.dart': '''
+  testChecker('infer correctly on multiple variables declared together', {
+    '/main.dart': '''
         class A {
           var x, y = 2, z = "hi";
         }
@@ -920,8 +877,7 @@ void main() {
           i = new B().w;
         }
     '''
-      },
-      inferFromOverrides: true);
+  });
 
   testChecker(
       'infer consts transitively',
@@ -946,7 +902,6 @@ void main() {
         }
     '''
       },
-      inferFromOverrides: true,
       inferTransitively: true);
 
   testChecker(
@@ -974,7 +929,6 @@ void main() {
         }
     '''
       },
-      inferFromOverrides: true,
       inferTransitively: true);
 
   testChecker(
@@ -993,7 +947,6 @@ void main() {
         }
     '''
       },
-      inferFromOverrides: true,
       inferTransitively: true);
 
   testChecker(
@@ -1025,7 +978,6 @@ void main() {
         }
     '''
       },
-      inferFromOverrides: true,
       inferTransitively: true);
 
   testChecker(
@@ -1045,7 +997,6 @@ void main() {
 
     '''
       },
-      inferFromOverrides: true,
       inferTransitively: true);
 
   testChecker(

@@ -1346,10 +1346,8 @@ void main() {
        '''
   });
 
-  testChecker(
-      'field/field override',
-      {
-        '/main.dart': '''
+  testChecker('field/field override', {
+    '/main.dart': '''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1368,13 +1366,10 @@ void main() {
             /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/dynamic f4;
           }
        '''
-      },
-      inferFromOverrides: true);
+  });
 
-  testChecker(
-      'getter/getter override',
-      {
-        '/main.dart': '''
+  testChecker('getter/getter override', {
+    '/main.dart': '''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1393,13 +1388,10 @@ void main() {
             /*severe:InvalidMethodOverride*/dynamic get f4 => null;
           }
        '''
-      },
-      inferFromOverrides: true);
+  });
 
-  testChecker(
-      'field/getter override',
-      {
-        '/main.dart': '''
+  testChecker('field/getter override', {
+    '/main.dart': '''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1418,8 +1410,7 @@ void main() {
             /*severe:InvalidMethodOverride*/dynamic get f4 => null;
           }
        '''
-      },
-      inferFromOverrides: true);
+  });
 
   testChecker('setter/setter override', {
     '/main.dart': '''
@@ -1475,10 +1466,8 @@ void main() {
        '''
   });
 
-  testChecker(
-      'method override',
-      {
-        '/main.dart': '''
+  testChecker('method override', {
+    '/main.dart': '''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1501,8 +1490,7 @@ void main() {
             /*severe:InvalidMethodOverride*/dynamic m6(dynamic value) {}
           }
        '''
-      },
-      inferFromOverrides: true);
+  });
 
   testChecker('unary operators', {
     '/main.dart': '''

@@ -354,14 +354,10 @@ abstract class AbstractCompiler {
       [AnalysisErrorListener reporter])
       : context = context,
         options = options,
-        checker = createChecker(context.typeProvider, options.strongOptions,
+        checker = new CodeChecker(
+            new RestrictedRules(context.typeProvider,
+                options: options.strongOptions),
             reporter ?? AnalysisErrorListener.NULL_LISTENER);
-
-  static CodeChecker createChecker(TypeProvider typeProvider,
-      StrongModeOptions options, AnalysisErrorListener reporter) {
-    return new CodeChecker(
-        new RestrictedRules(typeProvider, options: options), reporter, options);
-  }
 
   String get outputDir => options.codegenOptions.outputDir;
   TypeRules get rules => checker.rules;

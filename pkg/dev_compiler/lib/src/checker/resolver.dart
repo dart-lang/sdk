@@ -160,23 +160,17 @@ class LibraryResolverWithInference extends LibraryResolver {
         if (supertypeClass != null) visit(supertypeClass);
       }
 
-      if (_options.inferFromOverrides) {
-        // Infer field types from overrides first, otherwise from initializers.
-        var pending = new Set<VariableDeclaration>();
-        cls.members
-            .where(_isInstanceField)
-            .forEach((f) => _inferFieldTypeFromOverride(f, pending));
-        if (pending.isNotEmpty) _inferVariableFromInitializer(pending);
+      // Infer field types from overrides first, otherwise from initializers.
+      var pending = new Set<VariableDeclaration>();
+      cls.members
+          .where(_isInstanceField)
+          .forEach((f) => _inferFieldTypeFromOverride(f, pending));
+      if (pending.isNotEmpty) _inferVariableFromInitializer(pending);
 
-        // Infer return-types and param-types from overrides
-        cls.members
-            .where((m) => m is MethodDeclaration && !m.isStatic)
-            .forEach(_inferMethodTypesFromOverride);
-      } else {
-        _inferVariableFromInitializer(cls.members
-            .where(_isInstanceField)
-            .expand((f) => f.fields.variables));
-      }
+      // Infer return-types and param-types from overrides
+      cls.members
+          .where((m) => m is MethodDeclaration && !m.isStatic)
+          .forEach(_inferMethodTypesFromOverride);
     }
     classes.forEach(visit);
   }

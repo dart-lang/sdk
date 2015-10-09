@@ -77,7 +77,6 @@ void testChecker(String name, Map<String, String> testFiles,
     customUrlMappings: const {},
     relaxedCasts: true,
     inferDownwards: StrongModeOptions.inferDownwardsDefault,
-    inferFromOverrides: StrongModeOptions.inferFromOverridesDefault,
     inferTransitively: StrongModeOptions.inferTransitivelyDefault,
     nonnullableTypes: StrongModeOptions.NONNULLABLE_TYPES}) {
   test(name, () {
@@ -102,7 +101,6 @@ void testChecker(String name, Map<String, String> testFiles,
         new StrongModeOptions(
             relaxedCasts: relaxedCasts,
             inferDownwards: inferDownwards,
-            inferFromOverrides: inferFromOverrides,
             inferTransitively: inferTransitively,
             nonnullableTypes: nonnullableTypes,
             hints: true));

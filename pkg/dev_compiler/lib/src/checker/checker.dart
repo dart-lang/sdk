@@ -21,9 +21,8 @@ class _OverrideChecker {
   bool _failure = false;
   final TypeRules _rules;
   final AnalysisErrorListener _reporter;
-  final bool _inferFromOverrides;
-  _OverrideChecker(this._rules, this._reporter, StrongModeOptions options)
-      : _inferFromOverrides = options.inferFromOverrides;
+
+  _OverrideChecker(this._rules, this._reporter);
 
   void check(ClassDeclaration node) {
     if (node.element.type.isObject) return;
@@ -336,11 +335,10 @@ class CodeChecker extends RecursiveAstVisitor {
     _overrideChecker._failure = false;
   }
 
-  CodeChecker(TypeRules rules, AnalysisErrorListener reporter,
-      StrongModeOptions options)
+  CodeChecker(TypeRules rules, AnalysisErrorListener reporter)
       : rules = rules,
         reporter = reporter,
-        _overrideChecker = new _OverrideChecker(rules, reporter, options);
+        _overrideChecker = new _OverrideChecker(rules, reporter);
 
   @override
   void visitCompilationUnit(CompilationUnit unit) {
