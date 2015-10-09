@@ -342,7 +342,7 @@ ImageData convertNativeToDart_ImageData(nativeImageData) {
   // object.  So we create a _TypedImageData.
 
   return new _TypedImageData(
-      JS('NativeUint8ClampedList', '#.data', nativeImageData),
+      JS('Uint8ClampedList', '#.data', nativeImageData),
       JS('var', '#.height', nativeImageData),
       JS('var', '#.width', nativeImageData));
 }
