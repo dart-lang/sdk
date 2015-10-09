@@ -1859,9 +1859,9 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
     if (raw_obj->IsFreeListElement()) {
       return kProceed;
     }
-    Isolate* isolate = Isolate::Current();
-    REUSABLE_OBJECT_HANDLESCOPE(isolate);
-    Object& obj = isolate->ObjectHandle();
+    Thread* thread = Thread::Current();
+    REUSABLE_OBJECT_HANDLESCOPE(thread);
+    Object& obj = thread->ObjectHandle();
     obj = raw_obj;
     if (obj.GetClassId() == cls_.id()) {
       if (!storage_.IsNull() && count_ < storage_.Length()) {

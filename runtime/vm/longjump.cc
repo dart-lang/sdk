@@ -53,7 +53,7 @@ void LongJumpScope::Jump(int value, const Error& error) {
 
 #if defined(DEBUG)
 #define CHECK_REUSABLE_HANDLE(name)                                            \
-  ASSERT(!isolate->reusable_##name##_handle_scope_active());
+  ASSERT(!thread->reusable_##name##_handle_scope_active());
 REUSABLE_HANDLE_LIST(CHECK_REUSABLE_HANDLE)
 #undef CHECK_REUSABLE_HANDLE
 #endif  // defined(DEBUG)

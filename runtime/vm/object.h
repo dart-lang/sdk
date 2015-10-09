@@ -203,8 +203,8 @@ class Symbols;
     return raw()->ptr();                                                       \
   }                                                                            \
   SNAPSHOT_READER_SUPPORT(object)                                              \
-  friend class Isolate;                                                        \
   friend class StackFrame;                                                     \
+  friend class Thread;                                                         \
 
 // This macro is used to denote types that do not have a sub-type.
 #define FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, rettype, super)        \
@@ -228,8 +228,8 @@ class Symbols;
     return -kWordSize;                                                         \
   }                                                                            \
   SNAPSHOT_READER_SUPPORT(rettype)                                             \
-  friend class Isolate;                                                        \
   friend class StackFrame;                                                     \
+  friend class Thread;                                                         \
 
 #define FINAL_HEAP_OBJECT_IMPLEMENTATION(object, super)                        \
   FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, object, super)               \
@@ -822,7 +822,8 @@ class Object {
   friend class TwoByteString;
   friend class ExternalOneByteString;
   friend class ExternalTwoByteString;
-  friend class Isolate;
+  friend class Thread;
+
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;
 REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)

@@ -463,7 +463,7 @@ static bool IsUnreachable(const RawObject* raw_obj) {
 
 class MarkingWeakVisitor : public HandleVisitor {
  public:
-  MarkingWeakVisitor() : HandleVisitor(Isolate::Current()) {
+  MarkingWeakVisitor() : HandleVisitor(Thread::Current()) {
   }
 
   void VisitHandle(uword addr) {
@@ -471,7 +471,7 @@ class MarkingWeakVisitor : public HandleVisitor {
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject* raw_obj = handle->raw();
     if (IsUnreachable(raw_obj)) {
-      handle->UpdateUnreachable(isolate());
+      handle->UpdateUnreachable(thread()->isolate());
     }
   }
 

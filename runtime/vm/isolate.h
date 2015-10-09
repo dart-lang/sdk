@@ -24,31 +24,20 @@
 namespace dart {
 
 // Forward declarations.
-class AbstractType;
 class ApiState;
-class Array;
 class BackgroundCompiler;
 class Capability;
 class CHA;
-class Class;
-class Code;
 class CodeIndexTable;
 class CompilerStats;
 class Debugger;
 class DeoptContext;
-class Error;
-class ExceptionHandlers;
-class Field;
-class Function;
-class GrowableObjectArray;
 class HandleScope;
 class HandleVisitor;
 class Heap;
 class ICData;
-class Instance;
 class IsolateProfilerData;
 class IsolateSpawnState;
-class Library;
 class Log;
 class MessageHandler;
 class Mutex;
@@ -56,7 +45,6 @@ class Object;
 class ObjectIdRing;
 class ObjectPointerVisitor;
 class ObjectStore;
-class PcDescriptors;
 class RawInstance;
 class RawArray;
 class RawContext;
@@ -78,8 +66,6 @@ class StackZone;
 class StoreBuffer;
 class StubCode;
 class ThreadRegistry;
-class TypeArguments;
-class TypeParameter;
 class UserTag;
 
 
@@ -94,23 +80,6 @@ class IsolateVisitor {
   DISALLOW_COPY_AND_ASSIGN(IsolateVisitor);
 };
 
-#define REUSABLE_HANDLE_LIST(V)                                                \
-  V(AbstractType)                                                              \
-  V(Array)                                                                     \
-  V(Class)                                                                     \
-  V(Code)                                                                      \
-  V(Error)                                                                     \
-  V(ExceptionHandlers)                                                         \
-  V(Field)                                                                     \
-  V(Function)                                                                  \
-  V(GrowableObjectArray)                                                       \
-  V(Instance)                                                                  \
-  V(Library)                                                                   \
-  V(Object)                                                                    \
-  V(PcDescriptors)                                                             \
-  V(String)                                                                    \
-  V(TypeArguments)                                                             \
-  V(TypeParameter)                                                             \
 
 class Isolate : public BaseIsolate {
  public:
@@ -730,25 +699,6 @@ class Isolate : public BaseIsolate {
                                        const Instance& closure);
   RawInstance* LookupServiceExtensionHandler(const String& name);
 
-#if defined(DEBUG)
-#define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
-  void set_reusable_##object##_handle_scope_active(bool value) {               \
-    reusable_##object##_handle_scope_active_ = value;                          \
-  }                                                                            \
-  bool reusable_##object##_handle_scope_active() const {                       \
-    return reusable_##object##_handle_scope_active_;                           \
-  }
-  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_ACCESSORS)
-#undef REUSABLE_HANDLE_SCOPE_ACCESSORS
-#endif  // defined(DEBUG)
-
-#define REUSABLE_HANDLE(object)                                                \
-  object& object##Handle() const {                                             \
-    return *object##_handle_;                                                  \
-  }
-  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE)
-#undef REUSABLE_HANDLE
-
   static void VisitIsolates(IsolateVisitor* visitor);
 
   // Handle service messages until we are told to resume execution.
@@ -828,8 +778,6 @@ class Isolate : public BaseIsolate {
 #if defined(DEBUG)
   bool IsIsolateOf(Thread* thread);
 #endif  // DEBUG
-
-  template<class T> T* AllocateReusableHandle();
 
   // Accessed from generated code:
   uword stack_limit_;
@@ -942,19 +890,6 @@ class Isolate : public BaseIsolate {
   // Used to wake the isolate when it is in the pause event loop.
   Monitor* pause_loop_monitor_;
 
-  // Reusable handles support.
-#define REUSABLE_HANDLE_FIELDS(object)                                         \
-  object* object##_handle_;
-  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_FIELDS)
-#undef REUSABLE_HANDLE_FIELDS
-
-#if defined(DEBUG)
-#define REUSABLE_HANDLE_SCOPE_VARIABLE(object)                                 \
-  bool reusable_##object##_handle_scope_active_;
-  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_VARIABLE);
-#undef REUSABLE_HANDLE_SCOPE_VARIABLE
-#endif  // defined(DEBUG)
-
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
   type metric_##variable##_;
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
@@ -964,8 +899,6 @@ class Isolate : public BaseIsolate {
   TimelineStream stream_##name##_;
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_VARIABLE)
 #undef ISOLATE_TIMELINE_STREAM_VARIABLE
-
-  VMHandles reusable_handles_;
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateInterruptCallback interrupt_callback_;

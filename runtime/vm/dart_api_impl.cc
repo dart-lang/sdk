@@ -172,11 +172,12 @@ static bool GetNativeStringArgument(NativeArguments* arguments,
     *str = NULL;
     return true;
   }
-  Isolate* isolate = arguments->thread()->isolate();
+  Thread* thread = arguments->thread();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate == Isolate::Current());
   *peer = NULL;
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Object& obj = isolate->ObjectHandle();
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Object& obj = thread->ObjectHandle();
   obj = arguments->NativeArgAt(arg_index);
   if (RawObject::IsStringClassId(obj.GetClassId())) {
     ASSERT(isolate->api_state() &&
@@ -199,10 +200,10 @@ static bool GetNativeIntegerArgument(NativeArguments* arguments,
   if (Api::GetNativeIntegerArgument(arguments, arg_index, value)) {
     return true;
   }
-  Isolate* isolate = arguments->thread()->isolate();
-  ASSERT(isolate == Isolate::Current());
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Object& obj = isolate->ObjectHandle();
+  Thread* thread = arguments->thread();
+  ASSERT(thread == Thread::Current());
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Object& obj = thread->ObjectHandle();
   obj = arguments->NativeArgAt(arg_index);
   intptr_t cid = obj.GetClassId();
   if (cid == kBigintCid) {
@@ -225,10 +226,10 @@ static bool GetNativeUnsignedIntegerArgument(NativeArguments* arguments,
     *value = static_cast<uint64_t>(arg_value);
     return true;
   }
-  Isolate* isolate = arguments->thread()->isolate();
-  ASSERT(isolate == Isolate::Current());
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Object& obj = isolate->ObjectHandle();
+  Thread* thread = arguments->thread();
+  ASSERT(thread == Thread::Current());
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Object& obj = thread->ObjectHandle();
   obj = arguments->NativeArgAt(arg_index);
   intptr_t cid = obj.GetClassId();
   if (cid == kBigintCid) {
@@ -249,10 +250,10 @@ static bool GetNativeDoubleArgument(NativeArguments* arguments,
   if (Api::GetNativeDoubleArgument(arguments, arg_index, value)) {
     return true;
   }
-  Isolate* isolate = arguments->thread()->isolate();
-  ASSERT(isolate == Isolate::Current());
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Object& obj = isolate->ObjectHandle();
+  Thread* thread = arguments->thread();
+  ASSERT(thread == Thread::Current());
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Object& obj = thread->ObjectHandle();
   obj = arguments->NativeArgAt(arg_index);
   intptr_t cid = obj.GetClassId();
   if (cid == kBigintCid) {
@@ -275,10 +276,10 @@ static Dart_Handle GetNativeFieldsOfArgument(NativeArguments* arguments,
                                      field_values)) {
     return Api::Success();
   }
-  Isolate* isolate = arguments->thread()->isolate();
-  ASSERT(isolate == Isolate::Current());
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Object& obj = isolate->ObjectHandle();
+  Thread* thread = arguments->thread();
+  ASSERT(thread == Thread::Current());
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Object& obj = thread->ObjectHandle();
   obj = arguments->NativeArgAt(arg_index);
   if (obj.IsNull()) {
     memset(field_values, 0, (num_fields * sizeof(field_values[0])));
@@ -1009,17 +1010,17 @@ DART_EXPORT void Dart_SetPersistentHandle(Dart_PersistentHandle obj1,
 
 
 static Dart_WeakPersistentHandle AllocateFinalizableHandle(
-    Isolate* isolate,
+    Thread* thread,
     Dart_Handle object,
     bool is_prologue,
     void* peer,
     intptr_t external_allocation_size,
     Dart_WeakPersistentHandleFinalizer callback) {
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Object& ref = isolate->ObjectHandle();
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Object& ref = thread->ObjectHandle();
   ref = Api::UnwrapHandle(object);
   FinalizablePersistentHandle* finalizable_ref =
-      FinalizablePersistentHandle::New(isolate,
+      FinalizablePersistentHandle::New(thread->isolate(),
                                        is_prologue,
                                        ref,
                                        peer,
@@ -1034,12 +1035,12 @@ DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
     void* peer,
     intptr_t external_allocation_size,
     Dart_WeakPersistentHandleFinalizer callback) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
   if (callback == NULL) {
     return NULL;
   }
-  return AllocateFinalizableHandle(isolate,
+  return AllocateFinalizableHandle(thread,
                                    object,
                                    false,
                                    peer,
@@ -1053,12 +1054,12 @@ DART_EXPORT Dart_WeakPersistentHandle Dart_NewPrologueWeakPersistentHandle(
     void* peer,
     intptr_t external_allocation_size,
     Dart_WeakPersistentHandleFinalizer callback) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
   if (callback == NULL) {
     return NULL;
   }
-  return AllocateFinalizableHandle(isolate,
+  return AllocateFinalizableHandle(thread,
                                    object,
                                    true,
                                    peer,
@@ -1212,11 +1213,12 @@ DART_EXPORT Dart_Handle Dart_SetGcCallbacks(
 
 class PrologueWeakVisitor : public HandleVisitor {
  public:
-  PrologueWeakVisitor(Isolate* isolate,
+  PrologueWeakVisitor(Thread* thread,
                       Dart_GcPrologueWeakHandleCallback callback)
-      :  HandleVisitor(isolate),
+      :  HandleVisitor(thread),
          callback_(callback) {
   }
+
 
   void VisitHandle(uword addr) {
     NoSafepointScope no_safepoint;
@@ -1225,13 +1227,13 @@ class PrologueWeakVisitor : public HandleVisitor {
     RawObject* raw_obj = handle->raw();
     if (raw_obj->IsHeapObject()) {
       ASSERT(handle->IsPrologueWeakPersistent());
-      ReusableInstanceHandleScope reused_instance_handle(isolate());
+      ReusableInstanceHandleScope reused_instance_handle(thread());
       Instance& instance = reused_instance_handle.Handle();
       instance ^= reinterpret_cast<RawInstance*>(handle->raw());
       intptr_t num_native_fields = instance.NumNativeFields();
       intptr_t* native_fields = instance.NativeFieldsDataAddr();
       if (native_fields != NULL) {
-        callback_(isolate()->init_callback_data(),
+        callback_(thread()->isolate()->init_callback_data(),
                   reinterpret_cast<Dart_WeakPersistentHandle>(addr),
                   num_native_fields,
                   native_fields);
@@ -1248,10 +1250,10 @@ class PrologueWeakVisitor : public HandleVisitor {
 
 DART_EXPORT Dart_Handle Dart_VisitPrologueWeakHandles(
     Dart_GcPrologueWeakHandleCallback callback) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  PrologueWeakVisitor visitor(isolate, callback);
-  isolate->VisitPrologueWeakPersistentHandles(&visitor);
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  PrologueWeakVisitor visitor(thread, callback);
+  thread->isolate()->VisitPrologueWeakPersistentHandles(&visitor);
   return Api::Success();
 }
 
@@ -1910,10 +1912,10 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
 
 
 DART_EXPORT bool Dart_IsInstance(Dart_Handle object) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Object& ref = isolate->ObjectHandle();
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Object& ref = thread->ObjectHandle();
   ref = Api::UnwrapHandle(object);
   return ref.IsInstance();
 }
@@ -2013,9 +2015,9 @@ DART_EXPORT bool Dart_IsTypeVariable(Dart_Handle handle) {
 DART_EXPORT bool Dart_IsClosure(Dart_Handle object) {
   // We can't use a fast class index check here because there are many
   // different signature classes for closures.
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  ReusableObjectHandleScope reused_obj_handle(isolate);
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  ReusableObjectHandleScope reused_obj_handle(thread);
   const Instance& closure_obj =
       Api::UnwrapInstanceHandle(reused_obj_handle, object);
   return (!closure_obj.IsNull() && closure_obj.IsClosure());
@@ -2303,12 +2305,12 @@ DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle boolean_obj,
 
 
 DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* len) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  ReusableObjectHandleScope reused_obj_handle(isolate);
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  ReusableObjectHandleScope reused_obj_handle(thread);
   const String& str_obj = Api::UnwrapStringHandle(reused_obj_handle, str);
   if (str_obj.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, str, String);
+    RETURN_TYPE_ERROR(thread->isolate(), str, String);
   }
   *len = str_obj.Length();
   return Api::Success();
@@ -2500,12 +2502,12 @@ DART_EXPORT Dart_Handle Dart_StringToUTF16(Dart_Handle str,
 
 DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str,
                                                intptr_t* size) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  ReusableObjectHandleScope reused_obj_handle(isolate);
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  ReusableObjectHandleScope reused_obj_handle(thread);
   const String& str_obj = Api::UnwrapStringHandle(reused_obj_handle, str);
   if (str_obj.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, str, String);
+    RETURN_TYPE_ERROR(thread->isolate(), str, String);
   }
   if (size == NULL) {
     RETURN_NULL_ERROR(size);
@@ -2571,19 +2573,19 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,
                                                  intptr_t* char_size,
                                                  intptr_t* str_len,
                                                  void** peer) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  ReusableObjectHandleScope reused_obj_handle(isolate);
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  ReusableObjectHandleScope reused_obj_handle(thread);
   const String& str = Api::UnwrapStringHandle(reused_obj_handle, object);
   if (str.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, object, String);
+    RETURN_TYPE_ERROR(thread->isolate(), object, String);
   }
   if (str.IsExternal()) {
     *peer = str.GetPeer();
     ASSERT(*peer != NULL);
   } else {
     NoSafepointScope no_safepoint_scope;
-    *peer = isolate->heap()->GetPeer(str.raw());
+    *peer = thread->isolate()->heap()->GetPeer(str.raw());
   }
   *char_size = str.CharSize();
   *str_len = str.Length();
@@ -4598,12 +4600,12 @@ DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
 
 DART_EXPORT Dart_Handle Dart_GetNativeInstanceFieldCount(Dart_Handle obj,
                                                          int* count) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  ReusableObjectHandleScope reused_obj_handle(isolate);
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  ReusableObjectHandleScope reused_obj_handle(thread);
   const Instance& instance = Api::UnwrapInstanceHandle(reused_obj_handle, obj);
   if (instance.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, obj, Instance);
+    RETURN_TYPE_ERROR(thread->isolate(), obj, Instance);
   }
   *count = instance.NumNativeFields();
   return Api::Success();
@@ -4613,12 +4615,12 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceFieldCount(Dart_Handle obj,
 DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
                                                     int index,
                                                     intptr_t* value) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  ReusableObjectHandleScope reused_obj_handle(isolate);
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  ReusableObjectHandleScope reused_obj_handle(thread);
   const Instance& instance = Api::UnwrapInstanceHandle(reused_obj_handle, obj);
   if (instance.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, obj, Instance);
+    RETURN_TYPE_ERROR(thread->isolate(), obj, Instance);
   }
   if (!instance.IsValidNativeIndex(index)) {
     return Api::NewError(
@@ -5543,10 +5545,10 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
   if (peer == NULL) {
     RETURN_NULL_ERROR(peer);
   }
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Object& obj = isolate->ObjectHandle();
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Object& obj = thread->ObjectHandle();
   obj = Api::UnwrapHandle(object);
   if (obj.IsNull() || obj.IsNumber() || obj.IsBool()) {
     const char* msg =
@@ -5556,17 +5558,17 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
   {
     NoSafepointScope no_safepoint;
     RawObject* raw_obj = obj.raw();
-    *peer = isolate->heap()->GetPeer(raw_obj);
+    *peer = thread->isolate()->heap()->GetPeer(raw_obj);
   }
   return Api::Success();
 }
 
 
 DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Object& obj = isolate->ObjectHandle();
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Object& obj = thread->ObjectHandle();
   obj = Api::UnwrapHandle(object);
   if (obj.IsNull() || obj.IsNumber() || obj.IsBool()) {
     const char* msg =
@@ -5576,7 +5578,7 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
   {
     NoSafepointScope no_safepoint;
     RawObject* raw_obj = obj.raw();
-    isolate->heap()->SetPeer(raw_obj, peer);
+    thread->isolate()->heap()->SetPeer(raw_obj, peer);
   }
   return Api::Success();
 }

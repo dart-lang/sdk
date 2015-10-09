@@ -2213,14 +2213,13 @@ void Class::RemoveFunction(const Function& function) const {
 
 intptr_t Class::FindFunctionIndex(const Function& needle) const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
-  Array& funcs = isolate->ArrayHandle();
-  Function& function = isolate->FunctionHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  Array& funcs = thread->ArrayHandle();
+  Function& function = thread->FunctionHandle();
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
   const intptr_t len = funcs.Length();
@@ -2267,17 +2266,16 @@ RawFunction* Class::ImplicitClosureFunctionFromIndex(intptr_t idx) const {
 
 intptr_t Class::FindImplicitClosureFunctionIndex(const Function& needle) const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
-  Array& funcs = isolate->ArrayHandle();
-  Function& function = isolate->FunctionHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  Array& funcs = thread->ArrayHandle();
+  Function& function = thread->FunctionHandle();
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
-  Function& implicit_closure = Function::Handle(isolate);
+  Function& implicit_closure = Function::Handle(thread->zone());
   const intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
@@ -2299,14 +2297,13 @@ intptr_t Class::FindImplicitClosureFunctionIndex(const Function& needle) const {
 intptr_t Class::FindInvocationDispatcherFunctionIndex(
     const Function& needle) const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Array& funcs = isolate->ArrayHandle();
-  Object& object = isolate->ObjectHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Array& funcs = thread->ArrayHandle();
+  Object& object = thread->ObjectHandle();
   funcs ^= invocation_dispatcher_cache();
   ASSERT(!funcs.IsNull());
   const intptr_t len = funcs.Length();
@@ -2327,11 +2324,11 @@ intptr_t Class::FindInvocationDispatcherFunctionIndex(
 
 
 RawFunction* Class::InvocationDispatcherFunctionFromIndex(intptr_t idx) const {
-  Isolate* isolate = Isolate::Current();
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Array& dispatcher_cache = isolate->ArrayHandle();
-  Object& object = isolate->ObjectHandle();
+  Thread* thread = Thread::Current();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Array& dispatcher_cache = thread->ArrayHandle();
+  Object& object = thread->ObjectHandle();
   dispatcher_cache ^= invocation_dispatcher_cache();
   object = dispatcher_cache.At(idx);
   if (!object.IsFunction()) {
@@ -2386,11 +2383,11 @@ intptr_t Class::FindClosureIndex(const Function& needle) const {
   if (closures() == GrowableObjectArray::null()) {
     return -1;
   }
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
   const GrowableObjectArray& closures_array =
-      GrowableObjectArray::Handle(isolate, closures());
-  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
-  Function& closure = isolate->FunctionHandle();
+      GrowableObjectArray::Handle(thread->zone(), closures());
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  Function& closure = thread->FunctionHandle();
   intptr_t num_closures = closures_array.Length();
   for (intptr_t i = 0; i < num_closures; i++) {
     closure ^= closures_array.At(i);
@@ -2444,9 +2441,8 @@ intptr_t Class::NumTypeParameters(Thread* thread) const {
   if (type_parameters() == TypeArguments::null()) {
     return 0;
   }
-  Isolate* isolate = thread->isolate();
-  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(isolate);
-  TypeArguments& type_params = isolate->TypeArgumentsHandle();
+  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
+  TypeArguments& type_params = thread->TypeArgumentsHandle();
   type_params = type_parameters();
   return type_params.Length();
 }
@@ -2590,13 +2586,13 @@ void Class::set_super_type(const AbstractType& value) const {
 // Return null otherwise.
 RawTypeParameter* Class::LookupTypeParameter(const String& type_name) const {
   ASSERT(!type_name.IsNull());
-  Isolate* isolate = Isolate::Current();
-  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(isolate);
-  REUSABLE_TYPE_PARAMETER_HANDLESCOPE(isolate);
-  REUSABLE_STRING_HANDLESCOPE(isolate);
-  TypeArguments& type_params = isolate->TypeArgumentsHandle();
-  TypeParameter&  type_param = isolate->TypeParameterHandle();
-  String& type_param_name = isolate->StringHandle();
+  Thread* thread = Thread::Current();
+  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
+  REUSABLE_TYPE_PARAMETER_HANDLESCOPE(thread);
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  TypeArguments& type_params = thread->TypeArgumentsHandle();
+  TypeParameter&  type_param = thread->TypeParameterHandle();
+  String& type_param_name = thread->StringHandle();
 
   type_params ^= type_parameters();
   if (!type_params.IsNull()) {
@@ -3096,19 +3092,18 @@ void Class::AddFields(const GrowableArray<const Field*>& new_fields) const {
 
 intptr_t Class::FindFieldIndex(const Field& needle) const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_FIELD_HANDLESCOPE(isolate);
-  REUSABLE_STRING_HANDLESCOPE(isolate);
-  Array& fields_array = isolate->ArrayHandle();
-  Field& field = isolate->FieldHandle();
-  String& field_name = isolate->StringHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FIELD_HANDLESCOPE(thread);
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  Array& fields_array = thread->ArrayHandle();
+  Field& field = thread->FieldHandle();
+  String& field_name = thread->StringHandle();
   fields_array ^= fields();
   ASSERT(!fields_array.IsNull());
-  String& needle_name = String::Handle(isolate);
+  String& needle_name = String::Handle(thread->zone());
   needle_name ^= needle.name();
   const intptr_t len = fields_array.Length();
   for (intptr_t i = 0; i < len; i++) {
@@ -3711,7 +3706,6 @@ void Class::SetCanonicalType(const Type& type) const {
 
 intptr_t Class::FindCanonicalTypeIndex(const Type& needle) const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
@@ -3720,15 +3714,15 @@ intptr_t Class::FindCanonicalTypeIndex(const Type& needle) const {
     // same type. It will never be returned by this function.
     return 0;
   }
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Object& types = isolate->ObjectHandle();
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Object& types = thread->ObjectHandle();
   types = canonical_types();
   if (types.IsNull()) {
     return -1;
   }
   const intptr_t len = Array::Cast(types).Length();
-  REUSABLE_ABSTRACT_TYPE_HANDLESCOPE(isolate);
-  AbstractType& type = isolate->AbstractTypeHandle();
+  REUSABLE_ABSTRACT_TYPE_HANDLESCOPE(thread);
+  AbstractType& type = thread->AbstractTypeHandle();
   for (intptr_t i = 0; i < len; i++) {
     type ^= Array::Cast(types).At(i);
     if (needle.raw() == type.raw()) {
@@ -4109,21 +4103,20 @@ RawFunction* Class::CheckFunctionType(const Function& func, MemberKind kind) {
 
 RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
   }
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
-  Array& funcs = isolate->ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  Array& funcs = thread->ArrayHandle();
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
   const intptr_t len = funcs.Length();
-  Function& function = isolate->FunctionHandle();
+  Function& function = thread->FunctionHandle();
   if (len >= kFunctionLookupHashTreshold) {
     ClassFunctionsSet set(raw_ptr()->functions_hash_table_);
-    REUSABLE_STRING_HANDLESCOPE(isolate);
-    function ^= set.GetOrNull(FunctionName(name, &(isolate->StringHandle())));
+    REUSABLE_STRING_HANDLESCOPE(thread);
+    function ^= set.GetOrNull(FunctionName(name, &(thread->StringHandle())));
     // No mutations.
     ASSERT(set.Release().raw() == raw_ptr()->functions_hash_table_);
     return function.IsNull() ? Function::null()
@@ -4139,8 +4132,8 @@ RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
       }
     }
   } else {
-    REUSABLE_STRING_HANDLESCOPE(isolate);
-    String& function_name = isolate->StringHandle();
+    REUSABLE_STRING_HANDLESCOPE(thread);
+    String& function_name = thread->StringHandle();
     for (intptr_t i = 0; i < len; i++) {
       function ^= funcs.At(i);
       function_name ^= function.name();
@@ -4157,19 +4150,18 @@ RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
 RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
                                                MemberKind kind) const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
   }
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
-  REUSABLE_STRING_HANDLESCOPE(isolate);
-  Array& funcs = isolate->ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  Array& funcs = thread->ArrayHandle();
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
   const intptr_t len = funcs.Length();
-  Function& function = isolate->FunctionHandle();
-  String& function_name = isolate->StringHandle();
+  Function& function = thread->FunctionHandle();
+  String& function_name = thread->StringHandle();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
     function_name ^= function.name();
@@ -4196,18 +4188,17 @@ RawFunction* Class::LookupAccessorFunction(const char* prefix,
                                            intptr_t prefix_length,
                                            const String& name) const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
   }
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
-  REUSABLE_STRING_HANDLESCOPE(isolate);
-  Array& funcs = isolate->ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  Array& funcs = thread->ArrayHandle();
   funcs ^= functions();
   intptr_t len = funcs.Length();
-  Function& function = isolate->FunctionHandle();
-  String& function_name = isolate->StringHandle();
+  Function& function = thread->FunctionHandle();
+  String& function_name = thread->StringHandle();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
     function_name ^= function.name();
@@ -4265,19 +4256,18 @@ RawField* Class::LookupField(const String& name) const {
 
 RawField* Class::LookupField(const String& name, MemberKind kind) const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return Field::null();
   }
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_FIELD_HANDLESCOPE(isolate);
-  REUSABLE_STRING_HANDLESCOPE(isolate);
-  Array& flds = isolate->ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FIELD_HANDLESCOPE(thread);
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  Array& flds = thread->ArrayHandle();
   flds ^= fields();
   ASSERT(!flds.IsNull());
   intptr_t len = flds.Length();
-  Field& field = isolate->FieldHandle();
-  String& field_name = isolate->StringHandle();
+  Field& field = thread->FieldHandle();
+  String& field_name = thread->StringHandle();
   for (intptr_t i = 0; i < len; i++) {
     field ^= flds.At(i);
     field_name ^= field.name();
@@ -9505,16 +9495,16 @@ RawObject* Library::LookupReExport(const String& name) const {
 
 
 RawObject* Library::LookupEntry(const String& name, intptr_t *index) const {
-  Isolate* isolate = Isolate::Current();
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  REUSABLE_STRING_HANDLESCOPE(isolate);
-  Array& dict = isolate->ArrayHandle();
+  Thread* thread = Thread::Current();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  Array& dict = thread->ArrayHandle();
   dict ^= dictionary();
   intptr_t dict_size = dict.Length() - 1;
   *index = name.Hash() % dict_size;
-  Object& entry = isolate->ObjectHandle();
-  String& entry_name = isolate->StringHandle();
+  Object& entry = thread->ObjectHandle();
+  String& entry_name = thread->StringHandle();
   entry = dict.At(*index);
   // Search the entry in the hash set.
   while (!entry.IsNull()) {
@@ -14720,9 +14710,9 @@ RawInstance* Instance::New(const Class& cls, Heap::Space space) {
 
 
 bool Instance::IsValidFieldOffset(intptr_t offset) const {
-  Isolate* isolate = Isolate::Current();
-  REUSABLE_CLASS_HANDLESCOPE(isolate);
-  Class& cls = isolate->ClassHandle();
+  Thread* thread = Thread::Current();
+  REUSABLE_CLASS_HANDLESCOPE(thread);
+  Class& cls = thread->ClassHandle();
   cls = clazz();
   return (offset >= 0 && offset <= (cls.instance_size() - kWordSize));
 }
@@ -20318,9 +20308,9 @@ class DefaultHashTraits {
     }
     // TODO(koda): Ensure VM classes only produce Smi hash codes, and remove
     // non-Smi cases once Dart-side implementation is complete.
-    Isolate* isolate = Isolate::Current();
-    REUSABLE_INSTANCE_HANDLESCOPE(isolate);
-    Instance& hash_code = isolate->InstanceHandle();
+    Thread* thread = Thread::Current();
+    REUSABLE_INSTANCE_HANDLESCOPE(thread);
+    Instance& hash_code = thread->InstanceHandle();
     hash_code ^= Instance::Cast(obj).HashCode();
     if (hash_code.IsSmi()) {
       // May waste some bits on 64-bit, to ensure consistency with non-Smi case.

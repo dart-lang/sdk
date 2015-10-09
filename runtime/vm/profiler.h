@@ -505,7 +505,7 @@ class ProcessedSample : public ZoneAllocated {
   }
 
  private:
-  void FixupCaller(Isolate* isolate,
+  void FixupCaller(Thread* thread,
                    Isolate* vm_isolate,
                    uword pc_marker,
                    uword* stack_buffer);

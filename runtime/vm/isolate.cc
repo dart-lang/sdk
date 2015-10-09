@@ -794,10 +794,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       compilation_allowed_(true),
       cha_(NULL),
       next_(NULL),
-      pause_loop_monitor_(NULL),
-      REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
-      REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
-      reusable_handles_() {
+      pause_loop_monitor_(NULL) {
   flags_.CopyFrom(api_flags);
   Thread::Current()->set_vm_tag(VMTag::kEmbedderTagId);
   set_user_tag(UserTags::kDefaultUserTag);
@@ -881,12 +878,6 @@ Isolate* Isolate::Init(const char* name_prefix,
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.
   Thread::EnterIsolate(result);
-
-  // Setup the isolate specific resuable handles.
-#define REUSABLE_HANDLE_ALLOCATION(object)                                     \
-  result->object##_handle_ = result->AllocateReusableHandle<object>();
-  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_ALLOCATION)
-#undef REUSABLE_HANDLE_ALLOCATION
 
   // Setup the isolate message handler.
   MessageHandler* handler = new IsolateMessageHandler(result);
@@ -1580,13 +1571,13 @@ void Isolate::PrintInvokedFunctions() {
 
 class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
  public:
-  FinalizeWeakPersistentHandlesVisitor() : HandleVisitor(Isolate::Current()) {
+  FinalizeWeakPersistentHandlesVisitor() : HandleVisitor(Thread::Current()) {
   }
 
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
-    handle->UpdateUnreachable(I);
+    handle->UpdateUnreachable(thread()->isolate());
   }
 
  private:
@@ -1770,9 +1761,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit objects in per isolate stubs.
   StubCode::VisitObjectPointers(visitor);
-
-  // Visit objects in isolate specific handles area.
-  reusable_handles_.VisitObjectPointers(visitor);
 
   // Visit the dart api state for all local and persistent handles.
   if (api_state() != NULL) {
@@ -2310,14 +2298,6 @@ void Isolate::DisableIsolateCreation() {
 void Isolate::EnableIsolateCreation() {
   MonitorLocker ml(isolates_list_monitor_);
   creation_enabled_ = true;
-}
-
-
-template<class C>
-C* Isolate::AllocateReusableHandle() {
-  C* handle = reinterpret_cast<C*>(reusable_handles_.AllocateScopedHandle());
-  C::initializeHandle(handle, C::null());
-  return handle;
 }
 
 

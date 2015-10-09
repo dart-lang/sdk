@@ -58,21 +58,22 @@ namespace dart {
 
 // Forward declarations.
 class ObjectPointerVisitor;
+class Thread;
 
 DECLARE_FLAG(bool, verify_handles);
 DECLARE_DEBUG_FLAG(bool, trace_handles);
 
 class HandleVisitor {
  public:
-  explicit HandleVisitor(Isolate* isolate) : isolate_(isolate) {}
+  explicit HandleVisitor(Thread* thread) : thread_(thread) {}
   virtual ~HandleVisitor() {}
 
-  Isolate* isolate() const { return isolate_; }
+  Thread* thread() const { return thread_; }
 
   virtual void VisitHandle(uword addr) = 0;
 
  private:
-  Isolate* isolate_;
+  Thread* thread_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(HandleVisitor);
 };
@@ -238,7 +239,7 @@ class Handles {
   friend class HandleScope;
   friend class Dart;
   friend class ObjectStore;
-  friend class Isolate;
+  friend class Thread;
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Handles);
 };

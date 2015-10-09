@@ -1253,9 +1253,8 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(Sample* sample) {
   }
 
   if (!sample->exit_frame_sample()) {
-    Isolate* isolate = thread->isolate();
     Isolate* vm_isolate = Dart::vm_isolate();
-    processed_sample->FixupCaller(isolate,
+    processed_sample->FixupCaller(thread,
                                   vm_isolate,
                                   sample->pc_marker(),
                                   sample->GetStackBuffer());
@@ -1296,14 +1295,14 @@ ProcessedSample::ProcessedSample()
 }
 
 
-void ProcessedSample::FixupCaller(Isolate* isolate,
+void ProcessedSample::FixupCaller(Thread* thread,
                                   Isolate* vm_isolate,
                                   uword pc_marker,
                                   uword* stack_buffer) {
-  REUSABLE_CODE_HANDLESCOPE(isolate);
+  REUSABLE_CODE_HANDLESCOPE(thread);
   // Lookup code object for leaf frame.
   Code& code = reused_code_handle.Handle();
-  code = FindCodeForPC(isolate, vm_isolate, At(0));
+  code = FindCodeForPC(thread->isolate(), vm_isolate, At(0));
   if (code.IsNull()) {
     return;
   }
@@ -1311,7 +1310,8 @@ void ProcessedSample::FixupCaller(Isolate* isolate,
     // Code compiled after sample. Ignore.
     return;
   }
-  CheckForMissingDartFrame(isolate, vm_isolate, code, pc_marker, stack_buffer);
+  CheckForMissingDartFrame(
+      thread->isolate(), vm_isolate, code, pc_marker, stack_buffer);
 }
 
 

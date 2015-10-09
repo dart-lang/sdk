@@ -105,6 +105,16 @@ void Thread::CleanUp() {
 }
 #endif
 
+#if defined(DEBUG)
+#define REUSABLE_HANDLE_SCOPE_INIT(object)                                     \
+  reusable_##object##_handle_scope_active_(false),
+#else
+#define REUSABLE_HANDLE_SCOPE_INIT(object)
+#endif  // defined(DEBUG)
+
+#define REUSABLE_HANDLE_INITIALIZERS(object)                                   \
+  object##_handle_(NULL),
+
 
 Thread::Thread(bool init_vm_constants)
     : id_(OSThread::GetCurrentThreadId()),
@@ -114,7 +124,10 @@ Thread::Thread(bool init_vm_constants)
       heap_(NULL),
       store_buffer_block_(NULL),
       log_(new class Log()),
-      vm_tag_(0) {
+      vm_tag_(0),
+      REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
+      REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
+      reusable_handles_() {
   ClearState();
 
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
@@ -162,6 +175,12 @@ RUNTIME_ENTRY_LIST(INIT_VALUE)
   name##_entry_point_ = k##name##RuntimeEntry.GetEntryPoint();
 LEAF_RUNTIME_ENTRY_LIST(INIT_VALUE)
 #undef INIT_VALUE
+
+  // Setup the thread specific reusable handles.
+#define REUSABLE_HANDLE_ALLOCATION(object)                                     \
+  this->object##_handle_ = this->AllocateReusableHandle<object>();
+  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_ALLOCATION)
+#undef REUSABLE_HANDLE_ALLOCATION
 }
 
 
@@ -218,6 +237,9 @@ void Thread::ExitIsolate() {
   thread->isolate_ = NULL;
   ASSERT(Isolate::Current() == NULL);
   thread->heap_ = NULL;
+#if defined(DEBUG)
+  ASSERT(!thread->IsAnyReusableHandleScopeActive());
+#endif  // DEBUG
 }
 
 
@@ -315,6 +337,22 @@ void Thread::set_cha(CHA* value) {
 
 Log* Thread::log() const {
   return log_;
+}
+
+
+template<class C>
+C* Thread::AllocateReusableHandle() {
+  C* handle = reinterpret_cast<C*>(reusable_handles_.AllocateScopedHandle());
+  C::initializeHandle(handle, C::null());
+  return handle;
+}
+
+
+void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  ASSERT(visitor != NULL);
+
+  // Visit objects in thread specific handles area.
+  reusable_handles_.VisitObjectPointers(visitor);
 }
 
 

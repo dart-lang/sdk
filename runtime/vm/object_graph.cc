@@ -442,9 +442,9 @@ class WriteGraphVisitor : public ObjectGraph::Visitor {
 
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
     RawObject* raw_obj = it->Get();
-    Isolate* isolate = Isolate::Current();
-    REUSABLE_OBJECT_HANDLESCOPE(isolate);
-    Object& obj = isolate->ObjectHandle();
+    Thread* thread = Thread::Current();
+    REUSABLE_OBJECT_HANDLESCOPE(thread);
+    Object& obj = thread->ObjectHandle();
     obj = raw_obj;
     // Each object is a header + a zero-terminated list of its neighbors.
     WriteHeader(raw_obj, raw_obj->Size(), obj.GetClassId(), stream_);
