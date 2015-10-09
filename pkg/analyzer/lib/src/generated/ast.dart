@@ -423,10 +423,8 @@ class ArgumentList extends AstNode {
   @override
   Token get beginToken => leftParenthesis;
 
-  /**
-   * TODO(paulberry): Add commas.
-   */
   @override
+  // TODO(paulberry): Add commas.
   Iterable get childEntities => new ChildEntities()
     ..add(leftParenthesis)
     ..addAll(_arguments)
@@ -3836,7 +3834,7 @@ class BreakStatement extends Statement {
   Token get keyword => breakKeyword;
 
   /**
-   * Sethe token representing the 'break' keyword to the given [token].
+   * Set the token representing the 'break' keyword to the given [token].
    */
   @deprecated // Use "this.breakKeyword"
   void set keyword(Token token) {
@@ -9478,10 +9476,8 @@ class ImplementsClause extends AstNode {
   @override
   Token get beginToken => implementsKeyword;
 
-  /**
-   * TODO(paulberry): add commas.
-   */
   @override
+  // TODO(paulberry): add commas.
   Iterable get childEntities => new ChildEntities()
     ..add(implementsKeyword)
     ..addAll(interfaces);
@@ -11657,10 +11653,8 @@ class LibraryIdentifier extends Identifier {
   @override
   Element get bestElement => staticElement;
 
-  /**
-   * TODO(paulberry): add "." tokens.
-   */
   @override
+  // TODO(paulberry): add "." tokens.
   Iterable get childEntities => new ChildEntities()..addAll(_components);
 
   /**
@@ -11750,10 +11744,8 @@ class ListLiteral extends TypedLiteral {
     return leftBracket;
   }
 
-  /**
-   * TODO(paulberry): add commas.
-   */
   @override
+  // TODO(paulberry): add commas.
   Iterable get childEntities => super._childEntities
     ..add(leftBracket)
     ..addAll(_elements)
@@ -11840,10 +11832,8 @@ class MapLiteral extends TypedLiteral {
     return leftBracket;
   }
 
-  /**
-   * TODO(paulberry): add commas.
-   */
   @override
+  // TODO(paulberry): add commas.
   Iterable get childEntities => super._childEntities
     ..add(leftBracket)
     ..addAll(entries)
@@ -12611,7 +12601,7 @@ class NativeClause extends AstNode {
   StringLiteral get name => _name;
 
   /**
-   * Sets the name of the native object that implements the class to the given
+   * Set the name of the native object that implements the class to the given
    * [name].
    */
   void set name(StringLiteral name) {
@@ -16198,10 +16188,8 @@ class ShowCombinator extends Combinator {
     _shownNames = new NodeList<SimpleIdentifier>(this, shownNames);
   }
 
-  /**
-   * TODO(paulberry): add commas.
-   */
   @override
+  // TODO(paulberry): add commas.
   Iterable get childEntities => new ChildEntities()
     ..add(keyword)
     ..addAll(_shownNames);
@@ -16700,7 +16688,7 @@ class SimpleIdentifier extends Identifier {
   Token get endToken => token;
 
   /**
-   * Returns `true` if this identifier is the "name" part of a prefixed
+   * Return `true` if this identifier is the "name" part of a prefixed
    * identifier or a method invocation.
    */
   bool get isQualified {
@@ -17785,10 +17773,8 @@ class SymbolLiteral extends Literal {
   @override
   Token get beginToken => poundSign;
 
-  /**
-   * TODO(paulberry): add "." tokens.
-   */
   @override
+  // TODO(paulberry): add "." tokens.
   Iterable get childEntities => new ChildEntities()
     ..add(poundSign)
     ..addAll(components);
@@ -19322,10 +19308,8 @@ class TypeArgumentList extends AstNode {
   @override
   Token get beginToken => leftBracket;
 
-  /**
-   * TODO(paulberry): Add commas.
-   */
   @override
+  // TODO(paulberry): Add commas.
   Iterable get childEntities => new ChildEntities()
     ..add(leftBracket)
     ..addAll(_arguments)
@@ -20303,10 +20287,8 @@ class VariableDeclarationList extends AnnotatedNode {
     _variables = new NodeList<VariableDeclaration>(this, variables);
   }
 
-  /**
-   * TODO(paulberry): include commas.
-   */
   @override
+  // TODO(paulberry): include commas.
   Iterable get childEntities => super._childEntities
     ..add(keyword)
     ..add(_type)
@@ -20559,10 +20541,8 @@ class WithClause extends AstNode {
   @override
   Token get beginToken => withKeyword;
 
-  /**
-   * TODO(paulberry): add commas.
-   */
   @override
+  // TODO(paulberry): add commas.
   Iterable get childEntities => new ChildEntities()
     ..add(withKeyword)
     ..addAll(_mixinTypes);
