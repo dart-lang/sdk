@@ -91,6 +91,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   final _runtimeLibVar = new JS.Identifier('dart');
   final _namedArgTemp = new JS.TemporaryId('opts');
 
+  final TypeProvider _types;
+
   ConstFieldVisitor _constField;
 
   ModuleItemLoadOrder _loader;
@@ -107,7 +109,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       this._extensionTypes, this._fieldsNeedingStorage)
       : compiler = compiler,
         options = compiler.options.codegenOptions,
-        rules = compiler.rules {
+        rules = compiler.rules,
+        _types = compiler.context.typeProvider {
     _loader = new ModuleItemLoadOrder(_emitModuleItem);
 
     var context = compiler.context;
@@ -316,9 +319,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (rules.isSubTypeOf(from, to)) return fromExpr;
 
     // All Dart number types map to a JS double.
-    if (rules.isNumberInJS(from) && rules.isNumberInJS(to)) {
+    if (_isNumberInJS(from) && _isNumberInJS(to)) {
       // Make sure to check when converting to int.
-      if (!rules.isIntType(from) && rules.isIntType(to)) {
+      if (from != _types.intType && to == _types.intType) {
         return js.call('dart.asInt(#)', [fromExpr]);
       }
 
@@ -360,9 +363,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   }
 
   String _jsTypeofName(DartType t) {
-    if (rules.isNumberInJS(t)) return 'number';
-    if (rules.isStringType(t)) return 'string';
-    if (rules.isBoolType(t)) return 'boolean';
+    if (_isNumberInJS(t)) return 'number';
+    if (t == _types.stringType) return 'string';
+    if (t == _types.boolType) return 'boolean';
     return null;
   }
 
@@ -2167,10 +2170,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   /// "extension methods". This allows types to be extended without adding
   /// extensions directly on the prototype.
   bool _isJSBuiltinType(DartType t) =>
-      typeIsPrimitiveInJS(t) || rules.isStringType(t);
+      typeIsPrimitiveInJS(t) || t == _types.stringType;
 
   bool typeIsPrimitiveInJS(DartType t) =>
-      rules.isNumberInJS(t) || rules.isBoolType(t);
+      _isNumberInJS(t) || t == _types.boolType;
 
   bool typeIsNonNullablePrimitiveInJS(DartType t) =>
       typeIsPrimitiveInJS(t) && rules.isNonNullableType(t);
@@ -2294,7 +2297,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     }
 
     if (binaryOperationIsPrimitive(leftType, rightType) ||
-        rules.isStringType(leftType) && op.type == TokenType.PLUS) {
+        leftType == _types.stringType && op.type == TokenType.PLUS) {
       // special cases where we inline the operation
       // these values are assumed to be non-null (determined by the checker)
       // TODO(jmesserly): it would be nice to just inline the method from core,
@@ -3252,6 +3255,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       options.closure && e != null
           ? node.withClosureAnnotation(closureAnnotationForTypeDef(e))
           : node;
+
+  /// Returns true if this is any kind of object represented by `Number` in JS.
+  ///
+  /// In practice, this is 4 types: num, int, double, and JSNumber.
+  ///
+  /// JSNumber is the type that actually "implements" all numbers, hence it's
+  /// a subtype of int and double (and num). It's in our "dart:_interceptors".
+  bool _isNumberInJS(DartType t) => rules.isSubTypeOf(t, _types.numType);
 }
 
 class JSGenerator extends CodeGenerator {

@@ -856,11 +856,11 @@ class CodeChecker extends RecursiveAstVisitor {
       case TokenType.STAR_EQ:
       case TokenType.TILDE_SLASH_EQ:
       case TokenType.PERCENT_EQ:
-        if (rules.isIntType(t1) && rules.isIntType(t2)) return t1;
-        if (rules.isDoubleType(t1) && rules.isDoubleType(t2)) return t1;
+        if (t1 == rules.provider.intType && t2 == rules.provider.intType) return t1;
+        if (t1  == rules.provider.doubleType && t2 == rules.provider.doubleType) return t1;
         // This particular combo is not spelled out in the spec, but all
         // implementations and analyzer seem to follow this.
-        if (rules.isDoubleType(t1) && rules.isIntType(t2)) return t1;
+        if (t1 == rules.provider.doubleType && t2 == rules.provider.intType) return t1;
     }
     return normalReturnType;
   }
