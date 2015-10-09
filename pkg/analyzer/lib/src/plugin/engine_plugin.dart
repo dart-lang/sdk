@@ -99,6 +99,7 @@ class EnginePlugin implements Plugin {
    * Return a list containing all of the contributed analysis error result
    * descriptors for Dart sources.
    */
+  @ExtensionPointId('DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID')
   List<TaskDescriptor> get dartErrorsForSource =>
       dartErrorsForSourceExtensionPoint.extensions;
 
@@ -106,6 +107,7 @@ class EnginePlugin implements Plugin {
    * Return a list containing all of the contributed analysis error result
    * descriptors for Dart library specific units.
    */
+  @ExtensionPointId('DART_ERRORS_FOR_UNIT_EXTENSION_POINT_ID')
   List<TaskDescriptor> get dartErrorsForUnit =>
       dartErrorsForUnitExtensionPoint.extensions;
 
@@ -113,6 +115,7 @@ class EnginePlugin implements Plugin {
    * Return a list containing all of the contributed analysis error result
    * descriptors for HTML sources.
    */
+  @ExtensionPointId('HTML_ERRORS_EXTENSION_POINT_ID')
   List<TaskDescriptor> get htmlErrors => htmlErrorsExtensionPoint.extensions;
 
   /**
@@ -158,19 +161,17 @@ class EnginePlugin implements Plugin {
   }
 
   void _registerDartErrorsForSource(RegisterExtension registerExtension) {
-    String id = DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID;
-    registerExtension(id, PARSE_ERRORS);
-    registerExtension(id, SCAN_ERRORS);
+    registerExtension(DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID, PARSE_ERRORS);
+    registerExtension(DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID, SCAN_ERRORS);
   }
 
   void _registerDartErrorsForUnit(RegisterExtension registerExtension) {
-    String id = DART_ERRORS_FOR_UNIT_EXTENSION_POINT_ID;
-    registerExtension(id, LIBRARY_UNIT_ERRORS);
+    registerExtension(
+        DART_ERRORS_FOR_UNIT_EXTENSION_POINT_ID, LIBRARY_UNIT_ERRORS);
   }
 
   void _registerHtmlErrors(RegisterExtension registerExtension) {
-    String id = HTML_ERRORS_EXTENSION_POINT_ID;
-    registerExtension(id, HTML_DOCUMENT_ERRORS);
+    registerExtension(HTML_ERRORS_EXTENSION_POINT_ID, HTML_DOCUMENT_ERRORS);
   }
 
   void _registerTaskExtensions(RegisterExtension registerExtension) {
@@ -269,4 +270,18 @@ class EnginePlugin implements Plugin {
           'Extensions to $id must be a WorkManagerFactory');
     }
   }
+}
+
+/**
+ * Annotation describing the relationship between a getter in [EnginePlugin]
+ * and the associated identifier (in '../../plugin/task.dart') which can be
+ * passed to the extension manager to populate it.
+ *
+ * This annotation is not used at runtime; it is used to aid in static analysis
+ * of the task model during development.
+ */
+class ExtensionPointId {
+  final String extensionPointId;
+
+  const ExtensionPointId(this.extensionPointId);
 }
