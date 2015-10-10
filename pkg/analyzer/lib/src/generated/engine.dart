@@ -18,6 +18,7 @@ import 'package:analyzer/src/plugin/options_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/model.dart' as newContext;
 import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:plugin/manager.dart';
@@ -1565,6 +1566,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _typeSystem = TypeSystem.create(this);
     }
     return _typeSystem;
+  }
+
+  @override
+  List<newContext.WorkManager> get workManagers {
+    throw new NotImplementedException('In not task-based AnalysisContext.');
   }
 
   @override
@@ -9393,6 +9399,11 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * A factory to override how [TypeResolverVisitor] is created.
    */
   TypeResolverVisitorFactory get typeResolverVisitorFactory;
+
+  /**
+   * A list of all [WorkManager]s used by this context.
+   */
+  List<newContext.WorkManager> get workManagers;
 
   /**
    * Return a list containing the sources of the libraries that are exported by

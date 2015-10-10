@@ -363,7 +363,13 @@ class _MemoryFileSource extends Source {
 
   @override
   Uri resolveRelativeUri(Uri relativeUri) {
-    return uri.resolveUri(relativeUri);
+    Uri baseUri = uri;
+    String scheme = uri.scheme;
+    if (scheme == DartUriResolver.DART_SCHEME) {
+      String libraryName = uri.path;
+      baseUri = Uri.parse('$scheme:$libraryName/$libraryName.dart');
+    }
+    return baseUri.resolveUri(relativeUri);
   }
 
   @override

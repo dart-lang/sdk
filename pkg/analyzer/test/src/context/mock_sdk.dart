@@ -118,15 +118,23 @@ library dart.async;
 
 import 'dart:math';
 
+part 'stream.dart';
+
 class Future<T> {
   factory Future.delayed(Duration duration, [T computation()]) => null;
   factory Future.value([value]) => null;
   static Future wait(List<Future> futures) => null;
 }
-
+''',
+      const <_MockSdkFile>[
+    const _MockSdkFile(
+        '/lib/async/stream.dart',
+        r'''
+part of dart.async;
 class Stream<T> {}
 abstract class StreamTransformer<S, T> {}
-''');
+''')
+  ]);
 
   static const _MockSdkLibrary LIB_COLLECTION = const _MockSdkLibrary(
       'dart:collection',
@@ -197,6 +205,9 @@ class HtmlElement {}
   MockSdk() {
     LIBRARIES.forEach((_MockSdkLibrary library) {
       provider.newFile(library.path, library.content);
+      library.parts.forEach((file) {
+        provider.newFile(file.path, file.content);
+      });
     });
   }
 
@@ -280,6 +291,7 @@ class HtmlElement {}
       "dart:core": "/lib/core/core.dart",
       "dart:html": "/lib/html/dartium/html_dartium.dart",
       "dart:async": "/lib/async/async.dart",
+      "dart:async/stream.dart": "/lib/async/stream.dart",
       "dart:collection": "/lib/collection/collection.dart",
       "dart:convert": "/lib/convert/convert.dart",
       "dart:math": "/lib/math/math.dart"
@@ -302,8 +314,10 @@ class _MockSdkLibrary implements SdkLibrary {
   final String shortName;
   final String path;
   final String content;
+  final List<_MockSdkFile> parts;
 
-  const _MockSdkLibrary(this.shortName, this.path, this.content);
+  const _MockSdkLibrary(this.shortName, this.path, this.content,
+      [this.parts = const <_MockSdkFile>[]]);
 
   @override
   String get category => throw unimplemented;
@@ -327,6 +341,13 @@ class _MockSdkLibrary implements SdkLibrary {
   bool get isVmLibrary => throw unimplemented;
 
   UnimplementedError get unimplemented => new UnimplementedError();
+}
+
+class _MockSdkFile {
+  final String path;
+  final String content;
+
+  const _MockSdkFile(this.path, this.content);
 }
 
 /**

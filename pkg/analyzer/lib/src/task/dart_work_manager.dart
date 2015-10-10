@@ -265,6 +265,19 @@ class DartWorkManager implements WorkManager {
   void resultsComputed(
       AnalysisTarget target, Map<ResultDescriptor, dynamic> outputs) {
     bool isDartSource = _isDartSource(target);
+    // Route SDK outputs to the SDK WorkManager.
+    if (isDartSource && target.source.isInSystemLibrary) {
+      SourceFactory sourceFactory = context.sourceFactory;
+      InternalAnalysisContext sdkContext = sourceFactory.dartSdk.context;
+      if (sdkContext != context) {
+        for (WorkManager sdkWorkManager in sdkContext.workManagers) {
+          if (sdkWorkManager is DartWorkManager) {
+            sdkWorkManager.resultsComputed(target, outputs);
+            return;
+          }
+        }
+      }
+    }
     // Organize sources.
     bool isDartLibrarySource = false;
     if (isDartSource) {

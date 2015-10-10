@@ -31,7 +31,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:analyzer/task/model.dart' hide AnalysisTask, WorkManager;
+import 'package:analyzer/task/model.dart' as newContext;
 import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
 import 'package:typed_mock/typed_mock.dart';
@@ -5695,7 +5695,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  List<AnalysisTarget> get explicitTargets {
+  List<newContext.AnalysisTarget> get explicitTargets {
     fail("Unexpected invocation of visitCacheItems");
     return null;
   }
@@ -5766,7 +5766,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  List<AnalysisTarget> get priorityTargets {
+  List<newContext.AnalysisTarget> get priorityTargets {
     fail("Unexpected invocation of visitCacheItems");
     return null;
   }
@@ -5818,15 +5818,20 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
+  TypeResolverVisitorFactory get typeResolverVisitorFactory {
+    fail("Unexpected invocation of getTypeResolverVisitorFactory");
+    return null;
+  }
+
+  @override
   TypeSystem get typeSystem {
     fail("Unexpected invocation of getTypeSystem");
     return null;
   }
 
   @override
-  TypeResolverVisitorFactory get typeResolverVisitorFactory {
-    fail("Unexpected invocation of getTypeResolverVisitorFactory");
-    return null;
+  List<newContext.WorkManager> get workManagers {
+    fail("Unexpected invocation of workManagers");
   }
 
   @override
@@ -5907,7 +5912,8 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  Object computeResult(AnalysisTarget target, ResultDescriptor result) {
+  Object computeResult(
+      newContext.AnalysisTarget target, newContext.ResultDescriptor result) {
     fail("Unexpected invocation of computeResult");
     return null;
   }
@@ -5930,7 +5936,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  CacheEntry getCacheEntry(AnalysisTarget target) {
+  CacheEntry getCacheEntry(newContext.AnalysisTarget target) {
     fail("Unexpected invocation of visitCacheItems");
     return null;
   }
@@ -6055,7 +6061,8 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  Object getResult(AnalysisTarget target, ResultDescriptor result) {
+  Object getResult(
+      newContext.AnalysisTarget target, newContext.ResultDescriptor result) {
     fail("Unexpected invocation of getResult");
     return null;
   }
@@ -6091,7 +6098,8 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
+  Stream<ComputedResult> onResultComputed(
+      newContext.ResultDescriptor descriptor) {
     fail("Unexpected invocation of onResultComputed");
     return null;
   }
