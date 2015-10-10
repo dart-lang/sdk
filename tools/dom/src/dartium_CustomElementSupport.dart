@@ -39,7 +39,7 @@ class _VMElementUpgrader implements ElementUpgrader {
     }
 
     // Remember Dart class to tagName for any upgrading done in wrap_jso.
-    _knownCustomElements[tag] = _type;
+    _addCustomElementType(tag, _type);
 
     return createCustomUpgrader(_nativeType, jsObject);
   }

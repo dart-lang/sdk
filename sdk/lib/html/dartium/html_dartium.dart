@@ -1110,6 +1110,12 @@ Function _getSvgFunction(String key) {
 // List of known tagName to DartClass for custom elements, used for upgrade.
 var _knownCustomElements = new Map<String, Type>();
 
+void _addCustomElementType(String tagName, Type dartClass) {
+  _knownCustomElements[tagName] = dartClass;
+}
+
+Type _getCustomElementType(object) => _knownCustomElements[_getCustomElementName(object)];
+
 // Return the tag name or is attribute of the custom element or data binding.
 String _getCustomElementName(element) {
   var jsObject;
@@ -1185,8 +1191,7 @@ wrap_jso(jsObject) {
     if (wrapper != null) {
       if (wrapper.runtimeType == HtmlElement && !wrapper._isBadUpgrade) {
         // We're a Dart instance but we need to upgrade.
-        var tagName = _getCustomElementName(wrapper);
-        var customElementClass = _knownCustomElements[tagName];
+        var customElementClass = _getCustomElementType(wrapper);
         if (customElementClass != null) {
           var dartClass_instance;
           try {
@@ -1238,8 +1243,7 @@ wrap_jso(jsObject) {
       // make sure it's upgraded.
       dartClass_instance = _upgradeHtmlElement(jsObject['dart_class']);
     } else {
-      var tagName = _getCustomElementName(jsObject);
-      var customElementClass = _knownCustomElements[tagName];
+      var customElementClass = _getCustomElementType(jsObject);
       // Custom Element to upgrade.
       if (jsTypeName == 'HTMLElement' && customElementClass != null) {
         try {
@@ -1258,6 +1262,12 @@ wrap_jso(jsObject) {
         }
 
         var func = getHtmlCreateFunction(jsTypeName);
+        if (func == null) {
+          // One last ditch effort could be a JS custom element.
+          if (jsObject.toString() == "[object HTMLElement]") {
+            func = getHtmlCreateFunction("HTMLElement");
+          }
+        }
         if (func != null) {
           dartClass_instance = func();
           dartClass_instance.blink_jsObject = jsObject;
@@ -1384,11 +1394,12 @@ _upgradeHtmlElement(dartInstance) {
   // don't try it again - one failure is enough.
   if (dartInstance.runtimeType == HtmlElement && !dartInstance._isBadUpgrade) {
     // Must be exactly HtmlElement not something derived from it.
-    var jsObject = dartInstance.blink_jsObject;
-    var tagName = _getCustomElementName(dartInstance);
-    var customElementClass = _knownCustomElements[tagName];
+
+    var customElementClass = _getCustomElementType(dartInstance);
+
     // Custom Element to upgrade.
     if (customElementClass != null) {
+      var jsObject = dartInstance.blink_jsObject;
       try {
         dartInstance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
       } catch (e) {
@@ -20438,7 +20449,7 @@ class HtmlDocument extends Document {
       var elemProto = js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'Object'), "create", [js.JsNative.getProperty(baseElement, 'prototype')]);
 
       // Remember for any upgrading done in wrap_jso.
-      _knownCustomElements[tag] = customElementClass;
+      _addCustomElementType(tag, customElementClass);
 
       // TODO(terry): Hack to stop recursion re-creating custom element when the
       //              created() constructor of the custom element does e.g.,
@@ -47154,7 +47165,7 @@ class _VMElementUpgrader implements ElementUpgrader {
     }
 
     // Remember Dart class to tagName for any upgrading done in wrap_jso.
-    _knownCustomElements[tag] = _type;
+    _addCustomElementType(tag, _type);
 
     return createCustomUpgrader(_nativeType, jsObject);
   }
