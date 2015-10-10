@@ -1108,7 +1108,36 @@ Function _getSvgFunction(String key) {
  ******************************************************************************/
 
 // List of known tagName to DartClass for custom elements, used for upgrade.
-var _knownCustomeElements = new Map<String, Type>();
+var _knownCustomElements = new Map<String, Type>();
+
+// Return the tag name or is attribute of the custom element or data binding.
+String _getCustomElementName(element) {
+  var jsObject;
+  var tag = "";
+  var runtimeType = element.runtimeType;
+  if (runtimeType == HtmlElement) {
+    tag = element.localName;
+  } else if (runtimeType == TemplateElement) {
+    // Data binding with a Dart class.
+    tag = element.attributes['is'];
+  } else if (runtimeType == js.JsObjectImpl) {
+    // It's a Polymer core element (written in JS).
+    // Make sure it's an element anything else we can ignore.
+    if (element.hasProperty('nodeType') && element['nodeType'] == 1) {
+      if (js.JsNative.callMethod(element, 'hasAttribute', ['is'])) {
+        // It's data binding use the is attribute.
+        tag = js.JsNative.callMethod(element, 'getAttribute', ['is']);
+      } else {
+        // It's a custom element we want the local name.
+        tag = element['localName'];
+      }
+    }
+  } else {
+    throw new UnsupportedError('Element is incorrect type. Got ${runtimeType}, expected HtmlElement/HtmlTemplate/JsObjectImpl.');
+  }
+
+  return tag;
+}
 
 Rectangle make_dart_rectangle(r) =>
     r == null ? null : new Rectangle(
@@ -1151,11 +1180,26 @@ wrap_jso(jsObject) {
       return jsObject;
     }
 
-    // TODO(alanknight): With upgraded custom elements this causes a failure because
-    // we need a new wrapper after the type changes. We could possibly invalidate this
-    // if the constructor name didn't match?
     var wrapper = js.getDartHtmlWrapperFor(jsObject);
+    // if we have a wrapper and and it's an upgraded custom element return the Dart instance.
     if (wrapper != null) {
+      if (wrapper.runtimeType == HtmlElement && !wrapper._isBadUpgrade) {
+        // We're a Dart instance but we need to upgrade.
+        var tagName = _getCustomElementName(wrapper);
+        var customElementClass = _knownCustomElements[tagName];
+        if (customElementClass != null) {
+          var dartClass_instance;
+          try {
+            dartClass_instance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
+          } finally {
+            dartClass_instance.blink_jsObject = jsObject;
+            jsObject['dart_class'] = dartClass_instance;
+            js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
+            return dartClass_instance;
+          }
+        }
+      }
+
       return wrapper;
     }
 
@@ -1194,8 +1238,8 @@ wrap_jso(jsObject) {
       // make sure it's upgraded.
       dartClass_instance = _upgradeHtmlElement(jsObject['dart_class']);
     } else {
-      var localName = jsObject['localName'];
-      var customElementClass = _knownCustomeElements[localName];
+      var tagName = _getCustomElementName(jsObject);
+      var customElementClass = _knownCustomElements[tagName];
       // Custom Element to upgrade.
       if (jsTypeName == 'HTMLElement' && customElementClass != null) {
         try {
@@ -1206,6 +1250,13 @@ wrap_jso(jsObject) {
           js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
        }
       } else {
+        // TODO(terry): Verify with jakemacd that this is right?
+        // If we every get an auto-binding we're matching previous non-JS Interop
+        // did to return a TemplateElement.
+        if (jsTypeName == 'auto-binding') {
+          jsTypeName = "HTMLTemplateElement";
+        }
+
         var func = getHtmlCreateFunction(jsTypeName);
         if (func != null) {
           dartClass_instance = func();
@@ -1334,8 +1385,8 @@ _upgradeHtmlElement(dartInstance) {
   if (dartInstance.runtimeType == HtmlElement && !dartInstance._isBadUpgrade) {
     // Must be exactly HtmlElement not something derived from it.
     var jsObject = dartInstance.blink_jsObject;
-    var localName = dartInstance.localName;
-    var customElementClass = _knownCustomeElements[localName];
+    var tagName = _getCustomElementName(dartInstance);
+    var customElementClass = _knownCustomElements[tagName];
     // Custom Element to upgrade.
     if (customElementClass != null) {
       try {
@@ -20387,7 +20438,7 @@ class HtmlDocument extends Document {
       var elemProto = js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'Object'), "create", [js.JsNative.getProperty(baseElement, 'prototype')]);
 
       // Remember for any upgrading done in wrap_jso.
-      _knownCustomeElements[tag] = customElementClass;
+      _knownCustomElements[tag] = customElementClass;
 
       // TODO(terry): Hack to stop recursion re-creating custom element when the
       //              created() constructor of the custom element does e.g.,
@@ -47092,20 +47143,18 @@ class _VMElementUpgrader implements ElementUpgrader {
 
   Element upgrade(element) {
     var jsObject;
-    var tag;
-    if (element.runtimeType == HtmlElement) {
+    var tag = _getCustomElementName(element);
+    if (element.runtimeType == HtmlElement || element.runtimeType == TemplateElement) {
       jsObject = unwrap_jso(element);
-      tag = element.localName;
     } else if (element.runtimeType == js.JsObjectImpl) {
       // It's a Polymer core element (written in JS).
       jsObject = element;
-      tag = element['localName'];
     } else {
       throw new UnsupportedError('Element is incorrect type. Got ${element.runtimeType}, expected HtmlElement/JsObjectImpl.');
     }
 
     // Remember Dart class to tagName for any upgrading done in wrap_jso.
-    _knownCustomeElements[tag] = _type;
+    _knownCustomElements[tag] = _type;
 
     return createCustomUpgrader(_nativeType, jsObject);
   }
