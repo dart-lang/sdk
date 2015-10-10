@@ -352,8 +352,7 @@ abstract class AbstractCompiler {
       : context = context,
         options = options,
         checker = new CodeChecker(
-            new RestrictedRules(context.typeProvider,
-                options: options.strongOptions),
+            new TypeRules(context.typeProvider, options: options.strongOptions),
             reporter ?? AnalysisErrorListener.NULL_LISTENER);
 
   String get outputDir => options.codegenOptions.outputDir;

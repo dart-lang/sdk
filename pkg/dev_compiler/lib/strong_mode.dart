@@ -27,7 +27,7 @@ import 'package:args/args.dart';
 
 import 'src/analysis_context.dart' show enableDevCompilerInference;
 import 'src/checker/checker.dart' show CodeChecker;
-import 'src/checker/rules.dart' show RestrictedRules;
+import 'src/checker/rules.dart' show TypeRules;
 
 /// A type checker for Dart code that operates under stronger rules, and has
 /// the ability to do local type inference in some situations.
@@ -43,7 +43,7 @@ class StrongChecker {
     // task model.
     if (!AnalysisEngine
         .instance.useTaskModel) enableDevCompilerInference(context, options);
-    var rules = new RestrictedRules(context.typeProvider, options: options);
+    var rules = new TypeRules(context.typeProvider, options: options);
     var reporter = new _ErrorCollector(options.hints);
     var checker = new CodeChecker(rules, reporter);
     return new StrongChecker._(context, checker, reporter);

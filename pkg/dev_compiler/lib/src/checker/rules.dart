@@ -12,29 +12,20 @@ import '../../strong_mode.dart' show StrongModeOptions;
 import '../info.dart';
 import '../utils.dart' as utils;
 
-abstract class TypeRules {
+class TypeRules {
   final TypeProvider provider;
 
   /// Map of fields / properties / methods on Object.
   final Map<String, DartType> objectMembers;
 
-  TypeRules(TypeProvider provider)
+  final StrongModeOptions options;
+  DownwardsInference inferrer;
+
+  TypeRules(TypeProvider provider, {this.options})
       : provider = provider,
-        objectMembers = utils.getObjectMemberMap(provider);
-
-  bool isSubTypeOf(DartType t1, DartType t2);
-  bool isAssignable(DartType t1, DartType t2);
-
-  bool isGroundType(DartType t) => true;
-  // TODO(vsm): The default implementation is not ignoring the return type,
-  // only the restricted override is.
-  bool isFunctionSubTypeOf(FunctionType f1, FunctionType f2,
-          {bool fuzzyArrows: true, bool ignoreReturn: false}) =>
-      isSubTypeOf(f1, f2);
-
-  StaticInfo checkAssignment(Expression expr, DartType t);
-
-  DartType getStaticType(Expression expr) => expr.staticType;
+        objectMembers = utils.getObjectMemberMap(provider) {
+    inferrer = new DownwardsInference(this);
+  }
 
   /// Given a type t, if t is an interface type with a call method
   /// defined, return the function type for the call method, otherwise
@@ -61,11 +52,6 @@ abstract class TypeRules {
     if (t is FunctionType) return t;
     return null;
   }
-
-  DartType elementType(Element e);
-
-  bool isDynamicTarget(Expression expr);
-  bool isDynamicCall(Expression call);
 
   /// Gets the expected return type of the given function [body], either from
   /// a normal return/yield, or from a yield*.
@@ -118,15 +104,6 @@ abstract class TypeRules {
       // Malformed type - fallback on analyzer error.
       return null;
     }
-  }
-}
-
-class RestrictedRules extends TypeRules {
-  final StrongModeOptions options;
-  DownwardsInference inferrer;
-
-  RestrictedRules(TypeProvider provider, {this.options}) : super(provider) {
-    inferrer = new DownwardsInference(this);
   }
 
   DartType getStaticType(Expression expr) {
