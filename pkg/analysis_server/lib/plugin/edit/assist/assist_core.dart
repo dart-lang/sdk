@@ -4,7 +4,8 @@
 
 library analysis_server.plugin.edit.assist.assist_core;
 
-import 'package:analysis_server/src/protocol.dart' show SourceChange;
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    show SourceChange;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 

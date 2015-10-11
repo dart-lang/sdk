@@ -18,6 +18,7 @@ import 'package:analysis_server/src/operation/operation_analysis.dart'
         NavigationOperation,
         OccurrencesOperation,
         sendAnalysisNotificationNavigation;
+import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
 import 'package:analyzer/file_system/file_system.dart';

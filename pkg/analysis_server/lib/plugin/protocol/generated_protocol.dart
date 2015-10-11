@@ -6,9 +6,12 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-part of protocol;
+part of analysis_server.plugin.protocol.protocol;
+
 /**
  * server.getVersion params
+ *
+ * Clients are not expected to subtype this class.
  */
 class ServerGetVersionParams {
   Request toRequest(String id) {
@@ -35,6 +38,8 @@ class ServerGetVersionParams {
  * {
  *   "version": String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ServerGetVersionResult implements HasToJson {
   String _version;
@@ -63,7 +68,7 @@ class ServerGetVersionResult implements HasToJson {
     if (json is Map) {
       String version;
       if (json.containsKey("version")) {
-        version = jsonDecoder._decodeString(jsonPath + ".version", json["version"]);
+        version = jsonDecoder.decodeString(jsonPath + ".version", json["version"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "version");
       }
@@ -102,12 +107,14 @@ class ServerGetVersionResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, version.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, version.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * server.shutdown params
+ *
+ * Clients are not expected to subtype this class.
  */
 class ServerShutdownParams {
   Request toRequest(String id) {
@@ -129,6 +136,8 @@ class ServerShutdownParams {
 }
 /**
  * server.shutdown result
+ *
+ * Clients are not expected to subtype this class.
  */
 class ServerShutdownResult {
   Response toResponse(String id) {
@@ -155,6 +164,8 @@ class ServerShutdownResult {
  * {
  *   "subscriptions": List<ServerService>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ServerSetSubscriptionsParams implements HasToJson {
   List<ServerService> _subscriptions;
@@ -183,7 +194,7 @@ class ServerSetSubscriptionsParams implements HasToJson {
     if (json is Map) {
       List<ServerService> subscriptions;
       if (json.containsKey("subscriptions")) {
-        subscriptions = jsonDecoder._decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new ServerService.fromJson(jsonDecoder, jsonPath, json));
+        subscriptions = jsonDecoder.decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new ServerService.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "subscriptions");
       }
@@ -214,7 +225,7 @@ class ServerSetSubscriptionsParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is ServerSetSubscriptionsParams) {
-      return _listEqual(subscriptions, other.subscriptions, (ServerService a, ServerService b) => a == b);
+      return listEqual(subscriptions, other.subscriptions, (ServerService a, ServerService b) => a == b);
     }
     return false;
   }
@@ -222,12 +233,14 @@ class ServerSetSubscriptionsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, subscriptions.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, subscriptions.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * server.setSubscriptions result
+ *
+ * Clients are not expected to subtype this class.
  */
 class ServerSetSubscriptionsResult {
   Response toResponse(String id) {
@@ -254,6 +267,8 @@ class ServerSetSubscriptionsResult {
  * {
  *   "version": String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ServerConnectedParams implements HasToJson {
   String _version;
@@ -282,7 +297,7 @@ class ServerConnectedParams implements HasToJson {
     if (json is Map) {
       String version;
       if (json.containsKey("version")) {
-        version = jsonDecoder._decodeString(jsonPath + ".version", json["version"]);
+        version = jsonDecoder.decodeString(jsonPath + ".version", json["version"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "version");
       }
@@ -321,8 +336,8 @@ class ServerConnectedParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, version.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, version.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -334,6 +349,8 @@ class ServerConnectedParams implements HasToJson {
  *   "message": String
  *   "stackTrace": String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ServerErrorParams implements HasToJson {
   bool _isFatal;
@@ -398,19 +415,19 @@ class ServerErrorParams implements HasToJson {
     if (json is Map) {
       bool isFatal;
       if (json.containsKey("isFatal")) {
-        isFatal = jsonDecoder._decodeBool(jsonPath + ".isFatal", json["isFatal"]);
+        isFatal = jsonDecoder.decodeBool(jsonPath + ".isFatal", json["isFatal"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "isFatal");
       }
       String message;
       if (json.containsKey("message")) {
-        message = jsonDecoder._decodeString(jsonPath + ".message", json["message"]);
+        message = jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "message");
       }
       String stackTrace;
       if (json.containsKey("stackTrace")) {
-        stackTrace = jsonDecoder._decodeString(jsonPath + ".stackTrace", json["stackTrace"]);
+        stackTrace = jsonDecoder.decodeString(jsonPath + ".stackTrace", json["stackTrace"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "stackTrace");
       }
@@ -453,10 +470,10 @@ class ServerErrorParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, isFatal.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, stackTrace.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, isFatal.hashCode);
+    hash = JenkinsSmiHash.combine(hash, message.hashCode);
+    hash = JenkinsSmiHash.combine(hash, stackTrace.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -467,6 +484,8 @@ class ServerErrorParams implements HasToJson {
  *   "analysis": optional AnalysisStatus
  *   "pub": optional PubStatus
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ServerStatusParams implements HasToJson {
   AnalysisStatus _analysis;
@@ -560,9 +579,9 @@ class ServerStatusParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, analysis.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, pub.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, analysis.hashCode);
+    hash = JenkinsSmiHash.combine(hash, pub.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -572,6 +591,8 @@ class ServerStatusParams implements HasToJson {
  * {
  *   "file": FilePath
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisGetErrorsParams implements HasToJson {
   String _file;
@@ -600,7 +621,7 @@ class AnalysisGetErrorsParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
@@ -639,8 +660,8 @@ class AnalysisGetErrorsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -650,6 +671,8 @@ class AnalysisGetErrorsParams implements HasToJson {
  * {
  *   "errors": List<AnalysisError>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisGetErrorsResult implements HasToJson {
   List<AnalysisError> _errors;
@@ -678,7 +701,7 @@ class AnalysisGetErrorsResult implements HasToJson {
     if (json is Map) {
       List<AnalysisError> errors;
       if (json.containsKey("errors")) {
-        errors = jsonDecoder._decodeList(jsonPath + ".errors", json["errors"], (String jsonPath, Object json) => new AnalysisError.fromJson(jsonDecoder, jsonPath, json));
+        errors = jsonDecoder.decodeList(jsonPath + ".errors", json["errors"], (String jsonPath, Object json) => new AnalysisError.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "errors");
       }
@@ -709,7 +732,7 @@ class AnalysisGetErrorsResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisGetErrorsResult) {
-      return _listEqual(errors, other.errors, (AnalysisError a, AnalysisError b) => a == b);
+      return listEqual(errors, other.errors, (AnalysisError a, AnalysisError b) => a == b);
     }
     return false;
   }
@@ -717,8 +740,8 @@ class AnalysisGetErrorsResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, errors.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, errors.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -729,6 +752,8 @@ class AnalysisGetErrorsResult implements HasToJson {
  *   "file": FilePath
  *   "offset": int
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisGetHoverParams implements HasToJson {
   String _file;
@@ -773,13 +798,13 @@ class AnalysisGetHoverParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
@@ -820,9 +845,9 @@ class AnalysisGetHoverParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -832,6 +857,8 @@ class AnalysisGetHoverParams implements HasToJson {
  * {
  *   "hovers": List<HoverInformation>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisGetHoverResult implements HasToJson {
   List<HoverInformation> _hovers;
@@ -868,7 +895,7 @@ class AnalysisGetHoverResult implements HasToJson {
     if (json is Map) {
       List<HoverInformation> hovers;
       if (json.containsKey("hovers")) {
-        hovers = jsonDecoder._decodeList(jsonPath + ".hovers", json["hovers"], (String jsonPath, Object json) => new HoverInformation.fromJson(jsonDecoder, jsonPath, json));
+        hovers = jsonDecoder.decodeList(jsonPath + ".hovers", json["hovers"], (String jsonPath, Object json) => new HoverInformation.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "hovers");
       }
@@ -899,7 +926,7 @@ class AnalysisGetHoverResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisGetHoverResult) {
-      return _listEqual(hovers, other.hovers, (HoverInformation a, HoverInformation b) => a == b);
+      return listEqual(hovers, other.hovers, (HoverInformation a, HoverInformation b) => a == b);
     }
     return false;
   }
@@ -907,12 +934,14 @@ class AnalysisGetHoverResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, hovers.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, hovers.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * analysis.getLibraryDependencies params
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisGetLibraryDependenciesParams {
   Request toRequest(String id) {
@@ -940,6 +969,8 @@ class AnalysisGetLibraryDependenciesParams {
  *   "libraries": List<FilePath>
  *   "packageMap": Map<String, Map<String, List<FilePath>>>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisGetLibraryDependenciesResult implements HasToJson {
   List<String> _libraries;
@@ -988,13 +1019,13 @@ class AnalysisGetLibraryDependenciesResult implements HasToJson {
     if (json is Map) {
       List<String> libraries;
       if (json.containsKey("libraries")) {
-        libraries = jsonDecoder._decodeList(jsonPath + ".libraries", json["libraries"], jsonDecoder._decodeString);
+        libraries = jsonDecoder.decodeList(jsonPath + ".libraries", json["libraries"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "libraries");
       }
       Map<String, Map<String, List<String>>> packageMap;
       if (json.containsKey("packageMap")) {
-        packageMap = jsonDecoder._decodeMap(jsonPath + ".packageMap", json["packageMap"], valueDecoder: (String jsonPath, Object json) => jsonDecoder._decodeMap(jsonPath, json, valueDecoder: (String jsonPath, Object json) => jsonDecoder._decodeList(jsonPath, json, jsonDecoder._decodeString)));
+        packageMap = jsonDecoder.decodeMap(jsonPath + ".packageMap", json["packageMap"], valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeMap(jsonPath, json, valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeList(jsonPath, json, jsonDecoder.decodeString)));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "packageMap");
       }
@@ -1026,8 +1057,8 @@ class AnalysisGetLibraryDependenciesResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisGetLibraryDependenciesResult) {
-      return _listEqual(libraries, other.libraries, (String a, String b) => a == b) &&
-          _mapEqual(packageMap, other.packageMap, (Map<String, List<String>> a, Map<String, List<String>> b) => _mapEqual(a, b, (List<String> a, List<String> b) => _listEqual(a, b, (String a, String b) => a == b)));
+      return listEqual(libraries, other.libraries, (String a, String b) => a == b) &&
+          mapEqual(packageMap, other.packageMap, (Map<String, List<String>> a, Map<String, List<String>> b) => mapEqual(a, b, (List<String> a, List<String> b) => listEqual(a, b, (String a, String b) => a == b)));
     }
     return false;
   }
@@ -1035,9 +1066,9 @@ class AnalysisGetLibraryDependenciesResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, libraries.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, packageMap.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, libraries.hashCode);
+    hash = JenkinsSmiHash.combine(hash, packageMap.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -1049,6 +1080,8 @@ class AnalysisGetLibraryDependenciesResult implements HasToJson {
  *   "offset": int
  *   "length": int
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisGetNavigationParams implements HasToJson {
   String _file;
@@ -1113,19 +1146,19 @@ class AnalysisGetNavigationParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
@@ -1168,10 +1201,10 @@ class AnalysisGetNavigationParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -1183,6 +1216,8 @@ class AnalysisGetNavigationParams implements HasToJson {
  *   "targets": List<NavigationTarget>
  *   "regions": List<NavigationRegion>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisGetNavigationResult implements HasToJson {
   List<String> _files;
@@ -1247,19 +1282,19 @@ class AnalysisGetNavigationResult implements HasToJson {
     if (json is Map) {
       List<String> files;
       if (json.containsKey("files")) {
-        files = jsonDecoder._decodeList(jsonPath + ".files", json["files"], jsonDecoder._decodeString);
+        files = jsonDecoder.decodeList(jsonPath + ".files", json["files"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "files");
       }
       List<NavigationTarget> targets;
       if (json.containsKey("targets")) {
-        targets = jsonDecoder._decodeList(jsonPath + ".targets", json["targets"], (String jsonPath, Object json) => new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
+        targets = jsonDecoder.decodeList(jsonPath + ".targets", json["targets"], (String jsonPath, Object json) => new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "targets");
       }
       List<NavigationRegion> regions;
       if (json.containsKey("regions")) {
-        regions = jsonDecoder._decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
+        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "regions");
       }
@@ -1292,9 +1327,9 @@ class AnalysisGetNavigationResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisGetNavigationResult) {
-      return _listEqual(files, other.files, (String a, String b) => a == b) &&
-          _listEqual(targets, other.targets, (NavigationTarget a, NavigationTarget b) => a == b) &&
-          _listEqual(regions, other.regions, (NavigationRegion a, NavigationRegion b) => a == b);
+      return listEqual(files, other.files, (String a, String b) => a == b) &&
+          listEqual(targets, other.targets, (NavigationTarget a, NavigationTarget b) => a == b) &&
+          listEqual(regions, other.regions, (NavigationRegion a, NavigationRegion b) => a == b);
     }
     return false;
   }
@@ -1302,10 +1337,10 @@ class AnalysisGetNavigationResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, files.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, targets.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, regions.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, files.hashCode);
+    hash = JenkinsSmiHash.combine(hash, targets.hashCode);
+    hash = JenkinsSmiHash.combine(hash, regions.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -1315,6 +1350,8 @@ class AnalysisGetNavigationResult implements HasToJson {
  * {
  *   "roots": optional List<FilePath>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisReanalyzeParams implements HasToJson {
   List<String> _roots;
@@ -1342,7 +1379,7 @@ class AnalysisReanalyzeParams implements HasToJson {
     if (json is Map) {
       List<String> roots;
       if (json.containsKey("roots")) {
-        roots = jsonDecoder._decodeList(jsonPath + ".roots", json["roots"], jsonDecoder._decodeString);
+        roots = jsonDecoder.decodeList(jsonPath + ".roots", json["roots"], jsonDecoder.decodeString);
       }
       return new AnalysisReanalyzeParams(roots: roots);
     } else {
@@ -1373,7 +1410,7 @@ class AnalysisReanalyzeParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisReanalyzeParams) {
-      return _listEqual(roots, other.roots, (String a, String b) => a == b);
+      return listEqual(roots, other.roots, (String a, String b) => a == b);
     }
     return false;
   }
@@ -1381,12 +1418,14 @@ class AnalysisReanalyzeParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, roots.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, roots.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * analysis.reanalyze result
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisReanalyzeResult {
   Response toResponse(String id) {
@@ -1415,6 +1454,8 @@ class AnalysisReanalyzeResult {
  *   "excluded": List<FilePath>
  *   "packageRoots": optional Map<FilePath, FilePath>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisSetAnalysisRootsParams implements HasToJson {
   List<String> _included;
@@ -1498,19 +1539,19 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
     if (json is Map) {
       List<String> included;
       if (json.containsKey("included")) {
-        included = jsonDecoder._decodeList(jsonPath + ".included", json["included"], jsonDecoder._decodeString);
+        included = jsonDecoder.decodeList(jsonPath + ".included", json["included"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "included");
       }
       List<String> excluded;
       if (json.containsKey("excluded")) {
-        excluded = jsonDecoder._decodeList(jsonPath + ".excluded", json["excluded"], jsonDecoder._decodeString);
+        excluded = jsonDecoder.decodeList(jsonPath + ".excluded", json["excluded"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "excluded");
       }
       Map<String, String> packageRoots;
       if (json.containsKey("packageRoots")) {
-        packageRoots = jsonDecoder._decodeMap(jsonPath + ".packageRoots", json["packageRoots"], valueDecoder: jsonDecoder._decodeString);
+        packageRoots = jsonDecoder.decodeMap(jsonPath + ".packageRoots", json["packageRoots"], valueDecoder: jsonDecoder.decodeString);
       }
       return new AnalysisSetAnalysisRootsParams(included, excluded, packageRoots: packageRoots);
     } else {
@@ -1543,9 +1584,9 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisSetAnalysisRootsParams) {
-      return _listEqual(included, other.included, (String a, String b) => a == b) &&
-          _listEqual(excluded, other.excluded, (String a, String b) => a == b) &&
-          _mapEqual(packageRoots, other.packageRoots, (String a, String b) => a == b);
+      return listEqual(included, other.included, (String a, String b) => a == b) &&
+          listEqual(excluded, other.excluded, (String a, String b) => a == b) &&
+          mapEqual(packageRoots, other.packageRoots, (String a, String b) => a == b);
     }
     return false;
   }
@@ -1553,14 +1594,16 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, included.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, excluded.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, packageRoots.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, included.hashCode);
+    hash = JenkinsSmiHash.combine(hash, excluded.hashCode);
+    hash = JenkinsSmiHash.combine(hash, packageRoots.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * analysis.setAnalysisRoots result
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisSetAnalysisRootsResult {
   Response toResponse(String id) {
@@ -1587,6 +1630,8 @@ class AnalysisSetAnalysisRootsResult {
  * {
  *   "subscriptions": List<GeneralAnalysisService>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisSetGeneralSubscriptionsParams implements HasToJson {
   List<GeneralAnalysisService> _subscriptions;
@@ -1615,7 +1660,7 @@ class AnalysisSetGeneralSubscriptionsParams implements HasToJson {
     if (json is Map) {
       List<GeneralAnalysisService> subscriptions;
       if (json.containsKey("subscriptions")) {
-        subscriptions = jsonDecoder._decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new GeneralAnalysisService.fromJson(jsonDecoder, jsonPath, json));
+        subscriptions = jsonDecoder.decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new GeneralAnalysisService.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "subscriptions");
       }
@@ -1646,7 +1691,7 @@ class AnalysisSetGeneralSubscriptionsParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisSetGeneralSubscriptionsParams) {
-      return _listEqual(subscriptions, other.subscriptions, (GeneralAnalysisService a, GeneralAnalysisService b) => a == b);
+      return listEqual(subscriptions, other.subscriptions, (GeneralAnalysisService a, GeneralAnalysisService b) => a == b);
     }
     return false;
   }
@@ -1654,12 +1699,14 @@ class AnalysisSetGeneralSubscriptionsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, subscriptions.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, subscriptions.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * analysis.setGeneralSubscriptions result
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisSetGeneralSubscriptionsResult {
   Response toResponse(String id) {
@@ -1686,6 +1733,8 @@ class AnalysisSetGeneralSubscriptionsResult {
  * {
  *   "files": List<FilePath>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisSetPriorityFilesParams implements HasToJson {
   List<String> _files;
@@ -1714,7 +1763,7 @@ class AnalysisSetPriorityFilesParams implements HasToJson {
     if (json is Map) {
       List<String> files;
       if (json.containsKey("files")) {
-        files = jsonDecoder._decodeList(jsonPath + ".files", json["files"], jsonDecoder._decodeString);
+        files = jsonDecoder.decodeList(jsonPath + ".files", json["files"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "files");
       }
@@ -1745,7 +1794,7 @@ class AnalysisSetPriorityFilesParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisSetPriorityFilesParams) {
-      return _listEqual(files, other.files, (String a, String b) => a == b);
+      return listEqual(files, other.files, (String a, String b) => a == b);
     }
     return false;
   }
@@ -1753,12 +1802,14 @@ class AnalysisSetPriorityFilesParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, files.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, files.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * analysis.setPriorityFiles result
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisSetPriorityFilesResult {
   Response toResponse(String id) {
@@ -1785,6 +1836,8 @@ class AnalysisSetPriorityFilesResult {
  * {
  *   "subscriptions": Map<AnalysisService, List<FilePath>>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisSetSubscriptionsParams implements HasToJson {
   Map<AnalysisService, List<String>> _subscriptions;
@@ -1815,7 +1868,7 @@ class AnalysisSetSubscriptionsParams implements HasToJson {
     if (json is Map) {
       Map<AnalysisService, List<String>> subscriptions;
       if (json.containsKey("subscriptions")) {
-        subscriptions = jsonDecoder._decodeMap(jsonPath + ".subscriptions", json["subscriptions"], keyDecoder: (String jsonPath, Object json) => new AnalysisService.fromJson(jsonDecoder, jsonPath, json), valueDecoder: (String jsonPath, Object json) => jsonDecoder._decodeList(jsonPath, json, jsonDecoder._decodeString));
+        subscriptions = jsonDecoder.decodeMap(jsonPath + ".subscriptions", json["subscriptions"], keyDecoder: (String jsonPath, Object json) => new AnalysisService.fromJson(jsonDecoder, jsonPath, json), valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeList(jsonPath, json, jsonDecoder.decodeString));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "subscriptions");
       }
@@ -1846,7 +1899,7 @@ class AnalysisSetSubscriptionsParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisSetSubscriptionsParams) {
-      return _mapEqual(subscriptions, other.subscriptions, (List<String> a, List<String> b) => _listEqual(a, b, (String a, String b) => a == b));
+      return mapEqual(subscriptions, other.subscriptions, (List<String> a, List<String> b) => listEqual(a, b, (String a, String b) => a == b));
     }
     return false;
   }
@@ -1854,12 +1907,14 @@ class AnalysisSetSubscriptionsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, subscriptions.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, subscriptions.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * analysis.setSubscriptions result
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisSetSubscriptionsResult {
   Response toResponse(String id) {
@@ -1886,6 +1941,8 @@ class AnalysisSetSubscriptionsResult {
  * {
  *   "files": Map<FilePath, AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisUpdateContentParams implements HasToJson {
   Map<String, dynamic> _files;
@@ -1916,7 +1973,7 @@ class AnalysisUpdateContentParams implements HasToJson {
     if (json is Map) {
       Map<String, dynamic> files;
       if (json.containsKey("files")) {
-        files = jsonDecoder._decodeMap(jsonPath + ".files", json["files"], valueDecoder: (String jsonPath, Object json) => jsonDecoder._decodeUnion(jsonPath, json, "type", {"add": (String jsonPath, Object json) => new AddContentOverlay.fromJson(jsonDecoder, jsonPath, json), "change": (String jsonPath, Object json) => new ChangeContentOverlay.fromJson(jsonDecoder, jsonPath, json), "remove": (String jsonPath, Object json) => new RemoveContentOverlay.fromJson(jsonDecoder, jsonPath, json)}));
+        files = jsonDecoder.decodeMap(jsonPath + ".files", json["files"], valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeUnion(jsonPath, json, "type", {"add": (String jsonPath, Object json) => new AddContentOverlay.fromJson(jsonDecoder, jsonPath, json), "change": (String jsonPath, Object json) => new ChangeContentOverlay.fromJson(jsonDecoder, jsonPath, json), "remove": (String jsonPath, Object json) => new RemoveContentOverlay.fromJson(jsonDecoder, jsonPath, json)}));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "files");
       }
@@ -1947,7 +2004,7 @@ class AnalysisUpdateContentParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisUpdateContentParams) {
-      return _mapEqual(files, other.files, (dynamic a, dynamic b) => a == b);
+      return mapEqual(files, other.files, (dynamic a, dynamic b) => a == b);
     }
     return false;
   }
@@ -1955,8 +2012,8 @@ class AnalysisUpdateContentParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, files.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, files.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -1965,6 +2022,8 @@ class AnalysisUpdateContentParams implements HasToJson {
  *
  * {
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisUpdateContentResult implements HasToJson {
   AnalysisUpdateContentResult();
@@ -2008,7 +2067,7 @@ class AnalysisUpdateContentResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    return _JenkinsSmiHash.finish(hash);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -2018,6 +2077,8 @@ class AnalysisUpdateContentResult implements HasToJson {
  * {
  *   "options": AnalysisOptions
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisUpdateOptionsParams implements HasToJson {
   AnalysisOptions _options;
@@ -2085,12 +2146,14 @@ class AnalysisUpdateOptionsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, options.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, options.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * analysis.updateOptions result
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisUpdateOptionsResult {
   Response toResponse(String id) {
@@ -2117,6 +2180,8 @@ class AnalysisUpdateOptionsResult {
  * {
  *   "directories": List<FilePath>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisAnalyzedFilesParams implements HasToJson {
   List<String> _directories;
@@ -2145,7 +2210,7 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
     if (json is Map) {
       List<String> directories;
       if (json.containsKey("directories")) {
-        directories = jsonDecoder._decodeList(jsonPath + ".directories", json["directories"], jsonDecoder._decodeString);
+        directories = jsonDecoder.decodeList(jsonPath + ".directories", json["directories"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "directories");
       }
@@ -2176,7 +2241,7 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisAnalyzedFilesParams) {
-      return _listEqual(directories, other.directories, (String a, String b) => a == b);
+      return listEqual(directories, other.directories, (String a, String b) => a == b);
     }
     return false;
   }
@@ -2184,8 +2249,8 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, directories.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, directories.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -2196,6 +2261,8 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
  *   "file": FilePath
  *   "errors": List<AnalysisError>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisErrorsParams implements HasToJson {
   String _file;
@@ -2240,13 +2307,13 @@ class AnalysisErrorsParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       List<AnalysisError> errors;
       if (json.containsKey("errors")) {
-        errors = jsonDecoder._decodeList(jsonPath + ".errors", json["errors"], (String jsonPath, Object json) => new AnalysisError.fromJson(jsonDecoder, jsonPath, json));
+        errors = jsonDecoder.decodeList(jsonPath + ".errors", json["errors"], (String jsonPath, Object json) => new AnalysisError.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "errors");
       }
@@ -2279,7 +2346,7 @@ class AnalysisErrorsParams implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisErrorsParams) {
       return file == other.file &&
-          _listEqual(errors, other.errors, (AnalysisError a, AnalysisError b) => a == b);
+          listEqual(errors, other.errors, (AnalysisError a, AnalysisError b) => a == b);
     }
     return false;
   }
@@ -2287,9 +2354,9 @@ class AnalysisErrorsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, errors.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, errors.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -2299,6 +2366,8 @@ class AnalysisErrorsParams implements HasToJson {
  * {
  *   "files": List<FilePath>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisFlushResultsParams implements HasToJson {
   List<String> _files;
@@ -2327,7 +2396,7 @@ class AnalysisFlushResultsParams implements HasToJson {
     if (json is Map) {
       List<String> files;
       if (json.containsKey("files")) {
-        files = jsonDecoder._decodeList(jsonPath + ".files", json["files"], jsonDecoder._decodeString);
+        files = jsonDecoder.decodeList(jsonPath + ".files", json["files"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "files");
       }
@@ -2358,7 +2427,7 @@ class AnalysisFlushResultsParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisFlushResultsParams) {
-      return _listEqual(files, other.files, (String a, String b) => a == b);
+      return listEqual(files, other.files, (String a, String b) => a == b);
     }
     return false;
   }
@@ -2366,8 +2435,8 @@ class AnalysisFlushResultsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, files.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, files.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -2378,6 +2447,8 @@ class AnalysisFlushResultsParams implements HasToJson {
  *   "file": FilePath
  *   "regions": List<FoldingRegion>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisFoldingParams implements HasToJson {
   String _file;
@@ -2422,13 +2493,13 @@ class AnalysisFoldingParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       List<FoldingRegion> regions;
       if (json.containsKey("regions")) {
-        regions = jsonDecoder._decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new FoldingRegion.fromJson(jsonDecoder, jsonPath, json));
+        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new FoldingRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "regions");
       }
@@ -2461,7 +2532,7 @@ class AnalysisFoldingParams implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisFoldingParams) {
       return file == other.file &&
-          _listEqual(regions, other.regions, (FoldingRegion a, FoldingRegion b) => a == b);
+          listEqual(regions, other.regions, (FoldingRegion a, FoldingRegion b) => a == b);
     }
     return false;
   }
@@ -2469,9 +2540,9 @@ class AnalysisFoldingParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, regions.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, regions.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -2482,6 +2553,8 @@ class AnalysisFoldingParams implements HasToJson {
  *   "file": FilePath
  *   "regions": List<HighlightRegion>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisHighlightsParams implements HasToJson {
   String _file;
@@ -2534,13 +2607,13 @@ class AnalysisHighlightsParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       List<HighlightRegion> regions;
       if (json.containsKey("regions")) {
-        regions = jsonDecoder._decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new HighlightRegion.fromJson(jsonDecoder, jsonPath, json));
+        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new HighlightRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "regions");
       }
@@ -2573,7 +2646,7 @@ class AnalysisHighlightsParams implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisHighlightsParams) {
       return file == other.file &&
-          _listEqual(regions, other.regions, (HighlightRegion a, HighlightRegion b) => a == b);
+          listEqual(regions, other.regions, (HighlightRegion a, HighlightRegion b) => a == b);
     }
     return false;
   }
@@ -2581,9 +2654,9 @@ class AnalysisHighlightsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, regions.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, regions.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -2595,6 +2668,8 @@ class AnalysisHighlightsParams implements HasToJson {
  *   "classes": List<ImplementedClass>
  *   "members": List<ImplementedMember>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisImplementedParams implements HasToJson {
   String _file;
@@ -2655,19 +2730,19 @@ class AnalysisImplementedParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       List<ImplementedClass> classes;
       if (json.containsKey("classes")) {
-        classes = jsonDecoder._decodeList(jsonPath + ".classes", json["classes"], (String jsonPath, Object json) => new ImplementedClass.fromJson(jsonDecoder, jsonPath, json));
+        classes = jsonDecoder.decodeList(jsonPath + ".classes", json["classes"], (String jsonPath, Object json) => new ImplementedClass.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "classes");
       }
       List<ImplementedMember> members;
       if (json.containsKey("members")) {
-        members = jsonDecoder._decodeList(jsonPath + ".members", json["members"], (String jsonPath, Object json) => new ImplementedMember.fromJson(jsonDecoder, jsonPath, json));
+        members = jsonDecoder.decodeList(jsonPath + ".members", json["members"], (String jsonPath, Object json) => new ImplementedMember.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "members");
       }
@@ -2701,8 +2776,8 @@ class AnalysisImplementedParams implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisImplementedParams) {
       return file == other.file &&
-          _listEqual(classes, other.classes, (ImplementedClass a, ImplementedClass b) => a == b) &&
-          _listEqual(members, other.members, (ImplementedMember a, ImplementedMember b) => a == b);
+          listEqual(classes, other.classes, (ImplementedClass a, ImplementedClass b) => a == b) &&
+          listEqual(members, other.members, (ImplementedMember a, ImplementedMember b) => a == b);
     }
     return false;
   }
@@ -2710,10 +2785,10 @@ class AnalysisImplementedParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, classes.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, members.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, classes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, members.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -2726,6 +2801,8 @@ class AnalysisImplementedParams implements HasToJson {
  *   "length": int
  *   "delta": int
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisInvalidateParams implements HasToJson {
   String _file;
@@ -2806,25 +2883,25 @@ class AnalysisInvalidateParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       int delta;
       if (json.containsKey("delta")) {
-        delta = jsonDecoder._decodeInt(jsonPath + ".delta", json["delta"]);
+        delta = jsonDecoder.decodeInt(jsonPath + ".delta", json["delta"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "delta");
       }
@@ -2869,11 +2946,11 @@ class AnalysisInvalidateParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, delta.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, delta.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -2886,6 +2963,8 @@ class AnalysisInvalidateParams implements HasToJson {
  *   "targets": List<NavigationTarget>
  *   "files": List<FilePath>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisNavigationParams implements HasToJson {
   String _file;
@@ -2978,25 +3057,25 @@ class AnalysisNavigationParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       List<NavigationRegion> regions;
       if (json.containsKey("regions")) {
-        regions = jsonDecoder._decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
+        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "regions");
       }
       List<NavigationTarget> targets;
       if (json.containsKey("targets")) {
-        targets = jsonDecoder._decodeList(jsonPath + ".targets", json["targets"], (String jsonPath, Object json) => new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
+        targets = jsonDecoder.decodeList(jsonPath + ".targets", json["targets"], (String jsonPath, Object json) => new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "targets");
       }
       List<String> files;
       if (json.containsKey("files")) {
-        files = jsonDecoder._decodeList(jsonPath + ".files", json["files"], jsonDecoder._decodeString);
+        files = jsonDecoder.decodeList(jsonPath + ".files", json["files"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "files");
       }
@@ -3031,9 +3110,9 @@ class AnalysisNavigationParams implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisNavigationParams) {
       return file == other.file &&
-          _listEqual(regions, other.regions, (NavigationRegion a, NavigationRegion b) => a == b) &&
-          _listEqual(targets, other.targets, (NavigationTarget a, NavigationTarget b) => a == b) &&
-          _listEqual(files, other.files, (String a, String b) => a == b);
+          listEqual(regions, other.regions, (NavigationRegion a, NavigationRegion b) => a == b) &&
+          listEqual(targets, other.targets, (NavigationTarget a, NavigationTarget b) => a == b) &&
+          listEqual(files, other.files, (String a, String b) => a == b);
     }
     return false;
   }
@@ -3041,11 +3120,11 @@ class AnalysisNavigationParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, regions.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, targets.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, files.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, regions.hashCode);
+    hash = JenkinsSmiHash.combine(hash, targets.hashCode);
+    hash = JenkinsSmiHash.combine(hash, files.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -3056,6 +3135,8 @@ class AnalysisNavigationParams implements HasToJson {
  *   "file": FilePath
  *   "occurrences": List<Occurrences>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisOccurrencesParams implements HasToJson {
   String _file;
@@ -3100,13 +3181,13 @@ class AnalysisOccurrencesParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       List<Occurrences> occurrences;
       if (json.containsKey("occurrences")) {
-        occurrences = jsonDecoder._decodeList(jsonPath + ".occurrences", json["occurrences"], (String jsonPath, Object json) => new Occurrences.fromJson(jsonDecoder, jsonPath, json));
+        occurrences = jsonDecoder.decodeList(jsonPath + ".occurrences", json["occurrences"], (String jsonPath, Object json) => new Occurrences.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "occurrences");
       }
@@ -3139,7 +3220,7 @@ class AnalysisOccurrencesParams implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisOccurrencesParams) {
       return file == other.file &&
-          _listEqual(occurrences, other.occurrences, (Occurrences a, Occurrences b) => a == b);
+          listEqual(occurrences, other.occurrences, (Occurrences a, Occurrences b) => a == b);
     }
     return false;
   }
@@ -3147,9 +3228,9 @@ class AnalysisOccurrencesParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, occurrences.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, occurrences.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -3162,6 +3243,8 @@ class AnalysisOccurrencesParams implements HasToJson {
  *   "libraryName": optional String
  *   "outline": Outline
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisOutlineParams implements HasToJson {
   String _file;
@@ -3245,7 +3328,7 @@ class AnalysisOutlineParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
@@ -3257,7 +3340,7 @@ class AnalysisOutlineParams implements HasToJson {
       }
       String libraryName;
       if (json.containsKey("libraryName")) {
-        libraryName = jsonDecoder._decodeString(jsonPath + ".libraryName", json["libraryName"]);
+        libraryName = jsonDecoder.decodeString(jsonPath + ".libraryName", json["libraryName"]);
       }
       Outline outline;
       if (json.containsKey("outline")) {
@@ -3308,11 +3391,11 @@ class AnalysisOutlineParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, libraryName.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, outline.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, libraryName.hashCode);
+    hash = JenkinsSmiHash.combine(hash, outline.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -3323,6 +3406,8 @@ class AnalysisOutlineParams implements HasToJson {
  *   "file": FilePath
  *   "overrides": List<Override>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisOverridesParams implements HasToJson {
   String _file;
@@ -3367,13 +3452,13 @@ class AnalysisOverridesParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       List<Override> overrides;
       if (json.containsKey("overrides")) {
-        overrides = jsonDecoder._decodeList(jsonPath + ".overrides", json["overrides"], (String jsonPath, Object json) => new Override.fromJson(jsonDecoder, jsonPath, json));
+        overrides = jsonDecoder.decodeList(jsonPath + ".overrides", json["overrides"], (String jsonPath, Object json) => new Override.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "overrides");
       }
@@ -3406,7 +3491,7 @@ class AnalysisOverridesParams implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisOverridesParams) {
       return file == other.file &&
-          _listEqual(overrides, other.overrides, (Override a, Override b) => a == b);
+          listEqual(overrides, other.overrides, (Override a, Override b) => a == b);
     }
     return false;
   }
@@ -3414,9 +3499,9 @@ class AnalysisOverridesParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, overrides.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, overrides.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -3427,6 +3512,8 @@ class AnalysisOverridesParams implements HasToJson {
  *   "file": FilePath
  *   "offset": int
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class CompletionGetSuggestionsParams implements HasToJson {
   String _file;
@@ -3471,13 +3558,13 @@ class CompletionGetSuggestionsParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
@@ -3518,9 +3605,9 @@ class CompletionGetSuggestionsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -3530,6 +3617,8 @@ class CompletionGetSuggestionsParams implements HasToJson {
  * {
  *   "id": CompletionId
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class CompletionGetSuggestionsResult implements HasToJson {
   String _id;
@@ -3558,7 +3647,7 @@ class CompletionGetSuggestionsResult implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
@@ -3597,8 +3686,8 @@ class CompletionGetSuggestionsResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -3612,6 +3701,8 @@ class CompletionGetSuggestionsResult implements HasToJson {
  *   "results": List<CompletionSuggestion>
  *   "isLast": bool
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class CompletionResultsParams implements HasToJson {
   String _id;
@@ -3724,31 +3815,31 @@ class CompletionResultsParams implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
       int replacementOffset;
       if (json.containsKey("replacementOffset")) {
-        replacementOffset = jsonDecoder._decodeInt(jsonPath + ".replacementOffset", json["replacementOffset"]);
+        replacementOffset = jsonDecoder.decodeInt(jsonPath + ".replacementOffset", json["replacementOffset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "replacementOffset");
       }
       int replacementLength;
       if (json.containsKey("replacementLength")) {
-        replacementLength = jsonDecoder._decodeInt(jsonPath + ".replacementLength", json["replacementLength"]);
+        replacementLength = jsonDecoder.decodeInt(jsonPath + ".replacementLength", json["replacementLength"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "replacementLength");
       }
       List<CompletionSuggestion> results;
       if (json.containsKey("results")) {
-        results = jsonDecoder._decodeList(jsonPath + ".results", json["results"], (String jsonPath, Object json) => new CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
+        results = jsonDecoder.decodeList(jsonPath + ".results", json["results"], (String jsonPath, Object json) => new CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "results");
       }
       bool isLast;
       if (json.containsKey("isLast")) {
-        isLast = jsonDecoder._decodeBool(jsonPath + ".isLast", json["isLast"]);
+        isLast = jsonDecoder.decodeBool(jsonPath + ".isLast", json["isLast"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "isLast");
       }
@@ -3786,7 +3877,7 @@ class CompletionResultsParams implements HasToJson {
       return id == other.id &&
           replacementOffset == other.replacementOffset &&
           replacementLength == other.replacementLength &&
-          _listEqual(results, other.results, (CompletionSuggestion a, CompletionSuggestion b) => a == b) &&
+          listEqual(results, other.results, (CompletionSuggestion a, CompletionSuggestion b) => a == b) &&
           isLast == other.isLast;
     }
     return false;
@@ -3795,12 +3886,12 @@ class CompletionResultsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, replacementOffset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, replacementLength.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, results.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, isLast.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    hash = JenkinsSmiHash.combine(hash, replacementOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, replacementLength.hashCode);
+    hash = JenkinsSmiHash.combine(hash, results.hashCode);
+    hash = JenkinsSmiHash.combine(hash, isLast.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -3812,6 +3903,8 @@ class CompletionResultsParams implements HasToJson {
  *   "offset": int
  *   "includePotential": bool
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class SearchFindElementReferencesParams implements HasToJson {
   String _file;
@@ -3876,19 +3969,19 @@ class SearchFindElementReferencesParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       bool includePotential;
       if (json.containsKey("includePotential")) {
-        includePotential = jsonDecoder._decodeBool(jsonPath + ".includePotential", json["includePotential"]);
+        includePotential = jsonDecoder.decodeBool(jsonPath + ".includePotential", json["includePotential"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "includePotential");
       }
@@ -3931,10 +4024,10 @@ class SearchFindElementReferencesParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, includePotential.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, includePotential.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -3945,6 +4038,8 @@ class SearchFindElementReferencesParams implements HasToJson {
  *   "id": optional SearchId
  *   "element": optional Element
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class SearchFindElementReferencesResult implements HasToJson {
   String _id;
@@ -3999,7 +4094,7 @@ class SearchFindElementReferencesResult implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       }
       Element element;
       if (json.containsKey("element")) {
@@ -4046,9 +4141,9 @@ class SearchFindElementReferencesResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, element.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    hash = JenkinsSmiHash.combine(hash, element.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4058,6 +4153,8 @@ class SearchFindElementReferencesResult implements HasToJson {
  * {
  *   "name": String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class SearchFindMemberDeclarationsParams implements HasToJson {
   String _name;
@@ -4086,7 +4183,7 @@ class SearchFindMemberDeclarationsParams implements HasToJson {
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
-        name = jsonDecoder._decodeString(jsonPath + ".name", json["name"]);
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "name");
       }
@@ -4125,8 +4222,8 @@ class SearchFindMemberDeclarationsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, name.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4136,6 +4233,8 @@ class SearchFindMemberDeclarationsParams implements HasToJson {
  * {
  *   "id": SearchId
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class SearchFindMemberDeclarationsResult implements HasToJson {
   String _id;
@@ -4164,7 +4263,7 @@ class SearchFindMemberDeclarationsResult implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
@@ -4203,8 +4302,8 @@ class SearchFindMemberDeclarationsResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4214,6 +4313,8 @@ class SearchFindMemberDeclarationsResult implements HasToJson {
  * {
  *   "name": String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class SearchFindMemberReferencesParams implements HasToJson {
   String _name;
@@ -4242,7 +4343,7 @@ class SearchFindMemberReferencesParams implements HasToJson {
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
-        name = jsonDecoder._decodeString(jsonPath + ".name", json["name"]);
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "name");
       }
@@ -4281,8 +4382,8 @@ class SearchFindMemberReferencesParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, name.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4292,6 +4393,8 @@ class SearchFindMemberReferencesParams implements HasToJson {
  * {
  *   "id": SearchId
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class SearchFindMemberReferencesResult implements HasToJson {
   String _id;
@@ -4320,7 +4423,7 @@ class SearchFindMemberReferencesResult implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
@@ -4359,8 +4462,8 @@ class SearchFindMemberReferencesResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4370,6 +4473,8 @@ class SearchFindMemberReferencesResult implements HasToJson {
  * {
  *   "pattern": String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class SearchFindTopLevelDeclarationsParams implements HasToJson {
   String _pattern;
@@ -4400,7 +4505,7 @@ class SearchFindTopLevelDeclarationsParams implements HasToJson {
     if (json is Map) {
       String pattern;
       if (json.containsKey("pattern")) {
-        pattern = jsonDecoder._decodeString(jsonPath + ".pattern", json["pattern"]);
+        pattern = jsonDecoder.decodeString(jsonPath + ".pattern", json["pattern"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "pattern");
       }
@@ -4439,8 +4544,8 @@ class SearchFindTopLevelDeclarationsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, pattern.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, pattern.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4450,6 +4555,8 @@ class SearchFindTopLevelDeclarationsParams implements HasToJson {
  * {
  *   "id": SearchId
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class SearchFindTopLevelDeclarationsResult implements HasToJson {
   String _id;
@@ -4478,7 +4585,7 @@ class SearchFindTopLevelDeclarationsResult implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
@@ -4517,8 +4624,8 @@ class SearchFindTopLevelDeclarationsResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4530,6 +4637,8 @@ class SearchFindTopLevelDeclarationsResult implements HasToJson {
  *   "offset": int
  *   "superOnly": optional bool
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class SearchGetTypeHierarchyParams implements HasToJson {
   String _file;
@@ -4593,19 +4702,19 @@ class SearchGetTypeHierarchyParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       bool superOnly;
       if (json.containsKey("superOnly")) {
-        superOnly = jsonDecoder._decodeBool(jsonPath + ".superOnly", json["superOnly"]);
+        superOnly = jsonDecoder.decodeBool(jsonPath + ".superOnly", json["superOnly"]);
       }
       return new SearchGetTypeHierarchyParams(file, offset, superOnly: superOnly);
     } else {
@@ -4648,10 +4757,10 @@ class SearchGetTypeHierarchyParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, superOnly.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, superOnly.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4661,6 +4770,8 @@ class SearchGetTypeHierarchyParams implements HasToJson {
  * {
  *   "hierarchyItems": optional List<TypeHierarchyItem>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class SearchGetTypeHierarchyResult implements HasToJson {
   List<TypeHierarchyItem> _hierarchyItems;
@@ -4704,7 +4815,7 @@ class SearchGetTypeHierarchyResult implements HasToJson {
     if (json is Map) {
       List<TypeHierarchyItem> hierarchyItems;
       if (json.containsKey("hierarchyItems")) {
-        hierarchyItems = jsonDecoder._decodeList(jsonPath + ".hierarchyItems", json["hierarchyItems"], (String jsonPath, Object json) => new TypeHierarchyItem.fromJson(jsonDecoder, jsonPath, json));
+        hierarchyItems = jsonDecoder.decodeList(jsonPath + ".hierarchyItems", json["hierarchyItems"], (String jsonPath, Object json) => new TypeHierarchyItem.fromJson(jsonDecoder, jsonPath, json));
       }
       return new SearchGetTypeHierarchyResult(hierarchyItems: hierarchyItems);
     } else {
@@ -4735,7 +4846,7 @@ class SearchGetTypeHierarchyResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is SearchGetTypeHierarchyResult) {
-      return _listEqual(hierarchyItems, other.hierarchyItems, (TypeHierarchyItem a, TypeHierarchyItem b) => a == b);
+      return listEqual(hierarchyItems, other.hierarchyItems, (TypeHierarchyItem a, TypeHierarchyItem b) => a == b);
     }
     return false;
   }
@@ -4743,8 +4854,8 @@ class SearchGetTypeHierarchyResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, hierarchyItems.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, hierarchyItems.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4756,6 +4867,8 @@ class SearchGetTypeHierarchyResult implements HasToJson {
  *   "results": List<SearchResult>
  *   "isLast": bool
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class SearchResultsParams implements HasToJson {
   String _id;
@@ -4818,19 +4931,19 @@ class SearchResultsParams implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
       List<SearchResult> results;
       if (json.containsKey("results")) {
-        results = jsonDecoder._decodeList(jsonPath + ".results", json["results"], (String jsonPath, Object json) => new SearchResult.fromJson(jsonDecoder, jsonPath, json));
+        results = jsonDecoder.decodeList(jsonPath + ".results", json["results"], (String jsonPath, Object json) => new SearchResult.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "results");
       }
       bool isLast;
       if (json.containsKey("isLast")) {
-        isLast = jsonDecoder._decodeBool(jsonPath + ".isLast", json["isLast"]);
+        isLast = jsonDecoder.decodeBool(jsonPath + ".isLast", json["isLast"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "isLast");
       }
@@ -4864,7 +4977,7 @@ class SearchResultsParams implements HasToJson {
   bool operator==(other) {
     if (other is SearchResultsParams) {
       return id == other.id &&
-          _listEqual(results, other.results, (SearchResult a, SearchResult b) => a == b) &&
+          listEqual(results, other.results, (SearchResult a, SearchResult b) => a == b) &&
           isLast == other.isLast;
     }
     return false;
@@ -4873,10 +4986,10 @@ class SearchResultsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, results.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, isLast.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    hash = JenkinsSmiHash.combine(hash, results.hashCode);
+    hash = JenkinsSmiHash.combine(hash, isLast.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4889,6 +5002,8 @@ class SearchResultsParams implements HasToJson {
  *   "selectionLength": int
  *   "lineLength": optional int
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class EditFormatParams implements HasToJson {
   String _file;
@@ -4964,25 +5079,25 @@ class EditFormatParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int selectionOffset;
       if (json.containsKey("selectionOffset")) {
-        selectionOffset = jsonDecoder._decodeInt(jsonPath + ".selectionOffset", json["selectionOffset"]);
+        selectionOffset = jsonDecoder.decodeInt(jsonPath + ".selectionOffset", json["selectionOffset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "selectionOffset");
       }
       int selectionLength;
       if (json.containsKey("selectionLength")) {
-        selectionLength = jsonDecoder._decodeInt(jsonPath + ".selectionLength", json["selectionLength"]);
+        selectionLength = jsonDecoder.decodeInt(jsonPath + ".selectionLength", json["selectionLength"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "selectionLength");
       }
       int lineLength;
       if (json.containsKey("lineLength")) {
-        lineLength = jsonDecoder._decodeInt(jsonPath + ".lineLength", json["lineLength"]);
+        lineLength = jsonDecoder.decodeInt(jsonPath + ".lineLength", json["lineLength"]);
       }
       return new EditFormatParams(file, selectionOffset, selectionLength, lineLength: lineLength);
     } else {
@@ -5027,11 +5142,11 @@ class EditFormatParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, selectionLength.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, lineLength.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, selectionLength.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lineLength.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -5043,6 +5158,8 @@ class EditFormatParams implements HasToJson {
  *   "selectionOffset": int
  *   "selectionLength": int
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class EditFormatResult implements HasToJson {
   List<SourceEdit> _edits;
@@ -5105,19 +5222,19 @@ class EditFormatResult implements HasToJson {
     if (json is Map) {
       List<SourceEdit> edits;
       if (json.containsKey("edits")) {
-        edits = jsonDecoder._decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "edits");
       }
       int selectionOffset;
       if (json.containsKey("selectionOffset")) {
-        selectionOffset = jsonDecoder._decodeInt(jsonPath + ".selectionOffset", json["selectionOffset"]);
+        selectionOffset = jsonDecoder.decodeInt(jsonPath + ".selectionOffset", json["selectionOffset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "selectionOffset");
       }
       int selectionLength;
       if (json.containsKey("selectionLength")) {
-        selectionLength = jsonDecoder._decodeInt(jsonPath + ".selectionLength", json["selectionLength"]);
+        selectionLength = jsonDecoder.decodeInt(jsonPath + ".selectionLength", json["selectionLength"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "selectionLength");
       }
@@ -5150,7 +5267,7 @@ class EditFormatResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is EditFormatResult) {
-      return _listEqual(edits, other.edits, (SourceEdit a, SourceEdit b) => a == b) &&
+      return listEqual(edits, other.edits, (SourceEdit a, SourceEdit b) => a == b) &&
           selectionOffset == other.selectionOffset &&
           selectionLength == other.selectionLength;
     }
@@ -5160,10 +5277,10 @@ class EditFormatResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, edits.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, selectionLength.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
+    hash = JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, selectionLength.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -5175,6 +5292,8 @@ class EditFormatResult implements HasToJson {
  *   "offset": int
  *   "length": int
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class EditGetAssistsParams implements HasToJson {
   String _file;
@@ -5235,19 +5354,19 @@ class EditGetAssistsParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
@@ -5290,10 +5409,10 @@ class EditGetAssistsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -5303,6 +5422,8 @@ class EditGetAssistsParams implements HasToJson {
  * {
  *   "assists": List<SourceChange>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class EditGetAssistsResult implements HasToJson {
   List<SourceChange> _assists;
@@ -5331,7 +5452,7 @@ class EditGetAssistsResult implements HasToJson {
     if (json is Map) {
       List<SourceChange> assists;
       if (json.containsKey("assists")) {
-        assists = jsonDecoder._decodeList(jsonPath + ".assists", json["assists"], (String jsonPath, Object json) => new SourceChange.fromJson(jsonDecoder, jsonPath, json));
+        assists = jsonDecoder.decodeList(jsonPath + ".assists", json["assists"], (String jsonPath, Object json) => new SourceChange.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "assists");
       }
@@ -5362,7 +5483,7 @@ class EditGetAssistsResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is EditGetAssistsResult) {
-      return _listEqual(assists, other.assists, (SourceChange a, SourceChange b) => a == b);
+      return listEqual(assists, other.assists, (SourceChange a, SourceChange b) => a == b);
     }
     return false;
   }
@@ -5370,8 +5491,8 @@ class EditGetAssistsResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, assists.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, assists.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -5383,6 +5504,8 @@ class EditGetAssistsResult implements HasToJson {
  *   "offset": int
  *   "length": int
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class EditGetAvailableRefactoringsParams implements HasToJson {
   String _file;
@@ -5443,19 +5566,19 @@ class EditGetAvailableRefactoringsParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
@@ -5498,10 +5621,10 @@ class EditGetAvailableRefactoringsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -5511,6 +5634,8 @@ class EditGetAvailableRefactoringsParams implements HasToJson {
  * {
  *   "kinds": List<RefactoringKind>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class EditGetAvailableRefactoringsResult implements HasToJson {
   List<RefactoringKind> _kinds;
@@ -5539,7 +5664,7 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
     if (json is Map) {
       List<RefactoringKind> kinds;
       if (json.containsKey("kinds")) {
-        kinds = jsonDecoder._decodeList(jsonPath + ".kinds", json["kinds"], (String jsonPath, Object json) => new RefactoringKind.fromJson(jsonDecoder, jsonPath, json));
+        kinds = jsonDecoder.decodeList(jsonPath + ".kinds", json["kinds"], (String jsonPath, Object json) => new RefactoringKind.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "kinds");
       }
@@ -5570,7 +5695,7 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is EditGetAvailableRefactoringsResult) {
-      return _listEqual(kinds, other.kinds, (RefactoringKind a, RefactoringKind b) => a == b);
+      return listEqual(kinds, other.kinds, (RefactoringKind a, RefactoringKind b) => a == b);
     }
     return false;
   }
@@ -5578,8 +5703,8 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, kinds.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, kinds.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -5590,6 +5715,8 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
  *   "file": FilePath
  *   "offset": int
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class EditGetFixesParams implements HasToJson {
   String _file;
@@ -5634,13 +5761,13 @@ class EditGetFixesParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
@@ -5681,9 +5808,9 @@ class EditGetFixesParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -5693,6 +5820,8 @@ class EditGetFixesParams implements HasToJson {
  * {
  *   "fixes": List<AnalysisErrorFixes>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class EditGetFixesResult implements HasToJson {
   List<AnalysisErrorFixes> _fixes;
@@ -5721,7 +5850,7 @@ class EditGetFixesResult implements HasToJson {
     if (json is Map) {
       List<AnalysisErrorFixes> fixes;
       if (json.containsKey("fixes")) {
-        fixes = jsonDecoder._decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new AnalysisErrorFixes.fromJson(jsonDecoder, jsonPath, json));
+        fixes = jsonDecoder.decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new AnalysisErrorFixes.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "fixes");
       }
@@ -5752,7 +5881,7 @@ class EditGetFixesResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is EditGetFixesResult) {
-      return _listEqual(fixes, other.fixes, (AnalysisErrorFixes a, AnalysisErrorFixes b) => a == b);
+      return listEqual(fixes, other.fixes, (AnalysisErrorFixes a, AnalysisErrorFixes b) => a == b);
     }
     return false;
   }
@@ -5760,8 +5889,8 @@ class EditGetFixesResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, fixes.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, fixes.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -5776,6 +5905,8 @@ class EditGetFixesResult implements HasToJson {
  *   "validateOnly": bool
  *   "options": optional RefactoringOptions
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class EditGetRefactoringParams implements HasToJson {
   RefactoringKind _kind;
@@ -5899,25 +6030,25 @@ class EditGetRefactoringParams implements HasToJson {
       }
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       bool validateOnly;
       if (json.containsKey("validateOnly")) {
-        validateOnly = jsonDecoder._decodeBool(jsonPath + ".validateOnly", json["validateOnly"]);
+        validateOnly = jsonDecoder.decodeBool(jsonPath + ".validateOnly", json["validateOnly"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "validateOnly");
       }
@@ -5974,13 +6105,13 @@ class EditGetRefactoringParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, validateOnly.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, options.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, validateOnly.hashCode);
+    hash = JenkinsSmiHash.combine(hash, options.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -5995,6 +6126,8 @@ class EditGetRefactoringParams implements HasToJson {
  *   "change": optional SourceChange
  *   "potentialEdits": optional List<String>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class EditGetRefactoringResult implements HasToJson {
   List<RefactoringProblem> _initialProblems;
@@ -6134,19 +6267,19 @@ class EditGetRefactoringResult implements HasToJson {
     if (json is Map) {
       List<RefactoringProblem> initialProblems;
       if (json.containsKey("initialProblems")) {
-        initialProblems = jsonDecoder._decodeList(jsonPath + ".initialProblems", json["initialProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+        initialProblems = jsonDecoder.decodeList(jsonPath + ".initialProblems", json["initialProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "initialProblems");
       }
       List<RefactoringProblem> optionsProblems;
       if (json.containsKey("optionsProblems")) {
-        optionsProblems = jsonDecoder._decodeList(jsonPath + ".optionsProblems", json["optionsProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+        optionsProblems = jsonDecoder.decodeList(jsonPath + ".optionsProblems", json["optionsProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "optionsProblems");
       }
       List<RefactoringProblem> finalProblems;
       if (json.containsKey("finalProblems")) {
-        finalProblems = jsonDecoder._decodeList(jsonPath + ".finalProblems", json["finalProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+        finalProblems = jsonDecoder.decodeList(jsonPath + ".finalProblems", json["finalProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "finalProblems");
       }
@@ -6160,7 +6293,7 @@ class EditGetRefactoringResult implements HasToJson {
       }
       List<String> potentialEdits;
       if (json.containsKey("potentialEdits")) {
-        potentialEdits = jsonDecoder._decodeList(jsonPath + ".potentialEdits", json["potentialEdits"], jsonDecoder._decodeString);
+        potentialEdits = jsonDecoder.decodeList(jsonPath + ".potentialEdits", json["potentialEdits"], jsonDecoder.decodeString);
       }
       return new EditGetRefactoringResult(initialProblems, optionsProblems, finalProblems, feedback: feedback, change: change, potentialEdits: potentialEdits);
     } else {
@@ -6200,12 +6333,12 @@ class EditGetRefactoringResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is EditGetRefactoringResult) {
-      return _listEqual(initialProblems, other.initialProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
-          _listEqual(optionsProblems, other.optionsProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
-          _listEqual(finalProblems, other.finalProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
+      return listEqual(initialProblems, other.initialProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
+          listEqual(optionsProblems, other.optionsProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
+          listEqual(finalProblems, other.finalProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
           feedback == other.feedback &&
           change == other.change &&
-          _listEqual(potentialEdits, other.potentialEdits, (String a, String b) => a == b);
+          listEqual(potentialEdits, other.potentialEdits, (String a, String b) => a == b);
     }
     return false;
   }
@@ -6213,13 +6346,13 @@ class EditGetRefactoringResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, initialProblems.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, optionsProblems.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, finalProblems.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, feedback.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, change.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, potentialEdits.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, initialProblems.hashCode);
+    hash = JenkinsSmiHash.combine(hash, optionsProblems.hashCode);
+    hash = JenkinsSmiHash.combine(hash, finalProblems.hashCode);
+    hash = JenkinsSmiHash.combine(hash, feedback.hashCode);
+    hash = JenkinsSmiHash.combine(hash, change.hashCode);
+    hash = JenkinsSmiHash.combine(hash, potentialEdits.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -6229,6 +6362,8 @@ class EditGetRefactoringResult implements HasToJson {
  * {
  *   "file": FilePath
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class EditSortMembersParams implements HasToJson {
   String _file;
@@ -6257,7 +6392,7 @@ class EditSortMembersParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
@@ -6296,8 +6431,8 @@ class EditSortMembersParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -6307,6 +6442,8 @@ class EditSortMembersParams implements HasToJson {
  * {
  *   "edit": SourceFileEdit
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class EditSortMembersResult implements HasToJson {
   SourceFileEdit _edit;
@@ -6376,8 +6513,8 @@ class EditSortMembersResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, edit.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, edit.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -6387,6 +6524,8 @@ class EditSortMembersResult implements HasToJson {
  * {
  *   "file": FilePath
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class EditOrganizeDirectivesParams implements HasToJson {
   String _file;
@@ -6415,7 +6554,7 @@ class EditOrganizeDirectivesParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
@@ -6454,8 +6593,8 @@ class EditOrganizeDirectivesParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -6465,6 +6604,8 @@ class EditOrganizeDirectivesParams implements HasToJson {
  * {
  *   "edit": SourceFileEdit
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class EditOrganizeDirectivesResult implements HasToJson {
   SourceFileEdit _edit;
@@ -6534,8 +6675,8 @@ class EditOrganizeDirectivesResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, edit.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, edit.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -6545,6 +6686,8 @@ class EditOrganizeDirectivesResult implements HasToJson {
  * {
  *   "contextRoot": FilePath
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ExecutionCreateContextParams implements HasToJson {
   String _contextRoot;
@@ -6575,7 +6718,7 @@ class ExecutionCreateContextParams implements HasToJson {
     if (json is Map) {
       String contextRoot;
       if (json.containsKey("contextRoot")) {
-        contextRoot = jsonDecoder._decodeString(jsonPath + ".contextRoot", json["contextRoot"]);
+        contextRoot = jsonDecoder.decodeString(jsonPath + ".contextRoot", json["contextRoot"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "contextRoot");
       }
@@ -6614,8 +6757,8 @@ class ExecutionCreateContextParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, contextRoot.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, contextRoot.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -6625,6 +6768,8 @@ class ExecutionCreateContextParams implements HasToJson {
  * {
  *   "id": ExecutionContextId
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ExecutionCreateContextResult implements HasToJson {
   String _id;
@@ -6653,7 +6798,7 @@ class ExecutionCreateContextResult implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
@@ -6692,8 +6837,8 @@ class ExecutionCreateContextResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -6703,6 +6848,8 @@ class ExecutionCreateContextResult implements HasToJson {
  * {
  *   "id": ExecutionContextId
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ExecutionDeleteContextParams implements HasToJson {
   String _id;
@@ -6731,7 +6878,7 @@ class ExecutionDeleteContextParams implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
@@ -6770,12 +6917,14 @@ class ExecutionDeleteContextParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * execution.deleteContext result
+ *
+ * Clients are not expected to subtype this class.
  */
 class ExecutionDeleteContextResult {
   Response toResponse(String id) {
@@ -6804,6 +6953,8 @@ class ExecutionDeleteContextResult {
  *   "file": optional FilePath
  *   "uri": optional String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ExecutionMapUriParams implements HasToJson {
   String _id;
@@ -6862,17 +7013,17 @@ class ExecutionMapUriParams implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       }
       String uri;
       if (json.containsKey("uri")) {
-        uri = jsonDecoder._decodeString(jsonPath + ".uri", json["uri"]);
+        uri = jsonDecoder.decodeString(jsonPath + ".uri", json["uri"]);
       }
       return new ExecutionMapUriParams(id, file: file, uri: uri);
     } else {
@@ -6917,10 +7068,10 @@ class ExecutionMapUriParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, uri.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -6931,6 +7082,8 @@ class ExecutionMapUriParams implements HasToJson {
  *   "file": optional FilePath
  *   "uri": optional String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ExecutionMapUriResult implements HasToJson {
   String _file;
@@ -6977,11 +7130,11 @@ class ExecutionMapUriResult implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       }
       String uri;
       if (json.containsKey("uri")) {
-        uri = jsonDecoder._decodeString(jsonPath + ".uri", json["uri"]);
+        uri = jsonDecoder.decodeString(jsonPath + ".uri", json["uri"]);
       }
       return new ExecutionMapUriResult(file: file, uri: uri);
     } else {
@@ -7024,9 +7177,9 @@ class ExecutionMapUriResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, uri.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -7036,6 +7189,8 @@ class ExecutionMapUriResult implements HasToJson {
  * {
  *   "subscriptions": List<ExecutionService>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ExecutionSetSubscriptionsParams implements HasToJson {
   List<ExecutionService> _subscriptions;
@@ -7064,7 +7219,7 @@ class ExecutionSetSubscriptionsParams implements HasToJson {
     if (json is Map) {
       List<ExecutionService> subscriptions;
       if (json.containsKey("subscriptions")) {
-        subscriptions = jsonDecoder._decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new ExecutionService.fromJson(jsonDecoder, jsonPath, json));
+        subscriptions = jsonDecoder.decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new ExecutionService.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "subscriptions");
       }
@@ -7095,7 +7250,7 @@ class ExecutionSetSubscriptionsParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is ExecutionSetSubscriptionsParams) {
-      return _listEqual(subscriptions, other.subscriptions, (ExecutionService a, ExecutionService b) => a == b);
+      return listEqual(subscriptions, other.subscriptions, (ExecutionService a, ExecutionService b) => a == b);
     }
     return false;
   }
@@ -7103,12 +7258,14 @@ class ExecutionSetSubscriptionsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, subscriptions.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, subscriptions.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * execution.setSubscriptions result
+ *
+ * Clients are not expected to subtype this class.
  */
 class ExecutionSetSubscriptionsResult {
   Response toResponse(String id) {
@@ -7137,6 +7294,8 @@ class ExecutionSetSubscriptionsResult {
  *   "kind": optional ExecutableKind
  *   "referencedFiles": optional List<FilePath>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ExecutionLaunchDataParams implements HasToJson {
   String _file;
@@ -7201,7 +7360,7 @@ class ExecutionLaunchDataParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
@@ -7211,7 +7370,7 @@ class ExecutionLaunchDataParams implements HasToJson {
       }
       List<String> referencedFiles;
       if (json.containsKey("referencedFiles")) {
-        referencedFiles = jsonDecoder._decodeList(jsonPath + ".referencedFiles", json["referencedFiles"], jsonDecoder._decodeString);
+        referencedFiles = jsonDecoder.decodeList(jsonPath + ".referencedFiles", json["referencedFiles"], jsonDecoder.decodeString);
       }
       return new ExecutionLaunchDataParams(file, kind: kind, referencedFiles: referencedFiles);
     } else {
@@ -7248,7 +7407,7 @@ class ExecutionLaunchDataParams implements HasToJson {
     if (other is ExecutionLaunchDataParams) {
       return file == other.file &&
           kind == other.kind &&
-          _listEqual(referencedFiles, other.referencedFiles, (String a, String b) => a == b);
+          listEqual(referencedFiles, other.referencedFiles, (String a, String b) => a == b);
     }
     return false;
   }
@@ -7256,10 +7415,10 @@ class ExecutionLaunchDataParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, referencedFiles.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, referencedFiles.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -7270,6 +7429,8 @@ class ExecutionLaunchDataParams implements HasToJson {
  *   "type": "add"
  *   "content": String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AddContentOverlay implements HasToJson {
   String _content;
@@ -7301,7 +7462,7 @@ class AddContentOverlay implements HasToJson {
       }
       String content;
       if (json.containsKey("content")) {
-        content = jsonDecoder._decodeString(jsonPath + ".content", json["content"]);
+        content = jsonDecoder.decodeString(jsonPath + ".content", json["content"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "content");
       }
@@ -7332,9 +7493,9 @@ class AddContentOverlay implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, 704418402);
-    hash = _JenkinsSmiHash.combine(hash, content.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, 704418402);
+    hash = JenkinsSmiHash.combine(hash, content.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -7349,6 +7510,8 @@ class AddContentOverlay implements HasToJson {
  *   "correction": optional String
  *   "hasFix": optional bool
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisError implements HasToJson {
   AnalysisErrorSeverity _severity;
@@ -7493,17 +7656,17 @@ class AnalysisError implements HasToJson {
       }
       String message;
       if (json.containsKey("message")) {
-        message = jsonDecoder._decodeString(jsonPath + ".message", json["message"]);
+        message = jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "message");
       }
       String correction;
       if (json.containsKey("correction")) {
-        correction = jsonDecoder._decodeString(jsonPath + ".correction", json["correction"]);
+        correction = jsonDecoder.decodeString(jsonPath + ".correction", json["correction"]);
       }
       bool hasFix;
       if (json.containsKey("hasFix")) {
-        hasFix = jsonDecoder._decodeBool(jsonPath + ".hasFix", json["hasFix"]);
+        hasFix = jsonDecoder.decodeBool(jsonPath + ".hasFix", json["hasFix"]);
       }
       return new AnalysisError(severity, type, location, message, correction: correction, hasFix: hasFix);
     } else {
@@ -7545,13 +7708,13 @@ class AnalysisError implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, severity.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, type.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, location.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, correction.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, hasFix.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, severity.hashCode);
+    hash = JenkinsSmiHash.combine(hash, type.hashCode);
+    hash = JenkinsSmiHash.combine(hash, location.hashCode);
+    hash = JenkinsSmiHash.combine(hash, message.hashCode);
+    hash = JenkinsSmiHash.combine(hash, correction.hashCode);
+    hash = JenkinsSmiHash.combine(hash, hasFix.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -7562,6 +7725,8 @@ class AnalysisError implements HasToJson {
  *   "error": AnalysisError
  *   "fixes": List<SourceChange>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisErrorFixes implements HasToJson {
   AnalysisError _error;
@@ -7616,7 +7781,7 @@ class AnalysisErrorFixes implements HasToJson {
       }
       List<SourceChange> fixes;
       if (json.containsKey("fixes")) {
-        fixes = jsonDecoder._decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new SourceChange.fromJson(jsonDecoder, jsonPath, json));
+        fixes = jsonDecoder.decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new SourceChange.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "fixes");
       }
@@ -7640,7 +7805,7 @@ class AnalysisErrorFixes implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisErrorFixes) {
       return error == other.error &&
-          _listEqual(fixes, other.fixes, (SourceChange a, SourceChange b) => a == b);
+          listEqual(fixes, other.fixes, (SourceChange a, SourceChange b) => a == b);
     }
     return false;
   }
@@ -7648,9 +7813,9 @@ class AnalysisErrorFixes implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, error.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, fixes.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, error.hashCode);
+    hash = JenkinsSmiHash.combine(hash, fixes.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -7662,6 +7827,8 @@ class AnalysisErrorFixes implements HasToJson {
  *   WARNING
  *   ERROR
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisErrorSeverity implements Enum {
   static const INFO = const AnalysisErrorSeverity._("INFO");
@@ -7721,6 +7888,8 @@ class AnalysisErrorSeverity implements Enum {
  *   SYNTACTIC_ERROR
  *   TODO
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisErrorType implements Enum {
   static const CHECKED_MODE_COMPILE_TIME_ERROR = const AnalysisErrorType._("CHECKED_MODE_COMPILE_TIME_ERROR");
@@ -7800,6 +7969,8 @@ class AnalysisErrorType implements Enum {
  *   "generateHints": optional bool
  *   "generateLints": optional bool
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisOptions implements HasToJson {
   bool _enableAsync;
@@ -7960,35 +8131,35 @@ class AnalysisOptions implements HasToJson {
     if (json is Map) {
       bool enableAsync;
       if (json.containsKey("enableAsync")) {
-        enableAsync = jsonDecoder._decodeBool(jsonPath + ".enableAsync", json["enableAsync"]);
+        enableAsync = jsonDecoder.decodeBool(jsonPath + ".enableAsync", json["enableAsync"]);
       }
       bool enableDeferredLoading;
       if (json.containsKey("enableDeferredLoading")) {
-        enableDeferredLoading = jsonDecoder._decodeBool(jsonPath + ".enableDeferredLoading", json["enableDeferredLoading"]);
+        enableDeferredLoading = jsonDecoder.decodeBool(jsonPath + ".enableDeferredLoading", json["enableDeferredLoading"]);
       }
       bool enableEnums;
       if (json.containsKey("enableEnums")) {
-        enableEnums = jsonDecoder._decodeBool(jsonPath + ".enableEnums", json["enableEnums"]);
+        enableEnums = jsonDecoder.decodeBool(jsonPath + ".enableEnums", json["enableEnums"]);
       }
       bool enableNullAwareOperators;
       if (json.containsKey("enableNullAwareOperators")) {
-        enableNullAwareOperators = jsonDecoder._decodeBool(jsonPath + ".enableNullAwareOperators", json["enableNullAwareOperators"]);
+        enableNullAwareOperators = jsonDecoder.decodeBool(jsonPath + ".enableNullAwareOperators", json["enableNullAwareOperators"]);
       }
       bool enableSuperMixins;
       if (json.containsKey("enableSuperMixins")) {
-        enableSuperMixins = jsonDecoder._decodeBool(jsonPath + ".enableSuperMixins", json["enableSuperMixins"]);
+        enableSuperMixins = jsonDecoder.decodeBool(jsonPath + ".enableSuperMixins", json["enableSuperMixins"]);
       }
       bool generateDart2jsHints;
       if (json.containsKey("generateDart2jsHints")) {
-        generateDart2jsHints = jsonDecoder._decodeBool(jsonPath + ".generateDart2jsHints", json["generateDart2jsHints"]);
+        generateDart2jsHints = jsonDecoder.decodeBool(jsonPath + ".generateDart2jsHints", json["generateDart2jsHints"]);
       }
       bool generateHints;
       if (json.containsKey("generateHints")) {
-        generateHints = jsonDecoder._decodeBool(jsonPath + ".generateHints", json["generateHints"]);
+        generateHints = jsonDecoder.decodeBool(jsonPath + ".generateHints", json["generateHints"]);
       }
       bool generateLints;
       if (json.containsKey("generateLints")) {
-        generateLints = jsonDecoder._decodeBool(jsonPath + ".generateLints", json["generateLints"]);
+        generateLints = jsonDecoder.decodeBool(jsonPath + ".generateLints", json["generateLints"]);
       }
       return new AnalysisOptions(enableAsync: enableAsync, enableDeferredLoading: enableDeferredLoading, enableEnums: enableEnums, enableNullAwareOperators: enableNullAwareOperators, enableSuperMixins: enableSuperMixins, generateDart2jsHints: generateDart2jsHints, generateHints: generateHints, generateLints: generateLints);
     } else {
@@ -8046,15 +8217,15 @@ class AnalysisOptions implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, enableAsync.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, enableDeferredLoading.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, enableEnums.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, enableNullAwareOperators.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, enableSuperMixins.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, generateDart2jsHints.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, generateHints.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, generateLints.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, enableAsync.hashCode);
+    hash = JenkinsSmiHash.combine(hash, enableDeferredLoading.hashCode);
+    hash = JenkinsSmiHash.combine(hash, enableEnums.hashCode);
+    hash = JenkinsSmiHash.combine(hash, enableNullAwareOperators.hashCode);
+    hash = JenkinsSmiHash.combine(hash, enableSuperMixins.hashCode);
+    hash = JenkinsSmiHash.combine(hash, generateDart2jsHints.hashCode);
+    hash = JenkinsSmiHash.combine(hash, generateHints.hashCode);
+    hash = JenkinsSmiHash.combine(hash, generateLints.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -8071,6 +8242,8 @@ class AnalysisOptions implements HasToJson {
  *   OUTLINE
  *   OVERRIDES
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisService implements Enum {
   static const FOLDING = const AnalysisService._("FOLDING");
@@ -8148,6 +8321,8 @@ class AnalysisService implements Enum {
  *   "isAnalyzing": bool
  *   "analysisTarget": optional String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class AnalysisStatus implements HasToJson {
   bool _isAnalyzing;
@@ -8193,13 +8368,13 @@ class AnalysisStatus implements HasToJson {
     if (json is Map) {
       bool isAnalyzing;
       if (json.containsKey("isAnalyzing")) {
-        isAnalyzing = jsonDecoder._decodeBool(jsonPath + ".isAnalyzing", json["isAnalyzing"]);
+        isAnalyzing = jsonDecoder.decodeBool(jsonPath + ".isAnalyzing", json["isAnalyzing"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "isAnalyzing");
       }
       String analysisTarget;
       if (json.containsKey("analysisTarget")) {
-        analysisTarget = jsonDecoder._decodeString(jsonPath + ".analysisTarget", json["analysisTarget"]);
+        analysisTarget = jsonDecoder.decodeString(jsonPath + ".analysisTarget", json["analysisTarget"]);
       }
       return new AnalysisStatus(isAnalyzing, analysisTarget: analysisTarget);
     } else {
@@ -8231,9 +8406,9 @@ class AnalysisStatus implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, isAnalyzing.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, analysisTarget.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, isAnalyzing.hashCode);
+    hash = JenkinsSmiHash.combine(hash, analysisTarget.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -8244,6 +8419,8 @@ class AnalysisStatus implements HasToJson {
  *   "type": "change"
  *   "edits": List<SourceEdit>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ChangeContentOverlay implements HasToJson {
   List<SourceEdit> _edits;
@@ -8275,7 +8452,7 @@ class ChangeContentOverlay implements HasToJson {
       }
       List<SourceEdit> edits;
       if (json.containsKey("edits")) {
-        edits = jsonDecoder._decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "edits");
       }
@@ -8298,7 +8475,7 @@ class ChangeContentOverlay implements HasToJson {
   @override
   bool operator==(other) {
     if (other is ChangeContentOverlay) {
-      return _listEqual(edits, other.edits, (SourceEdit a, SourceEdit b) => a == b);
+      return listEqual(edits, other.edits, (SourceEdit a, SourceEdit b) => a == b);
     }
     return false;
   }
@@ -8306,9 +8483,9 @@ class ChangeContentOverlay implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, 873118866);
-    hash = _JenkinsSmiHash.combine(hash, edits.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, 873118866);
+    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -8336,6 +8513,8 @@ class ChangeContentOverlay implements HasToJson {
  *   "parameterType": optional String
  *   "importUri": optional String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class CompletionSuggestion implements HasToJson {
   CompletionSuggestionKind _kind;
@@ -8688,51 +8867,51 @@ class CompletionSuggestion implements HasToJson {
       }
       int relevance;
       if (json.containsKey("relevance")) {
-        relevance = jsonDecoder._decodeInt(jsonPath + ".relevance", json["relevance"]);
+        relevance = jsonDecoder.decodeInt(jsonPath + ".relevance", json["relevance"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "relevance");
       }
       String completion;
       if (json.containsKey("completion")) {
-        completion = jsonDecoder._decodeString(jsonPath + ".completion", json["completion"]);
+        completion = jsonDecoder.decodeString(jsonPath + ".completion", json["completion"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "completion");
       }
       int selectionOffset;
       if (json.containsKey("selectionOffset")) {
-        selectionOffset = jsonDecoder._decodeInt(jsonPath + ".selectionOffset", json["selectionOffset"]);
+        selectionOffset = jsonDecoder.decodeInt(jsonPath + ".selectionOffset", json["selectionOffset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "selectionOffset");
       }
       int selectionLength;
       if (json.containsKey("selectionLength")) {
-        selectionLength = jsonDecoder._decodeInt(jsonPath + ".selectionLength", json["selectionLength"]);
+        selectionLength = jsonDecoder.decodeInt(jsonPath + ".selectionLength", json["selectionLength"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "selectionLength");
       }
       bool isDeprecated;
       if (json.containsKey("isDeprecated")) {
-        isDeprecated = jsonDecoder._decodeBool(jsonPath + ".isDeprecated", json["isDeprecated"]);
+        isDeprecated = jsonDecoder.decodeBool(jsonPath + ".isDeprecated", json["isDeprecated"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "isDeprecated");
       }
       bool isPotential;
       if (json.containsKey("isPotential")) {
-        isPotential = jsonDecoder._decodeBool(jsonPath + ".isPotential", json["isPotential"]);
+        isPotential = jsonDecoder.decodeBool(jsonPath + ".isPotential", json["isPotential"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "isPotential");
       }
       String docSummary;
       if (json.containsKey("docSummary")) {
-        docSummary = jsonDecoder._decodeString(jsonPath + ".docSummary", json["docSummary"]);
+        docSummary = jsonDecoder.decodeString(jsonPath + ".docSummary", json["docSummary"]);
       }
       String docComplete;
       if (json.containsKey("docComplete")) {
-        docComplete = jsonDecoder._decodeString(jsonPath + ".docComplete", json["docComplete"]);
+        docComplete = jsonDecoder.decodeString(jsonPath + ".docComplete", json["docComplete"]);
       }
       String declaringType;
       if (json.containsKey("declaringType")) {
-        declaringType = jsonDecoder._decodeString(jsonPath + ".declaringType", json["declaringType"]);
+        declaringType = jsonDecoder.decodeString(jsonPath + ".declaringType", json["declaringType"]);
       }
       Element element;
       if (json.containsKey("element")) {
@@ -8740,35 +8919,35 @@ class CompletionSuggestion implements HasToJson {
       }
       String returnType;
       if (json.containsKey("returnType")) {
-        returnType = jsonDecoder._decodeString(jsonPath + ".returnType", json["returnType"]);
+        returnType = jsonDecoder.decodeString(jsonPath + ".returnType", json["returnType"]);
       }
       List<String> parameterNames;
       if (json.containsKey("parameterNames")) {
-        parameterNames = jsonDecoder._decodeList(jsonPath + ".parameterNames", json["parameterNames"], jsonDecoder._decodeString);
+        parameterNames = jsonDecoder.decodeList(jsonPath + ".parameterNames", json["parameterNames"], jsonDecoder.decodeString);
       }
       List<String> parameterTypes;
       if (json.containsKey("parameterTypes")) {
-        parameterTypes = jsonDecoder._decodeList(jsonPath + ".parameterTypes", json["parameterTypes"], jsonDecoder._decodeString);
+        parameterTypes = jsonDecoder.decodeList(jsonPath + ".parameterTypes", json["parameterTypes"], jsonDecoder.decodeString);
       }
       int requiredParameterCount;
       if (json.containsKey("requiredParameterCount")) {
-        requiredParameterCount = jsonDecoder._decodeInt(jsonPath + ".requiredParameterCount", json["requiredParameterCount"]);
+        requiredParameterCount = jsonDecoder.decodeInt(jsonPath + ".requiredParameterCount", json["requiredParameterCount"]);
       }
       bool hasNamedParameters;
       if (json.containsKey("hasNamedParameters")) {
-        hasNamedParameters = jsonDecoder._decodeBool(jsonPath + ".hasNamedParameters", json["hasNamedParameters"]);
+        hasNamedParameters = jsonDecoder.decodeBool(jsonPath + ".hasNamedParameters", json["hasNamedParameters"]);
       }
       String parameterName;
       if (json.containsKey("parameterName")) {
-        parameterName = jsonDecoder._decodeString(jsonPath + ".parameterName", json["parameterName"]);
+        parameterName = jsonDecoder.decodeString(jsonPath + ".parameterName", json["parameterName"]);
       }
       String parameterType;
       if (json.containsKey("parameterType")) {
-        parameterType = jsonDecoder._decodeString(jsonPath + ".parameterType", json["parameterType"]);
+        parameterType = jsonDecoder.decodeString(jsonPath + ".parameterType", json["parameterType"]);
       }
       String importUri;
       if (json.containsKey("importUri")) {
-        importUri = jsonDecoder._decodeString(jsonPath + ".importUri", json["importUri"]);
+        importUri = jsonDecoder.decodeString(jsonPath + ".importUri", json["importUri"]);
       }
       return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary: docSummary, docComplete: docComplete, declaringType: declaringType, element: element, returnType: returnType, parameterNames: parameterNames, parameterTypes: parameterTypes, requiredParameterCount: requiredParameterCount, hasNamedParameters: hasNamedParameters, parameterName: parameterName, parameterType: parameterType, importUri: importUri);
     } else {
@@ -8842,8 +9021,8 @@ class CompletionSuggestion implements HasToJson {
           declaringType == other.declaringType &&
           element == other.element &&
           returnType == other.returnType &&
-          _listEqual(parameterNames, other.parameterNames, (String a, String b) => a == b) &&
-          _listEqual(parameterTypes, other.parameterTypes, (String a, String b) => a == b) &&
+          listEqual(parameterNames, other.parameterNames, (String a, String b) => a == b) &&
+          listEqual(parameterTypes, other.parameterTypes, (String a, String b) => a == b) &&
           requiredParameterCount == other.requiredParameterCount &&
           hasNamedParameters == other.hasNamedParameters &&
           parameterName == other.parameterName &&
@@ -8856,26 +9035,26 @@ class CompletionSuggestion implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, relevance.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, completion.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, selectionLength.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, isDeprecated.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, isPotential.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, docSummary.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, docComplete.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, declaringType.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, element.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, returnType.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, parameterNames.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, parameterTypes.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, requiredParameterCount.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, hasNamedParameters.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, parameterName.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, parameterType.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, importUri.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, relevance.hashCode);
+    hash = JenkinsSmiHash.combine(hash, completion.hashCode);
+    hash = JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, selectionLength.hashCode);
+    hash = JenkinsSmiHash.combine(hash, isDeprecated.hashCode);
+    hash = JenkinsSmiHash.combine(hash, isPotential.hashCode);
+    hash = JenkinsSmiHash.combine(hash, docSummary.hashCode);
+    hash = JenkinsSmiHash.combine(hash, docComplete.hashCode);
+    hash = JenkinsSmiHash.combine(hash, declaringType.hashCode);
+    hash = JenkinsSmiHash.combine(hash, element.hashCode);
+    hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameterNames.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameterTypes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, requiredParameterCount.hashCode);
+    hash = JenkinsSmiHash.combine(hash, hasNamedParameters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameterName.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameterType.hashCode);
+    hash = JenkinsSmiHash.combine(hash, importUri.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -8892,6 +9071,8 @@ class CompletionSuggestion implements HasToJson {
  *   OPTIONAL_ARGUMENT
  *   PARAMETER
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class CompletionSuggestionKind implements Enum {
   /**
@@ -8997,6 +9178,8 @@ class CompletionSuggestionKind implements Enum {
  *   "returnType": optional String
  *   "typeParameters": optional String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class Element implements HasToJson {
   static const int FLAG_ABSTRACT = 0x01;
@@ -9171,7 +9354,7 @@ class Element implements HasToJson {
       }
       String name;
       if (json.containsKey("name")) {
-        name = jsonDecoder._decodeString(jsonPath + ".name", json["name"]);
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "name");
       }
@@ -9181,21 +9364,21 @@ class Element implements HasToJson {
       }
       int flags;
       if (json.containsKey("flags")) {
-        flags = jsonDecoder._decodeInt(jsonPath + ".flags", json["flags"]);
+        flags = jsonDecoder.decodeInt(jsonPath + ".flags", json["flags"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "flags");
       }
       String parameters;
       if (json.containsKey("parameters")) {
-        parameters = jsonDecoder._decodeString(jsonPath + ".parameters", json["parameters"]);
+        parameters = jsonDecoder.decodeString(jsonPath + ".parameters", json["parameters"]);
       }
       String returnType;
       if (json.containsKey("returnType")) {
-        returnType = jsonDecoder._decodeString(jsonPath + ".returnType", json["returnType"]);
+        returnType = jsonDecoder.decodeString(jsonPath + ".returnType", json["returnType"]);
       }
       String typeParameters;
       if (json.containsKey("typeParameters")) {
-        typeParameters = jsonDecoder._decodeString(jsonPath + ".typeParameters", json["typeParameters"]);
+        typeParameters = jsonDecoder.decodeString(jsonPath + ".typeParameters", json["typeParameters"]);
       }
       return new Element(kind, name, flags, location: location, parameters: parameters, returnType: returnType, typeParameters: typeParameters);
     } else {
@@ -9250,14 +9433,14 @@ class Element implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, location.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, flags.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, parameters.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, returnType.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, typeParameters.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, location.hashCode);
+    hash = JenkinsSmiHash.combine(hash, flags.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
+    hash = JenkinsSmiHash.combine(hash, typeParameters.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -9288,6 +9471,8 @@ class Element implements HasToJson {
  *   UNIT_TEST_TEST
  *   UNKNOWN
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ElementKind implements Enum {
   static const CLASS = const ElementKind._("CLASS");
@@ -9417,6 +9602,8 @@ class ElementKind implements Enum {
  *   "file": FilePath
  *   "kind": ExecutableKind
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ExecutableFile implements HasToJson {
   String _file;
@@ -9461,7 +9648,7 @@ class ExecutableFile implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
@@ -9499,9 +9686,9 @@ class ExecutableFile implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -9514,6 +9701,8 @@ class ExecutableFile implements HasToJson {
  *   NOT_EXECUTABLE
  *   SERVER
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ExecutableKind implements Enum {
   static const CLIENT = const ExecutableKind._("CLIENT");
@@ -9570,6 +9759,8 @@ class ExecutableKind implements Enum {
  * enum {
  *   LAUNCH_DATA
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ExecutionService implements Enum {
   static const LAUNCH_DATA = const ExecutionService._("LAUNCH_DATA");
@@ -9615,6 +9806,8 @@ class ExecutionService implements Enum {
  *   LIBRARY
  *   PART
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class FileKind implements Enum {
   static const LIBRARY = const FileKind._("LIBRARY");
@@ -9667,6 +9860,8 @@ class FileKind implements Enum {
  *   DOCUMENTATION_COMMENT
  *   TOP_LEVEL_DECLARATION
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class FoldingKind implements Enum {
   static const COMMENT = const FoldingKind._("COMMENT");
@@ -9729,6 +9924,8 @@ class FoldingKind implements Enum {
  *   "offset": int
  *   "length": int
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class FoldingRegion implements HasToJson {
   FoldingKind _kind;
@@ -9795,13 +9992,13 @@ class FoldingRegion implements HasToJson {
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
@@ -9835,10 +10032,10 @@ class FoldingRegion implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -9848,6 +10045,8 @@ class FoldingRegion implements HasToJson {
  * enum {
  *   ANALYZED_FILES
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class GeneralAnalysisService implements Enum {
   static const ANALYZED_FILES = const GeneralAnalysisService._("ANALYZED_FILES");
@@ -9894,6 +10093,8 @@ class GeneralAnalysisService implements Enum {
  *   "offset": int
  *   "length": int
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class HighlightRegion implements HasToJson {
   HighlightRegionType _type;
@@ -9960,13 +10161,13 @@ class HighlightRegion implements HasToJson {
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
@@ -10000,10 +10201,10 @@ class HighlightRegion implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, type.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, type.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -10085,6 +10286,8 @@ class HighlightRegion implements HasToJson {
  *   UNRESOLVED_INSTANCE_MEMBER_REFERENCE
  *   VALID_STRING_ESCAPE
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class HighlightRegionType implements Enum {
   static const ANNOTATION = const HighlightRegionType._("ANNOTATION");
@@ -10574,6 +10777,8 @@ class HighlightRegionType implements Enum {
  *   "propagatedType": optional String
  *   "staticType": optional String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class HoverInformation implements HasToJson {
   int _offset;
@@ -10791,51 +10996,51 @@ class HoverInformation implements HasToJson {
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       String containingLibraryPath;
       if (json.containsKey("containingLibraryPath")) {
-        containingLibraryPath = jsonDecoder._decodeString(jsonPath + ".containingLibraryPath", json["containingLibraryPath"]);
+        containingLibraryPath = jsonDecoder.decodeString(jsonPath + ".containingLibraryPath", json["containingLibraryPath"]);
       }
       String containingLibraryName;
       if (json.containsKey("containingLibraryName")) {
-        containingLibraryName = jsonDecoder._decodeString(jsonPath + ".containingLibraryName", json["containingLibraryName"]);
+        containingLibraryName = jsonDecoder.decodeString(jsonPath + ".containingLibraryName", json["containingLibraryName"]);
       }
       String containingClassDescription;
       if (json.containsKey("containingClassDescription")) {
-        containingClassDescription = jsonDecoder._decodeString(jsonPath + ".containingClassDescription", json["containingClassDescription"]);
+        containingClassDescription = jsonDecoder.decodeString(jsonPath + ".containingClassDescription", json["containingClassDescription"]);
       }
       String dartdoc;
       if (json.containsKey("dartdoc")) {
-        dartdoc = jsonDecoder._decodeString(jsonPath + ".dartdoc", json["dartdoc"]);
+        dartdoc = jsonDecoder.decodeString(jsonPath + ".dartdoc", json["dartdoc"]);
       }
       String elementDescription;
       if (json.containsKey("elementDescription")) {
-        elementDescription = jsonDecoder._decodeString(jsonPath + ".elementDescription", json["elementDescription"]);
+        elementDescription = jsonDecoder.decodeString(jsonPath + ".elementDescription", json["elementDescription"]);
       }
       String elementKind;
       if (json.containsKey("elementKind")) {
-        elementKind = jsonDecoder._decodeString(jsonPath + ".elementKind", json["elementKind"]);
+        elementKind = jsonDecoder.decodeString(jsonPath + ".elementKind", json["elementKind"]);
       }
       String parameter;
       if (json.containsKey("parameter")) {
-        parameter = jsonDecoder._decodeString(jsonPath + ".parameter", json["parameter"]);
+        parameter = jsonDecoder.decodeString(jsonPath + ".parameter", json["parameter"]);
       }
       String propagatedType;
       if (json.containsKey("propagatedType")) {
-        propagatedType = jsonDecoder._decodeString(jsonPath + ".propagatedType", json["propagatedType"]);
+        propagatedType = jsonDecoder.decodeString(jsonPath + ".propagatedType", json["propagatedType"]);
       }
       String staticType;
       if (json.containsKey("staticType")) {
-        staticType = jsonDecoder._decodeString(jsonPath + ".staticType", json["staticType"]);
+        staticType = jsonDecoder.decodeString(jsonPath + ".staticType", json["staticType"]);
       }
       return new HoverInformation(offset, length, containingLibraryPath: containingLibraryPath, containingLibraryName: containingLibraryName, containingClassDescription: containingClassDescription, dartdoc: dartdoc, elementDescription: elementDescription, elementKind: elementKind, parameter: parameter, propagatedType: propagatedType, staticType: staticType);
     } else {
@@ -10901,18 +11106,18 @@ class HoverInformation implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, containingLibraryPath.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, containingLibraryName.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, containingClassDescription.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, dartdoc.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, elementDescription.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, elementKind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, parameter.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, propagatedType.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, staticType.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, containingLibraryPath.hashCode);
+    hash = JenkinsSmiHash.combine(hash, containingLibraryName.hashCode);
+    hash = JenkinsSmiHash.combine(hash, containingClassDescription.hashCode);
+    hash = JenkinsSmiHash.combine(hash, dartdoc.hashCode);
+    hash = JenkinsSmiHash.combine(hash, elementDescription.hashCode);
+    hash = JenkinsSmiHash.combine(hash, elementKind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameter.hashCode);
+    hash = JenkinsSmiHash.combine(hash, propagatedType.hashCode);
+    hash = JenkinsSmiHash.combine(hash, staticType.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -10923,6 +11128,8 @@ class HoverInformation implements HasToJson {
  *   "offset": int
  *   "length": int
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ImplementedClass implements HasToJson {
   int _offset;
@@ -10967,13 +11174,13 @@ class ImplementedClass implements HasToJson {
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
@@ -11005,9 +11212,9 @@ class ImplementedClass implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -11018,6 +11225,8 @@ class ImplementedClass implements HasToJson {
  *   "offset": int
  *   "length": int
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ImplementedMember implements HasToJson {
   int _offset;
@@ -11062,13 +11271,13 @@ class ImplementedMember implements HasToJson {
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
@@ -11100,9 +11309,9 @@ class ImplementedMember implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -11114,6 +11323,8 @@ class ImplementedMember implements HasToJson {
  *   "length": int
  *   "suggestions": List<LinkedEditSuggestion>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class LinkedEditGroup implements HasToJson {
   List<Position> _positions;
@@ -11176,19 +11387,19 @@ class LinkedEditGroup implements HasToJson {
     if (json is Map) {
       List<Position> positions;
       if (json.containsKey("positions")) {
-        positions = jsonDecoder._decodeList(jsonPath + ".positions", json["positions"], (String jsonPath, Object json) => new Position.fromJson(jsonDecoder, jsonPath, json));
+        positions = jsonDecoder.decodeList(jsonPath + ".positions", json["positions"], (String jsonPath, Object json) => new Position.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "positions");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       List<LinkedEditSuggestion> suggestions;
       if (json.containsKey("suggestions")) {
-        suggestions = jsonDecoder._decodeList(jsonPath + ".suggestions", json["suggestions"], (String jsonPath, Object json) => new LinkedEditSuggestion.fromJson(jsonDecoder, jsonPath, json));
+        suggestions = jsonDecoder.decodeList(jsonPath + ".suggestions", json["suggestions"], (String jsonPath, Object json) => new LinkedEditSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "suggestions");
       }
@@ -11232,9 +11443,9 @@ class LinkedEditGroup implements HasToJson {
   @override
   bool operator==(other) {
     if (other is LinkedEditGroup) {
-      return _listEqual(positions, other.positions, (Position a, Position b) => a == b) &&
+      return listEqual(positions, other.positions, (Position a, Position b) => a == b) &&
           length == other.length &&
-          _listEqual(suggestions, other.suggestions, (LinkedEditSuggestion a, LinkedEditSuggestion b) => a == b);
+          listEqual(suggestions, other.suggestions, (LinkedEditSuggestion a, LinkedEditSuggestion b) => a == b);
     }
     return false;
   }
@@ -11242,10 +11453,10 @@ class LinkedEditGroup implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, positions.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, suggestions.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, positions.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, suggestions.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -11256,6 +11467,8 @@ class LinkedEditGroup implements HasToJson {
  *   "value": String
  *   "kind": LinkedEditSuggestionKind
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class LinkedEditSuggestion implements HasToJson {
   String _value;
@@ -11300,7 +11513,7 @@ class LinkedEditSuggestion implements HasToJson {
     if (json is Map) {
       String value;
       if (json.containsKey("value")) {
-        value = jsonDecoder._decodeString(jsonPath + ".value", json["value"]);
+        value = jsonDecoder.decodeString(jsonPath + ".value", json["value"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "value");
       }
@@ -11338,9 +11551,9 @@ class LinkedEditSuggestion implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, value.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, value.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -11353,6 +11566,8 @@ class LinkedEditSuggestion implements HasToJson {
  *   TYPE
  *   VARIABLE
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class LinkedEditSuggestionKind implements Enum {
   static const METHOD = const LinkedEditSuggestionKind._("METHOD");
@@ -11413,6 +11628,8 @@ class LinkedEditSuggestionKind implements Enum {
  *   "startLine": int
  *   "startColumn": int
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class Location implements HasToJson {
   String _file;
@@ -11509,31 +11726,31 @@ class Location implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       int startLine;
       if (json.containsKey("startLine")) {
-        startLine = jsonDecoder._decodeInt(jsonPath + ".startLine", json["startLine"]);
+        startLine = jsonDecoder.decodeInt(jsonPath + ".startLine", json["startLine"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "startLine");
       }
       int startColumn;
       if (json.containsKey("startColumn")) {
-        startColumn = jsonDecoder._decodeInt(jsonPath + ".startColumn", json["startColumn"]);
+        startColumn = jsonDecoder.decodeInt(jsonPath + ".startColumn", json["startColumn"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "startColumn");
       }
@@ -11571,12 +11788,12 @@ class Location implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, startLine.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, startColumn.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, startLine.hashCode);
+    hash = JenkinsSmiHash.combine(hash, startColumn.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -11588,6 +11805,8 @@ class Location implements HasToJson {
  *   "length": int
  *   "targets": List<int>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class NavigationRegion implements HasToJson {
   int _offset;
@@ -11652,19 +11871,19 @@ class NavigationRegion implements HasToJson {
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       List<int> targets;
       if (json.containsKey("targets")) {
-        targets = jsonDecoder._decodeList(jsonPath + ".targets", json["targets"], jsonDecoder._decodeInt);
+        targets = jsonDecoder.decodeList(jsonPath + ".targets", json["targets"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "targets");
       }
@@ -11690,7 +11909,7 @@ class NavigationRegion implements HasToJson {
     if (other is NavigationRegion) {
       return offset == other.offset &&
           length == other.length &&
-          _listEqual(targets, other.targets, (int a, int b) => a == b);
+          listEqual(targets, other.targets, (int a, int b) => a == b);
     }
     return false;
   }
@@ -11698,10 +11917,10 @@ class NavigationRegion implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, targets.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, targets.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -11716,6 +11935,8 @@ class NavigationRegion implements HasToJson {
  *   "startLine": int
  *   "startColumn": int
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class NavigationTarget implements HasToJson {
   ElementKind _kind;
@@ -11836,31 +12057,31 @@ class NavigationTarget implements HasToJson {
       }
       int fileIndex;
       if (json.containsKey("fileIndex")) {
-        fileIndex = jsonDecoder._decodeInt(jsonPath + ".fileIndex", json["fileIndex"]);
+        fileIndex = jsonDecoder.decodeInt(jsonPath + ".fileIndex", json["fileIndex"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "fileIndex");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       int startLine;
       if (json.containsKey("startLine")) {
-        startLine = jsonDecoder._decodeInt(jsonPath + ".startLine", json["startLine"]);
+        startLine = jsonDecoder.decodeInt(jsonPath + ".startLine", json["startLine"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "startLine");
       }
       int startColumn;
       if (json.containsKey("startColumn")) {
-        startColumn = jsonDecoder._decodeInt(jsonPath + ".startColumn", json["startColumn"]);
+        startColumn = jsonDecoder.decodeInt(jsonPath + ".startColumn", json["startColumn"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "startColumn");
       }
@@ -11900,13 +12121,13 @@ class NavigationTarget implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, fileIndex.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, startLine.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, startColumn.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, fileIndex.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, startLine.hashCode);
+    hash = JenkinsSmiHash.combine(hash, startColumn.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -11918,6 +12139,8 @@ class NavigationTarget implements HasToJson {
  *   "offsets": List<int>
  *   "length": int
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class Occurrences implements HasToJson {
   Element _element;
@@ -11984,13 +12207,13 @@ class Occurrences implements HasToJson {
       }
       List<int> offsets;
       if (json.containsKey("offsets")) {
-        offsets = jsonDecoder._decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder._decodeInt);
+        offsets = jsonDecoder.decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offsets");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
@@ -12015,7 +12238,7 @@ class Occurrences implements HasToJson {
   bool operator==(other) {
     if (other is Occurrences) {
       return element == other.element &&
-          _listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
+          listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
           length == other.length;
     }
     return false;
@@ -12024,10 +12247,10 @@ class Occurrences implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, element.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offsets.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, element.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offsets.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -12040,6 +12263,8 @@ class Occurrences implements HasToJson {
  *   "length": int
  *   "children": optional List<Outline>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class Outline implements HasToJson {
   Element _element;
@@ -12129,19 +12354,19 @@ class Outline implements HasToJson {
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       List<Outline> children;
       if (json.containsKey("children")) {
-        children = jsonDecoder._decodeList(jsonPath + ".children", json["children"], (String jsonPath, Object json) => new Outline.fromJson(jsonDecoder, jsonPath, json));
+        children = jsonDecoder.decodeList(jsonPath + ".children", json["children"], (String jsonPath, Object json) => new Outline.fromJson(jsonDecoder, jsonPath, json));
       }
       return new Outline(element, offset, length, children: children);
     } else {
@@ -12169,7 +12394,7 @@ class Outline implements HasToJson {
       return element == other.element &&
           offset == other.offset &&
           length == other.length &&
-          _listEqual(children, other.children, (Outline a, Outline b) => a == b);
+          listEqual(children, other.children, (Outline a, Outline b) => a == b);
     }
     return false;
   }
@@ -12177,11 +12402,11 @@ class Outline implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, element.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, children.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, element.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, children.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -12194,6 +12419,8 @@ class Outline implements HasToJson {
  *   "superclassMember": optional OverriddenMember
  *   "interfaceMembers": optional List<OverriddenMember>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class Override implements HasToJson {
   int _offset;
@@ -12276,13 +12503,13 @@ class Override implements HasToJson {
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
@@ -12292,7 +12519,7 @@ class Override implements HasToJson {
       }
       List<OverriddenMember> interfaceMembers;
       if (json.containsKey("interfaceMembers")) {
-        interfaceMembers = jsonDecoder._decodeList(jsonPath + ".interfaceMembers", json["interfaceMembers"], (String jsonPath, Object json) => new OverriddenMember.fromJson(jsonDecoder, jsonPath, json));
+        interfaceMembers = jsonDecoder.decodeList(jsonPath + ".interfaceMembers", json["interfaceMembers"], (String jsonPath, Object json) => new OverriddenMember.fromJson(jsonDecoder, jsonPath, json));
       }
       return new Override(offset, length, superclassMember: superclassMember, interfaceMembers: interfaceMembers);
     } else {
@@ -12322,7 +12549,7 @@ class Override implements HasToJson {
       return offset == other.offset &&
           length == other.length &&
           superclassMember == other.superclassMember &&
-          _listEqual(interfaceMembers, other.interfaceMembers, (OverriddenMember a, OverriddenMember b) => a == b);
+          listEqual(interfaceMembers, other.interfaceMembers, (OverriddenMember a, OverriddenMember b) => a == b);
     }
     return false;
   }
@@ -12330,11 +12557,11 @@ class Override implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, superclassMember.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, interfaceMembers.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, superclassMember.hashCode);
+    hash = JenkinsSmiHash.combine(hash, interfaceMembers.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -12345,6 +12572,8 @@ class Override implements HasToJson {
  *   "element": Element
  *   "className": String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class OverriddenMember implements HasToJson {
   Element _element;
@@ -12395,7 +12624,7 @@ class OverriddenMember implements HasToJson {
       }
       String className;
       if (json.containsKey("className")) {
-        className = jsonDecoder._decodeString(jsonPath + ".className", json["className"]);
+        className = jsonDecoder.decodeString(jsonPath + ".className", json["className"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "className");
       }
@@ -12427,9 +12656,9 @@ class OverriddenMember implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, element.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, className.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, element.hashCode);
+    hash = JenkinsSmiHash.combine(hash, className.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -12440,6 +12669,8 @@ class OverriddenMember implements HasToJson {
  *   "file": FilePath
  *   "offset": int
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class Position implements HasToJson {
   String _file;
@@ -12484,13 +12715,13 @@ class Position implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
@@ -12522,9 +12753,9 @@ class Position implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -12534,6 +12765,8 @@ class Position implements HasToJson {
  * {
  *   "isListingPackageDirs": bool
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class PubStatus implements HasToJson {
   bool _isListingPackageDirs;
@@ -12564,7 +12797,7 @@ class PubStatus implements HasToJson {
     if (json is Map) {
       bool isListingPackageDirs;
       if (json.containsKey("isListingPackageDirs")) {
-        isListingPackageDirs = jsonDecoder._decodeBool(jsonPath + ".isListingPackageDirs", json["isListingPackageDirs"]);
+        isListingPackageDirs = jsonDecoder.decodeBool(jsonPath + ".isListingPackageDirs", json["isListingPackageDirs"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "isListingPackageDirs");
       }
@@ -12594,8 +12827,8 @@ class PubStatus implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, isListingPackageDirs.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, isListingPackageDirs.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -12613,6 +12846,8 @@ class PubStatus implements HasToJson {
  *   RENAME
  *   SORT_MEMBERS
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class RefactoringKind implements Enum {
   static const CONVERT_GETTER_TO_METHOD = const RefactoringKind._("CONVERT_GETTER_TO_METHOD");
@@ -12693,6 +12928,8 @@ class RefactoringKind implements Enum {
  *   "name": String
  *   "parameters": optional String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class RefactoringMethodParameter implements HasToJson {
   String _id;
@@ -12791,7 +13028,7 @@ class RefactoringMethodParameter implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       }
       RefactoringMethodParameterKind kind;
       if (json.containsKey("kind")) {
@@ -12801,19 +13038,19 @@ class RefactoringMethodParameter implements HasToJson {
       }
       String type;
       if (json.containsKey("type")) {
-        type = jsonDecoder._decodeString(jsonPath + ".type", json["type"]);
+        type = jsonDecoder.decodeString(jsonPath + ".type", json["type"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "type");
       }
       String name;
       if (json.containsKey("name")) {
-        name = jsonDecoder._decodeString(jsonPath + ".name", json["name"]);
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "name");
       }
       String parameters;
       if (json.containsKey("parameters")) {
-        parameters = jsonDecoder._decodeString(jsonPath + ".parameters", json["parameters"]);
+        parameters = jsonDecoder.decodeString(jsonPath + ".parameters", json["parameters"]);
       }
       return new RefactoringMethodParameter(kind, type, name, id: id, parameters: parameters);
     } else {
@@ -12853,12 +13090,12 @@ class RefactoringMethodParameter implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, type.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, parameters.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, type.hashCode);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -12867,12 +13104,14 @@ class RefactoringMethodParameter implements HasToJson {
  *
  * {
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class RefactoringFeedback implements HasToJson {
   RefactoringFeedback();
 
   factory RefactoringFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json, Map responseJson) {
-    return _refactoringFeedbackFromJson(jsonDecoder, jsonPath, json, responseJson);
+    return refactoringFeedbackFromJson(jsonDecoder, jsonPath, json, responseJson);
   }
 
   Map<String, dynamic> toJson() {
@@ -12894,7 +13133,7 @@ class RefactoringFeedback implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    return _JenkinsSmiHash.finish(hash);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -12903,12 +13142,14 @@ class RefactoringFeedback implements HasToJson {
  *
  * {
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class RefactoringOptions implements HasToJson {
   RefactoringOptions();
 
   factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json, RefactoringKind kind) {
-    return _refactoringOptionsFromJson(jsonDecoder, jsonPath, json, kind);
+    return refactoringOptionsFromJson(jsonDecoder, jsonPath, json, kind);
   }
 
   Map<String, dynamic> toJson() {
@@ -12930,7 +13171,7 @@ class RefactoringOptions implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    return _JenkinsSmiHash.finish(hash);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -12942,6 +13183,8 @@ class RefactoringOptions implements HasToJson {
  *   POSITIONAL
  *   NAMED
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class RefactoringMethodParameterKind implements Enum {
   static const REQUIRED = const RefactoringMethodParameterKind._("REQUIRED");
@@ -12996,6 +13239,8 @@ class RefactoringMethodParameterKind implements Enum {
  *   "message": String
  *   "location": optional Location
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class RefactoringProblem implements HasToJson {
   RefactoringProblemSeverity _severity;
@@ -13065,7 +13310,7 @@ class RefactoringProblem implements HasToJson {
       }
       String message;
       if (json.containsKey("message")) {
-        message = jsonDecoder._decodeString(jsonPath + ".message", json["message"]);
+        message = jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "message");
       }
@@ -13105,10 +13350,10 @@ class RefactoringProblem implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, severity.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, location.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, severity.hashCode);
+    hash = JenkinsSmiHash.combine(hash, message.hashCode);
+    hash = JenkinsSmiHash.combine(hash, location.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -13121,6 +13366,8 @@ class RefactoringProblem implements HasToJson {
  *   ERROR
  *   FATAL
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class RefactoringProblemSeverity implements Enum {
   static const INFO = const RefactoringProblemSeverity._("INFO");
@@ -13169,7 +13416,7 @@ class RefactoringProblemSeverity implements Enum {
    * Returns the [RefactoringProblemSeverity] with the maximal severity.
    */
   static RefactoringProblemSeverity max(RefactoringProblemSeverity a, RefactoringProblemSeverity b) =>
-      _maxRefactoringProblemSeverity(a, b);
+      maxRefactoringProblemSeverity(a, b);
 
   @override
   String toString() => "RefactoringProblemSeverity.$name";
@@ -13183,6 +13430,8 @@ class RefactoringProblemSeverity implements Enum {
  * {
  *   "type": "remove"
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class RemoveContentOverlay implements HasToJson {
   RemoveContentOverlay();
@@ -13221,8 +13470,8 @@ class RemoveContentOverlay implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, 114870849);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, 114870849);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -13234,6 +13483,8 @@ class RemoveContentOverlay implements HasToJson {
  *   "message": String
  *   "stackTrace": optional String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class RequestError implements HasToJson {
   RequestErrorCode _code;
@@ -13301,13 +13552,13 @@ class RequestError implements HasToJson {
       }
       String message;
       if (json.containsKey("message")) {
-        message = jsonDecoder._decodeString(jsonPath + ".message", json["message"]);
+        message = jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "message");
       }
       String stackTrace;
       if (json.containsKey("stackTrace")) {
-        stackTrace = jsonDecoder._decodeString(jsonPath + ".stackTrace", json["stackTrace"]);
+        stackTrace = jsonDecoder.decodeString(jsonPath + ".stackTrace", json["stackTrace"]);
       }
       return new RequestError(code, message, stackTrace: stackTrace);
     } else {
@@ -13341,10 +13592,10 @@ class RequestError implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, code.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, stackTrace.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, code.hashCode);
+    hash = JenkinsSmiHash.combine(hash, message.hashCode);
+    hash = JenkinsSmiHash.combine(hash, stackTrace.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -13375,6 +13626,8 @@ class RequestError implements HasToJson {
  *   UNKNOWN_SOURCE
  *   UNSUPPORTED_FEATURE
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class RequestErrorCode implements Enum {
   /**
@@ -13601,6 +13854,8 @@ class RequestErrorCode implements Enum {
  *   "isPotential": bool
  *   "path": List<Element>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class SearchResult implements HasToJson {
   Location _location;
@@ -13699,13 +13954,13 @@ class SearchResult implements HasToJson {
       }
       bool isPotential;
       if (json.containsKey("isPotential")) {
-        isPotential = jsonDecoder._decodeBool(jsonPath + ".isPotential", json["isPotential"]);
+        isPotential = jsonDecoder.decodeBool(jsonPath + ".isPotential", json["isPotential"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "isPotential");
       }
       List<Element> path;
       if (json.containsKey("path")) {
-        path = jsonDecoder._decodeList(jsonPath + ".path", json["path"], (String jsonPath, Object json) => new Element.fromJson(jsonDecoder, jsonPath, json));
+        path = jsonDecoder.decodeList(jsonPath + ".path", json["path"], (String jsonPath, Object json) => new Element.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "path");
       }
@@ -13733,7 +13988,7 @@ class SearchResult implements HasToJson {
       return location == other.location &&
           kind == other.kind &&
           isPotential == other.isPotential &&
-          _listEqual(path, other.path, (Element a, Element b) => a == b);
+          listEqual(path, other.path, (Element a, Element b) => a == b);
     }
     return false;
   }
@@ -13741,11 +13996,11 @@ class SearchResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, location.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, isPotential.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, path.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, location.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, isPotential.hashCode);
+    hash = JenkinsSmiHash.combine(hash, path.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -13761,6 +14016,8 @@ class SearchResult implements HasToJson {
  *   UNKNOWN
  *   WRITE
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class SearchResultKind implements Enum {
   /**
@@ -13851,6 +14108,8 @@ class SearchResultKind implements Enum {
  * enum {
  *   STATUS
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ServerService implements Enum {
   static const STATUS = const ServerService._("STATUS");
@@ -13898,6 +14157,8 @@ class ServerService implements Enum {
  *   "linkedEditGroups": List<LinkedEditGroup>
  *   "selection": optional Position
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class SourceChange implements HasToJson {
   String _message;
@@ -13983,19 +14244,19 @@ class SourceChange implements HasToJson {
     if (json is Map) {
       String message;
       if (json.containsKey("message")) {
-        message = jsonDecoder._decodeString(jsonPath + ".message", json["message"]);
+        message = jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "message");
       }
       List<SourceFileEdit> edits;
       if (json.containsKey("edits")) {
-        edits = jsonDecoder._decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
+        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "edits");
       }
       List<LinkedEditGroup> linkedEditGroups;
       if (json.containsKey("linkedEditGroups")) {
-        linkedEditGroups = jsonDecoder._decodeList(jsonPath + ".linkedEditGroups", json["linkedEditGroups"], (String jsonPath, Object json) => new LinkedEditGroup.fromJson(jsonDecoder, jsonPath, json));
+        linkedEditGroups = jsonDecoder.decodeList(jsonPath + ".linkedEditGroups", json["linkedEditGroups"], (String jsonPath, Object json) => new LinkedEditGroup.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "linkedEditGroups");
       }
@@ -14024,7 +14285,7 @@ class SourceChange implements HasToJson {
    * Adds [edit] to the [FileEdit] for the given [file].
    */
   void addEdit(String file, int fileStamp, SourceEdit edit) =>
-      _addEditToSourceChange(this, file, fileStamp, edit);
+      addEditToSourceChange(this, file, fileStamp, edit);
 
   /**
    * Adds the given [FileEdit].
@@ -14044,7 +14305,7 @@ class SourceChange implements HasToJson {
    * Returns the [FileEdit] for the given [file], maybe `null`.
    */
   SourceFileEdit getFileEdit(String file) =>
-      _getChangeFileEdit(this, file);
+      getChangeFileEdit(this, file);
 
   @override
   String toString() => JSON.encode(toJson());
@@ -14053,8 +14314,8 @@ class SourceChange implements HasToJson {
   bool operator==(other) {
     if (other is SourceChange) {
       return message == other.message &&
-          _listEqual(edits, other.edits, (SourceFileEdit a, SourceFileEdit b) => a == b) &&
-          _listEqual(linkedEditGroups, other.linkedEditGroups, (LinkedEditGroup a, LinkedEditGroup b) => a == b) &&
+          listEqual(edits, other.edits, (SourceFileEdit a, SourceFileEdit b) => a == b) &&
+          listEqual(linkedEditGroups, other.linkedEditGroups, (LinkedEditGroup a, LinkedEditGroup b) => a == b) &&
           selection == other.selection;
     }
     return false;
@@ -14063,11 +14324,11 @@ class SourceChange implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, edits.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, linkedEditGroups.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, selection.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, message.hashCode);
+    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
+    hash = JenkinsSmiHash.combine(hash, linkedEditGroups.hashCode);
+    hash = JenkinsSmiHash.combine(hash, selection.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -14080,6 +14341,8 @@ class SourceChange implements HasToJson {
  *   "replacement": String
  *   "id": optional String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class SourceEdit implements HasToJson {
   /**
@@ -14087,7 +14350,7 @@ class SourceEdit implements HasToJson {
    * applied in the order they appear in [edits].
    */
   static String applySequence(String code, Iterable<SourceEdit> edits) =>
-      _applySequence(code, edits);
+      applySequenceOfEdits(code, edits);
 
   int _offset;
 
@@ -14176,25 +14439,25 @@ class SourceEdit implements HasToJson {
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       String replacement;
       if (json.containsKey("replacement")) {
-        replacement = jsonDecoder._decodeString(jsonPath + ".replacement", json["replacement"]);
+        replacement = jsonDecoder.decodeString(jsonPath + ".replacement", json["replacement"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "replacement");
       }
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       }
       return new SourceEdit(offset, length, replacement, id: id);
     } else {
@@ -14221,7 +14484,7 @@ class SourceEdit implements HasToJson {
   /**
    * Get the result of applying the edit to the given [code].
    */
-  String apply(String code) => _applyEdit(code, this);
+  String apply(String code) => applyEdit(code, this);
 
   @override
   String toString() => JSON.encode(toJson());
@@ -14240,11 +14503,11 @@ class SourceEdit implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, replacement.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, replacement.hashCode);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -14256,6 +14519,8 @@ class SourceEdit implements HasToJson {
  *   "fileStamp": long
  *   "edits": List<SourceEdit>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class SourceFileEdit implements HasToJson {
   String _file;
@@ -14328,19 +14593,19 @@ class SourceFileEdit implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int fileStamp;
       if (json.containsKey("fileStamp")) {
-        fileStamp = jsonDecoder._decodeInt(jsonPath + ".fileStamp", json["fileStamp"]);
+        fileStamp = jsonDecoder.decodeInt(jsonPath + ".fileStamp", json["fileStamp"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "fileStamp");
       }
       List<SourceEdit> edits;
       if (json.containsKey("edits")) {
-        edits = jsonDecoder._decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "edits");
       }
@@ -14361,13 +14626,13 @@ class SourceFileEdit implements HasToJson {
   /**
    * Adds the given [Edit] to the list.
    */
-  void add(SourceEdit edit) => _addEditForSource(this, edit);
+  void add(SourceEdit edit) => addEditForSource(this, edit);
 
   /**
    * Adds the given [Edit]s.
    */
   void addAll(Iterable<SourceEdit> edits) =>
-      _addAllEditsForSource(this, edits);
+      addAllEditsForSource(this, edits);
 
   @override
   String toString() => JSON.encode(toJson());
@@ -14377,7 +14642,7 @@ class SourceFileEdit implements HasToJson {
     if (other is SourceFileEdit) {
       return file == other.file &&
           fileStamp == other.fileStamp &&
-          _listEqual(edits, other.edits, (SourceEdit a, SourceEdit b) => a == b);
+          listEqual(edits, other.edits, (SourceEdit a, SourceEdit b) => a == b);
     }
     return false;
   }
@@ -14385,10 +14650,10 @@ class SourceFileEdit implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, fileStamp.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, edits.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, fileStamp.hashCode);
+    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -14404,6 +14669,8 @@ class SourceFileEdit implements HasToJson {
  *   "mixins": List<int>
  *   "subclasses": List<int>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class TypeHierarchyItem implements HasToJson {
   Element _classElement;
@@ -14565,7 +14832,7 @@ class TypeHierarchyItem implements HasToJson {
       }
       String displayName;
       if (json.containsKey("displayName")) {
-        displayName = jsonDecoder._decodeString(jsonPath + ".displayName", json["displayName"]);
+        displayName = jsonDecoder.decodeString(jsonPath + ".displayName", json["displayName"]);
       }
       Element memberElement;
       if (json.containsKey("memberElement")) {
@@ -14573,23 +14840,23 @@ class TypeHierarchyItem implements HasToJson {
       }
       int superclass;
       if (json.containsKey("superclass")) {
-        superclass = jsonDecoder._decodeInt(jsonPath + ".superclass", json["superclass"]);
+        superclass = jsonDecoder.decodeInt(jsonPath + ".superclass", json["superclass"]);
       }
       List<int> interfaces;
       if (json.containsKey("interfaces")) {
-        interfaces = jsonDecoder._decodeList(jsonPath + ".interfaces", json["interfaces"], jsonDecoder._decodeInt);
+        interfaces = jsonDecoder.decodeList(jsonPath + ".interfaces", json["interfaces"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "interfaces");
       }
       List<int> mixins;
       if (json.containsKey("mixins")) {
-        mixins = jsonDecoder._decodeList(jsonPath + ".mixins", json["mixins"], jsonDecoder._decodeInt);
+        mixins = jsonDecoder.decodeList(jsonPath + ".mixins", json["mixins"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "mixins");
       }
       List<int> subclasses;
       if (json.containsKey("subclasses")) {
-        subclasses = jsonDecoder._decodeList(jsonPath + ".subclasses", json["subclasses"], jsonDecoder._decodeInt);
+        subclasses = jsonDecoder.decodeList(jsonPath + ".subclasses", json["subclasses"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "subclasses");
       }
@@ -14627,9 +14894,9 @@ class TypeHierarchyItem implements HasToJson {
           displayName == other.displayName &&
           memberElement == other.memberElement &&
           superclass == other.superclass &&
-          _listEqual(interfaces, other.interfaces, (int a, int b) => a == b) &&
-          _listEqual(mixins, other.mixins, (int a, int b) => a == b) &&
-          _listEqual(subclasses, other.subclasses, (int a, int b) => a == b);
+          listEqual(interfaces, other.interfaces, (int a, int b) => a == b) &&
+          listEqual(mixins, other.mixins, (int a, int b) => a == b) &&
+          listEqual(subclasses, other.subclasses, (int a, int b) => a == b);
     }
     return false;
   }
@@ -14637,18 +14904,20 @@ class TypeHierarchyItem implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, classElement.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, displayName.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, memberElement.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, superclass.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, interfaces.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, mixins.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, subclasses.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, classElement.hashCode);
+    hash = JenkinsSmiHash.combine(hash, displayName.hashCode);
+    hash = JenkinsSmiHash.combine(hash, memberElement.hashCode);
+    hash = JenkinsSmiHash.combine(hash, superclass.hashCode);
+    hash = JenkinsSmiHash.combine(hash, interfaces.hashCode);
+    hash = JenkinsSmiHash.combine(hash, mixins.hashCode);
+    hash = JenkinsSmiHash.combine(hash, subclasses.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * convertGetterToMethod feedback
+ *
+ * Clients are not expected to subtype this class.
  */
 class ConvertGetterToMethodFeedback {
   @override
@@ -14666,6 +14935,8 @@ class ConvertGetterToMethodFeedback {
 }
 /**
  * convertGetterToMethod options
+ *
+ * Clients are not expected to subtype this class.
  */
 class ConvertGetterToMethodOptions {
   @override
@@ -14683,6 +14954,8 @@ class ConvertGetterToMethodOptions {
 }
 /**
  * convertMethodToGetter feedback
+ *
+ * Clients are not expected to subtype this class.
  */
 class ConvertMethodToGetterFeedback {
   @override
@@ -14700,6 +14973,8 @@ class ConvertMethodToGetterFeedback {
 }
 /**
  * convertMethodToGetter options
+ *
+ * Clients are not expected to subtype this class.
  */
 class ConvertMethodToGetterOptions {
   @override
@@ -14726,6 +15001,8 @@ class ConvertMethodToGetterOptions {
  *   "offsets": List<int>
  *   "lengths": List<int>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJson {
   List<int> _coveringExpressionOffsets;
@@ -14830,31 +15107,31 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
     if (json is Map) {
       List<int> coveringExpressionOffsets;
       if (json.containsKey("coveringExpressionOffsets")) {
-        coveringExpressionOffsets = jsonDecoder._decodeList(jsonPath + ".coveringExpressionOffsets", json["coveringExpressionOffsets"], jsonDecoder._decodeInt);
+        coveringExpressionOffsets = jsonDecoder.decodeList(jsonPath + ".coveringExpressionOffsets", json["coveringExpressionOffsets"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "coveringExpressionOffsets");
       }
       List<int> coveringExpressionLengths;
       if (json.containsKey("coveringExpressionLengths")) {
-        coveringExpressionLengths = jsonDecoder._decodeList(jsonPath + ".coveringExpressionLengths", json["coveringExpressionLengths"], jsonDecoder._decodeInt);
+        coveringExpressionLengths = jsonDecoder.decodeList(jsonPath + ".coveringExpressionLengths", json["coveringExpressionLengths"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "coveringExpressionLengths");
       }
       List<String> names;
       if (json.containsKey("names")) {
-        names = jsonDecoder._decodeList(jsonPath + ".names", json["names"], jsonDecoder._decodeString);
+        names = jsonDecoder.decodeList(jsonPath + ".names", json["names"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "names");
       }
       List<int> offsets;
       if (json.containsKey("offsets")) {
-        offsets = jsonDecoder._decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder._decodeInt);
+        offsets = jsonDecoder.decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offsets");
       }
       List<int> lengths;
       if (json.containsKey("lengths")) {
-        lengths = jsonDecoder._decodeList(jsonPath + ".lengths", json["lengths"], jsonDecoder._decodeInt);
+        lengths = jsonDecoder.decodeList(jsonPath + ".lengths", json["lengths"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "lengths");
       }
@@ -14880,11 +15157,11 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
   @override
   bool operator==(other) {
     if (other is ExtractLocalVariableFeedback) {
-      return _listEqual(coveringExpressionOffsets, other.coveringExpressionOffsets, (int a, int b) => a == b) &&
-          _listEqual(coveringExpressionLengths, other.coveringExpressionLengths, (int a, int b) => a == b) &&
-          _listEqual(names, other.names, (String a, String b) => a == b) &&
-          _listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
-          _listEqual(lengths, other.lengths, (int a, int b) => a == b);
+      return listEqual(coveringExpressionOffsets, other.coveringExpressionOffsets, (int a, int b) => a == b) &&
+          listEqual(coveringExpressionLengths, other.coveringExpressionLengths, (int a, int b) => a == b) &&
+          listEqual(names, other.names, (String a, String b) => a == b) &&
+          listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
+          listEqual(lengths, other.lengths, (int a, int b) => a == b);
     }
     return false;
   }
@@ -14892,12 +15169,12 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, coveringExpressionOffsets.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, coveringExpressionLengths.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, names.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offsets.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, lengths.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, coveringExpressionOffsets.hashCode);
+    hash = JenkinsSmiHash.combine(hash, coveringExpressionLengths.hashCode);
+    hash = JenkinsSmiHash.combine(hash, names.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offsets.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lengths.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -14908,6 +15185,8 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
  *   "name": String
  *   "extractAll": bool
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJson {
   String _name;
@@ -14958,13 +15237,13 @@ class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJso
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
-        name = jsonDecoder._decodeString(jsonPath + ".name", json["name"]);
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "name");
       }
       bool extractAll;
       if (json.containsKey("extractAll")) {
-        extractAll = jsonDecoder._decodeBool(jsonPath + ".extractAll", json["extractAll"]);
+        extractAll = jsonDecoder.decodeBool(jsonPath + ".extractAll", json["extractAll"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "extractAll");
       }
@@ -15001,9 +15280,9 @@ class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJso
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, extractAll.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, extractAll.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -15020,6 +15299,8 @@ class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJso
  *   "offsets": List<int>
  *   "lengths": List<int>
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
   int _offset;
@@ -15174,49 +15455,49 @@ class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       String returnType;
       if (json.containsKey("returnType")) {
-        returnType = jsonDecoder._decodeString(jsonPath + ".returnType", json["returnType"]);
+        returnType = jsonDecoder.decodeString(jsonPath + ".returnType", json["returnType"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "returnType");
       }
       List<String> names;
       if (json.containsKey("names")) {
-        names = jsonDecoder._decodeList(jsonPath + ".names", json["names"], jsonDecoder._decodeString);
+        names = jsonDecoder.decodeList(jsonPath + ".names", json["names"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "names");
       }
       bool canCreateGetter;
       if (json.containsKey("canCreateGetter")) {
-        canCreateGetter = jsonDecoder._decodeBool(jsonPath + ".canCreateGetter", json["canCreateGetter"]);
+        canCreateGetter = jsonDecoder.decodeBool(jsonPath + ".canCreateGetter", json["canCreateGetter"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "canCreateGetter");
       }
       List<RefactoringMethodParameter> parameters;
       if (json.containsKey("parameters")) {
-        parameters = jsonDecoder._decodeList(jsonPath + ".parameters", json["parameters"], (String jsonPath, Object json) => new RefactoringMethodParameter.fromJson(jsonDecoder, jsonPath, json));
+        parameters = jsonDecoder.decodeList(jsonPath + ".parameters", json["parameters"], (String jsonPath, Object json) => new RefactoringMethodParameter.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "parameters");
       }
       List<int> offsets;
       if (json.containsKey("offsets")) {
-        offsets = jsonDecoder._decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder._decodeInt);
+        offsets = jsonDecoder.decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offsets");
       }
       List<int> lengths;
       if (json.containsKey("lengths")) {
-        lengths = jsonDecoder._decodeList(jsonPath + ".lengths", json["lengths"], jsonDecoder._decodeInt);
+        lengths = jsonDecoder.decodeList(jsonPath + ".lengths", json["lengths"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "lengths");
       }
@@ -15248,11 +15529,11 @@ class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
       return offset == other.offset &&
           length == other.length &&
           returnType == other.returnType &&
-          _listEqual(names, other.names, (String a, String b) => a == b) &&
+          listEqual(names, other.names, (String a, String b) => a == b) &&
           canCreateGetter == other.canCreateGetter &&
-          _listEqual(parameters, other.parameters, (RefactoringMethodParameter a, RefactoringMethodParameter b) => a == b) &&
-          _listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
-          _listEqual(lengths, other.lengths, (int a, int b) => a == b);
+          listEqual(parameters, other.parameters, (RefactoringMethodParameter a, RefactoringMethodParameter b) => a == b) &&
+          listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
+          listEqual(lengths, other.lengths, (int a, int b) => a == b);
     }
     return false;
   }
@@ -15260,15 +15541,15 @@ class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, returnType.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, names.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, canCreateGetter.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, parameters.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offsets.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, lengths.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
+    hash = JenkinsSmiHash.combine(hash, names.hashCode);
+    hash = JenkinsSmiHash.combine(hash, canCreateGetter.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offsets.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lengths.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -15282,6 +15563,8 @@ class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
  *   "parameters": List<RefactoringMethodParameter>
  *   "extractAll": bool
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
   String _returnType;
@@ -15398,31 +15681,31 @@ class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
     if (json is Map) {
       String returnType;
       if (json.containsKey("returnType")) {
-        returnType = jsonDecoder._decodeString(jsonPath + ".returnType", json["returnType"]);
+        returnType = jsonDecoder.decodeString(jsonPath + ".returnType", json["returnType"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "returnType");
       }
       bool createGetter;
       if (json.containsKey("createGetter")) {
-        createGetter = jsonDecoder._decodeBool(jsonPath + ".createGetter", json["createGetter"]);
+        createGetter = jsonDecoder.decodeBool(jsonPath + ".createGetter", json["createGetter"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "createGetter");
       }
       String name;
       if (json.containsKey("name")) {
-        name = jsonDecoder._decodeString(jsonPath + ".name", json["name"]);
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "name");
       }
       List<RefactoringMethodParameter> parameters;
       if (json.containsKey("parameters")) {
-        parameters = jsonDecoder._decodeList(jsonPath + ".parameters", json["parameters"], (String jsonPath, Object json) => new RefactoringMethodParameter.fromJson(jsonDecoder, jsonPath, json));
+        parameters = jsonDecoder.decodeList(jsonPath + ".parameters", json["parameters"], (String jsonPath, Object json) => new RefactoringMethodParameter.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "parameters");
       }
       bool extractAll;
       if (json.containsKey("extractAll")) {
-        extractAll = jsonDecoder._decodeBool(jsonPath + ".extractAll", json["extractAll"]);
+        extractAll = jsonDecoder.decodeBool(jsonPath + ".extractAll", json["extractAll"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "extractAll");
       }
@@ -15456,7 +15739,7 @@ class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
       return returnType == other.returnType &&
           createGetter == other.createGetter &&
           name == other.name &&
-          _listEqual(parameters, other.parameters, (RefactoringMethodParameter a, RefactoringMethodParameter b) => a == b) &&
+          listEqual(parameters, other.parameters, (RefactoringMethodParameter a, RefactoringMethodParameter b) => a == b) &&
           extractAll == other.extractAll;
     }
     return false;
@@ -15465,12 +15748,12 @@ class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, returnType.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, createGetter.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, parameters.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, extractAll.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
+    hash = JenkinsSmiHash.combine(hash, createGetter.hashCode);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, extractAll.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -15481,6 +15764,8 @@ class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
  *   "name": String
  *   "occurrences": int
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class InlineLocalVariableFeedback extends RefactoringFeedback implements HasToJson {
   String _name;
@@ -15525,13 +15810,13 @@ class InlineLocalVariableFeedback extends RefactoringFeedback implements HasToJs
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
-        name = jsonDecoder._decodeString(jsonPath + ".name", json["name"]);
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "name");
       }
       int occurrences;
       if (json.containsKey("occurrences")) {
-        occurrences = jsonDecoder._decodeInt(jsonPath + ".occurrences", json["occurrences"]);
+        occurrences = jsonDecoder.decodeInt(jsonPath + ".occurrences", json["occurrences"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "occurrences");
       }
@@ -15563,13 +15848,15 @@ class InlineLocalVariableFeedback extends RefactoringFeedback implements HasToJs
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, occurrences.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, occurrences.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * inlineLocalVariable options
+ *
+ * Clients are not expected to subtype this class.
  */
 class InlineLocalVariableOptions {
   @override
@@ -15594,6 +15881,8 @@ class InlineLocalVariableOptions {
  *   "methodName": String
  *   "isDeclaration": bool
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class InlineMethodFeedback extends RefactoringFeedback implements HasToJson {
   String _className;
@@ -15657,17 +15946,17 @@ class InlineMethodFeedback extends RefactoringFeedback implements HasToJson {
     if (json is Map) {
       String className;
       if (json.containsKey("className")) {
-        className = jsonDecoder._decodeString(jsonPath + ".className", json["className"]);
+        className = jsonDecoder.decodeString(jsonPath + ".className", json["className"]);
       }
       String methodName;
       if (json.containsKey("methodName")) {
-        methodName = jsonDecoder._decodeString(jsonPath + ".methodName", json["methodName"]);
+        methodName = jsonDecoder.decodeString(jsonPath + ".methodName", json["methodName"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "methodName");
       }
       bool isDeclaration;
       if (json.containsKey("isDeclaration")) {
-        isDeclaration = jsonDecoder._decodeBool(jsonPath + ".isDeclaration", json["isDeclaration"]);
+        isDeclaration = jsonDecoder.decodeBool(jsonPath + ".isDeclaration", json["isDeclaration"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "isDeclaration");
       }
@@ -15703,10 +15992,10 @@ class InlineMethodFeedback extends RefactoringFeedback implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, className.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, methodName.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, isDeclaration.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, className.hashCode);
+    hash = JenkinsSmiHash.combine(hash, methodName.hashCode);
+    hash = JenkinsSmiHash.combine(hash, isDeclaration.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -15717,6 +16006,8 @@ class InlineMethodFeedback extends RefactoringFeedback implements HasToJson {
  *   "deleteSource": bool
  *   "inlineAll": bool
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class InlineMethodOptions extends RefactoringOptions implements HasToJson {
   bool _deleteSource;
@@ -15765,13 +16056,13 @@ class InlineMethodOptions extends RefactoringOptions implements HasToJson {
     if (json is Map) {
       bool deleteSource;
       if (json.containsKey("deleteSource")) {
-        deleteSource = jsonDecoder._decodeBool(jsonPath + ".deleteSource", json["deleteSource"]);
+        deleteSource = jsonDecoder.decodeBool(jsonPath + ".deleteSource", json["deleteSource"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "deleteSource");
       }
       bool inlineAll;
       if (json.containsKey("inlineAll")) {
-        inlineAll = jsonDecoder._decodeBool(jsonPath + ".inlineAll", json["inlineAll"]);
+        inlineAll = jsonDecoder.decodeBool(jsonPath + ".inlineAll", json["inlineAll"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "inlineAll");
       }
@@ -15808,13 +16099,15 @@ class InlineMethodOptions extends RefactoringOptions implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, deleteSource.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, inlineAll.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, deleteSource.hashCode);
+    hash = JenkinsSmiHash.combine(hash, inlineAll.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * moveFile feedback
+ *
+ * Clients are not expected to subtype this class.
  */
 class MoveFileFeedback {
   @override
@@ -15837,6 +16130,8 @@ class MoveFileFeedback {
  * {
  *   "newFile": FilePath
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class MoveFileOptions extends RefactoringOptions implements HasToJson {
   String _newFile;
@@ -15865,7 +16160,7 @@ class MoveFileOptions extends RefactoringOptions implements HasToJson {
     if (json is Map) {
       String newFile;
       if (json.containsKey("newFile")) {
-        newFile = jsonDecoder._decodeString(jsonPath + ".newFile", json["newFile"]);
+        newFile = jsonDecoder.decodeString(jsonPath + ".newFile", json["newFile"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "newFile");
       }
@@ -15900,8 +16195,8 @@ class MoveFileOptions extends RefactoringOptions implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, newFile.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, newFile.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -15914,6 +16209,8 @@ class MoveFileOptions extends RefactoringOptions implements HasToJson {
  *   "elementKindName": String
  *   "oldName": String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class RenameFeedback extends RefactoringFeedback implements HasToJson {
   int _offset;
@@ -15992,25 +16289,25 @@ class RenameFeedback extends RefactoringFeedback implements HasToJson {
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       String elementKindName;
       if (json.containsKey("elementKindName")) {
-        elementKindName = jsonDecoder._decodeString(jsonPath + ".elementKindName", json["elementKindName"]);
+        elementKindName = jsonDecoder.decodeString(jsonPath + ".elementKindName", json["elementKindName"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "elementKindName");
       }
       String oldName;
       if (json.containsKey("oldName")) {
-        oldName = jsonDecoder._decodeString(jsonPath + ".oldName", json["oldName"]);
+        oldName = jsonDecoder.decodeString(jsonPath + ".oldName", json["oldName"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "oldName");
       }
@@ -16046,11 +16343,11 @@ class RenameFeedback extends RefactoringFeedback implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, elementKindName.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, oldName.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, elementKindName.hashCode);
+    hash = JenkinsSmiHash.combine(hash, oldName.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -16060,6 +16357,8 @@ class RenameFeedback extends RefactoringFeedback implements HasToJson {
  * {
  *   "newName": String
  * }
+ *
+ * Clients are not expected to subtype this class.
  */
 class RenameOptions extends RefactoringOptions implements HasToJson {
   String _newName;
@@ -16088,7 +16387,7 @@ class RenameOptions extends RefactoringOptions implements HasToJson {
     if (json is Map) {
       String newName;
       if (json.containsKey("newName")) {
-        newName = jsonDecoder._decodeString(jsonPath + ".newName", json["newName"]);
+        newName = jsonDecoder.decodeString(jsonPath + ".newName", json["newName"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "newName");
       }
@@ -16123,7 +16422,7 @@ class RenameOptions extends RefactoringOptions implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, newName.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, newName.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }

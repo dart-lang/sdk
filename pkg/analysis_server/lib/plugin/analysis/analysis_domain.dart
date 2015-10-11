@@ -29,8 +29,9 @@ library analysis_server.plugin.analysis.analysis_domain;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    show AnalysisService;
 import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analysis_server/src/protocol.dart' show AnalysisService;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, ComputedResult;
 import 'package:analyzer/src/generated/source.dart' show Source;

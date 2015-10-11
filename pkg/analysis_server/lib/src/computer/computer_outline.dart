@@ -4,8 +4,8 @@
 
 library computer.outline;
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
@@ -346,13 +346,6 @@ class DartUnitOutlineComputer {
         children: nullIfEmpty(unitContents));
   }
 
-  static String _getTypeParametersStr(TypeParameterList parameters) {
-    if (parameters == null) {
-      return null;
-    }
-    return parameters.toSource();
-  }
-
   Outline _newVariableOutline(String typeName, ElementKind kind,
       VariableDeclaration variable, bool isStatic) {
     SimpleIdentifier nameNode = variable.name;
@@ -372,6 +365,13 @@ class DartUnitOutlineComputer {
     Outline outline =
         new Outline(element, sourceRegion.offset, sourceRegion.length);
     return outline;
+  }
+
+  static String _getTypeParametersStr(TypeParameterList parameters) {
+    if (parameters == null) {
+      return null;
+    }
+    return parameters.toSource();
   }
 
   /**

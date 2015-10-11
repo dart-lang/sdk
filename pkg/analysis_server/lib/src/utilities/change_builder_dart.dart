@@ -6,7 +6,7 @@ library analysis_server.src.utilities.change_builder_dart;
 
 import 'package:analysis_server/plugin/edit/utilities/change_builder_core.dart';
 import 'package:analysis_server/plugin/edit/utilities/change_builder_dart.dart';
-import 'package:analysis_server/src/protocol.dart' hide ElementKind;
+import 'package:analysis_server/plugin/protocol/protocol.dart' hide ElementKind;
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/change_builder_core.dart';

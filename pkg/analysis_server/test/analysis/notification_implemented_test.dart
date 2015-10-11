@@ -6,8 +6,8 @@ library test.analysis.notification.implemented;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -321,7 +321,7 @@ class B extends A {
         return new Future.value();
       }
       return new Future.delayed(
-          new Duration(milliseconds:1), () => waitForNotification(times - 1));
+          new Duration(milliseconds: 1), () => waitForNotification(times - 1));
     }
     return waitForNotification(30000);
   }

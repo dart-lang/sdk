@@ -6,7 +6,7 @@ library test.services.refactoring.convert_getter_to_method;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' hide ElementKind;
+import 'package:analysis_server/plugin/protocol/protocol.dart' hide ElementKind;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/src/generated/element.dart';

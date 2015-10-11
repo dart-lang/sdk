@@ -9,11 +9,12 @@ import 'dart:io';
 @MirrorsUsed(targets: 'mocks', override: '*')
 import 'dart:mirrors';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    hide Element, ElementKind;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
-import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analyzer/file_system/file_system.dart' as resource;
 import 'package:analyzer/file_system/memory_file_system.dart' as resource;
 import 'package:analyzer/source/package_map_provider.dart';

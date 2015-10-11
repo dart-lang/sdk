@@ -2,231 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library protocol;
+/**
+ * Support for client code that needs to interact with the requests, responses
+ * and notifications that are part of the analysis server's wire protocol.
+ */
+library analysis_server.plugin.protocol.protocol;
 
 import 'dart:collection';
-import 'dart:convert';
+import 'dart:convert' hide JsonDecoder;
+
+import 'package:analysis_server/src/protocol/protocol_internal.dart';
 
 part 'generated_protocol.dart';
 
-final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
-    new HashMap<String, RefactoringKind>();
-
 /**
- * Translate the input [map], applying [keyCallback] to all its keys, and
- * [valueCallback] to all its values.
- */
-mapMap(Map map, {dynamic keyCallback(key), dynamic valueCallback(value)}) {
-  Map result = {};
-  map.forEach((key, value) {
-    if (keyCallback != null) {
-      key = keyCallback(key);
-    }
-    if (valueCallback != null) {
-      value = valueCallback(value);
-    }
-    result[key] = value;
-  });
-  return result;
-}
-
-/**
- * Adds the given [sourceEdits] to the list in [sourceFileEdit].
- */
-void _addAllEditsForSource(
-    SourceFileEdit sourceFileEdit, Iterable<SourceEdit> edits) {
-  edits.forEach(sourceFileEdit.add);
-}
-
-/**
- * Adds the given [sourceEdit] to the list in [sourceFileEdit].
- */
-void _addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
-  List<SourceEdit> edits = sourceFileEdit.edits;
-  int index = 0;
-  while (index < edits.length && edits[index].offset > sourceEdit.offset) {
-    index++;
-  }
-  edits.insert(index, sourceEdit);
-}
-
-/**
- * Adds [edit] to the [FileEdit] for the given [file].
- */
-void _addEditToSourceChange(
-    SourceChange change, String file, int fileStamp, SourceEdit edit) {
-  SourceFileEdit fileEdit = change.getFileEdit(file);
-  if (fileEdit == null) {
-    fileEdit = new SourceFileEdit(file, fileStamp);
-    change.addFileEdit(fileEdit);
-  }
-  fileEdit.add(edit);
-}
-
-/**
- * Get the result of applying the edit to the given [code].  Access via
- * SourceEdit.apply().
- */
-String _applyEdit(String code, SourceEdit edit) {
-  if (edit.length < 0) {
-    throw new RangeError('length is negative');
-  }
-  return code.replaceRange(edit.offset, edit.end, edit.replacement);
-}
-
-/**
- * Get the result of applying a set of [edits] to the given [code].  Edits
- * are applied in the order they appear in [edits].  Access via
- * SourceEdit.applySequence().
- */
-String _applySequence(String code, Iterable<SourceEdit> edits) {
-  edits.forEach((SourceEdit edit) {
-    code = edit.apply(code);
-  });
-  return code;
-}
-
-/**
- * Returns the [FileEdit] for the given [file], maybe `null`.
- */
-SourceFileEdit _getChangeFileEdit(SourceChange change, String file) {
-  for (SourceFileEdit fileEdit in change.edits) {
-    if (fileEdit.file == file) {
-      return fileEdit;
-    }
-  }
-  return null;
-}
-
-/**
- * Compare the lists [listA] and [listB], using [itemEqual] to compare
- * list elements.
- */
-bool _listEqual(List listA, List listB, bool itemEqual(a, b)) {
-  if (listA == null) {
-    return listB == null;
-  }
-  if (listB == null) {
-    return false;
-  }
-  if (listA.length != listB.length) {
-    return false;
-  }
-  for (int i = 0; i < listA.length; i++) {
-    if (!itemEqual(listA[i], listB[i])) {
-      return false;
-    }
-  }
-  return true;
-}
-
-/**
- * Compare the maps [mapA] and [mapB], using [valueEqual] to compare map
- * values.
- */
-bool _mapEqual(Map mapA, Map mapB, bool valueEqual(a, b)) {
-  if (mapA == null) {
-    return mapB == null;
-  }
-  if (mapB == null) {
-    return false;
-  }
-  if (mapA.length != mapB.length) {
-    return false;
-  }
-  for (var key in mapA.keys) {
-    if (!mapB.containsKey(key)) {
-      return false;
-    }
-    if (!valueEqual(mapA[key], mapB[key])) {
-      return false;
-    }
-  }
-  return true;
-}
-
-RefactoringProblemSeverity _maxRefactoringProblemSeverity(
-    RefactoringProblemSeverity a, RefactoringProblemSeverity b) {
-  if (b == null) {
-    return a;
-  }
-  if (a == null) {
-    return b;
-  } else if (a == RefactoringProblemSeverity.INFO) {
-    return b;
-  } else if (a == RefactoringProblemSeverity.WARNING) {
-    if (b == RefactoringProblemSeverity.ERROR ||
-        b == RefactoringProblemSeverity.FATAL) {
-      return b;
-    }
-  } else if (a == RefactoringProblemSeverity.ERROR) {
-    if (b == RefactoringProblemSeverity.FATAL) {
-      return b;
-    }
-  }
-  return a;
-}
-
-/**
- * Create a [RefactoringFeedback] corresponding the given [kind].
- */
-RefactoringFeedback _refactoringFeedbackFromJson(
-    JsonDecoder jsonDecoder, String jsonPath, Object json, Map feedbackJson) {
-  RefactoringKind kind = jsonDecoder.refactoringKind;
-  if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-    return new ExtractLocalVariableFeedback.fromJson(
-        jsonDecoder, jsonPath, json);
-  }
-  if (kind == RefactoringKind.EXTRACT_METHOD) {
-    return new ExtractMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
-  }
-  if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
-    return new InlineLocalVariableFeedback.fromJson(
-        jsonDecoder, jsonPath, json);
-  }
-  if (kind == RefactoringKind.INLINE_METHOD) {
-    return new InlineMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
-  }
-  if (kind == RefactoringKind.RENAME) {
-    return new RenameFeedback.fromJson(jsonDecoder, jsonPath, json);
-  }
-  return null;
-}
-
-/**
- * Create a [RefactoringOptions] corresponding the given [kind].
- */
-RefactoringOptions _refactoringOptionsFromJson(JsonDecoder jsonDecoder,
-    String jsonPath, Object json, RefactoringKind kind) {
-  if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-    return new ExtractLocalVariableOptions.fromJson(
-        jsonDecoder, jsonPath, json);
-  }
-  if (kind == RefactoringKind.EXTRACT_METHOD) {
-    return new ExtractMethodOptions.fromJson(jsonDecoder, jsonPath, json);
-  }
-  if (kind == RefactoringKind.INLINE_METHOD) {
-    return new InlineMethodOptions.fromJson(jsonDecoder, jsonPath, json);
-  }
-  if (kind == RefactoringKind.MOVE_FILE) {
-    return new MoveFileOptions.fromJson(jsonDecoder, jsonPath, json);
-  }
-  if (kind == RefactoringKind.RENAME) {
-    return new RenameOptions.fromJson(jsonDecoder, jsonPath, json);
-  }
-  return null;
-}
-
-/**
- * Type of callbacks used to decode parts of JSON objects.  [jsonPath] is a
- * string describing the part of the JSON object being decoded, and [value] is
- * the part to decode.
- */
-typedef Object JsonDecoderCallback(String jsonPath, Object value);
-
-/**
- * Instances of the class [DomainHandler] implement a [RequestHandler] and
- * also startup and shutdown methods.
+ * A [RequestHandler] that supports [startup] and [shutdown] methods.
+ *
+ * Clients are not expected to subtype this class.
  */
 abstract class DomainHandler extends RequestHandler {
   /**
@@ -244,167 +36,22 @@ abstract class DomainHandler extends RequestHandler {
 }
 
 /**
- * Classes implementing [Enum] represent enumerated types in the protocol.
+ * An interface for enumerated types in the protocol.
+ *
+ * Clients are not expected to subtype this class.
  */
 abstract class Enum {
   /**
-   * The name of the enumerated value.  This should match the name of the
+   * The name of the enumerated value. This should match the name of the
    * static getter which provides access to this enumerated value.
    */
   String get name;
 }
 
 /**
- * Instances of the class [HasToJson] implement [toJson] method that returns
- * a JSON presentation.
- */
-abstract class HasToJson {
-  /**
-   * Returns a JSON presentation of the object.
-   */
-  Map<String, Object> toJson();
-}
-
-/**
- * Base class for decoding JSON objects.  The derived class must implement
- * error reporting logic.
- */
-abstract class JsonDecoder {
-  /**
-   * Retrieve the RefactoringKind that should be assumed when decoding
-   * refactoring feedback objects, or null if no refactoring feedback object is
-   * expected to be encountered.
-   */
-  RefactoringKind get refactoringKind;
-
-  /**
-   * Create an exception to throw if the JSON object at [jsonPath] fails to
-   * match the API definition of [expected].
-   */
-  dynamic mismatch(String jsonPath, String expected, [Object actual]);
-
-  /**
-   * Create an exception to throw if the JSON object at [jsonPath] is missing
-   * the key [key].
-   */
-  dynamic missingKey(String jsonPath, String key);
-
-  /**
-   * Decode a JSON object that is expected to be a boolean.  The strings "true"
-   * and "false" are also accepted.
-   */
-  bool _decodeBool(String jsonPath, Object json) {
-    if (json is bool) {
-      return json;
-    } else if (json == 'true') {
-      return true;
-    } else if (json == 'false') {
-      return false;
-    }
-    throw mismatch(jsonPath, 'bool', json);
-  }
-
-  /**
-   * Decode a JSON object that is expected to be an integer.  A string
-   * representation of an integer is also accepted.
-   */
-  int _decodeInt(String jsonPath, Object json) {
-    if (json is int) {
-      return json;
-    } else if (json is String) {
-      return int.parse(json, onError: (String value) {
-        throw mismatch(jsonPath, 'int', json);
-      });
-    }
-    throw mismatch(jsonPath, 'int', json);
-  }
-
-  /**
-   * Decode a JSON object that is expected to be a List.  [decoder] is used to
-   * decode the items in the list.
-   */
-  List _decodeList(String jsonPath, Object json,
-      [JsonDecoderCallback decoder]) {
-    if (json == null) {
-      return [];
-    } else if (json is List) {
-      List result = [];
-      for (int i = 0; i < json.length; i++) {
-        result.add(decoder('$jsonPath[$i]', json[i]));
-      }
-      return result;
-    } else {
-      throw mismatch(jsonPath, 'List', json);
-    }
-  }
-
-  /**
-   * Decode a JSON object that is expected to be a Map.  [keyDecoder] is used
-   * to decode the keys, and [valueDecoder] is used to decode the values.
-   */
-  Map _decodeMap(String jsonPath, Object json,
-      {JsonDecoderCallback keyDecoder, JsonDecoderCallback valueDecoder}) {
-    if (json == null) {
-      return {};
-    } else if (json is Map) {
-      Map result = {};
-      json.forEach((String key, value) {
-        Object decodedKey;
-        if (keyDecoder != null) {
-          decodedKey = keyDecoder('$jsonPath.key', key);
-        } else {
-          decodedKey = key;
-        }
-        if (valueDecoder != null) {
-          value = valueDecoder('$jsonPath[${JSON.encode(key)}]', value);
-        }
-        result[decodedKey] = value;
-      });
-      return result;
-    } else {
-      throw mismatch(jsonPath, 'Map', json);
-    }
-  }
-
-  /**
-   * Decode a JSON object that is expected to be a string.
-   */
-  String _decodeString(String jsonPath, Object json) {
-    if (json is String) {
-      return json;
-    } else {
-      throw mismatch(jsonPath, 'String', json);
-    }
-  }
-
-  /**
-   * Decode a JSON object that is expected to be one of several choices,
-   * where the choices are disambiguated by the contents of the field [field].
-   * [decoders] is a map from each possible string in the field to the decoder
-   * that should be used to decode the JSON object.
-   */
-  Object _decodeUnion(String jsonPath, Map json, String field,
-      Map<String, JsonDecoderCallback> decoders) {
-    if (json is Map) {
-      if (!json.containsKey(field)) {
-        throw missingKey(jsonPath, field);
-      }
-      var disambiguatorPath = '$jsonPath[${JSON.encode(field)}]';
-      String disambiguator = _decodeString(disambiguatorPath, json[field]);
-      if (!decoders.containsKey(disambiguator)) {
-        throw mismatch(
-            disambiguatorPath, 'One of: ${decoders.keys.toList()}', json);
-      }
-      return decoders[disambiguator](jsonPath, json);
-    } else {
-      throw mismatch(jsonPath, 'Map', json);
-    }
-  }
-}
-
-/**
- * Instances of the class [Notification] represent a notification from the
- * server about an event that occurred.
+ * A notification from the server about an event that occurred.
+ *
+ * Clients are not expected to subtype this class.
  */
 class Notification {
   /**
@@ -425,7 +72,7 @@ class Notification {
 
   /**
    * A table mapping the names of notification parameters to their values, or
-   * null if there are no notification parameters.
+   * `null` if there are no notification parameters.
    */
   Map<String, Object> _params;
 
@@ -437,7 +84,7 @@ class Notification {
   Notification(this.event, [this._params]);
 
   /**
-   * Initialize a newly created instance based upon the given JSON data
+   * Initialize a newly created instance based on the given JSON data.
    */
   factory Notification.fromJson(Map<String, Object> json) {
     return new Notification(
@@ -459,7 +106,9 @@ class Notification {
 }
 
 /**
- * Instances of the class [Request] represent a request that was received.
+ * A request that was received from the client.
+ *
+ * Clients are not expected to subtype this class.
  */
 class Request {
   /**
@@ -478,8 +127,8 @@ class Request {
   static const String PARAMS = 'params';
 
   /**
-   * The name of the optional JSON attribute indicating the time
-   * (milliseconds since epoch) at which the client made the request.
+   * The name of the optional JSON attribute indicating the time (milliseconds
+   * since epoch) at which the client made the request.
    */
   static const String CLIENT_REQUEST_TIME = 'clientRequestTime';
 
@@ -528,9 +177,10 @@ class Request {
    *   }
    *
    * where both the parameters and clientRequestTime are optional.
-   * The parameters can contain any number of name/value pairs.
-   * The clientRequestTime must be an int representing the time at which
-   * the client issued the request (milliseconds since epoch).
+   *
+   * The parameters can contain any number of name/value pairs. The
+   * clientRequestTime must be an int representing the time at which the client
+   * issued the request (milliseconds since epoch).
    */
   factory Request.fromJson(Map<String, dynamic> result) {
     var id = result[Request.ID];
@@ -565,9 +215,10 @@ class Request {
    *   }
    *
    * where both the parameters and clientRequestTime are optional.
-   * The parameters can contain any number of name/value pairs.
-   * The clientRequestTime must be an int representing the time at which
-   * the client issued the request (milliseconds since epoch).
+   *
+   * The parameters can contain any number of name/value pairs. The
+   * clientRequestTime must be an int representing the time at which the client
+   * issued the request (milliseconds since epoch).
    */
   factory Request.fromString(String data) {
     try {
@@ -600,47 +251,10 @@ class Request {
 }
 
 /**
- * JsonDecoder for decoding requests.  Errors are reporting by throwing a
- * [RequestFailure].
- */
-class RequestDecoder extends JsonDecoder {
-  /**
-   * The request being deserialized.
-   */
-  final Request _request;
-
-  RequestDecoder(this._request);
-
-  RefactoringKind get refactoringKind {
-    // Refactoring feedback objects should never appear in requests.
-    return null;
-  }
-
-  @override
-  dynamic mismatch(String jsonPath, String expected, [Object actual]) {
-    StringBuffer buffer = new StringBuffer();
-    buffer.write('Expected to be ');
-    buffer.write(expected);
-    if (actual != null) {
-      buffer.write('; found "');
-      buffer.write(JSON.encode(actual));
-      buffer.write('"');
-    }
-    return new RequestFailure(
-        new Response.invalidParameter(_request, jsonPath, buffer.toString()));
-  }
-
-  @override
-  dynamic missingKey(String jsonPath, String key) {
-    return new RequestFailure(new Response.invalidParameter(
-        _request, jsonPath, 'Expected to contain key ${JSON.encode(key)}'));
-  }
-}
-
-/**
- * Instances of the class [RequestFailure] represent an exception that occurred
- * during the handling of a request that requires that an error be returned to
- * the client.
+ * An exception that occurred during the handling of a request that requires
+ * that an error be returned to the client.
+ *
+ * Clients are not expected to subtype this class.
  */
 class RequestFailure implements Exception {
   /**
@@ -655,8 +269,9 @@ class RequestFailure implements Exception {
 }
 
 /**
- * Instances of the class [RequestHandler] implement a handler that can handle
- * requests and produce responses for them.
+ * An object that can handle requests and produce responses for them.
+ *
+ * Clients are not expected to subtype this class.
  */
 abstract class RequestHandler {
   /**
@@ -669,7 +284,9 @@ abstract class RequestHandler {
 }
 
 /**
- * Instances of the class [Response] represent a response to a request.
+ * A response to a request.
+ *
+ * Clients are not expected to subtype this class.
  */
 class Response {
   /**
@@ -708,7 +325,7 @@ class Response {
 
   /**
    * A table mapping the names of result fields to their values.  Should be
-   * null if there is no result to send.
+   * `null` if there is no result to send.
    */
   Map<String, Object> _result;
 
@@ -722,8 +339,8 @@ class Response {
       : _result = result;
 
   /**
-   * Initialize a newly created instance to represent the
-   * FILE_NOT_ANALYZED error condition.
+   * Initialize a newly created instance to represent the FILE_NOT_ANALYZED
+   * error condition.
    */
   Response.fileNotAnalyzed(Request request, String file)
       : this(request.id,
@@ -749,7 +366,7 @@ class Response {
                 'Error during `edit.format`: source contains syntax errors.'));
 
   /**
-   * Initialize a newly created instance based upon the given JSON data
+   * Initialize a newly created instance based on the given JSON data.
    */
   factory Response.fromJson(Map<String, Object> json) {
     try {
@@ -921,6 +538,10 @@ class Response {
             error: new RequestError(
                 RequestErrorCode.UNKNOWN_SOURCE, 'Unknown source'));
 
+  /**
+   * Initialize a newly created instance to represent an error condition caused
+   * by a [request] for a service that is not supported.
+   */
   Response.unsupportedFeature(String requestId, String message)
       : this(requestId,
             error: new RequestError(
@@ -941,59 +562,4 @@ class Response {
     }
     return jsonObject;
   }
-}
-
-/**
- * JsonDecoder for decoding responses from the server.  This is intended to be
- * used only for testing.  Errors are reported using bare [Exception] objects.
- */
-class ResponseDecoder extends JsonDecoder {
-  final RefactoringKind refactoringKind;
-
-  ResponseDecoder(this.refactoringKind);
-
-  @override
-  dynamic mismatch(String jsonPath, String expected, [Object actual]) {
-    StringBuffer buffer = new StringBuffer();
-    buffer.write('Expected ');
-    buffer.write(expected);
-    if (actual != null) {
-      buffer.write(' found "');
-      buffer.write(JSON.encode(actual));
-      buffer.write('"');
-    }
-    buffer.write(' at ');
-    buffer.write(jsonPath);
-    return new Exception(buffer.toString());
-  }
-
-  @override
-  dynamic missingKey(String jsonPath, String key) {
-    return new Exception('Missing key $key at $jsonPath');
-  }
-}
-
-/**
- * Jenkins hash function, optimized for small integers.  Borrowed from
- * sdk/lib/math/jenkins_smi_hash.dart.
- *
- * TODO(paulberry): Move to somewhere that can be shared with other code.
- */
-class _JenkinsSmiHash {
-  static int combine(int hash, int value) {
-    hash = 0x1fffffff & (hash + value);
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-
-  static int hash2(a, b) => finish(combine(combine(0, a), b));
-
-  static int hash4(a, b, c, d) =>
-      finish(combine(combine(combine(combine(0, a), b), c), d));
 }
