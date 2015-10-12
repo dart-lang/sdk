@@ -6,6 +6,7 @@ library test.services.refactoring.rename_constructor;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -197,6 +198,11 @@ main() {
   new A();
 }
 ''');
+  }
+
+  void test_newInstance_nullElement() {
+    RenameRefactoring refactoring = new RenameRefactoring(searchEngine, null);
+    expect(refactoring, isNull);
   }
 
   void _createConstructorDeclarationRefactoring(String search) {

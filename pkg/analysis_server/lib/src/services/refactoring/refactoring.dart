@@ -356,6 +356,9 @@ abstract class RenameRefactoring implements Refactoring {
    * type.
    */
   factory RenameRefactoring(SearchEngine searchEngine, Element element) {
+    if (element == null) {
+      return null;
+    }
     if (element is PropertyAccessorElement) {
       element = (element as PropertyAccessorElement).variable;
     }
