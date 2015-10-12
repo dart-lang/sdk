@@ -84,8 +84,8 @@ main() {
   print(list);
 }""", r"""
 function() {
-  var list = [1, 2, 3], v0 = 1;
-  if (v0 < 0 || v0 >= list.length)
+  var v0 = 1, list = [1, 2, 3];
+  if (v0 >= list.length)
     H.ioore(list, v0);
   list[v0] = 6;
   P.print(list);

@@ -38,6 +38,10 @@ class TypeMaskSystem {
   TypeMask get nullType => inferrer.nullType;
   TypeMask get extendableNativeListType => backend.extendableArrayType;
 
+  TypeMask get uint31Type => inferrer.uint31Type;
+  TypeMask get uint32Type => inferrer.uint32Type;
+  TypeMask get uintType => inferrer.positiveIntType;
+
   TypeMask numStringBoolType;
   TypeMask interceptorType;
 
@@ -197,6 +201,21 @@ class TypeMaskSystem {
   bool isDefinitelyInt(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
     return t.satisfies(backend.jsIntClass, classWorld);
+  }
+
+  bool isDefinitelyUint31(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.satisfies(backend.jsUInt31Class, classWorld);
+  }
+
+  bool isDefinitelyUint32(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.satisfies(backend.jsUInt32Class, classWorld);
+  }
+
+  bool isDefinitelyUint(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.satisfies(backend.jsPositiveIntClass, classWorld);
   }
 
   // TODO(sra): Find a better name.  'NativeList' is a bad name because there
