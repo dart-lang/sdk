@@ -2503,19 +2503,19 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
 
 
 IsolateSpawnState::~IsolateSpawnState() {
-  delete script_url_;
-  delete package_root_;
+  delete[] script_url_;
+  delete[] package_root_;
   for (int i = 0; package_map_ != NULL; i++) {
     if (package_map_[i] != NULL) {
-      delete package_map_[i];
+      delete[] package_map_[i];
     } else {
-      delete package_map_;
+      delete[] package_map_;
       package_map_ = NULL;
     }
   }
-  delete library_url_;
-  delete class_name_;
-  delete function_name_;
+  delete[] library_url_;
+  delete[] class_name_;
+  delete[] function_name_;
   free(serialized_args_);
   free(serialized_message_);
 }
