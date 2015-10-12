@@ -1284,7 +1284,8 @@ abstract class ConstructorElement extends FunctionElement
   /// `null` otherwise.
   ConstantConstructor get constantConstructor;
 
-  /// `true` if this constructor is either `bool.fromEnviroment`
+  /// `true` if this constructor is one of `bool.fromEnvironment`,
+  /// `int.fromEnvironment`, or `String.fromEnvironment`.
   bool get isFromEnvironmentConstructor;
 
   /// Use [enclosingClass] instead.

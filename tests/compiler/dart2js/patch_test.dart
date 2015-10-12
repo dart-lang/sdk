@@ -953,7 +953,9 @@ Future testEffectiveTarget() async {
     """;
   String patch = """
     @patch class B {
+      @patch
       B.patchTarget() : super();
+      @patch
       factory B.reflectBack() = B.originTarget;
     }
     """;
@@ -1025,7 +1027,7 @@ main() {
 
     await testPatchAndSelector();
 
-    await testEffectiveTarget(); /// bug: ok
+    await testEffectiveTarget();
 
     await testAnalyzeAllInjectedMembers();
     await testTypecheckPatchedMembers();

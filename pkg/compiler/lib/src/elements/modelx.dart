@@ -2227,7 +2227,11 @@ abstract class ConstructorElementX extends FunctionElementX
       return immediateRedirectionTarget;
     }
     assert(!isRedirectingFactory || internalEffectiveTarget != null);
-    return isRedirectingFactory ? internalEffectiveTarget : this;
+    if (isRedirectingFactory) return internalEffectiveTarget;
+    if (isPatched) {
+      return internalEffectiveTarget ?? this;
+    }
+    return this;
   }
 
   InterfaceType computeEffectiveTargetType(InterfaceType newType) {

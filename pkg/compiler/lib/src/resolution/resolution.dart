@@ -416,7 +416,7 @@ class ResolverTask extends CompilerTask {
     InterfaceType targetType;
     List<Element> seen = new List<Element>();
     // Follow the chain of redirections and check for cycles.
-    while (target.isRedirectingFactory) {
+    while (target.isRedirectingFactory || target.isPatched) {
       if (target.internalEffectiveTarget != null) {
         // We found a constructor that already has been processed.
         targetType = target.effectiveTargetType;
@@ -427,7 +427,13 @@ class ResolverTask extends CompilerTask {
         break;
       }
 
-      Element nextTarget = target.immediateRedirectionTarget;
+      Element nextTarget;
+      if (target.isPatched) {
+        nextTarget = target.patch;
+      } else {
+        nextTarget = target.immediateRedirectionTarget;
+      }
+
       if (seen.contains(nextTarget)) {
         reporter.reportErrorMessage(
             node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
@@ -458,11 +464,13 @@ class ResolverTask extends CompilerTask {
       TreeElements treeElements = factory.treeElements;
       assert(invariant(node, treeElements != null,
           message: 'No TreeElements cached for $factory.'));
-      FunctionExpression functionNode = factory.parseNode(parsing);
-      RedirectingFactoryBody redirectionNode = functionNode.body;
-      DartType factoryType = treeElements.getType(redirectionNode);
-      if (!factoryType.isDynamic) {
-        targetType = targetType.substByContext(factoryType);
+      if (!factory.isPatched) {
+        FunctionExpression functionNode = factory.parseNode(parsing);
+        RedirectingFactoryBody redirectionNode = functionNode.body;
+        DartType factoryType = treeElements.getType(redirectionNode);
+        if (!factoryType.isDynamic) {
+          targetType = targetType.substByContext(factoryType);
+        }
       }
       factory.effectiveTarget = target;
       factory.effectiveTargetType = targetType;

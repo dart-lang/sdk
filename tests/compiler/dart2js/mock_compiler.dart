@@ -220,9 +220,10 @@ class MockCompiler extends Compiler {
       if (diagnosticHandler != null) {
         SourceSpan span = message.sourceSpan;
         if (span != null) {
-          diagnosticHandler(span.uri, span.begin, span.end, '$message', kind);
+          diagnosticHandler(
+              span.uri, span.begin, span.end, '${message.message}', kind);
         } else {
-          diagnosticHandler(null, null, null, '$message', kind);
+          diagnosticHandler(null, null, null, '${message.message}', kind);
         }
       }
     }

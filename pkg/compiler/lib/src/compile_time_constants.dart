@@ -20,6 +20,7 @@ import 'dart_types.dart';
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show
     FunctionElementX;
+import 'helpers/helpers.dart';
 import 'resolution/tree_elements.dart' show
     TreeElements;
 import 'resolution/operators.dart';
@@ -858,10 +859,10 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       concreteArguments = normalizedArguments;
     }
 
-    if (target == compiler.intEnvironment ||
-        target == compiler.boolEnvironment ||
-        target == compiler.stringEnvironment) {
-      return createFromEnvironmentConstant(node, constructedType, target,
+    if (constructor == compiler.intEnvironment ||
+        constructor == compiler.boolEnvironment ||
+        constructor == compiler.stringEnvironment) {
+      return createFromEnvironmentConstant(node, constructedType, constructor,
           callStructure, normalizedArguments, concreteArguments);
     } else {
       return makeConstructedConstant(compiler, handler, context, node, type,
@@ -946,6 +947,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
         expression =
             new StringFromEnvironmentConstantExpression(name, defaultValue);
       }
+      assert(expression != null);
       return new AstConstant(context, node, expression, value);
     }
 
