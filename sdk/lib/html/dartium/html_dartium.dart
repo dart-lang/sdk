@@ -1206,6 +1206,22 @@ wrap_jso(jsObject) {
     var wrapper = js.getDartHtmlWrapperFor(jsObject);
     // if we have a wrapper return the Dart instance.
     if (wrapper != null) {
+      if (wrapper.runtimeType == HtmlElement && !wrapper._isBadUpgrade) {
+        // We're a Dart instance but we need to upgrade.
+        var customElementClass = _getCustomElementType(wrapper);
+        if (customElementClass != null) {
+          var dartClass_instance;
+          try {
+            dartClass_instance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
+          } finally {
+            dartClass_instance.blink_jsObject = jsObject;
+            jsObject['dart_class'] = dartClass_instance;
+            js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
+            return dartClass_instance;
+          }
+        }
+      }
+
       return wrapper;
     }
 
@@ -37186,10 +37202,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
