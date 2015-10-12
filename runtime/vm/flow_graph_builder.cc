@@ -2530,13 +2530,15 @@ void EffectGraphVisitor::VisitStringInterpolateNode(
 static void CollectClosureFunction(const Function& function) {
   if (function.HasCode()) return;
 
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   if (isolate->collected_closures() == GrowableObjectArray::null()) {
     isolate->set_collected_closures(
         GrowableObjectArray::Handle(GrowableObjectArray::New()));
   }
   const GrowableObjectArray& functions =
-      GrowableObjectArray::Handle(isolate, isolate->collected_closures());
+      GrowableObjectArray::Handle(thread->zone(),
+                                  isolate->collected_closures());
   functions.Add(function);
 }
 

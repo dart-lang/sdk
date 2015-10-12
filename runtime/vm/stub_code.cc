@@ -95,13 +95,13 @@ bool StubCode::InJumpToExceptionHandlerStub(uword pc) {
 
 RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(thread));
+  Zone* zone = thread->zone();
+  const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
   ASSERT(error.IsNull());
   if (cls.id() == kArrayCid) {
     return AllocateArray_entry()->code();
   }
-  Code& stub = Code::Handle(isolate, cls.allocation_stub());
+  Code& stub = Code::Handle(zone, cls.allocation_stub());
   if (stub.IsNull()) {
     Assembler assembler;
     const char* name = cls.ToCString();

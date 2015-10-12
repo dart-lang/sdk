@@ -1220,7 +1220,7 @@ class CallSiteInliner : public ValueObject {
     // Otherwise, build a collection of name/argument pairs.
     GrowableArray<NamedArgument> named_args(argument_names_count);
     for (intptr_t i = 0; i < argument_names.Length(); ++i) {
-      String& arg_name = String::Handle(Isolate::Current());
+      String& arg_name = String::Handle(caller_graph_->zone());
       arg_name ^= argument_names.At(i);
       named_args.Add(
           NamedArgument(&arg_name, (*arguments)[i + fixed_param_count]));

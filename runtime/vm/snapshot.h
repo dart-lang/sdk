@@ -974,6 +974,7 @@ class SnapshotWriter : public BaseWriter {
 
   Thread* thread() const { return thread_; }
   Isolate* isolate() const { return thread_->isolate(); }
+  Zone* zone() const { return thread_->zone(); }
   ObjectStore* object_store() const { return object_store_; }
 
  private:

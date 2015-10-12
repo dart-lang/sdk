@@ -1845,7 +1845,7 @@ class ProfileBuilder : public ValueObject {
   ProfileCode* CreateProfileCode(uword pc) {
     const intptr_t kDartCodeAlignment = OS::PreferredCodeAlignment();
     const intptr_t kDartCodeAlignmentMask = ~(kDartCodeAlignment - 1);
-    Code& code = Code::Handle(isolate_);
+    Code& code = Code::Handle(isolate_->current_zone());
 
     // Check current isolate for pc.
     if (isolate_->heap()->CodeContains(pc)) {

@@ -1119,9 +1119,10 @@ static void IterateScripts(const Library& lib) {
 }
 
 TEST_CASE(GenerateSource) {
-  Isolate* isolate = Isolate::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      isolate, isolate->object_store()->libraries());
+      zone, isolate->object_store()->libraries());
   Library& lib = Library::Handle();
   String& uri = String::Handle();
   for (intptr_t i = 0; i < libs.Length(); i++) {

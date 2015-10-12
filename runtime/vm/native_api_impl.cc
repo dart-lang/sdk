@@ -71,7 +71,8 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
 
 static void CompileAll(Isolate* isolate, Dart_Handle* result) {
   ASSERT(isolate != NULL);
-  const Error& error = Error::Handle(isolate, Library::CompileAll());
+  const Error& error =
+      Error::Handle(isolate->current_zone(), Library::CompileAll());
   if (error.IsNull()) {
     *result = Api::Success();
   } else {

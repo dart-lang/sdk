@@ -224,14 +224,14 @@ void Report::JSWarningFromFrame(StackFrame* caller_frame, const char* msg) {
   ASSERT(caller_frame != NULL);
   ASSERT(FLAG_warn_on_javascript_compatibility);
   if (FLAG_silent_warnings) return;
-  Isolate* isolate = Isolate::Current();
-  const Code& caller_code = Code::Handle(isolate,
+  Zone* zone = Thread::Current()->zone();
+  const Code& caller_code = Code::Handle(zone,
                                          caller_frame->LookupDartCode());
   ASSERT(!caller_code.IsNull());
   const uword caller_pc = caller_frame->pc();
   const intptr_t token_pos = caller_code.GetTokenIndexOfPC(caller_pc);
-  const Function& caller = Function::Handle(isolate, caller_code.function());
-  const Script& script = Script::Handle(isolate, caller.script());
+  const Function& caller = Function::Handle(zone, caller_code.function());
+  const Script& script = Script::Handle(zone, caller.script());
   MessageF(kJSWarning, script, token_pos, "%s", msg);
 }
 

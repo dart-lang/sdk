@@ -135,17 +135,17 @@ static bool IsNativeKeyword(const TokenStream::Iterator& it) {
 }
 
 
-static NativeFunction ResolveNativeFunction(Isolate *isolate,
+static NativeFunction ResolveNativeFunction(Zone* zone,
                                             const Function& func,
                                             bool* is_bootstrap_native) {
-  const Script& script = Script::Handle(isolate, func.script());
-  const Class& cls = Class::Handle(isolate, func.Owner());
-  const Library& library = Library::Handle(isolate, cls.library());
+  const Script& script = Script::Handle(zone, func.script());
+  const Class& cls = Class::Handle(zone, func.Owner());
+  const Library& library = Library::Handle(zone, cls.library());
 
   *is_bootstrap_native =
       Bootstrap::IsBootstapResolver(library.native_entry_resolver());
 
-  TokenStream::Iterator it(TokenStream::Handle(isolate, script.tokens()),
+  TokenStream::Iterator it(TokenStream::Handle(zone, script.tokens()),
                            func.token_pos());
 
   const intptr_t end_pos = func.end_token_pos();
@@ -206,7 +206,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 
     bool is_bootstrap_native = false;
     target_function = ResolveNativeFunction(
-        arguments->thread()->isolate(), func, &is_bootstrap_native);
+        arguments->thread()->zone(), func, &is_bootstrap_native);
     ASSERT(target_function != NULL);
 
 #if defined(DEBUG)

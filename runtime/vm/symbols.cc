@@ -288,7 +288,7 @@ void Symbols::AddPredefinedSymbolsToIsolate() {
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
   ASSERT(isolate != Dart::vm_isolate());
-  String& str = String::Handle(isolate);
+  String& str = String::Handle(zone);
 
   SymbolTable table(zone, isolate->object_store()->symbol_table());
 

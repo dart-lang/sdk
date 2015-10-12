@@ -218,7 +218,7 @@ RawObject* SnapshotReader::ReadObject() {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     PassiveObject& obj =
-        PassiveObject::Handle(isolate(), ReadObjectImpl(kAsInlinedObject));
+        PassiveObject::Handle(zone(), ReadObjectImpl(kAsInlinedObject));
     for (intptr_t i = 0; i < backward_references_->length(); i++) {
       if (!(*backward_references_)[i].is_deserialized()) {
         ReadObjectImpl(kAsInlinedObject);
@@ -308,7 +308,7 @@ RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
 
   // First create a function object and associate it with the specified
   // 'object_id'.
-  Function& func = Function::Handle(isolate(), Function::null());
+  Function& func = Function::Handle(zone(), Function::null());
   Instance& obj = Instance::ZoneHandle(zone(), Instance::null());
   AddBackRef(object_id, &obj, kIsDeserialized);
 
@@ -1824,13 +1824,13 @@ class ScriptVisitor : public ObjectVisitor {
  public:
   explicit ScriptVisitor(Isolate* isolate) :
       ObjectVisitor(isolate),
-      objHandle_(Object::Handle(isolate)),
+      objHandle_(Object::Handle(isolate->current_zone())),
       count_(0),
       scripts_(NULL) {}
 
   ScriptVisitor(Isolate* isolate, const Array* scripts) :
       ObjectVisitor(isolate),
-      objHandle_(Object::Handle(isolate)),
+      objHandle_(Object::Handle(isolate->current_zone())),
       count_(0),
       scripts_(scripts) {}
 
@@ -1869,8 +1869,8 @@ FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
       instructions_snapshot_size_(0),
       forward_list_(NULL),
       instructions_writer_(NULL),
-      scripts_(Array::Handle(isolate_)),
-      symbol_table_(Array::Handle(isolate_)),
+      scripts_(Array::Handle(isolate_->current_zone())),
+      symbol_table_(Array::Handle(isolate_->current_zone())),
       snapshot_code_(snapshot_code),
       vm_isolate_is_symbolic_(vm_isolate_is_symbolic) {
   ASSERT(isolate_snapshot_buffer_ != NULL);
@@ -2476,8 +2476,8 @@ RawFunction* SnapshotWriter::IsSerializableClosure(RawClass* cls,
     // exception as we do not allow these objects to be serialized.
     HANDLESCOPE(thread());
 
-    const Class& clazz = Class::Handle(isolate(), cls);
-    const Function& errorFunc = Function::Handle(isolate(), func);
+    const Class& clazz = Class::Handle(zone(), cls);
+    const Function& errorFunc = Function::Handle(zone(), func);
     ASSERT(!errorFunc.IsNull());
 
     // All other closures are errors.
@@ -2508,7 +2508,7 @@ void SnapshotWriter::CheckForNativeFields(RawClass* cls) {
     // We do not allow objects with native fields in an isolate message.
     HANDLESCOPE(thread());
     UnmarkAll();  // Unmark objects now as we are about to print stuff.
-    const Class& clazz = Class::Handle(isolate(), cls);
+    const Class& clazz = Class::Handle(zone(), cls);
     char* chars = OS::SCreate(thread()->zone(),
         "Illegal argument in isolate message"
         " : (object extends NativeWrapper - %s)",
