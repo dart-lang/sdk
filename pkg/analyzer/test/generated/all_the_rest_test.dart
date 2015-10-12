@@ -8972,7 +8972,7 @@ class SDKLibrariesReaderTest extends EngineTestCase {
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',
-    category: 'First',
+    categories: 'Client',
     documented: true,
     platforms: VM_PLATFORM,
     dart2jsPath: 'first/first_dart2js.dart'),
@@ -8981,7 +8981,7 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     expect(libraryMap.size(), 1);
     SdkLibrary first = libraryMap.getLibrary("dart:first");
     expect(first, isNotNull);
-    expect(first.category, "First");
+    expect(first.category, "Client");
     expect(first.path, "first/first_dart2js.dart");
     expect(first.shortName, "dart:first");
     expect(first.isDart2JsLibrary, false);
@@ -9004,13 +9004,13 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',
-    category: 'First',
+    categories: 'Client',
     documented: true,
     platforms: VM_PLATFORM),
 
   'second' : const LibraryInfo(
     'second/second.dart',
-    category: 'Second',
+    categories: 'Server',
     documented: false,
     implementation: true,
     platforms: 0),
@@ -9019,7 +9019,7 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     expect(libraryMap.size(), 2);
     SdkLibrary first = libraryMap.getLibrary("dart:first");
     expect(first, isNotNull);
-    expect(first.category, "First");
+    expect(first.category, "Client");
     expect(first.path, "first/first.dart");
     expect(first.shortName, "dart:first");
     expect(first.isDart2JsLibrary, false);
@@ -9028,7 +9028,7 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     expect(first.isVmLibrary, true);
     SdkLibrary second = libraryMap.getLibrary("dart:second");
     expect(second, isNotNull);
-    expect(second.category, "Second");
+    expect(second.category, "Server");
     expect(second.path, "second/second.dart");
     expect(second.shortName, "dart:second");
     expect(second.isDart2JsLibrary, false);
