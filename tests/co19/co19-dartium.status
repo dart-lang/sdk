@@ -15,6 +15,7 @@ LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow_t01: Pass, Runtim
 LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeError # Issue 21605
 
 [ $compiler == none && $runtime == dartium ]
+LayoutTests/fast/dom/custom/document-register-basic_t01: RuntimeError # Bad test can't register HtmlElement.
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: RuntimeError # Dartium JSInterop failure
