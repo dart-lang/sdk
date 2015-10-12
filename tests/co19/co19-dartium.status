@@ -396,7 +396,6 @@ LayoutTests/fast/dom/blur-contenteditable_t01: RuntimeError, Pass # co19-roll r7
 LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/custom/document-register-svg-extends_t01: RuntimeError # co19-roll r738: Please triage this failure.
-LayoutTests/fast/dom/custom/document-register-type-extensions_t01: RuntimeError # Issue 24516
 LayoutTests/fast/dom/dataset-xhtml_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/dataset_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/focus-contenteditable_t01: RuntimeError, Pass # co19-roll r738: Please triage this failure.
