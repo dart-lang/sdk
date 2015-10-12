@@ -1108,13 +1108,30 @@ Function _getSvgFunction(String key) {
  ******************************************************************************/
 
 // List of known tagName to DartClass for custom elements, used for upgrade.
-var _knownCustomElements = new Map<String, Type>();
+var _knownCustomElements = new Map<String, Map<Type, String>>();
 
-void _addCustomElementType(String tagName, Type dartClass) {
-  _knownCustomElements[tagName] = dartClass;
+void _addCustomElementType(String tagName, Type dartClass, [String extendTag]) {
+  _knownCustomElements[tagName] = 
+      {'type': dartClass, 'extends': extendTag != null ? extendTag : "" };
 }
 
-Type _getCustomElementType(object) => _knownCustomElements[_getCustomElementName(object)];
+Type _getCustomElementType(object) {
+  var entry = _knownCustomElements[_getCustomElementName(object)];
+  if (entry != null) {
+    return entry['type'];
+  }
+  return null;
+}
+
+String _getCustomElementExtends(object) {
+  var entry = _knownCustomElements[_getCustomElementName(object)];
+  if (entry != null) {
+    return entry['extends'];
+  }
+  return null;
+}
+
+_getCustomElement(object) => _knownCustomElements[_getCustomElementName(object)];
 
 // Return the tag name or is attribute of the custom element or data binding.
 String _getCustomElementName(element) {
@@ -1243,9 +1260,15 @@ wrap_jso(jsObject) {
       // make sure it's upgraded.
       dartClass_instance = _upgradeHtmlElement(jsObject['dart_class']);
     } else {
-      var customElementClass = _getCustomElementType(jsObject);
+      var customElementClass = null;
+      var extendsTag = "";
+      var custom = _getCustomElement(jsObject);
+      if (custom != null) {
+        customElementClass = custom['type'];
+        extendsTag = custom['extends'];
+      }
       // Custom Element to upgrade.
-      if (jsTypeName == 'HTMLElement' && customElementClass != null) {
+      if (jsTypeName == 'HTMLElement' && customElementClass != null && extendsTag == "") {
         try {
           dartClass_instance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
         } finally {
@@ -20424,8 +20447,6 @@ class HtmlDocument extends Document {
    */
   void registerElement(String tag, Type customElementClass,
       {String extendsTag}) {
-    // TODO(terry): Need to handle the extendsTag.
-
     // Figure out which DOM class is being extended from the user's Dart class.
     var classMirror = reflectClass(customElementClass);
 
@@ -20459,7 +20480,7 @@ class HtmlDocument extends Document {
       var elemProto = js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'Object'), "create", [js.JsNative.getProperty(baseElement, 'prototype')]);
 
       // Remember for any upgrading done in wrap_jso.
-      _addCustomElementType(tag, customElementClass);
+      _addCustomElementType(tag, customElementClass, extendsTag);
 
       // TODO(terry): Hack to stop recursion re-creating custom element when the
       //              created() constructor of the custom element does e.g.,

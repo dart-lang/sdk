@@ -353,8 +353,6 @@ $if DART2JS
     _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
         extendsTag);
 $else
-    // TODO(terry): Need to handle the extendsTag.
-
     // Figure out which DOM class is being extended from the user's Dart class.
     var classMirror = reflectClass(customElementClass);
 
@@ -388,7 +386,7 @@ $else
       var elemProto = js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'Object'), "create", [js.JsNative.getProperty(baseElement, 'prototype')]);
 
       // Remember for any upgrading done in wrap_jso.
-      _addCustomElementType(tag, customElementClass);
+      _addCustomElementType(tag, customElementClass, extendsTag);
 
       // TODO(terry): Hack to stop recursion re-creating custom element when the
       //              created() constructor of the custom element does e.g.,
