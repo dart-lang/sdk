@@ -126,7 +126,7 @@ main() {
 
 
   // TODO(jmesserly): remove after deprecation period.
-  group('standard_events -- old callback names', () {
+  group('standard_events_old_callback_names', () {
     var a;
     setUp(() {
       invocations = [];

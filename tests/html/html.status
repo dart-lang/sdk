@@ -121,13 +121,13 @@ element_animate_test/simple_timing: RuntimeError # Please triage this failure
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows]
+[ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows ]
 websql_test: Skip # Issue 4941: stderr contains a backtrace.
 custom/attribute_changed_callback_test/fully_supported: RuntimeError # Issue 24546
 custom/attribute_changed_callback_test/unsupported_on_polyfill: RuntimeError # Issue 24546
 custom/constructor_calls_created_synchronously_test: RuntimeError # Issue 24546
 custom/created_callback_test: RuntimeError # Issue 24546
-custom/entered_left_view_test/standard_events -- old callback names: RuntimeError # Issue 24546
+custom/entered_left_view_test/standard_events_old_callback_names: RuntimeError # Issue 24546
 custom/entered_left_view_test/shadow_dom: RuntimeError # Issue 24546
 custom/entered_left_view_test/viewless_document: RuntimeError # Issue 24546
 custom/entered_left_view_test/disconnected_subtree: RuntimeError # Issue 24546
