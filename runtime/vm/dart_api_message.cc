@@ -794,7 +794,7 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       value = AllocateDartCObjectArray(0);
       AddBackRef(object_id, value, kIsDeserialized);
       // Read the content of the GrowableObjectArray.
-      Dart_CObject* content = ReadObjectImpl();
+      Dart_CObject* content = ReadObjectRef();
       ASSERT(content->type == Dart_CObject_kArray);
       // Make the empty array allocated point to the backing store content.
       value->value.as_array.length = len;

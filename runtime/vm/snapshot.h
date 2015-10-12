@@ -793,6 +793,9 @@ class ForwardList {
   // Restores the tags of all objects in this list.
   void UnmarkAll() const;
 
+  // Set state of object in forward list.
+  void SetState(RawObject* raw, SerializeState state);
+
  private:
   intptr_t first_object_id() const { return first_object_id_; }
   intptr_t next_object_id() const { return nodes_.length() + first_object_id_; }
@@ -888,6 +891,8 @@ class SnapshotWriter : public BaseWriter {
 
   uword GetObjectTags(RawObject* raw);
 
+  intptr_t GetObjectId(RawObject* raw);
+
   Exceptions::ExceptionType exception_type() const {
     return exception_type_;
   }
@@ -934,24 +939,27 @@ class SnapshotWriter : public BaseWriter {
                                   RawFunction* func,
                                   intptr_t tags);
   void WriteObjectImpl(RawObject* raw, bool as_reference);
-  void WriteObjectRef(RawObject* raw);
-  void WriteInlinedObject(RawObject* raw);
+  void WriteMarkedObjectImpl(RawObject* raw,
+                             intptr_t tags,
+                             intptr_t object_id,
+                             bool as_reference);
   void WriteForwardedObjects();
   void ArrayWriteTo(intptr_t object_id,
                     intptr_t array_kind,
                     intptr_t tags,
                     RawSmi* length,
                     RawTypeArguments* type_arguments,
-                    RawObject* data[]);
+                    RawObject* data[],
+                    bool as_reference);
   RawFunction* IsSerializableClosure(RawClass* cls, RawObject* obj);
   RawClass* GetFunctionOwner(RawFunction* func);
   void CheckForNativeFields(RawClass* cls);
   void SetWriteException(Exceptions::ExceptionType type, const char* msg);
-  void WriteInstance(intptr_t object_id,
-                     RawObject* raw,
+  void WriteInstance(RawObject* raw,
                      RawClass* cls,
-                     intptr_t tags);
-  void WriteInstanceRef(RawObject* raw, RawClass* cls);
+                     intptr_t tags,
+                     intptr_t object_id,
+                     bool as_reference);
   bool AllowObjectsInDartLibrary(RawLibrary* library);
   intptr_t FindVmSnapshotObject(RawObject* rawobj);
 

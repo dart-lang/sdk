@@ -194,7 +194,8 @@ CLASS_LIST_TYPED_DATA(V)
 
 #define SNAPSHOT_WRITER_SUPPORT()                                              \
   void WriteTo(                                                                \
-      SnapshotWriter* writer, intptr_t object_id, Snapshot::Kind kind);        \
+      SnapshotWriter* writer, intptr_t object_id,                              \
+      Snapshot::Kind kind, bool as_reference);                                 \
   friend class SnapshotWriter;                                                 \
 
 #define VISITOR_SUPPORT(object)                                                \

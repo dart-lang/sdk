@@ -180,7 +180,8 @@ class Symbols;
   static Raw##object* ReadFrom(SnapshotReader* reader,                         \
                                intptr_t object_id,                             \
                                intptr_t tags,                                  \
-                               Snapshot::Kind);                                \
+                               Snapshot::Kind,                                 \
+                               bool as_reference);                             \
   friend class SnapshotReader;                                                 \
 
 #define OBJECT_IMPLEMENTATION(object, super)                                   \
@@ -6400,7 +6401,8 @@ class OneByteString : public AllStatic {
   static RawOneByteString* ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
                                     intptr_t tags,
-                                    Snapshot::Kind kind);
+                                    Snapshot::Kind kind,
+                                    bool as_reference);
 
   friend class Class;
   friend class String;
@@ -6515,7 +6517,8 @@ class TwoByteString : public AllStatic {
   static RawTwoByteString* ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
                                     intptr_t tags,
-                                    Snapshot::Kind kind);
+                                    Snapshot::Kind kind,
+                                    bool as_reference);
 
   friend class Class;
   friend class String;
@@ -6593,7 +6596,8 @@ class ExternalOneByteString : public AllStatic {
   static RawExternalOneByteString* ReadFrom(SnapshotReader* reader,
                                             intptr_t object_id,
                                             intptr_t tags,
-                                            Snapshot::Kind kind);
+                                            Snapshot::Kind kind,
+                                            bool as_reference);
 
   static intptr_t NextFieldOffset() {
     // Indicates this class cannot be extended by dart code.
@@ -6672,7 +6676,8 @@ class ExternalTwoByteString : public AllStatic {
   static RawExternalTwoByteString* ReadFrom(SnapshotReader* reader,
                                             intptr_t object_id,
                                             intptr_t tags,
-                                            Snapshot::Kind kind);
+                                            Snapshot::Kind kind,
+                                            bool as_reference);
 
   static intptr_t NextFieldOffset() {
     // Indicates this class cannot be extended by dart code.
@@ -6844,7 +6849,8 @@ class ImmutableArray : public AllStatic {
   static RawImmutableArray* ReadFrom(SnapshotReader* reader,
                                      intptr_t object_id,
                                      intptr_t tags,
-                                     Snapshot::Kind kind);
+                                     Snapshot::Kind kind,
+                                     bool as_reference);
 
   static const ClassId kClassId = kImmutableArrayCid;
 
