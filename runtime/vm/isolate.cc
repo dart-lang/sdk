@@ -2406,6 +2406,14 @@ static RawInstance* DeserializeObject(Thread* thread,
 }
 
 
+static const char* NewConstChar(const char* chars) {
+  size_t len = strlen(chars);
+  char* mem = new char[len + 1];
+  memmove(mem, chars, len + 1);
+  return mem;
+}
+
+
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const Function& func,
                                      const Instance& message,
@@ -2419,6 +2427,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       on_error_port_(on_error_port),
       script_url_(NULL),
       package_root_(NULL),
+      package_map_(NULL),
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
@@ -2429,17 +2438,16 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       isolate_flags_(),
       paused_(paused),
       errors_are_fatal_(errors_are_fatal) {
-  script_url_ = NULL;
   const Class& cls = Class::Handle(func.Owner());
   const Library& lib = Library::Handle(cls.library());
   const String& lib_url = String::Handle(lib.url());
-  library_url_ = strdup(lib_url.ToCString());
+  library_url_ = NewConstChar(lib_url.ToCString());
 
   const String& func_name = String::Handle(func.name());
-  function_name_ = strdup(func_name.ToCString());
+  function_name_ = NewConstChar(func_name.ToCString());
   if (!cls.IsTopLevel()) {
     const String& class_name = String::Handle(cls.Name());
-    class_name_ = strdup(class_name.ToCString());
+    class_name_ = NewConstChar(class_name.ToCString());
   }
   bool can_send_any_object = true;
   SerializeObject(message,
@@ -2454,6 +2462,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const char* script_url,
                                      const char* package_root,
+                                     const char** package_map,
                                      const Instance& args,
                                      const Instance& message,
                                      bool paused,
@@ -2464,7 +2473,9 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       parent_port_(parent_port),
       on_exit_port_(on_exit_port),
       on_error_port_(on_error_port),
-      package_root_(NULL),
+      script_url_(script_url),
+      package_root_(package_root),
+      package_map_(package_map),
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
@@ -2475,12 +2486,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       isolate_flags_(),
       paused_(paused),
       errors_are_fatal_(errors_are_fatal) {
-  script_url_ = strdup(script_url);
-  if (package_root != NULL) {
-    package_root_ = strdup(package_root);
-  }
-  library_url_ = NULL;
-  function_name_ = strdup("main");
+  function_name_ = NewConstChar("main");
   bool can_send_any_object = false;
   SerializeObject(args,
                   &serialized_args_,
@@ -2497,11 +2503,19 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
 
 
 IsolateSpawnState::~IsolateSpawnState() {
-  free(script_url_);
-  free(package_root_);
-  free(library_url_);
-  free(function_name_);
-  free(class_name_);
+  delete script_url_;
+  delete package_root_;
+  for (int i = 0; package_map_ != NULL; i++) {
+    if (package_map_[i] != NULL) {
+      delete package_map_[i];
+    } else {
+      delete package_map_;
+      package_map_ = NULL;
+    }
+  }
+  delete library_url_;
+  delete class_name_;
+  delete function_name_;
   free(serialized_args_);
   free(serialized_message_);
 }

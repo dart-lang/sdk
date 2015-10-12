@@ -594,6 +594,7 @@ int main(int argc, char** argv) {
     result =
         DartUtils::PrepareForScriptLoading(package_root,
                                            NULL,
+                                           NULL,
                                            false,
                                            false,
                                            builtin_lib);

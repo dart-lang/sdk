@@ -129,6 +129,7 @@ class DartUtils {
                                            bool is_service_isolate,
                                            bool trace_loading,
                                            const char* package_root,
+                                           const char** package_map,
                                            const char* packages_file);
   static Dart_Handle PrepareCoreLibrary(Dart_Handle core_lib,
                                  Dart_Handle builtin_lib,
@@ -138,6 +139,7 @@ class DartUtils {
   static Dart_Handle PrepareIOLibrary(Dart_Handle io_lib);
   static Dart_Handle PrepareIsolateLibrary(Dart_Handle isolate_lib);
   static Dart_Handle PrepareForScriptLoading(const char* package_root,
+                                             const char** package_map,
                                              const char* packages_file,
                                              bool is_service_isolate,
                                              bool trace_loading,

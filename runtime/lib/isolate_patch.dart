@@ -334,14 +334,20 @@ patch class Isolate {
        Map<String, Uri> packageMap}) {
     RawReceivePort readyPort;
     if (environment != null) throw new UnimplementedError("environment");
-    if (packageMap != null) throw new UnimplementedError("packageMap");
     try {
       // The VM will invoke [_startIsolate] and not `main`.
-      // TODO: Handle [packagesMap].
       readyPort = new RawReceivePort();
       var packageRootString =
           (packageRoot == null) ? null : packageRoot.toString();
       var packagesList = null;
+      if (packageMap != null) {
+        packagesList = new List(2 * packageMap.length);
+        var i = 0;
+        packageMap.forEach((key, value) {
+          packagesList[i++] = key;
+          packagesList[i++] = Uri.base.resolveUri(value).toString();
+        });
+      }
 
       _spawnUri(readyPort.sendPort, uri.toString(),
                 args, message,

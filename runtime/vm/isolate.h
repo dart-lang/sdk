@@ -1032,6 +1032,7 @@ class IsolateSpawnState {
   IsolateSpawnState(Dart_Port parent_port,
                     const char* script_url,
                     const char* package_root,
+                    const char** package_map,
                     const Instance& args,
                     const Instance& message,
                     bool paused,
@@ -1046,11 +1047,12 @@ class IsolateSpawnState {
   Dart_Port parent_port() const { return parent_port_; }
   Dart_Port on_exit_port() const { return on_exit_port_; }
   Dart_Port on_error_port() const { return on_error_port_; }
-  char* script_url() const { return script_url_; }
-  char* package_root() const { return package_root_; }
-  char* library_url() const { return library_url_; }
-  char* class_name() const { return class_name_; }
-  char* function_name() const { return function_name_; }
+  const char* script_url() const { return script_url_; }
+  const char* package_root() const { return package_root_; }
+  const char** package_map() const { return package_map_; }
+  const char* library_url() const { return library_url_; }
+  const char* class_name() const { return class_name_; }
+  const char* function_name() const { return function_name_; }
   bool is_spawn_uri() const { return library_url_ == NULL; }
   bool paused() const { return paused_; }
   bool errors_are_fatal() const { return errors_are_fatal_; }
@@ -1066,11 +1068,12 @@ class IsolateSpawnState {
   Dart_Port parent_port_;
   Dart_Port on_exit_port_;
   Dart_Port on_error_port_;
-  char* script_url_;
-  char* package_root_;
-  char* library_url_;
-  char* class_name_;
-  char* function_name_;
+  const char* script_url_;
+  const char* package_root_;
+  const char** package_map_;
+  const char* library_url_;
+  const char* class_name_;
+  const char* function_name_;
   uint8_t* serialized_args_;
   intptr_t serialized_args_len_;
   uint8_t* serialized_message_;

@@ -313,6 +313,7 @@ class RunServiceTask : public ThreadPool::Task {
         reinterpret_cast<Isolate*>(create_callback(ServiceIsolate::kName,
                                                    NULL,
                                                    NULL,
+                                                   NULL,
                                                    &api_flags,
                                                    NULL,
                                                    &error));
