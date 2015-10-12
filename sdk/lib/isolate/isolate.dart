@@ -235,7 +235,7 @@ class Isolate {
    *
    * WARNING: The [checked] parameter is not implemented on all platforms yet.
    *
-   * If either the [packageRoot] or the [packages] parameter is provided,
+   * If either the [packageRoot] or the [packageMap] parameter is provided,
    * it is used to find the location of package sources in the spawned isolate.
    *
    * The `packageRoot` URI must be a "file" or "http"/"https" URI that specifies
@@ -245,7 +245,7 @@ class Isolate {
    * resolved against this location, as by
    * `packageRoot.resolve("foo/bar.dart")`.
    *
-   * The `packages` map maps package names to URIs with the same requirements
+   * The `packageMap` map maps package names to URIs with the same requirements
    * as `packageRoot`. Package imports (like `"package:foo/bar/baz.dart"`) in
    * the new isolate are resolved against the URI for that package (if any),
    * as by `packages["foo"].resolve("bar/baz.dart")
@@ -253,11 +253,11 @@ class Isolate {
    * This resolution also applies to the main entry [uri]
    * if that happens to be a package-URI.
    *
-   * If both [packageRoot] and [packages] are omitted, the new isolate uses
+   * If both [packageRoot] and [packageMap] are omitted, the new isolate uses
    * the same package resolution as the current isolate.
    * It's not allowed to provide both a `packageRoot` and a `package` parameter.
    *
-   * WARNING: The [packageRoot] and [packages] parameters are not implemented
+   * WARNING: The [packageRoot] and [packageMap] parameters are not implemented
    * on all platforms yet.
    *
    * The [environment] is a mapping from strings to strings which the
@@ -283,7 +283,7 @@ class Isolate {
        bool checked,
        Map<String, String> environment,
        Uri packageRoot,
-       Map<String, Uri> packages});
+       Map<String, Uri> packageMap});
 
   /**
    * Requests the isolate to pause.

@@ -331,13 +331,13 @@ patch class Isolate {
        bool checked,
        Map<String, String> environment,
        Uri packageRoot,
-       Map<String, Uri> packages}) {
+       Map<String, Uri> packageMap}) {
     RawReceivePort readyPort;
     if (environment != null) throw new UnimplementedError("environment");
-    if (packages != null) throw new UnimplementedError("packages");
+    if (packageMap != null) throw new UnimplementedError("packageMap");
     try {
       // The VM will invoke [_startIsolate] and not `main`.
-      // TODO: Handle [packages].
+      // TODO: Handle [packagesMap].
       readyPort = new RawReceivePort();
       var packageRootString =
           (packageRoot == null) ? null : packageRoot.toString();

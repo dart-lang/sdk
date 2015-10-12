@@ -23,6 +23,10 @@
     was deprecated back in 1.9. Use the `shared` flag when creating listening
     sockets and `HttpServer` to distribute accepted sockets between isolates.
 
+* `dart:isolate`
+  * `Isolate` added `packageRoot` and `packageMap` getters.
+  * `Isolate.spawnUri` added `packageMap` parameter.
+
 ### Tool changes
 
 * `docgen` and 'dartdocgen' no longer ship in the sdk. The `docgen` sources have
