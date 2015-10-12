@@ -1204,24 +1204,8 @@ wrap_jso(jsObject) {
     }
 
     var wrapper = js.getDartHtmlWrapperFor(jsObject);
-    // if we have a wrapper and and it's an upgraded custom element return the Dart instance.
+    // if we have a wrapper return the Dart instance.
     if (wrapper != null) {
-      if (wrapper.runtimeType == HtmlElement && !wrapper._isBadUpgrade) {
-        // We're a Dart instance but we need to upgrade.
-        var customElementClass = _getCustomElementType(wrapper);
-        if (customElementClass != null) {
-          var dartClass_instance;
-          try {
-            dartClass_instance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
-          } finally {
-            dartClass_instance.blink_jsObject = jsObject;
-            jsObject['dart_class'] = dartClass_instance;
-            js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
-            return dartClass_instance;
-          }
-        }
-      }
-
       return wrapper;
     }
 
