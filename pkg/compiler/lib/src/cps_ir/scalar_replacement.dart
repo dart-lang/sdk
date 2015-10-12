@@ -32,8 +32,6 @@ class ScalarReplacer extends Pass {
 
   @override
   void rewrite(FunctionDefinition root) {
-    // Set all parent pointers.
-    new ParentVisitor().visit(root);
     ScalarReplacementVisitor analyzer =
         new ScalarReplacementVisitor(_internalError, _classWorld);
     analyzer.analyze(root);
@@ -45,7 +43,7 @@ class ScalarReplacer extends Pass {
  * Do scalar replacement of aggregates on instances. Since scalar replacement
  * can create new candidiates, iterate until all scalar replacements are done.
  */
-class ScalarReplacementVisitor extends RecursiveVisitor {
+class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
 
   final InternalErrorFunction internalError;
   final World classWorld;
@@ -176,6 +174,7 @@ class ScalarReplacementVisitor extends RecursiveVisitor {
   void replacePrimitive(Primitive old, Primitive primitive) {
     LetPrim letPrim = old.parent;
     letPrim.primitive = primitive;
+    primitive.parent = letPrim;
   }
 
   void deleteLetPrimOf(Primitive primitive) {
@@ -217,7 +216,7 @@ class ScalarReplacementVisitor extends RecursiveVisitor {
 
 /// Visit a just-deleted subterm and unlink all [Reference]s in it.  Reconsider
 /// allocations for scalar replacement.
-class ScalarReplacementRemovalVisitor extends RecursiveVisitor {
+class ScalarReplacementRemovalVisitor extends TrampolineRecursiveVisitor {
   ScalarReplacementVisitor process;
 
   ScalarReplacementRemovalVisitor(this.process);

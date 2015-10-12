@@ -19,7 +19,7 @@ import 'optimizers.dart';
 /// one continuation. The reference chains for parameters are therefore 
 /// meaningless during this pass, until repaired by [AlphaRenamer] at
 /// the end.
-class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
+class RedundantJoinEliminator extends TrampolineRecursiveVisitor implements Pass {
   String get passName => 'Redundant join elimination';
 
   final Set<Branch> workSet = new Set<Branch>();
@@ -139,7 +139,7 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
           Expression use = ref.parent;
           if (use is InvokeContinuation) {
             for (Parameter param in branchCont.parameters) {
-              use.arguments.add(new Reference<Primitive>(param));
+              use.arguments.add(new Reference<Primitive>(param)..parent = use);
             }
           } else {
             // The branch will be eliminated, so don't worry about updating it.
@@ -215,7 +215,7 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
 /// 
 /// This returns the IR to its normal form after redundant joins have been
 /// eliminated.
-class AlphaRenamer extends RecursiveVisitor {
+class AlphaRenamer extends TrampolineRecursiveVisitor {
   Map<Parameter, Parameter> renaming = <Parameter, Parameter>{};
 
   processContinuation(Continuation cont) {
