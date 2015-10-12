@@ -231,6 +231,9 @@ abstract class ServiceObject extends Observable {
           case 'LocalVarDescriptors':
             obj = new LocalVarDescriptors._empty(owner);
             break;
+          case 'MegamorphicCache':
+            obj = new MegamorphicCache._empty(owner);
+            break;
           case 'ObjectPool':
             obj = new ObjectPool._empty(owner);
             break;
@@ -3329,6 +3332,28 @@ class ICData extends HeapObject {
     }
     argumentsDescriptor = map['_argumentsDescriptor'];
     entries = map['_entries'];
+  }
+}
+
+class MegamorphicCache extends HeapObject {
+  @observable int mask;
+  @observable Instance buckets;
+
+  bool get canCache => false;
+  bool get immutable => false;
+
+  MegamorphicCache._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    _upgradeCollection(map, isolate);
+    super._update(map, mapIsRef);
+
+    if (mapIsRef) {
+      return;
+    }
+
+    mask = map['_mask'];
+    buckets = map['_buckets'];
   }
 }
 

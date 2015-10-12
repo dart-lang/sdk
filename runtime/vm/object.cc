@@ -11099,18 +11099,23 @@ void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
     uword imm;
     Object& obj = Object::Handle();
     for (intptr_t i = 0; i < Length(); i++) {
+      JSONObject jsentry(stream);
+      jsentry.AddProperty("offset", OffsetFromIndex(i));
       switch (InfoAt(i)) {
       case ObjectPool::kTaggedObject:
         obj = ObjectAt(i);
-        jsarr.AddValue(obj);
+        jsentry.AddProperty("kind", "Object");
+        jsentry.AddProperty("value", obj);
         break;
       case ObjectPool::kImmediate:
         imm = RawValueAt(i);
-        jsarr.AddValue64(imm);
+        jsentry.AddProperty("kind", "Immediate");
+        jsentry.AddProperty64("value", imm);
         break;
       case ObjectPool::kNativeEntry:
         imm = RawValueAt(i);
-        jsarr.AddValueF("0x%" Px, imm);
+        jsentry.AddProperty("kind", "NativeEntry");
+        jsentry.AddProperty64("value", imm);
         break;
       default:
         UNREACHABLE();
@@ -13908,7 +13913,14 @@ const char* MegamorphicCache::ToCString() const {
 
 
 void MegamorphicCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("_buckets", Object::Handle(buckets()));
+  jsobj.AddProperty("_mask", mask());
 }
 
 
