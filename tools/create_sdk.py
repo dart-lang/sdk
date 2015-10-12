@@ -289,6 +289,7 @@ def Main():
       f.close()
 
   Copy(join(HOME, 'README.dart-sdk'), join(SDK_tmp, 'README'))
+  Copy(join(HOME, 'LICENSE'), join(SDK_tmp, 'LICENSE'))
   Copy(join(HOME, 'sdk', 'api_readme.md'), join(SDK_tmp, 'lib', 'api_readme.md'))
 
   move(SDK_tmp, SDK)
