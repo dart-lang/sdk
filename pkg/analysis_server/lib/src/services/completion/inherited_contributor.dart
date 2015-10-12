@@ -78,7 +78,7 @@ class InheritedContributor extends DartCompletionContributor {
         0,
         element.isDeprecated,
         false);
-    suggestion.element = protocol.newElement_fromEngine(element);
+    suggestion.element = protocol.convertElement(element);
     return suggestion;
   }
 

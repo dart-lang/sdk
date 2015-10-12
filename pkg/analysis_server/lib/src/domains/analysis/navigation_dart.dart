@@ -59,7 +59,7 @@ class _DartNavigationCollector {
       return;
     }
     protocol.ElementKind kind =
-        protocol.newElementKind_fromEngine(element.kind);
+        protocol.convertElementKind(element.kind);
     protocol.Location location = protocol.newLocation_fromElement(element);
     if (location == null) {
       return;

@@ -29,7 +29,7 @@ class DartOccurrencesComputer implements OccurrencesContributor {
         visitor.elementsOffsets.forEach((engineElement, offsets) {
           int length = engineElement.nameLength;
           protocol.Element serverElement =
-              protocol.newElement_fromEngine(engineElement);
+              protocol.convertElement(engineElement);
           protocol.Occurrences occurrences =
               new protocol.Occurrences(serverElement, offsets, length);
           collector.addOccurrences(occurrences);

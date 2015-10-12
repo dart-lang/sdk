@@ -271,7 +271,7 @@ class DartCompletionCache extends CompletionCache {
           false);
       LibraryElement lib = importElem.importedLibrary;
       if (lib != null) {
-        suggestion.element = newElement_fromEngine(lib);
+        suggestion.element = convertElement(lib);
       }
       libraryPrefixSuggestions.add(suggestion);
       _importedCompletions.add(suggestion.completion);

@@ -46,7 +46,7 @@ CompletionSuggestion createSuggestion(Element element,
       0,
       isDeprecated,
       false);
-  suggestion.element = protocol.newElement_fromEngine(element);
+  suggestion.element = protocol.convertElement(element);
   Element enclosingElement = element.enclosingElement;
   if (enclosingElement is ClassElement) {
     suggestion.declaringType = enclosingElement.displayName;

@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/src/protocol_server.dart'
-    show TypeHierarchyItem, newElement_fromEngine;
+    show TypeHierarchyItem, convertElement;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -90,9 +90,9 @@ class TypeHierarchyComputer {
         }
         // create a subclass item
         ExecutableElement subMemberElement = _findMemberElement(subElement);
-        subItem = new TypeHierarchyItem(newElement_fromEngine(subElement),
+        subItem = new TypeHierarchyItem(convertElement(subElement),
             memberElement: subMemberElement != null
-                ? newElement_fromEngine(subMemberElement)
+                ? convertElement(subMemberElement)
                 : null,
             superclass: itemId);
         int subItemId = _items.length;
@@ -129,10 +129,10 @@ class TypeHierarchyComputer {
       }
       ClassElement classElement = type.element;
       ExecutableElement memberElement = _findMemberElement(classElement);
-      item = new TypeHierarchyItem(newElement_fromEngine(classElement),
+      item = new TypeHierarchyItem(convertElement(classElement),
           displayName: displayName,
           memberElement: memberElement != null
-              ? newElement_fromEngine(memberElement)
+              ? convertElement(memberElement)
               : null);
       _elementItemMap[classElement] = item;
       itemId = _items.length;
