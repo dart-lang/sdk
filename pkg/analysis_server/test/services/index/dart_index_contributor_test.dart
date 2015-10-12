@@ -802,6 +802,22 @@ main(A p) {
         _expectedLocation(mainElement, 'A.field); // 3'));
   }
 
+  void test_isReferencedBy_ClassElement_invocation() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class A {}
+main() {
+  A(); // invalid code, but still a reference
+}''');
+    // prepare elements
+    Element mainElement = findElement('main');
+    Element classElement = findElement('A');
+    IndexableElement indexable = new IndexableElement(classElement);
+    // verify
+    _assertRecordedRelation(indexable, IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(mainElement, 'A();'));
+  }
+
   void test_isReferencedBy_ClassTypeAlias() {
     _indexTestUnit('''
 class A {}

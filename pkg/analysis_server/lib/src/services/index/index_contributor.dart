@@ -361,6 +361,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
         element is VariableElement) {
       recordRelationshipElement(
           element, IndexConstants.IS_INVOKED_BY, location);
+    } else if (element is ClassElement) {
+      recordRelationshipElement(
+          element, IndexConstants.IS_REFERENCED_BY, location);
     }
     _recordImportElementReferenceWithoutPrefix(name);
     super.visitMethodInvocation(node);

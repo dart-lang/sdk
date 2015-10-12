@@ -400,6 +400,31 @@ main() {
 ''');
   }
 
+  test_createChange_ClassElement_invocation() {
+    verifyNoTestUnitErrors = false;
+    indexTestUnit('''
+class Test {
+}
+main() {
+  Test(); // invalid code, but still a reference
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('Test();');
+    expect(refactoring.refactoringName, 'Rename Class');
+    expect(refactoring.elementKindName, 'class');
+    expect(refactoring.oldName, 'Test');
+    refactoring.newName = 'NewName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class NewName {
+}
+main() {
+  NewName(); // invalid code, but still a reference
+}
+''');
+  }
+
   test_createChange_ClassElement_parameterTypeNested() {
     indexTestUnit('''
 class Test {
