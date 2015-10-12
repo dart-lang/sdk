@@ -15,7 +15,6 @@ custom/document_register_type_extensions_test/construction: RuntimeError # Issue
 custom/document_register_type_extensions_test/parsing: RuntimeError # Issue 24516
 custom/document_register_type_extensions_test/registration: RuntimeError # Dartium JSInterop failure
 custom/element_upgrade_test: RuntimeError # Dartium JSInterop failure
-custom_elements_test/register: RuntimeError # Dartium JSInterop failure
 indexeddb_2_test: Skip # Dartium JSInterop failure
 js_test/transferrables: RuntimeError # Dartium JSInterop failure
 js_test/JsArray: RuntimeError # Dartium JSInterop failure
