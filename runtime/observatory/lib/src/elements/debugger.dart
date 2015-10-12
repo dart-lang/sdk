@@ -517,7 +517,7 @@ class SetCommand extends DebuggerCommand {
   SetCommand(Debugger debugger)
       : super(debugger, 'set', []);
 
-  static var _boeValues = ['all', 'none', 'unhandled'];
+  static var _boeValues = ['All', 'None', 'Unhandled'];
   static var _boolValues = ['false', 'true'];
 
   static var _options = {
@@ -530,7 +530,7 @@ class SetCommand extends DebuggerCommand {
   };
 
   static Future _setBreakOnException(debugger, name, value) async {
-    var result = await debugger.isolate.setExceptionPauseInfo(value);
+    var result = await debugger.isolate.setExceptionPauseMode(value);
     if (result.isError) {
       debugger.console.print(result.toString());
     } else {

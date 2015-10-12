@@ -1822,6 +1822,21 @@ void Isolate::VisitPrologueWeakPersistentHandles(HandleVisitor* visitor) {
 }
 
 
+static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
+  switch (pi) {
+    case kPauseOnAllExceptions:
+      return "All";
+    case kNoPauseOnExceptions:
+      return "None";
+    case kPauseOnUnhandledExceptions:
+      return "Unhandled";
+    default:
+      UNIMPLEMENTED();
+      return NULL;
+  }
+}
+
+
 void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", (ref ? "@Isolate" : "Isolate"));
@@ -1868,6 +1883,9 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     }
     jsobj.AddProperty("pauseEvent", &pause_event);
   }
+
+  jsobj.AddProperty("exceptionPauseMode",
+      ExceptionPauseInfoToServiceEnum(debugger()->GetExceptionPauseInfo()));
 
   const Library& lib =
       Library::Handle(object_store()->root_library());

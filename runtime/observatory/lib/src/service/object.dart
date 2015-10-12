@@ -1654,8 +1654,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return invokeRpc('setName', {'name': newName});
   }
 
-  Future setExceptionPauseInfo(String exceptions) {
-    return invokeRpc('_setExceptionPauseInfo', {'exceptions': exceptions});
+  Future setExceptionPauseMode(String mode) {
+    return invokeRpc('setExceptionPauseMode', {'mode': mode});
   }
 
   Future<ServiceMap> getStack() {

@@ -3007,33 +3007,41 @@ static bool RestartVM(Isolate* isolate, JSONStream* js) {
 }
 
 
-static const MethodParameter* set_exception_pause_info_params[] = {
-  ISOLATE_PARAMETER,
+static const char* exception_pause_mode_names[] = {
+  "All",
+  "None",
+  "Unhandled",
   NULL,
 };
 
 
-static bool SetExceptionPauseInfo(Isolate* isolate, JSONStream* js) {
-  const char* exceptions = js->LookupParam("exceptions");
-  if (exceptions == NULL) {
-    PrintMissingParamError(js, "exceptions");
+static Dart_ExceptionPauseInfo exception_pause_mode_values[] = {
+  kPauseOnAllExceptions,
+  kNoPauseOnExceptions,
+  kPauseOnUnhandledExceptions,
+  static_cast<Dart_ExceptionPauseInfo>(-1),  // Fall through.
+};
+
+
+static const MethodParameter* set_exception_pause_mode_params[] = {
+  ISOLATE_PARAMETER,
+  new EnumParameter("mode", true, exception_pause_mode_names),
+  NULL,
+};
+
+
+static bool SetExceptionPauseMode(Isolate* isolate, JSONStream* js) {
+  const char* mode = js->LookupParam("mode");
+  if (mode == NULL) {
+    PrintMissingParamError(js, "mode");
     return true;
   }
-
-  Dart_ExceptionPauseInfo info = kNoPauseOnExceptions;
-  if (strcmp(exceptions, "none") == 0) {
-    info = kNoPauseOnExceptions;
-  } else if (strcmp(exceptions, "all") == 0) {
-    info = kPauseOnAllExceptions;
-  } else if (strcmp(exceptions, "unhandled") == 0) {
-    info = kPauseOnUnhandledExceptions;
-  } else {
-    JSONObject jsobj(js);
-    jsobj.AddProperty("type", "Error");
-    jsobj.AddProperty("message", "illegal value for parameter 'exceptions'");
+  Dart_ExceptionPauseInfo info =
+      EnumMapper(mode, exception_pause_mode_names, exception_pause_mode_values);
+  if (info == -1) {
+    PrintInvalidParamError(js, "mode");
     return true;
   }
-
   isolate->debugger()->SetExceptionPauseInfo(info);
   if (Service::debug_stream.enabled()) {
     ServiceEvent event(isolate, ServiceEvent::kDebuggerSettingsUpdate);
@@ -3258,8 +3266,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     resume_params },
   { "_requestHeapSnapshot", RequestHeapSnapshot,
     request_heap_snapshot_params },
-  { "_setExceptionPauseInfo", SetExceptionPauseInfo,
-    set_exception_pause_info_params },
+  { "setExceptionPauseMode", SetExceptionPauseMode,
+    set_exception_pause_mode_params },
   { "_setFlag", SetFlag,
     set_flags_params },
   { "setLibraryDebuggable", SetLibraryDebuggable,

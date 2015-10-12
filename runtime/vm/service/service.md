@@ -38,6 +38,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [pause](#pause)
 	- [removeBreakpoint](#removebreakpoint)
 	- [resume](#resume)
+  - [setExceptionPauseMode](#setexceptionpausemode)
 	- [setLibraryDebuggable](#setlibrarydebuggable)
 	- [setName](#setname)
 	- [setVMName](#setvmname)
@@ -623,6 +624,23 @@ Over | Single step, skipping over function calls
 Out | Single step until the current function exits
 
 See [Success](#success), [StepOption](#StepOption).
+
+### setExceptionPauseMode
+
+```
+Success setExceptionPauseMode(string isolateId,
+                              ExceptionPauseMode mode)
+```
+
+The _setExceptionPauseMode_ RPC is used to control if an isolate pauses when
+an exception is thrown.
+
+mode | meaning
+---- | -------
+None | Do not pause isolate on thrown exceptions
+Unhandled | Pause isolate on unhandled exceptions
+All  | Pause isolate on all thrown exceptions
+
 
 ### setLibraryDebuggable
 
@@ -2038,6 +2056,19 @@ class Stack extends Response {
   Message[] messages;
 }
 ```
+
+### ExceptionPauseMode
+
+```
+enum ExceptionPauseMode {
+  None,
+  Unhandled,
+  All,
+}
+```
+
+An _ExceptionPauseMode_ indicates how the isolate pauses when an exception
+is thrown.
 
 ### StepOption
 
