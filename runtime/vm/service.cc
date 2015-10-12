@@ -3019,7 +3019,7 @@ static Dart_ExceptionPauseInfo exception_pause_mode_values[] = {
   kPauseOnAllExceptions,
   kNoPauseOnExceptions,
   kPauseOnUnhandledExceptions,
-  static_cast<Dart_ExceptionPauseInfo>(-1),  // Fall through.
+  kInvalidExceptionPauseInfo,
 };
 
 
@@ -3038,7 +3038,7 @@ static bool SetExceptionPauseMode(Isolate* isolate, JSONStream* js) {
   }
   Dart_ExceptionPauseInfo info =
       EnumMapper(mode, exception_pause_mode_names, exception_pause_mode_values);
-  if (info == -1) {
+  if (info == kInvalidExceptionPauseInfo) {
     PrintInvalidParamError(js, "mode");
     return true;
   }
