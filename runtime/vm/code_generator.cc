@@ -278,7 +278,7 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
   const Context& ctx = Context::CheckedHandle(arguments.ArgAt(0));
   Context& cloned_ctx = Context::Handle(Context::New(ctx.num_variables()));
   cloned_ctx.set_parent(Context::Handle(ctx.parent()));
-  Object& inst = Object::Handle(isolate);
+  Object& inst = Object::Handle(zone);
   for (int i = 0; i < ctx.num_variables(); i++) {
     inst = ctx.At(i);
     cloned_ctx.SetAt(i, inst);
@@ -1456,7 +1456,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
       ASSERT(isolate->background_compiler() != NULL);
       isolate->background_compiler()->CompileOptimized(function);
       // Continue in the same code.
-      arguments.SetReturn(Code::Handle(isolate, function.CurrentCode()));
+      arguments.SetReturn(Code::Handle(zone, function.CurrentCode()));
       return;
     }
     if (FLAG_trace_compiler) {
@@ -1466,14 +1466,14 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
       }
     }
     const Error& error = Error::Handle(
-        isolate, Compiler::CompileOptimizedFunction(thread, function));
+        zone, Compiler::CompileOptimizedFunction(thread, function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
-    const Code& optimized_code = Code::Handle(isolate, function.CurrentCode());
+    const Code& optimized_code = Code::Handle(zone, function.CurrentCode());
     ASSERT(!optimized_code.IsNull());
   }
-  arguments.SetReturn(Code::Handle(isolate, function.CurrentCode()));
+  arguments.SetReturn(Code::Handle(zone, function.CurrentCode()));
 }
 
 
@@ -1493,16 +1493,16 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
     UNREACHABLE();
   }
   ASSERT(frame->IsDartFrame());
-  const Code& caller_code = Code::Handle(isolate, frame->LookupDartCode());
+  const Code& caller_code = Code::Handle(zone, frame->LookupDartCode());
   ASSERT(caller_code.is_optimized());
   const Function& target_function = Function::Handle(
-      isolate, caller_code.GetStaticCallTargetFunctionAt(frame->pc()));
+      zone, caller_code.GetStaticCallTargetFunctionAt(frame->pc()));
   const Code& target_code = Code::Handle(
-      isolate, caller_code.GetStaticCallTargetCodeAt(frame->pc()));
+      zone, caller_code.GetStaticCallTargetCodeAt(frame->pc()));
   ASSERT(!target_code.IsNull());
   if (!target_function.HasCode()) {
     const Error& error = Error::Handle(
-        isolate, Compiler::CompileFunction(thread, target_function));
+        zone, Compiler::CompileFunction(thread, target_function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
@@ -1511,7 +1511,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   ASSERT(target_function.raw() == target_code.function());
 
   const Code& current_target_code = Code::Handle(
-      isolate, target_function.CurrentCode());
+      zone, target_function.CurrentCode());
   CodePatcher::PatchStaticCallAt(frame->pc(),
                                  caller_code,
                                  current_target_code);
@@ -1543,13 +1543,13 @@ DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
     UNREACHABLE();
   }
   ASSERT(frame->IsDartFrame());
-  const Code& caller_code = Code::Handle(isolate, frame->LookupDartCode());
+  const Code& caller_code = Code::Handle(zone, frame->LookupDartCode());
   ASSERT(!caller_code.IsNull());
   const Code& stub = Code::Handle(
       CodePatcher::GetStaticCallTargetAt(frame->pc(), caller_code));
   Class& alloc_class = Class::ZoneHandle(zone);
   alloc_class ^= stub.owner();
-  Code& alloc_stub = Code::Handle(isolate, alloc_class.allocation_stub());
+  Code& alloc_stub = Code::Handle(zone, alloc_class.allocation_stub());
   if (alloc_stub.IsNull()) {
     alloc_stub = StubCode::GetAllocationStubForClass(alloc_class);
     ASSERT(!alloc_stub.IsDisabled());

@@ -25,10 +25,10 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 
 class RegisterRunningIsolatesVisitor : public IsolateVisitor {
  public:
-  explicit RegisterRunningIsolatesVisitor(Isolate* service_isolate)
+  explicit RegisterRunningIsolatesVisitor(Thread* thread)
       : IsolateVisitor(),
-        register_function_(Function::Handle(service_isolate)),
-        service_isolate_(service_isolate) {
+        register_function_(Function::Handle(thread->zone())),
+        service_isolate_(thread->isolate()) {
     ASSERT(ServiceIsolate::IsServiceIsolate(Isolate::Current()));
     // Get library.
     const String& library_url = Symbols::DartVMService();
@@ -63,7 +63,7 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
     args.SetAt(0, port_int);
     args.SetAt(1, send_port);
     args.SetAt(2, name);
-    Object& r = Object::Handle(service_isolate_);
+    Object& r = Object::Handle(service_isolate_->current_zone());
     r = DartEntry::InvokeFunction(register_function_, args);
     if (FLAG_trace_service) {
       OS::Print("vm-service: Isolate %s %" Pd64 " registered.\n",
@@ -115,7 +115,7 @@ DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
   ServiceIsolate::BootVmServiceLibrary();
 
   // Register running isolates with service.
-  RegisterRunningIsolatesVisitor register_isolates(isolate);
+  RegisterRunningIsolatesVisitor register_isolates(thread);
   if (FLAG_trace_service) {
     OS::Print("vm-service: Registering running isolates.\n");
   }

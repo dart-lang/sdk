@@ -626,7 +626,7 @@ class Debugger {
                                            const Code& code,
                                            const Array& deopt_frame,
                                            intptr_t deopt_frame_offset);
-  static RawArray* DeoptimizeToArray(Isolate* isolate,
+  static RawArray* DeoptimizeToArray(Thread* thread,
                                      StackFrame* frame,
                                      const Code& code);
   static DebuggerStackTrace* CollectStackTrace();
@@ -649,6 +649,8 @@ class Debugger {
   void Pause(DebuggerEvent* event);
 
   void HandleSteppingRequest(DebuggerStackTrace* stack_trace);
+
+  Zone* zone() const { return isolate_->current_zone(); }
 
   Isolate* isolate_;
   Dart_Port isolate_id_;  // A unique ID for the isolate in the debugger.
