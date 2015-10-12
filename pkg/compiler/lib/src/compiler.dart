@@ -486,7 +486,7 @@ abstract class Compiler {
     _parsing = new _CompilerParsing(this);
     _resolution = new _CompilerResolution(this);
     _coreTypes = new _CompilerCoreTypes(_resolution);
-    types = new Types(this);
+    types = new Types(_resolution);
     tracer = new Tracer(this, this.outputProvider);
 
     if (verbose) {

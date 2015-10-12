@@ -280,7 +280,7 @@ class DeferredLoadTask extends CompilerTask {
         collectTypeDependencies(type.returnType);
       } else if (type is TypedefType) {
         elements.add(type.element);
-        collectTypeDependencies(type.unalias(compiler.resolution));
+        collectTypeDependencies(type.unaliased);
       } else if (type is InterfaceType) {
         elements.add(type.element);
       }

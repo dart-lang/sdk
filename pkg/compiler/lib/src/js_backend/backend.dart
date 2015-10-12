@@ -1307,7 +1307,7 @@ class JavaScriptBackend extends Backend {
                                  Enqueuer world,
                                  Registry registry) {
     assert(!registry.isForResolution);
-    type = type.unalias(resolution);
+    type = type.unaliased;
     enqueueClass(world, compiler.boolClass, registry);
     bool inCheckedMode = compiler.enableTypeAssertions;
     // [registerIsCheck] is also called for checked mode checks, so we
@@ -2983,7 +2983,8 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
 
   // TODO(johnniwinther): Maybe split this into [onAssertType] and [onTestType].
   void onIsCheck(DartType type, TransformedWorldImpact transformed) {
-    type = type.unalias(backend.resolution);
+    type.computeUnaliased(backend.resolution);
+    type = type.unaliased;
     registerBackendImpact(transformed, impacts.typeCheck);
 
     bool inCheckedMode = backend.compiler.enableTypeAssertions;

@@ -50,7 +50,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
     scope = new MethodScope(scope, element);
     signature.forEachParameter(addToScope);
 
-    element.alias = signature.type;
+    element.aliasCache = signature.type;
 
     void checkCyclicReference() {
       element.checkCyclicReference(resolution);
@@ -115,15 +115,15 @@ class TypedefCyclicVisitor extends BaseDartTypeVisitor {
               MessageKind.CYCLIC_TYPEDEF,
               {'typedefName': element.name},
               element.name, element);
-        element.alias =
-            new MalformedType(erroneousElement, typedefElement.alias);
+        element.aliasCache =
+            new MalformedType(erroneousElement, typedefElement.aliasCache);
         element.hasBeenCheckedForCycles = true;
       }
     } else {
       seenTypedefs = seenTypedefs.prepend(typedefElement);
       seenTypedefsCount++;
       type.visitChildren(this, null);
-      typedefElement.alias.accept(this, null);
+      typedefElement.aliasCache.accept(this, null);
       seenTypedefs = seenTypedefs.tail;
       seenTypedefsCount--;
     }

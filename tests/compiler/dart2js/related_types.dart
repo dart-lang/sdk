@@ -153,7 +153,7 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
   /// Return the interface type implemented by [type] or `null` if no interface
   /// type is implied by [type].
   InterfaceType findInterfaceType(DartType type) {
-    return Types.computeInterfaceType(compiler, type);
+    return Types.computeInterfaceType(compiler.resolution, type);
   }
 
   /// Returns the supertype of [receiver] that implements [cls], if any.

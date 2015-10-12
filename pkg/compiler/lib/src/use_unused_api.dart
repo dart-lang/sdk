@@ -270,7 +270,7 @@ usedByTests() {
   world.haveAnyCommonSubtypes(null, null);
   typeGraphInferrer.getCallersOf(null);
   dart_types.Types.sorted(null);
-  new dart_types.Types(compiler).copy(compiler);
+  new dart_types.Types(null).copy(null);
   sourceFileProvider.readStringFromUri(null);
 }
 
@@ -305,7 +305,6 @@ useCompiler(dart2jslib.Compiler compiler) {
 }
 
 useTypes() {
-  new dart_types.ResolvedTypedefType(null, null, null).unalias(null);
 }
 
 useCodeEmitterTask(js_emitter.CodeEmitterTask codeEmitterTask) {

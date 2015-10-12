@@ -210,7 +210,7 @@ Compiler compilerFor(
   if (cachedCompiler != null) {
     compiler.coreLibrary =
         cachedCompiler.libraryLoader.lookupLibrary(Uri.parse('dart:core'));
-    compiler.types = cachedCompiler.types.copy(compiler);
+    compiler.types = cachedCompiler.types.copy(compiler.resolution);
     Map copiedLibraries = {};
     cachedCompiler.libraryLoader.libraries.forEach((library) {
       if (library.isPlatformLibrary) {

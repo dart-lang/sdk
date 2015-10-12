@@ -16,8 +16,6 @@ import '../common/codegen.dart' show
 import '../common/names.dart' show
     Identifiers,
     Selectors;
-import '../common/resolution.dart' show
-    Resolution;
 import '../common/tasks.dart' show
     CompilerTask;
 import '../compiler.dart' show

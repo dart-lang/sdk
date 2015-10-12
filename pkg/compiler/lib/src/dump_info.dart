@@ -112,7 +112,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   }
 
   TypedefInfo visitTypedefElement(TypedefElement element, _) {
-    if (element.alias == null) return null;
+    if (!element.isResolved) return null;
     TypedefInfo info = new TypedefInfo(element.name, '${element.alias}',
         _unitInfoForElement(element));
     _elementToInfo[element] = info;

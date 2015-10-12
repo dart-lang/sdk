@@ -473,7 +473,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     bool canInline = true;
     signature.forEachParameter((ParameterElement element) {
       if (inputPosition++ < inputs.length && canInline) {
-        DartType type = element.type.unalias(compiler.resolution);
+        DartType type = element.type.unaliased;
         if (type is FunctionType) {
           canInline = false;
         }

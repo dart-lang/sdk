@@ -1311,7 +1311,13 @@ class TypedefElementX extends ElementX
   /**
    * The type annotation which defines this typedef.
    */
-  DartType alias;
+  DartType aliasCache;
+
+  DartType get alias {
+    assert(invariant(this, hasBeenCheckedForCycles,
+        message: "$this has not been checked for cycles."));
+    return aliasCache;
+  }
 
   /// [:true:] if the typedef has been checked for cyclic reference.
   bool hasBeenCheckedForCycles = false;

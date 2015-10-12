@@ -61,7 +61,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
       inputs.add(builder.localsHandler.readThis());
     }
     parameters.forEachParameter((ParameterElement parameter) {
-      DartType type = parameter.type.unalias(compiler.resolution);
+      DartType type = parameter.type.unaliased;
       HInstruction input = builder.localsHandler.readLocal(parameter);
       if (type is FunctionType) {
         // The parameter type is a function type either directly or through
