@@ -707,19 +707,19 @@ TEST_CASE(InstanceValues) {
 
 
 TEST_CASE(InstanceGetType) {
-  Isolate* isolate = Isolate::Current();
+  Zone* zone = thread->zone();
   // Get the handle from a valid instance handle.
   Dart_Handle type = Dart_InstanceGetType(Dart_Null());
   EXPECT_VALID(type);
   EXPECT(Dart_IsType(type));
-  const Type& null_type_obj = Api::UnwrapTypeHandle(isolate, type);
+  const Type& null_type_obj = Api::UnwrapTypeHandle(zone, type);
   EXPECT(null_type_obj.raw() == Type::NullType());
 
   Dart_Handle instance = Dart_True();
   type = Dart_InstanceGetType(instance);
   EXPECT_VALID(type);
   EXPECT(Dart_IsType(type));
-  const Type& bool_type_obj = Api::UnwrapTypeHandle(isolate, type);
+  const Type& bool_type_obj = Api::UnwrapTypeHandle(zone, type);
   EXPECT(bool_type_obj.raw() == Type::BoolType());
 
   Dart_Handle cls_name = Dart_TypeName(type);
@@ -5333,10 +5333,10 @@ TEST_CASE(New_Issue2971) {
 
 static Dart_Handle PrivateLibName(Dart_Handle lib, const char* str) {
   EXPECT(Dart_IsLibrary(lib));
-  Isolate* isolate = Isolate::Current();
-  const Library& library_obj = Api::UnwrapLibraryHandle(isolate, lib);
+  Thread* thread = Thread::Current();
+  const Library& library_obj = Api::UnwrapLibraryHandle(thread->zone(), lib);
   const String& name = String::Handle(String::New(str));
-  return Api::NewHandle(isolate, library_obj.PrivateName(name));
+  return Api::NewHandle(thread->isolate(), library_obj.PrivateName(name));
 }
 
 
@@ -8874,6 +8874,7 @@ TEST_CASE(MakeExternalString) {
       EXPECT_EQ(0x4e8c, ext_utf16_str[i]);
     }
 
+    Zone* zone = thread->zone();
     // Test with a symbol (hash value should be preserved on externalization).
     const char* symbol_ascii = "?unseen";
     expected_length = strlen(symbol_ascii);
@@ -8885,7 +8886,7 @@ TEST_CASE(MakeExternalString) {
     EXPECT(!Dart_IsExternalString(symbol_str));
     EXPECT_VALID(Dart_StringLength(symbol_str, &length));
     EXPECT_EQ(expected_length, length);
-    EXPECT(Api::UnwrapStringHandle(isolate, symbol_str).HasHash());
+    EXPECT(Api::UnwrapStringHandle(zone, symbol_str).HasHash());
 
     uint8_t ext_symbol_ascii[kLength];
     EXPECT_VALID(Dart_StringStorageSize(symbol_str, &size));
@@ -8894,9 +8895,9 @@ TEST_CASE(MakeExternalString) {
                                   size,
                                   &peer8,
                                   MakeExternalCback);
-    EXPECT(Api::UnwrapStringHandle(isolate, str).HasHash());
-    EXPECT(Api::UnwrapStringHandle(isolate, str).Hash() ==
-           Api::UnwrapStringHandle(isolate, symbol_str).Hash());
+    EXPECT(Api::UnwrapStringHandle(zone, str).HasHash());
+    EXPECT(Api::UnwrapStringHandle(zone, str).Hash() ==
+           Api::UnwrapStringHandle(zone, symbol_str).Hash());
     EXPECT(Dart_IsString(str));
     EXPECT(Dart_IsString(symbol_str));
     EXPECT(Dart_IsStringLatin1(str));

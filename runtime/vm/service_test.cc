@@ -55,9 +55,9 @@ static RawArray* Eval(Dart_Handle lib, const char* expr) {
   const String& dummy_isolate_id = String::Handle(String::New("isolateId"));
   Dart_Handle expr_val = Dart_EvaluateExpr(lib, NewString(expr));
   EXPECT_VALID(expr_val);
-  Isolate* isolate = Isolate::Current();
+  Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& value =
-      Api::UnwrapGrowableObjectArrayHandle(isolate, expr_val);
+      Api::UnwrapGrowableObjectArrayHandle(zone, expr_val);
   const Array& result = Array::Handle(Array::MakeArray(value));
   GrowableObjectArray& growable = GrowableObjectArray::Handle();
   growable ^= result.At(4);
@@ -107,13 +107,14 @@ static RawClass* GetClass(const Library& lib, const char* name) {
 
 
 TEST_CASE(Service_IdZones) {
-  Isolate* isolate = Isolate::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   ObjectIdRing* ring = isolate->object_id_ring();
 
-  const String& test_a = String::Handle(isolate, String::New("a"));
-  const String& test_b = String::Handle(isolate, String::New("b"));
-  const String& test_c = String::Handle(isolate, String::New("c"));
-  const String& test_d = String::Handle(isolate, String::New("d"));
+  const String& test_a = String::Handle(zone, String::New("a"));
+  const String& test_b = String::Handle(zone, String::New("b"));
+  const String& test_c = String::Handle(zone, String::New("c"));
+  const String& test_d = String::Handle(zone, String::New("d"));
 
   // Both RingServiceIdZones share the same backing store and id space.
 

@@ -217,14 +217,15 @@ const char* IsolateMessageHandler::name() const {
 // [ OOB dispatch, Isolate library dispatch, <message specific data> ]
 RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
   if (message.Length() < 2) return Error::null();
-  const Object& type = Object::Handle(I, message.At(1));
+  Zone* zone = I->current_zone();
+  const Object& type = Object::Handle(zone, message.At(1));
   if (!type.IsSmi()) return Error::null();
   const intptr_t msg_type = Smi::Cast(type).Value();
   switch (msg_type) {
     case Isolate::kPauseMsg: {
       // [ OOB, kPauseMsg, pause capability, resume capability ]
       if (message.Length() != 4) return Error::null();
-      Object& obj = Object::Handle(I, message.At(2));
+      Object& obj = Object::Handle(zone, message.At(2));
       if (!I->VerifyPauseCapability(obj)) return Error::null();
       obj = message.At(3);
       if (!obj.IsCapability()) return Error::null();
@@ -236,7 +237,7 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
     case Isolate::kResumeMsg: {
       // [ OOB, kResumeMsg, pause capability, resume capability ]
       if (message.Length() != 4) return Error::null();
-      Object& obj = Object::Handle(I, message.At(2));
+      Object& obj = Object::Handle(zone, message.At(2));
       if (!I->VerifyPauseCapability(obj)) return Error::null();
       obj = message.At(3);
       if (!obj.IsCapability()) return Error::null();
@@ -248,13 +249,13 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
     case Isolate::kPingMsg: {
       // [ OOB, kPingMsg, responsePort, priority, response ]
       if (message.Length() != 5) return Error::null();
-      const Object& obj2 = Object::Handle(I, message.At(2));
+      const Object& obj2 = Object::Handle(zone, message.At(2));
       if (!obj2.IsSendPort()) return Error::null();
       const SendPort& send_port = SendPort::Cast(obj2);
-      const Object& obj3 = Object::Handle(I, message.At(3));
+      const Object& obj3 = Object::Handle(zone, message.At(3));
       if (!obj3.IsSmi()) return Error::null();
       const intptr_t priority = Smi::Cast(obj3).Value();
-      const Object& obj4 = Object::Handle(I, message.At(4));
+      const Object& obj4 = Object::Handle(zone, message.At(4));
       if (!obj4.IsInstance() && !obj4.IsNull()) return Error::null();
       const Instance& response =
           obj4.IsNull() ? Instance::null_instance() : Instance::Cast(obj4);
@@ -270,9 +271,10 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
                (priority == Isolate::kAsEventAction));
         // Update the message so that it will be handled immediately when it
         // is picked up from the message queue the next time.
-        message.SetAt(
-            0, Smi::Handle(I, Smi::New(Message::kDelayedIsolateLibOOBMsg)));
-        message.SetAt(3, Smi::Handle(I, Smi::New(Isolate::kImmediateAction)));
+        message.SetAt(0, Smi::Handle(zone,
+            Smi::New(Message::kDelayedIsolateLibOOBMsg)));
+        message.SetAt(3, Smi::Handle(zone,
+            Smi::New(Isolate::kImmediateAction)));
         uint8_t* data = NULL;
         intptr_t len = 0;
         SerializeObject(message, &data, &len, false);
@@ -289,7 +291,7 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
     case Isolate::kVMRestartMsg: {
       // [ OOB, kKillMsg, terminate capability, priority ]
       if (message.Length() != 4) return Error::null();
-      Object& obj = Object::Handle(I, message.At(3));
+      Object& obj = Object::Handle(zone, message.At(3));
       if (!obj.IsSmi()) return Error::null();
       const intptr_t priority = Smi::Cast(obj).Value();
       if (priority == Isolate::kImmediateAction) {
@@ -328,9 +330,10 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
                (priority == Isolate::kAsEventAction));
         // Update the message so that it will be handled immediately when it
         // is picked up from the message queue the next time.
-        message.SetAt(
-            0, Smi::Handle(I, Smi::New(Message::kDelayedIsolateLibOOBMsg)));
-        message.SetAt(3, Smi::Handle(I, Smi::New(Isolate::kImmediateAction)));
+        message.SetAt(0, Smi::Handle(zone,
+            Smi::New(Message::kDelayedIsolateLibOOBMsg)));
+        message.SetAt(3, Smi::Handle(zone,
+            Smi::New(Isolate::kImmediateAction)));
         uint8_t* data = NULL;
         intptr_t len = 0;
         SerializeObject(message, &data, &len, false);
@@ -345,7 +348,7 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
     case Isolate::kInterruptMsg: {
       // [ OOB, kInterruptMsg, pause capability ]
       if (message.Length() != 3) return Error::null();
-      Object& obj = Object::Handle(I, message.At(2));
+      Object& obj = Object::Handle(zone, message.At(2));
       if (!I->VerifyPauseCapability(obj)) return Error::null();
 
       // If we are already paused, don't pause again.
@@ -361,14 +364,14 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
     case Isolate::kDelErrorMsg: {
       // [ OOB, msg, listener port ]
       if (message.Length() < 3) return Error::null();
-      const Object& obj = Object::Handle(I, message.At(2));
+      const Object& obj = Object::Handle(zone, message.At(2));
       if (!obj.IsSendPort()) return Error::null();
       const SendPort& listener = SendPort::Cast(obj);
       switch (msg_type) {
         case Isolate::kAddExitMsg: {
           if (message.Length() != 4) return Error::null();
           // [ OOB, msg, listener port, response object ]
-          const Object& response = Object::Handle(I, message.At(3));
+          const Object& response = Object::Handle(zone, message.At(3));
           if (!response.IsInstance() && !response.IsNull()) {
             return Error::null();
           }
@@ -398,7 +401,7 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
       // [ OOB, kErrorFatalMsg, terminate capability, val ]
       if (message.Length() != 4) return Error::null();
       // Check that the terminate capability has been passed correctly.
-      Object& obj = Object::Handle(I, message.At(2));
+      Object& obj = Object::Handle(zone, message.At(2));
       if (!I->VerifyTerminateCapability(obj)) return Error::null();
       // Get the value to be set.
       obj = message.At(3);
@@ -637,19 +640,20 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
   }
 
   // Generate the error and stacktrace strings for the error message.
-  String& exc_str = String::Handle(I);
-  String& stacktrace_str = String::Handle(I);
+  String& exc_str = String::Handle(I->current_zone());
+  String& stacktrace_str = String::Handle(I->current_zone());
   if (result.IsUnhandledException()) {
+    Zone* zone = I->current_zone();
     const UnhandledException& uhe = UnhandledException::Cast(result);
-    const Instance& exception = Instance::Handle(I, uhe.exception());
-    Object& tmp = Object::Handle(I);
+    const Instance& exception = Instance::Handle(zone, uhe.exception());
+    Object& tmp = Object::Handle(zone);
     tmp = DartLibraryCalls::ToString(exception);
     if (!tmp.IsString()) {
       tmp = String::New(exception.ToCString());
     }
     exc_str ^= tmp.raw();
 
-    const Instance& stacktrace = Instance::Handle(I, uhe.stacktrace());
+    const Instance& stacktrace = Instance::Handle(zone, uhe.stacktrace());
     tmp = DartLibraryCalls::ToString(stacktrace);
     if (!tmp.IsString()) {
       tmp = String::New(stacktrace.ToCString());
@@ -1062,9 +1066,9 @@ void Isolate::ScheduleInterrupts(uword interrupt_bits) {
 
 
 void Isolate::DoneLoading() {
-  GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(this, object_store()->libraries());
-  Library& lib = Library::Handle(this);
+  GrowableObjectArray& libs = GrowableObjectArray::Handle(current_zone(),
+      object_store()->libraries());
+  Library& lib = Library::Handle(current_zone());
   intptr_t num_libs = libs.Length();
   for (intptr_t i = 0; i < num_libs; i++) {
     lib ^= libs.At(i);
@@ -1132,8 +1136,8 @@ bool Isolate::AddResumeCapability(const Capability& capability) {
   static const intptr_t kMaxResumeCapabilities = kSmiMax / (6 * kWordSize);
 
   const GrowableObjectArray& caps = GrowableObjectArray::Handle(
-      this, object_store()->resume_capabilities());
-  Capability& current = Capability::Handle(this);
+      current_zone(), object_store()->resume_capabilities());
+  Capability& current = Capability::Handle(current_zone());
   intptr_t insertion_index = -1;
   for (intptr_t i = 0; i < caps.Length(); i++) {
     current ^= caps.At(i);
@@ -1162,8 +1166,8 @@ bool Isolate::AddResumeCapability(const Capability& capability) {
 
 bool Isolate::RemoveResumeCapability(const Capability& capability) {
   const GrowableObjectArray& caps = GrowableObjectArray::Handle(
-       this, object_store()->resume_capabilities());
-  Capability& current = Capability::Handle(this);
+       current_zone(), object_store()->resume_capabilities());
+  Capability& current = Capability::Handle(current_zone());
   for (intptr_t i = 0; i < caps.Length(); i++) {
     current ^= caps.At(i);
     if (!current.IsNull() && (current.Id() == capability.Id())) {
@@ -1185,8 +1189,8 @@ void Isolate::AddExitListener(const SendPort& listener,
   static const intptr_t kMaxListeners = kSmiMax / (12 * kWordSize);
 
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-       this, object_store()->exit_listeners());
-  SendPort& current = SendPort::Handle(this);
+       current_zone(), object_store()->exit_listeners());
+  SendPort& current = SendPort::Handle(current_zone());
   intptr_t insertion_index = -1;
   for (intptr_t i = 0; i < listeners.Length(); i += 2) {
     current ^= listeners.At(i);
@@ -1217,8 +1221,8 @@ void Isolate::AddExitListener(const SendPort& listener,
 
 void Isolate::RemoveExitListener(const SendPort& listener) {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      this, object_store()->exit_listeners());
-  SendPort& current = SendPort::Handle(this);
+      current_zone(), object_store()->exit_listeners());
+  SendPort& current = SendPort::Handle(current_zone());
   for (intptr_t i = 0; i < listeners.Length(); i += 2) {
     current ^= listeners.At(i);
     if (!current.IsNull() && (current.Id() == listener.Id())) {
@@ -1234,11 +1238,11 @@ void Isolate::RemoveExitListener(const SendPort& listener) {
 
 void Isolate::NotifyExitListeners() {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      this, this->object_store()->exit_listeners());
+      current_zone(), this->object_store()->exit_listeners());
   if (listeners.IsNull()) return;
 
-  SendPort& listener = SendPort::Handle(this);
-  Instance& response = Instance::Handle(this);
+  SendPort& listener = SendPort::Handle(current_zone());
+  Instance& response = Instance::Handle(current_zone());
   for (intptr_t i = 0; i < listeners.Length(); i += 2) {
     listener ^= listeners.At(i);
     if (!listener.IsNull()) {
@@ -1259,8 +1263,8 @@ void Isolate::AddErrorListener(const SendPort& listener) {
   static const intptr_t kMaxListeners = kSmiMax / (6 * kWordSize);
 
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      this, object_store()->error_listeners());
-  SendPort& current = SendPort::Handle(this);
+      current_zone(), object_store()->error_listeners());
+  SendPort& current = SendPort::Handle(current_zone());
   intptr_t insertion_index = -1;
   for (intptr_t i = 0; i < listeners.Length(); i++) {
     current ^= listeners.At(i);
@@ -1288,8 +1292,8 @@ void Isolate::AddErrorListener(const SendPort& listener) {
 
 void Isolate::RemoveErrorListener(const SendPort& listener) {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      this, object_store()->error_listeners());
-  SendPort& current = SendPort::Handle(this);
+      current_zone(), object_store()->error_listeners());
+  SendPort& current = SendPort::Handle(current_zone());
   for (intptr_t i = 0; i < listeners.Length(); i++) {
     current ^= listeners.At(i);
     if (!current.IsNull() && (current.Id() == listener.Id())) {
@@ -1305,13 +1309,13 @@ void Isolate::RemoveErrorListener(const SendPort& listener) {
 bool Isolate::NotifyErrorListeners(const String& msg,
                                    const String& stacktrace) {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      this, this->object_store()->error_listeners());
+      current_zone(), this->object_store()->error_listeners());
   if (listeners.IsNull()) return false;
 
-  const Array& arr = Array::Handle(this, Array::New(2));
+  const Array& arr = Array::Handle(current_zone(), Array::New(2));
   arr.SetAt(0, msg);
   arr.SetAt(1, stacktrace);
-  SendPort& listener = SendPort::Handle(this);
+  SendPort& listener = SendPort::Handle(current_zone());
   for (intptr_t i = 0; i < listeners.Length(); i++) {
     listener ^= listeners.At(i);
     if (!listener.IsNull()) {
@@ -1376,7 +1380,7 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
       return StoreError(isolate, Error::Cast(result));
     }
     ASSERT(result.IsFunction());
-    Function& func = Function::Handle(isolate);
+    Function& func = Function::Handle(thread->zone());
     func ^= result.raw();
 
     // TODO(turnidge): Currently we need a way to force a one-time
@@ -1668,7 +1672,7 @@ void Isolate::Shutdown() {
     // Write out the coverage data if collection has been enabled.
     if ((this != Dart::vm_isolate()) &&
         !ServiceIsolate::IsServiceIsolateDescendant(this)) {
-      CodeCoverage::Write(this);
+      CodeCoverage::Write(thread);
     }
 
     // Write compiler stats data if enabled.
@@ -1898,7 +1902,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     vm_tag_counters()->PrintToJSONObject(&tagCounters);
   }
   if (object_store()->sticky_error() != Object::null()) {
-    Error& error = Error::Handle(this, object_store()->sticky_error());
+    Error& error = Error::Handle(current_zone(),
+        object_store()->sticky_error());
     ASSERT(!error.IsNull());
     jsobj.AddProperty("error", error, false);
   }

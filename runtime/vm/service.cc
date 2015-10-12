@@ -1113,8 +1113,8 @@ static RawObject* LookupObjectId(Isolate* isolate,
       *kind = ObjectIdRing::kInvalid;
       return Object::null();
     }
-    const Integer& obj =
-        Integer::Handle(isolate, Smi::New(static_cast<intptr_t>(value)));
+    const Integer& obj = Integer::Handle(isolate->current_zone(),
+        Smi::New(static_cast<intptr_t>(value)));
     return obj.raw();
   } else if (strcmp(arg, "bool-true") == 0) {
     return Bool::True().raw();
@@ -1238,7 +1238,8 @@ static RawObject* LookupHeapObjectClasses(Isolate* isolate,
       return Object::sentinel().raw();
     }
     const char* encoded_id = parts[3];
-    String& id = String::Handle(isolate, String::New(encoded_id));
+    String& id = String::Handle(isolate->current_zone(),
+        String::New(encoded_id));
     id = String::DecodeIRI(id);
     if (id.IsNull()) {
       return Object::sentinel().raw();
@@ -1428,7 +1429,7 @@ static RawObject* LookupHeapObject(Isolate* isolate,
 
   if (strcmp(parts[0], "objects") == 0) {
     // Object ids look like "objects/1123"
-    Object& obj = Object::Handle(isolate);
+    Object& obj = Object::Handle(isolate->current_zone());
     ObjectIdRing::LookupResult lookup_result;
     obj = LookupObjectId(isolate, parts[1], &lookup_result);
     if (lookup_result != ObjectIdRing::kValid) {
@@ -1590,7 +1591,7 @@ static bool GetInboundReferences(Isolate* isolate, JSONStream* js) {
     return true;
   }
 
-  Object& obj = Object::Handle(isolate);
+  Object& obj = Object::Handle(thread->zone());
   ObjectIdRing::LookupResult lookup_result;
   {
     HANDLESCOPE(thread);
@@ -1692,7 +1693,7 @@ static bool GetRetainingPath(Isolate* isolate, JSONStream* js) {
     return true;
   }
 
-  Object& obj = Object::Handle(isolate);
+  Object& obj = Object::Handle(thread->zone());
   ObjectIdRing::LookupResult lookup_result;
   {
     HANDLESCOPE(thread);
@@ -1773,7 +1774,8 @@ static bool Evaluate(Isolate* isolate, JSONStream* js) {
     PrintMissingParamError(js, "expression");
     return true;
   }
-  const String& expr_str = String::Handle(isolate, String::New(expr));
+  const String& expr_str =
+      String::Handle(isolate->current_zone(), String::New(expr));
   ObjectIdRing::LookupResult lookup_result;
   Object& obj = Object::Handle(LookupHeapObject(isolate, target_id,
                                                 &lookup_result));
@@ -1806,7 +1808,7 @@ static bool Evaluate(Isolate* isolate, JSONStream* js) {
   if ((obj.IsInstance() || obj.IsNull()) &&
       !ContainsNonInstance(obj)) {
     // We don't use Instance::Cast here because it doesn't allow null.
-    Instance& instance = Instance::Handle(isolate);
+    Instance& instance = Instance::Handle(isolate->current_zone());
     instance ^= obj.raw();
     const Object& result =
         Object::Handle(instance.Evaluate(expr_str,
@@ -1841,7 +1843,8 @@ static bool EvaluateInFrame(Isolate* isolate, JSONStream* js) {
   ActivationFrame* frame = stack->FrameAt(framePos);
 
   const char* expr = js->LookupParam("expression");
-  const String& expr_str = String::Handle(isolate, String::New(expr));
+  const String& expr_str = String::Handle(isolate->current_zone(),
+      String::New(expr));
 
   const Object& result = Object::Handle(frame->Evaluate(expr_str));
   result.PrintJSON(js, true);
@@ -1995,8 +1998,9 @@ class FunctionCoverageFilter : public CoverageFilter {
 
 
 static bool GetHitsOrSites(Isolate* isolate, JSONStream* js, bool as_sites) {
+  Thread* thread = Thread::Current();
   if (!js->HasParam("targetId")) {
-    CodeCoverage::PrintJSON(isolate, js, NULL, as_sites);
+    CodeCoverage::PrintJSON(thread, js, NULL, as_sites);
     return true;
   }
   const char* target_id = js->LookupParam("targetId");
@@ -2007,22 +2011,22 @@ static bool GetHitsOrSites(Isolate* isolate, JSONStream* js, bool as_sites) {
   }
   if (obj.IsScript()) {
     ScriptCoverageFilter sf(Script::Cast(obj));
-    CodeCoverage::PrintJSON(isolate, js, &sf, as_sites);
+    CodeCoverage::PrintJSON(thread, js, &sf, as_sites);
     return true;
   }
   if (obj.IsLibrary()) {
     LibraryCoverageFilter lf(Library::Cast(obj));
-    CodeCoverage::PrintJSON(isolate, js, &lf, as_sites);
+    CodeCoverage::PrintJSON(thread, js, &lf, as_sites);
     return true;
   }
   if (obj.IsClass()) {
     ClassCoverageFilter cf(Class::Cast(obj));
-    CodeCoverage::PrintJSON(isolate, js, &cf, as_sites);
+    CodeCoverage::PrintJSON(thread, js, &cf, as_sites);
     return true;
   }
   if (obj.IsFunction()) {
     FunctionCoverageFilter ff(Function::Cast(obj));
-    CodeCoverage::PrintJSON(isolate, js, &ff, as_sites);
+    CodeCoverage::PrintJSON(thread, js, &ff, as_sites);
     return true;
   }
   js->PrintError(kInvalidParams,
@@ -2211,14 +2215,15 @@ static bool RemoveBreakpoint(Isolate* isolate, JSONStream* js) {
 
 
 static RawClass* GetMetricsClass(Isolate* isolate) {
+  Zone* zone = isolate->current_zone();
   const Library& prof_lib =
-      Library::Handle(isolate, Library::DeveloperLibrary());
+      Library::Handle(zone, Library::DeveloperLibrary());
   ASSERT(!prof_lib.IsNull());
   const String& metrics_cls_name =
-      String::Handle(isolate, String::New("Metrics"));
+      String::Handle(zone, String::New("Metrics"));
   ASSERT(!metrics_cls_name.IsNull());
   const Class& metrics_cls =
-      Class::Handle(isolate, prof_lib.LookupClass(metrics_cls_name));
+      Class::Handle(zone, prof_lib.LookupClass(metrics_cls_name));
   ASSERT(!metrics_cls.IsNull());
   return metrics_cls.raw();
 }
@@ -2259,17 +2264,18 @@ static bool HandleNativeMetric(Isolate* isolate,
 
 
 static bool HandleDartMetricsList(Isolate* isolate, JSONStream* js) {
-  const Class& metrics_cls = Class::Handle(isolate, GetMetricsClass(isolate));
+  Zone* zone = isolate->current_zone();
+  const Class& metrics_cls = Class::Handle(zone, GetMetricsClass(isolate));
   const String& print_metrics_name =
       String::Handle(String::New("_printMetrics"));
   ASSERT(!print_metrics_name.IsNull());
   const Function& print_metrics = Function::Handle(
-      isolate,
+      zone,
       metrics_cls.LookupStaticFunctionAllowPrivate(print_metrics_name));
   ASSERT(!print_metrics.IsNull());
   const Array& args = Object::empty_array();
   const Object& result =
-      Object::Handle(isolate, DartEntry::InvokeFunction(print_metrics, args));
+      Object::Handle(zone, DartEntry::InvokeFunction(print_metrics, args));
   ASSERT(!result.IsNull());
   ASSERT(result.IsString());
   TextBuffer* buffer = js->buffer();
@@ -2279,12 +2285,13 @@ static bool HandleDartMetricsList(Isolate* isolate, JSONStream* js) {
 
 
 static bool HandleDartMetric(Isolate* isolate, JSONStream* js, const char* id) {
-  const Class& metrics_cls = Class::Handle(isolate, GetMetricsClass(isolate));
+  Zone* zone = isolate->current_zone();
+  const Class& metrics_cls = Class::Handle(zone, GetMetricsClass(isolate));
   const String& print_metric_name =
       String::Handle(String::New("_printMetric"));
   ASSERT(!print_metric_name.IsNull());
   const Function& print_metric = Function::Handle(
-      isolate,
+      zone,
       metrics_cls.LookupStaticFunctionAllowPrivate(print_metric_name));
   ASSERT(!print_metric.IsNull());
   const String& arg0 = String::Handle(String::New(id));
@@ -2293,7 +2300,7 @@ static bool HandleDartMetric(Isolate* isolate, JSONStream* js, const char* id) {
   ASSERT(!args.IsNull());
   args.SetAt(0, arg0);
   const Object& result =
-      Object::Handle(isolate, DartEntry::InvokeFunction(print_metric, args));
+      Object::Handle(zone, DartEntry::InvokeFunction(print_metric, args));
   if (!result.IsNull()) {
     ASSERT(result.IsString());
     TextBuffer* buffer = js->buffer();
@@ -2747,7 +2754,7 @@ static const MethodParameter* get_object_by_address_params[] = {
 
 
 static RawObject* GetObjectHelper(Isolate* isolate, uword addr) {
-  Object& object = Object::Handle(isolate);
+  Object& object = Object::Handle(isolate->current_zone());
 
   {
     NoSafepointScope no_safepoint;
@@ -2783,7 +2790,8 @@ static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
     return true;
   }
   bool ref = js->HasParam("ref") && js->ParamIs("ref", "true");
-  const Object& obj = Object::Handle(isolate, GetObjectHelper(isolate, addr));
+  const Object& obj = Object::Handle(isolate->current_zone(),
+      GetObjectHelper(isolate, addr));
   if (obj.IsNull()) {
     PrintSentinel(js, kFreeSentinel);
   } else {

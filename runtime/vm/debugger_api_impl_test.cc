@@ -2139,6 +2139,7 @@ TEST_CASE(Debug_GetSupertype) {
       "}\n";
 
   Isolate* isolate = Isolate::Current();
+  Zone* zone = isolate->current_zone();
   LoadScript(kScriptChars);
   ASSERT(script_lib != NULL);
   ASSERT(Dart_IsLibrary(script_lib));
@@ -2189,34 +2190,34 @@ TEST_CASE(Debug_GetSupertype) {
   }
   {
     Dart_Handle super_type = Dart_GetSupertype(Test1_type);
-    const Type& expected_type = Api::UnwrapTypeHandle(isolate, Test_type);
-    const Type& actual_type = Api::UnwrapTypeHandle(isolate, super_type);
+    const Type& expected_type = Api::UnwrapTypeHandle(zone, Test_type);
+    const Type& actual_type = Api::UnwrapTypeHandle(zone, super_type);
     EXPECT(expected_type.raw() == actual_type.raw());
   }
   {
     Dart_Handle super_type = Dart_GetSupertype(Test3_type);
-    const Type& expected_type = Api::UnwrapTypeHandle(isolate, Test2_int_type);
-    const Type& actual_type = Api::UnwrapTypeHandle(isolate, super_type);
+    const Type& expected_type = Api::UnwrapTypeHandle(zone, Test2_int_type);
+    const Type& actual_type = Api::UnwrapTypeHandle(zone, super_type);
     EXPECT(expected_type.raw() == actual_type.raw());
   }
   {
     Dart_Handle super_type = Dart_GetSupertype(Test4_int_type);
-    const Type& expected_type = Api::UnwrapTypeHandle(isolate, Test2_int_type);
-    const Type& actual_type = Api::UnwrapTypeHandle(isolate, super_type);
+    const Type& expected_type = Api::UnwrapTypeHandle(zone, Test2_int_type);
+    const Type& actual_type = Api::UnwrapTypeHandle(zone, super_type);
     EXPECT(expected_type.raw() == actual_type.raw());
   }
   {
     Dart_Handle super_type = Dart_GetSupertype(Test5_int_type);
-    const Type& expected_type = Api::UnwrapTypeHandle(isolate, Test4_int_type);
-    const Type& actual_type = Api::UnwrapTypeHandle(isolate, super_type);
+    const Type& expected_type = Api::UnwrapTypeHandle(zone, Test4_int_type);
+    const Type& actual_type = Api::UnwrapTypeHandle(zone, super_type);
     EXPECT(expected_type.raw() == actual_type.raw());
   }
   {
     Dart_Handle set_type = Dart_GetType(core_lib, set_name, 0, NULL);
     Dart_Handle super_type = Dart_GetSupertype(set_type);
     Dart_Handle iterable_type = Dart_GetType(core_lib, iterable_name, 0, NULL);
-    const Type& expected_type = Api::UnwrapTypeHandle(isolate, iterable_type);
-    const Type& actual_type = Api::UnwrapTypeHandle(isolate, super_type);
+    const Type& expected_type = Api::UnwrapTypeHandle(zone, iterable_type);
+    const Type& actual_type = Api::UnwrapTypeHandle(zone, super_type);
     EXPECT(expected_type.raw() == actual_type.raw());
   }
   {

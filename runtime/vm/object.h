@@ -65,19 +65,11 @@ class Symbols;
     initializeHandle(obj, raw_ptr);                                            \
     return *obj;                                                               \
   }                                                                            \
-  /* DEPRECATED: Use Zone version. */                                          \
-  static object& Handle(Isolate* isolate, Raw##object* raw_ptr) {              \
-    return Handle(isolate->current_zone(), raw_ptr);                           \
-  }                                                                            \
   static object& Handle() {                                                    \
     return Handle(Thread::Current()->zone(), object::null());                  \
   }                                                                            \
   static object& Handle(Zone* zone) {                                          \
     return Handle(zone, object::null());                                       \
-  }                                                                            \
-  /* DEPRECATED: Use Zone version. */                                          \
-  static object& Handle(Isolate* isolate) {                                    \
-    return Handle(isolate->current_zone(), object::null());                    \
   }                                                                            \
   static object& Handle(Raw##object* raw_ptr) {                                \
     return Handle(Thread::Current()->zone(), raw_ptr);                         \
@@ -328,10 +320,6 @@ class Object {
     initializeHandle(obj, raw_ptr);
     return *obj;
   }
-  // DEPRECATED: Use Zone version.
-  static Object& Handle(Isolate* isolate, RawObject* raw_ptr) {
-    return Handle(isolate->current_zone(), raw_ptr);
-  }
   static Object* ReadOnlyHandle() {
     Object* obj = reinterpret_cast<Object*>(
         Dart::AllocateReadOnlyHandle());
@@ -345,10 +333,6 @@ class Object {
 
   static Object& Handle(Zone* zone) {
     return Handle(zone, null_);
-  }
-  // DEPRECATED: Use Zone version.
-  static Object& Handle(Isolate* isolate) {
-    return Handle(isolate->current_zone(), null_);
   }
 
   static Object& Handle(RawObject* raw_ptr) {
@@ -851,10 +835,6 @@ class PassiveObject : public Object {
     obj->set_vtable(0);
     return *obj;
   }
-  // DEPRECATED - use Zone version.
-  static PassiveObject& Handle(Isolate* I, RawObject* raw_ptr) {
-    return Handle(I->current_zone(), raw_ptr);
-  }
   static PassiveObject& Handle(RawObject* raw_ptr) {
     return Handle(Thread::Current()->zone(), raw_ptr);
   }
@@ -863,10 +843,6 @@ class PassiveObject : public Object {
   }
   static PassiveObject& Handle(Zone* zone) {
     return Handle(zone, Object::null());
-  }
-  // DEPRECATED - use Zone version.
-  static PassiveObject& Handle(Isolate* I) {
-    return Handle(I, Object::null());
   }
   static PassiveObject& ZoneHandle(Zone* zone, RawObject* raw_ptr) {
     PassiveObject* obj = reinterpret_cast<PassiveObject*>(
