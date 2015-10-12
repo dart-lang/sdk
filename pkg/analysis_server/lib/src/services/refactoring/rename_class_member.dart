@@ -170,6 +170,29 @@ class _ClassMemberValidator {
     await _prepareReferences();
     Set<ClassElement> subClasses =
         await getSubClasses(searchEngine, elementClass);
+    // check shadowing of class names
+    if (element != null) {
+      for (Element element in elements) {
+        ClassElement clazz = element.enclosingElement;
+        if (clazz.name == name) {
+          result.addError(
+              format(
+                  "Renamed {0} has the same name as the declaring class '{1}'.",
+                  elementKind.displayName,
+                  name),
+              newLocation_fromElement(element));
+        }
+      }
+    } else {
+      if (elementClass.name == name) {
+        result.addError(
+            format(
+                "Created {0} has the same name as the declaring class '{1}'.",
+                elementKind.displayName,
+                name),
+            newLocation_fromElement(elementClass));
+      }
+    }
     // check shadowing in hierarchy
     List<SearchMatch> declarations =
         await searchEngine.searchElementDeclarations(name);
