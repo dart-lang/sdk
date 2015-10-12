@@ -36,7 +36,7 @@ void main([args, port]) {
   Isolate.spawnUri(Platform.script,
                    [],
                    p.sendPort,
-                   packages: {
+                   packageMap: {
                      NOT_HERE: Uri.parse(NOT_HERE_URI)
                    });
 }

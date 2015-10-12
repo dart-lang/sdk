@@ -136,7 +136,8 @@ browser/typed_data_message_test: StaticWarning
 mint_maker_test: StaticWarning
 
 [ $compiler != none || $runtime != vm ]
-package_root_test: SkipByDesign # Uses dart:io.
+package_root_test: SkipByDesign  # Uses Isolate.packageRoot
+package_map_test: SkipByDesign  # Uses Isolate.packageMap
 
 [ $compiler == dart2js && $cps_ir ]
 deferred_in_isolate2_test: RuntimeError # A.loadLibrary is not a function
