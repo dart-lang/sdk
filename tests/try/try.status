@@ -10,6 +10,9 @@ web/*: Skip
 [ $compiler == dart2js && $runtime == drt ]
 web/end_to_end_test: Fail, Pass # https://code.google.com/p/v8/issues/detail?id=3347
 
+[ $compiler == none && $runtime == drt ]
+web/end_to_end_test: Fail # Issue 24568
+
 [ $csp ]
 web/end_to_end_test: Fail, OK # Issue 17935
 web/incremental_compilation_update_test: SkipByDesign # Test uses eval, not supported in CSP mode.
