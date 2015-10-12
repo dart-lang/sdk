@@ -4,13 +4,10 @@
 
 library dart2js.resolution.typedefs;
 
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import '../diagnostics/messages.dart' show
-    MessageKind;
 import '../elements/elements.dart' show
     FunctionSignature,
     TypedefElement,

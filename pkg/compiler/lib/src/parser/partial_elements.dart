@@ -4,15 +4,11 @@
 
 library dart2js.parser.partial_elements;
 
+import '../common.dart';
 import '../common/resolution.dart' show
     Parsing,
     Resolution;
 import '../dart_types.dart' show DynamicType;
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart';
 import '../elements/elements.dart' show
     CompilationUnitElement,
     ConstructorElement,

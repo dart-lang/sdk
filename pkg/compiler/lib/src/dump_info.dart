@@ -9,15 +9,12 @@ import 'dart:convert'
 
 import 'package:dart2js_info/info.dart';
 
+import 'common.dart';
 import 'common/tasks.dart' show
     CompilerTask;
 import 'constants/values.dart' show ConstantValue;
 import 'compiler.dart' show
     Compiler;
-import 'diagnostics/messages.dart' show
-    MessageKind;
-import 'diagnostics/spannable.dart' show
-    NO_LOCATION_SPANNABLE;
 import 'elements/elements.dart';
 import 'elements/visitor.dart';
 import 'types/types.dart' show

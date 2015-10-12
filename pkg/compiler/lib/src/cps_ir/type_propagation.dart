@@ -7,6 +7,7 @@ import 'optimizers.dart';
 
 import '../closure.dart' show
     ClosureClassElement;
+import '../common.dart';
 import '../common/names.dart' show
     Identifiers,
     Selectors;
@@ -15,8 +16,6 @@ import '../compiler.dart' as dart2js show
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../dart_types.dart' as types;
-import '../diagnostics/invariant.dart' as dart2js show
-    InternalErrorFunction;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show
     SourceInformation;
@@ -29,8 +28,6 @@ import '../resolution/operators.dart';
 import '../resolution/send_structure.dart';
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
-import '../types/constants.dart' show
-    computeTypeMask;
 import '../universe/selector.dart' show
     Selector;
 import '../world.dart' show World;
@@ -347,7 +344,7 @@ class TypePropagator extends Pass {
   final dart2js.Compiler _compiler;
   final CpsFunctionCompiler _functionCompiler;
   final ConstantPropagationLattice _lattice;
-  final dart2js.InternalErrorFunction _internalError;
+  final InternalErrorFunction _internalError;
   final Map<Variable, ConstantValue> _values = <Variable, ConstantValue>{};
   final TypeMaskSystem _typeSystem;
 
@@ -423,7 +420,7 @@ class TransformingVisitor extends LeafVisitor {
   types.DartTypes get dartTypes => lattice.dartTypes;
   Map<Variable, ConstantValue> get values => analyzer.values;
 
-  final dart2js.InternalErrorFunction internalError;
+  final InternalErrorFunction internalError;
 
   final List<Node> stack = <Node>[];
 
@@ -1948,7 +1945,7 @@ class TypePropagationVisitor implements Visitor {
   final List<Definition> defWorklist = <Definition>[];
 
   final ConstantPropagationLattice lattice;
-  final dart2js.InternalErrorFunction internalError;
+  final InternalErrorFunction internalError;
 
   TypeMaskSystem get typeSystem => lattice.typeSystem;
 

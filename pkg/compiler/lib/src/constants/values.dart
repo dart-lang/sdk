@@ -4,10 +4,9 @@
 
 library dart2js.constants.values;
 
+import '../common.dart';
 import '../core_types.dart';
 import '../dart_types.dart';
-import '../diagnostics/invariant.dart'
-    show assertDebugMode;
 import '../elements/elements.dart'
     show ClassElement,
          Element,

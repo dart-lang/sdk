@@ -4,14 +4,11 @@
 
 library dart2js.type_mask_system;
 
-import '../closure.dart' show ClosureClassElement;
 import '../common/names.dart' show Selectors, Identifiers;
 import '../compiler.dart' as dart2js show Compiler;
-import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../dart_types.dart' as types;
 import '../elements/elements.dart';
-import '../io/source_information.dart' show SourceInformation;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;

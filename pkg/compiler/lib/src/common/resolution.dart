@@ -5,6 +5,7 @@
 
 library dart2js.common.resolution;
 
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
 import '../core_types.dart' show
@@ -12,8 +13,6 @@ import '../core_types.dart' show
 import '../dart_types.dart' show
     DartType,
     InterfaceType;
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
 import '../elements/elements.dart' show
     AstElement,
     ClassElement,

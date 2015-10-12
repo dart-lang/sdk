@@ -12,10 +12,7 @@ import 'package:js_runtime/shared/async_await_error_codes.dart'
 
 import "js.dart" as js;
 
-import '../diagnostics/diagnostic_listener.dart';
-import '../diagnostics/spannable.dart' show
-    NO_LOCATION_SPANNABLE,
-    Spannable;
+import '../common.dart';
 import '../util/util.dart' show
     Pair;
 

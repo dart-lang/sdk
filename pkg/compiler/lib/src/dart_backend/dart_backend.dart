@@ -9,6 +9,7 @@ import 'dart:math' show max;
 
 import '../../compiler.dart' show
     CompilerOutputProvider;
+import '../common.dart';
 import '../common/backend_api.dart' show
     Backend;
 import '../common/codegen.dart' show
@@ -32,15 +33,6 @@ import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart';
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart' show
-    MessageKind;
-import '../diagnostics/spannable.dart' show
-    NO_LOCATION_SPANNABLE,
-    Spannable,
-    SpannableAssertionFailure;
 import '../elements/elements.dart';
 import '../enqueue.dart' show
     Enqueuer,

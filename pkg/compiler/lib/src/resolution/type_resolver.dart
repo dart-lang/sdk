@@ -4,6 +4,7 @@
 
 library dart2js.resolution.types;
 
+import '../common.dart';
 import '../common/resolution.dart' show
     Resolution;
 import '../compiler.dart' show
@@ -11,11 +12,6 @@ import '../compiler.dart' show
 import '../dart_backend/dart_backend.dart' show
     DartBackend;
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter,
-    DiagnosticMessage;
-import '../diagnostics/messages.dart' show
-    MessageKind;
 import '../elements/elements.dart' show
     AmbiguousElement,
     ClassElement,

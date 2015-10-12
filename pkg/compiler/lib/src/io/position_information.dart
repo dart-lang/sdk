@@ -7,12 +7,7 @@
 
 library dart2js.source_information.position;
 
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/source_span.dart' show
-    SourceSpan;
-import '../diagnostics/spannable.dart' show
-    NO_LOCATION_SPANNABLE;
+import '../common.dart';
 import '../elements/elements.dart' show
     AstElement,
     LocalElement;

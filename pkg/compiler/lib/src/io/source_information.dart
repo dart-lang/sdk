@@ -4,8 +4,7 @@
 
 library dart2js.source_information;
 
-import '../diagnostics/source_span.dart' show
-    SourceSpan;
+import '../common.dart';
 import '../elements/elements.dart' show
     AstElement,
     LocalElement;

@@ -4,11 +4,9 @@
 
 library dart2js.semantics_visitor;
 
+import '../common.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../diagnostics/spannable.dart' show
-    Spannable,
-    SpannableAssertionFailure;
 import '../tree/tree.dart';
 import '../elements/elements.dart';
 import '../universe/call_structure.dart' show

@@ -4,6 +4,7 @@
 
 library dart2js.compile_time_constant_evaluator;
 
+import 'common.dart';
 import 'common/resolution.dart' show
     Resolution;
 import 'common/tasks.dart' show
@@ -16,14 +17,6 @@ import 'constants/evaluation.dart';
 import 'constants/expressions.dart';
 import 'constants/values.dart';
 import 'dart_types.dart';
-import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import 'diagnostics/invariant.dart' show
-    invariant;
-import 'diagnostics/messages.dart' show
-    MessageKind;
-import 'enqueue.dart' show
-    WorldImpact;
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show
     FunctionElementX;

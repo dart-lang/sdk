@@ -6,43 +6,6 @@ library dart2js.js_emitter.startup_emitter.model_emitter;
 
 import 'dart:convert' show JsonEncoder;
 
-import '../../common.dart';
-
-import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
-import '../../compiler.dart' show Compiler;
-import '../../diagnostics/messages.dart' show
-    MessageKind;
-
-import '../../elements/elements.dart' show ClassElement, FunctionElement;
-import '../../hash/sha1.dart' show Hasher;
-
-import '../../io/code_output.dart';
-
-import '../../io/line_column_provider.dart' show
-    LineColumnCollector,
-    LineColumnProvider;
-
-import '../../io/source_map_builder.dart' show
-    SourceMapBuilder;
-
-import '../../js/js.dart' as js;
-import '../../js_backend/js_backend.dart' show
-    JavaScriptBackend,
-    Namer,
-    ConstantEmitter;
-
-import '../../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-
-import '../../diagnostics/spannable.dart' show
-    NO_LOCATION_SPANNABLE;
-
-import '../../util/uri_extras.dart' show
-    relativize;
-
-import '../headers.dart';
-import '../js_emitter.dart' show NativeEmitter;
-
 import 'package:js_runtime/shared/embedded_names.dart' show
     CLASS_FIELDS_EXTRACTOR,
     CLASS_ID_EXTRACTOR,
@@ -66,7 +29,38 @@ import 'package:js_runtime/shared/embedded_names.dart' show
     TYPE_TO_INTERCEPTOR_MAP,
     TYPES;
 
-import '../js_emitter.dart' show NativeGenerator, buildTearOffCode;
+import '../../common.dart';
+import '../../constants/values.dart' show
+    ConstantValue,
+    FunctionConstantValue;
+import '../../compiler.dart' show
+    Compiler;
+import '../../elements/elements.dart' show
+    ClassElement,
+    FunctionElement;
+import '../../hash/sha1.dart' show
+    Hasher;
+import '../../io/code_output.dart';
+import '../../io/line_column_provider.dart' show
+    LineColumnCollector,
+    LineColumnProvider;
+import '../../io/source_map_builder.dart' show
+    SourceMapBuilder;
+import '../../js/js.dart' as js;
+import '../../js_backend/js_backend.dart' show
+    JavaScriptBackend,
+    Namer,
+    ConstantEmitter;
+import '../../util/uri_extras.dart' show
+    relativize;
+
+import '../headers.dart';
+import '../js_emitter.dart' show
+    NativeEmitter;
+
+import '../js_emitter.dart' show
+    buildTearOffCode,
+    NativeGenerator;
 import '../model.dart';
 
 part 'deferred_fragment_hash.dart';

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library dart2js.resolution.constructors;
+
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
 import '../constants/constructors.dart' show
@@ -10,15 +12,6 @@ import '../constants/constructors.dart' show
     RedirectingGenerativeConstantConstructor;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter,
-    DiagnosticMessage;
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart' show
-    MessageKind;
-import '../diagnostics/spannable.dart' show
-    Spannable;
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
     ConstructorElementX,

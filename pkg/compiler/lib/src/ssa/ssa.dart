@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'package:js_runtime/shared/embedded_names.dart';
 
 import '../closure.dart';
+import '../common.dart';
 import '../common/codegen.dart' show
     CodegenRegistry,
     CodegenWorkItem;
@@ -26,14 +27,9 @@ import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart';
-import '../diagnostics/spannable.dart' show
-    CURRENT_ELEMENT_SPANNABLE,
-    Spannable;
+import '../diagnostics/messages.dart' show
+    Message,
+    MessageTemplate;
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
     ConstructorBodyElementX,

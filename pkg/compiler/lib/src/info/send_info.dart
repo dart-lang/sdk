@@ -6,26 +6,33 @@
 library compiler.src.info.send_info;
 
 import 'dart:convert';
-import 'package:dart2js_info/src/measurements.dart';
-import 'package:dart2js_info/src/util.dart' show recursiveDiagnosticString;
 
-import '../diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
-import '../diagnostics/messages.dart' show MessageKind;
-import '../compiler.dart' show Compiler;
-import '../common/tasks.dart' show CompilerTask;
+import 'package:dart2js_info/src/measurements.dart';
+import 'package:dart2js_info/src/util.dart' show
+    recursiveDiagnosticString;
+
+import '../common.dart';
+import '../common/tasks.dart' show
+    CompilerTask;
+import '../compiler.dart' show
+    Compiler;
 import '../dart_types.dart';
 import '../closure.dart';
 import '../elements/elements.dart';
-import '../elements/visitor.dart' show ElementVisitor;
+import '../elements/visitor.dart' show
+    ElementVisitor;
 import '../resolution/operators.dart';
 import '../resolution/semantic_visitor.dart';
 import '../resolution/send_resolver.dart';
 import '../resolution/tree_elements.dart';
 import '../constants/expressions.dart';
-import '../parser/partial_elements.dart' show PartialElement;
+import '../parser/partial_elements.dart' show
+    PartialElement;
 import '../tree/tree.dart';
-import '../universe/selector.dart' show Selector;
-import '../universe/call_structure.dart' show CallStructure;
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
 
 import 'analysis_result.dart';
 import 'naive_analysis_result.dart';

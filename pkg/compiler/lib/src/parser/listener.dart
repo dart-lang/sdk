@@ -4,10 +4,9 @@
 
 library dart2js.parser.listener;
 
-import '../diagnostics/messages.dart';
-import '../diagnostics/spannable.dart' show
-    Spannable,
-    SpannableAssertionFailure;
+import '../common.dart';
+import '../diagnostics/messages.dart' show
+    MessageTemplate;
 import '../tokens/precedence_constants.dart' as Precedence show
     EOF_INFO,
     IDENTIFIER_INFO;

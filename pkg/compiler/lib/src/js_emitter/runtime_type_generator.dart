@@ -78,9 +78,8 @@ class RuntimeTypeGenerator {
                                        FunctionType type) {
       assert(method.isImplementation);
       jsAst.Expression thisAccess = new jsAst.This();
-      Node node = method.node;
       ClosureClassMap closureData =
-          compiler.closureToClassMapper.closureMappingCache[node];
+          compiler.closureToClassMapper.closureMappingCache[method.node];
       if (closureData != null) {
         ClosureFieldElement thisLocal =
             closureData.freeVariableMap[closureData.thisLocal];

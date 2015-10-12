@@ -4,10 +4,9 @@
 
 library deferred_load;
 
+import 'common.dart';
 import 'common/backend_api.dart' show
     Backend;
-import 'common/resolution.dart' show
-    Resolution;
 import 'common/tasks.dart' show
     CompilerTask;
 import 'compiler.dart' show
@@ -18,10 +17,6 @@ import 'constants/values.dart' show
     DeferredConstantValue,
     StringConstantValue;
 import 'dart_types.dart';
-import 'diagnostics/messages.dart' show
-    MessageKind;
-import 'diagnostics/spannable.dart' show
-    Spannable;
 import 'elements/elements.dart' show
     AccessorElement,
     AstElement,

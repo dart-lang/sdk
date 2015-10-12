@@ -4,15 +4,15 @@
 
 library cps_ir.optimization.insert_refinements;
 
-import 'optimizers.dart' show Pass;
-import 'shrinking_reductions.dart' show ParentVisitor;
-import 'cps_ir_nodes.dart';
-import '../types/constants.dart';
-import '../constants/values.dart';
 import '../common/names.dart';
-import '../universe/universe.dart';
-import '../elements/elements.dart';
-import '../types/types.dart' show TypeMask;
+import '../types/types.dart' show
+    TypeMask;
+
+import 'cps_ir_nodes.dart';
+import 'optimizers.dart' show
+    Pass;
+import 'shrinking_reductions.dart' show
+    ParentVisitor;
 import 'type_mask_system.dart';
 
 /// Inserts [Refinement] nodes in the IR to allow for sparse path-sensitive

@@ -6,18 +6,12 @@ library dart_types;
 
 import 'dart:math' show min;
 
+import 'common.dart';
 import 'common/resolution.dart' show
     Resolution;
 import 'compiler.dart' show
     Compiler;
 import 'core_types.dart';
-import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import 'diagnostics/invariant.dart' show
-    invariant;
-import 'diagnostics/spannable.dart' show
-    CURRENT_ELEMENT_SPANNABLE,
-    NO_LOCATION_SPANNABLE;
 import 'elements/modelx.dart' show
     LibraryElementX,
     TypeDeclarationElementX,

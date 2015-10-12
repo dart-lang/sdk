@@ -4,34 +4,55 @@
 
 library dart2js.js_emitter.program_builder;
 
-import '../js_emitter.dart' show computeMixinClass, Emitter;
-import '../model.dart';
-
-import '../../common.dart';
-import '../../closure.dart' show ClosureFieldElement;
-import '../../js/js.dart' as js;
-
-import '../../js_backend/js_backend.dart' show
-    Namer,
-    JavaScriptBackend,
-    JavaScriptConstantCompiler;
-
 import '../js_emitter.dart' show
     ClassStubGenerator,
     CodeEmitterTask,
+    computeMixinClass,
+    Emitter,
     InterceptorStubGenerator,
     MainCallStubGenerator,
     ParameterStubGenerator,
     RuntimeTypeGenerator,
     TypeTestProperties;
+import '../model.dart';
 
+import '../../common.dart';
+import '../../common/names.dart' show
+    Names;
+import '../../compiler.dart' show
+    Compiler;
+import '../../constants/values.dart' show
+    ConstantValue,
+    InterceptorConstantValue;
+import '../../closure.dart' show
+    ClosureFieldElement;
+import '../../dart_types.dart' show
+    DartType;
 import '../../elements/elements.dart' show
+    ClassElement,
+    Element,
+    Elements,
     FieldElement,
+    FunctionElement,
+    FunctionSignature,
+    LibraryElement,
     MethodElement,
-    ParameterElement;
-
-import '../../universe/universe.dart' show Universe, SelectorConstraints;
-import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
+    ParameterElement,
+    TypedefElement,
+    VariableElement;
+import '../../js/js.dart' as js;
+import '../../js_backend/js_backend.dart' show
+    Namer,
+    JavaScriptBackend,
+    JavaScriptConstantCompiler;
+import '../../universe/selector.dart' show
+    Selector;
+import '../../universe/universe.dart' show
+    Universe,
+    SelectorConstraints;
+import '../../deferred_load.dart' show
+    DeferredLoadTask,
+    OutputUnit;
 
 part 'collector.dart';
 part 'registry.dart';

@@ -5,7 +5,6 @@ import '../../cps_ir/cps_ir_nodes.dart';
 import '../../cps_ir/optimizers.dart' show ParentVisitor, Pass;
 import '../../constants/values.dart';
 import '../../elements/elements.dart';
-import '../../io/source_information.dart';
 import '../../js_backend/codegen/glue.dart';
 import '../../universe/selector.dart' show Selector;
 import '../../cps_ir/cps_ir_builder.dart' show ThisParameterLocal;

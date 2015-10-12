@@ -4,25 +4,20 @@
 
 library dart2js.resolution.tree_elements;
 
+import '../common.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/spannable.dart' show
-    Spannable;
 import '../elements/elements.dart';
 import '../types/types.dart' show
     TypeMask;
 import '../tree/tree.dart';
 import '../util/util.dart';
-import '../universe/call_structure.dart' show
-    CallStructure;
 import '../universe/selector.dart' show
     Selector;
-import '../universe/universe.dart' show
-    UniverseSelector;
 
-import 'secret_tree_element.dart' show getTreeElement, setTreeElement;
+import 'secret_tree_element.dart' show
+    getTreeElement,
+    setTreeElement;
 import 'send_structure.dart';
 
 abstract class TreeElements {

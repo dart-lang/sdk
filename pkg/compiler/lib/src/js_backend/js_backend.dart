@@ -11,6 +11,7 @@ import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
 
 import '../closure.dart';
+import '../common.dart';
 import '../common/backend_api.dart' show
     Backend,
     ForeignResolver;
@@ -42,17 +43,6 @@ import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage,
-    DiagnosticReporter;
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart' show MessageKind;
-import '../diagnostics/spannable.dart' show
-    CURRENT_ELEMENT_SPANNABLE,
-    NO_LOCATION_SPANNABLE,
-    Spannable,
-    SpannableAssertionFailure;
 import '../elements/elements.dart';
 import '../elements/visitor.dart' show
     BaseElementVisitor;

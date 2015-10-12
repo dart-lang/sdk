@@ -6,19 +6,13 @@ library dart2js.library_loader;
 
 import 'dart:async';
 
+import 'common.dart';
 import 'common/names.dart' show
     Uris;
 import 'common/tasks.dart' show
     CompilerTask;
 import 'compiler.dart' show
     Compiler;
-import 'diagnostics/diagnostic_listener.dart';
-import 'diagnostics/invariant.dart' show
-    invariant;
-import 'diagnostics/messages.dart' show
-    MessageKind;
-import 'diagnostics/spannable.dart' show
-    Spannable;
 import 'elements/elements.dart' show
     CompilationUnitElement,
     Element,

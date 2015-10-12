@@ -4,6 +4,7 @@
 
 library types;
 
+import '../common.dart';
 import '../common/backend_api.dart' show
     Backend;
 import '../common/tasks.dart' show
@@ -12,10 +13,6 @@ import '../compiler.dart' show
     Compiler;
 import '../constants/values.dart' show
     PrimitiveConstantValue;
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/spannable.dart' show
-    NO_LOCATION_SPANNABLE;
 import '../elements/elements.dart';
 import '../inferrer/type_graph_inferrer.dart' show
     TypeGraphInferrer;

@@ -7,12 +7,9 @@ library js;
 import 'package:js_ast/js_ast.dart';
 export 'package:js_ast/js_ast.dart';
 
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import '../diagnostics/spannable.dart' show
-    NO_LOCATION_SPANNABLE;
 import '../dump_info.dart' show
     DumpInfoTask;
 import '../io/code_output.dart' show

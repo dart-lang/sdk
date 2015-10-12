@@ -7,6 +7,7 @@ library simple_types_inferrer;
 import '../closure.dart' show
     ClosureClassMap,
     ClosureScope;
+import '../common.dart';
 import '../common/names.dart' show
     Selectors;
 import '../compiler.dart' show
@@ -21,8 +22,6 @@ import '../dart_types.dart' show
     FunctionType,
     InterfaceType,
     TypeKind;
-import '../diagnostics/spannable.dart' show
-    Spannable;
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' as js;
 import '../native/native.dart' as native;

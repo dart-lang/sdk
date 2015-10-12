@@ -7,30 +7,14 @@ import 'optimizers.dart';
 
 import 'dart:collection' show Queue;
 
-import '../closure.dart' show
-    ClosureClassElement;
-import '../common/names.dart' show
-    Selectors, Identifiers;
+import '../common.dart';
 import '../compiler.dart' as dart2js show
     Compiler;
-import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../dart_types.dart' as types;
-import '../diagnostics/invariant.dart' as dart2js show
-    InternalErrorFunction;
 import '../elements/elements.dart';
-import '../io/source_information.dart' show SourceInformation;
-import '../resolution/access_semantics.dart';
-import '../resolution/operators.dart';
-import '../resolution/send_structure.dart';
-import '../tree/tree.dart' as ast;
 import '../types/types.dart';
-import '../types/constants.dart' show computeTypeMask;
-import '../universe/universe.dart';
 import '../world.dart' show World;
-import 'cps_fragment.dart';
 import 'cps_ir_nodes.dart';
-import 'cps_ir_nodes_sexpr.dart' show SExpressionStringifier;
 
 /**
  * Replaces aggregates with a set of local values.  Performs inlining of
@@ -39,7 +23,7 @@ import 'cps_ir_nodes_sexpr.dart' show SExpressionStringifier;
 class ScalarReplacer extends Pass {
   String get passName => 'Scalar replacement';
 
-  final dart2js.InternalErrorFunction _internalError;
+  final InternalErrorFunction _internalError;
   final World _classWorld;
 
   ScalarReplacer(dart2js.Compiler compiler)
@@ -63,7 +47,7 @@ class ScalarReplacer extends Pass {
  */
 class ScalarReplacementVisitor extends RecursiveVisitor {
 
-  final dart2js.InternalErrorFunction internalError;
+  final InternalErrorFunction internalError;
   final World classWorld;
   ScalarReplacementRemovalVisitor removalVisitor;
 

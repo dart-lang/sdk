@@ -4,6 +4,7 @@
 
 library elements.modelx;
 
+import '../common.dart';
 import '../common/resolution.dart' show
     Resolution,
     Parsing;
@@ -13,16 +14,8 @@ import '../constants/constant_constructors.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart';
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart';
-import '../diagnostics/source_span.dart' show
-    SourceSpan;
-import '../diagnostics/spannable.dart' show
-    Spannable,
-    SpannableAssertionFailure;
-import '../helpers/helpers.dart';
+import '../diagnostics/messages.dart' show
+    MessageTemplate;
 import '../ordered_typeset.dart' show
     OrderedTypeSet;
 import '../resolution/class_members.dart' show

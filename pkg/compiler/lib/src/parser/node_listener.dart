@@ -4,11 +4,7 @@
 
 library dart2js.parser.node_listener;
 
-import '../diagnostics/diagnostic_listener.dart';
-import '../diagnostics/messages.dart';
-import '../diagnostics/spannable.dart' show
-    Spannable,
-    SpannableAssertionFailure;
+import '../common.dart';
 import '../elements/elements.dart' show
     CompilationUnitElement;
 import '../native/native.dart' as native;

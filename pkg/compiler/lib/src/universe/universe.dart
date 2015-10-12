@@ -6,12 +6,9 @@ library universe;
 
 import 'dart:collection';
 
-import '../common/resolution.dart' show
-    Resolution;
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
-import '../diagnostics/invariant.dart' show
-    invariant;
 import '../elements/elements.dart';
 import '../dart_types.dart';
 import '../util/util.dart';

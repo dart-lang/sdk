@@ -4,15 +4,10 @@
 
 library ordered_typeset;
 
+import 'common.dart';
 import 'compiler.dart' show
     Compiler;
 import 'dart_types.dart';
-import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import 'diagnostics/invariant.dart' show
-    invariant;
-import 'diagnostics/messages.dart' show
-    MessageKind;
 import 'elements/elements.dart' show
     ClassElement;
 import 'util/util.dart' show

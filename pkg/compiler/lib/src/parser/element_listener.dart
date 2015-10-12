@@ -4,10 +4,9 @@
 
 library dart2js.parser.element_listener;
 
-import '../diagnostics/diagnostic_listener.dart';
-import '../diagnostics/messages.dart';
-import '../diagnostics/spannable.dart' show
-    Spannable;
+import '../common.dart';
+import '../diagnostics/messages.dart' show
+    MessageTemplate;
 import '../elements/elements.dart' show
     Element,
     LibraryElement,

@@ -13,6 +13,7 @@ import 'cache_strategy.dart' show
     CacheStrategy;
 import 'closure.dart' as closureMapping show
     ClosureTask;
+import 'common.dart';
 import 'common/backend_api.dart' show
     Backend;
 import 'common/codegen.dart' show
@@ -46,23 +47,12 @@ import 'dart_types.dart' show
 import 'deferred_load.dart' show DeferredLoadTask, OutputUnit;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage,
-    DiagnosticOptions,
-    DiagnosticReporter;
+    DiagnosticOptions;
 import 'diagnostics/invariant.dart' show
-    invariant,
     REPORT_EXCESS_RESOLUTION;
 import 'diagnostics/messages.dart' show
     Message,
-    MessageKind,
     MessageTemplate;
-import 'diagnostics/source_span.dart' show
-    SourceSpan;
-import 'diagnostics/spannable.dart' show
-    CURRENT_ELEMENT_SPANNABLE,
-    NO_LOCATION_SPANNABLE,
-    Spannable,
-    SpannableAssertionFailure;
 import 'dump_info.dart' show
     DumpInfoTask;
 import 'elements/elements.dart';

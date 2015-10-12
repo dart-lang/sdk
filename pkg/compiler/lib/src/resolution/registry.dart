@@ -4,6 +4,7 @@
 
 library dart2js.resolution.registry;
 
+import '../common.dart';
 import '../common/backend_api.dart' show
     Backend,
     ForeignResolver;
@@ -18,12 +19,9 @@ import '../compiler.dart' show
     Compiler;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../diagnostics/invariant.dart' show
-    invariant;
 import '../enqueue.dart' show
     ResolutionEnqueuer;
 import '../elements/elements.dart';
-import '../helpers/helpers.dart';
 import '../tree/tree.dart';
 import '../util/util.dart' show
     Setlet;

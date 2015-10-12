@@ -4,19 +4,13 @@
 
 library dart2js.resolution.common;
 
+import '../common.dart';
 import '../common/resolution.dart' show
     Resolution;
 import '../common/tasks.dart' show
     DeferredAction;
 import '../compiler.dart' show
     Compiler;
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage,
-    DiagnosticReporter;
-import '../diagnostics/messages.dart' show
-    MessageKind;
-import '../diagnostics/spannable.dart' show
-    Spannable;
 import '../elements/elements.dart';
 import '../tree/tree.dart';
 

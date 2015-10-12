@@ -118,15 +118,13 @@ import 'dart:async';
 
 import 'constants/values.dart' show
     ConstantValue;
+import 'common.dart';
 import 'compiler.dart' show
     Compiler;
 import 'common/tasks.dart' show
     CompilerTask;
 import 'dart_types.dart' show
     DartType;
-import 'diagnostics/diagnostic_listener.dart';
-import 'diagnostics/messages.dart' show
-    MessageKind;
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show
     BaseFunctionElementX,

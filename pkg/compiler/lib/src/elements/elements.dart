@@ -4,6 +4,7 @@
 
 library elements;
 
+import '../common.dart';
 import '../common/resolution.dart' show
     Resolution;
 import '../compiler.dart' show
@@ -11,13 +12,6 @@ import '../compiler.dart' show
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart';
-import '../diagnostics/messages.dart' show
-MessageKind;
-import '../diagnostics/source_span.dart' show
-    SourceSpan;
-import '../diagnostics/spannable.dart' show
-    Spannable;
 import '../resolution/scope.dart' show
     Scope;
 import '../resolution/tree_elements.dart' show

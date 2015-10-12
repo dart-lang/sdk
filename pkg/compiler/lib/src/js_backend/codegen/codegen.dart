@@ -6,18 +6,23 @@ library code_generator;
 
 import 'glue.dart';
 
-import '../../closure.dart' show ClosureClassElement;
-import '../../common/codegen.dart' show CodegenRegistry;
+import '../../closure.dart' show
+    ClosureClassElement;
+import '../../common.dart';
+import '../../common/codegen.dart' show
+    CodegenRegistry;
 import '../../constants/values.dart';
 import '../../dart_types.dart';
-import '../../diagnostics/invariant.dart' show invariant;
-import '../../diagnostics/spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
 import '../../elements/elements.dart';
-import '../../io/source_information.dart' show SourceInformation;
+import '../../io/source_information.dart' show
+    SourceInformation;
 import '../../js/js.dart' as js;
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
-import '../../tree_ir/tree_ir_nodes.dart' show BuiltinOperator, BuiltinMethod;
-import '../../types/types.dart' show TypeMask;
+import '../../tree_ir/tree_ir_nodes.dart' show
+    BuiltinMethod,
+    BuiltinOperator;
+import '../../types/types.dart' show
+    TypeMask;
 import '../../universe/selector.dart' show
     Selector;
 import '../../universe/universe.dart' show

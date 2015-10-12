@@ -4,6 +4,7 @@
 
 library dart2js.typechecker;
 
+import 'common.dart';
 import 'common/names.dart' show
     Identifiers;
 import 'common/resolution.dart' show
@@ -16,14 +17,6 @@ import 'constants/expressions.dart';
 import 'constants/values.dart';
 import 'core_types.dart';
 import 'dart_types.dart';
-import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage,
-    DiagnosticReporter;
-import 'diagnostics/invariant.dart' show
-    invariant;
-import 'diagnostics/messages.dart';
-import 'diagnostics/spannable.dart' show
-    Spannable;
 import 'elements/elements.dart' show
     AbstractFieldElement,
     AstElement,
@@ -59,7 +52,6 @@ import 'tree/tree.dart';
 import 'util/util.dart' show
     Link,
     LinkBuilder;
-import '../compiler_new.dart' as api;
 
 class TypeCheckerTask extends CompilerTask {
   TypeCheckerTask(Compiler compiler) : super(compiler);

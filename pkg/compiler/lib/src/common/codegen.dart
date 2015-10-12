@@ -4,6 +4,7 @@
 
 library dart2js.common.codegen;
 
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
 import '../constants/values.dart' show
@@ -11,8 +12,6 @@ import '../constants/values.dart' show
 import '../dart_types.dart' show
     DartType,
     InterfaceType;
-import '../diagnostics/invariant.dart' show
-    invariant;
 import '../elements/elements.dart' show
     AstElement,
     ClassElement,

@@ -7,6 +7,7 @@ library dart2js.enqueue;
 import 'dart:collection' show
     Queue;
 
+import 'common.dart';
 import 'common/names.dart' show
     Identifiers;
 import 'common/resolution.dart' show
@@ -27,12 +28,6 @@ import 'compiler.dart' show
 import 'dart_types.dart' show
     DartType,
     InterfaceType;
-import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import 'diagnostics/invariant.dart' show
-    invariant;
-import 'diagnostics/spannable.dart' show
-    SpannableAssertionFailure;
 import 'elements/elements.dart' show
     AnalyzableElement,
     AstElement,
@@ -51,10 +46,6 @@ import 'elements/elements.dart' show
     TypedefElement;
 import 'js/js.dart' as js;
 import 'native/native.dart' as native;
-import 'resolution/members.dart' show
-    ResolverVisitor;
-import 'tree/tree.dart' show
-    Send;
 import 'types/types.dart' show
     TypeMaskStrategy;
 import 'universe/selector.dart' show

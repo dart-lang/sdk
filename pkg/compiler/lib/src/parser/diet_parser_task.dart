@@ -4,14 +4,13 @@
 
 library dart2js.parser.diet.task;
 
+import '../common.dart';
 import '../common/tasks.dart' show
     CompilerTask;
 import '../compiler.dart' show
     Compiler;
 import '../elements/elements.dart' show
     CompilationUnitElement;
-import '../diagnostics/invariant.dart' show
-    invariant;
 import '../tokens/token.dart' show
     Token;
 

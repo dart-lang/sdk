@@ -20,18 +20,14 @@ import 'package:sdk_library_metadata/libraries.dart' as library_info show
 
 import '../compiler_new.dart' as api;
 import 'commandline_options.dart';
+import 'common.dart';
 import 'common/tasks.dart' show
     GenericTask;
 import 'compiler.dart' as leg;
 import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage,
     DiagnosticOptions;
-import 'diagnostics/messages.dart';
-import 'diagnostics/source_span.dart' show
-    SourceSpan;
-import 'diagnostics/spannable.dart' show
-    NO_LOCATION_SPANNABLE,
-    Spannable;
+import 'diagnostics/messages.dart' show
+    Message;
 import 'elements/elements.dart' as elements;
 import 'io/source_file.dart';
 import 'script.dart';

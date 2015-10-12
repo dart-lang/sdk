@@ -4,14 +4,12 @@
 
 library tree_ir_builder;
 
-import '../diagnostics/invariant.dart' show
-    InternalErrorFunction;
-import '../diagnostics/spannable.dart' show
-    CURRENT_ELEMENT_SPANNABLE;
-import '../elements/elements.dart';
-import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
-import 'tree_ir_nodes.dart';
+import '../common.dart';
 import '../constants/values.dart';
+import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
+import '../elements/elements.dart';
+
+import 'tree_ir_nodes.dart';
 
 typedef Statement NodeCallback(Statement next);
 

@@ -6,10 +6,10 @@ library dart2js.common.tasks;
 
 import 'dart:developer' show
     UserTag;
+
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
 import '../elements/elements.dart' show
     Element;
 

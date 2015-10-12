@@ -4,10 +4,9 @@
 
 library dart2js.resolution.variables;
 
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
-import '../diagnostics/messages.dart' show
-    MessageKind;
 import '../elements/modelx.dart' show
     LocalVariableElementX,
     VariableList;

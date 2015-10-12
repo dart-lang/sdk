@@ -4,6 +4,7 @@
 
 library closureToClassMapper;
 
+import 'common.dart';
 import 'common/names.dart' show
     Identifiers;
 import 'common/resolution.dart' show
@@ -15,9 +16,6 @@ import 'compiler.dart' show
     Compiler;
 import 'constants/expressions.dart';
 import 'dart_types.dart';
-import 'diagnostics/diagnostic_listener.dart';
-import 'diagnostics/spannable.dart' show
-    SpannableAssertionFailure;
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show
     BaseFunctionElementX,

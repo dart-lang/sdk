@@ -4,13 +4,9 @@
 
 library dart2js.semantics_visitor.resolver;
 
+import '../common.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../diagnostics/messages.dart' show
-    MessageKind;
-import '../diagnostics/spannable.dart' show
-    Spannable,
-    SpannableAssertionFailure;
 import '../elements/elements.dart';
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show

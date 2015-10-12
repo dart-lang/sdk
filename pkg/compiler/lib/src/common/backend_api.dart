@@ -6,6 +6,7 @@ library dart2js.backend_api;
 
 import 'dart:async' show Future;
 
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
 import '../compile_time_constants.dart' show
@@ -20,9 +21,6 @@ import '../constants/values.dart' show
 import '../dart_types.dart' show
     DartType,
     InterfaceType;
-import '../diagnostics/spannable.dart' show
-    Spannable,
-    SpannableAssertionFailure;
 import '../elements/elements.dart' show
     ClassElement,
     ConstructorElement,

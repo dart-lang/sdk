@@ -6,6 +6,7 @@ library dart2js.resolution;
 
 import 'dart:collection' show Queue;
 
+import '../common.dart';
 import '../common/names.dart' show
     Identifiers;
 import '../common/resolution.dart' show
@@ -22,15 +23,6 @@ import '../compile_time_constants.dart' show
 import '../constants/values.dart' show
     ConstantValue;
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage,
-    DiagnosticReporter;
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart' show
-    MessageKind;
-import '../diagnostics/spannable.dart' show
-    Spannable;
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
     BaseClassElementX,

@@ -7,11 +7,13 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/apiimpl.dart'
-       show Compiler;
+import 'package:compiler/src/apiimpl.dart' show
+    Compiler;
 import 'memory_compiler.dart';
 import 'package:compiler/src/js/js.dart' as js;
-import 'package:compiler/src/common.dart' show Element, ClassElement;
+import 'package:compiler/src/elements/elements.dart' show
+    ClassElement,
+    Element;
 
 const String TEST_MAIN_FILE = 'test.dart';
 

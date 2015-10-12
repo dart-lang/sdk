@@ -4,6 +4,7 @@
 
 library dart2js.resolution.compute_members;
 
+import '../common.dart';
 import '../common/names.dart' show
     Identifiers;
 import '../common/resolution.dart' show
@@ -11,13 +12,6 @@ import '../common/resolution.dart' show
 import '../compiler.dart' show
     Compiler;
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage,
-    DiagnosticReporter;
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart' show
-    MessageKind;
 import '../elements/elements.dart' show
     ClassElement,
     Element,

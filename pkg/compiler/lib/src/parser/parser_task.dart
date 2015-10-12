@@ -4,12 +4,11 @@
 
 library dart2js.parser.task;
 
+import '../common.dart';
 import '../common/tasks.dart' show
     CompilerTask;
 import '../compiler.dart' show
     Compiler;
-import '../diagnostics/invariant.dart' show
-    invariant;
 import '../elements/modelx.dart' show
     ElementX;
 import '../tokens/token.dart' show

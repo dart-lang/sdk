@@ -9,28 +9,30 @@ import 'package:js_runtime/shared/embedded_names.dart' show
     METADATA,
     TYPES;
 
-import '../program_builder/program_builder.dart' show ProgramBuilder;
-import '../model.dart';
-import 'model_emitter.dart';
 import '../../common.dart';
-import '../../elements/elements.dart' show FieldElement;
+import '../../compiler.dart' show
+    Compiler;
+import '../../constants/values.dart' show
+    ConstantValue;
+import '../../elements/elements.dart' show
+    ClassElement,
+    Element,
+    FieldElement,
+    FunctionElement;
 import '../../js/js.dart' as js;
-
 import '../../js_backend/js_backend.dart' show
     JavaScriptBackend,
     Namer;
 
 import '../js_emitter.dart' show
     NativeEmitter;
-
 import '../js_emitter.dart' as emitterTask show
     Emitter;
+import '../model.dart';
+import '../program_builder/program_builder.dart' show
+    ProgramBuilder;
 
-import '../../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-
-import '../../diagnostics/spannable.dart' show
-    NO_LOCATION_SPANNABLE;
+import 'model_emitter.dart';
 
 class Emitter implements emitterTask.Emitter {
   final Compiler _compiler;
