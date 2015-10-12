@@ -92,6 +92,8 @@ class WeakTable {
     return 0;
   }
 
+  void Reset();
+
  private:
   enum {
     kObjectOffset = 0,

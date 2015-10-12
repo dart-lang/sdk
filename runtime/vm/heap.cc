@@ -647,8 +647,20 @@ int64_t Heap::PeerCount() const {
 
 
 int64_t Heap::HashCount() const {
-  return
-      new_weak_tables_[kHashes]->count() + old_weak_tables_[kHashes]->count();
+  return new_weak_tables_[kHashes]->count() +
+      old_weak_tables_[kHashes]->count();
+}
+
+
+int64_t Heap::ObjectIdCount() const {
+  return new_weak_tables_[kObjectIds]->count() +
+      old_weak_tables_[kObjectIds]->count();
+}
+
+
+void Heap::ResetObjectIdTable() {
+  new_weak_tables_[kObjectIds]->Reset();
+  old_weak_tables_[kObjectIds]->Reset();
 }
 
 
