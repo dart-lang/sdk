@@ -83,7 +83,6 @@ class CpsFragment {
     }
     if (context != null) {
       context.body = node;
-      node.parent = context;
     }
     context = null;
   }
@@ -297,20 +296,5 @@ class CpsFragment {
     LetMutable let = new LetMutable(variable, initialValue);
     put(let);
     context = let;
-  }
-
-  void insertBelow(InteriorNode node) {
-    assert(isOpen);
-    if (isEmpty) return;
-    Expression child = node.body;
-    node.body = root;
-    root.parent = node;
-    context.body = child;
-    child.parent = context;
-    root = context = null;
-  }
-
-  void insertAbove(InteriorExpression node) {
-    insertBelow(node.parent);
   }
 }

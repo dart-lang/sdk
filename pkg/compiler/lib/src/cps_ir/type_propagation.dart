@@ -361,6 +361,9 @@ class TypePropagator extends Pass {
 
   @override
   void rewrite(FunctionDefinition root) {
+    // Set all parent pointers.
+    new ParentVisitor().visit(root);
+
     Map<Expression, ConstantValue> replacements = <Expression, ConstantValue>{};
 
     // Analyze. In this phase, the entire term is analyzed for reachability
@@ -405,7 +408,7 @@ final Map<String, BuiltinOperator> NumBinaryBuiltins =
  * Uses the information from a preceding analysis pass in order to perform the
  * actual transformations on the CPS graph.
  */
-class TransformingVisitor extends DeepRecursiveVisitor {
+class TransformingVisitor extends LeafVisitor {
   final TypePropagationVisitor analyzer;
   final Map<Expression, ConstantValue> replacements;
   final ConstantPropagationLattice lattice;
@@ -512,7 +515,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
   /// Sets parent pointers and computes types for the given subtree.
   void reanalyze(Node node) {
-    ParentVisitor.setParents(node);
+    new ParentVisitor().visit(node);
     analyzer.reanalyzeSubtree(node);
   }
 
@@ -557,6 +560,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     // traversing the entire subtree of [node]. Temporarily close the
     // term with a dummy node while recomputing types.
     context.body = new Unreachable();
+    new ParentVisitor().visit(insertedCode.root);
     reanalyze(insertedCode.root);
 
     context.body = node;
@@ -1498,7 +1502,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         // target definitely does not use it.
         Constant dummy = makeConstantPrimitive(new IntConstantValue(0));
         insertLetPrim(node, dummy);
-        node.arguments[0].changeTo(dummy);
+        node.arguments[0].unlink();
+        node.arguments[0] = new Reference<Primitive>(dummy);
         node.receiverIsIntercepted = false;
       }
     }
@@ -2693,7 +2698,7 @@ class OriginalLengthEntity extends Entity {
   String get name => 'length';
 }
 
-class ResetAnalysisInfo extends TrampolineRecursiveVisitor {
+class ResetAnalysisInfo extends RecursiveVisitor {
   Set<Continuation> reachableContinuations;
   Map<Variable, ConstantValue> values;
 

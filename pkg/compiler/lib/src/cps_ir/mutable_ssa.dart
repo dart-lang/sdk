@@ -12,7 +12,7 @@ import 'optimizers.dart';
 ///
 /// We do not rewrite variables that have an assignment inside a try block that
 /// does not contain its declaration.
-class MutableVariablePreanalysis extends TrampolineRecursiveVisitor {
+class MutableVariablePreanalysis extends RecursiveVisitor {
   // Number of try blocks enclosing the current position.
   int currentDepth = 0;
 

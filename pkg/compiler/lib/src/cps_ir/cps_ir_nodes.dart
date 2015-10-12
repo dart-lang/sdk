@@ -28,16 +28,7 @@ abstract class Node {
   static int _usedHashCodes = 0;
   final int hashCode = ++_usedHashCodes;
 
-  Node() {
-    setParentPointers();
-  }
-
   accept(Visitor visitor);
-
-  /// Updates the [parent] of the immediate children to refer to this node.
-  ///
-  /// All constructors call this method to initialize parent pointers.
-  void setParentPointers();
 }
 
 /// Expressions can be evaluated, and may diverge, throw, and/or have
@@ -327,12 +318,8 @@ class LetPrim extends InteriorExpression {
   }
 
   accept(Visitor visitor) => visitor.visitLetPrim(this);
-
-  void setParentPointers() {
-    primitive.parent = this;
-    if (body != null) body.parent = this;
-  }
 }
+
 
 /// Binding continuations.
 ///
@@ -367,11 +354,6 @@ class LetCont extends InteriorExpression {
   }
 
   accept(Visitor visitor) => visitor.visitLetCont(this);
-
-  void setParentPointers() {
-    _setParentsOnNodes(continuations, this);
-    if (body != null) body.parent = this;
-  }
 }
 
 // Binding an exception handler.
@@ -390,11 +372,6 @@ class LetHandler extends InteriorExpression {
   LetHandler(this.handler, this.body);
 
   accept(Visitor visitor) => visitor.visitLetHandler(this);
-
-  void setParentPointers() {
-    handler.parent = this;
-    if (body != null) body.parent = this;
-  }
 }
 
 /// Binding mutable variables.
@@ -419,12 +396,6 @@ class LetMutable extends InteriorExpression {
   }
 
   accept(Visitor visitor) => visitor.visitLetMutable(this);
-
-  void setParentPointers() {
-    variable.parent = this;
-    value.parent = this;
-    if (body != null) body.parent = this;
-  }
 }
 
 /// Invoke a static function.
@@ -457,11 +428,6 @@ class InvokeStatic extends CallExpression {
                            [this.sourceInformation]);
 
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
-
-  void setParentPointers() {
-    _setParentsOnList(arguments, this);
-    continuation.parent = this;
-  }
 }
 
 /// Invoke a method on an object.
@@ -513,12 +479,6 @@ class InvokeMethod extends CallExpression {
                            this.sourceInformation);
 
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
-
-  void setParentPointers() {
-    receiver.parent = this;
-    _setParentsOnList(arguments, this);
-    continuation.parent = this;
-  }
 }
 
 /// Invoke [target] on [receiver], bypassing dispatch and override semantics.
@@ -559,12 +519,6 @@ class InvokeMethodDirectly extends CallExpression {
         this.continuation = new Reference<Continuation>(continuation);
 
   accept(Visitor visitor) => visitor.visitInvokeMethodDirectly(this);
-
-  void setParentPointers() {
-    receiver.parent = this;
-    _setParentsOnList(arguments, this);
-    continuation.parent = this;
-  }
 }
 
 /// Non-const call to a constructor.
@@ -600,11 +554,6 @@ class InvokeConstructor extends CallExpression {
         continuation = new Reference<Continuation>(cont);
 
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
-
-  void setParentPointers() {
-    _setParentsOnList(arguments, this);
-    continuation.parent = this;
-  }
 }
 
 /// An alias for [value] in a context where the value is known to satisfy
@@ -627,10 +576,6 @@ class Refinement extends Primitive {
   accept(Visitor visitor) => visitor.visitRefinement(this);
 
   Primitive get effectiveDefinition => value.definition.effectiveDefinition;
-
-  void setParentPointers() {
-    value.parent = this;
-  }
 }
 
 /// An "is" type test.
@@ -673,12 +618,6 @@ class TypeTest extends Primitive {
 
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
-
-  void setParentPointers() {
-    value.parent = this;
-    _setParentsOnList(typeArguments, this);
-    if (interceptor != null) interceptor.parent = this;
-  }
 }
 
 /// An "is" type test for a raw type, performed by testing a flag property.
@@ -695,10 +634,6 @@ class TypeTestViaFlag extends Primitive {
 
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
-
-  void setParentPointers() {
-    interceptor.parent = this;
-  }
 }
 
 /// An "as" type cast.
@@ -728,10 +663,6 @@ class TypeCast extends CallExpression {
         this.continuation = new Reference<Continuation>(cont);
 
   accept(Visitor visitor) => visitor.visitTypeCast(this);
-
-  void setParentPointers() {
-    value.parent = this;
-  }
 }
 
 /// Apply a built-in operator.
@@ -751,10 +682,6 @@ class ApplyBuiltinOperator extends Primitive {
 
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
-
-  void setParentPointers() {
-    _setParentsOnList(arguments, this);
-  }
 }
 
 /// Apply a built-in method.
@@ -780,11 +707,6 @@ class ApplyBuiltinMethod extends Primitive {
 
   bool get isSafeForElimination => false;
   bool get isSafeForReordering => false;
-
-  void setParentPointers() {
-    receiver.parent = this;
-    _setParentsOnList(arguments, this);
-  }
 }
 
 /// Throw a value.
@@ -797,10 +719,6 @@ class Throw extends TailExpression {
   Throw(Primitive value) : value = new Reference<Primitive>(value);
 
   accept(Visitor visitor) => visitor.visitThrow(this);
-
-  void setParentPointers() {
-    value.parent = this;
-  }
 }
 
 /// Rethrow
@@ -810,7 +728,6 @@ class Throw extends TailExpression {
 /// the same stack trace as the enclosing handler.
 class Rethrow extends TailExpression {
   accept(Visitor visitor) => visitor.visitRethrow(this);
-  void setParentPointers() {}
 }
 
 /// An expression that is known to be unreachable.
@@ -819,7 +736,6 @@ class Rethrow extends TailExpression {
 /// known never to invoke it, e.g. because the calling expression always throws.
 class Unreachable extends TailExpression {
   accept(Visitor visitor) => visitor.visitUnreachable(this);
-  void setParentPointers() {}
 }
 
 /// Gets the value from a [MutableVariable].
@@ -839,10 +755,6 @@ class GetMutable extends Primitive {
 
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => false;
-
-  void setParentPointers() {
-    variable.parent = this;
-  }
 }
 
 /// Assign a [MutableVariable].
@@ -863,11 +775,6 @@ class SetMutable extends Primitive {
 
   bool get isSafeForElimination => false;
   bool get isSafeForReordering => false;
-
-  void setParentPointers() {
-    variable.parent = this;
-    value.parent = this;
-  }
 }
 
 /// Invoke a continuation in tail position.
@@ -906,11 +813,6 @@ class InvokeContinuation extends TailExpression {
         sourceInformation = null;
 
   accept(Visitor visitor) => visitor.visitInvokeContinuation(this);
-
-  void setParentPointers() {
-    if (continuation != null) continuation.parent = this;
-    if (arguments != null) _setParentsOnList(arguments, this);
-  }
 }
 
 /// Choose between a pair of continuations based on a condition value.
@@ -945,12 +847,6 @@ class Branch extends TailExpression {
         this.isStrictCheck = false;
 
   accept(Visitor visitor) => visitor.visitBranch(this);
-
-  void setParentPointers() {
-    condition.parent = this;
-    trueContinuation.parent = this;
-    falseContinuation.parent = this;
-  }
 }
 
 /// Directly assigns to a field on a given object.
@@ -967,11 +863,6 @@ class SetField extends Primitive {
 
   bool get isSafeForElimination => false;
   bool get isSafeForReordering => false;
-
-  void setParentPointers() {
-    object.parent = this;
-    value.parent = this;
-  }
 }
 
 /// Directly reads from a field on a given object.
@@ -995,10 +886,6 @@ class GetField extends Primitive {
   bool get isSafeForReordering => false;
 
   toString() => 'GetField($field)';
-
-  void setParentPointers() {
-    object.parent = this;
-  }
 }
 
 /// Get the length of a string or native list.
@@ -1014,10 +901,6 @@ class GetLength extends Primitive {
   bool get isSafeForReordering => false;
 
   accept(Visitor v) => v.visitGetLength(this);
-
-  void setParentPointers() {
-    object.parent = this;
-  }
 }
 
 /// Read an entry from a string or native list.
@@ -1039,11 +922,6 @@ class GetIndex extends Primitive {
   bool get isSafeForReordering => false;
 
   accept(Visitor v) => v.visitGetIndex(this);
-
-  void setParentPointers() {
-    object.parent = this;
-    index.parent = this;
-  }
 }
 
 /// Set an entry on a native list.
@@ -1065,12 +943,6 @@ class SetIndex extends Primitive {
   bool get isSafeForReordering => false;
 
   accept(Visitor v) => v.visitSetIndex(this);
-
-  void setParentPointers() {
-    object.parent = this;
-    index.parent = this;
-    value.parent = this;
-  }
 }
 
 /// Reads the value of a static field or tears off a static method.
@@ -1091,8 +963,6 @@ class GetStatic extends Primitive {
   bool get isSafeForReordering {
     return element is FunctionElement || element.isFinal;
   }
-
-  void setParentPointers() {}
 }
 
 /// Sets the value of a static field.
@@ -1108,10 +978,6 @@ class SetStatic extends Primitive {
 
   bool get isSafeForElimination => false;
   bool get isSafeForReordering => false;
-
-  void setParentPointers() {
-    value.parent = this;
-  }
 }
 
 /// Reads the value of a lazily initialized static field.
@@ -1131,10 +997,6 @@ class GetLazyStatic extends CallExpression {
       : continuation = new Reference<Continuation>(continuation);
 
   accept(Visitor visitor) => visitor.visitGetLazyStatic(this);
-
-  void setParentPointers() {
-    continuation.parent = this;
-  }
 }
 
 /// Creates an object for holding boxed variables captured by a closure.
@@ -1143,8 +1005,6 @@ class CreateBox extends Primitive {
 
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
-
-  void setParentPointers() {}
 }
 
 /// Creates an instance of a class and initializes its fields and runtime type
@@ -1177,11 +1037,6 @@ class CreateInstance extends Primitive {
   bool get isSafeForReordering => true;
 
   toString() => 'CreateInstance($classElement)';
-
-  void setParentPointers() {
-    _setParentsOnList(arguments, this);
-    if (typeInformation != null) _setParentsOnList(typeInformation, this);
-  }
 }
 
 class Interceptor extends Primitive {
@@ -1208,10 +1063,6 @@ class Interceptor extends Primitive {
 
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
-
-  void setParentPointers() {
-    input.parent = this;
-  }
 }
 
 /// Create an instance of [Invocation] for use in a call to `noSuchMethod`.
@@ -1226,10 +1077,6 @@ class CreateInvocationMirror extends Primitive {
 
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
-
-  void setParentPointers() {
-    _setParentsOnList(arguments, this);
-  }
 }
 
 class ForeignCode extends CallExpression {
@@ -1246,11 +1093,6 @@ class ForeignCode extends CallExpression {
         this.continuation = new Reference<Continuation>(continuation);
 
   accept(Visitor visitor) => visitor.visitForeignCode(this);
-
-  void setParentPointers() {
-    _setParentsOnList(arguments, this);
-    continuation.parent = this;
-  }
 }
 
 class Constant extends Primitive {
@@ -1265,8 +1107,6 @@ class Constant extends Primitive {
 
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
-
-  void setParentPointers() {}
 }
 
 class LiteralList extends Primitive {
@@ -1281,10 +1121,6 @@ class LiteralList extends Primitive {
 
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
-
-  void setParentPointers() {
-    _setParentsOnList(values, this);
-  }
 }
 
 class LiteralMapEntry {
@@ -1306,13 +1142,6 @@ class LiteralMap extends Primitive {
 
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
-
-  void setParentPointers() {
-    for (LiteralMapEntry entry in entries) {
-      entry.key.parent = this;
-      entry.value.parent = this;
-    }
-  }
 }
 
 /// Currently unused.
@@ -1334,8 +1163,6 @@ class CreateFunction extends Primitive {
 
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
-
-  void setParentPointers() {}
 }
 
 class Parameter extends Primitive {
@@ -1343,14 +1170,18 @@ class Parameter extends Primitive {
     super.hint = hint;
   }
 
+  // In addition to a parent pointer to the containing Continuation or
+  // FunctionDefinition, parameters have an index into the list of parameters
+  // bound by the parent.  This gives constant-time access to the continuation
+  // from the parent.
+  int parentIndex;
+
   accept(Visitor visitor) => visitor.visitParameter(this);
 
   String toString() => 'Parameter(${hint == null ? null : hint.name})';
 
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
-
-  void setParentPointers() {}
 }
 
 /// Continuations are normally bound by 'let cont'.  A continuation with one
@@ -1359,6 +1190,11 @@ class Parameter extends Primitive {
 class Continuation extends Definition<Continuation> implements InteriorNode {
   final List<Parameter> parameters;
   Expression body = null;
+
+  // In addition to a parent pointer to the containing LetCont, continuations
+  // have an index into the list of continuations bound by the LetCont.  This
+  // gives constant-time access to the continuation from the parent.
+  int parent_index;
 
   // A continuation is recursive if it has any recursive invocations.
   bool isRecursive;
@@ -1372,11 +1208,6 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
       isRecursive = false;
 
   accept(Visitor visitor) => visitor.visitContinuation(this);
-
-  void setParentPointers() {
-    _setParentsOnNodes(parameters, this);
-    if (body != null) body.parent = this;
-  }
 }
 
 /// Common interface for [Primitive] and [MutableVariable].
@@ -1394,8 +1225,6 @@ class MutableVariable extends Variable<MutableVariable> {
   MutableVariable(this.hint);
 
   accept(Visitor v) => v.visitMutableVariable(this);
-
-  void setParentPointers() {}
 }
 
 /// A function definition, consisting of parameters and a body.
@@ -1416,13 +1245,6 @@ class FunctionDefinition extends InteriorNode {
       this.body);
 
   accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
-
-  void setParentPointers() {
-    if (thisParameter != null) thisParameter.parent = this;
-    _setParentsOnNodes(parameters, this);
-    returnContinuation.parent = this;
-    if (body != null) body.parent = this;
-  }
 }
 
 /// Converts the internal representation of a type to a Dart object of type
@@ -1442,10 +1264,6 @@ class ReifyRuntimeType extends Primitive {
 
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
-
-  void setParentPointers() {
-    value.parent = this;
-  }
 }
 
 /// Read the value the type variable [variable] from the target object.
@@ -1466,10 +1284,6 @@ class ReadTypeVariable extends Primitive {
 
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
-
-  void setParentPointers() {
-    target.parent = this;
-  }
 }
 
 /// Representation of a closed type (that is, a type without type variables).
@@ -1495,10 +1309,6 @@ class TypeExpression extends Primitive {
 
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
-
-  void setParentPointers() {
-    _setParentsOnList(arguments, this);
-  }
 }
 
 class Await extends CallExpression {
@@ -1512,11 +1322,6 @@ class Await extends CallExpression {
   @override
   accept(Visitor visitor) {
     return visitor.visitAwait(this);
-  }
-
-  void setParentPointers() {
-    input.parent = this;
-    continuation.parent = this;
   }
 }
 
@@ -1533,27 +1338,10 @@ class Yield extends CallExpression {
   accept(Visitor visitor) {
     return visitor.visitYield(this);
   }
-
-  void setParentPointers() {
-    input.parent = this;
-    continuation.parent = this;
-  }
 }
 
 List<Reference<Primitive>> _referenceList(Iterable<Primitive> definitions) {
   return definitions.map((e) => new Reference<Primitive>(e)).toList();
-}
-
-void _setParentsOnNodes(List<Node> nodes, Node parent) {
-  for (Node node in nodes) {
-    node.parent = parent;
-  }
-}
-
-void _setParentsOnList(List<Reference> nodes, Node parent) {
-  for (Reference node in nodes) {
-    node.parent = parent;
-  }
 }
 
 abstract class Visitor<T> {
@@ -1617,20 +1405,13 @@ abstract class Visitor<T> {
   T visitForeignCode(ForeignCode node);
 }
 
-/// Recursively visits all children of a CPS term.
-///
-/// The user of the class is responsible for avoiding stack overflows from
-/// deep recursion, e.g. by overriding methods to cut off recursion at certain
-/// points.
-///
-/// All recursive invocations occur through the [visit] method, which the
-/// subclass may override as a generic way to control the visitor without
-/// overriding all visitor methods.
+/// Visits all non-recursive children of a CPS term, i.e. anything
+/// not of type [Expression] or [Continuation].
 ///
 /// The `process*` methods are called in pre-order for every node visited.
 /// These can be overridden without disrupting the visitor traversal.
-class DeepRecursiveVisitor implements Visitor {
-  const DeepRecursiveVisitor();
+class LeafVisitor implements Visitor {
+  const LeafVisitor();
 
   visit(Node node) => node.accept(this);
 
@@ -1642,36 +1423,25 @@ class DeepRecursiveVisitor implements Visitor {
     if (node.thisParameter != null) visit(node.thisParameter);
     node.parameters.forEach(visit);
     visit(node.returnContinuation);
-    visit(node.body);
-  }
-
-  processContinuation(Continuation node) {}
-  visitContinuation(Continuation node) {
-    processContinuation(node);
-    node.parameters.forEach(visit);
-    if (node.body != null) visit(node.body);
   }
 
   // Expressions.
+
   processLetPrim(LetPrim node) {}
   visitLetPrim(LetPrim node) {
     processLetPrim(node);
     visit(node.primitive);
-    visit(node.body);
   }
 
   processLetCont(LetCont node) {}
   visitLetCont(LetCont node) {
     processLetCont(node);
     node.continuations.forEach(visit);
-    visit(node.body);
   }
 
   processLetHandler(LetHandler node) {}
   visitLetHandler(LetHandler node) {
     processLetHandler(node);
-    visit(node.handler);
-    visit(node.body);
   }
 
   processLetMutable(LetMutable node) {}
@@ -1679,7 +1449,6 @@ class DeepRecursiveVisitor implements Visitor {
     processLetMutable(node);
     visit(node.variable);
     processReference(node.value);
-    visit(node.body);
   }
 
   processInvokeStatic(InvokeStatic node) {}
@@ -1813,6 +1582,12 @@ class DeepRecursiveVisitor implements Visitor {
   processParameter(Parameter node) {}
   visitParameter(Parameter node) {
     processParameter(node);
+  }
+
+  processContinuation(Continuation node) {}
+  visitContinuation(Continuation node) {
+    processContinuation(node);
+    node.parameters.forEach(visitParameter);
   }
 
   processInterceptor(Interceptor node) {}
@@ -1975,7 +1750,7 @@ typedef void StackAction();
 ///
 /// Subclasses should not override the `visit` methods for the nodes that have
 /// a `traverse` method.
-class TrampolineRecursiveVisitor extends DeepRecursiveVisitor {
+class RecursiveVisitor extends LeafVisitor {
   List<StackAction> _stack = <StackAction>[];
 
   void pushAction(StackAction callback) {
@@ -2070,7 +1845,7 @@ class TrampolineRecursiveVisitor extends DeepRecursiveVisitor {
 }
 
 /// Visit a just-deleted subterm and unlink all [Reference]s in it.
-class RemovalVisitor extends TrampolineRecursiveVisitor {
+class RemovalVisitor extends RecursiveVisitor {
   processReference(Reference reference) {
     reference.unlink();
   }

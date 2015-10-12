@@ -15,7 +15,7 @@ import '../constants/values.dart';
 ///- pull interceptors out of loops
 ///- replace interceptors with constants
 ///- share interceptors when one is in scope of the other
-class ShareInterceptors extends TrampolineRecursiveVisitor implements Pass {
+class ShareInterceptors extends RecursiveVisitor implements Pass {
   String get passName => 'Share interceptors';
 
   /// The innermost loop containing a given primitive.
@@ -115,7 +115,6 @@ class ShareInterceptors extends TrampolineRecursiveVisitor implements Pass {
       // The interceptor could not be shared. Replace it with a constant.
       Constant constantPrim = new Constant(constant);
       node.primitive = constantPrim;
-      constantPrim.parent = node;
       constantPrim.hint = interceptor.hint;
       constantPrim.type = interceptor.type;
       constantPrim.substituteFor(interceptor);

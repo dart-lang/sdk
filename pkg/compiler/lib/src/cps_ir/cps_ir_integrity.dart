@@ -24,10 +24,9 @@ const bool ENABLE_DUMP = tracer.TRACE_FILTER_PATTERN != null;
 /// - Each definition object occurs only once in the IR (no redeclaring).
 /// - Each reference object occurs only once in the IR (no sharing).
 ///
-class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
+class CheckCpsIntegrity extends RecursiveVisitor {
 
   FunctionDefinition topLevelNode;
-  String previousPass;
 
   Set<Definition> seenDefinitions = new Set<Definition>();
   Map<Definition, Set<Reference>> seenReferences =
@@ -53,10 +52,8 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
     pushAction(() => insideContinuations.remove(cont));
   }
 
-  void check(FunctionDefinition node, String previousPass) {
+  void check(FunctionDefinition node) {
     topLevelNode = node;
-    this.previousPass = previousPass;
-    ParentChecker.checkParents(node, this);
     visit(node);
     // Check for broken reference chains. We check this last, so out-of-scope
     // references are not classified as a broken reference chain.
@@ -184,58 +181,16 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
       try {
         Decorator decorator = (n, String s) => n == node ? '**$s**' : s;
         sexpr = new SExpressionStringifier(decorator).visit(topLevelNode);
-        sexpr = 'SExpr dump (offending node marked with **):\n\n$sexpr';
       } catch (e) {
         sexpr = '(Exception thrown by SExpressionStringifier: $e)';
       }
     } else {
-      sexpr = '(Set DUMP_IR flag to enable SExpr dump)';
+      sexpr = '(Set DUMP_IR flag to enable)';
     }
-    throw 'CPS integrity violation\n'
-          'After $previousPass on ${topLevelNode.element}\n'
+    throw 'CPS integrity violation in ${topLevelNode.element}:\n'
           '$message\n\n'
+          'SExpr dump (offending node marked with **):\n\n'
           '$sexpr\n';
   }
-}
 
-/// Traverses the CPS term and checks that node.parent is correctly set
-/// for each visited node.
-class ParentChecker extends DeepRecursiveVisitor {
-  static void checkParents(Node node, CheckCpsIntegrity main) {
-    ParentChecker visitor = new ParentChecker._make(main);
-    visitor._worklist.add(node);
-    visitor.trampoline();
-  }
-
-  ParentChecker._make(this.main);
-
-  Node _parent;
-  final List<Node> _worklist = <Node>[];
-  final CheckCpsIntegrity main;
-
-  void trampoline() {
-    while (_worklist.isNotEmpty) {
-      _parent = _worklist.removeLast();
-      _parent.accept(this);
-    }
-  }
-
-  error(String message, node) => main.error(message, node);
-
-  @override
-  visit(Node node) {
-    _worklist.add(node);
-    if (node.parent != _parent) {
-      error('Parent pointer on $node is ${node.parent} but should be $_parent',
-            node);
-    }
-  }
-
-  @override
-  processReference(Reference node) {
-    if (node.parent != _parent) {
-      error('Parent pointer on $node is ${node.parent} but should be $_parent',
-            node);
-    }
-  }
 }

@@ -123,7 +123,7 @@ class JsSourceInformationVisitor extends js.BaseVisitor {
   }
 }
 
-class IrSourceInformationVisitor extends ir.TrampolineRecursiveVisitor {
+class IrSourceInformationVisitor extends ir.RecursiveVisitor {
   List<String> sourceInformation = <String>[];
 
   @override
