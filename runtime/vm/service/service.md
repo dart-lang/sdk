@@ -769,6 +769,13 @@ a vertical bar:
   PropertyType1|PropertyType2 complexProperty;
 ```
 
+We also allow parenthesis on type expressions.  This is useful when a property
+is an _Array_ of multiple independent types:
+
+```
+  (PropertyType1|PropertyType2)[]
+```
+
 When a string is only permitted to take one of a certain set of values,
 we indicate this by the use of the _enum_ format:
 
@@ -1464,7 +1471,7 @@ class Instance extends Object {
   //
   // Provided for instance kinds:
   //   List
-  @Instance|Sentinel[] elements [optional];
+  (@Instance|Sentinel)[] elements [optional];
 
   // The elements of a List instance.
   //
@@ -2134,6 +2141,15 @@ class Version extends Response {
 See [Versioning](#versioning).
 
 ### VM
+
+```
+class @VM extends Response {
+  // A name identifying this vm. Not guaranteed to be unique.
+  string name;
+}
+```
+
+_@VM_ is a reference to a _VM_ object.
 
 ```
 class VM extends Response {
