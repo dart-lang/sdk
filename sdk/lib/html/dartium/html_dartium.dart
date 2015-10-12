@@ -20365,10 +20365,8 @@ class HtmlDocument extends Document {
 
         // Get the created constructor source and look at the initializer;
         // Must call super.created() if not its as an error.
-        var createdSource = methodMirror.source?.replaceAll('\n', ' ');
-        RegExp regExp = new RegExp(r":(.*?)(;|}|\n)");
-        var match = regExp.firstMatch(createdSource);
-        superCreatedCalled = match.input.substring(match.start,match.end).contains("super.created(");
+        var createdSource = methodMirror.source;
+        superCreatedCalled = createdSource.contains("super.created(");
       }
 
       if (!superCreatedCalled) {
@@ -20478,7 +20476,7 @@ class HtmlDocument extends Document {
       //
       //              See https://github.com/dart-lang/sdk/issues/23666
       int creating = 0;
-      // TODO(jacobr): warning: 
+      // TODO(jacobr): warning:
       elemProto['createdCallback'] = js.JsNative.withThis(($this) {
         if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
           creating++;
@@ -20493,7 +20491,7 @@ class HtmlDocument extends Document {
           } finally {
             // Need to remember the Dart class that was created for this custom so
             // return it and setup the blink_jsObject to the $this that we'll be working
-            // with as we talk to blink. 
+            // with as we talk to blink.
             js.setDartHtmlWrapperFor($this, dartClass);
 
             creating--;
@@ -37188,10 +37186,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
