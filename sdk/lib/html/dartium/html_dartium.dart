@@ -20428,6 +20428,16 @@ class HtmlDocument extends Document {
 
     // Figure out which DOM class is being extended from the user's Dart class.
     var classMirror = reflectClass(customElementClass);
+
+    var locationUri = classMirror.location.sourceUri.toString();
+    if (locationUri == 'dart:html' || locationUri == 'dart:svg') {
+      throw new DomException.jsInterop("HierarchyRequestError: Cannot register an existing dart:html or dart:svg type.");
+    }
+
+    if (classMirror.isAbstract) {
+      throw new DomException.jsInterop("HierarchyRequestError: Cannot register an abstract class.");
+    }
+
     var jsClassName = _getJSClassName(classMirror);
     if (jsClassName == null) {
       // Only components derived from HTML* can be extended.
