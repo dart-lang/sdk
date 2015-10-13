@@ -1,7 +1,6 @@
 # dev_compiler changelog
 
-## unreleased
-- todo:
+## 0.1.9
 
 ## 0.1.8
 - added a `--version` command-line option
