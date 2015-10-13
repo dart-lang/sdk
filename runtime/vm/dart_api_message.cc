@@ -1235,7 +1235,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       }
 
       WriteIndexedObject(class_id);
-      WriteTags(RawObject::ClassIdTag::update(class_id, 0));
+      WriteTags(0);
       WriteSmi(len);
       switch (class_id) {
         case kTypedDataInt8ArrayCid:
@@ -1269,8 +1269,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       WriteInlinedHeader(object);
       // Write out the class and tag information.
       WriteIndexedObject(kExternalTypedDataUint8ArrayCid);
-      WriteTags(RawObject::ClassIdTag::update(
-          kExternalTypedDataUint8ArrayCid, 0));
+      WriteTags(0);
       intptr_t length = object->value.as_external_typed_data.length;
       if (length < 0 ||
           length > ExternalTypedData::MaxElements(

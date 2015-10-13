@@ -2608,7 +2608,7 @@ void RawArray::WriteTo(SnapshotWriter* writer,
                        intptr_t object_id,
                        Snapshot::Kind kind,
                        bool as_reference) {
-  ASSERT(!RawObject::IsCanonical(writer->GetObjectTags(this)));
+  ASSERT(!this->IsCanonical());
   writer->ArrayWriteTo(object_id,
                        kArrayCid,
                        writer->GetObjectTags(this),
@@ -2773,8 +2773,7 @@ void RawLinkedHashMap::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(kLinkedHashMapCid);
-  const uword tags = writer->GetObjectTags(this);
-  writer->WriteTags(tags);
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the type arguments.
   writer->WriteObjectImpl(ptr()->type_arguments_, kAsInlinedObject);
@@ -2787,7 +2786,7 @@ void RawLinkedHashMap::WriteTo(SnapshotWriter* writer,
   writer->Write<RawObject*>(Smi::New((used_data >> 1) - deleted_keys));
 
   // Write out the keys and values.
-  bool write_as_reference = RawObject::IsCanonical(tags) ? false : true;
+  const bool write_as_reference = this->IsCanonical() ? false : true;
   RawArray* data_array = ptr()->data_;
   RawObject** data_elements = data_array->ptr()->data();
   ASSERT(used_data <= Smi::Value(data_array->ptr()->length_));
@@ -3043,8 +3042,7 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
                            Snapshot::Kind kind,
                            bool as_reference) {
   ASSERT(writer != NULL);
-  intptr_t tags = writer->GetObjectTags(this);
-  intptr_t cid = ClassIdTag::decode(tags);
+  intptr_t cid = this->GetClassId();
   intptr_t len = Smi::Value(ptr()->length_);
 
   // Write out the serialization header value for this object.
@@ -3052,7 +3050,7 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(cid);
-  writer->WriteTags(tags);
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the length field.
   writer->Write<RawObject*>(ptr()->length_);
@@ -3107,7 +3105,7 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
 
 #define EXT_TYPED_DATA_WRITE(cid, type)                                        \
   writer->WriteIndexedObject(cid);                                             \
-  writer->WriteTags(RawObject::ClassIdTag::update(cid, tags));                 \
+  writer->WriteTags(writer->GetObjectTags(this));                              \
   writer->Write<RawObject*>(ptr()->length_);                                   \
   TYPED_EXT_DATA_WRITE(type)                                                   \
 
@@ -3117,8 +3115,7 @@ void RawExternalTypedData::WriteTo(SnapshotWriter* writer,
                                    Snapshot::Kind kind,
                                    bool as_reference) {
   ASSERT(writer != NULL);
-  intptr_t tags = writer->GetObjectTags(this);
-  intptr_t cid = ClassIdTag::decode(tags);
+  intptr_t cid = this->GetClassId();
   intptr_t len = Smi::Value(ptr()->length_);
 
   // Write out the serialization header value for this object.
