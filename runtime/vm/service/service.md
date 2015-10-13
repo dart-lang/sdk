@@ -38,7 +38,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [pause](#pause)
 	- [removeBreakpoint](#removebreakpoint)
 	- [resume](#resume)
-  - [setExceptionPauseMode](#setexceptionpausemode)
+	- [setExceptionPauseMode](#setexceptionpausemode)
 	- [setLibraryDebuggable](#setlibrarydebuggable)
 	- [setName](#setname)
 	- [setVMName](#setvmname)
@@ -1138,6 +1138,10 @@ For more information, see [events](#events).
 
 ```
 enum EventKind {
+  // Notification that VM identifying information has changed. Currently used
+  // to notify of changes to the VM debugging name via setVMName.
+  VMUpdate,
+
   // Notification that a new isolate has started.
   IsolateStart,
 
