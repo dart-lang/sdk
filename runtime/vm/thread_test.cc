@@ -456,78 +456,84 @@ TEST_CASE(ThreadIterator_FindSelf) {
 }
 
 
-class ThreadIteratorTestTask : public ThreadPool::Task {
- public:
-  ThreadIteratorTestTask(Isolate* isolate,
-                         Monitor* monitor,
-                         Thread** task_thread)
-    : isolate_(isolate),
-      monitor_(monitor),
-      task_thread_(task_thread) {}
-
-  virtual void Run() {
-    Thread* thread = Thread::Current();
-    Thread::EnterIsolateAsHelper(isolate_);
-    MonitorLocker ml(monitor_);
-
-    {
-      bool found_self = false;
-      ThreadIterator it;
-      while (it.HasNext()) {
-        Thread* t = it.Next();
-        if (t == thread) {
-          found_self = true;
-          break;
-        }
-      }
-      EXPECT(found_self);
-    }
-
-    Thread::ExitIsolateAsHelper();
-    *task_thread_ = thread;
-    ml.Notify();
-  }
-
- private:
-  Isolate* isolate_;
-  Monitor* monitor_;
-  Thread** task_thread_;
+struct ThreadIteratorTestParams {
+  Isolate* isolate;
+  Thread* spawned_thread;
+  ThreadJoinId spawned_thread_join_id;
+  Monitor* monitor;
 };
 
 
-TEST_CASE(ThreadIterator_AddFindRemove) {
-  Thread* task_thread = NULL;
-  Isolate* isolate = thread->isolate();
-  Monitor* monitor = new Monitor();
+void ThreadIteratorTestMain(uword parameter) {
+  Thread::EnsureInit();
+  ThreadIteratorTestParams* params =
+      reinterpret_cast<ThreadIteratorTestParams*>(parameter);
+  Isolate* isolate = params->isolate;
+  ASSERT(isolate != NULL);
 
-  ThreadPool* thread_pool = new ThreadPool();
+  Thread::EnterIsolateAsHelper(isolate);
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
+
+  params->spawned_thread = thread;
+  params->spawned_thread_join_id = OSThread::GetCurrentThreadJoinId();
 
   {
-    MonitorLocker ml(monitor);
-    EXPECT(task_thread == NULL);
-    thread_pool->Run(new ThreadIteratorTestTask(isolate,
-                                                monitor,
-                                                &task_thread));
-    // Wait to be notified that the task is complete and we have a value in
-    // task_thread.
-    ml.Wait();
-    EXPECT(task_thread != NULL);
+    MonitorLocker ml(params->monitor);
+    ml.Notify();
   }
 
-  // Shutdown thread pool so we know that the task thread has completed.
-  delete thread_pool;
+  {
+    bool found_self = false;
+    ThreadIterator it;
+    while (it.HasNext()) {
+      Thread* t = it.Next();
+      if (t == thread) {
+        found_self = true;
+        break;
+      }
+    }
+    EXPECT(found_self);
+  }
+
+  Thread::ExitIsolateAsHelper();
+}
+
+
+TEST_CASE(ThreadIterator_AddFindRemove) {
+  Isolate* isolate = thread->isolate();
+  ThreadIteratorTestParams params;
+  params.isolate = isolate;
+  params.spawned_thread = NULL;
+  params.spawned_thread_join_id = OSThread::kInvalidThreadJoinId;
+  params.monitor = new Monitor();
+
+  {
+    MonitorLocker ml(params.monitor);
+    EXPECT(params.spawned_thread_join_id == OSThread::kInvalidThreadJoinId);
+    EXPECT(params.spawned_thread == NULL);
+    // Spawn thread and wait to receive the thread join id.
+    OSThread::Start(ThreadIteratorTestMain, reinterpret_cast<uword>(&params));
+    while (params.spawned_thread_join_id == OSThread::kInvalidThreadJoinId) {
+      ml.Wait();
+    }
+    EXPECT(params.spawned_thread_join_id != OSThread::kInvalidThreadJoinId);
+    EXPECT(params.spawned_thread != NULL);
+    // Join thread.
+    OSThread::Join(params.spawned_thread_join_id);
+  }
 
   ThreadIterator it;
-  bool found_task_thread = false;
+  bool found_spawned_thread = false;
   while (it.HasNext()) {
     Thread* t = it.Next();
-    if (t == task_thread) {
-      found_task_thread = true;
+    if (t == params.spawned_thread) {
+      found_spawned_thread = true;
       break;
     }
   }
 
-  EXPECT(!found_task_thread);
+  EXPECT(!found_spawned_thread);
 }
 
 
