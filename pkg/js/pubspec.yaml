@@ -6,4 +6,4 @@ authors:
 description: Access JavaScript from Dart.
 homepage: https://github.com/dart-lang/js-interop
 environment:
-  sdk: '>=1.13.0 <2.0.0'
+  sdk: '>=1.13.0-dev <2.0.0'
