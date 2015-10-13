@@ -64,6 +64,7 @@ import '../util/util.dart';
 import '../world.dart' show
     ClassWorld,
     World;
+import '../dump_info.dart' show InfoReporter;
 
 part 'builder.dart';
 part 'codegen.dart';

@@ -775,12 +775,7 @@ abstract class Enqueuer {
 
 /// [Enqueuer] which is specific to resolution.
 class ResolutionEnqueuer extends Enqueuer {
-  /**
-   * Map from declaration elements to the [TreeElements] object holding the
-   * resolution mapping for the element implementation.
-   *
-   * Invariant: Key elements are declaration elements.
-   */
+  /// All declaration elements that have been processed by the resolver.
   final Set<AstElement> processedElements;
 
   final Queue<ResolutionWorkItem> queue;

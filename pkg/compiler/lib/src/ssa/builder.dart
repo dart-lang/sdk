@@ -66,40 +66,23 @@ class SsaBuilderTask extends CompilerTask {
     return measure(() {
       Element element = work.element.implementation;
       return reporter.withCurrentElement(element, () {
-        HInstruction.idCounter = 0;
         SsaBuilder builder =
-            new SsaBuilder(
-                backend, work, emitter.nativeEmitter,
+            new SsaBuilder(work.element.implementation,
+                work.resolutionTree, work.compilationContext, work.registry,
+                backend, emitter.nativeEmitter,
                 sourceInformationFactory);
-        HGraph graph;
-        ElementKind kind = element.kind;
-        if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
-          graph = compileConstructor(builder, work);
-        } else if (kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY ||
-                   kind == ElementKind.FUNCTION ||
-                   kind == ElementKind.GETTER ||
-                   kind == ElementKind.SETTER) {
-          graph = builder.buildMethod(element);
-        } else if (kind == ElementKind.FIELD) {
-          if (element.isInstanceMember) {
-            assert(compiler.enableTypeAssertions);
-            graph = builder.buildCheckedSetter(element);
-          } else {
-            graph = builder.buildLazyInitializer(element);
-          }
-        } else {
-          reporter.internalError(element, 'Unexpected element kind $kind.');
-        }
-        assert(graph.isValid());
-        if (!identical(kind, ElementKind.FIELD)) {
+        HGraph graph = builder.build();
+
+        // Default arguments are handled elsewhere, but we must ensure
+        // that the default values are computed during codegen.
+        if (!identical(element.kind, ElementKind.FIELD)) {
           FunctionElement function = element;
           FunctionSignature signature = function.functionSignature;
           signature.forEachOptionalParameter((ParameterElement parameter) {
             // This ensures the default value will be computed.
             ConstantValue constant =
                 backend.constants.getConstantValueForVariable(parameter);
-            CodegenRegistry registry = work.registry;
-            registry.registerCompileTimeConstant(constant);
+            work.registry.registerCompileTimeConstant(constant);
           });
         }
         if (compiler.tracer.isEnabled) {
@@ -123,9 +106,6 @@ class SsaBuilderTask extends CompilerTask {
     });
   }
 
-  HGraph compileConstructor(SsaBuilder builder, CodegenWorkItem work) {
-    return builder.buildFactory(work.element);
-  }
 }
 
 /**
@@ -998,18 +978,44 @@ class SsaBuilder extends ast.Visitor
          NewBulkMixin,
          ErrorBulkMixin
     implements SemanticSendVisitor {
+
+  /// The element for which this SSA builder is being used.
+  final Element target;
+
+  /// Reference to resolved elements in [target]'s AST.
+  TreeElements elements;
+
+  /// Used to report information about inlining (which occurs while building the
+  /// SSA graph), when dump-info is enabled.
+  final InfoReporter infoReporter;
+
+  /// If not null, the builder will store in [context] data that is used later
+  /// during the optimization phases.
+  final JavaScriptItemCompilationContext context;
+
+  /// Registry used to enqueue work during codegen, may be null to avoid
+  /// enqueing any work.
+  // TODO(sigmund,johnniwinther): get rid of registry entirely. We should be
+  // able to return the impact as a result after building and avoid enqueing
+  // things here. Later the codegen task can decide whether to enqueue
+  // something. In the past this didn't matter as much because the SSA graph was
+  // used only for codegen, but currently we want to experiment using it for
+  // code-analysis too.
+  final CodegenRegistry registry;
   final Compiler compiler;
   final JavaScriptBackend backend;
   final ConstantSystem constantSystem;
-  final CodegenWorkItem work;
   final RuntimeTypes rti;
-  TreeElements elements;
+
   SourceInformationBuilder sourceInformationBuilder;
+
   bool inLazyInitializerExpression = false;
 
+  // TODO(sigmund): make all comments /// instead of /* */
   /* This field is used by the native handler. */
   final NativeEmitter nativeEmitter;
 
+  /// Holds the resulting SSA graph.
   final HGraph graph = new HGraph();
 
   /**
@@ -1089,22 +1095,21 @@ class SsaBuilder extends ast.Visitor
             element.asyncMarker == AsyncMarker.ASYNC);
   }
 
-  SsaBuilder(JavaScriptBackend backend,
-             CodegenWorkItem work,
-             this.nativeEmitter,
-             SourceInformationStrategy sourceInformationFactory)
+  // TODO(sigmund): make most args optional
+  SsaBuilder(this.target, this.elements, this.context, this.registry,
+      JavaScriptBackend backend, this.nativeEmitter,
+      SourceInformationStrategy sourceInformationFactory)
     : this.compiler = backend.compiler,
+      this.infoReporter = backend.compiler.dumpInfoTask,
       this.backend = backend,
       this.constantSystem = backend.constantSystem,
-      this.work = work,
-      this.rti = backend.rti,
-      this.elements = work.resolutionTree {
-    graph.element = work.element;
-    localsHandler = new LocalsHandler(this, work.element, null);
-    sourceElementStack.add(work.element);
-    sourceInformationBuilder =
-        sourceInformationFactory.createBuilderForContext(
-            work.element.implementation);
+      this.rti = backend.rti {
+    assert(target.isImplementation);
+    graph.element = target;
+    localsHandler = new LocalsHandler(this, target, null);
+    sourceElementStack.add(target);
+    sourceInformationBuilder = sourceInformationFactory.createBuilderForContext(
+            target);
   }
 
   BackendHelpers get helpers => backend.helpers;
@@ -1126,8 +1131,6 @@ class SsaBuilder extends ast.Visitor
     node.accept(this);
   }
 
-  CodegenRegistry get registry => work.registry;
-
   /// Returns the current source element.
   ///
   /// The returned element is a declaration element.
@@ -1137,6 +1140,36 @@ class SsaBuilder extends ast.Visitor
 
   bool get _checkOrTrustTypes =>
       compiler.enableTypeAssertions || compiler.trustTypeAnnotations;
+
+  /// Build the graph for [target].
+  HGraph build() {
+    assert(invariant(target, target.isImplementation));
+    HInstruction.idCounter = 0;
+    ElementKind kind = target.kind;
+    // TODO(sigmund): remove `result` and return graph directly, need to ensure
+    // that it can never be null (see result in buildFactory for instance).
+    var result;
+    if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+      result = buildFactory(target);
+    } else if (kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY ||
+               kind == ElementKind.FUNCTION ||
+               kind == ElementKind.GETTER ||
+               kind == ElementKind.SETTER) {
+      result = buildMethod(target);
+    } else if (kind == ElementKind.FIELD) {
+      if (target.isInstanceMember) {
+        assert(compiler.enableTypeAssertions);
+        result = buildCheckedSetter(target);
+      } else {
+        result = buildLazyInitializer(target);
+      }
+    } else {
+      reporter.internalError(target, 'Unexpected element kind $kind.');
+    }
+    assert(result.isValid());
+    return result;
+  }
+
 
   HBasicBlock addNewBlock() {
     HBasicBlock block = graph.addNewBlock();
@@ -1480,9 +1513,8 @@ class SsaBuilder extends ast.Visitor
 
     if (meetsHardConstraints() && heuristicSayGoodToGo()) {
       doInlining();
-      registry.registerInlining(
-          element,
-          compiler.currentElement);
+      infoReporter?.reportInlined(element,
+          inliningStack.isEmpty ? target : inliningStack.last.function);
       return true;
     }
 
@@ -1531,13 +1563,6 @@ class SsaBuilder extends ast.Visitor
     } else {
       return cls;
     }
-  }
-
-  /**
-   * Returns whether this builder is building code for [element].
-   */
-  bool isBuildingFor(Element element) {
-    return work.element == element;
   }
 
   /// A stack of [DartType]s the have been seen during inlining of factory
@@ -1609,7 +1634,7 @@ class SsaBuilder extends ast.Visitor
     graph.calledInLoop = compiler.world.isCalledInLoop(functionElement);
     ast.FunctionExpression function = functionElement.node;
     assert(function != null);
-    assert(!function.modifiers.isExternal);
+    assert(invariant(functionElement, !function.modifiers.isExternal));
     assert(elements.getFunctionDefinition(function) != null);
     openFunction(functionElement, function);
     String name = functionElement.name;
@@ -1680,10 +1705,10 @@ class SsaBuilder extends ast.Visitor
 
   HGraph buildLazyInitializer(VariableElement variable) {
     inLazyInitializerExpression = true;
-    ast.VariableDefinitions node = variable.node;
-    openFunction(variable, node);
     assert(invariant(variable, variable.initializer != null,
         message: "Non-constant variable $variable has no initializer."));
+    ast.VariableDefinitions node = variable.node;
+    openFunction(variable, node);
     visit(variable.initializer);
     HInstruction value = pop();
     value = potentiallyCheckOrTrustType(value, variable.type);
@@ -2538,7 +2563,7 @@ class SsaBuilder extends ast.Visitor
     assert(type != null);
     type = localsHandler.substInContext(type);
     HInstruction other = buildTypeConversion(original, type, kind);
-    registry.registerIsCheck(type);
+    registry?.registerIsCheck(type);
     return other;
   }
 
@@ -2569,7 +2594,7 @@ class SsaBuilder extends ast.Visitor
                                 messageInstruction];
     HInstruction assertIsSubtype = new HInvokeStatic(
         element, inputs, subtypeInstruction.instructionType);
-    registry.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
+    registry?.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
     add(assertIsSubtype);
   }
 
@@ -3184,7 +3209,7 @@ class SsaBuilder extends ast.Visitor
     // TODO(ahe): This should be registered in codegen, not here.
     // TODO(johnniwinther): Is [registerStaticUse] equivalent to
     // [addToWorkList]?
-    registry.registerStaticUse(callElement);
+    registry?.registerStaticUse(callElement);
 
     List<HInstruction> capturedVariables = <HInstruction>[];
     closureClassElement.closureFields.forEach((ClosureFieldElement field) {
@@ -3200,7 +3225,7 @@ class SsaBuilder extends ast.Visitor
         ..sourceInformation = sourceInformationBuilder.buildCreate(node));
 
     Element methodElement = nestedClosureData.closureElement;
-    registry.registerInstantiatedClosure(methodElement);
+    registry?.registerInstantiatedClosure(methodElement);
   }
 
   visitFunctionDeclaration(ast.FunctionDeclaration node) {
@@ -4392,7 +4417,7 @@ class SsaBuilder extends ast.Visitor
           '"$name" does not handle closure with optional parameters.');
     }
 
-    registry.registerStaticUse(element);
+    registry?.registerStaticUse(element);
     push(new HForeignCode(
         js.js.expressionTemplateYielding(
             backend.emitter.staticFunctionAccess(element)),
@@ -4499,7 +4524,7 @@ class SsaBuilder extends ast.Visitor
       // class is _not_ the default implementation from [Object], in
       // case the [noSuchMethod] implementation calls
       // [JSInvocationMirror._invokeOn].
-      registry.registerSelectorUse(selector);
+      registry?.registerSelectorUse(selector);
     }
     String publicName = name;
     if (selector.isSetter) publicName += '=';
@@ -4878,9 +4903,9 @@ class SsaBuilder extends ast.Visitor
                // When [member] is a field, we can be either
                // generating a checked setter or inlining its
                // initializer in a constructor. An initializer is
-               // never built standalone, so [isBuildingFor] will
-               // always return true when seeing one.
-               (member.isField && !isBuildingFor(member))) {
+               // never built standalone, so in that case [target] is not
+               // the [member] itself.
+               (member.isField && member != target)) {
       // The type variable is stored in a parameter of the method.
       return localsHandler.readLocal(
           typeVariableLocal, sourceInformation: sourceInformation);
@@ -4938,7 +4963,7 @@ class SsaBuilder extends ast.Visitor
       inputs.add(analyzeTypeArgument(argument));
     });
     // TODO(15489): Register at codegen.
-    registry.registerInstantiatedType(type);
+    registry?.registerInstantiatedType(type);
     return callSetRuntimeTypeInfo(type.element, inputs, newObject);
   }
 
@@ -5151,8 +5176,9 @@ class SsaBuilder extends ast.Visitor
       // Overwrite the element type, in case the allocation site has
       // been inlined.
       newInstance.instructionType = elementType;
-      JavaScriptItemCompilationContext context = work.compilationContext;
-      context.allocatedFixedLists.add(newInstance);
+      if (context != null) {
+        context.allocatedFixedLists.add(newInstance);
+      }
     }
 
     // The List constructor forwards to a Dart static method that does
@@ -5697,7 +5723,7 @@ class SsaBuilder extends ast.Visitor
         ConstructedConstantValue symbol = getConstantForNode(node);
         StringConstantValue stringConstant = symbol.fields.values.single;
         String nameString = stringConstant.toDartString().slowToString();
-        registry.registerConstSymbol(nameString);
+        registry?.registerConstSymbol(nameString);
       }
     } else {
       handleNewSend(node);
@@ -6877,7 +6903,7 @@ class SsaBuilder extends ast.Visitor
 
   void visitLiteralSymbol(ast.LiteralSymbol node) {
     stack.add(addConstant(node));
-    registry.registerConstSymbol(node.slowNameString);
+    registry?.registerConstSymbol(node.slowNameString);
   }
 
   void visitStringJuxtaposition(ast.StringJuxtaposition node) {
@@ -7099,7 +7125,7 @@ class SsaBuilder extends ast.Visitor
       arguments.add(analyzeTypeArgument(argument));
     }
     // TODO(15489): Register at codegen.
-    registry.registerInstantiatedType(type);
+    registry?.registerInstantiatedType(type);
     return callSetRuntimeTypeInfo(type.element, arguments, object);
   }
 
