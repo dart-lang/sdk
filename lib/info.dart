@@ -130,8 +130,8 @@ class AllInfo {
   // the same map that is created for the `--deferred-map` flag.
   Map<String, Map<String, dynamic>> deferredFiles;
 
-  /// A new representation of dependencies form one info to another. An entry in
-  /// this map indicates that an Info depends on another (e.g. a function
+  /// A new representation of dependencies from one info to another. An entry in
+  /// this map indicates that an [Info] depends on another (e.g. a function
   /// invokes another). Please note that the data in this field might not be
   /// accurate yet (this is work in progress).
   Map<Info, List<Info>> dependencies = {};
@@ -146,7 +146,7 @@ class AllInfo {
   /// previous will continue to work after the change. This is typically
   /// increased when adding new entries to the file format.
   // Note: the dump-info.viewer app was written using a json parser version 3.2.
-  final int minorVersion = 5;
+  final int minorVersion = 6;
 
   AllInfo();
 
@@ -202,6 +202,7 @@ class AllInfo {
 }
 
 class ProgramInfo {
+  FunctionInfo entrypoint;
   int size;
   String dart2jsVersion;
   DateTime compilationMoment;
@@ -213,7 +214,8 @@ class ProgramInfo {
   bool minified;
 
   ProgramInfo(
-      {this.size,
+      {this.entrypoint,
+      this.size,
       this.dart2jsVersion,
       this.compilationMoment,
       this.compilationDuration,
@@ -223,6 +225,7 @@ class ProgramInfo {
       this.minified});
 
   Map toJson() => {
+        'entrypoint': entrypoint.serializedId,
         'size': size,
         'dart2jsVersion': dart2jsVersion,
         'compilationMoment': '$compilationMoment',
@@ -356,7 +359,9 @@ class _ParseHelper {
       ..size = 0;
   }
 
-  ProgramInfo parseProgram(Map json) => new ProgramInfo()..size = json['size'];
+  ProgramInfo parseProgram(Map json) => new ProgramInfo()
+    ..size = json['size']
+    ..entrypoint = parseId(json['entrypoint']);
 
   FunctionInfo parseFunction(Map json) {
     FunctionInfo result = parseId(json['id']);
