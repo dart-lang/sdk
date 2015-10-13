@@ -20,7 +20,7 @@ import 'rules.dart';
 class _OverrideChecker {
   bool _failure = false;
   final TypeRules _rules;
-  final ErrorReporter _reporter;
+  final AnalysisErrorListener _reporter;
 
   _OverrideChecker(this._rules, this._reporter);
 
@@ -318,14 +318,14 @@ class _OverrideChecker {
     if (info == null) return;
     var error = info.toAnalysisError();
     if (error.errorCode.errorSeverity == ErrorSeverity.ERROR) _failure = true;
-    _reporter.reportError(error);
+    _reporter.onError(error);
   }
 }
 
 /// Checks the body of functions and properties.
 class CodeChecker extends RecursiveAstVisitor {
   final TypeRules rules;
-  final ErrorReporter reporter;
+  final AnalysisErrorListener reporter;
   final _OverrideChecker _overrideChecker;
   bool _failure = false;
   bool get failure => _failure || _overrideChecker._failure;
@@ -335,7 +335,7 @@ class CodeChecker extends RecursiveAstVisitor {
     _overrideChecker._failure = false;
   }
 
-  CodeChecker(TypeRules rules, ErrorReporter reporter)
+  CodeChecker(TypeRules rules, AnalysisErrorListener reporter)
       : rules = rules,
         reporter = reporter,
         _overrideChecker = new _OverrideChecker(rules, reporter);
@@ -918,13 +918,13 @@ class CodeChecker extends RecursiveAstVisitor {
   DartType _getStaticType(Expression expr) {
     var type = expr.staticType;
     if (type == null) {
-      reporter.reportError(new MissingTypeError(expr).toAnalysisError());
+      reporter.onError(new MissingTypeError(expr).toAnalysisError());
     }
     return type ?? rules.provider.dynamicType;
   }
 
   void _recordDynamicInvoke(AstNode node, AstNode target) {
-    reporter.reportError(new DynamicInvoke(rules, node).toAnalysisError());
+    reporter.onError(new DynamicInvoke(rules, node).toAnalysisError());
     // TODO(jmesserly): we may eventually want to record if the whole operation
     // (node) was dynamic, rather than the target, but this is an easier fit
     // with what we used to do.
@@ -935,7 +935,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (info == null) return;
     var error = info.toAnalysisError();
     if (error.errorCode.errorSeverity == ErrorSeverity.ERROR) _failure = true;
-    reporter.reportError(error);
+    reporter.onError(error);
 
     if (info is CoercionInfo) {
       // TODO(jmesserly): if we're run again on the same AST, we'll produce the
@@ -947,7 +947,6 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 }
-
 
 /// Looks up the declaration that matches [member] in [type] and returns it's
 /// declared type.

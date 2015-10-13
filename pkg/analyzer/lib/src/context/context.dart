@@ -1152,8 +1152,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry.setState(RESOLVED_UNIT7, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT8, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT9, CacheState.FLUSHED);
+      entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
       // USED_IMPORTED_ELEMENTS
       // USED_LOCAL_ELEMENTS
+      setValue(STRONG_MODE_ERRORS, AnalysisError.NO_ERRORS);
       setValue(VARIABLE_REFERENCE_ERRORS, AnalysisError.NO_ERRORS);
       setValue(VERIFY_ERRORS, AnalysisError.NO_ERRORS);
     });
@@ -1230,6 +1232,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     entry.setState(RESOLVED_UNIT7, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT8, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT9, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
   }
 

@@ -218,6 +218,7 @@ class EnginePlugin implements Plugin {
     registerExtension(taskId, ResolveUnitTypeNamesTask.DESCRIPTOR);
     registerExtension(taskId, ResolveVariableReferencesTask.DESCRIPTOR);
     registerExtension(taskId, ScanDartTask.DESCRIPTOR);
+    registerExtension(taskId, StrongModeVerifyUnitTask.DESCRIPTOR);
     registerExtension(taskId, VerifyUnitTask.DESCRIPTOR);
     //
     // Register HTML tasks.

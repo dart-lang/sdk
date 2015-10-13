@@ -30,6 +30,8 @@ import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
+import 'package:analyzer/src/task/strong/checker.dart';
+import 'package:analyzer/src/task/strong/rules.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
@@ -461,6 +463,16 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT9 =
         cachingPolicy: AST_CACHING_POLICY);
 
 /**
+ * The resolved [CompilationUnit] associated with a compilation unit, with
+ * constants resolved.
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<CompilationUnit> RESOLVED_UNIT10 =
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT10', null,
+        cachingPolicy: AST_CACHING_POLICY);
+
+/**
  * The errors produced while scanning a compilation unit.
  *
  * The list will be empty if there were no errors, but will not be `null`.
@@ -470,6 +482,20 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT9 =
 final ListResultDescriptor<AnalysisError> SCAN_ERRORS =
     new ListResultDescriptor<AnalysisError>(
         'SCAN_ERRORS', AnalysisError.NO_ERRORS);
+
+/**
+ * The additional strong mode errors produced while verifying a
+ * compilation unit.
+ *
+ * The list will be empty if there were no errors, but will not be `null`.
+ *
+ * The result is only available for [LibrarySpecificUnits]s representing a
+ * compilation unit.
+ *
+ */
+final ListResultDescriptor<AnalysisError> STRONG_MODE_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
+        'STRONG_MODE_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
  * The [TypeProvider] of the [AnalysisContext].
@@ -2109,7 +2135,7 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * A task that builds [RESOLVED_UNIT] for a unit.
+ * A task that builds [RESOLVED_UNIT10] for a unit.
  */
 class EvaluateUnitConstantsTask extends SourceBasedAnalysisTask {
   /**
@@ -2129,7 +2155,7 @@ class EvaluateUnitConstantsTask extends SourceBasedAnalysisTask {
       'EvaluateUnitConstantsTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[RESOLVED_UNIT]);
+      <ResultDescriptor>[RESOLVED_UNIT10]);
 
   EvaluateUnitConstantsTask(AnalysisContext context, LibrarySpecificUnit target)
       : super(context, target);
@@ -2142,7 +2168,7 @@ class EvaluateUnitConstantsTask extends SourceBasedAnalysisTask {
     // No actual work needs to be performed; the task manager will ensure that
     // all constants are evaluated before this method is called.
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
-    outputs[RESOLVED_UNIT] = unit;
+    outputs[RESOLVED_UNIT10] = unit;
   }
 
   /**
@@ -2535,7 +2561,7 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
  */
 class GenerateLintsTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [RESOLVED_UNIT8] input.
+   * The name of the [RESOLVED_UNIT] input.
    */
   static const String RESOLVED_UNIT_INPUT = 'RESOLVED_UNIT';
 
@@ -2574,8 +2600,7 @@ class GenerateLintsTask extends SourceBasedAnalysisTask {
     //
     List<Linter> linters = lintRegistry[context] ?? [];
     linters.forEach((l) => l.reporter = errorReporter);
-    Iterable<AstVisitor> visitors =
-        linters.map((l) => l.getVisitor()).toList();
+    Iterable<AstVisitor> visitors = linters.map((l) => l.getVisitor()).toList();
     unit.accept(new DelegatingAstVisitor(visitors.where((v) => v != null)));
 
     //
@@ -3124,6 +3149,11 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
   static const String LINTS_INPUT = 'LINTS';
 
   /**
+   * The name of the [STRONG_MODE_ERRORS] input.
+   */
+  static const String STRONG_MODE_ERRORS_INPUT = 'STRONG_MODE_ERRORS';
+
+  /**
    * The name of the [RESOLVE_TYPE_NAMES_ERRORS] input.
    */
   static const String RESOLVE_TYPE_NAMES_ERRORS_INPUT =
@@ -3172,6 +3202,7 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
     errorLists.add(getRequiredInput(LINTS_INPUT));
     errorLists.add(getRequiredInput(RESOLVE_TYPE_NAMES_ERRORS_INPUT));
     errorLists.add(getRequiredInput(RESOLVE_UNIT_ERRORS_INPUT));
+    errorLists.add(getRequiredInput(STRONG_MODE_ERRORS_INPUT));
     errorLists.add(getRequiredInput(VARIABLE_REFERENCE_ERRORS_INPUT));
     errorLists.add(getRequiredInput(VERIFY_ERRORS_INPUT));
     //
@@ -3192,6 +3223,7 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
       LINTS_INPUT: LINTS.of(unit),
       RESOLVE_TYPE_NAMES_ERRORS_INPUT: RESOLVE_TYPE_NAMES_ERRORS.of(unit),
       RESOLVE_UNIT_ERRORS_INPUT: RESOLVE_UNIT_ERRORS.of(unit),
+      STRONG_MODE_ERRORS_INPUT: STRONG_MODE_ERRORS.of(unit),
       VARIABLE_REFERENCE_ERRORS_INPUT: VARIABLE_REFERENCE_ERRORS.of(unit),
       VERIFY_ERRORS_INPUT: VERIFY_ERRORS.of(unit)
     };
@@ -4152,6 +4184,84 @@ class ScanDartTask extends SourceBasedAnalysisTask {
 }
 
 /**
+ * A task that builds [STRONG_MODE_ERRORS] for a unit.  Also builds
+ * [RESOLVED_UNIT] for a unit.
+ */
+class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [RESOLVED_UNIT10] input.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  /**
+   * The name of the [TYPE_PROVIDER] input.
+   */
+  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'StrongModeVerifyUnitTask',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[STRONG_MODE_ERRORS, RESOLVED_UNIT]);
+
+  StrongModeVerifyUnitTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    //
+    // Prepare inputs.
+    //
+    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    if (context.analysisOptions.strongMode) {
+      unit.accept(new CodeChecker(new TypeRules(typeProvider), errorListener));
+    }
+
+    //
+    // Record outputs.
+    //
+    outputs[STRONG_MODE_ERRORS] = removeDuplicateErrors(errorListener.errors);
+    outputs[RESOLVED_UNIT] = unit;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    LibrarySpecificUnit unit = target;
+    return <String, TaskInput>{
+      'resolvedUnits': IMPORT_EXPORT_SOURCE_CLOSURE
+          .of(unit.library)
+          .toMapOf(UNITS)
+          .toFlattenList((Source library, Source unit) =>
+              RESOLVED_UNIT10.of(new LibrarySpecificUnit(library, unit))),
+      UNIT_INPUT: RESOLVED_UNIT10.of(unit),
+      TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
+    };
+  }
+
+  /**
+   * Create a [StrongModeVerifyUnitTask] based on the given [target] in
+   * the given [context].
+   */
+  static StrongModeVerifyUnitTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new StrongModeVerifyUnitTask(context, target);
+  }
+}
+
+/**
  * A task that builds [VERIFY_ERRORS] for a unit.
  */
 class VerifyUnitTask extends SourceBasedAnalysisTask {
@@ -4214,6 +4324,7 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
         new InheritanceManager(libraryElement),
         context.analysisOptions.enableSuperMixins);
     unit.accept(errorVerifier);
+
     //
     // Record outputs.
     //

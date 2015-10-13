@@ -21,7 +21,6 @@ import 'package:logging/logging.dart'; // TODO(jmesserly): remove
 import 'package:source_span/source_span.dart'; // TODO(jmesserly): remove
 import 'package:unittest/unittest.dart';
 
-
 /// Run the checker on a program with files contents as indicated in
 /// [testFiles].
 ///
@@ -76,9 +75,8 @@ void testChecker(String name, Map<String, String> testFiles) {
         context.resolveCompilationUnit2(mainSource, mainSource);
 
     var collector = new _ErrorCollector();
-    var errorReporter = new ErrorReporter(collector, mainSource);
-    var checker = new CodeChecker(new TypeRules(context.typeProvider),
-        errorReporter);
+    var checker =
+        new CodeChecker(new TypeRules(context.typeProvider), collector);
 
     // Extract expectations from the comments in the test files, and
     // check that all errors we emit are included in the expected map.
@@ -90,7 +88,6 @@ void testChecker(String name, Map<String, String> testFiles) {
 
         var source = unit.source;
         if (source.uri.scheme == 'dart') continue;
-        errorReporter.source = unit.source;
 
         var librarySource = context.getLibrariesContaining(source).single;
         var resolved = context.resolveCompilationUnit2(source, librarySource);
@@ -286,7 +283,6 @@ class _ErrorExpectation {
   String toString() => '$level $typeName';
 }
 
-
 /// Dart SDK which contains a mock implementation of the SDK libraries. May be
 /// used to speed up execution when most of the core libraries is not needed.
 class MockDartSdk implements DartSdk {
@@ -455,7 +451,6 @@ final Map<String, String> mockSdkSources = {
         num max(num x, num y) {}
         ''',
 };
-
 
 /// Returns all libraries transitively imported or exported from [start].
 List<LibraryElement> reachableLibraries(LibraryElement start) {

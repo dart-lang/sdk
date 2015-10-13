@@ -921,6 +921,7 @@ class IncrementalBodyDelta extends Delta {
         isByTask(ResolveUnitTask.DESCRIPTOR) ||
         isByTask(ResolveUnitTypeNamesTask.DESCRIPTOR) ||
         isByTask(ResolveVariableReferencesTask.DESCRIPTOR) ||
+        isByTask(StrongModeVerifyUnitTask.DESCRIPTOR) ||
         isByTask(VerifyUnitTask.DESCRIPTOR)) {
       return DeltaResult.KEEP_CONTINUE;
     }
@@ -1245,6 +1246,7 @@ class IncrementalResolver {
     _shiftErrors_NEW(LIBRARY_UNIT_ERRORS);
     _shiftErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS);
     _shiftErrors_NEW(RESOLVE_UNIT_ERRORS);
+    _shiftErrors_NEW(STRONG_MODE_ERRORS);
     _shiftErrors_NEW(VARIABLE_REFERENCE_ERRORS);
     _shiftErrors_NEW(VERIFY_ERRORS);
   }
@@ -1316,6 +1318,7 @@ class IncrementalResolver {
     _updateErrors_NEW(VARIABLE_REFERENCE_ERRORS, []);
     _updateErrors_NEW(VERIFY_ERRORS, _verifyErrors);
     // invalidate results we don't update incrementally
+    newUnitEntry.setState(STRONG_MODE_ERRORS, CacheState.INVALID);
     newUnitEntry.setState(USED_IMPORTED_ELEMENTS, CacheState.INVALID);
     newUnitEntry.setState(USED_LOCAL_ELEMENTS, CacheState.INVALID);
     newUnitEntry.setState(HINTS, CacheState.INVALID);

@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/html.dart';
+import 'package:analyzer/src/task/strong/info.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
@@ -65,6 +66,7 @@ main() {
   runReflectiveTests(ResolveVariableReferencesTaskTest);
   runReflectiveTests(ScanDartTaskTest);
   runReflectiveTests(StrongModeInferenceTest);
+  runReflectiveTests(StrongModeVerifyUnitTaskTest);
   runReflectiveTests(VerifyUnitTaskTest);
 }
 
@@ -124,6 +126,8 @@ isInstanceOf isResolveUnitTypeNamesTask =
 isInstanceOf isResolveVariableReferencesTask =
     new isInstanceOf<ResolveVariableReferencesTask>();
 isInstanceOf isScanDartTask = new isInstanceOf<ScanDartTask>();
+isInstanceOf isStrongModeVerifyUnitTask =
+    new isInstanceOf<StrongModeVerifyUnitTask>();
 isInstanceOf isVerifyUnitTask = new isInstanceOf<VerifyUnitTask>();
 
 final LintCode _testLintCode = new LintCode('test lint', 'test lint code');
@@ -1844,8 +1848,9 @@ f() {}
 const x = const C();
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT, matcher: isEvaluateUnitConstantsTask);
-    CompilationUnit unit = outputs[RESOLVED_UNIT];
+    computeResult(target, RESOLVED_UNIT10,
+        matcher: isEvaluateUnitConstantsTask);
+    CompilationUnit unit = outputs[RESOLVED_UNIT10];
     CompilationUnitElement unitElement = unit.element;
     expect(
         (unitElement.types[0].constructors[0] as ConstructorElementImpl)
@@ -3970,6 +3975,61 @@ var tau = piFirst ? pi * 2 : 6.28;
 }
 
 @reflectiveTest
+class StrongModeVerifyUnitTaskTest extends _AbstractDartTaskTest {
+  @override
+  void setUp() {
+    super.setUp();
+    enableStrongMode();
+  }
+
+  void test_perform_verifyError() {
+    enableStrongMode();
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+int topLevel = 3;
+class C {
+  String field = topLevel;
+}
+''');
+    computeResult(new LibrarySpecificUnit(source, source), STRONG_MODE_ERRORS);
+    // validate
+    _fillErrorListener(STRONG_MODE_ERRORS);
+
+    var errors = errorListener.errors;
+    expect(errors.length, 1);
+    expect(errors[0].errorCode.name, "dev_compiler.StaticTypeError");
+  }
+
+  void test_perform_recordDynamicInvoke() {
+    enableStrongMode();
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+void main() {
+  dynamic a = [];
+  a[0];
+}
+''');
+    computeResult(new LibrarySpecificUnit(source, source), STRONG_MODE_ERRORS);
+    CompilationUnit unit = outputs[RESOLVED_UNIT];
+
+    // validate
+    _fillErrorListener(STRONG_MODE_ERRORS);
+    var errors = errorListener.errors;
+    expect(errors.length, 1);
+    expect(errors[0].errorCode.name, "dev_compiler.DynamicInvoke");
+
+    List<Statement> statements = getStatementsInTopLevelFunction(unit, "main");
+    ExpressionStatement statement = statements[1];
+    IndexExpression idx = statement.expression;
+    expect(DynamicInvoke.get(idx.target), isNotNull);
+    expect(DynamicInvoke.get(idx.target), isNotNull);
+    expect(DynamicInvoke.get(idx.target), isTrue);
+  }
+}
+
+@reflectiveTest
 class VerifyUnitTaskTest extends _AbstractDartTaskTest {
   test_perform_constantError() {
     Source source = newSource(
@@ -4015,8 +4075,10 @@ class C {
     computeResult(new LibrarySpecificUnit(source, source), VERIFY_ERRORS);
     // validate
     _fillErrorListener(VERIFY_ERRORS);
-    errorListener.assertErrorsWithCodes(
-        <ErrorCode>[StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+
+    var errors = errorListener.errors;
+    expect(errors.length, 1);
+    expect(errors[0].errorCode, StaticTypeWarningCode.INVALID_ASSIGNMENT);
   }
 
   test_perform_verifyError() {
