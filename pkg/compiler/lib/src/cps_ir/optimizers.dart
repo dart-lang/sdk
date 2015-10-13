@@ -16,6 +16,7 @@ export 'mutable_ssa.dart' show MutableVariableEliminator;
 export 'insert_refinements.dart' show InsertRefinements;
 export 'remove_refinements.dart' show RemoveRefinements;
 export 'share_interceptors.dart' show ShareInterceptors;
+export 'bounds_checker.dart' show BoundsChecker;
 export 'parent_visitor.dart' show ParentVisitor;
 
 /// An optimization pass over the CPS IR.

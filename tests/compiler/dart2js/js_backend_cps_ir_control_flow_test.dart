@@ -155,11 +155,7 @@ main() {
   }
 }""",r"""
 function() {
-  var xs = ["x", "y", "z"], ys = ["A", "B", "C"], $length = xs.length, length1 = ys.length, i, i1, current, current1;
-  if ($length !== xs.length)
-    H.throwConcurrentModificationError(xs);
-  i = 0;
-  i1 = 0;
+  var xs = ["x", "y", "z"], ys = ["A", "B", "C"], $length = xs.length, length1 = ys.length, i = 0, i1 = 0, current, current1;
   for (; i < xs.length; i = i + 1, i1 = i1 + 1) {
     current = xs[i];
     if (length1 !== ys.length)

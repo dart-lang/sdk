@@ -1155,37 +1155,16 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     return cps;
   }
 
-  /// Counts number of index accesses on [receiver] and determines based on
-  /// that number if we should try to inline them.
-  ///
-  /// This is a short-term solution to avoid inserting a lot of bounds checks,
-  /// since there is currently no optimization for eliminating them.
-  bool hasTooManyIndexAccesses(Primitive receiver) {
-    receiver = receiver.effectiveDefinition;
-    int count = 0;
-    for (Reference ref in receiver.effectiveUses) {
-      Node use = ref.parent;
-      if (use is InvokeMethod &&
-          (use.selector.isIndex || use.selector.isIndexSet) &&
-          getDartReceiver(use).sameValue(receiver)) {
-        ++count;
-      } else if (use is GetIndex && use.object.definition.sameValue(receiver)) {
-        ++count;
-      } else if (use is SetIndex && use.object.definition.sameValue(receiver)) {
-        ++count;
-      }
-      if (count > 2) return true;
-    }
-    return false;
-  }
-
   /// Tries to replace [node] with a direct `length` or index access.
   ///
   /// Returns `true` if the node was replaced.
   bool specializeIndexableAccess(InvokeMethod node) {
     Primitive receiver = getDartReceiver(node);
     AbstractValue receiverValue = getValue(receiver);
-    if (!lattice.isDefinitelyIndexable(receiverValue)) return false;
+    if (!typeSystem.isDefinitelyIndexable(receiverValue.type,
+            allowNull: true)) {
+      return false;
+    }
     SourceInformation sourceInfo = node.sourceInformation;
     Continuation cont = node.continuation.definition;
     switch (node.selector.name) {
@@ -1198,12 +1177,28 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         return true;
 
       case '[]':
-        if (hasTooManyIndexAccesses(receiver)) return false;
         Primitive index = getDartArgument(node, 0);
         if (!lattice.isDefinitelyInt(getValue(index))) return false;
         CpsFragment cps = makeBoundsCheck(receiver, index, sourceInfo);
         GetIndex get = cps.letPrim(new GetIndex(receiver, index));
         cps.invokeContinuation(cont, [get]);
+        replaceSubtree(node, cps.result);
+        push(cps.result);
+        return true;
+
+      case '[]=':
+        if (receiverValue.isNullable) return false;
+        if (!typeSystem.isDefinitelyMutableIndexable(receiverValue.type)) {
+          return false;
+        }
+        Primitive index = getDartArgument(node, 0);
+        Primitive value = getDartArgument(node, 1);
+        if (!lattice.isDefinitelyInt(getValue(index))) return false;
+        CpsFragment cps = makeBoundsCheck(receiver, index, sourceInfo);
+        cps.letPrim(new SetIndex(receiver, index, value));
+        assert(cont.parameters.single.hasNoUses);
+        cont.parameters.clear();
+        cps.invokeContinuation(cont, []);
         replaceSubtree(node, cps.result);
         push(cps.result);
         return true;
@@ -1303,28 +1298,11 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           return false;
         }
         if (listValue.isNullable) return false;
-        if (hasTooManyIndexAccesses(list)) return false;
         Primitive index = getDartArgument(node, 0);
         if (!lattice.isDefinitelyInt(getValue(index))) return false;
         CpsFragment cps = makeBoundsCheck(list, index, sourceInfo);
         GetIndex get = cps.letPrim(new GetIndex(list, index));
         cps.invokeContinuation(cont, [get]);
-        replaceSubtree(node, cps.result);
-        push(cps.result);
-        return true;
-
-      case '[]=':
-        if (listValue.isNullable) return false;
-        if (hasTooManyIndexAccesses(list)) return false;
-        Primitive index = getDartArgument(node, 0);
-        Primitive value = getDartArgument(node, 1);
-        if (!isMutable) return false;
-        if (!lattice.isDefinitelyInt(getValue(index))) return false;
-        CpsFragment cps = makeBoundsCheck(list, index, sourceInfo);
-        cps.letPrim(new SetIndex(list, index, value));
-        assert(cont.parameters.single.hasNoUses);
-        cont.parameters.clear();
-        cps.invokeContinuation(cont, []);
         replaceSubtree(node, cps.result);
         push(cps.result);
         return true;

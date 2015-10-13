@@ -133,7 +133,6 @@ class BlockCollector extends StatementVisitor {
 
     _addBlock(whileBlock);
     _addStatement(node);
-    whileBlock.statements.add(node);
     blocks.last.addEdgeTo(whileBlock);
 
     Block bodyBlock = new Block();

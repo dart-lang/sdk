@@ -314,3 +314,11 @@ class CpsFragment {
     insertBelow(node.parent);
   }
 }
+
+/// Removes [node], unlinking all its references and replaces it with [newNode].
+void destroyAndReplace(Expression node, Expression newNode) {
+  InteriorNode parent = node.parent;
+  RemovalVisitor.remove(node);
+  parent.body = newNode;
+  newNode.parent = parent;
+}

@@ -43,6 +43,7 @@ class TypeMaskSystem {
   TypeMask get uintType => inferrer.positiveIntType;
 
   TypeMask numStringBoolType;
+  TypeMask fixedLengthType;
   TypeMask interceptorType;
 
   ClassElement get jsNullClass => backend.jsNullClass;
@@ -67,6 +68,11 @@ class TypeMaskSystem {
             classWorld);
     interceptorType =
         new TypeMask.nonNullSubtype(backend.jsInterceptorClass, classWorld);
+
+    TypeMask typedArray = nonNullSubclass(backend.typedArrayClass);
+    fixedLengthType = new TypeMask.unionOf(
+            <TypeMask>[stringType, backend.fixedArrayType, typedArray],
+            classWorld);
   }
 
   bool methodUsesReceiverArgument(FunctionElement function) {
@@ -198,6 +204,12 @@ class TypeMaskSystem {
     return areDisjoint(t, doubleType);
   }
 
+  bool isDefinitelyNonNegativeInt(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    // The JSPositiveInt class includes zero, despite the name.
+    return t.satisfies(backend.jsPositiveIntClass, classWorld);
+  }
+
   bool isDefinitelyInt(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
     return t.satisfies(backend.jsIntClass, classWorld);
@@ -245,6 +257,17 @@ class TypeMaskSystem {
   bool isDefinitelyIndexable(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
     return t.nonNullable().satisfies(backend.jsIndexableClass, classWorld);
+  }
+
+  bool isDefinitelyMutableIndexable(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.nonNullable().satisfies(backend.jsMutableIndexableClass,
+        classWorld);
+  }
+
+  bool isDefinitelyFixedLengthIndexable(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return fixedLengthType.containsMask(t.nonNullable(), classWorld);
   }
 
   bool areDisjoint(TypeMask leftType, TypeMask rightType) {
