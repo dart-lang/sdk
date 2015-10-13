@@ -306,6 +306,8 @@ abstract class Element implements Entity {
   bool get isTopLevel;
   bool get isAssignable;
   bool get isNative;
+  bool get isJsInterop;
+
   bool get isDeferredLoaderGetter;
 
   /// True if the element is declared in a patch library but has no
@@ -402,6 +404,8 @@ abstract class Element implements Entity {
   bool get hasFixedBackendName;
   String get fixedBackendName;
 
+  String get jsInteropName;
+
   bool get isAbstract;
 
   Scope buildScope();
@@ -411,6 +415,9 @@ abstract class Element implements Entity {
   AnalyzableElement get analyzableElement;
 
   accept(ElementVisitor visitor, arg);
+
+  void setJsInteropName(String name);
+  void markAsJsInterop();
 }
 
 class Elements {
@@ -515,7 +522,7 @@ class Elements {
 
   static bool isNativeOrExtendsNative(ClassElement element) {
     if (element == null) return false;
-    if (element.isNative) return true;
+    if (element.isNative || element.isJsInterop) return true;
     assert(element.isResolved);
     return isNativeOrExtendsNative(element.superclass);
   }

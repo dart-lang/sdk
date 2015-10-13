@@ -1339,6 +1339,11 @@ class SsaBuilder extends ast.Visitor
     // enqueued.
     backend.registerStaticUse(element, compiler.enqueuer.codegen);
 
+    if (element.isJsInterop && !element.isFactoryConstructor) {
+      // We only inline factory JavaScript interop constructors.
+      return false;
+    }
+
     // Ensure that [element] is an implementation element.
     element = element.implementation;
 
@@ -1368,6 +1373,8 @@ class SsaBuilder extends ast.Visitor
           return false;
         }
       }
+
+      if (element.isJsInterop) return false;
 
       // Don't inline operator== methods if the parameter can be null.
       if (element.name == '==') {
@@ -1547,6 +1554,13 @@ class SsaBuilder extends ast.Visitor
     });
   }
 
+  /**
+   * Return null so it is simple to remove the optional parameters completely
+   * from interop methods to match JavaScript semantics for ommitted arguments.
+   */
+  HInstruction handleConstantForOptionalParameterJsInterop(Element parameter) =>
+      null;
+
   HInstruction handleConstantForOptionalParameter(Element parameter) {
     ConstantValue constantValue =
         backend.constants.getConstantValueForVariable(parameter);
@@ -1634,10 +1648,19 @@ class SsaBuilder extends ast.Visitor
     graph.calledInLoop = compiler.world.isCalledInLoop(functionElement);
     ast.FunctionExpression function = functionElement.node;
     assert(function != null);
-    assert(invariant(functionElement, !function.modifiers.isExternal));
     assert(elements.getFunctionDefinition(function) != null);
     openFunction(functionElement, function);
     String name = functionElement.name;
+    if (functionElement.isJsInterop) {
+      push(invokeJsInteropFunction(functionElement, parameters.values.toList(),
+          sourceInformationBuilder.buildGeneric(function)));
+      var value = pop();
+      closeAndGotoExit(new HReturn(value,
+          sourceInformationBuilder.buildReturn(functionElement.node)));
+      return closeFunction();
+    }
+    assert(invariant(functionElement, !function.modifiers.isExternal));
+
     // If [functionElement] is `operator==` we explicitely add a null check at
     // the beginning of the method. This is to avoid having call sites do the
     // null check.
@@ -1842,6 +1865,7 @@ class SsaBuilder extends ast.Visitor
    */
   void visitInlinedFunction(FunctionElement function) {
     potentiallyCheckInlinedParameterTypes(function);
+
     if (function.isGenerativeConstructor) {
       buildFactory(function);
     } else {
@@ -2145,7 +2169,8 @@ class SsaBuilder extends ast.Visitor
     ClassElement classElement =
         functionElement.enclosingClass.implementation;
     bool isNativeUpgradeFactory =
-        Elements.isNativeOrExtendsNative(classElement);
+        Elements.isNativeOrExtendsNative(classElement)
+            && !classElement.isJsInterop;
     ast.FunctionExpression function = functionElement.node;
     // Note that constructors (like any other static function) do not need
     // to deal with optional arguments. It is the callers job to provide all
@@ -3956,7 +3981,9 @@ class SsaBuilder extends ast.Visitor
         arguments,
         element,
         compileArgument,
-        handleConstantForOptionalParameter);
+        element.isJsInterop ?
+            handleConstantForOptionalParameterJsInterop :
+            handleConstantForOptionalParameter);
   }
 
   void addGenericSendArgumentsToList(Link<ast.Node> link, List<HInstruction> list) {
@@ -5101,7 +5128,8 @@ class SsaBuilder extends ast.Visitor
 
     var inputs = <HInstruction>[];
     if (constructor.isGenerativeConstructor &&
-        Elements.isNativeOrExtendsNative(constructor.enclosingClass)) {
+        Elements.isNativeOrExtendsNative(constructor.enclosingClass) &&
+        !constructor.isJsInterop) {
       // Native class generative constructors take a pre-constructed object.
       inputs.add(graph.addConstantNull(compiler));
     }
@@ -5818,6 +5846,96 @@ class SsaBuilder extends ast.Visitor
     }
   }
 
+  HForeignCode invokeJsInteropFunction(Element element,
+                                       List<HInstruction> arguments,
+                                       SourceInformation sourceInformation) {
+    assert(element.isJsInterop);
+    nativeEmitter.nativeMethods.add(element);
+    String templateString;
+
+    if (element.isFactoryConstructor) {
+      // Treat factory constructors as syntactic sugar for creating object
+      // literals.
+      ConstructorElement constructor = element;
+      FunctionSignature params = constructor.functionSignature;
+      int i = 0;
+      int positions = 0;
+      var filteredArguments = <HInstruction>[];
+      var parameterNameMap = new Map<String, js.Expression>();
+      params.orderedForEachParameter((ParameterElement parameter) {
+        // TODO(jacobr): throw if parameter names do not match names of property
+        // names in the class.
+        assert (parameter.isNamed);
+        if (!parameter.isNamed) {
+          reporter.reportErrorMessage(
+              parameter, MessageKind.GENERIC,
+              {'text': 'All arguments to external constructors of JavaScript '
+                       'interop classes must be named as these constructors '
+                       'are syntactic sugar for object literals.'});
+        }
+        HInstruction argument = arguments[i];
+        if (argument != null) {
+          filteredArguments.add(argument);
+          parameterNameMap[parameter.name] =
+              new js.InterpolatedExpression(positions++);
+        }
+        i++;
+      });
+      var codeTemplate = new js.Template(null,
+          js.objectLiteral(parameterNameMap));
+
+      var nativeBehavior = new native.NativeBehavior()
+        ..codeTemplate = codeTemplate;
+      return new HForeignCode(
+          codeTemplate,
+          backend.dynamicType, filteredArguments,
+          nativeBehavior: nativeBehavior)
+        ..sourceInformation = sourceInformation;
+    }
+    var target = new HForeignCode(js.js.parseForeignJS(
+            "${backend.namer.fixedBackendPath(element)}."
+            "${element.fixedBackendName}"),
+        backend.dynamicType,
+        <HInstruction>[]);
+    add(target);
+    // Strip off trailing arguments that were not specified.
+    // we could assert that the trailing arguments are all null.
+    // TODO(jacobr): rewrite named arguments to an object literal matching
+    // the factory constructor case.
+    arguments = arguments.where((arg) => arg != null).toList();
+    var inputs = <HInstruction>[target]..addAll(arguments);
+
+    js.Template codeTemplate;
+    if (element.isGetter) {
+      codeTemplate = js.js.parseForeignJS("#");
+    } else if (element.isSetter) {
+      codeTemplate = js.js.parseForeignJS("# = #");
+    } else {
+      var argsStub = <String>[];
+      for (int i = 0; i < arguments.length; i++) {
+        argsStub.add('#');
+      }
+      if (element.isConstructor) {
+        codeTemplate = js.js.parseForeignJS("new #(${argsStub.join(",")})");
+      } else {
+        codeTemplate = js.js.parseForeignJS("#(${argsStub.join(",")})");
+      }
+    }
+
+    var nativeBehavior = new native.NativeBehavior()
+      ..codeTemplate = codeTemplate
+      ..typesReturned.add(
+          backend.jsJavaScriptObjectClass.thisType)
+      ..typesInstantiated.add(
+          backend.jsJavaScriptObjectClass.thisType)
+      ..sideEffects.setAllSideEffects();
+    return new HForeignCode(
+        codeTemplate,
+        backend.dynamicType, inputs,
+        nativeBehavior: nativeBehavior)
+      ..sourceInformation = sourceInformation;
+  }
+
   void pushInvokeStatic(ast.Node location,
                         Element element,
                         List<HInstruction> arguments,
@@ -5836,16 +5954,22 @@ class SsaBuilder extends ast.Visitor
     }
     bool targetCanThrow = !compiler.world.getCannotThrow(element);
     // TODO(5346): Try to avoid the need for calling [declaration] before
-    // creating an [HInvokeStatic].
-    HInvokeStatic instruction = new HInvokeStatic(
-        element.declaration, arguments, typeMask,
-        targetCanThrow: targetCanThrow)
-            ..sourceInformation = sourceInformation;
-    if (!currentInlinedInstantiations.isEmpty) {
-      instruction.instantiatedTypes = new List<DartType>.from(
-          currentInlinedInstantiations);
+    var instruction;
+    if (element.isJsInterop) {
+      instruction = invokeJsInteropFunction(element, arguments,
+          sourceInformation);
+    } else {
+      // creating an [HInvokeStatic].
+      instruction = new HInvokeStatic(
+          element.declaration, arguments, typeMask,
+          targetCanThrow: targetCanThrow)
+        ..sourceInformation = sourceInformation;
+      if (!currentInlinedInstantiations.isEmpty) {
+        instruction.instantiatedTypes = new List<DartType>.from(
+            currentInlinedInstantiations);
+      }
+      instruction.sideEffects = compiler.world.getSideEffectsOfElement(element);
     }
-    instruction.sideEffects = compiler.world.getSideEffectsOfElement(element);
     if (location == null) {
       push(instruction);
     } else {

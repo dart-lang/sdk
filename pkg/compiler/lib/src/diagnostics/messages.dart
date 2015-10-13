@@ -275,6 +275,8 @@ enum MessageKind {
   INVALID_UNNAMED_CONSTRUCTOR_NAME,
   INVALID_URI,
   INVALID_USE_OF_SUPER,
+  JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
+  JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
   LIBRARY_NAME_MISMATCH,
   LIBRARY_NOT_FOUND,
   LIBRARY_NOT_SUPPORTED,
@@ -2129,6 +2131,45 @@ main() => A.A = 1;
       MessageKind.INTERNAL_LIBRARY:
         const MessageTemplate(MessageKind.INTERNAL_LIBRARY,
           "Internal library '#{resolvedUri}' is not accessible."),
+
+      MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS:
+        const MessageTemplate(
+          MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
+          "Js-interop class '#{cls}' cannot extend from the non js-interop "
+          "class '#{superclass}'.",
+          howToFix: "Annotate the superclass with @Js.",
+          examples: const [
+              """
+              import 'package:js/js.dart';
+
+              class Foo { }
+
+              @Js()
+              class Bar extends Foo { }
+
+              main() {
+                new Bar();
+              }
+              """]),
+
+      MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER:
+        const MessageTemplate(
+          MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
+          "Member '#{member}' in js-interop class '#{cls}' is not external.",
+          howToFix: "Mark all interop methods external",
+          examples: const [
+              """
+              import 'package:js/js.dart';
+
+              @Js()
+              class Foo {
+                bar() {}
+              }
+
+              main() {
+                new Foo().bar();
+              }
+              """]),
 
       MessageKind.LIBRARY_NOT_FOUND:
         const MessageTemplate(MessageKind.LIBRARY_NOT_FOUND,

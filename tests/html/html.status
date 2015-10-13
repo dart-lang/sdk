@@ -6,10 +6,12 @@ interactive_test: Skip # Must be run manually.
 dromaeo_smoke_test: Skip # Issue 14521, 8257
 cross_frame_test: Skip # Test reloads itself. Issue 18558
 
-js_array_test: Skip # Issue 23676, 23677
-js_typed_interop_test: Skip # Issue 23676, 23677
-
 [ $compiler == none && ($runtime == dartium || $runtime == drt) ]
+
+js_array_test: Skip # Dartium JSInterop failure
+js_typed_interop_test: Skip # Dartium JSInterop failure
+mirrors_js_typed_interop_test: Skip # Dartium JSInterop failure
+
 cross_domain_iframe_test: RuntimeError # Dartium JSInterop failure
 custom/document_register_type_extensions_test/registration: RuntimeError # Dartium JSInterop failure
 custom/element_upgrade_test: RuntimeError # Dartium JSInterop failure
@@ -385,10 +387,14 @@ request_animation_frame_test: Skip # Async test hangs.
 
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 # Note: these tests are all injecting scripts by design.  This is not allowed under CSP.
-event_customevent_test: Fail       # Test cannot run under CSP restrictions.
-js_interop_1_test: Skip            # Test cannot run under CSP restrictions (times out).
-js_test: Skip                      # Test cannot run under CSP restrictions (times out).
-postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (times out).
+event_customevent_test: Fail        # Test cannot run under CSP restrictions.
+js_interop_1_test: Skip             # Test cannot run under CSP restrictions (times out).
+js_test: Skip                       # Test cannot run under CSP restrictions (times out).
+js_array_test: Skip                 # Test cannot run under CSP restrictions.
+js_typed_interop_test: Skip         # Test cannot run under CSP restrictions.
+js_dart_to_string_test: Skip        # Test cannot run under CSP restrictions.
+mirrors_js_typed_interop_test: Skip # Test cannot run under CSP restrictions.
+postmessage_structured_test: Skip   # Test cannot run under CSP restrictions (times out).
 
 [ $compiler == dart2js &&  $runtime == chrome]
 svgelement_test/supported_altGlyph: RuntimeError # Issue 23144

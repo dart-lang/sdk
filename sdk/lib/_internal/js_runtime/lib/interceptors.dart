@@ -21,6 +21,7 @@ import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               checkString,
                               defineProperty,
                               diagnoseIndexError,
+                              getIsolateAffinityTag,
                               getRuntimeType,
                               initNativeDispatch,
                               initNativeDispatchFlag,
@@ -39,6 +40,7 @@ import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               StringMatch,
                               firstMatchAfter,
                               NoInline;
+
 import 'dart:_foreign_helper' show
     JS,
     JS_EFFECT,
@@ -50,6 +52,9 @@ import 'dart:math' show Random;
 part 'js_array.dart';
 part 'js_number.dart';
 part 'js_string.dart';
+
+final String DART_CLOSURE_PROPERTY_NAME =
+    getIsolateAffinityTag(r'_$dart_dartClosure');
 
 String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
 
@@ -169,6 +174,9 @@ getNativeInterceptor(object) {
     // are 'plain' Objects.  This test could be simplified and the dispatch path
     // be faster if Object.prototype was pre-patched with a non-leaf dispatch
     // record.
+    if (JS('bool', 'typeof # == "function"', object)) {
+      return JS_INTERCEPTOR_CONSTANT(JavaScriptFunction);
+    }
     var proto = JS('', 'Object.getPrototypeOf(#)', object);
     if (JS('bool', '# == null || # === Object.prototype', proto, proto)) {
       return JS_INTERCEPTOR_CONSTANT(PlainJavaScriptObject);
@@ -393,13 +401,18 @@ abstract class JSObject {
  * Interceptor base class for JavaScript objects not recognized as some more
  * specific native type.
  */
-abstract class JavaScriptObject extends Interceptor implements JSObject {
+class JavaScriptObject extends Interceptor implements JSObject {
   const JavaScriptObject();
 
   // It would be impolite to stash a property on the object.
   int get hashCode => 0;
 
   Type get runtimeType => JSObject;
+
+  /**
+   * Returns the result of the JavaScript objects `toString` method.
+   */
+  String toString() => JS('String', 'String(#)', this);
 }
 
 
@@ -420,6 +433,19 @@ class PlainJavaScriptObject extends JavaScriptObject {
  */
 class UnknownJavaScriptObject extends JavaScriptObject {
   const UnknownJavaScriptObject();
+}
 
-  String toString() => JS('String', 'String(#)', this);
+/**
+ * Interceptor for JavaScript function objects and Dart functions that have
+ * been converted to JavaScript functions.
+ * These interceptor methods are not always used as the JavaScript function
+ * object has also been mangled to support Dart function calling conventions.
+ */
+class JavaScriptFunction extends JavaScriptObject implements Function {
+  const JavaScriptFunction();
+
+  String toString() {
+    var dartClosure = JS('', '#.#', this, DART_CLOSURE_PROPERTY_NAME);
+    return dartClosure == null ? super.toString() : dartClosure.toString();
+  }
 }

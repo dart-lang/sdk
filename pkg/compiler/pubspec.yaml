@@ -5,6 +5,8 @@ name: compiler
 dependencies:
   package_config: ^0.1.1
   pub_semver: ^1.2.1
+  js:
+    path: ../js
   js_ast:
     path: ../js_ast
   js_runtime:

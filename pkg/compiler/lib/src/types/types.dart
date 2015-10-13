@@ -286,6 +286,10 @@ class TypesTask extends CompilerTask {
    */
   TypeMask getGuaranteedTypeOfElement(Element element) {
     return measure(() {
+      // TODO(24489): trust some JsInterop types.
+      if (element.isJsInterop) {
+        return dynamicType;
+      }
       TypeMask guaranteedType = typesInferrer.getTypeOfElement(element);
       return guaranteedType;
     });
@@ -293,6 +297,11 @@ class TypesTask extends CompilerTask {
 
   TypeMask getGuaranteedReturnTypeOfElement(Element element) {
     return measure(() {
+      // TODO(24489): trust some JsInterop types.
+      if (element.isJsInterop) {
+        return dynamicType;
+      }
+
       TypeMask guaranteedType =
           typesInferrer.getReturnTypeOfElement(element);
       return guaranteedType;

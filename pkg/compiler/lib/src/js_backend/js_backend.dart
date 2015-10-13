@@ -72,6 +72,8 @@ import '../js_emitter/js_emitter.dart' show
     USE_LAZY_EMITTER;
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
+import '../patch_parser.dart' show
+    checkJsInteropAnnotation;
 import '../resolution/registry.dart' show
     EagerRegistry;
 import '../resolution/tree_elements.dart' show
@@ -95,6 +97,7 @@ import 'backend_impact.dart';
 import 'codegen/task.dart';
 import 'constant_system_javascript.dart';
 import 'patch_resolver.dart';
+import 'js_interop_analysis.dart' show JsInteropAnalysis;
 import 'lookup_map_analysis.dart' show LookupMapAnalysis;
 
 part 'backend.dart';

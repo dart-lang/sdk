@@ -233,6 +233,8 @@ class JavaScriptBackend extends Backend {
       new Uri(scheme: 'dart', path: '_js_embedded_names');
   static final Uri DART_ISOLATE_HELPER =
       new Uri(scheme: 'dart', path: '_isolate_helper');
+  static final Uri PACKAGE_JS =
+         new Uri(scheme: 'package', path: 'js/js.dart');
   static final Uri PACKAGE_LOOKUP_MAP =
       new Uri(scheme: 'package', path: 'lookup_map/lookup_map.dart');
 
@@ -291,6 +293,8 @@ class JavaScriptBackend extends Backend {
   ClassElement jsBoolClass;
   ClassElement jsPlainJavaScriptObjectClass;
   ClassElement jsUnknownJavaScriptObjectClass;
+  ClassElement jsJavaScriptFunctionClass;
+  ClassElement jsJavaScriptObjectClass;
 
   ClassElement jsIndexableClass;
   ClassElement jsMutableIndexableClass;
@@ -326,6 +330,8 @@ class JavaScriptBackend extends Backend {
   ClassElement noInlineClass;
   ClassElement forceInlineClass;
   ClassElement irRepresentationClass;
+
+  ClassElement jsAnnotationClass;
 
   Element getInterceptorMethod;
 
@@ -616,6 +622,9 @@ class JavaScriptBackend extends Backend {
   /// Codegen support for tree-shaking entries of `LookupMap`.
   LookupMapAnalysis lookupMapAnalysis;
 
+  /// Codegen support for typed JavaScript interop.
+  JsInteropAnalysis jsInteropAnalysis;
+
   /// Support for classifying `noSuchMethod` implementations.
   NoSuchMethodRegistry noSuchMethodRegistry;
 
@@ -656,6 +665,8 @@ class JavaScriptBackend extends Backend {
     typeVariableHandler = new TypeVariableHandler(compiler);
     customElementsAnalysis = new CustomElementsAnalysis(this);
     lookupMapAnalysis = new LookupMapAnalysis(this, reporter);
+    jsInteropAnalysis = new JsInteropAnalysis(this);
+
     noSuchMethodRegistry = new NoSuchMethodRegistry(this);
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     resolutionCallbacks = new JavaScriptResolutionCallbacks(this);
@@ -679,7 +690,7 @@ class JavaScriptBackend extends Backend {
   }
 
   FunctionElement resolveExternalFunction(FunctionElement element) {
-    if (isForeign(element)) return element;
+    if (isForeign(element) || element.isJsInterop) return element;
     return patchResolverTask.measure(() {
       return patchResolverTask.resolveExternalFunction(element);
     });
@@ -1082,7 +1093,9 @@ class JavaScriptBackend extends Backend {
       } else if (Elements.isNativeOrExtendsNative(cls)) {
         enqueue(enqueuer, getNativeInterceptorMethod, registry);
         enqueueClass(enqueuer, jsInterceptorClass, compiler.globalDependencies);
+        enqueueClass(enqueuer, jsJavaScriptObjectClass, registry);
         enqueueClass(enqueuer, jsPlainJavaScriptObjectClass, registry);
+        enqueueClass(enqueuer, jsJavaScriptFunctionClass, registry);
       } else if (cls == mapLiteralClass) {
         // For map literals, the dependency between the implementation class
         // and [Map] is not visible, so we have to add it manually.
@@ -1159,10 +1172,14 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsUInt31Class, enqueuer, registry);
       addInterceptors(jsDoubleClass, enqueuer, registry);
       addInterceptors(jsNumberClass, enqueuer, registry);
+    } else if (cls == jsJavaScriptObjectClass) {
+      addInterceptors(jsJavaScriptObjectClass, enqueuer, registry);
     } else if (cls == jsPlainJavaScriptObjectClass) {
       addInterceptors(jsPlainJavaScriptObjectClass, enqueuer, registry);
     } else if (cls == jsUnknownJavaScriptObjectClass) {
       addInterceptors(jsUnknownJavaScriptObjectClass, enqueuer, registry);
+    } else if (cls == jsJavaScriptFunctionClass) {
+      addInterceptors(jsJavaScriptFunctionClass, enqueuer, registry);
     } else if (Elements.isNativeOrExtendsNative(cls)) {
       addInterceptorsForNativeClassMembers(cls, enqueuer);
     } else if (cls == jsIndexingBehaviorInterface) {
@@ -1192,7 +1209,9 @@ class JavaScriptBackend extends Backend {
     if (!enqueuer.nativeEnqueuer.hasInstantiatedNativeClasses()) return;
     Registry registry = compiler.globalDependencies;
     enqueue(enqueuer, getNativeInterceptorMethod, registry);
+    enqueueClass(enqueuer, jsJavaScriptObjectClass, registry);
     enqueueClass(enqueuer, jsPlainJavaScriptObjectClass, registry);
+    enqueueClass(enqueuer, jsJavaScriptFunctionClass, registry);
     needToInitializeIsolateAffinityTag = true;
     needToInitializeDispatchProperty = true;
   }
@@ -1584,6 +1603,7 @@ class JavaScriptBackend extends Backend {
   }
 
   ClassElement defaultSuperclass(ClassElement element) {
+    if (element.isJsInterop) return jsJavaScriptObjectClass;
     // Native classes inherit from Interceptor.
     return element.isNative ? jsInterceptorClass : compiler.objectClass;
   }
@@ -2000,6 +2020,8 @@ class JavaScriptBackend extends Backend {
         jsExtendableArrayClass = findClass('JSExtendableArray');
         jsUnmodifiableArrayClass = findClass('JSUnmodifiableArray');
         jsPlainJavaScriptObjectClass = findClass('PlainJavaScriptObject');
+        jsJavaScriptObjectClass = findClass('JavaScriptObject');
+        jsJavaScriptFunctionClass = findClass('JavaScriptFunction');
         jsUnknownJavaScriptObjectClass = findClass('UnknownJavaScriptObject');
         jsIndexableClass = findClass('JSIndexable');
         jsMutableIndexableClass = findClass('JSMutableIndexable');
@@ -2042,6 +2064,8 @@ class JavaScriptBackend extends Backend {
       } else if (uri == Uris.dart__native_typed_data) {
         typedArrayClass = findClass('NativeTypedArray');
         typedArrayOfIntClass = findClass('NativeTypedArrayOfInt');
+      } else if (uri == PACKAGE_JS) {
+        jsAnnotationClass = find(library, 'Js');
       }
       annotations.onLibraryScanned(library);
     });
@@ -2496,6 +2520,7 @@ class JavaScriptBackend extends Backend {
 
   void onQueueClosed() {
     lookupMapAnalysis.onQueueClosed();
+    jsInteropAnalysis.onQueueClosed();
   }
 
   void onCodegenStart() {

@@ -71,6 +71,9 @@ class CustomElementsAnalysis {
     if (!Elements.isNativeOrExtendsNative(classElement)) return;
     if (classElement.isMixinApplication) return;
     if (classElement.isAbstract) return;
+    // JsInterop classes are opaque interfaces without a concrete
+    // implementation.
+    if (classElement.isJsInterop) return;
     joinFor(enqueuer).instantiatedClasses.add(classElement);
   }
 

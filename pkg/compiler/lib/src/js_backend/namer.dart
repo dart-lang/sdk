@@ -636,6 +636,32 @@ class Namer {
     return invocationName(new Selector.fromElement(method));
   }
 
+  String _jsNameHelper(Element e) {
+    if (e.jsInteropName != null && e.jsInteropName.isNotEmpty)
+      return e.jsInteropName;
+    return e.isLibrary ? 'self' : e.name;
+  }
+
+  /// Returns a JavaScript path specifying the context in which
+  /// [element.fixedBackendName] should be evaluated. Only applicable for
+  /// elements using typed JavaScript interop.
+  /// For example: fixedBackendPath for the static method createMap in the
+  /// Map class of the goog.map JavaScript library would have path
+  /// "goog.maps.Map".
+  String fixedBackendPath(Element element) {
+    if (!element.isJsInterop) return null;
+    if (element.isInstanceMember) return 'this';
+    if (element.isConstructor) return fixedBackendPath(element.enclosingClass);
+    if (element.isLibrary) return 'self';
+    var sb = new StringBuffer();
+    sb..write(_jsNameHelper(element.library));
+
+    if (element.enclosingClass != null && element.enclosingClass != element) {
+      sb..write('.')..write(_jsNameHelper(element.enclosingClass));
+    }
+    return sb.toString();
+  }
+
   /// Returns the annotated name for a variant of `call`.
   /// The result has the form:
   ///
@@ -766,11 +792,6 @@ class Namer {
     ClassElement enclosingClass = element.enclosingClass;
 
     if (element.hasFixedBackendName) {
-      // Certain native fields must be given a specific name. Native names must
-      // not contain '$'. We rely on this to avoid clashes.
-      assert(enclosingClass.isNative &&
-             !element.fixedBackendName.contains(r'$'));
-
       return new StringBackedName(element.fixedBackendName);
     }
 

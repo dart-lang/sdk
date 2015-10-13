@@ -137,6 +137,12 @@ abstract class ElementZ extends Element with ElementCommon {
   bool get isNative => false;
 
   @override
+  bool get isJsInterop => false;
+
+  @override
+  String get jsInteropName => null;
+
+  @override
   bool get isOperator => false;
 
   @override

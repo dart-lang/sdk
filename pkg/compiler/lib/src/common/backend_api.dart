@@ -45,7 +45,7 @@ import '../library_loader.dart' show
 import '../native/native.dart' as native show
     NativeEnqueuer;
 import '../patch_parser.dart' show
-    checkNativeAnnotation;
+    checkNativeAnnotation, checkJsInteropAnnotation;
 import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../tree/tree.dart' show
@@ -293,6 +293,16 @@ abstract class Backend {
         }
       });
     }
+    checkJsInteropAnnotation(compiler, library);
+    library.forEachLocalMember((Element element) {
+      checkJsInteropAnnotation(compiler, element);
+      if (element.isClass && element.isJsInterop) {
+        ClassElement classElement = element;
+        classElement.forEachMember((_, memberElement) {
+          checkJsInteropAnnotation(compiler, memberElement);
+        });
+      }
+    });
     return new Future.value();
   }
 
