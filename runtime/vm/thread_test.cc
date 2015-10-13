@@ -435,24 +435,21 @@ TEST_CASE(ThreadIterator_Count) {
 }
 
 
-TEST_CASE(ThreadIterator_FindSelf) {
-  Thread* current = Thread::Current();
-
-  bool found_self = false;
-
-  {
-    ThreadIterator ti;
-    while (ti.HasNext()) {
-      Thread* thread = ti.Next();
-      EXPECT(thread != NULL);
-      if (thread == current) {
-        found_self = true;
-        break;
-      }
+static bool ThreadInList(Thread* thread) {
+  ThreadIterator it;
+  while (it.HasNext()) {
+    Thread* t = it.Next();
+    if (t == thread) {
+      return true;
     }
   }
+  return false;
+}
 
-  EXPECT(found_self);
+
+TEST_CASE(ThreadIterator_FindSelf) {
+  Thread* current = Thread::Current();
+  EXPECT(ThreadInList(current));
 }
 
 
@@ -469,34 +466,16 @@ void ThreadIteratorTestMain(uword parameter) {
   ThreadIteratorTestParams* params =
       reinterpret_cast<ThreadIteratorTestParams*>(parameter);
   Isolate* isolate = params->isolate;
-  ASSERT(isolate != NULL);
-
-  Thread::EnterIsolateAsHelper(isolate);
+  EXPECT(isolate != NULL);
   Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
+  EXPECT(thread != NULL);
 
+  MonitorLocker ml(params->monitor);
   params->spawned_thread = thread;
   params->spawned_thread_join_id = OSThread::GetCurrentThreadJoinId();
-
-  {
-    MonitorLocker ml(params->monitor);
-    ml.Notify();
-  }
-
-  {
-    bool found_self = false;
-    ThreadIterator it;
-    while (it.HasNext()) {
-      Thread* t = it.Next();
-      if (t == thread) {
-        found_self = true;
-        break;
-      }
-    }
-    EXPECT(found_self);
-  }
-
-  Thread::ExitIsolateAsHelper();
+  EXPECT(params->spawned_thread_join_id != OSThread::kInvalidThreadJoinId);
+  EXPECT(ThreadInList(thread));
+  ml.Notify();
 }
 
 
@@ -523,17 +502,17 @@ TEST_CASE(ThreadIterator_AddFindRemove) {
     OSThread::Join(params.spawned_thread_join_id);
   }
 
-  ThreadIterator it;
-  bool found_spawned_thread = false;
-  while (it.HasNext()) {
-    Thread* t = it.Next();
-    if (t == params.spawned_thread) {
-      found_spawned_thread = true;
+  for (intptr_t i = 0; i < 10; i++) {
+    // Sleep for 10 milliseconds.
+    OS::Sleep(10);
+    if (!ThreadInList(params.spawned_thread)) {
       break;
     }
   }
 
-  EXPECT(!found_spawned_thread);
+  EXPECT(!ThreadInList(params.spawned_thread))
+
+  delete params.monitor;
 }
 
 
