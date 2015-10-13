@@ -27,7 +27,6 @@ namespace dart {
 class ApiState;
 class BackgroundCompiler;
 class Capability;
-class CHA;
 class CodeIndexTable;
 class CompilerStats;
 class Debugger;
@@ -850,9 +849,6 @@ class Isolate : public BaseIsolate {
   Metric* metrics_list_head_;
 
   bool compilation_allowed_;
-
-  // TODO(23153): Move this out of Isolate/Thread.
-  CHA* cha_;
 
   // Isolate list next pointer.
   Isolate* next_;

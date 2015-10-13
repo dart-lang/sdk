@@ -84,6 +84,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
+  ASSERT(isolate->MutatorThreadIsCurrentThread());
   if (!function.HasCode()) {
     const Error& error = Error::Handle(
         zone, Compiler::CompileFunction(thread, function));
@@ -96,7 +97,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
       StubCode::InvokeDartCode_entry()->EntryPoint());
   const Code& code = Code::Handle(zone, function.CurrentCode());
   ASSERT(!code.IsNull());
-  ASSERT(Isolate::Current()->no_callback_scope_depth() == 0);
+  ASSERT(thread->no_callback_scope_depth() == 0);
   ScopedIsolateStackLimits stack_limit(isolate);
   SuspendLongJumpScope suspend_long_jump_scope(thread);
 #if defined(USING_SIMULATOR)

@@ -795,7 +795,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       registered_service_extension_handlers_(GrowableObjectArray::null()),
       metrics_list_head_(NULL),
       compilation_allowed_(true),
-      cha_(NULL),
       next_(NULL),
       pause_loop_monitor_(NULL) {
   flags_.CopyFrom(api_flags);

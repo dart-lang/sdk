@@ -47,7 +47,7 @@ DART_EXPORT Dart_Handle Dart_QualifiedTypeName(Dart_Handle object) {
     if (str == NULL) {
       RETURN_NULL_ERROR(str);
     }
-    CHECK_CALLBACK_STATE(I);
+    CHECK_CALLBACK_STATE(T);
     return Api::NewHandle(I, String::New(str));
   } else {
     RETURN_TYPE_ERROR(Z, object, Class/Type);

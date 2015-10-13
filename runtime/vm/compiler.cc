@@ -64,6 +64,7 @@ DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
 DEFINE_FLAG(bool, verify_compiler, false,
     "Enable compiler verification assertions");
 
+DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_inlining_intervals);
@@ -1161,6 +1162,10 @@ RawError* Compiler::CompileOptimizedFunction(Thread* thread,
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread,
                                          "OptimizedFunction", function);
 
+  // Optimization must happen in non-mutator/Dart thread if background
+  // compilation is on.
+  ASSERT(!FLAG_background_compilation ||
+         !thread->isolate()->MutatorThreadIsCurrentThread());
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
   return CompileFunctionHelper(pipeline, function, true, osr_id);
@@ -1471,19 +1476,13 @@ void BackgroundCompiler::Run() {
       Function& function = Function::Handle();
       function = RemoveOrNull();
       while (!function.IsNull()) {
-        if (true) {
-          // Debugging printing
-          THR_Print("Background compilation: %s\n",
-              function.ToQualifiedCString());
-        } else {
-          const Error& error = Error::Handle(
-              Compiler::CompileOptimizedFunction(thread, function));
-          // TODO(srdjan): We do not expect errors while compiling optimized
-          // code, any errors should have been caught when compiling
-          // unotpimized code.
-          // If it still happens mark function as not optimizable.
-          ASSERT(error.IsNull());
-        }
+        const Error& error = Error::Handle(
+            Compiler::CompileOptimizedFunction(thread, function));
+        // TODO(srdjan): We do not expect errors while compiling optimized
+        // code, any errors should have been caught when compiling
+        // unoptimized code.
+        // If it still happens mark function as not optimizable.
+        ASSERT(error.IsNull());
         function = RemoveOrNull();
       }
     }

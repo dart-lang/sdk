@@ -1826,7 +1826,9 @@ RawObject* Object::Allocate(intptr_t cls_id,
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  ASSERT(isolate->no_callback_scope_depth() == 0);
+  // New space allocation allowed only in mutator thread (Dart thread);
+  ASSERT(isolate->MutatorThreadIsCurrentThread() || (space != Heap::kNew));
+  ASSERT(thread->no_callback_scope_depth() == 0);
   Heap* heap = isolate->heap();
 
   uword address = heap->Allocate(size, space);

@@ -166,10 +166,23 @@ class Thread {
     return OFFSET_OF(Thread, isolate_);
   }
 
-  // The (topmost) CHA for the compilation in the isolate of this thread.
-  // TODO(23153): Move this out of Isolate/Thread.
+  // The (topmost) CHA for the compilation in this thread.
   CHA* cha() const;
   void set_cha(CHA* value);
+
+  int32_t no_callback_scope_depth() const {
+    return no_callback_scope_depth_;
+  }
+
+  void IncrementNoCallbackScopeDepth() {
+    ASSERT(no_callback_scope_depth_ < INT_MAX);
+    no_callback_scope_depth_ += 1;
+  }
+
+  void DecrementNoCallbackScopeDepth() {
+    ASSERT(no_callback_scope_depth_ > 0);
+    no_callback_scope_depth_ -= 1;
+  }
 
   void StoreBufferAddObject(RawObject* obj);
   void StoreBufferAddObjectGC(RawObject* obj);
@@ -444,6 +457,9 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #endif  // defined(DEBUG)
 
   VMHandles reusable_handles_;
+
+  CHA* cha_;
+  int32_t no_callback_scope_depth_;
 
   // All |Thread|s are registered in the thread list.
   Thread* thread_list_next_;

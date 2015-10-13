@@ -304,16 +304,17 @@ class IsolateSaver {
 };
 
 // Start a scope in which no Dart API call backs are allowed.
-#define START_NO_CALLBACK_SCOPE(isolate)                                       \
-  isolate->IncrementNoCallbackScopeDepth()
+#define START_NO_CALLBACK_SCOPE(thread)                                        \
+  thread->IncrementNoCallbackScopeDepth()
 
 // End a no Dart API call backs Scope.
-#define END_NO_CALLBACK_SCOPE(isolate)                                         \
-  isolate->DecrementNoCallbackScopeDepth()
+#define END_NO_CALLBACK_SCOPE(thread)                                          \
+  thread->DecrementNoCallbackScopeDepth()
 
-#define CHECK_CALLBACK_STATE(isolate)                                          \
-  if (isolate->no_callback_scope_depth() != 0) {                               \
-    return reinterpret_cast<Dart_Handle>(Api::AcquiredError(isolate));         \
+#define CHECK_CALLBACK_STATE(thread)                                           \
+  if (thread->no_callback_scope_depth() != 0) {                                \
+    return reinterpret_cast<Dart_Handle>(                                      \
+        Api::AcquiredError(thread->isolate()));                                \
   }                                                                            \
 
 #define CHECK_COMPILATION_ALLOWED(isolate)                                     \
@@ -322,8 +323,8 @@ class IsolateSaver {
                          CURRENT_FUNC);                                        \
   }                                                                            \
 
-#define ASSERT_CALLBACK_STATE(isolate)                                         \
-  ASSERT(isolate->no_callback_scope_depth() == 0)
+#define ASSERT_CALLBACK_STATE(thread)                                         \
+  ASSERT(thread->no_callback_scope_depth() == 0)
 
 }  // namespace dart.
 

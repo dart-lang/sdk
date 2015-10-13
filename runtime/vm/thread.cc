@@ -195,6 +195,8 @@ Thread::Thread(bool init_vm_constants)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_(),
+      cha_(NULL),
+      no_callback_scope_depth_(0),
       thread_list_next_(NULL) {
   ClearState();
 
@@ -396,13 +398,13 @@ void Thread::StoreBufferAcquire() {
 
 CHA* Thread::cha() const {
   ASSERT(isolate_ != NULL);
-  return isolate_->cha_;
+  return cha_;
 }
 
 
 void Thread::set_cha(CHA* value) {
   ASSERT(isolate_ != NULL);
-  isolate_->cha_ = value;
+  cha_ = value;
 }
 
 

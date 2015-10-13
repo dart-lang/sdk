@@ -87,7 +87,7 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
   if (::Dart_IsError(result)) {
     return result;
   }
-  CHECK_CALLBACK_STATE(I);
+  CHECK_CALLBACK_STATE(T);
   CompileAll(I, &result);
   return result;
 }
