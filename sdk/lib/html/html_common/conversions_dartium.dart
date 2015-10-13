@@ -62,3 +62,7 @@ Future convertNativePromiseToDartFuture(js.JsObject promise) {
     .callMethod("catch", [(result) => completer.completeError(result)]);
   return completer.future;
 }
+
+convertDartToNative_DateTime(DateTime date) {
+  return new js.JsObject(js.context["Date"], [date.millisecondsSinceEpoch]);
+}
