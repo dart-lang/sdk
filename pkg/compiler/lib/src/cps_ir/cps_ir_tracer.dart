@@ -238,6 +238,21 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     printStmt(dummy, "Branch $condition ($trueCont, $falseCont) $strict");
   }
 
+  visitAwait(cps_ir.Await node) {
+    String dummy = names.name(node);
+    String value = formatReference(node.input);
+    String continuation = formatReference(node.continuation);
+    printStmt(dummy, 'Await $value $continuation');
+  }
+
+  visitYield(cps_ir.Yield node) {
+    String dummy = names.name(node);
+    String name = node.hasStar ? 'YieldStar' : 'Yield';
+    String value = formatReference(node.input);
+    String continuation = formatReference(node.continuation);
+    printStmt(dummy, '$name $value $continuation');
+  }
+
   visitSetMutable(cps_ir.SetMutable node) {
     String variable = names.name(node.variable.definition);
     String value = formatReference(node.value);
@@ -395,20 +410,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String index = formatReference(node.index);
     String value = formatReference(node.value);
     return 'SetIndex $object $index $value';
-  }
-
-  @override
-  visitAwait(cps_ir.Await node) {
-    String value = formatReference(node.input);
-    String continuation = formatReference(node.continuation);
-    return 'Await $value $continuation';
-  }
-
-  @override
-  visitYield(cps_ir.Yield node) {
-    String value = formatReference(node.input);
-    String continuation = formatReference(node.continuation);
-    return 'Yield $value $continuation';
   }
 
   @override
