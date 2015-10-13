@@ -264,6 +264,8 @@ class DeferredLoadTask extends CompilerTask {
 
     /// Recursively collects all the dependencies of [type].
     void collectTypeDependencies(DartType type) {
+      // TODO(het): we would like to separate out types that are only needed for
+      // rti from types that are needed for their members.
       if (type is GenericType) {
         type.typeArguments.forEach(collectTypeDependencies);
       }
@@ -341,8 +343,7 @@ class DeferredLoadTask extends CompilerTask {
       }
     }
 
-    if (element is FunctionElement &&
-        compiler.resolverWorld.closurizedMembers.contains(element)) {
+    if (element is FunctionElement) {
       collectTypeDependencies(element.type);
     }
 
