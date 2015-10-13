@@ -100,7 +100,7 @@ class EnginePlugin implements Plugin {
    * descriptors for Dart sources.
    */
   @ExtensionPointId('DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID')
-  List<TaskDescriptor> get dartErrorsForSource =>
+  List<ResultDescriptor> get dartErrorsForSource =>
       dartErrorsForSourceExtensionPoint.extensions;
 
   /**
@@ -108,7 +108,7 @@ class EnginePlugin implements Plugin {
    * descriptors for Dart library specific units.
    */
   @ExtensionPointId('DART_ERRORS_FOR_UNIT_EXTENSION_POINT_ID')
-  List<TaskDescriptor> get dartErrorsForUnit =>
+  List<ResultDescriptor> get dartErrorsForUnit =>
       dartErrorsForUnitExtensionPoint.extensions;
 
   /**
@@ -116,7 +116,7 @@ class EnginePlugin implements Plugin {
    * descriptors for HTML sources.
    */
   @ExtensionPointId('HTML_ERRORS_EXTENSION_POINT_ID')
-  List<TaskDescriptor> get htmlErrors => htmlErrorsExtensionPoint.extensions;
+  List<ResultDescriptor> get htmlErrors => htmlErrorsExtensionPoint.extensions;
 
   /**
    * Return a list containing all of the task descriptors that were contributed.
