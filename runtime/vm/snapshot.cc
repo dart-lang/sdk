@@ -2087,7 +2087,7 @@ intptr_t ForwardList::FindObject(RawObject* raw) {
   ASSERT(SnapshotWriter::FirstObjectId() > 0);
   intptr_t id = heap()->GetObjectId(raw);
   ASSERT(id == 0 || NodeForObjectId(id)->obj()->raw() == raw);
-  return (id == 0) ? kInvalidIndex : id;
+  return (id == 0) ? static_cast<intptr_t>(kInvalidIndex) : id;
 }
 
 
