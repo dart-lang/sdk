@@ -544,6 +544,10 @@ class ScriptInsetElement extends ObservatoryElement {
                 ? script.tokenToLine(endPos)
                 : script.lines.length + script.lineOffset);
 
+    if (_startLine == null || _endLine == null) {
+      return;
+    }
+
     annotations.clear();
 
     addCurrentExecutionAnnotation();

@@ -8916,11 +8916,10 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& encoded_uri = String::Handle(String::EncodeIRI(uri));
   ASSERT(!encoded_uri.IsNull());
   const Library& lib = Library::Handle(FindLibrary());
-  if (lib.IsNull()) {
-    ASSERT(kind() == RawScript::kEvaluateTag);
+  if (kind() == RawScript::kEvaluateTag) {
     jsobj.AddServiceId(*this);
   } else {
-    ASSERT(kind() != RawScript::kEvaluateTag);
+    ASSERT(!lib.IsNull());
     jsobj.AddFixedServiceId("libraries/%" Pd "/scripts/%s",
         lib.index(), encoded_uri.ToCString());
   }

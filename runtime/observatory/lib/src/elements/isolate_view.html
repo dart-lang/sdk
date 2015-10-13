@@ -32,28 +32,22 @@
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
-    <div class="content">
+    <div class="content-centered">
       <h1>isolate '{{ isolate.name }}'</h1>
-    </div>
-
-    <br>
-    <div class="flex-row">
-      <div class="flex-item-10-percent">
-      </div>
-      <div class="flex-item-30-percent">
-        <isolate-run-state isolate="{{ isolate }}"></isolate-run-state>
-      </div>
-      <div class="flex-item-50-percent">
-        <isolate-location isolate="{{ isolate }}"></isolate-location>
-      </div>
-      <div class="flex-item-10-percent">
+      <br>
+      <div class="flex-row">
+        <div style="flex:1"></div>
+        <div>
+          <isolate-run-state isolate="{{ isolate }}"></isolate-run-state>
+          <isolate-location isolate="{{ isolate }}"></isolate-location>
+          [<a on-click="{{ goto }}" _href="{{ gotoLink('/debugger', isolate) }}">debug</a>]
+        </div>
       </div>
     </div>
-    <br>
 
     <template if="{{ isolate.topFrame != null }}">
       <br>
-      <div class="content-centered-big">
+      <div class="content-centered">
         <source-inset location="{{ isolate.topFrame.function.location }}"
                       currentPos="{{ isolate.topFrame.location.tokenPos }}"
                       height="200px">
@@ -61,23 +55,13 @@
       </div>
     </template>
 
-    <div class="flex-row">
-      <div class="flex-item-20-percent"></div>
-      <div class="flex-item-60-percent"><hr></div>
-      <div class="flex-item-20-percent"></div>
-    </div>
-
-    <br>
-
-    <isolate-shared-summary isolate="{{ isolate }}"></isolate-shared-summary>
-
-    <div class="flex-row">
-      <div class="flex-item-20-percent"></div>
-      <div class="flex-item-60-percent"><hr></div>
-      <div class="flex-item-20-percent"></div>
+    <div class="content-centered">
+      <hr>
+      <isolate-shared-summary isolate="{{ isolate }}"></isolate-shared-summary>
     </div>
 
     <div class="content-centered">
+      <hr>
       <div class="flex-row">
         <div class="flex-item-50-percent">
           <div class="memberList">
@@ -112,9 +96,8 @@
       </div>
     </div>
 
-    <hr>
-
-    <div class="content">
+    <div class="content-centered">
+      <hr>
       libraries ({{ isolate.libraries.length }})
       <curly-block expand="{{ isolate.libraries.length <= 8 }}">
         <div class="memberList">
@@ -129,13 +112,12 @@
       </curly-block>
     </div>
 
-    <hr>
-
-    <div class="content">
+    <div class="content-centered">
+      <hr>
       <eval-box callback="{{ evaluate }}"></eval-box>
     </div>
 
-    <div class="content-centered-big">
+    <div class="content-centered">
       <hr>
       <script-inset script="{{ rootLibrary.rootScript }}">
       </script-inset>

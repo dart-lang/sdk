@@ -1764,6 +1764,11 @@ static const MethodParameter* evaluate_params[] = {
 
 
 static bool Evaluate(Isolate* isolate, JSONStream* js) {
+  if (!isolate->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+                   "Cannot evaluate when running a precompiled program.");
+    return true;
+  }
   const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
     PrintMissingParamError(js, "targetId");
@@ -1834,6 +1839,11 @@ static const MethodParameter* evaluate_in_frame_params[] = {
 
 
 static bool EvaluateInFrame(Isolate* isolate, JSONStream* js) {
+  if (!isolate->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+                   "Cannot evaluate when running a precompiled program.");
+    return true;
+  }
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   intptr_t framePos = UIntParameter::Parse(js->LookupParam("frameIndex"));
   if (framePos > stack->Length()) {
