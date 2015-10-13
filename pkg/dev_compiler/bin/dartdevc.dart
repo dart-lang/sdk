@@ -25,7 +25,7 @@ void _showUsageAndExit() {
   exit(1);
 }
 
-main(List<String> args) async {
+main(List<String> args) {
   var options;
 
   try {
@@ -46,7 +46,6 @@ main(List<String> args) async {
   if (options.serverMode) {
     new DevServer(options).start();
   } else {
-    var success = compile(options);
-    exit(success ? 0 : 1);
+    exit(compile(options) ? 0 : 1);
   }
 }

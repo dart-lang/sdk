@@ -7,6 +7,7 @@ library dev_compiler.src.compiler;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert' show JSON;
 import 'dart:math' as math;
 import 'dart:io';
 
@@ -60,12 +61,25 @@ CompilerOptions validateOptions(List<String> args, {bool forceOutDir: false}) {
   return options;
 }
 
+/// Compile with the given options and return success or failure.
 bool compile(CompilerOptions options) {
   assert(!options.serverMode);
+
   var context = createAnalysisContextWithSources(
       options.strongOptions, options.sourceOptions);
   var reporter = createErrorReporter(context, options);
-  return new BatchCompiler(context, options, reporter: reporter).run();
+  bool status = new BatchCompiler(context, options, reporter: reporter).run();
+
+  if (options.dumpInfo && reporter is SummaryReporter) {
+    var result = (reporter as SummaryReporter).result;
+    print(summaryToString(result));
+    if (options.dumpInfoFile != null) {
+      var file = new File(options.dumpInfoFile);
+      file.writeAsStringSync(JSON.encode(result.toJsonMap()));
+    }
+  }
+
+  return status;
 }
 
 // Callback on each individual compiled library
