@@ -402,8 +402,8 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
   // volatile because the variable may be clobbered by a longjmp.
   volatile bool use_far_branches = false;
   while (!done) {
-    const intptr_t prev_deopt_id = isolate->deopt_id();
-    isolate->set_deopt_id(0);
+    const intptr_t prev_deopt_id = thread->deopt_id();
+    thread->set_deopt_id(0);
     LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {
       FlowGraph* flow_graph = NULL;
@@ -446,7 +446,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
           FlowGraphPrinter::ShouldPrint(function);
 
       if (print_flow_graph) {
-        if (osr_id == Isolate::kNoDeoptId) {
+        if (osr_id == Thread::kNoDeoptId) {
           FlowGraphPrinter::PrintGraph("Before Optimizations", flow_graph);
         } else {
           FlowGraphPrinter::PrintGraph("For OSR", flow_graph);
@@ -757,7 +757,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
 
         if (optimized) {
           // We may not have previous code if 'always_optimize' is set.
-          if ((osr_id == Isolate::kNoDeoptId) && function.HasCode()) {
+          if ((osr_id == Thread::kNoDeoptId) && function.HasCode()) {
             Code::Handle(function.CurrentCode()).DisableDartCode();
           }
           function.AttachCode(code);
@@ -795,7 +795,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         }
       }
       // Mark that this isolate now has compiled code.
-      isolate->set_has_compiled(true);
+      isolate->set_has_compiled_code(true);
       // Exit the loop and the function with the correct result value.
       is_compiled = true;
       done = true;
@@ -829,7 +829,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
       is_compiled = false;
     }
     // Reset global isolate state.
-    isolate->set_deopt_id(prev_deopt_id);
+    thread->set_deopt_id(prev_deopt_id);
   }
   return is_compiled;
 }
@@ -1018,7 +1018,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
         thread, Function::ZoneHandle(zone, function.raw()));
     if (FLAG_trace_compiler) {
       THR_Print("Compiling %s%sfunction: '%s' @ token %" Pd ", size %" Pd "\n",
-                (osr_id == Isolate::kNoDeoptId ? "" : "osr "),
+                (osr_id == Thread::kNoDeoptId ? "" : "osr "),
                 (optimized ? "optimized " : ""),
                 function.ToFullyQualifiedCString(),
                 function.token_pos(),
@@ -1120,7 +1120,7 @@ RawError* Compiler::CompileFunction(Thread* thread,
       Compiler::always_optimize() && function.IsOptimizable();
 
   return CompileFunctionHelper(pipeline, function, optimized,
-      Isolate::kNoDeoptId);
+      Thread::kNoDeoptId);
 }
 
 
@@ -1136,7 +1136,7 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
   const Error& error = Error::Handle(
-      CompileFunctionHelper(pipeline, function, false, Isolate::kNoDeoptId));
+      CompileFunctionHelper(pipeline, function, false, Thread::kNoDeoptId));
   if (!error.IsNull()) {
     return error.raw();
   }
@@ -1177,7 +1177,7 @@ RawError* Compiler::CompileParsedFunction(
     CompileParsedFunctionHelper(&pipeline,
                                 parsed_function,
                                 false,
-                                Isolate::kNoDeoptId);
+                                Thread::kNoDeoptId);
     if (FLAG_disassemble) {
       DisassembleCode(parsed_function->function(), false);
     }
@@ -1283,7 +1283,7 @@ void Compiler::CompileStaticInitializer(const Field& field) {
   CompileParsedFunctionHelper(&pipeline,
                               parsed_function,
                               false,  // optimized
-                              Isolate::kNoDeoptId);
+                              Thread::kNoDeoptId);
 
   const Function& initializer = parsed_function->function();
   field.SetPrecompiledInitializer(initializer);
@@ -1314,7 +1314,7 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
       CompileParsedFunctionHelper(&pipeline,
                                   parsed_function,
                                   false,  // optimized
-                                  Isolate::kNoDeoptId);
+                                  Thread::kNoDeoptId);
       initializer = parsed_function->function().raw();
       Code::Handle(initializer.unoptimized_code()).set_var_descriptors(
           Object::empty_var_descriptors());
@@ -1384,7 +1384,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     CompileParsedFunctionHelper(&pipeline,
                                 parsed_function,
                                 false,
-                                Isolate::kNoDeoptId);
+                                Thread::kNoDeoptId);
     Code::Handle(func.unoptimized_code()).set_var_descriptors(
         Object::empty_var_descriptors());
 

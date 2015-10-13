@@ -1606,7 +1606,7 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
                             &instantiator_type_arguments);
   }
 
-  const intptr_t deopt_id = Isolate::Current()->GetNextDeoptId();
+  const intptr_t deopt_id = Thread::Current()->GetNextDeoptId();
   return new(Z) AssertAssignableInstr(token_pos,
                                       value,
                                       instantiator,
@@ -2461,7 +2461,7 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
 
   { LocalVariable* tmp_var = EnterTempLocalScope(array_val);
     const intptr_t class_id = kArrayCid;
-    const intptr_t deopt_id = Isolate::kNoDeoptId;
+    const intptr_t deopt_id = Thread::kNoDeoptId;
     for (int i = 0; i < node->length(); ++i) {
       Value* array = Bind(new(Z) LoadLocalInstr(*tmp_var));
       Value* index =
@@ -3783,13 +3783,13 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
     GuardFieldClassInstr* guard_field_class =
         new(Z) GuardFieldClassInstr(store_value,
                                  node->field(),
-                                 isolate()->GetNextDeoptId());
+                                 thread()->GetNextDeoptId());
     AddInstruction(guard_field_class);
     store_value = Bind(BuildLoadExprTemp());
     GuardFieldLengthInstr* guard_field_length =
         new(Z) GuardFieldLengthInstr(store_value,
                                      node->field(),
-                                     isolate()->GetNextDeoptId());
+                                     thread()->GetNextDeoptId());
     AddInstruction(guard_field_length);
     store_value = Bind(BuildLoadExprTemp());
   }
@@ -4672,7 +4672,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   // When compiling for OSR, use a depth first search to prune instructions
   // unreachable from the OSR entry. Catch entries are always considered
   // reachable, even if they become unreachable after OSR.
-  if (osr_id_ != Isolate::kNoDeoptId) {
+  if (osr_id_ != Thread::kNoDeoptId) {
     PruneUnreachable();
   }
 
@@ -4683,7 +4683,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 
 
 void FlowGraphBuilder::PruneUnreachable() {
-  ASSERT(osr_id_ != Isolate::kNoDeoptId);
+  ASSERT(osr_id_ != Thread::kNoDeoptId);
   BitVector* block_marks = new(Z) BitVector(Z, last_used_block_id_ + 1);
   bool found = graph_entry_->PruneUnreachable(this, graph_entry_, NULL, osr_id_,
                                               block_marks);

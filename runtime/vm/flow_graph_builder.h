@@ -124,7 +124,7 @@ class InlineExitCollector: public ZoneAllocated {
 class FlowGraphBuilder : public ValueObject {
  public:
   // The inlining context is NULL if not inlining.  The osr_id is the deopt
-  // id of the OSR entry or Isolate::kNoDeoptId if not compiling for OSR.
+  // id of the OSR entry or Thread::kNoDeoptId if not compiling for OSR.
   FlowGraphBuilder(const ParsedFunction& parsed_function,
                    const ZoneGrowableArray<const ICData*>& ic_data_array,
                    InlineExitCollector* exit_collector,
@@ -210,6 +210,7 @@ class FlowGraphBuilder : public ValueObject {
   // Returns address where the constant 'value' is stored or 0 if not found.
   static uword FindDoubleConstant(double value);
 
+  Thread* thread() const { return parsed_function().thread(); }
   Isolate* isolate() const { return parsed_function().isolate(); }
   Zone* zone() const { return parsed_function().zone(); }
 
@@ -247,7 +248,7 @@ class FlowGraphBuilder : public ValueObject {
   // A stack of enclosing nested statements.
   NestedStatement* nesting_stack_;
 
-  // The deopt id of the OSR entry or Isolate::kNoDeoptId if not compiling
+  // The deopt id of the OSR entry or Thread::kNoDeoptId if not compiling
   // for OSR.
   const intptr_t osr_id_;
 
@@ -466,6 +467,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildInstanceGetterConditional(InstanceGetterNode* node);
   void BuildInstanceCallConditional(InstanceCallNode* node);
 
+  Thread* thread() const { return owner()->thread(); }
   Isolate* isolate() const { return owner()->isolate(); }
   Zone* zone() const { return owner()->zone(); }
 

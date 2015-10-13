@@ -133,14 +133,14 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
   FlowGraphBuilder builder(parsed_function,
                            *ic_data_array,
                            NULL,  // NULL = not inlining.
-                           Isolate::kNoDeoptId);  // No OSR id.
+                           Thread::kNoDeoptId);  // No OSR id.
 
   intptr_t block_id = builder.AllocateBlockId();
   TargetEntryInstr* normal_entry =
       new TargetEntryInstr(block_id,
                            CatchClauseNode::kInvalidTryIndex);
   GraphEntryInstr* graph_entry = new GraphEntryInstr(
-      parsed_function, normal_entry, Isolate::kNoDeoptId);  // No OSR id.
+      parsed_function, normal_entry, Thread::kNoDeoptId);  // No OSR id.
   FlowGraph* graph = new FlowGraph(parsed_function, graph_entry, block_id);
   const Function& function = parsed_function.function();
   switch (function.recognized_kind()) {
@@ -274,7 +274,7 @@ class BlockBuilder : public ValueObject {
 
   Definition* AddUnboxInstr(Representation rep, Value* value) {
     Definition* unboxed_value = AddDefinition(
-        UnboxInstr::Create(rep, value, Isolate::kNoDeoptId));
+        UnboxInstr::Create(rep, value, Thread::kNoDeoptId));
     // Manually adjust reaching type because there is no type propagation
     // when building intrinsics.
     unboxed_value->AsUnbox()->value()->SetReachingType(ZoneCompileType::Wrap(
@@ -296,7 +296,7 @@ static void PrepareIndexedOp(BlockBuilder* builder,
   intptr_t token_pos = builder->TokenPos();
   builder->AddInstruction(
       new CheckSmiInstr(new Value(index),
-                        Isolate::kNoDeoptId,
+                        Thread::kNoDeoptId,
                         token_pos));
 
   Definition* length = builder->AddDefinition(
@@ -307,7 +307,7 @@ static void PrepareIndexedOp(BlockBuilder* builder,
   builder->AddInstruction(
       new CheckArrayBoundInstr(new Value(length),
                                new Value(index),
-                               Isolate::kNoDeoptId));
+                               Thread::kNoDeoptId));
 }
 
 
@@ -326,7 +326,7 @@ bool Intrinsifier::Build_ObjectArrayGetIndexed(FlowGraph* flow_graph) {
                            new Value(index),
                            Instance::ElementSizeFor(kArrayCid),  // index scale
                            kArrayCid,
-                           Isolate::kNoDeoptId,
+                           Thread::kNoDeoptId,
                            builder.TokenPos()));
   builder.AddIntrinsicReturn(new Value(result));
   return true;
@@ -353,7 +353,7 @@ bool Intrinsifier::Build_Uint8ArrayGetIndexed(FlowGraph* flow_graph) {
                            new Value(index),
                            1,  // index scale
                            kTypedDataUint8ArrayCid,
-                           Isolate::kNoDeoptId,
+                           Thread::kNoDeoptId,
                            builder.TokenPos()));
   builder.AddIntrinsicReturn(new Value(result));
   return true;
@@ -378,7 +378,7 @@ bool Intrinsifier::Build_ExternalUint8ArrayGetIndexed(FlowGraph* flow_graph) {
                            new Value(index),
                            1,  // index scale
                            kExternalTypedDataUint8ArrayCid,
-                           Isolate::kNoDeoptId,
+                           Thread::kNoDeoptId,
                            builder.TokenPos()));
   builder.AddIntrinsicReturn(new Value(result));
   return true;
@@ -398,7 +398,7 @@ bool Intrinsifier::Build_Uint8ArraySetIndexed(FlowGraph* flow_graph) {
 
   builder.AddInstruction(
       new CheckSmiInstr(new Value(value),
-                        Isolate::kNoDeoptId,
+                        Thread::kNoDeoptId,
                         builder.TokenPos()));
 
   builder.AddInstruction(
@@ -408,7 +408,7 @@ bool Intrinsifier::Build_Uint8ArraySetIndexed(FlowGraph* flow_graph) {
                             kNoStoreBarrier,
                             1,  // index scale
                             kTypedDataUint8ArrayCid,
-                            Isolate::kNoDeoptId,
+                            Thread::kNoDeoptId,
                             builder.TokenPos()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();
@@ -430,7 +430,7 @@ bool Intrinsifier::Build_ExternalUint8ArraySetIndexed(FlowGraph* flow_graph) {
 
   builder.AddInstruction(
       new CheckSmiInstr(new Value(value),
-                        Isolate::kNoDeoptId,
+                        Thread::kNoDeoptId,
                         builder.TokenPos()));
   Definition* elements = builder.AddDefinition(
       new LoadUntaggedInstr(new Value(array),
@@ -442,7 +442,7 @@ bool Intrinsifier::Build_ExternalUint8ArraySetIndexed(FlowGraph* flow_graph) {
                             kNoStoreBarrier,
                             1,  // index scale
                             kExternalTypedDataUint8ArrayCid,
-                            Isolate::kNoDeoptId,
+                            Thread::kNoDeoptId,
                             builder.TokenPos()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();
@@ -472,7 +472,7 @@ bool Intrinsifier::Build_Uint32ArraySetIndexed(FlowGraph* flow_graph) {
                             kNoStoreBarrier,
                             4,  // index scale
                             kTypedDataUint32ArrayCid,
-                            Isolate::kNoDeoptId,
+                            Thread::kNoDeoptId,
                             builder.TokenPos()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();
@@ -496,7 +496,7 @@ bool Intrinsifier::Build_Uint32ArrayGetIndexed(FlowGraph* flow_graph) {
                            new Value(index),
                            4,  // index scale
                            kTypedDataUint32ArrayCid,
-                           Isolate::kNoDeoptId,
+                           Thread::kNoDeoptId,
                            builder.TokenPos()));
   Definition* result = builder.AddDefinition(
       BoxInstr::Create(kUnboxedUint32, new Value(unboxed_value)));
@@ -522,12 +522,12 @@ bool Intrinsifier::Build_Float64ArraySetIndexed(FlowGraph* flow_graph) {
       flow_graph->function(),
       String::Handle(flow_graph->function().name()),
       Object::empty_array(),  // Dummy args. descr.
-      Isolate::kNoDeoptId,
+      Thread::kNoDeoptId,
       1));
   value_check.AddReceiverCheck(kDoubleCid, flow_graph->function());
   builder.AddInstruction(
       new CheckClassInstr(new Value(value),
-                          Isolate::kNoDeoptId,
+                          Thread::kNoDeoptId,
                           value_check,
                           builder.TokenPos()));
   Definition* double_value =
@@ -540,7 +540,7 @@ bool Intrinsifier::Build_Float64ArraySetIndexed(FlowGraph* flow_graph) {
                             kNoStoreBarrier,
                             8,  // index scale
                             kTypedDataFloat64ArrayCid,
-                            Isolate::kNoDeoptId,
+                            Thread::kNoDeoptId,
                             builder.TokenPos()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();
@@ -566,7 +566,7 @@ bool Intrinsifier::Build_Float64ArrayGetIndexed(FlowGraph* flow_graph) {
                            new Value(index),
                            8,  // index scale
                            kTypedDataFloat64ArrayCid,
-                           Isolate::kNoDeoptId,
+                           Thread::kNoDeoptId,
                            builder.TokenPos()));
   Definition* result = builder.AddDefinition(
       BoxInstr::Create(kUnboxedDouble, new Value(unboxed_value)));
@@ -589,13 +589,13 @@ static bool BuildBinaryFloat32x4Op(FlowGraph* flow_graph, Token::Kind kind) {
       flow_graph->function(),
       String::Handle(flow_graph->function().name()),
       Object::empty_array(),  // Dummy args. descr.
-      Isolate::kNoDeoptId,
+      Thread::kNoDeoptId,
       1));
   value_check.AddReceiverCheck(kFloat32x4Cid, flow_graph->function());
   // Check argument. Receiver (left) is known to be a Float32x4.
   builder.AddInstruction(
       new CheckClassInstr(new Value(right),
-                          Isolate::kNoDeoptId,
+                          Thread::kNoDeoptId,
                           value_check,
                           builder.TokenPos()));
   Definition* left_simd =
@@ -608,7 +608,7 @@ static bool BuildBinaryFloat32x4Op(FlowGraph* flow_graph, Token::Kind kind) {
       new BinaryFloat32x4OpInstr(kind,
                                  new Value(left_simd),
                                  new Value(right_simd),
-                                 Isolate::kNoDeoptId));
+                                 Thread::kNoDeoptId));
   Definition* result = builder.AddDefinition(
       BoxInstr::Create(kUnboxedFloat32x4, new Value(unboxed_result)));
   builder.AddIntrinsicReturn(new Value(result));
@@ -647,7 +647,7 @@ static bool BuildFloat32x4Shuffle(FlowGraph* flow_graph,
       new Simd32x4ShuffleInstr(kind,
                                new Value(unboxed_receiver),
                                0,
-                               Isolate::kNoDeoptId));
+                               Thread::kNoDeoptId));
 
   Definition* result = builder.AddDefinition(
       BoxInstr::Create(kUnboxedDouble, new Value(unboxed_result)));
@@ -765,7 +765,7 @@ bool Intrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
                            new Value(index),
                            Instance::ElementSizeFor(kArrayCid),  // index scale
                            kArrayCid,
-                           Isolate::kNoDeoptId,
+                           Thread::kNoDeoptId,
                            builder.TokenPos()));
   builder.AddIntrinsicReturn(new Value(result));
   return true;
@@ -801,7 +801,7 @@ bool Intrinsifier::Build_GrowableArraySetIndexed(FlowGraph* flow_graph) {
                             kEmitStoreBarrier,
                             Instance::ElementSizeFor(kArrayCid),  // index scale
                             kArrayCid,
-                            Isolate::kNoDeoptId,
+                            Thread::kNoDeoptId,
                             builder.TokenPos()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();
@@ -822,12 +822,12 @@ bool Intrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
       flow_graph->function(),
       String::Handle(flow_graph->function().name()),
       Object::empty_array(),  // Dummy args. descr.
-      Isolate::kNoDeoptId,
+      Thread::kNoDeoptId,
       1));
   value_check.AddReceiverCheck(kArrayCid, flow_graph->function());
   builder.AddInstruction(
       new CheckClassInstr(new Value(data),
-                          Isolate::kNoDeoptId,
+                          Thread::kNoDeoptId,
                           value_check,
                           builder.TokenPos()));
 
@@ -854,7 +854,7 @@ bool Intrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
 
   builder.AddInstruction(
       new CheckSmiInstr(new Value(length),
-                        Isolate::kNoDeoptId,
+                        Thread::kNoDeoptId,
                         builder.TokenPos()));
   builder.AddInstruction(
       new StoreInstanceFieldInstr(GrowableObjectArray::length_offset(),

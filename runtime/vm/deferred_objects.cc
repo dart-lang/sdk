@@ -114,7 +114,7 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
   // Check that deopt_id exists.
   // TODO(vegorov): verify after deoptimization targets as well.
 #ifdef DEBUG
-  ASSERT(Isolate::IsDeoptAfter(deopt_id_) ||
+  ASSERT(Thread::IsDeoptAfter(deopt_id_) ||
          (code.GetPcForDeoptId(deopt_id_, RawPcDescriptors::kDeopt) != 0));
 #endif
 

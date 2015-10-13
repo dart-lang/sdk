@@ -326,35 +326,6 @@ class Isolate : public BaseIsolate {
   IsolateSpawnState* spawn_state() const { return spawn_state_; }
   void set_spawn_state(IsolateSpawnState* value) { spawn_state_ = value; }
 
-  static const intptr_t kNoDeoptId = -1;
-  static const intptr_t kDeoptIdStep = 2;
-  static const intptr_t kDeoptIdBeforeOffset = 0;
-  static const intptr_t kDeoptIdAfterOffset = 1;
-  intptr_t deopt_id() const { return deopt_id_; }
-  void set_deopt_id(int value) {
-    ASSERT(value >= 0);
-    deopt_id_ = value;
-  }
-  intptr_t GetNextDeoptId() {
-    ASSERT(deopt_id_ != kNoDeoptId);
-    const intptr_t id = deopt_id_;
-    deopt_id_ += kDeoptIdStep;
-    return id;
-  }
-
-  static intptr_t ToDeoptAfter(intptr_t deopt_id) {
-    ASSERT(IsDeoptBefore(deopt_id));
-    return deopt_id + kDeoptIdAfterOffset;
-  }
-
-  static bool IsDeoptBefore(intptr_t deopt_id) {
-    return (deopt_id % kDeoptIdStep) == kDeoptIdBeforeOffset;
-  }
-
-  static bool IsDeoptAfter(intptr_t deopt_id) {
-    return (deopt_id % kDeoptIdStep) == kDeoptIdAfterOffset;
-  }
-
   Mutex* mutex() const { return mutex_; }
 
   Debugger* debugger() const {
@@ -368,8 +339,8 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, single_step_);
   }
 
-  void set_has_compiled(bool value) { has_compiled_ = value; }
-  bool has_compiled() const { return has_compiled_; }
+  void set_has_compiled_code(bool value) { has_compiled_code_ = value; }
+  bool has_compiled_code() const { return has_compiled_code_; }
 
   // TODO(iposva): Evaluate whether two different isolate flag structures are
   // needed. Currently it serves as a separation between publicly visible flags
@@ -411,7 +382,7 @@ class Isolate : public BaseIsolate {
   // executing generated code. Needs to be called before any code has been
   // compiled.
   void set_strict_compilation() {
-    ASSERT(!has_compiled());
+    ASSERT(!has_compiled_code());
     flags_.type_checks_ = true;
     flags_.asserts_ = true;
     flags_.error_on_bad_type_ = true;
@@ -809,11 +780,10 @@ class Isolate : public BaseIsolate {
   Debugger* debugger_;
   bool resume_request_;
   int64_t last_resume_timestamp_;
-  bool has_compiled_;
+  bool has_compiled_code_;  // Can check that no compilation occured.
   Flags flags_;
   Random random_;
   Simulator* simulator_;
-  intptr_t deopt_id_;
   Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.
   uword saved_stack_limit_;
   uword stack_base_;

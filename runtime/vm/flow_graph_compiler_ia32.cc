@@ -129,7 +129,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     // which is recorded in the outer environment.
     builder->AddReturnAddress(
         current->function(),
-        Isolate::ToDeoptAfter(current->deopt_id()),
+        Thread::ToDeoptAfter(current->deopt_id()),
         slot_ix++);
 
     // The values of outgoing arguments can be changed from the inlined call so
@@ -1151,7 +1151,7 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
   __ Call(stub_entry);
-  AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos);
+  AddCurrentDescriptor(kind, Thread::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
 }
 
@@ -1166,7 +1166,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
   RecordSafepoint(locs);
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
     AddDeoptIndexAtCall(deopt_id_after, token_pos);
   } else {
@@ -1185,10 +1185,10 @@ void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
   __ CallRuntime(entry, argument_count);
   AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id, token_pos);
   RecordSafepoint(locs);
-  if (deopt_id != Isolate::kNoDeoptId) {
+  if (deopt_id != Thread::kNoDeoptId) {
     // Marks either the continuation point in unoptimized code or the
     // deoptimization point in optimized code, after call.
-    const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
+    const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
     if (is_optimizing()) {
       AddDeoptIndexAtCall(deopt_id_after, token_pos);
     } else {
@@ -1301,9 +1301,9 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ LoadObject(EDX, arguments_descriptor);
   __ call(targetR);
   AddCurrentDescriptor(RawPcDescriptors::kOther,
-      Isolate::kNoDeoptId, token_pos);
+      Thread::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
-  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
     AddDeoptIndexAtCall(deopt_id_after, token_pos);
   } else {
@@ -1359,7 +1359,7 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     }
     if (token_pos != Scanner::kNoSourcePos) {
       AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
-                           Isolate::kNoDeoptId,
+                           Thread::kNoDeoptId,
                            token_pos);
     }
     // Stub returns result in flags (result of a cmpl, we need ZF computed).
@@ -1386,7 +1386,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     }
     if (token_pos != Scanner::kNoSourcePos) {
       AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
-                           Isolate::kNoDeoptId,
+                           Thread::kNoDeoptId,
                            token_pos);
     }
     // Stub returns result in flags (result of a cmpl, we need ZF computed).

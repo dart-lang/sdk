@@ -314,6 +314,35 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
 
   class Log* log() const;
 
+  static const intptr_t kNoDeoptId = -1;
+  static const intptr_t kDeoptIdStep = 2;
+  static const intptr_t kDeoptIdBeforeOffset = 0;
+  static const intptr_t kDeoptIdAfterOffset = 1;
+  intptr_t deopt_id() const { return deopt_id_; }
+  void set_deopt_id(int value) {
+    ASSERT(value >= 0);
+    deopt_id_ = value;
+  }
+  intptr_t GetNextDeoptId() {
+    ASSERT(deopt_id_ != kNoDeoptId);
+    const intptr_t id = deopt_id_;
+    deopt_id_ += kDeoptIdStep;
+    return id;
+  }
+
+  static intptr_t ToDeoptAfter(intptr_t deopt_id) {
+    ASSERT(IsDeoptBefore(deopt_id));
+    return deopt_id + kDeoptIdAfterOffset;
+  }
+
+  static bool IsDeoptBefore(intptr_t deopt_id) {
+    return (deopt_id % kDeoptIdStep) == kDeoptIdBeforeOffset;
+  }
+
+  static bool IsDeoptAfter(intptr_t deopt_id) {
+    return (deopt_id % kDeoptIdStep) == kDeoptIdAfterOffset;
+  }
+
   LongJumpScope* long_jump_base() const { return state_.long_jump_base; }
   void set_long_jump_base(LongJumpScope* value) {
     state_.long_jump_base = value;
@@ -384,6 +413,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   Mutex timeline_block_lock_;
   StoreBufferBlock* store_buffer_block_;
   class Log* log_;
+  intptr_t deopt_id_;  // Compilation specific counter.
   uword vm_tag_;
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;

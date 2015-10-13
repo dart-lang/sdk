@@ -6783,7 +6783,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->RecordSafepoint(locs());
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id());
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id());
   if (compiler->is_optimizing()) {
     compiler->AddDeoptIndexAtCall(deopt_id_after, token_pos());
   }

@@ -257,7 +257,7 @@ const char* Instruction::ToCString() const {
 
 
 void Instruction::PrintTo(BufferFormatter* f) const {
-  if (GetDeoptId() != Isolate::kNoDeoptId) {
+  if (GetDeoptId() != Thread::kNoDeoptId) {
     f->Print("%s:%" Pd "(", DebugName(), GetDeoptId());
   } else {
     f->Print("%s(", DebugName());
@@ -278,7 +278,7 @@ void Instruction::PrintOperandsTo(BufferFormatter* f) const {
 void Definition::PrintTo(BufferFormatter* f) const {
   PrintUse(f, *this);
   if (HasSSATemp() || HasTemp()) f->Print(" <- ");
-  if (GetDeoptId() != Isolate::kNoDeoptId) {
+  if (GetDeoptId() != Thread::kNoDeoptId) {
     f->Print("%s:%" Pd "(", DebugName(), GetDeoptId());
   } else {
     f->Print("%s(", DebugName());
@@ -1155,7 +1155,7 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
     parallel_move()->PrintTo(f);
     f->Print(" ");
   }
-  if (GetDeoptId() != Isolate::kNoDeoptId) {
+  if (GetDeoptId() != Thread::kNoDeoptId) {
     f->Print("goto:%" Pd " B%" Pd "", GetDeoptId(), successor()->block_id());
   } else {
     f->Print("goto: B%" Pd "", successor()->block_id());
@@ -1164,7 +1164,7 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
 
 
 void IndirectGotoInstr::PrintTo(BufferFormatter* f) const {
-  if (GetDeoptId() != Isolate::kNoDeoptId) {
+  if (GetDeoptId() != Thread::kNoDeoptId) {
     f->Print("igoto:%" Pd "(", GetDeoptId());
   } else {
     f->Print("igoto:(");

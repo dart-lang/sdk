@@ -1387,7 +1387,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     ASSERT(function.unoptimized_code() != Object::null());
     intptr_t osr_id =
         Code::Handle(function.unoptimized_code()).GetDeoptIdForOsr(frame->pc());
-    ASSERT(osr_id != Isolate::kNoDeoptId);
+    ASSERT(osr_id != Thread::kNoDeoptId);
     if (FLAG_trace_osr) {
       OS::Print("Attempting OSR for %s at id=%" Pd ", count=%" Pd "\n",
                 function.ToFullyQualifiedCString(),

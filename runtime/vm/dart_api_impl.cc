@@ -1489,7 +1489,7 @@ DART_EXPORT void Dart_ExitIsolate() {
 DART_EXPORT Dart_Handle Dart_IsolateSetStrictCompilation(bool value) {
   CHECK_ISOLATE(Isolate::Current());
   Isolate* isolate = Isolate::Current();
-  if (isolate->has_compiled()) {
+  if (isolate->has_compiled_code()) {
     return Api::NewError(
         "%s expects that the isolate has not yet compiled code.", CURRENT_FUNC);
   }

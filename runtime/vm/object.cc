@@ -11337,7 +11337,7 @@ void PcDescriptors::Verify(const Function& function) const {
   Iterator iter(*this, RawPcDescriptors::kDeopt | RawPcDescriptors::kIcCall);
   while (iter.MoveNext()) {
     // 'deopt_id' is set for kDeopt and kIcCall and must be unique for one kind.
-    if (Isolate::IsDeoptAfter(iter.DeoptId())) {
+    if (Thread::IsDeoptAfter(iter.DeoptId())) {
       // TODO(vegorov): some instructions contain multiple calls and have
       // multiple "after" targets recorded. Right now it is benign but might
       // lead to issues in the future. Fix that and enable verification.
@@ -12501,7 +12501,7 @@ RawICData* ICData::New() {
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
-  result.set_deopt_id(Isolate::kNoDeoptId);
+  result.set_deopt_id(Thread::kNoDeoptId);
   result.set_state_bits(0);
   return result.raw();
 }
@@ -13256,7 +13256,7 @@ intptr_t Code::GetDeoptIdForOsr(uword pc) const {
       return iter.DeoptId();
     }
   }
-  return Isolate::kNoDeoptId;
+  return Thread::kNoDeoptId;
 }
 
 

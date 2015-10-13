@@ -190,6 +190,7 @@ Thread::Thread(bool init_vm_constants)
       heap_(NULL),
       store_buffer_block_(NULL),
       log_(new class Log()),
+      deopt_id_(0),
       vm_tag_(0),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)

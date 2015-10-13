@@ -84,7 +84,7 @@ const ICData* Instruction::GetICData(
     const ZoneGrowableArray<const ICData*>& ic_data_array) const {
   // The deopt_id can be outside the range of the IC data array for
   // computations added in the optimizing compiler.
-  ASSERT(deopt_id_ != Isolate::kNoDeoptId);
+  ASSERT(deopt_id_ != Thread::kNoDeoptId);
   if (deopt_id_ < ic_data_array.length()) {
     return ic_data_array[deopt_id_];
   }
@@ -798,7 +798,7 @@ void Instruction::InheritDeoptTargetAfter(FlowGraph* flow_graph,
                                           Definition* call,
                                           Definition* result) {
   ASSERT(call->env() != NULL);
-  deopt_id_ = Isolate::ToDeoptAfter(call->deopt_id_);
+  deopt_id_ = Thread::ToDeoptAfter(call->deopt_id_);
   call->env()->DeepCopyAfterTo(flow_graph->zone(),
                                this,
                                call->ArgumentCount(),
@@ -2202,7 +2202,7 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
           representation(),
           box_defn->value()->CopyWithType(),
           (representation() == kUnboxedInt32) ?
-              GetDeoptId() : Isolate::kNoDeoptId);
+              GetDeoptId() : Thread::kNoDeoptId);
       // TODO(vegorov): marking resulting converter as truncating when
       // unboxing can't deoptimize is a workaround for the missing
       // deoptimization environment when we insert converter after
@@ -2265,7 +2265,7 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
         box_defn->from(),
         representation(),
         box_defn->value()->CopyWithType(),
-        (to() == kUnboxedInt32) ? GetDeoptId() : Isolate::kNoDeoptId);
+        (to() == kUnboxedInt32) ? GetDeoptId() : Thread::kNoDeoptId);
     if ((representation() == kUnboxedInt32) && is_truncating()) {
       converter->mark_truncating();
     }
@@ -2944,7 +2944,7 @@ StrictCompareInstr::StrictCompareInstr(intptr_t token_pos,
                       kind,
                       left,
                       right,
-                      Isolate::Current()->GetNextDeoptId()),
+                      Thread::Current()->GetNextDeoptId()),
       needs_number_check_(needs_number_check) {
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
 }
@@ -3172,7 +3172,7 @@ Environment* Environment::From(Zone* zone,
   Environment* env =
       new(zone) Environment(definitions.length(),
                                fixed_parameter_count,
-                               Isolate::kNoDeoptId,
+                               Thread::kNoDeoptId,
                                parsed_function,
                                NULL);
   for (intptr_t i = 0; i < definitions.length(); ++i) {

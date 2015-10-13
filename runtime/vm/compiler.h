@@ -50,7 +50,7 @@ class Compiler : public AllStatic {
   static RawError* CompileOptimizedFunction(
       Thread* thread,
       const Function& function,
-      intptr_t osr_id = Isolate::kNoDeoptId);
+      intptr_t osr_id = Thread::kNoDeoptId);
 
   // Generates code for given parsed function (without parsing it again) and
   // sets its code field.

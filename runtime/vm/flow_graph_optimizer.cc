@@ -394,7 +394,7 @@ void FlowGraphOptimizer::OptimizeLeftShiftBitAndSmiOp(
         Token::kBIT_AND,
         new(Z) Value(left_instr),
         new(Z) Value(right_instr),
-        Isolate::kNoDeoptId);  // BIT_AND cannot deoptimize.
+        Thread::kNoDeoptId);  // BIT_AND cannot deoptimize.
     bit_and_instr->ReplaceWith(smi_op, current_iterator());
   }
 }
@@ -415,7 +415,7 @@ void FlowGraphOptimizer::AppendLoadIndexedForMerged(Definition* instr,
                                       new(Z) Value(index_instr),
                                       index_scale,
                                       cid,
-                                      Isolate::kNoDeoptId,
+                                      Thread::kNoDeoptId,
                                       instr->token_pos());
   instr->ReplaceUsesWith(load);
   flow_graph()->InsertAfter(instr, load, NULL, FlowGraph::kValue);
@@ -713,7 +713,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
   Definition* converted = NULL;
   if (IsUnboxedInteger(from) && IsUnboxedInteger(to)) {
     const intptr_t deopt_id = (to == kUnboxedInt32) && (deopt_target != NULL) ?
-      deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+      deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
     converted = new(Z) UnboxedIntConverterInstr(from,
                                                 to,
                                                 use->CopyWithType(),
@@ -724,12 +724,12 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
              (to == kUnboxedDouble) &&
              CanConvertUnboxedMintToDouble()) {
     const intptr_t deopt_id = (deopt_target != NULL) ?
-      deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+      deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
     ASSERT(CanUnboxDouble());
     converted = new MintToDoubleInstr(use->CopyWithType(), deopt_id);
   } else if ((from == kTagged) && Boxing::Supports(to)) {
     const intptr_t deopt_id = (deopt_target != NULL) ?
-      deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+      deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
     converted = UnboxInstr::Create(to, use->CopyWithType(), deopt_id);
   } else if ((to == kTagged) && Boxing::Supports(from)) {
     converted = BoxInstr::Create(from, use->CopyWithType());
@@ -739,7 +739,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     // "from" and "to" representation. The inserted instructions will
     // trigger a deoptimization if executed. See #12417 for a discussion.
     const intptr_t deopt_id = (deopt_target != NULL) ?
-      deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+      deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
     ASSERT(Boxing::Supports(from));
     ASSERT(Boxing::Supports(to));
     Definition* boxed = BoxInstr::Create(from, use->CopyWithType());
@@ -1754,11 +1754,11 @@ bool FlowGraphOptimizer::InlineGetIndexed(MethodRecognizer::Kind kind,
                                      index,
                                      &cursor);
 
-  intptr_t deopt_id = Isolate::kNoDeoptId;
+  intptr_t deopt_id = Thread::kNoDeoptId;
   if ((array_cid == kTypedDataInt32ArrayCid) ||
       (array_cid == kTypedDataUint32ArrayCid)) {
     // Deoptimization may be needed if result does not always fit in a Smi.
-    deopt_id = (kSmiBits >= 32) ? Isolate::kNoDeoptId : call->deopt_id();
+    deopt_id = (kSmiBits >= 32) ? Thread::kNoDeoptId : call->deopt_id();
   }
 
   // Array load and return.
@@ -1772,14 +1772,14 @@ bool FlowGraphOptimizer::InlineGetIndexed(MethodRecognizer::Kind kind,
   cursor = flow_graph()->AppendTo(
       cursor,
       *last,
-      deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
+      deopt_id != Thread::kNoDeoptId ? call->env() : NULL,
       FlowGraph::kValue);
 
   if (array_cid == kTypedDataFloat32ArrayCid) {
     *last = new(Z) FloatToDoubleInstr(new(Z) Value(*last), deopt_id);
     flow_graph()->AppendTo(cursor,
                            *last,
-                           deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
+                           deopt_id != Thread::kNoDeoptId ? call->env() : NULL,
                            FlowGraph::kValue);
   }
   return true;
@@ -2795,7 +2795,7 @@ Definition* FlowGraphOptimizer::PrepareInlineStringIndexOp(
       new(Z) Value(index),
       Instance::ElementSizeFor(cid),
       cid,
-      Isolate::kNoDeoptId,
+      Thread::kNoDeoptId,
       call->token_pos());
 
   cursor = flow_graph()->AppendTo(cursor,
@@ -3660,11 +3660,11 @@ bool FlowGraphOptimizer::InlineByteArrayBaseLoad(Instruction* call,
                                            index,
                                            &cursor);
 
-  intptr_t deopt_id = Isolate::kNoDeoptId;
+  intptr_t deopt_id = Thread::kNoDeoptId;
   if ((array_cid == kTypedDataInt32ArrayCid) ||
       (array_cid == kTypedDataUint32ArrayCid)) {
     // Deoptimization may be needed if result does not always fit in a Smi.
-    deopt_id = (kSmiBits >= 32) ? Isolate::kNoDeoptId : call->deopt_id();
+    deopt_id = (kSmiBits >= 32) ? Thread::kNoDeoptId : call->deopt_id();
   }
 
   *last = new(Z) LoadIndexedInstr(new(Z) Value(array),
@@ -3676,14 +3676,14 @@ bool FlowGraphOptimizer::InlineByteArrayBaseLoad(Instruction* call,
   cursor = flow_graph()->AppendTo(
       cursor,
       *last,
-      deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
+      deopt_id != Thread::kNoDeoptId ? call->env() : NULL,
       FlowGraph::kValue);
 
   if (view_cid == kTypedDataFloat32ArrayCid) {
     *last = new(Z) FloatToDoubleInstr(new(Z) Value(*last), deopt_id);
     flow_graph()->AppendTo(cursor,
                            *last,
-                           deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
+                           deopt_id != Thread::kNoDeoptId ? call->env() : NULL,
                            FlowGraph::kValue);
   }
   return true;
@@ -3736,7 +3736,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
       value_check = ICData::New(flow_graph_->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
-                                Isolate::kNoDeoptId,
+                                Thread::kNoDeoptId,
                                 1);
       value_check.AddReceiverCheck(kSmiCid, target);
       break;
@@ -3748,7 +3748,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
         value_check = ICData::New(flow_graph_->function(),
                                   i_call->function_name(),
                                   Object::empty_array(),  // Dummy args. descr.
-                                  Isolate::kNoDeoptId,
+                                  Thread::kNoDeoptId,
                                   1);
         value_check.AddReceiverCheck(kSmiCid, target);
       }
@@ -3759,7 +3759,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
       value_check = ICData::New(flow_graph_->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
-                                Isolate::kNoDeoptId,
+                                Thread::kNoDeoptId,
                                 1);
       value_check.AddReceiverCheck(kDoubleCid, target);
       break;
@@ -3769,7 +3769,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
       value_check = ICData::New(flow_graph_->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
-                                Isolate::kNoDeoptId,
+                                Thread::kNoDeoptId,
                                 1);
       value_check.AddReceiverCheck(kInt32x4Cid, target);
       break;
@@ -3779,7 +3779,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
       value_check = ICData::New(flow_graph_->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
-                                Isolate::kNoDeoptId,
+                                Thread::kNoDeoptId,
                                 1);
       value_check.AddReceiverCheck(kFloat32x4Cid, target);
       break;
@@ -3834,7 +3834,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
 
   flow_graph()->AppendTo(cursor,
                          *last,
-                         call->deopt_id() != Isolate::kNoDeoptId ?
+                         call->deopt_id() != Thread::kNoDeoptId ?
                             call->env() : NULL,
                          FlowGraph::kEffect);
   return true;
@@ -4190,7 +4190,7 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
             negate ? Token::kISNOT : Token::kIS,
             new(Z) Value(left),
             *results,
-            can_deopt ? call->deopt_id() : Isolate::kNoDeoptId);
+            can_deopt ? call->deopt_id() : Thread::kNoDeoptId);
         // Remove type.
         ReplaceCall(call, test_cids);
         return;

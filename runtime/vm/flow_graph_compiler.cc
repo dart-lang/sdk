@@ -165,7 +165,8 @@ FlowGraphCompiler::FlowGraphCompiler(
     bool is_optimizing,
     const GrowableArray<const Function*>& inline_id_to_function,
     const GrowableArray<intptr_t>& caller_inline_id)
-      : isolate_(Isolate::Current()),
+      : thread_(Thread::Current()),
+        isolate_(Isolate::Current()),
         zone_(Thread::Current()->zone()),
         assembler_(assembler),
         parsed_function_(parsed_function),
@@ -205,7 +206,7 @@ FlowGraphCompiler::FlowGraphCompiler(
   ASSERT(flow_graph->parsed_function().function().raw() ==
          parsed_function.function().raw());
   if (!is_optimizing) {
-    const intptr_t len = isolate()->deopt_id();
+    const intptr_t len = thread()->deopt_id();
     deopt_id_to_ic_data_ = new(zone()) ZoneGrowableArray<const ICData*>(len);
     deopt_id_to_ic_data_->SetLength(len);
     for (intptr_t i = 0; i < len; i++) {
