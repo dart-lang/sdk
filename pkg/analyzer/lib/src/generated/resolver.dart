@@ -15722,13 +15722,26 @@ class VariableResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  Object visitTypeName(TypeName node) {
+    return null;
+  }
+
+  @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     // Ignore if already resolved - declaration or type.
-    if (node.staticElement != null) {
+    if (node.inDeclarationContext()) {
+      return null;
+    }
+    // Ignore if it cannot be a reference to a local variable.
+    AstNode parent = node.parent;
+    if (parent is FieldFormalParameter) {
+      return null;
+    } else if (parent is ConstructorDeclaration && parent.returnType == node) {
+      return null;
+    } else if (parent is ConstructorFieldInitializer && parent.fieldName == node) {
       return null;
     }
     // Ignore if qualified.
-    AstNode parent = node.parent;
     if (parent is PrefixedIdentifier && identical(parent.identifier, node)) {
       return null;
     }
