@@ -369,9 +369,6 @@ analyzer:
     expect(contexts[1].name, equals('/my/proj/lib'));
   }
 
-  // TODO(paulberry): This test only tests PackagesFileDisposition.
-  // Once http://dartbug.com/23909 is fixed, add a test for sdk extensions
-  // and PackageMapDisposition.
   test_refresh_folder_with_packagespec() {
     // create a context with a .packages file
     String packagespecFile = posix.join(projPath, '.packages');
@@ -388,6 +385,9 @@ analyzer:
     });
   }
 
+  // TODO(paulberry): This test only tests PackagesFileDisposition.
+  // Once http://dartbug.com/23909 is fixed, add a test for sdk extensions
+  // and PackageMapDisposition.
   test_refresh_folder_with_packagespec_subfolders() {
     // Create a folder with no .packages file, containing two subfolders with
     // .packages files.
@@ -1105,6 +1105,25 @@ test_pack:lib/
     manager.setRoots(<String>[project], <String>[], <String, String>{});
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
+  }
+
+  test_strong_mode_analysis_option() async {
+    // Create files.
+    newFile(
+        [projPath, '.analysis_options'],
+        r'''
+analyzer:
+  strong-mode: true
+''');
+    String libPath = newFolder([projPath, LIB_NAME]);
+    newFile([libPath, 'main.dart']);
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // Verify that analysis options was parsed and strong-mode set.
+    Map<String, int> fileTimestamps =
+        callbacks.currentContextFilePaths[projPath];
+    expect(fileTimestamps, isNotEmpty);
+    expect(callbacks.currentContext.analysisOptions.strongMode, true);
   }
 
   test_watch_addDummyLink() {

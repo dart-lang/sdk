@@ -484,6 +484,16 @@ class ContextManagerImpl implements ContextManager {
       return;
     }
 
+    // Set strong mode.
+    var strongMode = analyzer['strong-mode'];
+    if (strongMode == true) {
+      AnalysisContext context = info.context;
+      AnalysisOptionsImpl options =
+          new AnalysisOptionsImpl.from(context.analysisOptions);
+      options.strongMode = true;
+      context.analysisOptions = options;
+    }
+
     // Set ignore patterns.
     YamlList exclude = analyzer['exclude'];
     if (exclude != null) {
