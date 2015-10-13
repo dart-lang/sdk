@@ -1209,13 +1209,23 @@ Stream S = null;
     // must be from SDK context
     AnalysisContext sdkContext = context.sourceFactory.dartSdk.context;
     expect(sdkContext, streamElement.context);
-    // must be in the "async" library
     Source intSource = streamElement.source;
-    List<Source> coreLibraries = sdkContext.getLibrariesContaining(intSource);
-    expect(coreLibraries, hasLength(1));
-    Source coreSource = coreLibraries[0];
-    expect(coreSource.isInSystemLibrary, isTrue);
-    expect(coreSource.shortName, 'async.dart');
+    // must be in the "async" library - SDK context
+    {
+      List<Source> coreLibraries = sdkContext.getLibrariesContaining(intSource);
+      expect(coreLibraries, hasLength(1));
+      Source coreSource = coreLibraries[0];
+      expect(coreSource.isInSystemLibrary, isTrue);
+      expect(coreSource.shortName, 'async.dart');
+    }
+    // must be in the "async" library - main context
+    {
+      List<Source> coreLibraries = context.getLibrariesContaining(intSource);
+      expect(coreLibraries, hasLength(1));
+      Source coreSource = coreLibraries[0];
+      expect(coreSource.isInSystemLibrary, isTrue);
+      expect(coreSource.shortName, 'async.dart');
+    }
   }
 
   void test_getLineInfo() {

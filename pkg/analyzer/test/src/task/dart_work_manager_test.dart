@@ -332,6 +332,32 @@ class DartWorkManagerTest {
     expect(manager.getLibrariesContainingPart(part3), isEmpty);
   }
 
+  void test_getLibrariesContainingPart_inSDK() {
+    Source part = new _SourceMock('part.dart');
+    when(part.isInSystemLibrary).thenReturn(true);
+    // SDK work manager
+    DartWorkManager sdkDartWorkManagerMock = new _DartWorkManagerMock();
+    when(sdkDartWorkManagerMock.getLibrariesContainingPart(part))
+        .thenReturn([source2, source3]);
+    // SDK context mock
+    InternalAnalysisContext sdkContextMock = new _InternalAnalysisContextMock();
+    when(sdkContextMock.workManagers).thenReturn([sdkDartWorkManagerMock]);
+    // SDK mock
+    DartSdk sdkMock = new _DartSdkMock();
+    when(sdkMock.context).thenReturn(sdkContextMock);
+    // SourceFactory mock
+    SourceFactory sourceFactory = new _SourceFactoryMock();
+    when(sourceFactory.dartSdk).thenReturn(sdkMock);
+    when(context.sourceFactory).thenReturn(sourceFactory);
+    // SDK source mock
+    Source source = new _SourceMock('test.dart');
+    when(source.source).thenReturn(source);
+    when(source.isInSystemLibrary).thenReturn(true);
+    // validate
+    expect(manager.getLibrariesContainingPart(part),
+        unorderedEquals([source2, source3]));
+  }
+
   void test_getNextResult_hasLibraries_firstIsError() {
     entry1.setErrorState(caughtException, [LIBRARY_ERRORS_READY]);
     manager.librarySourceQueue.addAll([source1, source2]);
