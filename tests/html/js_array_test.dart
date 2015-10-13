@@ -130,8 +130,8 @@ ArrayTest.Util = {
         0);
   },
 
-  getOwnPropertyDescriptorJson: function(array, property) {
-    return JSON.stringify(Object.getOwnPropertyDescriptor(array, property));
+  getOwnPropertyDescriptor: function(array, property) {
+    return Object.getOwnPropertyDescriptor(array, property);
   },
 
   setLength: function(array, len) {
@@ -157,6 +157,14 @@ ArrayTest.Util = {
 
 };
 """);
+}
+
+@Js()
+class PropertyDescriptor {
+  external get value;
+  external bool get writable;
+  external bool get enumerable;
+  external bool get configurable;
 }
 
 @Js()
@@ -230,7 +238,7 @@ external reduceSumDoubledElements(List array);
 external reduceRightSumDoubledElements(List array);
 
 @Js()
-external getOwnPropertyDescriptorJson(List array, property);
+external PropertyDescriptor getOwnPropertyDescriptor(obj, property);
 
 @Js("setLength")
 external callSetLength(List array, length);
@@ -499,18 +507,18 @@ main() {
       // This test matters to make behavior consistent with JS native arrays
       // and to make devtools integration work well.
       var list = ["a", "b"];
-      expect(getOwnPropertyDescriptorJson(list, 0),
-          equals('{"value":"a",'
-              '"writable":true,'
-              '"enumerable":true,'
-              '"configurable":true}'));
+      var descriptor = getOwnPropertyDescriptor(list, 0);
 
-      expect(
-          getOwnPropertyDescriptorJson(list, "length"),
-          equals('{"value":2,'
-              '"writable":true,'
-              '"enumerable":false,'
-              '"configurable":false}'));
+      expect(descriptor.value, equals("a"));
+      expect(descriptor.writable, isTrue);
+      expect(descriptor.enumerable, isTrue);
+      expect(descriptor.configurable, isTrue);
+
+      descriptor = getOwnPropertyDescriptor(list, "length");
+      expect(descriptor.value, equals(2));
+      expect(descriptor.writable, isTrue);
+      expect(descriptor.enumerable, isFalse);
+      expect(descriptor.configurable, isFalse);
     });
 
     test("concat js arrays", () {
@@ -680,8 +688,8 @@ main() {
       expect(listView.length, equals(2));
       expect(checkIsArray(listView), isFalse);
       expect(checkIsArray(listView.toList()), isTrue);
-      expect(getOwnPropertyDescriptorJson(
-          listView, "length"), equals("null"));
+      expect(getOwnPropertyDescriptor(
+          listView, "length"), equals(null));
     });
   });
   */
