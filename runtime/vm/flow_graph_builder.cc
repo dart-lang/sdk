@@ -2530,16 +2530,17 @@ void EffectGraphVisitor::VisitStringInterpolateNode(
 static void CollectClosureFunction(const Function& function) {
   if (function.HasCode()) return;
 
+  // Although this is only called when precompiling, this can happen before
+  // Dart_Precompile as part of loading code, so check for a non-null work
+  // list.
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  if (isolate->collected_closures() == GrowableObjectArray::null()) {
-    isolate->set_collected_closures(
-        GrowableObjectArray::Handle(GrowableObjectArray::New()));
+  if (isolate->collected_closures() != GrowableObjectArray::null()) {
+    const GrowableObjectArray& functions =
+        GrowableObjectArray::Handle(thread->zone(),
+                                    isolate->collected_closures());
+    functions.Add(function);
   }
-  const GrowableObjectArray& functions =
-      GrowableObjectArray::Handle(thread->zone(),
-                                  isolate->collected_closures());
-  functions.Add(function);
 }
 
 

@@ -47,21 +47,23 @@ RawError* Precompiler::CompileAll(
 
 
 Precompiler::Precompiler(Thread* thread, bool reset_fields) :
-  thread_(thread),
-  zone_(thread->zone()),
-  isolate_(thread->isolate()),
-  reset_fields_(reset_fields),
-  changed_(false),
-  function_count_(0),
-  class_count_(0),
-  selector_count_(0),
-  dropped_function_count_(0),
-  libraries_(GrowableObjectArray::Handle(Z, I->object_store()->libraries())),
-  pending_functions_(GrowableObjectArray::Handle(Z,
-                                                 GrowableObjectArray::New())),
-  collected_closures_(GrowableObjectArray::Handle(Z, I->collected_closures())),
-  sent_selectors_(),
-  error_(Error::Handle(Z)) {
+    thread_(thread),
+    zone_(thread->zone()),
+    isolate_(thread->isolate()),
+    reset_fields_(reset_fields),
+    changed_(false),
+    function_count_(0),
+    class_count_(0),
+    selector_count_(0),
+    dropped_function_count_(0),
+    libraries_(GrowableObjectArray::Handle(Z, I->object_store()->libraries())),
+    pending_functions_(
+        GrowableObjectArray::Handle(Z, GrowableObjectArray::New())),
+    collected_closures_(
+        GrowableObjectArray::Handle(Z, GrowableObjectArray::New())),
+    sent_selectors_(),
+    error_(Error::Handle(Z)) {
+  I->set_collected_closures(collected_closures_);
 }
 
 
@@ -665,10 +667,20 @@ void Precompiler::DropUncompiledFunctions() {
 
       closures = cls.closures();
       if (!closures.IsNull()) {
+        retained_functions = GrowableObjectArray::New();
         for (intptr_t j = 0; j < closures.Length(); j++) {
           function ^= closures.At(j);
-          ASSERT(function.HasCode());
+          if (function.HasCode()) {
+            retained_functions.Add(function);
+          } else {
+            dropped_function_count_++;
+            if (FLAG_trace_precompiler) {
+              THR_Print("Precompilation dropping %s\n",
+                        function.ToLibNamePrefixedQualifiedCString());
+            }
+          }
         }
+        cls.set_closures(retained_functions);
       }
     }
   }

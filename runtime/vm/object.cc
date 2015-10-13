@@ -2341,6 +2341,11 @@ RawFunction* Class::InvocationDispatcherFunctionFromIndex(intptr_t idx) const {
 }
 
 
+void Class::set_closures(const GrowableObjectArray& value) const {
+  StorePointer(&raw_ptr()->closure_functions_, value.raw());
+}
+
+
 void Class::AddClosureFunction(const Function& function) const {
   GrowableObjectArray& closures =
       GrowableObjectArray::Handle(raw_ptr()->closure_functions_);

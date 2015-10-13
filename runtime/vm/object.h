@@ -1160,6 +1160,7 @@ class Class : public Object {
   RawGrowableObjectArray* closures() const {
     return raw_ptr()->closure_functions_;
   }
+  void set_closures(const GrowableObjectArray& value) const;
   void AddClosureFunction(const Function& function) const;
   RawFunction* LookupClosureFunction(intptr_t token_pos) const;
   intptr_t FindClosureIndex(const Function& function) const;
