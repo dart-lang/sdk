@@ -131,9 +131,8 @@ class TypeHierarchyComputer {
       ExecutableElement memberElement = _findMemberElement(classElement);
       item = new TypeHierarchyItem(convertElement(classElement),
           displayName: displayName,
-          memberElement: memberElement != null
-              ? convertElement(memberElement)
-              : null);
+          memberElement:
+              memberElement != null ? convertElement(memberElement) : null);
       _elementItemMap[classElement] = item;
       itemId = _items.length;
       _items.add(item);
@@ -192,6 +191,9 @@ class TypeHierarchyComputer {
         if (result == null && !_pivotFieldFinal) {
           result = mixinElement.lookUpSetter(_pivotName, _pivotLibrary);
         }
+      }
+      if (result == _pivotElement) {
+        return null;
       }
       if (result != null) {
         return result;

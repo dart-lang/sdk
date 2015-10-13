@@ -639,6 +639,56 @@ class D extends C {
         itemD.memberElement.location.offset, findOffset('test() {} // in D'));
   }
 
+  test_member_ofMixin2_method() async {
+    addTestFile('''
+class M1 {
+  void test() {} // in M1
+}
+class M2 {
+  void test() {} // in M2
+}
+class D1 extends Object with M1 {}
+class D2 extends Object with M1, M2 {}
+class D3 extends Object with M2, M1 {}
+class D4 extends Object with M2, M1 {
+  void test() {} // in D4
+}
+''');
+    List<TypeHierarchyItem> items =
+        await _getTypeHierarchy('test() {} // in M1');
+    var itemM1 = items.firstWhere((e) => e.classElement.name == 'M1');
+    var item1 = items.firstWhere((e) => e.classElement.name == 'D1');
+    var item2 = items.firstWhere((e) => e.classElement.name == 'D2');
+    var item3 = items.firstWhere((e) => e.classElement.name == 'D3');
+    var item4 = items.firstWhere((e) => e.classElement.name == 'D4');
+    expect(itemM1, isNotNull);
+    expect(item1, isNotNull);
+    expect(item2, isNotNull);
+    expect(item3, isNotNull);
+    expect(item4, isNotNull);
+    // D1 does not override
+    {
+      Element member1 = item1.memberElement;
+      expect(member1, isNull);
+    }
+    // D2 mixes-in M2 last, which overrides
+    {
+      Element member2 = item2.memberElement;
+      expect(member2, isNotNull);
+      expect(member2.location.offset, findOffset('test() {} // in M2'));
+    }
+    // D3 mixes-in M1 last and does not override itself
+    {
+      Element member3 = item3.memberElement;
+      expect(member3, isNull);
+    }
+    // D4 mixes-in M1 last, but it also overrides
+    {
+      Element member4 = item4.memberElement;
+      expect(member4.location.offset, findOffset('test() {} // in D4'));
+    }
+  }
+
   test_member_ofMixin_getter() async {
     addTestFile('''
 abstract class Base {
