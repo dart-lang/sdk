@@ -407,6 +407,130 @@ TEST_CASE(SafepointTestVM) {
 }
 
 
+TEST_CASE(ThreadIterator_Count) {
+  intptr_t thread_count_0 = 0;
+  intptr_t thread_count_1 = 0;
+
+  {
+    ThreadIterator ti;
+    while (ti.HasNext()) {
+      Thread* thread = ti.Next();
+      EXPECT(thread != NULL);
+      thread_count_0++;
+    }
+  }
+
+  {
+    ThreadIterator ti;
+    while (ti.HasNext()) {
+      Thread* thread = ti.Next();
+      EXPECT(thread != NULL);
+      thread_count_1++;
+    }
+  }
+
+  EXPECT(thread_count_0 > 0);
+  EXPECT(thread_count_1 > 0);
+  EXPECT(thread_count_0 >= thread_count_1);
+}
+
+
+TEST_CASE(ThreadIterator_FindSelf) {
+  Thread* current = Thread::Current();
+
+  bool found_self = false;
+
+  {
+    ThreadIterator ti;
+    while (ti.HasNext()) {
+      Thread* thread = ti.Next();
+      EXPECT(thread != NULL);
+      if (thread == current) {
+        found_self = true;
+        break;
+      }
+    }
+  }
+
+  EXPECT(found_self);
+}
+
+
+class ThreadIteratorTestTask : public ThreadPool::Task {
+ public:
+  ThreadIteratorTestTask(Isolate* isolate,
+                         Monitor* monitor,
+                         Thread** task_thread)
+    : isolate_(isolate),
+      monitor_(monitor),
+      task_thread_(task_thread) {}
+
+  virtual void Run() {
+    Thread* thread = Thread::Current();
+    Thread::EnterIsolateAsHelper(isolate_);
+    MonitorLocker ml(monitor_);
+
+    {
+      bool found_self = false;
+      ThreadIterator it;
+      while (it.HasNext()) {
+        Thread* t = it.Next();
+        if (t == thread) {
+          found_self = true;
+          break;
+        }
+      }
+      EXPECT(found_self);
+    }
+
+    Thread::ExitIsolateAsHelper();
+    *task_thread_ = thread;
+    ml.Notify();
+  }
+
+ private:
+  Isolate* isolate_;
+  Monitor* monitor_;
+  Thread** task_thread_;
+};
+
+
+TEST_CASE(ThreadIterator_AddFindRemove) {
+  Thread* task_thread = NULL;
+  Isolate* isolate = thread->isolate();
+  Monitor* monitor = new Monitor();
+
+  ThreadPool* thread_pool = new ThreadPool();
+
+  {
+    MonitorLocker ml(monitor);
+    EXPECT(task_thread == NULL);
+    thread_pool->Run(new ThreadIteratorTestTask(isolate,
+                                                monitor,
+                                                &task_thread));
+    // Wait to be notified that the task is complete and we have a value in
+    // task_thread.
+    ml.Wait();
+    EXPECT(task_thread != NULL);
+  }
+
+  // Shutdown thread pool so we know that the task thread has completed.
+  delete thread_pool;
+
+  ThreadIterator it;
+  bool found_task_thread = false;
+  while (it.HasNext()) {
+    Thread* t = it.Next();
+    if (t == task_thread) {
+      found_task_thread = true;
+      break;
+    }
+  }
+
+  EXPECT(!found_task_thread);
+}
+
+
 // Test rendezvous of:
 // - helpers in VM code, and
 // - main thread in VM code,

@@ -23,7 +23,8 @@ namespace dart {
 // The single thread local key which stores all the thread local data
 // for a thread.
 ThreadLocalKey Thread::thread_key_ = OSThread::kUnsetThreadLocalKey;
-
+Thread* Thread::thread_list_head_ = NULL;
+Mutex* Thread::thread_list_lock_;
 
 // Remove |thread| from each isolate's thread registry.
 class ThreadPruner : public IsolateVisitor {
@@ -43,8 +44,71 @@ class ThreadPruner : public IsolateVisitor {
 };
 
 
+void Thread::AddThreadToList(Thread* thread) {
+  ASSERT(thread != NULL);
+  ASSERT(thread->isolate() == NULL);
+  MutexLocker ml(thread_list_lock_);
+
+  ASSERT(thread->thread_list_next_ == NULL);
+
+#if defined(DEBUG)
+  {
+    // Ensure that we aren't already in the list.
+    Thread* current = thread_list_head_;
+    while (current != NULL) {
+      ASSERT(current != thread);
+      current = current->thread_list_next_;
+    }
+  }
+#endif
+
+  // Insert at head of list.
+  thread->thread_list_next_ = thread_list_head_;
+  thread_list_head_ = thread;
+}
+
+
+void Thread::RemoveThreadFromList(Thread* thread) {
+  ASSERT(thread != NULL);
+  ASSERT(thread->isolate() == NULL);
+  MutexLocker ml(thread_list_lock_);
+
+  // Handle case where |thread| is head of list.
+  if (thread_list_head_ == thread) {
+    thread_list_head_ = thread->thread_list_next_;
+    thread->thread_list_next_ = NULL;
+    return;
+  }
+
+  Thread* current = thread_list_head_;
+  Thread* previous = NULL;
+
+  // Scan across list and remove |thread|.
+  while (current != NULL) {
+    previous = current;
+    current = current->thread_list_next_;
+    if (current == thread) {
+      // We found |thread|, remove from list.
+      previous->thread_list_next_ = current->thread_list_next_;
+      thread->thread_list_next_ = NULL;
+      return;
+    }
+  }
+
+  UNREACHABLE();
+}
+
+
 static void DeleteThread(void* thread) {
   delete reinterpret_cast<Thread*>(thread);
+}
+
+
+void Thread::Shutdown() {
+  if (thread_list_lock_ != NULL) {
+    delete thread_list_lock_;
+    thread_list_lock_ = NULL;
+  }
 }
 
 
@@ -56,6 +120,7 @@ Thread::~Thread() {
   Isolate::VisitIsolates(&pruner);
   delete log_;
   log_ = NULL;
+  RemoveThreadFromList(this);
 }
 
 
@@ -64,6 +129,7 @@ void Thread::InitOnceBeforeIsolate() {
   thread_key_ = OSThread::CreateThreadLocal(DeleteThread);
   ASSERT(thread_key_ != OSThread::kUnsetThreadLocalKey);
   ASSERT(Thread::Current() == NULL);
+  thread_list_lock_ = new Mutex();
   // Allocate a new Thread and postpone initialization of VM constants for
   // this first thread.
   Thread* thread = new Thread(false);
@@ -127,7 +193,8 @@ Thread::Thread(bool init_vm_constants)
       vm_tag_(0),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
-      reusable_handles_() {
+      reusable_handles_(),
+      thread_list_next_(NULL) {
   ClearState();
 
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
@@ -149,6 +216,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFAULT_INIT)
     InitVMConstants();
   }
   SetCurrent(this);
+  AddThreadToList(this);
 }
 
 
@@ -430,5 +498,37 @@ LEAF_RUNTIME_ENTRY_LIST(COMPUTE_OFFSET)
   UNREACHABLE();
   return -1;
 }
+
+
+ThreadIterator::ThreadIterator() {
+  ASSERT(Thread::thread_list_lock_ != NULL);
+  // Lock the thread list while iterating.
+  Thread::thread_list_lock_->Lock();
+  next_ = Thread::thread_list_head_;
+}
+
+
+ThreadIterator::~ThreadIterator() {
+  ASSERT(Thread::thread_list_lock_ != NULL);
+  // Unlock the thread list when done.
+  Thread::thread_list_lock_->Unlock();
+}
+
+
+bool ThreadIterator::HasNext() const {
+  ASSERT(Thread::thread_list_lock_ != NULL);
+  ASSERT(Thread::thread_list_lock_->IsOwnedByCurrentThread());
+  return next_ != NULL;
+}
+
+
+Thread* ThreadIterator::Next() {
+  ASSERT(Thread::thread_list_lock_ != NULL);
+  ASSERT(Thread::thread_list_lock_->IsOwnedByCurrentThread());
+  Thread* current = next_;
+  next_ = next_->thread_list_next_;
+  return current;
+}
+
 
 }  // namespace dart

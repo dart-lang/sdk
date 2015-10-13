@@ -265,6 +265,8 @@ const char* Dart::Cleanup() {
   Timeline::Shutdown();
   Metric::Cleanup();
 
+  Thread::Shutdown();
+
   return NULL;
 }
 

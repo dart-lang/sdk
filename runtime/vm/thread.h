@@ -153,6 +153,8 @@ class Thread {
   static void InitOnceBeforeIsolate();
   static void InitOnceAfterObjectAndStubCode();
 
+  // Called at VM shutdown
+  static void Shutdown();
   ~Thread();
 
   // The topmost zone used for allocation in this thread.
@@ -413,6 +415,15 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 
   VMHandles reusable_handles_;
 
+  // All |Thread|s are registered in the thread list.
+  Thread* thread_list_next_;
+
+  static Thread* thread_list_head_;
+  static Mutex* thread_list_lock_;
+
+  static void AddThreadToList(Thread* thread);
+  static void RemoveThreadFromList(Thread* thread);
+
   explicit Thread(bool init_vm_constants = true);
 
   void InitVMConstants();
@@ -446,8 +457,29 @@ REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
   friend class ApiZone;
   friend class Isolate;
   friend class StackZone;
+  friend class ThreadIterator;
+  friend class ThreadIteratorTestHelper;
   friend class ThreadRegistry;
+
   DISALLOW_COPY_AND_ASSIGN(Thread);
+};
+
+
+// Note that this takes the thread list lock, prohibiting threads from coming
+// on- or off-line.
+class ThreadIterator : public ValueObject {
+ public:
+  ThreadIterator();
+  ~ThreadIterator();
+
+  // Returns false when there are no more threads left.
+  bool HasNext() const;
+
+  // Returns the current thread and moves forward.
+  Thread* Next();
+
+ private:
+  Thread* next_;
 };
 
 }  // namespace dart
