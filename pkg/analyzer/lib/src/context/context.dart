@@ -583,12 +583,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   List<AnalysisError> computeErrors(Source source) {
     String name = source.shortName;
-    if (AnalysisEngine.isDartFileName(name)) {
-      return computeResult(source, DART_ERRORS);
-    } else if (AnalysisEngine.isHtmlFileName(name)) {
+    if (AnalysisEngine.isHtmlFileName(name)) {
       return computeResult(source, HTML_ERRORS);
     }
-    return AnalysisError.NO_ERRORS;
+    return computeResult(source, DART_ERRORS);
   }
 
   @override
