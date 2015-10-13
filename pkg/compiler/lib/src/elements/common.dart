@@ -406,13 +406,8 @@ abstract class ClassElementCommon implements ClassElement {
 
   @override
   bool implementsInterface(ClassElement intrface) {
-    for (DartType implementedInterfaceType in allSupertypes) {
-      ClassElement implementedInterface = implementedInterfaceType.element;
-      if (identical(implementedInterface, intrface)) {
-        return true;
-      }
-    }
-    return false;
+    return this != intrface &&
+        allSupertypesAndSelf.asInstanceOf(intrface) != null;
   }
 
   @override

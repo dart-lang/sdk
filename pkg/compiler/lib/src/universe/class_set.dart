@@ -102,7 +102,13 @@ class ClassHierarchyNode {
   }
 
   void printOn(StringBuffer sb, String indentation,
-               {bool instantiatedOnly: false}) {
+               {bool instantiatedOnly: false,
+                ClassElement withRespectTo}) {
+
+    bool isRelatedTo(ClassElement subclass) {
+      return subclass.implementsInterface(withRespectTo);
+    }
+
     sb.write('$indentation$cls');
     if (isDirectlyInstantiated) {
       sb.write(' directly');
@@ -118,7 +124,11 @@ class ClassHierarchyNode {
       for (Link<ClassHierarchyNode> link = _directSubclasses;
            !link.isEmpty;
            link = link.tail) {
-        if (instantiatedOnly && !link.head.isInstantiated) {
+        ClassHierarchyNode child = link.head;
+        if (instantiatedOnly && !child.isInstantiated) {
+          continue;
+        }
+        if (withRespectTo != null && !child.subclasses().any(isRelatedTo)) {
           continue;
         }
         if (needsComma) {
@@ -126,8 +136,11 @@ class ClassHierarchyNode {
         } else {
           sb.write('\n');
         }
-        link.head.printOn(
-            sb, '$indentation  ', instantiatedOnly: instantiatedOnly);
+        child.printOn(
+            sb,
+            '$indentation  ',
+            instantiatedOnly: instantiatedOnly,
+            withRespectTo: withRespectTo);
         needsComma = true;
       }
       if (needsComma) {
@@ -139,9 +152,13 @@ class ClassHierarchyNode {
     }
   }
 
-  String dump({String indentation: '', bool instantiatedOnly: false}) {
+  String dump({String indentation: '',
+               bool instantiatedOnly: false,
+               ClassElement withRespectTo}) {
     StringBuffer sb = new StringBuffer();
-    printOn(sb, indentation, instantiatedOnly: instantiatedOnly);
+    printOn(sb, indentation,
+        instantiatedOnly: instantiatedOnly,
+        withRespectTo: withRespectTo);
     return sb.toString();
   }
 

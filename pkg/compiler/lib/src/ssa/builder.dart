@@ -5729,13 +5729,13 @@ class SsaBuilder extends ast.Visitor
       bool isLength = selector.isGetter
           && selector.name == "length";
       if (isLength || selector.isIndex) {
-        TypeMask type = new TypeMask.nonNullExact(
-            element.enclosingClass.declaration, compiler.world);
-        return type.satisfies(backend.jsIndexableClass, compiler.world);
+        return compiler.world.isSubtypeOf(
+            element.enclosingClass.declaration,
+            backend.jsIndexableClass);
       } else if (selector.isIndexSet) {
-        TypeMask type = new TypeMask.nonNullExact(
-            element.enclosingClass.declaration, compiler.world);
-        return type.satisfies(backend.jsMutableIndexableClass, compiler.world);
+        return compiler.world.isSubtypeOf(
+            element.enclosingClass.declaration,
+            backend.jsMutableIndexableClass);
       } else {
         return false;
       }

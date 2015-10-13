@@ -129,7 +129,9 @@ abstract class ClassWorld {
   bool get hasClosedWorldAssumption;
 
   /// Returns a string representation of the closed world.
-  String dump();
+  ///
+  /// If [cls] is provided, the dump will contain only classes related to [cls].
+  String dump([ClassElement cls]);
 }
 
 class World implements ClassWorld {
@@ -543,11 +545,15 @@ class World implements ClassWorld {
   }
 
   @override
-  String dump() {
+  String dump([ClassElement cls]) {
     StringBuffer sb = new StringBuffer();
-    sb.write("Instantiated classes in the closed world:\n");
+    if (cls != null) {
+      sb.write("Classes in the closed world related to $cls:\n");
+    } else {
+      sb.write("Instantiated classes in the closed world:\n");
+    }
     getClassHierarchyNode(compiler.objectClass)
-        .printOn(sb, ' ', instantiatedOnly: true);
+        .printOn(sb, ' ', instantiatedOnly: cls == null, withRespectTo: cls);
     return sb.toString();
   }
 

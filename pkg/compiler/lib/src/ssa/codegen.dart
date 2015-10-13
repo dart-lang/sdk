@@ -1755,8 +1755,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           // If the selector we need to register a typed getter to the
           // [world]. The emitter needs to know if it needs to emit a
           // bound closure for a method.
+
+          // If [superMethod] is mixed in, [superClass] might not be live.
+          // We use the superclass of the access instead.
           TypeMask receiverType =
-              new TypeMask.nonNullExact(superClass, compiler.world);
+              new TypeMask.nonNullExact(node.caller.superclass, compiler.world);
           // TODO(floitsch): we know the target. We shouldn't register a
           // dynamic getter.
           registry.registerDynamicGetter(

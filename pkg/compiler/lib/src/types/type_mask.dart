@@ -122,7 +122,7 @@ abstract class TypeMask implements ReceiverConstraint {
   factory TypeMask.nonNullExact(ClassElement base, ClassWorld classWorld) {
     assert(invariant(base, classWorld.isInstantiated(base),
         message: () => "Cannot create exact type mask for "
-                 "uninstantiated class $base.\n${classWorld.dump()}"));
+                 "uninstantiated class $base.\n${classWorld.dump(base)}"));
     return new FlatTypeMask.nonNullExact(base);
   }
 
