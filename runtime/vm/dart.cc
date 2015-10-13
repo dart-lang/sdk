@@ -256,6 +256,8 @@ const char* Dart::Cleanup() {
 
     TargetCPUFeatures::Cleanup();
     StoreBuffer::ShutDown();
+
+    Thread::Shutdown();
   } else {
     // Shutdown the service isolate.
     ServiceIsolate::Shutdown();
@@ -264,8 +266,6 @@ const char* Dart::Cleanup() {
   CodeObservers::DeleteAll();
   Timeline::Shutdown();
   Metric::Cleanup();
-
-  Thread::Shutdown();
 
   return NULL;
 }

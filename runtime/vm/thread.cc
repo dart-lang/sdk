@@ -24,7 +24,7 @@ namespace dart {
 // for a thread.
 ThreadLocalKey Thread::thread_key_ = OSThread::kUnsetThreadLocalKey;
 Thread* Thread::thread_list_head_ = NULL;
-Mutex* Thread::thread_list_lock_;
+Mutex* Thread::thread_list_lock_ = NULL;
 
 // Remove |thread| from each isolate's thread registry.
 class ThreadPruner : public IsolateVisitor {
@@ -47,6 +47,7 @@ class ThreadPruner : public IsolateVisitor {
 void Thread::AddThreadToList(Thread* thread) {
   ASSERT(thread != NULL);
   ASSERT(thread->isolate() == NULL);
+  ASSERT(thread_list_lock_ != NULL);
   MutexLocker ml(thread_list_lock_);
 
   ASSERT(thread->thread_list_next_ == NULL);
@@ -71,6 +72,7 @@ void Thread::AddThreadToList(Thread* thread) {
 void Thread::RemoveThreadFromList(Thread* thread) {
   ASSERT(thread != NULL);
   ASSERT(thread->isolate() == NULL);
+  ASSERT(thread_list_lock_ != NULL);
   MutexLocker ml(thread_list_lock_);
 
   // Handle case where |thread| is head of list.
@@ -125,11 +127,13 @@ Thread::~Thread() {
 
 
 void Thread::InitOnceBeforeIsolate() {
+  ASSERT(thread_list_lock_ == NULL);
+  thread_list_lock_ = new Mutex();
+  ASSERT(thread_list_lock_ != NULL);
   ASSERT(thread_key_ == OSThread::kUnsetThreadLocalKey);
   thread_key_ = OSThread::CreateThreadLocal(DeleteThread);
   ASSERT(thread_key_ != OSThread::kUnsetThreadLocalKey);
   ASSERT(Thread::Current() == NULL);
-  thread_list_lock_ = new Mutex();
   // Allocate a new Thread and postpone initialization of VM constants for
   // this first thread.
   Thread* thread = new Thread(false);
