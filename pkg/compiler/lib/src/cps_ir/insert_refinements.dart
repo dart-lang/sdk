@@ -4,15 +4,10 @@
 
 library cps_ir.optimization.insert_refinements;
 
-import '../common/names.dart';
-import '../types/types.dart' show
-    TypeMask;
-
+import 'optimizers.dart' show Pass;
 import 'cps_ir_nodes.dart';
-import 'optimizers.dart' show
-    Pass;
-import 'shrinking_reductions.dart' show
-    ParentVisitor;
+import '../common/names.dart';
+import '../types/types.dart' show TypeMask;
 import 'type_mask_system.dart';
 
 /// Inserts [Refinement] nodes in the IR to allow for sparse path-sensitive
@@ -23,7 +18,7 @@ import 'type_mask_system.dart';
 ///
 /// Refinement nodes are inserted after a method invocation to refine the
 /// receiver to the types that can respond to the given selector.
-class InsertRefinements extends RecursiveVisitor implements Pass {
+class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
   String get passName => 'Insert refinement nodes';
 
   final TypeMaskSystem types;
@@ -34,7 +29,6 @@ class InsertRefinements extends RecursiveVisitor implements Pass {
   InsertRefinements(this.types);
 
   void rewrite(FunctionDefinition node) {
-    new ParentVisitor().visit(node);
     visit(node.body);
   }
 
@@ -121,7 +115,8 @@ class InsertRefinements extends RecursiveVisitor implements Pass {
     } else {
       // Filter away receivers that throw on this selector.
       TypeMask type = types.receiverTypeFor(node.selector, node.mask);
-      pushRefinement(cont, new Refinement(receiver, type));
+      Refinement refinement = new Refinement(receiver, type);
+      pushRefinement(cont, refinement);
     }
   }
 

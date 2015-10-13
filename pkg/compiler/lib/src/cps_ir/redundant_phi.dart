@@ -15,16 +15,13 @@ import 'optimizers.dart';
 /// (except for feedback). Redundant parameters are removed from the
 /// continuation signature, all invocations, and replaced within the
 /// continuation body.
-class RedundantPhiEliminator extends RecursiveVisitor implements Pass {
+class RedundantPhiEliminator extends TrampolineRecursiveVisitor implements Pass {
   String get passName => 'Redundant phi elimination';
 
   final Set<Continuation> workSet = new Set<Continuation>();
 
   @override
   void rewrite(FunctionDefinition root) {
-    // Set all parent pointers.
-    new ParentVisitor().visit(root);
-
     // Traverse the tree once to build the work set.
     visit(root);
 

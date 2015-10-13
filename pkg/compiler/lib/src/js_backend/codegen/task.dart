@@ -129,7 +129,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
     });
     traceGraph(pass.passName, cpsFunction);
     dumpTypedIr(pass.passName, cpsFunction);
-    assert(checkCpsIntegrity(cpsFunction));
+    assert(checkCpsIntegrity(cpsFunction, pass.passName));
   }
 
   cps.FunctionDefinition compileToCpsIr(AstElement element) {
@@ -141,6 +141,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
         giveUp(cpsBuilderTask.bailoutMessage);
       }
     }
+    ParentVisitor.setParents(cpsFunction);
     traceGraph('IR Builder', cpsFunction);
     dumpTypedIr('IR Builder', cpsFunction);
     // Eliminating redundant phis before the unsugaring pass will make it
@@ -184,8 +185,8 @@ class CpsFunctionCompiler implements FunctionCompiler {
     }
   }
 
-  static bool checkCpsIntegrity(cps.FunctionDefinition node) {
-    new CheckCpsIntegrity().check(node);
+  static bool checkCpsIntegrity(cps.FunctionDefinition node, String pass) {
+    new CheckCpsIntegrity().check(node, pass);
     return true; // So this can be used from assert().
   }
 
