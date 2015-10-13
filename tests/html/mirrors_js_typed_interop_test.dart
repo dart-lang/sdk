@@ -29,7 +29,7 @@ external Foo get foo;
 @Js()
 class Foo {
   external int get x;
-  external int set x(v);
+  external set x(v);
   external num multiplyBy2(num y);
 }
 
