@@ -68,7 +68,7 @@ abstract class MapMixin<K, V> implements Map<K, V> {
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
-    if (keys.contains(key)) {
+    if (containsKey(key)) {
       return this[key];
     }
     return this[key] = ifAbsent();
