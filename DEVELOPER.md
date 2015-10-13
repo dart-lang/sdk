@@ -7,7 +7,8 @@
 ## Submitting changes.
 
 * Submit changes in this repo first.
-* Update the sdk/DEPS to use the latest hash of this repo.
+* Update the sdk/DEPS and sdk/tools/deps/dartium.deps/DEPS to use the latest
+  hash of this repo.
 * Submit dart2js changes together with the roll in DEPS.
 
 ## Updating the dart2js\_info dart docs
