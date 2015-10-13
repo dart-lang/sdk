@@ -402,12 +402,15 @@ class Driver implements ServerStarter {
     //
     ServerPlugin serverPlugin = new ServerPlugin();
     List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.supportedPlugins);
     plugins.add(serverPlugin);
     plugins.addAll(_userDefinedPlugins);
     plugins.add(linterPlugin);
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
+
+    // Defer to the extension manager in AE for plugin registration.
+    AnalysisEngine.instance.userDefinedPlugins = plugins;
+    // Force registration.
+    AnalysisEngine.instance.taskManager;
+
     //
     // Create the sockets and start listening for requests.
     //
