@@ -327,6 +327,8 @@ class CodeChecker extends RecursiveAstVisitor {
   final TypeRules rules;
   final AnalysisErrorListener reporter;
   final _OverrideChecker _overrideChecker;
+  final bool _hints;
+
   bool _failure = false;
   bool get failure => _failure || _overrideChecker._failure;
 
@@ -335,9 +337,11 @@ class CodeChecker extends RecursiveAstVisitor {
     _overrideChecker._failure = false;
   }
 
-  CodeChecker(TypeRules rules, AnalysisErrorListener reporter)
+  CodeChecker(TypeRules rules, AnalysisErrorListener reporter,
+      {bool hints: false})
       : rules = rules,
         reporter = reporter,
+        _hints = hints,
         _overrideChecker = new _OverrideChecker(rules, reporter);
 
   @override
@@ -924,7 +928,9 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void _recordDynamicInvoke(AstNode node, AstNode target) {
-    reporter.onError(new DynamicInvoke(rules, node).toAnalysisError());
+    if (_hints) {
+      reporter.onError(new DynamicInvoke(rules, node).toAnalysisError());
+    }
     // TODO(jmesserly): we may eventually want to record if the whole operation
     // (node) was dynamic, rather than the target, but this is an easier fit
     // with what we used to do.
@@ -934,8 +940,12 @@ class CodeChecker extends RecursiveAstVisitor {
   void _recordMessage(StaticInfo info) {
     if (info == null) return;
     var error = info.toAnalysisError();
-    if (error.errorCode.errorSeverity == ErrorSeverity.ERROR) _failure = true;
-    reporter.onError(error);
+
+    var severity = error.errorCode.errorSeverity;
+    if (severity == ErrorSeverity.ERROR) _failure = true;
+    if (severity != ErrorSeverity.INFO || _hints) {
+      reporter.onError(error);
+    }
 
     if (info is CoercionInfo) {
       // TODO(jmesserly): if we're run again on the same AST, we'll produce the

@@ -75,8 +75,9 @@ void testChecker(String name, Map<String, String> testFiles) {
         context.resolveCompilationUnit2(mainSource, mainSource);
 
     var collector = new _ErrorCollector();
-    var checker =
-        new CodeChecker(new TypeRules(context.typeProvider), collector);
+    var checker = new CodeChecker(
+        new TypeRules(context.typeProvider), collector,
+        hints: true);
 
     // Extract expectations from the comments in the test files, and
     // check that all errors we emit are included in the expected map.

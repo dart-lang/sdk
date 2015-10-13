@@ -4016,9 +4016,7 @@ void main() {
 
     // validate
     _fillErrorListener(STRONG_MODE_ERRORS);
-    var errors = errorListener.errors;
-    expect(errors.length, 1);
-    expect(errors[0].errorCode.name, "dev_compiler.DynamicInvoke");
+    expect(errorListener.errors, isEmpty);
 
     List<Statement> statements = getStatementsInTopLevelFunction(unit, "main");
     ExpressionStatement statement = statements[1];
