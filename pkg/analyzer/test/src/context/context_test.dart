@@ -664,6 +664,15 @@ main() {}''');
     });
   }
 
+  void test_configurationData() {
+    var key = new ResultDescriptor('test_key', '');
+    var testData = ['test', 'data'];
+    context.setConfigurationData(key, testData);
+    expect(context.getConfigurationData(key), testData);
+    var unusedKey = new ResultDescriptor('unused_key', '');
+    expect(context.getConfigurationData(unusedKey), null);
+  }
+
   void test_dispose() {
     expect(context.isDisposed, isFalse);
     context.dispose();

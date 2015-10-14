@@ -115,6 +115,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   AnalysisCache _cache;
 
   /**
+   * Configuration data associated with this context.
+   */
+  final HashMap<ResultDescriptor, Object> _configurationData =
+      new HashMap<ResultDescriptor, Object>();
+
+  /**
    * The task manager used to manage the tasks used to analyze code.
    */
   TaskManager _taskManager;
@@ -767,6 +773,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  Object getConfigurationData(ResultDescriptor key) => _configurationData[key];
+
+  @override
   TimestampedData<String> getContents(Source source) {
     String contents = _contentCache.getContents(source);
     if (contents != null) {
@@ -1201,6 +1210,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _onSourcesChangedController.add(new SourcesChangedEvent.changedRange(
           source, contents, offset, oldLength, newLength));
     }
+  }
+
+  @override
+  void setConfigurationData(ResultDescriptor key, Object data) {
+    _configurationData[key] = data;
   }
 
   @override

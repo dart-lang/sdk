@@ -590,6 +590,14 @@ abstract class AnalysisContext {
       Source unitSource, Source librarySource);
 
   /**
+   * Return configuration data associated with the given key or `null` if no
+   * state has been associated with the given [key].
+   *
+   * See [setConfigurationData].
+   */
+  Object getConfigurationData(ResultDescriptor key);
+
+  /**
    * Return the contents and timestamp of the given [source].
    *
    * This method should be used rather than the method [Source.getContents]
@@ -886,6 +894,13 @@ abstract class AnalysisContext {
       Source source, String contents, int offset, int oldLength, int newLength);
 
   /**
+   * Associate this configuration [data] object with the given descriptor [key].
+   *
+   * See [getConfigurationData].
+   */
+  void setConfigurationData(ResultDescriptor key, Object data);
+
+  /**
    * Set the contents of the given [source] to the given [contents] and mark the
    * source as having changed. This has the effect of overriding the default
    * contents of the source. If the contents are `null` the override is removed
@@ -936,6 +951,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * client has not provided a name.
    */
   String name;
+
+  /**
+   * Configuration data associated with this context.
+   */
+  final HashMap<ResultDescriptor, Object> _configurationData =
+      new HashMap<ResultDescriptor, Object>();
 
   /**
    * The set of analysis options controlling the behavior of this context.
@@ -1940,6 +1961,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  Object getConfigurationData(ResultDescriptor key) => _configurationData[key];
+
+  @override
   TimestampedData<String> getContents(Source source) {
     String contents = _contentCache.getContents(source);
     if (contents != null) {
@@ -2633,6 +2657,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _onSourcesChangedController.add(new SourcesChangedEvent.changedRange(
           source, contents, offset, oldLength, newLength));
     }
+  }
+
+  @override
+  void setConfigurationData(ResultDescriptor key, Object data) {
+    _configurationData[key] = data;
   }
 
   @override

@@ -865,6 +865,15 @@ main() {}''');
     });
   }
 
+  void test_configurationData() {
+    var key = new newContext.ResultDescriptor('test_key', '');
+    var testData = ['test', 'data'];
+    _context.setConfigurationData(key, testData);
+    expect(_context.getConfigurationData(key), testData);
+    var unusedKey = new newContext.ResultDescriptor('unused_key', '');
+    expect(_context.getConfigurationData(unusedKey), null);
+  }
+
   void test_dispose() {
     expect(_context.isDisposed, isFalse);
     _context.dispose();
@@ -5949,6 +5958,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
+  Object getConfigurationData(newContext.ResultDescriptor key) {
+    fail("Unexpected invocation of getConfigurationData");
+  }
+
+  @override
   TimestampedData<String> getContents(Source source) {
     fail("Unexpected invocation of getContents");
     return null;
@@ -6163,6 +6177,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
   void setChangedContents(Source source, String contents, int offset,
       int oldLength, int newLength) {
     fail("Unexpected invocation of setChangedContents");
+  }
+
+  @override
+  void setConfigurationData(newContext.ResultDescriptor key, Object data) {
+    fail("Unexpected invocation of setConfigurationData");
   }
 
   @override
