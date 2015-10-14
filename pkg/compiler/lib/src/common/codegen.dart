@@ -19,8 +19,7 @@ import '../elements/elements.dart' show
     FunctionElement,
     LocalFunctionElement;
 import '../enqueue.dart' show
-    CodegenEnqueuer,
-    WorldImpact;
+    CodegenEnqueuer;
 import '../js_backend/js_backend.dart' show
     JavaScriptBackend;
 import '../resolution/tree_elements.dart' show
@@ -29,6 +28,8 @@ import '../universe/selector.dart' show
     Selector;
 import '../universe/universe.dart' show
     UniverseSelector;
+import '../universe/world_impact.dart' show
+    WorldImpact;
 import '../util/util.dart' show
     Setlet;
 import 'registry.dart' show

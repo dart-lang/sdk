@@ -36,8 +36,6 @@ import '../elements/modelx.dart' show
     ParameterMetadataAnnotation,
     SetterElementX,
     TypedefElementX;
-import '../enqueue.dart' show
-    WorldImpact;
 import '../tokens/token.dart' show
     isBinaryOperator,
     isMinusOperator,
@@ -45,6 +43,8 @@ import '../tokens/token.dart' show
     isUnaryOperator,
     isUserDefinableOperator;
 import '../tree/tree.dart';
+import '../universe/world_impact.dart' show
+    WorldImpact;
 import '../util/util.dart' show
     Link,
     LinkBuilder,

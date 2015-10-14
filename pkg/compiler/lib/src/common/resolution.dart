@@ -26,14 +26,15 @@ import '../elements/elements.dart' show
     TypedefElement,
     TypeVariableElement;
 import '../enqueue.dart' show
-    ResolutionEnqueuer,
-    WorldImpact;
+    ResolutionEnqueuer;
 import '../tree/tree.dart' show
     AsyncForIn,
     Send,
     TypeAnnotation;
 import '../universe/universe.dart' show
     UniverseSelector;
+import '../universe/world_impact.dart' show
+    WorldImpact;
 import '../util/util.dart' show
     Setlet;
 import 'registry.dart' show

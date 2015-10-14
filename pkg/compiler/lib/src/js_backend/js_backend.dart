@@ -48,9 +48,7 @@ import '../elements/visitor.dart' show
     BaseElementVisitor;
 import '../enqueue.dart' show
     Enqueuer,
-    ResolutionEnqueuer,
-    WorldImpact;
-import '../helpers/helpers.dart';
+    ResolutionEnqueuer;
 import '../io/code_output.dart';
 import '../io/source_information.dart' show
     SourceInformationStrategy,
@@ -87,6 +85,8 @@ import '../universe/selector.dart' show
     Selector,
     SelectorKind;
 import '../universe/universe.dart';
+import '../universe/world_impact.dart' show
+    WorldImpact;
 import '../util/characters.dart';
 import '../util/util.dart';
 import '../world.dart' show

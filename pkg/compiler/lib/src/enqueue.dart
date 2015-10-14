@@ -51,6 +51,8 @@ import 'types/types.dart' show
 import 'universe/selector.dart' show
     Selector;
 import 'universe/universe.dart';
+import 'universe/world_impact.dart' show
+    WorldImpact;
 import 'util/util.dart' show
     Link,
     Setlet;
@@ -83,61 +85,6 @@ class EnqueueTask extends CompilerTask {
   void forgetElement(Element element) {
     resolution.forgetElement(element);
     codegen.forgetElement(element);
-  }
-}
-
-class WorldImpact {
-  const WorldImpact();
-
-  Iterable<UniverseSelector> get dynamicInvocations =>
-      const <UniverseSelector>[];
-  Iterable<UniverseSelector> get dynamicGetters => const <UniverseSelector>[];
-  Iterable<UniverseSelector> get dynamicSetters => const <UniverseSelector>[];
-
-  // TODO(johnniwinther): Split this into more precise subsets.
-  Iterable<Element> get staticUses => const <Element>[];
-
-  // TODO(johnniwinther): Replace this by called constructors with type
-  // arguments.
-  Iterable<InterfaceType> get instantiatedTypes => const <InterfaceType>[];
-
-  // TODO(johnniwinther): Collect checked types for checked mode separately to
-  // support serialization.
-  Iterable<DartType> get isChecks => const <DartType>[];
-
-  Iterable<DartType> get checkedModeChecks => const <DartType>[];
-
-  Iterable<DartType> get asCasts => const <DartType>[];
-
-  Iterable<MethodElement> get closurizedFunctions => const <MethodElement>[];
-
-  Iterable<LocalFunctionElement> get closures => const <LocalFunctionElement>[];
-
-  Iterable<DartType> get typeLiterals => const <DartType>[];
-
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-
-    void add(String title, Iterable iterable) {
-      if (iterable.isNotEmpty) {
-        sb.write('\n $title:');
-        iterable.forEach((e) => sb.write('\n  $e'));
-      }
-    }
-
-    add('dynamic invocations', dynamicInvocations);
-    add('dynamic getters', dynamicGetters);
-    add('dynamic setters', dynamicSetters);
-    add('static uses', staticUses);
-    add('instantiated types', instantiatedTypes);
-    add('is-checks', isChecks);
-    add('checked-mode checks', checkedModeChecks);
-    add('as-casts', asCasts);
-    add('closurized functions', closurizedFunctions);
-    add('closures', closures);
-    add('type literals', typeLiterals);
-
-    return sb.toString();
   }
 }
 

@@ -36,8 +36,7 @@ import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../enqueue.dart' show
     Enqueuer,
-    ResolutionEnqueuer,
-    WorldImpact;
+    ResolutionEnqueuer;
 import '../library_loader.dart' show
     LoadedLibraries;
 import '../mirror_renamer/mirror_renamer.dart';
@@ -51,6 +50,8 @@ import '../universe/selector.dart' show
     Selector;
 import '../universe/universe.dart' show
     UniverseSelector;
+import '../universe/world_impact.dart' show
+    WorldImpact;
 import '../util/util.dart';
 import 'backend_ast_to_frontend_ast.dart' as backend2frontend;
 

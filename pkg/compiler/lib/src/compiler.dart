@@ -69,8 +69,7 @@ import 'enqueue.dart' show
     Enqueuer,
     EnqueueTask,
     ResolutionEnqueuer,
-    QueueFilter,
-    WorldImpact;
+    QueueFilter;
 import 'io/source_information.dart' show
     SourceInformation;
 import 'js_backend/js_backend.dart' as js_backend show
@@ -127,6 +126,8 @@ import 'universe/selector.dart' show
     Selector;
 import 'universe/universe.dart' show
     Universe;
+import 'universe/world_impact.dart' show
+    WorldImpact;
 import 'util/util.dart' show
     Link,
     Setlet;

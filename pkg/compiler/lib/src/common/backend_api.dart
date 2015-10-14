@@ -31,8 +31,7 @@ import '../elements/elements.dart' show
 import '../enqueue.dart' show
     Enqueuer,
     CodegenEnqueuer,
-    ResolutionEnqueuer,
-    WorldImpact;
+    ResolutionEnqueuer;
 import '../io/code_output.dart' show
     CodeBuffer;
 import '../io/source_information.dart' show
@@ -53,6 +52,8 @@ import '../tree/tree.dart' show
     Send;
 import '../universe/call_structure.dart' show
     CallStructure;
+import '../universe/world_impact.dart' show
+    WorldImpact;
 
 import 'codegen.dart' show
     CodegenWorkItem;

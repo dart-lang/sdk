@@ -32,8 +32,6 @@ import 'elements/elements.dart' show
     PrefixElement,
     ScopeContainerElement,
     TypedefElement;
-import 'enqueue.dart' show
-    WorldImpact;
 import 'js_backend/js_backend.dart' show
     JavaScriptBackend;
 import 'resolution/resolution.dart' show
@@ -49,6 +47,8 @@ import 'tree/tree.dart' show
     LiteralString,
     NewExpression,
     Node;
+import 'universe/world_impact.dart' show
+    WorldImpact;
 import 'util/setlet.dart' show
     Setlet;
 import 'util/uri_extras.dart' as uri_extras;
