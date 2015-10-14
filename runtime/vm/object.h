@@ -1051,10 +1051,8 @@ class Class : public Object {
   // Note this returns false for mixin application aliases.
   bool IsMixinApplication() const;
 
-  RawClass* patch_class() const {
-    return raw_ptr()->patch_class_;
-  }
-  void set_patch_class(const Class& patch_class) const;
+  RawClass* GetPatchClass() const;
+  void SetPatchClass(const Class& patch_class) const;
 
   // Interfaces is an array of Types.
   RawArray* interfaces() const { return raw_ptr()->interfaces_; }
@@ -3387,6 +3385,10 @@ class Library : public Object {
 
   intptr_t num_anonymous_classes() const { return raw_ptr()->num_anonymous_; }
   RawArray* anonymous_classes() const { return raw_ptr()->anonymous_classes_; }
+
+  RawGrowableObjectArray* patch_classes() const {
+    return raw_ptr()->patch_classes_;
+  }
 
   // Library imports.
   RawArray* imports() const { return raw_ptr()->imports_; }

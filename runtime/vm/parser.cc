@@ -4635,7 +4635,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     // The patched class must not be finalized yet.
     const Class& orig_class = Class::Cast(obj);
     ASSERT(!orig_class.is_finalized());
-    orig_class.set_patch_class(cls);
+    orig_class.SetPatchClass(cls);
     cls.set_is_patch();
   }
   pending_classes.Add(cls, Heap::kOld);

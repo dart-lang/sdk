@@ -249,7 +249,7 @@ static void AddRelatedClassesToList(
   // Add patch classes if they exist to the parse list if they have not already
   // been parsed and patched. Mark the class as parsed so that we don't
   // recursively add it back into the list.
-  parse_class ^= cls.patch_class();
+  parse_class ^= cls.GetPatchClass();
   if (!parse_class.IsNull()) {
     if (!parse_class.is_finalized() && !parse_class.is_marked_for_parsing()) {
       patch_list->Add(parse_class);

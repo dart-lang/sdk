@@ -3641,9 +3641,25 @@ bool Class::IsMixinApplication() const {
 }
 
 
-void Class::set_patch_class(const Class& cls) const {
-  ASSERT(patch_class() == Class::null());
-  StorePointer(&raw_ptr()->patch_class_, cls.raw());
+void Class::SetPatchClass(const Class& cls) const {
+  ASSERT(GetPatchClass() == Class::null());
+  const GrowableObjectArray& patch_classes =
+      GrowableObjectArray::Handle(Library::Handle(library()).patch_classes());
+  patch_classes.Add(cls);
+}
+
+
+RawClass* Class::GetPatchClass() const {
+  const GrowableObjectArray& patch_classes =
+      GrowableObjectArray::Handle(Library::Handle(library()).patch_classes());
+  Class& pc = Class::Handle();
+  for (intptr_t i = 0; i < patch_classes.Length(); i++) {
+    pc ^= patch_classes.At(i);
+    if (pc.Name() == this->Name()) {  // Names are canonicalized.
+      return pc.raw();
+    }
+  }
+  return Class::null();
 }
 
 
@@ -9588,19 +9604,12 @@ RawArray* Library::LoadedScripts() const {
         GrowableObjectArray::Handle(GrowableObjectArray::New(8));
     Object& entry = Object::Handle();
     Class& cls = Class::Handle();
-    Class& patch_cls = Class::Handle();
     Script& owner_script = Script::Handle();
-    Script& patch_script = Script::Handle();
     DictionaryIterator it(*this);
     while (it.HasNext()) {
       entry = it.GetNext();
       if (entry.IsClass()) {
         owner_script = Class::Cast(entry).script();
-        patch_cls = Class::Cast(entry).patch_class();
-        if (!patch_cls.IsNull()) {
-          patch_script = patch_cls.script();
-          AddScriptIfUnique(scripts, patch_script);
-        }
       } else if (entry.IsFunction()) {
         owner_script = Function::Cast(entry).script();
       } else if (entry.IsField()) {
@@ -9609,6 +9618,14 @@ RawArray* Library::LoadedScripts() const {
       } else {
         continue;
       }
+      AddScriptIfUnique(scripts, owner_script);
+    }
+
+    // Add all scripts from patch classes.
+    GrowableObjectArray& patches = GrowableObjectArray::Handle(patch_classes());
+    for (intptr_t i = 0; i < patches.Length(); i++) {
+      cls ^= patches.At(i);
+      owner_script = cls.script();
       AddScriptIfUnique(scripts, owner_script);
     }
 
@@ -10005,6 +10022,9 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
                       GrowableObjectArray::New(4, Heap::kOld));
   result.StorePointer(&result.raw_ptr()->anonymous_classes_,
                       Object::empty_array().raw());
+  result.StorePointer(&result.raw_ptr()->patch_classes_,
+                      GrowableObjectArray::New(Object::empty_array(),
+                                               Heap::kOld));
   result.StoreNonPointer(&result.raw_ptr()->num_anonymous_, 0);
   result.StorePointer(&result.raw_ptr()->imports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->exports_, Object::empty_array().raw());
@@ -10060,7 +10080,7 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 RawObject* Library::Evaluate(const String& expr,
                              const Array& param_names,
                              const Array& param_values) const {
-  // Take or make a fake top-level class and evaluate the expression
+  // Take a top-level class and evaluate the expression
   // as a static function of the class.
   Class& top_level_class = Class::Handle();
   Array& top_level_classes = Array::Handle(anonymous_classes());

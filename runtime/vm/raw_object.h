@@ -658,7 +658,6 @@ class RawClass : public RawObject {
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawAbstractType* super_type_;
   RawType* mixin_;  // Generic mixin type, e.g. M<T>, not M<int>.
-  RawClass* patch_class_;
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* constants_;  // Canonicalized values of this class.
   RawObject* canonical_types_;  // An array of canonicalized types of this class
@@ -976,6 +975,7 @@ class RawLibrary : public RawObject {
   RawArray* dictionary_;         // Top-level names in this library.
   RawGrowableObjectArray* metadata_;  // Metadata on classes, methods etc.
   RawArray* anonymous_classes_;  // Classes containing top-level elements.
+  RawGrowableObjectArray* patch_classes_;
   RawArray* imports_;            // List of Namespaces imported without prefix.
   RawArray* exports_;            // List of re-exported Namespaces.
   RawInstance* load_error_;      // Error iff load_state_ == kLoadError.
