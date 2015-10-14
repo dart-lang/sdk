@@ -4011,10 +4011,6 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
         "%s expects argument 'number_of_arguments' to be non-negative.",
         CURRENT_FUNC);
   }
-  const String& constructor_name = Api::UnwrapStringHandle(Z, name);
-  if (constructor_name.IsNull()) {
-    RETURN_TYPE_ERROR(Z, name, String);
-  }
   const Instance& instance = Api::UnwrapInstanceHandle(Z, object);
   if (instance.IsNull()) {
     RETURN_TYPE_ERROR(Z, object, Instance);
@@ -4026,13 +4022,18 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
   // once for the same object.
 
   // Construct name of the constructor to invoke.
+  const String& constructor_name = Api::UnwrapStringHandle(Z, name);
   const Type& type_obj = Type::Handle(Z, instance.GetType());
   const Class& cls = Class::Handle(Z, type_obj.type_class());
   const String& class_name = String::Handle(Z, cls.Name());
   const Array& strings = Array::Handle(Z, Array::New(3));
   strings.SetAt(0, class_name);
   strings.SetAt(1, Symbols::Dot());
-  strings.SetAt(2, constructor_name);
+  if (constructor_name.IsNull()) {
+    strings.SetAt(2, Symbols::Empty());
+  } else {
+    strings.SetAt(2, constructor_name);
+  }
   const String& dot_name = String::Handle(Z, String::ConcatAll(strings));
   const TypeArguments& type_arguments =
       TypeArguments::Handle(Z, type_obj.arguments());

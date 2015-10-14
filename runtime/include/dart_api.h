@@ -2103,8 +2103,8 @@ DART_EXPORT Dart_Handle Dart_GetDataFromByteBuffer(Dart_Handle byte_buffer);
  *
  * \param type Type of object to be constructed.
  * \param constructor_name The name of the constructor to invoke.  Use
- *   Dart_Null() to invoke the unnamed constructor.  This name should
- *   not include the name of the class.
+ *   Dart_Null() or Dart_EmptyString() to invoke the unnamed constructor.
+ *   This name should not include the name of the class.
  * \param number_of_arguments Size of the arguments array.
  * \param arguments An array of arguments to the constructor.
  *
@@ -2197,6 +2197,7 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
  *
  * \param target An object.
  * \param name The name of the constructor to invoke.
+ *   Use Dart_Null() or Dart_EmptyString() to invoke the unnamed constructor.
  * \param number_of_arguments Size of the arguments array.
  * \param arguments An array of arguments to the function.
  *

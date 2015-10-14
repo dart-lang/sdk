@@ -4253,7 +4253,7 @@ TEST_CASE(FieldAccess) {
   Dart_Handle url = NewString("library_url");
   Dart_Handle source = NewString(kImportedScriptChars);
   Dart_Handle imported_lib = Dart_LoadLibrary(url, source, 0, 0);
-  Dart_Handle prefix = NewString("");
+  Dart_Handle prefix = Dart_EmptyString();
   EXPECT_VALID(imported_lib);
   Dart_Handle result = Dart_LibraryImportLibrary(lib, imported_lib, prefix);
   EXPECT_VALID(result);
@@ -5126,7 +5126,7 @@ TEST_CASE(New) {
   Dart_Handle bad_args[1];
   bad_args[0] = Dart_NewApiError("myerror");
 
-  // Invoke the unnamed constructor.
+  // Allocate and Invoke the unnamed constructor passing in Dart_Null.
   Dart_Handle result = Dart_New(type, Dart_Null(), 0, NULL);
   EXPECT_VALID(result);
   bool instanceof = false;
@@ -5146,8 +5146,8 @@ TEST_CASE(New) {
   foo = Dart_GetField(obj, NewString("foo"));
   EXPECT(Dart_IsNull(foo));
 
-  // Invoke the unnamed constructor with an empty string.
-  result = Dart_New(type, NewString(""), 0, NULL);
+  // Allocate and Invoke the unnamed constructor passing in an empty string.
+  result = Dart_New(type, Dart_EmptyString(), 0, NULL);
   EXPECT_VALID(result);
   instanceof = false;
   EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceof));
@@ -5163,7 +5163,15 @@ TEST_CASE(New) {
   instanceof = false;
   EXPECT_VALID(Dart_ObjectIsType(obj, type, &instanceof));
   EXPECT(instanceof);
-  result = Dart_InvokeConstructor(obj, NewString(""), 0, NULL);
+  // Use the empty string to invoke the unnamed constructor.
+  result = Dart_InvokeConstructor(obj, Dart_EmptyString(), 0, NULL);
+  EXPECT_VALID(result);
+  int_value = 0;
+  foo = Dart_GetField(result, NewString("foo"));
+  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+  EXPECT_EQ(7, int_value);
+  // use Dart_Null to invoke the unnamed constructor.
+  result = Dart_InvokeConstructor(obj, Dart_Null(), 0, NULL);
   EXPECT_VALID(result);
   int_value = 0;
   foo = Dart_GetField(result, NewString("foo"));
