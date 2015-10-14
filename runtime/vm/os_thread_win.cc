@@ -518,7 +518,7 @@ extern void ThreadCleanupOnExit();
 #endif  // _WIN64
 
 // Static callback function to call with each thread termination.
-void NTAPI OnThreadExit(PVOID module, DWORD reason, PVOID reserved) {
+void NTAPI OnDartThreadExit(PVOID module, DWORD reason, PVOID reserved) {
   // On XP SP0 & SP1, the DLL_PROCESS_ATTACH is never seen. It is sent on SP2+
   // and on W2K and W2K3. So don't assume it is sent.
   if (DLL_THREAD_DETACH == reason || DLL_PROCESS_DETACH == reason) {
@@ -543,7 +543,8 @@ void NTAPI OnThreadExit(PVOID module, DWORD reason, PVOID reserved) {
 extern "C" {
 // The linker must not discard p_thread_callback_dart.  (We force a reference
 // to this variable with a linker /INCLUDE:symbol pragma to ensure that.) If
-// this variable is discarded, the OnThreadExit function will never be called.
+// this variable is discarded, the OnDartThreadExit function will never be
+// called.
 #ifdef _WIN64
 
 // .CRT section is merged with .rdata on x64 so it must be constant data.
@@ -551,7 +552,7 @@ extern "C" {
 // When defining a const variable, it must have external linkage to be sure the
 // linker doesn't discard it.
 extern const PIMAGE_TLS_CALLBACK p_thread_callback_dart;
-const PIMAGE_TLS_CALLBACK p_thread_callback_dart = OnThreadExit;
+const PIMAGE_TLS_CALLBACK p_thread_callback_dart = OnDartThreadExit;
 
 // Reset the default section.
 #pragma const_seg()
@@ -559,7 +560,7 @@ const PIMAGE_TLS_CALLBACK p_thread_callback_dart = OnThreadExit;
 #else  // _WIN64
 
 #pragma data_seg(".CRT$XLB")
-PIMAGE_TLS_CALLBACK p_thread_callback_dart = OnThreadExit;
+PIMAGE_TLS_CALLBACK p_thread_callback_dart = OnDartThreadExit;
 
 // Reset the default section.
 #pragma data_seg()
