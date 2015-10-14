@@ -356,7 +356,7 @@ Function _getSvgFunction(String key) {
 var _knownCustomElements = new Map<String, Map<Type, String>>();
 
 void _addCustomElementType(String tagName, Type dartClass, [String extendTag]) {
-  _knownCustomElements[tagName] = 
+  _knownCustomElements[tagName] =
       {'type': dartClass, 'extends': extendTag != null ? extendTag : "" };
 }
 
@@ -445,13 +445,6 @@ String _getCustomElementName(element) {
 
   return tag;
 }
-
-Rectangle make_dart_rectangle(r) =>
-    r == null ? null : new Rectangle(
-    js.JsNative.getProperty(r, 'left'),
-    js.JsNative.getProperty(r, 'top'),
-    js.JsNative.getProperty(r, 'width'),
-    js.JsNative.getProperty(r, 'height'));
 
 /// An abstract class for all DOM objects we wrap in dart:html and related
 ///  libraries.
@@ -821,7 +814,6 @@ class DartHtmlDomObject extends NativeFieldWrapperClass2 {}
 
 unwrap_jso(dartClass_instance) => dartClass_instance;
 wrap_jso(jsObject) => jsObject;
-make_dart_rectangle(r) => r;
 convertDartToNative_Dictionary(Map dict) => dict;
 List convertDartToNative_StringArray(List<String> input) => input;
 convertDartToNative_List(List input) => input;

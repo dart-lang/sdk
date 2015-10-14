@@ -1111,7 +1111,7 @@ Function _getSvgFunction(String key) {
 var _knownCustomElements = new Map<String, Map<Type, String>>();
 
 void _addCustomElementType(String tagName, Type dartClass, [String extendTag]) {
-  _knownCustomElements[tagName] = 
+  _knownCustomElements[tagName] =
       {'type': dartClass, 'extends': extendTag != null ? extendTag : "" };
 }
 
@@ -1200,13 +1200,6 @@ String _getCustomElementName(element) {
 
   return tag;
 }
-
-Rectangle make_dart_rectangle(r) =>
-    r == null ? null : new Rectangle(
-    js.JsNative.getProperty(r, 'left'),
-    js.JsNative.getProperty(r, 'top'),
-    js.JsNative.getProperty(r, 'width'),
-    js.JsNative.getProperty(r, 'height'));
 
 /// An abstract class for all DOM objects we wrap in dart:html and related
 ///  libraries.
@@ -37290,10 +37283,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
