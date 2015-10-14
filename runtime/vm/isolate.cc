@@ -788,7 +788,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       trace_buffer_(NULL),
       profiler_data_(NULL),
       tag_table_(GrowableObjectArray::null()),
-      collected_closures_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
       background_compilation_queue_(GrowableObjectArray::null()),
       pending_service_extension_calls_(GrowableObjectArray::null()),
@@ -1779,9 +1778,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit the tag table which is stored in the isolate.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&tag_table_));
 
-  // Visit array of closures pending precompilation.
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&collected_closures_));
-
   visitor->VisitPointer(reinterpret_cast<RawObject**>(
       &background_compilation_queue_));
 
@@ -2003,11 +1999,6 @@ void Isolate::set_current_tag(const UserTag& tag) {
 
 void Isolate::set_default_tag(const UserTag& tag) {
   default_tag_ = tag.raw();
-}
-
-
-void Isolate::set_collected_closures(const GrowableObjectArray& value) {
-  collected_closures_ = value.raw();
 }
 
 

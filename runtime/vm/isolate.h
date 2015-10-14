@@ -629,11 +629,6 @@ class Isolate : public BaseIsolate {
   RawUserTag* default_tag() const { return default_tag_; }
   void set_default_tag(const UserTag& tag);
 
-  RawGrowableObjectArray* collected_closures() const {
-    return collected_closures_;
-  }
-  void set_collected_closures(const GrowableObjectArray& value);
-
   RawGrowableObjectArray* background_compilation_queue() const {
     return background_compilation_queue_;
   }
@@ -828,7 +823,6 @@ class Isolate : public BaseIsolate {
   RawGrowableObjectArray* tag_table_;
 
 
-  RawGrowableObjectArray* collected_closures_;
   RawGrowableObjectArray* deoptimized_code_array_;
   RawGrowableObjectArray* background_compilation_queue_;
 

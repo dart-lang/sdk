@@ -70,7 +70,6 @@ DECLARE_FLAG(bool, use_field_guards);
 DECLARE_FLAG(bool, use_cha_deopt);
 DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
-DECLARE_FLAG(bool, precompile_collect_closures);
 DECLARE_FLAG(bool, print_stop_message);
 DECLARE_FLAG(bool, lazy_dispatchers);
 DECLARE_FLAG(bool, interpret_irregexp);
@@ -111,7 +110,6 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_lazy_dispatchers = false;
     FLAG_interpret_irregexp = true;
     FLAG_enable_mirrors = false;
-    FLAG_precompile_collect_closures = true;
     FLAG_link_natives_lazily = true;
     FLAG_fields_may_be_reset = true;
     FLAG_allow_absolute_addresses = false;

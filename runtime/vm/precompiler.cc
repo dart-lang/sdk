@@ -60,35 +60,35 @@ Precompiler::Precompiler(Thread* thread, bool reset_fields) :
     libraries_(GrowableObjectArray::Handle(Z, I->object_store()->libraries())),
     pending_functions_(
         GrowableObjectArray::Handle(Z, GrowableObjectArray::New())),
-    collected_closures_(
-        GrowableObjectArray::Handle(Z, GrowableObjectArray::New())),
     sent_selectors_(),
+    enqueued_functions_(),
     error_(Error::Handle(Z)) {
-  I->set_collected_closures(collected_closures_);
 }
 
 
 void Precompiler::DoCompileAll(
     Dart_QualifiedFunctionName embedder_entry_points[]) {
-  // Drop all existing code so we can use the presence of code as an indicator
-  // that we have already looked for the function's callees.
   ClearAllCode();
 
   // Make sure class hierarchy is stable before compilation so that CHA
-  // can be used.
+  // can be used. Also ensures lookup of entry points won't miss functions
+  // because their class hasn't been finalized yet.
   FinalizeAllClasses();
 
   // Start with the allocations and invocations that happen from C++.
   AddRoots(embedder_entry_points);
 
-  // TODO(rmacnak): Eagerly add field-invocation functions to all signature
-  // classes so closure calls don't go through the runtime.
-
   // Compile newly found targets and add their callees until we reach a fixed
   // point.
   Iterate();
 
-  CleanUp();
+  DropUncompiledFunctions();
+
+  // TODO(rmacnak): DropEmptyClasses();
+
+  BindStaticCalls();
+
+  DedupStackmaps();
 
   if (FLAG_trace_precompiler) {
     THR_Print("Precompiled %" Pd " functions, %" Pd " dynamic types,"
@@ -191,6 +191,7 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
 
   Dart_QualifiedFunctionName vm_entry_points[] = {
     { "dart:async", "::", "_setScheduleImmediateClosure" },
+    { "dart:core", "::", "_completeDeferredLoads"},
     { "dart:core", "AbstractClassInstantiationError",
                    "AbstractClassInstantiationError._create" },
     { "dart:core", "ArgumentError", "ArgumentError." },
@@ -297,27 +298,7 @@ void Precompiler::Iterate() {
     }
 
     CheckForNewDynamicFunctions();
-
-    // Drain collected_closures last because additions to this list come from
-    // outside the Precompiler and so do not flip our changed_ flag.
-    while (collected_closures_.Length() > 0) {
-      function ^= collected_closures_.RemoveLast();
-      ProcessFunction(function);
-    }
   }
-}
-
-
-void Precompiler::CleanUp() {
-  I->set_collected_closures(GrowableObjectArray::Handle(Z));
-
-  DropUncompiledFunctions();
-
-  // TODO(rmacnak): DropEmptyClasses();
-
-  BindStaticCalls();
-
-  DedupStackmaps();
 }
 
 
@@ -372,6 +353,8 @@ void Precompiler::AddCalleesOf(const Function& function) {
   String& selector = String::Handle(Z);
   Field& field = Field::Handle(Z);
   Class& cls = Class::Handle(Z);
+  Instance& instance = Instance::Handle(Z);
+  Code& target_code = Code::Handle(Z);
   for (intptr_t i = 0; i < pool.Length(); i++) {
     if (pool.InfoAt(i) == ObjectPool::kTaggedObject) {
       entry = pool.ObjectAt(i);
@@ -401,12 +384,68 @@ void Precompiler::AddCalleesOf(const Function& function) {
         field ^= entry.raw();
         AddField(field);
       } else if (entry.IsInstance()) {
-        // Potential const object.
-        cls = entry.clazz();
-        AddClass(cls);
+        // Const object, literal or args descriptor.
+        instance ^= entry.raw();
+        AddConstObject(instance);
+      } else if (entry.IsFunction()) {
+        // Local closure function.
+        target ^= entry.raw();
+        AddFunction(target);
+      } else if (entry.IsCode()) {
+        target_code ^= entry.raw();
+        if (target_code.IsAllocationStubCode()) {
+          cls ^= target_code.owner();
+          AddClass(cls);
+        }
       }
     }
   }
+}
+
+
+void Precompiler::AddConstObject(const Instance& instance) {
+  const Class& cls = Class::Handle(Z, instance.clazz());
+  AddClass(cls);
+
+  if (instance.IsClosure()) {
+    // An implicit static closure.
+    const Function& func = Function::Handle(Z, Closure::function(instance));
+    ASSERT(func.is_static());
+    AddFunction(func);
+    return;
+  }
+
+  // Can't ask immediate objects if they're canoncial.
+  if (instance.IsSmi()) return;
+
+  // Some Instances in the ObjectPool aren't const objects, such as
+  // argument descriptors.
+  if (!instance.IsCanonical()) return;
+
+  class ConstObjectVisitor : public ObjectPointerVisitor {
+   public:
+    ConstObjectVisitor(Precompiler* precompiler, Isolate* isolate) :
+        ObjectPointerVisitor(isolate),
+        precompiler_(precompiler),
+        subinstance_(Object::Handle()) {}
+
+    virtual void VisitPointers(RawObject** first, RawObject** last) {
+      for (RawObject** current = first; current <= last; current++) {
+        subinstance_ = *current;
+        if (subinstance_.IsInstance()) {
+          precompiler_->AddConstObject(Instance::Cast(subinstance_));
+        }
+      }
+      subinstance_ = Object::null();
+    }
+
+   private:
+    Precompiler* precompiler_;
+    Object& subinstance_;
+  };
+
+  ConstObjectVisitor visitor(this, I);
+  instance.raw()->VisitPointers(&visitor);
 }
 
 
@@ -428,11 +467,10 @@ void Precompiler::AddClosureCall(const ICData& call_site) {
 
 void Precompiler::AddField(const Field& field) {
   if (field.is_static()) {
-    // Potential const object. Uninitialized field will harmlessly do a
-    // redundant add of the Null class.
     const Object& value = Object::Handle(Z, field.StaticValue());
-    const Class& cls = Class::Handle(Z, value.clazz());
-    AddClass(cls);
+    if (value.IsInstance()) {
+      AddConstObject(Instance::Cast(value));
+    }
 
     if (field.has_initializer()) {
       // Should not be in the middle of initialization while precompiling.
@@ -459,8 +497,9 @@ void Precompiler::AddField(const Field& field) {
 
 
 void Precompiler::AddFunction(const Function& function) {
-  if (function.HasCode()) return;
+  if (enqueued_functions_.Lookup(&function) != NULL) return;
 
+  enqueued_functions_.Insert(&Function::ZoneHandle(Z, function.raw()));
   pending_functions_.Add(function);
   changed_ = true;
 }
@@ -525,43 +564,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
     while (it.HasNext()) {
       cls = it.GetNextClass();
 
-      if (!cls.is_allocated()) {
-        bool has_compiled_constructor = false;
-        if (cls.allocation_stub() != Code::null()) {
-          // Regular objects.
-          has_compiled_constructor = true;
-        } else if (cls.is_synthesized_class()) {
-          // Enums.
-          has_compiled_constructor = true;
-        } else {
-          // Objects only allocated via const constructors, and not stored in a
-          // static field or code.
-          // E.g. A in
-          //   class A {
-          //     const A();
-          //     toString() => "Don't drop me!";
-          //   }
-          //   class B {
-          //     const a = const A();
-          //     const B();
-          //     static const theB = const B();
-          //   }
-          //   main() => print(B.theB.a);
-          functions = cls.functions();
-          for (intptr_t k = 0; k < functions.Length(); k++) {
-            function ^= functions.At(k);
-            if (function.IsGenerativeConstructor() &&
-                function.HasCode()) {
-              has_compiled_constructor = true;
-              break;
-            }
-          }
-        }
-        if (!has_compiled_constructor) {
-          continue;
-        }
-        AddClass(cls);
-      }
+      if (!cls.is_allocated()) continue;
 
       functions = cls.functions();
       for (intptr_t k = 0; k < functions.Length(); k++) {
@@ -816,6 +819,10 @@ void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
         visitor->VisitFunction(function);
+        if (function.HasImplicitClosureFunction()) {
+          function = function.ImplicitClosureFunction();
+          visitor->VisitFunction(function);
+        }
       }
 
       closures = cls.closures();

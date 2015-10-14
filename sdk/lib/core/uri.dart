@@ -213,9 +213,6 @@ class Uri {
     // query         = *( pchar / "/" / "?" )
     //
     // fragment      = *( pchar / "/" / "?" )
-    bool isRegName(int ch) {
-      return ch < 128 && ((_regNameTable[ch >> 4] & (1 << (ch & 0x0f))) != 0);
-    }
     const int EOI = -1;
 
     String scheme = "";

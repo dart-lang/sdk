@@ -38,8 +38,6 @@ DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, support_debugger, true, "Emit code needed for debugging");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
-DEFINE_FLAG(bool, precompile_collect_closures, false,
-            "Collect all closure functions referenced from compiled code.");
 
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, profile_vm);
@@ -2525,37 +2523,15 @@ void EffectGraphVisitor::VisitStringInterpolateNode(
 }
 
 
-// TODO(rmacnak): De-dup closures in inlined-finally and track down other
-// stragglers to use Class::closures instead.
-static void CollectClosureFunction(const Function& function) {
-  if (function.HasCode()) return;
-
-  // Although this is only called when precompiling, this can happen before
-  // Dart_Precompile as part of loading code, so check for a non-null work
-  // list.
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  if (isolate->collected_closures() != GrowableObjectArray::null()) {
-    const GrowableObjectArray& functions =
-        GrowableObjectArray::Handle(thread->zone(),
-                                    isolate->collected_closures());
-    functions.Add(function);
-  }
-}
-
-
 void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   const Function& function = node->function();
-  if (FLAG_precompile_collect_closures) {
-    CollectClosureFunction(function);
-  }
-
   if (function.IsImplicitStaticClosureFunction()) {
     const Instance& closure =
         Instance::ZoneHandle(Z, function.ImplicitStaticClosure());
     ReturnDefinition(new(Z) ConstantInstr(closure));
     return;
   }
+
   const bool is_implicit = function.IsImplicitInstanceClosureFunction();
   ASSERT(is_implicit || function.IsNonImplicitClosureFunction());
   // The context scope may have already been set by the non-optimizing
