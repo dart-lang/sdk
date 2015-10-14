@@ -26,11 +26,7 @@ class Extensions {
   static void* ResolveSymbol(void* lib_handle, const char* symbol);
 
  private:
-  static Dart_Handle LoadExtensionLibrary(const char* library_file,
-                                          void** library);
-  static Dart_Handle ResolveSymbol(void* lib_handle,
-                                   const char* symbol,
-                                   void** init_func);
+  static Dart_Handle GetError();
 
   // The returned string must be freed.
   static char* Concatenate(const char** strings);

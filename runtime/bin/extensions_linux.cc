@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
 #include "platform/globals.h"
 #if defined(TARGET_OS_LINUX)
 
@@ -16,38 +15,21 @@ namespace bin {
 const char* kPrecompiledLibraryName = "libprecompiled.so";
 const char* kPrecompiledSymbolName = "_kInstructionsSnapshot";
 
-Dart_Handle Extensions::LoadExtensionLibrary(const char* library_file,
-                                             void** library_handle) {
-  ASSERT(library_handle != NULL);
-  *library_handle = dlopen(library_file, RTLD_LAZY);
-  if (*library_handle == NULL) {
-    return Dart_NewApiError(dlerror());
-  }
-  return Dart_Null();
-}
-
 void* Extensions::LoadExtensionLibrary(const char* library_file) {
   return dlopen(library_file, RTLD_LAZY);
 }
 
-Dart_Handle Extensions::ResolveSymbol(void* lib_handle,
-                                      const char* symbol,
-                                      void** init_function) {
-  ASSERT(init_function != NULL);
+void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {
   dlerror();
-  *init_function = dlsym(lib_handle, symbol);
-  char* err_str = dlerror();
+  return dlsym(lib_handle, symbol);
+}
+
+Dart_Handle Extensions::GetError() {
+  const char* err_str = dlerror();
   if (err_str != NULL) {
     return Dart_NewApiError(err_str);
   }
   return Dart_Null();
-}
-
-void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {
-  dlerror();
-  void* result = dlsym(lib_handle, symbol);
-  if (dlerror() != NULL) return NULL;
-  return result;
 }
 
 }  // namespace bin

@@ -26,19 +26,17 @@ Dart_Handle Extensions::LoadExtension(const char* extension_directory,
   }
   const char* library_strings[] = { extension_directory, extension_file, NULL };
   char* library_file = Concatenate(library_strings);
-  void* library_handle = NULL;
-  Dart_Handle result = LoadExtensionLibrary(library_file, &library_handle);
+  void* library_handle = LoadExtensionLibrary(library_file);
   free(library_file);
-  if (Dart_IsError(result)) {
-    return result;
+  if (library_handle == NULL) {
+    return GetError();
   }
-  ASSERT(library_handle != NULL);
 
   const char* strings[] = { extension_name, "_Init", NULL };
   char* init_function_name = Concatenate(strings);
-  void* init_function = NULL;
-  result = ResolveSymbol(library_handle, init_function_name, &init_function);
+  void* init_function = ResolveSymbol(library_handle, init_function_name);
   free(init_function_name);
+  Dart_Handle result = GetError();
   if (Dart_IsError(result)) {
     return result;
   }
