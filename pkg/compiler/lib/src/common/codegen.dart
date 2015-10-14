@@ -53,7 +53,7 @@ class CodegenRegistry extends Registry {
 
   // TODO(johnniwinther): Remove this getter when [Registry] creates a
   // dependency node.
-  Setlet<Element> get otherDependencies => treeElements.otherDependencies;
+  Iterable<Element> get otherDependencies => treeElements.otherDependencies;
 
   CodegenEnqueuer get world => compiler.enqueuer.codegen;
   JavaScriptBackend get backend => compiler.backend;

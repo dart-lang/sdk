@@ -112,6 +112,33 @@ class WorldImpact {
   Iterable<MethodElement> get closurizedFunctions => const <MethodElement>[];
 
   Iterable<LocalFunctionElement> get closures => const <LocalFunctionElement>[];
+
+  Iterable<DartType> get typeLiterals => const <DartType>[];
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+
+    void add(String title, Iterable iterable) {
+      if (iterable.isNotEmpty) {
+        sb.write('\n $title:');
+        iterable.forEach((e) => sb.write('\n  $e'));
+      }
+    }
+
+    add('dynamic invocations', dynamicInvocations);
+    add('dynamic getters', dynamicGetters);
+    add('dynamic setters', dynamicSetters);
+    add('static uses', staticUses);
+    add('instantiated types', instantiatedTypes);
+    add('is-checks', isChecks);
+    add('checked-mode checks', checkedModeChecks);
+    add('as-casts', asCasts);
+    add('closurized functions', closurizedFunctions);
+    add('closures', closures);
+    add('type literals', typeLiterals);
+
+    return sb.toString();
+  }
 }
 
 abstract class Enqueuer {

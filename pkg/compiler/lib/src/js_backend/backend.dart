@@ -2835,7 +2835,7 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
 
   BackendImpacts get impacts => backend.impacts;
 
-  WorldImpact transformImpact(ResolutionWorldImpact worldImpact) {
+  WorldImpact transformImpact(ResolutionImpact worldImpact) {
     TransformedWorldImpact transformed =
         new TransformedWorldImpact(worldImpact);
     for (Feature feature in worldImpact.features) {

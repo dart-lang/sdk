@@ -361,7 +361,7 @@ class DartResolutionCallbacks extends ResolutionCallbacks {
   DartResolutionCallbacks(this.backend);
 
   @override
-  WorldImpact transformImpact(ResolutionWorldImpact worldImpact) {
+  WorldImpact transformImpact(ResolutionImpact worldImpact) {
     TransformedWorldImpact transformed =
         new TransformedWorldImpact(worldImpact);
     for (DartType typeLiteral in worldImpact.typeLiterals) {

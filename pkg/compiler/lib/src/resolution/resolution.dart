@@ -12,7 +12,7 @@ import '../common/names.dart' show
 import '../common/resolution.dart' show
     Parsing,
     Resolution,
-    ResolutionWorldImpact;
+    ResolutionImpact;
 import '../common/tasks.dart' show
     CompilerTask,
     DeferredAction;
@@ -70,14 +70,14 @@ class ResolverTask extends CompilerTask {
 
   Parsing get parsing => compiler.parsing;
 
-  ResolutionWorldImpact resolve(Element element) {
+  ResolutionImpact resolve(Element element) {
     return measure(() {
       if (Elements.isErroneous(element)) {
         // TODO(johnniwinther): Add a predicate for this.
         assert(invariant(element, element is! ErroneousElement,
             message: "Element $element expected to have parse errors."));
         _ensureTreeElements(element);
-        return const ResolutionWorldImpact();
+        return const ResolutionImpact();
       }
 
       WorldImpact processMetadata([WorldImpact result]) {
@@ -101,7 +101,7 @@ class ResolverTask extends CompilerTask {
       if (element.isClass) {
         ClassElement cls = element;
         cls.ensureResolved(resolution);
-        return processMetadata(const ResolutionWorldImpact());
+        return processMetadata(const ResolutionImpact());
       } else if (element.isTypedef) {
         TypedefElement typdef = element;
         return processMetadata(resolveTypedef(typdef));
@@ -285,7 +285,7 @@ class ResolverTask extends CompilerTask {
         assert(invariant(element, element.isConstructor,
             message: 'Non-constructor element $element '
                      'has already been analyzed.'));
-        return const ResolutionWorldImpact();
+        return const ResolutionImpact();
       }
       if (element.isSynthesized) {
         if (element.isGenerativeConstructor) {
@@ -305,7 +305,7 @@ class ResolverTask extends CompilerTask {
         } else {
           assert(element.isDeferredLoaderGetter || element.isErroneous);
           _ensureTreeElements(element);
-          return const ResolutionWorldImpact();
+          return const ResolutionImpact();
         }
       } else {
         element.parseNode(resolution.parsing);
@@ -995,7 +995,7 @@ class ResolverTask extends CompilerTask {
   }
 
   WorldImpact resolveTypedef(TypedefElementX element) {
-    if (element.isResolved) return const ResolutionWorldImpact();
+    if (element.isResolved) return const ResolutionImpact();
     compiler.world.allTypedefs.add(element);
     return _resolveTypeDeclaration(element, () {
       ResolutionRegistry registry = new ResolutionRegistry(

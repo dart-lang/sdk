@@ -12,7 +12,7 @@ import '../common/resolution.dart' show
     Feature,
     ListLiteralUse,
     MapLiteralUse,
-    ResolutionWorldImpact;
+    ResolutionImpact;
 import '../common/registry.dart' show
     Registry;
 import '../compiler.dart' show
@@ -99,7 +99,7 @@ class EagerRegistry implements Registry {
   String toString() => 'EagerRegistry for ${mapping.analyzedElement}';
 }
 
-class _ResolutionWorldImpact implements ResolutionWorldImpact {
+class _ResolutionWorldImpact implements ResolutionImpact {
   final Registry registry;
   // TODO(johnniwinther): Do we benefit from lazy initialization of the
   // [Setlet]s?
@@ -125,10 +125,12 @@ class _ResolutionWorldImpact implements ResolutionWorldImpact {
       : this.registry = new EagerRegistry(compiler, mapping);
 
   void registerDependency(Element element) {
+    assert(element != null);
     registry.registerDependency(element);
   }
 
   void registerDynamicGetter(UniverseSelector selector) {
+    assert(selector != null);
     if (_dynamicGetters == null) {
       _dynamicGetters = new Setlet<UniverseSelector>();
     }
@@ -142,6 +144,7 @@ class _ResolutionWorldImpact implements ResolutionWorldImpact {
   }
 
   void registerDynamicInvocation(UniverseSelector selector) {
+    assert(selector != null);
     if (_dynamicInvocations == null) {
       _dynamicInvocations = new Setlet<UniverseSelector>();
     }
@@ -155,6 +158,7 @@ class _ResolutionWorldImpact implements ResolutionWorldImpact {
   }
 
   void registerDynamicSetter(UniverseSelector selector) {
+    assert(selector != null);
     if (_dynamicSetters == null) {
       _dynamicSetters = new Setlet<UniverseSelector>();
     }
@@ -168,6 +172,7 @@ class _ResolutionWorldImpact implements ResolutionWorldImpact {
   }
 
   void registerInstantiatedType(InterfaceType type) {
+    assert(type != null);
     if (_instantiatedTypes == null) {
       _instantiatedTypes = new Setlet<InterfaceType>();
     }
@@ -181,6 +186,7 @@ class _ResolutionWorldImpact implements ResolutionWorldImpact {
   }
 
   void registerTypeLiteral(DartType type) {
+    assert(type != null);
     if (_typeLiterals == null) {
       _typeLiterals = new Setlet<DartType>();
     }
@@ -194,6 +200,7 @@ class _ResolutionWorldImpact implements ResolutionWorldImpact {
   }
 
   void registerRequiredType(DartType type) {
+    assert(type != null);
     if (_requiredTypes == null) {
       _requiredTypes = new Setlet<DartType>();
     }
@@ -207,6 +214,7 @@ class _ResolutionWorldImpact implements ResolutionWorldImpact {
   }
 
   void registerMapLiteral(MapLiteralUse mapLiteralUse) {
+    assert(mapLiteralUse != null);
     if (_mapLiterals == null) {
       _mapLiterals = new Setlet<MapLiteralUse>();
     }
@@ -220,6 +228,7 @@ class _ResolutionWorldImpact implements ResolutionWorldImpact {
   }
 
   void registerListLiteral(ListLiteralUse listLiteralUse) {
+    assert(listLiteralUse != null);
     if (_listLiterals == null) {
       _listLiterals = new Setlet<ListLiteralUse>();
     }
@@ -233,6 +242,7 @@ class _ResolutionWorldImpact implements ResolutionWorldImpact {
   }
 
   void registerStaticUse(Element element) {
+    assert(element != null);
     if (_staticUses == null) {
       _staticUses = new Setlet<Element>();
     }
@@ -245,6 +255,7 @@ class _ResolutionWorldImpact implements ResolutionWorldImpact {
   }
 
   void registerIsCheck(DartType type) {
+    assert(type != null);
     if (_isChecks == null) {
       _isChecks = new Setlet<DartType>();
     }

@@ -32,7 +32,7 @@ import '../common/resolution.dart' show
     MapLiteralUse,
     Resolution,
     ResolutionCallbacks,
-    ResolutionWorldImpact,
+    ResolutionImpact,
     TransformedWorldImpact;
 import '../common/work.dart' show
     ItemCompilationContext;

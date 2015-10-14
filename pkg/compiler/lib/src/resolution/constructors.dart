@@ -123,9 +123,11 @@ class InitializerResolver {
       reporter.reportErrorMessage(
           init, MessageKind.INVALID_RECEIVER_IN_INITIALIZER);
     }
-    registry.useElement(init, target);
-    registry.registerStaticUse(target);
-    checkForDuplicateInitializers(target, init);
+    if (target != null) {
+      registry.useElement(init, target);
+      registry.registerStaticUse(target);
+      checkForDuplicateInitializers(target, init);
+    }
     // Resolve initializing value.
     ResolutionResult result = visitor.visitInStaticContext(
         init.arguments.head,
@@ -179,9 +181,10 @@ class InitializerResolver {
                                      call,
                                      className,
                                      constructorSelector);
-
-    registry.useElement(call, calledConstructor);
-    registry.registerStaticUse(calledConstructor);
+    if (calledConstructor != null) {
+      registry.useElement(call, calledConstructor);
+      registry.registerStaticUse(calledConstructor);
+    }
     if (isConst) {
       if (isValidAsConstant &&
           calledConstructor.isConst &&
@@ -228,8 +231,10 @@ class InitializerResolver {
                                        functionNode,
                                        className,
                                        constructorSelector);
-      registry.registerImplicitSuperCall(calledConstructor);
-      registry.registerStaticUse(calledConstructor);
+      if (calledConstructor != null) {
+        registry.registerImplicitSuperCall(calledConstructor);
+        registry.registerStaticUse(calledConstructor);
+      }
 
       if (isConst && isValidAsConstant) {
         return new ConstructedConstantExpression(

@@ -22,7 +22,7 @@ import '../common/registry.dart' show
 import '../common/resolution.dart' show
     Resolution,
     ResolutionCallbacks,
-    ResolutionWorldImpact,
+    ResolutionImpact,
     TransformedWorldImpact;
 import '../common/tasks.dart' show
     CompilerTask;

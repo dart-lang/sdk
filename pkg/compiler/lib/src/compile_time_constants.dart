@@ -1262,7 +1262,7 @@ class ErroneousAstConstant extends AstConstant {
 
 // TODO(johnniwinther): Clean this up.
 TreeElements _analyzeElementEagerly(Compiler compiler, AstElement element) {
-  compiler.resolution.analyzeElement(element.declaration);
+  compiler.resolution.computeWorldImpact(element.declaration);
   return element.resolvedAst.elements;
 }
 

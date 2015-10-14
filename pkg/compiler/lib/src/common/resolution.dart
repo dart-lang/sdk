@@ -52,7 +52,6 @@ class ResolutionWorkItem extends WorkItem {
 
   WorldImpact run(Compiler compiler, ResolutionEnqueuer world) {
     WorldImpact impact = compiler.analyze(this, world);
-    impact = compiler.backend.resolutionCallbacks.transformImpact(impact);
     _isAnalyzed = true;
     return impact;
   }
@@ -64,13 +63,13 @@ class ResolutionWorkItem extends WorkItem {
 // and clean up the interface.
 /// Backend callbacks function specific to the resolution phase.
 class ResolutionCallbacks {
-  /// Transform the [ResolutionWorldImpact] into a [WorldImpact] adding the
+  /// Transform the [ResolutionImpact] into a [WorldImpact] adding the
   /// backend dependencies for features used in [worldImpact].
-  WorldImpact transformImpact(ResolutionWorldImpact worldImpact) => worldImpact;
+  WorldImpact transformImpact(ResolutionImpact worldImpact) => worldImpact;
 }
 
-class ResolutionWorldImpact extends WorldImpact {
-  const ResolutionWorldImpact();
+class ResolutionImpact extends WorldImpact {
+  const ResolutionImpact();
 
   // TODO(johnniwinther): Remove this.
   void registerDependency(Element element) {}
@@ -184,11 +183,11 @@ class ListLiteralUse {
 }
 
 /// Mutable implementation of [WorldImpact] used to transform
-/// [ResolutionWorldImpact] to [WorldImpact].
+/// [ResolutionImpact] to [WorldImpact].
 // TODO(johnniwinther): Remove [Registry] when dependency is tracked directly
 // on [WorldImpact].
-class TransformedWorldImpact implements WorldImpact {
-  final ResolutionWorldImpact worldImpact;
+class TransformedWorldImpact extends WorldImpact {
+  final ResolutionImpact worldImpact;
 
   Setlet<Element> _staticUses;
   Setlet<InterfaceType> _instantiatedTypes;
@@ -280,6 +279,11 @@ class TransformedWorldImpact implements WorldImpact {
         ? _instantiatedTypes : const <InterfaceType>[];
   }
 
+  @override
+  Iterable<DartType> get typeLiterals {
+    return worldImpact.typeLiterals;
+  }
+
   void registerStaticUse(Element element) {
     // TODO(johnniwinther): Remove this when dependency tracking is done on
     // the world impact itself.
@@ -292,6 +296,13 @@ class TransformedWorldImpact implements WorldImpact {
 
   @override
   Iterable<LocalFunctionElement> get closures => worldImpact.closures;
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('TransformedWorldImpact($worldImpact)');
+    sb.write(super.toString());
+    return sb.toString();
+  }
 }
 
 // TODO(johnniwinther): Rename to `Resolver` or `ResolverContext`.
@@ -308,7 +319,8 @@ abstract class Resolution {
   DartType resolveTypeAnnotation(Element element, TypeAnnotation node);
 
   bool hasBeenResolved(Element element);
-  ResolutionWorldImpact analyzeElement(Element element);
+  WorldImpact getWorldImpact(Element element);
+  WorldImpact computeWorldImpact(Element element);
 }
 
 // TODO(johnniwinther): Rename to `Parser` or `ParsingContext`.

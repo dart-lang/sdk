@@ -32,6 +32,8 @@ import 'elements/elements.dart' show
     PrefixElement,
     ScopeContainerElement,
     TypedefElement;
+import 'enqueue.dart' show
+    WorldImpact;
 import 'js_backend/js_backend.dart' show
     JavaScriptBackend;
 import 'resolution/resolution.dart' show
@@ -296,42 +298,49 @@ class DeferredLoadTask extends CompilerTask {
       // TODO(johnniwinther): Remove this when [AbstractFieldElement] has been
       // removed.
       if (element is! AstElement) return;
-      AstElement astElement = element;
 
-      // TODO(sigurdm): We want to be more specific about this - need a better
-      // way to query "liveness".
-      if (astElement is! TypedefElement &&
-          !compiler.enqueuer.resolution.hasBeenProcessed(astElement)) {
-        return;
-      }
-
-      TreeElements treeElements = astElement.resolvedAst.elements;
-
-      assert(treeElements != null);
-
-      for (Element dependency in treeElements.allElements) {
-        if (dependency.isLocal && !dependency.isFunction) continue;
-        if (dependency.isErroneous) continue;
-        if (dependency.isTypeVariable) continue;
-
-        elements.add(dependency);
-      }
-
-      for (DartType type in treeElements.requiredTypes) {
-        collectTypeDependencies(type);
-      }
-
-      treeElements.forEachConstantNode((Node node, _) {
-        // Explicitly depend on the backend constants.
-        ConstantValue value =
-            backend.constants.getConstantValueForNode(node, treeElements);
-        if (value != null) {
-          // TODO(johnniwinther): Assert that all constants have values when
-          // these are directly evaluated.
-          constants.add(value);
+      if (element.isTypedef) {
+        TypedefElement typdef = element;
+        collectTypeDependencies(typdef.thisType);
+      } else {
+        // TODO(sigurdm): We want to be more specific about this - need a better
+        // way to query "liveness".
+        AstElement analyzableElement = element.analyzableElement.declaration;
+        if (!compiler.enqueuer.resolution.hasBeenProcessed(analyzableElement)) {
+          return;
         }
-      });
-      elements.addAll(treeElements.otherDependencies);
+
+        WorldImpact worldImpact =
+            compiler.resolution.getWorldImpact(analyzableElement);
+        elements.addAll(worldImpact.staticUses);
+        elements.addAll(worldImpact.closures);
+        for (DartType type in worldImpact.typeLiterals) {
+          if (type.isTypedef || type.isInterfaceType) {
+            elements.add(type.element);
+          }
+        }
+        for (InterfaceType type in worldImpact.instantiatedTypes) {
+          elements.add(type.element);
+        }
+
+        TreeElements treeElements = analyzableElement.resolvedAst.elements;
+        assert(treeElements != null);
+
+        for (DartType type in treeElements.requiredTypes) {
+          collectTypeDependencies(type);
+        }
+
+        treeElements.forEachConstantNode((Node node, _) {
+          // Explicitly depend on the backend constants.
+          ConstantValue value =
+              backend.constants.getConstantValueForNode(node, treeElements);
+          if (value != null) {
+            // TODO(johnniwinther): Assert that all constants have values when
+            // these are directly evaluated.
+            constants.add(value);
+          }
+        });
+      }
     }
 
     // TODO(sigurdm): How is metadata on a patch-class handled?
@@ -864,6 +873,41 @@ class DeferredLoadTask extends CompilerTask {
     });
     return mapping;
   }
+
+  /// Creates a textual representation of the output unit content.
+  String dump() {
+    Map<OutputUnit, List<String>> elementMap = <OutputUnit, List<String>>{};
+    Map<OutputUnit, List<String>> constantMap =
+        <OutputUnit, List<String>>{};
+    _elementToOutputUnit.forEach((Element element, OutputUnit output) {
+      elementMap.putIfAbsent(output, () => <String>[]).add('$element');
+    });
+    _constantToOutputUnit.forEach((ConstantValue value, OutputUnit output) {
+      constantMap.putIfAbsent(output, () => <String>[])
+          .add(value.toStructuredString());
+    });
+
+    StringBuffer sb = new StringBuffer();
+    for (OutputUnit outputUnit in allOutputUnits) {
+      sb.write(outputUnit.name);
+      List<String> elements = elementMap[outputUnit];
+      if (elements != null) {
+        sb.write('\n elements:');
+        for (String element in elements..sort()) {
+          sb.write('\n  $element');
+        }
+      }
+      List<String> constants = constantMap[outputUnit];
+      if (constants != null) {
+        sb.write('\n constants:');
+        for (String value in constants..sort()) {
+          sb.write('\n  $value');
+        }
+      }
+    }
+    return sb.toString();
+  }
+
 }
 
 class ImportDescription {

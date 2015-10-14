@@ -28,7 +28,7 @@ import 'common/resolution.dart' show
     Parsing,
     Resolution,
     ResolutionWorkItem,
-    ResolutionWorldImpact;
+    ResolutionImpact;
 import 'common/tasks.dart' show
     CompilerTask,
     GenericTask;
@@ -1170,7 +1170,7 @@ abstract class Compiler {
     }
   }
 
-  ResolutionWorldImpact analyzeElement(Element element) {
+  WorldImpact analyzeElement(Element element) {
     assert(invariant(element,
            element.impliesType ||
            element.isField ||
@@ -1182,11 +1182,11 @@ abstract class Compiler {
     assert(invariant(element, element is AnalyzableElement,
         message: 'Element $element is not analyzable.'));
     assert(invariant(element, element.isDeclaration));
-    return resolution.analyzeElement(element);
+    return resolution.computeWorldImpact(element);
   }
 
-  ResolutionWorldImpact analyze(ResolutionWorkItem work,
-                                ResolutionEnqueuer world) {
+  WorldImpact analyze(ResolutionWorkItem work,
+                      ResolutionEnqueuer world) {
     assert(invariant(work.element, identical(world, enqueuer.resolution)));
     assert(invariant(work.element, !work.isAnalyzed,
         message: 'Element ${work.element} has already been analyzed'));
@@ -1202,9 +1202,9 @@ abstract class Compiler {
     }
     AstElement element = work.element;
     if (world.hasBeenProcessed(element)) {
-      return const ResolutionWorldImpact();
+      return const WorldImpact();
     }
-    ResolutionWorldImpact worldImpact = analyzeElement(element);
+    WorldImpact worldImpact = analyzeElement(element);
     backend.onElementResolved(element, element.resolvedAst.elements);
     world.registerProcessedElement(element);
     return worldImpact;
@@ -1930,8 +1930,7 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
 // TODO(johnniwinther): Move [ResolverTask] here.
 class _CompilerResolution implements Resolution {
   final Compiler compiler;
-  final Map<Element, ResolutionWorldImpact> _worldImpactCache =
-      <Element, ResolutionWorldImpact>{};
+  final Map<Element, WorldImpact> _worldImpactCache = <Element, WorldImpact>{};
 
   _CompilerResolution(this.compiler);
 
@@ -1974,18 +1973,31 @@ class _CompilerResolution implements Resolution {
     return compiler.resolver.resolveTypeAnnotation(element, node);
   }
 
-  ResolutionWorldImpact analyzeElement(Element element) {
+  @override
+  WorldImpact getWorldImpact(Element element) {
+    WorldImpact worldImpact = _worldImpactCache[element];
+    assert(invariant(element, worldImpact != null,
+        message: "WorldImpact not computed for $element."));
+    return worldImpact;
+  }
+
+  @override
+  WorldImpact computeWorldImpact(Element element) {
     return _worldImpactCache.putIfAbsent(element, () {
       assert(compiler.parser != null);
       Node tree = compiler.parser.parse(element);
       assert(invariant(element, !element.isSynthesized || tree == null));
-      ResolutionWorldImpact worldImpact = compiler.resolver.resolve(element);
+      ResolutionImpact resolutionImpact =
+          compiler.resolver.resolve(element);
       if (tree != null &&
           !compiler.analyzeSignaturesOnly &&
           !reporter.options.suppressWarnings) {
         // Only analyze nodes with a corresponding [TreeElements].
         compiler.checker.check(element);
       }
+      WorldImpact worldImpact =
+          compiler.backend.resolutionCallbacks.transformImpact(
+              resolutionImpact);
       return worldImpact;
     });
   }

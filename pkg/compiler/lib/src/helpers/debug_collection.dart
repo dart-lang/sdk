@@ -233,7 +233,9 @@ class DebugSet<E> extends DebugIterable<E> implements Set<E> {
     return set.add(value);
   }
 
-  void addAll(Iterable<E> elements) => set.addAll(elements);
+  void addAll(Iterable<E> elements) {
+    elements.forEach(add);
+  }
 
   bool remove(Object value) => set.remove(value);
 
