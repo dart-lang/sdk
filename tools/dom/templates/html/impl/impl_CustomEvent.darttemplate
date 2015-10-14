@@ -36,7 +36,7 @@ $endif
 
 $if DARTIUM
     // Need for identity.
-    e.blink_jsObject['dart_class'] = e;
+    js.setDartHtmlWrapperFor(e.blink_jsObject, e);
 
 $endif
     return e;
