@@ -479,6 +479,8 @@ void ThreadIteratorTestMain(uword parameter) {
 }
 
 
+// NOTE: This test case also verifies that known TLS destructors are called
+// on Windows. See |OnThreadExit| in os_thread_win.cc for more details.
 TEST_CASE(ThreadIterator_AddFindRemove) {
   Isolate* isolate = thread->isolate();
   ThreadIteratorTestParams params;

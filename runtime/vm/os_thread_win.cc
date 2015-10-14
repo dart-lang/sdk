@@ -287,6 +287,8 @@ void MonitorWaitData::ThreadExit() {
       OSThread::kUnsetThreadLocalKey) {
     uword raw_wait_data =
       OSThread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
+    // Clear in case this is called a second time.
+    OSThread::SetThreadLocal(MonitorWaitData::monitor_wait_data_key_, 0);
     if (raw_wait_data != 0) {
       MonitorWaitData* wait_data =
           reinterpret_cast<MonitorWaitData*>(raw_wait_data);
@@ -402,7 +404,7 @@ MonitorWaitData* MonitorData::GetMonitorWaitDataForThread() {
     HANDLE event = CreateEvent(NULL, FALSE, FALSE, NULL);
     wait_data = new MonitorWaitData(event);
     OSThread::SetThreadLocal(MonitorWaitData::monitor_wait_data_key_,
-                           reinterpret_cast<uword>(wait_data));
+                             reinterpret_cast<uword>(wait_data));
   } else {
     wait_data = reinterpret_cast<MonitorWaitData*>(raw_wait_data);
     wait_data->next_ = NULL;
@@ -480,6 +482,89 @@ void Monitor::NotifyAll() {
   data_.SignalAndRemoveAllWaiters();
 }
 
+// This function is defined in thread.cc.
+extern void ThreadCleanupOnExit();
+
 }  // namespace dart
+
+// NOTE: We still do not respect arbitrary TLS destructors on Windows, but,
+// we do run known TLS cleanup functions. See |OnThreadExit| below for
+// the list of functions that are called.
+
+// The following was adapted from Chromium:
+// src/base/threading/thread_local_storage_win.cc
+
+// Thread Termination Callbacks.
+// Windows doesn't support a per-thread destructor with its
+// TLS primitives.  So, we build it manually by inserting a
+// function to be called on each thread's exit.
+// This magic is from http://www.codeproject.com/threads/tls.asp
+// and it works for VC++ 7.0 and later.
+
+// Force a reference to _tls_used to make the linker create the TLS directory
+// if it's not already there.  (e.g. if __declspec(thread) is not used).
+// Force a reference to p_thread_callback_dart to prevent whole program
+// optimization from discarding the variable.
+#ifdef _WIN64
+
+#pragma comment(linker, "/INCLUDE:_tls_used")
+#pragma comment(linker, "/INCLUDE:p_thread_callback_dart")
+
+#else  // _WIN64
+
+#pragma comment(linker, "/INCLUDE:__tls_used")
+#pragma comment(linker, "/INCLUDE:_p_thread_callback_dart")
+
+#endif  // _WIN64
+
+// Static callback function to call with each thread termination.
+void NTAPI OnThreadExit(PVOID module, DWORD reason, PVOID reserved) {
+  // On XP SP0 & SP1, the DLL_PROCESS_ATTACH is never seen. It is sent on SP2+
+  // and on W2K and W2K3. So don't assume it is sent.
+  if (DLL_THREAD_DETACH == reason || DLL_PROCESS_DETACH == reason) {
+    dart::ThreadCleanupOnExit();
+    dart::MonitorWaitData::ThreadExit();
+  }
+}
+
+// .CRT$XLA to .CRT$XLZ is an array of PIMAGE_TLS_CALLBACK pointers that are
+// called automatically by the OS loader code (not the CRT) when the module is
+// loaded and on thread creation. They are NOT called if the module has been
+// loaded by a LoadLibrary() call. It must have implicitly been loaded at
+// process startup.
+// By implicitly loaded, I mean that it is directly referenced by the main EXE
+// or by one of its dependent DLLs. Delay-loaded DLL doesn't count as being
+// implicitly loaded.
+//
+// See VC\crt\src\tlssup.c for reference.
+
+// extern "C" suppresses C++ name mangling so we know the symbol name for the
+// linker /INCLUDE:symbol pragma above.
+extern "C" {
+// The linker must not discard p_thread_callback_dart.  (We force a reference
+// to this variable with a linker /INCLUDE:symbol pragma to ensure that.) If
+// this variable is discarded, the OnThreadExit function will never be called.
+#ifdef _WIN64
+
+// .CRT section is merged with .rdata on x64 so it must be constant data.
+#pragma const_seg(".CRT$XLB")
+// When defining a const variable, it must have external linkage to be sure the
+// linker doesn't discard it.
+extern const PIMAGE_TLS_CALLBACK p_thread_callback_dart;
+const PIMAGE_TLS_CALLBACK p_thread_callback_dart = OnThreadExit;
+
+// Reset the default section.
+#pragma const_seg()
+
+#else  // _WIN64
+
+#pragma data_seg(".CRT$XLB")
+PIMAGE_TLS_CALLBACK p_thread_callback_dart = OnThreadExit;
+
+// Reset the default section.
+#pragma data_seg()
+
+#endif  // _WIN64
+}  // extern "C"
 
 #endif  // defined(TARGET_OS_WINDOWS)

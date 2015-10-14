@@ -31,7 +31,6 @@ cc/ThreadInterrupterLow: Skip
 cc/Service_Profile: Skip
 cc/Dart2JSCompilerStats: Skip
 cc/CorelibCompilerStats: Skip
-cc/ThreadIterator_AddFindRemove: Skip  # Issue 23474
 
 
 [ $system == linux ]

@@ -528,6 +528,11 @@ class ThreadIterator : public ValueObject {
   Thread* next_;
 };
 
+#if defined(TARGET_OS_WINDOWS)
+// Clears the state of the current thread and frees the allocation.
+void WindowsThreadCleanUp();
+#endif
+
 }  // namespace dart
 
 #endif  // VM_THREAD_H_
