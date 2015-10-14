@@ -4,6 +4,10 @@ secure networking code.  The SecureSocket and SecureServer classes
 are tested by making TLS (formerly called SSL) connections, secured
 by certificates from a self-signed test root authority.
 
+The certificates are created by running ../create_sample_certificates.sh
+in a bash or sh shell, with the openssl tools installed.  Run the script
+twice to create the untrusted_* files.
+
 server_chain.pem:
   Contains the chain of certificates, from the self-signed
 test certificate authority, through the intermediate CA, to the server
