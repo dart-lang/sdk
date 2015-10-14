@@ -347,7 +347,7 @@ class Selection {
 
 /// Interface used to record information from different parts of the compiler so
 /// we can emit them in the dump-info task.
-// TODO(sigmund,het): move more features here. Ideallly the dump-info task
+// TODO(sigmund,het): move more features here. Ideally the dump-info task
 // shouldn't reach into internals of other parts of the compiler. For example,
 // we currently reach into the full emitter and as a result we don't support
 // dump-info when using the startup-emitter (issue #24190).
@@ -555,6 +555,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     result.deferredFiles = compiler.deferredLoadTask.computeDeferredMap();
     stopwatch.stop();
     result.program = new ProgramInfo(
+        entrypoint: infoCollector._elementToInfo[compiler.mainFunction],
         size: _programSize,
         dart2jsVersion: compiler.hasBuildId ? compiler.buildId : null,
         compilationMoment: new DateTime.now(),
