@@ -2154,6 +2154,10 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       // Classes like JSUInt31 and JSUInt32 do not exist at runtime, so ensure
       // all the int classes get mapped tor their runtime class.
       singleClass = backend.jsIntClass;
+    } else if (lattice.isDefinitelyNum(value)) {
+      if (jsNumberClassSuffices(node)) {
+        singleClass = backend.jsNumberClass;
+      }
     } else if (lattice.isDefinitelyNativeList(value)) {
       // Ensure all the array subclasses get mapped to the array class.
       singleClass = backend.jsArrayClass;
@@ -2178,6 +2182,27 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       node.input.definition.substituteFor(node);
     }
     return null;
+  }
+
+  bool jsNumberClassSuffices(Interceptor node) {
+    // No methods on JSNumber call 'down' to methods on JSInt or JSDouble.  If
+    // all uses of the interceptor are for methods is defined only on JSNumber
+    // then JSNumber will suffice in place of choosing between JSInt or
+    // JSDouble.
+    for (Reference ref = node.firstRef; ref != null; ref = ref.next) {
+      if (ref.parent is InvokeMethod) {
+        InvokeMethod invoke = ref.parent;
+        if (invoke.receiver != ref) return false;
+        var interceptedClasses =
+            functionCompiler.glue.getInterceptedClassesOn(invoke.selector);
+        if (interceptedClasses.contains(backend.jsDoubleClass)) return false;
+        if (interceptedClasses.contains(backend.jsIntClass)) return false;
+        continue;
+      }
+      // Other uses need full distinction.
+      return false;
+    }
+    return true;
   }
 }
 

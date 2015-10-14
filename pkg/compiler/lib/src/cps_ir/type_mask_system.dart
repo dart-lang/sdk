@@ -212,7 +212,7 @@ class TypeMaskSystem {
 
   bool isDefinitelyInt(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.satisfies(backend.jsIntClass, classWorld);
+    return t.nonNullable().containsOnlyInt(classWorld);
   }
 
   bool isDefinitelyUint31(TypeMask t, {bool allowNull: false}) {
