@@ -361,7 +361,7 @@ void _addCustomElementType(String tagName, Type dartClass, [String extendTag]) {
 }
 
 Type _getCustomElementType(object) {
-  var entry = _knownCustomElements[_getCustomElementName(object)];
+  var entry = _getCustomElementEntry(object);
   if (entry != null) {
     return entry['type'];
   }
@@ -369,14 +369,53 @@ Type _getCustomElementType(object) {
 }
 
 String _getCustomElementExtends(object) {
-  var entry = _knownCustomElements[_getCustomElementName(object)];
+  var entry = _getCustomElementEntry(object);
   if (entry != null) {
     return entry['extends'];
   }
   return null;
 }
 
-_getCustomElement(object) => _knownCustomElements[_getCustomElementName(object)];
+_getCustomElementEntry(element) {
+  var hasAttribute = false;
+
+  var jsObject;
+  var tag = "";
+  var runtimeType = element.runtimeType;
+  if (runtimeType == HtmlElement) {
+    tag = element.localName;
+  } else if (runtimeType == TemplateElement) {
+    // Data binding with a Dart class.
+    tag = element.attributes['is'];
+  } else if (runtimeType == js.JsObjectImpl) {
+    // It's a Polymer core element (written in JS).
+    // Make sure it's an element anything else we can ignore.
+    if (element.hasProperty('nodeType') && element['nodeType'] == 1) {
+      if (js.JsNative.callMethod(element, 'hasAttribute', ['is'])) {
+        hasAttribute = true;
+        // It's data binding use the is attribute.
+        tag = js.JsNative.callMethod(element, 'getAttribute', ['is']);
+      } else {
+        // It's a custom element we want the local name.
+        tag = element['localName'];
+      }
+    }
+  } else {
+    throw new UnsupportedError('Element is incorrect type. Got ${runtimeType}, expected HtmlElement/HtmlTemplate/JsObjectImpl.');
+  }
+
+  var entry = _knownCustomElements[tag];
+  if (entry != null) {
+    // If there's an 'is' attribute then check if the extends tag registered
+    // matches the tag if so then return the entry that's registered for this
+    // extendsTag or if there's no 'is' tag then return the entry found.
+    if ((hasAttribute && entry['extends'] == tag) || !hasAttribute) {
+      return entry;
+    }
+  }
+
+  return null;
+}
 
 // Return the tag name or is attribute of the custom element or data binding.
 String _getCustomElementName(element) {
@@ -451,18 +490,19 @@ wrap_jso(jsObject) {
     var wrapper = js.getDartHtmlWrapperFor(jsObject);
     // if we have a wrapper return the Dart instance.
     if (wrapper != null) {
-      if (wrapper.runtimeType == HtmlElement && !wrapper._isBadUpgrade) {
-        // We're a Dart instance but we need to upgrade.
-        var customElementClass = _getCustomElementType(wrapper);
-        if (customElementClass != null) {
-          var dartClass_instance;
-          try {
-            dartClass_instance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
-          } finally {
-            dartClass_instance.blink_jsObject = jsObject;
-            jsObject['dart_class'] = dartClass_instance;
-            js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
-            return dartClass_instance;
+      var customElementClass = _getCustomElementType(wrapper.blink_jsObject);
+      if (wrapper.runtimeType != customElementClass && customElementClass != null) {
+        if (wrapper.runtimeType == HtmlElement && !wrapper._isBadUpgrade) {
+          // We're a Dart instance if it's HtmlElement and we have a customElement
+          // class then we need to upgrade.
+          if (customElementClass != null) {
+            var dartClass_instance;
+            try {
+              dartClass_instance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
+            } finally {
+              dartClass_instance.blink_jsObject = jsObject;
+              return dartClass_instance;
+            }
           }
         }
       }
@@ -500,49 +540,39 @@ wrap_jso(jsObject) {
     }
 
     var dartClass_instance;
-    if (jsObject.hasProperty('dart_class')) {
-      // Got a dart_class (it's a custom element) use it it's already set up
-      // make sure it's upgraded.
-      dartClass_instance = _upgradeHtmlElement(jsObject['dart_class']);
-    } else {
-      var customElementClass = null;
-      var extendsTag = "";
-      var custom = _getCustomElement(jsObject);
-      if (custom != null) {
-        customElementClass = custom['type'];
-        extendsTag = custom['extends'];
-      }
-      // Custom Element to upgrade.
-      if (jsTypeName == 'HTMLElement' && customElementClass != null && extendsTag == "") {
-        try {
-          dartClass_instance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
-        } finally {
-          dartClass_instance.blink_jsObject = jsObject;
-          jsObject['dart_class'] = dartClass_instance;
-          js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
-       }
-      } else {
-        // TODO(terry): Verify with jakemacd that this is right?
-        // If we every get an auto-binding we're matching previous non-JS Interop
-        // did to return a TemplateElement.
-        if (jsTypeName == 'auto-binding') {
-          jsTypeName = "HTMLTemplateElement";
-        }
+    var customElementClass = null;
+    var extendsTag = "";
+    var custom = _getCustomElementEntry(jsObject);
+    if (custom != null) {
+      customElementClass = custom['type'];
+      extendsTag = custom['extends'];
+    }
 
-        var func = getHtmlCreateFunction(jsTypeName);
-        if (func == null) {
+    // Custom Element to upgrade.
+    if (customElementClass != null && extendsTag == "") {
+      try {
+        dartClass_instance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
+      } finally {
+        dartClass_instance.blink_jsObject = jsObject;
+        js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
+     }
+    } else {
+      var func = getHtmlCreateFunction(jsTypeName);
+      if (func == null) {
+        if (jsTypeName == 'auto-binding') {
+          func = getHtmlCreateFunction("HTMLTemplateElement");
+        } else if (jsObject.toString() == "[object HTMLElement]") {
           // One last ditch effort could be a JS custom element.
-          if (jsObject.toString() == "[object HTMLElement]") {
-            func = getHtmlCreateFunction("HTMLElement");
-          }
+          func = getHtmlCreateFunction("HTMLElement");
         }
-        if (func != null) {
-          dartClass_instance = func();
-          dartClass_instance.blink_jsObject = jsObject;
-          js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
-        }
+      }
+      if (func != null) {
+        dartClass_instance = func();
+        dartClass_instance.blink_jsObject = jsObject;
+        js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
       }
     }
+
     // TODO(jacobr): cache that this is not a dart:html JS class.
     return dartClass_instance;
   } catch(e, stacktrace){
@@ -674,7 +704,6 @@ _upgradeHtmlElement(dartInstance) {
         dartInstance._badUpgrade();
       } finally {
         dartInstance.blink_jsObject = jsObject;
-        jsObject['dart_class'] = dartInstance;
         js.setDartHtmlWrapperFor(jsObject, dartInstance);
      }
    }

@@ -13,8 +13,6 @@ js_typed_interop_test: Skip # Dartium JSInterop failure
 mirrors_js_typed_interop_test: Skip # Dartium JSInterop failure
 
 cross_domain_iframe_test: RuntimeError # Dartium JSInterop failure
-custom/document_register_type_extensions_test/registration: RuntimeError # Dartium JSInterop failure
-custom/element_upgrade_test: RuntimeError # Dartium JSInterop failure
 indexeddb_2_test: Fail # Dartium JSInterop failure. Identity preservation on array deferred copy.
 js_test/transferrables: RuntimeError # Dartium JSInterop failure
 js_test/JsArray: RuntimeError # Dartium JSInterop failure
