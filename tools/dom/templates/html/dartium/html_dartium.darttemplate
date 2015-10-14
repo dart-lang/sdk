@@ -464,7 +464,7 @@ class DartHtmlDomObject {
 
 // Flag to disable JS interop asserts.  Setting to false will speed up the
 // wrap_jso calls.
-bool __interop_checks = true;
+bool __interop_checks = false;
 
 /** Expando for JsObject, used by every Dart class associated with a Javascript
  *  class (e.g., DOM, WebAudio, etc.).
@@ -549,7 +549,11 @@ wrap_jso(jsObject) {
     }
 
     // Custom Element to upgrade.
-    if (customElementClass != null && extendsTag == "") {
+    // Only allow custome elements to be created in the html or svg default
+    // namespace.
+    var defaultNS = jsObject['namespaceURI'] == 'http://www.w3.org/1999/xhtml' ||
+        jsObject['namespaceURI'] ==  'http://www.w3.org/2000/svg';
+    if (customElementClass != null && extendsTag == "" && defaultNS) {
       try {
         dartClass_instance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
       } finally {
