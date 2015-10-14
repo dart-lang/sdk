@@ -1,3 +1,7 @@
+## 0.26.1+10
+* New `AnalysisContext` API for associating configuration data with contexts
+  (`setConfigurationData()` and `getConfigurationData()`).
+
 ## 0.26.1+9
 * `OptionsProcessor` extension point API changed to pass associated
   `AnalysisContext` instance into the `optionsProcessed` call-back.
