@@ -150,6 +150,13 @@ class TestOptionsParser {
               false,
               type: 'bool'),
           new _TestOptionSpecification(
+              'noopt',
+              'Run an in-place precompilation',
+              ['--noopt'],
+              [],
+              false,
+              type: 'bool'),
+          new _TestOptionSpecification(
               'timeout',
               'Timeout in seconds',
               ['-t', '--timeout'],

@@ -356,3 +356,6 @@ mirrors/circular_factory_redirection_test/02: Crash # Assertion failure: Constan
 mirrors/mirrors_used_typedef_declaration_test/01: Crash # Assertion failure: typedef(Foo) has not been checked for cycles.
 mirrors/mirrors_used_typedef_declaration_test/none: Crash # Assertion failure: typedef(Foo) has not been checked for cycles.
 mirrors/typedef_library_test: Crash # Assertion failure: typedef(G) has not been checked for cycles.
+
+[ $noopt ]
+mirrors/*: SkipByDesign
