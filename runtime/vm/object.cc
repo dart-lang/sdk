@@ -2780,6 +2780,9 @@ void Class::set_invocation_dispatcher_cache(const Array& cache) const {
 
 
 void Class::Finalize() const {
+  // Even if all regular classes are prefinalized (precompilation), signature
+  // classes may be added later when we encounter local functions.
+  ASSERT(IsSignatureClass() || !Isolate::Current()->all_classes_finalized());
   ASSERT(!is_finalized());
   // Prefinalized classes have a VM internal representation and no Dart fields.
   // Their instance size  is precomputed and field offsets are known.
@@ -3044,7 +3047,6 @@ RawObject* Class::Evaluate(const String& expr,
 
 
 // Ensure that top level parsing of the class has been done.
-// TODO(24109): Migrate interface to Thread*.
 RawError* Class::EnsureIsFinalized(Thread* thread) const {
   // Finalized classes have already been parsed.
   if (is_finalized()) {

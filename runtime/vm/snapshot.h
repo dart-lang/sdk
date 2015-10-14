@@ -87,6 +87,7 @@ class RawTypeParameter;
 class RawTypeRef;
 class RawUnhandledException;
 class RawUnresolvedClass;
+class RawWeakProperty;
 class String;
 class TokenStream;
 class TypeArguments;
@@ -444,6 +445,7 @@ class SnapshotReader : public BaseReader {
   RawUnhandledException* NewUnhandledException();
   RawObject* NewInteger(int64_t value);
   RawStacktrace* NewStacktrace();
+  RawWeakProperty* NewWeakProperty();
 
   RawInstructions* GetInstructionsAt(int32_t offset, uword expected_tags) {
     return instructions_reader_->GetInstructionsAt(offset, expected_tags);

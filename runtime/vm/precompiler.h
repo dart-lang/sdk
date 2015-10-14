@@ -104,6 +104,8 @@ class Precompiler : public ValueObject {
 
   void VisitFunctions(FunctionVisitor* visitor);
 
+  void FinalizeAllClasses();
+
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
   Isolate* isolate() const { return isolate_; }

@@ -3369,7 +3369,7 @@ RawWeakProperty* WeakProperty::ReadFrom(SnapshotReader* reader,
 
   // Allocate the weak property object.
   WeakProperty& weak_property = WeakProperty::ZoneHandle(
-      reader->zone(), WeakProperty::New(HEAP_SPACE(kind)));
+      reader->zone(), NEW_OBJECT(WeakProperty));
   reader->AddBackRef(object_id, &weak_property, kIsDeserialized);
 
   // Set all the object fields.

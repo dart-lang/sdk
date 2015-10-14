@@ -1117,6 +1117,11 @@ RawGrowableObjectArray* SnapshotReader::NewGrowableObjectArray() {
 }
 
 
+RawWeakProperty* SnapshotReader::NewWeakProperty() {
+  ALLOC_NEW_OBJECT(WeakProperty);
+}
+
+
 RawFloat32x4* SnapshotReader::NewFloat32x4(float v0, float v1, float v2,
                                            float v3) {
   ASSERT(kind_ == Snapshot::kFull);

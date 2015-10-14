@@ -115,7 +115,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryInlineInstanceGetter(InstanceCallInstr* call,
                                bool allow_check = true);
   bool TryInlineInstanceSetter(InstanceCallInstr* call,
-                               const ICData& unary_ic_data);
+                               const ICData& unary_ic_data,
+                               bool allow_check = true);
 
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
   bool TryInlineFloat32x4Constructor(StaticCallInstr* call,

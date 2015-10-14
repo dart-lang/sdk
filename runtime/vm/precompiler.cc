@@ -17,6 +17,7 @@
 namespace dart {
 
 
+#define T (thread())
 #define I (isolate())
 #define Z (zone())
 
@@ -72,6 +73,10 @@ void Precompiler::DoCompileAll(
   // Drop all existing code so we can use the presence of code as an indicator
   // that we have already looked for the function's callees.
   ClearAllCode();
+
+  // Make sure class hierarchy is stable before compilation so that CHA
+  // can be used.
+  FinalizeAllClasses();
 
   // Start with the allocations and invocations that happen from C++.
   AddRoots(embedder_entry_points);
@@ -823,5 +828,25 @@ void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
     }
   }
 }
+
+
+void Precompiler::FinalizeAllClasses() {
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      if (cls.IsDynamicClass()) {
+        continue;  // class 'dynamic' is in the read-only VM isolate.
+      }
+      cls.EnsureIsFinalized(T);
+    }
+  }
+  I->set_all_classes_finalized(true);
+}
+
 
 }  // namespace dart

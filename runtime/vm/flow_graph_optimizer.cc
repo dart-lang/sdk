@@ -2328,7 +2328,7 @@ RawField* FlowGraphOptimizer::GetField(intptr_t class_id,
 // callee functions, then no class check is needed.
 bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
     InstanceCallInstr* call, RawFunction::Kind kind) const {
-  if (!FLAG_use_cha_deopt) {
+  if (!FLAG_use_cha_deopt && !isolate()->all_classes_finalized()) {
     // Even if class or function are private, lazy class finalization
     // may later add overriding methods.
     return true;
@@ -4043,13 +4043,15 @@ bool FlowGraphOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
 
   // Private classes cannot be subclassed by later loaded libs.
   if (!type_class.IsPrivate()) {
-    if (FLAG_use_cha_deopt) {
+    if (FLAG_use_cha_deopt || isolate()->all_classes_finalized()) {
       if (FLAG_trace_cha) {
         THR_Print("  **(CHA) Typecheck as class equality since no "
             "subclasses: %s\n",
             type_class.ToCString());
       }
-      thread()->cha()->AddToLeafClasses(type_class);
+      if (FLAG_use_cha_deopt) {
+        thread()->cha()->AddToLeafClasses(type_class);
+      }
     } else {
       return false;
     }
@@ -4308,13 +4310,24 @@ void FlowGraphOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
   // TODO(srdjan): Investigate other attempts, as they are not allowed to
   // deoptimize.
   const Token::Kind op_kind = instr->token_kind();
+  if ((op_kind == Token::kGET) &&
+      TryInlineInstanceGetter(instr, false /* no checks allowed */)) {
+    return;
+  }
+  const ICData& unary_checks =
+      ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
+  if ((instr->ic_data()->NumberOfChecks() > 0) &&
+      (op_kind == Token::kSET) &&
+      TryInlineInstanceSetter(instr, unary_checks, false /* no checks */)) {
+    return;
+  }
   if (instr->HasICData() && (instr->ic_data()->NumberOfUsedChecks() > 0)) {
-    const ICData& unary_checks =
-        ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
-
+    ASSERT(!FLAG_polymorphic_with_deopt);
+    // OK to use checks with PolymorphicInstanceCallInstr since no
+    // deoptimization is allowed.
     PolymorphicInstanceCallInstr* call =
         new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                            true /* call_with_checks*/);
+                                            true /* call_with_checks */);
     instr->ReplaceWith(call, current_iterator());
     return;
   }
@@ -4692,7 +4705,8 @@ void FlowGraphOptimizer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
 
 
 bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
-                                                 const ICData& unary_ic_data) {
+                                                 const ICData& unary_ic_data,
+                                                 bool allow_checks) {
   ASSERT((unary_ic_data.NumberOfChecks() > 0) &&
       (unary_ic_data.NumArgsTested() == 1));
   if (I->flags().type_checks()) {
@@ -4726,9 +4740,15 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   ASSERT(!field.IsNull());
 
   if (InstanceCallNeedsClassCheck(instr, RawFunction::kImplicitSetter)) {
+    if (!allow_checks) {
+      return false;
+    }
     AddReceiverCheck(instr);
   }
   if (field.guarded_cid() != kDynamicCid) {
+    if (!allow_checks) {
+      return false;
+    }
     InsertBefore(instr,
                  new(Z) GuardFieldClassInstr(
                      new(Z) Value(instr->ArgumentAt(1)),
@@ -4739,6 +4759,9 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   }
 
   if (field.needs_length_check()) {
+    if (!allow_checks) {
+      return false;
+    }
     InsertBefore(instr,
                  new(Z) GuardFieldLengthInstr(
                      new(Z) Value(instr->ArgumentAt(1)),

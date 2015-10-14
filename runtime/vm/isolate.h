@@ -658,6 +658,12 @@ class Isolate : public BaseIsolate {
     compilation_allowed_ = allowed;
   }
 
+  // In precompilation we finalize all regular classes before compiling.
+  bool all_classes_finalized() const { return all_classes_finalized_; }
+  void set_all_classes_finalized(bool value) {
+    all_classes_finalized_ = value;
+  }
+
   RawObject* InvokePendingServiceExtensionCalls();
   void AppendServiceExtensionCall(const Instance& closure,
                            const String& method_name,
@@ -849,6 +855,7 @@ class Isolate : public BaseIsolate {
   Metric* metrics_list_head_;
 
   bool compilation_allowed_;
+  bool all_classes_finalized_;
 
   // Isolate list next pointer.
   Isolate* next_;
