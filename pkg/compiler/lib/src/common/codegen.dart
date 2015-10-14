@@ -59,12 +59,6 @@ class CodegenRegistry extends Registry {
     assert(false);
   }
 
-  void registerInlining(Element inlinedElement, Element context) {
-    if (compiler.dumpInfo) {
-      compiler.dumpInfoTask.registerInlined(inlinedElement, context);
-    }
-  }
-
   void registerInstantiatedClass(ClassElement element) {
     backend.registerInstantiatedType(element.rawType, world, this);
   }
