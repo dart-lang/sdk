@@ -28,6 +28,10 @@ Dart_Handle Extensions::LoadExtensionLibrary(const char* library_file,
   return Dart_Null();
 }
 
+void* Extensions::LoadExtensionLibrary(const char* library_file) {
+  return LoadLibraryW(StringUtilsWin::Utf8ToWide(library_file));
+}
+
 Dart_Handle Extensions::ResolveSymbol(void* lib_handle,
                                       const char* symbol,
                                       void** init_function) {
@@ -39,6 +43,10 @@ Dart_Handle Extensions::ResolveSymbol(void* lib_handle,
     return Dart_NewApiError(err.message());
   }
   return Dart_Null();
+}
+
+void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {
+  return GetProcAddress(reinterpret_cast<HMODULE>(lib_handle), symbol);
 }
 
 }  // namespace bin

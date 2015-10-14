@@ -22,13 +22,16 @@ class Extensions {
                                    Dart_Handle parent_library);
 
   // Platform-specific implementations.
+  static void* LoadExtensionLibrary(const char* library_file);
+  static void* ResolveSymbol(void* lib_handle, const char* symbol);
+
+ private:
   static Dart_Handle LoadExtensionLibrary(const char* library_file,
                                           void** library);
   static Dart_Handle ResolveSymbol(void* lib_handle,
                                    const char* symbol,
                                    void** init_func);
 
- private:
   // The returned string must be freed.
   static char* Concatenate(const char** strings);
 

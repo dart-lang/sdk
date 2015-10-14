@@ -1092,21 +1092,15 @@ static void ReadSnapshotFile(const char* filename,
 
 
 static void* LoadLibrarySymbol(const char* libname, const char* symname) {
-  void* library = NULL;
-  Dart_Handle result = Extensions::LoadExtensionLibrary(libname, &library);
-  if (Dart_IsError(result)) {
-    ErrorExit(kErrorExitCode,
-              "Error: Failed to load library '%s' - '%s'\n",
-              libname,
-              Dart_GetError(result));
+  void* library = Extensions::LoadExtensionLibrary(libname);
+  if (library == NULL) {
+    Log::PrintErr("Error: Failed to load library '%s'\n", libname);
+    exit(kErrorExitCode);
   }
-  void* symbol = NULL;
-  result = Extensions::ResolveSymbol(library, symname, &symbol);
-  if (Dart_IsError(result)) {
-    ErrorExit(kErrorExitCode,
-              "Error: Failed to load symbol '%s' - '%s'\n",
-              symname,
-              Dart_GetError(result));
+  void* symbol = Extensions::ResolveSymbol(library, symname);
+  if (symbol == NULL) {
+    Log::PrintErr("Error: Failed to load symbol '%s'\n", symname);
+    exit(kErrorExitCode);
   }
   return symbol;
 }

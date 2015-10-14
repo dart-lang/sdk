@@ -26,6 +26,10 @@ Dart_Handle Extensions::LoadExtensionLibrary(const char* library_file,
   return Dart_Null();
 }
 
+void* Extensions::LoadExtensionLibrary(const char* library_file) {
+  return dlopen(library_file, RTLD_LAZY);
+}
+
 Dart_Handle Extensions::ResolveSymbol(void* lib_handle,
                                       const char* symbol,
                                       void** init_function) {
@@ -37,6 +41,13 @@ Dart_Handle Extensions::ResolveSymbol(void* lib_handle,
     return Dart_NewApiError(err_str);
   }
   return Dart_Null();
+}
+
+void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {
+  dlerror();
+  void* result = dlsym(lib_handle, symbol);
+  if (dlerror() != NULL) return NULL;
+  return result;
 }
 
 }  // namespace bin
