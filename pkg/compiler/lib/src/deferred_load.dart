@@ -363,7 +363,8 @@ class DeferredLoadTask extends CompilerTask {
       void addLiveInstanceMember(Element element) {
         if (!compiler.enqueuer.resolution.hasBeenProcessed(element)) return;
         if (!isMirrorUsage && !element.isInstanceMember) return;
-        collectDependencies(element.implementation);
+        elements.add(element);
+        collectDependencies(element);
       }
       ClassElement cls = element.declaration;
       cls.forEachLocalMember(addLiveInstanceMember);
@@ -377,6 +378,7 @@ class DeferredLoadTask extends CompilerTask {
       elements.add(cls.implementation);
     } else if (Elements.isStaticOrTopLevel(element) ||
                element.isConstructor) {
+      elements.add(element);
       collectDependencies(element);
     }
     if (element.isGenerativeConstructor) {
