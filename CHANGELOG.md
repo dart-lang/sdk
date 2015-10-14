@@ -1,6 +1,7 @@
 # Changelog
 
-## 0.1.0-dev
+## 0.1.0
+- Added `ProgramInfo.entrypoint`.
 - Added experimental information about calls in function bodies. This will
   likely change again in the near future.
 
