@@ -66,3 +66,12 @@ Future convertNativePromiseToDartFuture(js.JsObject promise) {
 convertDartToNative_DateTime(DateTime date) {
   return new js.JsObject(js.context["Date"], [date.millisecondsSinceEpoch]);
 }
+
+/// Creates a Dart Rectangle from a Javascript object with properties
+/// left, top, width and height. Used internally in Dartium.
+Rectangle make_dart_rectangle(r) =>
+    r == null ? null : new Rectangle(
+    js.JsNative.getProperty(r, 'left'),
+    js.JsNative.getProperty(r, 'top'),
+    js.JsNative.getProperty(r, 'width'),
+    js.JsNative.getProperty(r, 'height'));
