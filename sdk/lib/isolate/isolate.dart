@@ -647,33 +647,6 @@ abstract class RawReceivePort {
 }
 
 /**
- * Wraps unhandled exceptions thrown during isolate execution. It is
- * used to show both the error message and the stack trace for unhandled
- * exceptions.
- */
-// TODO(floitsch): probably going to remove and replace with something else.
-class _IsolateUnhandledException implements Exception {
-  /** Message being handled when exception occurred. */
-  final message;
-
-  /** Wrapped exception. */
-  final source;
-
-  /** Trace for the wrapped exception. */
-  final StackTrace stackTrace;
-
-  const _IsolateUnhandledException(this.message, this.source, this.stackTrace);
-
-  String toString() {
-    return 'IsolateUnhandledException: exception while handling message: '
-        '${message} \n  '
-        '${source.toString().replaceAll("\n", "\n  ")}\n'
-        'original stack trace:\n  '
-        '${stackTrace.toString().replaceAll("\n","\n  ")}';
-  }
-}
-
-/**
  * Description of an error from another isolate.
  *
  * This error has the same `toString()` and `stackTrace.toString()` behavior
