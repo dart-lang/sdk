@@ -41,7 +41,7 @@ import 'tree_elements.dart' show
     TreeElementMapping;
 
 // TODO(johnniwinther): Remove this.
-class EagerRegistry implements Registry {
+class EagerRegistry extends Registry {
   final Compiler compiler;
   final TreeElementMapping mapping;
 
@@ -51,19 +51,6 @@ class EagerRegistry implements Registry {
 
   @override
   bool get isForResolution => true;
-
-  @override
-  Iterable<Element> get otherDependencies => mapping.otherDependencies;
-
-  @override
-  void registerAssert(bool hasMessage) {
-    // TODO(johnniwinther): Do something here?
-  }
-
-  @override
-  void registerDependency(Element element) {
-    mapping.registerDependency(element);
-  }
 
   @override
   void registerDynamicGetter(UniverseSelector selector) {
@@ -352,7 +339,7 @@ class _ResolutionWorldImpact implements ResolutionImpact {
 /// related information in a [TreeElements] mapping and registers calls with
 /// [Backend], [World] and [Enqueuer].
 // TODO(johnniwinther): Split this into an interface and implementation class.
-class ResolutionRegistry implements Registry {
+class ResolutionRegistry extends Registry {
   final Compiler compiler;
   final TreeElementMapping mapping;
   final _ResolutionWorldImpact worldImpact;
@@ -715,18 +702,11 @@ class ResolutionRegistry implements Registry {
     worldImpact.registerFeature(Feature.THROW_EXPRESSION);
   }
 
-  void registerDependency(Element element) {
-    mapping.registerDependency(element);
-  }
-
-  Setlet<Element> get otherDependencies => mapping.otherDependencies;
-
   void registerStaticInvocation(Element element) {
     // TODO(johnniwinther): Increase precision of [registerStaticUse] and
     // [registerDependency].
     if (element == null) return;
     registerStaticUse(element);
-    registerDependency(element);
   }
 
   void registerInstantiation(InterfaceType type) {

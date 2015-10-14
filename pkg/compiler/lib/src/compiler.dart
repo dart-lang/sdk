@@ -158,7 +158,7 @@ abstract class Compiler {
    * We should get rid of this and ensure that all dependencies are
    * associated with a particular element.
    */
-  Registry globalDependencies;
+  GlobalDependencyRegistry globalDependencies;
 
   /**
    * Dependencies that are only included due to mirrors.
@@ -495,8 +495,7 @@ abstract class Compiler {
 
     // TODO(johnniwinther): Separate the dependency tracking from the enqueuing
     // for global dependencies.
-    globalDependencies =
-        new CodegenRegistry(this, new TreeElementMapping(null));
+    globalDependencies = new GlobalDependencyRegistry(this);
 
     if (emitJavaScript) {
       js_backend.JavaScriptBackend jsBackend =
@@ -2028,5 +2027,24 @@ class _CompilerParsing implements Parsing {
         compiler.patchParser.parsePatchClassNode(cls);
       }
     });
+  }
+}
+
+class GlobalDependencyRegistry extends CodegenRegistry {
+  Setlet<Element> _otherDependencies;
+
+  GlobalDependencyRegistry(Compiler compiler)
+      : super(compiler, new TreeElementMapping(null));
+
+  void registerDependency(Element element) {
+    if (element == null) return;
+    if (_otherDependencies == null) {
+      _otherDependencies = new Setlet<Element>();
+    }
+    _otherDependencies.add(element.implementation);
+  }
+
+  Iterable<Element> get otherDependencies {
+    return _otherDependencies != null ? _otherDependencies : const <Element>[];
   }
 }

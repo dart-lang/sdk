@@ -14,11 +14,8 @@ import '../universe/universe.dart' show
 
 /// Interface for registration of element dependencies.
 abstract class Registry {
-  // TODO(johnniwinther): Remove this getter when [Registry] creates a
-  // dependency node.
-  Iterable<Element> get otherDependencies;
-
-  void registerDependency(Element element);
+  // TODO(johnniwinther): Remove this.
+  void registerDependency(Element element) {}
 
   bool get isForResolution;
 
@@ -33,6 +30,4 @@ abstract class Registry {
   void registerInstantiation(InterfaceType type);
 
   void registerGetOfStaticFunction(FunctionElement element);
-
-  void registerAssert(bool hasMessage);
 }

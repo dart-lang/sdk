@@ -24,19 +24,12 @@ abstract class TreeElements {
   AnalyzableElement get analyzedElement;
   Iterable<Node> get superUses;
 
-  /// Iterables of the dependencies that this [TreeElement] records of
-  /// [analyzedElement].
-  Iterable<Element> get allElements;
-
   /// The set of types that this TreeElement depends on.
   /// This includes instantiated types, types in is-checks and as-expressions
   /// and in checked mode the types of all type-annotations.
   Iterable<DartType> get requiredTypes;
 
   void forEachConstantNode(f(Node n, ConstantExpression c));
-
-  /// A set of additional dependencies.  See [registerDependency] below.
-  Iterable<Element> get otherDependencies;
 
   Element operator[](Node node);
   Map<Node, DartType> get typesCache;
@@ -87,10 +80,6 @@ abstract class TreeElements {
   /// Returns the type that the type literal [node] refers to.
   DartType getTypeLiteralType(Send node);
 
-  /// Register additional dependencies required by [analyzedElement].
-  /// For example, elements that are used by a backend.
-  void registerDependency(Element element);
-
   /// Register a dependency on [type].
   void addRequiredType(DartType type);
 
@@ -130,13 +119,11 @@ class TreeElementMapping extends TreeElements {
   Map<Node, DartType> _types;
   Map<Node, DartType> typesCache = <Node, DartType>{};
   Setlet<Node> _superUses;
-  Setlet<Element> _otherDependencies;
   Map<Node, ConstantExpression> _constants;
   Map<VariableElement, List<Node>> _potentiallyMutated;
   Map<Node, Map<VariableElement, List<Node>>> _potentiallyMutatedIn;
   Map<VariableElement, List<Node>> _potentiallyMutatedInClosure;
   Map<Node, Map<VariableElement, List<Node>>> _accessedByClosureIn;
-  Setlet<Element> _elements;
   Maplet<Send, SendStructure> _sendStructureMap;
   Setlet<DartType> _requiredTypes;
   bool containsTryStatement = false;
@@ -173,10 +160,6 @@ class TreeElementMapping extends TreeElements {
     //                  getTreeElement(node) == null,
     //                  message: '${getTreeElement(node)}; $element'));
 
-    if (_elements == null) {
-      _elements = new Setlet<Element>();
-    }
-    _elements.add(element);
     setTreeElement(node, element);
   }
 
@@ -313,18 +296,6 @@ class TreeElementMapping extends TreeElements {
     return getType(node);
   }
 
-  void registerDependency(Element element) {
-    if (element == null) return;
-    if (_otherDependencies == null) {
-      _otherDependencies = new Setlet<Element>();
-    }
-    _otherDependencies.add(element.implementation);
-  }
-
-  Iterable<Element> get otherDependencies {
-    return _otherDependencies != null ? _otherDependencies : const <Element>[];
-  }
-
   List<Node> getPotentialMutations(VariableElement element) {
     if (_potentiallyMutated == null) return const <Node>[];
     List<Node> mutations = _potentiallyMutated[element];
@@ -397,10 +368,6 @@ class TreeElementMapping extends TreeElements {
   }
 
   String toString() => 'TreeElementMapping($analyzedElement)';
-
-  Iterable<Element> get allElements {
-    return _elements != null ? _elements : const <Element>[];
-  }
 
   void forEachConstantNode(f(Node n, ConstantExpression c)) {
     if (_constants != null) {

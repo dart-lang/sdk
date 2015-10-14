@@ -51,10 +51,6 @@ class CodegenRegistry extends Registry {
 
   String toString() => 'CodegenRegistry for $currentElement';
 
-  // TODO(johnniwinther): Remove this getter when [Registry] creates a
-  // dependency node.
-  Iterable<Element> get otherDependencies => treeElements.otherDependencies;
-
   CodegenEnqueuer get world => compiler.enqueuer.codegen;
   JavaScriptBackend get backend => compiler.backend;
 
@@ -63,8 +59,10 @@ class CodegenRegistry extends Registry {
     assert(false);
   }
 
-  void registerDependency(Element element) {
-    treeElements.registerDependency(element);
+  void registerInlining(Element inlinedElement, Element context) {
+    if (compiler.dumpInfo) {
+      compiler.dumpInfoTask.registerInlined(inlinedElement, context);
+    }
   }
 
   void registerInstantiatedClass(ClassElement element) {
