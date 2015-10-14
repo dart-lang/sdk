@@ -527,7 +527,9 @@ See [Isolate](#isolate).
 
 ```
 Object|Sentinel getObject(string isolateId,
-                          string objectId)
+                          string objectId,
+                          int offset [optional],
+                          int count [optional])
 ```
 
 The _getObject_ RPC is used to lookup an _object_ from some isolate by
@@ -545,6 +547,13 @@ the _Collected_ [Sentinel](#sentinel) is returned.
 
 If the object handle has not expired and the object has not been
 collected, then an [Object](#object) will be returned.
+
+The _offset_ and _count_ parameters are used to request subranges of
+Instance objects with the kinds: List, Map, Uint8ClampedList,
+Uint8List, Uint16List, Uint32List, Uint64List, Int8List, Int16List,
+Int32List, Int64List, Flooat32List, Float64List, Inst32x3List,
+Float32x4List, and Float64x2List.  These parameters are otherwise
+ignored.
 
 ### getStack
 
@@ -1374,7 +1383,7 @@ class @Instance extends @Object {
   // this property is added with the value 'true'.
   bool valueAsStringIsTruncated [optional];
 
-  // The length of a List instance.
+  // The length of a List or the number of associations in a Map.
   //
   // Provided for instance kinds:
   //   List
@@ -1447,7 +1456,7 @@ class Instance extends Object {
   // this property is added with the value 'true'.
   bool valueAsStringIsTruncated [optional];
 
-  // The length of a List instance.
+  // The length of a List or the number of associations in a Map.
   //
   // Provided for instance kinds:
   //   List
@@ -1467,6 +1476,50 @@ class Instance extends Object {
   //   Float32x4List
   //   Float64x2List
   int length [optional];
+
+  // The index of the first element or association returned.
+  // This is only provided when it is non-zero.
+  //
+  // Provided for instance kinds:
+  //   List
+  //   Map
+  //   Uint8ClampedList
+  //   Uint8List
+  //   Uint16List
+  //   Uint32List
+  //   Uint64List
+  //   Int8List
+  //   Int16List
+  //   Int32List
+  //   Int64List
+  //   Float32List
+  //   Float64List
+  //   Int32x4List
+  //   Float32x4List
+  //   Float64x2List
+  int offset [optional];
+
+  // The number of elements or associations returned.
+  // This is only provided when it is less than length.
+  //
+  // Provided for instance kinds:
+  //   List
+  //   Map
+  //   Uint8ClampedList
+  //   Uint8List
+  //   Uint16List
+  //   Uint32List
+  //   Uint64List
+  //   Int8List
+  //   Int16List
+  //   Int32List
+  //   Int64List
+  //   Float32List
+  //   Float64List
+  //   Int32x4List
+  //   Float32x4List
+  //   Float64x2List
+  int count [optional];
 
   // The name of a Type instance.
   //
@@ -2219,7 +2272,7 @@ version | comments
 ------- | --------
 1.0 | initial revision
 2.0 | Describe protocol version 2.0.
-3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.
+3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.  Add offset and count parameters to getObject() and offset and count fields to Instance.
 
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

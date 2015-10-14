@@ -2848,6 +2848,8 @@ static bool RespondWithMalformedObject(Isolate* isolate,
 
 static const MethodParameter* get_object_params[] = {
   ISOLATE_PARAMETER,
+  new UIntParameter("offset", false),
+  new UIntParameter("count", false),
   NULL,
 };
 
@@ -2857,6 +2859,22 @@ static bool GetObject(Isolate* isolate, JSONStream* js) {
   if (id == NULL) {
     PrintMissingParamError(js, "objectId");
     return true;
+  }
+  if (js->HasParam("offset")) {
+    intptr_t value = UIntParameter::Parse(js->LookupParam("offset"));
+    if (value < 0) {
+      PrintInvalidParamError(js, "offset");
+      return true;
+    }
+    js->set_offset(value);
+  }
+  if (js->HasParam("count")) {
+    intptr_t value = UIntParameter::Parse(js->LookupParam("count"));
+    if (value < 0) {
+      PrintInvalidParamError(js, "count");
+      return true;
+    }
+    js->set_count(value);
   }
 
   // Handle heap objects.

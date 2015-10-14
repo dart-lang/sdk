@@ -20086,10 +20086,21 @@ void Array::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
+  intptr_t offset;
+  intptr_t count;
+  stream->ComputeOffsetAndCount(Length(), &offset, &count);
+  if (offset > 0) {
+    jsobj.AddProperty("offset", offset);
+  }
+  if (count < Length()) {
+    jsobj.AddProperty("count", count);
+  }
+  intptr_t limit = offset + count;
+  ASSERT(limit <= Length());
   {
     JSONArray jsarr(&jsobj, "elements");
     Object& element = Object::Handle();
-    for (intptr_t index = 0; index < Length(); index++) {
+    for (intptr_t index = offset; index < limit; index++) {
       element = At(index);
       jsarr.AddValue(element);
     }
@@ -20324,10 +20335,21 @@ void GrowableObjectArray::PrintJSONImpl(JSONStream* stream,
   if (ref) {
     return;
   }
+  intptr_t offset;
+  intptr_t count;
+  stream->ComputeOffsetAndCount(Length(), &offset, &count);
+  if (offset > 0) {
+    jsobj.AddProperty("offset", offset);
+  }
+  if (count < Length()) {
+    jsobj.AddProperty("count", count);
+  }
+  intptr_t limit = offset + count;
+  ASSERT(limit <= Length());
   {
     JSONArray jsarr(&jsobj, "elements");
     Object& element = Object::Handle();
-    for (intptr_t index = 0; index < Length(); index++) {
+    for (intptr_t index = offset; index < limit; index++) {
       element = At(index);
       jsarr.AddValue(element);
     }
@@ -20430,16 +20452,31 @@ void LinkedHashMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
+  intptr_t offset;
+  intptr_t count;
+  stream->ComputeOffsetAndCount(Length(), &offset, &count);
+  if (offset > 0) {
+    jsobj.AddProperty("offset", offset);
+  }
+  if (count < Length()) {
+    jsobj.AddProperty("count", count);
+  }
+  intptr_t limit = offset + count;
+  ASSERT(limit <= Length());
   {
     JSONArray jsarr(&jsobj, "associations");
     Object& object = Object::Handle();
     LinkedHashMap::Iterator iterator(*this);
-    while (iterator.MoveNext()) {
-      JSONObject jsassoc(&jsarr);
-      object = iterator.CurrentKey();
-      jsassoc.AddProperty("key", object);
-      object = iterator.CurrentValue();
-      jsassoc.AddProperty("value", object);
+    int i = 0;
+    while (iterator.MoveNext() && i < limit) {
+      if (i >= offset) {
+        JSONObject jsassoc(&jsarr);
+        object = iterator.CurrentKey();
+        jsassoc.AddProperty("key", object);
+        object = iterator.CurrentValue();
+        jsassoc.AddProperty("value", object);
+      }
+      i++;
     }
   }
 }
@@ -20831,12 +20868,23 @@ void TypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-
-  {
+  intptr_t offset;
+  intptr_t count;
+  stream->ComputeOffsetAndCount(Length(), &offset, &count);
+  if (offset > 0) {
+    jsobj.AddProperty("offset", offset);
+  }
+  if (count < Length()) {
+    jsobj.AddProperty("count", count);
+  }
+  if (count == 0) {
+    jsobj.AddProperty("bytes", "");
+  } else {
     NoSafepointScope no_safepoint;
     jsobj.AddPropertyBase64("bytes",
-                            reinterpret_cast<const uint8_t*>(DataAddr(0)),
-                            LengthInBytes());
+                            reinterpret_cast<const uint8_t*>(
+                                DataAddr(offset * ElementSizeInBytes())),
+                            count * ElementSizeInBytes());
   }
 }
 
@@ -20882,12 +20930,23 @@ void ExternalTypedData::PrintJSONImpl(JSONStream* stream,
   if (ref) {
     return;
   }
-
-  {
+  intptr_t offset;
+  intptr_t count;
+  stream->ComputeOffsetAndCount(Length(), &offset, &count);
+  if (offset > 0) {
+    jsobj.AddProperty("offset", offset);
+  }
+  if (count < Length()) {
+    jsobj.AddProperty("count", count);
+  }
+  if (count == 0) {
+    jsobj.AddProperty("bytes", "");
+  } else {
     NoSafepointScope no_safepoint;
     jsobj.AddPropertyBase64("bytes",
-                            reinterpret_cast<const uint8_t*>(DataAddr(0)),
-                            LengthInBytes());
+                            reinterpret_cast<const uint8_t*>(
+                                DataAddr(offset * ElementSizeInBytes())),
+                            count * ElementSizeInBytes());
   }
 }
 

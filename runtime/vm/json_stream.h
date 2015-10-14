@@ -109,6 +109,20 @@ class JSONStream : ValueObject {
   const char** param_keys() const { return param_keys_; }
   const char** param_values() const { return param_values_; }
 
+  void set_offset(intptr_t value) {
+    ASSERT(value > 0);
+    offset_ = value;
+  }
+
+  void set_count(intptr_t value) {
+    ASSERT(value > 0);
+    count_ = value;
+  }
+
+  void ComputeOffsetAndCount(intptr_t length,
+                             intptr_t* offset,
+                             intptr_t* count);
+
  private:
   void Clear();
   void PostNullReply(Dart_Port port);
@@ -188,6 +202,8 @@ class JSONStream : ValueObject {
   const char** param_keys_;
   const char** param_values_;
   intptr_t num_params_;
+  intptr_t offset_;
+  intptr_t count_;
   int64_t setup_time_micros_;
 
   friend class JSONObject;

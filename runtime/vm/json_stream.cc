@@ -30,7 +30,9 @@ JSONStream::JSONStream(intptr_t buf_size)
       method_(""),
       param_keys_(NULL),
       param_values_(NULL),
-      num_params_(0) {
+      num_params_(0),
+      offset_(0),
+      count_(-1) {
   ObjectIdRing* ring = NULL;
   Isolate* isolate = Isolate::Current();
   if (isolate != NULL) {
@@ -244,6 +246,22 @@ bool JSONStream::ParamIs(const char* key, const char* value) const {
   return (key_value != NULL) && (strcmp(key_value, value) == 0);
 }
 
+
+void JSONStream::ComputeOffsetAndCount(intptr_t length,
+                                       intptr_t* offset,
+                                       intptr_t* count) {
+  // This function is written to avoid adding (count + offset) in case
+  // that triggers an integer overflow.
+  *offset = offset_;
+  if (*offset > length) {
+    *offset = length;
+  }
+  intptr_t remaining = length - *offset;
+  *count = count_;
+  if (*count < 0 || *count > remaining) {
+    *count = remaining;
+  }
+}
 
 void JSONStream::Clear() {
   buffer_.Clear();
