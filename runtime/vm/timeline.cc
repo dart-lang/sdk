@@ -511,6 +511,11 @@ TimelineDurationScope::~TimelineDurationScope() {
     return;
   }
   TimelineEvent* event = stream_->StartEvent();
+  if (event == NULL) {
+    // Stream is now disabled.
+    FreeArguments();
+    return;
+  }
   ASSERT(event != NULL);
   event->Duration(label_, timestamp_, OS::GetCurrentTraceMicros());
   event->StealArguments(arguments_length_, arguments_);
