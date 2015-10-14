@@ -298,7 +298,6 @@ class ResolverTask extends CompilerTask {
           // seeing this element.
           element.computeType(resolution);
           if (!target.isErroneous) {
-            registry.registerStaticUse(target);
             registry.registerImplicitSuperCall(target);
           }
           return registry.worldImpact;

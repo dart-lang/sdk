@@ -79,15 +79,14 @@ class EagerRegistry extends Registry {
 
   @override
   void registerStaticInvocation(Element element) {
-    registerDependency(element);
     world.registerStaticUse(element);
   }
 
   String toString() => 'EagerRegistry for ${mapping.analyzedElement}';
 }
 
-class _ResolutionWorldImpact implements ResolutionImpact {
-  final Registry registry;
+class _ResolutionWorldImpact extends ResolutionImpact {
+  final String name;
   // TODO(johnniwinther): Do we benefit from lazy initialization of the
   // [Setlet]s?
   Setlet<UniverseSelector> _dynamicInvocations;
@@ -108,13 +107,7 @@ class _ResolutionWorldImpact implements ResolutionImpact {
   Setlet<DartType> _typeLiterals;
   Setlet<String> _constSymbolNames;
 
-  _ResolutionWorldImpact(Compiler compiler, TreeElementMapping mapping)
-      : this.registry = new EagerRegistry(compiler, mapping);
-
-  void registerDependency(Element element) {
-    assert(element != null);
-    registry.registerDependency(element);
-  }
+  _ResolutionWorldImpact(this.name);
 
   void registerDynamicGetter(UniverseSelector selector) {
     assert(selector != null);
@@ -332,7 +325,7 @@ class _ResolutionWorldImpact implements ResolutionImpact {
     return _features != null ? _features : const <Feature>[];
   }
 
-  String toString() => '$registry';
+  String toString() => '_ResolutionWorldImpact($name)';
 }
 
 /// [ResolutionRegistry] collects all resolution information. It stores node
@@ -347,7 +340,8 @@ class ResolutionRegistry extends Registry {
   ResolutionRegistry(Compiler compiler, TreeElementMapping mapping)
       : this.compiler = compiler,
         this.mapping = mapping,
-        this.worldImpact = new _ResolutionWorldImpact(compiler, mapping);
+        this.worldImpact = new _ResolutionWorldImpact(
+            mapping.analyzedElement.toString());
 
   bool get isForResolution => true;
 
@@ -532,7 +526,7 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerImplicitSuperCall(FunctionElement superConstructor) {
-    registerDependency(superConstructor);
+    registerStaticUse(superConstructor);
   }
 
   // TODO(johnniwinther): Remove this.
@@ -703,8 +697,7 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerStaticInvocation(Element element) {
-    // TODO(johnniwinther): Increase precision of [registerStaticUse] and
-    // [registerDependency].
+    // TODO(johnniwinther): Increase precision of [registerStaticUse].
     if (element == null) return;
     registerStaticUse(element);
   }

@@ -229,14 +229,6 @@ class TransformedWorldImpact extends WorldImpact {
   @override
   Iterable<DartType> get isChecks => worldImpact.isChecks;
 
-  @override
-  Iterable<Element> get staticUses {
-    if (_staticUses == null) {
-      return worldImpact.staticUses;
-    }
-    return _staticUses;
-  }
-
   _unsupported(String message) => throw new UnsupportedError(message);
 
   void registerDynamicGetter(UniverseSelector selector) {
@@ -264,11 +256,9 @@ class TransformedWorldImpact extends WorldImpact {
   }
 
   void registerInstantiatedType(InterfaceType type) {
-    // TODO(johnniwinther): Remove this when dependency tracking is done on
-    // the world impact itself.
-    worldImpact.registerDependency(type.element);
     if (_instantiatedTypes == null) {
       _instantiatedTypes = new Setlet<InterfaceType>();
+      _instantiatedTypes.addAll(worldImpact.instantiatedTypes);
     }
     _instantiatedTypes.add(type);
   }
@@ -276,7 +266,7 @@ class TransformedWorldImpact extends WorldImpact {
   @override
   Iterable<InterfaceType> get instantiatedTypes {
     return _instantiatedTypes != null
-        ? _instantiatedTypes : const <InterfaceType>[];
+        ? _instantiatedTypes : worldImpact.instantiatedTypes;
   }
 
   @override
@@ -285,13 +275,16 @@ class TransformedWorldImpact extends WorldImpact {
   }
 
   void registerStaticUse(Element element) {
-    // TODO(johnniwinther): Remove this when dependency tracking is done on
-    // the world impact itself.
-    worldImpact.registerDependency(element);
     if (_staticUses == null) {
       _staticUses = new Setlet<Element>();
+      _staticUses.addAll(worldImpact.staticUses);
     }
     _staticUses.add(element);
+  }
+
+  @override
+  Iterable<Element> get staticUses {
+    return _staticUses != null ? _staticUses : worldImpact.staticUses;
   }
 
   @override

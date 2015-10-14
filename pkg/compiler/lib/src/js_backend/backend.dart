@@ -2973,15 +2973,6 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
         registerBackendImpact(transformed, impacts.computeSignature);
       }
     }
-    // TODO(johnniwinther): Remove this when dependency tracking is done on
-    // the world impact itself.
-    for (InterfaceType instantiatedType in worldImpact.instantiatedTypes) {
-      transformed.registerInstantiatedType(instantiatedType);
-    }
-    for (Element element in worldImpact.staticUses) {
-      transformed.registerStaticUse(element);
-    }
-
     return transformed;
   }
 

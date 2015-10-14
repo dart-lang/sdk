@@ -233,7 +233,6 @@ class InitializerResolver {
                                        constructorSelector);
       if (calledConstructor != null) {
         registry.registerImplicitSuperCall(calledConstructor);
-        registry.registerStaticUse(calledConstructor);
       }
 
       if (isConst && isValidAsConstant) {
