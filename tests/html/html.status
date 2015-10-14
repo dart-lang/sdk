@@ -24,6 +24,7 @@ transferables_test: RuntimeError # Dartium JSInterop failure
 [ $compiler == none && ($runtime == drt || $runtime == dartium ) ]
 worker_api_test: Fail # Issue 10223
 resource_http_test: Fail # Issue 24203
+js_dart_to_string_test: RuntimeError # 24584
 
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium ) ]
 datalistelement_test: Skip # Issue 20540
