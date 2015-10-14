@@ -7,15 +7,12 @@ library inferrer_visitor;
 import 'dart:collection' show
     IterableMixin;
 
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import '../diagnostics/spannable.dart' show
-    Spannable;
 import '../elements/elements.dart';
 import '../resolution/operators.dart';
 import '../resolution/semantic_visitor.dart';

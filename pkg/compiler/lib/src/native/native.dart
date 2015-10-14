@@ -6,6 +6,7 @@ library native;
 
 import 'dart:collection' show Queue;
 
+import '../common.dart';
 import '../common/backend_api.dart' show
     ForeignResolver;
 import '../common/registry.dart' show
@@ -19,13 +20,6 @@ import '../constants/values.dart';
 import '../core_types.dart' show
     CoreTypes;
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import '../diagnostics/messages.dart' show
-    MessageKind;
-import '../diagnostics/spannable.dart' show
-    NO_LOCATION_SPANNABLE,
-    Spannable;
 import '../enqueue.dart' show
     Enqueuer,
     ResolutionEnqueuer;
@@ -44,8 +38,6 @@ import '../parser/listener.dart' show
     Listener;
 import '../parser/element_listener.dart' show
     ElementListener;
-import '../parser/partial_elements.dart' show
-    PartialMetadataAnnotation;
 import '../ssa/ssa.dart';
 import '../tokens/token.dart' show
     BeginGroupToken,

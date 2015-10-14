@@ -677,8 +677,8 @@ class CallSiteInliner : public ValueObject {
     }
 
     // Save and clear deopt id.
-    const intptr_t prev_deopt_id = isolate()->deopt_id();
-    isolate()->set_deopt_id(0);
+    const intptr_t prev_deopt_id = thread()->deopt_id();
+    thread()->set_deopt_id(0);
     // Install bailout jump.
     LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {
@@ -701,7 +701,7 @@ class CallSiteInliner : public ValueObject {
       FlowGraphBuilder builder(*parsed_function,
                                *ic_data_array,
                                exit_collector,
-                               Isolate::kNoDeoptId);
+                               Thread::kNoDeoptId);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
       {
@@ -813,7 +813,7 @@ class CallSiteInliner : public ValueObject {
             (size > FLAG_inlining_constant_arguments_max_size_threshold)) {
           function.set_is_inlinable(false);
         }
-        isolate()->set_deopt_id(prev_deopt_id);
+        thread()->set_deopt_id(prev_deopt_id);
         TRACE_INLINING(THR_Print("     Bailout: heuristics with "
                                  "code size:  %" Pd ", "
                                  "call sites: %" Pd ", "
@@ -843,7 +843,7 @@ class CallSiteInliner : public ValueObject {
       if (is_recursive_call) {
         inlined_recursive_call_ = true;
       }
-      isolate()->set_deopt_id(prev_deopt_id);
+      thread()->set_deopt_id(prev_deopt_id);
 
       call_data->callee_graph = callee_graph;
       call_data->parameter_stubs = param_stubs;
@@ -873,7 +873,7 @@ class CallSiteInliner : public ValueObject {
       Error& error = Error::Handle();
       error = isolate()->object_store()->sticky_error();
       isolate()->object_store()->clear_sticky_error();
-      isolate()->set_deopt_id(prev_deopt_id);
+      thread()->set_deopt_id(prev_deopt_id);
       TRACE_INLINING(THR_Print("     Bailout: %s\n", error.ToErrorCString()));
       PRINT_INLINING_TREE("Bailout",
           &call_data->caller, &function, call);
@@ -1220,7 +1220,7 @@ class CallSiteInliner : public ValueObject {
     // Otherwise, build a collection of name/argument pairs.
     GrowableArray<NamedArgument> named_args(argument_names_count);
     for (intptr_t i = 0; i < argument_names.Length(); ++i) {
-      String& arg_name = String::Handle(Isolate::Current());
+      String& arg_name = String::Handle(caller_graph_->zone());
       arg_name ^= argument_names.At(i);
       named_args.Add(
           NamedArgument(&arg_name, (*arguments)[i + fixed_param_count]));
@@ -1497,7 +1497,7 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
     GraphEntryInstr* graph_entry =
         new(Z) GraphEntryInstr(*temp_parsed_function,
                                entry,
-                               Isolate::kNoDeoptId);  // No OSR id.
+                               Thread::kNoDeoptId);  // No OSR id.
     // Update polymorphic inliner state.
     inlined_entries_.Add(graph_entry);
     exit_collector_->Union(exit_collector);

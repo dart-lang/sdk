@@ -4,6 +4,7 @@
 
 library services.completion.computer.dart.invocation;
 
+import 'package:analysis_server/plugin/edit/utilities/change_builder_dart.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind, SourceChange;
 import 'package:analysis_server/src/protocol_server.dart' as protocol
@@ -11,7 +12,6 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol
 import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart'
     show DART_RELEVANCE_HIGH;
-import 'package:analysis_server/utilities/change_builder_dart.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -78,7 +78,7 @@ class InheritedContributor extends DartCompletionContributor {
         0,
         element.isDeprecated,
         false);
-    suggestion.element = protocol.newElement_fromEngine(element);
+    suggestion.element = protocol.convertElement(element);
     return suggestion;
   }
 

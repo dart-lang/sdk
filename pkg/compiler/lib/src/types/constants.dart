@@ -4,13 +4,10 @@
 
 library types.constants;
 
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
 import '../constants/values.dart';
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import '../diagnostics/spannable.dart' show
-    CURRENT_ELEMENT_SPANNABLE;
 import '../js_backend/js_backend.dart' show
     SyntheticConstantKind;
 import 'types.dart';

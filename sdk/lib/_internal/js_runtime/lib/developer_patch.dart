@@ -60,3 +60,18 @@ void _reportCompleteEvent(int start,
                           String argumentsAsJson) {
   // TODO.
 }
+
+@patch
+int _getNextAsyncId() {
+  return 0;
+}
+
+@patch
+void _reportTaskEvent(int start,
+                      int taskId,
+                      String phase,
+                      String category,
+                      String name,
+                      String argumentsAsJson) {
+ // TODO.
+}

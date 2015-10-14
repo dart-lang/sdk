@@ -11,19 +11,28 @@ LayoutTests/fast/css-generated-content/pseudo-animation-before-onload_t01: Skip 
 LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeError # Issue 21605
 LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow_t01: Pass, RuntimeError # Issue 21605
 
+[ $compiler == none && $runtime == dartium && $system == windows ]
+LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeError # Issue 21605
+
 [ $compiler == none && $runtime == dartium ]
-LayoutTests/fast/canvas/canvas-lineDash-input-sequence_t01: RuntimeError # Dartium JSInterop failure
+LayoutTests/fast/dom/custom/document-register-basic_t01: RuntimeError # Bad test can't register HtmlElement.
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/events/remove-event-listener_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
+LayoutTests/fast/xpath/attr-namespace_t01: RuntimeError # Dartium JsInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/axes_t01: RuntimeError # Dartium JSInterop failure
-LayoutTests/fast/dom/custom/element-type_t01: RuntimeError # Dartium JsInterop failure (element upgrade)
+WebPlatformTest/custom-elements/instantiating/isAttribute_A02_t01: RuntimeError # Dartium JSInterop failure
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Pass, RuntimeError # Flaky with Dartium JsInterop. Seems like timing issues in the test.
+LibTest/html/IFrameElement/IFrameElement.created_A01_t01: RuntimeError # Issue 24568
+LibTest/html/Window/document_A01_t01: RuntimeError # Issue 24585
 
 [ $compiler == none && $runtime == dartium && $checked ]
 LayoutTests/fast/css/style-scoped/style-scoped-scoping-nodes-different-order_t01: RuntimeError # Dartium JSInterop failure
+LibTest/html/Window/requestFileSystem_A02_t01: Skip # Times out. Issue 24585.  This also has an untriaged dartium failure, in the section below.
+WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: RuntimeError # Issue 24585
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01: Skip # Issue 20540
@@ -391,7 +400,6 @@ LayoutTests/fast/dom/blur-contenteditable_t01: RuntimeError, Pass # co19-roll r7
 LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/custom/document-register-svg-extends_t01: RuntimeError # co19-roll r738: Please triage this failure.
-LayoutTests/fast/dom/custom/document-register-type-extensions_t01: RuntimeError # Issue 24516
 LayoutTests/fast/dom/dataset-xhtml_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/dataset_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/focus-contenteditable_t01: RuntimeError, Pass # co19-roll r738: Please triage this failure.

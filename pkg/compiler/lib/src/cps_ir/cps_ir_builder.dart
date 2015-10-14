@@ -4,6 +4,8 @@
 
 library dart2js.ir_builder;
 
+import '../closure.dart' hide ClosureScope;
+import '../common.dart';
 import '../common/names.dart' show
     Names,
     Selectors;
@@ -14,29 +16,28 @@ import '../constants/values.dart' show
     ConstantValue,
     PrimitiveConstantValue;
 import '../dart_types.dart';
-import '../diagnostics/invariant.dart' show
-    invariant;
 import '../elements/elements.dart';
 import '../io/source_information.dart';
+import '../js/js.dart' as js show
+    js,
+    LiteralStatement,
+    Template;
+import '../native/native.dart' show
+    NativeBehavior;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart' show
     TypeMask;
-import '../closure.dart' hide ClosureScope;
 import '../universe/call_structure.dart' show
     CallStructure;
 import '../universe/selector.dart' show
     Selector,
     SelectorKind;
-import 'cps_ir_nodes.dart' as ir;
+
 import 'cps_ir_builder_task.dart' show
     DartCapturedVariables,
     GlobalProgramInformation;
+import 'cps_ir_nodes.dart' as ir;
 
-import '../common.dart' as types show
-    TypeMask;
-import '../js/js.dart' as js show Template, js, LiteralStatement;
-import '../native/native.dart' show
-    NativeBehavior;
 
 /// A mapping from variable elements to their compile-time values.
 ///
@@ -2696,7 +2697,7 @@ class IrBuilder {
                                 NativeBehavior behavior,
                                 {Element dependency}) {
     assert(behavior != null);
-    types.TypeMask type = program.getTypeMaskForForeign(behavior);
+    TypeMask type = program.getTypeMaskForForeign(behavior);
     ir.Primitive result = _continueWithExpression((k) => new ir.ForeignCode(
         codeTemplate,
         type,

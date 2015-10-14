@@ -9,15 +9,12 @@ import 'dart:convert'
 
 import 'package:dart2js_info/info.dart';
 
+import 'common.dart';
 import 'common/tasks.dart' show
     CompilerTask;
 import 'constants/values.dart' show ConstantValue;
 import 'compiler.dart' show
     Compiler;
-import 'diagnostics/messages.dart' show
-    MessageKind;
-import 'diagnostics/spannable.dart' show
-    NO_LOCATION_SPANNABLE;
 import 'elements/elements.dart';
 import 'elements/visitor.dart';
 import 'types/types.dart' show
@@ -115,7 +112,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   }
 
   TypedefInfo visitTypedefElement(TypedefElement element, _) {
-    if (element.alias == null) return null;
+    if (!element.isResolved) return null;
     TypedefInfo info = new TypedefInfo(element.name, '${element.alias}',
         _unitInfoForElement(element));
     _elementToInfo[element] = info;
@@ -348,7 +345,17 @@ class Selection {
   Selection(this.selectedElement, this.mask);
 }
 
-class DumpInfoTask extends CompilerTask {
+/// Interface used to record information from different parts of the compiler so
+/// we can emit them in the dump-info task.
+// TODO(sigmund,het): move more features here. Ideally the dump-info task
+// shouldn't reach into internals of other parts of the compiler. For example,
+// we currently reach into the full emitter and as a result we don't support
+// dump-info when using the startup-emitter (issue #24190).
+abstract class InfoReporter {
+  void reportInlined(Element element, Element inlinedFrom);
+}
+
+class DumpInfoTask extends CompilerTask implements InfoReporter {
   DumpInfoTask(Compiler compiler) : super(compiler);
 
   String get name => "Dump Info";
@@ -382,7 +389,7 @@ class DumpInfoTask extends CompilerTask {
     _programSize = programSize;
   }
 
-  void registerInlined(Element element, Element inlinedFrom) {
+  void reportInlined(Element element, Element inlinedFrom) {
     inlineCount.putIfAbsent(element, () => 0);
     inlineCount[element] += 1;
     inlineMap.putIfAbsent(inlinedFrom, () => new List<Element>());
@@ -548,6 +555,7 @@ class DumpInfoTask extends CompilerTask {
     result.deferredFiles = compiler.deferredLoadTask.computeDeferredMap();
     stopwatch.stop();
     result.program = new ProgramInfo(
+        entrypoint: infoCollector._elementToInfo[compiler.mainFunction],
         size: _programSize,
         dart2jsVersion: compiler.hasBuildId ? compiler.buildId : null,
         compilationMoment: new DateTime.now(),

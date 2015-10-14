@@ -10,8 +10,8 @@
 #include "vm/message.h"
 #include "vm/metrics.h"
 #include "vm/object.h"
-#include "vm/service_event.h"
 #include "vm/service.h"
+#include "vm/service_event.h"
 #include "vm/timeline.h"
 #include "vm/unicode.h"
 
@@ -443,6 +443,12 @@ void JSONStream::PrintValue(TimelineEvent* timeline_event) {
 }
 
 
+void JSONStream::PrintValueVM(bool ref) {
+  PrintCommaIfNeeded();
+  Service::PrintJSONForVM(this, ref);
+}
+
+
 void JSONStream::PrintServiceId(const Object& o) {
   ASSERT(id_zone_ != NULL);
   PrintProperty("id", id_zone_->GetServiceId(o));
@@ -594,6 +600,12 @@ void JSONStream::PrintProperty(const char* name, const Object& o, bool ref) {
 }
 
 
+void JSONStream::PrintPropertyVM(const char* name, bool ref) {
+  PrintPropertyName(name);
+  PrintValueVM(ref);
+}
+
+
 void JSONStream::PrintPropertyName(const char* name) {
   ASSERT(name != NULL);
   PrintCommaIfNeeded();
@@ -723,9 +735,9 @@ void JSONObject::AddLocation(const Script& script,
 void JSONObject::AddLocation(const BreakpointLocation* bpt_loc) const {
   ASSERT(bpt_loc->IsResolved());
 
-  Isolate* isolate = Isolate::Current();
-  Library& library = Library::Handle(isolate);
-  Script& script = Script::Handle(isolate);
+  Zone* zone = Thread::Current()->zone();
+  Library& library = Library::Handle(zone);
+  Script& script = Script::Handle(zone);
   intptr_t token_pos;
   bpt_loc->GetCodeLocation(&library, &script, &token_pos);
   AddLocation(script, token_pos);
@@ -736,9 +748,9 @@ void JSONObject::AddUnresolvedLocation(
     const BreakpointLocation* bpt_loc) const {
   ASSERT(!bpt_loc->IsResolved());
 
-  Isolate* isolate = Isolate::Current();
-  Library& library = Library::Handle(isolate);
-  Script& script = Script::Handle(isolate);
+  Zone* zone = Thread::Current()->zone();
+  Library& library = Library::Handle(zone);
+  Script& script = Script::Handle(zone);
   intptr_t token_pos;
   bpt_loc->GetCodeLocation(&library, &script, &token_pos);
 
@@ -747,7 +759,7 @@ void JSONObject::AddUnresolvedLocation(
   if (!script.IsNull()) {
     location.AddProperty("script", script);
   } else {
-    const String& scriptUri = String::Handle(isolate, bpt_loc->url());
+    const String& scriptUri = String::Handle(zone, bpt_loc->url());
     location.AddPropertyStr("scriptUri", scriptUri);
   }
   if (bpt_loc->requested_line_number() >= 0) {

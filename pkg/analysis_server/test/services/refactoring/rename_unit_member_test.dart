@@ -4,7 +4,7 @@
 
 library test.services.refactoring.rename_unit_member;
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
@@ -396,6 +396,31 @@ class Other {
 main() {
   NewName t1 = new NewName();
   NewName t2 = new NewName.named();
+}
+''');
+  }
+
+  test_createChange_ClassElement_invocation() {
+    verifyNoTestUnitErrors = false;
+    indexTestUnit('''
+class Test {
+}
+main() {
+  Test(); // invalid code, but still a reference
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('Test();');
+    expect(refactoring.refactoringName, 'Rename Class');
+    expect(refactoring.elementKindName, 'class');
+    expect(refactoring.oldName, 'Test');
+    refactoring.newName = 'NewName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class NewName {
+}
+main() {
+  NewName(); // invalid code, but still a reference
 }
 ''');
   }

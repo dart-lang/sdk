@@ -34,6 +34,11 @@ $endif
       e._initCustomEvent(type, canBubble, cancelable, null);
     }
 
+$if DARTIUM
+    // Need for identity.
+    e.blink_jsObject['dart_class'] = e;
+
+$endif
     return e;
   }
 

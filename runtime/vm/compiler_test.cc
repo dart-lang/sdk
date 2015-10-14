@@ -183,8 +183,8 @@ TEST_CASE(RegenerateAllocStubs) {
       lib_handle.LookupClass(String::Handle(Symbols::New("A"))));
   EXPECT(!cls.IsNull());
 
-  Isolate* isolate = Isolate::Current();
-  const Code& stub = Code::Handle(isolate,
+  Zone* zone = thread->zone();
+  const Code& stub = Code::Handle(zone,
                                   StubCode::GetAllocationStubForClass(cls));
   Class& owner = Class::Handle();
   owner ^= stub.owner();

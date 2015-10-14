@@ -19,9 +19,18 @@
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
-    <div class="content">
+    <div class="content-centered">
       <h1>VM</h1>
+      <hr>
       <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">name</div>
+          <div class="memberValue">{{ vm.name }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">address</div>
+          <div class="memberValue">{{ vm.target.networkAddress }}</div>
+        </div>
         <div class="memberItem">
           <div class="memberName">version</div>
           <div class="memberValue">{{ vm.version }}</div>
@@ -39,14 +48,6 @@
           <div class="memberValue">{{ vm.refreshTime.toString() }}</div>
         </div>
         <div class="memberItem">
-          <div class="memberName">type checks enabled</div>
-          <div class="memberValue">{{ vm.typeChecksEnabled }}</div>
-        </div>
-        <div class="memberItem">
-          <div class="memberName">asserts enabled</div>
-          <div class="memberValue">{{ vm.assertsEnabled }}</div>
-        </div>
-        <div class="memberItem">
           <div class="memberName">pid</div>
           <div class="memberValue">{{ vm.pid }}</div>
         </div>
@@ -57,17 +58,19 @@
           </div>
         </div>
       </div>
+      <br>
+      <br>
+      <h1>Isolates ({{ vm.isolates.length }})</h1>
+      <hr>
+      <ul class="list-group">
+        <template repeat="{{ isolate in vm.isolates }}">
+          <li class="list-group-item">
+            <isolate-summary isolate="{{ isolate }}"></isolate-summary>
+          </li>
+          <hr>
+        </template>
+      </ul>
     </div>
-    <br>
-    <hr>
-    <ul class="list-group">
-      <template repeat="{{ isolate in vm.isolates }}">
-      	<li class="list-group-item">
-          <isolate-summary isolate="{{ isolate }}"></isolate-summary>
-        </li>
-        <hr>
-      </template>
-    </ul>
     <view-footer></view-footer>
   </template>
 </polymer-element>

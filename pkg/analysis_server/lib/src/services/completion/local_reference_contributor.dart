@@ -6,9 +6,10 @@ library services.completion.contributor.dart.local;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' as protocol
+import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
     show Element, ElementKind;
-import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/local_declaration_visitor.dart';
 import 'package:analysis_server/src/services/completion/local_suggestion_builder.dart';

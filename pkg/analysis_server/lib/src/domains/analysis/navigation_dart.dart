@@ -4,7 +4,7 @@
 
 library domains.analysis.navigation_dart;
 
-import 'package:analysis_server/analysis/navigation_core.dart';
+import 'package:analysis_server/plugin/analysis/navigation/navigation_core.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -59,7 +59,7 @@ class _DartNavigationCollector {
       return;
     }
     protocol.ElementKind kind =
-        protocol.newElementKind_fromEngine(element.kind);
+        protocol.convertElementKind(element.kind);
     protocol.Location location = protocol.newLocation_fromElement(element);
     if (location == null) {
       return;

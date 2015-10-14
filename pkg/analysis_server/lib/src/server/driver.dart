@@ -8,13 +8,13 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:analysis_server/plugin/analysis/resolver_provider.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/starter.dart';
-import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -24,6 +24,7 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:args/args.dart';
+import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 
@@ -401,11 +402,15 @@ class Driver implements ServerStarter {
     //
     ServerPlugin serverPlugin = new ServerPlugin();
     List<Plugin> plugins = <Plugin>[];
-    plugins.add(AnalysisEngine.instance.enginePlugin);
     plugins.add(serverPlugin);
     plugins.addAll(_userDefinedPlugins);
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
+    plugins.add(linterPlugin);
+
+    // Defer to the extension manager in AE for plugin registration.
+    AnalysisEngine.instance.userDefinedPlugins = plugins;
+    // Force registration.
+    AnalysisEngine.instance.taskManager;
+
     //
     // Create the sockets and start listening for requests.
     //

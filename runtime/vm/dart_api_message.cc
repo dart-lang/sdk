@@ -794,7 +794,7 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       value = AllocateDartCObjectArray(0);
       AddBackRef(object_id, value, kIsDeserialized);
       // Read the content of the GrowableObjectArray.
-      Dart_CObject* content = ReadObjectImpl();
+      Dart_CObject* content = ReadObjectRef();
       ASSERT(content->type == Dart_CObject_kArray);
       // Make the empty array allocated point to the backing store content.
       value->value.as_array.length = len;
@@ -1235,7 +1235,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       }
 
       WriteIndexedObject(class_id);
-      WriteTags(RawObject::ClassIdTag::update(class_id, 0));
+      WriteTags(0);
       WriteSmi(len);
       switch (class_id) {
         case kTypedDataInt8ArrayCid:
@@ -1269,8 +1269,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       WriteInlinedHeader(object);
       // Write out the class and tag information.
       WriteIndexedObject(kExternalTypedDataUint8ArrayCid);
-      WriteTags(RawObject::ClassIdTag::update(
-          kExternalTypedDataUint8ArrayCid, 0));
+      WriteTags(0);
       intptr_t length = object->value.as_external_typed_data.length;
       if (length < 0 ||
           length > ExternalTypedData::MaxElements(

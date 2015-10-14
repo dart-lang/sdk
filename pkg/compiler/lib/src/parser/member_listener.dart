@@ -4,10 +4,7 @@
 
 library dart2js.parser.member_listener;
 
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import '../diagnostics/messages.dart' show
-    MessageKind;
+import '../common.dart';
 import '../elements/elements.dart' show
     Element,
     ElementKind,
@@ -21,8 +18,6 @@ import '../elements/modelx.dart' show
 import '../tokens/token.dart' show
     Token;
 import '../tree/tree.dart';
-import '../util/util.dart' show
-    Link;
 
 import 'partial_elements.dart' show
     PartialConstructorElement,

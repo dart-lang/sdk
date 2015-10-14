@@ -4,6 +4,7 @@
 
 library dart2js.compile_time_constant_evaluator;
 
+import 'common.dart';
 import 'common/resolution.dart' show
     Resolution;
 import 'common/tasks.dart' show
@@ -16,17 +17,10 @@ import 'constants/evaluation.dart';
 import 'constants/expressions.dart';
 import 'constants/values.dart';
 import 'dart_types.dart';
-import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import 'diagnostics/invariant.dart' show
-    invariant;
-import 'diagnostics/messages.dart' show
-    MessageKind;
-import 'enqueue.dart' show
-    WorldImpact;
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show
     FunctionElementX;
+import 'helpers/helpers.dart';
 import 'resolution/tree_elements.dart' show
     TreeElements;
 import 'resolution/operators.dart';
@@ -865,10 +859,10 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       concreteArguments = normalizedArguments;
     }
 
-    if (target == compiler.intEnvironment ||
-        target == compiler.boolEnvironment ||
-        target == compiler.stringEnvironment) {
-      return createFromEnvironmentConstant(node, constructedType, target,
+    if (constructor == compiler.intEnvironment ||
+        constructor == compiler.boolEnvironment ||
+        constructor == compiler.stringEnvironment) {
+      return createFromEnvironmentConstant(node, constructedType, constructor,
           callStructure, normalizedArguments, concreteArguments);
     } else {
       return makeConstructedConstant(compiler, handler, context, node, type,
@@ -953,6 +947,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
         expression =
             new StringFromEnvironmentConstantExpression(name, defaultValue);
       }
+      assert(expression != null);
       return new AstConstant(context, node, expression, value);
     }
 
@@ -1267,7 +1262,7 @@ class ErroneousAstConstant extends AstConstant {
 
 // TODO(johnniwinther): Clean this up.
 TreeElements _analyzeElementEagerly(Compiler compiler, AstElement element) {
-  compiler.resolution.analyzeElement(element.declaration);
+  compiler.resolution.computeWorldImpact(element.declaration);
   return element.resolvedAst.elements;
 }
 

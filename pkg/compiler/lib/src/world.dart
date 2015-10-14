@@ -6,17 +6,12 @@ library dart2js.world;
 
 import 'closure.dart' show
     SynthesizedCallMethodElementX;
+import 'common.dart';
 import 'common/backend_api.dart' show
     Backend;
-import 'common/registry.dart' show
-    Registry;
 import 'compiler.dart' show
     Compiler;
 import 'dart_types.dart';
-import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import 'diagnostics/invariant.dart' show
-    invariant;
 import 'elements/elements.dart' show
     ClassElement,
     Element,
@@ -134,7 +129,9 @@ abstract class ClassWorld {
   bool get hasClosedWorldAssumption;
 
   /// Returns a string representation of the closed world.
-  String dump();
+  ///
+  /// If [cls] is provided, the dump will contain only classes related to [cls].
+  String dump([ClassElement cls]);
 }
 
 class World implements ClassWorld {
@@ -548,11 +545,15 @@ class World implements ClassWorld {
   }
 
   @override
-  String dump() {
+  String dump([ClassElement cls]) {
     StringBuffer sb = new StringBuffer();
-    sb.write("Instantiated classes in the closed world:\n");
+    if (cls != null) {
+      sb.write("Classes in the closed world related to $cls:\n");
+    } else {
+      sb.write("Instantiated classes in the closed world:\n");
+    }
     getClassHierarchyNode(compiler.objectClass)
-        .printOn(sb, ' ', instantiatedOnly: true);
+        .printOn(sb, ' ', instantiatedOnly: cls == null, withRespectTo: cls);
     return sb.toString();
   }
 

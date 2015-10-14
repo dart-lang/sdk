@@ -415,7 +415,8 @@ class MemberTypeInformation extends ElementTypeInformation
       } else {
         assert(element.isFunction ||
                element.isGetter ||
-               element.isSetter);
+               element.isSetter ||
+               element.isConstructor);
         TypedElement typedElement = element;
         var elementType = typedElement.type;
         if (elementType.kind != TypeKind.FUNCTION) {

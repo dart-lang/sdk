@@ -749,7 +749,8 @@ class NativeBehavior {
   /// Models the behavior of having intances of [type] escape from Dart code
   /// into native code.
   void _escape(DartType type, Resolution resolution) {
-    type = type.unalias(resolution);
+    type.computeUnaliased(resolution);
+    type = type.unaliased;
     if (type is FunctionType) {
       FunctionType functionType = type;
       // A function might be called from native code, passing us novel
@@ -765,7 +766,8 @@ class NativeBehavior {
   /// from native code.  We usually start the analysis by capturing a native
   /// method that has been used.
   void _capture(DartType type, Resolution resolution) {
-    type = type.unalias(resolution);
+    type.computeUnaliased(resolution);
+    type = type.unaliased;
     if (type is FunctionType) {
       FunctionType functionType = type;
       _capture(functionType.returnType, resolution);
@@ -780,7 +782,8 @@ class NativeBehavior {
   static dynamic _parseType(
       String typeString,
       Parsing parsing,
-      lookup(name), locationNodeOrElement) {
+      lookup(name),
+      locationNodeOrElement) {
     DiagnosticReporter reporter = parsing.reporter;
     if (typeString == '=Object') return SpecialType.JsObject;
     if (typeString == 'dynamic') {

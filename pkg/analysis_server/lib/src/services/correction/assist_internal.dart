@@ -6,8 +6,8 @@ library services.src.correction.assist;
 
 import 'dart:collection';
 
-import 'package:analysis_server/edit/assist/assist_core.dart';
-import 'package:analysis_server/edit/assist/assist_dart.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';

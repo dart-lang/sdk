@@ -138,6 +138,7 @@ class JSONStream : ValueObject {
   void PrintValue(Isolate* isolate, bool ref = true);
   bool PrintValueStr(const String& s, intptr_t limit);
   void PrintValue(TimelineEvent* timeline_event);
+  void PrintValueVM(bool ref = true);
 
   void PrintServiceId(const Object& o);
   void PrintPropertyBool(const char* name, bool b);
@@ -162,6 +163,7 @@ class JSONStream : ValueObject {
   void PrintProperty(const char* name, MessageQueue* queue);
   void PrintProperty(const char* name, Isolate* isolate);
   void PrintProperty(const char* name, TimelineEvent* timeline_event);
+  void PrintPropertyVM(const char* name, bool ref = true);
   void PrintPropertyName(const char* name);
   void PrintCommaIfNeeded();
   bool NeedComma();
@@ -276,6 +278,9 @@ class JSONObject : public ValueObject {
   void AddProperty(const char* name, TimelineEvent* timeline_event) const {
     stream_->PrintProperty(name, timeline_event);
   }
+  void AddPropertyVM(const char* name, bool ref = true) const {
+    stream_->PrintPropertyVM(name, ref);
+  }
   void AddPropertyF(const char* name, const char* format, ...) const
       PRINTF_ATTRIBUTE(3, 4);
 
@@ -335,6 +340,9 @@ class JSONArray : public ValueObject {
   }
   void AddValue(TimelineEvent* timeline_event) const {
     stream_->PrintValue(timeline_event);
+  }
+  void AddValueVM(bool ref = true) const {
+    stream_->PrintValueVM(ref);
   }
   void AddValueF(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
 

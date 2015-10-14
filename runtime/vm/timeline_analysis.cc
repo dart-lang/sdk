@@ -199,6 +199,9 @@ void TimelineAnalysis::SetError(const char* format, ...) {
   va_start(args, format);
   error_msg_ = zone_->VPrint(format, args);
   ASSERT(error_msg_ != NULL);
+  if (FLAG_trace_timeline_analysis) {
+    OS::Print("TimelineAnalysis error = %s\n", error_msg_);
+  }
 }
 
 
@@ -213,17 +216,36 @@ TimelineLabelPauseInfo::TimelineLabelPauseInfo(const char* name)
 
 
 void TimelineLabelPauseInfo::OnPush(int64_t micros, bool already_on_stack) {
+  UpdateInclusiveMicros(micros, already_on_stack);
+}
+
+
+void TimelineLabelPauseInfo::OnPop(int64_t exclusive_micros) {
+  UpdateExclusiveMicros(exclusive_micros);
+}
+
+
+void TimelineLabelPauseInfo::OnBeginPop(int64_t inclusive_micros,
+                                        int64_t exclusive_micros,
+                                        bool already_on_stack) {
+  UpdateInclusiveMicros(inclusive_micros, already_on_stack);
+  UpdateExclusiveMicros(exclusive_micros);
+}
+
+
+void TimelineLabelPauseInfo::UpdateInclusiveMicros(int64_t inclusive_micros,
+                                                   bool already_on_stack) {
   if (!already_on_stack) {
     // Only adjust inclusive counts if we aren't already on the stack.
-    add_inclusive_micros(micros);
-    if (micros > max_inclusive_micros_) {
-      max_inclusive_micros_ = micros;
+    add_inclusive_micros(inclusive_micros);
+    if (inclusive_micros > max_inclusive_micros_) {
+      max_inclusive_micros_ = inclusive_micros;
     }
   }
 }
 
 
-void TimelineLabelPauseInfo::OnPop(int64_t exclusive_micros) {
+void TimelineLabelPauseInfo::UpdateExclusiveMicros(int64_t exclusive_micros) {
   add_exclusive_micros(exclusive_micros);
   if (exclusive_micros > max_exclusive_micros_) {
     max_exclusive_micros_ = exclusive_micros;
@@ -323,23 +345,33 @@ void TimelinePauses::ProcessThread(TimelineAnalysisThread* thread) {
               OSThread::ThreadIdToIntPtr(thread->id()));
   }
   intptr_t event_count = 0;
-  while (it.HasNext()) {
+  while (!has_error() && it.HasNext()) {
     TimelineEvent* event = it.Next();
-    if (!event->IsFinishedDuration()) {
-      // We only care about finished duration events.
-      continue;
+    if (event->IsFinishedDuration()) {
+      int64_t start = event->TimeOrigin();
+      PopFinishedDurations(start);
+      if (!CheckStack(event)) {
+        SetError("Duration check fail.");
+        return;
+      }
+      event_count++;
+      Push(event);
+    } else if (event->IsBeginOrEnd()) {
+      event_count++;
+      if (event->IsBegin()) {
+        PopFinishedDurations(event->TimeOrigin());
+        Push(event);
+      } else {
+        ASSERT(event->IsEnd());
+        PopFinishedDurations(event->TimeOrigin());
+        PopBegin(event->label(), event->TimeOrigin());
+      }
+    } else {
+      // Skip other event kinds.
     }
-    int64_t start = event->TimeOrigin();
-    PopFinished(start);
-    if (!CheckStack(event)) {
-      SetError("Duration check fail.");
-      return;
-    }
-    event_count++;
-    Push(event);
   }
-  // Pop remaining stack.
-  PopFinished(kMaxInt64);
+  // Pop remaining duration stack.
+  PopFinishedDurations(kMaxInt64);
   if (FLAG_trace_timeline_analysis) {
     THR_Print("<<< TimelinePauses::ProcessThread %" Px " had %" Pd " events\n",
               OSThread::ThreadIdToIntPtr(thread->id()),
@@ -353,18 +385,25 @@ bool TimelinePauses::CheckStack(TimelineEvent* event) {
   ASSERT(event != NULL);
   for (intptr_t i = 0; i < stack_.length(); i++) {
     const StackItem& slot = stack_.At(i);
-    if (!slot.event->DurationContains(event)) {
-      return false;
+    if (slot.event->IsDuration()) {
+      if (!slot.event->DurationContains(event)) {
+        return false;
+      }
+    } else {
+      ASSERT(slot.event->IsBegin());
+      if (slot.event->TimeOrigin() > event->TimeOrigin()) {
+        return false;
+      }
     }
   }
   return true;
 }
 
 
-void TimelinePauses::PopFinished(int64_t start) {
+void TimelinePauses::PopFinishedDurations(int64_t start) {
   while (stack_.length() > 0) {
     const StackItem& top = stack_.Last();
-    if (top.event->DurationFinishedBefore(start)) {
+    if (top.event->IsDuration() && top.event->DurationFinishedBefore(start)) {
       top.pause_info->OnPop(top.exclusive_micros);
       // Top of stack completes before |start|.
       stack_.RemoveLast();
@@ -381,6 +420,53 @@ void TimelinePauses::PopFinished(int64_t start) {
 }
 
 
+void TimelinePauses::PopBegin(const char* label, int64_t end) {
+  if (stack_.length() == 0) {
+    SetError("PopBegin(%s, ...) called with empty stack.", label);
+    return;
+  }
+  ASSERT(stack_.length() > 0);
+  const StackItem& top = stack_.Last();
+  const char* top_label = top.event->label();
+  const bool top_is_begin = top.event->IsBegin();
+  const int64_t start = top.event->TimeOrigin();
+  if (start > end) {
+    SetError("Bad time stamps for PopBegin(%s, ...) %" Pd64 " > %" Pd64 "",
+             label, start, end);
+    return;
+  }
+  const int64_t duration = end - start;
+  // Sanity checks.
+  if (strcmp(top_label, label) != 0) {
+    SetError("PopBegin(%s, ...) called with %s at the top of stack",
+             label, top.event->label());
+    return;
+  }
+  if (!top_is_begin) {
+    SetError("kEnd event not paired with kBegin event for label %s",
+             label);
+    return;
+  }
+  // Pop this event.
+  // Add duration to exclusive micros.
+  if (FLAG_trace_timeline_analysis) {
+    THR_Print("Popping %s (%" Pd64 ")\n",
+              top.event->label(),
+              duration);
+  }
+  const int64_t exclusive_micros = top.exclusive_micros + duration;
+  stack_.RemoveLast();
+  top.pause_info->OnBeginPop(duration,
+                             exclusive_micros,
+                             IsLabelOnStack(top_label));
+  if (StackDepth() > 0) {
+    StackItem& top = GetStackTop();
+    // |top| is under the popped |event|'s shadow, adjust the exclusive micros.
+    top.exclusive_micros -= duration;
+  }
+}
+
+
 void TimelinePauses::Push(TimelineEvent* event) {
   TimelineLabelPauseInfo* pause_info = GetOrAddLabelPauseInfo(event->label());
   ASSERT(pause_info != NULL);
@@ -390,18 +476,29 @@ void TimelinePauses::Push(TimelineEvent* event) {
               pause_info->name(),
               event->TimeDuration());
   }
-  pause_info->OnPush(event->TimeDuration(), IsLabelOnStack(event->label()));
-  if (StackDepth() > 0) {
-    StackItem& top = GetStackTop();
-    // |top| is under |event|'s shadow, adjust the exclusive micros.
-    top.exclusive_micros -= event->TimeDuration();
+  if (event->IsDuration()) {
+    pause_info->OnPush(event->TimeDuration(), IsLabelOnStack(event->label()));
+    if (StackDepth() > 0) {
+      StackItem& top = GetStackTop();
+      // |top| is under |event|'s shadow, adjust the exclusive micros.
+      top.exclusive_micros -= event->TimeDuration();
+    }
+    // Push onto the stack.
+    StackItem item;
+    item.event = event;
+    item.pause_info = pause_info;
+    item.exclusive_micros = event->TimeDuration();
+    stack_.Add(item);
+  } else {
+    ASSERT(event->IsBegin());
+    pause_info->OnPush(0, IsLabelOnStack(event->label()));
+    // Push onto the stack.
+    StackItem item;
+    item.event = event;
+    item.pause_info = pause_info;
+    item.exclusive_micros = 0;
+    stack_.Add(item);
   }
-  // Push onto the stack.
-  StackItem item;
-  item.event = event;
-  item.pause_info = pause_info;
-  item.exclusive_micros = event->TimeDuration();
-  stack_.Add(item);
 }
 
 

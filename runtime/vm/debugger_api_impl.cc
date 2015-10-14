@@ -108,7 +108,8 @@ static Dart_IsolateEventHandler* isolate_event_handler = NULL;
 
 
 static void DebuggerEventHandler(DebuggerEvent* event) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   Dart_EnterScope();
   Dart_IsolateId isolate_id = isolate->debugger()->GetIsolateId();
@@ -132,8 +133,9 @@ static void DebuggerEventHandler(DebuggerEvent* event) {
       Breakpoint* bpt = event->breakpoint();
       ASSERT(bpt != NULL);
       Dart_CodeLocation location;
-      Library& library = Library::Handle(isolate);
-      Script& script = Script::Handle(isolate);
+      Zone* zone = thread->zone();
+      Library& library = Library::Handle(zone);
+      Script& script = Script::Handle(zone);
       intptr_t token_pos;
       bpt->bpt_location()->GetCodeLocation(&library, &script, &token_pos);
       location.script_url = Api::NewHandle(isolate, script.url());
@@ -483,7 +485,7 @@ DART_EXPORT Dart_Handle Dart_GetInstanceFields(Dart_Handle object_in) {
 
 DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle target) {
   DARTSCOPE(Thread::Current());
-  const Type& type_obj = Api::UnwrapTypeHandle(I, target);
+  const Type& type_obj = Api::UnwrapTypeHandle(Z, target);
   if (type_obj.IsNull()) {
     return Api::NewError("%s expects argument 'target' to be a type",
                          CURRENT_FUNC);
@@ -838,9 +840,9 @@ DART_EXPORT Dart_Handle Dart_GetLibraryFromId(intptr_t library_id) {
 DART_EXPORT Dart_Handle Dart_LibraryId(Dart_Handle library,
                                        intptr_t* library_id) {
   DARTSCOPE(Thread::Current());
-  const Library& lib = Api::UnwrapLibraryHandle(I, library);
+  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
   if (lib.IsNull()) {
-    RETURN_TYPE_ERROR(I, library, Library);
+    RETURN_TYPE_ERROR(Z, library, Library);
   }
   if (library_id == NULL) {
     RETURN_NULL_ERROR(library_id);

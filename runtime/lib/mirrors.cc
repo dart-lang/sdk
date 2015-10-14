@@ -580,10 +580,11 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
 
 
 static RawInstance* CreateIsolateMirror() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   const String& debug_name = String::Handle(String::New(isolate->name()));
-  const Library& root_library =
-      Library::Handle(isolate, isolate->object_store()->root_library());
+  const Library& root_library = Library::Handle(thread->zone(),
+      isolate->object_store()->root_library());
   const Instance& root_library_mirror =
       Instance::Handle(CreateLibraryMirror(root_library));
 
@@ -796,13 +797,13 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
 
 DEFINE_NATIVE_ENTRY(MirrorSystem_libraries, 0) {
   const GrowableObjectArray& libraries = GrowableObjectArray::Handle(
-      isolate, isolate->object_store()->libraries());
+      zone, isolate->object_store()->libraries());
 
   const intptr_t num_libraries = libraries.Length();
   const GrowableObjectArray& library_mirrors = GrowableObjectArray::Handle(
-      isolate, GrowableObjectArray::New(num_libraries));
-  Library& library = Library::Handle(isolate);
-  Instance& library_mirror = Instance::Handle(isolate);
+      zone, GrowableObjectArray::New(num_libraries));
+  Library& library = Library::Handle(zone);
+  Instance& library_mirror = Instance::Handle(zone);
 
   for (int i = 0; i < num_libraries; i++) {
     library ^= libraries.At(i);

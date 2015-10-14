@@ -4,6 +4,7 @@
 
 library dart2js.typechecker;
 
+import 'common.dart';
 import 'common/names.dart' show
     Identifiers;
 import 'common/resolution.dart' show
@@ -16,14 +17,6 @@ import 'constants/expressions.dart';
 import 'constants/values.dart';
 import 'core_types.dart';
 import 'dart_types.dart';
-import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage,
-    DiagnosticReporter;
-import 'diagnostics/invariant.dart' show
-    invariant;
-import 'diagnostics/messages.dart';
-import 'diagnostics/spannable.dart' show
-    Spannable;
 import 'elements/elements.dart' show
     AbstractFieldElement,
     AstElement,
@@ -59,7 +52,6 @@ import 'tree/tree.dart';
 import 'util/util.dart' show
     Link,
     LinkBuilder;
-import '../compiler_new.dart' as api;
 
 class TypeCheckerTask extends CompilerTask {
   TypeCheckerTask(Compiler compiler) : super(compiler);
@@ -775,12 +767,12 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     }
 
     DartType unaliasedBound =
-        Types.computeUnaliasedBound(compiler, receiverType);
+        Types.computeUnaliasedBound(resolution, receiverType);
     if (unaliasedBound.treatAsDynamic) {
       return new DynamicAccess();
     }
     InterfaceType interface =
-        Types.computeInterfaceType(compiler, unaliasedBound);
+        Types.computeInterfaceType(resolution, unaliasedBound);
     ElementAccess access = getAccess(memberName, unaliasedBound, interface);
     if (access != null) {
       return access;
@@ -793,10 +785,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           TypePromotion typePromotion = typePromotions.head;
           if (!typePromotion.isValid) {
             DartType unaliasedBound =
-                Types.computeUnaliasedBound(compiler, typePromotion.type);
+                Types.computeUnaliasedBound(resolution, typePromotion.type);
             if (!unaliasedBound.treatAsDynamic) {
               InterfaceType interface =
-                  Types.computeInterfaceType(compiler, unaliasedBound);
+                  Types.computeInterfaceType(resolution, unaliasedBound);
               if (getAccess(memberName, unaliasedBound, interface) != null) {
                 reportTypePromotionHint(typePromotion);
               }
@@ -891,7 +883,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   void analyzeArguments(Send send, Element element, DartType type,
                         [LinkBuilder<DartType> argumentTypes]) {
     Link<Node> arguments = send.arguments;
-    DartType unaliasedType = type.unalias(resolution);
+    type.computeUnaliased(resolution);
+    DartType unaliasedType = type.unaliased;
     if (identical(unaliasedType.kind, TypeKind.FUNCTION)) {
 
       /// Report [warning] including info(s) about the declaration of [element]
@@ -1013,8 +1006,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       analyzeArguments(node, elementAccess.element, const DynamicType(),
                        argumentTypes);
     }
-    type = type.unalias(resolution);
-    if (identical(type.kind, TypeKind.FUNCTION)) {
+    type.computeUnaliased(resolution);
+    type = type.unaliased;
+    if (type.isFunctionType) {
       FunctionType funType = type;
       return funType.returnType;
     } else {
@@ -1151,7 +1145,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       // Compute `B<double, dynamic>` as the subtype of `A<double, int>` using
       // the relation between `A<S, int>` and `A<double, int>`.
       MoreSpecificSubtypeVisitor visitor =
-          new MoreSpecificSubtypeVisitor(compiler);
+          new MoreSpecificSubtypeVisitor(types);
       InterfaceType shownTypeGeneric = visitor.computeMoreSpecific(
           shownClass, knownInterfaceType);
 
@@ -1845,7 +1839,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           isHint: true);
     } else {
       InterfaceType interfaceType =
-          Types.computeInterfaceType(compiler, expressionType);
+          Types.computeInterfaceType(resolution, expressionType);
       if (interfaceType != null) {
         InterfaceType streamType =
             interfaceType.asInstanceOf(compiler.streamClass);

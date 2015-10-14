@@ -583,12 +583,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   List<AnalysisError> computeErrors(Source source) {
     String name = source.shortName;
-    if (AnalysisEngine.isDartFileName(name)) {
-      return computeResult(source, DART_ERRORS);
-    } else if (AnalysisEngine.isHtmlFileName(name)) {
+    if (AnalysisEngine.isHtmlFileName(name)) {
       return computeResult(source, HTML_ERRORS);
     }
-    return AnalysisError.NO_ERRORS;
+    return computeResult(source, DART_ERRORS);
   }
 
   @override
@@ -1139,11 +1137,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry = getCacheEntry(unit);
       setValue(HINTS, AnalysisError.NO_ERRORS);
       setValue(LINTS, AnalysisError.NO_ERRORS);
-      setValue(INFER_STATIC_VARIABLE_TYPES_ERRORS, AnalysisError.NO_ERRORS);
       setValue(LIBRARY_UNIT_ERRORS, AnalysisError.NO_ERRORS);
-      setValue(PARTIALLY_RESOLVE_REFERENCES_ERRORS, AnalysisError.NO_ERRORS);
-      setValue(RESOLVE_FUNCTION_BODIES_ERRORS, AnalysisError.NO_ERRORS);
       setValue(RESOLVE_TYPE_NAMES_ERRORS, AnalysisError.NO_ERRORS);
+      setValue(RESOLVE_UNIT_ERRORS, AnalysisError.NO_ERRORS);
       entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT1, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT2, CacheState.FLUSHED);
@@ -1153,8 +1149,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry.setState(RESOLVED_UNIT6, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT7, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT8, CacheState.FLUSHED);
+      entry.setState(RESOLVED_UNIT9, CacheState.FLUSHED);
+      entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
       // USED_IMPORTED_ELEMENTS
       // USED_LOCAL_ELEMENTS
+      setValue(STRONG_MODE_ERRORS, AnalysisError.NO_ERRORS);
       setValue(VARIABLE_REFERENCE_ERRORS, AnalysisError.NO_ERRORS);
       setValue(VERIFY_ERRORS, AnalysisError.NO_ERRORS);
     });
@@ -1228,8 +1227,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     entry.setState(RESOLVED_UNIT4, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT5, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT6, CacheState.FLUSHED);
-    entry.setState(RESOLVED_UNIT5, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT7, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT8, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT9, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
   }
 

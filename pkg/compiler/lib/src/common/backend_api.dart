@@ -6,6 +6,7 @@ library dart2js.backend_api;
 
 import 'dart:async' show Future;
 
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
 import '../compile_time_constants.dart' show
@@ -20,9 +21,6 @@ import '../constants/values.dart' show
 import '../dart_types.dart' show
     DartType,
     InterfaceType;
-import '../diagnostics/spannable.dart' show
-    Spannable,
-    SpannableAssertionFailure;
 import '../elements/elements.dart' show
     ClassElement,
     ConstructorElement,
@@ -47,7 +45,7 @@ import '../library_loader.dart' show
 import '../native/native.dart' as native show
     NativeEnqueuer;
 import '../patch_parser.dart' show
-    checkNativeAnnotation;
+    checkNativeAnnotation, checkJsInteropAnnotation;
 import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../tree/tree.dart' show
@@ -229,8 +227,7 @@ abstract class Backend {
 
   void registerRequiredType(DartType type) {}
 
-  void registerConstSymbol(String name, Registry registry) {}
-  void registerNewSymbol(Registry registry) {}
+  void registerConstSymbol(String name) {}
 
   bool isNullImplementation(ClassElement cls) {
     return cls == compiler.nullClass;
@@ -296,6 +293,16 @@ abstract class Backend {
         }
       });
     }
+    checkJsInteropAnnotation(compiler, library);
+    library.forEachLocalMember((Element element) {
+      checkJsInteropAnnotation(compiler, element);
+      if (element.isClass && element.isJsInterop) {
+        ClassElement classElement = element;
+        classElement.forEachMember((_, memberElement) {
+          checkJsInteropAnnotation(compiler, memberElement);
+        });
+      }
+    });
     return new Future.value();
   }
 

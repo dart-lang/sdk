@@ -15,29 +15,122 @@ abstract class TypeChecks {
 typedef jsAst.Expression OnVariableCallback(TypeVariableType variable);
 typedef bool ShouldEncodeTypedefCallback(TypedefType variable);
 
-class RuntimeTypes {
+// TODO(johnniwinther): Rename to something like [RuntimeTypeUsageCollector]
+// we semantics is more clear.
+abstract class RuntimeTypes {
+  TypeChecks get requiredChecks;
+  Iterable<ClassElement> get classesNeedingRti;
+  Iterable<Element> get methodsNeedingRti;
+
+  /// The set of classes that use one of their type variables as expressions
+  /// to get the runtime type.
+  Iterable<ClassElement> get classesUsingTypeVariableExpression;
+
+  void registerClassUsingTypeVariableExpression(ClassElement cls);
+  void registerRtiDependency(Element element, Element dependency);
+  void registerTypeVariableBoundsSubtypeCheck(DartType typeArgument,
+                                              DartType bound);
+
+  Set<ClassElement> getClassesUsedInSubstitutions(JavaScriptBackend backend,
+                                                  TypeChecks checks);
+  void computeClassesNeedingRti();
+
+  /// Compute the required type checkes and substitutions for the given
+  /// instantitated and checked classes.
+  TypeChecks computeChecks(Set<ClassElement> instantiated,
+                           Set<ClassElement> checked);
+
+  /// Compute type arguments of classes that use one of their type variables in
+  /// is-checks and add the is-checks that they imply.
+  ///
+  /// This function must be called after all is-checks have been registered.
+  void addImplicitChecks(Universe universe,
+                         Iterable<ClassElement> classesUsingChecks);
+
+  /// Return all classes that are referenced in the type of the function, i.e.,
+  /// in the return type or the argument types.
+  Set<ClassElement> getReferencedClasses(FunctionType type);
+
+  /// Return all classes that are uses a type arguments.
+  Set<ClassElement> getRequiredArgumentClasses(JavaScriptBackend backend);
+
+  bool isTrivialSubstitution(ClassElement cls, ClassElement check);
+
+  Substitution getSubstitution(ClassElement cls, ClassElement other);
+
+  static bool hasTypeArguments(DartType type) {
+    if (type is InterfaceType) {
+      InterfaceType interfaceType = type;
+      return !interfaceType.treatAsRaw;
+    }
+    return false;
+  }
+}
+
+abstract class RuntimeTypesEncoder {
+  bool isSimpleFunctionType(FunctionType type);
+
+  jsAst.Expression getSignatureEncoding(DartType type, jsAst.Expression this_);
+
+  jsAst.Expression getSubstitutionRepresentation(
+        List<DartType> types,
+        OnVariableCallback onVariable);
+  jsAst.Expression getSubstitutionCode(Substitution substitution);
+  jsAst.Expression getSubstitutionCodeForVariable(
+      Substitution substitution, int index);
+
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is a function type.
+  jsAst.Template get templateForIsFunctionType;
+
+  /// Returns the JavaScript template that creates at runtime a new function
+  /// type object.
+  jsAst.Template get templateForCreateFunctionType;
+  jsAst.Name get getFunctionThatReturnsNullName;
+
+  jsAst.Expression getTypeRepresentation(
+        DartType type,
+        OnVariableCallback onVariable,
+        [ShouldEncodeTypedefCallback shouldEncodeTypedef]);
+  /**
+   * Returns a [jsAst.Expression] representing the given [type]. Type
+   * variables are replaced by placeholders in the ast.
+   *
+   * [firstPlaceholderIndex] is the index to use for the first placeholder.
+   * This is useful if the returned [jsAst.Expression] is only part of a
+   * larger template. By default, indexing starts with 0.
+   */
+  jsAst.Expression getTypeRepresentationWithPlaceholders(DartType type,
+        OnVariableCallback onVariable, {int firstPlaceholderIndex : 0});
+
+  String getTypeRepresentationForTypeConstant(DartType type);
+}
+
+class _RuntimeTypes implements RuntimeTypes {
   final Compiler compiler;
-  final TypeRepresentationGenerator representationGenerator;
 
   final Map<ClassElement, Set<ClassElement>> rtiDependencies;
+
+  @override
   final Set<ClassElement> classesNeedingRti;
+
+  @override
   final Set<Element> methodsNeedingRti;
-  // The set of classes that use one of their type variables as expressions
-  // to get the runtime type.
+
+  @override
   final Set<ClassElement> classesUsingTypeVariableExpression;
+
   // The set of type arguments tested against type variable bounds.
   final Set<DartType> checkedTypeArguments;
   // The set of tested type variable bounds.
   final Set<DartType> checkedBounds;
 
+  TypeChecks cachedRequiredChecks;
+
   JavaScriptBackend get backend => compiler.backend;
 
-  jsAst.Name get getFunctionThatReturnsNullName
-      => backend.namer.internalGlobal('functionThatReturnsNull');
-
-  RuntimeTypes(Compiler compiler)
+  _RuntimeTypes(Compiler compiler)
       : this.compiler = compiler,
-        representationGenerator = new TypeRepresentationGenerator(compiler),
         classesNeedingRti = new Set<ClassElement>(),
         methodsNeedingRti = new Set<Element>(),
         rtiDependencies = new Map<ClassElement, Set<ClassElement>>(),
@@ -49,6 +142,12 @@ class RuntimeTypes {
   Set<ClassElement> allInstantiatedArguments;
   Set<ClassElement> checkedArguments;
 
+  @override
+  void registerClassUsingTypeVariableExpression(ClassElement cls) {
+    classesUsingTypeVariableExpression.add(cls);
+  }
+
+  @override
   void registerRtiDependency(Element element, Element dependency) {
     // We're not dealing with typedef for now.
     if (!element.isClass || !dependency.isClass) return;
@@ -57,6 +156,7 @@ class RuntimeTypes {
     classes.add(dependency);
   }
 
+  @override
   void registerTypeVariableBoundsSubtypeCheck(DartType typeArgument,
                                               DartType bound) {
     checkedTypeArguments.add(typeArgument);
@@ -77,6 +177,7 @@ class RuntimeTypes {
    * TODO(karlklose): move these computations into a function producing an
    * immutable datastructure.
    */
+  @override
   void addImplicitChecks(Universe universe,
                          Iterable<ClassElement> classesUsingChecks) {
     // If there are no classes that use their variables in checks, there is
@@ -121,6 +222,7 @@ class RuntimeTypes {
     }
   }
 
+  @override
   void computeClassesNeedingRti() {
     // Find the classes that need runtime type information. Such
     // classes are:
@@ -217,8 +319,7 @@ class RuntimeTypes {
     classesUsingTypeVariableExpression.forEach(potentiallyAddForRti);
   }
 
-  TypeChecks cachedRequiredChecks;
-
+  @override
   TypeChecks get requiredChecks {
     if (cachedRequiredChecks == null) {
       computeRequiredChecks();
@@ -227,8 +328,7 @@ class RuntimeTypes {
     return cachedRequiredChecks;
   }
 
-  /// Compute the required type checkes and substitutions for the given
-  /// instantitated and checked classes.
+  @override
   TypeChecks computeChecks(Set<ClassElement> instantiated,
                            Set<ClassElement> checked) {
     // Run through the combination of instantiated and checked
@@ -373,6 +473,7 @@ class RuntimeTypes {
         collector.classes..addAll(functionArgumentCollector.classes);
   }
 
+  @override
   Set<ClassElement> getClassesUsedInSubstitutions(JavaScriptBackend backend,
                                                   TypeChecks checks) {
     Set<ClassElement> instantiated = new Set<ClassElement>();
@@ -389,6 +490,7 @@ class RuntimeTypes {
     return instantiated..addAll(collector.classes);
   }
 
+  @override
   Set<ClassElement> getRequiredArgumentClasses(JavaScriptBackend backend) {
     Set<ClassElement> requiredArgumentClasses =
         new Set<ClassElement>.from(
@@ -398,26 +500,16 @@ class RuntimeTypes {
         ..addAll(checkedArguments);
   }
 
-  String getTypeRepresentationForTypeConstant(DartType type) {
-    JavaScriptBackend backend = compiler.backend;
-    Namer namer = backend.namer;
-    if (type.isDynamic) return "dynamic";
-    String name = namer.uniqueNameForTypeConstantElement(type.element);
-    if (!type.element.isClass) return name;
-    InterfaceType interface = type;
-    List<DartType> variables = interface.element.typeVariables;
-    // Type constants can currently only be raw types, so there is no point
-    // adding ground-term type parameters, as they would just be 'dynamic'.
-    // TODO(sra): Since the result string is used only in constructing constant
-    // names, it would result in more readable names if the final string was a
-    // legal JavaScript identifer.
-    if (variables.isEmpty) return name;
-    String arguments =
-        new List.filled(variables.length, 'dynamic').join(', ');
-    return '$name<$arguments>';
+  @override
+  Set<ClassElement> getReferencedClasses(FunctionType type) {
+    FunctionArgumentCollector collector =
+        new FunctionArgumentCollector(backend);
+    collector.collect(type);
+    return collector.classes;
   }
 
   // TODO(karlklose): maybe precompute this value and store it in typeChecks?
+  @override
   bool isTrivialSubstitution(ClassElement cls, ClassElement check) {
     if (cls.isClosure) {
       // TODO(karlklose): handle closures.
@@ -452,31 +544,7 @@ class RuntimeTypes {
     return true;
   }
 
-  /**
-   * Compute a JavaScript expression that describes the necessary substitution
-   * for type arguments in a subtype test.
-   *
-   * The result can be:
-   *  1) `null`, if no substituted check is necessary, because the
-   *     type variables are the same or there are no type variables in the class
-   *     that is checked for.
-   *  2) A list expression describing the type arguments to be used in the
-   *     subtype check, if the type arguments to be used in the check do not
-   *     depend on the type arguments of the object.
-   *  3) A function mapping the type variables of the object to be checked to
-   *     a list expression.
-   */
-  jsAst.Expression getSupertypeSubstitution(
-       ClassElement cls,
-       ClassElement check) {
-    Substitution substitution = getSubstitution(cls, check);
-    if (substitution != null) {
-      return substitution.getCode(this);
-    } else {
-      return null;
-    }
-  }
-
+  @override
   Substitution getSubstitution(ClassElement cls, ClassElement other) {
     // Look for a precomputed check.
     for (TypeCheck check in cachedRequiredChecks[cls]) {
@@ -505,7 +573,56 @@ class RuntimeTypes {
       return new Substitution.function(target.typeArguments, typeVariables);
     }
   }
+}
 
+class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
+  final Compiler compiler;
+  @override
+  final TypeRepresentationGenerator representationGenerator;
+
+  _RuntimeTypesEncoder(Compiler compiler)
+      : this.compiler = compiler,
+        representationGenerator = new TypeRepresentationGenerator(compiler);
+
+  JavaScriptBackend get backend => compiler.backend;
+
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is a function type.
+  @override
+  jsAst.Template get templateForIsFunctionType {
+    return representationGenerator.templateForIsFunctionType;
+  }
+
+  /// Returns the JavaScript template that creates at runtime a new function
+  /// type object.
+  @override
+  jsAst.Template get templateForCreateFunctionType {
+    return representationGenerator.templateForCreateFunctionType;
+  }
+
+  @override
+  jsAst.Expression getTypeRepresentation(
+      DartType type,
+      OnVariableCallback onVariable,
+      [ShouldEncodeTypedefCallback shouldEncodeTypedef]) {
+    return representationGenerator.getTypeRepresentation(
+        type, onVariable, shouldEncodeTypedef);
+  }
+
+  @override
+  jsAst.Expression getTypeRepresentationWithPlaceholders(DartType type,
+      OnVariableCallback onVariable, {int firstPlaceholderIndex : 0}) {
+    // Create a type representation.  For type variables call the original
+    // callback for side effects and return a template placeholder.
+    int positions = firstPlaceholderIndex;
+    jsAst.Expression representation = getTypeRepresentation(type, (variable) {
+      onVariable(variable);
+      return new jsAst.InterpolatedExpression(positions++);
+    });
+    return representation;
+  }
+
+  @override
   jsAst.Expression getSubstitutionRepresentation(
       List<DartType> types,
       OnVariableCallback onVariable) {
@@ -535,6 +652,7 @@ class RuntimeTypes {
     }
   }
 
+  @override
   jsAst.Expression getSignatureEncoding(DartType type, jsAst.Expression this_) {
     ClassElement contextClass = Types.getClassContext(type);
     jsAst.Expression encoding =
@@ -543,7 +661,8 @@ class RuntimeTypes {
       JavaScriptBackend backend = compiler.backend;
       jsAst.Name contextName = backend.namer.className(contextClass);
       return js('function () { return #(#, #, #); }',
-          [ backend.emitter.staticFunctionAccess(backend.getComputeSignature()),
+          [ backend.emitter.staticFunctionAccess(
+                backend.helpers.computeSignature),
               encoding, this_, js.quoteName(contextName) ]);
     } else {
       return encoding;
@@ -551,33 +670,95 @@ class RuntimeTypes {
   }
 
   /**
-   * Returns a [jsAst.Expression] representing the given [type]. Type
-   * variables are replaced by placeholders in the ast.
+   * Compute a JavaScript expression that describes the necessary substitution
+   * for type arguments in a subtype test.
    *
-   * [firstPlaceholderIndex] is the index to use for the first placeholder.
-   * This is useful if the returned [jsAst.Expression] is only part of a
-   * larger template. By default, indexing starts with 0.
+   * The result can be:
+   *  1) `null`, if no substituted check is necessary, because the
+   *     type variables are the same or there are no type variables in the class
+   *     that is checked for.
+   *  2) A list expression describing the type arguments to be used in the
+   *     subtype check, if the type arguments to be used in the check do not
+   *     depend on the type arguments of the object.
+   *  3) A function mapping the type variables of the object to be checked to
+   *     a list expression.
    */
-  jsAst.Expression getTypeRepresentationWithPlaceholders(DartType type,
-      OnVariableCallback onVariable, {int firstPlaceholderIndex : 0}) {
-    // Create a type representation.  For type variables call the original
-    // callback for side effects and return a template placeholder.
-    int positions = firstPlaceholderIndex;
-    jsAst.Expression representation = getTypeRepresentation(type, (variable) {
-      onVariable(variable);
-      return new jsAst.InterpolatedExpression(positions++);
-    });
-    return representation;
+  @override
+  jsAst.Expression getSubstitutionCode(Substitution substitution) {
+    jsAst.Expression declaration(TypeVariableType variable) {
+      return new jsAst.Parameter(getVariableName(variable.name));
+    }
+
+    jsAst.Expression use(TypeVariableType variable) {
+      return new jsAst.VariableUse(getVariableName(variable.name));
+    }
+
+    if (substitution.arguments.every((DartType type) => type.isDynamic)) {
+      return backend.emitter.emitter.generateFunctionThatReturnsNull();
+    } else {
+      jsAst.Expression value =
+          getSubstitutionRepresentation(substitution.arguments, use);
+      if (substitution.isFunction) {
+        Iterable<jsAst.Expression> formals =
+            substitution.parameters.map(declaration);
+        return js('function(#) { return # }', [formals, value]);
+      } else {
+        return js('function() { return # }', value);
+      }
+    }
   }
 
-  jsAst.Expression getTypeRepresentation(
-      DartType type,
-      OnVariableCallback onVariable,
-      [ShouldEncodeTypedefCallback shouldEncodeTypedef]) {
-    return representationGenerator.getTypeRepresentation(
-        type, onVariable, shouldEncodeTypedef);
+  @override
+  jsAst.Expression getSubstitutionCodeForVariable(Substitution substitution,
+                                                  int index) {
+    jsAst.Expression declaration(TypeVariableType variable) {
+      return new jsAst.Parameter(getVariableName(variable.name));
+    }
+
+    jsAst.Expression use(TypeVariableType variable) {
+      return new jsAst.VariableUse(getVariableName(variable.name));
+    }
+
+    if (substitution.arguments[index].isDynamic) {
+      return backend.emitter.emitter.generateFunctionThatReturnsNull();
+    } else {
+      jsAst.Expression value =
+          getTypeRepresentation(substitution.arguments[index], use);
+      Iterable<jsAst.Expression> formals =
+          substitution.parameters.map(declaration);
+      return js('function(#) { return # }', [formals, value]);
+    }
   }
 
+  String getVariableName(String name) {
+    return backend.namer.safeVariableName(name);
+  }
+
+  @override
+  jsAst.Name get getFunctionThatReturnsNullName
+      => backend.namer.internalGlobal('functionThatReturnsNull');
+
+  @override
+  String getTypeRepresentationForTypeConstant(DartType type) {
+    JavaScriptBackend backend = compiler.backend;
+    Namer namer = backend.namer;
+    if (type.isDynamic) return "dynamic";
+    String name = namer.uniqueNameForTypeConstantElement(type.element);
+    if (!type.element.isClass) return name;
+    InterfaceType interface = type;
+    List<DartType> variables = interface.element.typeVariables;
+    // Type constants can currently only be raw types, so there is no point
+    // adding ground-term type parameters, as they would just be 'dynamic'.
+    // TODO(sra): Since the result string is used only in constructing constant
+    // names, it would result in more readable names if the final string was a
+    // legal JavaScript identifer.
+    if (variables.isEmpty) return name;
+    String arguments =
+        new List.filled(variables.length, 'dynamic').join(', ');
+    return '$name<$arguments>';
+  }
+
+  @override
   bool isSimpleFunctionType(FunctionType type) {
     if (!type.returnType.isDynamic) return false;
     if (!type.optionalParameterTypes.isEmpty) return false;
@@ -586,33 +767,6 @@ class RuntimeTypes {
       if (!parameter.isDynamic) return false;
     }
     return true;
-  }
-
-  static bool hasTypeArguments(DartType type) {
-    if (type is InterfaceType) {
-      InterfaceType interfaceType = type;
-      return !interfaceType.treatAsRaw;
-    }
-    return false;
-  }
-
-  static int getTypeVariableIndex(TypeVariableElement variable) {
-    ClassElement classElement = variable.enclosingClass;
-    List<DartType> variables = classElement.typeVariables;
-    for (int index = 0; index < variables.length; index++) {
-      if (variables[index].element == variable) return index;
-    }
-    throw invariant(variable, false,
-                    message: "Couldn't find type-variable index");
-  }
-
-  /// Return all classes that are referenced in the type of the function, i.e.,
-  /// in the return type or the argument types.
-  Set<ClassElement> getReferencedClasses(FunctionType type) {
-    FunctionArgumentCollector collector =
-        new FunctionArgumentCollector(backend);
-    collector.collect(type);
-    return collector.classes;
   }
 }
 
@@ -745,7 +899,7 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
 
   visitTypedefType(TypedefType type, _) {
     bool shouldEncode = shouldEncodeTypedef(type);
-    DartType unaliasedType = type.unalias(compiler.resolution);
+    DartType unaliasedType = type.unaliased;
     if (shouldEncode) {
       jsAst.ObjectInitializer initializer = unaliasedType.accept(this, null);
       // We have to encode the aliased type.
@@ -815,7 +969,7 @@ class ArgumentCollector extends DartTypeVisitor {
   }
 
   visitTypedefType(TypedefType type, bool isTypeArgument) {
-    type.unalias(backend.resolution).accept(this, isTypeArgument);
+    type.unaliased.accept(this, isTypeArgument);
   }
 
   visitInterfaceType(InterfaceType type, bool isTypeArgument) {
@@ -847,7 +1001,7 @@ class FunctionArgumentCollector extends DartTypeVisitor {
   }
 
   visitTypedefType(TypedefType type, bool inFunctionType) {
-    type.unalias(backend.resolution).accept(this, inFunctionType);
+    type.unaliased.accept(this, inFunctionType);
   }
 
   visitInterfaceType(InterfaceType type, bool inFunctionType) {
@@ -883,52 +1037,6 @@ class Substitution {
 
   Substitution.function(this.arguments, this.parameters)
       : isFunction = true;
-
-  jsAst.Expression getCode(RuntimeTypes rti) {
-    jsAst.Expression declaration(TypeVariableType variable) {
-      return new jsAst.Parameter(
-          rti.backend.namer.safeVariableName(variable.name));
-    }
-
-    jsAst.Expression use(TypeVariableType variable) {
-      return new jsAst.VariableUse(
-          rti.backend.namer.safeVariableName(variable.name));
-    }
-
-    if (arguments.every((DartType type) => type.isDynamic)) {
-      return rti.backend.emitter.emitter.generateFunctionThatReturnsNull();
-    } else {
-      jsAst.Expression value =
-          rti.getSubstitutionRepresentation(arguments, use);
-      if (isFunction) {
-        Iterable<jsAst.Expression> formals = parameters.map(declaration);
-        return js('function(#) { return # }', [formals, value]);
-      } else {
-        return js('function() { return # }', value);
-      }
-    }
-  }
-
-  jsAst.Expression getCodeForVariable(int index, RuntimeTypes rti) {
-    jsAst.Expression declaration(TypeVariableType variable) {
-      return new jsAst.Parameter(
-          rti.backend.namer.safeVariableName(variable.name));
-    }
-
-    jsAst.Expression use(TypeVariableType variable) {
-      return new jsAst.VariableUse(
-          rti.backend.namer.safeVariableName(variable.name));
-    }
-
-    if (arguments[index].isDynamic) {
-      return rti.backend.emitter.emitter.generateFunctionThatReturnsNull();
-    } else {
-      jsAst.Expression value =
-          rti.getTypeRepresentation(arguments[index], use);
-      Iterable<jsAst.Expression> formals = parameters.map(declaration);
-      return js('function(#) { return # }', [formals, value]);
-    }
-  }
 }
 
 /**

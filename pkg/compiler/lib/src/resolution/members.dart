@@ -4,6 +4,7 @@
 
 library dart2js.resolution.members;
 
+import '../common.dart';
 import '../common/names.dart' show
     Selectors;
 import '../compiler.dart' show
@@ -14,15 +15,6 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../core_types.dart';
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage,
-    DiagnosticReporter;
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart' show
-    MessageKind;
-import '../diagnostics/spannable.dart' show
-    Spannable;
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
     ConstructorElementX,
@@ -3881,7 +3873,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               node.newToken, MessageKind.NON_CONST_BLOAT,
               {'name': compiler.symbolClass.name});
         }
-        registry.registerNewSymbol();
       }
     } else if (isMirrorsUsedConstant) {
       compiler.mirrorUsageAnalyzerTask.validate(node, registry.mapping);

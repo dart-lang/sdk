@@ -8,7 +8,7 @@ final RegExp nativeRedirectionRegExp = new RegExp(r'^[a-zA-Z][a-zA-Z_$0-9]*$');
 
 void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   Compiler compiler = builder.compiler;
-  FunctionElement element = builder.work.element;
+  FunctionElement element = builder.target;
   NativeEmitter nativeEmitter = builder.nativeEmitter;
   JavaScriptBackend backend = builder.backend;
   DiagnosticReporter reporter = compiler.reporter;
@@ -21,7 +21,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     HInstruction arity = builder.graph.addConstant(arityConstant, compiler);
     // TODO(ngeoffray): For static methods, we could pass a method with a
     // defined arity.
-    Element helper = backend.getClosureConverter();
+    Element helper = backend.helpers.closureConverter;
     builder.pushInvokeStatic(nativeBody, helper, [local, arity]);
     HInstruction closure = builder.pop();
     return closure;
@@ -61,7 +61,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
       inputs.add(builder.localsHandler.readThis());
     }
     parameters.forEachParameter((ParameterElement parameter) {
-      DartType type = parameter.type.unalias(compiler.resolution);
+      DartType type = parameter.type.unaliased;
       HInstruction input = builder.localsHandler.readLocal(parameter);
       if (type is FunctionType) {
         // The parameter type is a function type either directly or through

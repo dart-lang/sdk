@@ -5,6 +5,7 @@
 
 library dart2js.common.resolution;
 
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
 import '../core_types.dart' show
@@ -12,8 +13,6 @@ import '../core_types.dart' show
 import '../dart_types.dart' show
     DartType,
     InterfaceType;
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
 import '../elements/elements.dart' show
     AstElement,
     ClassElement,
@@ -53,7 +52,6 @@ class ResolutionWorkItem extends WorkItem {
 
   WorldImpact run(Compiler compiler, ResolutionEnqueuer world) {
     WorldImpact impact = compiler.analyze(this, world);
-    impact = compiler.backend.resolutionCallbacks.transformImpact(impact);
     _isAnalyzed = true;
     return impact;
   }
@@ -65,89 +63,13 @@ class ResolutionWorkItem extends WorkItem {
 // and clean up the interface.
 /// Backend callbacks function specific to the resolution phase.
 class ResolutionCallbacks {
-  ///
-  WorldImpact transformImpact(ResolutionWorldImpact worldImpact) => worldImpact;
-
-  /// Register that an assert has been seen.
-  void onAssert(bool hasMessage, Registry registry) {}
-
-  /// Register that an 'await for' has been seen.
-  void onAsyncForIn(AsyncForIn node, Registry registry) {}
-
-  /// Called during resolution to notify to the backend that the
-  /// program uses string interpolation.
-  void onStringInterpolation(Registry registry) {}
-
-  /// Called during resolution to notify to the backend that the
-  /// program has a catch statement.
-  void onCatchStatement(Registry registry) {}
-
-  /// Called during resolution to notify to the backend that the
-  /// program explicitly throws an exception.
-  void onThrowExpression(Registry registry) {}
-
-  /// Called during resolution to notify to the backend that the
-  /// program has a global variable with a lazy initializer.
-  void onLazyField(Registry registry) {}
-
-  /// Called during resolution to notify to the backend that the
-  /// program uses a type variable as an expression.
-  void onTypeVariableExpression(Registry registry,
-                                TypeVariableElement variable) {}
-
-  /// Called during resolution to notify to the backend that the
-  /// program uses a type literal.
-  void onTypeLiteral(DartType type, Registry registry) {}
-
-  /// Called during resolution to notify to the backend that the
-  /// program has a catch statement with a stack trace.
-  void onStackTraceInCatch(Registry registry) {}
-
-  /// Register an is check to the backend.
-  void onIsCheck(DartType type, Registry registry) {}
-
-  /// Called during resolution to notify to the backend that the
-  /// program has a for-in loop.
-  void onSyncForIn(Registry registry) {}
-
-  /// Register an as check to the backend.
-  void onAsCheck(DartType type, Registry registry) {}
-
-  /// Registers that a type variable bounds check might occur at runtime.
-  void onTypeVariableBoundCheck(Registry registry) {}
-
-  /// Register that the application may throw a [NoSuchMethodError].
-  void onThrowNoSuchMethod(Registry registry) {}
-
-  /// Register that the application may throw a [RuntimeError].
-  void onThrowRuntimeError(Registry registry) {}
-
-  /// Register that the application has a compile time error.
-  void onCompileTimeError(Registry registry, ErroneousElement error) {}
-
-  /// Register that the application may throw an
-  /// [AbstractClassInstantiationError].
-  void onAbstractClassInstantiation(Registry registry) {}
-
-  /// Register that the application may throw a [FallThroughError].
-  void onFallThroughError(Registry registry) {}
-
-  /// Register that a super call will end up calling
-  /// [: super.noSuchMethod :].
-  void onSuperNoSuchMethod(Registry registry) {}
-
-  /// Register that the application creates a constant map.
-  void onMapLiteral(Registry registry, DartType type, bool isConstant) {}
-
-  /// Called when resolving the `Symbol` constructor.
-  void onSymbolConstructor(Registry registry) {}
-
-  /// Called when resolving a prefix or postfix expression.
-  void onIncDecOperation(Registry registry) {}
+  /// Transform the [ResolutionImpact] into a [WorldImpact] adding the
+  /// backend dependencies for features used in [worldImpact].
+  WorldImpact transformImpact(ResolutionImpact worldImpact) => worldImpact;
 }
 
-class ResolutionWorldImpact extends WorldImpact {
-  const ResolutionWorldImpact();
+class ResolutionImpact extends WorldImpact {
+  const ResolutionImpact();
 
   // TODO(johnniwinther): Remove this.
   void registerDependency(Element element) {}
@@ -185,8 +107,6 @@ enum Feature {
   INC_DEC_OPERATION,
   /// A field whose initialization is not a constant.
   LAZY_FIELD,
-  /// A call to `new Symbol`.
-  NEW_SYMBOL,
   /// A catch clause with a variable for the stack trace.
   STACK_TRACE_IN_CATCH,
   /// String interpolation.
@@ -263,11 +183,11 @@ class ListLiteralUse {
 }
 
 /// Mutable implementation of [WorldImpact] used to transform
-/// [ResolutionWorldImpact] to [WorldImpact].
+/// [ResolutionImpact] to [WorldImpact].
 // TODO(johnniwinther): Remove [Registry] when dependency is tracked directly
 // on [WorldImpact].
-class TransformedWorldImpact implements WorldImpact, Registry {
-  final ResolutionWorldImpact worldImpact;
+class TransformedWorldImpact extends WorldImpact {
+  final ResolutionImpact worldImpact;
 
   Setlet<Element> _staticUses;
   Setlet<InterfaceType> _instantiatedTypes;
@@ -317,24 +237,8 @@ class TransformedWorldImpact implements WorldImpact, Registry {
     return _staticUses;
   }
 
-  @override
-  bool get isForResolution => true;
-
   _unsupported(String message) => throw new UnsupportedError(message);
 
-  @override
-  Iterable<Element> get otherDependencies => _unsupported('otherDependencies');
-
-  // TODO(johnniwinther): Remove this.
-  @override
-  void registerAssert(bool hasMessage) => _unsupported('registerAssert');
-
-  @override
-  void registerDependency(Element element) {
-    worldImpact.registerDependency(element);
-  }
-
-  @override
   void registerDynamicGetter(UniverseSelector selector) {
     if (_dynamicGetters == null) {
       _dynamicGetters = new Setlet<UniverseSelector>();
@@ -343,7 +247,6 @@ class TransformedWorldImpact implements WorldImpact, Registry {
     _dynamicGetters.add(selector);
   }
 
-  @override
   void registerDynamicInvocation(UniverseSelector selector) {
     if (_dynamicInvocations == null) {
       _dynamicInvocations = new Setlet<UniverseSelector>();
@@ -352,7 +255,6 @@ class TransformedWorldImpact implements WorldImpact, Registry {
     _dynamicInvocations.add(selector);
   }
 
-  @override
   void registerDynamicSetter(UniverseSelector selector) {
     if (_dynamicSetters == null) {
       _dynamicSetters = new Setlet<UniverseSelector>();
@@ -361,16 +263,10 @@ class TransformedWorldImpact implements WorldImpact, Registry {
     _dynamicSetters.add(selector);
   }
 
-  @override
-  void registerGetOfStaticFunction(FunctionElement element) {
-    _unsupported('registerGetOfStaticFunction($element)');
-  }
-
-  @override
-  void registerInstantiation(InterfaceType type) {
+  void registerInstantiatedType(InterfaceType type) {
     // TODO(johnniwinther): Remove this when dependency tracking is done on
     // the world impact itself.
-    registerDependency(type.element);
+    worldImpact.registerDependency(type.element);
     if (_instantiatedTypes == null) {
       _instantiatedTypes = new Setlet<InterfaceType>();
     }
@@ -384,10 +280,14 @@ class TransformedWorldImpact implements WorldImpact, Registry {
   }
 
   @override
-  void registerStaticInvocation(Element element) {
+  Iterable<DartType> get typeLiterals {
+    return worldImpact.typeLiterals;
+  }
+
+  void registerStaticUse(Element element) {
     // TODO(johnniwinther): Remove this when dependency tracking is done on
     // the world impact itself.
-    registerDependency(element);
+    worldImpact.registerDependency(element);
     if (_staticUses == null) {
       _staticUses = new Setlet<Element>();
     }
@@ -396,6 +296,13 @@ class TransformedWorldImpact implements WorldImpact, Registry {
 
   @override
   Iterable<LocalFunctionElement> get closures => worldImpact.closures;
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('TransformedWorldImpact($worldImpact)');
+    sb.write(super.toString());
+    return sb.toString();
+  }
 }
 
 // TODO(johnniwinther): Rename to `Resolver` or `ResolverContext`.
@@ -412,7 +319,8 @@ abstract class Resolution {
   DartType resolveTypeAnnotation(Element element, TypeAnnotation node);
 
   bool hasBeenResolved(Element element);
-  ResolutionWorldImpact analyzeElement(Element element);
+  WorldImpact getWorldImpact(Element element);
+  WorldImpact computeWorldImpact(Element element);
 }
 
 // TODO(johnniwinther): Rename to `Parser` or `ParsingContext`.

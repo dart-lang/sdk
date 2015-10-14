@@ -4,6 +4,7 @@
 
 library elements;
 
+import '../common.dart';
 import '../common/resolution.dart' show
     Resolution;
 import '../compiler.dart' show
@@ -11,13 +12,6 @@ import '../compiler.dart' show
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart';
-import '../diagnostics/messages.dart' show
-MessageKind;
-import '../diagnostics/source_span.dart' show
-    SourceSpan;
-import '../diagnostics/spannable.dart' show
-    Spannable;
 import '../resolution/scope.dart' show
     Scope;
 import '../resolution/tree_elements.dart' show
@@ -312,6 +306,8 @@ abstract class Element implements Entity {
   bool get isTopLevel;
   bool get isAssignable;
   bool get isNative;
+  bool get isJsInterop;
+
   bool get isDeferredLoaderGetter;
 
   /// True if the element is declared in a patch library but has no
@@ -408,6 +404,8 @@ abstract class Element implements Entity {
   bool get hasFixedBackendName;
   String get fixedBackendName;
 
+  String get jsInteropName;
+
   bool get isAbstract;
 
   Scope buildScope();
@@ -417,6 +415,9 @@ abstract class Element implements Entity {
   AnalyzableElement get analyzableElement;
 
   accept(ElementVisitor visitor, arg);
+
+  void setJsInteropName(String name);
+  void markAsJsInterop();
 }
 
 class Elements {
@@ -521,7 +522,7 @@ class Elements {
 
   static bool isNativeOrExtendsNative(ClassElement element) {
     if (element == null) return false;
-    if (element.isNative) return true;
+    if (element.isNative || element.isJsInterop) return true;
     assert(element.isResolved);
     return isNativeOrExtendsNative(element.superclass);
   }
@@ -1290,7 +1291,8 @@ abstract class ConstructorElement extends FunctionElement
   /// `null` otherwise.
   ConstantConstructor get constantConstructor;
 
-  /// `true` if this constructor is either `bool.fromEnviroment`
+  /// `true` if this constructor is one of `bool.fromEnvironment`,
+  /// `int.fromEnvironment`, or `String.fromEnvironment`.
   bool get isFromEnvironmentConstructor;
 
   /// Use [enclosingClass] instead.

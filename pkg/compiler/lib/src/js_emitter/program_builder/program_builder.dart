@@ -4,34 +4,59 @@
 
 library dart2js.js_emitter.program_builder;
 
-import '../js_emitter.dart' show computeMixinClass, Emitter;
-import '../model.dart';
-
-import '../../common.dart';
-import '../../closure.dart' show ClosureFieldElement;
-import '../../js/js.dart' as js;
-
-import '../../js_backend/js_backend.dart' show
-    Namer,
-    JavaScriptBackend,
-    JavaScriptConstantCompiler;
-
 import '../js_emitter.dart' show
     ClassStubGenerator,
     CodeEmitterTask,
+    computeMixinClass,
+    Emitter,
     InterceptorStubGenerator,
     MainCallStubGenerator,
     ParameterStubGenerator,
     RuntimeTypeGenerator,
     TypeTestProperties;
+import '../model.dart';
 
+import '../../common.dart';
+import '../../common/names.dart' show
+    Names;
+import '../../compiler.dart' show
+    Compiler;
+import '../../constants/values.dart' show
+    ConstantValue,
+    InterceptorConstantValue;
+import '../../closure.dart' show
+    ClosureFieldElement;
+import '../../dart_types.dart' show
+    DartType;
 import '../../elements/elements.dart' show
+    ClassElement,
+    Element,
+    Elements,
     FieldElement,
+    FunctionElement,
+    FunctionSignature,
+    LibraryElement,
     MethodElement,
-    ParameterElement;
-
-import '../../universe/universe.dart' show Universe, SelectorConstraints;
-import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
+    Name,
+    ParameterElement,
+    TypedefElement,
+    VariableElement;
+import '../../js/js.dart' as js;
+import '../../js_backend/js_backend.dart' show
+    Namer,
+    JavaScriptBackend,
+    JavaScriptConstantCompiler,
+    StringBackedName;
+import '../../universe/call_structure.dart' show
+    CallStructure;
+import '../../universe/selector.dart' show
+    Selector;
+import '../../universe/universe.dart' show
+    Universe,
+    SelectorConstraints;
+import '../../deferred_load.dart' show
+    DeferredLoadTask,
+    OutputUnit;
 
 part 'collector.dart';
 part 'registry.dart';
@@ -141,6 +166,8 @@ class ProgramBuilder {
     _unneededNativeClasses = _task.nativeEmitter.prepareNativeClasses(
         nativeClasses, interceptorClassesNeededByConstants,
         classesModifiedByEmitRTISupport);
+
+    _addJsInteropStubs(_registry.mainLibrariesMap);
 
     MainFragment mainFragment = _buildMainFragment(_registry.mainLibrariesMap);
     Iterable<Fragment> deferredFragments =
@@ -319,6 +346,99 @@ class ProgramBuilder {
     return libraries;
   }
 
+  void _addJsInteropStubs(LibrariesMap librariesMap) {
+    if (_classes.containsKey(_compiler.objectClass)) {
+      var toStringInvocation = namer.invocationName(new Selector.call(
+          new Name("toString", _compiler.objectClass.library),
+          CallStructure.NO_ARGS));
+      // TODO(jacobr): register toString as used so that it is always accessible
+      // from JavaScript.
+      _classes[_compiler.objectClass].callStubs.add(_buildStubMethod(
+          new StringBackedName("toString"),
+          js.js('function() { return this.#(this) }', toStringInvocation)));
+    }
+
+    // We add all members from classes marked with isJsInterop to the base
+    // Interceptor class with implementations that directly call the
+    // corresponding JavaScript member. We do not attempt to bind this when
+    // tearing off JavaScript methods as we cannot distinguish between calling
+    // a regular getter that returns a JavaScript function and tearing off
+    // a method in the case where there exist multiple JavaScript classes
+    // that conflict on whether the member is a getter or a method.
+    var interceptorClass = _classes[backend.jsJavaScriptObjectClass];
+    var stubNames = new Set<String>();
+    librariesMap.forEach((LibraryElement library, List<Element> elements) {
+      for (Element e in elements) {
+        if (e is ClassElement && e.isJsInterop) {
+          e.declaration.forEachMember((_, Element member) {
+            if (!member.isInstanceMember) return;
+            if (member.isGetter || member.isField || member.isFunction) {
+              var selectors =
+                  _compiler.codegenWorld.getterInvocationsByName(member.name);
+              if (selectors != null && !selectors.isEmpty) {
+                for (var selector in selectors.keys) {
+                  var stubName = namer.invocationName(selector);
+                  if (stubNames.add(stubName.key)) {
+                    interceptorClass.callStubs.add(_buildStubMethod(
+                        stubName,
+                        js.js(
+                            'function(obj) { return obj.# }', [member.name]),
+                        element: member));
+                  }
+                }
+              }
+            }
+
+            if (member.isSetter || (member.isField && !member.isConst)) {
+              var selectors =
+                  _compiler.codegenWorld.setterInvocationsByName(member.name);
+              if (selectors != null && !selectors.isEmpty) {
+                var stubName = namer.setterForElement(member);
+                if (stubNames.add(stubName.key)) {
+                  interceptorClass.callStubs.add(_buildStubMethod(
+                      stubName,
+                      js.js('function(obj, v) { return obj.# = v }',
+                          [member.name]),
+                      element: member));
+                }
+              }
+            }
+
+            if (member.isFunction) {
+              var selectors =
+                  _compiler.codegenWorld.invocationsByName(member.name);
+              FunctionElement fn = member;
+              // Named arguments are not yet supported. In the future we
+              // may want to map named arguments to an object literal containing
+              // all named arguments.
+              if (selectors != null && !selectors.isEmpty) {
+                for (var selector in selectors.keys) {
+                  // Check whether the arity matches this member.
+                  var argumentCount = selector.argumentCount;
+                  if (argumentCount > fn.parameters.length) break;
+                  if (argumentCount < fn.parameters.length &&
+                      !fn.parameters[argumentCount].isOptional) break;
+                  var stubName = namer.invocationName(selector);
+                  if (!stubNames.add(stubName.key)) break;
+                  var candidateParameterNames =
+                      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLOMOPQRSTUVWXYZ';
+                  var parameters = new List<String>.generate(argumentCount,
+                      (i) => candidateParameterNames[i]);
+
+                  interceptorClass.callStubs.add(_buildStubMethod(
+                      stubName,
+                      js.js('function(receiver, #) { return receiver.#(#) }',
+                          [parameters, member.name, parameters]),
+                      element: member));
+                }
+              }
+            }
+          });
+        }
+      }
+    });
+  }
+
   // Note that a library-element may have multiple [Library]s, if it is split
   // into multiple output units.
   Library _buildLibrary(LibraryElement library, List<Element> elements) {
@@ -366,6 +486,11 @@ class ProgramBuilder {
 
   Class _buildClass(ClassElement element) {
     bool onlyForRti = collector.classesOnlyNeededForRti.contains(element);
+    if (element.isJsInterop) {
+      // TODO(jacobr): check whether the class has any active static fields
+      // if it does not we can suppress it completely.
+      onlyForRti = true;
+    }
 
     List<Method> methods = [];
     List<StubMethod> callStubs = <StubMethod>[];
@@ -446,28 +571,35 @@ class ProgramBuilder {
             storeFunctionTypeInMetadata: _storeFunctionTypesInMetadata);
 
     List<StubMethod> checkedSetters = <StubMethod>[];
-    for (Field field in instanceFields) {
-      if (field.needsCheckedSetter) {
-        assert(!field.needsUncheckedSetter);
-        Element element = field.element;
-        js.Expression code = backend.generatedCode[element];
-        assert(code != null);
-        js.Name name = namer.deriveSetterName(field.accessorName);
-        checkedSetters.add(_buildStubMethod(name, code, element: element));
-      }
-    }
-
     List<StubMethod> isChecks = <StubMethod>[];
-    typeTests.properties.forEach((js.Name name, js.Node code) {
-      isChecks.add(_buildStubMethod(name, code));
-    });
+    if (element.isJsInterop) {
+      typeTests.properties.forEach((js.Name name, js.Node code) {
+        _classes[backend.jsInterceptorClass].isChecks.add(
+            _buildStubMethod(name, code));
+      });
+    } else {
+      for (Field field in instanceFields) {
+        if (field.needsCheckedSetter) {
+          assert(!field.needsUncheckedSetter);
+          Element element = field.element;
+          js.Expression code = backend.generatedCode[element];
+          assert(code != null);
+          js.Name name = namer.deriveSetterName(field.accessorName);
+          checkedSetters.add(_buildStubMethod(name, code, element: element));
+        }
+      }
+
+      typeTests.properties.forEach((js.Name name, js.Node code) {
+        isChecks.add(_buildStubMethod(name, code));
+      });
+    }
 
     js.Name name = namer.className(element);
     String holderName = namer.globalObjectFor(element);
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a class.
     Holder holder = _registry.registerHolder(holderName);
-    bool isInstantiated =
+    bool isInstantiated = !element.isJsInterop &&
         _compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
 
     Class result;
@@ -638,7 +770,7 @@ class ProgramBuilder {
   js.Expression _generateFunctionType(DartType type, OutputUnit outputUnit) {
     if (type.containsTypeVariables) {
       js.Expression thisAccess = js.js(r'this.$receiver');
-      return backend.rti.getSignatureEncoding(type, thisAccess);
+      return backend.rtiEncoder.getSignatureEncoding(type, thisAccess);
     } else {
       return backend.emitter.metadataCollector
           .reifyTypeForOutputUnit(type, outputUnit);

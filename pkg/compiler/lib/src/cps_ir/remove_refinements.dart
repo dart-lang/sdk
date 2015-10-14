@@ -5,18 +5,16 @@
 library cps_ir.optimization.remove_refinements;
 
 import 'optimizers.dart' show Pass;
-import 'shrinking_reductions.dart' show ParentVisitor;
 import 'cps_ir_nodes.dart';
 
 /// Removes all [Refinement] nodes from the IR.
 ///
 /// This simplifies subsequent passes that don't rely on path-sensitive
 /// type information but depend on equality between primitives.
-class RemoveRefinements extends RecursiveVisitor implements Pass {
+class RemoveRefinements extends TrampolineRecursiveVisitor implements Pass {
   String get passName => 'Remove refinement nodes';
 
   void rewrite(FunctionDefinition node) {
-    new ParentVisitor().visit(node);
     visit(node);
   }
 

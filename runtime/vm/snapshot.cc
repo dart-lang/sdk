@@ -218,7 +218,7 @@ RawObject* SnapshotReader::ReadObject() {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     PassiveObject& obj =
-        PassiveObject::Handle(isolate(), ReadObjectImpl(kAsInlinedObject));
+        PassiveObject::Handle(zone(), ReadObjectImpl(kAsInlinedObject));
     for (intptr_t i = 0; i < backward_references_->length(); i++) {
       if (!(*backward_references_)[i].is_deserialized()) {
         ReadObjectImpl(kAsInlinedObject);
@@ -308,7 +308,7 @@ RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
 
   // First create a function object and associate it with the specified
   // 'object_id'.
-  Function& func = Function::Handle(isolate(), Function::null());
+  Function& func = Function::Handle(zone(), Function::null());
   Instance& obj = Instance::ZoneHandle(zone(), Instance::null());
   AddBackRef(object_id, &obj, kIsDeserialized);
 
@@ -500,7 +500,7 @@ RawObject* SnapshotReader::ReadObjectRef(intptr_t object_id,
   switch (class_id) {
 #define SNAPSHOT_READ(clazz)                                                   \
     case clazz::kClassId: {                                                    \
-      pobj_ = clazz::ReadFrom(this, object_id, tags, kind_);                   \
+      pobj_ = clazz::ReadFrom(this, object_id, tags, kind_, true);             \
       break;                                                                   \
     }
     CLASS_LIST_NO_OBJECT(SNAPSHOT_READ)
@@ -510,7 +510,7 @@ RawObject* SnapshotReader::ReadObjectRef(intptr_t object_id,
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
       tags = RawObject::ClassIdTag::update(class_id, tags);
-      pobj_ = TypedData::ReadFrom(this, object_id, tags, kind_);
+      pobj_ = TypedData::ReadFrom(this, object_id, tags, kind_, true);
       break;
     }
 #undef SNAPSHOT_READ
@@ -519,7 +519,7 @@ RawObject* SnapshotReader::ReadObjectRef(intptr_t object_id,
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
       tags = RawObject::ClassIdTag::update(class_id, tags);
-      pobj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_);
+      pobj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_, true);
       break;
     }
 #undef SNAPSHOT_READ
@@ -618,7 +618,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id,
   switch (class_id) {
 #define SNAPSHOT_READ(clazz)                                                   \
     case clazz::kClassId: {                                                    \
-      pobj_ = clazz::ReadFrom(this, object_id, tags, kind_);                   \
+      pobj_ = clazz::ReadFrom(this, object_id, tags, kind_, false);            \
       break;                                                                   \
     }
     CLASS_LIST_NO_OBJECT(SNAPSHOT_READ)
@@ -628,7 +628,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id,
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
       tags = RawObject::ClassIdTag::update(class_id, tags);
-      pobj_ = TypedData::ReadFrom(this, object_id, tags, kind_);
+      pobj_ = TypedData::ReadFrom(this, object_id, tags, kind_, false);
       break;
     }
 #undef SNAPSHOT_READ
@@ -637,7 +637,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id,
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
       tags = RawObject::ClassIdTag::update(class_id, tags);
-      pobj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_);
+      pobj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_, false);
       break;
     }
 #undef SNAPSHOT_READ
@@ -1190,10 +1190,7 @@ RawStacktrace* SnapshotReader::NewStacktrace() {
 
 
 int32_t InstructionsWriter::GetOffsetFor(RawInstructions* instructions) {
-  // Can't use instructions->Size() because the header was mutated by the
-  // snapshot writer.
-  intptr_t heap_size =
-      Instructions::InstanceSize(instructions->ptr()->size_);
+  intptr_t heap_size = instructions->Size();
   intptr_t offset = next_offset_;
   next_offset_ += heap_size;
   instructions_.Add(InstructionsData(instructions));
@@ -1669,6 +1666,7 @@ MessageSnapshotReader::~MessageSnapshotReader() {
 
 
 SnapshotWriter::SnapshotWriter(Snapshot::Kind kind,
+                               Thread* thread,
                                uint8_t** buffer,
                                ReAlloc alloc,
                                intptr_t initial_size,
@@ -1679,9 +1677,9 @@ SnapshotWriter::SnapshotWriter(Snapshot::Kind kind,
                                bool vm_isolate_is_symbolic)
     : BaseWriter(buffer, alloc, initial_size),
       kind_(kind),
-      thread_(Thread::Current()),
-      object_store_(thread_->isolate()->object_store()),
-      class_table_(thread_->isolate()->class_table()),
+      thread_(thread),
+      object_store_(isolate()->object_store()),
+      class_table_(isolate()->class_table()),
       forward_list_(forward_list),
       instructions_writer_(instructions_writer),
       exception_type_(Exceptions::kNone),
@@ -1699,6 +1697,12 @@ void SnapshotWriter::WriteObject(RawObject* rawobj) {
   WriteForwardedObjects();
 }
 
+
+uword SnapshotWriter::GetObjectTags(RawObject* raw) {
+  return raw->ptr()->tags_;
+}
+
+
 #define VM_OBJECT_CLASS_LIST(V)                                                \
   V(OneByteString)                                                             \
   V(Mint)                                                                      \
@@ -1708,9 +1712,9 @@ void SnapshotWriter::WriteObject(RawObject* rawobj) {
 
 #define VM_OBJECT_WRITE(clazz)                                                 \
   case clazz::kClassId: {                                                      \
-    object_id = forward_list_->AddObject(rawobj, kIsSerialized);               \
+    object_id = forward_list_->AddObject(zone(), rawobj, kIsSerialized);       \
     Raw##clazz* raw_obj = reinterpret_cast<Raw##clazz*>(rawobj);               \
-    raw_obj->WriteTo(this, object_id, kind());                                 \
+        raw_obj->WriteTo(this, object_id, kind(), false);                      \
     return true;                                                               \
   }                                                                            \
 
@@ -1792,9 +1796,9 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
       switch (id) {
         VM_OBJECT_CLASS_LIST(VM_OBJECT_WRITE)
         case kTypedDataUint32ArrayCid: {
-          object_id = forward_list_->AddObject(rawobj, kIsSerialized);
+          object_id = forward_list_->AddObject(zone(), rawobj, kIsSerialized);
           RawTypedData* raw_obj = reinterpret_cast<RawTypedData*>(rawobj);
-          raw_obj->WriteTo(this, object_id, kind());
+          raw_obj->WriteTo(this, object_id, kind(), false);
           return true;
         }
         default:
@@ -1824,13 +1828,13 @@ class ScriptVisitor : public ObjectVisitor {
  public:
   explicit ScriptVisitor(Isolate* isolate) :
       ObjectVisitor(isolate),
-      objHandle_(Object::Handle(isolate)),
+      objHandle_(Object::Handle(isolate->current_zone())),
       count_(0),
       scripts_(NULL) {}
 
   ScriptVisitor(Isolate* isolate, const Array* scripts) :
       ObjectVisitor(isolate),
-      objHandle_(Object::Handle(isolate)),
+      objHandle_(Object::Handle(isolate->current_zone())),
       count_(0),
       scripts_(scripts) {}
 
@@ -1859,7 +1863,7 @@ FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
                                        ReAlloc alloc,
                                        bool snapshot_code,
                                        bool vm_isolate_is_symbolic)
-    : isolate_(Isolate::Current()),
+    : thread_(Thread::Current()),
       vm_isolate_snapshot_buffer_(vm_isolate_snapshot_buffer),
       isolate_snapshot_buffer_(isolate_snapshot_buffer),
       instructions_snapshot_buffer_(instructions_snapshot_buffer),
@@ -1869,42 +1873,41 @@ FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
       instructions_snapshot_size_(0),
       forward_list_(NULL),
       instructions_writer_(NULL),
-      scripts_(Array::Handle(isolate_)),
-      symbol_table_(Array::Handle(isolate_)),
+      scripts_(Array::Handle(zone())),
+      symbol_table_(Array::Handle(zone())),
       snapshot_code_(snapshot_code),
       vm_isolate_is_symbolic_(vm_isolate_is_symbolic) {
   ASSERT(isolate_snapshot_buffer_ != NULL);
   ASSERT(alloc_ != NULL);
-  ASSERT(isolate_ != NULL);
+  ASSERT(isolate() != NULL);
   ASSERT(ClassFinalizer::AllClassesFinalized());
-  ObjectStore* object_store = isolate_->object_store();
+  ASSERT(isolate() != NULL);
+  ASSERT(heap() != NULL);
+  ObjectStore* object_store = isolate()->object_store();
   ASSERT(object_store != NULL);
-  Heap* heap = isolate_->heap();
-  ASSERT(heap != NULL);
   // Ensure the class table is valid.
 #if defined(DEBUG)
-  isolate_->ValidateClassTable();
+  isolate()->ValidateClassTable();
 #endif
 
   // Collect all the script objects and their accompanying token stream objects
   // into an array so that we can write it out as part of the VM isolate
   // snapshot. We first count the number of script objects, allocate an array
   // and then fill it up with the script objects.
-  ASSERT(isolate_ != NULL);
-  ScriptVisitor scripts_counter(isolate_);
-  heap->IterateOldObjects(&scripts_counter);
+  ScriptVisitor scripts_counter(isolate());
+  heap()->IterateOldObjects(&scripts_counter);
   intptr_t count = scripts_counter.count();
   scripts_ = Array::New(count, Heap::kOld);
-  ScriptVisitor script_visitor(isolate_, &scripts_);
-  heap->IterateOldObjects(&script_visitor);
+  ScriptVisitor script_visitor(isolate(), &scripts_);
+  heap()->IterateOldObjects(&script_visitor);
 
   // Stash the symbol table away for writing and reading into the vm isolate,
   // and reset the symbol table for the regular isolate so that we do not
   // write these symbols into the snapshot of a regular dart isolate.
   symbol_table_ = object_store->symbol_table();
-  Symbols::SetupSymbolTable(isolate_);
+  Symbols::SetupSymbolTable(isolate());
 
-  forward_list_ = new ForwardList(SnapshotWriter::FirstObjectId());
+  forward_list_ = new ForwardList(thread(), SnapshotWriter::FirstObjectId());
   ASSERT(forward_list_ != NULL);
 
   if (instructions_snapshot_buffer != NULL) {
@@ -1925,6 +1928,7 @@ FullSnapshotWriter::~FullSnapshotWriter() {
 void FullSnapshotWriter::WriteVmIsolateSnapshot() {
   ASSERT(vm_isolate_snapshot_buffer_ != NULL);
   SnapshotWriter writer(Snapshot::kFull,
+                        thread(),
                         vm_isolate_snapshot_buffer_,
                         alloc_,
                         kInitialSize,
@@ -1975,6 +1979,7 @@ void FullSnapshotWriter::WriteVmIsolateSnapshot() {
 
 void FullSnapshotWriter::WriteIsolateFullSnapshot() {
   SnapshotWriter writer(Snapshot::kFull,
+                        thread(),
                         isolate_snapshot_buffer_,
                         alloc_,
                         kInitialSize,
@@ -1983,7 +1988,7 @@ void FullSnapshotWriter::WriteIsolateFullSnapshot() {
                         true, /* can_send_any_object */
                         snapshot_code_,
                         true /* vm_isolate_is_symbolic */);
-  ObjectStore* object_store = isolate_->object_store();
+  ObjectStore* object_store = isolate()->object_store();
   ASSERT(object_store != NULL);
 
   // Write full snapshot for a regular isolate.
@@ -2010,7 +2015,6 @@ void FullSnapshotWriter::WriteIsolateFullSnapshot() {
     writer.WriteForwardedObjects();
 
     writer.FillHeader(writer.kind());
-    writer.UnmarkAll();
 
     isolate_snapshot_size_ = writer.BytesWritten();
   } else {
@@ -2020,22 +2024,13 @@ void FullSnapshotWriter::WriteIsolateFullSnapshot() {
 
 
 void FullSnapshotWriter::WriteFullSnapshot() {
-  if (!vm_isolate_is_symbolic_) {
-    // TODO(asiva): Don't mutate object headers during serialization.
-    WritableVMIsolateScope scope(Thread::Current());
-
-    if (vm_isolate_snapshot_buffer() != NULL) {
-      WriteVmIsolateSnapshot();
-    }
-    WriteIsolateFullSnapshot();
-
+  if (vm_isolate_snapshot_buffer() != NULL) {
+    WriteVmIsolateSnapshot();
+  }
+  WriteIsolateFullSnapshot();
+  if (snapshot_code_) {
     instructions_writer_->WriteAssembly();
     instructions_snapshot_size_ = instructions_writer_->BytesWritten();
-  } else {
-    if (vm_isolate_snapshot_buffer() != NULL) {
-      WriteVmIsolateSnapshot();
-    }
-    WriteIsolateFullSnapshot();
   }
 }
 
@@ -2057,91 +2052,42 @@ PrecompiledSnapshotWriter::PrecompiledSnapshotWriter(
 PrecompiledSnapshotWriter::~PrecompiledSnapshotWriter() {}
 
 
-uword SnapshotWriter::GetObjectTags(RawObject* raw) {
-  uword tags = raw->ptr()->tags_;
-  if (SerializedHeaderTag::decode(tags) == kObjectId) {
-    intptr_t id = SerializedHeaderData::decode(tags);
-    return forward_list_->NodeForObjectId(id)->tags();
-  } else {
-    return tags;
-  }
-}
-
-
-ForwardList::ForwardList(intptr_t first_object_id)
-    : first_object_id_(first_object_id),
+ForwardList::ForwardList(Thread* thread, intptr_t first_object_id)
+    : thread_(thread),
+      first_object_id_(first_object_id),
       nodes_(),
       first_unprocessed_object_id_(first_object_id) {
-  // The ForwardList encodes information in the header tag word. There cannot
-  // be any concurrent GC tasks while it is in use.
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  PageSpace* page_space = isolate->heap()->old_space();
-  MonitorLocker ml(page_space->tasks_lock());
-  while (page_space->tasks() > 0) {
-    ml.Wait();
-  }
-  // Ensure that no GC happens while we are writing out the full snapshot.
-  thread->IncrementNoSafepointScopeDepth();
 }
 
 
 ForwardList::~ForwardList() {
+  heap()->ResetObjectIdTable();
 }
 
 
-intptr_t ForwardList::MarkAndAddObject(RawObject* raw, SerializeState state) {
+intptr_t ForwardList::AddObject(Zone* zone,
+                                RawObject* raw,
+                                SerializeState state) {
   NoSafepointScope no_safepoint;
   intptr_t object_id = next_object_id();
   ASSERT(object_id > 0 && object_id <= kMaxObjectId);
-  uword value = 0;
-  value = SerializedHeaderTag::update(kObjectId, value);
-  value = SerializedHeaderData::update(object_id, value);
-  uword tags = raw->ptr()->tags_;
-  ASSERT(SerializedHeaderTag::decode(tags) != kObjectId);
-  raw->ptr()->tags_ = value;
-  Node* node = new Node(raw, tags, state);
+  const Object& obj = Object::ZoneHandle(zone, raw);
+  Node* node = new Node(&obj, state);
   ASSERT(node != NULL);
   nodes_.Add(node);
-  return object_id;
-}
-
-
-intptr_t ForwardList::AddObject(RawObject* raw, SerializeState state) {
-  NoSafepointScope no_safepoint;
-  intptr_t object_id = next_object_id();
-  ASSERT(object_id > 0 && object_id <= kMaxObjectId);
-  uword tags = raw->ptr()->tags_;
-  ASSERT(SerializedHeaderTag::decode(tags) != kObjectId);
-  Node* node = new Node(raw, tags, state);
-  ASSERT(node != NULL);
-  nodes_.Add(node);
+  ASSERT(SnapshotWriter::FirstObjectId() > 0);
+  ASSERT(object_id != 0);
+  heap()->SetObjectId(raw, object_id);
   return object_id;
 }
 
 
 intptr_t ForwardList::FindObject(RawObject* raw) {
   NoSafepointScope no_safepoint;
-  intptr_t id;
-  for (id = first_object_id(); id < next_object_id(); ++id) {
-    const Node* node = NodeForObjectId(id);
-    if (raw == node->raw()) {
-      return id;
-    }
-  }
-  return kInvalidIndex;
-}
-
-
-void ForwardList::UnmarkAll() const {
-  for (intptr_t id = first_object_id(); id < next_object_id(); ++id) {
-    const Node* node = NodeForObjectId(id);
-    RawObject* raw = node->raw();
-    if (SerializedHeaderTag::decode(raw->ptr()->tags_) == kObjectId) {
-      raw->ptr()->tags_ = node->tags();  // Restore original tags.
-    }
-  }
-  Thread::Current()->DecrementNoSafepointScopeDepth();
+  ASSERT(SnapshotWriter::FirstObjectId() > 0);
+  intptr_t id = heap()->GetObjectId(raw);
+  ASSERT(id == 0 || NodeForObjectId(id)->obj()->raw() == raw);
+  return (id == 0) ? static_cast<intptr_t>(kInvalidIndex) : id;
 }
 
 
@@ -2170,10 +2116,9 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
 
   // Check if object has already been serialized, in that case just write
   // the object id out.
-  uword tags = rawobj->ptr()->tags_;
-  if (SerializedHeaderTag::decode(tags) == kObjectId) {
-    intptr_t id = SerializedHeaderData::decode(tags);
-    WriteIndexedObject(id);
+  intptr_t object_id = forward_list_->FindObject(rawobj);
+  if (object_id != kInvalidIndex) {
+    WriteIndexedObject(object_id);
     return true;
   }
 
@@ -2224,145 +2169,47 @@ void SnapshotWriter::WriteObjectImpl(RawObject* raw, bool as_reference) {
     return;
   }
 
-  // Objects are usually writen as references to avoid deep recursion, but in
-  // some places we know we are dealing with leaf or shallow objects and write
-  // them inline.
-  if (!as_reference || raw->IsCanonical()) {
-    // Object is being serialized, add it to the forward ref list and mark
-    // it so that future references to this object in the snapshot will use
-    // an object id, instead of trying to serialize it again.
-    forward_list_->MarkAndAddObject(raw, kIsSerialized);
+  // When we know that we are dealing with leaf or shallow objects we write
+  // these objects inline even when 'as_reference' is true.
+  const bool write_as_reference = as_reference && !raw->IsCanonical();
+  intptr_t tags = raw->ptr()->tags_;
 
-    WriteInlinedObject(raw);
-  } else {
-    WriteObjectRef(raw);
-  }
-}
-
-
-void SnapshotWriter::WriteObjectRef(RawObject* raw) {
-  NoSafepointScope no_safepoint;
-  RawClass* cls = class_table_->At(raw->GetClassId());
-  intptr_t class_id = cls->ptr()->id_;
-  ASSERT(class_id == raw->GetClassId());
-  if (class_id >= kNumPredefinedCids ||
-      RawObject::IsImplicitFieldClassId(class_id)) {
-    WriteInstanceRef(raw, cls);
-    return;
-  }
-  if (class_id == kArrayCid || class_id == kImmutableArrayCid) {
-    intptr_t tags = GetObjectTags(raw);
-
-    // Object is being referenced, add it to the forward ref list and mark
-    // it so that future references to this object in the snapshot will use
-    // this object id. Mark it as not having been serialized yet so that we
-    // will serialize the object when we go through the forward list.
-    forward_list_->MarkAndAddObject(raw, kIsNotSerialized);
-
-    RawArray* rawarray = reinterpret_cast<RawArray*>(raw);
-
-    // Write out the serialization header value for this object.
-    WriteInlinedObjectHeader(kOmittedObjectId);
-
-    // Write out the class information.
-    WriteIndexedObject(class_id);
-    WriteTags(tags);
-
-    // Write out the length field.
-    Write<RawObject*>(rawarray->ptr()->length_);
-
-    return;
-  }
-  if (class_id == kObjectPoolCid) {
-    intptr_t tags = GetObjectTags(raw);
-
-    // Object is being referenced, add it to the forward ref list and mark
-    // it so that future references to this object in the snapshot will use
-    // this object id. Mark it as not having been serialized yet so that we
-    // will serialize the object when we go through the forward list.
-    forward_list_->MarkAndAddObject(raw, kIsNotSerialized);
-
-    RawObjectPool* rawpool = reinterpret_cast<RawObjectPool*>(raw);
-
-    // Write out the serialization header value for this object.
-    WriteInlinedObjectHeader(kOmittedObjectId);
-
-    // Write out the class information.
-    WriteVMIsolateObject(kObjectPoolCid);
-    WriteTags(tags);
-
-    // Write out the length field.
-    Write<intptr_t>(rawpool->ptr()->length_);
-
-    return;
-  }
   // Add object to the forward ref list and mark it so that future references
-  // to this object in the snapshot will use this object id. Mark it as having
-  // been serialized so that we do not serialize the object when we go through
+  // to this object in the snapshot will use this object id. Mark the
+  // serialization state so that we do the right thing when we go through
   // the forward list.
-  forward_list_->MarkAndAddObject(raw, kIsSerialized);
-  switch (class_id) {
-#define SNAPSHOT_WRITE(clazz)                                                  \
-    case clazz::kClassId: {                                                    \
-      Raw##clazz* raw_obj = reinterpret_cast<Raw##clazz*>(raw);                \
-      raw_obj->WriteTo(this, kOmittedObjectId, kind_);                         \
-      return;                                                                  \
-    }                                                                          \
-
-    CLASS_LIST_NO_OBJECT(SNAPSHOT_WRITE)
-#undef SNAPSHOT_WRITE
-#define SNAPSHOT_WRITE(clazz)                                                  \
-    case kTypedData##clazz##Cid:                                               \
-
-    CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE) {
-      RawTypedData* raw_obj = reinterpret_cast<RawTypedData*>(raw);
-      raw_obj->WriteTo(this, kOmittedObjectId, kind_);
-      return;
-    }
-#undef SNAPSHOT_WRITE
-#define SNAPSHOT_WRITE(clazz)                                                  \
-    case kExternalTypedData##clazz##Cid:                                       \
-
-    CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE) {
-      RawExternalTypedData* raw_obj =
-        reinterpret_cast<RawExternalTypedData*>(raw);
-      raw_obj->WriteTo(this, kOmittedObjectId, kind_);
-      return;
-    }
-#undef SNAPSHOT_WRITE
-    default: break;
+  intptr_t class_id = raw->GetClassId();
+  intptr_t object_id;
+  if (write_as_reference && IsSplitClassId(class_id)) {
+    object_id = forward_list_->AddObject(zone(), raw, kIsNotSerialized);
+  } else {
+    object_id = forward_list_->AddObject(zone(), raw, kIsSerialized);
   }
-  UNREACHABLE();
-}
-
-
-void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
-  // Now write the object out inline in the stream as follows:
-  // - Object is seen for the first time (inlined as follows):
-  //    (object size in multiples of kObjectAlignment | 0x1)
-  //    serialized fields of the object
-  //    ......
-  NoSafepointScope no_safepoint;
-  uword tags = raw->ptr()->tags_;
-  ASSERT(SerializedHeaderTag::decode(tags) == kObjectId);
-  intptr_t object_id = SerializedHeaderData::decode(tags);
-  tags = forward_list_->NodeForObjectId(object_id)->tags();
-  RawClass* cls = class_table_->At(RawObject::ClassIdTag::decode(tags));
-  intptr_t class_id = cls->ptr()->id_;
-
-  if (!IsSplitClassId(class_id)) {
+  if (write_as_reference || !IsSplitClassId(class_id)) {
     object_id = kOmittedObjectId;
   }
+  WriteMarkedObjectImpl(raw, tags, object_id, write_as_reference);
+}
 
-  if (class_id >= kNumPredefinedCids) {
-    WriteInstance(object_id, raw, cls, tags);
+
+void SnapshotWriter::WriteMarkedObjectImpl(RawObject* raw,
+                                           intptr_t tags,
+                                           intptr_t object_id,
+                                           bool as_reference) {
+  NoSafepointScope no_safepoint;
+  RawClass* cls = class_table_->At(RawObject::ClassIdTag::decode(tags));
+  intptr_t class_id = cls->ptr()->id_;
+  ASSERT(class_id == RawObject::ClassIdTag::decode(tags));
+  if (class_id >= kNumPredefinedCids ||
+      RawObject::IsImplicitFieldClassId(class_id)) {
+    WriteInstance(raw, cls, tags, object_id, as_reference);
     return;
   }
   switch (class_id) {
 #define SNAPSHOT_WRITE(clazz)                                                  \
     case clazz::kClassId: {                                                    \
       Raw##clazz* raw_obj = reinterpret_cast<Raw##clazz*>(raw);                \
-      raw_obj->WriteTo(this, object_id, kind_);                                \
+          raw_obj->WriteTo(this, object_id, kind_, as_reference);              \
       return;                                                                  \
     }                                                                          \
 
@@ -2373,7 +2220,7 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE) {
       RawTypedData* raw_obj = reinterpret_cast<RawTypedData*>(raw);
-      raw_obj->WriteTo(this, object_id, kind_);
+      raw_obj->WriteTo(this, object_id, kind_, as_reference);
       return;
     }
 #undef SNAPSHOT_WRITE
@@ -2383,16 +2230,7 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
     CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE) {
       RawExternalTypedData* raw_obj =
         reinterpret_cast<RawExternalTypedData*>(raw);
-      raw_obj->WriteTo(this, object_id, kind_);
-      return;
-    }
-#undef SNAPSHOT_WRITE
-#define SNAPSHOT_WRITE(clazz)                                                  \
-    case kTypedData##clazz##ViewCid:                                           \
-
-    CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE)
-    case kByteDataViewCid: {
-      WriteInstance(object_id, raw, cls, tags);
+      raw_obj->WriteTo(this, object_id, kind_, as_reference);
       return;
     }
 #undef SNAPSHOT_WRITE
@@ -2400,7 +2238,7 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
   }
 
   const Object& obj = Object::Handle(raw);
-  FATAL1("Unexpected inlined object: %s\n", obj.ToCString());
+  FATAL1("Unexpected object: %s\n", obj.ToCString());
 }
 
 
@@ -2410,7 +2248,10 @@ class WriteInlinedObjectVisitor : public ObjectVisitor {
       : ObjectVisitor(Isolate::Current()), writer_(writer) {}
 
   virtual void VisitObject(RawObject* obj) {
-    writer_->WriteInlinedObject(obj);
+    intptr_t object_id = writer_->forward_list_->FindObject(obj);
+    ASSERT(object_id != kInvalidIndex);
+    intptr_t tags = writer_->GetObjectTags(obj);
+    writer_->WriteMarkedObjectImpl(obj, tags, object_id, kAsInlinedObject);
   }
 
  private:
@@ -2440,7 +2281,7 @@ void ForwardList::SerializeAll(ObjectVisitor* writer) {
        ++id) {
     if (!NodeForObjectId(id)->is_serialized()) {
       // Write the object out in the stream.
-      RawObject* raw = NodeForObjectId(id)->raw();
+      RawObject* raw = NodeForObjectId(id)->obj()->raw();
       writer->VisitObject(raw);
 
       // Mark object as serialized.
@@ -2508,26 +2349,39 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
                                   intptr_t tags,
                                   RawSmi* length,
                                   RawTypeArguments* type_arguments,
-                                  RawObject* data[]) {
-  intptr_t len = Smi::Value(length);
+                                  RawObject* data[],
+                                  bool as_reference) {
+  if (as_reference) {
+    // Write out the serialization header value for this object.
+    WriteInlinedObjectHeader(kOmittedObjectId);
 
-  // Write out the serialization header value for this object.
-  WriteInlinedObjectHeader(object_id);
+    // Write out the class information.
+    WriteIndexedObject(array_kind);
+    WriteTags(tags);
 
-  // Write out the class and tags information.
-  WriteIndexedObject(array_kind);
-  WriteTags(tags);
+    // Write out the length field.
+    Write<RawObject*>(length);
+  } else {
+    intptr_t len = Smi::Value(length);
 
-  // Write out the length field.
-  Write<RawObject*>(length);
+    // Write out the serialization header value for this object.
+    WriteInlinedObjectHeader(object_id);
 
-  // Write out the type arguments.
-  WriteObjectImpl(type_arguments, kAsInlinedObject);
+    // Write out the class and tags information.
+    WriteIndexedObject(array_kind);
+    WriteTags(tags);
 
-  // Write out the individual object ids.
-  bool as_reference = RawObject::IsCanonical(tags) ? false : true;
-  for (intptr_t i = 0; i < len; i++) {
-    WriteObjectImpl(data[i], as_reference);
+    // Write out the length field.
+    Write<RawObject*>(length);
+
+    // Write out the type arguments.
+    WriteObjectImpl(type_arguments, kAsInlinedObject);
+
+    // Write out the individual object ids.
+    bool write_as_reference = RawObject::IsCanonical(tags) ? false : true;
+    for (intptr_t i = 0; i < len; i++) {
+      WriteObjectImpl(data[i], write_as_reference);
+    }
   }
 }
 
@@ -2549,12 +2403,11 @@ RawFunction* SnapshotWriter::IsSerializableClosure(RawClass* cls,
     // exception as we do not allow these objects to be serialized.
     HANDLESCOPE(thread());
 
-    const Class& clazz = Class::Handle(isolate(), cls);
-    const Function& errorFunc = Function::Handle(isolate(), func);
+    const Class& clazz = Class::Handle(zone(), cls);
+    const Function& errorFunc = Function::Handle(zone(), func);
     ASSERT(!errorFunc.IsNull());
 
     // All other closures are errors.
-    UnmarkAll();  // Unmark objects now as we are about to print stuff.
     char* chars = OS::SCreate(thread()->zone(),
         "Illegal argument in isolate message : (object is a closure - %s %s)",
         clazz.ToCString(), errorFunc.ToCString());
@@ -2580,8 +2433,7 @@ void SnapshotWriter::CheckForNativeFields(RawClass* cls) {
   if (cls->ptr()->num_native_fields_ != 0) {
     // We do not allow objects with native fields in an isolate message.
     HANDLESCOPE(thread());
-    UnmarkAll();  // Unmark objects now as we are about to print stuff.
-    const Class& clazz = Class::Handle(isolate(), cls);
+    const Class& clazz = Class::Handle(zone(), cls);
     char* chars = OS::SCreate(thread()->zone(),
         "Illegal argument in isolate message"
         " : (object extends NativeWrapper - %s)",
@@ -2601,10 +2453,11 @@ void SnapshotWriter::SetWriteException(Exceptions::ExceptionType type,
 }
 
 
-void SnapshotWriter::WriteInstance(intptr_t object_id,
-                                   RawObject* raw,
+void SnapshotWriter::WriteInstance(RawObject* raw,
                                    RawClass* cls,
-                                   intptr_t tags) {
+                                   intptr_t tags,
+                                   intptr_t object_id,
+                                   bool as_reference) {
   // Check if the instance has native fields and throw an exception if it does.
   CheckForNativeFields(cls);
 
@@ -2613,81 +2466,54 @@ void SnapshotWriter::WriteInstance(intptr_t object_id,
     // closure that is not serializable this will throw an exception.
     RawFunction* func = IsSerializableClosure(cls, raw);
     if (func != Function::null()) {
+      forward_list_->SetState(object_id, kIsSerialized);
       WriteStaticImplicitClosure(object_id, func, tags);
       return;
     }
   }
 
   // Object is regular dart instance.
-  intptr_t next_field_offset = Class::IsSignatureClass(cls) ?
-      Closure::InstanceSize() :
-      cls->ptr()->next_field_offset_in_words_ << kWordSizeLog2;
-  ASSERT(next_field_offset > 0);
+  if (as_reference) {
+    // Write out the serialization header value for this object.
+    WriteInlinedObjectHeader(kOmittedObjectId);
 
-  // Write out the serialization header value for this object.
-  WriteInlinedObjectHeader(object_id);
+    // Indicate this is an instance object.
+    Write<int32_t>(SerializedHeaderData::encode(kInstanceObjectId));
+    WriteTags(tags);
 
-  // Indicate this is an instance object.
-  Write<int32_t>(SerializedHeaderData::encode(kInstanceObjectId));
+    // Write out the class information for this object.
+    WriteObjectImpl(cls, kAsInlinedObject);
+  } else {
+    intptr_t next_field_offset = Class::IsSignatureClass(cls) ?
+        Closure::InstanceSize() :
+        cls->ptr()->next_field_offset_in_words_ << kWordSizeLog2;
+    ASSERT(next_field_offset > 0);
 
-  // Write out the tags.
-  WriteTags(tags);
+    // Write out the serialization header value for this object.
+    WriteInlinedObjectHeader(object_id);
 
-  // Write out the class information for this object.
-  WriteObjectImpl(cls, kAsInlinedObject);
+    // Indicate this is an instance object.
+    Write<int32_t>(SerializedHeaderData::encode(kInstanceObjectId));
 
-  // Write out all the fields for the object.
-  // Instance::NextFieldOffset() returns the offset of the first field in
-  // a Dart object.
-  bool as_reference = RawObject::IsCanonical(tags) ? false : true;
-  intptr_t offset = Instance::NextFieldOffset();
-  while (offset < next_field_offset) {
-    RawObject* raw_obj = *reinterpret_cast<RawObject**>(
-        reinterpret_cast<uword>(raw->ptr()) + offset);
-    WriteObjectImpl(raw_obj, as_reference);
-    offset += kWordSize;
+    // Write out the tags.
+    WriteTags(tags);
+
+    // Write out the class information for this object.
+    WriteObjectImpl(cls, kAsInlinedObject);
+
+    // Write out all the fields for the object.
+    // Instance::NextFieldOffset() returns the offset of the first field in
+    // a Dart object.
+    bool write_as_reference = RawObject::IsCanonical(tags) ? false : true;
+    intptr_t offset = Instance::NextFieldOffset();
+    while (offset < next_field_offset) {
+      RawObject* raw_obj = *reinterpret_cast<RawObject**>(
+          reinterpret_cast<uword>(raw->ptr()) + offset);
+      WriteObjectImpl(raw_obj, write_as_reference);
+      offset += kWordSize;
+    }
   }
   return;
-}
-
-
-void SnapshotWriter::WriteInstanceRef(RawObject* raw, RawClass* cls) {
-  // Check if the instance has native fields and throw an exception if it does.
-  CheckForNativeFields(cls);
-
-  // Check if object is a closure that is serializable, if the object is a
-  // closure that is not serializable this will throw an exception.
-  RawFunction* func = IsSerializableClosure(cls, raw);
-  if (func != Function::null()) {
-    // Add object to the forward ref list and mark it so that future references
-    // to this object in the snapshot will use this object id. Mark it as having
-    // been serialized so that we do not serialize the object when we go through
-    // the forward list.
-    forward_list_->MarkAndAddObject(raw, kIsSerialized);
-    uword tags = raw->ptr()->tags_;
-    ASSERT(SerializedHeaderTag::decode(tags) == kObjectId);
-    intptr_t object_id = SerializedHeaderData::decode(tags);
-    tags = forward_list_->NodeForObjectId(object_id)->tags();
-    WriteStaticImplicitClosure(object_id, func, tags);
-    return;
-  }
-
-  // Object is being referenced, add it to the forward ref list and mark
-  // it so that future references to this object in the snapshot will use
-  // this object id. Mark it as not having been serialized yet so that we
-  // will serialize the object when we go through the forward list.
-  intptr_t tags = raw->ptr()->tags_;
-  forward_list_->MarkAndAddObject(raw, kIsNotSerialized);
-
-  // Write out the serialization header value for this object.
-  WriteInlinedObjectHeader(kOmittedObjectId);
-
-  // Indicate this is an instance object.
-  Write<int32_t>(SerializedHeaderData::encode(kInstanceObjectId));
-  WriteTags(tags);
-
-  // Write out the class information for this object.
-  WriteObjectImpl(cls, kAsInlinedObject);
 }
 
 
@@ -2712,7 +2538,6 @@ intptr_t SnapshotWriter::FindVmSnapshotObject(RawObject* rawobj) {
 void SnapshotWriter::ThrowException(Exceptions::ExceptionType type,
                                     const char* msg) {
   object_store()->clear_sticky_error();
-  UnmarkAll();
   if (msg != NULL) {
     const String& msg_obj = String::Handle(String::New(msg));
     const Array& args = Array::Handle(Array::New(1));
@@ -2743,6 +2568,7 @@ intptr_t SnapshotWriter::FirstObjectId() {
 ScriptSnapshotWriter::ScriptSnapshotWriter(uint8_t** buffer,
                                            ReAlloc alloc)
     : SnapshotWriter(Snapshot::kScript,
+                     Thread::Current(),
                      buffer,
                      alloc,
                      kInitialSize,
@@ -2751,7 +2577,7 @@ ScriptSnapshotWriter::ScriptSnapshotWriter(uint8_t** buffer,
                      true, /* can_send_any_object */
                      false, /* snapshot_code */
                      true /* vm_isolate_is_symbolic */),
-      forward_list_(kMaxPredefinedObjectIds) {
+      forward_list_(thread(), kMaxPredefinedObjectIds) {
   ASSERT(buffer != NULL);
   ASSERT(alloc != NULL);
 }
@@ -2780,7 +2606,6 @@ void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
       WriteObject(lib.raw());
 
       FillHeader(kind());
-      UnmarkAll();
     }
   } else {
     ThrowException(exception_type(), exception_msg());
@@ -2800,6 +2625,7 @@ MessageWriter::MessageWriter(uint8_t** buffer,
                              ReAlloc alloc,
                              bool can_send_any_object)
     : SnapshotWriter(Snapshot::kMessage,
+                     Thread::Current(),
                      buffer,
                      alloc,
                      kInitialSize,
@@ -2808,7 +2634,7 @@ MessageWriter::MessageWriter(uint8_t** buffer,
                      can_send_any_object,
                      false, /* snapshot_code */
                      true /* vm_isolate_is_symbolic */),
-      forward_list_(kMaxPredefinedObjectIds) {
+      forward_list_(thread(), kMaxPredefinedObjectIds) {
   ASSERT(buffer != NULL);
   ASSERT(alloc != NULL);
 }
@@ -2824,7 +2650,6 @@ void MessageWriter::WriteMessage(const Object& obj) {
   if (setjmp(*jump.Set()) == 0) {
     NoSafepointScope no_safepoint;
     WriteObject(obj.raw());
-    UnmarkAll();
   } else {
     ThrowException(exception_type(), exception_msg());
   }

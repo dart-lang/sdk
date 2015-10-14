@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'dart:mirrors';
 
 import 'package:sdk_library_metadata/libraries.dart'
-    show LIBRARIES, LibraryInfo;
+    show libraries, LibraryInfo;
 
 import '../../lib/src/mirrors/analyze.dart'
     show analyze;
@@ -25,7 +25,7 @@ const DART2JS_MIRROR = '../../lib/src/mirrors/dart2js_mirror.dart';
 const SDK_ROOT = '../../../../sdk/';
 
 bool isPublicDart2jsLibrary(String name) {
-  return !name.startsWith('_') && LIBRARIES[name].isDart2jsLibrary;
+  return !name.startsWith('_') && libraries[name].isDart2jsLibrary;
 }
 
 var handler;
@@ -54,7 +54,7 @@ main(List<String> arguments) {
   sdkRoot = libraryRoot.resolve('../');
 
   // Get the names of public dart2js libraries.
-  Iterable<String> names = LIBRARIES.keys.where(isPublicDart2jsLibrary);
+  Iterable<String> names = libraries.keys.where(isPublicDart2jsLibrary);
 
   // Turn the names into uris by prepending dart: to them.
   List<Uri> uris = names.map((String name) => Uri.parse('dart:$name')).toList();
@@ -75,7 +75,7 @@ jsonify(MirrorSystem mirrors) {
     });
   });
 
-  LIBRARIES.forEach((name, info) {
+  libraries.forEach((name, info) {
     var patch = info.dart2jsPatchPath;
     if (patch != null) {
       Uri uri = sdkRoot.resolve('sdk/lib/$patch');

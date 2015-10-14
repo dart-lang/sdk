@@ -155,8 +155,10 @@ namespace dart {
   V(AbstractClassInstantiationError_throwNew, 2)                               \
   V(Stopwatch_now, 0)                                                          \
   V(Stopwatch_frequency, 0)                                                    \
+  V(Timeline_getNextAsyncId, 0)                                                \
   V(Timeline_getTraceClock, 0)                                                 \
   V(Timeline_reportCompleteEvent, 5)                                           \
+  V(Timeline_reportTaskEvent, 6)                                               \
   V(TypedData_Int8Array_new, 1)                                                \
   V(TypedData_Uint8Array_new, 1)                                               \
   V(TypedData_Uint8ClampedArray_new, 1)                                        \

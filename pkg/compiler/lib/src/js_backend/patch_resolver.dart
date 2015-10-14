@@ -4,6 +4,7 @@
 
 library dart2js.js_backend.patch_resolver;
 
+import '../common.dart';
 import '../common/resolution.dart' show
     Resolution;
 import '../common/tasks.dart' show
@@ -11,12 +12,6 @@ import '../common/tasks.dart' show
 import '../compiler.dart' show
     Compiler;
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage;
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart' show
-    MessageKind;
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
 import '../tree/tree.dart';
@@ -36,7 +31,7 @@ class PatchResolverTask extends CompilerTask {
       });
       checkMatchingPatchSignatures(element, patch);
       element = patch;
-    } else {
+    } else if (!element.isJsInterop) {
       reporter.reportErrorMessage(
          element, MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION);
     }

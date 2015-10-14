@@ -9,9 +9,9 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:core' hide Resource;
 
+import 'package:analysis_server/plugin/analysis/resolver_provider.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/server_options.dart';
-import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/options.dart';
@@ -22,6 +22,7 @@ import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -463,20 +464,34 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Process [options] for the context having info [info].
+   * Process [options] for the given context [info].
    */
   void processOptionsForContext(
       ContextInfo info, Map<String, YamlNode> options) {
-    //TODO(pquitslund): push handling into an options processor plugin contributed to engine.
-    //AnalysisEngine.instance.optionsPlugin.optionsProcessors
-    //    .forEach((OptionsProcessor p) => p.optionsProcessed(options));
     if (options == null) {
       return;
     }
+
+    // Notify options processors.
+    AnalysisEngine.instance.optionsPlugin.optionsProcessors.forEach(
+        (OptionsProcessor p) => p.optionsProcessed(info.context, options));
+
+    // Analysis options are processed 'in-line'.
+    // TODO(pq): consider pushing exclude handling into a plugin.
     YamlMap analyzer = options['analyzer'];
     if (analyzer == null) {
       // No options for analyzer.
       return;
+    }
+
+    // Set strong mode.
+    var strongMode = analyzer['strong-mode'];
+    if (strongMode == true) {
+      AnalysisContext context = info.context;
+      AnalysisOptionsImpl options =
+          new AnalysisOptionsImpl.from(context.analysisOptions);
+      options.strongMode = true;
+      context.analysisOptions = options;
     }
 
     // Set ignore patterns.
@@ -816,17 +831,6 @@ class ContextManagerImpl implements ContextManager {
     ContextInfo info = new ContextInfo(this, parent, folder, packagespecFile,
         normalizedPackageRoots[folder.path]);
 
-    try {
-      Map<String, YamlNode> options =
-          analysisOptionsProvider.getOptions(folder);
-      processOptionsForContext(info, options);
-    } on Exception catch (e) {
-      // TODO(pquitslund): contribute plugin that sends error notification on options file.
-      // Related test: context_manager_test.test_analysis_options_parse_failure()
-      // AnalysisEngine.instance.optionsPlugin.optionsProcessors
-      //      .forEach((OptionsProcessor p) => p.onError(e));
-    }
-
     FolderDisposition disposition;
     List<String> dependencies = <String>[];
 
@@ -839,6 +843,23 @@ class ContextManagerImpl implements ContextManager {
     info.setDependencies(dependencies);
     info.context = callbacks.addContext(folder, disposition);
     info.context.name = folder.path;
+
+    try {
+      Map<String, YamlNode> options =
+          analysisOptionsProvider.getOptions(folder);
+      processOptionsForContext(info, options);
+    } catch (e, stacktrace) {
+      AnalysisEngine.instance.logger.logError(
+          'Error processing .analysis_options',
+          new CaughtException(e, stacktrace));
+      // TODO(pquitslund): contribute plugin that sends error notification on
+      // options file.
+      // Related test:
+      //   context_manager_test.test_analysis_options_parse_failure()
+      // AnalysisEngine.instance.optionsPlugin.optionsProcessors
+      //      .forEach((OptionsProcessor p) => p.onError(e));
+    }
+
     return info;
   }
 

@@ -99,21 +99,24 @@ class EnginePlugin implements Plugin {
    * Return a list containing all of the contributed analysis error result
    * descriptors for Dart sources.
    */
-  List<TaskDescriptor> get dartErrorsForSource =>
+  @ExtensionPointId('DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID')
+  List<ResultDescriptor> get dartErrorsForSource =>
       dartErrorsForSourceExtensionPoint.extensions;
 
   /**
    * Return a list containing all of the contributed analysis error result
    * descriptors for Dart library specific units.
    */
-  List<TaskDescriptor> get dartErrorsForUnit =>
+  @ExtensionPointId('DART_ERRORS_FOR_UNIT_EXTENSION_POINT_ID')
+  List<ResultDescriptor> get dartErrorsForUnit =>
       dartErrorsForUnitExtensionPoint.extensions;
 
   /**
    * Return a list containing all of the contributed analysis error result
    * descriptors for HTML sources.
    */
-  List<TaskDescriptor> get htmlErrors => htmlErrorsExtensionPoint.extensions;
+  @ExtensionPointId('HTML_ERRORS_EXTENSION_POINT_ID')
+  List<ResultDescriptor> get htmlErrors => htmlErrorsExtensionPoint.extensions;
 
   /**
    * Return a list containing all of the task descriptors that were contributed.
@@ -158,19 +161,17 @@ class EnginePlugin implements Plugin {
   }
 
   void _registerDartErrorsForSource(RegisterExtension registerExtension) {
-    String id = DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID;
-    registerExtension(id, PARSE_ERRORS);
-    registerExtension(id, SCAN_ERRORS);
+    registerExtension(DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID, PARSE_ERRORS);
+    registerExtension(DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID, SCAN_ERRORS);
   }
 
   void _registerDartErrorsForUnit(RegisterExtension registerExtension) {
-    String id = DART_ERRORS_FOR_UNIT_EXTENSION_POINT_ID;
-    registerExtension(id, LIBRARY_UNIT_ERRORS);
+    registerExtension(
+        DART_ERRORS_FOR_UNIT_EXTENSION_POINT_ID, LIBRARY_UNIT_ERRORS);
   }
 
   void _registerHtmlErrors(RegisterExtension registerExtension) {
-    String id = HTML_ERRORS_EXTENSION_POINT_ID;
-    registerExtension(id, HTML_DOCUMENT_ERRORS);
+    registerExtension(HTML_ERRORS_EXTENSION_POINT_ID, HTML_DOCUMENT_ERRORS);
   }
 
   void _registerTaskExtensions(RegisterExtension registerExtension) {
@@ -195,6 +196,7 @@ class EnginePlugin implements Plugin {
     registerExtension(taskId, ComputeConstantValueTask.DESCRIPTOR);
     registerExtension(
         taskId, ComputeInferableStaticVariableDependenciesTask.DESCRIPTOR);
+    registerExtension(taskId, ComputeLibraryCycleTask.DESCRIPTOR);
     registerExtension(taskId, ContainingLibrariesTask.DESCRIPTOR);
     registerExtension(taskId, DartErrorsTask.DESCRIPTOR);
     registerExtension(taskId, EvaluateUnitConstantsTask.DESCRIPTOR);
@@ -209,12 +211,14 @@ class EnginePlugin implements Plugin {
     registerExtension(taskId, LibraryUnitErrorsTask.DESCRIPTOR);
     registerExtension(taskId, ParseDartTask.DESCRIPTOR);
     registerExtension(taskId, PartiallyResolveUnitReferencesTask.DESCRIPTOR);
-    registerExtension(taskId, ResolveFunctionBodiesInUnitTask.DESCRIPTOR);
+    registerExtension(taskId, ResolveInstanceFieldsInUnitTask.DESCRIPTOR);
     registerExtension(taskId, ResolveLibraryReferencesTask.DESCRIPTOR);
     registerExtension(taskId, ResolveLibraryTypeNamesTask.DESCRIPTOR);
+    registerExtension(taskId, ResolveUnitTask.DESCRIPTOR);
     registerExtension(taskId, ResolveUnitTypeNamesTask.DESCRIPTOR);
     registerExtension(taskId, ResolveVariableReferencesTask.DESCRIPTOR);
     registerExtension(taskId, ScanDartTask.DESCRIPTOR);
+    registerExtension(taskId, StrongModeVerifyUnitTask.DESCRIPTOR);
     registerExtension(taskId, VerifyUnitTask.DESCRIPTOR);
     //
     // Register HTML tasks.
@@ -267,4 +271,18 @@ class EnginePlugin implements Plugin {
           'Extensions to $id must be a WorkManagerFactory');
     }
   }
+}
+
+/**
+ * Annotation describing the relationship between a getter in [EnginePlugin]
+ * and the associated identifier (in '../../plugin/task.dart') which can be
+ * passed to the extension manager to populate it.
+ *
+ * This annotation is not used at runtime; it is used to aid in static analysis
+ * of the task model during development.
+ */
+class ExtensionPointId {
+  final String extensionPointId;
+
+  const ExtensionPointId(this.extensionPointId);
 }

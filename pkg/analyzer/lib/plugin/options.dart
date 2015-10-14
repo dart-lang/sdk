@@ -6,6 +6,7 @@
 /// analysis options file.
 library analyzer.plugin.options;
 
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/plugin/options_plugin.dart';
 import 'package:plugin/plugin.dart';
 import 'package:yaml/yaml.dart';
@@ -48,13 +49,15 @@ abstract class OptionsProcessor {
   /// Called when an error occurs in processing options.
   void onError(Exception exception);
 
-  /// Called when the options file is processed.
+  /// Called when an options file is processed.
   ///
   /// The options file is processed on analyzer initialization and
   /// subsequently when the file is changed on disk.  In the event of a
   /// change notification, note that the notification simply indicates
   /// a change on disk. Content in specific option scopes may or may not
   /// be different. It is up to the implementer to check whether specific
-  /// options have changed and to handle those changes appropriately.
-  void optionsProcessed(Map<String, YamlNode> options);
+  /// options have changed and to handle those changes appropriately. In
+  /// addition to the [options] map, the associated analysis [context] is
+  /// provided as well to allow for context-specific configuration.
+  void optionsProcessed(AnalysisContext context, Map<String, YamlNode> options);
 }

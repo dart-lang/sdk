@@ -6,18 +6,23 @@ library code_generator;
 
 import 'glue.dart';
 
-import '../../closure.dart' show ClosureClassElement;
-import '../../common/codegen.dart' show CodegenRegistry;
+import '../../closure.dart' show
+    ClosureClassElement;
+import '../../common.dart';
+import '../../common/codegen.dart' show
+    CodegenRegistry;
 import '../../constants/values.dart';
 import '../../dart_types.dart';
-import '../../diagnostics/invariant.dart' show invariant;
-import '../../diagnostics/spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
 import '../../elements/elements.dart';
-import '../../io/source_information.dart' show SourceInformation;
+import '../../io/source_information.dart' show
+    SourceInformation;
 import '../../js/js.dart' as js;
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
-import '../../tree_ir/tree_ir_nodes.dart' show BuiltinOperator, BuiltinMethod;
-import '../../types/types.dart' show TypeMask;
+import '../../tree_ir/tree_ir_nodes.dart' show
+    BuiltinMethod,
+    BuiltinOperator;
+import '../../types/types.dart' show
+    TypeMask;
 import '../../universe/selector.dart' show
     Selector;
 import '../../universe/universe.dart' show
@@ -357,18 +362,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
       glue.registerIsCheck(type, registry);
       ClassElement clazz = type.element;
 
-      // Handle some special checks against classes that exist only in
-      // the compile-time class hierarchy, not at runtime.
-      // TODO(sra): Is this correct? The field tests are only valid with the
-      // precondition that [value] is an Array. They will crash on `null`.
-      if (clazz == glue.jsExtendableArrayClass) {
-        assert(node.isTypeTest);
-        return js.js(r'!#.fixed$length', <js.Expression>[value]);
-      } else if (clazz == glue.jsMutableArrayClass) {
-        assert(node.isTypeTest);
-        return js.js(r'!#.immutable$list', <js.Expression>[value]);
-      }
-
       if (glue.isStringClass(clazz)) {
         if (node.isTypeTest) {
           return js.js(r'typeof # === "string"', <js.Expression>[value]);
@@ -425,6 +418,16 @@ class CodeGenerator extends tree_ir.StatementVisitor
           <js.Expression>[value, typeValue]);
     }
     return giveup(node, 'type check unimplemented for $type.');
+  }
+
+  @override
+  js.Expression visitGetTypeTestProperty(tree_ir.GetTypeTestProperty node) {
+    js.Expression object = visitExpression(node.object);
+    DartType dartType = node.dartType;
+    assert(dartType.isInterfaceType);
+    glue.registerIsCheck(dartType, registry);
+    js.Expression property = glue.getTypeTestTag(dartType);
+    return js.js(r'#.#', [object, property]);
   }
 
   @override
@@ -819,11 +822,13 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitTypeExpression(tree_ir.TypeExpression node) {
     List<js.Expression> arguments = visitExpressionList(node.arguments);
-    return glue.generateTypeRepresentation(node.dartType, arguments);
+    return glue.generateTypeRepresentation(node.dartType, arguments, registry);
   }
 
   js.Node handleForeignCode(tree_ir.ForeignCode node) {
     registry.registerStaticUse(node.dependency);
+    // TODO(sra): Should this be in CodegenRegistry?
+    glue.registerNativeBehavior(node.nativeBehavior, node);
     return node.codeTemplate.instantiate(visitExpressionList(node.arguments));
   }
 
@@ -853,12 +858,18 @@ class CodeGenerator extends tree_ir.StatementVisitor
         return new js.Binary('-', args[0], args[1]);
       case BuiltinOperator.NumMultiply:
         return new js.Binary('*', args[0], args[1]);
+      case BuiltinOperator.NumDivide:
+        return new js.Binary('/', args[0], args[1]);
+      case BuiltinOperator.NumRemainder:
+        return new js.Binary('%', args[0], args[1]);
+      case BuiltinOperator.NumTruncatingDivideToSigned32:
+        return js.js('(# / #) | 0', args);
       case BuiltinOperator.NumAnd:
-        return js.js('(# & #) >>> 0', args);
+        return normalizeBitOp(js.js('# & #', args), node);
       case BuiltinOperator.NumOr:
-        return js.js('(# | #) >>> 0', args);
+        return normalizeBitOp(js.js('# | #', args), node);
       case BuiltinOperator.NumXor:
-        return js.js('(# ^ #) >>> 0', args);
+        return normalizeBitOp(js.js('# ^ #', args), node);
       case BuiltinOperator.NumLt:
         return new js.Binary('<', args[0], args[1]);
       case BuiltinOperator.NumLe:
@@ -868,7 +879,10 @@ class CodeGenerator extends tree_ir.StatementVisitor
       case BuiltinOperator.NumGe:
         return new js.Binary('>=', args[0], args[1]);
       case BuiltinOperator.NumShl:
-        return js.js('(# << #) >>> 0', args);
+        return normalizeBitOp(js.js('# << #', args), node);
+      case BuiltinOperator.NumShr:
+        // No normalization required since output is always uint32.
+        return js.js('# >>> #', args);
       case BuiltinOperator.StringConcatenate:
         if (args.isEmpty) return js.string('');
         return args.reduce((e1,e2) => new js.Binary('+', e1, e2));
@@ -893,8 +907,86 @@ class CodeGenerator extends tree_ir.StatementVisitor
         return js.js('Math.floor(#) === #', args);
       case BuiltinOperator.IsNumberAndFloor:
         return js.js('typeof # === "number" && Math.floor(#) === #', args);
+      case BuiltinOperator.IsFixedLengthJSArray:
+        // TODO(sra): Remove boolify (i.e. !!).
+        return js.js(r'!!#.fixed$length', args);
+      case BuiltinOperator.IsExtendableJSArray:
+        return js.js(r'!#.fixed$length', args);
+      case BuiltinOperator.IsModifiableJSArray:
+        return js.js(r'!#.immutable$list', args);
+      case BuiltinOperator.IsUnmodifiableJSArray:
+        // TODO(sra): Remove boolify (i.e. !!).
+        return js.js(r'!!#.immutable$list', args);
     }
   }
+
+  /// Add a uint32 normalization `op >>> 0` to [op] if it is not in 31-bit
+  /// range.
+  js.Expression normalizeBitOp(js.Expression op,
+                               tree_ir.ApplyBuiltinOperator node) {
+    const MAX_UINT31 = 0x7fffffff;
+    const MAX_UINT32 = 0xffffffff;
+
+    int constantValue(tree_ir.Expression e) {
+      if (e is tree_ir.Constant) {
+        ConstantValue value = e.value;
+        if (!value.isInt) return null;
+        IntConstantValue intConstant = value;
+        if (intConstant.primitiveValue < 0) return null;
+        if (intConstant.primitiveValue > MAX_UINT32) return null;
+        return intConstant.primitiveValue;
+      }
+      return null;
+    }
+
+    /// Returns a value of the form 0b0001xxxx to represent the highest bit set
+    /// in the result.  This represents the range [0, 0b00011111], up to 32
+    /// bits.  `null` represents a result possibly outside the uint32 range.
+    int maxBitOf(tree_ir.Expression e) {
+      if (e is tree_ir.Constant) {
+        return constantValue(e);
+      }
+      if (e is tree_ir.ApplyBuiltinOperator) {
+        if (e.operator == BuiltinOperator.NumAnd) {
+          int left = maxBitOf(e.arguments[0]);
+          int right = maxBitOf(e.arguments[1]);
+          if (left == null && right == null) return MAX_UINT32;
+          if (left == null) return right;
+          if (right == null) return left;
+          return (left < right) ? left : right;
+        }
+        if (e.operator == BuiltinOperator.NumOr ||
+            e.operator == BuiltinOperator.NumXor) {
+          int left = maxBitOf(e.arguments[0]);
+          int right = maxBitOf(e.arguments[1]);
+          if (left == null || right == null) return MAX_UINT32;
+          return left | right;
+        }
+        if (e.operator == BuiltinOperator.NumShr) {
+          int right = constantValue(e.arguments[1]);
+          // NumShr is JavaScript '>>>' so always generates a uint32 result.
+          if (right == null || right <= 0 || right > 31) return MAX_UINT32;
+          int left = maxBitOf(e.arguments[0]);
+          if (left == null) return MAX_UINT32;
+          return left >> right;
+        }
+        if (e.operator == BuiltinOperator.NumShl) {
+          int right = constantValue(e.arguments[1]);
+          if (right == null || right <= 0 || right > 31) return MAX_UINT32;
+          int left = maxBitOf(e.arguments[0]);
+          if (left == null) return MAX_UINT32;
+          if (left.bitLength + right > 31) return MAX_UINT32;
+          return left << right;
+        }
+      }
+      return null;
+    }
+
+    int maxBit = maxBitOf(node);
+    if (maxBit != null && maxBit <= MAX_UINT31) return op;
+    return js.js('# >>> 0', [op]);
+  }
+
 
   /// The JS name of a built-in method.
   static final Map<BuiltinMethod, String> builtinMethodName =

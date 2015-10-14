@@ -13,7 +13,7 @@ void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
                                    intptr_t try_index) {
   ASSERT((kind == RawPcDescriptors::kRuntimeCall) ||
          (kind == RawPcDescriptors::kOther) ||
-         (deopt_id != Isolate::kNoDeoptId));
+         (deopt_id != Thread::kNoDeoptId));
 
   intptr_t merged_kind_try =
       RawPcDescriptors::MergedKindTry::Encode(kind, try_index);

@@ -41,7 +41,7 @@ BENCHMARK(CorelibCompileAll) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
   Timer timer(true, "Compile all of Core lib benchmark");
   timer.Start();
-  const Error& error = Error::Handle(benchmark->isolate(),
+  const Error& error = Error::Handle(benchmark->isolate()->current_zone(),
                                      Library::CompileAll());
   if (!error.IsNull()) {
     OS::PrintErr("Unexpected error in CorelibCompileAll benchmark:\n%s",
@@ -61,7 +61,7 @@ BENCHMARK(CorelibCompilerStats) {
   stats->EnableBenchmark();
   Timer timer(true, "Compiler stats compiling all of Core lib");
   timer.Start();
-  const Error& error = Error::Handle(benchmark->isolate(),
+  const Error& error = Error::Handle(benchmark->isolate()->current_zone(),
                                      Library::CompileAll());
   if (!error.IsNull()) {
     OS::PrintErr("Unexpected error in CorelibCompileAll benchmark:\n%s",

@@ -904,6 +904,7 @@ class IncrementalBodyDelta extends Delta {
         isByTask(BuildSourceImportExportClosureTask.DESCRIPTOR) ||
         isByTask(ComputeConstantDependenciesTask.DESCRIPTOR) ||
         isByTask(ComputeConstantValueTask.DESCRIPTOR) ||
+        isByTask(ComputeLibraryCycleTask.DESCRIPTOR) ||
         isByTask(DartErrorsTask.DESCRIPTOR) ||
         isByTask(EvaluateUnitConstantsTask.DESCRIPTOR) ||
         isByTask(GenerateHintsTask.DESCRIPTOR) ||
@@ -914,11 +915,13 @@ class IncrementalBodyDelta extends Delta {
         isByTask(ParseDartTask.DESCRIPTOR) ||
         isByTask(PartiallyResolveUnitReferencesTask.DESCRIPTOR) ||
         isByTask(ScanDartTask.DESCRIPTOR) ||
-        isByTask(ResolveFunctionBodiesInUnitTask.DESCRIPTOR) ||
+        isByTask(ResolveInstanceFieldsInUnitTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryReferencesTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryTypeNamesTask.DESCRIPTOR) ||
+        isByTask(ResolveUnitTask.DESCRIPTOR) ||
         isByTask(ResolveUnitTypeNamesTask.DESCRIPTOR) ||
         isByTask(ResolveVariableReferencesTask.DESCRIPTOR) ||
+        isByTask(StrongModeVerifyUnitTask.DESCRIPTOR) ||
         isByTask(VerifyUnitTask.DESCRIPTOR)) {
       return DeltaResult.KEEP_CONTINUE;
     }
@@ -1240,11 +1243,10 @@ class IncrementalResolver {
   void _shiftEntryErrors_NEW() {
     _shiftErrors_NEW(HINTS);
     _shiftErrors_NEW(LINTS);
-    _shiftErrors_NEW(INFER_STATIC_VARIABLE_TYPES_ERRORS);
     _shiftErrors_NEW(LIBRARY_UNIT_ERRORS);
-    _shiftErrors_NEW(PARTIALLY_RESOLVE_REFERENCES_ERRORS);
-    _shiftErrors_NEW(RESOLVE_FUNCTION_BODIES_ERRORS);
     _shiftErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS);
+    _shiftErrors_NEW(RESOLVE_UNIT_ERRORS);
+    _shiftErrors_NEW(STRONG_MODE_ERRORS);
     _shiftErrors_NEW(VARIABLE_REFERENCE_ERRORS);
     _shiftErrors_NEW(VERIFY_ERRORS);
   }
@@ -1311,13 +1313,12 @@ class IncrementalResolver {
   }
 
   void _updateEntry_NEW() {
-    _updateErrors_NEW(INFER_STATIC_VARIABLE_TYPES_ERRORS, _resolveErrors);
-    _updateErrors_NEW(PARTIALLY_RESOLVE_REFERENCES_ERRORS, _resolveErrors);
-    _updateErrors_NEW(RESOLVE_FUNCTION_BODIES_ERRORS, _resolveErrors);
     _updateErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS, []);
+    _updateErrors_NEW(RESOLVE_UNIT_ERRORS, _resolveErrors);
     _updateErrors_NEW(VARIABLE_REFERENCE_ERRORS, []);
     _updateErrors_NEW(VERIFY_ERRORS, _verifyErrors);
     // invalidate results we don't update incrementally
+    newUnitEntry.setState(STRONG_MODE_ERRORS, CacheState.INVALID);
     newUnitEntry.setState(USED_IMPORTED_ELEMENTS, CacheState.INVALID);
     newUnitEntry.setState(USED_LOCAL_ELEMENTS, CacheState.INVALID);
     newUnitEntry.setState(HINTS, CacheState.INVALID);

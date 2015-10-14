@@ -233,7 +233,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->RecordSafepoint(locs());
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id());
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id());
   if (compiler->is_optimizing()) {
     compiler->AddDeoptIndexAtCall(deopt_id_after, token_pos());
   }
@@ -6221,14 +6221,17 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         } else {
           if (shift == 32) {
             __ mov(out_lo, Operand(left_hi));
-          } else {
+          } else if (shift < 64) {
             __ Asr(out_lo, left_hi, Operand(shift - 32));
+          } else {
+            __ Asr(out_lo, left_hi, Operand(31));
           }
           __ Asr(out_hi, left_hi, Operand(31));
         }
         break;
       }
       case Token::kSHL: {
+        ASSERT(shift < 64);
         if (shift < 32) {
           __ Lsr(out_hi, left_lo, Operand(32 - shift));
           __ orr(out_hi, out_hi, Operand(left_hi, LSL, shift));

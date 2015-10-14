@@ -4,6 +4,7 @@
 
 library types;
 
+import '../common.dart';
 import '../common/backend_api.dart' show
     Backend;
 import '../common/tasks.dart' show
@@ -12,10 +13,6 @@ import '../compiler.dart' show
     Compiler;
 import '../constants/values.dart' show
     PrimitiveConstantValue;
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/spannable.dart' show
-    NO_LOCATION_SPANNABLE;
 import '../elements/elements.dart';
 import '../inferrer/type_graph_inferrer.dart' show
     TypeGraphInferrer;
@@ -289,6 +286,10 @@ class TypesTask extends CompilerTask {
    */
   TypeMask getGuaranteedTypeOfElement(Element element) {
     return measure(() {
+      // TODO(24489): trust some JsInterop types.
+      if (element.isJsInterop) {
+        return dynamicType;
+      }
       TypeMask guaranteedType = typesInferrer.getTypeOfElement(element);
       return guaranteedType;
     });
@@ -296,6 +297,11 @@ class TypesTask extends CompilerTask {
 
   TypeMask getGuaranteedReturnTypeOfElement(Element element) {
     return measure(() {
+      // TODO(24489): trust some JsInterop types.
+      if (element.isJsInterop) {
+        return dynamicType;
+      }
+
       TypeMask guaranteedType =
           typesInferrer.getReturnTypeOfElement(element);
       return guaranteedType;

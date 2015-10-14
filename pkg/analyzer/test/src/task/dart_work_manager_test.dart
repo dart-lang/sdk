@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/error.dart' show AnalysisError;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 import 'package:analyzer/src/generated/scanner.dart' show ScannerErrorCode;
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -331,6 +332,32 @@ class DartWorkManagerTest {
     expect(manager.getLibrariesContainingPart(part3), isEmpty);
   }
 
+  void test_getLibrariesContainingPart_inSDK() {
+    Source part = new _SourceMock('part.dart');
+    when(part.isInSystemLibrary).thenReturn(true);
+    // SDK work manager
+    DartWorkManager sdkDartWorkManagerMock = new _DartWorkManagerMock();
+    when(sdkDartWorkManagerMock.getLibrariesContainingPart(part))
+        .thenReturn([source2, source3]);
+    // SDK context mock
+    InternalAnalysisContext sdkContextMock = new _InternalAnalysisContextMock();
+    when(sdkContextMock.workManagers).thenReturn([sdkDartWorkManagerMock]);
+    // SDK mock
+    DartSdk sdkMock = new _DartSdkMock();
+    when(sdkMock.context).thenReturn(sdkContextMock);
+    // SourceFactory mock
+    SourceFactory sourceFactory = new _SourceFactoryMock();
+    when(sourceFactory.dartSdk).thenReturn(sdkMock);
+    when(context.sourceFactory).thenReturn(sourceFactory);
+    // SDK source mock
+    Source source = new _SourceMock('test.dart');
+    when(source.source).thenReturn(source);
+    when(source.isInSystemLibrary).thenReturn(true);
+    // validate
+    expect(manager.getLibrariesContainingPart(part),
+        unorderedEquals([source2, source3]));
+  }
+
   void test_getNextResult_hasLibraries_firstIsError() {
     entry1.setErrorState(caughtException, [LIBRARY_ERRORS_READY]);
     manager.librarySourceQueue.addAll([source1, source2]);
@@ -604,6 +631,28 @@ class DartWorkManagerTest {
     expect(cache.getState(part1, CONTAINING_LIBRARIES), CacheState.INVALID);
   }
 
+  void test_resultsComputed_inSDK() {
+    DartWorkManager sdkDartWorkManagerMock = new _DartWorkManagerMock();
+    // SDK context mock
+    InternalAnalysisContext sdkContextMock = new _InternalAnalysisContextMock();
+    when(sdkContextMock.workManagers).thenReturn([sdkDartWorkManagerMock]);
+    // SDK mock
+    DartSdk sdkMock = new _DartSdkMock();
+    when(sdkMock.context).thenReturn(sdkContextMock);
+    // SourceFactory mock
+    SourceFactory sourceFactory = new _SourceFactoryMock();
+    when(sourceFactory.dartSdk).thenReturn(sdkMock);
+    when(context.sourceFactory).thenReturn(sourceFactory);
+    // SDK source mock
+    Source source = new _SourceMock('test.dart');
+    when(source.source).thenReturn(source);
+    when(source.isInSystemLibrary).thenReturn(true);
+    // notify and validate
+    Map<ResultDescriptor, dynamic> outputs = <ResultDescriptor, dynamic>{};
+    manager.resultsComputed(source, outputs);
+    verify(sdkDartWorkManagerMock.resultsComputed(source, outputs)).once();
+  }
+
   void test_resultsComputed_noSourceKind() {
     manager.unknownSourceQueue.addAll([source1, source2]);
     manager.resultsComputed(source1, {});
@@ -706,6 +755,14 @@ class DartWorkManagerTest {
   }
 }
 
+class _DartSdkMock extends TypedMock implements DartSdk {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _DartWorkManagerMock extends TypedMock implements DartWorkManager {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _InternalAnalysisContextMock extends TypedMock
     implements InternalAnalysisContext {
   @override
@@ -738,4 +795,18 @@ class _InternalAnalysisContextMock extends TypedMock
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _SourceFactoryMock extends TypedMock implements SourceFactory {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _SourceMock extends TypedMock implements Source {
+  final String shortName;
+  _SourceMock(this.shortName);
+  @override
+  String get fullName => '/' + shortName;
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  @override
+  String toString() => fullName;
 }

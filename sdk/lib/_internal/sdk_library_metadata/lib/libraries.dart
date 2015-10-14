@@ -14,60 +14,80 @@ const int DART2JS_PLATFORM = 1;
  */
 const int VM_PLATFORM = 2;
 
-/**
- * Mapping of "dart:" library name (e.g. "core") to information about that library.
- * This information is structured such that Dart Editor can parse this file
- * and extract the necessary information without executing it
- * while other tools can access via execution.
- */
-const Map<String, LibraryInfo> LIBRARIES = const {
+/// The contexts that a library can be used from.
+enum Category {
+  /// Indicates that a library can be used in a browser context.
+  client,
+  /// Indicates that a library can be used in a command line context.
+  server,
+  /// Indicates that a library can be used from embedded devices.
+  embedded
+}
+
+Category parseCategory(String name) {
+  switch (name) {
+    case "Client": return Category.client;
+    case "Server": return Category.server;
+    case "Embedded": return Category.embedded;
+  }
+  return null;
+}
+
+/// Mapping of "dart:" library name (e.g. "core") to information about that
+/// library.
+const Map<String, LibraryInfo> libraries = const {
 
   "async": const LibraryInfo(
       "async/async.dart",
+      categories: "Client,Server",
       maturity: Maturity.STABLE,
       dart2jsPatchPath: "_internal/js_runtime/lib/async_patch.dart"),
 
   "_blink": const LibraryInfo(
       "_blink/dartium/_blink_dartium.dart",
-      category: "Client",
+      categories: "Client",
       implementation: true,
       documented: false,
       platforms: VM_PLATFORM),
 
   "_chrome": const LibraryInfo(
       "_chrome/dart2js/chrome_dart2js.dart",
-      documented: false,
-      category: "Client"),
+      categories: "Client",
+      documented: false),
 
   "collection": const LibraryInfo(
       "collection/collection.dart",
+      categories: "Client,Server,Embedded",
       maturity: Maturity.STABLE,
       dart2jsPatchPath: "_internal/js_runtime/lib/collection_patch.dart"),
 
   "convert": const LibraryInfo(
       "convert/convert.dart",
+      categories: "Client,Server",
       maturity: Maturity.STABLE,
       dart2jsPatchPath: "_internal/js_runtime/lib/convert_patch.dart"),
 
   "core": const LibraryInfo(
       "core/core.dart",
+      categories: "Client,Server,Embedded",
       maturity: Maturity.STABLE,
       dart2jsPatchPath: "_internal/js_runtime/lib/core_patch.dart"),
 
   "developer": const LibraryInfo(
       "developer/developer.dart",
+      categories: "Client,Server,Embedded",
       maturity: Maturity.UNSTABLE,
       dart2jsPatchPath: "_internal/js_runtime/lib/developer_patch.dart"),
 
   "html": const LibraryInfo(
       "html/dartium/html_dartium.dart",
-      category: "Client",
+      categories: "Client",
       maturity: Maturity.WEB_STABLE,
       dart2jsPath: "html/dart2js/html_dart2js.dart"),
 
   "html_common": const LibraryInfo(
       "html/html_common/html_common.dart",
-      category: "Client",
+      categories: "Client",
       maturity: Maturity.WEB_STABLE,
       dart2jsPath: "html/html_common/html_common_dart2js.dart",
       documented: false,
@@ -75,130 +95,129 @@ const Map<String, LibraryInfo> LIBRARIES = const {
 
   "indexed_db": const LibraryInfo(
       "indexed_db/dartium/indexed_db_dartium.dart",
-      category: "Client",
+      categories: "Client",
       maturity: Maturity.WEB_STABLE,
       dart2jsPath: "indexed_db/dart2js/indexed_db_dart2js.dart"),
 
   "io": const LibraryInfo(
       "io/io.dart",
-      category: "Server",
-      maturity: Maturity.STABLE,
+      categories: "Server",
       dart2jsPatchPath: "_internal/js_runtime/lib/io_patch.dart"),
 
   "isolate": const LibraryInfo(
       "isolate/isolate.dart",
+      categories: "Client,Server",
       maturity: Maturity.STABLE,
       dart2jsPatchPath: "_internal/js_runtime/lib/isolate_patch.dart"),
 
   "js": const LibraryInfo(
       "js/dartium/js_dartium.dart",
-      category: "Client",
+      categories: "Client",
       maturity: Maturity.STABLE,
       dart2jsPath: "js/dart2js/js_dart2js.dart"),
 
   "math": const LibraryInfo(
       "math/math.dart",
+      categories: "Client,Server,Embedded",
       maturity: Maturity.STABLE,
       dart2jsPatchPath: "_internal/js_runtime/lib/math_patch.dart"),
 
   "mirrors": const LibraryInfo(
       "mirrors/mirrors.dart",
+      categories: "Client,Server",
       maturity: Maturity.UNSTABLE,
       dart2jsPatchPath: "_internal/js_runtime/lib/mirrors_patch.dart"),
 
-  "profiler": const LibraryInfo(
-      "profiler/profiler.dart",
-      maturity: Maturity.UNSTABLE),
-
   "nativewrappers": const LibraryInfo(
       "html/dartium/nativewrappers.dart",
-      category: "Client",
+      categories: "Client",
       implementation: true,
       documented: false,
       platforms: VM_PLATFORM),
 
   "typed_data": const LibraryInfo(
       "typed_data/typed_data.dart",
+      categories: "Client,Server,Embedded",
       maturity: Maturity.STABLE,
       dart2jsPatchPath: "_internal/js_runtime/lib/typed_data_patch.dart"),
 
   "_native_typed_data": const LibraryInfo(
       "_internal/js_runtime/lib/native_typed_data.dart",
-      category: "Internal",
+      categories: "",
       implementation: true,
       documented: false,
       platforms: DART2JS_PLATFORM),
 
   "svg": const LibraryInfo(
       "svg/dartium/svg_dartium.dart",
-      category: "Client",
+      categories: "Client",
       maturity: Maturity.WEB_STABLE,
       dart2jsPath: "svg/dart2js/svg_dart2js.dart"),
 
   "web_audio": const LibraryInfo(
       "web_audio/dartium/web_audio_dartium.dart",
-      category: "Client",
+      categories: "Client",
       maturity: Maturity.WEB_STABLE,
       dart2jsPath: "web_audio/dart2js/web_audio_dart2js.dart"),
 
   "web_gl": const LibraryInfo(
       "web_gl/dartium/web_gl_dartium.dart",
-      category: "Client",
+      categories: "Client",
       maturity: Maturity.WEB_STABLE,
       dart2jsPath: "web_gl/dart2js/web_gl_dart2js.dart"),
 
   "web_sql": const LibraryInfo(
       "web_sql/dartium/web_sql_dartium.dart",
-      category: "Client",
+      categories: "Client",
       maturity: Maturity.WEB_STABLE,
       dart2jsPath: "web_sql/dart2js/web_sql_dart2js.dart"),
 
   "_internal": const LibraryInfo(
       "internal/internal.dart",
-      category: "Internal",
+      categories: "",
       documented: false,
       dart2jsPatchPath:
           "_internal/js_runtime/lib/internal_patch.dart"),
 
   "_js_helper": const LibraryInfo(
       "_internal/js_runtime/lib/js_helper.dart",
-      category: "Internal",
+      categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
 
   "_interceptors": const LibraryInfo(
       "_internal/js_runtime/lib/interceptors.dart",
-      category: "Internal",
+      categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
 
   "_foreign_helper": const LibraryInfo(
       "_internal/js_runtime/lib/foreign_helper.dart",
-      category: "Internal",
+      categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
 
   "_isolate_helper": const LibraryInfo(
       "_internal/js_runtime/lib/isolate_helper.dart",
-      category: "Internal",
+      categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
 
   "_js_mirrors": const LibraryInfo(
       "_internal/js_runtime/lib/js_mirrors.dart",
-      category: "Internal",
+      categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
 
   "_js_names": const LibraryInfo(
       "_internal/js_runtime/lib/js_names.dart",
-      category: "Internal",
+      categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
 
   "_js_primitives": const LibraryInfo(
       "_internal/js_runtime/lib/js_primitives.dart",
-      category: "Internal",
+      categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
 
@@ -206,25 +225,25 @@ const Map<String, LibraryInfo> LIBRARIES = const {
   // different platform.
   "_mirror_helper": const LibraryInfo(
       "_internal/js_runtime/lib/mirror_helper.dart",
-      category: "Internal",
+      categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
 
   "_js_embedded_names": const LibraryInfo(
       "_internal/js_runtime/lib/shared/embedded_names.dart",
-      category: "Internal",
+      categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
 
   "_async_await_error_codes": const LibraryInfo(
       "_internal/js_runtime/lib/shared/async_await_error_codes.dart",
-      category: "Internal",
+      categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
 
   "_metadata": const LibraryInfo(
       "html/html_common/metadata.dart",
-      category: "Internal",
+      categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
 };
@@ -240,11 +259,10 @@ class LibraryInfo {
   final String path;
 
   /**
-   * The category in which the library should appear in the editor
-   * (e.g. "Shared", "Client", "Server", ...).
-   * If a category is not specified it defaults to "Shared".
+   * The categories in which the library can be used encoded as a
+   * comma-separated String.
    */
-  final String category;
+  final String _categories;
 
   /**
    * Path to the dart2js library's *.dart file relative to this file
@@ -286,16 +304,38 @@ class LibraryInfo {
   final Maturity maturity;
 
   const LibraryInfo(this.path, {
-                    this.category: "Shared",
+                    String categories: "",
                     this.dart2jsPath,
                     this.dart2jsPatchPath,
                     this.implementation: false,
                     this.documented: true,
                     this.maturity: Maturity.UNSPECIFIED,
-                    this.platforms: DART2JS_PLATFORM | VM_PLATFORM});
+                    this.platforms: DART2JS_PLATFORM | VM_PLATFORM})
+      : _categories = categories;
 
   bool get isDart2jsLibrary => (platforms & DART2JS_PLATFORM) != 0;
   bool get isVmLibrary => (platforms & VM_PLATFORM) != 0;
+
+  /**
+   * The categories in which the library can be used.
+   *
+   * If no categories are specified, the library is internal and can not be
+   * loaded by user code.
+   */
+  List<Category> get categories {
+    // `"".split(,)` returns [""] not [], so we handle that case separately.
+    if (_categories == "") return const <Category>[];
+    return _categories.split(",").map(parseCategory).toList();
+  }
+
+  bool get isInternal => categories.isEmpty;
+
+  /// The original "categories" String that was passed to the constructor.
+  ///
+  /// Can be used to construct a slightly modified copy of this LibraryInfo.
+  String get categoriesString {
+    return _categories;
+  }
 }
 
 

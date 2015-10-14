@@ -4,11 +4,10 @@
 
 library dart2js.resolution.enum_creator;
 
+import '../common.dart';
 import '../core_types.dart' show
     CoreTypes;
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
 import '../tokens/keyword.dart' show

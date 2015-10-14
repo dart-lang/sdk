@@ -15,7 +15,7 @@
 #include <sys/time.h>  // NOLINT
 #include <sys/resource.h>  // NOLINT
 #include <unistd.h>  // NOLINT
-#if defined(TARGET_OS_IOS)
+#if TARGET_OS_IOS
 #include <sys/sysctl.h>
 #endif
 
@@ -86,7 +86,7 @@ int64_t OS::GetCurrentTimeMicros() {
 
 
 int64_t OS::GetCurrentTraceMicros() {
-#if defined(TARGET_OS_IOS)
+#if TARGET_OS_IOS
   // On iOS mach_absolute_time stops while the device is sleeping. Instead use
   // now - KERN_BOOTTIME to get a time difference that is not impacted by clock
   // changes. KERN_BOOTTIME will be updated by the system whenever the system
@@ -118,7 +118,7 @@ int64_t OS::GetCurrentTraceMicros() {
   result *= timebase_info.numer;
   result /= timebase_info.denom;
   return result;
-#endif  // defined(TARGET_OS_IOS)
+#endif  // TARGET_OS_IOS
 }
 
 

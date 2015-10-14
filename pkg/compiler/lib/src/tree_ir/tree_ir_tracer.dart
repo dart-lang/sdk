@@ -133,7 +133,6 @@ class BlockCollector extends StatementVisitor {
 
     _addBlock(whileBlock);
     _addStatement(node);
-    whileBlock.statements.add(node);
     blocks.last.addEdgeTo(whileBlock);
 
     Block bodyBlock = new Block();
@@ -179,9 +178,9 @@ class BlockCollector extends StatementVisitor {
     _addStatement(node);
   }
 
-  @override
   visitYield(Yield node) {
     _addStatement(node);
+    visitStatement(node.next);
   }
 }
 
@@ -344,7 +343,8 @@ class TreeTracer extends TracerUtil with StatementVisitor {
 
   @override
   visitYield(Yield node) {
-    printStatement(null, 'yield ${expr(node.input)}');
+    String name = node.hasStar ? 'yield*' : 'yield';
+    printStatement(null, '$name ${expr(node.input)}');
   }
 }
 
@@ -496,6 +496,15 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     String element = node.element.name;
     String value = visitExpression(node.value);
     return '$element = $value';
+  }
+
+  String visitGetTypeTestProperty(GetTypeTestProperty node) {
+    String object = visitExpression(node.object);
+    if (usesInfixNotation(node.object)) {
+      object = '($object)';
+    }
+    // TODO(sra): Fix up this.
+    return '$object."is-${node.dartType}"';
   }
 
   String visitCreateBox(CreateBox node) {

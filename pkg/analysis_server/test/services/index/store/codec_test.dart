@@ -4,7 +4,7 @@
 
 library test.services.src.index.store.codec;
 
-import 'package:analysis_server/analysis/index_core.dart';
+import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analysis_server/src/services/index/store/codec.dart';

@@ -83,6 +83,7 @@ class CpsFragment {
     }
     if (context != null) {
       context.body = node;
+      node.parent = context;
     }
     context = null;
   }
@@ -297,4 +298,27 @@ class CpsFragment {
     put(let);
     context = let;
   }
+
+  void insertBelow(InteriorNode node) {
+    assert(isOpen);
+    if (isEmpty) return;
+    Expression child = node.body;
+    node.body = root;
+    root.parent = node;
+    context.body = child;
+    child.parent = context;
+    root = context = null;
+  }
+
+  void insertAbove(InteriorExpression node) {
+    insertBelow(node.parent);
+  }
+}
+
+/// Removes [node], unlinking all its references and replaces it with [newNode].
+void destroyAndReplace(Expression node, Expression newNode) {
+  InteriorNode parent = node.parent;
+  RemovalVisitor.remove(node);
+  parent.body = newNode;
+  newNode.parent = parent;
 }

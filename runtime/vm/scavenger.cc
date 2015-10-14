@@ -258,9 +258,10 @@ class ScavengerWeakVisitor : public HandleVisitor {
   // 'prologue_weak_were_strong' is currently only used for sanity checking.
   explicit ScavengerWeakVisitor(Scavenger* scavenger,
                                 bool prologue_weak_were_strong)
-      :  HandleVisitor(scavenger->heap_->isolate()),
+      :  HandleVisitor(Thread::Current()),
          scavenger_(scavenger),
          prologue_weak_were_strong_(prologue_weak_were_strong) {
+    ASSERT(scavenger->heap_->isolate() == Thread::Current()->isolate());
   }
 
   void VisitHandle(uword addr) {
@@ -270,9 +271,9 @@ class ScavengerWeakVisitor : public HandleVisitor {
     if (scavenger_->IsUnreachable(p)) {
       ASSERT(!handle->IsPrologueWeakPersistent() ||
              !prologue_weak_were_strong_);
-      handle->UpdateUnreachable(isolate());
+      handle->UpdateUnreachable(thread()->isolate());
     } else {
-      handle->UpdateRelocated(isolate());
+      handle->UpdateRelocated(thread()->isolate());
     }
   }
 

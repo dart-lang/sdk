@@ -255,11 +255,11 @@ Dart_CObject* SerializeAndDeserializeMint(const Mint& mint) {
 
 
 void CheckMint(int64_t value) {
+  ApiNativeScope scope;
   StackZone zone(Thread::Current());
 
   Mint& mint = Mint::Handle();
   mint ^= Integer::New(value);
-  ApiNativeScope scope;
   Dart_CObject* mint_cobject = SerializeAndDeserializeMint(mint);
   // On 64-bit platforms mints always require 64-bits as the smi range
   // here covers most of the 64-bit range. On 32-bit platforms the smi
@@ -476,10 +476,10 @@ Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
 
 
 void CheckBigint(const char* bigint_value) {
+  ApiNativeScope scope;
   StackZone zone(Thread::Current());
   Bigint& bigint = Bigint::Handle();
   bigint ^= Bigint::NewFromCString(bigint_value);
-  ApiNativeScope scope;
   Dart_CObject* bigint_cobject = SerializeAndDeserializeBigint(bigint);
   EXPECT_EQ(Dart_CObject_kBigint, bigint_cobject->type);
   char* hex_value = TestCase::BigintToHexValue(bigint_cobject);
@@ -831,6 +831,7 @@ class TestSnapshotWriter : public SnapshotWriter {
   static const intptr_t kInitialSize = 64 * KB;
   TestSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
       : SnapshotWriter(Snapshot::kScript,
+                       Thread::Current(),
                        buffer,
                        alloc,
                        kInitialSize,
@@ -839,7 +840,7 @@ class TestSnapshotWriter : public SnapshotWriter {
                        true, /* can_send_any_object */
                        false, /* snapshot_code */
                        true /* vm_isolate_is_symbolic */),
-        forward_list_(kMaxPredefinedObjectIds) {
+        forward_list_(thread(), kMaxPredefinedObjectIds) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
@@ -848,7 +849,6 @@ class TestSnapshotWriter : public SnapshotWriter {
   // Writes just a script object
   void WriteScript(const Script& script) {
     WriteObject(script.raw());
-    UnmarkAll();
   }
 
  private:
@@ -1119,9 +1119,10 @@ static void IterateScripts(const Library& lib) {
 }
 
 TEST_CASE(GenerateSource) {
-  Isolate* isolate = Isolate::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      isolate, isolate->object_store()->libraries());
+      zone, isolate->object_store()->libraries());
   Library& lib = Library::Handle();
   String& uri = String::Handle();
   for (intptr_t i = 0; i < libs.Length(); i++) {

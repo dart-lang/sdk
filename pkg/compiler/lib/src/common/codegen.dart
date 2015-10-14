@@ -4,6 +4,7 @@
 
 library dart2js.common.codegen;
 
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
 import '../constants/values.dart' show
@@ -11,8 +12,6 @@ import '../constants/values.dart' show
 import '../dart_types.dart' show
     DartType,
     InterfaceType;
-import '../diagnostics/invariant.dart' show
-    invariant;
 import '../elements/elements.dart' show
     AstElement,
     ClassElement,
@@ -52,26 +51,12 @@ class CodegenRegistry extends Registry {
 
   String toString() => 'CodegenRegistry for $currentElement';
 
-  // TODO(johnniwinther): Remove this getter when [Registry] creates a
-  // dependency node.
-  Setlet<Element> get otherDependencies => treeElements.otherDependencies;
-
   CodegenEnqueuer get world => compiler.enqueuer.codegen;
   JavaScriptBackend get backend => compiler.backend;
 
   void registerAssert(bool hasMessage) {
     // Codegen does not register asserts.  They have been lowered to calls.
     assert(false);
-  }
-
-  void registerDependency(Element element) {
-    treeElements.registerDependency(element);
-  }
-
-  void registerInlining(Element inlinedElement, Element context) {
-    if (compiler.dumpInfo) {
-      compiler.dumpInfoTask.registerInlined(inlinedElement, context);
-    }
   }
 
   void registerInstantiatedClass(ClassElement element) {
@@ -140,7 +125,7 @@ class CodegenRegistry extends Registry {
   }
 
   void registerConstSymbol(String name) {
-    backend.registerConstSymbol(name, this);
+    backend.registerConstSymbol(name);
   }
 
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {

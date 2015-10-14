@@ -9,14 +9,13 @@ import 'dart:collection';
 import 'package:js_runtime/shared/embedded_names.dart';
 
 import '../closure.dart';
+import '../common.dart';
 import '../common/codegen.dart' show
     CodegenRegistry,
     CodegenWorkItem;
 import '../common/names.dart' show
     Identifiers,
     Selectors;
-import '../common/resolution.dart' show
-    Resolution;
 import '../common/tasks.dart' show
     CompilerTask;
 import '../compiler.dart' show
@@ -26,14 +25,9 @@ import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart';
-import '../diagnostics/spannable.dart' show
-    CURRENT_ELEMENT_SPANNABLE,
-    Spannable;
+import '../diagnostics/messages.dart' show
+    Message,
+    MessageTemplate;
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
     ConstructorBodyElementX,
@@ -41,6 +35,8 @@ import '../elements/modelx.dart' show
     VariableElementX;
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
+import '../js_backend/backend_helpers.dart' show
+    BackendHelpers;
 import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show
     CodeEmitterTask,
@@ -68,6 +64,7 @@ import '../util/util.dart';
 import '../world.dart' show
     ClassWorld,
     World;
+import '../dump_info.dart' show InfoReporter;
 
 part 'builder.dart';
 part 'codegen.dart';

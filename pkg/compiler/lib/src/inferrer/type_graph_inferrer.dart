@@ -8,6 +8,7 @@ import 'dart:collection' show
     IterableBase,
     Queue;
 
+import '../common.dart';
 import '../common/names.dart' show
     Identifiers,
     Names;
@@ -21,12 +22,6 @@ import '../dart_types.dart' show
     FunctionType,
     InterfaceType,
     TypeKind;
-import '../diagnostics/diagnostic_listener.dart' show
-  DiagnosticReporter;
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/spannable.dart' show
-    Spannable;
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' show
     Annotations,

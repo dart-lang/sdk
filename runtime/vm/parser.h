@@ -476,12 +476,15 @@ class Parser : public ValueObject {
       AstNode* instance,
       Field* field,
       AstNode* init_value);
-  void GenerateSuperConstructorCall(const Class& cls,
-                                    intptr_t supercall_pos,
-                                    LocalVariable* receiver,
-                                    AstNode* phase_parameter,
-                                    ArgumentListNode* forwarding_args);
-  AstNode* ParseSuperInitializer(const Class& cls, LocalVariable* receiver);
+  StaticCallNode* GenerateSuperConstructorCall(
+      const Class& cls,
+      intptr_t supercall_pos,
+      LocalVariable* receiver,
+      AstNode* phase_parameter,
+      ArgumentListNode* forwarding_args);
+  StaticCallNode* ParseSuperInitializer(
+      const Class& cls,
+      LocalVariable* receiver);
   AstNode* ParseInitializer(const Class& cls,
                             LocalVariable* receiver,
                             GrowableArray<Field*>* initialized_fields);

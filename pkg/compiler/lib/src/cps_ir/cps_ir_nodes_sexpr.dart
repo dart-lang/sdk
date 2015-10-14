@@ -9,8 +9,6 @@ import '../util/util.dart';
 import 'cps_ir_nodes.dart';
 import '../universe/call_structure.dart' show
     CallStructure;
-import '../universe/selector.dart' show
-    Selector;
 
 /// A [Decorator] is a function used by [SExpressionStringifier] to augment the
 /// output produced for a node or reference.  It can be provided to the
@@ -243,7 +241,15 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   String visitTypeTest(TypeTest node) {
     String value = access(node.value);
     String typeArguments = node.typeArguments.map(access).join(' ');
-    return '(TypeTest $value ${node.dartType} ($typeArguments))';
+    String interceptor = node.interceptor == null
+        ? ''
+        : access(node.interceptor);
+    return '(TypeTest $value ${node.dartType} ($typeArguments) ($interceptor))';
+  }
+
+  String visitTypeTestViaFlag(TypeTestViaFlag node) {
+    String interceptor = access(node.interceptor);
+    return '(TypeTestViaFlag $interceptor ${node.dartType})';
   }
 
   String visitLiteralList(LiteralList node) {

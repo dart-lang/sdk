@@ -45,30 +45,38 @@ static const bool SSL_LOG_DATA = false;
 
 static const int SSL_ERROR_MESSAGE_BUFFER_SIZE = 1000;
 
+
+/* Get the error messages from BoringSSL, and put them in buffer as a
+ * null-terminated string. */
+static void FetchErrorString(char* buffer, int length) {
+  buffer[0] = '\0';
+  int error = ERR_get_error();
+  while (error != 0) {
+    int used = strlen(buffer);
+    int free_length = length - used;
+    if (free_length > 16) {
+      // Enough room for error code at least.
+      if (used > 0) {
+        buffer[used] = '\n';
+        buffer[used + 1] = '\0';
+        used++;
+        free_length--;
+      }
+      ERR_error_string_n(error, buffer + used, free_length);
+      // ERR_error_string_n is guaranteed to leave a null-terminated string.
+    }
+    error = ERR_get_error();
+  }
+}
+
+
 /* Handle an error reported from the BoringSSL library. */
 static void ThrowIOException(int status,
                              const char* exception_type,
                              const char* message,
                              bool free_message = false) {
   char error_string[SSL_ERROR_MESSAGE_BUFFER_SIZE];
-  error_string[0] = '\0';
-  int error = ERR_get_error();
-  while (error != 0) {
-    int length = strlen(error_string);
-    int free_length = SSL_ERROR_MESSAGE_BUFFER_SIZE - length;
-    if (free_length > 16) {
-      // Enough room for error code at least.
-      if (length > 0) {
-        error_string[length] = '\n';
-        error_string[length + 1] = '\0';
-        length++;
-        free_length--;
-      }
-      ERR_error_string_n(error, error_string + length, free_length);
-      // ERR_error_string_n is guaranteed to leave a null-terminated string.
-    }
-    error = ERR_get_error();
-  }
+  FetchErrorString(error_string, SSL_ERROR_MESSAGE_BUFFER_SIZE);
   OSError os_error_struct(status, error_string, OSError::kBoringSSL);
   Dart_Handle os_error = DartUtils::NewDartOSError(&os_error_struct);
   Dart_Handle exception =
@@ -602,12 +610,12 @@ CObject* SSLFilter::ProcessFilterRequest(const CObjectArray& request) {
     }
     return result;
   } else {
-    // TODO(24185): Extract the BoringSSL OS error here and return it.
-    int error_code = 1;
-    const char* error_message = "Obsolete PR Error message";
+    int32_t error_code = static_cast<int32_t>(ERR_peek_error());
+    char error_string[SSL_ERROR_MESSAGE_BUFFER_SIZE];
+    FetchErrorString(error_string, SSL_ERROR_MESSAGE_BUFFER_SIZE);
     CObjectArray* result = new CObjectArray(CObject::NewArray(2));
     result->SetAt(0, new CObjectInt32(CObject::NewInt32(error_code)));
-    result->SetAt(1, new CObjectString(CObject::NewString(error_message)));
+    result->SetAt(1, new CObjectString(CObject::NewString(error_string)));
     return result;
   }
 }

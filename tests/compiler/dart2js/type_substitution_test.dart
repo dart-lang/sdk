@@ -211,7 +211,7 @@ void testTypeSubstitution() {
     Expect.isNotNull(Typedef2_int_String);
     DartType Function_int_String = getType(compiler, "Function2b");
     Expect.isNotNull(Function_int_String);
-    DartType unalias1 = Typedef2_int_String.unalias(compiler.resolution);
+    DartType unalias1 = Typedef2_int_String.unaliased;
     Expect.equals(Function_int_String, unalias1,
         '$Typedef2_int_String.unalias=$unalias1 != $Function_int_String');
 
@@ -219,7 +219,7 @@ void testTypeSubstitution() {
     Expect.isNotNull(Typedef1);
     DartType Function_dynamic_dynamic = getType(compiler, "Function1c");
     Expect.isNotNull(Function_dynamic_dynamic);
-    DartType unalias2 = Typedef1.unalias(compiler.resolution);
+    DartType unalias2 = Typedef1.unaliased;
     Expect.equals(Function_dynamic_dynamic, unalias2,
         '$Typedef1.unalias=$unalias2 != $Function_dynamic_dynamic');
   }));

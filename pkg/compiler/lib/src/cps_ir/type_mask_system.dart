@@ -4,14 +4,11 @@
 
 library dart2js.type_mask_system;
 
-import '../closure.dart' show ClosureClassElement;
 import '../common/names.dart' show Selectors, Identifiers;
 import '../compiler.dart' as dart2js show Compiler;
-import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../dart_types.dart' as types;
 import '../elements/elements.dart';
-import '../io/source_information.dart' show SourceInformation;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;
@@ -41,7 +38,13 @@ class TypeMaskSystem {
   TypeMask get nullType => inferrer.nullType;
   TypeMask get extendableNativeListType => backend.extendableArrayType;
 
+  TypeMask get uint31Type => inferrer.uint31Type;
+  TypeMask get uint32Type => inferrer.uint32Type;
+  TypeMask get uintType => inferrer.positiveIntType;
+
   TypeMask numStringBoolType;
+  TypeMask fixedLengthType;
+  TypeMask interceptorType;
 
   ClassElement get jsNullClass => backend.jsNullClass;
 
@@ -62,6 +65,13 @@ class TypeMaskSystem {
         new TypeMask.nonNullSubtype(classWorld.boolClass, classWorld);
     numStringBoolType =
         new TypeMask.unionOf(<TypeMask>[anyNum, anyString, anyBool],
+            classWorld);
+    interceptorType =
+        new TypeMask.nonNullSubtype(backend.jsInterceptorClass, classWorld);
+
+    TypeMask typedArray = nonNullSubclass(backend.typedArrayClass);
+    fixedLengthType = new TypeMask.unionOf(
+            <TypeMask>[stringType, backend.fixedArrayType, typedArray],
             classWorld);
   }
 
@@ -194,11 +204,35 @@ class TypeMaskSystem {
     return areDisjoint(t, doubleType);
   }
 
+  bool isDefinitelyNonNegativeInt(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    // The JSPositiveInt class includes zero, despite the name.
+    return t.satisfies(backend.jsPositiveIntClass, classWorld);
+  }
+
   bool isDefinitelyInt(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
     return t.satisfies(backend.jsIntClass, classWorld);
   }
 
+  bool isDefinitelyUint31(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.satisfies(backend.jsUInt31Class, classWorld);
+  }
+
+  bool isDefinitelyUint32(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.satisfies(backend.jsUInt32Class, classWorld);
+  }
+
+  bool isDefinitelyUint(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.satisfies(backend.jsPositiveIntClass, classWorld);
+  }
+
+  // TODO(sra): Find a better name.  'NativeList' is a bad name because there
+  // are many native classes in dart:html that implement List but are not (and
+  // should not be) included in this predicate.
   bool isDefinitelyNativeList(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
     return t.nonNullable().satisfies(backend.jsArrayClass, classWorld);
@@ -223,6 +257,17 @@ class TypeMaskSystem {
   bool isDefinitelyIndexable(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
     return t.nonNullable().satisfies(backend.jsIndexableClass, classWorld);
+  }
+
+  bool isDefinitelyMutableIndexable(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.nonNullable().satisfies(backend.jsMutableIndexableClass,
+        classWorld);
+  }
+
+  bool isDefinitelyFixedLengthIndexable(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return fixedLengthType.containsMask(t.nonNullable(), classWorld);
   }
 
   bool areDisjoint(TypeMask leftType, TypeMask rightType) {

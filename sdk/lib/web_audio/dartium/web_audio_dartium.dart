@@ -173,15 +173,13 @@ class AnalyserNode extends AudioNode {
 @DomName('AudioBuffer')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBuffer-section
 @Experimental()
-class AudioBuffer extends NativeFieldWrapperClass2 {
+class AudioBuffer extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AudioBuffer._() { throw new UnsupportedError("Not supported"); }
 
   static AudioBuffer internalCreateAudioBuffer() {
     return new AudioBuffer._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AudioBuffer._internalWrap() {
     return new AudioBuffer.internal_();
@@ -556,15 +554,13 @@ class AudioDestinationNode extends AudioNode {
 @DomName('AudioListener')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioListener-section
 @Experimental()
-class AudioListener extends NativeFieldWrapperClass2 {
+class AudioListener extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AudioListener._() { throw new UnsupportedError("Not supported"); }
 
   static AudioListener internalCreateAudioListener() {
     return new AudioListener._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AudioListener._internalWrap() {
     return new AudioListener.internal_();
@@ -699,15 +695,13 @@ class AudioNode extends EventTarget {
 @DomName('AudioParam')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioParam
 @Experimental()
-class AudioParam extends NativeFieldWrapperClass2 {
+class AudioParam extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AudioParam._() { throw new UnsupportedError("Not supported"); }
 
   static AudioParam internalCreateAudioParam() {
     return new AudioParam._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AudioParam._internalWrap() {
     return new AudioParam.internal_();
@@ -1465,15 +1459,13 @@ class PannerNode extends AudioNode {
 @DocsEditable()
 @DomName('PeriodicWave')
 @Experimental() // untriaged
-class PeriodicWave extends NativeFieldWrapperClass2 {
+class PeriodicWave extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PeriodicWave._() { throw new UnsupportedError("Not supported"); }
 
   static PeriodicWave internalCreatePeriodicWave() {
     return new PeriodicWave._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PeriodicWave._internalWrap() {
     return new PeriodicWave.internal_();

@@ -207,8 +207,7 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
                                       uword* handler_pc,
                                       bool* needs_stacktrace,
                                       bool* has_catch_all) const {
-  Isolate* isolate = thread->isolate();
-  REUSABLE_CODE_HANDLESCOPE(isolate);
+  REUSABLE_CODE_HANDLESCOPE(thread);
   Code& code = reused_code_handle.Handle();
   code = LookupDartCode();
   if (code.IsNull()) {
@@ -216,7 +215,7 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
   }
   uword pc_offset = pc() - code.EntryPoint();
 
-  REUSABLE_EXCEPTION_HANDLERS_HANDLESCOPE(isolate);
+  REUSABLE_EXCEPTION_HANDLERS_HANDLESCOPE(thread);
   ExceptionHandlers& handlers = reused_exception_handlers_handle.Handle();
   handlers = code.exception_handlers();
   if (handlers.num_entries() == 0) {
@@ -224,7 +223,7 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
   }
 
   // Find pc descriptor for the current pc.
-  REUSABLE_PC_DESCRIPTORS_HANDLESCOPE(isolate);
+  REUSABLE_PC_DESCRIPTORS_HANDLESCOPE(thread);
   PcDescriptors& descriptors = reused_pc_descriptors_handle.Handle();
   descriptors = code.pc_descriptors();
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);

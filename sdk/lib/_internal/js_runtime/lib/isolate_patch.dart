@@ -77,10 +77,10 @@ class Isolate {
        bool checked,
        Map<String, String> environment,
        Uri packageRoot,
-       Map<String, Uri> packages}) {
+       Map<String, Uri> packageMap}) {
     if (environment != null) throw new UnimplementedError("environment");
     if (packageRoot != null) throw new UnimplementedError("packageRoot");
-    if (packages != null) throw new UnimplementedError("packages");
+    if (packageMap != null) throw new UnimplementedError("packageMap");
     bool forcePause = (errorsAreFatal != null) ||
                       (onExit != null) ||
                       (onError != null);

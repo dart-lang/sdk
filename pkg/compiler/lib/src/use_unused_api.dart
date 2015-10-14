@@ -22,7 +22,7 @@ import 'cps_ir/cps_ir_builder_task.dart' as ir_builder;
 import 'tree_ir/tree_ir_nodes.dart' as tree_ir;
 import 'dart_types.dart' as dart_types;
 import 'dart2js.dart' as dart2js;
-import 'compiler.dart' as dart2jslib;
+import 'deferred_load.dart' as deferred;
 import 'diagnostics/source_span.dart' as diagnostics;
 import 'elements/elements.dart' as elements;
 import 'elements/modelx.dart' as modelx;
@@ -82,6 +82,7 @@ void main(List<String> arguments) {
   useProgramBuilder(null);
   useSemanticVisitor();
   useTreeVisitors();
+  useDeferred();
 }
 
 useApi([api.ReadStringFromUri uri, compiler.Compiler compiler]) {
@@ -258,8 +259,6 @@ usedByTests() {
   // TODO(ahe): We should try to avoid including API used only for tests. In
   // most cases, such API can be moved to a test library.
   World world = null;
-  dart2jslib.Compiler compiler = null;
-  compiler.currentlyInUserCode();
   type_graph_inferrer.TypeGraphInferrer typeGraphInferrer = null;
   source_file_provider.SourceFileProvider sourceFileProvider = null;
   sourceFileProvider.getSourceFile(null);
@@ -270,7 +269,7 @@ usedByTests() {
   world.haveAnyCommonSubtypes(null, null);
   typeGraphInferrer.getCallersOf(null);
   dart_types.Types.sorted(null);
-  new dart_types.Types(compiler).copy(compiler);
+  new dart_types.Types(null).copy(null);
   sourceFileProvider.readStringFromUri(null);
 }
 
@@ -295,17 +294,18 @@ useIr(ir_builder.IrBuilder builder) {
     ..buildStringConstant(null);
 }
 
-useCompiler(dart2jslib.Compiler compiler) {
-  compiler.libraryLoader
+useCompiler(compiler.Compiler c) {
+  c.libraryLoader
       ..reset()
       ..resetAsync(null)
       ..lookupLibrary(null);
-  compiler.forgetElement(null);
-  compiler.backend.constantCompilerTask.copyConstantValues(null);
+  c.forgetElement(null);
+  c.backend.constantCompilerTask.copyConstantValues(null);
+  c.currentlyInUserCode();
+
 }
 
 useTypes() {
-  new dart_types.ResolvedTypedefType(null, null, null).unalias(null);
 }
 
 useCodeEmitterTask(js_emitter.CodeEmitterTask codeEmitterTask) {
@@ -339,4 +339,8 @@ class TreeVisitor1 extends tree_ir.ExpressionVisitor1
 useTreeVisitors() {
   new TreeVisitor1().visitExpression(null, null);
   new TreeVisitor1().visitStatement(null, null);
+}
+
+useDeferred([deferred.DeferredLoadTask task]) {
+  task.dump();
 }

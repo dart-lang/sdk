@@ -6,7 +6,7 @@ library test.services.completion.invocation;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/prefixed_element_contributor.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

@@ -5,6 +5,7 @@
 library analyzer.src.plugin.plugin_configuration;
 
 import 'package:analyzer/plugin/options.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:yaml/yaml.dart';
 
 const _analyzerOptionScope = 'analyzer';
@@ -38,9 +39,7 @@ Iterable<String> _parseHosts(dynamic yaml) {
   if (yaml is String) {
     hosts.add(yaml);
   } else if (yaml is YamlList) {
-    yaml.forEach((h) {
-      hosts.add(_asString(h));
-    });
+    yaml.forEach((h) => hosts.add(_asString(h)));
   }
   return hosts;
 }
@@ -102,7 +101,8 @@ class PluginConfig {
           // Anything but an empty list of plugins is treated as a format error.
           if (pluginConfig != null) {
             throw new PluginConfigFormatException(
-                'Unrecognized plugin config format, expected `YamlMap`, got `${pluginConfig.runtimeType}`',
+                'Unrecognized plugin config format, expected `YamlMap`, '
+                'got `${pluginConfig.runtimeType}`',
                 pluginConfig);
           }
         }
@@ -142,7 +142,8 @@ class PluginConfigOptionsProcessor extends OptionsProcessor {
   }
 
   @override
-  void optionsProcessed(Map<String, YamlNode> options) {
+  void optionsProcessed(
+      AnalysisContext context, Map<String, YamlNode> options) {
     _config = new PluginConfig.fromOptions(options);
   }
 }

@@ -19,7 +19,23 @@ DEFINE_NATIVE_ENTRY(Timeline_getTraceClock, 0) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
+DEFINE_NATIVE_ENTRY(Timeline_getNextAsyncId, 0) {
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  if (recorder == NULL) {
+    return Integer::New(0);
+  }
+  return Integer::New(recorder->GetNextAsyncId());
+}
+
+
+DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 6) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, start, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, id, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, phase, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, category, arguments->NativeArgAt(3));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(4));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, args, arguments->NativeArgAt(5));
+
   TimelineEventRecorder* recorder = Timeline::recorder();
   if (recorder == NULL) {
     return Object::null();
@@ -30,11 +46,45 @@ DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
     return Object::null();
   }
 
+
+  int64_t pid = OS::ProcessId();
+  int64_t tid = OSThread::ThreadIdToIntPtr(OSThread::GetCurrentThreadTraceId());
+
+  char* event = OS::SCreate(zone,
+      "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64 ","
+      "\"ts\":%" Pd64 ",\"ph\":\"%s\",\"id\":%" Pd64 ", \"args\":%s}",
+      name.ToCString(),
+      category.ToCString(),
+      tid,
+      pid,
+      start.AsInt64Value(),
+      phase.ToCString(),
+      id.AsInt64Value(),
+      args.ToCString());
+
+  // event was allocated in the zone and will be copied by AppendDartEvent.
+  recorder->AppendDartEvent(isolate, event);
+
+  return Object::null();
+}
+
+
+DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, start, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, end, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(String, category, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(String, args, arguments->NativeArgAt(4));
+
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  if (recorder == NULL) {
+    return Object::null();
+  }
+
+  if (!isolate->GetDartStream()->Enabled()) {
+    // Dart stream is not enabled for this isolate, do nothing.
+    return Object::null();
+  }
 
   int64_t duration = end.AsInt64Value() - start.AsInt64Value();
   int64_t pid = OS::ProcessId();

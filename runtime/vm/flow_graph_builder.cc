@@ -489,7 +489,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     if (call_->HasUses()) {
       // Add a phi of the return values.
       PhiInstr* phi = new(Z) PhiInstr(join, num_exits);
-      phi->set_ssa_temp_index(caller_graph_->alloc_ssa_temp_index());
+      caller_graph_->AllocateSSAIndexes(phi);
       phi->mark_alive();
       for (intptr_t i = 0; i < num_exits; ++i) {
         ReturnAt(i)->RemoveEnvironment();
@@ -1606,7 +1606,7 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
                             &instantiator_type_arguments);
   }
 
-  const intptr_t deopt_id = Isolate::Current()->GetNextDeoptId();
+  const intptr_t deopt_id = Thread::Current()->GetNextDeoptId();
   return new(Z) AssertAssignableInstr(token_pos,
                                       value,
                                       instantiator,
@@ -2461,7 +2461,7 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
 
   { LocalVariable* tmp_var = EnterTempLocalScope(array_val);
     const intptr_t class_id = kArrayCid;
-    const intptr_t deopt_id = Isolate::kNoDeoptId;
+    const intptr_t deopt_id = Thread::kNoDeoptId;
     for (int i = 0; i < node->length(); ++i) {
       Value* array = Bind(new(Z) LoadLocalInstr(*tmp_var));
       Value* index =
@@ -2530,14 +2530,17 @@ void EffectGraphVisitor::VisitStringInterpolateNode(
 static void CollectClosureFunction(const Function& function) {
   if (function.HasCode()) return;
 
-  Isolate* isolate = Isolate::Current();
-  if (isolate->collected_closures() == GrowableObjectArray::null()) {
-    isolate->set_collected_closures(
-        GrowableObjectArray::Handle(GrowableObjectArray::New()));
+  // Although this is only called when precompiling, this can happen before
+  // Dart_Precompile as part of loading code, so check for a non-null work
+  // list.
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (isolate->collected_closures() != GrowableObjectArray::null()) {
+    const GrowableObjectArray& functions =
+        GrowableObjectArray::Handle(thread->zone(),
+                                    isolate->collected_closures());
+    functions.Add(function);
   }
-  const GrowableObjectArray& functions =
-      GrowableObjectArray::Handle(isolate, isolate->collected_closures());
-  functions.Add(function);
 }
 
 
@@ -3781,13 +3784,13 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
     GuardFieldClassInstr* guard_field_class =
         new(Z) GuardFieldClassInstr(store_value,
                                  node->field(),
-                                 isolate()->GetNextDeoptId());
+                                 thread()->GetNextDeoptId());
     AddInstruction(guard_field_class);
     store_value = Bind(BuildLoadExprTemp());
     GuardFieldLengthInstr* guard_field_length =
         new(Z) GuardFieldLengthInstr(store_value,
                                      node->field(),
-                                     isolate()->GetNextDeoptId());
+                                     thread()->GetNextDeoptId());
     AddInstruction(guard_field_length);
     store_value = Bind(BuildLoadExprTemp());
   }
@@ -4079,11 +4082,6 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   ASSERT((node->label() == NULL) || !is_top_level_sequence);
   NestedBlock nested_block(owner(), node);
 
-  if (FLAG_support_debugger && is_top_level_sequence) {
-    AddInstruction(new(Z) DebugStepCheckInstr(function.token_pos(),
-                                              RawPcDescriptors::kRuntimeCall));
-  }
-
   if (num_context_variables > 0) {
     // The local scope declares variables that are captured.
     // Allocate and chain a new context (Except don't chain when at the function
@@ -4144,6 +4142,27 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         }
       }
     }
+  }
+
+  if (FLAG_support_debugger &&
+      is_top_level_sequence &&
+      function.is_debuggable()) {
+    // Place a debug check at method entry to ensure breaking on a method always
+    // happens, even if there are no assignments/calls/runtimecalls in the first
+    // basic block. Place this check at the last parameter to ensure parameters
+    // are in scope in the debugger at method entry.
+    const int num_params = function.NumParameters();
+    intptr_t check_pos = Scanner::kNoSourcePos;
+    if (num_params > 0) {
+      const LocalVariable& parameter = *scope->VariableAt(num_params - 1);
+      check_pos = parameter.token_pos();
+    }
+    if (check_pos == Scanner::kNoSourcePos) {
+      // No parameters or synthetic parameters.
+      check_pos = node->token_pos();
+    }
+    AddInstruction(new(Z) DebugStepCheckInstr(check_pos,
+                                              RawPcDescriptors::kRuntimeCall));
   }
 
   // This check may be deleted if the generated code is leaf.
@@ -4654,7 +4673,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   // When compiling for OSR, use a depth first search to prune instructions
   // unreachable from the OSR entry. Catch entries are always considered
   // reachable, even if they become unreachable after OSR.
-  if (osr_id_ != Isolate::kNoDeoptId) {
+  if (osr_id_ != Thread::kNoDeoptId) {
     PruneUnreachable();
   }
 
@@ -4665,7 +4684,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 
 
 void FlowGraphBuilder::PruneUnreachable() {
-  ASSERT(osr_id_ != Isolate::kNoDeoptId);
+  ASSERT(osr_id_ != Thread::kNoDeoptId);
   BitVector* block_marks = new(Z) BitVector(Z, last_used_block_id_ + 1);
   bool found = graph_entry_->PruneUnreachable(this, graph_entry_, NULL, osr_id_,
                                               block_marks);

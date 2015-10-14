@@ -6,7 +6,7 @@ library services.refactoring;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart'
+import 'package:analysis_server/plugin/protocol/protocol.dart'
     show RefactoringMethodParameter, SourceChange;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/convert_getter_to_method.dart';
@@ -356,6 +356,9 @@ abstract class RenameRefactoring implements Refactoring {
    * type.
    */
   factory RenameRefactoring(SearchEngine searchEngine, Element element) {
+    if (element == null) {
+      return null;
+    }
     if (element is PropertyAccessorElement) {
       element = (element as PropertyAccessorElement).variable;
     }

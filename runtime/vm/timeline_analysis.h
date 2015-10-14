@@ -138,6 +138,15 @@ class TimelineLabelPauseInfo : public ZoneAllocated {
   // Also, may adjust |max_exclusive_micros_|.
   void OnPop(int64_t exclusive_micros);
 
+  // Adjusts |inclusive_micros_| and |exclusive_micros_| by |micros|.
+  // Also, may adjust, |max_inclusive_micros_|.
+  void OnBeginPop(int64_t inclusive_micros,
+                  int64_t exclusive_micros,
+                  bool already_on_stack);
+
+  void UpdateInclusiveMicros(int64_t inclusive_micros, bool already_on_stack);
+  void UpdateExclusiveMicros(int64_t exclusive_micros);
+
   // Adjust inclusive micros.
   void add_inclusive_micros(int64_t delta_micros) {
     inclusive_micros_ += delta_micros;
@@ -197,7 +206,8 @@ class TimelinePauses : public TimelineAnalysis {
 
   void ProcessThread(TimelineAnalysisThread* thread);
   bool CheckStack(TimelineEvent* event);
-  void PopFinished(int64_t start);
+  void PopFinishedDurations(int64_t start);
+  void PopBegin(const char* label, int64_t end);
   void Push(TimelineEvent* event);
   bool IsLabelOnStack(const char* label) const;
   intptr_t StackDepth() const;

@@ -6,7 +6,7 @@ library services.src.index.index_contributor;
 
 import 'dart:collection' show Queue;
 
-import 'package:analysis_server/analysis/index_core.dart';
+import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_store.dart';
@@ -361,6 +361,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
         element is VariableElement) {
       recordRelationshipElement(
           element, IndexConstants.IS_INVOKED_BY, location);
+    } else if (element is ClassElement) {
+      recordRelationshipElement(
+          element, IndexConstants.IS_REFERENCED_BY, location);
     }
     _recordImportElementReferenceWithoutPrefix(name);
     super.visitMethodInvocation(node);

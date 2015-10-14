@@ -35,11 +35,9 @@ r"""
 function() {
   var l = ["hest", ["h", "e", "s", "t"]], i = 0, x_, x, j;
   for (P.print(l.length); i < l.length; i = i + 1) {
-    if (i < 0 || i >= l.length)
-      H.ioore(l, i);
     x_ = J.getInterceptor$as(x = l[i]);
     for (j = 0; j < x_.get$length(x); j = j + 1) {
-      if (j < 0 || j >= x.length)
+      if (j >= x.length)
         H.ioore(x, j);
       P.print(x[j]);
     }

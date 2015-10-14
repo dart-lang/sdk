@@ -75,10 +75,10 @@ const char* CanonicalFunction(const char* func);
   HANDLESCOPE(T);
 
 
-#define RETURN_TYPE_ERROR(isolate, dart_handle, type)                          \
+#define RETURN_TYPE_ERROR(zone, dart_handle, type)                             \
   do {                                                                         \
     const Object& tmp =                                                        \
-        Object::Handle(isolate, Api::UnwrapHandle((dart_handle)));             \
+        Object::Handle(zone, Api::UnwrapHandle((dart_handle)));                \
     if (tmp.IsNull()) {                                                        \
       return Api::NewError("%s expects argument '%s' to be non-null.",         \
                            CURRENT_FUNC, #dart_handle);                        \
@@ -132,7 +132,7 @@ class Api : AllStatic {
   // Unwraps a raw Type from the handle.  The handle will be null if
   // the object was not of the requested Type.
 #define DECLARE_UNWRAP(Type)                                                   \
-  static const Type& Unwrap##Type##Handle(Isolate* isolate,                    \
+  static const Type& Unwrap##Type##Handle(Zone* zone,                          \
                                           Dart_Handle object);
   CLASS_LIST_FOR_HANDLES(DECLARE_UNWRAP)
 #undef DECLARE_UNWRAP
@@ -304,16 +304,17 @@ class IsolateSaver {
 };
 
 // Start a scope in which no Dart API call backs are allowed.
-#define START_NO_CALLBACK_SCOPE(isolate)                                       \
-  isolate->IncrementNoCallbackScopeDepth()
+#define START_NO_CALLBACK_SCOPE(thread)                                        \
+  thread->IncrementNoCallbackScopeDepth()
 
 // End a no Dart API call backs Scope.
-#define END_NO_CALLBACK_SCOPE(isolate)                                         \
-  isolate->DecrementNoCallbackScopeDepth()
+#define END_NO_CALLBACK_SCOPE(thread)                                          \
+  thread->DecrementNoCallbackScopeDepth()
 
-#define CHECK_CALLBACK_STATE(isolate)                                          \
-  if (isolate->no_callback_scope_depth() != 0) {                               \
-    return reinterpret_cast<Dart_Handle>(Api::AcquiredError(isolate));         \
+#define CHECK_CALLBACK_STATE(thread)                                           \
+  if (thread->no_callback_scope_depth() != 0) {                                \
+    return reinterpret_cast<Dart_Handle>(                                      \
+        Api::AcquiredError(thread->isolate()));                                \
   }                                                                            \
 
 #define CHECK_COMPILATION_ALLOWED(isolate)                                     \
@@ -322,8 +323,8 @@ class IsolateSaver {
                          CURRENT_FUNC);                                        \
   }                                                                            \
 
-#define ASSERT_CALLBACK_STATE(isolate)                                         \
-  ASSERT(isolate->no_callback_scope_depth() == 0)
+#define ASSERT_CALLBACK_STATE(thread)                                         \
+  ASSERT(thread->no_callback_scope_depth() == 0)
 
 }  // namespace dart.
 

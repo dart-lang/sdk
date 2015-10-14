@@ -7,7 +7,7 @@ library test.completion.support;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:unittest/unittest.dart';
 

@@ -14,7 +14,7 @@ vars.update({
   "dartium_chromium_commit": "62a7524d4f71c9e0858d24b0aa1bbff3a2d09bff",
   "chromium_base_revision": "297060",
   "dartium_webkit_branch": "/blink/branches/dart/dartium",
-  "dartium_webkit_revision": "202673",
+  "dartium_webkit_revision": "202688",
 
   # We use mirrors of all github repos to guarantee reproducibility and
   # consistency between what users see and what the bots see.
@@ -36,7 +36,7 @@ vars.update({
   "collection_rev": "@1da9a07f32efa2ba0c391b289e2037391e31da0e",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
-  "dart2js_info_rev" : "@ffd03ee45f7459efd3039ff565b4d0aa2e7cd9e7",
+  "dart2js_info_rev" : "@c4ad464717e3a304fb0d44a6937c25ff2049b863",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "html_tag" : "@0.12.1+1",
   "http_rev" : "@9b93e1542c753090c50b46ef1592d44bc858bfe7",
@@ -49,7 +49,7 @@ vars.update({
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
-  "observatory_pub_packages_rev": "@a731d3b1caf27b45aecdce9378b87a510240264d",
+  "observatory_pub_packages_rev": "@5c199c5954146747f75ed127871207718dc87786",
   "package_config_rev": "@0.1.3",
   "path_rev": "@b657c0854d1cf41c014986fa9d2321f1173df805",
   "plugin_tag": "@0.1.0",

@@ -4,7 +4,7 @@
 
 library analysis_server.src.provisional.completion.completion_dart;
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analyzer/src/generated/ast.dart';

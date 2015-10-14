@@ -6,12 +6,13 @@ library dart2js.resolution;
 
 import 'dart:collection' show Queue;
 
+import '../common.dart';
 import '../common/names.dart' show
     Identifiers;
 import '../common/resolution.dart' show
     Parsing,
     Resolution,
-    ResolutionWorldImpact;
+    ResolutionImpact;
 import '../common/tasks.dart' show
     CompilerTask,
     DeferredAction;
@@ -22,15 +23,6 @@ import '../compile_time_constants.dart' show
 import '../constants/values.dart' show
     ConstantValue;
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage,
-    DiagnosticReporter;
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart' show
-    MessageKind;
-import '../diagnostics/spannable.dart' show
-    Spannable;
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
     BaseClassElementX,
@@ -78,14 +70,14 @@ class ResolverTask extends CompilerTask {
 
   Parsing get parsing => compiler.parsing;
 
-  ResolutionWorldImpact resolve(Element element) {
+  ResolutionImpact resolve(Element element) {
     return measure(() {
       if (Elements.isErroneous(element)) {
         // TODO(johnniwinther): Add a predicate for this.
         assert(invariant(element, element is! ErroneousElement,
             message: "Element $element expected to have parse errors."));
         _ensureTreeElements(element);
-        return const ResolutionWorldImpact();
+        return const ResolutionImpact();
       }
 
       WorldImpact processMetadata([WorldImpact result]) {
@@ -109,7 +101,7 @@ class ResolverTask extends CompilerTask {
       if (element.isClass) {
         ClassElement cls = element;
         cls.ensureResolved(resolution);
-        return processMetadata(const ResolutionWorldImpact());
+        return processMetadata(const ResolutionImpact());
       } else if (element.isTypedef) {
         TypedefElement typdef = element;
         return processMetadata(resolveTypedef(typdef));
@@ -293,7 +285,7 @@ class ResolverTask extends CompilerTask {
         assert(invariant(element, element.isConstructor,
             message: 'Non-constructor element $element '
                      'has already been analyzed.'));
-        return const ResolutionWorldImpact();
+        return const ResolutionImpact();
       }
       if (element.isSynthesized) {
         if (element.isGenerativeConstructor) {
@@ -313,7 +305,7 @@ class ResolverTask extends CompilerTask {
         } else {
           assert(element.isDeferredLoaderGetter || element.isErroneous);
           _ensureTreeElements(element);
-          return const ResolutionWorldImpact();
+          return const ResolutionImpact();
         }
       } else {
         element.parseNode(resolution.parsing);
@@ -424,7 +416,7 @@ class ResolverTask extends CompilerTask {
     InterfaceType targetType;
     List<Element> seen = new List<Element>();
     // Follow the chain of redirections and check for cycles.
-    while (target.isRedirectingFactory) {
+    while (target.isRedirectingFactory || target.isPatched) {
       if (target.internalEffectiveTarget != null) {
         // We found a constructor that already has been processed.
         targetType = target.effectiveTargetType;
@@ -435,7 +427,13 @@ class ResolverTask extends CompilerTask {
         break;
       }
 
-      Element nextTarget = target.immediateRedirectionTarget;
+      Element nextTarget;
+      if (target.isPatched) {
+        nextTarget = target.patch;
+      } else {
+        nextTarget = target.immediateRedirectionTarget;
+      }
+
       if (seen.contains(nextTarget)) {
         reporter.reportErrorMessage(
             node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
@@ -466,11 +464,13 @@ class ResolverTask extends CompilerTask {
       TreeElements treeElements = factory.treeElements;
       assert(invariant(node, treeElements != null,
           message: 'No TreeElements cached for $factory.'));
-      FunctionExpression functionNode = factory.parseNode(parsing);
-      RedirectingFactoryBody redirectionNode = functionNode.body;
-      DartType factoryType = treeElements.getType(redirectionNode);
-      if (!factoryType.isDynamic) {
-        targetType = targetType.substByContext(factoryType);
+      if (!factory.isPatched) {
+        FunctionExpression functionNode = factory.parseNode(parsing);
+        RedirectingFactoryBody redirectionNode = functionNode.body;
+        DartType factoryType = treeElements.getType(redirectionNode);
+        if (!factoryType.isDynamic) {
+          targetType = targetType.substByContext(factoryType);
+        }
       }
       factory.effectiveTarget = target;
       factory.effectiveTargetType = targetType;
@@ -995,7 +995,7 @@ class ResolverTask extends CompilerTask {
   }
 
   WorldImpact resolveTypedef(TypedefElementX element) {
-    if (element.isResolved) return const ResolutionWorldImpact();
+    if (element.isResolved) return const ResolutionImpact();
     compiler.world.allTypedefs.add(element);
     return _resolveTypeDeclaration(element, () {
       ResolutionRegistry registry = new ResolutionRegistry(

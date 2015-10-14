@@ -71,14 +71,13 @@ class CustomElementsAnalysis {
     if (!Elements.isNativeOrExtendsNative(classElement)) return;
     if (classElement.isMixinApplication) return;
     if (classElement.isAbstract) return;
+    // JsInterop classes are opaque interfaces without a concrete
+    // implementation.
+    if (classElement.isJsInterop) return;
     joinFor(enqueuer).instantiatedClasses.add(classElement);
   }
 
-  void registerTypeLiteral(DartType type, Registry registry) {
-    assert(registry.isForResolution);
-    // In codegen we see the TypeConstants instead.
-    if (!registry.isForResolution) return;
-
+  void registerTypeLiteral(DartType type) {
     if (type.isInterfaceType) {
       // TODO(sra): If we had a flow query from the type literal expression to
       // the Type argument of the metadata lookup, we could tell if this type

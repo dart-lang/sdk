@@ -4,26 +4,14 @@
 
 library dart2js.call_structure;
 
-import 'dart:collection';
-
+import '../common.dart';
 import '../common/names.dart' show
     Identifiers,
     Names,
     Selectors;
-import '../compiler.dart' show
-    Compiler;
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/spannable.dart' show
-    SpannableAssertionFailure;
 import '../elements/elements.dart';
-import '../dart_types.dart';
 import '../tree/tree.dart';
-import '../types/types.dart';
 import '../util/util.dart';
-import '../world.dart' show
-    ClassWorld,
-    World;
 
 import 'selector.dart' show
     Selector;

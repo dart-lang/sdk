@@ -6,7 +6,7 @@ library server.performance;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../test/integration/integration_tests.dart';
@@ -27,16 +27,6 @@ abstract class AbstractAnalysisServerPerformanceTest
    */
   Future setAnalysisRoot() =>
       sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
-
-  /**
-   * Enable [SERVER_STATUS] notifications so that [analysisFinished]
-   * can be used.
-   */
-  Future subscribeToStatusNotifications() {
-    List<Future> futures = <Future>[];
-    futures.add(sendServerSetSubscriptions([ServerService.STATUS]));
-    return Future.wait(futures);
-  }
 
   /**
    * The server is automatically started before every test.
@@ -62,6 +52,16 @@ abstract class AbstractAnalysisServerPerformanceTest
       });
       return serverConnected.future;
     });
+  }
+
+  /**
+   * Enable [SERVER_STATUS] notifications so that [analysisFinished]
+   * can be used.
+   */
+  Future subscribeToStatusNotifications() {
+    List<Future> futures = <Future>[];
+    futures.add(sendServerSetSubscriptions([ServerService.STATUS]));
+    return Future.wait(futures);
   }
 
   /**

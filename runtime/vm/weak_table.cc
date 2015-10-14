@@ -75,6 +75,16 @@ void WeakTable::SetValue(RawObject* key, intptr_t val) {
 }
 
 
+void WeakTable::Reset() {
+  intptr_t* old_data = data_;
+  used_ = 0;
+  count_ = 0;
+  size_ = kMinSize;
+  data_ = reinterpret_cast<intptr_t*>(calloc(size_, kEntrySize * kWordSize));
+  free(old_data);
+}
+
+
 void WeakTable::Rehash() {
   intptr_t old_size = size();
   intptr_t* old_data = data_;

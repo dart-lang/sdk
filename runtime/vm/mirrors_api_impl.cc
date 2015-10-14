@@ -27,12 +27,12 @@ namespace dart {
 
 DART_EXPORT Dart_Handle Dart_TypeName(Dart_Handle object) {
   DARTSCOPE(Thread::Current());
-  const Object& obj = Object::Handle(I, Api::UnwrapHandle(object));
+  const Object& obj = Object::Handle(Z, Api::UnwrapHandle(object));
   if (obj.IsType()) {
     const Class& cls = Class::Handle(Type::Cast(obj).type_class());
     return Api::NewHandle(I, cls.UserVisibleName());
   } else {
-    RETURN_TYPE_ERROR(I, object, Class/Type);
+    RETURN_TYPE_ERROR(Z, object, Class/Type);
   }
 }
 
@@ -47,10 +47,10 @@ DART_EXPORT Dart_Handle Dart_QualifiedTypeName(Dart_Handle object) {
     if (str == NULL) {
       RETURN_NULL_ERROR(str);
     }
-    CHECK_CALLBACK_STATE(I);
+    CHECK_CALLBACK_STATE(T);
     return Api::NewHandle(I, String::New(str));
   } else {
-    RETURN_TYPE_ERROR(I, object, Class/Type);
+    RETURN_TYPE_ERROR(Z, object, Class/Type);
   }
 }
 
@@ -135,9 +135,9 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
   if (obj.IsError()) {
     return target;
   }
-  const String& func_name = Api::UnwrapStringHandle(I, function_name);
+  const String& func_name = Api::UnwrapStringHandle(Z, function_name);
   if (func_name.IsNull()) {
-    RETURN_TYPE_ERROR(I, function_name, String);
+    RETURN_TYPE_ERROR(Z, function_name, String);
   }
 
   Function& func = Function::Handle(Z);
@@ -211,9 +211,9 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
 
 DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function) {
   DARTSCOPE(Thread::Current());
-  const Function& func = Api::UnwrapFunctionHandle(I, function);
+  const Function& func = Api::UnwrapFunctionHandle(Z, function);
   if (func.IsNull()) {
-    RETURN_TYPE_ERROR(I, function, Function);
+    RETURN_TYPE_ERROR(Z, function, Function);
   }
   return Api::NewHandle(I, func.UserVisibleName());
 }
@@ -221,9 +221,9 @@ DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function) {
 
 DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function) {
   DARTSCOPE(Thread::Current());
-  const Function& func = Api::UnwrapFunctionHandle(I, function);
+  const Function& func = Api::UnwrapFunctionHandle(Z, function);
   if (func.IsNull()) {
-    RETURN_TYPE_ERROR(I, function, Function);
+    RETURN_TYPE_ERROR(Z, function, Function);
   }
   if (func.IsNonImplicitClosureFunction()) {
     RawFunction* parent_function = func.parent_function();
@@ -253,9 +253,9 @@ DART_EXPORT Dart_Handle Dart_FunctionIsStatic(Dart_Handle function,
   if (is_static == NULL) {
     RETURN_NULL_ERROR(is_static);
   }
-  const Function& func = Api::UnwrapFunctionHandle(I, function);
+  const Function& func = Api::UnwrapFunctionHandle(Z, function);
   if (func.IsNull()) {
-    RETURN_TYPE_ERROR(I, function, Function);
+    RETURN_TYPE_ERROR(Z, function, Function);
   }
   *is_static = func.is_static();
   return Api::Success();
@@ -268,9 +268,9 @@ DART_EXPORT Dart_Handle Dart_FunctionIsConstructor(Dart_Handle function,
   if (is_constructor == NULL) {
     RETURN_NULL_ERROR(is_constructor);
   }
-  const Function& func = Api::UnwrapFunctionHandle(I, function);
+  const Function& func = Api::UnwrapFunctionHandle(Z, function);
   if (func.IsNull()) {
-    RETURN_TYPE_ERROR(I, function, Function);
+    RETURN_TYPE_ERROR(Z, function, Function);
   }
   *is_constructor = func.kind() == RawFunction::kConstructor;
   return Api::Success();
@@ -283,9 +283,9 @@ DART_EXPORT Dart_Handle Dart_FunctionIsGetter(Dart_Handle function,
   if (is_getter == NULL) {
     RETURN_NULL_ERROR(is_getter);
   }
-  const Function& func = Api::UnwrapFunctionHandle(I, function);
+  const Function& func = Api::UnwrapFunctionHandle(Z, function);
   if (func.IsNull()) {
-    RETURN_TYPE_ERROR(I, function, Function);
+    RETURN_TYPE_ERROR(Z, function, Function);
   }
   *is_getter = func.IsGetterFunction();
   return Api::Success();
@@ -298,9 +298,9 @@ DART_EXPORT Dart_Handle Dart_FunctionIsSetter(Dart_Handle function,
   if (is_setter == NULL) {
     RETURN_NULL_ERROR(is_setter);
   }
-  const Function& func = Api::UnwrapFunctionHandle(I, function);
+  const Function& func = Api::UnwrapFunctionHandle(Z, function);
   if (func.IsNull()) {
-    RETURN_TYPE_ERROR(I, function, Function);
+    RETURN_TYPE_ERROR(Z, function, Function);
   }
   *is_setter = (func.kind() == RawFunction::kSetterFunction);
   return Api::Success();
@@ -311,9 +311,9 @@ DART_EXPORT Dart_Handle Dart_FunctionIsSetter(Dart_Handle function,
 
 DART_EXPORT Dart_Handle Dart_LibraryName(Dart_Handle library) {
   DARTSCOPE(Thread::Current());
-  const Library& lib = Api::UnwrapLibraryHandle(I, library);
+  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
   if (lib.IsNull()) {
-    RETURN_TYPE_ERROR(I, library, Library);
+    RETURN_TYPE_ERROR(Z, library, Library);
   }
   const String& name = String::Handle(Z, lib.name());
   ASSERT(!name.IsNull());
@@ -322,9 +322,9 @@ DART_EXPORT Dart_Handle Dart_LibraryName(Dart_Handle library) {
 
 DART_EXPORT Dart_Handle Dart_LibraryGetClassNames(Dart_Handle library) {
   DARTSCOPE(Thread::Current());
-  const Library& lib = Api::UnwrapLibraryHandle(I, library);
+  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
   if (lib.IsNull()) {
-    RETURN_TYPE_ERROR(I, library, Library);
+    RETURN_TYPE_ERROR(Z, library, Library);
   }
 
   const GrowableObjectArray& names =
@@ -355,9 +355,9 @@ DART_EXPORT Dart_Handle Dart_LibraryGetClassNames(Dart_Handle library) {
 
 DART_EXPORT Dart_Handle Dart_ClosureFunction(Dart_Handle closure) {
   DARTSCOPE(Thread::Current());
-  const Instance& closure_obj = Api::UnwrapInstanceHandle(I, closure);
+  const Instance& closure_obj = Api::UnwrapInstanceHandle(Z, closure);
   if (closure_obj.IsNull() || !closure_obj.IsClosure()) {
-    RETURN_TYPE_ERROR(I, closure, Instance);
+    RETURN_TYPE_ERROR(Z, closure, Instance);
   }
 
   ASSERT(ClassFinalizer::AllClassesFinalized());

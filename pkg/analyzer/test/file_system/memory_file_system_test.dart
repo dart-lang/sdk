@@ -339,6 +339,13 @@ class MemoryFileSourceExistingTest {
     expect(relative.path, '/foo/bar/baz.dart');
   }
 
+  void test_resolveRelative_dart() {
+    File file = provider.newFile('/sdk/lib/core/core.dart', '');
+    Source source = file.createSource(Uri.parse('dart:core'));
+    Uri resolved = source.resolveRelativeUri(Uri.parse('int.dart'));
+    expect(resolved.toString(), 'dart:core/int.dart');
+  }
+
   void test_shortName() {
     expect(source.shortName, 'test.dart');
   }

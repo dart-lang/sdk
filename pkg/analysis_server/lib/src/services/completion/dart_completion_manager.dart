@@ -6,8 +6,8 @@ library services.completion.dart;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/completion_dart.dart'

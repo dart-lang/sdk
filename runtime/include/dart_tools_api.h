@@ -341,6 +341,7 @@ typedef enum {
   kNoPauseOnExceptions = 1,
   kPauseOnUnhandledExceptions,
   kPauseOnAllExceptions,
+  kInvalidExceptionPauseInfo
 } Dart_ExceptionPauseInfo;
 
 /**

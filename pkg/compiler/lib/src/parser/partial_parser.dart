@@ -4,8 +4,7 @@
 
 library dart2js.parser.partial;
 
-import '../diagnostics/messages.dart' show
-    MessageKind;
+import '../common.dart';
 import '../util/characters.dart' as Characters show
     $CLOSE_CURLY_BRACKET;
 import '../tokens/token.dart' show

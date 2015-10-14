@@ -11,6 +11,7 @@ import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
 
 import '../closure.dart';
+import '../common.dart';
 import '../common/backend_api.dart' show
     Backend,
     ForeignResolver;
@@ -31,7 +32,7 @@ import '../common/resolution.dart' show
     MapLiteralUse,
     Resolution,
     ResolutionCallbacks,
-    ResolutionWorldImpact,
+    ResolutionImpact,
     TransformedWorldImpact;
 import '../common/work.dart' show
     ItemCompilationContext;
@@ -42,17 +43,6 @@ import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage,
-    DiagnosticReporter;
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart' show MessageKind;
-import '../diagnostics/spannable.dart' show
-    CURRENT_ELEMENT_SPANNABLE,
-    NO_LOCATION_SPANNABLE,
-    Spannable,
-    SpannableAssertionFailure;
 import '../elements/elements.dart';
 import '../elements/visitor.dart' show
     BaseElementVisitor;
@@ -60,6 +50,7 @@ import '../enqueue.dart' show
     Enqueuer,
     ResolutionEnqueuer,
     WorldImpact;
+import '../helpers/helpers.dart';
 import '../io/code_output.dart';
 import '../io/source_information.dart' show
     SourceInformationStrategy,
@@ -81,6 +72,8 @@ import '../js_emitter/js_emitter.dart' show
     USE_LAZY_EMITTER;
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
+import '../patch_parser.dart' show
+    checkJsInteropAnnotation;
 import '../resolution/registry.dart' show
     EagerRegistry;
 import '../resolution/tree_elements.dart' show
@@ -99,9 +92,12 @@ import '../util/util.dart';
 import '../world.dart' show
     ClassWorld;
 
+import 'backend_helpers.dart';
+import 'backend_impact.dart';
 import 'codegen/task.dart';
 import 'constant_system_javascript.dart';
 import 'patch_resolver.dart';
+import 'js_interop_analysis.dart' show JsInteropAnalysis;
 import 'lookup_map_analysis.dart' show LookupMapAnalysis;
 
 part 'backend.dart';

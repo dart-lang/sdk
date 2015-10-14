@@ -525,6 +525,7 @@ class FlowGraphCompiler : public ValueObject {
     return *deopt_id_to_ic_data_;
   }
 
+  Thread* thread() const { return thread_; }
   Isolate* isolate() const { return isolate_; }
   Zone* zone() const { return zone_; }
 
@@ -681,6 +682,7 @@ class FlowGraphCompiler : public ValueObject {
     DISALLOW_COPY_AND_ASSIGN(StaticCallsStruct);
   };
 
+  Thread* thread_;
   Isolate* isolate_;
   Zone* zone_;
   Assembler* assembler_;

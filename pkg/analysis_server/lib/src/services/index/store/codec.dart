@@ -6,7 +6,7 @@ library services.src.index.store.codec;
 
 import 'dart:collection';
 
-import 'package:analysis_server/analysis/index_core.dart';
+import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';

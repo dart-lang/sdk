@@ -13,52 +13,47 @@ import 'package:js_runtime/shared/embedded_names.dart' show
     JsGetName;
 
 import '../headers.dart';
-
 import '../js_emitter.dart' hide Emitter;
 import '../js_emitter.dart' as js_emitter show Emitter;
-
 import '../model.dart';
 import '../program_builder/program_builder.dart';
 
 import '../../common.dart';
-
+import '../../common/names.dart' show
+    Names;
+import '../../compiler.dart' show
+    Compiler;
 import '../../constants/values.dart';
-
+import '../../dart_types.dart' show
+    DartType;
 import '../../deferred_load.dart' show OutputUnit;
-
-import '../../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-
-import '../../diagnostics/messages.dart' show
-    MessageKind;
-
-import '../../diagnostics/spannable.dart' show
-    NO_LOCATION_SPANNABLE;
-
 import '../../elements/elements.dart' show
+    ClassElement,
     ConstructorBodyElement,
+    Element,
+    Elements,
     ElementKind,
     FieldElement,
+    FunctionElement,
+    FunctionSignature,
+    LibraryElement,
+    MetadataAnnotation,
+    MethodElement,
+    MemberElement,
     Name,
     ParameterElement,
+    TypedefElement,
     TypeVariableElement,
-    MethodElement,
-    MemberElement;
-
+    VariableElement;
 import '../../hash/sha1.dart' show Hasher;
-
 import '../../io/code_output.dart';
-
 import '../../io/line_column_provider.dart' show
     LineColumnCollector,
     LineColumnProvider;
-
 import '../../io/source_map_builder.dart' show
     SourceMapBuilder;
-
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
-
 import '../../js_backend/js_backend.dart' show
     CheckedModeHelper,
     CompoundName,
@@ -74,7 +69,10 @@ import '../../js_backend/js_backend.dart' show
     TypeCheck,
     TypeChecks,
     TypeVariableHandler;
-
+import '../../universe/call_structure.dart' show
+    CallStructure;
+import '../../universe/selector.dart' show
+    Selector;
 import '../../util/characters.dart' show
     $$,
     $A,
@@ -83,10 +81,8 @@ import '../../util/characters.dart' show
     $Z,
     $a,
     $z;
-
 import '../../util/uri_extras.dart' show
     relativize;
-
 import '../../util/util.dart' show
     equalElements;
 
@@ -381,7 +377,7 @@ class Emitter implements js_emitter.Emitter {
         return jsAst.js.expressionTemplateFor('#.substring($isPrefixLength)');
 
       case JsBuiltin.isFunctionType:
-        return backend.rti.representationGenerator.templateForIsFunctionType;
+        return backend.rtiEncoder.templateForIsFunctionType;
 
       case JsBuiltin.rawRtiToJsConstructorName:
         return jsAst.js.expressionTemplateFor("#.$typeNameProperty");
@@ -390,8 +386,7 @@ class Emitter implements js_emitter.Emitter {
         return jsAst.js.expressionTemplateFor("#.constructor");
 
       case JsBuiltin.createFunctionTypeRti:
-        return backend.rti.representationGenerator
-            .templateForCreateFunctionType;
+        return backend.rtiEncoder.templateForCreateFunctionType;
 
       case JsBuiltin.isSubtype:
         // TODO(floitsch): move this closer to where is-check properties are
@@ -845,12 +840,12 @@ class Emitter implements js_emitter.Emitter {
   jsAst.Statement buildFunctionThatReturnsNull() {
     return js.statement('#.# = function() {}',
                         [namer.isolateName,
-                         backend.rti.getFunctionThatReturnsNullName]);
+                         backend.rtiEncoder.getFunctionThatReturnsNullName]);
   }
 
   jsAst.Expression generateFunctionThatReturnsNull() {
     return js("#.#", [namer.isolateName,
-                      backend.rti.getFunctionThatReturnsNullName]);
+                      backend.rtiEncoder.getFunctionThatReturnsNullName]);
   }
 
   buildMain(jsAst.Statement invokeMain) {
@@ -892,7 +887,7 @@ class Emitter implements js_emitter.Emitter {
     jsAst.Expression finishedClassesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.FINISHED_CLASSES);
     jsAst.Expression cyclicThrow =
-        staticFunctionAccess(backend.getCyclicThrowHelper());
+        staticFunctionAccess(backend.helpers.cyclicThrowHelper);
     jsAst.Expression laziesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.LAZIES);
 
@@ -1017,7 +1012,7 @@ class Emitter implements js_emitter.Emitter {
             'outputContainsConstantList': outputContainsConstantList,
             'makeConstListProperty': makeConstListProperty,
             'functionThatReturnsNullProperty':
-                backend.rti.getFunctionThatReturnsNullName,
+                backend.rtiEncoder.getFunctionThatReturnsNullName,
             'hasIncrementalSupport': compiler.hasIncrementalSupport,
             'lazyInitializerProperty': lazyInitializerProperty,});
   }

@@ -231,6 +231,9 @@ abstract class ServiceObject extends Observable {
           case 'LocalVarDescriptors':
             obj = new LocalVarDescriptors._empty(owner);
             break;
+          case 'MegamorphicCache':
+            obj = new MegamorphicCache._empty(owner);
+            break;
           case 'ObjectPool':
             obj = new ObjectPool._empty(owner);
             break;
@@ -640,14 +643,15 @@ abstract class VM extends ServiceObjectOwner {
   @observable int pid = 0;
   @observable DateTime startTime;
   @observable DateTime refreshTime;
-  @observable Duration get upTime =>
-      (new DateTime.now().difference(startTime));
+  @observable Duration get upTime {
+    if (startTime == null) {
+      return null;
+    }
+    return (new DateTime.now().difference(startTime));
+  }
 
   VM() : super._empty(null) {
-    name = 'vm';
-    vmName = 'vm';
-    _cache['vm'] = this;
-    update(toObservable({'id':'vm', 'type':'@VM'}));
+    update(toObservable({'name':'vm', 'type':'@VM'}));
   }
 
   void postServiceEvent(String streamId, Map response, ByteData data) {
@@ -673,6 +677,11 @@ abstract class VM extends ServiceObjectOwner {
       if (event.kind == ServiceEvent.kIsolateExit) {
         _isolateCache.remove(isolate.id);
         _buildIsolateList();
+      }
+      if (event.kind == ServiceEvent.kIsolateRunnable) {
+        // Force reload once the isolate becomes runnable so that we
+        // update the root library.
+        isolate.reload();
       }
     }
     var eventStream = _eventStreams[streamId];
@@ -728,6 +737,14 @@ abstract class VM extends ServiceObjectOwner {
     if (map == null) {
       return null;
     }
+    var type = _stripRef(map['type']);
+    if (type == 'VM') {
+      // Update this VM object.
+      update(map);
+      return this;
+    }
+
+    assert(type == 'Isolate');
     String id = map['id'];
     if (!id.startsWith(_isolateIdPrefix)) {
       // Currently the VM only supports upgrading Isolate ServiceObjects.
@@ -811,11 +828,16 @@ abstract class VM extends ServiceObjectOwner {
     if (!loaded) {
       // The vm service relies on these events to keep the VM and
       // Isolate types up to date.
+      await listenEventStream(kVMStream, _dispatchEventToIsolate);
       await listenEventStream(kIsolateStream, _dispatchEventToIsolate);
       await listenEventStream(kDebugStream, _dispatchEventToIsolate);
       await listenEventStream(_kGraphStream, _dispatchEventToIsolate);
     }
     return await invokeRpcNoUpgrade('getVM', {});
+  }
+
+  Future setName(String newName) {
+    return invokeRpc('setVMName', { 'name': newName });
   }
 
   Future<ServiceObject> getFlagList() {
@@ -840,6 +862,7 @@ abstract class VM extends ServiceObjectOwner {
   Map<String,_EventStreamState> _eventStreams = {};
 
   // Well-known stream ids.
+  static const kVMStream = 'VM';
   static const kIsolateStream = 'Isolate';
   static const kDebugStream = 'Debug';
   static const kGCStream = 'GC';
@@ -870,6 +893,8 @@ abstract class VM extends ServiceObjectOwner {
   Future get onDisconnect;
 
   void _update(ObservableMap map, bool mapIsRef) {
+    name = map['name'];
+    vmName = map.containsKey('_vmName') ? map['_vmName'] : name;
     if (mapIsRef) {
       return;
     }
@@ -1104,9 +1129,14 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @reflectable VM get vm => owner;
   @reflectable Isolate get isolate => this;
   @observable int number;
+  @observable int originNumber;
   @observable DateTime startTime;
-  @observable Duration get upTime =>
-      (new DateTime.now().difference(startTime));
+  @observable Duration get upTime {
+    if (startTime == null) {
+      return null;
+    }
+    return (new DateTime.now().difference(startTime));
+  }
 
   @observable ObservableMap counters = new ObservableMap();
 
@@ -1335,7 +1365,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   void _update(ObservableMap map, bool mapIsRef) {
     name = map['name'];
-    vmName = map['name'];
+    vmName = map.containsKey('_vmName') ? map['_vmName'] : name;
     number = int.parse(map['number'], onError:(_) => null);
     if (mapIsRef) {
       return;
@@ -1344,6 +1374,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     loading = false;
 
     _upgradeCollection(map, isolate);
+    originNumber = int.parse(map['_originNumber'], onError:(_) => null);
     rootLibrary = map['rootLib'];
     if (map['entry'] != null) {
       entry = map['entry'];
@@ -1478,8 +1509,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
         break;
 
       default:
-        // Log unrecognized events.
-        Logger.root.severe('Unrecognized event: $event');
+        // Log unexpected events.
+        Logger.root.severe('Unexpected event: $event');
         break;
     }
   }
@@ -1506,7 +1537,9 @@ class Isolate extends ServiceObjectOwner with Coverage {
     } on ServerRpcException catch(e) {
       if (e.code == ServerRpcException.kCannotAddBreakpoint) {
         // Unable to set a breakpoint at the desired line.
-        script.getLine(line).possibleBpt = false;
+        if (script.loaded) {
+          script.getLine(line).possibleBpt = false;
+        }
       }
       rethrow;
     }
@@ -1624,8 +1657,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return invokeRpc('setName', {'name': newName});
   }
 
-  Future setExceptionPauseInfo(String exceptions) {
-    return invokeRpc('_setExceptionPauseInfo', {'exceptions': exceptions});
+  Future setExceptionPauseMode(String mode) {
+    return invokeRpc('setExceptionPauseMode', {'mode': mode});
   }
 
   Future<ServiceMap> getStack() {
@@ -1827,6 +1860,7 @@ Level _findLogLevel(int value) {
 /// A [ServiceEvent] is an asynchronous event notification from the vm.
 class ServiceEvent extends ServiceObject {
   /// The possible 'kind' values.
+  static const kVMUpdate               = 'VMUpdate';
   static const kIsolateStart           = 'IsolateStart';
   static const kIsolateRunnable        = 'IsolateRunnable';
   static const kIsolateExit            = 'IsolateExit';
@@ -1944,11 +1978,12 @@ class ServiceEvent extends ServiceObject {
   }
 
   String toString() {
+    var ownerName = owner.id != null ? owner.id.toString() : owner.name;
     if (data == null) {
-      return "ServiceEvent(owner='${owner.id}', kind='${kind}', "
+      return "ServiceEvent(owner='${ownerName}', kind='${kind}', "
           "time=${timestamp})";
     } else {
-      return "ServiceEvent(owner='${owner.id}', kind='${kind}', "
+      return "ServiceEvent(owner='${ownerName}', kind='${kind}', "
           "data.lengthInBytes=${data.lengthInBytes}, time=${timestamp})";
     }
   }
@@ -3297,6 +3332,28 @@ class ICData extends HeapObject {
     }
     argumentsDescriptor = map['_argumentsDescriptor'];
     entries = map['_entries'];
+  }
+}
+
+class MegamorphicCache extends HeapObject {
+  @observable int mask;
+  @observable Instance buckets;
+
+  bool get canCache => false;
+  bool get immutable => false;
+
+  MegamorphicCache._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    _upgradeCollection(map, isolate);
+    super._update(map, mapIsRef);
+
+    if (mapIsRef) {
+      return;
+    }
+
+    mask = map['_mask'];
+    buckets = map['_buckets'];
   }
 }
 

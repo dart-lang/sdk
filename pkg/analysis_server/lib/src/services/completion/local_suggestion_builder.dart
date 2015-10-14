@@ -4,9 +4,10 @@
 
 library services.completion.suggestion.builder.local;
 
-import 'package:analysis_server/src/protocol.dart' as protocol
+import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
     show Element, ElementKind;
-import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';

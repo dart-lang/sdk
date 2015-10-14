@@ -1,0 +1,9 @@
+name: js
+version: 0.6.0-dev.1
+authors:
+- Dart Team <misc@dartlang.org>
+- Alexandre Ardhuin <alexandre.ardhuin@gmail.com>
+description: Access JavaScript from Dart.
+homepage: https://github.com/dart-lang/js-interop
+environment:
+  sdk: '>=1.13.0-dev <2.0.0'

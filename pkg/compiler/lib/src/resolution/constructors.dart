@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library dart2js.resolution.constructors;
+
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
 import '../constants/constructors.dart' show
@@ -10,15 +12,6 @@ import '../constants/constructors.dart' show
     RedirectingGenerativeConstantConstructor;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter,
-    DiagnosticMessage;
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart' show
-    MessageKind;
-import '../diagnostics/spannable.dart' show
-    Spannable;
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
     ConstructorElementX,
@@ -130,9 +123,11 @@ class InitializerResolver {
       reporter.reportErrorMessage(
           init, MessageKind.INVALID_RECEIVER_IN_INITIALIZER);
     }
-    registry.useElement(init, target);
-    registry.registerStaticUse(target);
-    checkForDuplicateInitializers(target, init);
+    if (target != null) {
+      registry.useElement(init, target);
+      registry.registerStaticUse(target);
+      checkForDuplicateInitializers(target, init);
+    }
     // Resolve initializing value.
     ResolutionResult result = visitor.visitInStaticContext(
         init.arguments.head,
@@ -186,9 +181,10 @@ class InitializerResolver {
                                      call,
                                      className,
                                      constructorSelector);
-
-    registry.useElement(call, calledConstructor);
-    registry.registerStaticUse(calledConstructor);
+    if (calledConstructor != null) {
+      registry.useElement(call, calledConstructor);
+      registry.registerStaticUse(calledConstructor);
+    }
     if (isConst) {
       if (isValidAsConstant &&
           calledConstructor.isConst &&
@@ -235,8 +231,10 @@ class InitializerResolver {
                                        functionNode,
                                        className,
                                        constructorSelector);
-      registry.registerImplicitSuperCall(calledConstructor);
-      registry.registerStaticUse(calledConstructor);
+      if (calledConstructor != null) {
+        registry.registerImplicitSuperCall(calledConstructor);
+        registry.registerStaticUse(calledConstructor);
+      }
 
       if (isConst && isValidAsConstant) {
         return new ConstructedConstantExpression(

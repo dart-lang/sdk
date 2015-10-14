@@ -7,6 +7,7 @@ library dart2js.enqueue;
 import 'dart:collection' show
     Queue;
 
+import 'common.dart';
 import 'common/names.dart' show
     Identifiers;
 import 'common/resolution.dart' show
@@ -27,12 +28,6 @@ import 'compiler.dart' show
 import 'dart_types.dart' show
     DartType,
     InterfaceType;
-import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import 'diagnostics/invariant.dart' show
-    invariant;
-import 'diagnostics/spannable.dart' show
-    SpannableAssertionFailure;
 import 'elements/elements.dart' show
     AnalyzableElement,
     AstElement,
@@ -51,10 +46,6 @@ import 'elements/elements.dart' show
     TypedefElement;
 import 'js/js.dart' as js;
 import 'native/native.dart' as native;
-import 'resolution/members.dart' show
-    ResolverVisitor;
-import 'tree/tree.dart' show
-    Send;
 import 'types/types.dart' show
     TypeMaskStrategy;
 import 'universe/selector.dart' show
@@ -121,6 +112,33 @@ class WorldImpact {
   Iterable<MethodElement> get closurizedFunctions => const <MethodElement>[];
 
   Iterable<LocalFunctionElement> get closures => const <LocalFunctionElement>[];
+
+  Iterable<DartType> get typeLiterals => const <DartType>[];
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+
+    void add(String title, Iterable iterable) {
+      if (iterable.isNotEmpty) {
+        sb.write('\n $title:');
+        iterable.forEach((e) => sb.write('\n  $e'));
+      }
+    }
+
+    add('dynamic invocations', dynamicInvocations);
+    add('dynamic getters', dynamicGetters);
+    add('dynamic setters', dynamicSetters);
+    add('static uses', staticUses);
+    add('instantiated types', instantiatedTypes);
+    add('is-checks', isChecks);
+    add('checked-mode checks', checkedModeChecks);
+    add('as-casts', asCasts);
+    add('closurized functions', closurizedFunctions);
+    add('closures', closures);
+    add('type literals', typeLiterals);
+
+    return sb.toString();
+  }
 }
 
 abstract class Enqueuer {
@@ -784,12 +802,7 @@ abstract class Enqueuer {
 
 /// [Enqueuer] which is specific to resolution.
 class ResolutionEnqueuer extends Enqueuer {
-  /**
-   * Map from declaration elements to the [TreeElements] object holding the
-   * resolution mapping for the element implementation.
-   *
-   * Invariant: Key elements are declaration elements.
-   */
+  /// All declaration elements that have been processed by the resolver.
   final Set<AstElement> processedElements;
 
   final Queue<ResolutionWorkItem> queue;

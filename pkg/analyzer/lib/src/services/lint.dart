@@ -10,6 +10,11 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/visitors.dart';
 
+/// A registry containing mappings of contexts to their associated configured
+/// lints.
+final Map<AnalysisContext, List<Linter>> lintRegistry =
+    <AnalysisContext, List<Linter>>{};
+
 /// Implementers contribute lint warnings via the provided error [reporter].
 abstract class Linter {
   /// Used to report lint warnings.
@@ -28,6 +33,7 @@ abstract class Linter {
 /// See [LintCode].
 class LintGenerator {
   /// A global container for contributed linters.
+  @deprecated // Use lintRegistry.
   static final List<Linter> LINTERS = <Linter>[];
 
   final Iterable<CompilationUnit> _compilationUnits;
@@ -36,7 +42,7 @@ class LintGenerator {
 
   LintGenerator(this._compilationUnits, this._errorListener,
       [Iterable<Linter> linters])
-      : _linters = linters != null ? linters : LINTERS;
+      : _linters = linters ?? LINTERS;
 
   void generate() {
     PerformanceStatistics.lint.makeCurrentWhile(() {

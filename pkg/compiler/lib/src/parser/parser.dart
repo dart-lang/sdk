@@ -4,8 +4,7 @@
 
 library dart2js.parser;
 
-import '../diagnostics/messages.dart' show
-    MessageKind;
+import '../common.dart';
 import '../tokens/keyword.dart' show
     Keyword;
 import '../tokens/precedence.dart' show

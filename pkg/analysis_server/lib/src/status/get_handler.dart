@@ -10,13 +10,13 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
-import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_index.dart';
 import 'package:analysis_server/src/services/index/store/split_store.dart';
@@ -30,6 +30,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
     hide AnalysisCache, AnalysisContextImpl, AnalysisTask;
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -270,6 +271,14 @@ class GetHandler {
     if (unit != null) {
       return unit;
     }
+    unit = entry.getValue(RESOLVED_UNIT9);
+    if (unit != null) {
+      return unit;
+    }
+    unit = entry.getValue(RESOLVED_UNIT10);
+    if (unit != null) {
+      return unit;
+    }
     return entry.getValue(RESOLVED_UNIT);
   }
 
@@ -324,12 +333,10 @@ class GetHandler {
       results.add(COMPILATION_UNIT_ELEMENT);
       results.add(HINTS);
       results.add(LINTS);
-      results.add(INFER_STATIC_VARIABLE_TYPES_ERRORS);
       results.add(INFERABLE_STATIC_VARIABLES_IN_UNIT);
       results.add(LIBRARY_UNIT_ERRORS);
-      results.add(PARTIALLY_RESOLVE_REFERENCES_ERRORS);
-      results.add(RESOLVE_FUNCTION_BODIES_ERRORS);
       results.add(RESOLVE_TYPE_NAMES_ERRORS);
+      results.add(RESOLVE_UNIT_ERRORS);
       results.add(RESOLVED_UNIT1);
       results.add(RESOLVED_UNIT2);
       results.add(RESOLVED_UNIT3);
@@ -338,7 +345,10 @@ class GetHandler {
       results.add(RESOLVED_UNIT6);
       results.add(RESOLVED_UNIT7);
       results.add(RESOLVED_UNIT8);
+      results.add(RESOLVED_UNIT9);
+      results.add(RESOLVED_UNIT10);
       results.add(RESOLVED_UNIT);
+      results.add(STRONG_MODE_ERRORS);
       results.add(USED_IMPORTED_ELEMENTS);
       results.add(USED_LOCAL_ELEMENTS);
       results.add(VARIABLE_REFERENCE_ERRORS);
@@ -347,7 +357,6 @@ class GetHandler {
       results.add(CONSTANT_DEPENDENCIES);
       results.add(CONSTANT_VALUE);
       if (target is VariableElement) {
-        results.add(INFER_STATIC_VARIABLE_ERRORS);
         results.add(INFERABLE_STATIC_VARIABLE_DEPENDENCIES);
         results.add(INFERRED_STATIC_VARIABLE);
       }
@@ -581,22 +590,27 @@ class GetHandler {
           buffer.write('<p>Not found.</p>');
           return;
         }
-        CacheEntry entry = context.analysisCache.get(source);
-        if (entry == null) {
-          buffer.write('<p>Not found.</p>');
-          return;
-        }
-        CompilationUnit ast = _getAnyAst(entry);
-        if (ast == null) {
-          buffer.write('<p>null</p>');
-          return;
-        }
-        AstWriter writer = new AstWriter(buffer);
-        ast.accept(writer);
-        if (writer.exceptions.isNotEmpty) {
-          buffer.write('<h3>Exceptions while creating page</h3>');
-          for (CaughtException exception in writer.exceptions) {
-            _writeException(buffer, exception);
+        List<Source> libraries = context.getLibrariesContaining(source);
+        for (Source library in libraries) {
+          AnalysisTarget target = new LibrarySpecificUnit(library, source);
+          CacheEntry entry = context.analysisCache.get(target);
+          buffer.write('<b>$target</b><br>');
+          if (entry == null) {
+            buffer.write('<p>Not found.</p>');
+            continue;
+          }
+          CompilationUnit ast = _getAnyAst(entry);
+          if (ast == null) {
+            buffer.write('<p>null</p>');
+            continue;
+          }
+          AstWriter writer = new AstWriter(buffer);
+          ast.accept(writer);
+          if (writer.exceptions.isNotEmpty) {
+            buffer.write('<h3>Exceptions while creating page</h3>');
+            for (CaughtException exception in writer.exceptions) {
+              _writeException(buffer, exception);
+            }
           }
         }
       });
@@ -712,30 +726,36 @@ class GetHandler {
           buffer.write('<h3>');
           buffer.write(HTML_ESCAPE.convert(entry.target.toString()));
           buffer.write('</h3>');
-          buffer.write('<dl>');
-          buffer.write('<dt>time</dt><dd>');
+          buffer.write('<p>time</p><blockquote><p>Value</p><blockquote>');
           buffer.write(entry.modificationTime);
-          buffer.write('</dd>');
+          buffer.write('</blockquote></blockquote>');
           for (ResultDescriptor result in results) {
+            ResultData data = entry.getResultData(result);
             CacheState state = entry.getState(result);
             String descriptorName = HTML_ESCAPE.convert(result.toString());
             String descriptorState = HTML_ESCAPE.convert(state.toString());
-            buffer.write('<dt>$descriptorName ($descriptorState)</dt><dd>');
+            buffer
+                .write('<p>$descriptorName ($descriptorState)</p><blockquote>');
             if (state == CacheState.VALID) {
+              buffer.write('<p>Value</p><blockquote>');
               try {
-                _writeValueAsHtml(buffer, entry.getValue(result), linkParameters);
+                _writeValueAsHtml(
+                    buffer, entry.getValue(result), linkParameters);
               } catch (exception) {
                 buffer.write('(${HTML_ESCAPE.convert(exception.toString())})');
               }
+              buffer.write('</blockquote>');
             }
-            buffer.write('</dd>');
+            _writeTargetedResults(buffer, 'Depends on', data.dependedOnResults);
+            _writeTargetedResults(
+                buffer, 'Depended on by', data.dependentResults);
+            buffer.write('</blockquote>');
           }
           if (entry.exception != null) {
             buffer.write('<dt>exception</dt><dd>');
             _writeException(buffer, entry.exception);
             buffer.write('</dd>');
           }
-          buffer.write('</dl>');
         }
       });
     });
@@ -1462,6 +1482,24 @@ class GetHandler {
     }
   }
 
+  void _writeListOfStrings(
+      StringBuffer buffer, String listName, Iterable<String> items) {
+    List<String> itemList = items.toList();
+    itemList.sort((String a, String b) {
+      a = a.toLowerCase();
+      b = b.toLowerCase();
+      return a.compareTo(b);
+    });
+    buffer.write('List "listName" containing ${itemList.length} entries:');
+    buffer.write('<ul>');
+    for (String member in itemList) {
+      buffer.write('<li>');
+      buffer.write(member);
+      buffer.write('</li>');
+    }
+    buffer.write('</ul>');
+  }
+
   /**
    * Write a representation of an analysis option with the given [name] and
    * [value] to the given [buffer]. The option should be separated from other
@@ -1753,6 +1791,39 @@ class GetHandler {
   }
 
   /**
+   * Write the targeted results returned by iterating over the [results] to the
+   * given [buffer]. The list will have the given [title] written before it.
+   */
+  void _writeTargetedResults(
+      StringBuffer buffer, String title, Iterable<TargetedResult> results) {
+    List<TargetedResult> sortedResults = results.toList();
+    sortedResults.sort((TargetedResult first, TargetedResult second) {
+      int nameOrder =
+          first.result.toString().compareTo(second.result.toString());
+      if (nameOrder != 0) {
+        return nameOrder;
+      }
+      return first.target.toString().compareTo(second.target.toString());
+    });
+
+    buffer.write('<p>');
+    buffer.write(title);
+    buffer.write('</p><blockquote>');
+    if (results.isEmpty) {
+      buffer.write('nothing');
+    } else {
+      for (TargetedResult result in sortedResults) {
+        buffer.write('<p>');
+        buffer.write(result.result.toString());
+        buffer.write(' of ');
+        buffer.write(result.target.toString());
+        buffer.write('<p>');
+      }
+    }
+    buffer.write('</blockquote>');
+  }
+
+  /**
    * Write two columns of information to the given [buffer], where the
    * [leftColumn] and [rightColumn] functions are used to generate the content
    * of those columns.
@@ -1795,6 +1866,22 @@ class GetHandler {
       String link =
           makeLink(ELEMENT_PATH, linkParameters, value.runtimeType.toString());
       buffer.write('<i>$link</i>');
+    } else if (value is UsedLocalElements) {
+      buffer.write('<ul>');
+      {
+        HashSet<Element> elements = value.elements;
+        buffer.write('List "elements" containing ${elements.length} entries');
+        buffer.write('<ul>');
+        for (Element element in elements) {
+          buffer.write('<li>');
+          buffer.write('<i>${element.runtimeType}</i>  $element');
+          buffer.write('</li>');
+        }
+        buffer.write('</ul>');
+      }
+      _writeListOfStrings(buffer, 'members', value.members);
+      _writeListOfStrings(buffer, 'readMembers', value.readMembers);
+      buffer.write('</ul>');
     } else {
       buffer.write(HTML_ESCAPE.convert(value.toString()));
       buffer.write(' <i>(${value.runtimeType.toString()})</i>');

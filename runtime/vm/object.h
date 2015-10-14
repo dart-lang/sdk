@@ -65,19 +65,11 @@ class Symbols;
     initializeHandle(obj, raw_ptr);                                            \
     return *obj;                                                               \
   }                                                                            \
-  /* DEPRECATED: Use Zone version. */                                          \
-  static object& Handle(Isolate* isolate, Raw##object* raw_ptr) {              \
-    return Handle(isolate->current_zone(), raw_ptr);                           \
-  }                                                                            \
   static object& Handle() {                                                    \
     return Handle(Thread::Current()->zone(), object::null());                  \
   }                                                                            \
   static object& Handle(Zone* zone) {                                          \
     return Handle(zone, object::null());                                       \
-  }                                                                            \
-  /* DEPRECATED: Use Zone version. */                                          \
-  static object& Handle(Isolate* isolate) {                                    \
-    return Handle(isolate->current_zone(), object::null());                    \
   }                                                                            \
   static object& Handle(Raw##object* raw_ptr) {                                \
     return Handle(Thread::Current()->zone(), raw_ptr);                         \
@@ -180,7 +172,8 @@ class Symbols;
   static Raw##object* ReadFrom(SnapshotReader* reader,                         \
                                intptr_t object_id,                             \
                                intptr_t tags,                                  \
-                               Snapshot::Kind);                                \
+                               Snapshot::Kind,                                 \
+                               bool as_reference);                             \
   friend class SnapshotReader;                                                 \
 
 #define OBJECT_IMPLEMENTATION(object, super)                                   \
@@ -203,8 +196,8 @@ class Symbols;
     return raw()->ptr();                                                       \
   }                                                                            \
   SNAPSHOT_READER_SUPPORT(object)                                              \
-  friend class Isolate;                                                        \
   friend class StackFrame;                                                     \
+  friend class Thread;                                                         \
 
 // This macro is used to denote types that do not have a sub-type.
 #define FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, rettype, super)        \
@@ -228,8 +221,8 @@ class Symbols;
     return -kWordSize;                                                         \
   }                                                                            \
   SNAPSHOT_READER_SUPPORT(rettype)                                             \
-  friend class Isolate;                                                        \
   friend class StackFrame;                                                     \
+  friend class Thread;                                                         \
 
 #define FINAL_HEAP_OBJECT_IMPLEMENTATION(object, super)                        \
   FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, object, super)               \
@@ -327,10 +320,6 @@ class Object {
     initializeHandle(obj, raw_ptr);
     return *obj;
   }
-  // DEPRECATED: Use Zone version.
-  static Object& Handle(Isolate* isolate, RawObject* raw_ptr) {
-    return Handle(isolate->current_zone(), raw_ptr);
-  }
   static Object* ReadOnlyHandle() {
     Object* obj = reinterpret_cast<Object*>(
         Dart::AllocateReadOnlyHandle());
@@ -344,10 +333,6 @@ class Object {
 
   static Object& Handle(Zone* zone) {
     return Handle(zone, null_);
-  }
-  // DEPRECATED: Use Zone version.
-  static Object& Handle(Isolate* isolate) {
-    return Handle(isolate->current_zone(), null_);
   }
 
   static Object& Handle(RawObject* raw_ptr) {
@@ -822,7 +807,8 @@ class Object {
   friend class TwoByteString;
   friend class ExternalOneByteString;
   friend class ExternalTwoByteString;
-  friend class Isolate;
+  friend class Thread;
+
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;
 REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
@@ -849,10 +835,6 @@ class PassiveObject : public Object {
     obj->set_vtable(0);
     return *obj;
   }
-  // DEPRECATED - use Zone version.
-  static PassiveObject& Handle(Isolate* I, RawObject* raw_ptr) {
-    return Handle(I->current_zone(), raw_ptr);
-  }
   static PassiveObject& Handle(RawObject* raw_ptr) {
     return Handle(Thread::Current()->zone(), raw_ptr);
   }
@@ -861,10 +843,6 @@ class PassiveObject : public Object {
   }
   static PassiveObject& Handle(Zone* zone) {
     return Handle(zone, Object::null());
-  }
-  // DEPRECATED - use Zone version.
-  static PassiveObject& Handle(Isolate* I) {
-    return Handle(I, Object::null());
   }
   static PassiveObject& ZoneHandle(Zone* zone, RawObject* raw_ptr) {
     PassiveObject* obj = reinterpret_cast<PassiveObject*>(
@@ -1182,6 +1160,7 @@ class Class : public Object {
   RawGrowableObjectArray* closures() const {
     return raw_ptr()->closure_functions_;
   }
+  void set_closures(const GrowableObjectArray& value) const;
   void AddClosureFunction(const Function& function) const;
   RawFunction* LookupClosureFunction(intptr_t token_pos) const;
   intptr_t FindClosureIndex(const Function& function) const;
@@ -3489,7 +3468,6 @@ class Library : public Object {
   static RawLibrary* MathLibrary();
   static RawLibrary* MirrorsLibrary();
   static RawLibrary* NativeWrappersLibrary();
-  static RawLibrary* ProfilerLibrary();
   static RawLibrary* TypedDataLibrary();
   static RawLibrary* VMServiceLibrary();
 
@@ -3954,6 +3932,14 @@ class Stackmap : public Object {
   void SetRegisterBitCount(intptr_t register_bit_count) const {
     ASSERT(register_bit_count < kMaxInt32);
     StoreNonPointer(&raw_ptr()->register_bit_count_, register_bit_count);
+  }
+
+  bool Equals(const Stackmap& other) const {
+    if (Length() != other.Length()) {
+      return false;
+    }
+    NoSafepointScope no_safepoint;
+    return memcmp(raw_ptr(), other.raw_ptr(), InstanceSize(Length())) == 0;
   }
 
   static const intptr_t kMaxLengthInBytes = kSmiMax;
@@ -6392,7 +6378,8 @@ class OneByteString : public AllStatic {
   static RawOneByteString* ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
                                     intptr_t tags,
-                                    Snapshot::Kind kind);
+                                    Snapshot::Kind kind,
+                                    bool as_reference);
 
   friend class Class;
   friend class String;
@@ -6507,7 +6494,8 @@ class TwoByteString : public AllStatic {
   static RawTwoByteString* ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
                                     intptr_t tags,
-                                    Snapshot::Kind kind);
+                                    Snapshot::Kind kind,
+                                    bool as_reference);
 
   friend class Class;
   friend class String;
@@ -6585,7 +6573,8 @@ class ExternalOneByteString : public AllStatic {
   static RawExternalOneByteString* ReadFrom(SnapshotReader* reader,
                                             intptr_t object_id,
                                             intptr_t tags,
-                                            Snapshot::Kind kind);
+                                            Snapshot::Kind kind,
+                                            bool as_reference);
 
   static intptr_t NextFieldOffset() {
     // Indicates this class cannot be extended by dart code.
@@ -6664,7 +6653,8 @@ class ExternalTwoByteString : public AllStatic {
   static RawExternalTwoByteString* ReadFrom(SnapshotReader* reader,
                                             intptr_t object_id,
                                             intptr_t tags,
-                                            Snapshot::Kind kind);
+                                            Snapshot::Kind kind,
+                                            bool as_reference);
 
   static intptr_t NextFieldOffset() {
     // Indicates this class cannot be extended by dart code.
@@ -6836,7 +6826,8 @@ class ImmutableArray : public AllStatic {
   static RawImmutableArray* ReadFrom(SnapshotReader* reader,
                                      intptr_t object_id,
                                      intptr_t tags,
-                                     Snapshot::Kind kind);
+                                     Snapshot::Kind kind,
+                                     bool as_reference);
 
   static const ClassId kClassId = kImmutableArrayCid;
 

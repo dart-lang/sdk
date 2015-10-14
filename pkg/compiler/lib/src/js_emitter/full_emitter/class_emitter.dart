@@ -341,7 +341,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
     String reflectionName = emitter.getReflectionName(classElement, className);
     if (reflectionName != null) {
-      if (!backend.isAccessibleByReflection(classElement)) {
+      if (!backend.isAccessibleByReflection(classElement) || cls.onlyForRti) {
         // TODO(herhut): Fix use of reflection name here.
         enclosingBuilder.addPropertyByName("+$reflectionName", js.number(0));
       } else {

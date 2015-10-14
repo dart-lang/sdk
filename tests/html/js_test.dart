@@ -852,6 +852,8 @@ main() {
         expect(context['window'] is Window, isTrue);
       });
 
+      // Bug: dartbug.com/24520
+      /*
       test('foreign browser objects should be proxied', () {
         var iframe = new IFrameElement();
         document.body.children.add(iframe);
@@ -878,6 +880,7 @@ main() {
         context.callMethod('fireClickEvent', [contentWindow]);
         expect(clicked, isTrue);
       });
+      */
 
       test('document', () {
         expect(context['document'] is Document, isTrue);

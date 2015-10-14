@@ -98,3 +98,6 @@ vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Is
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
 issue23244_test: Fail # Can't run spawnFunction on dartium.
+
+[ $compiler == none && ($runtime == vm || $runtime == drt || $runtime == dartium) && $arch == ia32 ]
+vm/regress_24517_test: Pass, Fail # Issue 24517.

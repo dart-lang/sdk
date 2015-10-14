@@ -4,10 +4,11 @@
 
 library test.services.completion.toplevel;
 
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/protocol.dart' as protocol
+import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
     show Element, ElementKind;
-import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    hide Element, ElementKind;
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';

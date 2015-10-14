@@ -13,16 +13,11 @@ import 'dart:collection';
 import 'dart:convert';
 
 import '../../compiler.dart';
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
 import '../diagnostics/invariant.dart' show
     DEBUG_MODE;
-import '../diagnostics/messages.dart' show
-    MessageKind;
-import '../diagnostics/spannable.dart' show
-    Spannable;
 import '../util/util.dart';
 
 part 'debug_collection.dart';

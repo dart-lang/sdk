@@ -24,9 +24,6 @@ class ShrinkingReducer extends Pass {
     _worklist = new List<_ReductionTask>();
     _RedexVisitor redexVisitor = new _RedexVisitor(_worklist);
 
-    // Set all parent pointers.
-    new ParentVisitor().visit(root);
-
     // Sweep over the term, collecting redexes into the worklist.
     redexVisitor.visit(root);
 
@@ -54,16 +51,9 @@ class ShrinkingReducer extends Pass {
   void _removeContinuation(Continuation cont) {
     LetCont parent = cont.parent;
     if (parent.continuations.length == 1) {
-      assert(cont.parent_index == 0);
       _removeNode(parent);
     } else {
-      List<Continuation> continuations = parent.continuations;
-      for (int i = cont.parent_index; i < continuations.length - 1; ++i) {
-        Continuation current = continuations[i + 1];
-        continuations[i] = current;
-        current.parent_index = i;
-      }
-      continuations.removeLast();
+      parent.continuations.remove(cont);
     }
     cont.parent = _DELETED;
   }
@@ -204,7 +194,8 @@ class ShrinkingReducer extends Pass {
 
     Parameter parameter = task.node;
     Continuation continuation = parameter.parent;
-    int index = parameter.parentIndex;
+    int index = continuation.parameters.indexOf(parameter);
+    assert(index != -1);
 
     // Remove the index'th argument from each invocation.
     Reference<Continuation> current = continuation.firstRef;
@@ -229,14 +220,7 @@ class ShrinkingReducer extends Pass {
       invoke.arguments.removeAt(index);
       current = current.next;
     }
-    // Copy the parameters above index down.
-    List<Parameter> parameters = continuation.parameters;
-    for (int i = index; i < parameters.length - 1; ++i) {
-      Parameter p = parameters[i + 1];
-      parameters[i] = p;
-      p.parentIndex = i;
-    }
-    parameters.removeLast();
+    continuation.parameters.removeAt(index);
 
     // Removing an unused parameter can create an eta-redex.
     if (_isEtaCont(continuation)) {
@@ -398,7 +382,7 @@ bool _isDeadParameter(Parameter parameter) {
 }
 
 /// Traverses a term and adds any found redexes to the worklist.
-class _RedexVisitor extends RecursiveVisitor {
+class _RedexVisitor extends TrampolineRecursiveVisitor {
   final List<_ReductionTask> worklist;
 
   _RedexVisitor(this.worklist);
@@ -444,7 +428,7 @@ class _RedexVisitor extends RecursiveVisitor {
 /// Deleted nodes that might participate in a reduction task are marked so that
 /// any corresponding tasks can be skipped.  Nodes are marked so by setting
 /// their parent to the deleted sentinel.
-class _RemovalVisitor extends RecursiveVisitor {
+class _RemovalVisitor extends TrampolineRecursiveVisitor {
   final List<_ReductionTask> worklist;
 
   _RemovalVisitor(this.worklist);
@@ -490,219 +474,7 @@ class _RemovalVisitor extends RecursiveVisitor {
   }
 }
 
-/// Traverses the CPS term and sets node.parent for each visited node.
-class ParentVisitor extends RecursiveVisitor {
-  processFunctionDefinition(FunctionDefinition node) {
-    node.body.parent = node;
-    if (node.thisParameter != null) node.thisParameter.parent = node;
-    int index = 0;
-    node.parameters.forEach((Definition parameter) {
-      parameter.parent = node;
-      if (parameter is Parameter) parameter.parentIndex = index++;
-    });
-    node.returnContinuation.parent = node;
-    node.body.parent = node;
-  }
 
-  processLetPrim(LetPrim node) {
-    node.primitive.parent = node;
-    node.body.parent = node;
-  }
-
-  processLetCont(LetCont node) {
-    int index = 0;
-    node.continuations.forEach((Continuation continuation) {
-      continuation.parent = node;
-      continuation.parent_index = index++;
-    });
-    node.body.parent = node;
-  }
-
-  processLetHandler(LetHandler node) {
-    node.handler.parent = node;
-    node.body.parent = node;
-  }
-
-  processLetMutable(LetMutable node) {
-    node.variable.parent = node;
-    node.value.parent = node;
-    node.body.parent = node;
-  }
-
-  processInvokeStatic(InvokeStatic node) {
-    node.arguments.forEach((Reference ref) => ref.parent = node);
-    node.continuation.parent = node;
-  }
-
-  processInvokeContinuation(InvokeContinuation node) {
-    node.continuation.parent = node;
-    node.arguments.forEach((Reference ref) => ref.parent = node);
-  }
-
-  processInvokeMethod(InvokeMethod node) {
-    node.receiver.parent = node;
-    node.continuation.parent = node;
-    node.arguments.forEach((Reference ref) => ref.parent = node);
-  }
-
-  processInvokeMethodDirectly(InvokeMethodDirectly node) {
-    node.receiver.parent = node;
-    node.continuation.parent = node;
-    node.arguments.forEach((Reference ref) => ref.parent = node);
-  }
-
-  processInvokeConstructor(InvokeConstructor node) {
-    node.continuation.parent = node;
-    node.arguments.forEach((Reference ref) => ref.parent = node);
-  }
-
-  processBranch(Branch node) {
-    node.condition.parent = node;
-    node.trueContinuation.parent = node;
-    node.falseContinuation.parent = node;
-  }
-
-  processTypeCast(TypeCast node) {
-    node.typeArguments.forEach((Reference ref) => ref.parent = node);
-    node.continuation.parent = node;
-    node.value.parent = node;
-  }
-
-  processTypeTest(TypeTest node) {
-    node.typeArguments.forEach((Reference ref) => ref.parent = node);
-    node.value.parent = node;
-  }
-
-  processSetMutable(SetMutable node) {
-    node.variable.parent = node;
-    node.value.parent = node;
-  }
-
-  processThrow(Throw node) {
-    node.value.parent = node;
-  }
-
-  processGetLazyStatic(GetLazyStatic node) {
-    node.continuation.parent = node;
-  }
-
-  processLiteralList(LiteralList node) {
-    node.values.forEach((Reference ref) => ref.parent = node);
-  }
-
-  processLiteralMap(LiteralMap node) {
-    node.entries.forEach((LiteralMapEntry entry) {
-      entry.key.parent = node;
-      entry.value.parent = node;
-    });
-  }
-
-  processCreateFunction(CreateFunction node) {
-    node.definition.parent = node;
-  }
-
-  processContinuation(Continuation node) {
-    if (node.body != null) node.body.parent = node;
-    int index = 0;
-    node.parameters.forEach((Parameter parameter) {
-      parameter.parent = node;
-      parameter.parentIndex = index++;
-    });
-  }
-
-  processInterceptor(Interceptor node) {
-    node.input.parent = node;
-  }
-
-  processSetField(SetField node) {
-    node.object.parent = node;
-    node.value.parent = node;
-  }
-
-  processGetField(GetField node) {
-    node.object.parent = node;
-  }
-
-  processGetStatic(GetStatic node) {
-  }
-
-  processSetStatic(SetStatic node) {
-    node.value.parent = node;
-  }
-
-  processGetMutable(GetMutable node) {
-    node.variable.parent = node;
-  }
-
-  processCreateInstance(CreateInstance node) {
-    node.arguments.forEach((Reference ref) => ref.parent = node);
-    node.typeInformation.forEach((Reference ref) => ref.parent = node);
-  }
-
-  processCreateBox(CreateBox node) {
-  }
-
-  processReifyRuntimeType(ReifyRuntimeType node) {
-    node.value.parent = node;
-  }
-
-  processReadTypeVariable(ReadTypeVariable node) {
-    node.target.parent = node;
-  }
-
-  processTypeExpression(TypeExpression node) {
-    node.arguments.forEach((Reference ref) => ref.parent = node);
-  }
-
-  processCreateInvocationMirror(CreateInvocationMirror node) {
-    node.arguments.forEach((Reference ref) => ref.parent = node);
-  }
-
-  processApplyBuiltinOperator(ApplyBuiltinOperator node) {
-    node.arguments.forEach((Reference ref) => ref.parent = node);
-  }
-
-  processApplyBuiltinMethod(ApplyBuiltinMethod node) {
-    node.receiver.parent = node;
-    node.arguments.forEach((Reference ref) => ref.parent = node);
-  }
-
-  processForeignCode(ForeignCode node) {
-    if (node.continuation != null) {
-      node.continuation.parent = node;
-    }
-    node.arguments.forEach((Reference ref) => ref.parent = node);
-  }
-
-  processGetLength(GetLength node) {
-    node.object.parent = node;
-  }
-
-  processGetIndex(GetIndex node) {
-    node.object.parent = node;
-    node.index.parent = node;
-  }
-
-  processSetIndex(SetIndex node) {
-    node.object.parent = node;
-    node.index.parent = node;
-    node.value.parent = node;
-  }
-
-  processAwait(Await node) {
-    node.continuation.parent = node;
-    node.input.parent = node;
-  }
-
-  processRefinement(Refinement node) {
-    node.value.parent = node;
-  }
-
-  processYield(Yield node) {
-    node.continuation.parent = node;
-    node.input.parent = node;
-  }
-}
 
 class _ReductionKind {
   final String name;
@@ -746,5 +518,6 @@ class _ReductionTask {
 /// A dummy class used solely to mark nodes as deleted once they are removed
 /// from a term.
 class _DeletedNode extends Node {
-  accept(_) => null;
+  accept(_) {}
+  setParentPointers() {}
 }

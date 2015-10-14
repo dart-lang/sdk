@@ -6,9 +6,8 @@
 // computed during resolution.
 library dart2js.constants.constant_constructors;
 
+import '../common.dart';
 import '../dart_types.dart';
-import '../diagnostics/invariant.dart' show
-    invariant;
 import '../elements/elements.dart';
 import '../resolution/operators.dart';
 import '../resolution/semantic_visitor.dart';
@@ -20,6 +19,7 @@ import '../resolution/tree_elements.dart' show
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show
     CallStructure;
+
 import 'constructors.dart';
 import 'expressions.dart';
 

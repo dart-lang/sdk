@@ -4,7 +4,7 @@
 
 library test.services.refactoring.inline_local;
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/inline_local.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';

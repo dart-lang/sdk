@@ -231,7 +231,7 @@ void CodeCoverage::PrintClass(const Library& lib,
 }
 
 
-void CodeCoverage::Write(Isolate* isolate) {
+void CodeCoverage::Write(Thread* thread) {
   if (FLAG_coverage_dir == NULL) {
     return;
   }
@@ -244,12 +244,12 @@ void CodeCoverage::Write(Isolate* isolate) {
   }
 
   JSONStream stream;
-  PrintJSON(isolate, &stream, NULL, false);
+  PrintJSON(thread, &stream, NULL, false);
 
   intptr_t pid = OS::ProcessId();
-  char* filename = OS::SCreate(Thread::Current()->zone(),
+  char* filename = OS::SCreate(thread->zone(),
       "%s/dart-cov-%" Pd "-%" Pd64 ".json",
-      FLAG_coverage_dir, pid, isolate->main_port());
+      FLAG_coverage_dir, pid, thread->isolate()->main_port());
   void* file = (*file_open)(filename, true);
   if (file == NULL) {
     OS::Print("Failed to write coverage file: %s\n", filename);
@@ -260,7 +260,7 @@ void CodeCoverage::Write(Isolate* isolate) {
 }
 
 
-void CodeCoverage::PrintJSON(Isolate* isolate,
+void CodeCoverage::PrintJSON(Thread* thread,
                              JSONStream* stream,
                              CoverageFilter* filter,
                              bool as_call_sites) {
@@ -269,7 +269,8 @@ void CodeCoverage::PrintJSON(Isolate* isolate,
     filter = &default_filter;
   }
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      isolate, isolate->object_store()->libraries());
+      thread->zone(),
+      thread->isolate()->object_store()->libraries());
   Library& lib = Library::Handle();
   Class& cls = Class::Handle();
   JSONObject coverage(stream);

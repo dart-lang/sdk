@@ -97,6 +97,15 @@ class IsolateCounterChartElement extends ObservatoryElement {
         new CounterChart(shadowRoot.querySelector('#isolate-counter-chart'));
   }
 
+  detached() {
+    super.detached();
+    var host = shadowRoot.querySelector('#isolate-counter-chart-host');
+    host.children.clear();
+    var legendHost =
+        shadowRoot.querySelector('#isolate-counter-chart-legend-host');
+    legendHost.children.clear();
+  }
+
   void countersChanged(oldValue) {
     if (counters == null) {
       return;

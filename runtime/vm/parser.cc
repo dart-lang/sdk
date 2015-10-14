@@ -46,6 +46,7 @@ DEFINE_FLAG(bool, load_deferred_eagerly, false,
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
 DEFINE_FLAG(bool, link_natives_lazily, false, "Link native calls lazily");
+DEFINE_FLAG(bool, move_super, false, "Move super initializer to end of list");
 
 DECLARE_FLAG(bool, lazy_dispatchers);
 DECLARE_FLAG(bool, load_deferred_eagerly);
@@ -2328,11 +2329,12 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name,
 }
 
 
-void Parser::GenerateSuperConstructorCall(const Class& cls,
-                                          intptr_t supercall_pos,
-                                          LocalVariable* receiver,
-                                          AstNode* phase_parameter,
-                                          ArgumentListNode* forwarding_args) {
+StaticCallNode* Parser::GenerateSuperConstructorCall(
+      const Class& cls,
+      intptr_t supercall_pos,
+      LocalVariable* receiver,
+      AstNode* phase_parameter,
+      ArgumentListNode* forwarding_args) {
   const Class& super_class = Class::Handle(Z, cls.SuperClass());
   // Omit the implicit super() if there is no super class (i.e.
   // we're not compiling class Object), or if the super class is an
@@ -2340,7 +2342,7 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
   if (super_class.IsNull() ||
       (super_class.num_native_fields() > 0 &&
        Class::Handle(Z, super_class.SuperClass()).IsObjectClass())) {
-    return;
+    return NULL;
   }
   String& super_ctor_name = String::Handle(Z, super_class.Name());
   super_ctor_name = Symbols::FromConcat(super_ctor_name, Symbols::Dot());
@@ -2391,13 +2393,12 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
                 String::Handle(Z, super_class.Name()).ToCString(),
                 error_message.ToCString());
   }
-  current_block_->statements->Add(
-      new StaticCallNode(supercall_pos, super_ctor, arguments));
+  return new StaticCallNode(supercall_pos, super_ctor, arguments);
 }
 
 
-AstNode* Parser::ParseSuperInitializer(const Class& cls,
-                                       LocalVariable* receiver) {
+StaticCallNode* Parser::ParseSuperInitializer(const Class& cls,
+                                              LocalVariable* receiver) {
   TRACE_PARSER("ParseSuperInitializer");
   ASSERT(CurrentToken() == Token::kSUPER);
   const intptr_t supercall_pos = TokenPos();
@@ -2728,30 +2729,67 @@ void Parser::ParseInitializers(const Class& cls,
                                LocalVariable* receiver,
                                GrowableArray<Field*>* initialized_fields) {
   TRACE_PARSER("ParseInitializers");
-  bool super_init_seen = false;
+  bool super_init_is_last = false;
+  intptr_t super_init_index = -1;
+  StaticCallNode* super_init_call = NULL;
   if (CurrentToken() == Token::kCOLON) {
     do {
       ConsumeToken();  // Colon or comma.
-      AstNode* init_statement;
       if (CurrentToken() == Token::kSUPER) {
-        if (super_init_seen) {
+        if (super_init_call != NULL) {
           ReportError("duplicate call to super constructor");
         }
-        init_statement = ParseSuperInitializer(cls, receiver);
-        super_init_seen = true;
+        super_init_call = ParseSuperInitializer(cls, receiver);
+        super_init_index = current_block_->statements->length();
+        current_block_->statements->Add(super_init_call);
+        super_init_is_last = true;
       } else {
-        init_statement = ParseInitializer(cls, receiver, initialized_fields);
+        AstNode* init_statement =
+            ParseInitializer(cls, receiver, initialized_fields);
+        super_init_is_last = false;
+        current_block_->statements->Add(init_statement);
       }
-      current_block_->statements->Add(init_statement);
     } while (CurrentToken() == Token::kCOMMA);
   }
-  if (!super_init_seen) {
+  if (super_init_call == NULL) {
     // Generate implicit super() if we haven't seen an explicit super call
     // or constructor redirection.
     AstNode* phase_parameter = new LiteralNode(
         TokenPos(), Smi::ZoneHandle(Z, Smi::New(Function::kCtorPhaseAll)));
-    GenerateSuperConstructorCall(
+    super_init_call = GenerateSuperConstructorCall(
         cls, TokenPos(), receiver, phase_parameter, NULL);
+    if (super_init_call != NULL) {
+      super_init_index = current_block_->statements->length();
+      current_block_->statements->Add(super_init_call);
+      super_init_is_last = true;
+    }
+  }
+  if (FLAG_move_super && (super_init_call != NULL) && !super_init_is_last) {
+    // If the super initializer call is not at the end of the initializer
+    // list, implicitly move it to the end. The actual parameter values
+    // are evaluated at the original position in the list and preserved
+    // in temporary variables. (The following initializer expressions
+    // could have side effects that alter the arguments to the super
+    // initializer.) E.g:
+    // A(x) : super(x), f = x++ { ... }
+    // is transformed to:
+    // A(x) : temp = x, f = x++, super(temp) { ... }
+    ReportWarning("Super initizlizer not at end");
+    ASSERT(super_init_index >= 0);
+    ArgumentListNode* ctor_args = super_init_call->arguments();
+    LetNode* saved_args = new(Z) LetNode(super_init_call->token_pos());
+    // The super initializer call has at least 2 arguments: the
+    // implicit receiver, and the hidden construction phase.
+    ASSERT(ctor_args->length() >= 2);
+    for (int i = 2; i < ctor_args->length(); i++) {
+      AstNode* arg = ctor_args->NodeAt(i);
+      LocalVariable* temp = CreateTempConstVariable(arg->token_pos(), "sca");
+      AstNode* save_temp = new(Z) StoreLocalNode(arg->token_pos(), temp, arg);
+      saved_args->AddNode(save_temp);
+      ctor_args->SetNodeAt(i, new(Z) LoadLocalNode(arg->token_pos(), temp));
+    }
+    current_block_->statements->ReplaceNodeAt(super_init_index, saved_args);
+    current_block_->statements->Add(super_init_call);
   }
   CheckFieldsInitialized(cls);
 }
@@ -2874,12 +2912,15 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
     }
   }
 
-  GenerateSuperConstructorCall(
+  AstNode* super_call = GenerateSuperConstructorCall(
       current_class(),
       Scanner::kNoSourcePos,
       receiver,
       new LoadLocalNode(Scanner::kNoSourcePos, phase_parameter),
       forwarding_args);
+  if (super_call != NULL) {
+    current_block_->statements->Add(super_call);
+  }
   CheckFieldsInitialized(current_class());
 
   // Empty constructor body.
@@ -3091,6 +3132,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
     }
   }
   if (super_call != NULL) {
+    ASSERT(!FLAG_move_super);
     // Generate an implicit call to the super constructor's body.
     // We need to patch the super _initializer_ call so that it
     // saves the evaluated actual arguments in temporary variables.
@@ -3119,6 +3161,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
 
   // Insert the implicit super call to the super constructor body.
   if (super_call != NULL) {
+    ASSERT(!FLAG_move_super);
     ArgumentListNode* initializer_args = super_call->arguments();
     const Function& super_ctor = super_call->function();
     // Patch the initializer call so it only executes the super initializer.
@@ -4826,7 +4869,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   enum_members.AddFunction(to_string_func);
 
   // Clone the hashCode getter function from the helper class.
-  Function& hash_code_func = Function::Handle(I,
+  Function& hash_code_func = Function::Handle(Z,
       helper_class.LookupDynamicFunctionAllowPrivate(Symbols::hashCode()));
   ASSERT(!hash_code_func.IsNull());
   hash_code_func = hash_code_func.Clone(cls);

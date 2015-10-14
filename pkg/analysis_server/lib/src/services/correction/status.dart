@@ -4,7 +4,7 @@
 
 library services.status;
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 
 /**
  * An outcome of a condition checking operation.

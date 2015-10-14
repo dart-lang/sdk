@@ -13,7 +13,8 @@ library test.integration.methods;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:unittest/unittest.dart';
 
 import 'integration_tests.dart';

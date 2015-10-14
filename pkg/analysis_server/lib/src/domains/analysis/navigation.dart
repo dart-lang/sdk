@@ -6,7 +6,7 @@ library domains.analysis.navigation;
 
 import 'dart:collection';
 
-import 'package:analysis_server/analysis/navigation_core.dart';
+import 'package:analysis_server/plugin/analysis/navigation/navigation_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;

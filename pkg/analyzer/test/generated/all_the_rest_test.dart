@@ -6673,6 +6673,34 @@ class ElementBuilderTest extends EngineTestCase {
     expect(variable.setter, isNull);
   }
 
+  void test_visitVariableDeclaration_top_docRange() {
+    // final a, b;
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    VariableDeclaration variableDeclaration1 =
+        AstFactory.variableDeclaration('a');
+    VariableDeclaration variableDeclaration2 =
+        AstFactory.variableDeclaration('b');
+    TopLevelVariableDeclaration topLevelVariableDeclaration = AstFactory
+        .topLevelVariableDeclaration(
+            Keyword.FINAL, null, [variableDeclaration1, variableDeclaration2]);
+    topLevelVariableDeclaration.documentationComment = AstFactory
+        .documentationComment(
+            [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+
+    topLevelVariableDeclaration.accept(builder);
+    List<TopLevelVariableElement> variables = holder.topLevelVariables;
+    expect(variables, hasLength(2));
+
+    TopLevelVariableElement variable1 = variables[0];
+    expect(variable1, isNotNull);
+    _assertHasDocRange(variable1, 50, 7);
+
+    TopLevelVariableElement variable2 = variables[1];
+    expect(variable2, isNotNull);
+    _assertHasDocRange(variable2, 50, 7);
+  }
+
   void test_visitVariableDeclaration_top_final() {
     // final v;
     ElementHolder holder = new ElementHolder();
@@ -8944,7 +8972,7 @@ class SDKLibrariesReaderTest extends EngineTestCase {
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',
-    category: 'First',
+    categories: 'Client',
     documented: true,
     platforms: VM_PLATFORM,
     dart2jsPath: 'first/first_dart2js.dart'),
@@ -8953,7 +8981,7 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     expect(libraryMap.size(), 1);
     SdkLibrary first = libraryMap.getLibrary("dart:first");
     expect(first, isNotNull);
-    expect(first.category, "First");
+    expect(first.category, "Client");
     expect(first.path, "first/first_dart2js.dart");
     expect(first.shortName, "dart:first");
     expect(first.isDart2JsLibrary, false);
@@ -8976,13 +9004,13 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',
-    category: 'First',
+    categories: 'Client',
     documented: true,
     platforms: VM_PLATFORM),
 
   'second' : const LibraryInfo(
     'second/second.dart',
-    category: 'Second',
+    categories: 'Server',
     documented: false,
     implementation: true,
     platforms: 0),
@@ -8991,7 +9019,7 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     expect(libraryMap.size(), 2);
     SdkLibrary first = libraryMap.getLibrary("dart:first");
     expect(first, isNotNull);
-    expect(first.category, "First");
+    expect(first.category, "Client");
     expect(first.path, "first/first.dart");
     expect(first.shortName, "dart:first");
     expect(first.isDart2JsLibrary, false);
@@ -9000,7 +9028,7 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     expect(first.isVmLibrary, true);
     SdkLibrary second = libraryMap.getLibrary("dart:second");
     expect(second, isNotNull);
-    expect(second.category, "Second");
+    expect(second.category, "Server");
     expect(second.path, "second/second.dart");
     expect(second.shortName, "dart:second");
     expect(second.isDart2JsLibrary, false);

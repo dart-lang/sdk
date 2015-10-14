@@ -9,9 +9,7 @@ import 'dart:convert' show
 import 'dart:collection' show
     HashSet;
 
-import '../diagnostics/spannable.dart' show
-    Spannable,
-    SpannableAssertionFailure;
+import '../common.dart';
 import '../util/util.dart' show
     computeHashCode;
 

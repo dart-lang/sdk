@@ -4,15 +4,21 @@
 
 library dart2js.new_js_emitter.model;
 
-import '../js/js.dart' as js show Expression, Statement, Name, Literal,
+import '../common.dart';
+import '../constants/values.dart' show
+    ConstantValue;
+import '../deferred_load.dart' show
+    OutputUnit;
+import '../elements/elements.dart' show
+    Element;
+import '../js/js.dart' as js show
+    Expression,
+    Literal,
+    Name,
+    Statement,
     TokenFinalizer;
-import '../constants/values.dart' show ConstantValue;
-
-import '../deferred_load.dart' show OutputUnit;
 
 import 'js_emitter.dart' show MetadataCollector;
-
-import '../common.dart';
 
 class Program {
   final List<Fragment> fragments;

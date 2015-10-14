@@ -5,12 +5,9 @@
 /// Analysis to determine how to generate code for `LookupMap`s.
 library compiler.src.js_backend.lookup_map_analysis;
 
+import '../common.dart';
 import '../common/registry.dart' show Registry;
 import '../compiler.dart' show Compiler;
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import '../diagnostics/messages.dart' show
-    MessageKind;
 import '../constants/values.dart' show
     ConstantValue,
     ConstructedConstantValue,

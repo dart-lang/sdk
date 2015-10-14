@@ -4,6 +4,7 @@
 
 library dart2js.mirrors_used;
 
+import 'common.dart';
 import 'common/tasks.dart' show
     CompilerTask;
 import 'compile_time_constants.dart' show
@@ -21,12 +22,6 @@ import 'dart_types.dart' show
     DartType,
     InterfaceType,
     TypeKind;
-import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import 'diagnostics/messages.dart' show
-    MessageKind;
-import 'diagnostics/spannable.dart' show
-    Spannable;
 import 'elements/elements.dart' show
     ClassElement,
     Element,

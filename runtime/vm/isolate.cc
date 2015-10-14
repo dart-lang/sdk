@@ -217,14 +217,15 @@ const char* IsolateMessageHandler::name() const {
 // [ OOB dispatch, Isolate library dispatch, <message specific data> ]
 RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
   if (message.Length() < 2) return Error::null();
-  const Object& type = Object::Handle(I, message.At(1));
+  Zone* zone = I->current_zone();
+  const Object& type = Object::Handle(zone, message.At(1));
   if (!type.IsSmi()) return Error::null();
   const intptr_t msg_type = Smi::Cast(type).Value();
   switch (msg_type) {
     case Isolate::kPauseMsg: {
       // [ OOB, kPauseMsg, pause capability, resume capability ]
       if (message.Length() != 4) return Error::null();
-      Object& obj = Object::Handle(I, message.At(2));
+      Object& obj = Object::Handle(zone, message.At(2));
       if (!I->VerifyPauseCapability(obj)) return Error::null();
       obj = message.At(3);
       if (!obj.IsCapability()) return Error::null();
@@ -236,7 +237,7 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
     case Isolate::kResumeMsg: {
       // [ OOB, kResumeMsg, pause capability, resume capability ]
       if (message.Length() != 4) return Error::null();
-      Object& obj = Object::Handle(I, message.At(2));
+      Object& obj = Object::Handle(zone, message.At(2));
       if (!I->VerifyPauseCapability(obj)) return Error::null();
       obj = message.At(3);
       if (!obj.IsCapability()) return Error::null();
@@ -248,13 +249,13 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
     case Isolate::kPingMsg: {
       // [ OOB, kPingMsg, responsePort, priority, response ]
       if (message.Length() != 5) return Error::null();
-      const Object& obj2 = Object::Handle(I, message.At(2));
+      const Object& obj2 = Object::Handle(zone, message.At(2));
       if (!obj2.IsSendPort()) return Error::null();
       const SendPort& send_port = SendPort::Cast(obj2);
-      const Object& obj3 = Object::Handle(I, message.At(3));
+      const Object& obj3 = Object::Handle(zone, message.At(3));
       if (!obj3.IsSmi()) return Error::null();
       const intptr_t priority = Smi::Cast(obj3).Value();
-      const Object& obj4 = Object::Handle(I, message.At(4));
+      const Object& obj4 = Object::Handle(zone, message.At(4));
       if (!obj4.IsInstance() && !obj4.IsNull()) return Error::null();
       const Instance& response =
           obj4.IsNull() ? Instance::null_instance() : Instance::Cast(obj4);
@@ -270,9 +271,10 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
                (priority == Isolate::kAsEventAction));
         // Update the message so that it will be handled immediately when it
         // is picked up from the message queue the next time.
-        message.SetAt(
-            0, Smi::Handle(I, Smi::New(Message::kDelayedIsolateLibOOBMsg)));
-        message.SetAt(3, Smi::Handle(I, Smi::New(Isolate::kImmediateAction)));
+        message.SetAt(0, Smi::Handle(zone,
+            Smi::New(Message::kDelayedIsolateLibOOBMsg)));
+        message.SetAt(3, Smi::Handle(zone,
+            Smi::New(Isolate::kImmediateAction)));
         uint8_t* data = NULL;
         intptr_t len = 0;
         SerializeObject(message, &data, &len, false);
@@ -289,7 +291,7 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
     case Isolate::kVMRestartMsg: {
       // [ OOB, kKillMsg, terminate capability, priority ]
       if (message.Length() != 4) return Error::null();
-      Object& obj = Object::Handle(I, message.At(3));
+      Object& obj = Object::Handle(zone, message.At(3));
       if (!obj.IsSmi()) return Error::null();
       const intptr_t priority = Smi::Cast(obj).Value();
       if (priority == Isolate::kImmediateAction) {
@@ -328,9 +330,10 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
                (priority == Isolate::kAsEventAction));
         // Update the message so that it will be handled immediately when it
         // is picked up from the message queue the next time.
-        message.SetAt(
-            0, Smi::Handle(I, Smi::New(Message::kDelayedIsolateLibOOBMsg)));
-        message.SetAt(3, Smi::Handle(I, Smi::New(Isolate::kImmediateAction)));
+        message.SetAt(0, Smi::Handle(zone,
+            Smi::New(Message::kDelayedIsolateLibOOBMsg)));
+        message.SetAt(3, Smi::Handle(zone,
+            Smi::New(Isolate::kImmediateAction)));
         uint8_t* data = NULL;
         intptr_t len = 0;
         SerializeObject(message, &data, &len, false);
@@ -345,7 +348,7 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
     case Isolate::kInterruptMsg: {
       // [ OOB, kInterruptMsg, pause capability ]
       if (message.Length() != 3) return Error::null();
-      Object& obj = Object::Handle(I, message.At(2));
+      Object& obj = Object::Handle(zone, message.At(2));
       if (!I->VerifyPauseCapability(obj)) return Error::null();
 
       // If we are already paused, don't pause again.
@@ -361,14 +364,14 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
     case Isolate::kDelErrorMsg: {
       // [ OOB, msg, listener port ]
       if (message.Length() < 3) return Error::null();
-      const Object& obj = Object::Handle(I, message.At(2));
+      const Object& obj = Object::Handle(zone, message.At(2));
       if (!obj.IsSendPort()) return Error::null();
       const SendPort& listener = SendPort::Cast(obj);
       switch (msg_type) {
         case Isolate::kAddExitMsg: {
           if (message.Length() != 4) return Error::null();
           // [ OOB, msg, listener port, response object ]
-          const Object& response = Object::Handle(I, message.At(3));
+          const Object& response = Object::Handle(zone, message.At(3));
           if (!response.IsInstance() && !response.IsNull()) {
             return Error::null();
           }
@@ -398,7 +401,7 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
       // [ OOB, kErrorFatalMsg, terminate capability, val ]
       if (message.Length() != 4) return Error::null();
       // Check that the terminate capability has been passed correctly.
-      Object& obj = Object::Handle(I, message.At(2));
+      Object& obj = Object::Handle(zone, message.At(2));
       if (!I->VerifyTerminateCapability(obj)) return Error::null();
       // Get the value to be set.
       obj = message.At(3);
@@ -637,19 +640,20 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
   }
 
   // Generate the error and stacktrace strings for the error message.
-  String& exc_str = String::Handle(I);
-  String& stacktrace_str = String::Handle(I);
+  String& exc_str = String::Handle(I->current_zone());
+  String& stacktrace_str = String::Handle(I->current_zone());
   if (result.IsUnhandledException()) {
+    Zone* zone = I->current_zone();
     const UnhandledException& uhe = UnhandledException::Cast(result);
-    const Instance& exception = Instance::Handle(I, uhe.exception());
-    Object& tmp = Object::Handle(I);
+    const Instance& exception = Instance::Handle(zone, uhe.exception());
+    Object& tmp = Object::Handle(zone);
     tmp = DartLibraryCalls::ToString(exception);
     if (!tmp.IsString()) {
       tmp = String::New(exception.ToCString());
     }
     exc_str ^= tmp.raw();
 
-    const Instance& stacktrace = Instance::Handle(I, uhe.stacktrace());
+    const Instance& stacktrace = Instance::Handle(zone, uhe.stacktrace());
     tmp = DartLibraryCalls::ToString(stacktrace);
     if (!tmp.IsString()) {
       tmp = String::New(stacktrace.ToCString());
@@ -757,11 +761,10 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       debugger_(NULL),
       resume_request_(false),
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
-      has_compiled_(false),
+      has_compiled_code_(false),
       flags_(),
       random_(),
       simulator_(NULL),
-      deopt_id_(0),
       mutex_(new Mutex()),
       saved_stack_limit_(0),
       stack_base_(0),
@@ -792,12 +795,8 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       registered_service_extension_handlers_(GrowableObjectArray::null()),
       metrics_list_head_(NULL),
       compilation_allowed_(true),
-      cha_(NULL),
       next_(NULL),
-      pause_loop_monitor_(NULL),
-      REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
-      REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
-      reusable_handles_() {
+      pause_loop_monitor_(NULL) {
   flags_.CopyFrom(api_flags);
   Thread::Current()->set_vm_tag(VMTag::kEmbedderTagId);
   set_user_tag(UserTags::kDefaultUserTag);
@@ -881,12 +880,6 @@ Isolate* Isolate::Init(const char* name_prefix,
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.
   Thread::EnterIsolate(result);
-
-  // Setup the isolate specific resuable handles.
-#define REUSABLE_HANDLE_ALLOCATION(object)                                     \
-  result->object##_handle_ = result->AllocateReusableHandle<object>();
-  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_ALLOCATION)
-#undef REUSABLE_HANDLE_ALLOCATION
 
   // Setup the isolate message handler.
   MessageHandler* handler = new IsolateMessageHandler(result);
@@ -1071,9 +1064,9 @@ void Isolate::ScheduleInterrupts(uword interrupt_bits) {
 
 
 void Isolate::DoneLoading() {
-  GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(this, object_store()->libraries());
-  Library& lib = Library::Handle(this);
+  GrowableObjectArray& libs = GrowableObjectArray::Handle(current_zone(),
+      object_store()->libraries());
+  Library& lib = Library::Handle(current_zone());
   intptr_t num_libs = libs.Length();
   for (intptr_t i = 0; i < num_libs; i++) {
     lib ^= libs.At(i);
@@ -1141,8 +1134,8 @@ bool Isolate::AddResumeCapability(const Capability& capability) {
   static const intptr_t kMaxResumeCapabilities = kSmiMax / (6 * kWordSize);
 
   const GrowableObjectArray& caps = GrowableObjectArray::Handle(
-      this, object_store()->resume_capabilities());
-  Capability& current = Capability::Handle(this);
+      current_zone(), object_store()->resume_capabilities());
+  Capability& current = Capability::Handle(current_zone());
   intptr_t insertion_index = -1;
   for (intptr_t i = 0; i < caps.Length(); i++) {
     current ^= caps.At(i);
@@ -1171,8 +1164,8 @@ bool Isolate::AddResumeCapability(const Capability& capability) {
 
 bool Isolate::RemoveResumeCapability(const Capability& capability) {
   const GrowableObjectArray& caps = GrowableObjectArray::Handle(
-       this, object_store()->resume_capabilities());
-  Capability& current = Capability::Handle(this);
+       current_zone(), object_store()->resume_capabilities());
+  Capability& current = Capability::Handle(current_zone());
   for (intptr_t i = 0; i < caps.Length(); i++) {
     current ^= caps.At(i);
     if (!current.IsNull() && (current.Id() == capability.Id())) {
@@ -1194,8 +1187,8 @@ void Isolate::AddExitListener(const SendPort& listener,
   static const intptr_t kMaxListeners = kSmiMax / (12 * kWordSize);
 
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-       this, object_store()->exit_listeners());
-  SendPort& current = SendPort::Handle(this);
+       current_zone(), object_store()->exit_listeners());
+  SendPort& current = SendPort::Handle(current_zone());
   intptr_t insertion_index = -1;
   for (intptr_t i = 0; i < listeners.Length(); i += 2) {
     current ^= listeners.At(i);
@@ -1226,8 +1219,8 @@ void Isolate::AddExitListener(const SendPort& listener,
 
 void Isolate::RemoveExitListener(const SendPort& listener) {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      this, object_store()->exit_listeners());
-  SendPort& current = SendPort::Handle(this);
+      current_zone(), object_store()->exit_listeners());
+  SendPort& current = SendPort::Handle(current_zone());
   for (intptr_t i = 0; i < listeners.Length(); i += 2) {
     current ^= listeners.At(i);
     if (!current.IsNull() && (current.Id() == listener.Id())) {
@@ -1243,11 +1236,11 @@ void Isolate::RemoveExitListener(const SendPort& listener) {
 
 void Isolate::NotifyExitListeners() {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      this, this->object_store()->exit_listeners());
+      current_zone(), this->object_store()->exit_listeners());
   if (listeners.IsNull()) return;
 
-  SendPort& listener = SendPort::Handle(this);
-  Instance& response = Instance::Handle(this);
+  SendPort& listener = SendPort::Handle(current_zone());
+  Instance& response = Instance::Handle(current_zone());
   for (intptr_t i = 0; i < listeners.Length(); i += 2) {
     listener ^= listeners.At(i);
     if (!listener.IsNull()) {
@@ -1268,8 +1261,8 @@ void Isolate::AddErrorListener(const SendPort& listener) {
   static const intptr_t kMaxListeners = kSmiMax / (6 * kWordSize);
 
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      this, object_store()->error_listeners());
-  SendPort& current = SendPort::Handle(this);
+      current_zone(), object_store()->error_listeners());
+  SendPort& current = SendPort::Handle(current_zone());
   intptr_t insertion_index = -1;
   for (intptr_t i = 0; i < listeners.Length(); i++) {
     current ^= listeners.At(i);
@@ -1297,8 +1290,8 @@ void Isolate::AddErrorListener(const SendPort& listener) {
 
 void Isolate::RemoveErrorListener(const SendPort& listener) {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      this, object_store()->error_listeners());
-  SendPort& current = SendPort::Handle(this);
+      current_zone(), object_store()->error_listeners());
+  SendPort& current = SendPort::Handle(current_zone());
   for (intptr_t i = 0; i < listeners.Length(); i++) {
     current ^= listeners.At(i);
     if (!current.IsNull() && (current.Id() == listener.Id())) {
@@ -1314,13 +1307,13 @@ void Isolate::RemoveErrorListener(const SendPort& listener) {
 bool Isolate::NotifyErrorListeners(const String& msg,
                                    const String& stacktrace) {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      this, this->object_store()->error_listeners());
+      current_zone(), this->object_store()->error_listeners());
   if (listeners.IsNull()) return false;
 
-  const Array& arr = Array::Handle(this, Array::New(2));
+  const Array& arr = Array::Handle(current_zone(), Array::New(2));
   arr.SetAt(0, msg);
   arr.SetAt(1, stacktrace);
-  SendPort& listener = SendPort::Handle(this);
+  SendPort& listener = SendPort::Handle(current_zone());
   for (intptr_t i = 0; i < listeners.Length(); i++) {
     listener ^= listeners.At(i);
     if (!listener.IsNull()) {
@@ -1385,7 +1378,7 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
       return StoreError(isolate, Error::Cast(result));
     }
     ASSERT(result.IsFunction());
-    Function& func = Function::Handle(isolate);
+    Function& func = Function::Handle(thread->zone());
     func ^= result.raw();
 
     // TODO(turnidge): Currently we need a way to force a one-time
@@ -1580,13 +1573,13 @@ void Isolate::PrintInvokedFunctions() {
 
 class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
  public:
-  FinalizeWeakPersistentHandlesVisitor() : HandleVisitor(Isolate::Current()) {
+  FinalizeWeakPersistentHandlesVisitor() : HandleVisitor(Thread::Current()) {
   }
 
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
-    handle->UpdateUnreachable(I);
+    handle->UpdateUnreachable(thread()->isolate());
   }
 
  private:
@@ -1677,7 +1670,7 @@ void Isolate::Shutdown() {
     // Write out the coverage data if collection has been enabled.
     if ((this != Dart::vm_isolate()) &&
         !ServiceIsolate::IsServiceIsolateDescendant(this)) {
-      CodeCoverage::Write(this);
+      CodeCoverage::Write(thread);
     }
 
     // Write compiler stats data if enabled.
@@ -1771,9 +1764,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit objects in per isolate stubs.
   StubCode::VisitObjectPointers(visitor);
 
-  // Visit objects in isolate specific handles area.
-  reusable_handles_.VisitObjectPointers(visitor);
-
   // Visit the dart api state for all local and persistent handles.
   if (api_state() != NULL) {
     api_state()->VisitObjectPointers(visitor, visit_prologue_weak_handles);
@@ -1834,6 +1824,21 @@ void Isolate::VisitPrologueWeakPersistentHandles(HandleVisitor* visitor) {
 }
 
 
+static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
+  switch (pi) {
+    case kPauseOnAllExceptions:
+      return "All";
+    case kNoPauseOnExceptions:
+      return "None";
+    case kPauseOnUnhandledExceptions:
+      return "Unhandled";
+    default:
+      UNIMPLEMENTED();
+      return NULL;
+  }
+}
+
+
 void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", (ref ? "@Isolate" : "Isolate"));
@@ -1846,6 +1851,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   if (ref) {
     return;
   }
+  jsobj.AddPropertyF("_originNumber", "%" Pd "",
+                     static_cast<intptr_t>(origin_id()));
   int64_t start_time_millis = start_time() / kMicrosecondsPerMillisecond;
   jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
   {
@@ -1879,6 +1886,9 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     jsobj.AddProperty("pauseEvent", &pause_event);
   }
 
+  jsobj.AddProperty("exceptionPauseMode",
+      ExceptionPauseInfoToServiceEnum(debugger()->GetExceptionPauseInfo()));
+
   const Library& lib =
       Library::Handle(object_store()->root_library());
   if (!lib.IsNull()) {
@@ -1890,7 +1900,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     vm_tag_counters()->PrintToJSONObject(&tagCounters);
   }
   if (object_store()->sticky_error() != Object::null()) {
-    Error& error = Error::Handle(this, object_store()->sticky_error());
+    Error& error = Error::Handle(current_zone(),
+        object_store()->sticky_error());
     ASSERT(!error.IsNull());
     jsobj.AddProperty("error", error, false);
   }
@@ -2311,14 +2322,6 @@ void Isolate::EnableIsolateCreation() {
 }
 
 
-template<class C>
-C* Isolate::AllocateReusableHandle() {
-  C* handle = reinterpret_cast<C*>(reusable_handles_.AllocateScopedHandle());
-  C::initializeHandle(handle, C::null());
-  return handle;
-}
-
-
 void Isolate::KillLocked(LibMsgId msg_id) {
   Dart_CObject kill_msg;
   Dart_CObject* list_values[4];
@@ -2424,6 +2427,14 @@ static RawInstance* DeserializeObject(Thread* thread,
 }
 
 
+static const char* NewConstChar(const char* chars) {
+  size_t len = strlen(chars);
+  char* mem = new char[len + 1];
+  memmove(mem, chars, len + 1);
+  return mem;
+}
+
+
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const Function& func,
                                      const Instance& message,
@@ -2437,6 +2448,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       on_error_port_(on_error_port),
       script_url_(NULL),
       package_root_(NULL),
+      package_map_(NULL),
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
@@ -2447,17 +2459,16 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       isolate_flags_(),
       paused_(paused),
       errors_are_fatal_(errors_are_fatal) {
-  script_url_ = NULL;
   const Class& cls = Class::Handle(func.Owner());
   const Library& lib = Library::Handle(cls.library());
   const String& lib_url = String::Handle(lib.url());
-  library_url_ = strdup(lib_url.ToCString());
+  library_url_ = NewConstChar(lib_url.ToCString());
 
   const String& func_name = String::Handle(func.name());
-  function_name_ = strdup(func_name.ToCString());
+  function_name_ = NewConstChar(func_name.ToCString());
   if (!cls.IsTopLevel()) {
     const String& class_name = String::Handle(cls.Name());
-    class_name_ = strdup(class_name.ToCString());
+    class_name_ = NewConstChar(class_name.ToCString());
   }
   bool can_send_any_object = true;
   SerializeObject(message,
@@ -2472,6 +2483,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const char* script_url,
                                      const char* package_root,
+                                     const char** package_map,
                                      const Instance& args,
                                      const Instance& message,
                                      bool paused,
@@ -2482,7 +2494,9 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       parent_port_(parent_port),
       on_exit_port_(on_exit_port),
       on_error_port_(on_error_port),
-      package_root_(NULL),
+      script_url_(script_url),
+      package_root_(package_root),
+      package_map_(package_map),
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
@@ -2493,12 +2507,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       isolate_flags_(),
       paused_(paused),
       errors_are_fatal_(errors_are_fatal) {
-  script_url_ = strdup(script_url);
-  if (package_root != NULL) {
-    package_root_ = strdup(package_root);
-  }
-  library_url_ = NULL;
-  function_name_ = strdup("main");
+  function_name_ = NewConstChar("main");
   bool can_send_any_object = false;
   SerializeObject(args,
                   &serialized_args_,
@@ -2515,11 +2524,19 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
 
 
 IsolateSpawnState::~IsolateSpawnState() {
-  free(script_url_);
-  free(package_root_);
-  free(library_url_);
-  free(function_name_);
-  free(class_name_);
+  delete[] script_url_;
+  delete[] package_root_;
+  for (int i = 0; package_map_ != NULL; i++) {
+    if (package_map_[i] != NULL) {
+      delete[] package_map_[i];
+    } else {
+      delete[] package_map_;
+      package_map_ = NULL;
+    }
+  }
+  delete[] library_url_;
+  delete[] class_name_;
+  delete[] function_name_;
   free(serialized_args_);
   free(serialized_message_);
 }

@@ -29,6 +29,7 @@ enum BuiltinOperator {
   NumAdd,
   NumSubtract,
   NumMultiply,
+  NumDivide,
   NumAnd,
   NumOr,
   NumXor,
@@ -37,6 +38,22 @@ enum BuiltinOperator {
   NumLe,
   NumGt,
   NumGe,
+
+  /// NumShr behaves like JS '>>>' but is valid only when the left is in the
+  /// uint32 range and the right in the range [0, 31].
+  NumShr,
+
+  /// NumRemainder corresponds to JavaScript's `a % b`, and Dart's
+  /// `a.remainder(b)`, except at zero, since JavaScript `1 % 0` is `NaN`.
+  /// Dart's modulo (`%`) is the same as remainder only when if both arguments
+  /// are non-negative.
+  NumRemainder,
+
+  /// Corresponds to `a ~/ b` when b is non-zero and the result fits in a signed
+  /// 32 bit value.
+  ///
+  /// This case can be compiled to  `(a / b) | 0`.
+  NumTruncatingDivideToSigned32,
 
   /// Concatenates any number of strings.
   ///
@@ -103,6 +120,26 @@ enum BuiltinOperator {
   ///
   /// Compiles to `typeof x === 'number' && Math.floor(x) === x`
   IsNumberAndFloor,
+
+  /// Returns true if the argument is a fixed length Array.
+  ///
+  /// Uses one argument.
+  ///
+  /// Precondition: Argument is a JavaScript Array.
+  IsFixedLengthJSArray,
+
+  // TODO(sra): Remove this and replace with IsFalsy(IsFixedLengthJSArray(x)).
+  IsExtendableJSArray,
+
+  /// Returns true if the argument is an unmodifiable Array.
+  ///
+  /// Uses one argument.
+  ///
+  /// Precondition: Argument is a JavaScript Array.
+  IsUnmodifiableJSArray,
+
+  // TODO(sra): Remove this and replace with IsFalsy(IsUnmodifiableArray(x)).
+  IsModifiableJSArray,
 }
 
 /// A method supported natively in the CPS and Tree IRs using the

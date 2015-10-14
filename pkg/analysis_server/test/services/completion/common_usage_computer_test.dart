@@ -6,11 +6,11 @@ library test.services.completion.computer.dart.relevance;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart'
     show ContextSourcePair;
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_completion.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/common_usage_computer.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';

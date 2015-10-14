@@ -282,10 +282,8 @@ $if DARTIUM
 
         // Get the created constructor source and look at the initializer;
         // Must call super.created() if not its as an error.
-        var createdSource = methodMirror.source?.replaceAll('\n', ' ');
-        RegExp regExp = new RegExp(r":(.*?)(;|}|\n)");
-        var match = regExp.firstMatch(createdSource);
-        superCreatedCalled = match.input.substring(match.start,match.end).contains("super.created(");
+        var createdSource = methodMirror.source;
+        superCreatedCalled = createdSource.contains("super.created(");
       }
 
       if (!superCreatedCalled) {
@@ -353,10 +351,18 @@ $if DART2JS
     _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
         extendsTag);
 $else
-    // TODO(terry): Need to handle the extendsTag.
-
     // Figure out which DOM class is being extended from the user's Dart class.
     var classMirror = reflectClass(customElementClass);
+
+    var locationUri = classMirror.location.sourceUri.toString();
+    if (locationUri == 'dart:html' || locationUri == 'dart:svg') {
+      throw new DomException.jsInterop("HierarchyRequestError: Cannot register an existing dart:html or dart:svg type.");
+    }
+
+    if (classMirror.isAbstract) {
+      throw new DomException.jsInterop("HierarchyRequestError: Cannot register an abstract class.");
+    }
+
     var jsClassName = _getJSClassName(classMirror);
     if (jsClassName == null) {
       // Only components derived from HTML* can be extended.
@@ -370,15 +376,15 @@ $else
       //
       //     var myProto = Object.create(HTMLElement.prototype);
       //     var myElement = document.registerElement('x-foo', {prototype: myProto});
-      var baseElement = js.context[jsClassName];
+      var baseElement = js.JsNative.getProperty(js.context, jsClassName);
       if (baseElement == null) {
         // Couldn't find the HTML element so use a generic one.
-        baseElement = js.context['HTMLElement'];
+        baseElement = js.JsNative.getProperty(js.context, 'HTMLElement');
       }
-      var elemProto = js.context['Object'].callMethod("create", [baseElement['prototype']]);
+      var elemProto = js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'Object'), "create", [js.JsNative.getProperty(baseElement, 'prototype')]);
 
       // Remember for any upgrading done in wrap_jso.
-      _knownCustomeElements[tag] = customElementClass;
+      _addCustomElementType(tag, customElementClass, extendsTag);
 
       // TODO(terry): Hack to stop recursion re-creating custom element when the
       //              created() constructor of the custom element does e.g.,
@@ -392,7 +398,8 @@ $else
       //
       //              See https://github.com/dart-lang/sdk/issues/23666
       int creating = 0;
-      elemProto['createdCallback'] = new js.JsFunction.withThis(($this) {
+      // TODO(jacobr): warning:
+      elemProto['createdCallback'] = js.JsNative.withThis(($this) {
         if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
           creating++;
 
@@ -401,35 +408,30 @@ $else
             dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
           } catch (e) {
             dartClass = HtmlElement.internalCreateHtmlElement();
+            dartClass._badUpgrade();
             throw e;
           } finally {
             // Need to remember the Dart class that was created for this custom so
             // return it and setup the blink_jsObject to the $this that we'll be working
-            // with as we talk to blink. 
-            $this['dart_class'] = dartClass;
+            // with as we talk to blink.
+            js.setDartHtmlWrapperFor($this, dartClass);
 
             creating--;
           }
         }
       });
       elemProto['attributeChangedCallback'] = new js.JsFunction.withThis(($this, attrName, oldVal, newVal) {
-        if ($this["dart_class"] != null && $this['dart_class'].attributeChanged != null) {
-          $this['dart_class'].attributeChanged(attrName, oldVal, newVal);
-        }
+        $this.attributeChanged(attrName, oldVal, newVal);
       });
       elemProto['attachedCallback'] = new js.JsFunction.withThis(($this) {
-        if ($this["dart_class"] != null && $this['dart_class'].attached != null) {
-          $this['dart_class'].attached();
-        }
+        $this.attached();
       });
       elemProto['detachedCallback'] = new js.JsFunction.withThis(($this) {
-        if ($this["dart_class"] != null && $this['dart_class'].detached != null) {
-          $this['dart_class'].detached();
-        }
+        $this.detached();
       });
       // document.registerElement('x-foo', {prototype: elemProto, extends: extendsTag});
       var jsMap = new js.JsObject.jsify({'prototype': elemProto, 'extends': extendsTag});
-      js.context['document'].callMethod('registerElement', [tag, jsMap]);
+      js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'document'), 'registerElement', [tag, jsMap]);
     }
 $endif
   }

@@ -7,9 +7,9 @@ library analysis_server.src.services.correction.fix_internal;
 import 'dart:collection';
 import 'dart:core' hide Resource;
 
-import 'package:analysis_server/edit/fix/fix_core.dart';
-import 'package:analysis_server/edit/fix/fix_dart.dart';
-import 'package:analysis_server/src/protocol.dart'
+import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
+import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide AnalysisError, Element, ElementKind;
 import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit, doSourceChange_addSourceEdit;
@@ -270,6 +270,9 @@ class FixProcessor {
     }
     if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
       _addFix_removeParentheses_inGetterInvocation();
+    }
+    if (errorCode == StaticTypeWarningCode.NON_BOOL_CONDITION) {
+      _addFix_nonBoolCondition_addNotNull();
     }
     if (errorCode == StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT) {
       _addFix_importLibrary_withType();
@@ -1516,6 +1519,11 @@ class FixProcessor {
     String className = enclosingClass.name.name;
     _addInsertEdit(enclosingClass.classKeyword.offset, 'abstract ');
     _addFix(DartFixKind.MAKE_CLASS_ABSTRACT, [className]);
+  }
+
+  void _addFix_nonBoolCondition_addNotNull() {
+    _addInsertEdit(error.offset + error.length, ' != null');
+    _addFix(DartFixKind.ADD_NE_NULL, []);
   }
 
   void _addFix_removeDeadCode() {

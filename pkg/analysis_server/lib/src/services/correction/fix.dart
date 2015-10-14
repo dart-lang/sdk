@@ -4,7 +4,7 @@
 
 library analysis_server.src.services.correction.fix;
 
-import 'package:analysis_server/edit/fix/fix_core.dart';
+import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -109,6 +109,7 @@ class DartFixKind {
       "Add optional positional parameter");
   static const ADD_MISSING_PARAMETER_REQUIRED = const FixKind(
       'ADD_MISSING_PARAMETER_REQUIRED', 30, "Add required parameter");
+  static const ADD_NE_NULL = const FixKind('ADD_NE_NULL', 50, "Add != null");
   static const ADD_PACKAGE_DEPENDENCY = const FixKind(
       'ADD_PACKAGE_DEPENDENCY', 50, "Add dependency on package '{0}'");
   static const ADD_PART_OF =

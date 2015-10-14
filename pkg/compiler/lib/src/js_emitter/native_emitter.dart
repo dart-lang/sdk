@@ -134,8 +134,9 @@ class NativeEmitter {
       } else if (extensionPoints.containsKey(cls)) {
         needed = true;
       }
-      if (cls.isNative &&
-          native.nativeTagsForcedNonLeaf(classElement)) {
+      if (classElement.isJsInterop) {
+        needed = true;  // TODO(jacobr): we don't need all interop classes.
+      } else if (cls.isNative && native.nativeTagsForcedNonLeaf(classElement)) {
         needed = true;
         nonLeafClasses.add(cls);
       }
@@ -154,6 +155,7 @@ class NativeEmitter {
 
     for (Class cls in classes) {
       if (!cls.isNative) continue;
+      if (cls.element.isJsInterop) continue;
       List<String> nativeTags = native.nativeTagsOfClass(cls.element);
 
       if (nonLeafClasses.contains(cls) ||
@@ -268,7 +270,7 @@ class NativeEmitter {
       // parameter that was not provided for this stub.
       for (jsAst.Parameter stubParameter in stubParameters) {
         if (stubParameter.name == name) {
-          DartType type = parameter.type.unalias(compiler.resolution);
+          DartType type = parameter.type.unaliased;
           if (type is FunctionType) {
             // The parameter type is a function type either directly or through
             // typedef(s).
@@ -294,7 +296,7 @@ class NativeEmitter {
     // The target JS function may check arguments.length so we need to
     // make sure not to pass any unspecified optional arguments to it.
     // For example, for the following Dart method:
-    //   foo([x, y, z]);
+    //   foo({x, y, z});
     // The call:
     //   foo(y: 1)
     // must be turned into a JS call to:
@@ -319,9 +321,20 @@ class NativeEmitter {
     } else {
       // Native methods that are not intercepted must be static.
       assert(invariant(member, member.isStatic));
-      receiver = js('this');
       arguments = argumentsBuffer.sublist(0,
           indexOfLastOptionalArgumentInParameters + 1);
+      if (member.isJsInterop) {
+        // fixedBackendPath is allowed to have the form foo.bar.baz for
+        // interop. This template is uncached to avoid possibly running out of
+        // memory when Dart2Js is run in server mode. In reality the risk of
+        // caching these templates causing an issue  is very low as each class
+        // and library that uses typed JavaScript interop will create only 1
+        // unique template.
+        receiver = js.uncachedExpressionTemplate(
+            backend.namer.fixedBackendPath(member)).instantiate([]);
+      } else {
+        receiver = js('this');
+      }
     }
     statements.add(
         js.statement('return #.#(#)', [receiver, target, arguments]));

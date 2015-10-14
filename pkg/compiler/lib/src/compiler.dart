@@ -13,6 +13,7 @@ import 'cache_strategy.dart' show
     CacheStrategy;
 import 'closure.dart' as closureMapping show
     ClosureTask;
+import 'common.dart';
 import 'common/backend_api.dart' show
     Backend;
 import 'common/codegen.dart' show
@@ -27,7 +28,7 @@ import 'common/resolution.dart' show
     Parsing,
     Resolution,
     ResolutionWorkItem,
-    ResolutionWorldImpact;
+    ResolutionImpact;
 import 'common/tasks.dart' show
     CompilerTask,
     GenericTask;
@@ -46,23 +47,12 @@ import 'dart_types.dart' show
 import 'deferred_load.dart' show DeferredLoadTask, OutputUnit;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage,
-    DiagnosticOptions,
-    DiagnosticReporter;
+    DiagnosticOptions;
 import 'diagnostics/invariant.dart' show
-    invariant,
     REPORT_EXCESS_RESOLUTION;
 import 'diagnostics/messages.dart' show
     Message,
-    MessageKind,
     MessageTemplate;
-import 'diagnostics/source_span.dart' show
-    SourceSpan;
-import 'diagnostics/spannable.dart' show
-    CURRENT_ELEMENT_SPANNABLE,
-    NO_LOCATION_SPANNABLE,
-    Spannable,
-    SpannableAssertionFailure;
 import 'dump_info.dart' show
     DumpInfoTask;
 import 'elements/elements.dart';
@@ -168,7 +158,7 @@ abstract class Compiler {
    * We should get rid of this and ensure that all dependencies are
    * associated with a particular element.
    */
-  Registry globalDependencies;
+  GlobalDependencyRegistry globalDependencies;
 
   /**
    * Dependencies that are only included due to mirrors.
@@ -496,7 +486,7 @@ abstract class Compiler {
     _parsing = new _CompilerParsing(this);
     _resolution = new _CompilerResolution(this);
     _coreTypes = new _CompilerCoreTypes(_resolution);
-    types = new Types(this);
+    types = new Types(_resolution);
     tracer = new Tracer(this, this.outputProvider);
 
     if (verbose) {
@@ -505,8 +495,7 @@ abstract class Compiler {
 
     // TODO(johnniwinther): Separate the dependency tracking from the enqueuing
     // for global dependencies.
-    globalDependencies =
-        new CodegenRegistry(this, new TreeElementMapping(null));
+    globalDependencies = new GlobalDependencyRegistry(this);
 
     if (emitJavaScript) {
       js_backend.JavaScriptBackend jsBackend =
@@ -988,8 +977,16 @@ abstract class Compiler {
       reporter.log('Enqueuing ${library.canonicalUri}');
         fullyEnqueueLibrary(library, enqueuer.resolution);
       });
-    } else if (analyzeMain && mainApp != null) {
-      fullyEnqueueLibrary(mainApp, enqueuer.resolution);
+    } else if (analyzeMain) {
+      if (mainApp != null) {
+        fullyEnqueueLibrary(mainApp, enqueuer.resolution);
+      }
+      if (librariesToAnalyzeWhenRun != null) {
+        for (Uri libraryUri in librariesToAnalyzeWhenRun) {
+          fullyEnqueueLibrary(libraryLoader.lookupLibrary(libraryUri),
+              enqueuer.resolution);
+        }
+      }
     }
     // Elements required by enqueueHelpers are global dependencies
     // that are not pulled in by a particular element.
@@ -1172,7 +1169,7 @@ abstract class Compiler {
     }
   }
 
-  ResolutionWorldImpact analyzeElement(Element element) {
+  WorldImpact analyzeElement(Element element) {
     assert(invariant(element,
            element.impliesType ||
            element.isField ||
@@ -1184,11 +1181,11 @@ abstract class Compiler {
     assert(invariant(element, element is AnalyzableElement,
         message: 'Element $element is not analyzable.'));
     assert(invariant(element, element.isDeclaration));
-    return resolution.analyzeElement(element);
+    return resolution.computeWorldImpact(element);
   }
 
-  ResolutionWorldImpact analyze(ResolutionWorkItem work,
-                                ResolutionEnqueuer world) {
+  WorldImpact analyze(ResolutionWorkItem work,
+                      ResolutionEnqueuer world) {
     assert(invariant(work.element, identical(world, enqueuer.resolution)));
     assert(invariant(work.element, !work.isAnalyzed,
         message: 'Element ${work.element} has already been analyzed'));
@@ -1204,9 +1201,9 @@ abstract class Compiler {
     }
     AstElement element = work.element;
     if (world.hasBeenProcessed(element)) {
-      return const ResolutionWorldImpact();
+      return const WorldImpact();
     }
-    ResolutionWorldImpact worldImpact = analyzeElement(element);
+    WorldImpact worldImpact = analyzeElement(element);
     backend.onElementResolved(element, element.resolvedAst.elements);
     world.registerProcessedElement(element);
     return worldImpact;
@@ -1932,8 +1929,7 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
 // TODO(johnniwinther): Move [ResolverTask] here.
 class _CompilerResolution implements Resolution {
   final Compiler compiler;
-  final Map<Element, ResolutionWorldImpact> _worldImpactCache =
-      <Element, ResolutionWorldImpact>{};
+  final Map<Element, WorldImpact> _worldImpactCache = <Element, WorldImpact>{};
 
   _CompilerResolution(this.compiler);
 
@@ -1976,18 +1972,31 @@ class _CompilerResolution implements Resolution {
     return compiler.resolver.resolveTypeAnnotation(element, node);
   }
 
-  ResolutionWorldImpact analyzeElement(Element element) {
+  @override
+  WorldImpact getWorldImpact(Element element) {
+    WorldImpact worldImpact = _worldImpactCache[element];
+    assert(invariant(element, worldImpact != null,
+        message: "WorldImpact not computed for $element."));
+    return worldImpact;
+  }
+
+  @override
+  WorldImpact computeWorldImpact(Element element) {
     return _worldImpactCache.putIfAbsent(element, () {
       assert(compiler.parser != null);
       Node tree = compiler.parser.parse(element);
       assert(invariant(element, !element.isSynthesized || tree == null));
-      ResolutionWorldImpact worldImpact = compiler.resolver.resolve(element);
+      ResolutionImpact resolutionImpact =
+          compiler.resolver.resolve(element);
       if (tree != null &&
           !compiler.analyzeSignaturesOnly &&
           !reporter.options.suppressWarnings) {
         // Only analyze nodes with a corresponding [TreeElements].
         compiler.checker.check(element);
       }
+      WorldImpact worldImpact =
+          compiler.backend.resolutionCallbacks.transformImpact(
+              resolutionImpact);
       return worldImpact;
     });
   }
@@ -2018,5 +2027,24 @@ class _CompilerParsing implements Parsing {
         compiler.patchParser.parsePatchClassNode(cls);
       }
     });
+  }
+}
+
+class GlobalDependencyRegistry extends CodegenRegistry {
+  Setlet<Element> _otherDependencies;
+
+  GlobalDependencyRegistry(Compiler compiler)
+      : super(compiler, new TreeElementMapping(null));
+
+  void registerDependency(Element element) {
+    if (element == null) return;
+    if (_otherDependencies == null) {
+      _otherDependencies = new Setlet<Element>();
+    }
+    _otherDependencies.add(element.implementation);
+  }
+
+  Iterable<Element> get otherDependencies {
+    return _otherDependencies != null ? _otherDependencies : const <Element>[];
   }
 }

@@ -750,23 +750,20 @@ class BaseWriter : public StackResource {
 
 class ForwardList {
  public:
-  explicit ForwardList(intptr_t first_object_id);
+  explicit ForwardList(Thread* thread, intptr_t first_object_id);
   ~ForwardList();
 
   class Node : public ZoneAllocated {
    public:
-    Node(RawObject* raw, uword tags, SerializeState state)
-        : raw_(raw), tags_(tags), state_(state) {}
-    RawObject* raw() const { return raw_; }
-    uword tags() const { return tags_; }
+    Node(const Object* obj, SerializeState state) : obj_(obj), state_(state) {}
+    const Object* obj() const { return obj_; }
     bool is_serialized() const { return state_ == kIsSerialized; }
 
    private:
     // Private to ensure the invariant of first_unprocessed_object_id_.
     void set_state(SerializeState value) { state_ = value; }
 
-    RawObject* raw_;
-    uword tags_;
+    const Object* obj_;
     SerializeState state_;
 
     friend class ForwardList;
@@ -778,10 +775,7 @@ class ForwardList {
   }
 
   // Returns the id for the added object.
-  intptr_t MarkAndAddObject(RawObject* raw, SerializeState state);
-
-  // Returns the id for the added object without marking it.
-  intptr_t AddObject(RawObject* raw, SerializeState state);
+  intptr_t AddObject(Zone* zone, RawObject* raw, SerializeState state);
 
   // Returns the id for the object it it exists in the list.
   intptr_t FindObject(RawObject* raw);
@@ -790,13 +784,17 @@ class ForwardList {
   // concurrently add more objects.
   void SerializeAll(ObjectVisitor* writer);
 
-  // Restores the tags of all objects in this list.
-  void UnmarkAll() const;
+  // Set state of object in forward list.
+  void SetState(intptr_t object_id, SerializeState state) {
+    NodeForObjectId(object_id)->set_state(state);
+  }
 
  private:
   intptr_t first_object_id() const { return first_object_id_; }
   intptr_t next_object_id() const { return nodes_.length() + first_object_id_; }
+  Heap* heap() const { return thread_->isolate()->heap(); }
 
+  Thread* thread_;
   const intptr_t first_object_id_;
   GrowableArray<Node*> nodes_;
   intptr_t first_unprocessed_object_id_;
@@ -870,6 +868,7 @@ class InstructionsWriter : public ZoneAllocated {
 class SnapshotWriter : public BaseWriter {
  protected:
   SnapshotWriter(Snapshot::Kind kind,
+                 Thread* thread,
                  uint8_t** buffer,
                  ReAlloc alloc,
                  intptr_t initial_size,
@@ -882,6 +881,10 @@ class SnapshotWriter : public BaseWriter {
  public:
   // Snapshot kind.
   Snapshot::Kind kind() const { return kind_; }
+  Thread* thread() const { return thread_; }
+  Zone* zone() const { return thread_->zone(); }
+  Isolate* isolate() const { return thread_->isolate(); }
+  Heap* heap() const { return isolate()->heap(); }
 
   // Serialize an object into the buffer.
   void WriteObject(RawObject* raw);
@@ -919,13 +922,6 @@ class SnapshotWriter : public BaseWriter {
   void WriteFunctionId(RawFunction* func, bool owner_is_class);
 
  protected:
-  void UnmarkAll() {
-    if (!unmarked_objects_ && forward_list_ != NULL) {
-      forward_list_->UnmarkAll();
-      unmarked_objects_ = true;
-    }
-  }
-
   bool CheckAndWritePredefinedObject(RawObject* raw);
   bool HandleVMIsolateObject(RawObject* raw);
 
@@ -934,24 +930,27 @@ class SnapshotWriter : public BaseWriter {
                                   RawFunction* func,
                                   intptr_t tags);
   void WriteObjectImpl(RawObject* raw, bool as_reference);
-  void WriteObjectRef(RawObject* raw);
-  void WriteInlinedObject(RawObject* raw);
+  void WriteMarkedObjectImpl(RawObject* raw,
+                             intptr_t tags,
+                             intptr_t object_id,
+                             bool as_reference);
   void WriteForwardedObjects();
   void ArrayWriteTo(intptr_t object_id,
                     intptr_t array_kind,
                     intptr_t tags,
                     RawSmi* length,
                     RawTypeArguments* type_arguments,
-                    RawObject* data[]);
+                    RawObject* data[],
+                    bool as_reference);
   RawFunction* IsSerializableClosure(RawClass* cls, RawObject* obj);
   RawClass* GetFunctionOwner(RawFunction* func);
   void CheckForNativeFields(RawClass* cls);
   void SetWriteException(Exceptions::ExceptionType type, const char* msg);
-  void WriteInstance(intptr_t object_id,
-                     RawObject* raw,
+  void WriteInstance(RawObject* raw,
                      RawClass* cls,
-                     intptr_t tags);
-  void WriteInstanceRef(RawObject* raw, RawClass* cls);
+                     intptr_t tags,
+                     intptr_t object_id,
+                     bool as_reference);
   bool AllowObjectsInDartLibrary(RawLibrary* library);
   intptr_t FindVmSnapshotObject(RawObject* rawobj);
 
@@ -964,8 +963,6 @@ class SnapshotWriter : public BaseWriter {
     forward_list_ = NULL;
   }
 
-  Thread* thread() const { return thread_; }
-  Isolate* isolate() const { return thread_->isolate(); }
   ObjectStore* object_store() const { return object_store_; }
 
  private:
@@ -1032,6 +1029,11 @@ class FullSnapshotWriter {
     return isolate_snapshot_buffer_;
   }
 
+  Thread* thread() const { return thread_; }
+  Zone* zone() const { return thread_->zone(); }
+  Isolate* isolate() const { return thread_->isolate(); }
+  Heap* heap() const { return isolate()->heap(); }
+
   // Writes a full snapshot of the Isolate.
   void WriteFullSnapshot();
 
@@ -1052,7 +1054,7 @@ class FullSnapshotWriter {
   // Writes a full snapshot of a regular Dart Isolate.
   void WriteIsolateFullSnapshot();
 
-  Isolate* isolate_;
+  Thread* thread_;
   uint8_t** vm_isolate_snapshot_buffer_;
   uint8_t** isolate_snapshot_buffer_;
   uint8_t** instructions_snapshot_buffer_;

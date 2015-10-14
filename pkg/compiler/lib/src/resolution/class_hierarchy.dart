@@ -4,13 +4,10 @@
 
 library dart2js.resolution.class_hierarchy;
 
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
 import '../dart_types.dart';
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart' show
-    MessageKind;
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
     BaseClassElementX,

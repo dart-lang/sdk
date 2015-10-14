@@ -4,11 +4,10 @@
 
 library dart2js.constants.expressions;
 
+import '../common.dart';
 import '../constants/constant_system.dart';
 import '../core_types.dart';
 import '../dart_types.dart';
-import '../diagnostics/invariant.dart' show
-    assertDebugMode;
 import '../elements/elements.dart' show
     ConstructorElement,
     Element,

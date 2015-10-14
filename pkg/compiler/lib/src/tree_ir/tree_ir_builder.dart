@@ -4,14 +4,12 @@
 
 library tree_ir_builder;
 
-import '../diagnostics/invariant.dart' show
-    InternalErrorFunction;
-import '../diagnostics/spannable.dart' show
-    CURRENT_ELEMENT_SPANNABLE;
-import '../elements/elements.dart';
-import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
-import 'tree_ir_nodes.dart';
+import '../common.dart';
 import '../constants/values.dart';
+import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
+import '../elements/elements.dart';
+
+import 'tree_ir_nodes.dart';
 
 typedef Statement NodeCallback(Statement next);
 
@@ -641,6 +639,12 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     return new TypeOperator(value, node.dartType, typeArgs, isTypeTest: true);
   }
 
+  Expression visitTypeTestViaFlag(cps_ir.TypeTestViaFlag node) {
+    Expression value = getVariableUse(node.interceptor);
+    // TODO(sra): Move !! to cps_ir level.
+    return new Not(new Not(new GetTypeTestProperty(value, node.dartType)));
+  }
+
   Expression visitGetStatic(cps_ir.GetStatic node) {
     return new GetStatic(node.element, node.sourceInformation);
   }
@@ -700,4 +704,3 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   visitContinuation(cps_ir.Continuation node) => unexpectedNode(node);
   visitMutableVariable(cps_ir.MutableVariable node) => unexpectedNode(node);
 }
-

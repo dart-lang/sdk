@@ -4,6 +4,7 @@
 
 library elements.modelx;
 
+import '../common.dart';
 import '../common/resolution.dart' show
     Resolution,
     Parsing;
@@ -13,16 +14,8 @@ import '../constants/constant_constructors.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart';
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart';
-import '../diagnostics/source_span.dart' show
-    SourceSpan;
-import '../diagnostics/spannable.dart' show
-    Spannable,
-    SpannableAssertionFailure;
-import '../helpers/helpers.dart';
+import '../diagnostics/messages.dart' show
+    MessageTemplate;
 import '../ordered_typeset.dart' show
     OrderedTypeSet;
 import '../resolution/class_members.dart' show
@@ -241,9 +234,54 @@ abstract class ElementX extends Element with ElementCommon {
 
   String _fixedBackendName = null;
   bool _isNative = false;
-  bool get isNative => _isNative;
-  bool get hasFixedBackendName => _fixedBackendName != null;
-  String get fixedBackendName => _fixedBackendName;
+  String _jsInteropName = null;
+  bool _isJsInterop = false;
+
+  /// Whether the element is implemented via typed JavaScript interop.
+  bool get isJsInterop => _isJsInterop;
+  /// JavaScript name for the element if it is implemented via typed JavaScript
+  /// interop.
+  String get jsInteropName => _jsInteropName;
+
+  void markAsJsInterop() {
+    _isJsInterop = true;
+  }
+
+  void setJsInteropName(String name) {
+    assert(invariant(this,
+        _isJsInterop,
+        message: 'Element is not js interop but given a js interop name.'));
+    _jsInteropName = name;
+  }
+
+  /// Whether the element corresponds to a native JavaScript construct either
+  /// through the existing [setNative] mechanism which is only allowed
+  /// for internal libraries or via the new typed JavaScriptInterop mechanism
+  /// which is allowed for user libraries.
+  bool get isNative => _isNative || isJsInterop;
+  bool get hasFixedBackendName => fixedBackendName != null || isJsInterop;
+
+  String _jsNameHelper(Element e) {
+    assert(invariant(this,
+        !(_isJsInterop &&  _jsInteropName == null),
+        message:
+            'Element is js interop but js interop name has not yet been'
+            'computed.'));
+    if (e.jsInteropName != null && e.jsInteropName.isNotEmpty) {
+      return e.jsInteropName;
+    }
+    return e.isLibrary ? 'self' : e.name;
+  }
+
+  String get fixedBackendName {
+    if (_fixedBackendName == null && isJsInterop) {
+      // If an element isJsInterop but _isJsInterop is false that means it is
+      // considered interop as the parent class is interop.
+      _fixedBackendName =  _jsNameHelper(isConstructor ? enclosingClass : this);
+    }
+    return _fixedBackendName;
+  }
+
   // Marks this element as a native element.
   void setNative(String name) {
     _isNative = true;
@@ -1318,7 +1356,13 @@ class TypedefElementX extends ElementX
   /**
    * The type annotation which defines this typedef.
    */
-  DartType alias;
+  DartType aliasCache;
+
+  DartType get alias {
+    assert(invariant(this, hasBeenCheckedForCycles,
+        message: "$this has not been checked for cycles."));
+    return aliasCache;
+  }
 
   /// [:true:] if the typedef has been checked for cyclic reference.
   bool hasBeenCheckedForCycles = false;
@@ -2009,6 +2053,18 @@ abstract class BaseFunctionElementX
     typeCache = _functionSignatureCache.type;
   }
 
+  /// An function is part of JsInterop in the following cases:
+  /// * It has a jsInteropName annotation
+  /// * It is external member of a class or library tagged as JsInterop.
+  bool get isJsInterop {
+    if (!isExternal) return false;
+
+    if (super.isJsInterop) return true;
+    if (isClassMember) return contextClass.isJsInterop;
+    if (isTopLevel) return library.isJsInterop;
+    return false;
+  }
+
   List<ParameterElement> get parameters {
     // TODO(johnniwinther): Store the list directly, possibly by using List
     // instead of Link in FunctionSignature.
@@ -2228,7 +2284,11 @@ abstract class ConstructorElementX extends FunctionElementX
       return immediateRedirectionTarget;
     }
     assert(!isRedirectingFactory || internalEffectiveTarget != null);
-    return isRedirectingFactory ? internalEffectiveTarget : this;
+    if (isRedirectingFactory) return internalEffectiveTarget;
+    if (isPatched) {
+      return internalEffectiveTarget ?? this;
+    }
+    return this;
   }
 
   InterfaceType computeEffectiveTargetType(InterfaceType newType) {
@@ -2625,7 +2685,7 @@ abstract class BaseClassElementX extends ElementX
     return asInstanceOf(compiler.functionClass) != null || callType != null;
   }
 
-  bool get isNative => nativeTagInfo != null;
+  bool get isNative => nativeTagInfo != null || isJsInterop;
 
   void setNative(String name) {
     // TODO(johnniwinther): Assert that this is only called once. The memory

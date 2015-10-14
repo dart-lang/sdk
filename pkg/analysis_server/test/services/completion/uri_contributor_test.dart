@@ -4,7 +4,7 @@
 
 library test.services.completion.contributor.dart.importuri;
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/uri_contributor.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -26,6 +26,16 @@ class UriContributorTest extends AbstractCompletionTest {
   @override
   void setUpContributor() {
     contributor = new UriContributor();
+  }
+
+  test_export_package2() {
+    addPackageSource('foo', 'foo.dart', 'library foo;');
+    addPackageSource('foo', 'baz/too.dart', 'library too;');
+    addPackageSource('bar', 'bar.dart', 'library bar;');
+    addTestSource('export "package:foo/baz/^" import');
+    computeFast();
+    assertSuggest('package:foo/baz/too.dart',
+        csKind: CompletionSuggestionKind.IMPORT);
   }
 
   test_import() {
@@ -181,16 +191,6 @@ class UriContributorTest extends AbstractCompletionTest {
     addPackageSource('foo', 'baz/too.dart', 'library too;');
     addPackageSource('bar', 'bar.dart', 'library bar;');
     addTestSource('import "package:foo/baz/^" import');
-    computeFast();
-    assertSuggest('package:foo/baz/too.dart',
-        csKind: CompletionSuggestionKind.IMPORT);
-  }
-
-  test_export_package2() {
-    addPackageSource('foo', 'foo.dart', 'library foo;');
-    addPackageSource('foo', 'baz/too.dart', 'library too;');
-    addPackageSource('bar', 'bar.dart', 'library bar;');
-    addTestSource('export "package:foo/baz/^" import');
     computeFast();
     assertSuggest('package:foo/baz/too.dart',
         csKind: CompletionSuggestionKind.IMPORT);

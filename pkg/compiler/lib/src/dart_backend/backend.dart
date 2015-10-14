@@ -263,6 +263,22 @@ class DartBackend extends Backend {
                                 Enqueuer enqueuer,
                                 Registry registry,
                                 {bool mirrorUsage: false}) {
+    registerPlatformMembers(type,
+        registerGetter: registry.registerDynamicGetter,
+        registerSetter: registry.registerDynamicSetter,
+        registerInvocation: registry.registerDynamicInvocation);
+    super.registerInstantiatedType(
+        type, enqueuer, registry, mirrorUsage: mirrorUsage);
+  }
+
+  /// Register dynamic access of members of [type] that implement members
+  /// of types defined in the platform libraries.
+  void registerPlatformMembers(
+      InterfaceType type,
+      {void registerGetter(UniverseSelector selector),
+       void registerSetter(UniverseSelector selector),
+       void registerInvocation(UniverseSelector selector)}) {
+
     // Without patching, dart2dart has no way of performing sound tree-shaking
     // in face external functions. Therefore we employ another scheme:
     //
@@ -314,13 +330,13 @@ class DartBackend extends Backend {
               element.computeType(resolution);
               Selector selector = new Selector.fromElement(element);
               if (selector.isGetter) {
-                registry.registerDynamicGetter(
+                registerGetter(
                     new UniverseSelector(selector, null));
               } else if (selector.isSetter) {
-                registry.registerDynamicSetter(
+                registerSetter(
                     new UniverseSelector(selector, null));
               } else {
-                registry.registerDynamicInvocation(
+                registerInvocation(
                     new UniverseSelector(selector, null));
               }
             });
@@ -328,8 +344,6 @@ class DartBackend extends Backend {
         }
       }
     }
-    super.registerInstantiatedType(
-        type, enqueuer, registry, mirrorUsage: mirrorUsage);
   }
 
   @override
@@ -347,27 +361,24 @@ class DartResolutionCallbacks extends ResolutionCallbacks {
   DartResolutionCallbacks(this.backend);
 
   @override
-  WorldImpact transformImpact(ResolutionWorldImpact worldImpact) {
+  WorldImpact transformImpact(ResolutionImpact worldImpact) {
     TransformedWorldImpact transformed =
         new TransformedWorldImpact(worldImpact);
     for (DartType typeLiteral in worldImpact.typeLiterals) {
-      onTypeLiteral(typeLiteral, transformed);
+      if (typeLiteral.isInterfaceType) {
+        backend.usedTypeLiterals.add(typeLiteral.element);
+      }
     }
     for (InterfaceType instantiatedType in worldImpact.instantiatedTypes) {
       // TODO(johnniwinther): Remove this when dependency tracking is done on
       // the world impact itself.
-      transformed.registerInstantiation(instantiatedType);
-      backend.registerInstantiatedType(
-          instantiatedType, backend.compiler.enqueuer.resolution, transformed);
+      transformed.registerInstantiatedType(instantiatedType);
+      backend.registerPlatformMembers(instantiatedType,
+          registerGetter: transformed.registerDynamicGetter,
+          registerSetter: transformed.registerDynamicSetter,
+          registerInvocation: transformed.registerDynamicInvocation);
     }
     return transformed;
-  }
-
-  @override
-  void onTypeLiteral(DartType type, Registry registry) {
-    if (type.isInterfaceType) {
-      backend.usedTypeLiterals.add(type.element);
-    }
   }
 }
 

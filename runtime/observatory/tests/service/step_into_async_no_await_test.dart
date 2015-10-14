@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--error_on_bad_type --error_on_bad_override  --verbose_debug
 
-import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
 import 'dart:developer';
 
@@ -15,12 +14,12 @@ asyncWithoutAwait() async {
 
 testMain() {
   debugger();
-  asyncWithoutAwait();
+  asyncWithoutAwait();  // Line 17
 }
 
 var tests = [
   hasStoppedAtBreakpoint,
-  stoppedAtLine(18),
+  stoppedAtLine(17),
   (isolate) => isolate.stepInto(),
   hasStoppedAtBreakpoint,
   (isolate) => isolate.getStack(),  // Should not crash.

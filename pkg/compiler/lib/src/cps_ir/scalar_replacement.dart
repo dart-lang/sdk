@@ -7,30 +7,14 @@ import 'optimizers.dart';
 
 import 'dart:collection' show Queue;
 
-import '../closure.dart' show
-    ClosureClassElement;
-import '../common/names.dart' show
-    Selectors, Identifiers;
+import '../common.dart';
 import '../compiler.dart' as dart2js show
     Compiler;
-import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../dart_types.dart' as types;
-import '../diagnostics/invariant.dart' as dart2js show
-    InternalErrorFunction;
 import '../elements/elements.dart';
-import '../io/source_information.dart' show SourceInformation;
-import '../resolution/access_semantics.dart';
-import '../resolution/operators.dart';
-import '../resolution/send_structure.dart';
-import '../tree/tree.dart' as ast;
 import '../types/types.dart';
-import '../types/constants.dart' show computeTypeMask;
-import '../universe/universe.dart';
 import '../world.dart' show World;
-import 'cps_fragment.dart';
 import 'cps_ir_nodes.dart';
-import 'cps_ir_nodes_sexpr.dart' show SExpressionStringifier;
 
 /**
  * Replaces aggregates with a set of local values.  Performs inlining of
@@ -39,7 +23,7 @@ import 'cps_ir_nodes_sexpr.dart' show SExpressionStringifier;
 class ScalarReplacer extends Pass {
   String get passName => 'Scalar replacement';
 
-  final dart2js.InternalErrorFunction _internalError;
+  final InternalErrorFunction _internalError;
   final World _classWorld;
 
   ScalarReplacer(dart2js.Compiler compiler)
@@ -48,8 +32,6 @@ class ScalarReplacer extends Pass {
 
   @override
   void rewrite(FunctionDefinition root) {
-    // Set all parent pointers.
-    new ParentVisitor().visit(root);
     ScalarReplacementVisitor analyzer =
         new ScalarReplacementVisitor(_internalError, _classWorld);
     analyzer.analyze(root);
@@ -61,9 +43,9 @@ class ScalarReplacer extends Pass {
  * Do scalar replacement of aggregates on instances. Since scalar replacement
  * can create new candidiates, iterate until all scalar replacements are done.
  */
-class ScalarReplacementVisitor extends RecursiveVisitor {
+class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
 
-  final dart2js.InternalErrorFunction internalError;
+  final InternalErrorFunction internalError;
   final World classWorld;
   ScalarReplacementRemovalVisitor removalVisitor;
 
@@ -192,6 +174,7 @@ class ScalarReplacementVisitor extends RecursiveVisitor {
   void replacePrimitive(Primitive old, Primitive primitive) {
     LetPrim letPrim = old.parent;
     letPrim.primitive = primitive;
+    primitive.parent = letPrim;
   }
 
   void deleteLetPrimOf(Primitive primitive) {
@@ -233,7 +216,7 @@ class ScalarReplacementVisitor extends RecursiveVisitor {
 
 /// Visit a just-deleted subterm and unlink all [Reference]s in it.  Reconsider
 /// allocations for scalar replacement.
-class ScalarReplacementRemovalVisitor extends RecursiveVisitor {
+class ScalarReplacementRemovalVisitor extends TrampolineRecursiveVisitor {
   ScalarReplacementVisitor process;
 
   ScalarReplacementRemovalVisitor(this.process);

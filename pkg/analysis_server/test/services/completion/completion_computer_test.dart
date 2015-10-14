@@ -6,8 +6,8 @@ library test.services.completion.suggestion;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show CompletionRequest, CompletionResult;
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
@@ -172,7 +172,8 @@ class MockCompletionContributor extends DartCompletionContributor {
 
   MockCompletionContributor(this.fastSuggestion, this.fullSuggestion);
 
-  assertCalls(AnalysisContext context, Source source, int offset, SearchEngine searchEngine) {
+  assertCalls(AnalysisContext context, Source source, int offset,
+      SearchEngine searchEngine) {
     expect(request.context, equals(context));
     expect(request.source, equals(source));
     expect(request.offset, equals(offset));

@@ -47,21 +47,23 @@ RawError* Precompiler::CompileAll(
 
 
 Precompiler::Precompiler(Thread* thread, bool reset_fields) :
-  thread_(thread),
-  zone_(thread->zone()),
-  isolate_(thread->isolate()),
-  reset_fields_(reset_fields),
-  changed_(false),
-  function_count_(0),
-  class_count_(0),
-  selector_count_(0),
-  dropped_function_count_(0),
-  libraries_(GrowableObjectArray::Handle(Z, I->object_store()->libraries())),
-  pending_functions_(GrowableObjectArray::Handle(Z,
-                                                 GrowableObjectArray::New())),
-  collected_closures_(GrowableObjectArray::Handle(Z, I->collected_closures())),
-  sent_selectors_(Z),
-  error_(Error::Handle(Z)) {
+    thread_(thread),
+    zone_(thread->zone()),
+    isolate_(thread->isolate()),
+    reset_fields_(reset_fields),
+    changed_(false),
+    function_count_(0),
+    class_count_(0),
+    selector_count_(0),
+    dropped_function_count_(0),
+    libraries_(GrowableObjectArray::Handle(Z, I->object_store()->libraries())),
+    pending_functions_(
+        GrowableObjectArray::Handle(Z, GrowableObjectArray::New())),
+    collected_closures_(
+        GrowableObjectArray::Handle(Z, GrowableObjectArray::New())),
+    sent_selectors_(),
+    error_(Error::Handle(Z)) {
+  I->set_collected_closures(collected_closures_);
 }
 
 
@@ -97,35 +99,13 @@ void Precompiler::DoCompileAll(
 
 
 void Precompiler::ClearAllCode() {
-  Library& lib = Library::Handle(Z);
-  Class& cls = Class::Handle(Z);
-  Array& functions = Array::Handle(Z);
-  Function& function = Function::Handle(Z);
-
-  for (intptr_t i = 0; i < libraries_.Length(); i++) {
-    lib ^= libraries_.At(i);
-    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-    while (it.HasNext()) {
-      cls = it.GetNextClass();
-      error_ = cls.EnsureIsFinalized(thread_);
-      if (!error_.IsNull()) {
-        Jump(error_);
-      }
+  class CodeCodeFunctionVisitor : public FunctionVisitor {
+    void VisitFunction(const Function& function) {
+      function.ClearCode();
     }
-  }
-
-  for (intptr_t i = 0; i < libraries_.Length(); i++) {
-    lib ^= libraries_.At(i);
-    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-    while (it.HasNext()) {
-      cls = it.GetNextClass();
-      functions = cls.functions();
-      for (intptr_t i = 0; i < functions.Length(); i++) {
-        function ^= functions.At(i);
-        function.ClearCode();
-      }
-    }
-  }
+  };
+  CodeCodeFunctionVisitor visitor;
+  VisitFunctions(&visitor);
 }
 
 
@@ -331,6 +311,8 @@ void Precompiler::CleanUp() {
   // TODO(rmacnak): DropEmptyClasses();
 
   BindStaticCalls();
+
+  DedupStackmaps();
 }
 
 
@@ -483,7 +465,7 @@ bool Precompiler::IsSent(const String& selector) {
   if (selector.IsNull()) {
     return false;
   }
-  return sent_selectors_.Includes(selector);
+  return sent_selectors_.Lookup(&selector) != NULL;
 }
 
 
@@ -491,7 +473,7 @@ void Precompiler::AddSelector(const String& selector) {
   ASSERT(!selector.IsNull());
 
   if (!IsSent(selector)) {
-    sent_selectors_.Add(selector);
+    sent_selectors_.Insert(&String::ZoneHandle(Z, selector.raw()));
     selector_count_++;
     changed_ = true;
 
@@ -685,10 +667,20 @@ void Precompiler::DropUncompiledFunctions() {
 
       closures = cls.closures();
       if (!closures.IsNull()) {
+        retained_functions = GrowableObjectArray::New();
         for (intptr_t j = 0; j < closures.Length(); j++) {
           function ^= closures.At(j);
-          ASSERT(function.HasCode());
+          if (function.HasCode()) {
+            retained_functions.Add(function);
+          } else {
+            dropped_function_count_++;
+            if (FLAG_trace_precompiler) {
+              THR_Print("Precompilation dropping %s\n",
+                        function.ToLibNamePrefixedQualifiedCString());
+            }
+          }
         }
+        cls.set_closures(retained_functions);
       }
     }
   }
@@ -696,6 +688,110 @@ void Precompiler::DropUncompiledFunctions() {
 
 
 void Precompiler::BindStaticCalls() {
+  class BindStaticCallsVisitor : public FunctionVisitor {
+   public:
+    explicit BindStaticCallsVisitor(Zone* zone) :
+        code_(Code::Handle(zone)),
+        table_(Array::Handle(zone)),
+        pc_offset_(Smi::Handle(zone)),
+        target_(Function::Handle(zone)),
+        target_code_(Code::Handle(zone)) {
+    }
+
+    void VisitFunction(const Function& function) {
+      ASSERT(function.HasCode());
+      code_ = function.CurrentCode();
+      table_ = code_.static_calls_target_table();
+
+      for (intptr_t i = 0;
+           i < table_.Length();
+           i += Code::kSCallTableEntryLength) {
+        pc_offset_ ^= table_.At(i + Code::kSCallTableOffsetEntry);
+        target_ ^= table_.At(i + Code::kSCallTableFunctionEntry);
+        if (target_.IsNull()) {
+          target_code_ ^= table_.At(i + Code::kSCallTableCodeEntry);
+          ASSERT(!target_code_.IsNull());
+          ASSERT(!target_code_.IsFunctionCode());
+          // Allocation stub or AllocateContext or AllocateArray or ...
+        } else {
+          // Static calls initially call the CallStaticFunction stub because
+          // their target might not be compiled yet. After tree shaking, all
+          // static call targets are compiled.
+          // Cf. runtime entry PatchStaticCall called from CallStaticFunction
+          // stub.
+          ASSERT(target_.HasCode());
+          target_code_ ^= target_.CurrentCode();
+          uword pc = pc_offset_.Value() + code_.EntryPoint();
+          CodePatcher::PatchStaticCallAt(pc, code_, target_code_);
+        }
+      }
+
+      // We won't patch static calls anymore, so drop the static call table to
+      // save space.
+      code_.set_static_calls_target_table(Object::empty_array());
+    }
+
+   private:
+    Code& code_;
+    Array& table_;
+    Smi& pc_offset_;
+    Function& target_;
+    Code& target_code_;
+  };
+
+  BindStaticCallsVisitor visitor(Z);
+  VisitFunctions(&visitor);
+}
+
+
+void Precompiler::DedupStackmaps() {
+  class DedupStackmapsVisitor : public FunctionVisitor {
+   public:
+    explicit DedupStackmapsVisitor(Zone* zone) :
+      zone_(zone),
+      canonical_stackmaps_(),
+      code_(Code::Handle(zone)),
+      stackmaps_(Array::Handle(zone)),
+      stackmap_(Stackmap::Handle(zone)) {
+    }
+
+    void VisitFunction(const Function& function) {
+      code_ = function.CurrentCode();
+      stackmaps_ = code_.stackmaps();
+      if (stackmaps_.IsNull()) return;
+      for (intptr_t i = 0; i < stackmaps_.Length(); i++) {
+        stackmap_ ^= stackmaps_.At(i);
+        stackmap_ = DedupStackmap(stackmap_);
+        stackmaps_.SetAt(i, stackmap_);
+      }
+    }
+
+    RawStackmap* DedupStackmap(const Stackmap& stackmap) {
+      const Stackmap* canonical_stackmap =
+          canonical_stackmaps_.Lookup(&stackmap);
+      if (canonical_stackmap == NULL) {
+        canonical_stackmaps_.Insert(
+            &Stackmap::ZoneHandle(zone_, stackmap.raw()));
+        return stackmap.raw();
+      } else {
+        return canonical_stackmap->raw();
+      }
+    }
+
+   private:
+    Zone* zone_;
+    StackmapSet canonical_stackmaps_;
+    Code& code_;
+    Array& stackmaps_;
+    Stackmap& stackmap_;
+  };
+
+  DedupStackmapsVisitor visitor(Z);
+  VisitFunctions(&visitor);
+}
+
+
+void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
@@ -714,54 +810,18 @@ void Precompiler::BindStaticCalls() {
       functions = cls.functions();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
-        BindStaticCalls(function);
+        visitor->VisitFunction(function);
       }
 
       closures = cls.closures();
       if (!closures.IsNull()) {
         for (intptr_t j = 0; j < closures.Length(); j++) {
           function ^= closures.At(j);
-          BindStaticCalls(function);
+          visitor->VisitFunction(function);
         }
       }
     }
   }
-}
-
-
-void Precompiler::BindStaticCalls(const Function& function) {
-  ASSERT(function.HasCode());
-
-  const Code& code = Code::Handle(Z, function.CurrentCode());
-
-  const Array& table = Array::Handle(Z, code.static_calls_target_table());
-  Smi& pc_offset = Smi::Handle(Z);
-  Function& target = Function::Handle(Z);
-  Code& target_code = Code::Handle(Z);
-
-  for (intptr_t i = 0; i < table.Length(); i += Code::kSCallTableEntryLength) {
-    pc_offset ^= table.At(i + Code::kSCallTableOffsetEntry);
-    target ^= table.At(i + Code::kSCallTableFunctionEntry);
-    if (target.IsNull()) {
-      target_code ^= table.At(i + Code::kSCallTableCodeEntry);
-      ASSERT(!target_code.IsNull());
-      ASSERT(!target_code.IsFunctionCode());
-      // Allocation stub or AllocateContext or AllocateArray or ...
-    } else {
-      // Static calls initially call the CallStaticFunction stub because
-      // their target might not be compiled yet. After tree shaking, all
-      // static call targets are compiled.
-      // Cf. runtime entry PatchStaticCall called from CallStaticFunction stub.
-      ASSERT(target.HasCode());
-      target_code ^= target.CurrentCode();
-      CodePatcher::PatchStaticCallAt(pc_offset.Value() + code.EntryPoint(),
-                                     code, target_code);
-    }
-  }
-
-  // We won't patch static calls anymore, so drop the static call table to save
-  // space.
-  code.set_static_calls_target_table(Object::empty_array());
 }
 
 }  // namespace dart

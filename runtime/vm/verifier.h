@@ -66,7 +66,7 @@ class VerifyPointersVisitor : public ObjectPointerVisitor {
 class VerifyWeakPointersVisitor : public HandleVisitor {
  public:
   explicit VerifyWeakPointersVisitor(VerifyPointersVisitor* visitor)
-      :  HandleVisitor(Isolate::Current()),
+      :  HandleVisitor(Thread::Current()),
          visitor_(visitor) {
   }
 

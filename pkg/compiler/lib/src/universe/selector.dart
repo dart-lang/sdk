@@ -4,10 +4,9 @@
 
 library dart2js.selector;
 
+import '../common.dart';
 import '../common/names.dart' show
     Names;
-import '../diagnostics/spannable.dart' show
-    SpannableAssertionFailure;
 import '../elements/elements.dart' show
     Element,
     Elements,

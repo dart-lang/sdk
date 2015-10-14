@@ -18,8 +18,7 @@
  */
 library dart2js.resolution.secret_tree_element;
 
-import '../diagnostics/invariant.dart' show invariant;
-import '../diagnostics/spannable.dart' show Spannable;
+import '../common.dart';
 
 /// Interface for associating
 abstract class TreeElementMixin {

@@ -154,7 +154,14 @@ void FUNCTION_NAME(Filter_Process)(Dart_NativeArguments args) {
   uint8_t* buffer = NULL;
   Dart_Handle result = Dart_TypedDataAcquireData(
       data_obj, &type, reinterpret_cast<void**>(&buffer), &length);
+
   if (!Dart_IsError(result)) {
+    ASSERT(type == Dart_TypedData_kUint8 || type == Dart_TypedData_kInt8);
+    if (type != Dart_TypedData_kUint8 && type != Dart_TypedData_kInt8) {
+      Dart_TypedDataReleaseData(data_obj);
+      Dart_ThrowException(DartUtils::NewInternalError(
+          "Invalid argument passed to Filter_Process"));
+    }
     uint8_t* zlib_buffer = new uint8_t[chunk_length];
     if (zlib_buffer == NULL) {
       Dart_TypedDataReleaseData(data_obj);

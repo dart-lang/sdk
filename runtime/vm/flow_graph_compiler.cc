@@ -165,7 +165,8 @@ FlowGraphCompiler::FlowGraphCompiler(
     bool is_optimizing,
     const GrowableArray<const Function*>& inline_id_to_function,
     const GrowableArray<intptr_t>& caller_inline_id)
-      : isolate_(Isolate::Current()),
+      : thread_(Thread::Current()),
+        isolate_(Isolate::Current()),
         zone_(Thread::Current()->zone()),
         assembler_(assembler),
         parsed_function_(parsed_function),
@@ -205,7 +206,7 @@ FlowGraphCompiler::FlowGraphCompiler(
   ASSERT(flow_graph->parsed_function().function().raw() ==
          parsed_function.function().raw());
   if (!is_optimizing) {
-    const intptr_t len = isolate()->deopt_id();
+    const intptr_t len = thread()->deopt_id();
     deopt_id_to_ic_data_ = new(zone()) ZoneGrowableArray<const ICData*>(len);
     deopt_id_to_ic_data_->SetLength(len);
     for (intptr_t i = 0; i < len; i++) {
@@ -812,9 +813,9 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
           }
         }
       }
-      // General purpose registers have the lowest register number at the
+      // General purpose registers have the highest register number at the
       // highest address (i.e., first in the stackmap).
-      for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+      for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
         Register reg = static_cast<Register>(i);
         if (locs->live_registers()->ContainsRegister(reg)) {
           bitmap->Set(bitmap->Length(), locs->live_registers()->IsTagged(reg));
@@ -863,9 +864,9 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
       fpu_reg_slots[i] = -1;
     }
   }
-  // General purpose registers are spilled from lowest to highest register
+  // General purpose registers are spilled from highest to lowest register
   // number.
-  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+  for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
     Register reg = static_cast<Register>(i);
     if (regs->ContainsRegister(reg)) {
       cpu_reg_slots[i] = next_slot++;

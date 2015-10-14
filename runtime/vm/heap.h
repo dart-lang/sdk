@@ -42,6 +42,7 @@ class Heap {
   enum WeakSelector {
     kPeers = 0,
     kHashes,
+    kObjectIds,
     kNumWeakSelectors
   };
 
@@ -188,6 +189,17 @@ class Heap {
     return GetWeakEntry(raw_obj, kHashes);
   }
   int64_t HashCount() const;
+
+  // Associate an id with an object (used when serializing an object).
+  // A non-existant id is equal to 0.
+  void SetObjectId(RawObject* raw_obj, intptr_t object_id) {
+    SetWeakEntry(raw_obj, kObjectIds, object_id);
+  }
+  intptr_t GetObjectId(RawObject* raw_obj) const {
+    return GetWeakEntry(raw_obj, kObjectIds);
+  }
+  int64_t ObjectIdCount() const;
+  void ResetObjectIdTable();
 
   // Used by the GC algorithms to propagate weak entries.
   intptr_t GetWeakEntry(RawObject* raw_obj, WeakSelector sel) const;

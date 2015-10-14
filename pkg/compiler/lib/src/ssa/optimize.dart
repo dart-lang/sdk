@@ -473,7 +473,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     bool canInline = true;
     signature.forEachParameter((ParameterElement element) {
       if (inputPosition++ < inputs.length && canInline) {
-        DartType type = element.type.unalias(compiler.resolution);
+        DartType type = element.type.unaliased;
         if (type is FunctionType) {
           canInline = false;
         }
@@ -905,7 +905,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction visitInvokeStatic(HInvokeStatic node) {
     propagateConstantValueToUses(node);
-    if (node.element == backend.getCheckConcurrentModificationError()) {
+    if (node.element == backend.helpers.checkConcurrentModificationError) {
       if (node.inputs.length == 2) {
         HInstruction firstArgument = node.inputs[0];
         if (firstArgument is HConstant) {

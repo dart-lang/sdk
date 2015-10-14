@@ -514,6 +514,34 @@ void _loadPackagesMap(String packagesParam) {
 }
 
 
+// Embedder Entrypoint:
+// Add mapping from package name to URI.
+void _addPackageMapEntry(String key, String value) {
+  if (!_setupCompleted) {
+    _setupHooks();
+  }
+  if (_traceLoading) {
+    _log("Adding packages map entry: $key -> $value");
+  }
+  if (_packageRoot != null) {
+    if (_traceLoading) {
+      _log("_packageRoot already set: $_packageRoot");
+    }
+    throw "Cannot add package map entry to an exisiting package root.";
+  }
+  if (_packagesPort != null) {
+    if (_traceLoading) {
+      _log("Package map load request already pending.");
+    }
+    throw "Cannot add package map entry during package map resolution.";
+  }
+  if (_packageMap == null) {
+    _packageMap = new Map<String, Uri>();
+  }
+  _packageMap[key] = _workingDirectory.resolve(value);
+}
+
+
 void _asyncLoadError(_LoadRequest req, _LoadError error, StackTrace stack) {
   if (_traceLoading) {
     _log("_asyncLoadError(${req._uri}), error: $error\nstack: $stack");

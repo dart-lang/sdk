@@ -127,6 +127,8 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
      'finishedClassesAccess': finishedClassesAccess,
      'needsMixinSupport': emitter.needsMixinSupport,
      'needsNativeSupport': program.needsNativeSupport,
+     'enabledJsInterop': backend.jsInteropAnalysis.enabledJsInterop,
+     'jsInteropBoostrap':backend.jsInteropAnalysis.buildJsInteropBootstrap(),
      'isInterceptorClass': namer.operatorIs(backend.jsInterceptorClass),
      'isObject' : namer.operatorIs(compiler.objectClass),
      'specProperty': js.string(namer.nativeSpecProperty),
@@ -142,7 +144,6 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
      'nativeInfoHandler': nativeInfoHandler,
      'operatorIsPrefix' : js.string(namer.operatorIsPrefix),
      'deferredActionString': js.string(namer.deferredAction)};
-
    String skeleton = '''
 function $setupProgramName(programData, typesOffset) {
   "use strict";
@@ -754,6 +755,9 @@ function $setupProgramName(programData, typesOffset) {
       }
     }
 
+    if (#enabledJsInterop) {
+      #jsInteropBoostrap
+    }
     #tearOffCode;
   }
 

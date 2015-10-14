@@ -243,7 +243,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
 
   jsAst.Expression _computeTypeRepresentation(DartType type,
                                               {ignoreTypeVariables: false}) {
-    jsAst.Expression representation = _backend.rti.getTypeRepresentation(
+    jsAst.Expression representation = _backend.rtiEncoder.getTypeRepresentation(
         type,
         (variable) {
           if (ignoreTypeVariables) return new jsAst.LiteralNull();

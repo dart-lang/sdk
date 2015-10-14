@@ -6,7 +6,7 @@ library server.operation;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:logging/logging.dart';
 
 import 'driver.dart';

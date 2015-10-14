@@ -24,31 +24,19 @@
 namespace dart {
 
 // Forward declarations.
-class AbstractType;
 class ApiState;
-class Array;
 class BackgroundCompiler;
 class Capability;
-class CHA;
-class Class;
-class Code;
 class CodeIndexTable;
 class CompilerStats;
 class Debugger;
 class DeoptContext;
-class Error;
-class ExceptionHandlers;
-class Field;
-class Function;
-class GrowableObjectArray;
 class HandleScope;
 class HandleVisitor;
 class Heap;
 class ICData;
-class Instance;
 class IsolateProfilerData;
 class IsolateSpawnState;
-class Library;
 class Log;
 class MessageHandler;
 class Mutex;
@@ -56,7 +44,6 @@ class Object;
 class ObjectIdRing;
 class ObjectPointerVisitor;
 class ObjectStore;
-class PcDescriptors;
 class RawInstance;
 class RawArray;
 class RawContext;
@@ -78,8 +65,6 @@ class StackZone;
 class StoreBuffer;
 class StubCode;
 class ThreadRegistry;
-class TypeArguments;
-class TypeParameter;
 class UserTag;
 
 
@@ -94,23 +79,6 @@ class IsolateVisitor {
   DISALLOW_COPY_AND_ASSIGN(IsolateVisitor);
 };
 
-#define REUSABLE_HANDLE_LIST(V)                                                \
-  V(AbstractType)                                                              \
-  V(Array)                                                                     \
-  V(Class)                                                                     \
-  V(Code)                                                                      \
-  V(Error)                                                                     \
-  V(ExceptionHandlers)                                                         \
-  V(Field)                                                                     \
-  V(Function)                                                                  \
-  V(GrowableObjectArray)                                                       \
-  V(Instance)                                                                  \
-  V(Library)                                                                   \
-  V(Object)                                                                    \
-  V(PcDescriptors)                                                             \
-  V(String)                                                                    \
-  V(TypeArguments)                                                             \
-  V(TypeParameter)                                                             \
 
 class Isolate : public BaseIsolate {
  public:
@@ -357,35 +325,6 @@ class Isolate : public BaseIsolate {
   IsolateSpawnState* spawn_state() const { return spawn_state_; }
   void set_spawn_state(IsolateSpawnState* value) { spawn_state_ = value; }
 
-  static const intptr_t kNoDeoptId = -1;
-  static const intptr_t kDeoptIdStep = 2;
-  static const intptr_t kDeoptIdBeforeOffset = 0;
-  static const intptr_t kDeoptIdAfterOffset = 1;
-  intptr_t deopt_id() const { return deopt_id_; }
-  void set_deopt_id(int value) {
-    ASSERT(value >= 0);
-    deopt_id_ = value;
-  }
-  intptr_t GetNextDeoptId() {
-    ASSERT(deopt_id_ != kNoDeoptId);
-    const intptr_t id = deopt_id_;
-    deopt_id_ += kDeoptIdStep;
-    return id;
-  }
-
-  static intptr_t ToDeoptAfter(intptr_t deopt_id) {
-    ASSERT(IsDeoptBefore(deopt_id));
-    return deopt_id + kDeoptIdAfterOffset;
-  }
-
-  static bool IsDeoptBefore(intptr_t deopt_id) {
-    return (deopt_id % kDeoptIdStep) == kDeoptIdBeforeOffset;
-  }
-
-  static bool IsDeoptAfter(intptr_t deopt_id) {
-    return (deopt_id % kDeoptIdStep) == kDeoptIdAfterOffset;
-  }
-
   Mutex* mutex() const { return mutex_; }
 
   Debugger* debugger() const {
@@ -399,8 +338,8 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, single_step_);
   }
 
-  void set_has_compiled(bool value) { has_compiled_ = value; }
-  bool has_compiled() const { return has_compiled_; }
+  void set_has_compiled_code(bool value) { has_compiled_code_ = value; }
+  bool has_compiled_code() const { return has_compiled_code_; }
 
   // TODO(iposva): Evaluate whether two different isolate flag structures are
   // needed. Currently it serves as a separation between publicly visible flags
@@ -442,7 +381,7 @@ class Isolate : public BaseIsolate {
   // executing generated code. Needs to be called before any code has been
   // compiled.
   void set_strict_compilation() {
-    ASSERT(!has_compiled());
+    ASSERT(!has_compiled_code());
     flags_.type_checks_ = true;
     flags_.asserts_ = true;
     flags_.error_on_bad_type_ = true;
@@ -730,25 +669,6 @@ class Isolate : public BaseIsolate {
                                        const Instance& closure);
   RawInstance* LookupServiceExtensionHandler(const String& name);
 
-#if defined(DEBUG)
-#define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
-  void set_reusable_##object##_handle_scope_active(bool value) {               \
-    reusable_##object##_handle_scope_active_ = value;                          \
-  }                                                                            \
-  bool reusable_##object##_handle_scope_active() const {                       \
-    return reusable_##object##_handle_scope_active_;                           \
-  }
-  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_ACCESSORS)
-#undef REUSABLE_HANDLE_SCOPE_ACCESSORS
-#endif  // defined(DEBUG)
-
-#define REUSABLE_HANDLE(object)                                                \
-  object& object##Handle() const {                                             \
-    return *object##_handle_;                                                  \
-  }
-  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE)
-#undef REUSABLE_HANDLE
-
   static void VisitIsolates(IsolateVisitor* visitor);
 
   // Handle service messages until we are told to resume execution.
@@ -829,8 +749,6 @@ class Isolate : public BaseIsolate {
   bool IsIsolateOf(Thread* thread);
 #endif  // DEBUG
 
-  template<class T> T* AllocateReusableHandle();
-
   // Accessed from generated code:
   uword stack_limit_;
   StoreBuffer* store_buffer_;
@@ -861,11 +779,10 @@ class Isolate : public BaseIsolate {
   Debugger* debugger_;
   bool resume_request_;
   int64_t last_resume_timestamp_;
-  bool has_compiled_;
+  bool has_compiled_code_;  // Can check that no compilation occured.
   Flags flags_;
   Random random_;
   Simulator* simulator_;
-  intptr_t deopt_id_;
   Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.
   uword saved_stack_limit_;
   uword stack_base_;
@@ -933,27 +850,11 @@ class Isolate : public BaseIsolate {
 
   bool compilation_allowed_;
 
-  // TODO(23153): Move this out of Isolate/Thread.
-  CHA* cha_;
-
   // Isolate list next pointer.
   Isolate* next_;
 
   // Used to wake the isolate when it is in the pause event loop.
   Monitor* pause_loop_monitor_;
-
-  // Reusable handles support.
-#define REUSABLE_HANDLE_FIELDS(object)                                         \
-  object* object##_handle_;
-  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_FIELDS)
-#undef REUSABLE_HANDLE_FIELDS
-
-#if defined(DEBUG)
-#define REUSABLE_HANDLE_SCOPE_VARIABLE(object)                                 \
-  bool reusable_##object##_handle_scope_active_;
-  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_VARIABLE);
-#undef REUSABLE_HANDLE_SCOPE_VARIABLE
-#endif  // defined(DEBUG)
 
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
   type metric_##variable##_;
@@ -964,8 +865,6 @@ class Isolate : public BaseIsolate {
   TimelineStream stream_##name##_;
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_VARIABLE)
 #undef ISOLATE_TIMELINE_STREAM_VARIABLE
-
-  VMHandles reusable_handles_;
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateInterruptCallback interrupt_callback_;
@@ -1099,6 +998,7 @@ class IsolateSpawnState {
   IsolateSpawnState(Dart_Port parent_port,
                     const char* script_url,
                     const char* package_root,
+                    const char** package_map,
                     const Instance& args,
                     const Instance& message,
                     bool paused,
@@ -1113,11 +1013,12 @@ class IsolateSpawnState {
   Dart_Port parent_port() const { return parent_port_; }
   Dart_Port on_exit_port() const { return on_exit_port_; }
   Dart_Port on_error_port() const { return on_error_port_; }
-  char* script_url() const { return script_url_; }
-  char* package_root() const { return package_root_; }
-  char* library_url() const { return library_url_; }
-  char* class_name() const { return class_name_; }
-  char* function_name() const { return function_name_; }
+  const char* script_url() const { return script_url_; }
+  const char* package_root() const { return package_root_; }
+  const char** package_map() const { return package_map_; }
+  const char* library_url() const { return library_url_; }
+  const char* class_name() const { return class_name_; }
+  const char* function_name() const { return function_name_; }
   bool is_spawn_uri() const { return library_url_ == NULL; }
   bool paused() const { return paused_; }
   bool errors_are_fatal() const { return errors_are_fatal_; }
@@ -1133,11 +1034,12 @@ class IsolateSpawnState {
   Dart_Port parent_port_;
   Dart_Port on_exit_port_;
   Dart_Port on_error_port_;
-  char* script_url_;
-  char* package_root_;
-  char* library_url_;
-  char* class_name_;
-  char* function_name_;
+  const char* script_url_;
+  const char* package_root_;
+  const char** package_map_;
+  const char* library_url_;
+  const char* class_name_;
+  const char* function_name_;
   uint8_t* serialized_args_;
   intptr_t serialized_args_len_;
   uint8_t* serialized_message_;

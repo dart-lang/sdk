@@ -13,7 +13,6 @@ import '../elements/elements.dart' show
 import 'messages.dart';
 
 class DiagnosticOptions {
-
   /// Emit terse diagnostics without howToFix.
   final bool terseDiagnostics;
 

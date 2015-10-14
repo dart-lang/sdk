@@ -4,7 +4,7 @@
 
 library test.services.completion.dart.keyword;
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/keyword_contributor.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -430,6 +430,16 @@ class KeywordContributorTest extends AbstractCompletionTest {
         relevance: DART_RELEVANCE_HIGH);
   }
 
+  test_catch() {
+    addTestSource('main() {try {} catch (e) {^}}}');
+    expect(computeFast(), isTrue);
+    var keywords = <Keyword>[];
+    keywords.addAll(STMT_START_OUTSIDE_CLASS);
+    keywords.add(Keyword.RETHROW);
+    assertSuggestKeywords(keywords,
+        relevance: DART_RELEVANCE_KEYWORD);
+  }
+
   test_class() {
     addTestSource('class A e^ { }');
     expect(computeFast(), isTrue);
@@ -604,16 +614,6 @@ class KeywordContributorTest extends AbstractCompletionTest {
     addTestSource('main() {for (int x in myList) {^}}');
     expect(computeFast(), isTrue);
     assertSuggestKeywords(STMT_START_IN_LOOP_OUTSIDE_CLASS,
-        relevance: DART_RELEVANCE_KEYWORD);
-  }
-
-  test_catch() {
-    addTestSource('main() {try {} catch (e) {^}}}');
-    expect(computeFast(), isTrue);
-    var keywords = <Keyword>[];
-    keywords.addAll(STMT_START_OUTSIDE_CLASS);
-    keywords.add(Keyword.RETHROW);
-    assertSuggestKeywords(keywords,
         relevance: DART_RELEVANCE_KEYWORD);
   }
 

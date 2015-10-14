@@ -4,7 +4,7 @@
 
 library test.services.src.index.dart_index_contributor;
 
-import 'package:analysis_server/analysis/index_core.dart';
+import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_contributor.dart';
 import 'package:analysis_server/src/services/index/index_store.dart';
@@ -800,6 +800,22 @@ main(A p) {
         _expectedLocation(mainElement, 'A.field = 1;'));
     _assertRecordedRelation(indexable, IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(mainElement, 'A.field); // 3'));
+  }
+
+  void test_isReferencedBy_ClassElement_invocation() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class A {}
+main() {
+  A(); // invalid code, but still a reference
+}''');
+    // prepare elements
+    Element mainElement = findElement('main');
+    Element classElement = findElement('A');
+    IndexableElement indexable = new IndexableElement(classElement);
+    // verify
+    _assertRecordedRelation(indexable, IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(mainElement, 'A();'));
   }
 
   void test_isReferencedBy_ClassTypeAlias() {

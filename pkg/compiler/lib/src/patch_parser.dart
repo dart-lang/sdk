@@ -118,15 +118,13 @@ import 'dart:async';
 
 import 'constants/values.dart' show
     ConstantValue;
+import 'common.dart';
 import 'compiler.dart' show
     Compiler;
 import 'common/tasks.dart' show
     CompilerTask;
 import 'dart_types.dart' show
     DartType;
-import 'diagnostics/diagnostic_listener.dart';
-import 'diagnostics/messages.dart' show
-    MessageKind;
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show
     BaseFunctionElementX,
@@ -135,6 +133,8 @@ import 'elements/modelx.dart' show
     LibraryElementX,
     MetadataAnnotationX,
     SetterElementX;
+import 'js_backend/js_backend.dart' show
+    JavaScriptBackend;
 import 'library_loader.dart' show
     LibraryLoader;
 import 'parser/listener.dart' show
@@ -306,6 +306,7 @@ void patchElement(Compiler compiler,
         patch, MessageKind.PATCH_NON_EXISTING, {'name': patch.name});
     return;
   }
+
   if (!(origin.isClass ||
         origin.isConstructor ||
         origin.isFunction ||
@@ -369,6 +370,12 @@ checkNativeAnnotation(Compiler compiler, ClassElement cls) {
   EagerAnnotationHandler.checkAnnotation(compiler, cls,
       const NativeAnnotationHandler());
 }
+
+checkJsInteropAnnotation(Compiler compiler, element) {
+  EagerAnnotationHandler.checkAnnotation(compiler, element,
+      const JsInteropAnnotationHandler());
+}
+
 
 /// Abstract interface for pre-resolution detection of metadata.
 ///
@@ -454,6 +461,39 @@ class NativeAnnotationHandler implements EagerAnnotationHandler<String> {
     if (annotationType.element != compiler.nativeAnnotationClass) {
       DiagnosticReporter reporter = compiler.reporter;
       reporter.internalError(annotation, 'Invalid @Native(...) annotation.');
+    }
+  }
+}
+
+/// Annotation handler for pre-resolution detection of `@Js(...)`
+/// annotations.
+class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
+  const JsInteropAnnotationHandler();
+
+  bool hasJsNameAnnotation(MetadataAnnotation annotation) =>
+      annotation.beginToken != null && annotation.beginToken.next.value == 'Js';
+
+  bool apply(Compiler compiler,
+             Element element,
+             MetadataAnnotation annotation) {
+    bool hasJsInterop = hasJsNameAnnotation(annotation);
+    if (hasJsInterop) {
+      element.markAsJsInterop();
+    }
+    // Due to semantics of apply in the baseclass we have to return null to
+    // indicate that no match was found.
+    return hasJsInterop ? true : null;
+  }
+
+  @override
+  void validate(Compiler compiler,
+                Element element,
+                MetadataAnnotation annotation,
+                ConstantValue constant) {
+    JavaScriptBackend backend = compiler.backend;
+    if (constant.getType(compiler.coreTypes).element !=
+        backend.jsAnnotationClass) {
+      compiler.reporter.internalError(annotation, 'Invalid @Js(...) annotation.');
     }
   }
 }

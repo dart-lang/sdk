@@ -14,7 +14,7 @@ import 'memory_compiler.dart';
 import 'package:compiler/src/cps_ir/cps_ir_nodes.dart' as ir;
 import 'package:compiler/src/cps_ir/cps_ir_nodes_sexpr.dart' as ir;
 import 'package:compiler/src/js/js.dart' as js;
-import 'package:compiler/src/common.dart' show Element, ClassElement;
+import 'package:compiler/src/elements/elements.dart';
 
 const String TEST_MAIN_FILE = 'test.dart';
 
@@ -123,7 +123,7 @@ class JsSourceInformationVisitor extends js.BaseVisitor {
   }
 }
 
-class IrSourceInformationVisitor extends ir.RecursiveVisitor {
+class IrSourceInformationVisitor extends ir.TrampolineRecursiveVisitor {
   List<String> sourceInformation = <String>[];
 
   @override

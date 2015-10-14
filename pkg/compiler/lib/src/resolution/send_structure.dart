@@ -4,10 +4,9 @@
 
 library dart2js.resolution.send_structure;
 
-import '../dart_types.dart';
-import '../diagnostics/spannable.dart' show
-    SpannableAssertionFailure;
+import '../common.dart';
 import '../constants/expressions.dart';
+import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show

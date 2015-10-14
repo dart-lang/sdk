@@ -74,7 +74,12 @@ class Mutex {
   bool IsOwnedByCurrentThread() const {
     return owner_ == OSThread::GetCurrentThreadId();
   }
-#endif  // defined(DEBUG)
+#else
+  bool IsOwnedByCurrentThread() const {
+    UNREACHABLE();
+    return false;
+  }
+#endif
 
  private:
   MutexData data_;

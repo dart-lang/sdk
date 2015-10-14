@@ -174,7 +174,7 @@ bool VmService::Setup(const char* server_ip, intptr_t server_port) {
   // Prepare for script loading by setting up the 'print' and 'timer'
   // closures and setting up 'package root' for URI resolution.
   result = DartUtils::PrepareForScriptLoading(
-      NULL, NULL, true, false, builtin_lib);
+      NULL, NULL, NULL, true, false, builtin_lib);
   SHUTDOWN_ON_ERROR(result);
 
   // Load main script.

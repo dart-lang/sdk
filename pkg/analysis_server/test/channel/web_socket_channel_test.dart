@@ -6,8 +6,8 @@ library test.channel.web_socket;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/channel/web_socket_channel.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:unittest/unittest.dart';
 

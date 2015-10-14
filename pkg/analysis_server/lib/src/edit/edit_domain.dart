@@ -6,8 +6,8 @@ library edit.domain;
 
 import 'dart:async';
 
-import 'package:analysis_server/edit/assist/assist_core.dart';
-import 'package:analysis_server/edit/fix/fix_core.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
+import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/constants.dart';

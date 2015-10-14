@@ -3234,6 +3234,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         variable = new TopLevelVariableElementImpl.forNode(variableName);
       }
       element = variable;
+      if (node.parent.parent is TopLevelVariableDeclaration) {
+        _setDocRange(element, node.parent.parent);
+      }
       if ((node.parent as VariableDeclarationList).type == null) {
         variable.hasImplicitType = true;
       }
@@ -9676,7 +9679,7 @@ class PartialResolverVisitor extends ResolverVisitor {
 
   @override
   Object visitFieldDeclaration(FieldDeclaration node) {
-    if (strongMode) {
+    if (strongMode && node.isStatic) {
       _addVariables(node.fields.variables);
       bool wasDiscarding = discardErrorsInInitializer;
       discardErrorsInInitializer = true;
@@ -14419,11 +14422,11 @@ class TypeResolverVisitor extends ScopedVisitor {
       PropertyInducingElementImpl variable =
           accessor.variable as PropertyInducingElementImpl;
       if (accessor.isGetter) {
-        variable.type = type.returnType;
+        variable.type = type.baseReturnType;
       } else if (variable.type == null) {
-        List<DartType> parameterTypes = type.normalParameterTypes;
-        if (parameterTypes != null && parameterTypes.length > 0) {
-          variable.type = parameterTypes[0];
+        List<ParameterElement> parameters = type.baseParameters;
+        if (parameters != null && parameters.length > 0) {
+          variable.type = parameters[0].type;
         }
       }
     }
@@ -15719,13 +15722,26 @@ class VariableResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  Object visitTypeName(TypeName node) {
+    return null;
+  }
+
+  @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     // Ignore if already resolved - declaration or type.
-    if (node.staticElement != null) {
+    if (node.inDeclarationContext()) {
+      return null;
+    }
+    // Ignore if it cannot be a reference to a local variable.
+    AstNode parent = node.parent;
+    if (parent is FieldFormalParameter) {
+      return null;
+    } else if (parent is ConstructorDeclaration && parent.returnType == node) {
+      return null;
+    } else if (parent is ConstructorFieldInitializer && parent.fieldName == node) {
       return null;
     }
     // Ignore if qualified.
-    AstNode parent = node.parent;
     if (parent is PrefixedIdentifier && identical(parent.identifier, node)) {
       return null;
     }

@@ -37,6 +37,7 @@ export 'package:observatory/src/elements/json_view.dart';
 export 'package:observatory/src/elements/library_ref.dart';
 export 'package:observatory/src/elements/library_view.dart';
 export 'package:observatory/src/elements/logging.dart';
+export 'package:observatory/src/elements/megamorphiccache_view.dart';
 export 'package:observatory/src/elements/metrics.dart';
 export 'package:observatory/src/elements/nav_bar.dart';
 export 'package:observatory/src/elements/object_common.dart';

@@ -9,16 +9,13 @@
 
 library dart2js.serialization.modelz;
 
-import 'serialization.dart';
-import 'keys.dart';
+import '../common.dart';
 import '../common/resolution.dart' show
     Resolution;
 import '../compiler.dart'
     show Compiler;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../diagnostics/source_span.dart'
-    show SourceSpan;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
@@ -40,6 +37,9 @@ import '../tree/tree.dart';
 import '../util/util.dart' show
     Link,
     LinkBuilder;
+
+import 'keys.dart';
+import 'serialization.dart';
 
 /// Compute a [Link] from an [Iterable].
 Link toLink(Iterable iterable) {
@@ -135,6 +135,12 @@ abstract class ElementZ extends Element with ElementCommon {
 
   @override
   bool get isNative => false;
+
+  @override
+  bool get isJsInterop => false;
+
+  @override
+  String get jsInteropName => null;
 
   @override
   bool get isOperator => false;

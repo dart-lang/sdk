@@ -1697,7 +1697,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
 
-    if (element == backend.getCheckConcurrentModificationError()) {
+    if (element == backend.helpers.checkConcurrentModificationError) {
       // Manually inline the [checkConcurrentModificationError] function.  This
       // function is only called from a for-loop update.  Ideally we would just
       // generate the conditionalcontrol flow in the builder but it adds basic
@@ -1705,7 +1705,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // confuses loop recognition.
 
       assert(arguments.length == 2);
-      Element throwFunction = backend.getThrowConcurrentModificationError();
+      Element throwFunction = backend.helpers.throwConcurrentModificationError;
       registry.registerStaticInvocation(throwFunction);
 
       // Calling using `(0, #)(#)` instead of `#(#)` separates the property load
@@ -1755,8 +1755,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           // If the selector we need to register a typed getter to the
           // [world]. The emitter needs to know if it needs to emit a
           // bound closure for a method.
+
+          // If [superMethod] is mixed in, [superClass] might not be live.
+          // We use the superclass of the access instead.
           TypeMask receiverType =
-              new TypeMask.nonNullExact(superClass, compiler.world);
+              new TypeMask.nonNullExact(node.caller.superclass, compiler.world);
           // TODO(floitsch): we know the target. We shouldn't register a
           // dynamic getter.
           registry.registerDynamicGetter(
@@ -2262,7 +2265,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             .withSourceInformation(node.sourceInformation));
       }
     } else {
-      Element convertToString = backend.getStringInterpolationHelper();
+      Element convertToString = backend.helpers.stringInterpolationHelper;
       registry.registerStaticUse(convertToString);
       js.Expression jsHelper =
           backend.emitter.staticFunctionAccess(convertToString);
@@ -2827,7 +2830,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.inputs[0]);
     if (node.hasReceiver) {
       if (backend.isInterceptorClass(element.enclosingClass)) {
-        int index = RuntimeTypes.getTypeVariableIndex(element);
+        int index = element.index;
         js.Expression receiver = pop();
         js.Expression helper = backend.emitter
             .staticFunctionAccess(helperElement);

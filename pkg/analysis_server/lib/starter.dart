@@ -4,8 +4,8 @@
 
 library driver;
 
+import 'package:analysis_server/plugin/analysis/resolver_provider.dart';
 import 'package:analysis_server/src/server/driver.dart';
-import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:plugin/plugin.dart';
 

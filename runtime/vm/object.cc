@@ -66,6 +66,8 @@ DEFINE_FLAG(bool, trace_cha, false, "Trace CHA operations");
 DEFINE_FLAG(bool, use_field_guards, true, "Guard field cids.");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
 DEFINE_FLAG(bool, trace_field_guards, false, "Trace changes in field's cids.");
+DEFINE_FLAG(bool, ignore_patch_signature_mismatch, false,
+            "Ignore patch file member signature mismatch.");
 
 DECLARE_FLAG(charp, coverage_dir);
 DECLARE_FLAG(bool, load_deferred_eagerly);
@@ -910,7 +912,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
 
 
   // Set up names for all VM singleton classes.
-  Class& cls = Class::Handle(isolate);
+  Class& cls = Class::Handle();
 
   SET_CLASS_NAME(class, Class);
   SET_CLASS_NAME(dynamic, Dynamic);
@@ -1021,9 +1023,9 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
 
 void Object::VerifyBuiltinVtables() {
 #if defined(DEBUG)
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  Class& cls = Class::Handle(isolate, Class::null());
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Class& cls = Class::Handle(thread->zone(), Class::null());
   for (intptr_t cid = (kIllegalCid + 1); cid < kNumPredefinedCids; cid++) {
     if (isolate->class_table()->HasValidClassAt(cid)) {
       cls ^= isolate->class_table()->At(cid);
@@ -1059,8 +1061,9 @@ void Object::RegisterPrivateClass(const Class& cls,
 
 RawError* Object::Init(Isolate* isolate) {
   Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   ASSERT(isolate == thread->isolate());
-  TimelineDurationScope tds(isolate,
+  TimelineDurationScope tds(thread,
                             isolate->GetIsolateStream(),
                             "Object::Init");
 
@@ -1069,10 +1072,10 @@ RawError* Object::Init(Isolate* isolate) {
   // not have a full snapshot linked in.
   ObjectStore* object_store = isolate->object_store();
 
-  Class& cls = Class::Handle(isolate);
-  Type& type = Type::Handle(isolate);
-  Array& array = Array::Handle(isolate);
-  Library& lib = Library::Handle(isolate);
+  Class& cls = Class::Handle(zone);
+  Type& type = Type::Handle(zone);
+  Array& array = Array::Handle(zone);
+  Library& lib = Library::Handle(zone);
 
   // All RawArray fields will be initialized to an empty array, therefore
   // initialize array class first.
@@ -1100,19 +1103,19 @@ RawError* Object::Init(Isolate* isolate) {
   const intptr_t kInitialCanonicalTypeArgumentsSize = 4;
   array = Array::New(kInitialCanonicalTypeArgumentsSize + 1);
   array.SetAt(kInitialCanonicalTypeArgumentsSize,
-              Smi::Handle(isolate, Smi::New(0)));
+              Smi::Handle(zone, Smi::New(0)));
   object_store->set_canonical_type_arguments(array);
 
   // Setup type class early in the process.
-  const Class& type_cls = Class::Handle(isolate, Class::New<Type>());
-  const Class& type_ref_cls = Class::Handle(isolate, Class::New<TypeRef>());
-  const Class& type_parameter_cls = Class::Handle(isolate,
+  const Class& type_cls = Class::Handle(zone, Class::New<Type>());
+  const Class& type_ref_cls = Class::Handle(zone, Class::New<TypeRef>());
+  const Class& type_parameter_cls = Class::Handle(zone,
                                                   Class::New<TypeParameter>());
-  const Class& bounded_type_cls = Class::Handle(isolate,
+  const Class& bounded_type_cls = Class::Handle(zone,
                                                 Class::New<BoundedType>());
-  const Class& mixin_app_type_cls = Class::Handle(isolate,
+  const Class& mixin_app_type_cls = Class::Handle(zone,
                                                   Class::New<MixinAppType>());
-  const Class& library_prefix_cls = Class::Handle(isolate,
+  const Class& library_prefix_cls = Class::Handle(zone,
                                                   Class::New<LibraryPrefix>());
 
   // Pre-allocate the OneByteString class needed by the symbol table.
@@ -1128,27 +1131,27 @@ RawError* Object::Init(Isolate* isolate) {
 
   // Set up the libraries array before initializing the core library.
   const GrowableObjectArray& libraries = GrowableObjectArray::Handle(
-      isolate, GrowableObjectArray::New(Heap::kOld));
+      zone, GrowableObjectArray::New(Heap::kOld));
   object_store->set_libraries(libraries);
 
   // Pre-register the core library.
   Library::InitCoreLibrary(isolate);
 
   // Basic infrastructure has been setup, initialize the class dictionary.
-  const Library& core_lib = Library::Handle(isolate, Library::CoreLibrary());
+  const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
   ASSERT(!core_lib.IsNull());
 
   const GrowableObjectArray& pending_classes =
-      GrowableObjectArray::Handle(isolate, GrowableObjectArray::New());
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
   object_store->set_pending_classes(pending_classes);
 
-  Context& context = Context::Handle(isolate, Context::New(0, Heap::kOld));
+  Context& context = Context::Handle(zone, Context::New(0, Heap::kOld));
   object_store->set_empty_context(context);
 
   // Now that the symbol table is initialized and that the core dictionary as
   // well as the core implementation dictionary have been setup, preallocate
   // remaining classes and register them by name in the dictionaries.
-  String& name = String::Handle(isolate);
+  String& name = String::Handle(zone);
   cls = object_store->array_class();  // Was allocated above.
   RegisterPrivateClass(cls, Symbols::_List(), core_lib);
   pending_classes.Add(cls);
@@ -1157,8 +1160,8 @@ RawError* Object::Init(Isolate* isolate) {
   // parameters is still 0. It will become 1 after patching. The array type
   // allocated below represents the raw type _List and not _List<E> as we
   // could expect. Use with caution.
-  type ^= Type::New(Object::Handle(isolate, cls.raw()),
-                    TypeArguments::Handle(isolate),
+  type ^= Type::New(Object::Handle(zone, cls.raw()),
+                    TypeArguments::Handle(zone),
                     Scanner::kNoSourcePos);
   type.SetIsFinalized();
   type ^= type.Canonicalize();
@@ -1198,7 +1201,7 @@ RawError* Object::Init(Isolate* isolate) {
   // Pre-register the isolate library so the native class implementations
   // can be hooked up before compiling it.
   Library& isolate_lib =
-      Library::Handle(isolate, Library::LookupLibrary(Symbols::DartIsolate()));
+      Library::Handle(zone, Library::LookupLibrary(Symbols::DartIsolate()));
   if (isolate_lib.IsNull()) {
     isolate_lib = Library::NewLibraryHelper(Symbols::DartIsolate(), true);
     isolate_lib.SetLoadRequested();
@@ -1220,7 +1223,7 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterPrivateClass(cls, Symbols::_SendPortImpl(), isolate_lib);
   pending_classes.Add(cls);
 
-  const Class& stacktrace_cls = Class::Handle(isolate,
+  const Class& stacktrace_cls = Class::Handle(zone,
                                               Class::New<Stacktrace>());
   RegisterPrivateClass(stacktrace_cls, Symbols::_StackTrace(), core_lib);
   pending_classes.Add(stacktrace_cls);
@@ -1547,9 +1550,9 @@ RawError* Object::Init(Isolate* isolate) {
   ASSERT(!lib.IsNull());
   cls = lib.LookupClassAllowPrivate(Symbols::ClassID());
   ASSERT(!cls.IsNull());
-  Field& field = Field::Handle(isolate);
-  Smi& value = Smi::Handle(isolate);
-  String& field_name = String::Handle(isolate);
+  Field& field = Field::Handle(zone);
+  Smi& value = Smi::Handle(zone);
+  String& field_name = String::Handle(zone);
 
 #define CLASS_LIST_WITH_NULL(V)                                                \
   V(Null)                                                                      \
@@ -1677,7 +1680,7 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<MirrorReference>();
   cls = Class::New<UserTag>();
 
-  const Context& context = Context::Handle(isolate,
+  const Context& context = Context::Handle(zone,
                                            Context::New(0, Heap::kOld));
   object_store->set_empty_context(context);
 
@@ -1823,7 +1826,9 @@ RawObject* Object::Allocate(intptr_t cls_id,
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  ASSERT(isolate->no_callback_scope_depth() == 0);
+  // New space allocation allowed only in mutator thread (Dart thread);
+  ASSERT(isolate->MutatorThreadIsCurrentThread() || (space != Heap::kNew));
+  ASSERT(thread->no_callback_scope_depth() == 0);
   Heap* heap = isolate->heap();
 
   uword address = heap->Allocate(size, space);
@@ -2211,14 +2216,13 @@ void Class::RemoveFunction(const Function& function) const {
 
 intptr_t Class::FindFunctionIndex(const Function& needle) const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
-  Array& funcs = isolate->ArrayHandle();
-  Function& function = isolate->FunctionHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  Array& funcs = thread->ArrayHandle();
+  Function& function = thread->FunctionHandle();
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
   const intptr_t len = funcs.Length();
@@ -2265,17 +2269,16 @@ RawFunction* Class::ImplicitClosureFunctionFromIndex(intptr_t idx) const {
 
 intptr_t Class::FindImplicitClosureFunctionIndex(const Function& needle) const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
-  Array& funcs = isolate->ArrayHandle();
-  Function& function = isolate->FunctionHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  Array& funcs = thread->ArrayHandle();
+  Function& function = thread->FunctionHandle();
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
-  Function& implicit_closure = Function::Handle(isolate);
+  Function& implicit_closure = Function::Handle(thread->zone());
   const intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
@@ -2297,14 +2300,13 @@ intptr_t Class::FindImplicitClosureFunctionIndex(const Function& needle) const {
 intptr_t Class::FindInvocationDispatcherFunctionIndex(
     const Function& needle) const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Array& funcs = isolate->ArrayHandle();
-  Object& object = isolate->ObjectHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Array& funcs = thread->ArrayHandle();
+  Object& object = thread->ObjectHandle();
   funcs ^= invocation_dispatcher_cache();
   ASSERT(!funcs.IsNull());
   const intptr_t len = funcs.Length();
@@ -2325,17 +2327,22 @@ intptr_t Class::FindInvocationDispatcherFunctionIndex(
 
 
 RawFunction* Class::InvocationDispatcherFunctionFromIndex(intptr_t idx) const {
-  Isolate* isolate = Isolate::Current();
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Array& dispatcher_cache = isolate->ArrayHandle();
-  Object& object = isolate->ObjectHandle();
+  Thread* thread = Thread::Current();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Array& dispatcher_cache = thread->ArrayHandle();
+  Object& object = thread->ObjectHandle();
   dispatcher_cache ^= invocation_dispatcher_cache();
   object = dispatcher_cache.At(idx);
   if (!object.IsFunction()) {
     return Function::null();
   }
   return Function::Cast(object).raw();
+}
+
+
+void Class::set_closures(const GrowableObjectArray& value) const {
+  StorePointer(&raw_ptr()->closure_functions_, value.raw());
 }
 
 
@@ -2384,11 +2391,11 @@ intptr_t Class::FindClosureIndex(const Function& needle) const {
   if (closures() == GrowableObjectArray::null()) {
     return -1;
   }
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
   const GrowableObjectArray& closures_array =
-      GrowableObjectArray::Handle(isolate, closures());
-  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
-  Function& closure = isolate->FunctionHandle();
+      GrowableObjectArray::Handle(thread->zone(), closures());
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  Function& closure = thread->FunctionHandle();
   intptr_t num_closures = closures_array.Length();
   for (intptr_t i = 0; i < num_closures; i++) {
     closure ^= closures_array.At(i);
@@ -2442,9 +2449,8 @@ intptr_t Class::NumTypeParameters(Thread* thread) const {
   if (type_parameters() == TypeArguments::null()) {
     return 0;
   }
-  Isolate* isolate = thread->isolate();
-  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(isolate);
-  TypeArguments& type_params = isolate->TypeArgumentsHandle();
+  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
+  TypeArguments& type_params = thread->TypeArgumentsHandle();
   type_params = type_parameters();
   return type_params.Length();
 }
@@ -2455,7 +2461,9 @@ intptr_t Class::NumOwnTypeArguments() const {
   if (num_own_type_arguments() != kUnknownNumTypeArguments) {
     return num_own_type_arguments();
   }
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   const intptr_t num_type_params = NumTypeParameters();
   if (!FLAG_overlap_type_arguments ||
       (num_type_params == 0) ||
@@ -2465,9 +2473,9 @@ intptr_t Class::NumOwnTypeArguments() const {
     return num_type_params;
   }
   ASSERT(!IsMixinApplication() || is_mixin_type_applied());
-  const AbstractType& sup_type = AbstractType::Handle(isolate, super_type());
+  const AbstractType& sup_type = AbstractType::Handle(zone, super_type());
   const TypeArguments& sup_type_args =
-      TypeArguments::Handle(isolate, sup_type.arguments());
+      TypeArguments::Handle(zone, sup_type.arguments());
   if (sup_type_args.IsNull()) {
     // The super type is raw or the super class is non generic.
     // In either case, overlapping is not possible.
@@ -2484,7 +2492,7 @@ intptr_t Class::NumOwnTypeArguments() const {
   // The super type may not even be resolved yet. This is not necessary, since
   // we only check for matching type parameters, which are resolved by default.
   const TypeArguments& type_params =
-      TypeArguments::Handle(isolate, type_parameters());
+      TypeArguments::Handle(zone, type_parameters());
   // Determine the maximum overlap of a prefix of the vector consisting of the
   // type parameters of this class with a suffix of the vector consisting of the
   // type arguments of the super type of this class.
@@ -2493,8 +2501,8 @@ intptr_t Class::NumOwnTypeArguments() const {
   // Attempt to overlap the whole vector of type parameters; reduce the size
   // of the vector (keeping the first type parameter) until it fits or until
   // its size is zero.
-  TypeParameter& type_param = TypeParameter::Handle(isolate);
-  AbstractType& sup_type_arg = AbstractType::Handle(isolate);
+  TypeParameter& type_param = TypeParameter::Handle(zone);
+  AbstractType& sup_type_arg = AbstractType::Handle(zone);
   for (intptr_t num_overlapping_type_args =
            (num_type_params < num_sup_type_args) ?
                num_type_params : num_sup_type_args;
@@ -2536,14 +2544,16 @@ intptr_t Class::NumTypeArguments() const {
   // To work properly, this call requires the super class of this class to be
   // resolved, which is checked by the type_class() call on the super type.
   // Note that calling type_class() on a MixinAppType fails.
-  Isolate* isolate = Isolate::Current();
-  Class& cls = Class::Handle(isolate);
-  AbstractType& sup_type = AbstractType::Handle(isolate);
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  Class& cls = Class::Handle(zone);
+  AbstractType& sup_type = AbstractType::Handle(zone);
   cls = raw();
   intptr_t num_type_args = 0;
   do {
     if (cls.IsSignatureClass()) {
-      Function& signature_fun = Function::Handle(isolate);
+      Function& signature_fun = Function::Handle(zone);
       signature_fun ^= cls.signature_function();
       if (!signature_fun.is_static() &&
           !signature_fun.HasInstantiatedSignature()) {
@@ -2588,13 +2598,13 @@ void Class::set_super_type(const AbstractType& value) const {
 // Return null otherwise.
 RawTypeParameter* Class::LookupTypeParameter(const String& type_name) const {
   ASSERT(!type_name.IsNull());
-  Isolate* isolate = Isolate::Current();
-  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(isolate);
-  REUSABLE_TYPE_PARAMETER_HANDLESCOPE(isolate);
-  REUSABLE_STRING_HANDLESCOPE(isolate);
-  TypeArguments& type_params = isolate->TypeArgumentsHandle();
-  TypeParameter&  type_param = isolate->TypeParameterHandle();
-  String& type_param_name = isolate->StringHandle();
+  Thread* thread = Thread::Current();
+  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
+  REUSABLE_TYPE_PARAMETER_HANDLESCOPE(thread);
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  TypeArguments& type_params = thread->TypeArgumentsHandle();
+  TypeParameter&  type_param = thread->TypeParameterHandle();
+  String& type_param_name = thread->StringHandle();
 
   type_params ^= type_parameters();
   if (!type_params.IsNull()) {
@@ -2899,7 +2909,8 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
         new_functions.Add(orig_func);
       }
     } else if (func.UserVisibleSignature() !=
-               orig_func.UserVisibleSignature()) {
+               orig_func.UserVisibleSignature()
+               && !FLAG_ignore_patch_signature_mismatch) {
       // Compare user visible signatures to ignore different implicit parameters
       // when patching a constructor with a factory.
       *error = LanguageError::NewFormatted(
@@ -3093,19 +3104,18 @@ void Class::AddFields(const GrowableArray<const Field*>& new_fields) const {
 
 intptr_t Class::FindFieldIndex(const Field& needle) const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_FIELD_HANDLESCOPE(isolate);
-  REUSABLE_STRING_HANDLESCOPE(isolate);
-  Array& fields_array = isolate->ArrayHandle();
-  Field& field = isolate->FieldHandle();
-  String& field_name = isolate->StringHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FIELD_HANDLESCOPE(thread);
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  Array& fields_array = thread->ArrayHandle();
+  Field& field = thread->FieldHandle();
+  String& field_name = thread->StringHandle();
   fields_array ^= fields();
   ASSERT(!fields_array.IsNull());
-  String& needle_name = String::Handle(isolate);
+  String& needle_name = String::Handle(thread->zone());
   needle_name ^= needle.name();
   const intptr_t len = fields_array.Length();
   for (intptr_t i = 0; i < len; i++) {
@@ -3708,7 +3718,6 @@ void Class::SetCanonicalType(const Type& type) const {
 
 intptr_t Class::FindCanonicalTypeIndex(const Type& needle) const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return -1;
   }
@@ -3717,15 +3726,15 @@ intptr_t Class::FindCanonicalTypeIndex(const Type& needle) const {
     // same type. It will never be returned by this function.
     return 0;
   }
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Object& types = isolate->ObjectHandle();
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Object& types = thread->ObjectHandle();
   types = canonical_types();
   if (types.IsNull()) {
     return -1;
   }
   const intptr_t len = Array::Cast(types).Length();
-  REUSABLE_ABSTRACT_TYPE_HANDLESCOPE(isolate);
-  AbstractType& type = isolate->AbstractTypeHandle();
+  REUSABLE_ABSTRACT_TYPE_HANDLESCOPE(thread);
+  AbstractType& type = thread->AbstractTypeHandle();
   for (intptr_t i = 0; i < len; i++) {
     type ^= Array::Cast(types).At(i);
     if (needle.raw() == type.raw()) {
@@ -3806,8 +3815,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                  Heap::Space space) {
   // Use the thsi object as if it was the receiver of this method, but instead
   // of recursing reset it to the super class and loop.
-  Isolate* isolate = Isolate::Current();
-  Class& thsi = Class::Handle(isolate, cls.raw());
+  Zone* zone = Thread::Current()->zone();
+  Class& thsi = Class::Handle(zone, cls.raw());
   while (true) {
     ASSERT(!thsi.IsVoidClass());
     // Check for DynamicType.
@@ -3865,7 +3874,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     }
     const bool other_is_function_class = other.IsFunctionClass();
     if (other.IsSignatureClass() || other_is_function_class) {
-      const Function& other_fun = Function::Handle(isolate,
+      const Function& other_fun = Function::Handle(zone,
                                                    other.signature_function());
       if (thsi.IsSignatureClass()) {
         if (other_is_function_class) {
@@ -3873,7 +3882,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         }
         // Check for two function types.
         const Function& fun =
-            Function::Handle(isolate, thsi.signature_function());
+            Function::Handle(zone, thsi.signature_function());
         return fun.TypeTest(test_kind,
                             type_arguments,
                             other_fun,
@@ -3883,11 +3892,10 @@ bool Class::TypeTestNonRecursive(const Class& cls,
       }
       // Check if type S has a call() method of function type T.
       Function& function =
-          Function::Handle(isolate,
-                           thsi.LookupDynamicFunction(Symbols::Call()));
+          Function::Handle(zone, thsi.LookupDynamicFunction(Symbols::Call()));
       if (function.IsNull()) {
         // Walk up the super_class chain.
-        Class& cls = Class::Handle(isolate, thsi.SuperClass());
+        Class& cls = Class::Handle(zone, thsi.SuperClass());
         while (!cls.IsNull() && function.IsNull()) {
           function = cls.LookupDynamicFunction(Symbols::Call());
           cls = cls.SuperClass();
@@ -3907,11 +3915,11 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     }
     // Check for 'direct super type' specified in the implements clause
     // and check for transitivity at the same time.
-    Array& interfaces = Array::Handle(isolate, thsi.interfaces());
-    AbstractType& interface = AbstractType::Handle(isolate);
-    Class& interface_class = Class::Handle(isolate);
-    TypeArguments& interface_args = TypeArguments::Handle(isolate);
-    Error& error = Error::Handle(isolate);
+    Array& interfaces = Array::Handle(zone, thsi.interfaces());
+    AbstractType& interface = AbstractType::Handle(zone);
+    Class& interface_class = Class::Handle(zone);
+    TypeArguments& interface_args = TypeArguments::Handle(zone);
+    Error& error = Error::Handle(zone);
     for (intptr_t i = 0; i < interfaces.Length(); i++) {
       interface ^= interfaces.At(i);
       if (!interface.IsFinalized()) {
@@ -4106,21 +4114,20 @@ RawFunction* Class::CheckFunctionType(const Function& func, MemberKind kind) {
 
 RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
   }
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
-  Array& funcs = isolate->ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  Array& funcs = thread->ArrayHandle();
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
   const intptr_t len = funcs.Length();
-  Function& function = isolate->FunctionHandle();
+  Function& function = thread->FunctionHandle();
   if (len >= kFunctionLookupHashTreshold) {
     ClassFunctionsSet set(raw_ptr()->functions_hash_table_);
-    REUSABLE_STRING_HANDLESCOPE(isolate);
-    function ^= set.GetOrNull(FunctionName(name, &(isolate->StringHandle())));
+    REUSABLE_STRING_HANDLESCOPE(thread);
+    function ^= set.GetOrNull(FunctionName(name, &(thread->StringHandle())));
     // No mutations.
     ASSERT(set.Release().raw() == raw_ptr()->functions_hash_table_);
     return function.IsNull() ? Function::null()
@@ -4136,8 +4143,8 @@ RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
       }
     }
   } else {
-    REUSABLE_STRING_HANDLESCOPE(isolate);
-    String& function_name = isolate->StringHandle();
+    REUSABLE_STRING_HANDLESCOPE(thread);
+    String& function_name = thread->StringHandle();
     for (intptr_t i = 0; i < len; i++) {
       function ^= funcs.At(i);
       function_name ^= function.name();
@@ -4154,19 +4161,18 @@ RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
 RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
                                                MemberKind kind) const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
   }
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
-  REUSABLE_STRING_HANDLESCOPE(isolate);
-  Array& funcs = isolate->ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  Array& funcs = thread->ArrayHandle();
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
   const intptr_t len = funcs.Length();
-  Function& function = isolate->FunctionHandle();
-  String& function_name = isolate->StringHandle();
+  Function& function = thread->FunctionHandle();
+  String& function_name = thread->StringHandle();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
     function_name ^= function.name();
@@ -4193,18 +4199,17 @@ RawFunction* Class::LookupAccessorFunction(const char* prefix,
                                            intptr_t prefix_length,
                                            const String& name) const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
   }
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_FUNCTION_HANDLESCOPE(isolate);
-  REUSABLE_STRING_HANDLESCOPE(isolate);
-  Array& funcs = isolate->ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  Array& funcs = thread->ArrayHandle();
   funcs ^= functions();
   intptr_t len = funcs.Length();
-  Function& function = isolate->FunctionHandle();
-  String& function_name = isolate->StringHandle();
+  Function& function = thread->FunctionHandle();
+  String& function_name = thread->StringHandle();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
     function_name ^= function.name();
@@ -4222,16 +4227,16 @@ RawFunction* Class::LookupFunctionAtToken(intptr_t token_pos) const {
   // TODO(hausner): we can shortcut the negative case if we knew the
   // beginning and end token position of the class.
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
   }
-  Function& func = Function::Handle(isolate);
+  Function& func = Function::Handle(zone);
   func = LookupClosureFunction(token_pos);
   if (!func.IsNull()) {
     return func.raw();
   }
-  Array& funcs = Array::Handle(isolate, functions());
+  Array& funcs = Array::Handle(zone, functions());
   intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     func ^= funcs.At(i);
@@ -4262,19 +4267,18 @@ RawField* Class::LookupField(const String& name) const {
 
 RawField* Class::LookupField(const String& name, MemberKind kind) const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return Field::null();
   }
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_FIELD_HANDLESCOPE(isolate);
-  REUSABLE_STRING_HANDLESCOPE(isolate);
-  Array& flds = isolate->ArrayHandle();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FIELD_HANDLESCOPE(thread);
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  Array& flds = thread->ArrayHandle();
   flds ^= fields();
   ASSERT(!flds.IsNull());
   intptr_t len = flds.Length();
-  Field& field = isolate->FieldHandle();
-  String& field_name = isolate->StringHandle();
+  Field& field = thread->FieldHandle();
+  String& field_name = thread->StringHandle();
   for (intptr_t i = 0; i < len; i++) {
     field ^= flds.At(i);
     field_name ^= field.name();
@@ -4299,9 +4303,9 @@ RawField* Class::LookupField(const String& name, MemberKind kind) const {
 
 
 RawLibraryPrefix* Class::LookupLibraryPrefix(const String& name) const {
-  Isolate* isolate = Isolate::Current();
-  const Library& lib = Library::Handle(isolate, library());
-  const Object& obj = Object::Handle(isolate, lib.LookupLocalObject(name));
+  Zone* zone = Thread::Current()->zone();
+  const Library& lib = Library::Handle(zone, library());
+  const Object& obj = Object::Handle(zone, lib.LookupLocalObject(name));
   if (!obj.IsNull() && obj.IsLibraryPrefix()) {
     return LibraryPrefix::Cast(obj).raw();
   }
@@ -5036,15 +5040,17 @@ void TypeArguments::SetLength(intptr_t value) const {
 }
 
 
-static void GrowCanonicalTypeArguments(Isolate* isolate, const Array& table) {
+static void GrowCanonicalTypeArguments(Thread* thread, const Array& table) {
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   // Last element of the array is the number of used elements.
   const intptr_t table_size = table.Length() - 1;
   const intptr_t new_table_size = table_size * 2;
-  Array& new_table = Array::Handle(isolate, Array::New(new_table_size + 1));
+  Array& new_table = Array::Handle(zone, Array::New(new_table_size + 1));
   // Copy all elements from the original table to the newly allocated
   // array.
-  TypeArguments& element = TypeArguments::Handle(isolate);
-  Object& new_element = Object::Handle(isolate);
+  TypeArguments& element = TypeArguments::Handle(zone);
+  Object& new_element = Object::Handle(zone);
   for (intptr_t i = 0; i < table_size; i++) {
     element ^= table.At(i);
     if (!element.IsNull()) {
@@ -5067,10 +5073,11 @@ static void GrowCanonicalTypeArguments(Isolate* isolate, const Array& table) {
 }
 
 
-static void InsertIntoCanonicalTypeArguments(Isolate* isolate,
+static void InsertIntoCanonicalTypeArguments(Thread* thread,
                                              const Array& table,
                                              const TypeArguments& arguments,
                                              intptr_t index) {
+  Zone* zone = thread->zone();
   arguments.SetCanonical();  // Mark object as being canonical.
   table.SetAt(index, arguments);  // Remember the new element.
   // Update used count.
@@ -5078,7 +5085,7 @@ static void InsertIntoCanonicalTypeArguments(Isolate* isolate,
   const intptr_t table_size = table.Length() - 1;
   const intptr_t used_elements =
       Smi::Value(Smi::RawCast(table.At(table_size))) + 1;
-  const Smi& used = Smi::Handle(isolate, Smi::New(used_elements));
+  const Smi& used = Smi::Handle(zone, Smi::New(used_elements));
   table.SetAt(table_size, used);
 
 #ifdef DEBUG
@@ -5101,13 +5108,13 @@ static void InsertIntoCanonicalTypeArguments(Isolate* isolate,
 
   // Rehash if table is 75% full.
   if (used_elements > ((table_size / 4) * 3)) {
-    GrowCanonicalTypeArguments(isolate, table);
+    GrowCanonicalTypeArguments(thread, table);
   }
 }
 
 
 static intptr_t FindIndexInCanonicalTypeArguments(
-    Isolate* isolate,
+    Zone* zone,
     const Array& table,
     const TypeArguments& arguments,
     intptr_t hash) {
@@ -5116,7 +5123,7 @@ static intptr_t FindIndexInCanonicalTypeArguments(
   ASSERT(Utils::IsPowerOfTwo(table_size));
   intptr_t index = hash & (table_size - 1);
 
-  TypeArguments& current = TypeArguments::Handle(isolate);
+  TypeArguments& current = TypeArguments::Handle(zone);
   current ^= table.At(index);
   while (!current.IsNull() && !current.Equals(arguments)) {
     index = (index + 1) & (table_size - 1);  // Move to next element.
@@ -5176,21 +5183,22 @@ RawTypeArguments* TypeArguments::Canonicalize(TrailPtr trail) const {
   if (IsRaw(0, num_types)) {
     return TypeArguments::null();
   }
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   ObjectStore* object_store = isolate->object_store();
-  Array& table = Array::Handle(isolate,
+  Array& table = Array::Handle(zone,
                                object_store->canonical_type_arguments());
   // Last element of the array is the number of used elements.
   const intptr_t num_used =
       Smi::Value(Smi::RawCast(table.At(table.Length() - 1)));
   const intptr_t hash = Hash();
-  intptr_t index =
-      FindIndexInCanonicalTypeArguments(isolate, table, *this, hash);
-  TypeArguments& result = TypeArguments::Handle(isolate);
+  intptr_t index = FindIndexInCanonicalTypeArguments(zone, table, *this, hash);
+  TypeArguments& result = TypeArguments::Handle(zone);
   result ^= table.At(index);
   if (result.IsNull()) {
     // Canonicalize each type argument.
-    AbstractType& type_arg = AbstractType::Handle(isolate);
+    AbstractType& type_arg = AbstractType::Handle(zone);
     for (intptr_t i = 0; i < num_types; i++) {
       type_arg = TypeAt(i);
       type_arg = type_arg.Canonicalize(trail);
@@ -5208,7 +5216,7 @@ RawTypeArguments* TypeArguments::Canonicalize(TrailPtr trail) const {
     if ((canonical_hash != hash) ||
         (Smi::Value(Smi::RawCast(table.At(table.Length() - 1))) != num_used)) {
       index = FindIndexInCanonicalTypeArguments(
-          isolate, table, *this, canonical_hash);
+          zone, table, *this, canonical_hash);
       result ^= table.At(index);
     }
     if (result.IsNull()) {
@@ -5219,7 +5227,7 @@ RawTypeArguments* TypeArguments::Canonicalize(TrailPtr trail) const {
         result ^= this->raw();
       }
       ASSERT(result.IsOld());
-      InsertIntoCanonicalTypeArguments(isolate, table, result, index);
+      InsertIntoCanonicalTypeArguments(thread, table, result, index);
     }
   }
   ASSERT(result.Equals(*this));
@@ -5936,9 +5944,9 @@ bool Function::AreValidArguments(intptr_t num_arguments,
     return false;
   }
   // Verify that all argument names are valid parameter names.
-  Isolate* isolate = Isolate::Current();
-  String& argument_name = String::Handle(isolate);
-  String& parameter_name = String::Handle(isolate);
+  Zone* zone = Thread::Current()->zone();
+  String& argument_name = String::Handle(zone);
+  String& parameter_name = String::Handle(zone);
   for (intptr_t i = 0; i < num_named_arguments; i++) {
     argument_name ^= argument_names.At(i);
     ASSERT(argument_name.IsSymbol());
@@ -5984,9 +5992,9 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
     return false;
   }
   // Verify that all argument names are valid parameter names.
-  Isolate* isolate = Isolate::Current();
-  String& argument_name = String::Handle(isolate);
-  String& parameter_name = String::Handle(isolate);
+  Zone* zone = Thread::Current()->zone();
+  String& argument_name = String::Handle(zone);
+  String& parameter_name = String::Handle(zone);
   for (intptr_t i = 0; i < num_named_arguments; i++) {
     argument_name ^= args_desc.NameAt(i);
     ASSERT(argument_name.IsSymbol());
@@ -6665,12 +6673,14 @@ void Function::BuildSignatureParameters(
 
 RawInstance* Function::ImplicitStaticClosure() const {
   if (implicit_static_closure() == Instance::null()) {
-    Isolate* isolate = Isolate::Current();
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    Zone* zone = thread->zone();
     ObjectStore* object_store = isolate->object_store();
     const Context& context =
-        Context::Handle(isolate, object_store->empty_context());
+        Context::Handle(zone, object_store->empty_context());
     Instance& closure =
-        Instance::Handle(isolate, Closure::New(*this, context, Heap::kOld));
+        Instance::Handle(zone, Closure::New(*this, context, Heap::kOld));
     const char* error_str = NULL;
     closure ^= closure.CheckAndCanonicalize(&error_str);
     ASSERT(!closure.IsNull());
@@ -8185,13 +8195,13 @@ RawTokenStream* TokenStream::New(intptr_t len) {
   }
   uint8_t* data = reinterpret_cast<uint8_t*>(::malloc(len));
   ASSERT(data != NULL);
-  Isolate* isolate = Isolate::Current();
+  Zone* zone = Thread::Current()->zone();
   const ExternalTypedData& stream = ExternalTypedData::Handle(
-      isolate,
+      zone,
       ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
                              data, len, Heap::kOld));
   stream.AddFinalizer(data, DataFinalizer);
-  const TokenStream& result = TokenStream::Handle(isolate, TokenStream::New());
+  const TokenStream& result = TokenStream::Handle(zone, TokenStream::New());
   result.SetStream(stream);
   return result.raw();
 }
@@ -8318,7 +8328,7 @@ class CompressedTokenStreamData : public ValueObject {
 
 RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
                                  const String& private_key) {
-  Isolate* isolate = Isolate::Current();
+  Zone* zone = Thread::Current()->zone();
   // Copy the relevant data out of the scanner into a compressed stream of
   // tokens.
   CompressedTokenStreamData data;
@@ -8338,14 +8348,14 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
 
   // Create and setup the token stream object.
   const ExternalTypedData& stream = ExternalTypedData::Handle(
-      isolate,
+      zone,
       ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
                              data.GetStream(), data.Length(), Heap::kOld));
   stream.AddFinalizer(data.GetStream(), DataFinalizer);
-  const TokenStream& result = TokenStream::Handle(isolate, New());
+  const TokenStream& result = TokenStream::Handle(zone, New());
   result.SetPrivateKey(private_key);
   const Array& token_objects =
-      Array::Handle(isolate, data.MakeTokenObjectsArray());
+      Array::Handle(zone, data.MakeTokenObjectsArray());
   {
     NoSafepointScope no_safepoint;
     result.SetStream(stream);
@@ -8533,15 +8543,15 @@ RawString* Script::GenerateSource() const {
 
 
 RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
-  Isolate* isolate = Isolate::Current();
+  Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& info =
-      GrowableObjectArray::Handle(isolate, GrowableObjectArray::New());
-  const String& source = String::Handle(isolate, Source());
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  const String& source = String::Handle(zone, Source());
   const String& key = Symbols::Empty();
-  const Object& line_separator = Object::Handle(isolate);
-  const TokenStream& tkns = TokenStream::Handle(isolate, tokens());
-  Smi& value = Smi::Handle(isolate);
-  String& tokenValue = String::Handle(isolate);
+  const Object& line_separator = Object::Handle(zone);
+  const TokenStream& tkns = TokenStream::Handle(zone, tokens());
+  Smi& value = Smi::Handle(zone);
+  String& tokenValue = String::Handle(zone);
   ASSERT(!tkns.IsNull());
   TokenStream::Iterator tkit(tkns, 0, TokenStream::Iterator::kAllTokens);
   int current_line = -1;
@@ -8884,9 +8894,11 @@ const char* Script::ToCString() const {
 
 
 RawLibrary* Script::FindLibrary() const {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      isolate, isolate->object_store()->libraries());
+      zone, isolate->object_store()->libraries());
   Library& lib = Library::Handle();
   Array& scripts = Array::Handle();
   for (intptr_t i = 0; i < libs.Length(); i++) {
@@ -8911,11 +8923,10 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& encoded_uri = String::Handle(String::EncodeIRI(uri));
   ASSERT(!encoded_uri.IsNull());
   const Library& lib = Library::Handle(FindLibrary());
-  if (lib.IsNull()) {
-    ASSERT(kind() == RawScript::kEvaluateTag);
+  if (kind() == RawScript::kEvaluateTag) {
     jsobj.AddServiceId(*this);
   } else {
-    ASSERT(kind() != RawScript::kEvaluateTag);
+    ASSERT(!lib.IsNull());
     jsobj.AddFixedServiceId("libraries/%" Pd "/scripts/%s",
         lib.index(), encoded_uri.ToCString());
   }
@@ -9133,6 +9144,7 @@ RawInstance* Library::TransitiveLoadError() const {
   }
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   ObjectStore* object_store = isolate->object_store();
   LibraryLoadErrorSet set(object_store->library_load_error_table());
   bool present = false;
@@ -9144,8 +9156,8 @@ RawInstance* Library::TransitiveLoadError() const {
   set.Insert(*this);
   object_store->set_library_load_error_table(set.Release());
   intptr_t num_imp = num_imports();
-  Library& lib = Library::Handle(isolate);
-  Instance& error = Instance::Handle(isolate);
+  Library& lib = Library::Handle(zone);
+  Instance& error = Instance::Handle(zone);
   for (intptr_t i = 0; i < num_imp; i++) {
     HANDLESCOPE(thread);
     lib = ImportLibraryAt(i);
@@ -9502,16 +9514,16 @@ RawObject* Library::LookupReExport(const String& name) const {
 
 
 RawObject* Library::LookupEntry(const String& name, intptr_t *index) const {
-  Isolate* isolate = Isolate::Current();
-  REUSABLE_ARRAY_HANDLESCOPE(isolate);
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  REUSABLE_STRING_HANDLESCOPE(isolate);
-  Array& dict = isolate->ArrayHandle();
+  Thread* thread = Thread::Current();
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  Array& dict = thread->ArrayHandle();
   dict ^= dictionary();
   intptr_t dict_size = dict.Length() - 1;
   *index = name.Hash() % dict_size;
-  Object& entry = isolate->ObjectHandle();
-  String& entry_name = isolate->StringHandle();
+  Object& entry = thread->ObjectHandle();
+  String& entry_name = thread->StringHandle();
   entry = dict.At(*index);
   // Search the entry in the hash set.
   while (!entry.IsNull()) {
@@ -9717,11 +9729,12 @@ RawFunction* Library::LookupLocalFunction(const String& name) const {
 
 
 RawObject* Library::LookupLocalObjectAllowPrivate(const String& name) const {
-  Isolate* isolate = Isolate::Current();
-  Object& obj = Object::Handle(isolate, Object::null());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Object& obj = Object::Handle(zone, Object::null());
   obj = LookupLocalObject(name);
   if (obj.IsNull() && ShouldBePrivate(name)) {
-    String& private_name = String::Handle(isolate, PrivateName(name));
+    String& private_name = String::Handle(zone, PrivateName(name));
     obj = LookupLocalObject(private_name);
   }
   return obj.raw();
@@ -9820,8 +9833,8 @@ RawClass* Library::LookupLocalClass(const String& name) const {
 RawClass* Library::LookupClassAllowPrivate(const String& name) const {
   // See if the class is available in this library or in the top level
   // scope of any imported library.
-  Isolate* isolate = Isolate::Current();
-  const Class& cls = Class::Handle(isolate, LookupClass(name));
+  Zone* zone = Thread::Current()->zone();
+  const Class& cls = Class::Handle(zone, LookupClass(name));
   if (!cls.IsNull()) {
     return cls.raw();
   }
@@ -9829,7 +9842,7 @@ RawClass* Library::LookupClassAllowPrivate(const String& name) const {
   // Now try to lookup the class using its private name, but only in
   // this library (not in imported libraries).
   if (ShouldBePrivate(name)) {
-    String& private_name = String::Handle(isolate, PrivateName(name));
+    String& private_name = String::Handle(zone, PrivateName(name));
     const Object& obj = Object::Handle(LookupLocalObject(private_name));
     if (obj.IsClass()) {
       return Class::Cast(obj).raw();
@@ -9881,8 +9894,8 @@ RawNamespace* Library::ImportAt(intptr_t index) const {
 
 
 bool Library::ImportsCorelib() const {
-  Isolate* isolate = Isolate::Current();
-  Library& imported = Library::Handle(isolate);
+  Zone* zone = Thread::Current()->zone();
+  Library& imported = Library::Handle(zone);
   intptr_t count = num_imports();
   for (int i = 0; i < count; i++) {
     imported = ImportLibraryAt(i);
@@ -9890,7 +9903,7 @@ bool Library::ImportsCorelib() const {
       return true;
     }
   }
-  LibraryPrefix& prefix = LibraryPrefix::Handle(isolate);
+  LibraryPrefix& prefix = LibraryPrefix::Handle(zone);
   LibraryPrefixIterator it(*this);
   while (it.HasNext()) {
     prefix = it.GetNext();
@@ -10088,11 +10101,13 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
 
 // Returns library with given url in current isolate, or NULL.
 RawLibrary* Library::LookupLibrary(const String &url) {
-  Isolate* isolate = Isolate::Current();
-  Library& lib = Library::Handle(isolate, Library::null());
-  String& lib_url = String::Handle(isolate, String::null());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  Library& lib = Library::Handle(zone, Library::null());
+  String& lib_url = String::Handle(zone, String::null());
   GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      isolate, isolate->object_store()->libraries());
+      zone, isolate->object_store()->libraries());
   for (int i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
     lib_url ^= lib.url();
@@ -10261,11 +10276,6 @@ RawLibrary* Library::NativeWrappersLibrary() {
 }
 
 
-RawLibrary* Library::ProfilerLibrary() {
-  return Isolate::Current()->object_store()->profiler_library();
-}
-
-
 RawLibrary* Library::TypedDataLibrary() {
   return Isolate::Current()->object_store()->typed_data_library();
 }
@@ -10426,14 +10436,15 @@ RawLibrary* LibraryPrefix::GetLibrary(int index) const {
 RawInstance* LibraryPrefix::LoadError() const {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   ObjectStore* object_store = isolate->object_store();
   GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(isolate, object_store->libraries());
+      GrowableObjectArray::Handle(zone, object_store->libraries());
   ASSERT(!libs.IsNull());
   LibraryLoadErrorSet set(HashTables::New<LibraryLoadErrorSet>(libs.Length()));
   object_store->set_library_load_error_table(set.Release());
-  Library& lib = Library::Handle(isolate);
-  Instance& error = Instance::Handle(isolate);
+  Library& lib = Library::Handle(zone);
+  Instance& error = Instance::Handle(zone);
   for (int32_t i = 0; i < num_imports(); i++) {
     lib = GetLibrary(i);
     ASSERT(!lib.IsNull());
@@ -10562,14 +10573,16 @@ bool LibraryPrefix::LoadLibrary() const {
     this->set_is_loaded();
     return true;
   } else if (deferred_lib.LoadNotStarted()) {
-    Isolate* isolate = Isolate::Current();
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
     Api::Scope api_scope(isolate);
+    Zone* zone = thread->zone();
     deferred_lib.SetLoadRequested();
     const GrowableObjectArray& pending_deferred_loads =
         GrowableObjectArray::Handle(
             isolate->object_store()->pending_deferred_loads());
     pending_deferred_loads.Add(deferred_lib);
-    const String& lib_url = String::Handle(isolate, deferred_lib.url());
+    const String& lib_url = String::Handle(zone, deferred_lib.url());
     Dart_LibraryTagHandler handler = isolate->library_tag_handler();
     handler(Dart_kImportTag,
             Api::NewHandle(isolate, importer()),
@@ -10802,12 +10815,12 @@ bool Namespace::HidesName(const String& name) const {
 // Look up object with given name in library and filter out hidden
 // names. Also look up getters and setters.
 RawObject* Namespace::Lookup(const String& name) const {
-  Isolate* isolate = Isolate::Current();
-  const Library& lib = Library::Handle(isolate, library());
+  Zone* zone = Thread::Current()->zone();
+  const Library& lib = Library::Handle(zone, library());
   intptr_t ignore = 0;
 
   // Lookup the name in the library's symbols.
-  Object& obj = Object::Handle(isolate, lib.LookupEntry(name, &ignore));
+  Object& obj = Object::Handle(zone, lib.LookupEntry(name, &ignore));
   if (!Field::IsGetterName(name) &&
       !Field::IsSetterName(name) &&
       (obj.IsNull() || obj.IsLibraryPrefix())) {
@@ -11111,18 +11124,23 @@ void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
     uword imm;
     Object& obj = Object::Handle();
     for (intptr_t i = 0; i < Length(); i++) {
+      JSONObject jsentry(stream);
+      jsentry.AddProperty("offset", OffsetFromIndex(i));
       switch (InfoAt(i)) {
       case ObjectPool::kTaggedObject:
         obj = ObjectAt(i);
-        jsarr.AddValue(obj);
+        jsentry.AddProperty("kind", "Object");
+        jsentry.AddProperty("value", obj);
         break;
       case ObjectPool::kImmediate:
         imm = RawValueAt(i);
-        jsarr.AddValue64(imm);
+        jsentry.AddProperty("kind", "Immediate");
+        jsentry.AddProperty64("value", imm);
         break;
       case ObjectPool::kNativeEntry:
         imm = RawValueAt(i);
-        jsarr.AddValueF("0x%" Px, imm);
+        jsentry.AddProperty("kind", "NativeEntry");
+        jsentry.AddProperty64("value", imm);
         break;
       default:
         UNREACHABLE();
@@ -11325,7 +11343,7 @@ void PcDescriptors::Verify(const Function& function) const {
   Iterator iter(*this, RawPcDescriptors::kDeopt | RawPcDescriptors::kIcCall);
   while (iter.MoveNext()) {
     // 'deopt_id' is set for kDeopt and kIcCall and must be unique for one kind.
-    if (Isolate::IsDeoptAfter(iter.DeoptId())) {
+    if (Thread::IsDeoptAfter(iter.DeoptId())) {
       // TODO(vegorov): some instructions contain multiple calls and have
       // multiple "after" targets recorded. Right now it is benign but might
       // lead to issues in the future. Fix that and enable verification.
@@ -12489,7 +12507,7 @@ RawICData* ICData::New() {
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
-  result.set_deopt_id(Isolate::kNoDeoptId);
+  result.set_deopt_id(Thread::kNoDeoptId);
   result.set_state_bits(0);
   return result.raw();
 }
@@ -13244,7 +13262,7 @@ intptr_t Code::GetDeoptIdForOsr(uword pc) const {
       return iter.DeoptId();
     }
   }
-  return Isolate::kNoDeoptId;
+  return Thread::kNoDeoptId;
 }
 
 
@@ -13920,7 +13938,14 @@ const char* MegamorphicCache::ToCString() const {
 
 
 void MegamorphicCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("_buckets", Object::Handle(buckets()));
+  jsobj.AddProperty("_mask", mask());
 }
 
 
@@ -14582,9 +14607,9 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   if (other.IsVoidType()) {
     return false;
   }
-  Isolate* isolate = Isolate::Current();
-  const Class& cls = Class::Handle(isolate, clazz());
-  TypeArguments& type_arguments = TypeArguments::Handle(isolate);
+  Zone* zone = Thread::Current()->zone();
+  const Class& cls = Class::Handle(zone, clazz());
+  TypeArguments& type_arguments = TypeArguments::Handle(zone);
   if (cls.NumTypeArguments() > 0) {
     type_arguments = GetTypeArguments();
     ASSERT(type_arguments.IsNull() || type_arguments.IsCanonical());
@@ -14599,12 +14624,12 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     ASSERT(type_arguments.IsNull() ||
            (type_arguments.Length() >= cls.NumTypeArguments()));
   }
-  Class& other_class = Class::Handle(isolate);
-  TypeArguments& other_type_arguments = TypeArguments::Handle(isolate);
+  Class& other_class = Class::Handle(zone);
+  TypeArguments& other_type_arguments = TypeArguments::Handle(zone);
   // Note that we may encounter a bound error in checked mode.
   if (!other.IsInstantiated()) {
     const AbstractType& instantiated_other = AbstractType::Handle(
-        isolate, other.InstantiateFrom(other_instantiator, bound_error));
+        zone, other.InstantiateFrom(other_instantiator, bound_error));
     if ((bound_error != NULL) && !bound_error->IsNull()) {
       ASSERT(Isolate::Current()->flags().type_checks());
       return false;
@@ -14722,9 +14747,9 @@ RawInstance* Instance::New(const Class& cls, Heap::Space space) {
 
 
 bool Instance::IsValidFieldOffset(intptr_t offset) const {
-  Isolate* isolate = Isolate::Current();
-  REUSABLE_CLASS_HANDLESCOPE(isolate);
-  Class& cls = isolate->ClassHandle();
+  Thread* thread = Thread::Current();
+  REUSABLE_CLASS_HANDLESCOPE(thread);
+  Class& cls = thread->ClassHandle();
   cls = clazz();
   return (offset >= 0 && offset <= (cls.instance_size() - kWordSize));
 }
@@ -15791,9 +15816,11 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     ASSERT(IsMalformed() || TypeArguments::Handle(arguments()).IsOld());
     return this->raw();
   }
-  Isolate* isolate = Isolate::Current();
-  Type& type = Type::Handle(isolate);
-  const Class& cls = Class::Handle(isolate, type_class());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  Type& type = Type::Handle(zone);
+  const Class& cls = Class::Handle(zone, type_class());
   if (cls.raw() == Object::dynamic_class() && (isolate != Dart::vm_isolate())) {
     return Object::dynamic_type();
   }
@@ -15811,7 +15838,7 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     return type.raw();
   }
 
-  Array& canonical_types = Array::Handle(isolate);
+  Array& canonical_types = Array::Handle(zone);
   canonical_types ^= cls.canonical_types();
   if (canonical_types.IsNull()) {
     canonical_types = empty_array().raw();
@@ -15837,7 +15864,7 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
   // The type was not found in the table. It is not canonical yet.
 
   // Canonicalize the type arguments.
-  TypeArguments& type_args = TypeArguments::Handle(isolate, arguments());
+  TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
   // In case the type is first canonicalized at runtime, its type argument
   // vector may be longer than necessary. This is not an issue.
   ASSERT(type_args.IsNull() || (type_args.Length() >= cls.NumTypeArguments()));
@@ -15871,7 +15898,7 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
         (length + 64) :
         ((length == 0) ? 2 : (length * 2));
     const Array& new_canonical_types = Array::Handle(
-        isolate, Array::Grow(canonical_types, new_length, Heap::kOld));
+        zone, Array::Grow(canonical_types, new_length, Heap::kOld));
     cls.set_canonical_types(new_canonical_types);
     canonical_types = new_canonical_types.raw();
   }
@@ -15891,11 +15918,11 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     // of the super class of the owner class of its signature function will be
     // prepended to the type argument vector during class finalization.
     const TypeArguments& type_params =
-      TypeArguments::Handle(isolate, cls.type_parameters());
+        TypeArguments::Handle(zone, cls.type_parameters());
     const intptr_t num_type_params = cls.NumTypeParameters();
     const intptr_t num_type_args = cls.NumTypeArguments();
-    AbstractType& type_arg = AbstractType::Handle(isolate);
-    TypeParameter& type_param = TypeParameter::Handle(isolate);
+    AbstractType& type_arg = AbstractType::Handle(zone);
+    TypeParameter& type_param = TypeParameter::Handle(zone);
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_arg = type_args.TypeAt(num_type_args - num_type_params + i);
       while (type_arg.IsBoundedType()) {
@@ -17539,9 +17566,11 @@ bool Bigint::CheckAndCanonicalizeFields(const char** error_str) const {
 
 
 RawBigint* Bigint::New(Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate->object_store()->bigint_class() != Class::null());
-  Bigint& result = Bigint::Handle(isolate);
+  Bigint& result = Bigint::Handle(zone);
   {
     RawObject* raw = Object::Allocate(Bigint::kClassId,
                                       Bigint::InstanceSize(),
@@ -17552,7 +17581,7 @@ RawBigint* Bigint::New(Heap::Space space) {
   result.SetNeg(false);
   result.SetUsed(0);
   result.set_digits(
-      TypedData::Handle(isolate, TypedData::EmptyUint32Array(isolate)));
+      TypedData::Handle(zone, TypedData::EmptyUint32Array(isolate)));
   return result.raw();
 }
 
@@ -17561,9 +17590,11 @@ RawBigint* Bigint::New(bool neg, intptr_t used, const TypedData& digits,
                        Heap::Space space) {
   ASSERT((used == 0) ||
          (!digits.IsNull() && (digits.Length() >= (used + (used & 1)))));
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate->object_store()->bigint_class() != Class::null());
-  Bigint& result = Bigint::Handle(isolate);
+  Bigint& result = Bigint::Handle(zone);
   {
     RawObject* raw = Object::Allocate(Bigint::kClassId,
                                       Bigint::InstanceSize(),
@@ -17584,7 +17615,7 @@ RawBigint* Bigint::New(bool neg, intptr_t used, const TypedData& digits,
   } else {
     neg = false;
     result.set_digits(
-        TypedData::Handle(isolate, TypedData::EmptyUint32Array(isolate)));
+        TypedData::Handle(zone, TypedData::EmptyUint32Array(isolate)));
   }
   result.SetNeg(neg);
   result.SetUsed(used);
@@ -20069,17 +20100,17 @@ void Array::PrintJSONImpl(JSONStream* stream, bool ref) const {
 RawArray* Array::Grow(const Array& source,
                       intptr_t new_length,
                       Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-  const Array& result = Array::Handle(isolate, Array::New(new_length, space));
+  Zone* zone = Thread::Current()->zone();
+  const Array& result = Array::Handle(zone, Array::New(new_length, space));
   intptr_t len = 0;
   if (!source.IsNull()) {
     len = source.Length();
     result.SetTypeArguments(
-        TypeArguments::Handle(isolate, source.GetTypeArguments()));
+        TypeArguments::Handle(zone, source.GetTypeArguments()));
   }
   ASSERT(new_length >= len);  // Cannot copy 'source' into new array.
   ASSERT(new_length != len);  // Unnecessary copying of array.
-  PassiveObject& obj = PassiveObject::Handle(isolate);
+  PassiveObject& obj = PassiveObject::Handle(zone);
   for (int i = 0; i < len; i++) {
     obj = source.At(i);
     result.SetAt(i, obj);
@@ -20100,8 +20131,8 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
     return Object::empty_array().raw();
   }
   intptr_t capacity_len = growable_array.Capacity();
-  Isolate* isolate = Isolate::Current();
-  const Array& array = Array::Handle(isolate, growable_array.data());
+  Zone* zone = Thread::Current()->zone();
+  const Array& array = Array::Handle(zone, growable_array.data());
   array.SetTypeArguments(type_arguments);
   intptr_t capacity_size = Array::InstanceSize(capacity_len);
   intptr_t used_size = Array::InstanceSize(used_len);
@@ -20320,9 +20351,9 @@ class DefaultHashTraits {
     }
     // TODO(koda): Ensure VM classes only produce Smi hash codes, and remove
     // non-Smi cases once Dart-side implementation is complete.
-    Isolate* isolate = Isolate::Current();
-    REUSABLE_INSTANCE_HANDLESCOPE(isolate);
-    Instance& hash_code = isolate->InstanceHandle();
+    Thread* thread = Thread::Current();
+    REUSABLE_INSTANCE_HANDLESCOPE(thread);
+    Instance& hash_code = thread->InstanceHandle();
     hash_code ^= Instance::Cast(obj).HashCode();
     if (hash_code.IsSmi()) {
       // May waste some bits on 64-bit, to ensure consistency with non-Smi case.
@@ -20777,7 +20808,7 @@ RawTypedData* TypedData::EmptyUint32Array(Isolate* isolate) {
     // Already created.
     return isolate->object_store()->empty_uint32_array();
   }
-  const TypedData& array = TypedData::Handle(isolate,
+  const TypedData& array = TypedData::Handle(isolate->current_zone(),
       TypedData::New(kTypedDataUint32ArrayCid, 0, Heap::kOld));
   isolate->object_store()->set_empty_uint32_array(array);
   return array.raw();
@@ -20889,11 +20920,12 @@ RawReceivePort* ReceivePort::New(Dart_Port id,
                                  bool is_control_port,
                                  Heap::Space space) {
   ASSERT(id != ILLEGAL_PORT);
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   const SendPort& send_port =
-      SendPort::Handle(isolate, SendPort::New(id, isolate->origin_id()));
+      SendPort::Handle(zone, SendPort::New(id, thread->isolate()->origin_id()));
 
-  ReceivePort& result = ReceivePort::Handle(isolate);
+  ReceivePort& result = ReceivePort::Handle(zone);
   {
     RawObject* raw = Object::Allocate(ReceivePort::kClassId,
                                       ReceivePort::InstanceSize(),
@@ -21448,14 +21480,16 @@ RawUserTag* UserTag::New(const String& label, Heap::Space space) {
 
 
 RawUserTag* UserTag::DefaultTag() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   if (isolate->default_tag() != UserTag::null()) {
     // Already created.
     return isolate->default_tag();
   }
   // Create default tag.
-  const UserTag& result = UserTag::Handle(isolate,
+  const UserTag& result = UserTag::Handle(zone,
                                           UserTag::New(Symbols::Default()));
   ASSERT(result.tag() == UserTags::kDefaultUserTag);
   isolate->set_default_tag(result);
@@ -21466,9 +21500,9 @@ RawUserTag* UserTag::DefaultTag() {
 RawUserTag* UserTag::FindTagInIsolate(Isolate* isolate, const String& label) {
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table = GrowableObjectArray::Handle(
-      isolate, isolate->tag_table());
-  UserTag& other = UserTag::Handle(isolate);
-  String& tag_label = String::Handle(isolate);
+      isolate->current_zone(), isolate->tag_table());
+  UserTag& other = UserTag::Handle(isolate->current_zone());
+  String& tag_label = String::Handle(isolate->current_zone());
   for (intptr_t i = 0; i < tag_table.Length(); i++) {
     other ^= tag_table.At(i);
     ASSERT(!other.IsNull());
@@ -21485,11 +21519,11 @@ RawUserTag* UserTag::FindTagInIsolate(Isolate* isolate, const String& label) {
 void UserTag::AddTagToIsolate(Isolate* isolate, const UserTag& tag) {
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table = GrowableObjectArray::Handle(
-      isolate, isolate->tag_table());
+      isolate->current_zone(), isolate->tag_table());
   ASSERT(!TagTableIsFull(isolate));
 #if defined(DEBUG)
   // Verify that no existing tag has the same tag id.
-  UserTag& other = UserTag::Handle(isolate);
+  UserTag& other = UserTag::Handle(isolate->current_zone());
   for (intptr_t i = 0; i < tag_table.Length(); i++) {
     other ^= tag_table.At(i);
     ASSERT(!other.IsNull());
@@ -21509,18 +21543,20 @@ void UserTag::AddTagToIsolate(Isolate* isolate, const UserTag& tag) {
 bool UserTag::TagTableIsFull(Isolate* isolate) {
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table = GrowableObjectArray::Handle(
-      isolate, isolate->tag_table());
+      isolate->current_zone(), isolate->tag_table());
   ASSERT(tag_table.Length() <= UserTags::kMaxUserTags);
   return tag_table.Length() == UserTags::kMaxUserTags;
 }
 
 
 RawUserTag* UserTag::FindTagById(uword tag_id) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table = GrowableObjectArray::Handle(
-      isolate, isolate->tag_table());
-  UserTag& tag = UserTag::Handle(isolate);
+      zone, isolate->tag_table());
+  UserTag& tag = UserTag::Handle(zone);
   for (intptr_t i = 0; i < tag_table.Length(); i++) {
     tag ^= tag_table.At(i);
     if (tag.tag() == tag_id) {

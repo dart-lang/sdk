@@ -6,12 +6,9 @@ library universe;
 
 import 'dart:collection';
 
-import '../common/resolution.dart' show
-    Resolution;
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
-import '../diagnostics/invariant.dart' show
-    invariant;
 import '../elements/elements.dart';
 import '../dart_types.dart';
 import '../util/util.dart';
@@ -384,7 +381,8 @@ class Universe {
   }
 
   DartType registerIsCheck(DartType type, Compiler compiler) {
-    type = type.unalias(compiler.resolution);
+    type.computeUnaliased(compiler.resolution);
+    type = type.unaliased;
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
     // against the type variable of a typedef.

@@ -57,10 +57,10 @@
 }
 
 .chart-host-wrapper {
-height: 300px;
+height: 200px;
 }
 .chart-legend-host {
-max-height: 300px;
+max-height: 200px;
 overflow-x: auto;
 overflow-y: auto;
 }
@@ -129,10 +129,11 @@ overflow-y: auto;
             <div class="memberValue">{{ isolate.newSpace.averageCollectionPeriodInMillis.toStringAsFixed(2) }} ms</div>
           </div>
         </div>
+        <br>
         <div class="chart-wrapper" id="new-pie-chart">
           <div class="chart-host-wrapper">
-              <div class="chart-host"></div>
               <div class="chart-legend-host"></div>
+              <div class="chart-host"></div>
           </div>
         </div>
       </div>
@@ -171,6 +172,7 @@ overflow-y: auto;
             <div class="memberValue">{{ isolate.oldSpace.averageCollectionPeriodInMillis.toStringAsFixed(2) }} ms</div>
           </div>
         </div>
+        <br>
         <div class="chart-wrapper" id="old-pie-chart">
           <div class="chart-host-wrapper">
               <div class="chart-host"></div>

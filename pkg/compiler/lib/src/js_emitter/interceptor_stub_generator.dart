@@ -140,10 +140,14 @@ class InterceptorStubGenerator {
 
     if (hasNative) {
       statements.add(js.statement(r'''{
-          if (typeof receiver != "object") return receiver;
+          if (typeof receiver != "object") {
+              if (typeof receiver == "function" ) return #;
+              return receiver;
+          }
           if (receiver instanceof #) return receiver;
           return #(receiver);
       }''', [
+          interceptorFor(backend.jsJavaScriptFunctionClass),
           backend.emitter.constructorAccess(compiler.objectClass),
           backend.emitter
               .staticFunctionAccess(backend.getNativeInterceptorMethod)]));

@@ -691,6 +691,32 @@ class A {
     verify([source]);
   }
 
+  void test_bug_24539_getter() {
+    Source source = addSource('''
+class C<T> {
+  List<Foo> get x => null;
+}
+
+typedef Foo(param);
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_bug_24539_setter() {
+    Source source = addSource('''
+class C<T> {
+  void set x(List<Foo> value) {}
+}
+
+typedef Foo(param);
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_builtInIdentifierAsType_dynamic() {
     Source source = addSource(r'''
 f() {

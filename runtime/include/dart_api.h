@@ -755,8 +755,14 @@ typedef struct {
  *   improve debugging messages.  The main function is not invoked by
  *   this function.
  * \param package_root The package root path for this isolate to resolve
- *   package imports against. If this parameter is NULL, the package root path
- *   of the parent isolate should be used.
+ *   package imports against. Only one of package_root and package_map
+ *   parameters is non-NULL. If neither parameter is passed the package
+ *   resolution of the parent isolate should be used.
+ * \param package_map The package map for this isolate to resolve package
+ *   imports against. The array contains alternating keys and values,
+ *   terminated by a NULL key. Only one of package_root and package_map
+ *   parameters is non-NULL. If neither parameter is passed the package
+ *   resolution of the parent isolate should be used.
  * \param flags Default flags for this isolate being spawned. Either inherited
  *   from the spawning isolate or passed as parameters when spawning the
  *   isolate from Dart code.
@@ -771,6 +777,7 @@ typedef struct {
 typedef Dart_Isolate (*Dart_IsolateCreateCallback)(const char* script_uri,
                                                    const char* main,
                                                    const char* package_root,
+                                                   const char** package_map,
                                                    Dart_IsolateFlags* flags,
                                                    void* callback_data,
                                                    char** error);

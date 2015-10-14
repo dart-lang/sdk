@@ -6,27 +6,62 @@
 #define VM_THREAD_H_
 
 #include "vm/globals.h"
+#include "vm/handles.h"
 #include "vm/os_thread.h"
 #include "vm/store_buffer.h"
 #include "vm/runtime_entry_list.h"
 
 namespace dart {
 
+class AbstractType;
+class Array;
 class CHA;
+class Class;
+class Code;
+class Error;
+class ExceptionHandlers;
+class Field;
+class Function;
+class GrowableObjectArray;
 class HandleScope;
 class Heap;
+class Instance;
 class Isolate;
+class Library;
 class Log;
 class LongJumpScope;
 class Object;
+class PcDescriptors;
 class RawBool;
 class RawObject;
 class RawCode;
 class RawString;
 class RuntimeEntry;
 class StackResource;
+class String;
 class TimelineEventBlock;
+class TypeArguments;
+class TypeParameter;
 class Zone;
+
+#define REUSABLE_HANDLE_LIST(V)                                                \
+  V(AbstractType)                                                              \
+  V(Array)                                                                     \
+  V(Class)                                                                     \
+  V(Code)                                                                      \
+  V(Error)                                                                     \
+  V(ExceptionHandlers)                                                         \
+  V(Field)                                                                     \
+  V(Function)                                                                  \
+  V(GrowableObjectArray)                                                       \
+  V(Instance)                                                                  \
+  V(Library)                                                                   \
+  V(Object)                                                                    \
+  V(PcDescriptors)                                                             \
+  V(String)                                                                    \
+  V(TypeArguments)                                                             \
+  V(TypeParameter)                                                             \
+
 
 // List of VM-global objects/addresses cached in each Thread object.
 #define CACHED_VM_OBJECTS_LIST(V)                                              \
@@ -118,6 +153,8 @@ class Thread {
   static void InitOnceBeforeIsolate();
   static void InitOnceAfterObjectAndStubCode();
 
+  // Called at VM shutdown
+  static void Shutdown();
   ~Thread();
 
   // The topmost zone used for allocation in this thread.
@@ -129,10 +166,23 @@ class Thread {
     return OFFSET_OF(Thread, isolate_);
   }
 
-  // The (topmost) CHA for the compilation in the isolate of this thread.
-  // TODO(23153): Move this out of Isolate/Thread.
+  // The (topmost) CHA for the compilation in this thread.
   CHA* cha() const;
   void set_cha(CHA* value);
+
+  int32_t no_callback_scope_depth() const {
+    return no_callback_scope_depth_;
+  }
+
+  void IncrementNoCallbackScopeDepth() {
+    ASSERT(no_callback_scope_depth_ < INT_MAX);
+    no_callback_scope_depth_ += 1;
+  }
+
+  void DecrementNoCallbackScopeDepth() {
+    ASSERT(no_callback_scope_depth_ > 0);
+    no_callback_scope_depth_ -= 1;
+  }
 
   void StoreBufferAddObject(RawObject* obj);
   void StoreBufferAddObjectGC(RawObject* obj);
@@ -277,6 +327,35 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
 
   class Log* log() const;
 
+  static const intptr_t kNoDeoptId = -1;
+  static const intptr_t kDeoptIdStep = 2;
+  static const intptr_t kDeoptIdBeforeOffset = 0;
+  static const intptr_t kDeoptIdAfterOffset = 1;
+  intptr_t deopt_id() const { return deopt_id_; }
+  void set_deopt_id(int value) {
+    ASSERT(value >= 0);
+    deopt_id_ = value;
+  }
+  intptr_t GetNextDeoptId() {
+    ASSERT(deopt_id_ != kNoDeoptId);
+    const intptr_t id = deopt_id_;
+    deopt_id_ += kDeoptIdStep;
+    return id;
+  }
+
+  static intptr_t ToDeoptAfter(intptr_t deopt_id) {
+    ASSERT(IsDeoptBefore(deopt_id));
+    return deopt_id + kDeoptIdAfterOffset;
+  }
+
+  static bool IsDeoptBefore(intptr_t deopt_id) {
+    return (deopt_id % kDeoptIdStep) == kDeoptIdBeforeOffset;
+  }
+
+  static bool IsDeoptAfter(intptr_t deopt_id) {
+    return (deopt_id % kDeoptIdStep) == kDeoptIdAfterOffset;
+  }
+
   LongJumpScope* long_jump_base() const { return state_.long_jump_base; }
   void set_long_jump_base(LongJumpScope* value) {
     state_.long_jump_base = value;
@@ -302,7 +381,40 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   bool IsThreadInterrupterEnabled(ThreadInterruptCallback* callback,
                                   void** data) const;
 
+#if defined(DEBUG)
+#define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
+  void set_reusable_##object##_handle_scope_active(bool value) {               \
+    reusable_##object##_handle_scope_active_ = value;                          \
+  }                                                                            \
+  bool reusable_##object##_handle_scope_active() const {                       \
+    return reusable_##object##_handle_scope_active_;                           \
+  }
+  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_ACCESSORS)
+#undef REUSABLE_HANDLE_SCOPE_ACCESSORS
+
+  bool IsAnyReusableHandleScopeActive() const {
+#define IS_REUSABLE_HANDLE_SCOPE_ACTIVE(object)                                \
+    if (reusable_##object##_handle_scope_active_) return true;
+    REUSABLE_HANDLE_LIST(IS_REUSABLE_HANDLE_SCOPE_ACTIVE)
+    return false;
+#undef IS_REUSABLE_HANDLE_SCOPE_ACTIVE
+  }
+#endif  // defined(DEBUG)
+
+  void ClearReusableHandles();
+
+#define REUSABLE_HANDLE(object)                                                \
+  object& object##Handle() const {                                             \
+    return *object##_handle_;                                                  \
+  }
+  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE)
+#undef REUSABLE_HANDLE
+
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
  private:
+  template<class T> T* AllocateReusableHandle();
+
   static ThreadLocalKey thread_key_;
 
   const ThreadId id_;
@@ -314,6 +426,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   Mutex timeline_block_lock_;
   StoreBufferBlock* store_buffer_block_;
   class Log* log_;
+  intptr_t deopt_id_;  // Compilation specific counter.
   uword vm_tag_;
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;
@@ -329,6 +442,33 @@ RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
   uword name##_entry_point_;
 LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
+
+  // Reusable handles support.
+#define REUSABLE_HANDLE_FIELDS(object)                                         \
+  object* object##_handle_;
+  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_FIELDS)
+#undef REUSABLE_HANDLE_FIELDS
+
+#if defined(DEBUG)
+#define REUSABLE_HANDLE_SCOPE_VARIABLE(object)                                 \
+  bool reusable_##object##_handle_scope_active_;
+  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_VARIABLE);
+#undef REUSABLE_HANDLE_SCOPE_VARIABLE
+#endif  // defined(DEBUG)
+
+  VMHandles reusable_handles_;
+
+  CHA* cha_;
+  int32_t no_callback_scope_depth_;
+
+  // All |Thread|s are registered in the thread list.
+  Thread* thread_list_next_;
+
+  static Thread* thread_list_head_;
+  static Mutex* thread_list_lock_;
+
+  static void AddThreadToList(Thread* thread);
+  static void RemoveThreadFromList(Thread* thread);
 
   explicit Thread(bool init_vm_constants = true);
 
@@ -355,11 +495,37 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
   void Schedule(Isolate* isolate, bool bypass_safepoint = false);
   void Unschedule(bool bypass_safepoint = false);
 
+#define REUSABLE_FRIEND_DECLARATION(name)                                      \
+  friend class Reusable##name##HandleScope;
+REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
+#undef REUSABLE_FRIEND_DECLARATION
+
   friend class ApiZone;
   friend class Isolate;
   friend class StackZone;
+  friend class ThreadIterator;
+  friend class ThreadIteratorTestHelper;
   friend class ThreadRegistry;
+
   DISALLOW_COPY_AND_ASSIGN(Thread);
+};
+
+
+// Note that this takes the thread list lock, prohibiting threads from coming
+// on- or off-line.
+class ThreadIterator : public ValueObject {
+ public:
+  ThreadIterator();
+  ~ThreadIterator();
+
+  // Returns false when there are no more threads left.
+  bool HasNext() const;
+
+  // Returns the current thread and moves forward.
+  Thread* Next();
+
+ private:
+  Thread* next_;
 };
 
 }  // namespace dart

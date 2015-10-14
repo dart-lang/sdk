@@ -126,7 +126,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     // which is recorded in the outer environment.
     builder->AddReturnAddress(
         current->function(),
-        Isolate::ToDeoptAfter(current->deopt_id()),
+        Thread::ToDeoptAfter(current->deopt_id()),
         slot_ix++);
 
     // The values of outgoing arguments can be changed from the inlined call so
@@ -1135,7 +1135,7 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
   __ BranchLinkPatchable(stub_entry);
-  AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos);
+  AddCurrentDescriptor(kind, Thread::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
 }
 
@@ -1150,7 +1150,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
   RecordSafepoint(locs);
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
     AddDeoptIndexAtCall(deopt_id_after, token_pos);
   } else {
@@ -1169,10 +1169,10 @@ void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
   __ CallRuntime(entry, argument_count);
   AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id, token_pos);
   RecordSafepoint(locs);
-  if (deopt_id != Isolate::kNoDeoptId) {
+  if (deopt_id != Thread::kNoDeoptId) {
     // Marks either the continuation point in unoptimized code or the
     // deoptimization point in optimized code, after call.
-    const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
+    const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
     if (is_optimizing()) {
       AddDeoptIndexAtCall(deopt_id_after, token_pos);
     } else {
@@ -1270,9 +1270,9 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ LoadObject(R4, arguments_descriptor);
   __ blr(targetR);
   AddCurrentDescriptor(RawPcDescriptors::kOther,
-      Isolate::kNoDeoptId, token_pos);
+      Thread::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
-  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
     AddDeoptIndexAtCall(deopt_id_after, token_pos);
   } else {
@@ -1340,7 +1340,7 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     }
     if (token_pos != Scanner::kNoSourcePos) {
       AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
-                           Isolate::kNoDeoptId,
+                           Thread::kNoDeoptId,
                            token_pos);
     }
     // Stub returns result in flags (result of a cmp, we need Z computed).
@@ -1369,7 +1369,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     }
     if (token_pos != Scanner::kNoSourcePos) {
       AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
-                           Isolate::kNoDeoptId,
+                           Thread::kNoDeoptId,
                            token_pos);
     }
     // Stub returns result in flags (result of a cmp, we need Z computed).
@@ -1395,20 +1395,18 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   if (fpu_regs_count > 0) {
     // Store fpu registers with the lowest register number at the lowest
     // address.
-    for (intptr_t reg_idx = kNumberOfVRegisters - 1;
-                  reg_idx >= 0; --reg_idx) {
-      VRegister fpu_reg = static_cast<VRegister>(reg_idx);
+    for (intptr_t i = kNumberOfVRegisters - 1; i >= 0; --i) {
+      VRegister fpu_reg = static_cast<VRegister>(i);
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
         __ PushQuad(fpu_reg);
       }
     }
   }
 
-  // Store general purpose registers with the highest register number at the
-  // lowest address. The order in which the registers are pushed must match the
-  // order in which the registers are encoded in the safe point's stack map.
-  for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
-    Register reg = static_cast<Register>(reg_idx);
+  // The order in which the registers are pushed must match the order
+  // in which the registers are encoded in the safe point's stack map.
+  for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
+    Register reg = static_cast<Register>(i);
     if (locs->live_registers()->ContainsRegister(reg)) {
       __ Push(reg);
     }
@@ -1417,10 +1415,8 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
-  // General purpose registers have the highest register number at the
-  // lowest address.
-  for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
-    Register reg = static_cast<Register>(reg_idx);
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+    Register reg = static_cast<Register>(i);
     if (locs->live_registers()->ContainsRegister(reg)) {
       __ Pop(reg);
     }
@@ -1429,8 +1425,8 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
   const intptr_t fpu_regs_count = locs->live_registers()->FpuRegisterCount();
   if (fpu_regs_count > 0) {
     // Fpu registers have the lowest register number at the lowest address.
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfVRegisters; ++reg_idx) {
-      VRegister fpu_reg = static_cast<VRegister>(reg_idx);
+    for (intptr_t i = 0; i < kNumberOfVRegisters; ++i) {
+      VRegister fpu_reg = static_cast<VRegister>(i);
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
         __ PopQuad(fpu_reg);
       }

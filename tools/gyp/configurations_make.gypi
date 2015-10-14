@@ -71,19 +71,19 @@
 
       'Dart_Linux_simarm_Base': {
         'abstract': 1,
-        'cflags': [ '-O3', '-m32', '-msse2' ],
+        'cflags': [ '-O3', '-m32', '-msse2', '-mfpmath=sse' ],
         'ldflags': [ '-m32', ],
       },
 
       'Dart_Linux_simarmv5te_Base': {
         'abstract': 1,
-        'cflags': [ '-O3', '-m32', '-msse2' ],
+        'cflags': [ '-O3', '-m32', '-msse2', '-mfpmath=sse' ],
         'ldflags': [ '-m32', ],
       },
 
       'Dart_Linux_simarm64_Base': {
         'abstract': 1,
-        'cflags': [ '-O3', '-m64', '-msse2' ],
+        'cflags': [ '-O3', '-m64', '-msse2', '-mfpmath=sse' ],
         'ldflags': [ '-m64', ],
       },
 
@@ -100,7 +100,7 @@
           ],
         }],
         ['_toolset=="host"', {
-          'cflags': ['-m32', '-msse2'],
+          'cflags': ['-m32', '-msse2', '-mfpmath=sse' ],
           'ldflags': ['-m32'],
         }]]
       },
@@ -131,7 +131,7 @@
           ],
         }],
         ['_toolset=="host"', {
-          'cflags': ['-m32', '-msse2'],
+          'cflags': ['-m32', '-msse2', '-mfpmath=sse' ],
           'ldflags': ['-m32'],
         }]]
       },
@@ -170,7 +170,7 @@
 
       'Dart_Linux_simmips_Base': {
         'abstract': 1,
-        'cflags': [ '-O3', '-m32', '-msse2' ],
+        'cflags': [ '-O3', '-m32', '-msse2', '-mfpmath=sse' ],
         'ldflags': [ '-m32', ],
       },
 
@@ -190,7 +190,7 @@
             ],
           }],
           ['_toolset=="host"',{
-            'cflags': [ '-O3', '-m32', '-msse2' ],
+            'cflags': [ '-O3', '-m32', '-msse2', '-mfpmath=sse' ],
             'ldflags': [ '-m32' ],
         }]]
       },

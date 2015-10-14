@@ -75,7 +75,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
     var result = new protocol.SearchFindElementReferencesResult();
     if (elements.isNotEmpty) {
       result.id = searchId;
-      result.element = protocol.newElement_fromEngine(elements[0]);
+      result.element = protocol.convertElement(elements[0]);
     }
     _sendSearchResult(request, result);
   }

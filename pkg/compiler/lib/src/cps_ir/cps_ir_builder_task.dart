@@ -6,6 +6,7 @@ library dart2js.ir_builder_task;
 
 import '../closure.dart' as closurelib;
 import '../closure.dart' hide ClosureScope;
+import '../common.dart';
 import '../common/names.dart' show
     Names,
     Selectors;
@@ -15,10 +16,6 @@ import '../compiler.dart' show
     Compiler;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import '../diagnostics/invariant.dart' show
-    invariant;
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
     SynthesizedConstructorElementX,
@@ -503,7 +500,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     ir.Primitive value = visit(node.expression);
     JumpTarget target = elements.getTargetDefinition(node);
     Element error =
-        (compiler.backend as JavaScriptBackend).getFallThroughError();
+        (compiler.backend as JavaScriptBackend).helpers.fallThroughError;
     irBuilder.buildSimpleSwitch(target, value, cases, defaultCase, error,
         sourceInformationBuilder.buildGeneric(node));
   }
@@ -2492,14 +2489,14 @@ class GlobalProgramInformation {
   }
 
   FunctionElement get stringifyFunction {
-    return _backend.getStringInterpolationHelper();
+    return _backend.helpers.stringInterpolationHelper;
   }
 
-  FunctionElement get throwTypeErrorHelper => _backend.getThrowTypeError();
+  FunctionElement get throwTypeErrorHelper => _backend.helpers.throwTypeError;
 
   ClassElement get nullClass => _compiler.nullClass;
 
-  DartType unaliasType(DartType type) => type.unalias(_compiler.resolution);
+  DartType unaliasType(DartType type) => type.unaliased;
 
   TypeMask getTypeMaskForForeign(NativeBehavior behavior) {
     if (behavior == null) {
@@ -2513,7 +2510,7 @@ class GlobalProgramInformation {
   }
 
   Element get closureConverter {
-    return _backend.getClosureConverter();
+    return _backend.helpers.closureConverter;
   }
 
   void addNativeMethod(FunctionElement function) {
@@ -3288,7 +3285,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   @override
   ir.Primitive buildStaticNoSuchMethod(Selector selector,
                                        List<ir.Primitive> arguments) {
-    Element thrower = backend.getThrowNoSuchMethod();
+    Element thrower = backend.helpers.throwNoSuchMethod;
     ir.Primitive receiver = irBuilder.buildStringConstant('');
     ir.Primitive name = irBuilder.buildStringConstant(selector.name);
     ir.Primitive argumentList = irBuilder.buildListLiteral(null, arguments);
@@ -3313,7 +3310,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   @override
   ir.Primitive buildRuntimeError(String message) {
     return irBuilder.buildStaticFunctionInvocation(
-        backend.getThrowRuntimeError(),
+        backend.helpers.throwRuntimeError,
         new CallStructure.unnamed(1),
         [irBuilder.buildStringConstant(message)]);
   }
@@ -3321,7 +3318,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   @override
   ir.Primitive buildAbstractClassInstantiationError(ClassElement element) {
     return irBuilder.buildStaticFunctionInvocation(
-        backend.getThrowAbstractClassInstantiationError(),
+        backend.helpers.throwAbstractClassInstantiationError,
         new CallStructure.unnamed(1),
         [irBuilder.buildStringConstant(element.name)]);
   }
