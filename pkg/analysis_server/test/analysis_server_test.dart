@@ -123,9 +123,14 @@ import "../foo/foo.dart";
     channel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
-    ExtensionManager manager = new ExtensionManager();
+
     ServerPlugin serverPlugin = new ServerPlugin();
-    manager.processPlugins([serverPlugin]);
+
+    // Defer to the extension manager in AE for plugin registration.
+    AnalysisEngine.instance.userDefinedPlugins = [serverPlugin];
+    // Force registration.
+    AnalysisEngine.instance.taskManager;
+
     server = new AnalysisServer(
         channel,
         resourceProvider,
