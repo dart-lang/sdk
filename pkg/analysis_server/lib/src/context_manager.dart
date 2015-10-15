@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:core' hide Resource;
 
+import 'package:analyzer/src/context/context.dart' as context;
 import 'package:analysis_server/plugin/analysis/resolver_provider.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/server_options.dart';
@@ -311,6 +312,11 @@ abstract class ContextManagerCallbacks {
  */
 class ContextManagerImpl implements ContextManager {
   /**
+   * File name of analysis options files.
+   */
+  static const String ANALYSIS_OPTIONS_FILE = '.analysis_options';
+
+  /**
    * Temporary flag to hide WIP .packages support (DEP 5).
    */
   static bool ENABLE_PACKAGESPEC_SUPPORT = serverOptions.isSet(
@@ -466,31 +472,59 @@ class ContextManagerImpl implements ContextManager {
   /**
    * Process [options] for the given context [info].
    */
-  void processOptionsForContext(
-      ContextInfo info, Map<String, YamlNode> options) {
-    if (options == null) {
+  void processOptionsForContext(ContextInfo info, Folder folder,
+      {bool optionsRemoved: false}) {
+    Map<String, YamlNode> options;
+    try {
+      options = analysisOptionsProvider.getOptions(folder);
+    } catch (e, stacktrace) {
+      AnalysisEngine.instance.logger.logError(
+          'Error processing .analysis_options',
+          new CaughtException(e, stacktrace));
+      // TODO(pquitslund): contribute plugin that sends error notification on
+      // options file.
+      // Related test:
+      //   context_manager_test.test_analysis_options_parse_failure()
+      // AnalysisEngine.instance.optionsPlugin.optionsProcessors
+      //      .forEach((OptionsProcessor p) => p.onError(e));
+    }
+
+    if (options == null && !optionsRemoved) {
       return;
     }
 
     // Notify options processors.
-    AnalysisEngine.instance.optionsPlugin.optionsProcessors.forEach(
-        (OptionsProcessor p) => p.optionsProcessed(info.context, options));
+    AnalysisEngine.instance.optionsPlugin.optionsProcessors
+        .forEach((OptionsProcessor p) {
+      try {
+        p.optionsProcessed(info.context, options);
+      } catch (e, stacktrace) {
+        AnalysisEngine.instance.logger.logError(
+            'Error processing .analysis_options',
+            new CaughtException(e, stacktrace));
+      }
+    });
+
+    // In case options files are removed, revert to default options.
+    if (optionsRemoved) {
+      info.context.analysisOptions = new AnalysisOptionsImpl();
+      return;
+    }
 
     // Analysis options are processed 'in-line'.
-    // TODO(pq): consider pushing exclude handling into a plugin.
     YamlMap analyzer = options['analyzer'];
     if (analyzer == null) {
       // No options for analyzer.
       return;
     }
 
-    // Set strong mode.
-    var strongMode = analyzer['strong-mode'];
-    if (strongMode == true) {
-      AnalysisContext context = info.context;
+    // Set strong mode (default is false).
+    bool strongMode = analyzer['strong-mode'] ?? false;
+    AnalysisContext context = info.context;
+    if (context.analysisOptions.strongMode != strongMode) {
       AnalysisOptionsImpl options =
           new AnalysisOptionsImpl.from(context.analysisOptions);
-      options.strongMode = true;
+      options.strongMode = strongMode;
       context.analysisOptions = options;
     }
 
@@ -844,21 +878,7 @@ class ContextManagerImpl implements ContextManager {
     info.context = callbacks.addContext(folder, disposition);
     info.context.name = folder.path;
 
-    try {
-      Map<String, YamlNode> options =
-          analysisOptionsProvider.getOptions(folder);
-      processOptionsForContext(info, options);
-    } catch (e, stacktrace) {
-      AnalysisEngine.instance.logger.logError(
-          'Error processing .analysis_options',
-          new CaughtException(e, stacktrace));
-      // TODO(pquitslund): contribute plugin that sends error notification on
-      // options file.
-      // Related test:
-      //   context_manager_test.test_analysis_options_parse_failure()
-      // AnalysisEngine.instance.optionsPlugin.optionsProcessors
-      //      .forEach((OptionsProcessor p) => p.onError(e));
-    }
+    processOptionsForContext(info, folder);
 
     return info;
   }
@@ -1161,9 +1181,21 @@ class ContextManagerImpl implements ContextManager {
         }
         break;
     }
-
-    //TODO(pquitslund): find the right place for this
     _checkForPackagespecUpdate(path, info, info.folder);
+    _checkForAnalysisOptionsUpdate(path, info, event.type);
+  }
+
+  void _checkForAnalysisOptionsUpdate(
+      String path, ContextInfo info, ChangeType changeType) {
+    if (pathContext.basename(path) == ANALYSIS_OPTIONS_FILE) {
+      var analysisContext = info.context;
+      if (analysisContext is context.AnalysisContextImpl) {
+        processOptionsForContext(info, info.folder,
+            optionsRemoved: changeType == ChangeType.REMOVE);
+        analysisContext.invalidateCachedResults();
+        callbacks.applyChangesToContext(info.folder, new ChangeSet());
+      }
+    }
   }
 
   /**
