@@ -31,6 +31,7 @@ import 'src/checker/rules.dart' show TypeRules;
 
 /// A type checker for Dart code that operates under stronger rules, and has
 /// the ability to do local type inference in some situations.
+// TODO(jmesserly): remove this class.
 class StrongChecker {
   final AnalysisContext _context;
   final CodeChecker _checker;
@@ -41,25 +42,28 @@ class StrongChecker {
   factory StrongChecker(AnalysisContext context, StrongModeOptions options) {
     // TODO(vsm): Remove this once analyzer_cli is completely switched to the
     // task model.
-    if (!AnalysisEngine
-        .instance.useTaskModel) enableDevCompilerInference(context, options);
-    var rules = new TypeRules(context.typeProvider, options: options);
-    var reporter = new _ErrorCollector(options.hints);
-    var checker = new CodeChecker(rules, reporter);
-    return new StrongChecker._(context, checker, reporter);
+    if (!AnalysisEngine.instance.useTaskModel) {
+      enableDevCompilerInference(context, options);
+      var rules = new TypeRules(context.typeProvider);
+      var reporter = new _ErrorCollector(options.hints);
+      var checker = new CodeChecker(rules, reporter);
+      return new StrongChecker._(context, checker, reporter);
+    }
+    return new StrongChecker._(context, null, null);
   }
 
   /// Computes and returns DDC errors for the [source].
   AnalysisErrorInfo computeErrors(Source source) {
     var errors = new List<AnalysisError>();
-    _reporter.errors = errors;
+    if (_checker != null) {
+      _reporter.errors = errors;
 
-    for (Source librarySource in _context.getLibrariesContaining(source)) {
-      var resolved = _context.resolveCompilationUnit2(source, librarySource);
-      _checker.visitCompilationUnit(resolved);
+      for (Source librarySource in _context.getLibrariesContaining(source)) {
+        var resolved = _context.resolveCompilationUnit2(source, librarySource);
+        _checker.visitCompilationUnit(resolved);
+      }
+      _reporter.errors = null;
     }
-    _reporter.errors = null;
-
     return new AnalysisErrorInfoImpl(errors, _context.getLineInfo(source));
   }
 }

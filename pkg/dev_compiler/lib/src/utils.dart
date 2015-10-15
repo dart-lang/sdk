@@ -380,30 +380,6 @@ bool inInvocationContext(SimpleIdentifier node) {
 // TODO(vsm): Move this onto the appropriate class.  Ideally, we'd attach
 // it to TypeProvider.
 
-final _objectMap = new Expando('providerToObjectMap');
-Map<String, DartType> getObjectMemberMap(TypeProvider typeProvider) {
-  var map = _objectMap[typeProvider] as Map<String, DartType>;
-  if (map == null) {
-    map = <String, DartType>{};
-    _objectMap[typeProvider] = map;
-    var objectType = typeProvider.objectType;
-    var element = objectType.element;
-    // Only record methods (including getters) with no parameters.  As parameters are contravariant wrt
-    // type, using Object's version may be too strict.
-    // Add instance methods.
-    element.methods.where((method) => !method.isStatic).forEach((method) {
-      map[method.name] = method.type;
-    });
-    // Add getters.
-    element.accessors
-        .where((member) => !member.isStatic && member.isGetter)
-        .forEach((member) {
-      map[member.name] = member.type.returnType;
-    });
-  }
-  return map;
-}
-
 /// Searches all supertype, in order of most derived members, to see if any
 /// [match] a condition. If so, returns the first match, otherwise returns null.
 InterfaceType findSupertype(InterfaceType type, bool match(InterfaceType t)) {

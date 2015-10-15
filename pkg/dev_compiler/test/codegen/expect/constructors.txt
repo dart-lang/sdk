@@ -1,4 +1,2 @@
 // Messages from compiling constructors.dart
 warning: [DownCastComposite] y (dynamic) will need runtime check to cast to type T (test/codegen/constructors.dart, line 90, col 14)
-info: [DynamicCast] q.x (dynamic) will need runtime check to cast to type String (test/codegen/constructors.dart, line 96, col 12)
-info: [DynamicCast] q.x (dynamic) will need runtime check to cast to type String (test/codegen/constructors.dart, line 101, col 12)

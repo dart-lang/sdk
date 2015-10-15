@@ -7,8 +7,6 @@ library dev_compiler.test.all_tests;
 
 import 'package:test/test.dart';
 
-import 'checker/checker_test.dart' as checker_test;
-import 'checker/inferred_type_test.dart' as inferred_type_test;
 import 'checker/self_host_test.dart' as self_host;
 import 'closure/closure_annotation_test.dart' as closure_annotation_test;
 import 'closure/closure_type_test.dart' as closure_type_test;
@@ -19,8 +17,6 @@ import 'dependency_graph_test.dart' as dependency_graph_test;
 
 void main() {
   group('end-to-end', e2e.main);
-  group('inferred types', inferred_type_test.main);
-  group('checker', checker_test.main);
   group('report', report_test.main);
   group('dependency_graph', dependency_graph_test.main);
   group('codegen', () => codegen_test.main([]));

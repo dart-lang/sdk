@@ -1,2 +1,1 @@
 // Messages from compiling sunflower.dart
-info: [InferredTypeClosure] (e) => draw() has inferred type (Event) → void (test/codegen/sunflower/sunflower.dart, line 29, col 37)

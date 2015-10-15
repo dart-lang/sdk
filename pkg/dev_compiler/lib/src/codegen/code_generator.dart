@@ -23,7 +23,7 @@ abstract class CodeGenerator {
 
   CodeGenerator(AbstractCompiler compiler)
       : compiler = compiler,
-        rules = compiler.rules,
+        rules = new TypeRules(compiler.context.typeProvider),
         context = compiler.context,
         options = compiler.options.codegenOptions;
 

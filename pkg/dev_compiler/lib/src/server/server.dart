@@ -84,7 +84,7 @@ class ServerCompiler extends AbstractCompiler {
     var time = (clock.elapsedMilliseconds / 1000).toStringAsFixed(2);
     _log.fine('Compiled ${_libraries.length} libraries in ${time} s\n');
     return new CheckerResults(
-        _libraries, rules, _failure || options.codegenOptions.forceCompile);
+        _libraries, _failure || options.codegenOptions.forceCompile);
   }
 
   bool _buildSource(SourceNode node) {
@@ -154,9 +154,7 @@ class ServerCompiler extends AbstractCompiler {
     for (var unit in libraryUnit.libraryThenParts) {
       var unitSource = unit.element.source;
       // TODO(sigmund): integrate analyzer errors with static-info (issue #6).
-      failureInLib = logErrors(unitSource) || failureInLib;
-      checker.visitCompilationUnit(unit);
-      if (checker.failure) failureInLib = true;
+      failureInLib = computeErrors(unitSource) || failureInLib;
     }
     if (failureInLib) {
       _failure = true;
@@ -310,4 +308,4 @@ class _ExistingSourceUriResolver implements UriResolver {
 }
 
 final _log = new Logger('dev_compiler.src.server');
-final _earlyErrorResult = new CheckerResults(const [], null, true);
+final _earlyErrorResult = new CheckerResults(const [], true);

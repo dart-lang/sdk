@@ -19,6 +19,7 @@ import 'package:logging/logging.dart' as logger;
 
 import '../../strong_mode.dart' show StrongModeOptions;
 import '../utils.dart';
+import 'rules.dart';
 
 final _log = new logger.Logger('dev_compiler.src.resolver');
 

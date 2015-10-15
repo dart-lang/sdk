@@ -1,4 +1,1 @@
 // Messages from compiling expect.dart
-info: [DynamicCast] expected (dynamic) will need runtime check to cast to type String (test/codegen/expect.dart, line 97, col 51)
-info: [DynamicCast] actual (dynamic) will need runtime check to cast to type String (test/codegen/expect.dart, line 97, col 61)
-info: [DynamicInvoke] check(e) requires dynamic invoke (test/codegen/expect.dart, line 372, col 14)

@@ -24,13 +24,13 @@ void main() {
           import 'package:foo/bar.dart';
 
           test1() {
-            x = /*severe:StaticTypeError*/"hi";
+            x = "hi";
           }
       '''.replaceAll('\n          ', '\n'),
       'package:foo/bar.dart': '''
-          num x;
+          List x;
           test2() {
-            int y = /*info:AssignmentCast*/x;
+            List<String> y = x;
           }
       '''.replaceAll('\n          ', '\n'),
     };
@@ -55,16 +55,15 @@ void main() {
       expect(mainMessage.kind, "StaticTypeError");
       expect(mainMessage.level, "error");
       expect(mainMessage.span.text, '"hi"');
-      expect(
-          mainMessage.span.context, '  x = /*severe:StaticTypeError*/"hi";\n');
+      expect(mainMessage.span.context, '  x = "hi";\n');
 
       var barLib = summary.packages['foo'].libraries['package:foo/bar.dart'];
       expect(barLib.messages.length, 1);
       var barMessage = barLib.messages[0];
-      expect(barMessage.kind, "AssignmentCast");
-      expect(barMessage.level, "info");
+      expect(barMessage.kind, "DownCastComposite");
+      expect(barMessage.level, "warning");
       expect(barMessage.span.text, 'x');
-      expect(barMessage.span.context, '  int y = /*info:AssignmentCast*/x;\n');
+      expect(barMessage.span.context, '  List<String> y = x;\n');
     }
 
     var original = reporter.result;

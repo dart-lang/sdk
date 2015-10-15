@@ -1,5 +1,1 @@
 // Messages from compiling syncstar_syntax.dart
-info: [InferredTypeLiteral] [2, 3] has inferred type Iterable<int> (test/codegen/syncstar_syntax.dart, line 9, col 10)
-info: [InferredTypeLiteral] [2, 3] has inferred type Iterable<int> (test/codegen/syncstar_syntax.dart, line 15, col 12)
-info: [InferredTypeLiteral] [2, 3] has inferred type Iterable<int> (test/codegen/syncstar_syntax.dart, line 20, col 12)
-info: [InferredTypeLiteral] [2, 3] has inferred type Iterable<int> (test/codegen/syncstar_syntax.dart, line 27, col 12)

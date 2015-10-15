@@ -1,4 +1,1 @@
 // Messages from compiling misc.dart
-info: [DynamicInvoke] obj.x requires dynamic invoke (test/codegen/misc.dart, line 19, col 27)
-info: [DynamicInvoke] obj.y requires dynamic invoke (test/codegen/misc.dart, line 19, col 41)
-info: [DynamicInvoke] obj.z requires dynamic invoke (test/codegen/misc.dart, line 25, col 30)

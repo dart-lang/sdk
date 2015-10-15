@@ -1,5 +1,1 @@
 // Messages from compiling methods.dart
-info: [DownCastImplicit] b (num) will need runtime check to cast to type int (test/codegen/methods.dart, line 14, col 21)
-info: [DownCastImplicit] a + b (num) will need runtime check to cast to type int (test/codegen/methods.dart, line 19, col 12)
-info: [DynamicInvoke] f.bar("Bar's call method!") requires dynamic invoke (test/codegen/methods.dart, line 49, col 3)
-info: [DynamicInvoke] aa.x requires dynamic invoke (test/codegen/methods.dart, line 57, col 11)

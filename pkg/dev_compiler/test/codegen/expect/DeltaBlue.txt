@@ -1,5 +1,1 @@
 // Messages from compiling DeltaBlue.dart
-info: [DynamicCast] mark (dynamic) will need runtime check to cast to type int (test/codegen/DeltaBlue.dart, line 130, col 18)
-info: [DynamicCast] mark (dynamic) will need runtime check to cast to type int (test/codegen/DeltaBlue.dart, line 137, col 16)
-info: [DynamicCast] mark (dynamic) will need runtime check to cast to type int (test/codegen/DeltaBlue.dart, line 142, col 37)
-info: [DynamicCast] mark (dynamic) will need runtime check to cast to type int (test/codegen/DeltaBlue.dart, line 143, col 16)

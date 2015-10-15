@@ -9,7 +9,6 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:logging/logging.dart' as logger;
 
-import '../compiler.dart' show AbstractCompiler;
 import '../checker/rules.dart';
 import '../info.dart';
 
@@ -100,11 +99,11 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
   CoercionReifier._(
       this._cm, this._tm, this._vm, this._library, this._inferrer);
 
-  factory CoercionReifier(LibraryUnit library, AbstractCompiler compiler) {
+  factory CoercionReifier(LibraryUnit library, TypeRules rules) {
     var vm = new VariableManager();
     var tm = new TypeManager(library.library.element.enclosingElement, vm);
     var cm = new CoercionManager(vm, tm);
-    var inferrer = new _Inference(compiler.rules, tm);
+    var inferrer = new _Inference(rules, tm);
     return new CoercionReifier._(cm, tm, vm, library, inferrer);
   }
 

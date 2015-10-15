@@ -105,11 +105,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   Map<String, DartType> _objectMembers;
 
-  JSCodegenVisitor(AbstractCompiler compiler, this.currentLibrary,
+  JSCodegenVisitor(AbstractCompiler compiler, this.rules, this.currentLibrary,
       this._extensionTypes, this._fieldsNeedingStorage)
       : compiler = compiler,
         options = compiler.options.codegenOptions,
-        rules = compiler.rules,
         _types = compiler.context.typeProvider {
     _loader = new ModuleItemLoadOrder(_emitModuleItem);
 
@@ -125,7 +124,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   JS.Program emitLibrary(LibraryUnit library) {
     // Modify the AST to make coercions explicit.
-    new CoercionReifier(library, compiler).reify();
+    new CoercionReifier(library, rules).reify();
 
     // Build the public namespace for this library. This allows us to do
     // constant time lookups (contrast with `Element.getChild(name)`).
@@ -3280,7 +3279,7 @@ class JSGenerator extends CodeGenerator {
     var library = unit.library.element.library;
     var fields = findFieldsNeedingStorage(unit);
     var codegen =
-        new JSCodegenVisitor(compiler, library, _extensionTypes, fields);
+        new JSCodegenVisitor(compiler, rules, library, _extensionTypes, fields);
     var module = codegen.emitLibrary(unit);
     var out = compiler.getOutputPath(library.source.uri);
     return writeJsLibrary(module, out,

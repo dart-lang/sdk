@@ -3,7 +3,3 @@ warning: [DownCastComposite] _throw() (dynamic) will need runtime check to cast 
 warning: [DownCastComposite] _throw() (dynamic) will need runtime check to cast to type E (package:collection/src/unmodifiable_wrappers.dart, line 94, col 21)
 warning: [DownCastComposite] _throw() (dynamic) will need runtime check to cast to type V (package:collection/src/unmodifiable_wrappers.dart, line 218, col 41)
 warning: [DownCastComposite] _throw() (dynamic) will need runtime check to cast to type V (package:collection/src/unmodifiable_wrappers.dart, line 230, col 27)
-info: [DynamicCast] _throw() (dynamic) will need runtime check to cast to type bool (package:collection/src/unmodifiable_wrappers.dart, line 58, col 24)
-info: [DynamicCast] _throw() (dynamic) will need runtime check to cast to type bool (package:collection/src/unmodifiable_wrappers.dart, line 82, col 32)
-info: [DynamicCast] _throw() (dynamic) will need runtime check to cast to type bool (package:collection/src/unmodifiable_wrappers.dart, line 154, col 24)
-info: [DynamicCast] _throw() (dynamic) will need runtime check to cast to type bool (package:collection/src/unmodifiable_wrappers.dart, line 166, col 32)
