@@ -98,17 +98,14 @@ element_types_test/supported_meter: RuntimeError # Issue 18573
 touchevent_test/supported: Fail # Touch events are only supported on touch devices
 element_animate_test/omit_timing: RuntimeError # Also timing out on MacOS. Issue 23507
 element_animate_test/timing_dict: RuntimeError # Also timing out on MacOS. Issue 23507
+element_animate_test/simple_timing: RuntimeError # Please triage this failure
 
 [ $runtime == chrome && $system == macos ]
+canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Times out. Please triage this failure.
 element_animate_test/omit_timing: Skip # Timing out on MacOS. Issue 23507
 element_animate_test/timing_dict: Skip # Timing out on MacOS. Issue 23507
 transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
-
-[ $runtime == chrome && $system != linux ]
-# These are failures in Chrome 45, which is not yet on Linux.
-# This will be merged with the earlier blocks when Linux is updated.
-element_animate_test/simple_timing: RuntimeError # Please triage this failure
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
