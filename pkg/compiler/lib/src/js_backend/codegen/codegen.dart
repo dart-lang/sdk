@@ -883,6 +883,10 @@ class CodeGenerator extends tree_ir.StatementVisitor
       case BuiltinOperator.NumShr:
         // No normalization required since output is always uint32.
         return js.js('# >>> #', args);
+      case BuiltinOperator.NumBitNot:
+        return js.js('(~#) >>> 0', args);
+      case BuiltinOperator.NumNegate:
+        return js.js('-#', args);
       case BuiltinOperator.StringConcatenate:
         if (args.isEmpty) return js.string('');
         return args.reduce((e1,e2) => new js.Binary('+', e1, e2));

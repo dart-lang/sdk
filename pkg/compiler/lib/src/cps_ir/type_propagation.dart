@@ -243,8 +243,15 @@ class ConstantPropagationLattice {
   ///
   /// This method returns `null` if a good result could not be found. In that
   /// case, it is best to fall back on interprocedural type information.
-  AbstractValue unaryOp(UnaryOperator operator,
-                        AbstractValue value) {
+  AbstractValue unaryOp(UnaryOperator operator, AbstractValue value) {
+    switch (operator.kind) {
+      case UnaryOperatorKind.COMPLEMENT:
+        return bitNotSpecial(value);
+      case UnaryOperatorKind.NEGATE:
+        return negateSpecial(value);
+      default:
+        break;
+    }
     // TODO(asgerf): Also return information about whether this can throw?
     if (value.isNothing) {
       return nothing;
@@ -333,6 +340,27 @@ class ConstantPropagationLattice {
     }
     return null; // The caller will use return type from type inference.
   }
+
+  AbstractValue foldUnary(UnaryOperation operation, AbstractValue value) {
+    if (value.isNothing) return nothing;
+    if (value.isConstant) {
+      ConstantValue result = operation.fold(value.constant);
+      if (result != null) return constant(result);
+    }
+    return null;
+  }
+
+  AbstractValue bitNotSpecial(AbstractValue value) {
+    return foldUnary(constantSystem.bitNot, value);
+  }
+
+  AbstractValue negateSpecial(AbstractValue value) {
+    AbstractValue folded = foldUnary(constantSystem.negate, value);
+    if (folded != null) return folded;
+    if (isDefinitelyInt(value)) return nonConstant(typeSystem.intType);
+    return null;
+  }
+
 
   AbstractValue foldBinary(BinaryOperation operation,
       AbstractValue left, AbstractValue right) {
@@ -491,7 +519,6 @@ class ConstantPropagationLattice {
   AbstractValue greaterEqualSpecial(AbstractValue left, AbstractValue right) {
     return foldBinary(constantSystem.greaterEqual, left, right);
   }
-
 
   AbstractValue stringConstant(String value) {
     return constant(new StringConstantValue(new ast.DartString.literal(value)));
@@ -938,16 +965,23 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   /// Returns `true` if the node was replaced.
   bool specializeOperatorCall(InvokeMethod node) {
     Continuation cont = node.continuation.definition;
-    bool replaceWithBinary(BuiltinOperator operator,
-                           Primitive left,
-                           Primitive right) {
-      Primitive prim =
-          new ApplyBuiltinOperator(operator, <Primitive>[left, right],
-                                   node.sourceInformation);
+    bool replaceWithPrimitive(Primitive prim) {
       LetPrim let = makeLetPrimInvoke(prim, cont);
       replaceSubtree(node, let);
       push(let);
       return true; // So returning early is more convenient.
+    }
+    bool replaceWithBinary(BuiltinOperator operator,
+                           Primitive left,
+                           Primitive right) {
+      return replaceWithPrimitive(
+          new ApplyBuiltinOperator(
+              operator, <Primitive>[left, right], node.sourceInformation));
+    }
+    bool replaceWithUnary(BuiltinOperator operator, Primitive argument) {
+      return replaceWithPrimitive(
+          new ApplyBuiltinOperator(
+              operator, <Primitive>[argument], node.sourceInformation));
     }
 
     if (node.selector.isOperator && node.arguments.length == 2) {
@@ -1029,6 +1063,20 @@ class TransformingVisitor extends DeepRecursiveVisitor {
             opname == '+') {
           return replaceWithBinary(BuiltinOperator.StringConcatenate,
                                    leftArg, rightArg);
+        }
+      }
+    }
+    if (node.selector.isOperator && node.arguments.length == 1) {
+      Primitive argument = getDartReceiver(node);
+      AbstractValue value = getValue(argument);
+
+      if (lattice.isDefinitelyNum(value, allowNull: false)) {
+        String opname = node.selector.name;
+        if (opname == '~') {
+          return replaceWithUnary(BuiltinOperator.NumBitNot, argument);
+        }
+        if (opname == 'unary-') {
+          return replaceWithUnary(BuiltinOperator.NumNegate, argument);
         }
       }
     }
@@ -2508,6 +2556,12 @@ class TypePropagationVisitor implements Visitor {
 
   void visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
 
+    void unaryOp(AbstractValue operation(AbstractValue argument),
+                 TypeMask defaultType) {
+      AbstractValue value = getValue(node.arguments[0].definition);
+      setValue(node, operation(value) ?? nonConstant(defaultType));
+    }
+
     void binaryOp(
         AbstractValue operation(AbstractValue left, AbstractValue right),
         TypeMask defaultType) {
@@ -2647,6 +2701,14 @@ class TypePropagationVisitor implements Visitor {
 
       case BuiltinOperator.NumGe:
         binaryBoolOp(lattice.greaterEqualSpecial);
+        break;
+
+      case BuiltinOperator.NumBitNot:
+        unaryOp(lattice.bitNotSpecial, typeSystem.uint32Type);
+        break;
+
+      case BuiltinOperator.NumNegate:
+        unaryOp(lattice.negateSpecial, typeSystem.numType);
         break;
 
       case BuiltinOperator.StrictNeq:

@@ -55,6 +55,14 @@ enum BuiltinOperator {
   /// This case can be compiled to  `(a / b) | 0`.
   NumTruncatingDivideToSigned32,
 
+  /// Corresponds to JavaScript's negation, which converts 0 to -0.0.
+  NumNegate,
+
+  /// Bit inversions, with coercion to uint32.
+  ///
+  /// Compiles to `(~x) >>> 0`.
+  NumBitNot,
+
   /// Concatenates any number of strings.
   ///
   /// Takes any number of arguments, and each argument must be a string.
