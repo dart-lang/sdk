@@ -21,7 +21,7 @@ main() {
         'program': {'size': 10},
       };
 
-      expect(AllInfo.parseFromJson(json).program.size, 10);
+      expect(new AllInfo.fromJson(json).program.size, 10);
     });
   });
 }

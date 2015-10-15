@@ -19,14 +19,14 @@ and size of your framework or app.
 This package focuses on gathering libraries and tools that summarize all of that
 information. Bear in mind that even with all these tools, it is not trivial to
 isolate code-size issues. We just hope that these tools make things a bit
-earier.
+easier.
 
 ## Status
 
 [![Build Status](https://travis-ci.org/dart-lang/dart2js_info.svg)](https://travis-ci.org/dart-lang/dart2js_info)
 
 Currently, most tools available here can be used to analyze code-size and
-attibution of code-size to different parts of your app. With time, we hope to
+attribution of code-size to different parts of your app. With time, we hope to
 add more data to the `.info.json` files, and include better tools to help
 understand the results of type inference.
 
@@ -38,7 +38,7 @@ of this package and update when needed.
 ## Info API
 
 [AllInfo][AllInfo] exposes a Dart representation of the `.info.json` files.
-You can parse the information using `AllInfo.parseFromJson`. For example:
+You can parse the information using `AllInfo.fromJson`. For example:
 
 ```dart
 import 'dart:convert';
@@ -49,8 +49,9 @@ import 'package:dart2js_info/info.dart';
 main(args) {
   var infoPath = args[0];
   var json = JSON.decode(new File(infoPath).readAsStringSync());
-  var info = AllInfo.parseFromJson(json);
+  var info = new AllInfo.fromJson(json);
   ...
+}
 ```
 
 ## Available tools
@@ -68,7 +69,7 @@ The following tools are a available today:
     or all libraries that match certain name pattern).
 
   * [`function_size_analysis`][function_analysis]: a tool that shows how much
-    code was attributed to each function. This tool also uses depedency
+    code was attributed to each function. This tool also uses dependency
     information to compute dominance and reachability data. This information can
     sometimes help determine how much savings could come if the function was not
     included in the program.
@@ -78,6 +79,10 @@ The following tools are a available today:
     application. The `coverage_log_server` can record this data, and
     `live_code_size_analysis` can correlate that with the `.info.json`, so you
     determine why code that is not used is being included in your app.
+
+  * [`verify_deps`][verify_deps]: a tool that verifies that all elements are
+    reachable from the program's entrypoint. If there are unreachable elements,
+    this indicates that the dependency information is incomplete.
 
 Next we describe in detail how to use each of these tools.
 
@@ -184,7 +189,7 @@ size attributed of all libraries, constants, and the program size.
 
 **Note**: eventually you should expect all numbers to add up to the program
 size. Currently dart2js's `--dump-info` is not complete, so numbers for
-bootstraping code and lazy static initializers are missing.
+bootstrapping code and lazy static initializers are missing.
 
 ### Function size analysis tool
 
@@ -251,11 +256,28 @@ dart2js_info_coverage_log_server main.dart.js
     `mail.dart.js.coverage.json`
 
   * Finally, run the live code analysis tool given it both the info and
-    converage json files:
+    coverage json files:
 
 ```bash
 dart2js_info_live_code_size_analysis main.dart.info.json main.dart.coverage.json
 ```
+
+### Verifying dependencies
+
+Coverage of dependency information may be incomplete. If there are elements that
+are live in the output that are unreachable through dependencies from the
+program's entrypoint, then we have incomplete dependency information. Note,
+however, that all elements may be reachable from the entrypoint even if there
+is missing dependency information. In order to verify that all elements are
+reachable from the app's entrypoint, simply run the tool as so:
+
+```bash
+dart2js_info_verify_deps foo.info.json
+```
+
+If all elements are reachable from the entrypoint, then the tool will return
+with exitcode 0. Otherwise, the tool will output the list of all functions that
+are not reachable from the entrypoint and return with exitcode 1.
 
 ## Code location, features and bugs
 
@@ -269,4 +291,5 @@ bugs at the [issue tracker][tracker].
 [coverage]: https://github.com/dart-lang/dart2js_info/blob/master/bin/coverage_log_server.dart
 [live]: https://github.com/dart-lang/dart2js_info/blob/master/bin/live_code_size_analysis.dart
 [function_analysis]: https://github.com/dart-lang/dart2js_info/blob/master/bin/function_size_analysis.dart
+[verify_deps]: https://github.com/dart-lang/dart2js_info/blob/master/bin/verify_deps.dart
 [AllInfo]: http://dart-lang.github.io/dart2js_info/doc/api/dart2js_info.info/AllInfo-class.html

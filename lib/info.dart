@@ -150,7 +150,9 @@ class AllInfo {
 
   AllInfo();
 
-  static AllInfo parseFromJson(Map map) => new _ParseHelper().parseAll(map);
+  // TODO(het): Remove this when we have an external InfoCodec, see
+  // https://github.com/dart-lang/dart2js_info/issues/4
+  factory AllInfo.fromJson(Map json) => new _ParseHelper().parseAll(json);
 
   Map _listAsJsonMap(List<Info> list) {
     var map = <String, Map>{};

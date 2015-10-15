@@ -13,7 +13,7 @@ import 'package:dart2js_info/src/table.dart';
 main(args) {
   var file = args.length > 0 ? args[0] : 'out.js.info.json';
   var json = JSON.decode(new File(file).readAsStringSync());
-  var results = AllInfo.parseFromJson(json);
+  var results = new AllInfo.fromJson(json);
   print(formatAsTable(results));
 }
 

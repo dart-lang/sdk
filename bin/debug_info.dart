@@ -21,7 +21,7 @@ main(args) {
 
   var filename = args[0];
   var json = JSON.decode(new File(filename).readAsStringSync());
-  var info = AllInfo.parseFromJson(json);
+  var info = new AllInfo.fromJson(json);
   var debugLibName;
 
   if (args.length > 2 && args[1] == '--show-library') {

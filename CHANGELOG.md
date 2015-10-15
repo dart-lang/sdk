@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.0
+- Added `verify_deps` tool
+
 ## 0.1.0
 - Added `ProgramInfo.entrypoint`.
 - Added experimental information about calls in function bodies. This will

@@ -49,7 +49,7 @@ main(args) {
     print('error: could not read ${args[0]}');
     exit(1);
   }
-  var info = AllInfo.parseFromJson(json);
+  var info = new AllInfo.fromJson(json);
   var graph = graphFromInfo(info);
 
   var queryName = args[1];
