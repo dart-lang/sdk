@@ -2168,8 +2168,8 @@ void Class::SetFunctions(const Array& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->functions_, value.raw());
   const intptr_t len = value.Length();
-  ClassFunctionsSet set(HashTables::New<ClassFunctionsSet>(len, Heap::kOld));
   if (len >= kFunctionLookupHashTreshold) {
+    ClassFunctionsSet set(HashTables::New<ClassFunctionsSet>(len, Heap::kOld));
     Function& func = Function::Handle();
     for (intptr_t i = 0; i < len; ++i) {
       func ^= value.At(i);
@@ -2177,8 +2177,8 @@ void Class::SetFunctions(const Array& value) const {
       ASSERT(func.Owner() == raw());
       set.Insert(func);
     }
+    StorePointer(&raw_ptr()->functions_hash_table_, set.Release().raw());
   }
-  StorePointer(&raw_ptr()->functions_hash_table_, set.Release().raw());
 }
 
 
@@ -2204,6 +2204,7 @@ void Class::AddFunction(const Function& function) const {
 void Class::RemoveFunction(const Function& function) const {
   const Array& arr = Array::Handle(functions());
   StorePointer(&raw_ptr()->functions_, Object::empty_array().raw());
+  StorePointer(&raw_ptr()->functions_hash_table_, Array::null());
   Function& entry = Function::Handle();
   for (intptr_t i = 0; i < arr.Length(); i++) {
     entry ^= arr.At(i);
