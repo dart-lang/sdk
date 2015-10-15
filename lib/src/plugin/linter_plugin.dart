@@ -7,8 +7,6 @@ library linter.src.plugin.linter_plugin;
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer/src/task/model.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:linter/plugin/linter.dart';
 import 'package:linter/src/config.dart';
 import 'package:linter/src/linter.dart';
@@ -36,11 +34,6 @@ class LinterPlugin implements Plugin {
 
   /// The unique identifier of this plugin.
   static const String UNIQUE_IDENTIFIER = 'linter.core';
-
-  /// The descriptor used to associate lints with analysis contexts in
-  /// configuration data.
-  static final ResultDescriptor<List<Linter>> CONFIGURED_LINTS_KEY =
-      new ResultDescriptorImpl('configured.lints', _noLints);
 
   /// The simple identifier of the extension point that allows plugins to
   /// register new lint rules.
@@ -102,7 +95,7 @@ class LinterPlugin implements Plugin {
   List<Linter> registerLints(AnalysisContext context, LintConfig config) {
     _config = config;
     List<Linter> lints = _getRules(config);
-    context.setConfigurationData(CONFIGURED_LINTS_KEY, lints);
+    setLints(context, lints);
     return lints;
   }
 

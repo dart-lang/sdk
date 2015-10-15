@@ -74,9 +74,6 @@ rules:
   });
 }
 
-List<Linter> getLints(AnalysisContext context) =>
-    context.getConfigurationData(LinterPlugin.CONFIGURED_LINTS_KEY) ?? [];
-
 LinterPlugin newTestPlugin() {
   LinterPlugin linterPlugin = new LinterPlugin();
   ExtensionManager manager = new ExtensionManager();

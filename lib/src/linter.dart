@@ -20,13 +20,6 @@ import 'package:linter/src/pub.dart';
 import 'package:linter/src/rules.dart';
 import 'package:path/path.dart' as p;
 
-void _registerLinters(Iterable<Linter> linters) {
-  if (linters != null) {
-    LintGenerator.LINTERS.clear();
-    LintGenerator.LINTERS.addAll(linters);
-  }
-}
-
 typedef Printer(String msg);
 
 /// Describes a String in valid camel case format.
@@ -316,7 +309,6 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   @override
   Iterable<AnalysisErrorInfo> lintFiles(List<File> files) {
     List<AnalysisErrorInfo> errors = [];
-    _registerLinters(options.enabledLints);
     var analysisDriver = new AnalysisDriver(options);
     errors.addAll(analysisDriver.analyze(files.where((f) => isDartFile(f))));
     numSourcesAnalyzed = analysisDriver.numSourcesAnalyzed;

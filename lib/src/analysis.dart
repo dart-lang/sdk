@@ -19,8 +19,10 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/services/lint.dart';
 import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:linter/src/io.dart';
+import 'package:linter/src/linter.dart';
 import 'package:linter/src/project.dart';
 import 'package:linter/src/rules.dart';
 import 'package:package_config/packages.dart' show Packages;
@@ -52,7 +54,7 @@ class AnalysisDriver {
   /// sources analyzed for statistics.
   Set<Source> _sourcesAnalyzed = new HashSet<Source>();
 
-  final DriverOptions options;
+  final LinterOptions options;
 
   AnalysisDriver(this.options);
 
@@ -92,7 +94,10 @@ class AnalysisDriver {
   }
 
   List<AnalysisErrorInfo> analyze(Iterable<File> files) {
+    AnalysisEngine.instance.useTaskModel = true;
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    registerLinters(context);
+
     context.analysisOptions = _buildAnalyzerOptions(options);
 
     Packages packages = _getPackageConfig();
@@ -152,6 +157,12 @@ class AnalysisDriver {
     }
 
     return errors;
+  }
+
+  void registerLinters(AnalysisContext context) {
+    if (options.enableLints) {
+      setLints(context, options.enabledLints?.toList(growable: false));
+    }
   }
 
   /// Yield the sources for all the compilation units constituting
