@@ -60,7 +60,6 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
       // Create a new LetCont binding only this continuation.
       let.continuations.remove(cont);
       let = new LetCont(cont, null);
-      cont.parent = let;
     } else {
       let.remove(); // Reuse the existing LetCont.
     }
@@ -83,7 +82,6 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
         refined.destroy();
       } else {
         LetPrim let = new LetPrim(refined);
-        refined.parent = let;
         let.insertBelow(cont);
       }
     });
