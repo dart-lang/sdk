@@ -20,7 +20,7 @@ unittest/*: Skip # Issue 21949
 lookup_map/*: SkipByDesign
 
 [ $runtime == vm && $mode == debug ]
-analysis_server/test/analysis_server_test: RuntimeError, Pass # Issue 24597
+analysis_server/test/completion_test: Pass, Slow
 
 [ $runtime == vm && $system == windows]
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
