@@ -2568,6 +2568,9 @@ class Function : public Object {
                                       const Script& script,
                                       bool is_static);
 
+  RawFunction* CreateMethodExtractor(const String& getter_name) const;
+  RawFunction* GetMethodExtractor(const String& getter_name) const;
+
   // Allocate new function object, clone values from this function. The
   // owner of the clone is new_owner.
   RawFunction* Clone(const Class& new_owner) const;

@@ -2769,6 +2769,60 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
 }
 
 
+// Method extractors are used to create implicit closures from methods.
+// When an expression obj.M is evaluated for the first time and receiver obj
+// does not have a getter called M but has a method called M then an extractor
+// is created and injected as a getter (under the name get:M) into the class
+// owning method M.
+RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
+  ASSERT(Field::IsGetterName(getter_name));
+  const Function& closure_function =
+      Function::Handle(ImplicitClosureFunction());
+
+  const Class& owner = Class::Handle(closure_function.Owner());
+  Function& extractor = Function::Handle(
+    Function::New(String::Handle(Symbols::New(getter_name)),
+                  RawFunction::kMethodExtractor,
+                  false,  // Not static.
+                  false,  // Not const.
+                  false,  // Not abstract.
+                  false,  // Not external.
+                  false,  // Not native.
+                  owner,
+                  0));  // No token position.
+
+  // Initialize signature: receiver is a single fixed parameter.
+  const intptr_t kNumParameters = 1;
+  extractor.set_num_fixed_parameters(kNumParameters);
+  extractor.SetNumOptionalParameters(0, 0);
+  extractor.set_parameter_types(Object::extractor_parameter_types());
+  extractor.set_parameter_names(Object::extractor_parameter_names());
+  extractor.set_result_type(Type::Handle(Type::DynamicType()));
+
+  extractor.set_extracted_method_closure(closure_function);
+  extractor.set_is_debuggable(false);
+  extractor.set_is_visible(false);
+
+  owner.AddFunction(extractor);
+
+  return extractor.raw();
+}
+
+
+RawFunction* Function::GetMethodExtractor(const String& getter_name) const {
+  ASSERT(Field::IsGetterName(getter_name));
+  const Function& closure_function =
+      Function::Handle(ImplicitClosureFunction());
+  const Class& owner = Class::Handle(closure_function.Owner());
+  Function& result = Function::Handle(owner.LookupDynamicFunction(getter_name));
+  if (result.IsNull()) {
+    result ^= CreateMethodExtractor(getter_name);
+  }
+  ASSERT(result.kind() == RawFunction::kMethodExtractor);
+  return result.raw();
+}
+
+
 RawArray* Class::invocation_dispatcher_cache() const {
   return raw_ptr()->invocation_dispatcher_cache_;
 }

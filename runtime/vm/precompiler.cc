@@ -599,6 +599,10 @@ void Precompiler::CheckForNewDynamicFunctions() {
 
             function2 = function.ImplicitClosureFunction();
             AddFunction(function2);
+
+            // Add corresponding method extractor get:#foo.
+            function2 = function.GetMethodExtractor(selector3);
+            AddFunction(function2);
           }
         } else if (Field::IsSetterName(selector)) {
           selector2 = Symbols::LookupFromConcat(Symbols::ClosurizePrefix(),
@@ -610,6 +614,10 @@ void Precompiler::CheckForNewDynamicFunctions() {
 
             function2 = function.ImplicitClosureFunction();
             AddFunction(function2);
+
+            // Add corresponding method extractor get:#set:foo.
+            function2 = function.GetMethodExtractor(selector2);
+            AddFunction(function2);
           }
         } else if (function.kind() == RawFunction::kRegularFunction) {
           selector2 = Field::LookupGetterSymbol(selector);
@@ -618,6 +626,10 @@ void Precompiler::CheckForNewDynamicFunctions() {
             // Function is foo and somewhere get:foo is called.
             function2 = function.ImplicitClosureFunction();
             AddFunction(function2);
+
+            // Add corresponding method extractor.
+            function2 = function.GetMethodExtractor(selector2);
+            AddFunction(function2);
           }
           selector2 = Symbols::LookupFromConcat(Symbols::ClosurizePrefix(),
                                                 selector);
@@ -625,6 +637,10 @@ void Precompiler::CheckForNewDynamicFunctions() {
             // Hash-closurization.
             // Function is foo and somewhere get:#foo is called.
             function2 = function.ImplicitClosureFunction();
+            AddFunction(function2);
+
+            // Add corresponding method extractor get:#foo
+            function2 = function.GetMethodExtractor(selector2);
             AddFunction(function2);
           }
         }

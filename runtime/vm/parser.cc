@@ -1447,7 +1447,6 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
 
 SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
   TRACE_PARSER("ParseMethodExtractor");
-  ASSERT(FLAG_lazy_dispatchers);
 
   ParamList params;
 
