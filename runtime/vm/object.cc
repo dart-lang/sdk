@@ -11404,18 +11404,22 @@ void PcDescriptors::PrintJSONImpl(JSONStream* stream, bool ref) const {
 // finally blocks).
 void PcDescriptors::Verify(const Function& function) const {
 #if defined(DEBUG)
-  // TODO(srdjan): Implement a more efficient way to check, currently drop
-  // the check for too large number of descriptors.
-  if (Length() > 3000) {
-    if (FLAG_trace_compiler) {
-      OS::Print("Not checking pc decriptors, length %" Pd "\n", Length());
-    }
-    return;
-  }
   // Only check ids for unoptimized code that is optimizable.
   if (!function.IsOptimizable()) {
     return;
   }
+  intptr_t max_deopt_id = 0;
+  Iterator max_iter(*this,
+                    RawPcDescriptors::kDeopt | RawPcDescriptors::kIcCall);
+  while (max_iter.MoveNext()) {
+    if (max_iter.DeoptId() > max_deopt_id) {
+      max_deopt_id = max_iter.DeoptId();
+    }
+  }
+
+  Zone* zone = Thread::Current()->zone();
+  BitVector* deopt_ids = new(zone) BitVector(zone, max_deopt_id + 1);
+  BitVector* iccall_ids = new(zone) BitVector(zone, max_deopt_id + 1);
   Iterator iter(*this, RawPcDescriptors::kDeopt | RawPcDescriptors::kIcCall);
   while (iter.MoveNext()) {
     // 'deopt_id' is set for kDeopt and kIcCall and must be unique for one kind.
@@ -11425,12 +11429,12 @@ void PcDescriptors::Verify(const Function& function) const {
       // lead to issues in the future. Fix that and enable verification.
       continue;
     }
-
-    Iterator nested(iter);
-    while (nested.MoveNext()) {
-      if (iter.Kind() == nested.Kind()) {
-        ASSERT(nested.DeoptId() != iter.DeoptId());
-      }
+    if (iter.Kind() == RawPcDescriptors::kDeopt) {
+      ASSERT(!deopt_ids->Contains(iter.DeoptId()));
+      deopt_ids->Add(iter.DeoptId());
+    } else {
+      ASSERT(!iccall_ids->Contains(iter.DeoptId()));
+      iccall_ids->Add(iter.DeoptId());
     }
   }
 #endif  // DEBUG
