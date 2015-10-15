@@ -58,8 +58,7 @@ class _DartNavigationCollector {
     if (element.location == null) {
       return;
     }
-    protocol.ElementKind kind =
-        protocol.convertElementKind(element.kind);
+    protocol.ElementKind kind = protocol.convertElementKind(element.kind);
     protocol.Location location = protocol.newLocation_fromElement(element);
     if (location == null) {
       return;
@@ -326,9 +325,11 @@ class _DartRangeAstVisitor extends UnifyingAstVisitor {
       return;
     }
     // The node starts or ends in the range.
-    if (isInRange(node.offset) || isInRange(node.end)) {
-      node.accept(visitor);
-      return;
+    if (node is! CompilationUnit) {
+      if (isInRange(node.offset) || isInRange(node.end) || node is Directive) {
+        node.accept(visitor);
+        return;
+      }
     }
     // Go deeper.
     super.visitNode(node);
