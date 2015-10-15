@@ -19,18 +19,12 @@ mutation_observer: Skip # Issue 21149
 unittest/*: Skip # Issue 21949
 lookup_map/*: SkipByDesign
 
-[ $runtime == vm && $mode == debug]
-analysis_server/test/analysis_server_test: SkipSlow  # Times out
-analysis_server/test/completion_test: SkipSlow  # Times out
-analysis_server/test/domain_context_test: SkipSlow  # Times out
-analysis_server/test/domain_server_test: SkipSlow  # Times out
-analysis_server/test/integration/*: SkipSlow # Times out
-analysis_server/tool/spec/check_all_test: SkipSlow # Times out
-analyzer/test/generated/element_test: SkipSlow  # Times out
-analyzer/test/generated/parser_test: SkipSlow  # Times out
+[ $runtime == vm && $mode == debug ]
+analysis_server/test/analysis_server_test: RuntimeError, Pass # Issue 24597
 
 [ $runtime == vm && $system == windows]
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
+analyzer/test/generated/all_the_rest_test: Fail # Issue 21772
 
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
@@ -122,9 +116,6 @@ typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here e
 [ $runtime == safarimobilesim ]
 # Unexplained errors only occuring on Safari 6.1 and earlier.
 typed_data/test/typed_buffers_test: RuntimeError
-
-[ $runtime == vm && $system == windows ]
-analyzer/test/generated/all_the_rest_test: Fail # Issue 21772
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 compiler/samples/compile_loop/compile_loop: CompileTimeError  # Issue 16524
