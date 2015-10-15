@@ -23,7 +23,9 @@ class OptionsPlugin implements Plugin {
 
   /// All contributed options processors.
   List<OptionsProcessor> get optionsProcessors =>
-      optionsProcessorExtensionPoint.extensions;
+      optionsProcessorExtensionPoint == null
+          ? const []
+          : optionsProcessorExtensionPoint.extensions;
 
   @override
   String get uniqueIdentifier => UNIQUE_IDENTIFIER;
