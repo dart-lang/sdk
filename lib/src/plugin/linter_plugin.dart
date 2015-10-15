@@ -7,6 +7,8 @@ library linter.src.plugin.linter_plugin;
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/task/model.dart';
+import 'package:analyzer/task/model.dart';
 import 'package:linter/plugin/linter.dart';
 import 'package:linter/src/config.dart';
 import 'package:linter/src/linter.dart';
@@ -30,11 +32,15 @@ final LinterPlugin linterPlugin = new LinterPlugin();
 /// A plugin that defines the extension points and extensions that are
 /// inherently defined by the linter.
 class LinterPlugin implements Plugin {
-
   static const List<Linter> _noLints = const <Linter>[];
 
   /// The unique identifier of this plugin.
   static const String UNIQUE_IDENTIFIER = 'linter.core';
+
+  /// The descriptor used to associate lints with analysis contexts in
+  /// configuration data.
+  static final ResultDescriptor<List<Linter>> CONFIGURED_LINTS_KEY =
+      new ResultDescriptorImpl('configured.lints', _noLints);
 
   /// The simple identifier of the extension point that allows plugins to
   /// register new lint rules.
@@ -46,6 +52,9 @@ class LinterPlugin implements Plugin {
   /// An options processor for creating lint configs from analysis options.
   AnalysisOptionsProcessor _optionsProcessor;
 
+  /// Cached config (temporary to support legacy `lintRules` getter).
+  LintConfig _config;
+
   LinterPlugin() {
     _optionsProcessor = new AnalysisOptionsProcessor(this);
   }
@@ -53,15 +62,12 @@ class LinterPlugin implements Plugin {
   /// Return a list of all contributed lint rules.
   List<LintRule> get contributedRules => lintRuleExtensionPoint.extensions;
 
-  /// Cached config (temporary to support legacy `lintRules` getter).
-  LintConfig _config;
-
   /// Return a list of enabled lint rules.
   ///
   /// By default this list includes all [contributedRules].  Specific lints
   /// can be enabled/disabled (and in the future further configured) through
   /// a specified analysis options file.
-  @deprecated // Use lintRegistry
+  @deprecated // Use context.getConfigurationData(..)
   List<LintRule> get lintRules => _getRules(_config);
 
   @override
@@ -95,7 +101,9 @@ class LinterPlugin implements Plugin {
 
   List<Linter> registerLints(AnalysisContext context, LintConfig config) {
     _config = config;
-    return lintRegistry[context] = _getRules(config);
+    List<Linter> lints = _getRules(config);
+    context.setConfigurationData(CONFIGURED_LINTS_KEY, lints);
+    return lints;
   }
 
   List<Linter> _getRules(LintConfig config) {

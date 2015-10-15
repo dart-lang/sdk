@@ -6,11 +6,11 @@
 library linter.test.plugin_test;
 
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/services/lint.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:plugin/manager.dart';
 import 'package:unittest/unittest.dart';
 import 'package:yaml/yaml.dart';
-import 'package:analyzer/src/services/lint.dart';
 
 main() {
   groupSep = ' | ';
@@ -56,7 +56,7 @@ rules:
       var context = new AnalysisContextImpl();
       AnalysisEngine.instance.optionsPlugin.optionsProcessors
           .forEach((op) => op.optionsProcessed(context, {'linter': yaml}));
-      var rules = lintRegistry[context].map((rule) => rule.name);
+      var rules = getLints(context).map((rule) => rule.name);
       expect(rules,
           unorderedEquals(['camel_case_types', 'constant_identifier_names']));
 
@@ -68,11 +68,14 @@ rules:
       var context2 = new AnalysisContextImpl();
       AnalysisEngine.instance.optionsPlugin.optionsProcessors
           .forEach((op) => op.optionsProcessed(context2, {'linter': yaml2}));
-      var rules2 = lintRegistry[context2].map((rule) => rule.name);
+      var rules2 = getLints(context2).map((rule) => rule.name);
       expect(rules2, unorderedEquals(['camel_case_types']));
     });
   });
 }
+
+List<Linter> getLints(AnalysisContext context) =>
+    context.getConfigurationData(LinterPlugin.CONFIGURED_LINTS_KEY) ?? [];
 
 LinterPlugin newTestPlugin() {
   LinterPlugin linterPlugin = new LinterPlugin();
