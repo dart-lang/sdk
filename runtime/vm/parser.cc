@@ -4716,7 +4716,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   SkipMetadata();
   ExpectToken(Token::kENUM);
 
-  const String& enum_name = String::Handle(Z, cls.Name());
+  const String& enum_name = String::Handle(Z, cls.PrettyName());
   ClassDesc enum_members(Z, cls, enum_name, false, cls.token_pos());
 
   // Add instance field 'final int index'.
