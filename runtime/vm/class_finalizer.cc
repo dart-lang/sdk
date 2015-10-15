@@ -2438,10 +2438,7 @@ void ClassFinalizer::AllocateEnumValues(const Class &enum_cls) {
     enum_value.SetField(index_field, ordinal_value);
     const char* error_msg = "";
     enum_value = enum_value.CheckAndCanonicalize(&error_msg);
-    if (enum_value.IsNull()) {
-      ReportError(enum_cls, enum_cls.token_pos(), "Failed finalizing values.");
-      UNREACHABLE();
-    }
+    ASSERT(!enum_value.IsNull());
     ASSERT(enum_value.IsCanonical());
     field.SetStaticValue(enum_value, true);
     field.RecordStore(enum_value);
@@ -2450,6 +2447,9 @@ void ClassFinalizer::AllocateEnumValues(const Class &enum_cls) {
     values_list.SetAt(ord, enum_value);
   }
   values_list.MakeImmutable();
+  const char* error_msg = NULL;
+  values_list ^= values_list.CheckAndCanonicalize(&error_msg);
+  ASSERT(!values_list.IsNull());
 }
 
 
