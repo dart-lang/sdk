@@ -20,6 +20,8 @@ If you are passing a Dart function to a JavaScript API, you must wrap it using
 
 ### Examples
 
+There is a [full example](https://github.com/dart-lang/sdk/tree/master/pkg/js/example) hosted with the `package:js` source code.
+
 #### Calling methods
 
 ```dart
