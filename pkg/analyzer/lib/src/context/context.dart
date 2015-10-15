@@ -415,6 +415,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
+  /**
+   * Invalidate analysis cache.
+   */
+  void invalidateCachedResults() {
+    _cache = createCacheFromSourceFactory(_sourceFactory);
+  }
+
   @override
   List<Source> get sources {
     return _cache.sources.toList();
