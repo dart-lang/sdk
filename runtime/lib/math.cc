@@ -93,9 +93,10 @@ static RawTypedData* GetRandomStateArray(const Instance& receiver) {
 
 
 // Implements:
-//   var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
-//   _state[kSTATE_LO] = state & _MASK_32;
-//   _state[kSTATE_HI] = state >> 32;
+//   var state =
+//       ((_A * (_state[_kSTATE_LO])) + _state[_kSTATE_HI]) & (1 << 64) - 1);
+//   _state[_kSTATE_LO] = state & (1 << 32) - 1);
+//   _state[_kSTATE_HI] = state >> 32;
 DEFINE_NATIVE_ENTRY(Random_nextState, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, receiver, arguments->NativeArgAt(0));
   const TypedData& array = TypedData::Handle(GetRandomStateArray(receiver));
@@ -145,8 +146,8 @@ uint64_t mix64(uint64_t n) {
 //     hash = 0x5A17;
 //   }
 //   var result = new Uint32List(2);
-//   result[kSTATE_LO] = seed & _MASK_32;
-//   result[kSTATE_HI] = seed >> 32;
+//   result[_kSTATE_LO] = seed & ((1 << 32) - 1);
+//   result[_kSTATE_HI] = seed >> 32;
 //   return result;
 DEFINE_NATIVE_ENTRY(Random_setupSeed, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, seed_int, arguments->NativeArgAt(0));
@@ -196,6 +197,27 @@ DEFINE_NATIVE_ENTRY(Random_initialSeed, 0) {
   uint64_t seed = rnd->NextUInt32();
   seed |= (static_cast<uint64_t>(rnd->NextUInt32()) << 32);
   return CreateRandomState(zone, seed);
+}
+
+
+DEFINE_NATIVE_ENTRY(SecureRandom_getBytes, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, count, arguments->NativeArgAt(0));
+  const intptr_t n = count.Value();
+  ASSERT((n > 0) && (n <= 8));
+  uint8_t buffer[8];
+  Dart_EntropySource entropy_source = isolate->entropy_source_callback();
+  if ((entropy_source == NULL) || !entropy_source(buffer, n)) {
+    const String& error = String::Handle(String::New(
+        "No source of cryptographically secure random numbers available."));
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, error);
+    Exceptions::ThrowByType(Exceptions::kUnsupported, args);
+  }
+  uint64_t result = 0;
+  for (intptr_t i = 0; i < n; i++) {
+    result = (result << 8) | buffer[i];
+  }
+  return Integer::New(result);
 }
 
 }  // namespace dart

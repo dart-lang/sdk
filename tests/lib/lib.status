@@ -11,6 +11,7 @@ async/schedule_microtask6_test: RuntimeError # global error handling is not supp
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
 math/random_big_test: RuntimeError  # Using bigint seeds for random.
+math/random_secure_test: RuntimeError  # Issue 1746.
 
 mirrors/abstract_class_test: RuntimeError # Issue 12826
 mirrors/class_declarations_test/none: RuntimeError # Issue 13440

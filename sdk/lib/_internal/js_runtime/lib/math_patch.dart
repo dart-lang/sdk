@@ -60,6 +60,12 @@ class Random {
   @patch
   factory Random([int seed]) =>
       (seed == null) ? const _JSRandom() : new _Random(seed);
+
+  @patch
+  factory Random.secure() {
+    throw new UnsupportedError(
+        "No source of cryptographically secure random numbers available.");
+  }
 }
 
 class _JSRandom implements Random {
