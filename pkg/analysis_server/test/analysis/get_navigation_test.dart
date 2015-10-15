@@ -58,6 +58,48 @@ main() {
     return _checkInvalid(file, -1, -1);
   }
 
+  test_issue24599_importDirective() async {
+    addTestFile('''
+import 'dart:math';
+
+main() {
+}''');
+    await waitForTasksFinished();
+    await _getNavigation(testFile, 0, 17);
+    expect(regions, hasLength(1));
+    assertHasRegionString("'dart:math'");
+    expect(testTargets, hasLength(1));
+    expect(testTargets[0].kind, ElementKind.LIBRARY);
+  }
+
+  test_issue24599_importKeyword() async {
+    addTestFile('''
+import 'dart:math';
+
+main() {
+}''');
+    await waitForTasksFinished();
+    await _getNavigation(testFile, 0, 1);
+    expect(regions, hasLength(1));
+    assertHasRegionString("'dart:math'");
+    expect(testTargets, hasLength(1));
+    expect(testTargets[0].kind, ElementKind.LIBRARY);
+  }
+
+  test_issue24599_importUri() async {
+    addTestFile('''
+import 'dart:math';
+
+main() {
+}''');
+    await waitForTasksFinished();
+    await _getNavigation(testFile, 7, 11);
+    expect(regions, hasLength(1));
+    assertHasRegionString("'dart:math'");
+    expect(testTargets, hasLength(1));
+    expect(testTargets[0].kind, ElementKind.LIBRARY);
+  }
+
   test_multipleRegions() async {
     addTestFile('''
 main() {

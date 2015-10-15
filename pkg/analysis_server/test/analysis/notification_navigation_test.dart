@@ -26,6 +26,7 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
 
   NavigationRegion testRegion;
   List<int> testTargetIndexes;
+  List<NavigationTarget> testTargets;
   NavigationTarget testTarget;
 
   /**
@@ -33,8 +34,6 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
    * at [offset] and with the given [length].
    */
   void assertHasFileTarget(String file, int offset, int length) {
-    List<NavigationTarget> testTargets =
-        testTargetIndexes.map((int index) => targets[index]).toList();
     for (NavigationTarget target in testTargets) {
       if (targetFiles[target.fileIndex] == file &&
           target.offset == offset &&
@@ -167,6 +166,7 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
         }
         testRegion = region;
         testTargetIndexes = region.targets;
+        testTargets = testTargetIndexes.map((i) => targets[i]).toList();
         return;
       }
     }
