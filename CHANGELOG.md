@@ -1,3 +1,8 @@
+# 0.1.3+4
+
+* Fixed linter registry memory leaks.
+
+
 # 0.1.3
 
 * Fixed various options file parsing issues.
