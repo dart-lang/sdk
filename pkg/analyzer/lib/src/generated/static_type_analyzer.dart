@@ -1419,11 +1419,16 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   // TODO(vsm): Use leafp's matchType here?
-  DartType _findIteratedType(InterfaceType type, DartType targetType) {
+  DartType _findIteratedType(DartType type, DartType targetType) {
     // Set by _find if match is found
     DartType result = null;
     // Elements we've already visited on a given inheritance path.
     HashSet<ClassElement> visitedClasses = null;
+
+    while (type is TypeParameterType) {
+      TypeParameterElement element = type.element;
+      type = element.bound;
+    }
 
     bool _find(InterfaceType type) {
       ClassElement element = type.element;
@@ -1451,7 +1456,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         visitedClasses.remove(element);
       }
     }
-    _find(type);
+    if (type is InterfaceType) {
+      _find(type);
+    }
     return result;
   }
 
@@ -1691,15 +1698,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         Expression expr = loop.iterable;
         LocalVariableElementImpl element = loopVariable.element;
         DartType exprType = expr.staticType;
-        if (exprType is InterfaceType) {
-          DartType targetType = (loop.awaitKeyword == null)
-              ? _typeProvider.iterableType
+        DartType targetType = (loop.awaitKeyword == null)
+          ? _typeProvider.iterableType
               : _typeProvider.streamType;
-          DartType iteratedType = _findIteratedType(exprType, targetType);
-          if (element != null && iteratedType != null) {
-            element.type = iteratedType;
-            loopVariable.identifier.staticType = iteratedType;
-          }
+        DartType iteratedType = _findIteratedType(exprType, targetType);
+        if (element != null && iteratedType != null) {
+          element.type = iteratedType;
+          loopVariable.identifier.staticType = iteratedType;
         }
       }
     }
