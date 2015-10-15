@@ -1,3 +1,6 @@
+## 0.26.1+11
+* Fixes to address lint registry memory leaking.
+
 ## 0.26.1+10
 * New `AnalysisContext` API for associating configuration data with contexts
   (`setConfigurationData()` and `getConfigurationData()`).
