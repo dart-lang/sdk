@@ -7,13 +7,25 @@ library uriTest;
 import "package:expect/expect.dart";
 import 'dart:convert';
 
-testUri(String uri, bool isAbsolute) {
-  Expect.equals(isAbsolute, Uri.parse(uri).isAbsolute);
-  Expect.stringEquals(uri, Uri.parse(uri).toString());
+testUri(String uriText, bool isAbsolute) {
+  var uri = Uri.parse(uriText);
+
+  Expect.equals(isAbsolute, uri.isAbsolute);
+  Expect.stringEquals(uriText, uri.toString());
 
   // Test equals and hashCode members.
-  Expect.equals(Uri.parse(uri), Uri.parse(uri));
-  Expect.equals(Uri.parse(uri).hashCode, Uri.parse(uri).hashCode);
+  var uri2 = Uri.parse(uriText);
+  Expect.equals(uri, uri2);
+  Expect.equals(uri.hashCode, uri2.hashCode);
+
+  // Test that removeFragment doesn't change anything else.
+  if (uri.hasFragment) {
+    Expect.equals(Uri.parse(uriText.substring(0, uriText.indexOf('#'))),
+                  uri.removeFragment());
+  } else {
+    Expect.equals(uri,
+                  Uri.parse(uriText + "#fragment").removeFragment());
+  }
 }
 
 testEncodeDecode(String orig, String encoded) {

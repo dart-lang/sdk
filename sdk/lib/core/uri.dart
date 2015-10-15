@@ -16,18 +16,8 @@ part of dart.core;
  * [libtour]: http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html
  */
 class Uri {
-  // The host name of the URI.
-  // Set to `null` if there is no authority in a URI.
-  final String _host;
-  // The port. Set to null if there is no port. Normalized to null if
-  // the port is the default port for the scheme.
-  // Set to the value of the default port if an empty port was supplied.
-  int _port;
-  // The path. Always non-null.
-  String _path;
-
   /**
-   * Returns the scheme component.
+   * The scheme component of the URI.
    *
    * Returns the empty string if there is no scheme component.
    *
@@ -37,6 +27,213 @@ class Uri {
   // We represent the missing scheme as an empty string.
   // A valid scheme cannot be empty.
   final String scheme;
+
+  /**
+   * The user-info part of the authority.
+   *
+   * Does not distinguish between an empty user-info and an absent one.
+   * The value is always non-null.
+   * Is considered absent if [_host] is `null`.
+   */
+  final String _userInfo;
+
+  /**
+   * The host name of the URI.
+   *
+   * Set to `null` if there is no authority in the URI.
+   * The host name is the only mandatory part of an authority, so we use
+   * it to mark whether an authority part was present or not.
+   */
+  final String _host;
+
+  /**
+   * The port number part of the authority.
+   *
+   * The port. Set to null if there is no port. Normalized to null if
+   * the port is the default port for the scheme.
+   */
+  int _port;
+
+  /**
+   * The path of the URI.
+   *
+   * Always non-null.
+   */
+  String _path;
+
+  // The query content, or null if there is no query.
+  final String _query;
+
+  // The fragment content, or null if there is no fragment.
+  final String _fragment;
+
+  /**
+   * Cache the computed return value of [pathSegements].
+   */
+  List<String> _pathSegments;
+
+  /**
+   * Cache the computed return value of [queryParameters].
+   */
+  Map<String, String> _queryParameters;
+
+  /// Internal non-verifying constructor. Only call with validated arguments.
+  Uri._internal(this.scheme,
+                this._userInfo,
+                this._host,
+                this._port,
+                this._path,
+                this._query,
+                this._fragment);
+
+  /**
+   * Creates a new URI from its components.
+   *
+   * Each component is set through a named argument. Any number of
+   * components can be provided. The [path] and [query] components can be set
+   * using either of two different named arguments.
+   *
+   * The scheme component is set through [scheme]. The scheme is
+   * normalized to all lowercase letters. If the scheme is omitted or empty,
+   * the URI will not have a scheme part.
+   *
+   * The user info part of the authority component is set through
+   * [userInfo]. It defaults to the empty string, which will be omitted
+   * from the string representation of the URI.
+   *
+   * The host part of the authority component is set through
+   * [host]. The host can either be a hostname, an IPv4 address or an
+   * IPv6 address, contained in '[' and ']'. If the host contains a
+   * ':' character, the '[' and ']' are added if not already provided.
+   * The host is normalized to all lowercase letters.
+   *
+   * The port part of the authority component is set through
+   * [port].
+   * If [port] is omitted or `null`, it implies the default port for
+   * the URI's scheme, and is equivalent to passing that port explicitly.
+   * The recognized schemes, and their default ports, are "http" (80) and
+   * "https" (443). All other schemes are considered as having zero as the
+   * default port.
+   *
+   * If any of `userInfo`, `host` or `port` are provided,
+   * the URI will have an autority according to [hasAuthority].
+   *
+   * The path component is set through either [path] or
+   * [pathSegments]. When [path] is used, it should be a valid URI path,
+   * but invalid characters, except the general delimiters ':/@[]?#',
+   * will be escaped if necessary.
+   * When [pathSegments] is used, each of the provided segments
+   * is first percent-encoded and then joined using the forward slash
+   * separator. The percent-encoding of the path segments encodes all
+   * characters except for the unreserved characters and the following
+   * list of characters: `!$&'()*+,;=:@`. If the other components
+   * calls for an absolute path a leading slash `/` is prepended if
+   * not already there.
+   *
+   * The query component is set through either [query] or
+   * [queryParameters]. When [query] is used the provided string should
+   * be a valid URI query, but invalid characters other than general delimiters,
+   * will be escaped if necessary.
+   * When [queryParameters] is used the query is built from the
+   * provided map. Each key and value in the map is percent-encoded
+   * and joined using equal and ampersand characters. The
+   * percent-encoding of the keys and values encodes all characters
+   * except for the unreserved characters.
+   * If `query` is the empty string, it is equivalent to omitting it.
+   * To have an actual empty query part,
+   * use an empty list for `queryParameters`.
+   * If both `query` and `queryParameters` are omitted or `null`, the
+   * URI will have no query part.
+   *
+   * The fragment component is set through [fragment].
+   * It should be a valid URI fragment, but invalid characters other than
+   * general delimiters, will be escaped if necessary.
+   * If `fragment` is omitted or `null`, the URI will have no fragment part.
+   */
+  factory Uri({String scheme : "",
+               String userInfo : "",
+               String host,
+               int port,
+               String path,
+               Iterable<String> pathSegments,
+               String query,
+               Map<String, String> queryParameters,
+               String fragment}) {
+    scheme = _makeScheme(scheme, 0, _stringOrNullLength(scheme));
+    userInfo = _makeUserInfo(userInfo, 0, _stringOrNullLength(userInfo));
+    host = _makeHost(host, 0, _stringOrNullLength(host), false);
+    // Special case this constructor for backwards compatibility.
+    if (query == "") query = null;
+    query = _makeQuery(query, 0, _stringOrNullLength(query), queryParameters);
+    fragment = _makeFragment(fragment, 0, _stringOrNullLength(fragment));
+    port = _makePort(port, scheme);
+    bool isFile = (scheme == "file");
+    if (host == null &&
+        (userInfo.isNotEmpty || port != null || isFile)) {
+      host = "";
+    }
+    bool hasAuthority = (host != null);
+    path = _makePath(path, 0, _stringOrNullLength(path), pathSegments,
+                     scheme, hasAuthority);
+    if (scheme.isEmpty && host == null && !path.startsWith('/')) {
+      path = _normalizeRelativePath(path);
+    } else {
+      path = _removeDotSegments(path);
+    }
+    return new Uri._internal(scheme, userInfo, host, port,
+                             path, query, fragment);
+  }
+
+  /**
+   * Creates a new `http` URI from authority, path and query.
+   *
+   * Examples:
+   *
+   * ```
+   * // http://example.org/path?q=dart.
+   * new Uri.http("google.com", "/search", { "q" : "dart" });
+   *
+   * // http://user:pass@localhost:8080
+   * new Uri.http("user:pass@localhost:8080", "");
+   *
+   * // http://example.org/a%20b
+   * new Uri.http("example.org", "a b");
+   *
+   * // http://example.org/a%252F
+   * new Uri.http("example.org", "/a%2F");
+   * ```
+   *
+   * The `scheme` is always set to `http`.
+   *
+   * The `userInfo`, `host` and `port` components are set from the
+   * [authority] argument. If `authority` is `null` or empty,
+   * the created `Uri` will have no authority, and will not be directly usable
+   * as an HTTP URL, which must have a non-empty host.
+   *
+   * The `path` component is set from the [unencodedPath]
+   * argument. The path passed must not be encoded as this constructor
+   * encodes the path.
+   *
+   * The `query` component is set from the optional [queryParameters]
+   * argument.
+   */
+  factory Uri.http(String authority,
+                   String unencodedPath,
+                   [Map<String, String> queryParameters]) {
+    return _makeHttpUri("http", authority, unencodedPath, queryParameters);
+  }
+
+  /**
+   * Creates a new `https` URI from authority, path and query.
+   *
+   * This constructor is the same as [Uri.http] except for the scheme
+   * which is set to `https`.
+   */
+  factory Uri.https(String authority,
+                    String unencodedPath,
+                    [Map<String, String> queryParameters]) {
+    return _makeHttpUri("https", authority, unencodedPath, queryParameters);
+  }
 
   /**
    * Returns the authority component.
@@ -52,14 +249,6 @@ class Uri {
     _writeAuthority(sb);
     return sb.toString();
   }
-
-  /**
-   * The user-info part of the authority.
-   *
-   * Does not distinguish between an empty user-info and an absent one.
-   * The value is always non-null.
-   */
-  final String _userInfo;
 
   /**
    * Returns the user info part of the authority component.
@@ -118,9 +307,6 @@ class Uri {
    */
   String get path => _path;
 
-  // The query content, or null if there is no query.
-  final String _query;
-
   /**
    * Returns the query component. The returned query is encoded. To get
    * direct access to the decoded query use [queryParameters].
@@ -129,9 +315,6 @@ class Uri {
    */
   String get query => (_query == null) ? "" : _query;
 
-  // The fragment content, or null if there is no fragment.
-  final String _fragment;
-
   /**
    * Returns the fragment identifier component.
    *
@@ -139,16 +322,6 @@ class Uri {
    * component.
    */
   String get fragment => (_fragment == null) ? "" : _fragment;
-
-  /**
-   * Cache the computed return value of [pathSegements].
-   */
-  List<String> _pathSegments;
-
-  /**
-   * Cache the computed return value of [queryParameters].
-   */
-  Map<String, String> _queryParameters;
 
   /**
    * Creates a new `Uri` object by parsing a URI string.
@@ -410,164 +583,6 @@ class Uri {
   // Report a parse failure.
   static void _fail(String uri, int index, String message) {
     throw new FormatException(message, uri, index);
-  }
-
-  /// Internal non-verifying constructor. Only call with validated arguments.
-  Uri._internal(this.scheme,
-                this._userInfo,
-                this._host,
-                this._port,
-                this._path,
-                this._query,
-                this._fragment);
-
-  /**
-   * Creates a new URI from its components.
-   *
-   * Each component is set through a named argument. Any number of
-   * components can be provided. The [path] and [query] components can be set
-   * using either of two different named arguments.
-   *
-   * The scheme component is set through [scheme]. The scheme is
-   * normalized to all lowercase letters. If the scheme is omitted or empty,
-   * the URI will not have a scheme part.
-   *
-   * The user info part of the authority component is set through
-   * [userInfo]. It defaults to the empty string, which will be omitted
-   * from the string representation of the URI.
-   *
-   * The host part of the authority component is set through
-   * [host]. The host can either be a hostname, an IPv4 address or an
-   * IPv6 address, contained in '[' and ']'. If the host contains a
-   * ':' character, the '[' and ']' are added if not already provided.
-   * The host is normalized to all lowercase letters.
-   *
-   * The port part of the authority component is set through
-   * [port].
-   * If [port] is omitted or `null`, it implies the default port for
-   * the URI's scheme, and is equivalent to passing that port explicitly.
-   * The recognized schemes, and their default ports, are "http" (80) and
-   * "https" (443). All other schemes are considered as having zero as the
-   * default port.
-   *
-   * If any of `userInfo`, `host` or `port` are provided,
-   * the URI will have an autority according to [hasAuthority].
-   *
-   * The path component is set through either [path] or
-   * [pathSegments]. When [path] is used, it should be a valid URI path,
-   * but invalid characters, except the general delimiters ':/@[]?#',
-   * will be escaped if necessary.
-   * When [pathSegments] is used, each of the provided segments
-   * is first percent-encoded and then joined using the forward slash
-   * separator. The percent-encoding of the path segments encodes all
-   * characters except for the unreserved characters and the following
-   * list of characters: `!$&'()*+,;=:@`. If the other components
-   * calls for an absolute path a leading slash `/` is prepended if
-   * not already there.
-   *
-   * The query component is set through either [query] or
-   * [queryParameters]. When [query] is used the provided string should
-   * be a valid URI query, but invalid characters other than general delimiters,
-   * will be escaped if necessary.
-   * When [queryParameters] is used the query is built from the
-   * provided map. Each key and value in the map is percent-encoded
-   * and joined using equal and ampersand characters. The
-   * percent-encoding of the keys and values encodes all characters
-   * except for the unreserved characters.
-   * If `query` is the empty string, it is equivalent to omitting it.
-   * To have an actual empty query part,
-   * use an empty list for `queryParameters`.
-   * If both `query` and `queryParameters` are omitted or `null`, the
-   * URI will have no query part.
-   *
-   * The fragment component is set through [fragment].
-   * It should be a valid URI fragment, but invalid characters other than
-   * general delimiters, will be escaped if necessary.
-   * If `fragment` is omitted or `null`, the URI will have no fragment part.
-   */
-  factory Uri({String scheme : "",
-               String userInfo : "",
-               String host,
-               int port,
-               String path,
-               Iterable<String> pathSegments,
-               String query,
-               Map<String, String> queryParameters,
-               String fragment}) {
-    scheme = _makeScheme(scheme, 0, _stringOrNullLength(scheme));
-    userInfo = _makeUserInfo(userInfo, 0, _stringOrNullLength(userInfo));
-    host = _makeHost(host, 0, _stringOrNullLength(host), false);
-    // Special case this constructor for backwards compatibility.
-    if (query == "") query = null;
-    query = _makeQuery(query, 0, _stringOrNullLength(query), queryParameters);
-    fragment = _makeFragment(fragment, 0, _stringOrNullLength(fragment));
-    port = _makePort(port, scheme);
-    bool isFile = (scheme == "file");
-    if (host == null &&
-        (userInfo.isNotEmpty || port != null || isFile)) {
-      host = "";
-    }
-    bool hasAuthority = (host != null);
-    path = _makePath(path, 0, _stringOrNullLength(path), pathSegments,
-                     scheme, hasAuthority);
-    if (scheme.isEmpty && host == null && !path.startsWith('/')) {
-      path = _normalizeRelativePath(path);
-    } else {
-      path = _removeDotSegments(path);
-    }
-    return new Uri._internal(scheme, userInfo, host, port,
-                             path, query, fragment);
-  }
-
-  /**
-   * Creates a new `http` URI from authority, path and query.
-   *
-   * Examples:
-   *
-   * ```
-   * // http://example.org/path?q=dart.
-   * new Uri.http("google.com", "/search", { "q" : "dart" });
-   *
-   * // http://user:pass@localhost:8080
-   * new Uri.http("user:pass@localhost:8080", "");
-   *
-   * // http://example.org/a%20b
-   * new Uri.http("example.org", "a b");
-   *
-   * // http://example.org/a%252F
-   * new Uri.http("example.org", "/a%2F");
-   * ```
-   *
-   * The `scheme` is always set to `http`.
-   *
-   * The `userInfo`, `host` and `port` components are set from the
-   * [authority] argument. If `authority` is `null` or empty,
-   * the created `Uri` will have no authority, and will not be directly usable
-   * as an HTTP URL, which must have a non-empty host.
-   *
-   * The `path` component is set from the [unencodedPath]
-   * argument. The path passed must not be encoded as this constructor
-   * encodes the path.
-   *
-   * The `query` component is set from the optional [queryParameters]
-   * argument.
-   */
-  factory Uri.http(String authority,
-                   String unencodedPath,
-                   [Map<String, String> queryParameters]) {
-    return _makeHttpUri("http", authority, unencodedPath, queryParameters);
-  }
-
-  /**
-   * Creates a new `https` URI from authority, path and query.
-   *
-   * This constructor is the same as [Uri.http] except for the scheme
-   * which is set to `https`.
-   */
-  factory Uri.https(String authority,
-                    String unencodedPath,
-                    [Map<String, String> queryParameters]) {
-    return _makeHttpUri("https", authority, unencodedPath, queryParameters);
   }
 
   static Uri _makeHttpUri(String scheme,
@@ -935,7 +950,7 @@ class Uri {
     if (userInfo != null) {
       userInfo = _makeUserInfo(userInfo, 0, userInfo.length);
     } else {
-      userInfo = this.userInfo;
+      userInfo = this._userInfo;
     }
     if (port != null) {
       port = _makePort(port, scheme);
@@ -949,7 +964,7 @@ class Uri {
     if (host != null) {
       host = _makeHost(host, 0, host.length, false);
     } else if (this.hasAuthority) {
-      host = this.host;
+      host = this._host;
     } else if (userInfo.isNotEmpty || port != null || isFile) {
       host = "";
     }
@@ -959,7 +974,7 @@ class Uri {
       path = _makePath(path, 0, _stringOrNullLength(path), pathSegments,
                        scheme, hasAuthority);
     } else {
-      path = this.path;
+      path = this._path;
       if ((isFile || (hasAuthority && !path.isEmpty)) &&
           !path.startsWith('/')) {
         path = "/" + path;
@@ -968,14 +983,14 @@ class Uri {
 
     if (query != null || queryParameters != null) {
       query = _makeQuery(query, 0, _stringOrNullLength(query), queryParameters);
-    } else if (this.hasQuery) {
-      query = this.query;
+    } else {
+      query = this._query;
     }
 
     if (fragment != null) {
       fragment = _makeFragment(fragment, 0, fragment.length);
-    } else if (this.hasFragment) {
-      fragment = this.fragment;
+    } else {
+      fragment = this._fragment;
     }
 
     return new Uri._internal(
@@ -989,7 +1004,8 @@ class Uri {
    */
   Uri removeFragment() {
     if (!this.hasFragment) return this;
-    return new Uri._internal(scheme, userInfo, host, port, path, query, null);
+    return new Uri._internal(scheme, _userInfo, _host, _port,
+                             _path, _query, null);
   }
 
   /**
