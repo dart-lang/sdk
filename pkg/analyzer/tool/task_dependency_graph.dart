@@ -9,7 +9,7 @@
  *
  * The ".dot" file is output to standard out.  To convert it to a pdf, store it
  * in a file (e.g. "tasks.dot"), and post-process it with
- * "dot tasks.dart -Tpdf -O".
+ * "dot tasks.dot -Tpdf -O".
  *
  * TODO(paulberry):
  * - Add general.dart and html.dart for completeness.
@@ -26,6 +26,7 @@ import 'dart:io' hide File;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -39,20 +40,60 @@ main() {
   new Driver().run();
 }
 
-typedef void ResultDescriptorFinderCallback(PropertyAccessorElement element);
+typedef void GetterFinderCallback(PropertyAccessorElement element);
 
 class Driver {
   PhysicalResourceProvider resourceProvider;
   AnalysisContext context;
   InterfaceType resultDescriptorType;
+  InterfaceType listOfResultDescriptorType;
+  ClassElement enginePluginClass;
+  CompilationUnitElement taskUnitElement;
+  InterfaceType extensionPointIdType;
   String rootDir;
+
+  /**
+   * Starting at [node], find all calls to registerExtension() which refer to
+   * the given [extensionIdVariable], and execute [callback] for the associated
+   * result descriptors.
+   */
+  void findExtensions(AstNode node, TopLevelVariableElement extensionIdVariable,
+      void callback(descriptorName)) {
+    Set<PropertyAccessorElement> resultDescriptors =
+        new Set<PropertyAccessorElement>();
+    node.accept(new ExtensionFinder(
+        resultDescriptorType, extensionIdVariable, resultDescriptors.add));
+    for (PropertyAccessorElement resultDescriptor in resultDescriptors) {
+      callback(resultDescriptor.name);
+    }
+  }
+
+  /**
+   * Starting at [node], find all references to a getter of type
+   * `List<ResultDescriptor>`, and execute [callback] on the getter names.
+   */
+  void findResultDescriptorLists(
+      AstNode node, void callback(String descriptorListName)) {
+    Set<PropertyAccessorElement> resultDescriptorLists =
+        new Set<PropertyAccessorElement>();
+    node.accept(new GetterFinder(
+        listOfResultDescriptorType, resultDescriptorLists.add));
+    for (PropertyAccessorElement resultDescriptorList
+        in resultDescriptorLists) {
+      // We only care about result descriptor lists associated with getters in
+      // the engine plugin class.
+      if (resultDescriptorList.enclosingElement != enginePluginClass) {
+        continue;
+      }
+      callback(resultDescriptorList.name);
+    }
+  }
 
   void findResultDescriptors(
       AstNode node, void callback(String descriptorName)) {
     Set<PropertyAccessorElement> resultDescriptors =
         new Set<PropertyAccessorElement>();
-    node.accept(new ResultDescriptorFinder(
-        resultDescriptorType, resultDescriptors.add));
+    node.accept(new GetterFinder(resultDescriptorType, resultDescriptors.add));
     for (PropertyAccessorElement resultDescriptor in resultDescriptors) {
       callback(resultDescriptor.name);
     }
@@ -88,9 +129,12 @@ class Driver {
       new FileUriResolver()
     ];
     context.sourceFactory = new SourceFactory(uriResolvers);
-    Source taskSource =
+    Source dartDartSource =
         setupSource(path.join('lib', 'src', 'task', 'dart.dart'));
+    Source taskSource = setupSource(path.join('lib', 'plugin', 'task.dart'));
     Source modelSource = setupSource(path.join('lib', 'task', 'model.dart'));
+    Source enginePluginSource =
+        setupSource(path.join('lib', 'src', 'plugin', 'engine_plugin.dart'));
     CompilationUnitElement modelElement = getUnit(modelSource).element;
     InterfaceType analysisTaskType = modelElement.getType('AnalysisTask').type;
     DartType dynamicType = context.typeProvider.dynamicType;
@@ -98,18 +142,32 @@ class Driver {
         .getType('ResultDescriptor')
         .type
         .substitute4([dynamicType]);
+    listOfResultDescriptorType =
+        context.typeProvider.listType.substitute4([resultDescriptorType]);
+    CompilationUnitElement enginePluginUnitElement =
+        getUnit(enginePluginSource).element;
+    enginePluginClass = enginePluginUnitElement.getType('EnginePlugin');
+    extensionPointIdType =
+        enginePluginUnitElement.getType('ExtensionPointId').type;
+    CompilationUnit dartDartUnit = getUnit(dartDartSource);
+    CompilationUnitElement dartDartUnitElement = dartDartUnit.element;
     CompilationUnit taskUnit = getUnit(taskSource);
-    CompilationUnitElement taskUnitElement = taskUnit.element;
+    taskUnitElement = taskUnit.element;
     print('digraph G {');
     Set<String> results = new Set<String>();
-    for (ClassElement cls in taskUnitElement.types) {
+    Set<String> resultLists = new Set<String>();
+    for (ClassElement cls in dartDartUnitElement.types) {
       if (!cls.isAbstract && cls.type.isSubtypeOf(analysisTaskType)) {
         String task = cls.name;
         // TODO(paulberry): node is deprecated.  What am I supposed to do
         // instead?
-        findResultDescriptors(cls.getMethod('buildInputs').node,
-            (String input) {
+        AstNode buildInputsAst = cls.getMethod('buildInputs').node;
+        findResultDescriptors(buildInputsAst, (String input) {
           results.add(input);
+          print('  $input -> $task');
+        });
+        findResultDescriptorLists(buildInputsAst, (String input) {
+          resultLists.add(input);
           print('  $input -> $task');
         });
         findResultDescriptors(cls.getField('DESCRIPTOR').node, (String output) {
@@ -117,6 +175,15 @@ class Driver {
           print('  $task -> $output');
         });
       }
+    }
+    AstNode enginePluginAst = enginePluginUnitElement.node;
+    for (String resultList in resultLists) {
+      print('  $resultList [shape=hexagon]');
+      TopLevelVariableElement extensionIdVariable = _getExtensionId(resultList);
+      findExtensions(enginePluginAst, extensionIdVariable, (String extension) {
+        results.add(extension);
+        print('  $extension -> $resultList');
+      });
     }
     for (String result in results) {
       print('  $result [shape=box]');
@@ -137,20 +204,93 @@ class Driver {
     context.applyChanges(changeSet);
     return source;
   }
+
+  /**
+   * Find the result list getter having name [resultListGetterName] in the
+   * [EnginePlugin] class, and use the [ExtensionPointId] annotation on that
+   * getter to find the associated [TopLevelVariableElement] which can be used
+   * to register extensions for that getter.
+   */
+  TopLevelVariableElement _getExtensionId(String resultListGetterName) {
+    PropertyAccessorElement getter =
+        enginePluginClass.getGetter(resultListGetterName);
+    for (ElementAnnotation annotation in getter.metadata) {
+      // TODO(paulberry): we should be using part of the public API rather than
+      // just casting to ElementAnnotationImpl.
+      ElementAnnotationImpl annotationImpl = annotation;
+      DartObjectImpl annotationValue = annotationImpl.evaluationResult.value;
+      if (annotationValue.type.isSubtypeOf(extensionPointIdType)) {
+        String extensionPointId =
+            annotationValue.fields['extensionPointId'].value;
+        for (TopLevelVariableElement variable
+            in taskUnitElement.topLevelVariables) {
+          if (variable.name == extensionPointId) {
+            return variable;
+          }
+        }
+      }
+    }
+    throw new Exception(
+        'Could not find extension ID corresponding to $resultListGetterName');
+  }
 }
 
-class ResultDescriptorFinder extends GeneralizingAstVisitor {
+/**
+ * Visitor that finds calls that register extension points.  Specifically, we
+ * look for calls of the form `method(extensionIdVariable, resultDescriptor)`,
+ * where `resultDescriptor` has type [resultDescriptorType], and we pass the
+ * corresponding result descriptor names to [callback].
+ */
+class ExtensionFinder extends GeneralizingAstVisitor {
   final InterfaceType resultDescriptorType;
-  final ResultDescriptorFinderCallback callback;
+  final TopLevelVariableElement extensionIdVariable;
+  final GetterFinderCallback callback;
 
-  ResultDescriptorFinder(this.resultDescriptorType, this.callback);
+  ExtensionFinder(
+      this.resultDescriptorType, this.extensionIdVariable, this.callback);
 
   @override
   visitIdentifier(Identifier node) {
     Element element = node.staticElement;
     if (element is PropertyAccessorElement &&
         element.isGetter &&
-        element.returnType.isSubtypeOf(resultDescriptorType)) {
+        element.variable == extensionIdVariable) {
+      AstNode parent = node.parent;
+      if (parent is ArgumentList &&
+          parent.arguments.length == 2 &&
+          parent.arguments[0] == node) {
+        Expression extension = parent.arguments[1];
+        if (extension is Identifier) {
+          Element element = extension.staticElement;
+          if (element is PropertyAccessorElement &&
+              element.isGetter &&
+              element.returnType.isSubtypeOf(resultDescriptorType)) {
+            callback(element);
+            return;
+          }
+        }
+      }
+      throw new Exception('Could not decode extension setup: $parent');
+    }
+  }
+}
+
+/**
+ * Visitor that finds references to getters having a specific type (or a
+ * subtype of that type)
+ */
+class GetterFinder extends GeneralizingAstVisitor {
+  final InterfaceType type;
+  final GetterFinderCallback callback;
+
+  GetterFinder(this.type, this.callback);
+
+  @override
+  visitIdentifier(Identifier node) {
+    Element element = node.staticElement;
+    if (element is PropertyAccessorElement &&
+        element.isGetter &&
+        element.returnType.isSubtypeOf(type)) {
       callback(element);
     }
   }
