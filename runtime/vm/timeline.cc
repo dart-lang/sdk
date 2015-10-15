@@ -90,7 +90,7 @@ void Timeline::InitOnce() {
   const bool use_ring_recorder = true;
   // Some flags require that we use the endless recorder.
   const bool use_endless_recorder =
-      (FLAG_timeline_dir != NULL) || FLAG_timing;
+      (FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline;
   if (use_endless_recorder) {
     recorder_ = new TimelineEventEndlessRecorder();
   } else if (use_ring_recorder) {
