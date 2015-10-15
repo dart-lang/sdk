@@ -473,10 +473,10 @@ bool Heap::GrowthControlState() {
 }
 
 
-void Heap::WriteProtect(bool read_only) {
+void Heap::WriteProtect(bool read_only, bool include_code_pages) {
   read_only_ = read_only;
   new_space_.WriteProtect(read_only);
-  old_space_.WriteProtect(read_only);
+  old_space_.WriteProtect(read_only, include_code_pages);
 }
 
 
@@ -800,15 +800,16 @@ NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
 }
 
 
-WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread)
-    : StackResource(thread) {
-  Dart::vm_isolate()->heap()->WriteProtect(false);
+WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread,
+                                               bool include_code_pages)
+    : StackResource(thread), include_code_pages_(include_code_pages) {
+  Dart::vm_isolate()->heap()->WriteProtect(false, include_code_pages_);
 }
 
 
 WritableVMIsolateScope::~WritableVMIsolateScope() {
   ASSERT(Dart::vm_isolate()->heap()->UsedInWords(Heap::kNew) == 0);
-  Dart::vm_isolate()->heap()->WriteProtect(true);
+  Dart::vm_isolate()->heap()->WriteProtect(true, include_code_pages_);
 }
 
 }  // namespace dart

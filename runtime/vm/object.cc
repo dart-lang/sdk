@@ -955,7 +955,8 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
 
   {
     ASSERT(isolate == Dart::vm_isolate());
-    WritableVMIsolateScope scope(Thread::Current());
+    bool include_code_pages = !Dart::IsRunningPrecompiledCode();
+    WritableVMIsolateScope scope(Thread::Current(), include_code_pages);
     PremarkingVisitor premarker(isolate);
     ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
     isolate->heap()->IterateOldObjects(&premarker);
