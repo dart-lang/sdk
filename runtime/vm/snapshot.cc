@@ -964,7 +964,7 @@ RawInstance* SnapshotReader::NewInstance() {
   ASSERT(kind_ == Snapshot::kFull);
   ASSERT_NO_SAFEPOINT_SCOPE();
   RawInstance* obj = reinterpret_cast<RawInstance*>(
-      AllocateUninitialized(kObjectCid, Instance::InstanceSize()));
+      AllocateUninitialized(kInstanceCid, Instance::InstanceSize()));
   return obj;
 }
 
