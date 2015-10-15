@@ -2357,12 +2357,12 @@ class GenerateLintsTaskTest extends _AbstractDartTaskTest {
   void setUp() {
     super.setUp();
     enableLints();
-    lintRegistry[context] = [new GenerateLintsTaskTest_TestLinter()];
+    setLints(context, [new GenerateLintsTaskTest_TestLinter()]);
   }
 
   @override
   void tearDown() {
-    lintRegistry[context] = [];
+    setLints(context, []);
     super.tearDown();
   }
 
