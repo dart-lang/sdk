@@ -467,7 +467,7 @@ some target.
 _targetId_ may refer to a [Library](#library), [Class](#class), or
 [Instance](#instance).
 
-If _targetId_ is a temporary id which has expired, then then _Expired_
+If _targetId_ is a temporary id which has expired, then the _Expired_
 [Sentinel](#sentinel) is returned.
 
 If _targetId_ refers to an object which has been collected by the VM's
@@ -535,7 +535,7 @@ Object|Sentinel getObject(string isolateId,
 The _getObject_ RPC is used to lookup an _object_ from some isolate by
 its _id_.
 
-If _objectId_ is a temporary id which has expired, then then _Expired_
+If _objectId_ is a temporary id which has expired, then the _Expired_
 [Sentinel](#sentinel) is returned.
 
 If _objectId_ refers to a heap object which has been collected by the VM's
@@ -1321,8 +1321,7 @@ class @Function extends @Object {
   // The name of this function.
   string name;
 
-  // The owner of this field, which can be a Library, Class, or a
-  // Function.
+  // The owner of this function, which can be a Library, Class, or a Function.
   @Library|@Class|@Function owner;
 
   // Is this function static?
@@ -1341,8 +1340,7 @@ class Function extends Object {
   // The name of this function.
   string name;
 
-  // The owner of this field, which can be a Library, Class, or a
-  // Function.
+  // The owner of this function, which can be a Library, Class, or a Function.
   @Library|@Class|@Function owner;
 
   // The location of this function in the source code.
@@ -1696,7 +1694,7 @@ enum InstanceKind {
   Float64x2,
   Int32x4
 
-  // An instance of the built-in VM TypedData implementations.  User-defined
+  // An instance of the built-in VM TypedData implementations. User-defined
   // TypedDatas will be PlainInstance.
   Uint8ClampedList,
   Uint8List,
@@ -1729,16 +1727,16 @@ enum InstanceKind {
   // An instance of the Dart class WeakProperty.
   WeakProperty,
 
-  // An instance of the Dart class Type
+  // An instance of the Dart class Type.
   Type,
 
-  // An instance of the Dart class TypeParamer
+  // An instance of the Dart class TypeParameter.
   TypeParameter,
 
-  // An instance of the Dart class TypeRef
+  // An instance of the Dart class TypeRef.
   TypeRef,
 
-  // An instance of the Dart class BoundedType
+  // An instance of the Dart class BoundedType.
   BoundedType,
 }
 ```
@@ -1833,7 +1831,7 @@ class Library extends Object {
   // The uri of this library.
   string uri;
 
-  // Is this library debuggable?  Default true.
+  // Is this library debuggable? Default true.
   bool debuggable;
 
   // A list of the imports for this library.
@@ -2186,15 +2184,15 @@ class UnresolvedSourceLocation extends Response {
   // has yet to be loaded.
   string scriptUri [optional];
 
-  // An approximate token position for the source location.  This may
+  // An approximate token position for the source location. This may
   // change when the location is resolved.
   int tokenPos [optional];
 
-  // An approximate line number for the source location.  This may
+  // An approximate line number for the source location. This may
   // change when the location is resolved.
   int line [optional];
 
-  // An approximate column number for the source location.  This may
+  // An approximate column number for the source location. This may
   // change when the location is resolved.
   int column [optional];
 
