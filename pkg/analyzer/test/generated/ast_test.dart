@@ -2318,6 +2318,13 @@ class ToSourceVisitorTest extends EngineTestCase {
             AstFactory.simpleFormalParameter3("p"), AstFactory.integer(0)));
   }
 
+  void test_visitDefaultFormalParameter_annotation() {
+    DefaultFormalParameter parameter = AstFactory.positionalFormalParameter(
+        AstFactory.simpleFormalParameter3("p"), AstFactory.integer(0));
+    parameter.metadata.add(AstFactory.annotation(AstFactory.identifier3("A")));
+    _assertSource('@A p = 0', parameter);
+  }
+
   void test_visitDoStatement() {
     _assertSource(
         "do {} while (c);",
@@ -2458,6 +2465,12 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitFieldFormalParameter_type() {
     _assertSource("A this.a",
         AstFactory.fieldFormalParameter(null, AstFactory.typeName4("A"), "a"));
+  }
+
+  void test_visitFieldFormalParameter_annotation() {
+    FieldFormalParameter parameter = AstFactory.fieldFormalParameter2('f');
+    parameter.metadata.add(AstFactory.annotation(AstFactory.identifier3("A")));
+    _assertSource('@A this.f', parameter);
   }
 
   void test_visitForEachStatement_declared() {
@@ -2896,6 +2909,12 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitFunctionTypedFormalParameter_noType() {
     _assertSource("f()", AstFactory.functionTypedFormalParameter(null, "f"));
+  }
+
+  void test_visitFunctionTypedFormalParameter_annotation() {
+    FunctionTypedFormalParameter parameter = AstFactory.functionTypedFormalParameter(null, "f");
+    parameter.metadata.add(AstFactory.annotation(AstFactory.identifier3("A")));
+    _assertSource('@A f()', parameter);
   }
 
   void test_visitFunctionTypedFormalParameter_type() {
@@ -3519,6 +3538,12 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitSimpleFormalParameter_type() {
     _assertSource("A a",
         AstFactory.simpleFormalParameter4(AstFactory.typeName4("A"), "a"));
+  }
+
+  void test_visitSimpleFormalParameter_annotation() {
+    SimpleFormalParameter parameter = AstFactory.simpleFormalParameter3('x');
+    parameter.metadata.add(AstFactory.annotation(AstFactory.identifier3("A")));
+    _assertSource('@A x', parameter);
   }
 
   void test_visitSimpleIdentifier() {

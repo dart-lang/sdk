@@ -18345,6 +18345,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitFieldFormalParameter(FieldFormalParameter node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
     _visitTokenWithSuffix(node.keyword, " ");
     _visitNodeWithSuffix(node.type, " ");
     _writer.print("this.");
@@ -18470,6 +18471,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
     _visitNodeWithSuffix(node.returnType, " ");
     _visitNode(node.identifier);
     _visitNode(node.typeParameters);
@@ -18800,6 +18802,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
     _visitTokenWithSuffix(node.keyword, " ");
     _visitNodeWithSuffix(node.type, " ");
     _visitNode(node.identifier);
