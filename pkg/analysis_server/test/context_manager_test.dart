@@ -90,15 +90,10 @@ class AbstractContextManagerTest {
     callbacks = new TestContextManagerCallbacks(resourceProvider);
     manager.callbacks = callbacks;
     resourceProvider.newFolder(projPath);
-    ContextManagerImpl.ENABLE_PACKAGESPEC_SUPPORT = true;
 
     // Options processing is required in context creation.
     ExtensionManager em = new ExtensionManager();
     em.processPlugins([AnalysisEngine.instance.optionsPlugin]);
-  }
-
-  void tearDown() {
-    ContextManagerImpl.ENABLE_PACKAGESPEC_SUPPORT = false;
   }
 
   test_analysis_options_parse_failure() async {
