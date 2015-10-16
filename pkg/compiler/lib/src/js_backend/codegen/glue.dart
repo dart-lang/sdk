@@ -65,10 +65,6 @@ class Glue {
     return classWorld.isUsedAsMixin(classElement);
   }
 
-  ConstantValue getConstantValueForVariable(VariableElement variable) {
-    return _backend.constants.getConstantValueForVariable(variable);
-  }
-
   js.Expression staticFunctionAccess(FunctionElement element) {
     return _backend.emitter.staticFunctionAccess(element);
   }
@@ -290,5 +286,9 @@ class Glue {
   void registerNativeBehavior(NativeBehavior nativeBehavior, node) {
     if (nativeBehavior == null) return;
     _enqueuer.nativeEnqueuer.registerNativeBehavior(nativeBehavior, node);
+  }
+
+  ConstantValue getDefaultParameterValue(ParameterElement elem) {
+    return _backend.constants.getConstantValueForVariable(elem);
   }
 }

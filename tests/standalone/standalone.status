@@ -210,6 +210,3 @@ io/secure_server_client_certificate_test: RuntimeError # Issue 24069
 io/secure_server_client_no_certificate_test: RuntimeError # Issue 24069
 io/secure_socket_renegotiate_test: RuntimeError
 io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection just puts a READ_CLOSED on the stream, rather than signaling an error on the stream.
-
-[ $compiler == dart2js && $cps_ir ]
-priority_queue_stress_test: RuntimeError # Cannot read property 'length' of undefined

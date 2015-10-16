@@ -291,7 +291,6 @@ closure_in_constructor_test: RuntimeError # Please triage this failure.
 closures_initializer_test: RuntimeError # Please triage this failure.
 constructor12_test: RuntimeError # Please triage this failure.
 crash_6725_test/01: Crash # unsupported operation on erroneous element
-cyclic_default_values_test: RuntimeError # Z.cyclic_default_values_test__foo$closure is not a function
 deferred_call_empty_before_load_test: Crash # (lib1.thefun()): deferred access is not implemented
 deferred_closurize_load_library_test: RuntimeError # D.loadLibrary is not a function
 deferred_constant_list_test: RuntimeError # K.loadLibrary is not a function

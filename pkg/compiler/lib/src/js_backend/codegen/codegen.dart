@@ -72,6 +72,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   /// Generates JavaScript code for the body of [function].
   js.Fun buildFunction(tree_ir.FunctionDefinition function) {
+    registerDefaultParameterValues(function.element);
     currentFunction = function.element;
     visitStatement(function.body);
 
@@ -1016,5 +1017,23 @@ class CodeGenerator extends tree_ir.StatementVisitor
     // FunctionExpressions are currently unused.
     // We might need them if we want to emit raw JS nested functions.
     throw 'FunctionExpressions should not be used';
+  }
+
+  /// Ensures that parameter defaults will be emitted.
+  ///
+  /// Ideally, this should be done when generating the relevant stub methods,
+  /// since those are the ones that actually reference the constants, but those
+  /// are created by the emitter when it is too late to register new constants.
+  ///
+  /// For non-static methods, we have no way of knowing if the defaults are
+  /// actually used, so we conservatively register them all.
+  void registerDefaultParameterValues(ExecutableElement element) {
+    if (element is! FunctionElement) return;
+    FunctionElement function = element;
+    if (function.isStatic) return; // Defaults are inlined at call sites.
+    function.functionSignature.forEachOptionalParameter((param) {
+      ConstantValue constant = glue.getDefaultParameterValue(param);
+      registry.registerCompileTimeConstant(constant);
+    });
   }
 }
