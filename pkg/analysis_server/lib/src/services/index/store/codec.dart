@@ -9,7 +9,6 @@ import 'dart:collection';
 import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A helper that encodes/decodes [AnalysisContext]s from/to integers.
@@ -93,11 +92,10 @@ class ElementCodec {
    * If the given [indexable] is not defined in a file, returns `-1`.
    */
   int encode1(IndexableObject indexable) {
-    Source source = indexable.source;
-    if (source == null) {
+    String filePath = indexable.filePath;
+    if (filePath == null) {
       return -1;
     }
-    String filePath = source.fullName;
     return _stringCodec.encode(filePath);
   }
 

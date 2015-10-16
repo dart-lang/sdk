@@ -34,6 +34,11 @@ typedef int StringToInt(String string);
  */
 abstract class IndexableObject {
   /**
+   * Return the absolute path of the file containing the indexable object.
+   */
+  String get filePath;
+
+  /**
    * Return the kind of this object.
    */
   IndexableObjectKind get kind;
@@ -42,11 +47,6 @@ abstract class IndexableObject {
    * Return the offset of the indexable object within its source.
    */
   int get offset;
-
-  /**
-   * Return the source containing the indexable object.
-   */
-  Source get source;
 }
 
 /**
