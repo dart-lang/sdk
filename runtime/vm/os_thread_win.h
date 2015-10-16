@@ -12,6 +12,8 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
+#include "vm/allocation.h"
+
 namespace dart {
 
 typedef DWORD ThreadLocalKey;
