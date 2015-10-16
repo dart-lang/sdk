@@ -43,6 +43,7 @@ def DumpSteps(build_info):
     dump_compilations = os.path.join(temp_dir, 'dump')
     normal_compilation_command = [sys.executable,
                                   './tools/test.py',
+                                  '--arch=ia32',
                                   '--mode=%s' % build_info.mode,
                                   '-cdart2js',
                                   '-rnone',
