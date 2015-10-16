@@ -490,6 +490,17 @@ class B extends A {
     });
   }
 
+  test_inComment_endOfLine() {
+    addTestSource('''
+main() {
+  // text ^
+}
+''');
+    return computeFull((bool result) {
+      assertNoSuggestions();
+    });
+  }
+
   test_InstanceCreationExpression() {
     addSource(
         '/testA.dart',

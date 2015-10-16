@@ -603,6 +603,38 @@ class B extends A {
     assertNotSuggested('MC');
   }
 
+  test_inComment_block_beforeNode() {
+    addTestSource('''
+main(aaa, bbb) {
+  /* text ^ */
+  print(42);
+}
+''');
+    expect(computeFast(), isTrue);
+    assertNoSuggestions();
+  }
+
+  test_inComment_endOfLine_beforeNode() {
+    addTestSource('''
+main(aaa, bbb) {
+  // text ^
+  print(42);
+}
+''');
+    expect(computeFast(), isTrue);
+    assertNoSuggestions();
+  }
+
+  test_inComment_endOfLine_beforeToken() {
+    addTestSource('''
+main(aaa, bbb) {
+  // text ^
+}
+''');
+    expect(computeFast(), isTrue);
+    assertNoSuggestions();
+  }
+
   test_InstanceCreationExpression() {
     addTestSource('''
 class A {foo(){var f; {var x;}}}

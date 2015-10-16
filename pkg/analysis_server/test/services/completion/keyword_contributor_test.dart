@@ -436,8 +436,7 @@ class KeywordContributorTest extends AbstractCompletionTest {
     var keywords = <Keyword>[];
     keywords.addAll(STMT_START_OUTSIDE_CLASS);
     keywords.add(Keyword.RETHROW);
-    assertSuggestKeywords(keywords,
-        relevance: DART_RELEVANCE_KEYWORD);
+    assertSuggestKeywords(keywords, relevance: DART_RELEVANCE_KEYWORD);
   }
 
   test_class() {
@@ -1034,6 +1033,27 @@ class A {
         relevance: DART_RELEVANCE_HIGH);
     expect(request.replacementOffset, 32);
     expect(request.replacementLength, 3);
+  }
+
+  test_inComment_block() {
+    addTestSource('''
+main() {
+  /* text ^ */
+  print(42);
+}
+''');
+    expect(computeFast(), isTrue);
+    assertNoSuggestions();
+  }
+
+  test_inComment_endOfLine() {
+    addTestSource('''
+main() {
+  // text ^
+}
+''');
+    expect(computeFast(), isTrue);
+    assertNoSuggestions();
   }
 
   test_is_expression() {

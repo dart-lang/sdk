@@ -22,7 +22,9 @@ const AWAIT = 'await';
 class KeywordContributor extends DartCompletionContributor {
   @override
   bool computeFast(DartCompletionRequest request) {
-    request.target.containingNode.accept(new _KeywordVisitor(request));
+    if (!request.target.isCommentText) {
+      request.target.containingNode.accept(new _KeywordVisitor(request));
+    }
     return true;
   }
 
@@ -33,7 +35,7 @@ class KeywordContributor extends DartCompletionContributor {
 }
 
 /**
- * A vistor for generating keyword suggestions.
+ * A visitor for generating keyword suggestions.
  */
 class _KeywordVisitor extends GeneralizingAstVisitor {
   final DartCompletionRequest request;
@@ -176,9 +178,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitFormalParameterList(FormalParameterList node) {
-    AstNode constructorDecl =
+    AstNode constructorDeclaration =
         node.getAncestor((p) => p is ConstructorDeclaration);
-    if (constructorDecl != null) {
+    if (constructorDeclaration != null) {
       _addSuggestions([Keyword.THIS]);
     }
   }
