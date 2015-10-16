@@ -373,6 +373,7 @@
       'type': 'executable',
       'toolsets':['host'],
       'dependencies': [
+        'generate_resources_cc_file#host',
         'libdart_nosnapshot',
         'libdart_builtin',
         'libdart_io',
