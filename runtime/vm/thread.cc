@@ -165,16 +165,6 @@ void Thread::EnsureInit() {
 }
 
 
-#if defined(TARGET_OS_WINDOWS)
-void Thread::CleanUp() {
-  Thread* current = Current();
-  if (current != NULL) {
-    SetCurrent(NULL);
-    delete current;
-  }
-}
-#endif
-
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_INIT(object)                                     \
   reusable_##object##_handle_scope_active_(false),
@@ -536,16 +526,6 @@ Thread* ThreadIterator::Next() {
   next_ = next_->thread_list_next_;
   return current;
 }
-
-#if defined(TARGET_OS_WINDOWS)
-// This function is invoked by |OnThreadExit| found in os_thread_win.cc.
-void ThreadCleanupOnExit() {
-  // Windows does not support TLS destructors (see os_thread_win.cc for
-  // context). As a work around, we maintain a list of functions to be
-  // executed when a thread exits in |OnThreadExit| in os_thread_win.cc.
-  Thread::CleanUp();
-}
-#endif
 
 
 }  // namespace dart

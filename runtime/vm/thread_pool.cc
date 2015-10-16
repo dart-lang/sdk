@@ -471,9 +471,6 @@ void ThreadPool::Worker::Main(uword args) {
     // wait for the thread to exit by joining on it in Shutdown().
     delete worker;
   }
-#if defined(TARGET_OS_WINDOWS)
-  Thread::CleanUp();
-#endif
 }
 
 }  // namespace dart

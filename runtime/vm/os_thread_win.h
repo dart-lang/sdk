@@ -116,6 +116,55 @@ class MonitorData {
   DISALLOW_COPY_AND_ASSIGN(MonitorData);
 };
 
+
+typedef void (*ThreadDestructor) (void* parameter);
+
+
+class ThreadLocalEntry {
+ public:
+  ThreadLocalEntry(ThreadLocalKey key, ThreadDestructor destructor)
+      : key_(key),
+        destructor_(destructor) {
+  }
+
+  ThreadLocalKey key() const {
+    return key_;
+  }
+
+
+  ThreadDestructor destructor() const {
+    return destructor_;
+  }
+
+ private:
+  ThreadLocalKey key_;
+  ThreadDestructor destructor_;
+
+  DISALLOW_ALLOCATION(ThreadLocalEntry);
+};
+
+
+template<typename T>
+class MallocGrowableArray;
+
+
+class ThreadLocalData : public AllStatic {
+ private:
+  static void AddThreadLocal(ThreadLocalKey key, ThreadDestructor destructor);
+  static void RemoveThreadLocal(ThreadLocalKey key);
+
+  static void RunDestructors();
+
+  static Mutex* mutex_;
+  static MallocGrowableArray<ThreadLocalEntry>* thread_locals_;
+
+  static void InitOnce();
+  static void Shutdown();
+
+  friend class OS;
+  friend class OSThread;
+};
+
 }  // namespace dart
 
 #endif  // VM_OS_THREAD_WIN_H_

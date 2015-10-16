@@ -39,7 +39,6 @@ class OSThread {
   // the thread failed to start.
   static int Start(ThreadStartFunction function, uword parameters);
 
-  // NOTE: Destructor currently ignored on Windows (issue 23474).
   static ThreadLocalKey CreateThreadLocal(ThreadDestructor destructor = NULL);
   static void DeleteThreadLocal(ThreadLocalKey key);
   static uword GetThreadLocal(ThreadLocalKey key) {

@@ -5,6 +5,7 @@
 #include "platform/globals.h"  // NOLINT
 #if defined(TARGET_OS_WINDOWS)
 
+#include "vm/growable_array.h"
 #include "vm/os_thread.h"
 
 #include <process.h>  // NOLINT
@@ -73,11 +74,12 @@ ThreadLocalKey OSThread::kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
 ThreadId OSThread::kInvalidThreadId = 0;
 ThreadJoinId OSThread::kInvalidThreadJoinId = 0;
 
-ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor unused) {
+ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   ThreadLocalKey key = TlsAlloc();
   if (key == kUnsetThreadLocalKey) {
     FATAL1("TlsAlloc failed %d", GetLastError());
   }
+  ThreadLocalData::AddThreadLocal(key, destructor);
   return key;
 }
 
@@ -88,6 +90,7 @@ void OSThread::DeleteThreadLocal(ThreadLocalKey key) {
   if (!result) {
     FATAL1("TlsFree failed %d", GetLastError());
   }
+  ThreadLocalData::RemoveThreadLocal(key);
 }
 
 
@@ -482,14 +485,87 @@ void Monitor::NotifyAll() {
   data_.SignalAndRemoveAllWaiters();
 }
 
-// This function is defined in thread.cc.
-extern void ThreadCleanupOnExit();
+
+void ThreadLocalData::AddThreadLocal(ThreadLocalKey key,
+                                     ThreadDestructor destructor) {
+  ASSERT(thread_locals_ != NULL);
+  if (destructor == NULL) {
+    // We only care about thread locals with destructors.
+    return;
+  }
+  mutex_->Lock();
+#if defined(DEBUG)
+  // Verify that we aren't added twice.
+  for (intptr_t i = 0; i < thread_locals_->length(); i++) {
+    const ThreadLocalEntry& entry = thread_locals_->At(i);
+    ASSERT(entry.key() != key);
+  }
+#endif
+  // Add to list.
+  thread_locals_->Add(ThreadLocalEntry(key, destructor));
+  mutex_->Unlock();
+}
+
+
+void ThreadLocalData::RemoveThreadLocal(ThreadLocalKey key) {
+  ASSERT(thread_locals_ != NULL);  mutex_->Lock();
+  intptr_t i = 0;
+  for (; i < thread_locals_->length(); i++) {
+    const ThreadLocalEntry& entry = thread_locals_->At(i);
+    if (entry.key() == key) {
+      break;
+    }
+  }
+  if (i == thread_locals_->length()) {
+    // Not found.
+    mutex_->Unlock();
+    return;
+  }
+  thread_locals_->RemoveAt(i);
+  mutex_->Unlock();
+}
+
+
+// This function is executed on the thread that is exiting. It is invoked
+// by |OnDartThreadExit| (see below for notes on TLS destructors on Windows).
+void ThreadLocalData::RunDestructors() {
+  ASSERT(thread_locals_ != NULL);
+  ASSERT(mutex_ != NULL);
+  mutex_->Lock();
+  for (intptr_t i = 0; i < thread_locals_->length(); i++) {
+    const ThreadLocalEntry& entry = thread_locals_->At(i);
+    // We access the exiting thread's TLS variable here.
+    void* p = reinterpret_cast<void*>(OSThread::GetThreadLocal(entry.key()));
+    // We invoke the constructor here.
+    entry.destructor()(p);
+  }
+  mutex_->Unlock();
+}
+
+
+Mutex* ThreadLocalData::mutex_ = NULL;
+MallocGrowableArray<ThreadLocalEntry>* ThreadLocalData::thread_locals_ = NULL;
+
+
+void ThreadLocalData::InitOnce() {
+  mutex_ = new Mutex();
+  thread_locals_ = new MallocGrowableArray<ThreadLocalEntry>();
+}
+
+
+void ThreadLocalData::Shutdown() {
+  if (mutex_ != NULL) {
+    delete mutex_;
+    mutex_ = NULL;
+  }
+  if (thread_locals_ != NULL) {
+    delete thread_locals_;
+    thread_locals_ = NULL;
+  }
+}
+
 
 }  // namespace dart
-
-// NOTE: We still do not respect arbitrary TLS destructors on Windows, but,
-// we do run known TLS cleanup functions. See |OnThreadExit| below for
-// the list of functions that are called.
 
 // The following was adapted from Chromium:
 // src/base/threading/thread_local_storage_win.cc
@@ -522,7 +598,7 @@ void NTAPI OnDartThreadExit(PVOID module, DWORD reason, PVOID reserved) {
   // On XP SP0 & SP1, the DLL_PROCESS_ATTACH is never seen. It is sent on SP2+
   // and on W2K and W2K3. So don't assume it is sent.
   if (DLL_THREAD_DETACH == reason || DLL_PROCESS_DETACH == reason) {
-    dart::ThreadCleanupOnExit();
+    dart::ThreadLocalData::RunDestructors();
     dart::MonitorWaitData::ThreadExit();
   }
 }

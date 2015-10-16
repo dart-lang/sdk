@@ -144,11 +144,6 @@ class Thread {
   // TODO(koda): Always run GC in separate thread.
   static void PrepareForGC();
 
-#if defined(TARGET_OS_WINDOWS)
-  // Clears the state of the current thread and frees the allocation.
-  static void CleanUp();
-#endif
-
   // Called at VM startup.
   static void InitOnceBeforeIsolate();
   static void InitOnceAfterObjectAndStubCode();
