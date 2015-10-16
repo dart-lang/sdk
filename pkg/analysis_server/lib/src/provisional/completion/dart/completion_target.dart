@@ -103,6 +103,12 @@ class CompletionTarget {
   final Object entity;
 
   /**
+   * The [entity] is a comment token, which is either not a documentation
+   * comment or the position is not in a [CommentReference].
+   */
+  final bool isCommentText;
+
+  /**
    * If the target is an argument in an [ArgumentList], then this is the index
    * of the argument in the list, otherwise this is `null`.
    */
@@ -145,8 +151,13 @@ class CompletionTarget {
       for (var entity in containingNode.childEntities) {
         if (entity is Token) {
           if (_isCandidateToken(entity, offset)) {
+            // Try to replace with a comment token.
+            Token commentToken = _getContainingCommentToken(entity, offset);
+            if (commentToken != null) {
+              return new CompletionTarget._(containingNode, commentToken, true);
+            }
             // Target found.
-            return new CompletionTarget._(containingNode, entity);
+            return new CompletionTarget._(containingNode, entity, false);
           } else {
             // Since entity is a token, we don't need to look inside it; just
             // proceed to the next entity.
@@ -162,19 +173,24 @@ class CompletionTarget {
 
           // If the node is a candidate target, then we are done.
           if (_isCandidateNode(entity, offset)) {
-            // Check to see if the offset is in a preceeding comment
-            Token commentToken = _getContainingCommentToken(entity, offset);
+            // Check to see if the offset is in a preceding comment
+            Token commentToken =
+                _getContainingCommentToken(entity.beginToken, offset);
             if (commentToken != null) {
               entity = commentToken;
-              // If the preceeding comment is dartdoc token then update
-              // the containing node to be the dartdoc comment
+              // If the preceding comment is dartdoc token, then update
+              // the containing node to be the dartdoc comment.
+              // Otherwise completion is not required.
               Comment docComment =
                   _getContainingDocComment(containingNode, commentToken);
               if (docComment != null) {
                 containingNode = docComment;
+              } else {
+                return new CompletionTarget._(
+                    compilationUnit, commentToken, true);
               }
             }
-            return new CompletionTarget._(containingNode, entity);
+            return new CompletionTarget._(containingNode, entity, false);
           }
 
           // Otherwise, the completion target is somewhere inside the entity,
@@ -198,7 +214,7 @@ class CompletionTarget {
 
       // Since no completion target was found, we set the completion target
       // entity to null and use the compilationUnit as the parent.
-      return new CompletionTarget._(compilationUnit, null);
+      return new CompletionTarget._(compilationUnit, null, false);
     }
   }
 
@@ -206,7 +222,7 @@ class CompletionTarget {
    * Create a [CompletionTarget] holding the given [containingNode] and
    * [entity].
    */
-  CompletionTarget._(AstNode containingNode, Object entity)
+  CompletionTarget._(AstNode containingNode, Object entity, this.isCommentText)
       : this.containingNode = containingNode,
         this.entity = entity,
         this.argIndex = _computeArgIndex(containingNode, entity);
@@ -252,15 +268,14 @@ class CompletionTarget {
   }
 
   /**
-   * Determine if the offset is contained in a preceeding comment token
+   * Determine if the offset is contained in a preceding comment token
    * and return that token, otherwise return `null`.
    */
-  static Token _getContainingCommentToken(AstNode node, int offset) {
-    if (offset >= node.offset) {
+  static Token _getContainingCommentToken(Token token, int offset) {
+    if (token == null) {
       return null;
     }
-    Token token = node.beginToken;
-    if (token == null) {
+    if (offset >= token.offset) {
       return null;
     }
     token = token.precedingComments;
