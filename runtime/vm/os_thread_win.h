@@ -140,7 +140,7 @@ class ThreadLocalEntry {
   ThreadLocalKey key_;
   ThreadDestructor destructor_;
 
-  DISALLOW_ALLOCATION(ThreadLocalEntry);
+  DISALLOW_ALLOCATION();
 };
 
 
