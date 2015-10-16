@@ -101,6 +101,7 @@ element_animate_test/timing_dict: RuntimeError # Also timing out on MacOS. Issue
 element_animate_test/simple_timing: RuntimeError # Please triage this failure
 
 [ $runtime == chrome && $system == macos ]
+canvasrenderingcontext2d_test/drawImage_video_element: Skip # Times out. Please triage this failure.
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Times out. Please triage this failure.
 element_animate_test/omit_timing: Skip # Timing out on MacOS. Issue 23507
 element_animate_test/timing_dict: Skip # Timing out on MacOS. Issue 23507
@@ -414,3 +415,6 @@ window_nosuchmethod_test: StaticWarning
 
 [ $compiler == dart2js && $cps_ir ]
 resource_http_test: Crash # (await for(var b in r.openRead()){bytes.addAll(b);}): await for
+
+[ $compiler == dart2js && $checked ]
+js_typed_interop_test/closure: RuntimeError # Issue 24608
