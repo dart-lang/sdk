@@ -186,7 +186,7 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   Class& cls = Class::Handle(Z);
   for (intptr_t i = 0; kExternallyAllocatedCids[i] != kIllegalCid; i++) {
     cls = isolate()->class_table()->At(kExternallyAllocatedCids[i]);
-    AddClass(cls);
+    AddInstantiatedClass(cls);
   }
 
   Dart_QualifiedFunctionName vm_entry_points[] = {
@@ -282,6 +282,13 @@ void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
     }
 
     AddFunction(func);
+    if (func.IsGenerativeConstructor()) {
+      // Allocation stubs are referenced from the call site of the constructor,
+      // not in the constructor itself. So compiling the constructor isn't
+      // enough for us to discover the class is instantiated if the class isn't
+      // otherwise instantiated from Dart code and only instantiated from C++.
+      AddInstantiatedClass(cls);
+    }
   }
 }
 
@@ -395,7 +402,7 @@ void Precompiler::AddCalleesOf(const Function& function) {
         target_code ^= entry.raw();
         if (target_code.IsAllocationStubCode()) {
           cls ^= target_code.owner();
-          AddClass(cls);
+          AddInstantiatedClass(cls);
         }
       }
     }
@@ -405,7 +412,7 @@ void Precompiler::AddCalleesOf(const Function& function) {
 
 void Precompiler::AddConstObject(const Instance& instance) {
   const Class& cls = Class::Handle(Z, instance.clazz());
-  AddClass(cls);
+  AddInstantiatedClass(cls);
 
   if (instance.IsClosure()) {
     // An implicit static closure.
@@ -530,7 +537,7 @@ void Precompiler::AddSelector(const String& selector) {
 }
 
 
-void Precompiler::AddClass(const Class& cls) {
+void Precompiler::AddInstantiatedClass(const Class& cls) {
   if (cls.is_allocated()) return;
 
   class_count_++;
@@ -543,7 +550,7 @@ void Precompiler::AddClass(const Class& cls) {
 
   const Class& superclass = Class::Handle(cls.SuperClass());
   if (!superclass.IsNull()) {
-    AddClass(superclass);
+    AddInstantiatedClass(superclass);
   }
 }
 

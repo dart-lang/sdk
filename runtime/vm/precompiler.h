@@ -107,7 +107,7 @@ class Precompiler : public ValueObject {
   void AddClosureCall(const ICData& call_site);
   void AddField(const Field& field);
   void AddFunction(const Function& function);
-  void AddClass(const Class& cls);
+  void AddInstantiatedClass(const Class& cls);
   void AddSelector(const String& selector);
   bool IsSent(const String& selector);
 
