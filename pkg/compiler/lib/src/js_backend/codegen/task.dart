@@ -102,6 +102,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
         }
         cps.FunctionDefinition cpsFunction = compileToCpsIr(element);
         cpsFunction = optimizeCpsIr(cpsFunction);
+        cpsIntegrityChecker = null;
         tree_ir.FunctionDefinition treeFunction = compileToTreeIr(cpsFunction);
         treeFunction = optimizeTreeIr(treeFunction);
         return compileToJavaScript(work, treeFunction);
@@ -185,9 +186,14 @@ class CpsFunctionCompiler implements FunctionCompiler {
     }
   }
 
+  CheckCpsIntegrity cpsIntegrityChecker;
+
   bool checkCpsIntegrity(cps.FunctionDefinition node, String previousPass) {
     cpsOptimizationTask.measureSubtask('Check integrity', () {
-      new CheckCpsIntegrity().check(node, previousPass);
+      if (cpsIntegrityChecker == null) {
+        cpsIntegrityChecker = new CheckCpsIntegrity();
+      }
+      cpsIntegrityChecker.check(node, previousPass);
     });
     return true; // So this can be used from assert().
   }

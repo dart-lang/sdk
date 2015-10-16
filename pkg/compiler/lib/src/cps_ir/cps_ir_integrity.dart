@@ -33,12 +33,6 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
   final List<Definition> definitions = [];
   String previousPass;
 
-  void setScope(Iterable<Definition> defs, ScopeType scope) {
-    for (Definition def in defs) {
-      inScope[def] = scope;
-    }
-  }
-
   void handleDeclaration(Definition def) {
     definitions.add(def);
     // Check the reference chain for cycles broken links.
@@ -77,8 +71,11 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
   }
 
   void check(FunctionDefinition node, String previousPass) {
-    topLevelNode = node;
+    // [check] will be called multiple times per instance to avoid reallocating
+    // the large [inScope] map. Reset the other fields.
+    this.topLevelNode = node;
     this.previousPass = previousPass;
+    this.definitions.clear();
     ParentChecker.checkParents(node, this);
     visit(node);
     // Check for broken reference chains. We check this last, so out-of-scope
