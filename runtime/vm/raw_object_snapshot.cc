@@ -1349,49 +1349,54 @@ RawObjectPool* ObjectPool::ReadFrom(SnapshotReader* reader,
   ASSERT(reader->snapshot_code());
   ASSERT(kind == Snapshot::kFull);
 
-  intptr_t length = reader->Read<intptr_t>();
-
-  ObjectPool* result =
-      reinterpret_cast<ObjectPool*>(reader->GetBackRef(object_id));
-  if (result == NULL) {
-    result =
-        &(ObjectPool::ZoneHandle(reader->zone(),
-                                 NEW_OBJECT_WITH_LEN(ObjectPool, length)));
-    reader->AddBackRef(object_id, result, kIsDeserialized);
+  intptr_t len = reader->Read<intptr_t>();
+  ObjectPool* result = NULL;
+  DeserializeState state;
+  if (!as_reference) {
+    result = reinterpret_cast<ObjectPool*>(reader->GetBackRef(object_id));
+    state = kIsDeserialized;
+  } else {
+    state = kIsNotDeserialized;
   }
+  if (result == NULL) {
+    result = &(ObjectPool::ZoneHandle(
+        reader->zone(), NEW_OBJECT_WITH_LEN(ObjectPool, len)));
+    reader->AddBackRef(object_id, result, state);
+  }
+  if (!as_reference) {
+    // Read all the individual elements for inlined objects.
+    const TypedData& info_array =
+        TypedData::Handle(reader->NewTypedData(kTypedDataInt8ArrayCid, len));
+    result->set_info_array(info_array);
 
-  const TypedData& info_array =
-      TypedData::Handle(reader->NewTypedData(kTypedDataInt8ArrayCid, length));
-  result->set_info_array(info_array);
-
-  NoSafepointScope no_safepoint;
-  for (intptr_t i = 0; i < length; i++) {
-    ObjectPool::EntryType entry_type =
-        static_cast<ObjectPool::EntryType>(reader->Read<int8_t>());
-    *reinterpret_cast<int8_t*>(info_array.DataAddr(i)) = entry_type;
-    switch (entry_type) {
-      case ObjectPool::kTaggedObject: {
-        (*reader->PassiveObjectHandle()) =
-            reader->ReadObjectImpl(kAsReference);
-        result->SetObjectAt(i, *(reader->PassiveObjectHandle()));
-        break;
+    NoSafepointScope no_safepoint;
+    for (intptr_t i = 0; i < len; i++) {
+      ObjectPool::EntryType entry_type =
+          static_cast<ObjectPool::EntryType>(reader->Read<int8_t>());
+      *reinterpret_cast<int8_t*>(info_array.DataAddr(i)) = entry_type;
+      switch (entry_type) {
+        case ObjectPool::kTaggedObject: {
+          (*reader->PassiveObjectHandle()) =
+              reader->ReadObjectImpl(kAsReference);
+          result->SetObjectAt(i, *(reader->PassiveObjectHandle()));
+          break;
+        }
+        case ObjectPool::kImmediate: {
+          intptr_t raw_value = reader->Read<intptr_t>();
+          result->SetRawValueAt(i, raw_value);
+          break;
+        }
+        case ObjectPool::kNativeEntry: {
+          // Read nothing. Initialize with the lazy link entry.
+          uword new_entry = NativeEntry::LinkNativeCallEntry();
+          result->SetRawValueAt(i, static_cast<intptr_t>(new_entry));
+          break;
+        }
+        default:
+          UNREACHABLE();
       }
-      case ObjectPool::kImmediate: {
-        intptr_t raw_value = reader->Read<intptr_t>();
-        result->SetRawValueAt(i, raw_value);
-        break;
-      }
-      case ObjectPool::kNativeEntry: {
-        // Read nothing. Initialize with the lazy link entry.
-        uword new_entry = NativeEntry::LinkNativeCallEntry();
-        result->SetRawValueAt(i, static_cast<intptr_t>(new_entry));
-        break;
-      }
-      default:
-        UNREACHABLE();
     }
   }
-
   return result->raw();
 }
 
@@ -2563,15 +2568,24 @@ RawArray* Array::ReadFrom(SnapshotReader* reader,
 
   // Read the length so that we can determine instance size to allocate.
   intptr_t len = reader->ReadSmiValue();
-  Array* array = reinterpret_cast<Array*>(
-      reader->GetBackRef(object_id));
+  Array* array = NULL;
+  DeserializeState state;
+  if (!as_reference) {
+    array = reinterpret_cast<Array*>(reader->GetBackRef(object_id));
+    state = kIsDeserialized;
+  } else {
+    state = kIsNotDeserialized;
+  }
   if (array == NULL) {
     array = &(Array::ZoneHandle(reader->zone(),
                                 NEW_OBJECT_WITH_LEN_SPACE(Array, len, kind)));
-    reader->AddBackRef(object_id, array, kIsDeserialized);
+    reader->AddBackRef(object_id, array, state);
   }
-  ASSERT(!RawObject::IsCanonical(tags));
-  reader->ArrayReadFrom(object_id, *array, len, tags);
+  if (!as_reference) {
+    // Read all the individual elements for inlined objects.
+    ASSERT(!RawObject::IsCanonical(tags));
+    reader->ArrayReadFrom(object_id, *array, len, tags);
+  }
   return array->raw();
 }
 
@@ -2585,19 +2599,29 @@ RawImmutableArray* ImmutableArray::ReadFrom(SnapshotReader* reader,
 
   // Read the length so that we can determine instance size to allocate.
   intptr_t len = reader->ReadSmiValue();
-  Array* array = reinterpret_cast<Array*>(reader->GetBackRef(object_id));
+  Array* array = NULL;
+  DeserializeState state;
+  if (!as_reference) {
+    array = reinterpret_cast<Array*>(reader->GetBackRef(object_id));
+    state = kIsDeserialized;
+  } else {
+    state = kIsNotDeserialized;
+  }
   if (array == NULL) {
     array = &(Array::ZoneHandle(
         reader->zone(),
         NEW_OBJECT_WITH_LEN_SPACE(ImmutableArray, len, kind)));
-    reader->AddBackRef(object_id, array, kIsDeserialized);
+    reader->AddBackRef(object_id, array, state);
   }
-  reader->ArrayReadFrom(object_id, *array, len, tags);
-  if (RawObject::IsCanonical(tags)) {
-    if (kind == Snapshot::kFull) {
-      array->SetCanonical();
-    } else {
-      *array ^= array->CheckAndCanonicalize(NULL);
+  if (!as_reference) {
+    // Read all the individual elements for inlined objects.
+    reader->ArrayReadFrom(object_id, *array, len, tags);
+    if (RawObject::IsCanonical(tags)) {
+      if (kind == Snapshot::kFull) {
+        array->SetCanonical();
+      } else {
+        *array ^= array->CheckAndCanonicalize(NULL);
+      }
     }
   }
   return raw(*array);

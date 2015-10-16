@@ -485,19 +485,10 @@ class SnapshotReader : public BaseReader {
                             intptr_t patch_object_id,
                             intptr_t patch_offset);
 
-  // Read an object reference from the stream.
-  RawObject* ReadObjectRef(intptr_t object_id,
-                           intptr_t class_header,
-                           intptr_t tags,
-                           intptr_t patch_object_id = kInvalidPatchIndex,
-                           intptr_t patch_offset = 0);
-
-  // Read an inlined object from the stream.
-  RawObject* ReadInlinedObject(intptr_t object_id,
-                               intptr_t class_header,
-                               intptr_t tags,
-                               intptr_t patch_object_id,
-                               intptr_t patch_offset);
+  // Read a Dart Instance object.
+  RawObject* ReadInstance(intptr_t object_id,
+                          intptr_t tags,
+                          bool as_reference);
 
   // Read a VM isolate object that was serialized as an Id.
   RawObject* ReadVMIsolateObject(intptr_t object_id);
