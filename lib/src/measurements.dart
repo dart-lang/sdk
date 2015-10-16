@@ -7,10 +7,7 @@
 library dart2js_info.src.measurements;
 
 /// Top-level set of metrics
-const List<Metric> _topLevelMetrics = const [
-  Metric.functions,
-  Metric.send,
-];
+const List<Metric> _topLevelMetrics = const [Metric.functions, Metric.send];
 
 /// Apply `f` on each metric in DFS order on the metric tree. [Metric.functions]
 /// and [Metric.send] are the top level metrics. See those declarations for
@@ -35,13 +32,14 @@ class Metric {
 
   const Metric(this.name);
 
+  factory Metric.fromName(String name) => _nameToMetricMap[name];
+
   String toString() => name;
 
   /// Total functions in a library/package/program. Parent of
   /// [reachableFunction].
-  static const Metric functions = const GroupedMetric('functions', const [
-      reachableFunctions,
-  ]);
+  static const Metric functions =
+      const GroupedMetric('functions', const [reachableFunctions]);
 
   /// Subset of the functions that are reachable.
   static const Metric reachableFunctions = const Metric('reachable functions');
@@ -68,24 +66,22 @@ class Metric {
   ///          |- multi-interceptor (1 of n possible interceptors)
   ///          '- dynamic (any combination of the above)
   ///
-  static const Metric send = const GroupedMetric('send', const [
-      monomorphicSend,
-      polymorphicSend,
-  ]);
+  static const Metric send =
+      const GroupedMetric('send', const [monomorphicSend, polymorphicSend]);
 
   /// Parent of monomorphic sends, see [send] for details.
-  static const Metric monomorphicSend = const GroupedMetric('monomorphic',
-      const [
-        staticSend,
-        superSend,
-        localSend,
-        constructorSend,
-        typeVariableSend,
-        nsmErrorSend,
-        singleNsmCallSend,
-        instanceSend,
-        interceptorSend,
-      ]);
+  static const Metric monomorphicSend =
+      const GroupedMetric('monomorphic', const [
+    staticSend,
+    superSend,
+    localSend,
+    constructorSend,
+    typeVariableSend,
+    nsmErrorSend,
+    singleNsmCallSend,
+    instanceSend,
+    interceptorSend
+  ]);
 
   /// Metric for static calls, see [send] for details.
   static const Metric staticSend = const Metric('static');
@@ -120,12 +116,7 @@ class Metric {
 
   /// Parent of polymorphic sends, see [send] for details.
   static const Metric polymorphicSend = const GroupedMetric('polymorphic',
-      const [
-        multiNsmCallSend,
-        virtualSend,
-        multiInterceptorSend,
-        dynamicSend,
-      ]);
+      const [multiNsmCallSend, virtualSend, multiInterceptorSend, dynamicSend]);
 
   /// Metric for calls to noSuchMethod methods with more than one possible
   /// target, see [send] for details.
@@ -143,14 +134,11 @@ class Metric {
   /// method. See [send] for details.
   static const Metric dynamicSend = const Metric('dynamic');
 
-  String toJson() => name;
   static Map<String, Metric> _nameToMetricMap = () {
     var res = {};
     visitAllMetrics((m, _) => res[m.name] = m);
     return res;
   }();
-
-  static Metric fromJson(String name) => _nameToMetricMap[name];
 }
 
 /// A metric that is subdivided in smaller metrics.
@@ -180,10 +168,12 @@ class Measurements {
         counters = <Metric, int>{};
 
   const Measurements.unreachableFunction()
-      : counters = const { Metric.functions: 1}, entries = const {}, uri = null;
+      : counters = const {Metric.functions: 1},
+        entries = const {},
+        uri = null;
 
   Measurements.reachableFunction([this.uri])
-      : counters = { Metric.functions: 1, Metric.reachableFunctions: 1},
+      : counters = {Metric.functions: 1, Metric.reachableFunctions: 1},
         entries = {};
 
   /// Record [metric] was seen. The optional [begin] and [end] offsets are
@@ -227,25 +217,5 @@ class Measurements {
       if (n != null) submetricTotal += n;
     }
     return total == submetricTotal;
-  }
-
-  Map toJson() {
-    var jsonEntries = <String, List<Map>>{};
-    entries.forEach((metric, values) {
-      jsonEntries[metric.toJson()] =
-          values.expand((e) => [e.begin, e.end]).toList();
-    });
-    var json = {'entries': jsonEntries};
-    // TODO(sigmund): encode uri as an offset of the URIs available in the parts
-    // of the library info.
-    if (uri != null) json['sourceFile'] = '$uri';
-    if (counters[Metric.functions] != null) {
-      json[Metric.functions.toJson()] = counters[Metric.functions];
-    }
-    if (counters[Metric.reachableFunctions] != null) {
-      json[Metric.reachableFunctions.toJson()] =
-          counters[Metric.reachableFunctions];
-    }
-    return json;
   }
 }

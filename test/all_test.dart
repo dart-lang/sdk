@@ -21,7 +21,7 @@ main() {
         'program': {'size': 10},
       };
 
-      expect(new AllInfo.fromJson(json).program.size, 10);
+      expect(new AllInfoJsonCodec().decode(json).program.size, 10);
     });
   });
 }

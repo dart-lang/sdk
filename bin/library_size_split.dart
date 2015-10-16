@@ -75,7 +75,7 @@ main(args) {
 
   var filename = args[0];
   var json = JSON.decode(new File(filename).readAsStringSync());
-  var info = new AllInfo.fromJson(json);
+  var info = new AllInfoJsonCodec().decode(json);
 
   var groupingText =
       args.length > 1 ? new File(args[1]).readAsStringSync() : defaultGrouping;

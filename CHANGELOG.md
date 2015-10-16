@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.2.0
+- Added AllInfoJsonCodec
 - Added `verify_deps` tool
 
 ## 0.1.0

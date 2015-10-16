@@ -49,7 +49,7 @@ main(args) {
   }
 
   var json = JSON.decode(new File(args[0]).readAsStringSync());
-  var info = new AllInfo.fromJson(json);
+  var info = new AllInfoJsonCodec().decode(json);
   var coverage = JSON.decode(new File(args[1]).readAsStringSync());
   var verbose = args.length > 2 && args[2] == '-v';
 

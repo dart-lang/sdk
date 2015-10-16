@@ -16,7 +16,7 @@ import 'package:dart2js_info/src/util.dart';
 
 main(args) {
   var json = JSON.decode(new File(args[0]).readAsStringSync());
-  var info = new AllInfo.fromJson(json);
+  var info = new AllInfoJsonCodec().decode(json);
   showCodeDistribution(info);
 }
 

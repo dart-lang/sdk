@@ -24,7 +24,7 @@ Future main(List<String> args) async {
     exit(1);
   }
   var json = JSON.decode(await new File(args[0]).readAsString());
-  var info = new AllInfo.fromJson(json);
+  var info = new AllInfoJsonCodec().decode(json);
   var graph = graphFromInfo(info);
   var entrypoint = info.program.entrypoint;
   var reachables = findReachable(graph, entrypoint);

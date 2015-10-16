@@ -37,8 +37,9 @@ of this package and update when needed.
 
 ## Info API
 
-[AllInfo][AllInfo] exposes a Dart representation of the `.info.json` files.
-You can parse the information using `AllInfo.fromJson`. For example:
+[AllInfo][AllInfo] exposes a Dart representation of all of the collected
+information. You can decode an `AllInfo` object from the JSON form produced by
+the `dart2js` `--dump-info` option using the `AllInfoJsonCodec`. For example:
 
 ```dart
 import 'dart:convert';
@@ -49,7 +50,7 @@ import 'package:dart2js_info/info.dart';
 main(args) {
   var infoPath = args[0];
   var json = JSON.decode(new File(infoPath).readAsStringSync());
-  var info = new AllInfo.fromJson(json);
+  var info = new AllInfoJsonCodec().decode(json);
   ...
 }
 ```

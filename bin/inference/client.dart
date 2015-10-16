@@ -13,8 +13,8 @@ import 'package:charcode/charcode.dart';
 
 AllInfo data;
 main() async {
-  data =
-      new AllInfo.fromJson(JSON.decode(await HttpRequest.getString('/data')));
+  data = new AllInfoJsonCodec()
+      .decode(JSON.decode(await HttpRequest.getString('/data')));
 
   routeByHash();
   window.onHashChange.listen((_) => routeByHash());
