@@ -2831,7 +2831,7 @@ class TypePropagationVisitor implements Visitor {
         setReachable(cont);
         // Narrow type of output to those that survive the cast.
         TypeMask type = input.type.intersection(
-            typeSystem.subtypesOf(node.dartType),
+            typeSystem.subtypesOf(node.dartType).nullable(),
             classWorld);
         setValue(cont.parameters.single, nonConstant(type));
         break;
