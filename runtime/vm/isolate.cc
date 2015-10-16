@@ -1616,7 +1616,7 @@ void Isolate::LowLevelShutdown() {
   set_message_handler(NULL);
 
   // Before analyzing the isolate's timeline blocks- reclaim all cached blocks.
-  ReclaimTimelineBlocks();
+  Timeline::ReclaimCachedBlocksFromThreads();
 
   // Dump all timing data for the isolate.
   if (FLAG_timing) {
@@ -1715,15 +1715,6 @@ void Isolate::Shutdown() {
   // All threads should have exited by now.
   thread_registry()->CheckNotScheduled(this);
   Profiler::ShutdownProfilingForIsolate(this);
-}
-
-
-void Isolate::ReclaimTimelineBlocks() {
-  TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == NULL) {
-    return;
-  }
-  thread_registry_->ReclaimTimelineBlocks();
 }
 
 

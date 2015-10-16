@@ -49,12 +49,8 @@ class Timeline : public AllStatic {
 
   static TimelineStream* GetVMStream();
 
-  // Reclaim all |TimelineEventBlock|s that are owned by the current isolate.
-  static void ReclaimIsolateBlocks();
-
-  // Reclaim all |TimelineEventBlocks|s that are owned by all isolates and
-  // the global block owned by the VM.
-  static void ReclaimAllBlocks();
+  // Reclaim all |TimelineEventBlocks|s that are cached by threads.
+  static void ReclaimCachedBlocksFromThreads();
 
 #define ISOLATE_TIMELINE_STREAM_FLAGS(name, not_used)                          \
   static const bool* Stream##name##EnabledFlag() {                             \
@@ -67,8 +63,6 @@ class Timeline : public AllStatic {
 #undef ISOLATE_TIMELINE_STREAM_FLAGS
 
  private:
-  static void ReclaimBlocksForIsolate(Isolate* isolate);
-
   static TimelineEventRecorder* recorder_;
   static TimelineStream* vm_stream_;
 
@@ -251,23 +245,12 @@ class TimelineEvent {
     state_ = EventTypeField::update(event_type, state_);
   }
 
-  void set_global_block(bool global_block) {
-    state_ = GlobalBlockField::update(global_block, state_);
-  }
-
-  bool global_block() const {
-    return GlobalBlockField::decode(state_);
-  }
-
   enum StateBits {
     kEventTypeBit = 0,  // reserve 4 bits for type.
-    // Was this event allocated from the global block?
-    kGlobalBlockBit = 4,
-    kNextBit = 5,
+    kNextBit = 4,
   };
 
   class EventTypeField : public BitField<EventType, kEventTypeBit, 4> {};
-  class GlobalBlockField : public BitField<bool, kGlobalBlockBit, 1> {};
 
   friend class TimelineEventRecorder;
   friend class TimelineEventEndlessRecorder;
@@ -415,6 +398,7 @@ class TimelineEventBlock {
 
   // Attempt to sniff a thread id from the first event.
   ThreadId thread() const;
+
   // Attempt to sniff the timestamp from the first event.
   int64_t LowerTimeBound() const;
 
@@ -571,15 +555,9 @@ class TimelineEventRecorder {
   // Utility method(s).
   void PrintJSONMeta(JSONArray* array) const;
   TimelineEvent* ThreadBlockStartEvent();
-  TimelineEvent* GlobalBlockStartEvent();
   void ThreadBlockCompleteEvent(TimelineEvent* event);
-  void GlobalBlockCompleteEvent(TimelineEvent* event);
 
   Mutex lock_;
-  // Only accessed under |lock_|.
-  TimelineEventBlock* global_block_;
-  void ReclaimGlobalBlock();
-
   uintptr_t async_id_;
 
   friend class DartTimelineEventIterator;

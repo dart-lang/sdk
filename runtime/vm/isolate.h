@@ -710,7 +710,6 @@ class Isolate : public BaseIsolate {
 
   void LowLevelShutdown();
   void Shutdown();
-  void ReclaimTimelineBlocks();
 
   void BuildName(const char* name_prefix);
   void PrintInvokedFunctions();

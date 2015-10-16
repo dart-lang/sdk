@@ -182,6 +182,7 @@ Thread::Thread(bool init_vm_constants)
       thread_interrupt_data_(NULL),
       isolate_(NULL),
       heap_(NULL),
+      timeline_block_(NULL),
       store_buffer_block_(NULL),
       log_(new class Log()),
       deopt_id_(0),

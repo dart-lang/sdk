@@ -5887,8 +5887,7 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
   }
   Thread* T = Thread::Current();
   StackZone zone(T);
-  // Reclaim all blocks cached by isolate.
-  Timeline::ReclaimIsolateBlocks();
+  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate);
   timeline_recorder->PrintTraceEvent(&js, &filter);
@@ -5912,8 +5911,7 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
   }
   Thread* T = Thread::Current();
   StackZone zone(T);
-  // Reclaim all blocks cached in the system.
-  Timeline::ReclaimAllBlocks();
+  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   TimelineEventFilter filter;
   timeline_recorder->PrintTraceEvent(&js, &filter);

@@ -9426,7 +9426,7 @@ TEST_CASE(Timeline_Dart_TimelineDuration) {
   Dart_TimelineDuration("testDurationEvent", 0, 1);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimIsolateBlocks();
+  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate);
   recorder->PrintJSON(&js, &filter);
@@ -9443,7 +9443,7 @@ TEST_CASE(Timeline_Dart_TimelineInstant) {
   Dart_TimelineInstant("testInstantEvent");
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimIsolateBlocks();
+  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate);
   recorder->PrintJSON(&js, &filter);
@@ -9465,7 +9465,7 @@ TEST_CASE(Timeline_Dart_TimelineAsyncDisabled) {
   Dart_TimelineAsyncEnd("testAsyncEvent", async_id);
   // Check that testAsync is not in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimIsolateBlocks();
+  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   TimelineEventFilter filter;
   recorder->PrintJSON(&js, &filter);
@@ -9488,7 +9488,7 @@ TEST_CASE(Timeline_Dart_TimelineAsync) {
 
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimIsolateBlocks();
+  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate);
   recorder->PrintJSON(&js, &filter);

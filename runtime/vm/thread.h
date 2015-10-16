@@ -272,7 +272,6 @@ class Thread {
     Zone* zone;
     uword top_exit_frame_info;
     StackResource* top_resource;
-    TimelineEventBlock* timeline_block;
     LongJumpScope* long_jump_base;
 #if defined(DEBUG)
     HandleScope* top_handle_scope;
@@ -312,12 +311,12 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
 
   // Only safe to access when holding |timeline_block_lock_|.
   TimelineEventBlock* timeline_block() const {
-    return state_.timeline_block;
+    return timeline_block_;
   }
 
   // Only safe to access when holding |timeline_block_lock_|.
   void set_timeline_block(TimelineEventBlock* block) {
-    state_.timeline_block = block;
+    timeline_block_ = block;
   }
 
   class Log* log() const;
@@ -419,6 +418,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   Heap* heap_;
   State state_;
   Mutex timeline_block_lock_;
+  TimelineEventBlock* timeline_block_;
   StoreBufferBlock* store_buffer_block_;
   class Log* log_;
   intptr_t deopt_id_;  // Compilation specific counter.
