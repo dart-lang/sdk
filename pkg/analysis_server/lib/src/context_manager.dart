@@ -317,13 +317,6 @@ class ContextManagerImpl implements ContextManager {
   static const String ANALYSIS_OPTIONS_FILE = '.analysis_options';
 
   /**
-   * Temporary flag to hide WIP .packages support (DEP 5).
-   */
-  static bool ENABLE_PACKAGESPEC_SUPPORT = serverOptions.isSet(
-      'ContextManagerImpl.ENABLE_PACKAGESPEC_SUPPORT',
-      defaultValue: true);
-
-  /**
    * The name of the `lib` directory.
    */
   static const String LIB_DIR_NAME = 'lib';
@@ -827,12 +820,10 @@ class ContextManagerImpl implements ContextManager {
       PackageMapInfo packageMapInfo;
       callbacks.beginComputePackageMap();
       try {
-        if (ENABLE_PACKAGESPEC_SUPPORT) {
-          // Try .packages first.
-          if (pathContext.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
-            Packages packages = _readPackagespec(packagespecFile);
-            return new PackagesFileDisposition(packages);
-          }
+        // Try .packages first.
+        if (pathContext.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
+          Packages packages = _readPackagespec(packagespecFile);
+          return new PackagesFileDisposition(packages);
         }
         if (packageResolverProvider != null) {
           UriResolver resolver = packageResolverProvider(folder);
@@ -993,10 +984,8 @@ class ContextManagerImpl implements ContextManager {
     // so, create it.
     File packageSpec;
 
-    if (ENABLE_PACKAGESPEC_SUPPORT) {
-      // Start by looking for .packages.
-      packageSpec = folder.getChild(PACKAGE_SPEC_NAME);
-    }
+    // Start by looking for .packages.
+    packageSpec = folder.getChild(PACKAGE_SPEC_NAME);
 
     // Fall back to looking for a pubspec.
     if (packageSpec == null || !packageSpec.exists) {
@@ -1070,41 +1059,31 @@ class ContextManagerImpl implements ContextManager {
 
         Resource resource = resourceProvider.getResource(path);
 
-        if (ENABLE_PACKAGESPEC_SUPPORT) {
-          String directoryPath = pathContext.dirname(path);
+        String directoryPath = pathContext.dirname(path);
 
-          // Check to see if we need to create a new context.
-          if (info.isTopLevel) {
-            // Only create a new context if this is not the same directory
-            // described by our info object.
-            if (info.folder.path != directoryPath) {
-              if (_isPubspec(path)) {
-                // Check for a sibling .packages file.
-                if (!resourceProvider
-                    .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
-                    .exists) {
-                  _extractContext(info, resource);
-                  return;
-                }
-              }
-              if (_isPackagespec(path)) {
-                // Check for a sibling pubspec.yaml file.
-                if (!resourceProvider
-                    .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
-                    .exists) {
-                  _extractContext(info, resource);
-                  return;
-                }
+        // Check to see if we need to create a new context.
+        if (info.isTopLevel) {
+          // Only create a new context if this is not the same directory
+          // described by our info object.
+          if (info.folder.path != directoryPath) {
+            if (_isPubspec(path)) {
+              // Check for a sibling .packages file.
+              if (!resourceProvider
+                  .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
+                  .exists) {
+                _extractContext(info, resource);
+                return;
               }
             }
-          }
-        } else {
-          // pubspec was added in a sub-folder, extract a new context
-          if (_isPubspec(path) &&
-              info.isTopLevel &&
-              !info.isPathToPackageDescription(path)) {
-            _extractContext(info, resource);
-            return;
+            if (_isPackagespec(path)) {
+              // Check for a sibling pubspec.yaml file.
+              if (!resourceProvider
+                  .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
+                  .exists) {
+                _extractContext(info, resource);
+                return;
+              }
+            }
           }
         }
 
@@ -1128,34 +1107,27 @@ class ContextManagerImpl implements ContextManager {
         // Note that it's important to verify that there is NEITHER a .packages nor a
         // lingering pubspec.yaml before merging.
         if (!info.isTopLevel) {
-          if (ENABLE_PACKAGESPEC_SUPPORT) {
-            String directoryPath = pathContext.dirname(path);
+          String directoryPath = pathContext.dirname(path);
 
-            // Only merge if this is the same directory described by our info object.
-            if (info.folder.path == directoryPath) {
-              if (_isPubspec(path)) {
-                // Check for a sibling .packages file.
-                if (!resourceProvider
-                    .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
-                    .exists) {
-                  _mergeContext(info);
-                  return;
-                }
-              }
-              if (_isPackagespec(path)) {
-                // Check for a sibling pubspec.yaml file.
-                if (!resourceProvider
-                    .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
-                    .exists) {
-                  _mergeContext(info);
-                  return;
-                }
+          // Only merge if this is the same directory described by our info object.
+          if (info.folder.path == directoryPath) {
+            if (_isPubspec(path)) {
+              // Check for a sibling .packages file.
+              if (!resourceProvider
+                  .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
+                  .exists) {
+                _mergeContext(info);
+                return;
               }
             }
-          } else {
-            if (info.isPathToPackageDescription(path)) {
-              _mergeContext(info);
-              return;
+            if (_isPackagespec(path)) {
+              // Check for a sibling pubspec.yaml file.
+              if (!resourceProvider
+                  .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
+                  .exists) {
+                _mergeContext(info);
+                return;
+              }
             }
           }
         }
