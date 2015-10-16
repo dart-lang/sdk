@@ -45,7 +45,9 @@ class IndexableElement implements IndexableObject {
   }
 
   @override
-  Source get source => element.source;
+  String get filePath {
+    return element.source?.fullName;
+  }
 
   @override
   bool operator ==(Object object) =>

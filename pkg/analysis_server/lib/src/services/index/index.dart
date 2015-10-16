@@ -10,7 +10,6 @@ import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A filter for [Element] names.
@@ -79,15 +78,15 @@ class IndexableName implements IndexableObject {
   IndexableName(this.name);
 
   @override
+  String get filePath => null;
+
+  @override
   IndexableObjectKind get kind => IndexableNameKind.INSTANCE;
 
   @override
   int get offset {
     return -1;
   }
-
-  @override
-  Source get source => null;
 
   @override
   bool operator ==(Object object) =>
@@ -338,7 +337,7 @@ class RelationshipImpl implements Relationship {
   static int _NEXT_HASH_CODE = 0;
 
   /**
-   * The artifitial hash code for this object.
+   * The artificial hash code for this object.
    */
   final int _hashCode = _NEXT_HASH_CODE++;
 
