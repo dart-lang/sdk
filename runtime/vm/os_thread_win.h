@@ -151,11 +151,12 @@ class MallocGrowableArray;
 
 
 class ThreadLocalData : public AllStatic {
+ public:
+  static void RunDestructors();
+
  private:
   static void AddThreadLocal(ThreadLocalKey key, ThreadDestructor destructor);
   static void RemoveThreadLocal(ThreadLocalKey key);
-
-  static void RunDestructors();
 
   static Mutex* mutex_;
   static MallocGrowableArray<ThreadLocalEntry>* thread_locals_;
