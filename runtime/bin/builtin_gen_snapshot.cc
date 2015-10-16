@@ -9,6 +9,7 @@
 #include "include/dart_api.h"
 
 #include "bin/builtin.h"
+#include "bin/io_natives.h"
 
 namespace dart {
 namespace bin {
@@ -45,7 +46,7 @@ Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
       return reinterpret_cast<Dart_NativeFunction>(entry->function_);
     }
   }
-  return NULL;
+  return IONativeLookup(name, argument_count, auto_setup_scope);
 }
 
 
@@ -57,7 +58,7 @@ const uint8_t* Builtin::NativeSymbol(Dart_NativeFunction nf) {
       return reinterpret_cast<const uint8_t*>(entry->name_);
     }
   }
-  return NULL;
+  return IONativeSymbol(nf);
 }
 
 

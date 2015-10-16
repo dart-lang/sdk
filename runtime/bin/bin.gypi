@@ -375,6 +375,7 @@
       'dependencies': [
         'libdart_nosnapshot',
         'libdart_builtin',
+        'libdart_io',
       ],
       'include_dirs': [
         '..',
@@ -392,13 +393,16 @@
         'platform_macos.cc',
         'platform_win.cc',
         'platform.h',
+        'vmservice_impl.cc',
+        'vmservice_impl.h',
         # Include generated source files.
         '<(builtin_cc_file)',
         '<(io_cc_file)',
         '<(io_patch_cc_file)',
+        '<(resources_cc_file)',
       ],
       'defines': [
-        'PLATFORM_DISABLE_SOCKET'
+        'PLATFORM_DISABLE_SOCKET',
       ],
       'conditions': [
         ['OS=="win"', {

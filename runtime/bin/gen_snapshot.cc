@@ -13,9 +13,11 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/eventhandler.h"
 #include "bin/file.h"
 #include "bin/log.h"
 #include "bin/thread.h"
+#include "bin/vmservice_impl.h"
 
 #include "platform/globals.h"
 
@@ -515,6 +517,52 @@ static void SetupForGenericSnapshotCreation() {
 }
 
 
+static Dart_Isolate CreateServiceIsolate(const char* script_uri,
+                                         const char* main,
+                                         const char* package_root,
+                                         const char** package_map,
+                                         Dart_IsolateFlags* flags,
+                                         void* data,
+                                         char** error) {
+  Dart_Isolate isolate = NULL;
+  isolate = Dart_CreateIsolate(script_uri,
+                               main,
+                               NULL,
+                               NULL,
+                               NULL,
+                               error);
+
+  if (isolate == NULL) {
+    Log::PrintErr("Error: Could not create service isolate");
+    return NULL;
+  }
+
+  Dart_EnterScope();
+  if (!Dart_IsServiceIsolate(isolate)) {
+    Log::PrintErr("Error: We only expect to create the service isolate");
+    return NULL;
+  }
+  Dart_Handle result = Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
+  // Setup the native resolver.
+  Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
+  Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
+  if (Dart_IsError(result)) {
+    Log::PrintErr("Error: Could not set tag handler for service isolate");
+    return NULL;
+  }
+  CHECK_RESULT(result);
+  ASSERT(Dart_IsServiceIsolate(isolate));
+  // Load embedder specific bits and return. Will not start http server.
+  if (!VmService::Setup("127.0.0.1", -1)) {
+    *error = strdup(VmService::GetErrorMessage());
+    return NULL;
+  }
+  Dart_ExitScope();
+  Dart_ExitIsolate();
+  return isolate;
+}
+
+
 int main(int argc, char** argv) {
   const int EXTRA_VM_ARGUMENTS = 2;
   CommandLineOptions vm_options(argc + EXTRA_VM_ARGUMENTS);
@@ -534,6 +582,8 @@ int main(int argc, char** argv) {
 
   Thread::InitOnce();
   DartUtils::SetOriginalWorkingDirectory();
+  // Start event handler.
+  EventHandler::Start();
 
   vm_options.AddArgument("--load_deferred_eagerly");
   // Workaround until issue 21620 is fixed.
@@ -544,8 +594,13 @@ int main(int argc, char** argv) {
   // Initialize the Dart VM.
   // Note: We don't expect isolates to be created from dart code during
   // snapshot generation.
-  char* error = Dart_Initialize(NULL, NULL,
-      NULL, NULL, NULL, NULL,
+  char* error = Dart_Initialize(
+      NULL,
+      NULL,
+      CreateServiceIsolate,
+      NULL,
+      NULL,
+      NULL,
       DartUtils::OpenFile,
       DartUtils::ReadFile,
       DartUtils::WriteFile,
@@ -631,6 +686,7 @@ int main(int argc, char** argv) {
     SetupForGenericSnapshotCreation();
     CreateAndWriteSnapshot();
   }
+  EventHandler::Stop();
   return 0;
 }
 
