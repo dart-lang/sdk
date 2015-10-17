@@ -10852,6 +10852,9 @@ abstract class VariableMember extends Member implements VariableElement {
   VariableElement get baseElement => super.baseElement as VariableElement;
 
   @override
+  DartObject get constantValue => baseElement.constantValue;
+
+  @override
   bool get hasImplicitType => baseElement.hasImplicitType;
 
   @override
