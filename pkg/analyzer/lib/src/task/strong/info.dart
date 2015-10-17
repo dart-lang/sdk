@@ -435,20 +435,6 @@ class InvalidMethodOverride extends InvalidOverride {
   String get message => _messageHelper('Invalid override');
 }
 
-/// Used to mark unexpected situations in our compiler were we couldn't compute
-/// the type of an expression.
-// TODO(sigmund): This is normally a result of another error that is caught by
-// the analyzer, so this should likely be removed in the future.
-class MissingTypeError extends StaticInfo {
-  final AstNode node;
-  toErrorCode() => new StaticTypeWarningCode(name, message);
-
-  MissingTypeError(this.node);
-
-  @override List<Object> get arguments => [node, node.runtimeType];
-  String get message => "type analysis didn't compute the type of: {0} {1}";
-}
-
 /// Dart constructors have one weird quirk, illustrated with this example:
 ///
 ///     class Base {
