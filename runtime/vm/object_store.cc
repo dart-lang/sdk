@@ -73,7 +73,6 @@ ObjectStore::ObjectStore()
     vmservice_library_(Library::null()),
     libraries_(GrowableObjectArray::null()),
     pending_classes_(GrowableObjectArray::null()),
-    pending_functions_(GrowableObjectArray::null()),
     pending_deferred_loads_(GrowableObjectArray::null()),
     resume_capabilities_(GrowableObjectArray::null()),
     exit_listeners_(GrowableObjectArray::null()),
@@ -129,8 +128,6 @@ bool ObjectStore::PreallocateObjects() {
   ASSERT(this->out_of_memory() == Instance::null());
   ASSERT(this->preallocated_stack_trace() == Stacktrace::null());
 
-  ASSERT(this->pending_functions() == GrowableObjectArray::null());
-  this->pending_functions_ = GrowableObjectArray::New();
   this->pending_deferred_loads_ = GrowableObjectArray::New();
 
   this->resume_capabilities_ = GrowableObjectArray::New();

@@ -753,7 +753,6 @@ class Isolate : public BaseIsolate {
   uword stack_limit_;
   StoreBuffer* store_buffer_;
   Heap* heap_;
-  uword vm_tag_;
   uword user_tag_;
   RawUserTag* current_tag_;
   RawUserTag* default_tag_;
@@ -783,7 +782,7 @@ class Isolate : public BaseIsolate {
   Flags flags_;
   Random random_;
   Simulator* simulator_;
-  Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.
+  Mutex* mutex_;  // protects stack_limit_, saved_stack_limit_, compiler stats.
   uword saved_stack_limit_;
   uword stack_base_;
   uword stack_overflow_flags_;
@@ -795,7 +794,6 @@ class Isolate : public BaseIsolate {
   Dart_GcEpilogueCallback gc_epilogue_callback_;
   intptr_t defer_finalization_count_;
   DeoptContext* deopt_context_;
-  BackgroundCompiler* background_compiler_;
 
   CompilerStats* compiler_stats_;
 
@@ -821,8 +819,10 @@ class Isolate : public BaseIsolate {
   VMTagCounters vm_tag_counters_;
   RawGrowableObjectArray* tag_table_;
 
-
   RawGrowableObjectArray* deoptimized_code_array_;
+
+  // Background compilation.
+  BackgroundCompiler* background_compiler_;
   RawGrowableObjectArray* background_compilation_queue_;
 
   // We use 6 list entries for each pending service extension calls.

@@ -1163,8 +1163,8 @@ RawError* Compiler::CompileOptimizedFunction(Thread* thread,
                                          "OptimizedFunction", function);
 
   // Optimization must happen in non-mutator/Dart thread if background
-  // compilation is on.
-  ASSERT(!FLAG_background_compilation ||
+  // compilation is on. OSR compilation still occurs in the main thread.
+  ASSERT((osr_id != Thread::kNoDeoptId) || !FLAG_background_compilation ||
          !thread->isolate()->MutatorThreadIsCurrentThread());
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
@@ -1420,6 +1420,7 @@ class CompilationWorkQueue : public ValueObject {
   }
 
   intptr_t IsEmpty() const { return data_.Length() == 0; }
+  intptr_t Length() const { return data_.Length(); }
 
   // Adds to the queue only if 'function' is not already in there.
   void PushFront(const Function& function) {
@@ -1446,6 +1447,11 @@ class CompilationWorkQueue : public ValueObject {
     return Function::Cast(result).raw();
   }
 
+  RawFunction* Last() {
+    ASSERT(!IsEmpty());
+    return Function::RawCast(data_.At(data_.Length() - 1));
+  }
+
  private:
   GrowableObjectArray& data_;
 
@@ -1455,38 +1461,46 @@ class CompilationWorkQueue : public ValueObject {
 
 BackgroundCompiler::BackgroundCompiler(Isolate* isolate)
     : isolate_(isolate), running_(true), done_(new bool()),
-      monitor_(new Monitor()), done_monitor_(new Monitor())  {
+      queue_monitor_(new Monitor()), done_monitor_(new Monitor()),
+      queue_length_(0) {
   *done_ = false;
 }
 
 
 void BackgroundCompiler::Run() {
   while (running_) {
-    {
-      // Wait to be notified when the work queue is not empty.
-      MonitorLocker ml(monitor_);
-      ml.Wait();
-    }
-
+    // Maybe something is already in the queue, check first before waiting
+    // to be notified.
     Thread::EnterIsolateAsHelper(isolate_);
     {
       Thread* thread = Thread::Current();
       StackZone stack_zone(thread);
       HANDLESCOPE(thread);
-      Function& function = Function::Handle();
-      function = RemoveOrNull();
-      while (!function.IsNull()) {
-        const Error& error = Error::Handle(
+      Zone* zone = stack_zone.GetZone();
+      Function& function = Function::Handle(zone);
+      Function& temp_function = Function::Handle(zone);
+      function = LastOrNull();
+      while (!function.IsNull() && running_) {
+        const Error& error = Error::Handle(zone,
             Compiler::CompileOptimizedFunction(thread, function));
         // TODO(srdjan): We do not expect errors while compiling optimized
         // code, any errors should have been caught when compiling
         // unoptimized code.
         // If it still happens mark function as not optimizable.
         ASSERT(error.IsNull());
-        function = RemoveOrNull();
+        temp_function = RemoveOrNull();
+        ASSERT(temp_function.raw() == function.raw());
+        function = LastOrNull();
       }
     }
     Thread::ExitIsolateAsHelper();
+    {
+      // Wait to be notified when the work queue is not empty.
+      MonitorLocker ml(queue_monitor_);
+      while ((queue_length() == 0) && running_) {
+        ml.Wait();
+      }
+    }
   }
   {
     // Notify that the thread is done.
@@ -1502,18 +1516,28 @@ void BackgroundCompiler::CompileOptimized(const Function& function) {
 }
 
 
-void BackgroundCompiler::Add(const Function& f) const {
-  MonitorLocker ml(monitor_);
+void BackgroundCompiler::Add(const Function& f) {
+  MonitorLocker ml(queue_monitor_);
   CompilationWorkQueue queue(isolate_);
   queue.PushFront(f);
+  set_queue_length(queue.Length());
   ml.Notify();
 }
 
 
-RawFunction* BackgroundCompiler::RemoveOrNull() const {
-  MonitorLocker ml(monitor_);
+RawFunction* BackgroundCompiler::RemoveOrNull() {
+  MonitorLocker ml(queue_monitor_);
   CompilationWorkQueue queue(isolate_);
-  return queue.IsEmpty() ? Function::null() : queue.PopBack();
+  if (queue.IsEmpty()) return Function::null();
+  set_queue_length(queue.Length() - 1);
+  return queue.PopBack();
+}
+
+
+RawFunction* BackgroundCompiler::LastOrNull() const {
+  MonitorLocker ml(queue_monitor_);
+  CompilationWorkQueue queue(isolate_);
+  return queue.IsEmpty() ? Function::null() : queue.Last();
 }
 
 
@@ -1521,16 +1545,16 @@ void BackgroundCompiler::Stop(BackgroundCompiler* task) {
   if (task == NULL) {
     return;
   }
-  Monitor* monitor = task->monitor_;
+  Monitor* monitor = task->queue_monitor_;
   Monitor* done_monitor = task->done_monitor_;
   bool* task_done = task->done_;
   // Wake up compiler task and stop it.
   {
-    MonitorLocker ml(task->monitor_);
+    MonitorLocker ml(task->queue_monitor_);
     task->running_ = false;
     // 'task' will be deleted by thread pool.
     task = NULL;
-    ml.Notify();
+    ml.Notify();   // Stop waiting for the queue.
   }
 
   {

@@ -35,6 +35,7 @@ class PcDescriptors;
 class RawBool;
 class RawObject;
 class RawCode;
+class RawGrowableObjectArray;
 class RawString;
 class RuntimeEntry;
 class StackResource;
@@ -404,6 +405,8 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE)
 #undef REUSABLE_HANDLE
 
+  RawGrowableObjectArray* pending_functions();
+
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
  private:
@@ -421,8 +424,6 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   TimelineEventBlock* timeline_block_;
   StoreBufferBlock* store_buffer_block_;
   class Log* log_;
-  intptr_t deopt_id_;  // Compilation specific counter.
-  uword vm_tag_;
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;
 CACHED_CONSTANTS_LIST(DECLARE_MEMBERS)
@@ -453,7 +454,12 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 
   VMHandles reusable_handles_;
 
+  // Compiler state:
   CHA* cha_;
+  intptr_t deopt_id_;  // Compilation specific counter.
+  uword vm_tag_;
+  RawGrowableObjectArray* pending_functions_;
+
   int32_t no_callback_scope_depth_;
 
   // All |Thread|s are registered in the thread list.
@@ -469,9 +475,7 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 
   void InitVMConstants();
 
-  void ClearState() {
-    memset(&state_, 0, sizeof(state_));
-  }
+  void ClearState();
 
   void StoreBufferRelease(
       StoreBuffer::ThresholdPolicy policy = StoreBuffer::kCheckThreshold);

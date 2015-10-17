@@ -73,10 +73,11 @@ class CompilerStats {
   char* PrintToZone();
 };
 
-// TODO(hausner): make the increment thread-safe.
 #define INC_STAT(thread, counter, incr)                                        \
   if (FLAG_compiler_stats) {                                                   \
-      (thread)->isolate()->compiler_stats()->counter += (incr); }
+    MutexLocker ml((thread)->isolate()->mutex());                              \
+    (thread)->isolate()->compiler_stats()->counter += (incr);                  \
+  }
 
 #define STAT_VALUE(thread, counter)                                            \
   ((FLAG_compiler_stats != false) ?                                            \

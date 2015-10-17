@@ -185,12 +185,13 @@ Thread::Thread(bool init_vm_constants)
       timeline_block_(NULL),
       store_buffer_block_(NULL),
       log_(new class Log()),
-      deopt_id_(0),
-      vm_tag_(0),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_(),
       cha_(NULL),
+      deopt_id_(0),
+      vm_tag_(0),
+      pending_functions_(GrowableObjectArray::null()),
       no_callback_scope_depth_(0),
       thread_list_next_(NULL) {
   ClearState();
@@ -247,6 +248,20 @@ LEAF_RUNTIME_ENTRY_LIST(INIT_VALUE)
   this->object##_handle_ = this->AllocateReusableHandle<object>();
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_ALLOCATION)
 #undef REUSABLE_HANDLE_ALLOCATION
+}
+
+
+void Thread::ClearState() {
+  memset(&state_, 0, sizeof(state_));
+  pending_functions_ = GrowableObjectArray::null();
+}
+
+
+RawGrowableObjectArray* Thread::pending_functions() {
+  if (pending_functions_ == GrowableObjectArray::null()) {
+    pending_functions_ = GrowableObjectArray::New(Heap::kOld);
+  }
+  return pending_functions_;
 }
 
 
@@ -429,6 +444,11 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
   // Visit objects in thread specific handles area.
   reusable_handles_.VisitObjectPointers(visitor);
+
+  if (pending_functions_ != GrowableObjectArray::null()) {
+    visitor->VisitPointer(
+        reinterpret_cast<RawObject**>(&pending_functions_));
+  }
 }
 
 

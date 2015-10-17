@@ -333,10 +333,6 @@ class ObjectStore {
     pending_classes_ = value.raw();
   }
 
-  RawGrowableObjectArray* pending_functions() const {
-    return pending_functions_;
-  }
-
   RawGrowableObjectArray* pending_deferred_loads() const {
     return pending_deferred_loads_;
   }
@@ -522,7 +518,6 @@ class ObjectStore {
   RawLibrary* vmservice_library_;
   RawGrowableObjectArray* libraries_;
   RawGrowableObjectArray* pending_classes_;
-  RawGrowableObjectArray* pending_functions_;
   RawGrowableObjectArray* pending_deferred_loads_;
   RawGrowableObjectArray* resume_capabilities_;
   RawGrowableObjectArray* exit_listeners_;

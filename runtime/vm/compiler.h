@@ -112,19 +112,26 @@ class BackgroundCompiler : public ThreadPool::Task {
 
   void CompileOptimized(const Function& function);
 
+  // Access to queue length is guarded with queue_monitor_;
+  intptr_t queue_length() const { return queue_length_; }
+  void set_queue_length(intptr_t value) { queue_length_ = value; }
+
  private:
   explicit BackgroundCompiler(Isolate* isolate);
 
   virtual void Run();
 
-  void Add(const Function& f) const;
-  RawFunction* RemoveOrNull() const;
+  void Add(const Function& f);
+  RawFunction* RemoveOrNull();
+  RawFunction* LastOrNull() const;
 
   Isolate* isolate_;
-  bool running_;
-  bool* done_;
-  Monitor* monitor_;
-  Monitor* done_monitor_;
+  bool running_;       // While true, will try to read queue and compile.
+  bool* done_;         // True if the thread is done.
+  Monitor* queue_monitor_;  // Controls access to the queue.
+  Monitor* done_monitor_;   // Notify/wait that the thread is done.
+
+  intptr_t queue_length_;  // Lightweight access to length of compiler queue.
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BackgroundCompiler);
 };
