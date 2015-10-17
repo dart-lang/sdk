@@ -311,7 +311,7 @@ class ConstantEvaluationEngine {
     if (!identical(argumentValues[0].type, typeProvider.stringType)) {
       return false;
     }
-    String name = argumentValues[0].stringValue;
+    String name = argumentValues[0].toStringValue();
     return isValidPublicSymbol(name);
   }
 
@@ -626,7 +626,7 @@ class ConstantEvaluationEngine {
           return null;
         }
         String variableName =
-            argumentCount < 1 ? null : argumentValues[0].stringValue;
+            argumentCount < 1 ? null : argumentValues[0].toStringValue();
         if (identical(definingClass, typeProvider.boolType)) {
           DartObject valueFromEnvironment;
           valueFromEnvironment =
@@ -661,7 +661,7 @@ class ConstantEvaluationEngine {
               CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
           return null;
         }
-        String argumentValue = argumentValues[0].stringValue;
+        String argumentValue = argumentValues[0].toStringValue();
         return new DartObjectImpl(
             definingClass, new SymbolState(argumentValue));
       }
@@ -1598,9 +1598,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (conditionResult == null) {
       return conditionResult;
     }
-    if (conditionResult.isTrue) {
+    if (conditionResult.toBoolValue() == true) {
       return thenResult;
-    } else if (conditionResult.isFalse) {
+    } else if (conditionResult.toBoolValue() == false) {
       return elseResult;
     }
     ParameterizedType thenType = thenResult.type;
@@ -1936,64 +1936,214 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 }
 
 /**
- * The state of a Dart object.
+ * A representation of the value of a compile-time constant expression.
+ *
+ * Note that, unlike the mirrors system, the object being represented does *not*
+ * exist. This interface allows static analysis tools to determine something
+ * about the state of the object that would exist if the code that creates the
+ * object were executed, but none of the code being analyzed is actually
+ * executed.
  */
 abstract class DartObject {
   /**
    * Return the boolean value of this object, or `null` if either the value of
    * this object is not known or this object is not of type 'bool'.
+   *
+   * Deprecated. Use [toBoolValue].
    */
+  @deprecated
   bool get boolValue;
 
   /**
    * Return the floating point value of this object, or `null` if either the
    * value of this object is not known or this object is not of type 'double'.
+   *
+   * Deprecated. Use [toDoubleValue].
    */
+  @deprecated
   double get doubleValue;
 
   /**
    * Return `true` if this object's value can be represented exactly.
+   *
+   * Deprecated. The semantics of this method were not clear. One semantic is
+   * covered by [hasKnownValue].
    */
+  @deprecated
   bool get hasExactValue;
+
+  /**
+   * Return `true` if the value of the object being represented is known.
+   *
+   * This method will return `false` if
+   * * the value being represented is the value of a declared variable (a
+   *   variable whose value is provided at run-time using a `-D` command-line
+   *   option), or
+   * * the value is a function.
+   *
+   * The result of this method does not imply anything about the state of
+   * object representations returned by the method [getField], those that are
+   * elements of the list returned by [toListValue], or the keys or values in
+   * the map returned by [toMapValue]. For example, a representation of a list
+   * can return `true` even if one or more of the elements of that list would
+   * return `false`.
+   */
+  bool get hasKnownValue;
 
   /**
    * Return the integer value of this object, or `null` if either the value of
    * this object is not known or this object is not of type 'int'.
+   *
+   * Deprecated. Use [toIntValue].
    */
+  @deprecated
   int get intValue;
 
   /**
    * Return `true` if this object represents the value 'false'.
+   *
+   * Deprecated. Use `object.toBoolValue() == false`.
    */
+  @deprecated
   bool get isFalse;
 
   /**
-   * Return `true` if this object represents the value 'null'.
+   * Return `true` if the object being represented represents the value 'null'.
    */
   bool get isNull;
 
   /**
    * Return `true` if this object represents the value 'true'.
+   *
+   * Deprecated. Use `object.toBoolValue() == true`.
    */
+  @deprecated
   bool get isTrue;
 
   /**
    * Return the string value of this object, or `null` if either the value of
    * this object is not known or this object is not of type 'String'.
+   *
+   * Deprecated. Use [toStringValue].
    */
+  @deprecated
   String get stringValue;
 
   /**
-   * Return the run-time type of this object.
+   * Return a representation of the type of the object being represented.
+   *
+   * For values resulting from the invocation of a 'const' constructor, this
+   * will be a representation of the run-time type of the object.
+   *
+   * For values resulting from a literal expression, this will be a
+   * representation of the static type of the value -- `int` for integer
+   * literals, `List` for list literals, etc. -- even when the static type is an
+   * abstract type (such as `List`) and hence will never be the run-time type of
+   * the represented object.
+   *
+   * For values resulting from any other kind of expression, this will be a
+   * representation of the result of evaluating the expression.
+   *
+   * Return `null` if the expression cannot be evaluated, either because it is
+   * not a valid constant expression or because one or more of the values used
+   * in the expression does not have a known value.
+   *
+   * This method can return a representation of the type, even if this object
+   * would return `false` from [hasKnownValue].
    */
   ParameterizedType get type;
 
   /**
    * Return this object's value if it can be represented exactly, or `null` if
    * either the value cannot be represented exactly or if the value is `null`.
-   * Clients should use [hasExactValue] to distinguish between these two cases.
+   * Clients should use `hasExactValue` to distinguish between these two cases.
+   *
+   * Deprecated. Use one of the `isXValue()` methods.
    */
+  @deprecated
   Object get value;
+
+  /**
+   * Return a representation of the value of the field with the given [name].
+   *
+   * Return `null` if either the object being represented does not have a field
+   * with the given name or if the implementation of the class of the object is
+   * invalid, making it impossible to determine that value of the field.
+   *
+   * Note that, unlike the mirrors API, this method does *not* invoke a getter;
+   * it simply returns a representation of the known state of a field.
+   */
+  DartObject getField(String name);
+
+  /**
+   * Return a boolean corresponding to the value of the object being
+   * represented, or `null` if
+   * * this object is not of type 'bool',
+   * * the value of the object being represented is not known, or
+   * * the value of the object being represented is `null`.
+   */
+  bool toBoolValue();
+
+  /**
+   * Return a double corresponding to the value of the object being represented,
+   * or `null`
+   * if
+   * * this object is not of type 'double',
+   * * the value of the object being represented is not known, or
+   * * the value of the object being represented is `null`.
+   */
+  double toDoubleValue();
+
+  /**
+   * Return an integer corresponding to the value of the object being
+   * represented, or `null` if
+   * * this object is not of type 'int',
+   * * the value of the object being represented is not known, or
+   * * the value of the object being represented is `null`.
+   */
+  int toIntValue();
+
+  /**
+   * Return a list corresponding to the value of the object being represented,
+   * or `null` if
+   * * this object is not of type 'List', or
+   * * the value of the object being represented is `null`.
+   */
+  List<DartObject> toListValue();
+
+  /**
+   * Return a map corresponding to the value of the object being represented, or
+   * `null` if
+   * * this object is not of type 'Map', or
+   * * the value of the object being represented is `null`.
+   */
+  Map<DartObject, DartObject> toMapValue();
+
+  /**
+   * Return a string corresponding to the value of the object being represented,
+   * or `null` if
+   * * this object is not of type 'String',
+   * * the value of the object being represented is not known, or
+   * * the value of the object being represented is `null`.
+   */
+  String toStringValue();
+
+  /**
+   * Return a string corresponding to the value of the object being represented,
+   * or `null` if
+   * * this object is not of type 'Symbol', or
+   * * the value of the object being represented is `null`.
+   * (We return the string
+   */
+  String toSymbolValue();
+
+  /**
+   * Return the representation of the type corresponding to the value of the
+   * object being represented, or `null` if
+   * * this object is not of type 'Type', or
+   * * the value of the object being represented is `null`.
+   */
+  ParameterizedType toTypeValue();
 }
 
 /**
@@ -2390,24 +2540,17 @@ class DartObjectImpl implements DartObject {
     return new DartObjectImpl(type, GenericState.UNKNOWN_VALUE);
   }
 
+  @deprecated
   @override
-  bool get boolValue {
-    if (_state is BoolState) {
-      return (_state as BoolState).value;
-    }
-    return null;
-  }
+  bool get boolValue => toBoolValue();
 
+  @deprecated
   @override
-  double get doubleValue {
-    if (_state is DoubleState) {
-      return (_state as DoubleState).value;
-    }
-    return null;
-  }
+  double get doubleValue => toDoubleValue();
 
   HashMap<String, DartObjectImpl> get fields => _state.fields;
 
+  @deprecated
   @override
   bool get hasExactValue => _state.hasExactValue;
 
@@ -2415,12 +2558,11 @@ class DartObjectImpl implements DartObject {
   int get hashCode => JenkinsSmiHash.hash2(type.hashCode, _state.hashCode);
 
   @override
-  int get intValue {
-    if (_state is IntState) {
-      return (_state as IntState).value;
-    }
-    return null;
-  }
+  bool get hasKnownValue => !_state.isUnknown;
+
+  @deprecated
+  @override
+  int get intValue => toIntValue();
 
   /**
    * Return `true` if this object represents an object whose type is 'bool'.
@@ -2433,13 +2575,14 @@ class DartObjectImpl implements DartObject {
    */
   bool get isBoolNumStringOrNull => _state.isBoolNumStringOrNull;
 
+  @deprecated
   @override
-  bool get isFalse =>
-      _state is BoolState && identical((_state as BoolState).value, false);
+  bool get isFalse => toBoolValue() == false;
 
   @override
   bool get isNull => _state is NullState;
 
+  @deprecated
   @override
   bool get isTrue =>
       _state is BoolState && identical((_state as BoolState).value, true);
@@ -2455,14 +2598,11 @@ class DartObjectImpl implements DartObject {
    */
   bool get isUserDefinedObject => _state is GenericState;
 
+  @deprecated
   @override
-  String get stringValue {
-    if (_state is StringState) {
-      return (_state as StringState).value;
-    }
-    return null;
-  }
+  String get stringValue => toStringValue();
 
+  @deprecated
   @override
   Object get value => _state.value;
 
@@ -2622,6 +2762,14 @@ class DartObjectImpl implements DartObject {
     }
     return new DartObjectImpl(
         typeProvider.boolType, _state.equalEqual(rightOperand._state));
+  }
+
+  @override
+  DartObject getField(String name) {
+    if (_state is GenericState) {
+      return (_state as GenericState).fields[name];
+    }
+    return null;
   }
 
   /**
@@ -2897,7 +3045,77 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
+  bool toBoolValue() {
+    if (_state is BoolState) {
+      return (_state as BoolState).value;
+    }
+    return null;
+  }
+
+  @override
+  double toDoubleValue() {
+    if (_state is DoubleState) {
+      return (_state as DoubleState).value;
+    }
+    return null;
+  }
+
+  @override
+  int toIntValue() {
+    if (_state is IntState) {
+      return (_state as IntState).value;
+    }
+    return null;
+  }
+
+  @override
+  List<DartObject> toListValue() {
+    if (_state is ListState) {
+      return (_state as ListState)._elements;
+    }
+    return null;
+  }
+
+  @override
+  Map<DartObject, DartObject> toMapValue() {
+    if (_state is MapState) {
+      return (_state as MapState)._entries;
+    }
+    return null;
+  }
+
+  @override
   String toString() => "${type.displayName} ($_state)";
+
+  @override
+  String toStringValue() {
+    if (_state is StringState) {
+      return (_state as StringState).value;
+    }
+    return null;
+  }
+
+  @override
+  String toSymbolValue() {
+    if (_state is SymbolState) {
+      return (_state as SymbolState).value;
+    }
+    return null;
+  }
+
+  @override
+  ParameterizedType toTypeValue() {
+    if (_state is TypeState) {
+      Element element = (_state as TypeState).value;
+      if (element is ClassElement) {
+        return element.type;
+      }
+      if (element is FunctionElement) {
+        return element.type;
+      }
+    }
+    return null;
+  }
 }
 
 /**

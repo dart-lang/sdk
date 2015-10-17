@@ -4,14 +4,15 @@
 
 library engine.element_handle;
 
-import 'ast.dart';
-import 'element.dart';
-import 'engine.dart';
-import 'java_core.dart';
-import 'java_engine.dart';
-import 'resolver.dart';
-import 'source.dart';
-import 'utilities_dart.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * Instances of the class `ClassElementHandle` implement a handle to a `ClassElement`.
@@ -1090,6 +1091,9 @@ abstract class VariableElementHandle extends ElementHandle
 
   @override
   VariableElement get actualElement => super.actualElement as VariableElement;
+
+  @override
+  DartObject get constantValue => actualElement.constantValue;
 
   @override
   bool get hasImplicitType => actualElement.hasImplicitType;

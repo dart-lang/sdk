@@ -1267,7 +1267,7 @@ class D {
     expect(evaluationResult.value.type, isNotNull);
     expect(evaluationResult.value.type.name, 'D');
     expect(evaluationResult.value.fields, contains('value'));
-    expect(evaluationResult.value.fields['value'].intValue, 1);
+    expect(evaluationResult.value.fields['value'].toIntValue(), 1);
   }
 
   test_annotation_without_args() {
@@ -1285,7 +1285,7 @@ const x = 1;
     // And check that it has the expected value.
     expect(evaluationResult, isNotNull);
     expect(evaluationResult.value, isNotNull);
-    expect(evaluationResult.value.intValue, 1);
+    expect(evaluationResult.value.toIntValue(), 1);
   }
 
   test_circular_reference() {
@@ -1342,7 +1342,7 @@ const y = 1;
 ''');
     expect(evaluationResult, isNotNull);
     expect(evaluationResult.value, isNotNull);
-    expect(evaluationResult.value.intValue, 2);
+    expect(evaluationResult.value.toIntValue(), 2);
   }
 
   test_external_const_factory() {
@@ -1368,7 +1368,7 @@ const x = 1;
 ''');
     expect(evaluationResult, isNotNull);
     expect(evaluationResult.value, isNotNull);
-    expect(evaluationResult.value.intValue, 1);
+    expect(evaluationResult.value.toIntValue(), 1);
   }
 
   void _checkCircularities(

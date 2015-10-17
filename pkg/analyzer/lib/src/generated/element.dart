@@ -13,7 +13,7 @@ import 'package:analyzer/task/model.dart'
     show AnalysisTarget, ConstantEvaluationTarget;
 
 import 'ast.dart';
-import 'constant.dart' show EvaluationResultImpl;
+import 'constant.dart' show DartObject, EvaluationResultImpl;
 import 'engine.dart' show AnalysisContext, AnalysisEngine, AnalysisException;
 import 'html.dart' show XmlAttributeNode, XmlTagNode;
 import 'java_core.dart';
@@ -1760,6 +1760,9 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   ConstFieldElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
+  DartObject get constantValue => _result.value;
+
+  @override
   EvaluationResultImpl get evaluationResult => _result;
 
   @override
@@ -1789,6 +1792,9 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
    * Initialize a newly created local variable element to have the given [name].
    */
   ConstLocalVariableElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  @override
+  DartObject get constantValue => _result.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -2109,6 +2115,9 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
   ConstTopLevelVariableElementImpl(Identifier name) : super.forNode(name);
 
   @override
+  DartObject get constantValue => _result.value;
+
+  @override
   EvaluationResultImpl get evaluationResult => _result;
 
   @override
@@ -2273,6 +2282,9 @@ class DefaultFieldFormalParameterElementImpl
   DefaultFieldFormalParameterElementImpl(Identifier name) : super(name);
 
   @override
+  DartObject get constantValue => _result.value;
+
+  @override
   EvaluationResultImpl get evaluationResult => _result;
 
   @override
@@ -2295,6 +2307,9 @@ class DefaultParameterElementImpl extends ParameterElementImpl
    * Initialize a newly created parameter element to have the given [name].
    */
   DefaultParameterElementImpl(Identifier name) : super.forNode(name);
+
+  @override
+  DartObject get constantValue => _result.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -2659,6 +2674,14 @@ abstract class ElementAnnotation {
   static const List<ElementAnnotation> EMPTY_LIST = const <ElementAnnotation>[];
 
   /**
+   * Return a representation of the value of this annotation.
+   *
+   * Return `null` if the value of this annotation could not be computed because
+   * of errors.
+   */
+  DartObject get constantValue;
+
+  /**
    * Return the element representing the field, variable, or const constructor
    * being used as an annotation.
    */
@@ -2736,6 +2759,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
    * annotation.
    */
   ElementAnnotationImpl(this.element);
+
+  @override
+  DartObject get constantValue => evaluationResult.value;
 
   @override
   bool get isDeprecated {
@@ -10610,6 +10636,15 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   static const List<VariableElement> EMPTY_LIST = const <VariableElement>[];
 
   /**
+   * Return a representation of the value of this variable.
+   *
+   * Return `null` if either this variable was not declared with the 'const'
+   * modifier or if the value of this variable could not be computed because of
+   * errors.
+   */
+  DartObject get constantValue;
+
+  /**
    * Return `true` if this variable element did not have an explicit type
    * specified for it.
    */
@@ -10711,6 +10746,9 @@ abstract class VariableElementImpl extends ElementImpl
   void set const3(bool isConst) {
     setModifier(Modifier.CONST, isConst);
   }
+
+  @override
+  DartObject get constantValue => null;
 
   /**
    * Return the result of evaluating this variable's initializer as a
