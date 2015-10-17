@@ -38,6 +38,7 @@ extern const uint8_t* isolate_snapshot_buffer;
 
 // Global state that stores a pointer to the application script snapshot.
 static bool generate_script_snapshot = false;
+static bool generate_script_snapshot_after_run = false;
 static const char* snapshot_filename = NULL;
 
 
@@ -381,9 +382,10 @@ static bool ProcessDebugOption(const char* option_value,
 }
 
 
-static bool ProcessGenScriptSnapshotOption(const char* filename,
-                                           CommandLineOptions* vm_options) {
-  if (filename != NULL && strlen(filename) != 0) {
+static bool ProcessScriptSnapshotOptionHelper(const char* filename,
+                                              bool* snapshot_option) {
+  *snapshot_option = false;
+  if ((filename != NULL) && (strlen(filename) != 0)) {
     // Ensure that we are already running using a full snapshot.
     if (isolate_snapshot_buffer == NULL) {
       Log::PrintErr("Script snapshots cannot be generated in this version of"
@@ -391,10 +393,28 @@ static bool ProcessGenScriptSnapshotOption(const char* filename,
       return false;
     }
     snapshot_filename = filename;
-    generate_script_snapshot = true;
+    *snapshot_option = true;
+    if (generate_script_snapshot && generate_script_snapshot_after_run) {
+      Log::PrintErr("--snapshot and --snapshot-after-run options"
+                    " cannot be specified at the same time\n");
+      return false;
+    }
     return true;
   }
   return false;
+}
+
+
+static bool ProcessScriptSnapshotOption(const char* filename,
+                                        CommandLineOptions* vm_options) {
+  return ProcessScriptSnapshotOptionHelper(filename, &generate_script_snapshot);
+}
+
+
+static bool ProcessScriptSnapshotAfterRunOption(
+    const char* filename, CommandLineOptions* vm_options) {
+  return ProcessScriptSnapshotOptionHelper(filename,
+                                           &generate_script_snapshot_after_run);
 }
 
 
@@ -508,7 +528,8 @@ static struct {
   { "--observe", ProcessObserveOption },
   { "--run-precompiled-snapshot", ProcessRunPrecompiledSnapshotOption },
   { "--shutdown", ProcessShutdownOption },
-  { "--snapshot=", ProcessGenScriptSnapshotOption },
+  { "--snapshot=", ProcessScriptSnapshotOption },
+  { "--snapshot-after-run=", ProcessScriptSnapshotAfterRunOption },
   { "--trace-debug-protocol", ProcessTraceDebugProtocolOption },
   { "--trace-loading", ProcessTraceLoadingOption },
   { NULL, NULL }
@@ -1106,6 +1127,34 @@ static void* LoadLibrarySymbol(const char* libname, const char* symname) {
 }
 
 
+static void GenerateScriptSnapshot() {
+  // First create a snapshot.
+  uint8_t* buffer = NULL;
+  intptr_t size = 0;
+  Dart_Handle result = Dart_CreateScriptSnapshot(&buffer, &size);
+  if (Dart_IsError(result)) {
+    ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
+  }
+
+  // Open the snapshot file.
+  File* snapshot_file = File::Open(snapshot_filename, File::kWriteTruncate);
+  if (snapshot_file == NULL) {
+    ErrorExit(kErrorExitCode,
+              "Unable to open file %s for writing the snapshot\n",
+              snapshot_filename);
+  }
+
+  // Write the magic number to indicate file is a script snapshot.
+  DartUtils::WriteMagicNumber(snapshot_file);
+
+  // Now write the snapshot out to specified file.
+  bool bytes_written = snapshot_file->WriteFully(buffer, size);
+  ASSERT(bytes_written);
+  delete snapshot_file;
+  snapshot_file = NULL;
+}
+
+
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
     if (Dart_IsVMRestartRequest(result)) {                                     \
@@ -1117,6 +1166,7 @@ static void* LoadLibrarySymbol(const char* libname, const char* symname) {
         kCompilationErrorExitCode : kErrorExitCode;                            \
     ErrorExit(exit_code, "%s\n", Dart_GetError(result));                       \
   }
+
 
 bool RunMainIsolate(const char* script_name,
                     CommandLineOptions* dart_options) {
@@ -1164,29 +1214,7 @@ bool RunMainIsolate(const char* script_name,
   Dart_EnterScope();
 
   if (generate_script_snapshot) {
-    // First create a snapshot.
-    Dart_Handle result;
-    uint8_t* buffer = NULL;
-    intptr_t size = 0;
-    result = Dart_CreateScriptSnapshot(&buffer, &size);
-    CHECK_RESULT(result);
-
-    // Open the snapshot file.
-    File* snapshot_file = File::Open(snapshot_filename, File::kWriteTruncate);
-    if (snapshot_file == NULL) {
-      ErrorExit(kErrorExitCode,
-                "Unable to open file %s for writing the snapshot\n",
-                snapshot_filename);
-    }
-
-    // Write the magic number to indicate file is a script snapshot.
-    DartUtils::WriteMagicNumber(snapshot_file);
-
-    // Now write the snapshot out to specified file.
-    bool bytes_written = snapshot_file->WriteFully(buffer, size);
-    ASSERT(bytes_written);
-    delete snapshot_file;
-    snapshot_file = NULL;
+    GenerateScriptSnapshot();
   } else {
     // Lookup the library of the root script.
     Dart_Handle root_lib = Dart_RootLibrary();
@@ -1299,6 +1327,11 @@ bool RunMainIsolate(const char* script_name,
       // Keep handling messages until the last active receive port is closed.
       result = Dart_RunLoop();
       CHECK_RESULT(result);
+
+      // Generate a script snapshot after execution if specified.
+      if (generate_script_snapshot_after_run) {
+        GenerateScriptSnapshot();
+      }
     }
   }
 
