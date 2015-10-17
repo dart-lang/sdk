@@ -1294,6 +1294,7 @@ final Matcher isElement = new LazyMatcher(() => new MatchesJsonObject(
  *   ENUM
  *   ENUM_CONSTANT
  *   FIELD
+ *   FILE
  *   FUNCTION
  *   FUNCTION_TYPE_ALIAS
  *   GETTER
@@ -1319,6 +1320,7 @@ final Matcher isElementKind = new MatchesEnum("ElementKind", [
   "ENUM",
   "ENUM_CONSTANT",
   "FIELD",
+  "FILE",
   "FUNCTION",
   "FUNCTION_TYPE_ALIAS",
   "GETTER",

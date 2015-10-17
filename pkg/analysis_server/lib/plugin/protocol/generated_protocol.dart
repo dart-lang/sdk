@@ -8058,13 +8058,13 @@ class AnalysisOptions implements HasToJson {
   }
 
   /**
-   * True if the client wants to enable spport for the proposed "less
+   * True if the client wants to enable support for the proposed "less
    * restricted mixins" proposal (DEP 34).
    */
   bool get enableSuperMixins => _enableSuperMixins;
 
   /**
-   * True if the client wants to enable spport for the proposed "less
+   * True if the client wants to enable support for the proposed "less
    * restricted mixins" proposal (DEP 34).
    */
   void set enableSuperMixins(bool value) {
@@ -9455,6 +9455,7 @@ class Element implements HasToJson {
  *   ENUM
  *   ENUM_CONSTANT
  *   FIELD
+ *   FILE
  *   FUNCTION
  *   FUNCTION_TYPE_ALIAS
  *   GETTER
@@ -9489,6 +9490,8 @@ class ElementKind implements Enum {
 
   static const FIELD = const ElementKind._("FIELD");
 
+  static const FILE = const ElementKind._("FILE");
+
   static const FUNCTION = const ElementKind._("FUNCTION");
 
   static const FUNCTION_TYPE_ALIAS = const ElementKind._("FUNCTION_TYPE_ALIAS");
@@ -9522,7 +9525,7 @@ class ElementKind implements Enum {
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<ElementKind> VALUES = const <ElementKind>[CLASS, CLASS_TYPE_ALIAS, COMPILATION_UNIT, CONSTRUCTOR, ENUM, ENUM_CONSTANT, FIELD, FUNCTION, FUNCTION_TYPE_ALIAS, GETTER, LABEL, LIBRARY, LOCAL_VARIABLE, METHOD, PARAMETER, PREFIX, SETTER, TOP_LEVEL_VARIABLE, TYPE_PARAMETER, UNIT_TEST_GROUP, UNIT_TEST_TEST, UNKNOWN];
+  static const List<ElementKind> VALUES = const <ElementKind>[CLASS, CLASS_TYPE_ALIAS, COMPILATION_UNIT, CONSTRUCTOR, ENUM, ENUM_CONSTANT, FIELD, FILE, FUNCTION, FUNCTION_TYPE_ALIAS, GETTER, LABEL, LIBRARY, LOCAL_VARIABLE, METHOD, PARAMETER, PREFIX, SETTER, TOP_LEVEL_VARIABLE, TYPE_PARAMETER, UNIT_TEST_GROUP, UNIT_TEST_TEST, UNKNOWN];
 
   final String name;
 
@@ -9544,6 +9547,8 @@ class ElementKind implements Enum {
         return ENUM_CONSTANT;
       case "FIELD":
         return FIELD;
+      case "FILE":
+        return FILE;
       case "FUNCTION":
         return FUNCTION;
       case "FUNCTION_TYPE_ALIAS":
@@ -10804,13 +10809,13 @@ class HoverInformation implements HasToJson {
   String _staticType;
 
   /**
-   * The offset of the range of characters that encompases the cursor position
+   * The offset of the range of characters that encompasses the cursor position
    * and has the same hover information as the cursor position.
    */
   int get offset => _offset;
 
   /**
-   * The offset of the range of characters that encompases the cursor position
+   * The offset of the range of characters that encompasses the cursor position
    * and has the same hover information as the cursor position.
    */
   void set offset(int value) {
@@ -10819,13 +10824,13 @@ class HoverInformation implements HasToJson {
   }
 
   /**
-   * The length of the range of characters that encompases the cursor position
+   * The length of the range of characters that encompasses the cursor position
    * and has the same hover information as the cursor position.
    */
   int get length => _length;
 
   /**
-   * The length of the range of characters that encompases the cursor position
+   * The length of the range of characters that encompasses the cursor position
    * and has the same hover information as the cursor position.
    */
   void set length(int value) {
@@ -13750,7 +13755,7 @@ class RequestErrorCode implements Enum {
 
   /**
    * A request was received which the analysis server does not recognize, or
-   * cannot handle in its current configuation.
+   * cannot handle in its current configuration.
    */
   static const UNKNOWN_REQUEST = const RequestErrorCode._("UNKNOWN_REQUEST");
 

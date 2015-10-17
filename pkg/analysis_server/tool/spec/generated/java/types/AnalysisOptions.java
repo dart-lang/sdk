@@ -73,7 +73,7 @@ public class AnalysisOptions {
   private final Boolean enableNullAwareOperators;
 
   /**
-   * True if the client wants to enable spport for the proposed "less restricted mixins" proposal
+   * True if the client wants to enable support for the proposed "less restricted mixins" proposal
    * (DEP 34).
    */
   private final Boolean enableSuperMixins;
@@ -186,7 +186,7 @@ public class AnalysisOptions {
   }
 
   /**
-   * True if the client wants to enable spport for the proposed "less restricted mixins" proposal
+   * True if the client wants to enable support for the proposed "less restricted mixins" proposal
    * (DEP 34).
    */
   public Boolean getEnableSuperMixins() {
