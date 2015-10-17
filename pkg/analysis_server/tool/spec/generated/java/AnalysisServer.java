@@ -361,7 +361,7 @@ public interface AnalysisServer {
    *
    * If directives of the Dart file cannot be organized, for example because it has scan or parse
    * errors, or by other reasons, ORGANIZE_DIRECTIVES_ERROR will be generated. The message will
-   * provide datails about the reason.
+   * provide details about the reason.
    *
    * @param file The Dart file to organize directives in.
    */

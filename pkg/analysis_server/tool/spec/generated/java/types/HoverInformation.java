@@ -44,14 +44,14 @@ public class HoverInformation {
   public static final List<HoverInformation> EMPTY_LIST = Lists.newArrayList();
 
   /**
-   * The offset of the range of characters that encompases the cursor position and has the same hover
-   * information as the cursor position.
+   * The offset of the range of characters that encompasses the cursor position and has the same
+   * hover information as the cursor position.
    */
   private final int offset;
 
   /**
-   * The length of the range of characters that encompases the cursor position and has the same hover
-   * information as the cursor position.
+   * The length of the range of characters that encompasses the cursor position and has the same
+   * hover information as the cursor position.
    */
   private final int length;
 
@@ -228,16 +228,16 @@ public class HoverInformation {
   }
 
   /**
-   * The length of the range of characters that encompases the cursor position and has the same hover
-   * information as the cursor position.
+   * The length of the range of characters that encompasses the cursor position and has the same
+   * hover information as the cursor position.
    */
   public int getLength() {
     return length;
   }
 
   /**
-   * The offset of the range of characters that encompases the cursor position and has the same hover
-   * information as the cursor position.
+   * The offset of the range of characters that encompasses the cursor position and has the same
+   * hover information as the cursor position.
    */
   public int getOffset() {
     return offset;
