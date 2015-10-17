@@ -563,9 +563,7 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     var element = node.staticElement;
-    if (element == null) {
-      _recordMessage(new MissingTypeError(node));
-    } else {
+    if (element != null) {
       var type = node.staticElement.type;
       checkArgumentList(node.argumentList, type);
     }
@@ -663,8 +661,6 @@ class CodeChecker extends RecursiveAstVisitor {
     if (element != null) {
       var type = rules.elementType(node.staticElement);
       checkArgumentList(arguments, type);
-    } else {
-      _recordMessage(new MissingTypeError(node));
     }
     node.visitChildren(this);
   }
@@ -920,11 +916,7 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   DartType _getStaticType(Expression expr) {
-    var type = expr.staticType;
-    if (type == null) {
-      reporter.onError(new MissingTypeError(expr).toAnalysisError());
-    }
-    return type ?? rules.provider.dynamicType;
+    return expr.staticType ?? rules.provider.dynamicType;
   }
 
   void _recordDynamicInvoke(AstNode node, AstNode target) {
