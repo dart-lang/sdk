@@ -3771,6 +3771,14 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_parameterName_excludeTypes() {
+    addTestSource('m(int ^) {}');
+    return computeFull((bool result) {
+      assertNotSuggested('int');
+      assertNotSuggested('bool');
+    });
+  }
+
   test_partFile_TypeName() {
     // SimpleIdentifier  TypeName  ConstructorName
     addSource(

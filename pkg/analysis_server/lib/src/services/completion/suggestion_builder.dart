@@ -140,7 +140,7 @@ visitInheritedTypeNames(ClassDeclaration node, void inherited(String name)) {
 }
 
 /**
- * Starting with the given class node, traverse the inheritence hierarchy
+ * Starting with the given class node, traverse the inheritance hierarchy
  * calling the given functions with each non-null non-empty inherited class
  * declaration. For each locally defined declaration, call [localDeclaration].
  * For each class identifier in the hierarchy that is not defined locally,

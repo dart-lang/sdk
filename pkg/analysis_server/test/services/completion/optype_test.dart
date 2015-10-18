@@ -631,7 +631,7 @@ class OpTypeTest {
   test_FunctionDeclaration_inLineComment4() {
     // Comment  CompilationUnit
     addTestSource('''
-      // normal comment 
+      // normal comment
       // normal comment 2^
       zoo(z) { } String name;''');
     assertOpType();
@@ -952,7 +952,7 @@ class OpTypeTest {
     // Comment  ClassDeclaration  CompilationUnit
     addTestSource('''
       class C2 {
-        // normal comment 
+        // normal comment
         // normal comment 2^
         zoo(z) { } String name; }''');
     assertOpType();
@@ -1142,9 +1142,57 @@ class C2 {
     assertOpType(returnValue: true, typeNames: true);
   }
 
-  test_SimpleFormalParameter() {
+  test_SimpleFormalParameter_closure() {
     // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
     addTestSource('mth() { PNGS.sort((String a, Str^) => a.compareTo(b)); }');
+    assertOpType(typeNames: true);
+  }
+
+  test_SimpleFormalParameter_name1() {
+    // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
+    addTestSource('m(String na^) {}');
+    assertOpType(typeNames: false);
+  }
+
+  test_SimpleFormalParameter_name2() {
+    // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
+    addTestSource('m(int first, String na^) {}');
+    assertOpType(typeNames: false);
+  }
+
+  test_SimpleFormalParameter_type_optionalPositional() {
+    // SimpleIdentifier  DefaultFormalParameter  FormalParameterList
+    addTestSource('m([Str^]) {}');
+    assertOpType(typeNames: true);
+  }
+
+  test_SimpleFormalParameter_type_optionalNamed() {
+    // SimpleIdentifier  DefaultFormalParameter  FormalParameterList
+    addTestSource('m({Str^}) {}');
+    assertOpType(typeNames: true);
+  }
+
+  test_SimpleFormalParameter_type_withName() {
+    // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
+    addTestSource('m(Str^ name) {}');
+    assertOpType(typeNames: true);
+  }
+
+  test_SimpleFormalParameter_type_withoutName1() {
+    // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
+    addTestSource('m(Str^) {}');
+    assertOpType(typeNames: true);
+  }
+
+  test_SimpleFormalParameter_type_withoutName2() {
+    // FormalParameterList
+    addTestSource('m(^) {}');
+    assertOpType(typeNames: true);
+  }
+
+  test_SimpleFormalParameter_type_withoutName3() {
+    // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
+    addTestSource('m(int first, Str^) {}');
     assertOpType(typeNames: true);
   }
 
