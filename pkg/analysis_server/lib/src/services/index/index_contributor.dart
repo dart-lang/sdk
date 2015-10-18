@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_store.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
+import 'package:analysis_server/src/services/index/indexable_file.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -37,6 +38,7 @@ class DartIndexContributor extends IndexContributor {
 class _IndexContributor extends GeneralizingAstVisitor {
   final InternalIndexStore _store;
 
+  CompilationUnitElement _unitElement;
   LibraryElement _libraryElement;
 
   Map<ImportElement, Set<Element>> _importElementsMap = {};
@@ -186,10 +188,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   visitCompilationUnit(CompilationUnit node) {
-    CompilationUnitElement unitElement = node.element;
-    if (unitElement != null) {
-      _elementStack.add(unitElement);
-      _libraryElement = unitElement.enclosingElement;
+    _unitElement = node.element;
+    if (_unitElement != null) {
+      _elementStack.add(_unitElement);
+      _libraryElement = _unitElement.enclosingElement;
       if (_libraryElement != null) {
         super.visitCompilationUnit(node);
       }
@@ -279,6 +281,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       LibraryElement expLibrary = element.exportedLibrary;
       _recordLibraryReference(node, expLibrary);
     }
+    _recordUriFileReference(node);
     super.visitExportDirective(node);
   }
 
@@ -319,6 +322,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       LibraryElement impLibrary = element.importedLibrary;
       _recordLibraryReference(node, impLibrary);
     }
+    _recordUriFileReference(node);
     super.visitImportDirective(node);
   }
 
@@ -375,6 +379,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     LocationImpl location = _createLocationForNode(node.uri);
     recordRelationshipElement(
         element, IndexConstants.IS_REFERENCED_BY, location);
+    _recordUriFileReference(node);
     super.visitPartDirective(node);
   }
 
@@ -787,6 +792,18 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordRelationshipElement(
           _libraryElement, IndexConstants.DEFINES, location);
       _store.recordTopLevelDeclaration(element);
+    }
+  }
+
+  void _recordUriFileReference(UriBasedDirective directive) {
+    Source source = directive.source;
+    if (source != null) {
+      LocationImpl location = new LocationImpl(
+          new IndexableFile(_unitElement.source.fullName),
+          directive.uri.offset,
+          directive.uri.length);
+      _store.recordRelationship(new IndexableFile(source.fullName),
+          IndexConstants.IS_REFERENCED_BY, location);
     }
   }
 

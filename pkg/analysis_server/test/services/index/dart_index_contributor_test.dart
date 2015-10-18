@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_contributor.dart';
 import 'package:analysis_server/src/services/index/index_store.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
+import 'package:analysis_server/src/services/index/indexable_file.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -34,16 +35,21 @@ void indexDartUnit(
  * Returns `true` if the [actual] location the same properties as [expected].
  */
 bool _equalsLocation(LocationImpl actual, ExpectedLocation expected) {
-  return _equalsLocationProperties(actual, expected.element, expected.offset,
+  return _equalsLocationProperties(actual, expected.indexable, expected.offset,
       expected.length, expected.isQualified, expected.isResolved);
 }
 
 /**
  * Returns `true` if the [actual] location the expected properties.
  */
-bool _equalsLocationProperties(LocationImpl actual, Element expectedElement,
-    int expectedOffset, int expectedLength, bool isQualified, bool isResolved) {
-  return (expectedElement == null || expectedElement == actual.element) &&
+bool _equalsLocationProperties(
+    LocationImpl actual,
+    IndexableObject expectedIndexable,
+    int expectedOffset,
+    int expectedLength,
+    bool isQualified,
+    bool isResolved) {
+  return (expectedIndexable == null || expectedIndexable == actual.indexable) &&
       expectedOffset == actual.offset &&
       expectedLength == actual.length &&
       isQualified == actual.isQualified &&
@@ -86,6 +92,27 @@ class DartUnitContributorTest extends AbstractSingleUnitTest {
         .thenInvoke((Element element) {
       recordedTopElements.add(element);
     });
+  }
+
+  void test_isReferencedBy_PrefixElement() {
+    _indexTestUnit('''
+import 'dart:async' as ppp;
+main() {
+  ppp.Future a;
+  ppp.Stream b;
+}
+''');
+    // prepare elements
+    PrefixElement element = findNodeElementAtString('ppp;');
+    Element elementA = findElement('a');
+    Element elementB = findElement('b');
+    IndexableElement indexable = new IndexableElement(element);
+    // verify
+    _assertRecordedRelation(indexable, IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(elementA, 'ppp.Future'));
+    _assertRecordedRelation(indexable, IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(elementB, 'ppp.Stream'));
+    _assertNoRecordedRelation(indexable, null, _expectedLocation(null, 'ppp;'));
   }
 
   void test_bad_unresolvedFieldFormalParameter() {
@@ -1031,6 +1058,51 @@ main(A a) {
         _expectedLocation(mainElement, 'field: 3'));
   }
 
+  void test_isReferencedBy_fileOfLibrary_byImportingExportingFile() {
+    addSource('/lib.dart', '');
+    _indexTestUnit('''
+import 'lib.dart'; // 1
+export 'lib.dart'; // 2
+''');
+    // verify
+    IndexableFile libIndexableFile = new IndexableFile('/lib.dart');
+    IndexableFile testIndexableFile = new IndexableFile(testFile);
+    _assertRecordedRelationForIndexable(
+        libIndexableFile,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(
+            testIndexableFile,
+            testCode.indexOf("'lib.dart'; // 1"),
+            "'lib.dart'".length,
+            false,
+            true));
+    _assertRecordedRelationForIndexable(
+        libIndexableFile,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(
+            testIndexableFile,
+            testCode.indexOf("'lib.dart'; // 2"),
+            "'lib.dart'".length,
+            false,
+            true));
+  }
+
+  void test_isReferencedBy_fileOfPart_bySourcingFile() {
+    addSource('/part.dart', 'part of my.lib;');
+    _indexTestUnit('''
+library my.lib;
+part 'part.dart';
+''');
+    // verify
+    IndexableFile partIndexableFile = new IndexableFile('/part.dart');
+    IndexableFile testIndexableFile = new IndexableFile(testFile);
+    _assertRecordedRelationForIndexable(
+        partIndexableFile,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(testIndexableFile, testCode.indexOf("'part.dart'"),
+            "'part.dart'".length, false, true));
+  }
+
   void test_isReferencedBy_FunctionElement() {
     _indexTestUnit('''
 foo() {}
@@ -1296,7 +1368,7 @@ main() {
         _expectedLocation(mainElement, 'L;'));
   }
 
-  void test_isReferencedBy_libraryName() {
+  void test_isReferencedBy_libraryName_byPartOf() {
     Source libSource = addSource(
         '/lib.dart',
         '''
@@ -1349,27 +1421,6 @@ main() {
     // verify
     _assertRecordedRelationForElement(element, IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(mainElement, 'p: 1'));
-  }
-
-  void test_isReferencedBy_PrefixElement() {
-    _indexTestUnit('''
-import 'dart:async' as ppp;
-main() {
-  ppp.Future a;
-  ppp.Stream b;
-}
-''');
-    // prepare elements
-    PrefixElement element = findNodeElementAtString('ppp;');
-    Element elementA = findElement('a');
-    Element elementB = findElement('b');
-    IndexableElement indexable = new IndexableElement(element);
-    // verify
-    _assertRecordedRelation(indexable, IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(elementA, 'ppp.Future'));
-    _assertRecordedRelation(indexable, IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(elementB, 'ppp.Stream'));
-    _assertNoRecordedRelation(indexable, null, _expectedLocation(null, 'ppp;'));
   }
 
   void test_isReferencedBy_TopLevelVariableElement() {
@@ -1596,7 +1647,11 @@ main(A a, p) {
 
   void _assertDefinesTopLevelElement(Element element) {
     ExpectedLocation location = new ExpectedLocation(
-        element, element.nameOffset, element.nameLength, false, true);
+        new IndexableElement(element),
+        element.nameOffset,
+        element.nameLength,
+        false,
+        true);
     _assertRecordedRelationForElement(
         testLibraryElement, IndexConstants.DEFINES, location);
     expect(recordedTopElements, contains(element));
@@ -1685,8 +1740,10 @@ main(A a, p) {
     if (length == -1) {
       length = getLeadingIdentifierLength(search);
     }
+    IndexableObject indexable =
+        element != null ? new IndexableElement(element) : null;
     return new ExpectedLocation(
-        element, offset, length, isQualified, isResolved);
+        indexable, offset, length, isQualified, isResolved);
   }
 
   ExpectedLocation _expectedLocationQ(Element element, String search,
@@ -1708,18 +1765,18 @@ main(A a, p) {
 }
 
 class ExpectedLocation {
-  Element element;
+  IndexableObject indexable;
   int offset;
   int length;
   bool isQualified;
   bool isResolved;
 
-  ExpectedLocation(this.element, this.offset, this.length, this.isQualified,
+  ExpectedLocation(this.indexable, this.offset, this.length, this.isQualified,
       this.isResolved);
 
   @override
   String toString() {
-    return 'ExpectedLocation(element=$element; offset=$offset; length=$length;'
+    return 'ExpectedLocation(indexable=$indexable; offset=$offset; length=$length;'
         ' isQualified=$isQualified isResolved=$isResolved)';
   }
 }
