@@ -3783,6 +3783,11 @@ class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
   /**
+   * The name of the [TYPE_PROVIDER] input.
+   */
+  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
+
+  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
@@ -3800,7 +3805,18 @@ class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
+    //
+    // Prepare inputs.
+    //
     LibraryElement library = getRequiredInput(LIBRARY_INPUT);
+    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    //
+    // Create the synthetic element for `loadLibrary`.
+    //
+    (library as LibraryElementImpl).createLoadLibraryFunction(typeProvider);
+    //
+    // Record outputs.
+    //
     outputs[LIBRARY_ELEMENT5] = library;
   }
 
@@ -3814,7 +3830,8 @@ class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
     return <String, TaskInput>{
       'resolvedUnit': UNITS.of(source).toList((Source unit) =>
           RESOLVED_UNIT3.of(new LibrarySpecificUnit(source, unit))),
-      LIBRARY_INPUT: LIBRARY_ELEMENT4.of(source)
+      LIBRARY_INPUT: LIBRARY_ELEMENT4.of(source),
+      TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }
 

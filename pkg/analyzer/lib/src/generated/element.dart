@@ -7602,50 +7602,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   FunctionElement get loadLibraryFunction {
-    if (_loadLibraryFunction == null) {
-      FunctionElementImpl function =
-          new FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1);
-      function.synthetic = true;
-      function.enclosingElement = this;
-      function.returnType = loadLibraryReturnType;
-      function.type = new FunctionTypeImpl(function);
-      _loadLibraryFunction = function;
-    }
+    assert(_loadLibraryFunction != null);
     return _loadLibraryFunction;
-  }
-
-  /**
-   * Return the object representing the type 'Future' from the 'dart:async'
-   * library, or the type 'void' if the type 'Future' cannot be accessed.
-   */
-  DartType get loadLibraryReturnType {
-    try {
-      Source asyncSource = context.sourceFactory.forUri(DartSdk.DART_ASYNC);
-      if (asyncSource == null) {
-        AnalysisEngine.instance.logger
-            .logError("Could not create a source for dart:async");
-        return VoidTypeImpl.instance;
-      }
-      LibraryElement asyncElement = context.computeLibraryElement(asyncSource);
-      if (asyncElement == null) {
-        AnalysisEngine.instance.logger
-            .logError("Could not build the element model for dart:async");
-        return VoidTypeImpl.instance;
-      }
-      ClassElement futureElement = asyncElement.getType("Future");
-      if (futureElement == null) {
-        AnalysisEngine.instance.logger
-            .logError("Could not find type Future in dart:async");
-        return VoidTypeImpl.instance;
-      }
-      InterfaceType futureType = futureElement.type;
-      return futureType.substitute4(<DartType>[DynamicTypeImpl.instance]);
-    } on AnalysisException catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError(
-          "Could not build the element model for dart:async",
-          new CaughtException(exception, stackTrace));
-      return VoidTypeImpl.instance;
-    }
   }
 
   @override
@@ -7705,6 +7663,20 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
+
+  /**
+   * Create the [FunctionElement] to be returned by [loadLibraryFunction],
+   * using types provided by [typeProvider].
+   */
+  void createLoadLibraryFunction(TypeProvider typeProvider) {
+    FunctionElementImpl function =
+        new FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1);
+    function.synthetic = true;
+    function.enclosingElement = this;
+    function.returnType = typeProvider.futureDynamicType;
+    function.type = new FunctionTypeImpl(function);
+    _loadLibraryFunction = function;
+  }
 
   @override
   ElementImpl getChild(String identifier) {

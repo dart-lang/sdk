@@ -3208,6 +3208,7 @@ class C extends A {}
       ClassElement classC = library.getType('C');
       expect(classC.supertype.displayName, 'A');
     }
+    expect(library.loadLibraryFunction, isNotNull);
   }
 
   test_perform_external() {
