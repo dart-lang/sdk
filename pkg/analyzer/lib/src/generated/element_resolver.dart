@@ -974,10 +974,18 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       return null;
     }
     //
-    // We ignore identifiers that have already been resolved, such as
-    // identifiers representing the name in a declaration.
+    // Ignore nodes that should have been resolved before getting here.
     //
-    if (node.staticElement != null) {
+    if (node.inDeclarationContext()) {
+      return null;
+    }
+    AstNode parent = node.parent;
+    if (parent is FieldFormalParameter) {
+      return null;
+    } else if (parent is ConstructorFieldInitializer &&
+        parent.fieldName == node) {
+      return null;
+    } else if (parent is Annotation && parent.constructorName == node) {
       return null;
     }
     //

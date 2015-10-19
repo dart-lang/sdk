@@ -1912,7 +1912,7 @@ class GatherUsedLocalElementsTaskTest extends _AbstractDartTaskTest {
   UsedLocalElements usedElements;
   Set<String> usedElementNames;
 
-  fail_perform_forPart_afterLibraryUpdate() {
+  test_perform_forPart_afterLibraryUpdate() {
     Source libSource = newSource(
         '/my_lib.dart',
         '''
@@ -3982,25 +3982,6 @@ class StrongModeVerifyUnitTaskTest extends _AbstractDartTaskTest {
     enableStrongMode();
   }
 
-  void test_perform_verifyError() {
-    enableStrongMode();
-    AnalysisTarget source = newSource(
-        '/test.dart',
-        '''
-int topLevel = 3;
-class C {
-  String field = topLevel;
-}
-''');
-    computeResult(new LibrarySpecificUnit(source, source), STRONG_MODE_ERRORS);
-    // validate
-    _fillErrorListener(STRONG_MODE_ERRORS);
-
-    var errors = errorListener.errors;
-    expect(errors.length, 1);
-    expect(errors[0].errorCode.name, "dev_compiler.StaticTypeError");
-  }
-
   void test_perform_recordDynamicInvoke() {
     enableStrongMode();
     AnalysisTarget source = newSource(
@@ -4024,6 +4005,25 @@ void main() {
     expect(DynamicInvoke.get(idx.target), isNotNull);
     expect(DynamicInvoke.get(idx.target), isNotNull);
     expect(DynamicInvoke.get(idx.target), isTrue);
+  }
+
+  void test_perform_verifyError() {
+    enableStrongMode();
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+int topLevel = 3;
+class C {
+  String field = topLevel;
+}
+''');
+    computeResult(new LibrarySpecificUnit(source, source), STRONG_MODE_ERRORS);
+    // validate
+    _fillErrorListener(STRONG_MODE_ERRORS);
+
+    var errors = errorListener.errors;
+    expect(errors.length, 1);
+    expect(errors[0].errorCode.name, "dev_compiler.StaticTypeError");
   }
 }
 
