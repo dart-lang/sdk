@@ -1,3 +1,11 @@
+## 1.14.0
+
+### Core library changes
+* `dart:math`
+  * `Random` added a `secure` constructor returning a cryptographically secure
+    random generator which reads from the entropy source provided by the
+    embedder for every generated random value.
+
 ## 1.13.0
 
 ### Core library changes
