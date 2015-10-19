@@ -937,6 +937,26 @@ test_pack:lib/
     _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
   }
 
+  void test_setRoots_noContext_inDotFolder() {
+    String pubspecPath = posix.join(projPath, '.pub', 'pubspec.yaml');
+    resourceProvider.newFile(pubspecPath, 'name: test');
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // verify
+    expect(callbacks.currentContextPaths, hasLength(1));
+    expect(callbacks.currentContextPaths, contains(projPath));
+    expect(callbacks.currentContextFilePaths[projPath], hasLength(0));
+  }
+
+  void test_setRoots_noContext_inPackagesFolder() {
+    String pubspecPath = posix.join(projPath, 'packages', 'pubspec.yaml');
+    resourceProvider.newFile(pubspecPath, 'name: test');
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // verify
+    expect(callbacks.currentContextPaths, hasLength(1));
+    expect(callbacks.currentContextPaths, contains(projPath));
+    expect(callbacks.currentContextFilePaths[projPath], hasLength(0));
+  }
+
   void test_setRoots_packageResolver() {
     Uri uri = Uri.parse('package:foo/foo.dart');
     Source source = new TestSource();

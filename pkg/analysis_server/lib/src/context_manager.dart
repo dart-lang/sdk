@@ -644,7 +644,7 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Resursively adds all Dart and HTML files to the [changeSet].
+   * Recursively adds all Dart and HTML files to the [changeSet].
    */
   void _addPreviouslyExcludedSources(ContextInfo info, ChangeSet changeSet,
       Folder folder, List<String> oldExcludedPaths) {
@@ -691,7 +691,7 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Resursively adds all Dart and HTML files to the [changeSet].
+   * Recursively adds all Dart and HTML files to the [changeSet].
    */
   void _addSourceFiles(ChangeSet changeSet, Folder folder, ContextInfo info) {
     if (info.excludesResource(folder) || folder.shortName.startsWith('.')) {
@@ -895,13 +895,16 @@ class ContextManagerImpl implements ContextManager {
    */
   void _createContexts(
       ContextInfo parent, Folder folder, bool withPackageSpecOnly) {
+    if (folder.shortName.startsWith('.') || folder.shortName == 'packages') {
+      return;
+    }
     // Decide whether a context needs to be created for [folder] here, and if
     // so, create it.
     File packageSpec = _findPackageSpecFile(folder);
     bool createContext = packageSpec.exists || !withPackageSpecOnly;
     if (withPackageSpecOnly &&
         packageSpec.exists &&
-        (parent != null) &&
+        parent != null &&
         parent.ignored(packageSpec.path)) {
       // Don't create a context if the package spec is required and ignored.
       createContext = false;
