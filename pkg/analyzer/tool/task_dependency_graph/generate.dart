@@ -7,10 +7,6 @@
  * dependencies in ".dot" format.  Prior to running, the user should run "pub
  * get" in the analyzer directory to ensure that a "packages" folder exists.
  *
- * The ".dot" file is output to standard out.  To convert it to a pdf, store it
- * in a file (e.g. "tasks.dot"), and post-process it with
- * "dot tasks.dot -Tpdf -O".
- *
  * TODO(paulberry):
  * - Add general.dart and html.dart for completeness.
  * - Use Graphviz's "record" feature to produce more compact output
@@ -19,9 +15,10 @@
  *   of exactly one task.
  * - Convert this tool to use package_config to find the package map.
  */
-library task_dependency_graph;
+library task_dependency_graph.generate;
 
 import 'dart:io' hide File;
+import 'dart:io' as io;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -36,8 +33,11 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart' as path;
 
+/**
+ * Generate the target .dot file.
+ */
 main() {
-  new Driver().run();
+  new Driver().generateFile();
 }
 
 typedef void GetterFinderCallback(PropertyAccessorElement element);
@@ -50,7 +50,30 @@ class Driver {
   ClassElement enginePluginClass;
   CompilationUnitElement taskUnitElement;
   InterfaceType extensionPointIdType;
-  String rootDir;
+  final String rootDir;
+
+  Driver()
+      : rootDir =
+            findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
+
+  /**
+   * Get an [io.File] object corresponding to the file in which the generated
+   * graph should be output.
+   */
+  io.File get file => new io.File(
+      path.join(rootDir, 'tool', 'task_dependency_graph', 'tasks.dot'));
+
+  /**
+   * Determine if the output [file] contains the expected contents.
+   */
+  bool checkFile() {
+    String expectedContents = generateFileContents();
+    String actualContents = file.readAsStringSync();
+    // Normalize Windows line endings to Unix line endings so that the
+    // comparison doesn't fail on Windows.
+    actualContents = actualContents.replaceAll('\r\n', '\n');
+    return expectedContents == actualContents;
+  }
 
   /**
    * Starting at [node], find all calls to registerExtension() which refer to
@@ -100,25 +123,18 @@ class Driver {
   }
 
   /**
-   * Find the root directory of the analyzer package by proceeding
-   * upward to the 'tool' dir, and then going up one more directory.
+   * Generate the task dependency graph and write it to the output [file].
    */
-  String findRoot(String pathname) {
-    while (path.basename(pathname) != 'tool') {
-      String parent = path.dirname(pathname);
-      if (parent.length >= pathname.length) {
-        throw new Exception("Can't find root directory");
-      }
-      pathname = parent;
-    }
-    return path.dirname(pathname);
+  void generateFile() {
+    String fileContents = generateFileContents();
+    file.writeAsStringSync(fileContents);
   }
 
-  CompilationUnit getUnit(Source source) =>
-      context.resolveCompilationUnit2(source, source);
-
-  void run() {
-    rootDir = findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
+  /**
+   * Generate the task dependency graph and return it as a [String].
+   */
+  String generateFileContents() {
+    List<String> lines = <String>[];
     resourceProvider = PhysicalResourceProvider.INSTANCE;
     DartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
     context = AnalysisEngine.instance.createAnalysisContext();
@@ -153,7 +169,6 @@ class Driver {
     CompilationUnitElement dartDartUnitElement = dartDartUnit.element;
     CompilationUnit taskUnit = getUnit(taskSource);
     taskUnitElement = taskUnit.element;
-    print('digraph G {');
     Set<String> results = new Set<String>();
     Set<String> resultLists = new Set<String>();
     for (ClassElement cls in dartDartUnitElement.types) {
@@ -162,32 +177,50 @@ class Driver {
         AstNode buildInputsAst = cls.getMethod('buildInputs').computeNode();
         findResultDescriptors(buildInputsAst, (String input) {
           results.add(input);
-          print('  $input -> $task');
+          lines.add('  $input -> $task');
         });
         findResultDescriptorLists(buildInputsAst, (String input) {
           resultLists.add(input);
-          print('  $input -> $task');
+          lines.add('  $input -> $task');
         });
-        findResultDescriptors(cls.getField('DESCRIPTOR').computeNode(), (String output) {
-          results.add(output);
-          print('  $task -> $output');
+        findResultDescriptors(cls.getField('DESCRIPTOR').computeNode(), (String out) {
+          results.add(out);
+          lines.add('  $task -> $out');
         });
       }
     }
     AstNode enginePluginAst = enginePluginUnitElement.computeNode();
     for (String resultList in resultLists) {
-      print('  $resultList [shape=hexagon]');
+      lines.add('  $resultList [shape=hexagon]');
       TopLevelVariableElement extensionIdVariable = _getExtensionId(resultList);
       findExtensions(enginePluginAst, extensionIdVariable, (String extension) {
         results.add(extension);
-        print('  $extension -> $resultList');
+        lines.add('  $extension -> $resultList');
       });
     }
     for (String result in results) {
-      print('  $result [shape=box]');
+      lines.add('  $result [shape=box]');
     }
-    print('}');
+    lines.sort();
+    return '''
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+//
+// This file has been automatically generated.  Please do not edit it manually.
+// To regenerate the file, use the script
+// "pkg/analyzer/tool/task_dependency_graph/generate.dart".
+//
+// To render this graph using Graphviz (www.graphviz.org) use the command:
+// "dot tasks.dot -Tpdf -O".
+digraph G {
+${lines.join('\n')}
+}
+''';
   }
+
+  CompilationUnit getUnit(Source source) =>
+      context.resolveCompilationUnit2(source, source);
 
   Source setupSource(String filename) {
     String filePath = path.join(rootDir, filename);
@@ -227,6 +260,21 @@ class Driver {
     }
     throw new Exception(
         'Could not find extension ID corresponding to $resultListGetterName');
+  }
+
+  /**
+   * Find the root directory of the analyzer package by proceeding
+   * upward to the 'tool' dir, and then going up one more directory.
+   */
+  static String findRoot(String pathname) {
+    while (path.basename(pathname) != 'tool') {
+      String parent = path.dirname(pathname);
+      if (parent.length >= pathname.length) {
+        throw new Exception("Can't find root directory");
+      }
+      pathname = parent;
+    }
+    return path.dirname(pathname);
   }
 }
 

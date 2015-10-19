@@ -143,6 +143,7 @@ analyzer_cli/*: SkipByDesign # Uses dart:io.
 analysis_server/test/*: SkipByDesign # Uses dart:io.
 analysis_server/tool/spec/check_all_test: SkipByDesign # Uses dart:io.
 analyzer/test/*: SkipByDesign # Uses dart:io.
+analyzer/tool/task_dependency_graph/check_test: SkipByDesign # Uses dart:io.
 analyzer2dart/*: SkipByDesign # Uses dart:io.
 http_server/test/*: Fail, OK # Uses dart:io.
 observe/test/transformer_test: Fail, OK # Uses dart:io.
