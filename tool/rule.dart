@@ -72,10 +72,7 @@ void main([args]) {
 }
 
 void printUsage(ArgParser parser, [String error]) {
-  var message = 'Generates rule stubs.';
-  if (error != null) {
-    message = error;
-  }
+  var message = error ?? 'Generates rule stubs.';
 
   stdout.write('''$message
 Usage: rule

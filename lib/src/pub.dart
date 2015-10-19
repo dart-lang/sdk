@@ -221,7 +221,6 @@ class _PSDependency extends PSDependency {
 }
 
 class _PSDependencyList extends PSDependencyList {
-
   final dependencies = <PSDependency>[];
   final PSNode token;
 
@@ -267,7 +266,7 @@ class _PSNode implements PSNode {
   final SourceSpan span;
 
   _PSNode(YamlNode node)
-      : text = node.value == null ? null : node.value.toString(),
+      : text = node.value?.toString(),
         span = node.span;
 
   @override

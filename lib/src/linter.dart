@@ -141,9 +141,7 @@ class LinterOptions extends DriverOptions {
   final bool enableLints = true;
   LintFilter filter;
   LinterOptions([this.enabledLints]) {
-    if (enabledLints == null) {
-      enabledLints = ruleRegistry;
-    }
+    enabledLints ??= ruleRegistry;
   }
   void configure(LintConfig config) {
     // TODO(pquitslund): revisit these default-to-on semantics.
@@ -224,9 +222,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     _locationInfo.add(new AnalysisErrorInfoImpl([error], new _LineInfo(node)));
 
     // Then do the reporting
-    if (reporter != null) {
-      reporter.reportError(error);
-    }
+    reporter?.reportError(error);
   }
 }
 

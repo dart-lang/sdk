@@ -92,7 +92,7 @@ class Generator {
   LintRule rule;
   Generator(this.rule);
 
-  String get details => rule.details != null ? rule.details : '';
+  String get details => rule.details ?? '';
   String get group => rule.group.name;
   String get humanReadableName => rule.name;
   String get maturity => rule.maturity.name;

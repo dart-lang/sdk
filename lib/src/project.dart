@@ -45,7 +45,7 @@ class DartProject {
   /// If a [dir] is unspecified the current working directory will be
   /// used.
   DartProject(AnalysisContext context, List<Source> sources, {Directory dir})
-      : root = dir != null ? dir : Directory.current {
+      : root = dir ?? Directory.current {
     _pubspec = _findAndParsePubspec(root);
     _apiModel = new _ApiModel(context, sources, root);
   }
@@ -55,12 +55,7 @@ class DartProject {
   /// Project names correspond to the package name as specified in the project's
   /// [pubspec]. The pubspec is found relative to the [projectRoot].  If no
   /// pubspec can be found, the name defaults to the projectRoot basename.
-  String get name {
-    if (_name == null) {
-      _name = _calculateName();
-    }
-    return _name;
-  }
+  String get name => _name ??= _calculateName();
 
   /// The project's pubspec.
   Pubspec get pubspec => _pubspec;

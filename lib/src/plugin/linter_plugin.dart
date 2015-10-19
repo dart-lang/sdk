@@ -99,12 +99,8 @@ class LinterPlugin implements Plugin {
     return lints;
   }
 
-  List<Linter> _getRules(LintConfig config) {
-    if (config != null) {
-      return ruleRegistry.enabled(config).toList();
-    }
-    return _noLints;
-  }
+  List<Linter> _getRules(LintConfig config) =>
+      config != null ? ruleRegistry.enabled(config).toList() : _noLints;
 
   void _validateTaskExtension(Object extension) {
     if (extension is! LintRule) {
