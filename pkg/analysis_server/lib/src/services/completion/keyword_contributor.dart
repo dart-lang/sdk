@@ -187,9 +187,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitForStatement(ForStatement node) {
-    if (entity == node.rightSeparator && entity.toString() != ';') {
-      // Handle the degenerate case while typing - for (int x i^)
-      _addSuggestion(Keyword.IN, DART_RELEVANCE_HIGH);
+    // Handle the degenerate case while typing - for (int x i^)
+    if (node.condition == entity && entity is SimpleIdentifier) {
+      Token entityToken = (entity as SimpleIdentifier).beginToken;
+      if (entityToken.previous.isSynthetic &&
+          entityToken.previous.type == TokenType.SEMICOLON) {
+        _addSuggestion(Keyword.IN, DART_RELEVANCE_HIGH);
+      }
     }
   }
 
