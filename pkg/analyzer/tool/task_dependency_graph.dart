@@ -159,9 +159,7 @@ class Driver {
     for (ClassElement cls in dartDartUnitElement.types) {
       if (!cls.isAbstract && cls.type.isSubtypeOf(analysisTaskType)) {
         String task = cls.name;
-        // TODO(paulberry): node is deprecated.  What am I supposed to do
-        // instead?
-        AstNode buildInputsAst = cls.getMethod('buildInputs').node;
+        AstNode buildInputsAst = cls.getMethod('buildInputs').computeNode();
         findResultDescriptors(buildInputsAst, (String input) {
           results.add(input);
           print('  $input -> $task');
@@ -170,13 +168,13 @@ class Driver {
           resultLists.add(input);
           print('  $input -> $task');
         });
-        findResultDescriptors(cls.getField('DESCRIPTOR').node, (String output) {
+        findResultDescriptors(cls.getField('DESCRIPTOR').computeNode(), (String output) {
           results.add(output);
           print('  $task -> $output');
         });
       }
     }
-    AstNode enginePluginAst = enginePluginUnitElement.node;
+    AstNode enginePluginAst = enginePluginUnitElement.computeNode();
     for (String resultList in resultLists) {
       print('  $resultList [shape=hexagon]');
       TopLevelVariableElement extensionIdVariable = _getExtensionId(resultList);
@@ -215,13 +213,10 @@ class Driver {
     PropertyAccessorElement getter =
         enginePluginClass.getGetter(resultListGetterName);
     for (ElementAnnotation annotation in getter.metadata) {
-      // TODO(paulberry): we should be using part of the public API rather than
-      // just casting to ElementAnnotationImpl.
-      ElementAnnotationImpl annotationImpl = annotation;
-      DartObjectImpl annotationValue = annotationImpl.evaluationResult.value;
+      DartObjectImpl annotationValue = annotation.constantValue;
       if (annotationValue.type.isSubtypeOf(extensionPointIdType)) {
         String extensionPointId =
-            annotationValue.fields['extensionPointId'].value;
+            annotationValue.fields['extensionPointId'].toStringValue();
         for (TopLevelVariableElement variable
             in taskUnitElement.topLevelVariables) {
           if (variable.name == extensionPointId) {
