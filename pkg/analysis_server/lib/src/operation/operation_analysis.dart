@@ -64,9 +64,10 @@ scheduleImplementedNotification(
 /**
  * Schedules indexing of the given [file] using the resolved [dartUnit].
  */
-void scheduleIndexOperation(AnalysisServer server, String file,
-    AnalysisContext context, CompilationUnit dartUnit) {
+void scheduleIndexOperation(
+    AnalysisServer server, String file, CompilationUnit dartUnit) {
   if (server.index != null) {
+    AnalysisContext context = dartUnit.element.context;
     server.addOperation(new _DartIndexOperation(context, file, dartUnit));
   }
 }
@@ -414,7 +415,7 @@ class PerformAnalysisOperation extends ServerOperation {
       try {
         CompilationUnit dartUnit = notice.resolvedDartUnit;
         if (dartUnit != null) {
-          server.addOperation(new _DartIndexOperation(context, file, dartUnit));
+          scheduleIndexOperation(server, file, dartUnit);
         }
       } catch (exception, stackTrace) {
         server.sendServerErrorNotification(exception, stackTrace);
@@ -459,6 +460,7 @@ class _DartIndexOperation extends _SingleFileOperation {
     ServerPerformanceStatistics.indexOperation.makeCurrentWhile(() {
       try {
         Index index = server.index;
+        AnalysisContext context = unit.element.context;
         index.index(context, unit);
       } catch (exception, stackTrace) {
         server.sendServerErrorNotification(exception, stackTrace);
