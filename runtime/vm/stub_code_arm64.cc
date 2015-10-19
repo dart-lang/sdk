@@ -829,7 +829,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ LoadFromOffset(R6, THR, Thread::top_exit_frame_info_offset());
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -22);
+  ASSERT(kExitLinkSlotFromEntryFp == -21);
   __ Push(R6);
 
   // Load arguments descriptor array into R4, which is passed to Dart code.

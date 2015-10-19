@@ -1260,16 +1260,6 @@ static uword RegMaskBit(Register reg) {
 }
 
 
-// Mask of globally reserved registers. Some other registers are only reserved
-// in particular code (e.g., ARGS_DESC_REG in intrinsics).
-static const uword kReservedCpuRegisters = RegMaskBit(SPREG)
-                                         | RegMaskBit(FPREG)
-                                         | RegMaskBit(TMP)
-                                         | RegMaskBit(TMP2)
-                                         | RegMaskBit(PP)
-                                         | RegMaskBit(THR);
-
-
 void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   ASSERT(!is_optimizing());
 
@@ -1279,16 +1269,10 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
 
   bool blocked_registers[kNumberOfCpuRegisters];
 
-  // Mark all available registers free.
+  // Block all registers globally reserved by the assembler, etc and mark
+  // the rest as free.
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
-    blocked_registers[i] = false;
-  }
-
-  // Block all registers globally reserved by the assembler, etc.
-  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
-    if ((kReservedCpuRegisters & (1 << i)) != 0) {
-      blocked_registers[i] = true;
-    }
+    blocked_registers[i] = (kDartAvailableCpuRegs & (1 << i)) == 0;
   }
 
   // Mark all fixed input, temp and output registers as used.
@@ -1314,14 +1298,6 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
     // Fixed output registers are allowed to overlap with
     // temps and inputs.
     blocked_registers[locs->out(0).reg()] = true;
-  }
-
-  // Block all non-free registers.
-  for (intptr_t i = 0; i < kFirstFreeCpuRegister; i++) {
-    blocked_registers[i] = true;
-  }
-  for (intptr_t i = kLastFreeCpuRegister + 1; i < kNumberOfCpuRegisters; i++) {
-    blocked_registers[i] = true;
   }
 
   // Allocate all unallocated input locations.
@@ -1582,8 +1558,8 @@ ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
   reg_ = static_cast<Register>(
       resolver_->AllocateScratchRegister(Location::kRegister,
                                          blocked_mask,
-                                         kFirstFreeCpuRegister,
-                                         kLastFreeCpuRegister,
+                                         0,
+                                         kNumberOfCpuRegisters - 1,
                                          &spilled_));
 
   if (spilled_) {

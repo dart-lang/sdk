@@ -26,8 +26,6 @@ namespace dart {
 
 
 enum Register {
-  kNoRegister = -1,
-  kFirstFreeCpuRegister = 0,
   R0  =  0,
   R1  =  1,
   R2  =  2,
@@ -36,21 +34,23 @@ enum Register {
   R5  =  5,
   R6  =  6,
   R7  =  7,
-  R8  =  8,
-  R9  =  9,
-  R10 = 10,
-  R11 = 11,
-  R12 = 12,
-  R13 = 13,
-  R14 = 14,
-  kLastFreeCpuRegister = 14,
-  R15 = 15,
+  R8  =  8,  // THR
+  R9  =  9,  // PP
+  R10 = 10,  // CTX
+  R11 = 11,  // FP
+  R12 = 12,  // IP aka TMP
+  R13 = 13,  // SP
+  R14 = 14,  // LR
+  R15 = 15,  // PC
+  kNumberOfCpuRegisters = 16,
+  kNoRegister = -1,  // Signals an illegal register.
+
+  // Aliases.
   FP  = R11,
   IP  = R12,
   SP  = R13,
   LR  = R14,
   PC  = R15,
-  kNumberOfCpuRegisters = 16,
 };
 
 
@@ -269,12 +269,16 @@ const QRegister kAbiFirstPreservedFpuReg = Q4;
 const QRegister kAbiLastPreservedFpuReg = Q7;
 const int kAbiPreservedFpuRegCount = 4;
 
+const RegList kReservedCpuRegisters =
+    (1 << SPREG) |
+    (1 << FPREG) |
+    (1 << TMP)   |
+    (1 << PP)    |
+    (1 << THR)   |
+    (1 << PC);
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
-    (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3) |
-    (1 << R4) | (1 << R5) | (1 << R6) | (1 << R7) |
-    (1 << R8) | (1 << R14);
-
+    kAllCpuRegistersList & ~kReservedCpuRegisters;
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;

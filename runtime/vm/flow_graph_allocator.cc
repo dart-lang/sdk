@@ -101,24 +101,11 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph,
 
   // All registers are marked as "not blocked" (array initialized to false).
   // Mark the unavailable ones as "blocked" (true).
-  for (intptr_t i = 0; i < kFirstFreeCpuRegister; i++) {
-    blocked_cpu_registers_[i] = true;
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+    if ((kDartAvailableCpuRegs & (1 << i)) == 0) {
+      blocked_cpu_registers_[i] = true;
+    }
   }
-  for (intptr_t i = kLastFreeCpuRegister + 1; i < kNumberOfCpuRegisters; i++) {
-    blocked_cpu_registers_[i] = true;
-  }
-  if (TMP != kNoRegister) {
-    blocked_cpu_registers_[TMP] = true;
-  }
-  if (TMP2 != kNoRegister) {
-    blocked_cpu_registers_[TMP2] = true;
-  }
-  if (PP != kNoRegister) {
-    blocked_cpu_registers_[PP] = true;
-  }
-  blocked_cpu_registers_[SPREG] = true;
-  blocked_cpu_registers_[FPREG] = true;
-  blocked_cpu_registers_[THR] = true;
 
   // FpuTMP is used as scratch by optimized code and parallel move resolver.
   blocked_fpu_registers_[FpuTMP] = true;
