@@ -1160,15 +1160,15 @@ class C2 {
     assertOpType(typeNames: false);
   }
 
-  test_SimpleFormalParameter_type_optionalPositional() {
-    // SimpleIdentifier  DefaultFormalParameter  FormalParameterList
-    addTestSource('m([Str^]) {}');
-    assertOpType(typeNames: true);
-  }
-
   test_SimpleFormalParameter_type_optionalNamed() {
     // SimpleIdentifier  DefaultFormalParameter  FormalParameterList
     addTestSource('m({Str^}) {}');
+    assertOpType(typeNames: true);
+  }
+
+  test_SimpleFormalParameter_type_optionalPositional() {
+    // SimpleIdentifier  DefaultFormalParameter  FormalParameterList
+    addTestSource('m([Str^]) {}');
     assertOpType(typeNames: true);
   }
 
@@ -1365,6 +1365,20 @@ class C2 {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('main() {var ^}');
+    assertOpType();
+  }
+
+  test_VariableDeclaration_name_hasSome_parameterizedType() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // VariableDeclarationStatement  Block
+    addTestSource('main() {List<int> m^}');
+    assertOpType();
+  }
+
+  test_VariableDeclaration_name_hasSome_simpleType() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // VariableDeclarationStatement  Block
+    addTestSource('main() {String m^}');
     assertOpType();
   }
 

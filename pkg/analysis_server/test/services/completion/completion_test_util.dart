@@ -4224,6 +4224,14 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_localVariableDeclarationName() {
+    addTestSource('main() {String m^}');
+    return computeFull((bool result) {
+      assertNotSuggested('main');
+      assertNotSuggested('min');
+    });
+  }
+
   test_PrefixedIdentifier_trailingStmt_param2() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('f(String g) {g.^ int y = 0;}');
