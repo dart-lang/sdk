@@ -138,7 +138,13 @@ class Driver {
     resourceProvider = PhysicalResourceProvider.INSTANCE;
     DartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
     context = AnalysisEngine.instance.createAnalysisContext();
-    JavaFile packagesDir = new JavaFile(path.join(rootDir, 'packages'));
+    String packageRootPath;
+    if (Platform.packageRoot.isNotEmpty) {
+      packageRootPath = Platform.packageRoot;
+    } else {
+      packageRootPath = path.join(rootDir, 'packages');
+    }
+    JavaFile packagesDir = new JavaFile(packageRootPath);
     List<UriResolver> uriResolvers = [
       new DartUriResolver(sdk),
       new PackageUriResolver(<JavaFile>[packagesDir]),
