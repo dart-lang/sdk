@@ -5859,12 +5859,12 @@ class Parser {
         _reportErrorForToken(
             ParserErrorCode.INVALID_AWAIT_IN_FOR, awaitKeyword);
       }
-      Token leftSeparator = _expect(TokenType.SEMICOLON);
+      Token leftSeparator = _expectSemicolon();
       Expression condition = null;
       if (!_matches(TokenType.SEMICOLON)) {
         condition = parseExpression2();
       }
-      Token rightSeparator = _expect(TokenType.SEMICOLON);
+      Token rightSeparator = _expectSemicolon();
       List<Expression> updaters = null;
       if (!_matches(TokenType.CLOSE_PAREN)) {
         updaters = _parseExpressionList();
