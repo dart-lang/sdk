@@ -355,7 +355,8 @@ abstract class AbstractCompiler {
   final AnalysisContext context;
   final AnalysisErrorListener reporter;
 
-  AbstractCompiler(this.context, this.options, [this.reporter]);
+  AbstractCompiler(this.context, this.options, [AnalysisErrorListener listener])
+      : reporter = listener ?? AnalysisErrorListener.NULL_LISTENER;
 
   String get outputDir => options.codegenOptions.outputDir;
 
