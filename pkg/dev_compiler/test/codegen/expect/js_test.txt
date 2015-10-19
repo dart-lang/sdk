@@ -320,5 +320,3 @@ severe: [AnalyzerMessage] Undefined class 'CanvasElement' (test/codegen/js_test.
 severe: [AnalyzerMessage] Undefined name 'document' (test/codegen/js_test.dart, line 694, col 32)
 severe: [AnalyzerMessage] The name 'CanvasRenderingContext2D' is not a type and cannot be used in an 'as' expression (test/codegen/js_test.dart, line 695, col 46)
 severe: [AnalyzerMessage] The function 'expect' is not defined (test/codegen/js_test.dart, line 698, col 9)
-warning: [MissingTypeError] type analysis didn't compute the type of: new Blob(fileParts, type: 'text/html') InstanceCreationExpression (test/codegen/js_test.dart, line 667, col 24)
-warning: [MissingTypeError] type analysis didn't compute the type of: new CustomEvent('test') InstanceCreationExpression (test/codegen/js_test.dart, line 683, col 24)

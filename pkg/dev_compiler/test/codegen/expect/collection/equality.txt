@@ -8,5 +8,3 @@ severe: [StaticTypeError] Type check failed: const DefaultEquality() (DefaultEqu
 severe: [StaticTypeError] Type check failed: const DefaultEquality() (DefaultEquality) is not of type Equality<V> (package:collection/equality.dart, line 264, col 44)
 warning: [DownCastComposite] it1.current (dynamic) will need runtime check to cast to type E (package:collection/equality.dart, line 87, col 36)
 warning: [DownCastComposite] it2.current (dynamic) will need runtime check to cast to type E (package:collection/equality.dart, line 87, col 49)
-warning: [DownCastComposite] e (dynamic) will need runtime check to cast to type E (package:collection/equality.dart, line 171, col 14)
-warning: [DownCastComposite] e (dynamic) will need runtime check to cast to type E (package:collection/equality.dart, line 177, col 14)

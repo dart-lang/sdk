@@ -20,7 +20,7 @@ import 'package:analyzer/src/generated/ast.dart'
         Expression,
         SimpleIdentifier,
         MethodInvocation;
-import 'package:analyzer/src/generated/constant.dart' show DartObjectImpl;
+import 'package:analyzer/src/generated/constant.dart' show DartObject;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show ParseDartTask, AnalysisContext;
@@ -338,13 +338,9 @@ String resourceOutputPath(Uri resourceUri, Uri entryUri, String runtimeDir) {
 ///
 ///    (v) => v.type.name == 'Deprecated' && v.type.element.library.isDartCore
 ///
-DartObjectImpl findAnnotation(
-    Element element, bool test(DartObjectImpl value)) {
+DartObject findAnnotation(Element element, bool test(DartObject value)) {
   for (var metadata in element.metadata) {
-    var evalResult = metadata.evaluationResult;
-    if (evalResult == null) continue;
-
-    var value = evalResult.value;
+    var value = metadata.constantValue;
     if (value != null && test(value)) return value;
   }
   return null;
@@ -354,11 +350,10 @@ DartObjectImpl findAnnotation(
 /// value of that field.
 ///
 /// If the field is missing or is not [expectedType], returns null.
-Object getConstantField(
-    DartObjectImpl value, String fieldName, DartType expectedType) {
-  if (value == null) return null;
-  var f = value.fields[fieldName];
-  return (f == null || f.type != expectedType) ? null : f.value;
+DartObject getConstantField(
+    DartObject value, String fieldName, DartType expectedType) {
+  var f = value?.getField(fieldName);
+  return (f == null || f.type != expectedType) ? null : f;
 }
 
 DartType fillDynamicTypeArgs(DartType t, TypeProvider types) {

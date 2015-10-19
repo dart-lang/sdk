@@ -249,7 +249,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     var jsName = findAnnotation(node.element, _isJsNameAnnotation);
     _jsModuleValue =
-        getConstantField(jsName, 'name', types.stringType) as String;
+        getConstantField(jsName, 'name', types.stringType)?.toStringValue();
   }
 
   @override
@@ -401,8 +401,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     return _finishClassDef(element.type, classDecl);
   }
 
-  JS.Statement _emitJsType(String dartClassName, DartObjectImpl jsName) {
-    var jsTypeName = getConstantField(jsName, 'name', types.stringType);
+  JS.Statement _emitJsType(String dartClassName, DartObject jsName) {
+    var jsTypeName =
+        getConstantField(jsName, 'name', types.stringType)?.toStringValue();
 
     if (jsTypeName != null && jsTypeName != dartClassName) {
       // We export the JS type as if it was a Dart type. For example this allows
@@ -442,7 +443,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     String jsPeerName;
     var jsPeer = findAnnotation(classElem, _isJsPeerInterface);
     if (jsPeer != null) {
-      jsPeerName = getConstantField(jsPeer, 'name', types.stringType) as String;
+      jsPeerName =
+          getConstantField(jsPeer, 'name', types.stringType)?.toStringValue();
     }
 
     var body = _finishClassMembers(classElem, classExpr, ctors, fields, methods,
@@ -3300,9 +3302,9 @@ String jsLibraryName(LibraryElement library) => canonicalLibraryName(library);
 JS.LiteralString _propertyName(String name) => js.string(name, "'");
 
 // TODO(jmesserly): validate the library. See issue #135.
-bool _isJsNameAnnotation(DartObjectImpl value) => value.type.name == 'JsName';
+bool _isJsNameAnnotation(DartObject value) => value.type.name == 'JsName';
 
-bool _isJsPeerInterface(DartObjectImpl value) =>
+bool _isJsPeerInterface(DartObject value) =>
     value.type.name == 'JsPeerInterface';
 
 // TODO(jacobr): we would like to do something like the following
