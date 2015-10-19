@@ -394,7 +394,7 @@ $else
       var nativeElement = document.createElement(extendsTag);
 
       // Trying to extend a native element is it the Dart class consistent with the
-      // extendsTag? 
+      // extendsTag?
       if (nativeElement.runtimeType != customClassType.reflectedType) {
         var nativeElementClassMirror = reflectClass(nativeElement.runtimeType);
         var customClassNativeElement = MirrorSystem.getName(customClassType.simpleName);
@@ -422,7 +422,7 @@ $else
       var elemProto = js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'Object'), "create", [js.JsNative.getProperty(baseElement, 'prototype')]);
 
       // Remember for any upgrading done in wrap_jso.
-      _addCustomElementType(tag, customElementClass, extendsTag);
+      addCustomElementType(tag, customElementClass, extendsTag);
 
       // TODO(terry): Hack to stop recursion re-creating custom element when the
       //              created() constructor of the custom element does e.g.,
