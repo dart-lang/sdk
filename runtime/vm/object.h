@@ -7208,7 +7208,7 @@ class TypedData : public Instance {
     return RawObject::IsTypedDataClassId(cid);
   }
 
-  static RawTypedData* EmptyUint32Array(Isolate* isolate);
+  static RawTypedData* EmptyUint32Array(Thread* thread);
 
  protected:
   void SetLength(intptr_t value) const {
@@ -7978,8 +7978,8 @@ class UserTag : public Instance {
   static RawUserTag* FindTagById(uword tag_id);
 
  private:
-  static RawUserTag* FindTagInIsolate(Isolate* isolate, const String& label);
-  static void AddTagToIsolate(Isolate* isolate, const UserTag& tag);
+  static RawUserTag* FindTagInIsolate(Thread* thread, const String& label);
+  static void AddTagToIsolate(Thread* thread, const UserTag& tag);
 
   void set_label(const String& tag_label) const {
     StorePointer(&raw_ptr()->label_, tag_label.raw());

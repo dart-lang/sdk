@@ -106,7 +106,7 @@ class Compiler : public AllStatic {
 // isolate.
 class BackgroundCompiler : public ThreadPool::Task {
  public:
-  static void EnsureInit(Isolate* isolate);
+  static void EnsureInit(Thread* thread);
 
   static void Stop(BackgroundCompiler* task);
 

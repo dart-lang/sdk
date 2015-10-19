@@ -1729,15 +1729,15 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
 // objects and their accompanying token streams.
 class ScriptVisitor : public ObjectVisitor {
  public:
-  explicit ScriptVisitor(Isolate* isolate) :
-      ObjectVisitor(isolate),
-      objHandle_(Object::Handle(isolate->current_zone())),
+  explicit ScriptVisitor(Thread* thread) :
+      ObjectVisitor(thread->isolate()),
+      objHandle_(Object::Handle(thread->zone())),
       count_(0),
       scripts_(NULL) {}
 
-  ScriptVisitor(Isolate* isolate, const Array* scripts) :
-      ObjectVisitor(isolate),
-      objHandle_(Object::Handle(isolate->current_zone())),
+  ScriptVisitor(Thread* thread, const Array* scripts) :
+      ObjectVisitor(thread->isolate()),
+      objHandle_(Object::Handle(thread->zone())),
       count_(0),
       scripts_(scripts) {}
 
@@ -1797,11 +1797,11 @@ FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
   // into an array so that we can write it out as part of the VM isolate
   // snapshot. We first count the number of script objects, allocate an array
   // and then fill it up with the script objects.
-  ScriptVisitor scripts_counter(isolate());
+  ScriptVisitor scripts_counter(thread());
   heap()->IterateOldObjects(&scripts_counter);
   intptr_t count = scripts_counter.count();
   scripts_ = Array::New(count, Heap::kOld);
-  ScriptVisitor script_visitor(isolate(), &scripts_);
+  ScriptVisitor script_visitor(thread(), &scripts_);
   heap()->IterateOldObjects(&script_visitor);
 
   // Stash the symbol table away for writing and reading into the vm isolate,

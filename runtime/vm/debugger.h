@@ -650,7 +650,10 @@ class Debugger {
 
   void HandleSteppingRequest(DebuggerStackTrace* stack_trace);
 
-  Zone* zone() const { return isolate_->current_zone(); }
+  Zone* zone() const {
+    ASSERT(isolate_->MutatorThreadIsCurrentThread());
+    return isolate_->current_zone();
+  }
 
   Isolate* isolate_;
   Dart_Port isolate_id_;  // A unique ID for the isolate in the debugger.

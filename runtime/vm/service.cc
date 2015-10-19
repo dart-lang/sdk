@@ -1101,7 +1101,7 @@ static bool ContainsNonInstance(const Object& obj) {
 }
 
 
-static RawObject* LookupObjectId(Isolate* isolate,
+static RawObject* LookupObjectId(Thread* thread,
                                  const char* arg,
                                  ObjectIdRing::LookupResult* kind) {
   *kind = ObjectIdRing::kValid;
@@ -1113,7 +1113,7 @@ static RawObject* LookupObjectId(Isolate* isolate,
       *kind = ObjectIdRing::kInvalid;
       return Object::null();
     }
-    const Integer& obj = Integer::Handle(isolate->current_zone(),
+    const Integer& obj = Integer::Handle(thread->zone(),
         Smi::New(static_cast<intptr_t>(value)));
     return obj.raw();
   } else if (strcmp(arg, "bool-true") == 0) {
@@ -1124,7 +1124,7 @@ static RawObject* LookupObjectId(Isolate* isolate,
     return Object::null();
   }
 
-  ObjectIdRing* ring = isolate->object_id_ring();
+  ObjectIdRing* ring = thread->isolate()->object_id_ring();
   ASSERT(ring != NULL);
   intptr_t id = -1;
   if (!GetIntegerId(arg, &id)) {
@@ -1185,19 +1185,21 @@ static RawObject* LookupHeapObjectLibraries(Isolate* isolate,
   return Object::sentinel().raw();
 }
 
-static RawObject* LookupHeapObjectClasses(Isolate* isolate,
+static RawObject* LookupHeapObjectClasses(Thread* thread,
                                           char** parts, int num_parts) {
   // Class ids look like: "classes/17"
   if (num_parts < 2) {
     return Object::sentinel().raw();
   }
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   ClassTable* table = isolate->class_table();
   intptr_t id;
   if (!GetIntegerId(parts[1], &id) ||
       !table->IsValidIndex(id)) {
     return Object::sentinel().raw();
   }
-  Class& cls = Class::Handle(table->At(id));
+  Class& cls = Class::Handle(zone, table->At(id));
   if (num_parts == 2) {
     return cls.raw();
   }
@@ -1210,7 +1212,7 @@ static RawObject* LookupHeapObjectClasses(Isolate* isolate,
     if (!GetIntegerId(parts[3], &id)) {
       return Object::sentinel().raw();
     }
-    Function& func = Function::Handle();
+    Function& func = Function::Handle(zone);
     func ^= cls.ClosureFunctionFromIndex(id);
     if (func.IsNull()) {
       return Object::sentinel().raw();
@@ -1226,7 +1228,7 @@ static RawObject* LookupHeapObjectClasses(Isolate* isolate,
     if (!GetIntegerId(parts[3], &id)) {
       return Object::sentinel().raw();
     }
-    Field& field = Field::Handle(cls.FieldFromIndex(id));
+    Field& field = Field::Handle(zone, cls.FieldFromIndex(id));
     if (field.IsNull()) {
       return Object::sentinel().raw();
     }
@@ -1238,13 +1240,12 @@ static RawObject* LookupHeapObjectClasses(Isolate* isolate,
       return Object::sentinel().raw();
     }
     const char* encoded_id = parts[3];
-    String& id = String::Handle(isolate->current_zone(),
-        String::New(encoded_id));
+    String& id = String::Handle(zone, String::New(encoded_id));
     id = String::DecodeIRI(id);
     if (id.IsNull()) {
       return Object::sentinel().raw();
     }
-    Function& func = Function::Handle(cls.LookupFunction(id));
+    Function& func = Function::Handle(zone, cls.LookupFunction(id));
     if (func.IsNull()) {
       return Object::sentinel().raw();
     }
@@ -1259,7 +1260,7 @@ static RawObject* LookupHeapObjectClasses(Isolate* isolate,
     if (!GetIntegerId(parts[3], &id)) {
       return Object::sentinel().raw();
     }
-    Function& func = Function::Handle();
+    Function& func = Function::Handle(zone);
     func ^= cls.ImplicitClosureFunctionFromIndex(id);
     if (func.IsNull()) {
       return Object::sentinel().raw();
@@ -1275,7 +1276,7 @@ static RawObject* LookupHeapObjectClasses(Isolate* isolate,
     if (!GetIntegerId(parts[3], &id)) {
       return Object::sentinel().raw();
     }
-    Function& func = Function::Handle();
+    Function& func = Function::Handle(zone);
     func ^= cls.InvocationDispatcherFunctionFromIndex(id);
     if (func.IsNull()) {
       return Object::sentinel().raw();
@@ -1291,7 +1292,7 @@ static RawObject* LookupHeapObjectClasses(Isolate* isolate,
     if (!GetIntegerId(parts[3], &id)) {
       return Object::sentinel().raw();
     }
-    Type& type = Type::Handle();
+    Type& type = Type::Handle(zone);
     type ^= cls.CanonicalTypeFromIndex(id);
     if (type.IsNull()) {
       return Object::sentinel().raw();
@@ -1304,8 +1305,9 @@ static RawObject* LookupHeapObjectClasses(Isolate* isolate,
 }
 
 
-static RawObject* LookupHeapObjectTypeArguments(Isolate* isolate,
-                                          char** parts, int num_parts) {
+static RawObject* LookupHeapObjectTypeArguments(Thread* thread,
+                                                char** parts, int num_parts) {
+  Isolate* isolate = thread->isolate();
   // TypeArguments ids look like: "typearguments/17"
   if (num_parts < 2) {
     return Object::sentinel().raw();
@@ -1315,7 +1317,8 @@ static RawObject* LookupHeapObjectTypeArguments(Isolate* isolate,
     return Object::sentinel().raw();
   }
   ObjectStore* object_store = isolate->object_store();
-  const Array& table = Array::Handle(object_store->canonical_type_arguments());
+  const Array& table = Array::Handle(thread->zone(),
+                                     object_store->canonical_type_arguments());
   ASSERT(table.Length() > 0);
   const intptr_t table_size = table.Length() - 1;
   if ((id < 0) || (id >= table_size) || (table.At(id) == Object::null())) {
@@ -1399,7 +1402,8 @@ static RawObject* LookupHeapObjectMessage(Isolate* isolate,
 static RawObject* LookupHeapObject(Isolate* isolate,
                                    const char* id_original,
                                    ObjectIdRing::LookupResult* result) {
-  char* id = Thread::Current()->zone()->MakeCopyOfString(id_original);
+  Thread* thread = Thread::Current();
+  char* id = thread->zone()->MakeCopyOfString(id_original);
 
   // Parse the id by splitting at each '/'.
   const int MAX_PARTS = 8;
@@ -1429,9 +1433,9 @@ static RawObject* LookupHeapObject(Isolate* isolate,
 
   if (strcmp(parts[0], "objects") == 0) {
     // Object ids look like "objects/1123"
-    Object& obj = Object::Handle(isolate->current_zone());
+    Object& obj = Object::Handle(thread->zone());
     ObjectIdRing::LookupResult lookup_result;
-    obj = LookupObjectId(isolate, parts[1], &lookup_result);
+    obj = LookupObjectId(thread, parts[1], &lookup_result);
     if (lookup_result != ObjectIdRing::kValid) {
       if (result != NULL) {
         *result = lookup_result;
@@ -1443,9 +1447,9 @@ static RawObject* LookupHeapObject(Isolate* isolate,
   } else if (strcmp(parts[0], "libraries") == 0) {
     return LookupHeapObjectLibraries(isolate, parts, num_parts);
   } else if (strcmp(parts[0], "classes") == 0) {
-    return LookupHeapObjectClasses(isolate, parts, num_parts);
+    return LookupHeapObjectClasses(thread, parts, num_parts);
   } else if (strcmp(parts[0], "typearguments") == 0) {
-    return LookupHeapObjectTypeArguments(isolate, parts, num_parts);
+    return LookupHeapObjectTypeArguments(thread, parts, num_parts);
   } else if (strcmp(parts[0], "code") == 0) {
     return LookupHeapObjectCode(isolate, parts, num_parts);
   } else if (strcmp(parts[0], "messages") == 0) {
@@ -1779,11 +1783,11 @@ static bool Evaluate(Isolate* isolate, JSONStream* js) {
     PrintMissingParamError(js, "expression");
     return true;
   }
-  const String& expr_str =
-      String::Handle(isolate->current_zone(), String::New(expr));
+  Zone* zone = Thread::Current()->zone();
+  const String& expr_str = String::Handle(zone, String::New(expr));
   ObjectIdRing::LookupResult lookup_result;
-  Object& obj = Object::Handle(LookupHeapObject(isolate, target_id,
-                                                &lookup_result));
+  Object& obj = Object::Handle(zone, LookupHeapObject(isolate, target_id,
+                                                      &lookup_result));
   if (obj.raw() == Object::sentinel().raw()) {
     if (lookup_result == ObjectIdRing::kCollected) {
       PrintSentinel(js, kCollectedSentinel);
@@ -1796,29 +1800,27 @@ static bool Evaluate(Isolate* isolate, JSONStream* js) {
   }
   if (obj.IsLibrary()) {
     const Library& lib = Library::Cast(obj);
-    const Object& result = Object::Handle(lib.Evaluate(expr_str,
-                                                       Array::empty_array(),
-                                                       Array::empty_array()));
+    const Object& result = Object::Handle(zone,
+        lib.Evaluate(expr_str, Array::empty_array(), Array::empty_array()));
     result.PrintJSON(js, true);
     return true;
   }
   if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
-    const Object& result = Object::Handle(cls.Evaluate(expr_str,
-                                                       Array::empty_array(),
-                                                       Array::empty_array()));
+    const Object& result = Object::Handle(zone,
+        cls.Evaluate(expr_str, Array::empty_array(), Array::empty_array()));
     result.PrintJSON(js, true);
     return true;
   }
   if ((obj.IsInstance() || obj.IsNull()) &&
       !ContainsNonInstance(obj)) {
     // We don't use Instance::Cast here because it doesn't allow null.
-    Instance& instance = Instance::Handle(isolate->current_zone());
+    Instance& instance = Instance::Handle(zone);
     instance ^= obj.raw();
     const Object& result =
-        Object::Handle(instance.Evaluate(expr_str,
-                                         Array::empty_array(),
-                                         Array::empty_array()));
+        Object::Handle(zone, instance.Evaluate(expr_str,
+                                               Array::empty_array(),
+                                               Array::empty_array()));
     result.PrintJSON(js, true);
     return true;
   }
@@ -1852,11 +1854,11 @@ static bool EvaluateInFrame(Isolate* isolate, JSONStream* js) {
   }
   ActivationFrame* frame = stack->FrameAt(framePos);
 
+  Zone* zone = Thread::Current()->zone();
   const char* expr = js->LookupParam("expression");
-  const String& expr_str = String::Handle(isolate->current_zone(),
-      String::New(expr));
+  const String& expr_str = String::Handle(zone, String::New(expr));
 
-  const Object& result = Object::Handle(frame->Evaluate(expr_str));
+  const Object& result = Object::Handle(zone, frame->Evaluate(expr_str));
   result.PrintJSON(js, true);
   return true;
 }

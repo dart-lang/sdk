@@ -217,7 +217,7 @@ const char* IsolateMessageHandler::name() const {
 // [ OOB dispatch, Isolate library dispatch, <message specific data> ]
 RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
   if (message.Length() < 2) return Error::null();
-  Zone* zone = I->current_zone();
+  Zone* zone = T->zone();
   const Object& type = Object::Handle(zone, message.At(1));
   if (!type.IsSmi()) return Error::null();
   const intptr_t msg_type = Smi::Cast(type).Value();
@@ -640,10 +640,10 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
   }
 
   // Generate the error and stacktrace strings for the error message.
-  String& exc_str = String::Handle(I->current_zone());
-  String& stacktrace_str = String::Handle(I->current_zone());
+  String& exc_str = String::Handle(T->zone());
+  String& stacktrace_str = String::Handle(T->zone());
   if (result.IsUnhandledException()) {
-    Zone* zone = I->current_zone();
+    Zone* zone = T->zone();
     const UnhandledException& uhe = UnhandledException::Cast(result);
     const Instance& exception = Instance::Handle(zone, uhe.exception());
     Object& tmp = Object::Handle(zone);
@@ -1887,8 +1887,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     vm_tag_counters()->PrintToJSONObject(&tagCounters);
   }
   if (object_store()->sticky_error() != Object::null()) {
-    Error& error = Error::Handle(current_zone(),
-        object_store()->sticky_error());
+    Error& error = Error::Handle(object_store()->sticky_error());
     ASSERT(!error.IsNull());
     jsobj.AddProperty("error", error, false);
   }

@@ -1569,15 +1569,16 @@ void BackgroundCompiler::Stop(BackgroundCompiler* task) {
 }
 
 
-void BackgroundCompiler::EnsureInit(Isolate* isolate) {
+void BackgroundCompiler::EnsureInit(Thread* thread) {
   bool start_task = false;
+  Isolate* isolate = thread->isolate();
   {
     MutexLocker ml(isolate->mutex());
     if (isolate->background_compiler() == NULL) {
       BackgroundCompiler* task = new BackgroundCompiler(isolate);
       isolate->set_background_compiler(task);
       isolate->set_background_compilation_queue(GrowableObjectArray::Handle(
-          isolate->current_zone(), GrowableObjectArray::New()));
+          thread->zone(), GrowableObjectArray::New()));
       start_task = true;
     }
   }

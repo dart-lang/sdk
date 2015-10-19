@@ -4966,17 +4966,18 @@ DART_EXPORT void Dart_SetWeakHandleReturnValue(Dart_NativeArguments args,
 
 
 // --- Environment ---
-RawString* Api::CallEnvironmentCallback(Isolate* isolate, const String& name) {
+RawString* Api::CallEnvironmentCallback(Thread* thread, const String& name) {
+  Isolate* isolate = thread->isolate();
   Scope api_scope(isolate);
   Dart_EnvironmentCallback callback = isolate->environment_callback();
-  String& result = String::Handle(isolate->current_zone());
+  String& result = String::Handle(thread->zone());
   if (callback != NULL) {
     Dart_Handle response = callback(Api::NewHandle(isolate, name.raw()));
     if (::Dart_IsString(response)) {
       result ^= Api::UnwrapHandle(response);
     } else if (::Dart_IsError(response)) {
-      const Object& error =
-          Object::Handle(isolate->current_zone(), Api::UnwrapHandle(response));
+      const Object& error = Object::Handle(
+          thread->zone(), Api::UnwrapHandle(response));
       Exceptions::ThrowArgumentError(
           String::Handle(String::New(Error::Cast(error).ToErrorCString())));
     } else if (!::Dart_IsNull(response)) {
@@ -5052,7 +5053,7 @@ DART_EXPORT Dart_Handle Dart_SetLibraryTagHandler(
 // NOTE: Need to pass 'result' as a parameter here in order to avoid
 // warning: variable 'result' might be clobbered by 'longjmp' or 'vfork'
 // which shows up because of the use of setjmp.
-static void CompileSource(Isolate* isolate,
+static void CompileSource(Thread* thread,
                           const Library& lib,
                           const Script& script,
                           Dart_Handle* result) {
@@ -5061,13 +5062,13 @@ static void CompileSource(Isolate* isolate,
   if (update_lib_status) {
     lib.SetLoadInProgress();
   }
-  ASSERT(isolate != NULL);
+  ASSERT(thread != NULL);
   const Error& error =
-      Error::Handle(isolate->current_zone(), Compiler::Compile(lib, script));
+      Error::Handle(thread->zone(), Compiler::Compile(lib, script));
   if (error.IsNull()) {
-    *result = Api::NewHandle(isolate, lib.raw());
+    *result = Api::NewHandle(thread->isolate(), lib.raw());
   } else {
-    *result = Api::NewHandle(isolate, error.raw());
+    *result = Api::NewHandle(thread->isolate(), error.raw());
     // Compilation errors are not Dart instances, so just mark the library
     // as having failed to load without providing an error instance.
     lib.SetLoadError(Object::null_instance());
@@ -5116,7 +5117,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
       Script::New(url_str, source_str, RawScript::kScriptTag));
   script.SetLocationOffset(line_offset, column_offset);
   Dart_Handle result;
-  CompileSource(I, library, script, &result);
+  CompileSource(T, library, script, &result);
   return result;
 }
 
@@ -5361,7 +5362,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
       Script::New(url_str, source_str, RawScript::kLibraryTag));
   script.SetLocationOffset(line_offset, column_offset);
   Dart_Handle result;
-  CompileSource(I, library, script, &result);
+  CompileSource(T, library, script, &result);
   // Propagate the error out right now.
   if (::Dart_IsError(result)) {
     return result;
@@ -5456,7 +5457,7 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
       Script::New(url_str, source_str, RawScript::kSourceTag));
   script.SetLocationOffset(line_offset, column_offset);
   Dart_Handle result;
-  CompileSource(I, lib, script, &result);
+  CompileSource(T, lib, script, &result);
   return result;
 }
 
@@ -5485,7 +5486,7 @@ DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
   const Script& script = Script::Handle(Z,
       Script::New(url_str, source_str, RawScript::kPatchTag));
   Dart_Handle result;
-  CompileSource(I, lib, script, &result);
+  CompileSource(T, lib, script, &result);
   return result;
 }
 

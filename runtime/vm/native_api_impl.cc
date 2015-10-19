@@ -69,14 +69,13 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
 
 // --- Verification tools ---
 
-static void CompileAll(Isolate* isolate, Dart_Handle* result) {
-  ASSERT(isolate != NULL);
-  const Error& error =
-      Error::Handle(isolate->current_zone(), Library::CompileAll());
+static void CompileAll(Thread* thread, Dart_Handle* result) {
+  ASSERT(thread != NULL);
+  const Error& error = Error::Handle(thread->zone(), Library::CompileAll());
   if (error.IsNull()) {
     *result = Api::Success();
   } else {
-    *result = Api::NewHandle(isolate, error.raw());
+    *result = Api::NewHandle(thread->isolate(), error.raw());
   }
 }
 
@@ -88,7 +87,7 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
     return result;
   }
   CHECK_CALLBACK_STATE(T);
-  CompileAll(I, &result);
+  CompileAll(T, &result);
   return result;
 }
 

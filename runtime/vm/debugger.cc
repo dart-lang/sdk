@@ -2402,10 +2402,10 @@ void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
                                     const String& prefix,
                                     bool include_private_fields) {
   DictionaryIterator it(lib);
-  Object& entry = Object::Handle(isolate_->current_zone());
+  Object& entry = Object::Handle(zone());
   Field& field = Field::Handle(zone());
   String& field_name = String::Handle(zone());
-  PassiveObject& field_value = PassiveObject::Handle(isolate_->current_zone());
+  PassiveObject& field_value = PassiveObject::Handle(zone());
   while (it.HasNext()) {
     entry = it.GetNext();
     if (entry.IsField()) {

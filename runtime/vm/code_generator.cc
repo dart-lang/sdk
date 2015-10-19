@@ -1452,7 +1452,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     // prevent recursive triggering of function optimization.
     function.set_usage_counter(0);
     if (FLAG_background_compilation) {
-      BackgroundCompiler::EnsureInit(isolate);
+      BackgroundCompiler::EnsureInit(thread);
       ASSERT(isolate->background_compiler() != NULL);
       isolate->background_compiler()->CompileOptimized(function);
       // Continue in the same code.

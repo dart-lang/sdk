@@ -17641,7 +17641,7 @@ bool Bigint::CheckAndCanonicalizeFields(const char** error_str) const {
     ASSERT(!digits_.IsNull());
     set_digits(digits_);
   } else {
-    ASSERT(digits() == TypedData::EmptyUint32Array(Isolate::Current()));
+    ASSERT(digits() == TypedData::EmptyUint32Array(Thread::Current()));
   }
   return true;
 }
@@ -17663,7 +17663,7 @@ RawBigint* Bigint::New(Heap::Space space) {
   result.SetNeg(false);
   result.SetUsed(0);
   result.set_digits(
-      TypedData::Handle(zone, TypedData::EmptyUint32Array(isolate)));
+      TypedData::Handle(zone, TypedData::EmptyUint32Array(thread)));
   return result.raw();
 }
 
@@ -17697,7 +17697,7 @@ RawBigint* Bigint::New(bool neg, intptr_t used, const TypedData& digits,
   } else {
     neg = false;
     result.set_digits(
-        TypedData::Handle(zone, TypedData::EmptyUint32Array(isolate)));
+        TypedData::Handle(zone, TypedData::EmptyUint32Array(thread)));
   }
   result.SetNeg(neg);
   result.SetUsed(used);
@@ -20920,14 +20920,16 @@ RawTypedData* TypedData::New(intptr_t class_id,
 }
 
 
-RawTypedData* TypedData::EmptyUint32Array(Isolate* isolate) {
+RawTypedData* TypedData::EmptyUint32Array(Thread* thread) {
+  ASSERT(thread != NULL);
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   ASSERT(isolate->object_store() != NULL);
   if (isolate->object_store()->empty_uint32_array() != TypedData::null()) {
     // Already created.
     return isolate->object_store()->empty_uint32_array();
   }
-  const TypedData& array = TypedData::Handle(isolate->current_zone(),
+  const TypedData& array = TypedData::Handle(thread->zone(),
       TypedData::New(kTypedDataUint32ArrayCid, 0, Heap::kOld));
   isolate->object_store()->set_empty_uint32_array(array);
   return array.raw();
@@ -21590,10 +21592,11 @@ void UserTag::MakeActive() const {
 
 
 RawUserTag* UserTag::New(const String& label, Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
   // Canonicalize by name.
-  UserTag& result = UserTag::Handle(FindTagInIsolate(isolate, label));
+  UserTag& result = UserTag::Handle(FindTagInIsolate(thread, label));
   if (!result.IsNull()) {
     // Tag already exists, return existing instance.
     return result.raw();
@@ -21615,7 +21618,7 @@ RawUserTag* UserTag::New(const String& label, Heap::Space space) {
     result ^= raw;
   }
   result.set_label(label);
-  AddTagToIsolate(isolate, result);
+  AddTagToIsolate(thread, result);
   return result.raw();
 }
 
@@ -21638,12 +21641,14 @@ RawUserTag* UserTag::DefaultTag() {
 }
 
 
-RawUserTag* UserTag::FindTagInIsolate(Isolate* isolate, const String& label) {
+RawUserTag* UserTag::FindTagInIsolate(Thread* thread, const String& label) {
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table = GrowableObjectArray::Handle(
-      isolate->current_zone(), isolate->tag_table());
-  UserTag& other = UserTag::Handle(isolate->current_zone());
-  String& tag_label = String::Handle(isolate->current_zone());
+      zone, isolate->tag_table());
+  UserTag& other = UserTag::Handle(zone);
+  String& tag_label = String::Handle(zone);
   for (intptr_t i = 0; i < tag_table.Length(); i++) {
     other ^= tag_table.At(i);
     ASSERT(!other.IsNull());
@@ -21657,10 +21662,12 @@ RawUserTag* UserTag::FindTagInIsolate(Isolate* isolate, const String& label) {
 }
 
 
-void UserTag::AddTagToIsolate(Isolate* isolate, const UserTag& tag) {
+void UserTag::AddTagToIsolate(Thread* thread, const UserTag& tag) {
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table = GrowableObjectArray::Handle(
-      isolate->current_zone(), isolate->tag_table());
+      zone, isolate->tag_table());
   ASSERT(!TagTableIsFull(isolate));
 #if defined(DEBUG)
   // Verify that no existing tag has the same tag id.
