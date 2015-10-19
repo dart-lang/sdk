@@ -3549,6 +3549,18 @@ class C {
     expect(field.name.isSynthetic, isTrue);
   }
 
+  void test_incompleteForEach() {
+    ForStatement statement = ParserTestCase.parseStatement(
+        'for (String item i) {}',
+        [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN]);
+    expect(statement, new isInstanceOf<ForStatement>());
+    expect(statement.toSource(), 'for (String item; i;) {}');
+    expect(statement.leftSeparator, isNotNull);
+    expect(statement.leftSeparator.type, TokenType.SEMICOLON);
+    expect(statement.rightSeparator, isNotNull);
+    expect(statement.rightSeparator.type, TokenType.SEMICOLON);
+  }
+
   void test_incompleteLocalVariable_atTheEndOfBlock() {
     Statement statement = ParserTestCase.parseStatement(
         'String v }', [ParserErrorCode.EXPECTED_TOKEN]);
