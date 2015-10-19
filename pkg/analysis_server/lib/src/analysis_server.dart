@@ -1232,7 +1232,7 @@ class AnalysisServer {
                       null,
                       dartUnit,
                       errorInfo.errors);
-                  scheduleIndexOperation(this, file, context, dartUnit);
+                  scheduleIndexOperation(this, file, dartUnit);
                 }
               } else {
                 schedulePerformAnalysisOperation(context);
