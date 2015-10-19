@@ -895,7 +895,9 @@ class ContextManagerImpl implements ContextManager {
    */
   void _createContexts(
       ContextInfo parent, Folder folder, bool withPackageSpecOnly) {
-    if (folder.shortName.startsWith('.') || folder.shortName == 'packages') {
+    if (_isExcluded(folder.path) ||
+        folder.shortName.startsWith('.') ||
+        folder.shortName == 'packages') {
       return;
     }
     // Decide whether a context needs to be created for [folder] here, and if
