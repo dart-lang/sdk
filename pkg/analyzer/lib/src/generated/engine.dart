@@ -5936,7 +5936,7 @@ class AnalysisEngine {
    * A flag indicating whether the (new) task model should be used to perform
    * analysis.
    */
-  bool useTaskModel = false;
+  bool useTaskModel = true;
 
   /**
    * A flag indicating whether the task model should attempt to limit
