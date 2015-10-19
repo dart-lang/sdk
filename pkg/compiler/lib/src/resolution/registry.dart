@@ -31,6 +31,8 @@ import '../universe/selector.dart' show
     Selector;
 import '../universe/universe.dart' show
     UniverseSelector;
+import '../universe/world_impact.dart' show
+    WorldImpactBuilder;
 import '../world.dart' show World;
 
 import 'send_structure.dart';
@@ -85,99 +87,16 @@ class EagerRegistry extends Registry {
   String toString() => 'EagerRegistry for ${mapping.analyzedElement}';
 }
 
-class _ResolutionWorldImpact extends ResolutionImpact {
+class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
   final String name;
-  // TODO(johnniwinther): Do we benefit from lazy initialization of the
-  // [Setlet]s?
-  Setlet<UniverseSelector> _dynamicInvocations;
-  Setlet<UniverseSelector> _dynamicGetters;
-  Setlet<UniverseSelector> _dynamicSetters;
-  Setlet<InterfaceType> _instantiatedTypes;
-  Setlet<Element> _staticUses;
-  Setlet<DartType> _isChecks;
-  Setlet<DartType> _asCasts;
-  Setlet<DartType> _checkedModeChecks;
-  Setlet<MethodElement> _closurizedFunctions;
-  Setlet<LocalFunctionElement> _closures;
   Setlet<Feature> _features;
   // TODO(johnniwinther): This seems to be a union of other sets.
   Setlet<DartType> _requiredTypes;
   Setlet<MapLiteralUse> _mapLiterals;
   Setlet<ListLiteralUse> _listLiterals;
-  Setlet<DartType> _typeLiterals;
   Setlet<String> _constSymbolNames;
 
   _ResolutionWorldImpact(this.name);
-
-  void registerDynamicGetter(UniverseSelector selector) {
-    assert(selector != null);
-    if (_dynamicGetters == null) {
-      _dynamicGetters = new Setlet<UniverseSelector>();
-    }
-    _dynamicGetters.add(selector);
-  }
-
-  @override
-  Iterable<UniverseSelector> get dynamicGetters {
-    return _dynamicGetters != null
-        ? _dynamicGetters : const <UniverseSelector>[];
-  }
-
-  void registerDynamicInvocation(UniverseSelector selector) {
-    assert(selector != null);
-    if (_dynamicInvocations == null) {
-      _dynamicInvocations = new Setlet<UniverseSelector>();
-    }
-    _dynamicInvocations.add(selector);
-  }
-
-  @override
-  Iterable<UniverseSelector> get dynamicInvocations {
-    return _dynamicInvocations != null
-        ? _dynamicInvocations : const <UniverseSelector>[];
-  }
-
-  void registerDynamicSetter(UniverseSelector selector) {
-    assert(selector != null);
-    if (_dynamicSetters == null) {
-      _dynamicSetters = new Setlet<UniverseSelector>();
-    }
-    _dynamicSetters.add(selector);
-  }
-
-  @override
-  Iterable<UniverseSelector> get dynamicSetters {
-    return _dynamicSetters != null
-        ? _dynamicSetters : const <UniverseSelector>[];
-  }
-
-  void registerInstantiatedType(InterfaceType type) {
-    assert(type != null);
-    if (_instantiatedTypes == null) {
-      _instantiatedTypes = new Setlet<InterfaceType>();
-    }
-    _instantiatedTypes.add(type);
-  }
-
-  @override
-  Iterable<InterfaceType> get instantiatedTypes {
-    return _instantiatedTypes != null
-        ? _instantiatedTypes : const <InterfaceType>[];
-  }
-
-  void registerTypeLiteral(DartType type) {
-    assert(type != null);
-    if (_typeLiterals == null) {
-      _typeLiterals = new Setlet<DartType>();
-    }
-    _typeLiterals.add(type);
-  }
-
-  @override
-  Iterable<DartType> get typeLiterals {
-    return _typeLiterals != null
-        ? _typeLiterals : const <DartType>[];
-  }
 
   void registerRequiredType(DartType type) {
     assert(type != null);
@@ -219,85 +138,6 @@ class _ResolutionWorldImpact extends ResolutionImpact {
   Iterable<ListLiteralUse> get listLiterals {
     return _listLiterals != null
         ? _listLiterals : const <ListLiteralUse>[];
-  }
-
-  void registerStaticUse(Element element) {
-    assert(element != null);
-    if (_staticUses == null) {
-      _staticUses = new Setlet<Element>();
-    }
-    _staticUses.add(element);
-  }
-
-  @override
-  Iterable<Element> get staticUses {
-    return _staticUses != null ? _staticUses : const <Element>[];
-  }
-
-  void registerIsCheck(DartType type) {
-    assert(type != null);
-    if (_isChecks == null) {
-      _isChecks = new Setlet<DartType>();
-    }
-    _isChecks.add(type);
-  }
-
-  @override
-  Iterable<DartType> get isChecks {
-    return _isChecks != null
-        ? _isChecks : const <DartType>[];
-  }
-
-  void registerAsCast(DartType type) {
-    if (_asCasts == null) {
-      _asCasts = new Setlet<DartType>();
-    }
-    _asCasts.add(type);
-  }
-
-  @override
-  Iterable<DartType> get asCasts {
-    return _asCasts != null
-        ? _asCasts : const <DartType>[];
-  }
-
-  void registerCheckedModeCheckedType(DartType type) {
-    if (_checkedModeChecks == null) {
-      _checkedModeChecks = new Setlet<DartType>();
-    }
-    _checkedModeChecks.add(type);
-  }
-
-  @override
-  Iterable<DartType> get checkedModeChecks {
-    return _checkedModeChecks != null
-        ? _checkedModeChecks : const <DartType>[];
-  }
-
-  void registerClosurizedFunction(MethodElement element) {
-    if (_closurizedFunctions == null) {
-      _closurizedFunctions = new Setlet<MethodElement>();
-    }
-    _closurizedFunctions.add(element);
-  }
-
-  @override
-  Iterable<MethodElement> get closurizedFunctions {
-    return _closurizedFunctions != null
-        ? _closurizedFunctions : const <MethodElement>[];
-  }
-
-  void registerClosure(LocalFunctionElement element) {
-    if (_closures == null) {
-      _closures = new Setlet<LocalFunctionElement>();
-    }
-    _closures.add(element);
-  }
-
-  @override
-  Iterable<LocalFunctionElement> get closures {
-    return _closures != null
-        ? _closures : const <LocalFunctionElement>[];
   }
 
   void registerConstSymbolName(String name) {
