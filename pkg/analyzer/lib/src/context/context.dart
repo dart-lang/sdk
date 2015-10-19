@@ -669,6 +669,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   Object /*V*/ computeResult(
       AnalysisTarget target, ResultDescriptor /*<V>*/ descriptor) {
+    // Make sure we are not trying to invoke the task model in a reentrant
+    // fashion.
+    assert(!driver.isTaskRunning);
     CacheEntry entry = getCacheEntry(target);
     CacheState state = entry.getState(descriptor);
     if (state == CacheState.FLUSHED || state == CacheState.INVALID) {

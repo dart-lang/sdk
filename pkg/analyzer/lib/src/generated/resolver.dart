@@ -8171,6 +8171,7 @@ class LibraryResolver {
               : typeResolverVisitorFactory(library, source, _typeProvider);
           library.getAST(source).accept(visitor);
         }
+        library.libraryElement.createLoadLibraryFunction(_typeProvider);
       }
     });
   }
@@ -8857,6 +8858,7 @@ class LibraryResolver2 {
               nameScope: library.libraryScope);
           ast.accept(visitor);
         }
+        library.libraryElement.createLoadLibraryFunction(_typeProvider);
       }
     });
   }
