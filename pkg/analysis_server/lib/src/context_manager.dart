@@ -9,10 +9,8 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:core' hide Resource;
 
-import 'package:analyzer/src/context/context.dart' as context;
 import 'package:analysis_server/plugin/analysis/resolver_provider.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/server_options.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/options.dart';
@@ -22,6 +20,7 @@ import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
+import 'package:analyzer/src/context/context.dart' as context;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -311,11 +310,6 @@ abstract class ContextManagerCallbacks {
  * folders that should correspond to analysis contexts.
  */
 class ContextManagerImpl implements ContextManager {
-  /**
-   * File name of analysis options files.
-   */
-  static const String ANALYSIS_OPTIONS_FILE = '.analysis_options';
-
   /**
    * The name of the `lib` directory.
    */
@@ -730,6 +724,19 @@ class ContextManagerImpl implements ContextManager {
           continue;
         }
         _addSourceFiles(changeSet, child, info);
+      }
+    }
+  }
+
+  void _checkForAnalysisOptionsUpdate(
+      String path, ContextInfo info, ChangeType changeType) {
+    if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
+      var analysisContext = info.context;
+      if (analysisContext is context.AnalysisContextImpl) {
+        processOptionsForContext(info, info.folder,
+            optionsRemoved: changeType == ChangeType.REMOVE);
+        analysisContext.invalidateCachedResults();
+        callbacks.applyChangesToContext(info.folder, new ChangeSet());
       }
     }
   }
@@ -1158,19 +1165,6 @@ class ContextManagerImpl implements ContextManager {
     }
     _checkForPackagespecUpdate(path, info, info.folder);
     _checkForAnalysisOptionsUpdate(path, info, event.type);
-  }
-
-  void _checkForAnalysisOptionsUpdate(
-      String path, ContextInfo info, ChangeType changeType) {
-    if (pathContext.basename(path) == ANALYSIS_OPTIONS_FILE) {
-      var analysisContext = info.context;
-      if (analysisContext is context.AnalysisContextImpl) {
-        processOptionsForContext(info, info.folder,
-            optionsRemoved: changeType == ChangeType.REMOVE);
-        analysisContext.invalidateCachedResults();
-        callbacks.applyChangesToContext(info.folder, new ChangeSet());
-      }
-    }
   }
 
   /**

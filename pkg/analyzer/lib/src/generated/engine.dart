@@ -21,6 +21,7 @@ import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart' as newContext;
 import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
+import 'package:path/path.dart' as pathos;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 
@@ -5875,6 +5876,11 @@ class AnalysisEngine {
   static const String SUFFIX_HTML = "html";
 
   /**
+   * The file name used for analysis options files.
+   */
+  static const String ANALYSIS_OPTIONS_FILE = '.analysis_options';
+
+  /**
    * The unique instance of this class.
    */
   static final AnalysisEngine instance = new AnalysisEngine._();
@@ -6040,6 +6046,18 @@ class AnalysisEngine {
       return new newContext.AnalysisContextImpl();
     }
     return new AnalysisContextImpl();
+  }
+
+  /**
+   * Return `true` if the given [fileName] is an analysis options file.
+   */
+  static bool isAnalysisOptionsFileName(String fileName,
+      [pathos.Context context]) {
+    if (fileName == null) {
+      return false;
+    }
+    return (context ?? pathos.posix).basename(fileName) ==
+        ANALYSIS_OPTIONS_FILE;
   }
 
   /**
