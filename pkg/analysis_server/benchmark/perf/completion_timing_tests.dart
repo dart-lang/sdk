@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../test/utils.dart';
@@ -29,11 +28,9 @@ main(List<String> arguments) {
   }
   source = args[SOURCE_OPTION];
   priorityFile = args[PRIORITY_FILE_OPTION];
-  offset = args[COMPLETION_OFFSET];
+  offset = int.parse(args[COMPLETION_OFFSET]);
 
-  unittestConfiguration.timeout = new Duration(minutes: 20);
-
-  defineReflectiveTests(CompletionTimingTest);
+  Future.wait([new CompletionTimingTest().test_timing()]);
 }
 
 const PRIORITY_FILE_OPTION = 'priority';
@@ -49,17 +46,17 @@ ArgParser _createArgParser() => new ArgParser()
   ..addOption(PRIORITY_FILE_OPTION, help: 'full path to a priority file')
   ..addOption(COMPLETION_OFFSET, help: 'offset in file for code completions');
 
-@reflectiveTest
-class CompletionTimingTest extends AbstractAnalysisServerPerformanceTest {
+/**
+ * CompletionTimingTest measures the time taken for the analysis server to respond with
+ * completion suggestions for a given file and offset. The time measured starts when
+ * the analysis root is set and is done when the completion suggestions are received
+ * from the server. The test does not wait for analysis to be complete before asking for
+ * completions.
+ */
+class CompletionTimingTest extends AbstractTimingTest {
   List<Duration> timings = <Duration>[];
 
-  @override
-  Future setUp() => super.setUp().then((_) {
-        sourceDirectory = new Directory(source);
-        subscribeToStatusNotifications();
-      });
-
-  Future test_timing() {
+  Future test_timing() async {
 //    debugStdio();
 
     expect(priorityFile, isNotNull,
@@ -67,6 +64,7 @@ class CompletionTimingTest extends AbstractAnalysisServerPerformanceTest {
     expect(offset, isNotNull,
         reason: 'An offset must be specified for completion testing.');
 
+    await init(source);
     stopwatch.start();
 
     onCompletionResults.listen((_) {
@@ -77,10 +75,10 @@ class CompletionTimingTest extends AbstractAnalysisServerPerformanceTest {
     sendAnalysisSetPriorityFiles([priorityFile]);
     sendCompletionGetSuggestions(priorityFile, offset);
 
-    return analysisFinished.then((_) {
-      print('analysis completed in ${stopwatch.elapsed}');
-      timings.forEach((timing) => print('notification at : ${timings}'));
-      stopwatch.reset();
-    });
+    await analysisFinished;
+
+    print('analysis completed in ${stopwatch.elapsed}');
+    print('completion received at : ${timings}');
+    await shutdown();
   }
 }

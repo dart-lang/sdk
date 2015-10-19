@@ -5,6 +5,7 @@
 library server.performance;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:unittest/unittest.dart';
@@ -67,6 +68,13 @@ abstract class AbstractAnalysisServerPerformanceTest
   /**
    * After every test, the server is stopped.
    */
-  @override
-  Future tearDown() => shutdownIfNeeded();
+  Future shutdown() async => await shutdownIfNeeded();
+}
+
+class AbstractTimingTest extends AbstractAnalysisServerPerformanceTest {
+  Future init(String source) async {
+    await super.setUp();
+    sourceDirectory = new Directory(source);
+    return subscribeToStatusNotifications();
+  }
 }
