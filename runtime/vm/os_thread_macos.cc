@@ -161,7 +161,8 @@ ThreadJoinId OSThread::GetCurrentThreadJoinId() {
 
 
 void OSThread::Join(ThreadJoinId id) {
-  ASSERT(pthread_join(id, NULL) == 0);
+  int result = pthread_join(id, NULL);
+  ASSERT(result == 0);
 }
 
 
