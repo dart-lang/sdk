@@ -618,9 +618,6 @@ class CallSiteInliner : public ValueObject {
                              function.ToCString(),
                              function.deoptimization_counter()));
 
-    // Make a handle for the unoptimized code so that it is not disconnected
-    // from the function while we are trying to inline it.
-    const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
     // Abort if the inlinable bit on the function is low.
     if (!function.CanBeInlined()) {
       TRACE_INLINING(THR_Print("     Bailout: not inlinable\n"));
@@ -862,9 +859,6 @@ class CallSiteInliner : public ValueObject {
       FlowGraphInliner::SetInliningId(callee_graph,
           inliner_->NextInlineId(callee_graph->function(),
                                  call_data->caller_inlining_id_));
-      // We allocate a ZoneHandle for the unoptimized code so that it cannot be
-      // disconnected from its function during the rest of compilation.
-      Code::ZoneHandle(unoptimized_code.raw());
       TRACE_INLINING(THR_Print("     Success\n"));
       PRINT_INLINING_TREE(NULL,
           &call_data->caller, &function, call);

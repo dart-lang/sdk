@@ -422,6 +422,19 @@ namespace dart {
   V(_HashVMBase, set:_hashMask, LinkedHashMap_setHashMask, 1781420082)         \
   V(_HashVMBase, get:_deletedKeys, LinkedHashMap_getDeletedKeys, 63633039)     \
   V(_HashVMBase, set:_deletedKeys, LinkedHashMap_setDeletedKeys, 2079107858)   \
+  V(Uint8List, ., Uint8ListFactory, 1844890525)                                \
+  V(Int8List, ., Int8ListFactory, 1802068996)                                  \
+  V(Uint16List, ., Uint16ListFactory, 1923962567)                              \
+  V(Int16List, ., Int16ListFactory, 2000007495)                                \
+  V(Uint32List, ., Uint32ListFactory, 1836019363)                              \
+  V(Int32List, ., Int32ListFactory, 442847136)                                 \
+  V(Uint64List, ., Uint64ListFactory, 196248223)                               \
+  V(Int64List, ., Int64ListFactory, 1668869084)                                \
+  V(Float32List, ., Float32ListFactory, 1367032554)                            \
+  V(Float64List, ., Float64ListFactory, 1886443347)                            \
+  V(Int32x4List, ., Int32x4ListFactory, 1409401969)                            \
+  V(Float32x4List, ., Float32x4ListFactory, 556438009)                         \
+  V(Float64x2List, ., Float64x2ListFactory, 1269752759)
 
 
 // A list of core function that should never be inlined.
