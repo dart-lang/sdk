@@ -42,7 +42,7 @@ class IndexableFile implements IndexableObject {
 /**
  * The kind of an indexable file.
  */
-class IndexableFileKind implements IndexableObjectKind {
+class IndexableFileKind implements IndexableObjectKind<IndexableFile> {
   /**
    * The unique instance of this class.
    */
@@ -62,13 +62,13 @@ class IndexableFileKind implements IndexableObjectKind {
   }
 
   @override
-  IndexableObject decode(AnalysisContext context, String filePath, int offset) {
+  IndexableFile decode(AnalysisContext context, String filePath, int offset) {
     return new IndexableFile(filePath);
   }
 
   @override
-  int encodeHash(StringToInt stringToInt, IndexableObject indexable) {
-    String path = (indexable as IndexableFile).path;
+  int encodeHash(StringToInt stringToInt, IndexableFile indexable) {
+    String path = indexable.path;
     return stringToInt(path);
   }
 }

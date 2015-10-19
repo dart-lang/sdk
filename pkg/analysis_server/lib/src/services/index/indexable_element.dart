@@ -31,10 +31,15 @@ class IndexableElement implements IndexableObject {
   }
 
   @override
+  String get filePath {
+    return element.source?.fullName;
+  }
+
+  @override
   int get hashCode => element.hashCode;
 
   @override
-  IndexableObjectKind get kind => IndexableElementKind.forElement(element);
+  IndexableElementKind get kind => IndexableElementKind.forElement(element);
 
   @override
   int get offset {
@@ -42,11 +47,6 @@ class IndexableElement implements IndexableObject {
       return element.enclosingElement.nameOffset;
     }
     return element.nameOffset;
-  }
-
-  @override
-  String get filePath {
-    return element.source?.fullName;
   }
 
   @override
@@ -60,7 +60,7 @@ class IndexableElement implements IndexableObject {
 /**
  * The kind associated with an [IndexableElement].
  */
-class IndexableElementKind implements IndexableObjectKind {
+class IndexableElementKind implements IndexableObjectKind<IndexableElement> {
   /**
    * A table mapping element kinds to the corresponding indexable element kind.
    */
@@ -104,7 +104,8 @@ class IndexableElementKind implements IndexableObjectKind {
   }
 
   @override
-  IndexableObject decode(AnalysisContext context, String filePath, int offset) {
+  IndexableElement decode(
+      AnalysisContext context, String filePath, int offset) {
     List<Source> unitSources = context.getSourcesWithFullName(filePath);
     for (Source unitSource in unitSources) {
       List<Source> libSources = context.getLibrariesContaining(unitSource);
@@ -143,17 +144,15 @@ class IndexableElementKind implements IndexableObjectKind {
   }
 
   @override
-  int encodeHash(StringToInt stringToInt, IndexableObject indexable) {
-    Element element = (indexable as IndexableElement).element;
+  int encodeHash(StringToInt stringToInt, IndexableElement indexable) {
+    Element element = indexable.element;
     String elementName = element.displayName;
     int elementNameId = stringToInt(elementName);
-    if (indexable is IndexableElement) {
-      LibraryElement libraryElement = indexable.element.library;
-      if (libraryElement != null) {
-        String libraryPath = libraryElement.source.fullName;
-        int libraryPathId = stringToInt(libraryPath);
-        return JenkinsSmiHash.combine(libraryPathId, elementNameId);
-      }
+    LibraryElement libraryElement = element.library;
+    if (libraryElement != null) {
+      String libraryPath = libraryElement.source.fullName;
+      int libraryPathId = stringToInt(libraryPath);
+      return JenkinsSmiHash.combine(libraryPathId, elementNameId);
     }
     return elementNameId;
   }
