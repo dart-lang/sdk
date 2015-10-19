@@ -16,9 +16,9 @@ import 'package:analyzer/src/generated/source.dart';
  * file. Completion contributors are long-lived objects and must not retain any
  * state between invocations of [computeSuggestions].
  *
- * Clients are expected to subtype this class when implementing plugins.
+ * Clients may extend this class when implementing plugins.
  */
-abstract class DartCompletionContributor extends CompletionContributor {
+abstract class DartCompletionContributor implements CompletionContributor {
   @override
   List<CompletionSuggestion> computeSuggestions(CompletionRequest request) {
     if (request is DartCompletionRequest) {
@@ -58,6 +58,8 @@ abstract class DartCompletionContributor extends CompletionContributor {
 
 /**
  * The information about a requested list of completions within a Dart file.
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class DartCompletionRequest extends CompletionRequest {
   /**

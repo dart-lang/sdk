@@ -13,7 +13,7 @@ import 'package:analyzer/src/generated/error.dart';
 /**
  * A description of a single proposed fix for some problem.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class Fix {
   /**
@@ -55,7 +55,7 @@ class Fix {
  * long-lived objects and must not retain any state between invocations of
  * [computeFixes].
  *
- * Clients are expected to subtype this class when implementing plugins.
+ * Clients may implement this class when implementing plugins.
  */
 abstract class FixContributor {
   /**
@@ -74,7 +74,7 @@ abstract class FixContributor {
  * a single file, then there will be multiple fixes, one per occurance, but they
  * will all share the same kind.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class FixKind {
   /**

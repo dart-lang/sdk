@@ -81,6 +81,8 @@ int _computeArgIndex(AstNode containingNode, Object entity) {
  * there may be no edge in the parse tree which is appropriate to act as the
  * completion target; in this case, [entity] is set to null and
  * [containingNode] is set to the CompilationUnit.
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class CompletionTarget {
   /**

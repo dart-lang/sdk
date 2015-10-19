@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/source.dart' show Source;
 /**
  * An object that [OccurrencesContributor]s use to record occurrences into.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class OccurrencesCollector {
   /**
@@ -24,7 +24,7 @@ abstract class OccurrencesCollector {
 /**
  * An object used to produce occurrences.
  *
- * Clients are expected to subtype this class when implementing plugins.
+ * Clients may implement this class when implementing plugins.
  */
 abstract class OccurrencesContributor {
   /**

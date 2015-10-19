@@ -13,7 +13,7 @@ import 'package:analyzer/src/generated/engine.dart';
 /**
  * A [ChangeBuilder] used to build changes in Dart files.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class DartChangeBuilder extends ChangeBuilder {
   /**
@@ -25,7 +25,7 @@ abstract class DartChangeBuilder extends ChangeBuilder {
 /**
  * An [EditBuilder] used to build edits in Dart files.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class DartEditBuilder extends EditBuilder {
   /**
@@ -151,6 +151,6 @@ abstract class DartEditBuilder extends EditBuilder {
 /**
  * A [FileEditBuilder] used to build edits for Dart files.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class DartFileEditBuilder extends FileEditBuilder {}

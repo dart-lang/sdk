@@ -10,9 +10,10 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:plugin/plugin.dart';
 
 /**
- * An object that can be used to start an analysis server.
+ * An object that can be used to start an analysis server. This class exists so
+ * that clients can configure an analysis server before starting it.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class ServerStarter {
   /**
