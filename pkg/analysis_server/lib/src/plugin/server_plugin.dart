@@ -271,7 +271,8 @@ class ServerPlugin implements Plugin {
     registerExtension(
         ANALYZE_FILE_EXTENSION_POINT_ID,
         (File file) => AnalysisEngine.isDartFileName(file.path) ||
-            AnalysisEngine.isHtmlFileName(file.path));
+            AnalysisEngine.isHtmlFileName(file.path) ||
+            AnalysisEngine.isAnalysisOptionsFileName(file.path));
     //
     // Register assist contributors.
     //

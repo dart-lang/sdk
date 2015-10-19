@@ -5,18 +5,16 @@
 library source.analysis_options_provider;
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:yaml/yaml.dart';
 
 /// Provide the options found in the `.analysis_options` file.
 class AnalysisOptionsProvider {
-  /// The name of the analysis options source file.
-  static const String ANALYSIS_OPTIONS_NAME = '.analysis_options';
-
-  /// Provide the options found in [root]/[ANALYSIS_OPTIONS_NAME].
+  /// Provide the options found in [root]/[ANALYSIS_OPTIONS_FILE].
   /// Return an empty options map if the file does not exist.
   Map<String, YamlNode> getOptions(Folder root) {
-    var optionsSource =
-        _readAnalysisOptionsFile(root.getChild(ANALYSIS_OPTIONS_NAME));
+    var optionsSource = _readAnalysisOptionsFile(
+        root.getChild(AnalysisEngine.ANALYSIS_OPTIONS_FILE));
     return getOptionsFromString(optionsSource);
   }
 
