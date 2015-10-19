@@ -813,7 +813,7 @@ class SplitIndexStore implements InternalIndexStore {
 
   @override
   bool aboutToIndex(AnalysisContext context, Object object) {
-    if (context.isDisposed) {
+    if (context == null || context.isDisposed) {
       return false;
     }
     // try to find a node name
