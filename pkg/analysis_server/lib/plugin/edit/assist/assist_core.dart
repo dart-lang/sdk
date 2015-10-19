@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/source.dart';
 /**
  * A description of a single proposed assist.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class Assist {
   /**
@@ -52,7 +52,7 @@ class Assist {
 /**
  * An object used to produce assists for a specific location.
  *
- * Clients are expected to subtype this class when implementing plugins.
+ * Clients may implement this class when implementing plugins.
  */
 abstract class AssistContributor {
   /**
@@ -70,7 +70,7 @@ abstract class AssistContributor {
  * information that is common across a number of assists and to be shared by
  * those assists.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AssistKind {
   /**

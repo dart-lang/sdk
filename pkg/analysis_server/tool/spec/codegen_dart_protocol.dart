@@ -71,7 +71,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
    * that are generated.
    */
   static const String disclaimer =
-      'Clients are not expected to subtype this class.';
+      'Clients may not extend, implement or mix-in this class.';
 
   /**
    * Visitor used to produce doc comments.

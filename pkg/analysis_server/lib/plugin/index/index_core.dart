@@ -30,7 +30,7 @@ typedef int StringToInt(String string);
  * the same kind and offset. Failure to do so will make it impossible for
  * clients to identify the model element corresponding to the indexable object.
  *
- * Clients are expected to subtype this class when implementing plugins.
+ * Clients may implement this class when implementing plugins.
  */
 abstract class IndexableObject {
   /**
@@ -52,7 +52,7 @@ abstract class IndexableObject {
 /**
  * The kind associated with an [IndexableObject].
  *
- * Clients are expected to implement this class when implementing plugins.
+ * Clients may implement this class when implementing plugins.
  */
 abstract class IndexableObjectKind {
   /**
@@ -131,7 +131,7 @@ abstract class IndexableObjectKind {
 /**
  * An object used to add relationships to the index.
  *
- * Clients are expected to subtype this class when implementing plugins.
+ * Clients may implement this class when implementing plugins.
  */
 abstract class IndexContributor {
   /**
@@ -145,7 +145,7 @@ abstract class IndexContributor {
  * An object that stores information about the relationships between locations
  * in a code base.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class IndexStore {
   /**
@@ -228,7 +228,7 @@ abstract class IndexStore {
  * to the source containing the indexable object rather than the start of the
  * indexable object within that source.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class Location {
   /**
@@ -267,7 +267,7 @@ abstract class Location {
  * A relationship between an indexable object and a location. Relationships are
  * identified by a globally unique identifier.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class Relationship {
   /**

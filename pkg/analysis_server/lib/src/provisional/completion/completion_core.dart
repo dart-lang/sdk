@@ -14,7 +14,7 @@ import 'package:analyzer/src/generated/source.dart';
  * contributors are long-lived objects and must not retain any state between
  * invocations of [computeSuggestions].
  *
- * Clients are expected to subtype this class when implementing plugins.
+ * Clients may implement this class when implementing plugins.
  */
 abstract class CompletionContributor {
   /**
@@ -27,7 +27,7 @@ abstract class CompletionContributor {
 /**
  * The information about a requested list of completions.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class CompletionRequest {
   /**
@@ -55,7 +55,7 @@ abstract class CompletionRequest {
 /**
  * The result of computing suggestions for code completion.
  *
- * Clients are expected to subtype this class when implementing plugins.
+ * Clients may implement this class when implementing plugins.
  */
 abstract class CompletionResult {
   /**

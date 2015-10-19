@@ -59,7 +59,7 @@ class AnalysisContextTarget implements AnalysisTarget {
 /**
  * An object with which an analysis result can be associated.
  *
- * Clients are allowed to subtype this class when creating new kinds of targets.
+ * Clients may implement this class when creating new kinds of targets.
  * Instances of this type are used in hashed data structures, so subtypes are
  * required to correctly implement [==] and [hashCode].
  */
@@ -75,7 +75,7 @@ abstract class AnalysisTarget {
  * An object used to compute one or more analysis results associated with a
  * single target.
  *
- * Clients are expected to extend this class when creating new tasks.
+ * Clients must extend this class when creating new tasks.
  */
 abstract class AnalysisTask {
   /**
@@ -198,7 +198,7 @@ abstract class AnalysisTask {
    * map should be fully populated (have a key/value pair for each result that
    * this task is expected to produce) or the [caughtException] should be set.
    *
-   * Clients should not override this method.
+   * Clients may not override this method.
    */
   void perform() {
     try {
@@ -217,7 +217,7 @@ abstract class AnalysisTask {
    * Perform this analysis task, ensuring that all exceptions are wrapped in an
    * [AnalysisException].
    *
-   * Clients should not override this method.
+   * Clients may not override this method.
    */
   void _safelyPerform() {
     try {
@@ -273,7 +273,7 @@ abstract class AnalysisTask {
  * A description of a [List]-based analysis result that can be computed by an
  * [AnalysisTask].
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class ListResultDescriptor<E> implements ResultDescriptor<List<E>> {
   /**
@@ -293,7 +293,7 @@ abstract class ListResultDescriptor<E> implements ResultDescriptor<List<E>> {
  * A description of an input to an [AnalysisTask] that can be used to compute
  * that input.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class ListTaskInput<E> extends TaskInput<List<E>> {
   /**
@@ -328,7 +328,7 @@ abstract class ListTaskInput<E> extends TaskInput<List<E>> {
 /**
  * A description of an input with a [Map] based values.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class MapTaskInput<K, V> extends TaskInput<Map<K, V>> {
   /**
@@ -347,6 +347,8 @@ abstract class MapTaskInput<K, V> extends TaskInput<Map<K, V>> {
  *
  * All the [ResultDescriptor]s with the same [ResultCachingPolicy] instance
  * share the same total size in a cache.
+ *
+ * Clients may implement this class when implementing plugins.
  */
 abstract class ResultCachingPolicy<T> {
   /**
@@ -370,7 +372,7 @@ abstract class ResultCachingPolicy<T> {
 /**
  * A description of an analysis result that can be computed by an [AnalysisTask].
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class ResultDescriptor<V> {
   /**
@@ -410,7 +412,7 @@ abstract class ResultDescriptor<V> {
 /**
  * A specification of the given [result] for the given [target].
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class TargetedResult {
   /**
@@ -451,6 +453,8 @@ class TargetedResult {
 
 /**
  * A description of an [AnalysisTask].
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class TaskDescriptor {
   /**
@@ -492,7 +496,7 @@ abstract class TaskDescriptor {
  * A description of an input to an [AnalysisTask] that can be used to compute
  * that input.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class TaskInput<V> {
   /**
@@ -520,7 +524,7 @@ abstract class TaskInput<V> {
  * indicating that there are no more requests, the method [inputValue] can be
  * used to access the value of the input that was built.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class TaskInputBuilder<V> {
   /**
@@ -588,6 +592,8 @@ abstract class TaskInputBuilder<V> {
  *
  * They know specific of the targets and results they care about,
  * so they can request analysis results in optimal order.
+ *
+ * Clients may implement this class when implementing plugins.
  */
 abstract class WorkManager {
   /**

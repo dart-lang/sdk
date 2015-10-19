@@ -15,9 +15,9 @@ import 'package:analyzer/src/generated/source.dart';
  * A [FixContributor] that can be used to contribute fixes for errors in Dart
  * files.
  *
- * Clients are expected to extend this class when implementing plugins.
+ * Clients may extend this class when implementing plugins.
  */
-abstract class DartFixContributor extends FixContributor {
+abstract class DartFixContributor implements FixContributor {
   @override
   List<Fix> computeFixes(ResourceProvider resourceProvider,
       AnalysisContext context, AnalysisError error) {

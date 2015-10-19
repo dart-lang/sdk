@@ -11,7 +11,7 @@ part of analysis_server.plugin.protocol.protocol;
 /**
  * server.getVersion params
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerGetVersionParams {
   Request toRequest(String id) {
@@ -39,7 +39,7 @@ class ServerGetVersionParams {
  *   "version": String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerGetVersionResult implements HasToJson {
   String _version;
@@ -114,7 +114,7 @@ class ServerGetVersionResult implements HasToJson {
 /**
  * server.shutdown params
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerShutdownParams {
   Request toRequest(String id) {
@@ -137,7 +137,7 @@ class ServerShutdownParams {
 /**
  * server.shutdown result
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerShutdownResult {
   Response toResponse(String id) {
@@ -165,7 +165,7 @@ class ServerShutdownResult {
  *   "subscriptions": List<ServerService>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerSetSubscriptionsParams implements HasToJson {
   List<ServerService> _subscriptions;
@@ -240,7 +240,7 @@ class ServerSetSubscriptionsParams implements HasToJson {
 /**
  * server.setSubscriptions result
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerSetSubscriptionsResult {
   Response toResponse(String id) {
@@ -268,7 +268,7 @@ class ServerSetSubscriptionsResult {
  *   "version": String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerConnectedParams implements HasToJson {
   String _version;
@@ -350,7 +350,7 @@ class ServerConnectedParams implements HasToJson {
  *   "stackTrace": String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerErrorParams implements HasToJson {
   bool _isFatal;
@@ -485,7 +485,7 @@ class ServerErrorParams implements HasToJson {
  *   "pub": optional PubStatus
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerStatusParams implements HasToJson {
   AnalysisStatus _analysis;
@@ -592,7 +592,7 @@ class ServerStatusParams implements HasToJson {
  *   "file": FilePath
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisGetErrorsParams implements HasToJson {
   String _file;
@@ -672,7 +672,7 @@ class AnalysisGetErrorsParams implements HasToJson {
  *   "errors": List<AnalysisError>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisGetErrorsResult implements HasToJson {
   List<AnalysisError> _errors;
@@ -753,7 +753,7 @@ class AnalysisGetErrorsResult implements HasToJson {
  *   "offset": int
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisGetHoverParams implements HasToJson {
   String _file;
@@ -858,7 +858,7 @@ class AnalysisGetHoverParams implements HasToJson {
  *   "hovers": List<HoverInformation>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisGetHoverResult implements HasToJson {
   List<HoverInformation> _hovers;
@@ -941,7 +941,7 @@ class AnalysisGetHoverResult implements HasToJson {
 /**
  * analysis.getLibraryDependencies params
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisGetLibraryDependenciesParams {
   Request toRequest(String id) {
@@ -970,7 +970,7 @@ class AnalysisGetLibraryDependenciesParams {
  *   "packageMap": Map<String, Map<String, List<FilePath>>>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisGetLibraryDependenciesResult implements HasToJson {
   List<String> _libraries;
@@ -1081,7 +1081,7 @@ class AnalysisGetLibraryDependenciesResult implements HasToJson {
  *   "length": int
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisGetNavigationParams implements HasToJson {
   String _file;
@@ -1217,7 +1217,7 @@ class AnalysisGetNavigationParams implements HasToJson {
  *   "regions": List<NavigationRegion>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisGetNavigationResult implements HasToJson {
   List<String> _files;
@@ -1351,7 +1351,7 @@ class AnalysisGetNavigationResult implements HasToJson {
  *   "roots": optional List<FilePath>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisReanalyzeParams implements HasToJson {
   List<String> _roots;
@@ -1425,7 +1425,7 @@ class AnalysisReanalyzeParams implements HasToJson {
 /**
  * analysis.reanalyze result
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisReanalyzeResult {
   Response toResponse(String id) {
@@ -1455,7 +1455,7 @@ class AnalysisReanalyzeResult {
  *   "packageRoots": optional Map<FilePath, FilePath>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisSetAnalysisRootsParams implements HasToJson {
   List<String> _included;
@@ -1603,7 +1603,7 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
 /**
  * analysis.setAnalysisRoots result
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisSetAnalysisRootsResult {
   Response toResponse(String id) {
@@ -1631,7 +1631,7 @@ class AnalysisSetAnalysisRootsResult {
  *   "subscriptions": List<GeneralAnalysisService>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisSetGeneralSubscriptionsParams implements HasToJson {
   List<GeneralAnalysisService> _subscriptions;
@@ -1706,7 +1706,7 @@ class AnalysisSetGeneralSubscriptionsParams implements HasToJson {
 /**
  * analysis.setGeneralSubscriptions result
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisSetGeneralSubscriptionsResult {
   Response toResponse(String id) {
@@ -1734,7 +1734,7 @@ class AnalysisSetGeneralSubscriptionsResult {
  *   "files": List<FilePath>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisSetPriorityFilesParams implements HasToJson {
   List<String> _files;
@@ -1809,7 +1809,7 @@ class AnalysisSetPriorityFilesParams implements HasToJson {
 /**
  * analysis.setPriorityFiles result
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisSetPriorityFilesResult {
   Response toResponse(String id) {
@@ -1837,7 +1837,7 @@ class AnalysisSetPriorityFilesResult {
  *   "subscriptions": Map<AnalysisService, List<FilePath>>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisSetSubscriptionsParams implements HasToJson {
   Map<AnalysisService, List<String>> _subscriptions;
@@ -1914,7 +1914,7 @@ class AnalysisSetSubscriptionsParams implements HasToJson {
 /**
  * analysis.setSubscriptions result
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisSetSubscriptionsResult {
   Response toResponse(String id) {
@@ -1942,7 +1942,7 @@ class AnalysisSetSubscriptionsResult {
  *   "files": Map<FilePath, AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisUpdateContentParams implements HasToJson {
   Map<String, dynamic> _files;
@@ -2023,7 +2023,7 @@ class AnalysisUpdateContentParams implements HasToJson {
  * {
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisUpdateContentResult implements HasToJson {
   AnalysisUpdateContentResult();
@@ -2078,7 +2078,7 @@ class AnalysisUpdateContentResult implements HasToJson {
  *   "options": AnalysisOptions
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisUpdateOptionsParams implements HasToJson {
   AnalysisOptions _options;
@@ -2153,7 +2153,7 @@ class AnalysisUpdateOptionsParams implements HasToJson {
 /**
  * analysis.updateOptions result
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisUpdateOptionsResult {
   Response toResponse(String id) {
@@ -2181,7 +2181,7 @@ class AnalysisUpdateOptionsResult {
  *   "directories": List<FilePath>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisAnalyzedFilesParams implements HasToJson {
   List<String> _directories;
@@ -2262,7 +2262,7 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
  *   "errors": List<AnalysisError>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisErrorsParams implements HasToJson {
   String _file;
@@ -2367,7 +2367,7 @@ class AnalysisErrorsParams implements HasToJson {
  *   "files": List<FilePath>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisFlushResultsParams implements HasToJson {
   List<String> _files;
@@ -2448,7 +2448,7 @@ class AnalysisFlushResultsParams implements HasToJson {
  *   "regions": List<FoldingRegion>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisFoldingParams implements HasToJson {
   String _file;
@@ -2554,7 +2554,7 @@ class AnalysisFoldingParams implements HasToJson {
  *   "regions": List<HighlightRegion>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisHighlightsParams implements HasToJson {
   String _file;
@@ -2669,7 +2669,7 @@ class AnalysisHighlightsParams implements HasToJson {
  *   "members": List<ImplementedMember>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisImplementedParams implements HasToJson {
   String _file;
@@ -2802,7 +2802,7 @@ class AnalysisImplementedParams implements HasToJson {
  *   "delta": int
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisInvalidateParams implements HasToJson {
   String _file;
@@ -2964,7 +2964,7 @@ class AnalysisInvalidateParams implements HasToJson {
  *   "files": List<FilePath>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisNavigationParams implements HasToJson {
   String _file;
@@ -3136,7 +3136,7 @@ class AnalysisNavigationParams implements HasToJson {
  *   "occurrences": List<Occurrences>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisOccurrencesParams implements HasToJson {
   String _file;
@@ -3244,7 +3244,7 @@ class AnalysisOccurrencesParams implements HasToJson {
  *   "outline": Outline
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisOutlineParams implements HasToJson {
   String _file;
@@ -3407,7 +3407,7 @@ class AnalysisOutlineParams implements HasToJson {
  *   "overrides": List<Override>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisOverridesParams implements HasToJson {
   String _file;
@@ -3513,7 +3513,7 @@ class AnalysisOverridesParams implements HasToJson {
  *   "offset": int
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class CompletionGetSuggestionsParams implements HasToJson {
   String _file;
@@ -3618,7 +3618,7 @@ class CompletionGetSuggestionsParams implements HasToJson {
  *   "id": CompletionId
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class CompletionGetSuggestionsResult implements HasToJson {
   String _id;
@@ -3702,7 +3702,7 @@ class CompletionGetSuggestionsResult implements HasToJson {
  *   "isLast": bool
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class CompletionResultsParams implements HasToJson {
   String _id;
@@ -3904,7 +3904,7 @@ class CompletionResultsParams implements HasToJson {
  *   "includePotential": bool
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchFindElementReferencesParams implements HasToJson {
   String _file;
@@ -4039,7 +4039,7 @@ class SearchFindElementReferencesParams implements HasToJson {
  *   "element": optional Element
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchFindElementReferencesResult implements HasToJson {
   String _id;
@@ -4154,7 +4154,7 @@ class SearchFindElementReferencesResult implements HasToJson {
  *   "name": String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchFindMemberDeclarationsParams implements HasToJson {
   String _name;
@@ -4234,7 +4234,7 @@ class SearchFindMemberDeclarationsParams implements HasToJson {
  *   "id": SearchId
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchFindMemberDeclarationsResult implements HasToJson {
   String _id;
@@ -4314,7 +4314,7 @@ class SearchFindMemberDeclarationsResult implements HasToJson {
  *   "name": String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchFindMemberReferencesParams implements HasToJson {
   String _name;
@@ -4394,7 +4394,7 @@ class SearchFindMemberReferencesParams implements HasToJson {
  *   "id": SearchId
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchFindMemberReferencesResult implements HasToJson {
   String _id;
@@ -4474,7 +4474,7 @@ class SearchFindMemberReferencesResult implements HasToJson {
  *   "pattern": String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchFindTopLevelDeclarationsParams implements HasToJson {
   String _pattern;
@@ -4556,7 +4556,7 @@ class SearchFindTopLevelDeclarationsParams implements HasToJson {
  *   "id": SearchId
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchFindTopLevelDeclarationsResult implements HasToJson {
   String _id;
@@ -4638,7 +4638,7 @@ class SearchFindTopLevelDeclarationsResult implements HasToJson {
  *   "superOnly": optional bool
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchGetTypeHierarchyParams implements HasToJson {
   String _file;
@@ -4771,7 +4771,7 @@ class SearchGetTypeHierarchyParams implements HasToJson {
  *   "hierarchyItems": optional List<TypeHierarchyItem>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchGetTypeHierarchyResult implements HasToJson {
   List<TypeHierarchyItem> _hierarchyItems;
@@ -4868,7 +4868,7 @@ class SearchGetTypeHierarchyResult implements HasToJson {
  *   "isLast": bool
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchResultsParams implements HasToJson {
   String _id;
@@ -5003,7 +5003,7 @@ class SearchResultsParams implements HasToJson {
  *   "lineLength": optional int
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditFormatParams implements HasToJson {
   String _file;
@@ -5159,7 +5159,7 @@ class EditFormatParams implements HasToJson {
  *   "selectionLength": int
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditFormatResult implements HasToJson {
   List<SourceEdit> _edits;
@@ -5293,7 +5293,7 @@ class EditFormatResult implements HasToJson {
  *   "length": int
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditGetAssistsParams implements HasToJson {
   String _file;
@@ -5423,7 +5423,7 @@ class EditGetAssistsParams implements HasToJson {
  *   "assists": List<SourceChange>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditGetAssistsResult implements HasToJson {
   List<SourceChange> _assists;
@@ -5505,7 +5505,7 @@ class EditGetAssistsResult implements HasToJson {
  *   "length": int
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditGetAvailableRefactoringsParams implements HasToJson {
   String _file;
@@ -5635,7 +5635,7 @@ class EditGetAvailableRefactoringsParams implements HasToJson {
  *   "kinds": List<RefactoringKind>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditGetAvailableRefactoringsResult implements HasToJson {
   List<RefactoringKind> _kinds;
@@ -5716,7 +5716,7 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
  *   "offset": int
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditGetFixesParams implements HasToJson {
   String _file;
@@ -5821,7 +5821,7 @@ class EditGetFixesParams implements HasToJson {
  *   "fixes": List<AnalysisErrorFixes>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditGetFixesResult implements HasToJson {
   List<AnalysisErrorFixes> _fixes;
@@ -5906,7 +5906,7 @@ class EditGetFixesResult implements HasToJson {
  *   "options": optional RefactoringOptions
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditGetRefactoringParams implements HasToJson {
   RefactoringKind _kind;
@@ -6127,7 +6127,7 @@ class EditGetRefactoringParams implements HasToJson {
  *   "potentialEdits": optional List<String>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditGetRefactoringResult implements HasToJson {
   List<RefactoringProblem> _initialProblems;
@@ -6363,7 +6363,7 @@ class EditGetRefactoringResult implements HasToJson {
  *   "file": FilePath
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditSortMembersParams implements HasToJson {
   String _file;
@@ -6443,7 +6443,7 @@ class EditSortMembersParams implements HasToJson {
  *   "edit": SourceFileEdit
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditSortMembersResult implements HasToJson {
   SourceFileEdit _edit;
@@ -6525,7 +6525,7 @@ class EditSortMembersResult implements HasToJson {
  *   "file": FilePath
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditOrganizeDirectivesParams implements HasToJson {
   String _file;
@@ -6605,7 +6605,7 @@ class EditOrganizeDirectivesParams implements HasToJson {
  *   "edit": SourceFileEdit
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditOrganizeDirectivesResult implements HasToJson {
   SourceFileEdit _edit;
@@ -6687,7 +6687,7 @@ class EditOrganizeDirectivesResult implements HasToJson {
  *   "contextRoot": FilePath
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionCreateContextParams implements HasToJson {
   String _contextRoot;
@@ -6769,7 +6769,7 @@ class ExecutionCreateContextParams implements HasToJson {
  *   "id": ExecutionContextId
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionCreateContextResult implements HasToJson {
   String _id;
@@ -6849,7 +6849,7 @@ class ExecutionCreateContextResult implements HasToJson {
  *   "id": ExecutionContextId
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionDeleteContextParams implements HasToJson {
   String _id;
@@ -6924,7 +6924,7 @@ class ExecutionDeleteContextParams implements HasToJson {
 /**
  * execution.deleteContext result
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionDeleteContextResult {
   Response toResponse(String id) {
@@ -6954,7 +6954,7 @@ class ExecutionDeleteContextResult {
  *   "uri": optional String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionMapUriParams implements HasToJson {
   String _id;
@@ -7083,7 +7083,7 @@ class ExecutionMapUriParams implements HasToJson {
  *   "uri": optional String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionMapUriResult implements HasToJson {
   String _file;
@@ -7190,7 +7190,7 @@ class ExecutionMapUriResult implements HasToJson {
  *   "subscriptions": List<ExecutionService>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionSetSubscriptionsParams implements HasToJson {
   List<ExecutionService> _subscriptions;
@@ -7265,7 +7265,7 @@ class ExecutionSetSubscriptionsParams implements HasToJson {
 /**
  * execution.setSubscriptions result
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionSetSubscriptionsResult {
   Response toResponse(String id) {
@@ -7295,7 +7295,7 @@ class ExecutionSetSubscriptionsResult {
  *   "referencedFiles": optional List<FilePath>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionLaunchDataParams implements HasToJson {
   String _file;
@@ -7430,7 +7430,7 @@ class ExecutionLaunchDataParams implements HasToJson {
  *   "content": String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AddContentOverlay implements HasToJson {
   String _content;
@@ -7511,7 +7511,7 @@ class AddContentOverlay implements HasToJson {
  *   "hasFix": optional bool
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisError implements HasToJson {
   AnalysisErrorSeverity _severity;
@@ -7726,7 +7726,7 @@ class AnalysisError implements HasToJson {
  *   "fixes": List<SourceChange>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisErrorFixes implements HasToJson {
   AnalysisError _error;
@@ -7828,7 +7828,7 @@ class AnalysisErrorFixes implements HasToJson {
  *   ERROR
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisErrorSeverity implements Enum {
   static const INFO = const AnalysisErrorSeverity._("INFO");
@@ -7889,7 +7889,7 @@ class AnalysisErrorSeverity implements Enum {
  *   TODO
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisErrorType implements Enum {
   static const CHECKED_MODE_COMPILE_TIME_ERROR = const AnalysisErrorType._("CHECKED_MODE_COMPILE_TIME_ERROR");
@@ -7970,7 +7970,7 @@ class AnalysisErrorType implements Enum {
  *   "generateLints": optional bool
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisOptions implements HasToJson {
   bool _enableAsync;
@@ -8243,7 +8243,7 @@ class AnalysisOptions implements HasToJson {
  *   OVERRIDES
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisService implements Enum {
   static const FOLDING = const AnalysisService._("FOLDING");
@@ -8322,7 +8322,7 @@ class AnalysisService implements Enum {
  *   "analysisTarget": optional String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisStatus implements HasToJson {
   bool _isAnalyzing;
@@ -8420,7 +8420,7 @@ class AnalysisStatus implements HasToJson {
  *   "edits": List<SourceEdit>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ChangeContentOverlay implements HasToJson {
   List<SourceEdit> _edits;
@@ -8514,7 +8514,7 @@ class ChangeContentOverlay implements HasToJson {
  *   "importUri": optional String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class CompletionSuggestion implements HasToJson {
   CompletionSuggestionKind _kind;
@@ -9072,7 +9072,7 @@ class CompletionSuggestion implements HasToJson {
  *   PARAMETER
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class CompletionSuggestionKind implements Enum {
   /**
@@ -9179,7 +9179,7 @@ class CompletionSuggestionKind implements Enum {
  *   "typeParameters": optional String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class Element implements HasToJson {
   static const int FLAG_ABSTRACT = 0x01;
@@ -9473,7 +9473,7 @@ class Element implements HasToJson {
  *   UNKNOWN
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ElementKind implements Enum {
   static const CLASS = const ElementKind._("CLASS");
@@ -9608,7 +9608,7 @@ class ElementKind implements Enum {
  *   "kind": ExecutableKind
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutableFile implements HasToJson {
   String _file;
@@ -9707,7 +9707,7 @@ class ExecutableFile implements HasToJson {
  *   SERVER
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutableKind implements Enum {
   static const CLIENT = const ExecutableKind._("CLIENT");
@@ -9765,7 +9765,7 @@ class ExecutableKind implements Enum {
  *   LAUNCH_DATA
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionService implements Enum {
   static const LAUNCH_DATA = const ExecutionService._("LAUNCH_DATA");
@@ -9812,7 +9812,7 @@ class ExecutionService implements Enum {
  *   PART
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class FileKind implements Enum {
   static const LIBRARY = const FileKind._("LIBRARY");
@@ -9866,7 +9866,7 @@ class FileKind implements Enum {
  *   TOP_LEVEL_DECLARATION
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class FoldingKind implements Enum {
   static const COMMENT = const FoldingKind._("COMMENT");
@@ -9930,7 +9930,7 @@ class FoldingKind implements Enum {
  *   "length": int
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class FoldingRegion implements HasToJson {
   FoldingKind _kind;
@@ -10051,7 +10051,7 @@ class FoldingRegion implements HasToJson {
  *   ANALYZED_FILES
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class GeneralAnalysisService implements Enum {
   static const ANALYZED_FILES = const GeneralAnalysisService._("ANALYZED_FILES");
@@ -10099,7 +10099,7 @@ class GeneralAnalysisService implements Enum {
  *   "length": int
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class HighlightRegion implements HasToJson {
   HighlightRegionType _type;
@@ -10292,7 +10292,7 @@ class HighlightRegion implements HasToJson {
  *   VALID_STRING_ESCAPE
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class HighlightRegionType implements Enum {
   static const ANNOTATION = const HighlightRegionType._("ANNOTATION");
@@ -10783,7 +10783,7 @@ class HighlightRegionType implements Enum {
  *   "staticType": optional String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class HoverInformation implements HasToJson {
   int _offset;
@@ -11134,7 +11134,7 @@ class HoverInformation implements HasToJson {
  *   "length": int
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ImplementedClass implements HasToJson {
   int _offset;
@@ -11231,7 +11231,7 @@ class ImplementedClass implements HasToJson {
  *   "length": int
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ImplementedMember implements HasToJson {
   int _offset;
@@ -11329,7 +11329,7 @@ class ImplementedMember implements HasToJson {
  *   "suggestions": List<LinkedEditSuggestion>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class LinkedEditGroup implements HasToJson {
   List<Position> _positions;
@@ -11473,7 +11473,7 @@ class LinkedEditGroup implements HasToJson {
  *   "kind": LinkedEditSuggestionKind
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class LinkedEditSuggestion implements HasToJson {
   String _value;
@@ -11572,7 +11572,7 @@ class LinkedEditSuggestion implements HasToJson {
  *   VARIABLE
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class LinkedEditSuggestionKind implements Enum {
   static const METHOD = const LinkedEditSuggestionKind._("METHOD");
@@ -11634,7 +11634,7 @@ class LinkedEditSuggestionKind implements Enum {
  *   "startColumn": int
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class Location implements HasToJson {
   String _file;
@@ -11811,7 +11811,7 @@ class Location implements HasToJson {
  *   "targets": List<int>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class NavigationRegion implements HasToJson {
   int _offset;
@@ -11941,7 +11941,7 @@ class NavigationRegion implements HasToJson {
  *   "startColumn": int
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class NavigationTarget implements HasToJson {
   ElementKind _kind;
@@ -12145,7 +12145,7 @@ class NavigationTarget implements HasToJson {
  *   "length": int
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class Occurrences implements HasToJson {
   Element _element;
@@ -12269,7 +12269,7 @@ class Occurrences implements HasToJson {
  *   "children": optional List<Outline>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class Outline implements HasToJson {
   Element _element;
@@ -12425,7 +12425,7 @@ class Outline implements HasToJson {
  *   "interfaceMembers": optional List<OverriddenMember>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class Override implements HasToJson {
   int _offset;
@@ -12578,7 +12578,7 @@ class Override implements HasToJson {
  *   "className": String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class OverriddenMember implements HasToJson {
   Element _element;
@@ -12675,7 +12675,7 @@ class OverriddenMember implements HasToJson {
  *   "offset": int
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class Position implements HasToJson {
   String _file;
@@ -12771,7 +12771,7 @@ class Position implements HasToJson {
  *   "isListingPackageDirs": bool
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class PubStatus implements HasToJson {
   bool _isListingPackageDirs;
@@ -12852,7 +12852,7 @@ class PubStatus implements HasToJson {
  *   SORT_MEMBERS
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringKind implements Enum {
   static const CONVERT_GETTER_TO_METHOD = const RefactoringKind._("CONVERT_GETTER_TO_METHOD");
@@ -12934,7 +12934,7 @@ class RefactoringKind implements Enum {
  *   "parameters": optional String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringMethodParameter implements HasToJson {
   String _id;
@@ -13110,7 +13110,7 @@ class RefactoringMethodParameter implements HasToJson {
  * {
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringFeedback implements HasToJson {
   RefactoringFeedback();
@@ -13148,7 +13148,7 @@ class RefactoringFeedback implements HasToJson {
  * {
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringOptions implements HasToJson {
   RefactoringOptions();
@@ -13189,7 +13189,7 @@ class RefactoringOptions implements HasToJson {
  *   NAMED
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringMethodParameterKind implements Enum {
   static const REQUIRED = const RefactoringMethodParameterKind._("REQUIRED");
@@ -13245,7 +13245,7 @@ class RefactoringMethodParameterKind implements Enum {
  *   "location": optional Location
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringProblem implements HasToJson {
   RefactoringProblemSeverity _severity;
@@ -13372,7 +13372,7 @@ class RefactoringProblem implements HasToJson {
  *   FATAL
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringProblemSeverity implements Enum {
   static const INFO = const RefactoringProblemSeverity._("INFO");
@@ -13436,7 +13436,7 @@ class RefactoringProblemSeverity implements Enum {
  *   "type": "remove"
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class RemoveContentOverlay implements HasToJson {
   RemoveContentOverlay();
@@ -13489,7 +13489,7 @@ class RemoveContentOverlay implements HasToJson {
  *   "stackTrace": optional String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class RequestError implements HasToJson {
   RequestErrorCode _code;
@@ -13632,7 +13632,7 @@ class RequestError implements HasToJson {
  *   UNSUPPORTED_FEATURE
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class RequestErrorCode implements Enum {
   /**
@@ -13860,7 +13860,7 @@ class RequestErrorCode implements Enum {
  *   "path": List<Element>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchResult implements HasToJson {
   Location _location;
@@ -14022,7 +14022,7 @@ class SearchResult implements HasToJson {
  *   WRITE
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchResultKind implements Enum {
   /**
@@ -14114,7 +14114,7 @@ class SearchResultKind implements Enum {
  *   STATUS
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerService implements Enum {
   static const STATUS = const ServerService._("STATUS");
@@ -14163,7 +14163,7 @@ class ServerService implements Enum {
  *   "selection": optional Position
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class SourceChange implements HasToJson {
   String _message;
@@ -14347,7 +14347,7 @@ class SourceChange implements HasToJson {
  *   "id": optional String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class SourceEdit implements HasToJson {
   /**
@@ -14525,7 +14525,7 @@ class SourceEdit implements HasToJson {
  *   "edits": List<SourceEdit>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class SourceFileEdit implements HasToJson {
   String _file;
@@ -14675,7 +14675,7 @@ class SourceFileEdit implements HasToJson {
  *   "subclasses": List<int>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class TypeHierarchyItem implements HasToJson {
   Element _classElement;
@@ -14922,7 +14922,7 @@ class TypeHierarchyItem implements HasToJson {
 /**
  * convertGetterToMethod feedback
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ConvertGetterToMethodFeedback {
   @override
@@ -14941,7 +14941,7 @@ class ConvertGetterToMethodFeedback {
 /**
  * convertGetterToMethod options
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ConvertGetterToMethodOptions {
   @override
@@ -14960,7 +14960,7 @@ class ConvertGetterToMethodOptions {
 /**
  * convertMethodToGetter feedback
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ConvertMethodToGetterFeedback {
   @override
@@ -14979,7 +14979,7 @@ class ConvertMethodToGetterFeedback {
 /**
  * convertMethodToGetter options
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ConvertMethodToGetterOptions {
   @override
@@ -15007,7 +15007,7 @@ class ConvertMethodToGetterOptions {
  *   "lengths": List<int>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJson {
   List<int> _coveringExpressionOffsets;
@@ -15191,7 +15191,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
  *   "extractAll": bool
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJson {
   String _name;
@@ -15305,7 +15305,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJso
  *   "lengths": List<int>
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
   int _offset;
@@ -15569,7 +15569,7 @@ class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
  *   "extractAll": bool
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
   String _returnType;
@@ -15770,7 +15770,7 @@ class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
  *   "occurrences": int
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class InlineLocalVariableFeedback extends RefactoringFeedback implements HasToJson {
   String _name;
@@ -15861,7 +15861,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback implements HasToJs
 /**
  * inlineLocalVariable options
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class InlineLocalVariableOptions {
   @override
@@ -15887,7 +15887,7 @@ class InlineLocalVariableOptions {
  *   "isDeclaration": bool
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class InlineMethodFeedback extends RefactoringFeedback implements HasToJson {
   String _className;
@@ -16012,7 +16012,7 @@ class InlineMethodFeedback extends RefactoringFeedback implements HasToJson {
  *   "inlineAll": bool
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class InlineMethodOptions extends RefactoringOptions implements HasToJson {
   bool _deleteSource;
@@ -16112,7 +16112,7 @@ class InlineMethodOptions extends RefactoringOptions implements HasToJson {
 /**
  * moveFile feedback
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class MoveFileFeedback {
   @override
@@ -16136,7 +16136,7 @@ class MoveFileFeedback {
  *   "newFile": FilePath
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class MoveFileOptions extends RefactoringOptions implements HasToJson {
   String _newFile;
@@ -16215,7 +16215,7 @@ class MoveFileOptions extends RefactoringOptions implements HasToJson {
  *   "oldName": String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class RenameFeedback extends RefactoringFeedback implements HasToJson {
   int _offset;
@@ -16363,7 +16363,7 @@ class RenameFeedback extends RefactoringFeedback implements HasToJson {
  *   "newName": String
  * }
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class RenameOptions extends RefactoringOptions implements HasToJson {
   String _newName;

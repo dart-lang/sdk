@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/source.dart' show Source;
 /**
  * An object that [NavigationContributor]s use to record navigation regions.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class NavigationCollector {
   /**
@@ -26,7 +26,7 @@ abstract class NavigationCollector {
 /**
  * An object used to produce navigation regions.
  *
- * Clients are expected to subtype this class when implementing plugins.
+ * Clients may implement this class when implementing plugins.
  */
 abstract class NavigationContributor {
   /**

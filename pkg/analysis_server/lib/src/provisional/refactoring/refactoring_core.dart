@@ -65,7 +65,7 @@ abstract class Refactoring {
 /**
  *
  *
- * Clients are expected to subtype this class when implementing plugins.
+ * Clients may implement this class when implementing plugins.
  */
 abstract class RefactoringContributor {
   /**
@@ -84,7 +84,7 @@ abstract class RefactoringContributor {
 /**
  *
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class RefactoringKind {
   factory RefactoringKind(String name, bool requiresOptions) {
@@ -95,7 +95,7 @@ abstract class RefactoringKind {
 /**
  *
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class RefactoringStatus {
   // TODO(brianwilkerson) Fill this in.
