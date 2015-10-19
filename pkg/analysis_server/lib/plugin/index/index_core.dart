@@ -24,7 +24,7 @@ typedef int StringToInt(String string);
 /**
  * An object that can have a [Relationship] with various [Location]s in a code
  * base. The object is abstractly represented by a [kind] and an [offset] within
- * a [source].
+ * a file with the [filePath].
  *
  * Clients must ensure that two distinct objects in the same source cannot have
  * the same kind and offset. Failure to do so will make it impossible for
@@ -44,7 +44,7 @@ abstract class IndexableObject {
   IndexableObjectKind get kind;
 
   /**
-   * Return the offset of the indexable object within its source.
+   * Return the offset of the indexable object within its file.
    */
   int get offset;
 }
@@ -54,7 +54,7 @@ abstract class IndexableObject {
  *
  * Clients may implement this class when implementing plugins.
  */
-abstract class IndexableObjectKind {
+abstract class IndexableObjectKind<T extends IndexableObject> {
   /**
    * The next available index for a newly created kind of indexable object.
    */
@@ -84,7 +84,7 @@ abstract class IndexableObjectKind {
    * [context], in the source with the given [filePath], and at the given
    * [offset].
    */
-  IndexableObject decode(AnalysisContext context, String filePath, int offset);
+  T decode(AnalysisContext context, String filePath, int offset);
 
   /**
    * Returns the hash value that corresponds to the given [indexable].
@@ -105,7 +105,7 @@ abstract class IndexableObjectKind {
    * object does not have a name, some other value may be returned, but it still
    * must be always the same for the same object and have good selectivity.
    */
-  int encodeHash(StringToInt stringToInt, IndexableObject indexable);
+  int encodeHash(StringToInt stringToInt, T indexable);
 
   /**
    * Return the object kind with the given [index].
