@@ -1658,6 +1658,9 @@ void Isolate::Shutdown() {
   }
 #endif  // DEBUG
 
+  // Wait until all background compilation has finished.
+  BackgroundCompiler::Stop(background_compiler_);
+
   Thread* thread = Thread::Current();
 
   // First, perform higher-level cleanup that may need to allocate.
@@ -1705,8 +1708,6 @@ void Isolate::Shutdown() {
     ASSERT(old_space->tasks() == 0);
   }
 #endif
-
-  BackgroundCompiler::Stop(background_compiler_);
 
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
