@@ -29,9 +29,11 @@ Future main(List<String> args) async {
   var entrypoint = info.program.entrypoint;
   var reachables = findReachable(graph, entrypoint);
 
-  var unreachables = info.functions.where((func) => !reachables.contains(func));
+  var functionsAndFields = []..addAll(info.functions)..addAll(info.fields);
+  var unreachables =
+      functionsAndFields.where((func) => !reachables.contains(func));
   if (unreachables.isNotEmpty) {
-    unreachables.forEach(print);
+    unreachables.forEach((x) => print(longName(x)));
     exit(1);
   } else {
     print('all elements are reachable from the entrypoint');
@@ -39,17 +41,8 @@ Future main(List<String> args) async {
 }
 
 /// Finds the set of nodes reachable from [start] in [graph].
-Set<Info> findReachable(Graph<Info> graph, Info start) {
-  var visited = new Set<Info>();
-  var stack = <Info>[start];
-  while (stack.isNotEmpty) {
-    var next = stack.removeLast();
-    visited.add(next);
-    stack.addAll(
-        graph.targetsOf(next).where((target) => !visited.contains(target)));
-  }
-  return visited;
-}
+Set<Info> findReachable(Graph<Info> graph, Info start) =>
+    new Set.from(graph.preOrder(start));
 
 void printUsage() {
   print('usage: dart2js_info_verify_deps <info file>');

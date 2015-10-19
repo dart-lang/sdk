@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A library to work with graphs. It contains a couple algorithms, including
-/// Tarjan's algorithm to compute strongest connected components in a graph and
+/// Tarjan's algorithm to compute strongly connected components in a graph and
 /// Cooper et al's dominator algorithm.
 ///
 /// Portions of the code in this library was adapted from
@@ -41,21 +41,35 @@ abstract class Graph<N> {
   }
 
   /// Returns all nodes reachable from [root] in post order.
-  List<N> postOrder(N root) {
+  Iterable<N> postOrder(N root) sync* {
     var seen = new Set<N>();
-    var result = <N>[];
-    helper(n) {
+    Iterable<N> helper(n) sync* {
       if (!seen.add(n)) return;
-      targetsOf(n).forEach(helper);
-      result.add(n);
+      for (var x in targetsOf(n)) {
+        yield* helper(x);
+      }
+      yield n;
     }
-    helper(root);
-    return result;
+    yield* helper(root);
   }
 
-  /// Return a list of nodes that form a cycle containing the given node. If the
-  /// node is not part of a cycle in this graph, then a list containing only the
-  /// node itself will be returned.
+  /// Returns an iterable of all nodes reachable from [root] in preorder.
+  Iterable<N> preOrder(N root) sync* {
+    var seen = new Set<N>();
+    var stack = <N>[root];
+    while (stack.isNotEmpty) {
+      var next = stack.removeLast();
+      if (!seen.contains(next)) {
+        seen.add(next);
+        yield next;
+        stack.addAll(targetsOf(next));
+      }
+    }
+  }
+
+  /// Returns a list of nodes that form a cycle containing the given node. If
+  /// the node is not part of a cycle in this graph, then a list containing only
+  /// the node itself will be returned.
   List<N> findCycleContaining(N node) {
     assert(node != null);
     _SccFinder<N> finder = new _SccFinder<N>(this);
@@ -273,7 +287,7 @@ class _DominatorFinder<N> {
     immediateDominators[root] = root;
     bool changed = true;
     int i = 0;
-    var nodesInPostOrder = _graph.postOrder(root);
+    var nodesInPostOrder = _graph.postOrder(root).toList();
     for (var n in nodesInPostOrder) {
       postOrderId[n] = i++;
     }

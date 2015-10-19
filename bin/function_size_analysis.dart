@@ -31,10 +31,10 @@ showCodeDistribution(AllInfo info,
   // Compute a graph from the dependencies in [info].
   Graph<Info> graph = graphFromInfo(info);
 
-  // Compute the strongest connected components and calculate their size.
+  // Compute the strongly connected components and calculate their size.
   var components = graph.computeTopologicalSort();
   print('total elements: ${graph.nodes.length}');
-  print('total strongest connected components: ${components.length}');
+  print('total strongly connected components: ${components.length}');
   var maxS = 0;
   var totalCount = graph.nodeCount;
   var minS = totalCount;

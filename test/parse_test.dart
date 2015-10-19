@@ -6,7 +6,6 @@ import 'package:dart2js_info/info.dart';
 import 'package:test/test.dart';
 
 main() {
-  // TODO(sigmund): add more tests
   group('parse', () {
     test('empty', () {
       var json = {
