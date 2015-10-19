@@ -53,16 +53,16 @@ class _VMElementUpgrader implements ElementUpgrader {
 
       // Element to extend is the real tag.
       tag = element.localName;
-    } else if (tag != null && element.localName != tag) { 
+    } else if (tag != null && element.localName != tag) {
       throw new UnsupportedError('Element is incorrect type. Got ${element.runtimeType}, expected native Html or Svg element to extend.');
     } else if (tag == null) {
       throw new UnsupportedError('Element is incorrect type. Got ${element.runtimeType}, expected HtmlElement/JsObjectImpl.');
     }
 
     // Remember Dart class to tagName for any upgrading done in wrap_jso.
-    _addCustomElementType(tag, _type, _extendsTag);
+    addCustomElementType(tag, _type, _extendsTag);
 
-    return createCustomUpgrader(_type, jsObject);
+    return _createCustomUpgrader(_type, jsObject);
   }
 }
 

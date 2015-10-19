@@ -1,6 +1,7 @@
 library wrapping_collection_test;
 
 import 'dart:html';
+import 'dart:html_common';
 import 'dart:js' as js;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
