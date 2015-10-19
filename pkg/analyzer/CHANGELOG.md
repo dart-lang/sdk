@@ -1,3 +1,6 @@
+## 0.26.1+13
+* (Internal) Plugin processing fixes.
+
 ## 0.26.1+11
 * Fixes to address lint registry memory leaking.
 
