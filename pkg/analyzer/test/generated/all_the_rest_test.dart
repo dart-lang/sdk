@@ -3149,7 +3149,7 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_hasKnownValue_bool_unknown() {
-    expect(_boolValue(null).hasKnownValue, isTrue);
+    expect(_boolValue(null).hasKnownValue, isFalse);
   }
 
   void test_hasKnownValue_double_known() {
@@ -3157,11 +3157,11 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_hasKnownValue_double_unknown() {
-    expect(_doubleValue(null).hasKnownValue, isTrue);
+    expect(_doubleValue(null).hasKnownValue, isFalse);
   }
 
   void test_hasKnownValue_dynamic() {
-    expect(_dynamicValue().hasKnownValue, isFalse);
+    expect(_dynamicValue().hasKnownValue, isTrue);
   }
 
   void test_hasKnownValue_int_known() {
@@ -3169,7 +3169,7 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_hasKnownValue_int_unknown() {
-    expect(_intValue(null).hasKnownValue, isTrue);
+    expect(_intValue(null).hasKnownValue, isFalse);
   }
 
   void test_hasKnownValue_list_empty() {
@@ -3177,7 +3177,7 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_hasKnownValue_list_invalid() {
-    expect(_dynamicValue().hasKnownValue, isFalse);
+    expect(_dynamicValue().hasKnownValue, isTrue);
   }
 
   void test_hasKnownValue_list_valid() {
@@ -3190,12 +3190,12 @@ class DartObjectImplTest extends EngineTestCase {
 
   void test_hasKnownValue_map_invalidKey() {
     expect(_mapValue([_dynamicValue(), _stringValue("value")]).hasKnownValue,
-        isFalse);
+        isTrue);
   }
 
   void test_hasKnownValue_map_invalidValue() {
     expect(_mapValue([_stringValue("key"), _dynamicValue()]).hasKnownValue,
-        isFalse);
+        isTrue);
   }
 
   void test_hasKnownValue_map_valid() {
@@ -3217,7 +3217,7 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_hasKnownValue_string_unknown() {
-    expect(_stringValue(null).hasKnownValue, isTrue);
+    expect(_stringValue(null).hasKnownValue, isFalse);
   }
 
   void test_identical_bool_false() {
