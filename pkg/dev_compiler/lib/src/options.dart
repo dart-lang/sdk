@@ -13,8 +13,6 @@ import 'package:logging/logging.dart' show Level;
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
-import '../strong_mode.dart' show StrongModeOptions;
-
 const bool _CLOSURE_DEFAULT = false;
 
 /// Options used to set up Source URI resolution in the analysis context.
@@ -94,7 +92,6 @@ class RunnerOptions {
 
 /// General options used by the dev compiler and server.
 class CompilerOptions {
-  final StrongModeOptions strongOptions;
   final SourceResolverOptions sourceOptions;
   final CodegenOptions codegenOptions;
   final RunnerOptions runnerOptions;
@@ -149,8 +146,7 @@ class CompilerOptions {
   final String inputBaseDir;
 
   CompilerOptions(
-      {this.strongOptions: const StrongModeOptions(),
-      this.sourceOptions: const SourceResolverOptions(),
+      {this.sourceOptions: const SourceResolverOptions(),
       this.codegenOptions: const CodegenOptions(),
       this.runnerOptions: const RunnerOptions(),
       this.checkSdk: false,
@@ -238,7 +234,6 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
           packagePaths: args['package-paths'].split(','),
           resources:
               args['resources'].split(',').where((s) => s.isNotEmpty).toList()),
-      strongOptions: new StrongModeOptions.fromArguments(args),
       runnerOptions: new RunnerOptions(v8Binary: v8Binary),
       checkSdk: args['sdk-check'],
       dumpInfo: dumpInfo,
@@ -256,7 +251,7 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
       inputs: args.rest);
 }
 
-final ArgParser argParser = StrongModeOptions.addArguments(new ArgParser()
+final ArgParser argParser = new ArgParser()
   ..addFlag('sdk-check',
       abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false)
   ..addFlag('mock-sdk',
@@ -321,7 +316,7 @@ final ArgParser argParser = StrongModeOptions.addArguments(new ArgParser()
   ..addOption('dump-info-file',
       abbr: 'f',
       help: 'Dump info json file (requires dump-info)',
-      defaultsTo: null));
+      defaultsTo: null);
 
 // TODO: Switch over to the `pub_cache` package (or the Resource API)?
 

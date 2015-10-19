@@ -9,7 +9,6 @@ export 'src/analysis_context.dart'
     show createAnalysisContext, createAnalysisContextWithSources;
 export 'src/compiler.dart' show BatchCompiler, setupLogger, createErrorReporter;
 export 'src/server/server.dart' show DevServer;
-export 'strong_mode.dart' show StrongModeOptions;
 
 // When updating this version, also update the version in the pubspec.
 const devCompilerVersion = '0.1.9';

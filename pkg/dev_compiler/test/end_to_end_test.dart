@@ -13,7 +13,7 @@ import 'testing.dart' show realSdkContext, testDirectory;
 
 main() {
   var mockSdkContext = createAnalysisContextWithSources(
-      new StrongModeOptions(), new SourceResolverOptions(useMockSdk: true));
+      new SourceResolverOptions(useMockSdk: true));
   var compiler = new BatchCompiler(mockSdkContext, new CompilerOptions());
   _check(file) => compiler.compileFromUriString('$testDirectory/$file.dart');
 

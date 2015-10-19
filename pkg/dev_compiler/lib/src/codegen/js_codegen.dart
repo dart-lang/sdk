@@ -14,6 +14,7 @@ import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/scanner.dart'
     show StringToken, Token, TokenType;
 import 'package:analyzer/src/task/dart.dart' show PublicNamespaceBuilder;
+import 'package:analyzer/src/task/strong/rules.dart';
 
 import 'ast_builder.dart' show AstBuilder;
 import 'reify_coercions.dart' show CoercionReifier, Tuple2;
@@ -24,7 +25,6 @@ import '../js/js_ast.dart' show js;
 
 import '../closure/closure_annotator.dart' show ClosureAnnotator;
 import '../compiler.dart' show AbstractCompiler;
-import '../checker/rules.dart';
 import '../info.dart';
 import '../options.dart' show CodegenOptions;
 import '../utils.dart';

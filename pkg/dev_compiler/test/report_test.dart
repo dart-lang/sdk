@@ -8,7 +8,6 @@ library dev_compiler.test.report_test;
 import 'package:test/test.dart';
 
 import 'package:dev_compiler/devc.dart';
-import 'package:dev_compiler/strong_mode.dart' show StrongModeOptions;
 
 import 'package:dev_compiler/src/analysis_context.dart';
 import 'package:dev_compiler/src/options.dart';
@@ -38,9 +37,8 @@ void main() {
     var provider = createTestResourceProvider(files);
     var uriResolver = new TestUriResolver(provider);
     var srcOpts = new SourceResolverOptions(useMockSdk: true);
-    var context = createAnalysisContextWithSources(
-        new StrongModeOptions(), srcOpts,
-        fileResolvers: [uriResolver]);
+    var context =
+        createAnalysisContextWithSources(srcOpts, fileResolvers: [uriResolver]);
     var reporter = new SummaryReporter(context);
     new BatchCompiler(context, new CompilerOptions(sourceOptions: srcOpts),
         reporter: reporter).compileFromUriString('/main.dart');

@@ -63,8 +63,7 @@ CompilerOptions validateOptions(List<String> args, {bool forceOutDir: false}) {
 bool compile(CompilerOptions options) {
   assert(!options.serverMode);
 
-  var context = createAnalysisContextWithSources(
-      options.strongOptions, options.sourceOptions);
+  var context = createAnalysisContextWithSources(options.sourceOptions);
   var reporter = createErrorReporter(context, options);
   bool status = new BatchCompiler(context, options, reporter: reporter).run();
 

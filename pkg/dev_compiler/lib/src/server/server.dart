@@ -210,8 +210,7 @@ class DevServer {
       fileResolvers.insert(0, _createImplicitEntryResolver(options.inputs[0]));
     }
 
-    var context = createAnalysisContextWithSources(
-        options.strongOptions, options.sourceOptions,
+    var context = createAnalysisContextWithSources(options.sourceOptions,
         fileResolvers: fileResolvers);
 
     var entryPath = path.basename(options.inputs[0]);

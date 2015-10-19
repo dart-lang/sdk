@@ -65,8 +65,7 @@ void main() {
     /// tests (since some tests modify the state of the files).
     testResourceProvider = createTestResourceProvider(testFiles);
     testUriResolver = new ResourceUriResolver(testResourceProvider);
-    context = createAnalysisContextWithSources(
-        options.strongOptions, options.sourceOptions,
+    context = createAnalysisContextWithSources(options.sourceOptions,
         fileResolvers: [testUriResolver]);
     graph = new SourceGraph(context, new LogReporter(context), options);
   });
@@ -685,8 +684,7 @@ void main() {
           runtimeDir: '/dev_compiler_runtime/',
           sourceOptions: new SourceResolverOptions(useMockSdk: true),
           serverMode: true);
-      context = createAnalysisContextWithSources(
-          opts.strongOptions, opts.sourceOptions,
+      context = createAnalysisContextWithSources(opts.sourceOptions,
           fileResolvers: [testUriResolver]);
       graph = new SourceGraph(context, new LogReporter(context), opts);
     });
@@ -1165,8 +1163,7 @@ void main() {
 
     group('null for non-existing files', () {
       setUp(() {
-        context = createAnalysisContextWithSources(
-            options.strongOptions, options.sourceOptions,
+        context = createAnalysisContextWithSources(options.sourceOptions,
             fileResolvers: [testUriResolver]);
         graph = new SourceGraph(context, new LogReporter(context), options);
       });

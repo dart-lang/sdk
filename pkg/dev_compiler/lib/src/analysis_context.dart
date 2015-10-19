@@ -10,9 +10,6 @@ import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 import 'package:analyzer/src/generated/source_io.dart';
 
-import '../strong_mode.dart' show StrongModeOptions;
-
-import 'checker/resolver.dart';
 import 'dart_sdk.dart';
 import 'multi_package_resolver.dart';
 import 'options.dart';
@@ -20,27 +17,20 @@ import 'options.dart';
 /// Creates an [AnalysisContext] with dev_compiler type rules and inference,
 /// using [createSourceFactory] to set up its [SourceFactory].
 AnalysisContext createAnalysisContextWithSources(
-    StrongModeOptions strongOptions, SourceResolverOptions srcOptions,
-    {DartUriResolver sdkResolver, List<UriResolver> fileResolvers}) {
+    SourceResolverOptions srcOptions,
+    {DartUriResolver sdkResolver,
+    List<UriResolver> fileResolvers}) {
   AnalysisEngine.instance.useTaskModel = true;
   var srcFactory = createSourceFactory(srcOptions,
       sdkResolver: sdkResolver, fileResolvers: fileResolvers);
-  return createAnalysisContext(strongOptions)..sourceFactory = srcFactory;
+  return createAnalysisContext()..sourceFactory = srcFactory;
 }
 
 /// Creates an analysis context that contains our restricted typing rules.
-AnalysisContext createAnalysisContext(StrongModeOptions options) {
+AnalysisContext createAnalysisContext() {
   var res = AnalysisEngine.instance.createAnalysisContext();
   res.analysisOptions.strongMode = true;
   return res;
-}
-
-/// Enables dev_compiler inference rules.
-// TODO(jmesserly): is there a cleaner way to plug this in?
-void enableDevCompilerInference(
-    AnalysisContextImpl context, StrongModeOptions options) {
-  context.libraryResolverFactory = (c) =>
-      new LibraryResolverWithInference(c, options);
 }
 
 /// Creates a SourceFactory configured by the [options].

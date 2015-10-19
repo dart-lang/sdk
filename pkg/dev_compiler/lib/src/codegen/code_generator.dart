@@ -7,12 +7,12 @@ library dev_compiler.src.codegen.code_generator;
 import 'package:analyzer/src/generated/element.dart'
     show CompilationUnitElement, LibraryElement;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/task/strong/rules.dart';
 import 'package:path/path.dart' as path;
 
 import '../compiler.dart' show AbstractCompiler;
 import '../info.dart';
 import '../utils.dart' show canonicalLibraryName;
-import '../checker/rules.dart';
 import '../options.dart' show CodegenOptions;
 
 abstract class CodeGenerator {

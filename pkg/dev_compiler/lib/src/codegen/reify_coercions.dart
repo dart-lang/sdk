@@ -7,9 +7,9 @@ library dev_compiler.src.codegen.reify_coercions;
 import 'package:analyzer/analyzer.dart' as analyzer;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/task/strong/rules.dart';
 import 'package:logging/logging.dart' as logger;
 
-import '../checker/rules.dart';
 import '../info.dart';
 
 import 'ast_builder.dart';
