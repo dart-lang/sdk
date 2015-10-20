@@ -188,26 +188,6 @@ class Isolate : public BaseIsolate {
   ObjectStore* object_store() const { return object_store_; }
   void set_object_store(ObjectStore* value) { object_store_ = value; }
 
-  // DEPRECATED: Use Thread's methods instead. During migration, these default
-  // to using the mutator thread (which must also be the current thread).
-  StackResource* top_resource() const {
-    ASSERT(Thread::Current() == mutator_thread_);
-    return mutator_thread_->top_resource();
-  }
-  void set_top_resource(StackResource* value) {
-    ASSERT(Thread::Current() == mutator_thread_);
-    mutator_thread_->set_top_resource(value);
-  }
-  // DEPRECATED: Use Thread's methods instead. During migration, these default
-  // to using the mutator thread.
-  // NOTE: These are also used by the profiler.
-  uword top_exit_frame_info() const {
-    return mutator_thread_->top_exit_frame_info();
-  }
-  void set_top_exit_frame_info(uword value) {
-    mutator_thread_->set_top_exit_frame_info(value);
-  }
-
   ApiState* api_state() const { return api_state_; }
   void set_api_state(ApiState* value) { api_state_ = value; }
 

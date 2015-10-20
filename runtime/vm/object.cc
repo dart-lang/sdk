@@ -10653,7 +10653,7 @@ bool LibraryPrefix::LoadLibrary() const {
   } else if (deferred_lib.LoadNotStarted()) {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
-    Api::Scope api_scope(isolate);
+    Api::Scope api_scope(thread);
     Zone* zone = thread->zone();
     deferred_lib.SetLoadRequested();
     const GrowableObjectArray& pending_deferred_loads =

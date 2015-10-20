@@ -1519,11 +1519,11 @@ static Breakpoint* LookupBreakpoint(Isolate* isolate,
 }
 
 
-static bool PrintInboundReferences(Isolate* isolate,
+static bool PrintInboundReferences(Thread* thread,
                                    Object* target,
                                    intptr_t limit,
                                    JSONStream* js) {
-  ObjectGraph graph(isolate);
+  ObjectGraph graph(thread);
   Array& path = Array::Handle(Array::New(limit * 2));
   intptr_t length = graph.InboundReferences(target, path);
   JSONObject jsobj(js);
@@ -1611,15 +1611,15 @@ static bool GetInboundReferences(Isolate* isolate, JSONStream* js) {
     }
     return true;
   }
-  return PrintInboundReferences(isolate, &obj, limit, js);
+  return PrintInboundReferences(thread, &obj, limit, js);
 }
 
 
-static bool PrintRetainingPath(Isolate* isolate,
+static bool PrintRetainingPath(Thread* thread,
                                Object* obj,
                                intptr_t limit,
                                JSONStream* js) {
-  ObjectGraph graph(isolate);
+  ObjectGraph graph(thread);
   Array& path = Array::Handle(Array::New(limit * 2));
   intptr_t length = graph.RetainingPath(obj, path);
   JSONObject jsobj(js);
@@ -1713,7 +1713,7 @@ static bool GetRetainingPath(Isolate* isolate, JSONStream* js) {
     }
     return true;
   }
-  return PrintRetainingPath(isolate, &obj, limit, js);
+  return PrintRetainingPath(thread, &obj, limit, js);
 }
 
 
@@ -1742,18 +1742,19 @@ static bool GetRetainedSize(Isolate* isolate, JSONStream* js) {
     }
     return true;
   }
+  Thread* thread = Thread::Current();
   // TODO(rmacnak): There is no way to get the size retained by a class object.
   // SizeRetainedByClass should be a separate RPC.
   if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
-    ObjectGraph graph(isolate);
+    ObjectGraph graph(thread);
     intptr_t retained_size = graph.SizeRetainedByClass(cls.id());
     const Object& result = Object::Handle(Integer::New(retained_size));
     result.PrintJSON(js, true);
     return true;
   }
 
-  ObjectGraph graph(isolate);
+  ObjectGraph graph(thread);
   intptr_t retained_size = graph.SizeRetainedByInstance(obj);
   const Object& result = Object::Handle(Integer::New(retained_size));
   result.PrintJSON(js, true);
@@ -1928,7 +1929,7 @@ static bool GetInstances(Isolate* isolate, JSONStream* js) {
   const Class& cls = Class::Cast(obj);
   Array& storage = Array::Handle(Array::New(limit));
   GetInstancesVisitor visitor(cls, storage);
-  ObjectGraph graph(isolate);
+  ObjectGraph graph(Thread::Current());
   graph.IterateObjects(&visitor);
   intptr_t count = visitor.count();
   if (count < limit) {
@@ -2643,7 +2644,7 @@ static bool RequestHeapSnapshot(Isolate* isolate, JSONStream* js) {
 void Service::SendGraphEvent(Isolate* isolate) {
   uint8_t* buffer = NULL;
   WriteStream stream(&buffer, &allocator, 1 * MB);
-  ObjectGraph graph(isolate);
+  ObjectGraph graph(Thread::Current());
   intptr_t node_count = graph.Serialize(&stream);
 
   // Chrome crashes receiving a single tens-of-megabytes blob, so send the

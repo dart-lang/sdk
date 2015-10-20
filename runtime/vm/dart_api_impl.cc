@@ -853,7 +853,7 @@ DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle) {
           CURRENT_FUNC);
     }
   }
-  if (isolate->top_exit_frame_info() == 0) {
+  if (thread->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
     // propagate an error here.
     return Api::NewError("No Dart frames on stack, cannot propagate error.");
@@ -870,7 +870,7 @@ DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle) {
     // handle for it in the surviving zone.
     NoSafepointScope no_safepoint;
     RawError* raw_error = Api::UnwrapErrorHandle(thread->zone(), handle).raw();
-    state->UnwindScopes(isolate->top_exit_frame_info());
+    state->UnwindScopes(thread->top_exit_frame_info());
     // Note that thread's zone is different here than at the beginning of this
     // function.
     error = &Error::Handle(thread->zone(), raw_error);
@@ -2884,7 +2884,7 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
   if (result.IsError()) return result.raw();
   ASSERT(result.IsNull());
 
-  if (isolate->top_exit_frame_info() == 0) {
+  if (thread->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
     // throw an exception here.
     const String& message = String::Handle(
@@ -2899,7 +2899,7 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
   {
     NoSafepointScope no_safepoint;
     RawInstance* raw_exception = exception.raw();
-    state->UnwindScopes(isolate->top_exit_frame_info());
+    state->UnwindScopes(thread->top_exit_frame_info());
     saved_exception = &Instance::Handle(raw_exception);
   }
   Exceptions::Throw(thread, *saved_exception);
@@ -4520,7 +4520,7 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
       RETURN_TYPE_ERROR(zone, exception, Instance);
     }
   }
-  if (isolate->top_exit_frame_info() == 0) {
+  if (thread->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
     // throw an exception here.
     return Api::NewError("No Dart frames on stack, cannot throw exception");
@@ -4535,7 +4535,7 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
     NoSafepointScope no_safepoint;
     RawInstance* raw_exception =
         Api::UnwrapInstanceHandle(zone, exception).raw();
-    state->UnwindScopes(isolate->top_exit_frame_info());
+    state->UnwindScopes(thread->top_exit_frame_info());
     saved_exception = &Instance::Handle(raw_exception);
   }
   Exceptions::Throw(thread, *saved_exception);
@@ -4560,7 +4560,7 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
       RETURN_TYPE_ERROR(zone, stacktrace, Instance);
     }
   }
-  if (isolate->top_exit_frame_info() == 0) {
+  if (thread->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
     // throw an exception here.
     return Api::NewError("No Dart frames on stack, cannot throw exception");
@@ -4578,7 +4578,7 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
         Api::UnwrapInstanceHandle(zone, exception).raw();
     RawStacktrace* raw_stacktrace =
         Api::UnwrapStacktraceHandle(zone, stacktrace).raw();
-    state->UnwindScopes(isolate->top_exit_frame_info());
+    state->UnwindScopes(thread->top_exit_frame_info());
     saved_exception = &Instance::Handle(raw_exception);
     saved_stacktrace = &Stacktrace::Handle(raw_stacktrace);
   }
@@ -4968,7 +4968,7 @@ DART_EXPORT void Dart_SetWeakHandleReturnValue(Dart_NativeArguments args,
 // --- Environment ---
 RawString* Api::CallEnvironmentCallback(Thread* thread, const String& name) {
   Isolate* isolate = thread->isolate();
-  Scope api_scope(isolate);
+  Scope api_scope(thread);
   Dart_EnvironmentCallback callback = isolate->environment_callback();
   String& result = String::Handle(thread->zone());
   if (callback != NULL) {

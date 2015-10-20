@@ -152,7 +152,7 @@ void Report::MessageV(Kind kind, const Script& script, intptr_t token_pos,
       if (kind == kJSWarning) {
         TraceJSWarning(script, token_pos, msg);
         // Do not print stacktrace if we have not executed Dart code yet.
-        if (Isolate::Current()->top_exit_frame_info() != 0) {
+        if (Thread::Current()->top_exit_frame_info() != 0) {
           const Stacktrace& stacktrace =
               Stacktrace::Handle(Exceptions::CurrentStacktrace());
           intptr_t idx = 0;

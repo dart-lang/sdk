@@ -53,7 +53,7 @@ class ObjectGraph : public StackResource {
     virtual Direction VisitObject(StackIterator* it) = 0;
   };
 
-  explicit ObjectGraph(Isolate* isolate);
+  explicit ObjectGraph(Thread* thread);
   ~ObjectGraph();
 
   // Visits all strongly reachable objects in the isolate's heap, in a

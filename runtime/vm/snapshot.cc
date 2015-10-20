@@ -573,8 +573,8 @@ Object* SnapshotReader::GetBackRef(intptr_t id) {
 
 class HeapLocker : public StackResource {
  public:
-  HeapLocker(Isolate* isolate, PageSpace* page_space)
-      : StackResource(isolate), page_space_(page_space) {
+  HeapLocker(Thread* thread, PageSpace* page_space)
+      : StackResource(thread), page_space_(page_space) {
         page_space_->AcquireDataLock();
   }
   ~HeapLocker() {
@@ -588,7 +588,8 @@ class HeapLocker : public StackResource {
 
 RawApiError* SnapshotReader::ReadFullSnapshot() {
   ASSERT(kind_ == Snapshot::kFull);
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
@@ -605,7 +606,7 @@ RawApiError* SnapshotReader::ReadFullSnapshot() {
   // size for the full snapshot being read.
   {
     NoSafepointScope no_safepoint;
-    HeapLocker hl(isolate, old_space());
+    HeapLocker hl(thread, old_space());
 
     // Read in all the objects stored in the object store.
     RawObject** toobj = snapshot_code() ? object_store->to()
@@ -1472,7 +1473,8 @@ VmIsolateSnapshotReader::~VmIsolateSnapshotReader() {
 
 RawApiError* VmIsolateSnapshotReader::ReadVmIsolateSnapshot() {
   ASSERT(kind() == Snapshot::kFull);
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   ASSERT(isolate == Dart::vm_isolate());
   ObjectStore* object_store = isolate->object_store();
@@ -1488,7 +1490,7 @@ RawApiError* VmIsolateSnapshotReader::ReadVmIsolateSnapshot() {
 
   {
     NoSafepointScope no_safepoint;
-    HeapLocker hl(isolate, old_space());
+    HeapLocker hl(thread, old_space());
 
     // Read in the symbol table.
     object_store->symbol_table_ = reinterpret_cast<RawArray*>(ReadObject());

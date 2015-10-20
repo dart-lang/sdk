@@ -716,7 +716,7 @@ class BaseWriter : public StackResource {
   BaseWriter(uint8_t** buffer,
              ReAlloc alloc,
              intptr_t initial_size)
-      : StackResource(Isolate::Current()),
+      : StackResource(Thread::Current()),
         stream_(buffer, alloc, initial_size) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);

@@ -1650,7 +1650,6 @@ void Isolate::LowLevelShutdown() {
 
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
-  ASSERT(top_resource() == NULL);
 #if defined(DEBUG)
   if (heap_ != NULL) {
     // The VM isolate keeps all objects marked.

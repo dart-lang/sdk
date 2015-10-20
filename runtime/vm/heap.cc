@@ -787,7 +787,7 @@ void Heap::PrintStats() {
 
 
 NoHeapGrowthControlScope::NoHeapGrowthControlScope()
-    : StackResource(Isolate::Current()) {
+    : StackResource(Thread::Current()) {
     Heap* heap = reinterpret_cast<Isolate*>(isolate())->heap();
     current_growth_controller_state_ = heap->GrowthControlState();
     heap->DisableGrowthControl();

@@ -271,7 +271,7 @@ bool StackFrame::IsValid() const {
 
 
 void StackFrameIterator::SetupLastExitFrameData() {
-  uword exit_marker = isolate_->top_exit_frame_info();
+  uword exit_marker = Thread::Current()->top_exit_frame_info();
   frames_.fp_ = exit_marker;
 }
 

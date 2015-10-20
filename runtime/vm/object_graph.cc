@@ -156,12 +156,12 @@ class Unmarker : public ObjectVisitor {
 };
 
 
-ObjectGraph::ObjectGraph(Isolate* isolate)
-    : StackResource(isolate) {
+ObjectGraph::ObjectGraph(Thread* thread)
+    : StackResource(thread) {
   // The VM isolate has all its objects pre-marked, so iterating over it
   // would be a no-op.
-  ASSERT(isolate != Dart::vm_isolate());
-  isolate->heap()->WriteProtectCode(false);
+  ASSERT(thread->isolate() != Dart::vm_isolate());
+  thread->isolate()->heap()->WriteProtectCode(false);
 }
 
 

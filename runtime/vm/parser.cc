@@ -5810,7 +5810,7 @@ RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
   // Block class finalization attempts when calling into the library
   // tag handler.
   I->BlockClassFinalization();
-  Api::Scope api_scope(I);
+  Api::Scope api_scope(T);
   Dart_Handle result = handler(tag,
                                Api::NewHandle(I, library_.raw()),
                                Api::NewHandle(I, url.raw()));
