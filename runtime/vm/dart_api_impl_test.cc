@@ -9562,6 +9562,12 @@ TEST_CASE(Timeline_Dart_TimelineGetTrace) {
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
 
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
+
   // Heartbeat test.
   EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
   EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
@@ -9609,6 +9615,12 @@ TEST_CASE(Timeline_Dart_TimelineGetTraceOnlyDartEvents) {
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
 
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
+
   // Heartbeat test.
   EXPECT_SUBSTRING("\"cat\":\"Dart\"", buffer);
   EXPECT_SUBSTRING("\"name\":\"DART_NAME\"", buffer);
@@ -9654,6 +9666,12 @@ TEST_CASE(Timeline_Dart_TimelineGetTraceWithDartEvents) {
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
 
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
+
   // Heartbeat test.
   EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
   EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
@@ -9696,6 +9714,12 @@ TEST_CASE(Timeline_Dart_TimelineGetTraceGlobalOverride) {
   buffer_length = data.buffer_length;
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
+
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
 
   // Heartbeat test.
   EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
@@ -9745,6 +9769,12 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
 
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
+
   // Heartbeat test.
   EXPECT_SUBSTRING("\"name\":\"TestVMDuration\"", buffer);
   EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
@@ -9779,6 +9809,11 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
   buffer_length = data.buffer_length;
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
 
   // Heartbeat test for old events.
   EXPECT_SUBSTRING("\"name\":\"TestVMDuration\"", buffer);

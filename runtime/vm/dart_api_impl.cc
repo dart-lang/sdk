@@ -5806,13 +5806,26 @@ static bool StreamTraceEvents(Dart_StreamConsumer consumer,
   char* output = NULL;
   intptr_t output_length = 0;
   js->Steal(const_cast<const char**>(&output), &output_length);
+  if (output_length < 3) {
+    // Empty JSON array.
+    free(output);
+    return false;
+  }
+  // We want to send the JSON array without the leading '[' or trailing ']'
+  // characters.
+  ASSERT(output[0] == '[');
+  ASSERT(output[output_length - 1] == ']');
+  // Replace the ']' with the null character.
+  output[output_length - 1] = '\0';
+  // We are skipping the '['.
+  output_length -= 1;
 
   // Start the stream.
   StartStreamToConsumer(consumer, user_data, "timeline");
 
   DataStreamToConsumer(consumer,
                        user_data,
-                       output,
+                       &output[1],
                        output_length,
                        "timeline");
 
