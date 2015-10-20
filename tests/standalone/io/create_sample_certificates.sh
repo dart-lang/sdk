@@ -36,26 +36,61 @@ openssl req -subj /CN=intermediateauthority -batch -verbose \
 openssl x509 -req -in intermediate_authority_request.pem \
     -out intermediate_authority.pem -set_serial 1 \
     -CA root_authority.pem -CAkey root_authority_key.pem \
-    -passin $password -extfile ../intermediate_authority_v3_extensions \
-    -days 3650
+    -passin $password -extfile ../sample_certificate_v3_extensions \
+    -extensions intermediate_authority -days 3650
 
 # Create a certificate request for the server certificate
 openssl req -subj /CN=localhost -batch -verbose -passout $password -new \
     -keyout localhost_key.pem -out localhost_request.pem
 
-# Sign the server certificate  with the intermediate authority.  Add the
+# Sign the server certificate with the intermediate authority.  Add the
 # certificate extensions for SubjectAltName and that it is not a CA itself.
 openssl x509 -req -in localhost_request.pem -out localhost.pem -set_serial 1 \
     -CA intermediate_authority.pem -CAkey intermediate_authority_key.pem \
-    -passin $password -extfile ../localhost_v3_extensions -days 3650
+    -passin $password -extfile ../sample_certificate_v3_extensions \
+    -extensions localhost -days 3650
 
+# Create a self-signed client certificate authority.
+openssl req -subj /CN=clientauthority -set_serial 1 -batch -verbose \
+    -passout $password -new -x509 -keyout client_authority_key.pem \
+    -out client_authority.pem -config ../sample_certificate_v3_extensions \
+    -extensions client_authority -days 3650
+
+# Create certificate requests for the client certificates
+openssl req -subj /CN=user1 -batch -verbose -passout $password -new \
+    -keyout client1_key.pem -out client1_request.pem
+openssl req -subj /CN=user2 -batch -verbose -passout $password -new \
+    -keyout client2_key.pem -out client2_request.pem
+
+# Sign the certificate requests with the client authority
+openssl x509 -req -in client1_request.pem -out client1.pem -set_serial 1 \
+    -CA client_authority.pem -CAkey client_authority_key.pem \
+    -passin $password -extfile ../sample_certificate_v3_extensions \
+    -extensions client_certificate -days 3650
+openssl x509 -req -in client2_request.pem -out client2.pem -set_serial 1 \
+    -CA client_authority.pem -CAkey client_authority_key.pem \
+    -passin $password -extfile ../sample_certificate_v3_extensions \
+    -extensions client_certificate -days 3650
+
+# Copy the certificates we will use to the 'certificates' directory.
+CERTS=../certificates
 cat localhost.pem intermediate_authority.pem root_authority.pem \
-    > ../certificates/server_chain.pem
+    > $CERTS/server_chain.pem
+
+cat intermediate_authority.pem root_authority.pem client_authority.pem \
+    > $CERTS/server_trusted.pem
 
 # BoringSSL only accepts private keys signed with the PBE-SHA1-RC4-128 cipher.
-openssl pkcs8 -in localhost_key.pem -out ../certificates/server_key.pem \
+openssl pkcs8 -in localhost_key.pem -out $CERTS/server_key.pem \
+    -topk8 -v1 PBE-SHA1-RC4-128 -passin $password -passout $password
+openssl pkcs8 -in client1_key.pem -out $CERTS/client1_key.pem \
+    -topk8 -v1 PBE-SHA1-RC4-128 -passin $password -passout $password
+openssl pkcs8 -in client2_key.pem -out $CERTS/client2_key.pem \
     -topk8 -v1 PBE-SHA1-RC4-128 -passin $password -passout $password
 
-cp root_authority.pem ../certificates/trusted_certs.pem
+cp root_authority.pem $CERTS/trusted_certs.pem
+cp client_authority.pem $CERTS
+cp client1.pem $CERTS
+cp client2.pem $CERTS
 
 cd ..

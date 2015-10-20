@@ -433,7 +433,7 @@ void FUNCTION_NAME(SecurityContext_SetTrustedCertificates)(
     directory = NULL;
   } else {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "Directory argument to SecurityContext.usePrivateKey is not "
+        "Directory argument to SecurityContext.setTrustedCertificates is not "
         "a String or null"));
   }
 
@@ -910,9 +910,12 @@ void SSLFilter::Connect(const char* hostname,
   SSL_set_ex_data(ssl_, filter_ssl_index, this);
 
   if (is_server_) {
-    // Do not request a client certificate.
-    // TODO(24069): Allow server to request a client certificate, when desired.
-    SSL_set_verify(ssl_, SSL_VERIFY_NONE, NULL);
+    int certificate_mode =
+      request_client_certificate ? SSL_VERIFY_PEER : SSL_VERIFY_NONE;
+    if (require_client_certificate) {
+      certificate_mode |= SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
+    }
+    SSL_set_verify(ssl_, certificate_mode, NULL);
   } else {
     SetAlpnProtocolList(protocols_handle, ssl_, NULL, false);
     status = SSL_set_tlsext_host_name(ssl_, hostname);
@@ -946,19 +949,6 @@ void SSLFilter::Connect(const char* hostname,
       // TODO(whesse): expect a needs-data error here.  Handle other errors.
       error = SSL_get_error(ssl_, status);
       if (SSL_LOG_STATUS) Log::Print("SSL_connect error: %d\n", error);
-    }
-  }
-  if (is_server_) {
-    if (request_client_certificate) {
-      // TODO(24069): Handle client certificates on server side.
-      Dart_ThrowException(DartUtils::NewDartArgumentError(
-          "requestClientCertificate not implemented."));
-    }
-  } else {  // Client.
-    if (send_client_certificate) {
-      // TODO(24070): Handle client certificates on client side.
-      Dart_ThrowException(DartUtils::NewDartArgumentError(
-          "sendClientCertificate not implemented."));
     }
   }
   Handshake();
