@@ -5,6 +5,8 @@
 library analyzer.src.plugin.options;
 
 import 'package:analyzer/plugin/options.dart';
+import 'package:analyzer/plugin/task.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:plugin/plugin.dart';
 
 /// A plugin that defines the extension points and extensions that are defined
@@ -38,7 +40,9 @@ class OptionsPlugin implements Plugin {
 
   @override
   void registerExtensions(RegisterExtension registerExtension) {
-    // There are no default extensions.
+    // Analyze options files.
+    registerExtension(
+        TASK_EXTENSION_POINT_ID, GenerateOptionsErrorsTask.DESCRIPTOR);
   }
 
   /// Validate the given extension by throwing an [ExtensionError] if it is not a

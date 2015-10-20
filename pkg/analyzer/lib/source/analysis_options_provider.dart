@@ -6,6 +6,7 @@ library source.analysis_options_provider;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
 /// Provide the options found in the `.analysis_options` file.
@@ -34,17 +35,19 @@ class AnalysisOptionsProvider {
     }
     var doc = loadYaml(optionsSource);
     if ((doc != null) && (doc is! YamlMap)) {
-      throw new Exception(
+      throw new OptionsFormatException(
           'Bad options file format (expected map, got ${doc.runtimeType})\n'
           'contents of options file:\n'
-          '$optionsSource\n');
+          '$optionsSource\n',
+          doc.span);
     }
     if (doc is YamlMap) {
       doc.forEach((k, v) {
         if (k is! String) {
-          throw new Exception(
+          throw new OptionsFormatException(
               'Bad options file format (expected String scope key, '
-              'got ${k.runtimeType})');
+              'got ${k.runtimeType})',
+              k != null ? k.span : doc.span);
         }
         options[k] = v;
       });
@@ -62,4 +65,15 @@ class AnalysisOptionsProvider {
       return null;
     }
   }
+}
+
+/// Thrown on options format exceptions.
+class OptionsFormatException implements Exception {
+  final String message;
+  final SourceSpan span;
+  OptionsFormatException(this.message, [this.span]);
+
+  @override
+  String toString() =>
+      'OptionsFormatException: ${message?.toString()}, ${span?.toString()}';
 }
