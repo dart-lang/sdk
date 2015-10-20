@@ -1009,6 +1009,20 @@ const x = const A();''');
     verify([source]);
   }
 
+  void test_constEval_nonStaticField_inGenericClass() {
+    Source source = addSource('''
+class C<T> {
+  const C();
+  T get t => null;
+}
+
+const x = const C().t;''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    verify([source]);
+  }
+
   void test_constEval_propertyExtraction_targetNotConst() {
     Source source = addSource(r'''
 class A {
