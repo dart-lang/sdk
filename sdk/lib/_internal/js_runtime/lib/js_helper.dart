@@ -3179,8 +3179,9 @@ propertyTypeCast(value, property) {
  */
 interceptedTypeCheck(value, property) {
   if (value == null) return value;
-  if ((identical(JS('String', 'typeof #', value), 'object'))
-      && JS('bool', '#[#]', getInterceptor(value), property)) {
+  if ((JS('bool', 'typeof # === "object"', value) ||
+              JS('bool', 'typeof # === "function"', value)) &&
+      JS('bool', '#[#]', getInterceptor(value), property)) {
     return value;
   }
   propertyTypeError(value, property);
@@ -3192,9 +3193,10 @@ interceptedTypeCheck(value, property) {
  * prototype at load time.
  */
 interceptedTypeCast(value, property) {
-  if (value == null
-      || ((JS('bool', 'typeof # === "object"', value))
-          && JS('bool', '#[#]', getInterceptor(value), property))) {
+  if (value == null ||
+      ((JS('bool', 'typeof # === "object"', value) ||
+              JS('bool', 'typeof # === "function"', value)) &&
+          JS('bool', '#[#]', getInterceptor(value), property))) {
     return value;
   }
   propertyTypeCastError(value, property);

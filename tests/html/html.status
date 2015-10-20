@@ -415,6 +415,3 @@ window_nosuchmethod_test: StaticWarning
 
 [ $compiler == dart2js && $cps_ir ]
 resource_http_test: Crash # (await for(var b in r.openRead()){bytes.addAll(b);}): await for
-
-[ $compiler == dart2js && $checked ]
-js_typed_interop_test/closure: RuntimeError # Issue 24608
