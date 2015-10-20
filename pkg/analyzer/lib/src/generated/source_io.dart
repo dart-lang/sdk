@@ -467,15 +467,15 @@ class PackageUriResolver extends UriResolver {
 
   @override
   Uri restoreAbsolute(Source source) {
-    String sourcePath = source.fullName;
+    String sourceUri = _toFileUri(source.fullName);
     for (JavaFile packagesDirectory in _packagesDirectories) {
       List<JavaFile> pkgFolders = packagesDirectory.listFiles();
       if (pkgFolders != null) {
         for (JavaFile pkgFolder in pkgFolders) {
           try {
-            String pkgCanonicalPath = pkgFolder.getCanonicalPath();
-            if (sourcePath.startsWith(pkgCanonicalPath)) {
-              String relPath = sourcePath.substring(pkgCanonicalPath.length);
+            String pkgCanonicalUri = _toFileUri(pkgFolder.getCanonicalPath());
+            if (sourceUri.startsWith(pkgCanonicalUri)) {
+              String relPath = sourceUri.substring(pkgCanonicalUri.length);
               return parseUriWithException(
                   "$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
             }
@@ -499,6 +499,13 @@ class PackageUriResolver extends UriResolver {
     String filePath = file.getAbsolutePath();
     return filePath.startsWith("$rootPath/lib");
   }
+
+  /**
+   * Convert the given file path to a "file:" URI.  On Windows, this transforms
+   * backslashes to forward slashes.
+   */
+  String _toFileUri(String filePath) =>
+      JavaFile.pathContext.toUri(filePath).toString();
 
   /**
    * Return `true` if the given URI is a `package` URI.
