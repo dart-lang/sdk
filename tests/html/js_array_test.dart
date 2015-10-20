@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Js("ArrayTest.Util")
+@JS("ArrayTest.Util")
 library js_array_test;
 
 import 'dart:html';
@@ -159,7 +159,7 @@ ArrayTest.Util = {
 """);
 }
 
-@Js()
+@JS()
 class PropertyDescriptor {
   external get value;
   external bool get writable;
@@ -167,14 +167,14 @@ class PropertyDescriptor {
   external bool get configurable;
 }
 
-@Js()
+@JS()
 class SimpleJsLiteralClass {
   external get foo;
 }
 
 class Foo {}
 
-@Js()
+@JS()
 external callJsMethod(List array, String methodName, List args);
 
 callIndexOf(List array, value) => callJsMethod(array, "indexOf", [value]);
@@ -189,73 +189,73 @@ callReverse(List array) => callJsMethod(array, "reverse", []);
 callListMethodOnObject(object, String methodName, List args) =>
     callListMethodOnTarget([], object, methodName, args);
 
-@Js()
+@JS()
 external jsEnumerateIndices(obj);
-@Js()
+@JS()
 external bool checkIsArray(obj);
-@Js()
+@JS()
 external concatValues(obj);
 
-@Js()
+@JS()
 external concatOntoArray(obj);
 
-@Js()
+@JS()
 external repeatedConcatOntoArray(obj);
-@Js()
+@JS()
 external bool everyGreaterThanZero(obj);
-@Js()
+@JS()
 external bool everyGreaterThanZeroCheckThisArg(obj);
 
-@Js()
+@JS()
 external filterGreater42(obj);
 
-@Js()
+@JS()
 external forEachCollectResult(List array);
-@Js()
+@JS()
 external someEqual42(List array);
-@Js()
+@JS()
 external sortNumbersBackwards(List array);
 
-@Js()
+@JS()
 external List spliceDummyItems(List array);
 
-@Js()
+@JS()
 external List spliceTestStringArgs(List array);
 
-@Js()
+@JS()
 external List splicePastEnd(List array);
 
-@Js()
+@JS()
 external String callJsToString(List array);
 
-@Js()
+@JS()
 external mapAddIndexToEachElement(List array);
-@Js()
+@JS()
 external reduceSumDoubledElements(List array);
 
 // TODO(jacobr): add a test that distinguishes reduce from reduceRight.
-@Js()
+@JS()
 external reduceRightSumDoubledElements(List array);
 
-@Js()
+@JS()
 external PropertyDescriptor getOwnPropertyDescriptor(obj, property);
 
-@Js("setLength")
+@JS("setLength")
 external callSetLength(List array, length);
 
-@Js()
+@JS()
 external getValue(obj, index);
 
-@Js()
+@JS()
 external setValue(obj, index, value);
 
-@Js()
+@JS()
 external callListMethodOnTarget(List target, object, String methodName, List args);
 
-@Js()
+@JS()
 external newArray();
 
-@Js()
+@JS()
 external newLiteral();
 
 main() {

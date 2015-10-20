@@ -259,7 +259,7 @@ _finalizeJsInterfaces() native "Js_finalizeJsInterfaces";
 
 String _getJsName(mirrors.DeclarationMirror mirror) {
   for (var annotation in mirror.metadata) {
-    if (mirrors.MirrorSystem.getName(annotation.type.simpleName) == "Js") {
+    if (mirrors.MirrorSystem.getName(annotation.type.simpleName) == "JS") {
       mirrors.LibraryMirror library = annotation.type.owner;
       var uri = library.uri;
       // make sure the annotation is from package://js

@@ -465,13 +465,13 @@ class NativeAnnotationHandler implements EagerAnnotationHandler<String> {
   }
 }
 
-/// Annotation handler for pre-resolution detection of `@Js(...)`
+/// Annotation handler for pre-resolution detection of `@JS(...)`
 /// annotations.
 class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
   const JsInteropAnnotationHandler();
 
   bool hasJsNameAnnotation(MetadataAnnotation annotation) =>
-      annotation.beginToken != null && annotation.beginToken.next.value == 'Js';
+      annotation.beginToken != null && annotation.beginToken.next.value == 'JS';
 
   bool apply(Compiler compiler,
              Element element,
@@ -493,7 +493,7 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
     JavaScriptBackend backend = compiler.backend;
     if (constant.getType(compiler.coreTypes).element !=
         backend.jsAnnotationClass) {
-      compiler.reporter.internalError(annotation, 'Invalid @Js(...) annotation.');
+      compiler.reporter.internalError(annotation, 'Invalid @JS(...) annotation.');
     }
   }
 }

@@ -23,10 +23,10 @@ _injectJs() {
 """);
 }
 
-@Js()
+@JS()
 external Foo get foo;
 
-@Js()
+@JS()
 class Foo {
   external int get x;
   external set x(v);

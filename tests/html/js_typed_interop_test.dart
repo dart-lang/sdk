@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Js()
+@JS()
 library js_typed_interop_test;
 
 import 'dart:html';
@@ -92,7 +92,7 @@ class RegularClass {
   var a;
 }
 
-@Js()
+@JS()
 class ClassWithConstructor {
   external ClassWithConstructor(aParam, bParam);
   external getA();
@@ -100,7 +100,7 @@ class ClassWithConstructor {
   external get b;
 }
 
-@Js()
+@JS()
 class Foo {
   external int get x;
   external set x(int v);
@@ -114,7 +114,7 @@ class Foo {
 
 }
 
-@Js()
+@JS()
 class ExampleLiteral {
   external factory ExampleLiteral({int x, String y, num z});
 
@@ -123,12 +123,12 @@ class ExampleLiteral {
   external num get z;
 }
 
-@Js('Foob')
+@JS('Foob')
 class Foob extends Foo {
   external String get y;
 }
 
-@Js('Bar')
+@JS('Bar')
 class Bar
  {
   external String get x;
@@ -136,7 +136,7 @@ class Bar
   external Foo getFoo();
 }
 
-// No @Js is required for these external methods as the library is
+// No @JS is required for these external methods as the library is
 // annotated with Js.
 external Foo get foo;
 external Foob get foob;
@@ -149,17 +149,17 @@ external Function get returnNumArgs;
 external Function get returnLastArg;
 
 const STRINGIFY_LOCATION = "JSON.stringify";
-@Js(STRINGIFY_LOCATION)
+@JS(STRINGIFY_LOCATION)
 external String stringify(obj);
 
-@Js()
+@JS()
 class StringWrapper {
   external StringWrapper(String str);
   external int charCodeAt(int i);
 }
 
 // Defeat JS type inference by calling through JavaScript interop.
-@Js()
+@JS()
 external confuse(obj);
 
 main() {
