@@ -261,7 +261,6 @@ intptr_t StackFrame::GetTokenPos() const {
 }
 
 
-
 bool StackFrame::IsValid() const {
   if (IsEntryFrame() || IsExitFrame() || IsStubFrame()) {
     return true;
@@ -271,7 +270,9 @@ bool StackFrame::IsValid() const {
 
 
 void StackFrameIterator::SetupLastExitFrameData() {
-  uword exit_marker = Thread::Current()->top_exit_frame_info();
+  // This gets called by profiler which may run in a different thread (Windows)
+  // but needs the info from mutator_thread instead.
+  uword exit_marker = isolate_->top_exit_frame_info();
   frames_.fp_ = exit_marker;
 }
 
