@@ -2197,6 +2197,7 @@ class Function : public Object {
   // Return the closure function implicitly created for this function.
   // If none exists yet, create one and remember it.
   RawFunction* ImplicitClosureFunction() const;
+  void DropUncompiledImplicitClosureFunction() const;
 
   // Return the closure implicitly created for this function.
   // If none exists yet, create one and remember it.

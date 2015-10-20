@@ -6667,6 +6667,16 @@ RawFunction* Function::ImplicitClosureFunction() const {
 }
 
 
+void Function::DropUncompiledImplicitClosureFunction() const {
+  if (implicit_closure_function() != Function::null()) {
+    const Function& func = Function::Handle(implicit_closure_function());
+    if (!func.HasCode()) {
+      set_data(Object::null_object());
+    }
+  }
+}
+
+
 RawString* Function::UserVisibleFormalParameters() const {
   // Typically 3, 5,.. elements in 'pieces', e.g.:
   // '_LoadRequest', CommaSpace, '_LoadError'.

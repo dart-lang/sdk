@@ -147,13 +147,19 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     kTypedDataUint16ArrayCid,
     kTypedDataUint32ArrayCid,
     kTypedDataUint64ArrayCid,
-
     kTypedDataInt8ArrayCid,
     kTypedDataInt16ArrayCid,
     kTypedDataInt32ArrayCid,
     kTypedDataInt64ArrayCid,
 
     kExternalTypedDataUint8ArrayCid,
+    kExternalTypedDataUint16ArrayCid,
+    kExternalTypedDataUint32ArrayCid,
+    kExternalTypedDataUint64ArrayCid,
+    kExternalTypedDataInt8ArrayCid,
+    kExternalTypedDataInt16ArrayCid,
+    kExternalTypedDataInt32ArrayCid,
+    kExternalTypedDataInt64ArrayCid,
 
     kTypedDataFloat32ArrayCid,
     kTypedDataFloat64ArrayCid,
@@ -223,6 +229,7 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     { "dart:isolate", "::", "_startMainIsolate" },
     { "dart:isolate", "_RawReceivePortImpl", "_handleMessage" },
     { "dart:isolate", "_RawReceivePortImpl", "_lookupHandler" },
+    { "dart:isolate", "_SendPortImpl", "send" },
     { "dart:vmservice", "::", "_registerIsolate" },
     { "dart:vmservice", "::", "boot" },
     { NULL, NULL, NULL }  // Must be terminated with NULL entries.
@@ -686,6 +693,7 @@ void Precompiler::DropUncompiledFunctions() {
         function ^= functions.At(j);
         if (function.HasCode()) {
           retained_functions.Add(function);
+          function.DropUncompiledImplicitClosureFunction();
         } else {
           dropped_function_count_++;
           if (FLAG_trace_precompiler) {
