@@ -135,7 +135,7 @@ class AsyncBlock {
 
   // Emit the start event.
   void _start() {
-    arguments['isolateNumber'] = Timeline._isolateId;
+    arguments['isolateNumber'] = '${Timeline._isolateId}';
     String argumentsAsJson = JSON.encode(arguments);
     _reportTaskEvent(_getTraceClock(),
                      _taskId,
@@ -200,7 +200,7 @@ class _SyncBlock {
   void finish() {
     var end = _getTraceClock();
 
-    arguments['isolateNumber'] = Timeline._isolateId;
+    arguments['isolateNumber'] = '${Timeline._isolateId}';
 
     // Encode arguments map as JSON before reporting.
     var argumentsAsJson = JSON.encode(arguments);

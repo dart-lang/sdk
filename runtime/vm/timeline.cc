@@ -421,7 +421,8 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
     }
     if (isolate_id_ != ILLEGAL_PORT) {
       // If we have one, append the isolate id.
-      args.AddProperty("isolateNumber", isolate_id_);
+      args.AddPropertyF("isolateNumber", "%" Pd64 "",
+                        static_cast<int64_t>(isolate_id_));
     }
   }
 }
