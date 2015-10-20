@@ -1830,17 +1830,17 @@ static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
 void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", (ref ? "@Isolate" : "Isolate"));
-  jsobj.AddFixedServiceId("isolates/%" Pd "",
-                          static_cast<intptr_t>(main_port()));
+  jsobj.AddFixedServiceId("isolates/%" Pd64 "",
+                          static_cast<int64_t>(main_port()));
 
   jsobj.AddProperty("name", debugger_name());
-  jsobj.AddPropertyF("number", "%" Pd "",
-                     static_cast<intptr_t>(main_port()));
+  jsobj.AddPropertyF("number", "%" Pd64 "",
+                     static_cast<int64_t>(main_port()));
   if (ref) {
     return;
   }
-  jsobj.AddPropertyF("_originNumber", "%" Pd "",
-                     static_cast<intptr_t>(origin_id()));
+  jsobj.AddPropertyF("_originNumber", "%" Pd64 "",
+                     static_cast<int64_t>(origin_id()));
   int64_t start_time_millis = start_time() / kMicrosecondsPerMillisecond;
   jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
   {
