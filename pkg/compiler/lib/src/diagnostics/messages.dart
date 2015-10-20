@@ -2137,14 +2137,14 @@ main() => A.A = 1;
           MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
           "Js-interop class '#{cls}' cannot extend from the non js-interop "
           "class '#{superclass}'.",
-          howToFix: "Annotate the superclass with @Js.",
+          howToFix: "Annotate the superclass with @JS.",
           examples: const [
               """
               import 'package:js/js.dart';
 
               class Foo { }
 
-              @Js()
+              @JS()
               class Bar extends Foo { }
 
               main() {
@@ -2161,7 +2161,7 @@ main() => A.A = 1;
               """
               import 'package:js/js.dart';
 
-              @Js()
+              @JS()
               class Foo {
                 bar() {}
               }

@@ -14,7 +14,7 @@ export 'dart:js' show allowInterop, allowInteropCaptureThis;
 /// Specifying [name] customizes the JavaScript name to use. By default the
 /// dart name is used. It is not valid to specify a custom [name] for class
 /// instance members.
-class Js {
+class JS {
   final String name;
-  const Js([this.name]);
+  const JS([this.name]);
 }
