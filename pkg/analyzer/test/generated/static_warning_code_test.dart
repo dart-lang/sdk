@@ -964,6 +964,20 @@ class A {
     verify([source]);
   }
 
+  void test_concreteClassWithAbstractMember_noSuchMethod_interface() {
+    Source source = addSource(r'''
+class I {
+  noSuchMethod(v) => '';
+}
+class A implements I {
+  m();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER]);
+    verify([source]);
+  }
+
   void test_conflictingDartImport() {
     Source source = addSource(r'''
 import 'lib.dart';
@@ -2650,6 +2664,23 @@ class C extends Object with B {}''');
     computeLibrarySourceErrors(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
+  }
+
+  void test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_interface() {
+    // 15979
+    Source source = addSource(r'''
+class I {
+  noSuchMethod(v) => '';
+}
+abstract class A {
+  m();
+}
+class B extends A implements I {
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source,
+        [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
+    verify([source]);
   }
 
   void test_nonAbstractClassInheritsAbstractMemberOne_setter_and_implicitSetter() {

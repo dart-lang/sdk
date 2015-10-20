@@ -12,6 +12,10 @@ Language/14_Libraries_and_Scripts/3_Parts_A03_t11: fail, pass # Issue 23595
 # TBF: Static members should not be accessible via subclasses.
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t05: MissingStaticWarning
 
+# TBF: noSuchMethod can now be inherited
+Language/07_Classes/4_Abstract_Instance_Members_A02_t03: fail, OK
+Language/07_Classes/4_Abstract_Instance_Members_A02_t04: fail, OK
+
 # co19 issue #442, undefined name "Expect"
 Language/15_Types/4_Interface_Types_A08_t03: fail, OK
 

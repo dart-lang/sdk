@@ -43,7 +43,7 @@ class Class1 extends A implements I {
 class B {
   method12(); /// 12: continued
 
-  noSuchMethod(_) => null; /// 13: static type warning
+  noSuchMethod(_) => null; /// 13: ok
   method13(); /// 13: continued
 }
 
