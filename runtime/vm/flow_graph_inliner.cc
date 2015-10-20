@@ -1122,7 +1122,12 @@ class CallSiteInliner : public ValueObject {
       PolymorphicInstanceCallInstr* call = call_info[call_idx].call;
       if (call->with_checks()) {
         // PolymorphicInliner introduces deoptimization paths.
-        if (!FLAG_polymorphic_with_deopt) return;
+        if (!FLAG_polymorphic_with_deopt) {
+          TRACE_INLINING(THR_Print(
+              "  => %s\n     Bailout: call with checks\n",
+              call->instance_call()->function_name().ToCString()));
+          continue;
+        }
         const Function& cl = call_info[call_idx].caller();
         intptr_t caller_inlining_id =
             call_info[call_idx].caller_graph->inlining_id();
