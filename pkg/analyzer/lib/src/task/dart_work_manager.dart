@@ -400,7 +400,7 @@ class DartWorkManager implements WorkManager {
     unitTargets.forEach(partition.remove);
     for (Source dartSource in dartSources) {
       CacheEntry entry = partition.get(dartSource);
-      if (dartSource != null) {
+      if (entry != null) {
         // TODO(scheglov) we invalidate too much.
         // Would be nice to invalidate just URLs resolution.
         entry.setState(PARSED_UNIT, CacheState.INVALID);
