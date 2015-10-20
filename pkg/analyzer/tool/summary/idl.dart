@@ -8,9 +8,10 @@
  * implements the summary format.
  *
  * The code generation process introduces the following non-typical semantics:
- * - Fields of type List have a default value of the empty list.
- * - Fields of type int have a default value of zero.
- * - Fields of type String have a defauld value of ''.
+ * - Fields of type List are never null, and have a default value of the empty
+ *   list.
+ * - Fields of type int are never null, and have a default value of zero.
+ * - Fields of type String are never null, and have a default value of ''.
  *
  * Terminology used in this document:
  * - "Unlinked" refers to information that can be determined from reading the
@@ -116,12 +117,13 @@ class PrelinkedLibrary {
  */
 class PrelinkedReference {
   /**
-   * Index into [LibraryElement.dependencies] indicating which imported library
+   * Index into [UnlinkedLibrary.dependencies] indicating which imported library
    * declares the entity being referred to.
    */
   int dependency;
 
-  @Flag('CLASS', 0, 'Indicates that the thing being referred to is a class')
+  @Flag('CLASS', 0,
+      'Indicates that the thing being referred to is a class or enum')
   @Flag('TYPEDEF', 1, 'Indicates that the thing being referred to is a typedef')
   @Flag('OTHER', 2,
       'Indicates that the thing being referred to is a variable or executable')
@@ -152,8 +154,9 @@ class UnlinkedClass {
   List<UnlinkedTypeParam> typeParameters;
 
   /**
-   * Supertype of the class, or `null` if the class doesn't explicitly declare
-   * a supertype.
+   * Supertype of the class, or `null` if either (a) the class doesn't
+   * explicitly declare a supertype (and hence has supertype `Object`), or (b)
+   * the class *is* `Object` (and hence has no supertype).
    */
   UnlinkedTypeRef supertype;
 
@@ -210,7 +213,7 @@ class UnlinkedEnum {
   String name;
 
   /**
-   * Values listed in the enum declaration.
+   * Values listed in the enum declaration, in declaration order.
    */
   List<UnlinkedEnumValue> values;
 
@@ -268,7 +271,8 @@ class UnlinkedExecutable {
 
   /**
    * Parameters of the executable, if any.  Note that getters have no
-   * parameters, and setters have a single parameter.
+   * parameters (hence this will be the empty list), and setters have a single
+   * parameter.
    */
   List<UnlinkedParam> parameters;
 
@@ -291,7 +295,7 @@ class UnlinkedExecutable {
  */
 class UnlinkedExport {
   /**
-   * Relative URI used to reference the exported library.
+   * URI used in the source code to reference the exported library.
    */
   String uri;
 
@@ -306,7 +310,7 @@ class UnlinkedExport {
  */
 class UnlinkedImport {
   /**
-   * Relative URI used to reference the imported library.
+   * URI used in the source code to reference the imported library.
    */
   String uri;
 
