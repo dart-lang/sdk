@@ -32,6 +32,7 @@ import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart' as path;
+import 'dart:convert';
 
 /**
  * Generate the target .dot file.
@@ -72,6 +73,12 @@ class Driver {
     // Normalize Windows line endings to Unix line endings so that the
     // comparison doesn't fail on Windows.
     actualContents = actualContents.replaceAll('\r\n', '\n');
+    if (expectedContents != actualContents) {
+      // Print additional information for debugging.
+      // TODO(paulberry): eliminate this when it is no longer needed.
+      print('expected: ${JSON.encode(expectedContents)}');
+      print('actual: ${JSON.encode(actualContents)}');
+    }
     return expectedContents == actualContents;
   }
 
@@ -189,7 +196,8 @@ class Driver {
           resultLists.add(input);
           lines.add('  $input -> $task');
         });
-        findResultDescriptors(cls.getField('DESCRIPTOR').computeNode(), (String out) {
+        findResultDescriptors(cls.getField('DESCRIPTOR').computeNode(),
+            (String out) {
           results.add(out);
           lines.add('  $task -> $out');
         });
