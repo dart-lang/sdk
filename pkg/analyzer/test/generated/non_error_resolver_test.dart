@@ -1856,6 +1856,30 @@ class A implements Function {
     verify([source]);
   }
 
+  void test_functionWithoutCall_withNoSuchMethod_mixin() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(inv) {}
+}
+class B extends Object with A implements Function {
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_functionWithoutCall_withNoSuchMethod_superclass() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(inv) {}
+}
+class B extends A implements Function {
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_implicitConstructorDependencies() {
     // No warning should be generated for the code below; this requires that
     // implicit constructors are generated for C1 before C2, even though C1
@@ -3617,6 +3641,32 @@ abstract class A {
 }
 class B extends A {
   noSuchMethod(v) => '';
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_mixin() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(v) => '';
+}
+class B extends Object with A {
+  m(p);
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_superclass() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(v) => '';
+}
+class B extends A {
+  m(p);
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
