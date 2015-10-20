@@ -263,6 +263,13 @@ void JSONStream::ComputeOffsetAndCount(intptr_t length,
   }
 }
 
+
+void JSONStream::AppendSerializedObject(const char* serialized_object) {
+  PrintCommaIfNeeded();
+  buffer_.AddString(serialized_object);
+}
+
+
 void JSONStream::Clear() {
   buffer_.Clear();
   open_objects_ = 0;

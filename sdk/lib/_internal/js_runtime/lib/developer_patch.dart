@@ -67,6 +67,11 @@ int _getNextAsyncId() {
 }
 
 @patch
+int _getIsolateNum() {
+  return 0;
+}
+
+@patch
 void _reportTaskEvent(int start,
                       int taskId,
                       String phase,

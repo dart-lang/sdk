@@ -8,6 +8,8 @@ patch int _getTraceClock() native "Timeline_getTraceClock";
 
 patch int _getNextAsyncId() native "Timeline_getNextAsyncId";
 
+patch int _getIsolateNum() native "Timeline_getIsolateNum";
+
 patch void _reportTaskEvent(
     int start,
     int taskId,

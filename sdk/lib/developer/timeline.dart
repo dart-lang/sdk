@@ -50,6 +50,8 @@ class Timeline {
   }
 
   static final List<_SyncBlock> _stack = new List<_SyncBlock>();
+
+  static final int _isolateId = _getIsolateNum();
 }
 
 /// An asynchronous task on the timeline. Asynchronous tasks can live
@@ -133,6 +135,7 @@ class AsyncBlock {
 
   // Emit the start event.
   void _start() {
+    arguments['isolateNumber'] = Timeline._isolateId;
     String argumentsAsJson = JSON.encode(arguments);
     _reportTaskEvent(_getTraceClock(),
                      _taskId,
@@ -197,6 +200,8 @@ class _SyncBlock {
   void finish() {
     var end = _getTraceClock();
 
+    arguments['isolateNumber'] = Timeline._isolateId;
+
     // Encode arguments map as JSON before reporting.
     var argumentsAsJson = JSON.encode(arguments);
 
@@ -214,6 +219,9 @@ external int _getNextAsyncId();
 
 /// Returns the current value from the trace clock.
 external int _getTraceClock();
+
+/// Returns the isolate's main port number.
+external int _getIsolateNum();
 
 /// Reports an event for a task.
 external void _reportTaskEvent(int start,

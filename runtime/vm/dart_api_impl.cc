@@ -5739,35 +5739,6 @@ DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
 }
 
 
-// '[' + ']' + '\0'.
-#define MINIMUM_OUTPUT_LENGTH 3
-
-// Trims the '[' and ']' characters and, depending on whether or not more events
-// will follow, adjusts the last character of the string to either a '\0' or
-// ','.
-static char* TrimOutput(char* output,
-                        intptr_t* output_length,
-                        bool events_will_follow) {
-  ASSERT(output != NULL);
-  ASSERT(output_length != NULL);
-  ASSERT(*output_length > MINIMUM_OUTPUT_LENGTH);
-  // We expect the first character to be the opening of an array.
-  ASSERT(output[0] == '[');
-  // We expect the last character to be the closing of an array.
-  ASSERT(output[*output_length - 2] == ']');
-  if (events_will_follow) {
-    // Replace array closing character (']') with ','.
-    output[*output_length - 2] = ',';
-  } else {
-    // Replace array closing character (']') with '\0'.
-    output[*output_length - 2] = '\0';
-  }
-  // Skip the array opening character ('[').
-  *output_length -= 2;
-  return &output[1];
-}
-
-
 static void StartStreamToConsumer(Dart_StreamConsumer consumer,
                                   void* user_data,
                                   const char* stream_name) {
@@ -5829,44 +5800,24 @@ static void DataStreamToConsumer(Dart_StreamConsumer consumer,
 
 static bool StreamTraceEvents(Dart_StreamConsumer consumer,
                               void* user_data,
-                              JSONStream* js,
-                              const char* dart_events) {
+                              JSONStream* js) {
   ASSERT(js != NULL);
   // Steal output from JSONStream.
   char* output = NULL;
   intptr_t output_length = 0;
   js->Steal(const_cast<const char**>(&output), &output_length);
 
-  const bool output_vm = output_length > MINIMUM_OUTPUT_LENGTH;
-  const bool output_dart = dart_events != NULL;
-
-  if (!output_vm && !output_dart) {
-    // We stole the JSONStream's output buffer, free it.
-    free(output);
-    // Nothing will be emitted.
-    return false;
-  }
-
   // Start the stream.
   StartStreamToConsumer(consumer, user_data, "timeline");
 
-  // Send events from the VM.
-  if (output_vm) {
-    // Add one for the '\0' character.
-    output_length++;
-    char* trimmed_output = TrimOutput(output, &output_length, output_dart);
-    DataStreamToConsumer(consumer, user_data,
-                         trimmed_output, output_length, "timeline");
-  }
+  DataStreamToConsumer(consumer,
+                       user_data,
+                       output,
+                       output_length,
+                       "timeline");
+
   // We stole the JSONStream's output buffer, free it.
   free(output);
-
-  // Send events from dart.
-  if (output_dart) {
-    const intptr_t dart_events_len = strlen(dart_events) + 1;  // +1 for '\0'.
-    DataStreamToConsumer(consumer, user_data,
-                         dart_events, dart_events_len, "timeline");
-  }
 
   // Finish the stream.
   FinishStreamToConsumer(consumer, user_data, "timeline");
@@ -5890,13 +5841,9 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
   StackZone zone(T);
   Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
-  IsolateTimelineEventFilter filter(isolate);
+  IsolateTimelineEventFilter filter(isolate->main_port());
   timeline_recorder->PrintTraceEvent(&js, &filter);
-  const char* dart_events =
-      DartTimelineEventIterator::PrintTraceEvents(timeline_recorder,
-                                                  zone.GetZone(),
-                                                  isolate);
-  return StreamTraceEvents(consumer, user_data, &js, dart_events);
+  return StreamTraceEvents(consumer, user_data, &js);
 }
 
 
@@ -5916,11 +5863,7 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
   JSONStream js;
   TimelineEventFilter filter;
   timeline_recorder->PrintTraceEvent(&js, &filter);
-  const char* dart_events =
-      DartTimelineEventIterator::PrintTraceEvents(timeline_recorder,
-                                                  zone.GetZone(),
-                                                  NULL);
-  return StreamTraceEvents(consumer, user_data, &js, dart_events);
+  return StreamTraceEvents(consumer, user_data, &js);
 }
 
 

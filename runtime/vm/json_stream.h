@@ -123,6 +123,9 @@ class JSONStream : ValueObject {
                              intptr_t* offset,
                              intptr_t* count);
 
+  // Append |serialized_object| to the stream.
+  void AppendSerializedObject(const char* serialized_object);
+
  private:
   void Clear();
   void PostNullReply(Dart_Port port);

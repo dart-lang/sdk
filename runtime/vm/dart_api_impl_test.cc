@@ -9428,7 +9428,7 @@ TEST_CASE(Timeline_Dart_TimelineDuration) {
   TimelineEventRecorder* recorder = Timeline::recorder();
   Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
-  IsolateTimelineEventFilter filter(isolate);
+  IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
   EXPECT_SUBSTRING("testDurationEvent", js.ToCString());
 }
@@ -9445,7 +9445,7 @@ TEST_CASE(Timeline_Dart_TimelineInstant) {
   TimelineEventRecorder* recorder = Timeline::recorder();
   Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
-  IsolateTimelineEventFilter filter(isolate);
+  IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
   EXPECT_SUBSTRING("testInstantEvent", js.ToCString());
 }
@@ -9490,7 +9490,7 @@ TEST_CASE(Timeline_Dart_TimelineAsync) {
   TimelineEventRecorder* recorder = Timeline::recorder();
   Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
-  IsolateTimelineEventFilter filter(isolate);
+  IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
   EXPECT_SUBSTRING("testAsyncEvent", js.ToCString());
 }

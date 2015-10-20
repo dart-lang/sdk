@@ -88,6 +88,7 @@ class TimelineEvent {
   // Keep in sync with StateBits below.
   enum EventType {
     kNone,
+    kSerializedJSON,  // Events from Dart code.
     kBegin,
     kEnd,
     kDuration,
@@ -130,9 +131,11 @@ class TimelineEvent {
   void End(const char* label,
            int64_t micros = OS::GetCurrentTraceMicros());
 
+  void SerializedJSON(const char* json);
+
   // Set the number of arguments in the event.
   void SetNumArguments(intptr_t length);
-  // |name| must be a compile time constant. Takes ownership of |argumentp|.
+  // |name| must be a compile time constant. Takes ownership of |argument|.
   void SetArgument(intptr_t i, const char* name, char* argument);
   // |name| must be a compile time constant. Copies |argument|.
   void CopyArgument(intptr_t i, const char* name, const char* argument);
@@ -166,6 +169,10 @@ class TimelineEvent {
 
   ThreadId thread() const {
     return thread_;
+  }
+
+  Dart_Port isolate_id() const {
+    return isolate_id_;
   }
 
   const char* label() const {
@@ -223,6 +230,8 @@ class TimelineEvent {
     }
   }
 
+  const char* GetSerializedJSON() const;
+
  private:
   int64_t timestamp0_;
   int64_t timestamp1_;
@@ -232,7 +241,7 @@ class TimelineEvent {
   const char* label_;
   const char* category_;
   ThreadId thread_;
-  Isolate* isolate_;
+  Dart_Port isolate_id_;
 
   void FreeArguments();
 
@@ -396,9 +405,6 @@ class TimelineEventBlock {
     return &events_[index];
   }
 
-  // Attempt to sniff a thread id from the first event.
-  ThreadId thread() const;
-
   // Attempt to sniff the timestamp from the first event.
   int64_t LowerTimeBound() const;
 
@@ -416,8 +422,8 @@ class TimelineEventBlock {
   }
 
   // Only safe to access under the recorder's lock.
-  Isolate* isolate() const {
-    return isolate_;
+  ThreadId thread_id() const {
+    return thread_id_;
   }
 
  protected:
@@ -429,10 +435,10 @@ class TimelineEventBlock {
   intptr_t block_index_;
 
   // Only accessed under the recorder's lock.
-  Isolate* isolate_;
+  ThreadId thread_id_;
   bool in_use_;
 
-  void Open(Isolate* isolate);
+  void Open();
   void Finish();
 
   friend class Thread;
@@ -473,52 +479,23 @@ class TimelineEventFilter : public ValueObject {
 
 class IsolateTimelineEventFilter : public TimelineEventFilter {
  public:
-  explicit IsolateTimelineEventFilter(Isolate* isolate);
+  explicit IsolateTimelineEventFilter(Dart_Port isolate_id);
 
   bool IncludeBlock(TimelineEventBlock* block) {
     if (block == NULL) {
       return false;
     }
     // Not empty, not in use, and isolate match.
-    return !block->IsEmpty() && !block->in_use() &&
-           (block->isolate() == isolate_);
+    return !block->IsEmpty() && !block->in_use();
+  }
+
+  bool IncludeEvent(TimelineEvent* event) {
+    return event->IsValid() &&
+           (event->isolate_id() == isolate_id_);
   }
 
  private:
-  Isolate* isolate_;
-};
-
-
-// Timeline events from Dart code are eagerly converted to JSON and stored
-// as a C string.
-class DartTimelineEvent {
- public:
-  DartTimelineEvent();
-  ~DartTimelineEvent();
-
-  void Clear();
-
-  // This function makes a copy of |event|.
-  void Init(Isolate* isolate, const char* event);
-
-  bool IsValid() const {
-    return (isolate_ != NULL) &&
-           (event_as_json_ != NULL);
-  }
-
-  Isolate* isolate() const {
-    return isolate_;
-  }
-
-  char* event_as_json() const {
-    return event_as_json_;
-  }
-
- private:
-  Isolate* isolate_;
-  char* event_as_json_;
-
-  DISALLOW_COPY_AND_ASSIGN(DartTimelineEvent);
+  Dart_Port isolate_id_;
 };
 
 
@@ -538,9 +515,6 @@ class TimelineEventRecorder {
 
   void FinishBlock(TimelineEventBlock* block);
 
-  // Interface method(s) which must be implemented.
-  virtual void AppendDartEvent(Isolate* isolate, const char* event) = 0;
-
  protected:
   void WriteTo(const char* directory);
 
@@ -548,9 +522,7 @@ class TimelineEventRecorder {
   virtual TimelineEvent* StartEvent() = 0;
   virtual void CompleteEvent(TimelineEvent* event) = 0;
   virtual TimelineEventBlock* GetHeadBlockLocked() = 0;
-  virtual TimelineEventBlock* GetNewBlockLocked(Isolate* isolate) = 0;
-  virtual intptr_t NumDartEventsLocked() = 0;
-  virtual DartTimelineEvent* DartEventAtLocked(intptr_t i) = 0;
+  virtual TimelineEventBlock* GetNewBlockLocked() = 0;
 
   // Utility method(s).
   void PrintJSONMeta(JSONArray* array) const;
@@ -560,7 +532,6 @@ class TimelineEventRecorder {
   Mutex lock_;
   uintptr_t async_id_;
 
-  friend class DartTimelineEventIterator;
   friend class TimelineEvent;
   friend class TimelineEventBlockIterator;
   friend class TimelineStream;
@@ -583,16 +554,12 @@ class TimelineEventRingRecorder : public TimelineEventRecorder {
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 
-  void AppendDartEvent(Isolate* isolate, const char* event);
-
  protected:
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
   TimelineEventBlock* GetHeadBlockLocked();
   intptr_t FindOldestBlockIndex() const;
-  TimelineEventBlock* GetNewBlockLocked(Isolate* isolate);
-  intptr_t NumDartEventsLocked();
-  DartTimelineEvent* DartEventAtLocked(intptr_t i);
+  TimelineEventBlock* GetNewBlockLocked();
 
   void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter) const;
 
@@ -600,10 +567,6 @@ class TimelineEventRingRecorder : public TimelineEventRecorder {
   intptr_t capacity_;
   intptr_t num_blocks_;
   intptr_t block_cursor_;
-
-  DartTimelineEvent** dart_events_;
-  intptr_t dart_events_capacity_;
-  intptr_t dart_events_cursor_;
 };
 
 
@@ -616,22 +579,17 @@ class TimelineEventStreamingRecorder : public TimelineEventRecorder {
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 
-  void AppendDartEvent(Isolate* isolate, const char* event);
-
   // Called when |event| is ready to be streamed. It is unsafe to keep a
   // reference to |event| as it may be freed as soon as this function returns.
   virtual void StreamEvent(TimelineEvent* event) = 0;
-  virtual void StreamDartEvent(const char* event) = 0;
 
  protected:
-  TimelineEventBlock* GetNewBlockLocked(Isolate* isolate) {
+  TimelineEventBlock* GetNewBlockLocked() {
     return NULL;
   }
   TimelineEventBlock* GetHeadBlockLocked() {
     return NULL;
   }
-  intptr_t NumDartEventsLocked();
-  DartTimelineEvent* DartEventAtLocked(intptr_t i);
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
 };
@@ -647,15 +605,11 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 
-  void AppendDartEvent(Isolate* isolate, const char* event);
-
  protected:
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
-  TimelineEventBlock* GetNewBlockLocked(Isolate* isolate);
+  TimelineEventBlock* GetNewBlockLocked();
   TimelineEventBlock* GetHeadBlockLocked();
-  intptr_t NumDartEventsLocked();
-  DartTimelineEvent* DartEventAtLocked(intptr_t i);
 
   void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter) const;
 
@@ -664,10 +618,6 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
 
   TimelineEventBlock* head_;
   intptr_t block_index_;
-
-  DartTimelineEvent** dart_events_;
-  intptr_t dart_events_capacity_;
-  intptr_t dart_events_cursor_;
 
   friend class TimelineTestHelper;
 };
@@ -692,32 +642,6 @@ class TimelineEventBlockIterator {
   TimelineEventRecorder* recorder_;
 };
 
-
-// An iterator for timeline events.
-class DartTimelineEventIterator {
- public:
-  explicit DartTimelineEventIterator(TimelineEventRecorder* recorder);
-  ~DartTimelineEventIterator();
-
-  void Reset(TimelineEventRecorder* recorder);
-
-  // Returns true if there is another event.
-  bool HasNext() const;
-
-  // Returns the next event and moves forward.
-  DartTimelineEvent* Next();
-
-  // Returns a zone allocated string of all trace events for isolate.
-  // If isolate is NULL, all isolates' events will be included.
-  static const char* PrintTraceEvents(TimelineEventRecorder* recorder,
-                                      Zone* zone,
-                                      Isolate* isolate);
-
- private:
-  intptr_t cursor_;
-  intptr_t num_events_;
-  TimelineEventRecorder* recorder_;
-};
 
 }  // namespace dart
 

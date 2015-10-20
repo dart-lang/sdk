@@ -157,7 +157,8 @@ TimelineEvent::TimelineEvent()
       state_(0),
       label_(NULL),
       category_(""),
-      thread_(OSThread::kInvalidThreadId) {
+      thread_(OSThread::kInvalidThreadId),
+      isolate_id_(ILLEGAL_PORT) {
 }
 
 
@@ -169,7 +170,7 @@ TimelineEvent::~TimelineEvent() {
 void TimelineEvent::Reset() {
   set_event_type(kNone);
   thread_ = OSThread::kInvalidThreadId;
-  isolate_ = NULL;
+  isolate_id_ = ILLEGAL_PORT;
   category_ = "";
   label_ = NULL;
   FreeArguments();
@@ -239,6 +240,13 @@ void TimelineEvent::End(const char* label,
                         int64_t micros) {
   Init(kEnd, label);
   timestamp0_ = micros;
+}
+
+
+void TimelineEvent::SerializedJSON(const char* json) {
+  Init(kSerializedJSON, "Dart");
+  SetNumArguments(1);
+  CopyArgument(0, "Dart", json);
 }
 
 
@@ -333,13 +341,32 @@ void TimelineEvent::Init(EventType event_type,
   timestamp0_ = 0;
   timestamp1_ = 0;
   thread_ = OSThread::GetCurrentThreadTraceId();
-  isolate_ = Isolate::Current();
+  Isolate* isolate = Isolate::Current();
+  if (isolate != NULL) {
+    isolate_id_ = isolate->main_port();
+  } else {
+    isolate_id_ = ILLEGAL_PORT;
+  }
   label_ = label;
   FreeArguments();
 }
 
 
+const char* TimelineEvent::GetSerializedJSON() const {
+  ASSERT(event_type() == kSerializedJSON);
+  ASSERT(arguments_length_ == 1);
+  ASSERT(arguments_ != NULL);
+  return arguments_[0].value;
+}
+
+
 void TimelineEvent::PrintJSON(JSONStream* stream) const {
+  if (event_type() == kSerializedJSON) {
+    // Event has already been serialized into JSON- just append the
+    // raw data.
+    stream->AppendSerializedObject(GetSerializedJSON());
+    return;
+  }
   JSONObject obj(stream);
   int64_t pid = OS::ProcessId();
   int64_t tid = OSThread::ThreadIdToIntPtr(thread_);
@@ -391,6 +418,10 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
     for (intptr_t i = 0; i < arguments_length_; i++) {
       const TimelineEventArgument& arg = arguments_[i];
       args.AddProperty(arg.name, arg.value);
+    }
+    if (isolate_id_ != ILLEGAL_PORT) {
+      // If we have one, append the isolate id.
+      args.AddProperty("isolateNumber", isolate_id_);
     }
   }
 }
@@ -588,38 +619,8 @@ TimelineEventFilter::~TimelineEventFilter() {
 }
 
 
-IsolateTimelineEventFilter::IsolateTimelineEventFilter(Isolate* isolate)
-    : isolate_(isolate) {
-}
-
-
-DartTimelineEvent::DartTimelineEvent()
-    : isolate_(NULL),
-      event_as_json_(NULL) {
-}
-
-
-DartTimelineEvent::~DartTimelineEvent() {
-  Clear();
-}
-
-
-void DartTimelineEvent::Clear() {
-  if (isolate_ != NULL) {
-    isolate_ = NULL;
-  }
-  if (event_as_json_ != NULL) {
-    free(event_as_json_);
-    event_as_json_ = NULL;
-  }
-}
-
-
-void DartTimelineEvent::Init(Isolate* isolate, const char* event) {
-  ASSERT(isolate_ == NULL);
-  ASSERT(event != NULL);
-  isolate_ = isolate;
-  event_as_json_ = strdup(event);
+IsolateTimelineEventFilter::IsolateTimelineEventFilter(Dart_Port isolate_id)
+    : isolate_id_(isolate_id) {
 }
 
 
@@ -636,7 +637,6 @@ TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
   // Grab the current thread.
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);
-  ASSERT(thread->isolate() != NULL);
   Mutex* thread_block_lock = thread->timeline_block_lock();
   ASSERT(thread_block_lock != NULL);
   // We are accessing the thread's timeline block- so take the lock here.
@@ -651,12 +651,12 @@ TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
     // 1) Mark it as finished.
     thread_block->Finish();
     // 2) Allocate a new block.
-    thread_block = GetNewBlockLocked(thread->isolate());
+    thread_block = GetNewBlockLocked();
     thread->set_timeline_block(thread_block);
   } else if (thread_block == NULL) {
     MutexLocker ml(&lock_);
     // Thread has no block. Attempt to allocate one.
-    thread_block = GetNewBlockLocked(thread->isolate());
+    thread_block = GetNewBlockLocked();
     thread->set_timeline_block(thread_block);
   }
   if (thread_block != NULL) {
@@ -682,21 +682,6 @@ void TimelineEventRecorder::ThreadBlockCompleteEvent(TimelineEvent* event) {
   Mutex* thread_block_lock = thread->timeline_block_lock();
   ASSERT(thread_block_lock != NULL);
   thread_block_lock->Unlock();
-}
-
-
-// Trims the ']' character.
-static void TrimOutput(char* output,
-                       intptr_t* output_length) {
-  ASSERT(output != NULL);
-  ASSERT(output_length != NULL);
-  ASSERT(*output_length >= 2);
-  // We expect the first character to be the opening of an array.
-  ASSERT(output[0] == '[');
-  // We expect the last character to be the closing of an array.
-  ASSERT(output[*output_length - 1] == ']');
-  // Skip the ].
-  *output_length -= 1;
 }
 
 
@@ -730,32 +715,9 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
   char* output = NULL;
   intptr_t output_length = 0;
   js.Steal(const_cast<const char**>(&output), &output_length);
-  TrimOutput(output, &output_length);
-  ASSERT(output_length >= 1);
   (*file_write)(output, output_length, file);
   // Free the stolen output.
   free(output);
-
-  const char* dart_events =
-      DartTimelineEventIterator::PrintTraceEvents(this,
-                                                  zone.GetZone(),
-                                                  NULL);
-
-  // If we wrote out vm events and have dart events, write out the comma.
-  if ((output_length > 1) && (dart_events != NULL)) {
-    // Write out the ',' character.
-    const char* comma = ",";
-    (*file_write)(comma, 1, file);
-  }
-
-  // Write out the Dart events.
-  if (dart_events != NULL) {
-    (*file_write)(dart_events, strlen(dart_events), file);
-  }
-
-  // Write out the ']' character.
-  const char* array_close = "]";
-  (*file_write)(array_close, 1, file);
   (*file_close)(file);
 
   return;
@@ -781,7 +743,7 @@ void TimelineEventRecorder::FinishBlock(TimelineEventBlock* block) {
 
 TimelineEventBlock* TimelineEventRecorder::GetNewBlock() {
   MutexLocker ml(&lock_);
-  return GetNewBlockLocked(Isolate::Current());
+  return GetNewBlockLocked();
 }
 
 
@@ -789,10 +751,7 @@ TimelineEventRingRecorder::TimelineEventRingRecorder(intptr_t capacity)
     : blocks_(NULL),
       capacity_(capacity),
       num_blocks_(0),
-      block_cursor_(0),
-      dart_events_(NULL),
-      dart_events_capacity_(capacity),
-      dart_events_cursor_(0) {
+      block_cursor_(0) {
   // Capacity must be a multiple of TimelineEventBlock::kBlockSize
   ASSERT((capacity % TimelineEventBlock::kBlockSize) == 0);
   // Allocate blocks array.
@@ -808,13 +767,6 @@ TimelineEventRingRecorder::TimelineEventRingRecorder(intptr_t capacity)
   for (intptr_t i = 0; i < num_blocks_ - 1; i++) {
     blocks_[i]->set_next(blocks_[i + 1]);
   }
-  // Pre-allocate DartTimelineEvents.
-  dart_events_ =
-      reinterpret_cast<DartTimelineEvent**>(
-          calloc(dart_events_capacity_, sizeof(DartTimelineEvent*)));
-  for (intptr_t i = 0; i < dart_events_capacity_; i++) {
-    dart_events_[i] = new DartTimelineEvent();
-  }
 }
 
 
@@ -825,12 +777,6 @@ TimelineEventRingRecorder::~TimelineEventRingRecorder() {
     delete block;
   }
   free(blocks_);
-  // Delete all DartTimelineEvents.
-  for (intptr_t i = 0; i < dart_events_capacity_; i++) {
-    DartTimelineEvent* event = dart_events_[i];
-    delete event;
-  }
-  free(dart_events_);
 }
 
 
@@ -871,33 +817,6 @@ void TimelineEventRingRecorder::PrintJSON(JSONStream* js,
 }
 
 
-void TimelineEventRingRecorder::AppendDartEvent(Isolate* isolate,
-                                                const char* event) {
-  MutexLocker ml(&lock_);
-  // TODO(johnmccutchan): If locking becomes an issue, use the Isolate to store
-  // the events.
-  if (dart_events_cursor_ == dart_events_capacity_) {
-    dart_events_cursor_ = 0;
-  }
-  ASSERT(dart_events_[dart_events_cursor_] != NULL);
-  dart_events_[dart_events_cursor_]->Clear();
-  dart_events_[dart_events_cursor_]->Init(isolate, event);
-  dart_events_cursor_++;
-}
-
-
-intptr_t TimelineEventRingRecorder::NumDartEventsLocked() {
-  return dart_events_capacity_;
-}
-
-
-DartTimelineEvent* TimelineEventRingRecorder::DartEventAtLocked(intptr_t i) {
-  ASSERT(i >= 0);
-  ASSERT(i < dart_events_capacity_);
-  return dart_events_[i];
-}
-
-
 void TimelineEventRingRecorder::PrintTraceEvent(JSONStream* js,
                                                 TimelineEventFilter* filter) {
   JSONArray events(js);
@@ -910,8 +829,7 @@ TimelineEventBlock* TimelineEventRingRecorder::GetHeadBlockLocked() {
 }
 
 
-TimelineEventBlock* TimelineEventRingRecorder::GetNewBlockLocked(
-    Isolate* isolate) {
+TimelineEventBlock* TimelineEventRingRecorder::GetNewBlockLocked() {
   // TODO(johnmccutchan): This function should only hand out blocks
   // which have been marked as finished.
   if (block_cursor_ == num_blocks_) {
@@ -919,7 +837,7 @@ TimelineEventBlock* TimelineEventRingRecorder::GetNewBlockLocked(
   }
   TimelineEventBlock* block = blocks_[block_cursor_++];
   block->Reset();
-  block->Open(isolate);
+  block->Open();
   return block;
 }
 
@@ -984,25 +902,6 @@ void TimelineEventStreamingRecorder::PrintTraceEvent(
 }
 
 
-void TimelineEventStreamingRecorder::AppendDartEvent(Isolate* isolate,
-                                                     const char* event) {
-  if (event != NULL) {
-    StreamDartEvent(event);
-  }
-}
-
-
-intptr_t TimelineEventStreamingRecorder::NumDartEventsLocked() {
-  return 0;
-}
-
-
-DartTimelineEvent* TimelineEventStreamingRecorder::DartEventAtLocked(
-    intptr_t i) {
-  return NULL;
-}
-
-
 TimelineEvent* TimelineEventStreamingRecorder::StartEvent() {
   TimelineEvent* event = new TimelineEvent();
   return event;
@@ -1017,10 +916,7 @@ void TimelineEventStreamingRecorder::CompleteEvent(TimelineEvent* event) {
 
 TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
     : head_(NULL),
-      block_index_(0),
-      dart_events_(NULL),
-      dart_events_capacity_(0),
-      dart_events_cursor_(0) {
+      block_index_(0) {
 }
 
 
@@ -1045,31 +941,6 @@ void TimelineEventEndlessRecorder::PrintTraceEvent(
 }
 
 
-void TimelineEventEndlessRecorder::AppendDartEvent(Isolate* isolate,
-                                                   const char* event) {
-  MutexLocker ml(&lock_);
-  // TODO(johnmccutchan): If locking becomes an issue, use the Isolate to store
-  // the events.
-  if (dart_events_cursor_ == dart_events_capacity_) {
-    // Grow.
-    intptr_t new_capacity =
-        (dart_events_capacity_ == 0) ? 16 : dart_events_capacity_ * 2;
-    dart_events_ = reinterpret_cast<DartTimelineEvent**>(
-        realloc(dart_events_, new_capacity * sizeof(DartTimelineEvent*)));
-    for (intptr_t i = dart_events_capacity_; i < new_capacity; i++) {
-      // Fill with NULLs.
-      dart_events_[i] = NULL;
-    }
-    dart_events_capacity_ = new_capacity;
-  }
-  ASSERT(dart_events_cursor_ < dart_events_capacity_);
-  DartTimelineEvent* dart_event = new DartTimelineEvent();
-  dart_event->Init(isolate, event);
-  ASSERT(dart_events_[dart_events_cursor_] == NULL);
-  dart_events_[dart_events_cursor_++] = dart_event;
-}
-
-
 TimelineEventBlock* TimelineEventEndlessRecorder::GetHeadBlockLocked() {
   return head_;
 }
@@ -1091,34 +962,15 @@ void TimelineEventEndlessRecorder::CompleteEvent(TimelineEvent* event) {
 }
 
 
-TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlockLocked(
-    Isolate* isolate) {
+TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlockLocked() {
   TimelineEventBlock* block = new TimelineEventBlock(block_index_++);
   block->set_next(head_);
-  block->Open(isolate);
+  block->Open();
   head_ = block;
   if (FLAG_trace_timeline) {
-    if (isolate != NULL) {
-      OS::Print("Created new isolate block %p for %s\n",
-                block, isolate->name());
-    } else {
-      OS::Print("Created new global block %p\n", block);
-    }
+    OS::Print("Created new block %p\n", block);
   }
   return head_;
-}
-
-
-intptr_t TimelineEventEndlessRecorder::NumDartEventsLocked() {
-  return dart_events_cursor_;
-}
-
-
-DartTimelineEvent* TimelineEventEndlessRecorder::DartEventAtLocked(
-    intptr_t i) {
-  ASSERT(i >= 0);
-  ASSERT(i < dart_events_cursor_);
-  return dart_events_[i];
 }
 
 
@@ -1163,7 +1015,7 @@ TimelineEventBlock::TimelineEventBlock(intptr_t block_index)
     : next_(NULL),
       length_(0),
       block_index_(block_index),
-      isolate_(NULL),
+      thread_id_(OSThread::kInvalidThreadId),
       in_use_(false) {
 }
 
@@ -1183,13 +1035,10 @@ TimelineEvent* TimelineEventBlock::StartEvent() {
 }
 
 
-ThreadId TimelineEventBlock::thread() const {
-  ASSERT(length_ > 0);
-  return events_[0].thread();
-}
-
-
 int64_t TimelineEventBlock::LowerTimeBound() const {
+  if (length_ == 0) {
+    return kMaxInt64;
+  }
   ASSERT(length_ > 0);
   return events_[0].TimeOrigin();
 }
@@ -1200,10 +1049,8 @@ bool TimelineEventBlock::CheckBlock() {
     return true;
   }
 
-  // - events in the block come from one thread.
-  ThreadId tid = thread();
   for (intptr_t i = 0; i < length(); i++) {
-    if (At(i)->thread() != tid) {
+    if (At(i)->thread() != thread_id()) {
       return false;
     }
   }
@@ -1227,13 +1074,13 @@ void TimelineEventBlock::Reset() {
     events_[i].Reset();
   }
   length_ = 0;
-  isolate_ = NULL;
+  thread_id_ = OSThread::kInvalidThreadId;
   in_use_ = false;
 }
 
 
-void TimelineEventBlock::Open(Isolate* isolate) {
-  isolate_ = isolate;
+void TimelineEventBlock::Open() {
+  thread_id_ = OSThread::GetCurrentThreadTraceId();
   in_use_ = true;
 }
 
@@ -1287,82 +1134,6 @@ TimelineEventBlock* TimelineEventBlockIterator::Next() {
   TimelineEventBlock* r = current_;
   current_ = current_->next();
   return r;
-}
-
-
-DartTimelineEventIterator::DartTimelineEventIterator(
-    TimelineEventRecorder* recorder)
-    : cursor_(0),
-      num_events_(0),
-      recorder_(NULL) {
-  Reset(recorder);
-}
-
-
-DartTimelineEventIterator::~DartTimelineEventIterator() {
-  Reset(NULL);
-}
-
-
-void DartTimelineEventIterator::Reset(TimelineEventRecorder* recorder) {
-  // Clear state.
-  cursor_ = 0;
-  num_events_ = 0;
-  if (recorder_ != NULL) {
-    // Unlock old recorder.
-    recorder_->lock_.Unlock();
-  }
-  recorder_ = recorder;
-  if (recorder_ == NULL) {
-    return;
-  }
-  // Lock new recorder.
-  recorder_->lock_.Lock();
-  cursor_ = 0;
-  num_events_ = recorder_->NumDartEventsLocked();
-}
-
-
-bool DartTimelineEventIterator::HasNext() const {
-  return cursor_ < num_events_;
-}
-
-
-DartTimelineEvent* DartTimelineEventIterator::Next() {
-  ASSERT(cursor_ < num_events_);
-  DartTimelineEvent* r = recorder_->DartEventAtLocked(cursor_);
-  cursor_++;
-  return r;
-}
-
-const char* DartTimelineEventIterator::PrintTraceEvents(
-    TimelineEventRecorder* recorder,
-    Zone* zone,
-    Isolate* isolate) {
-  if (recorder == NULL) {
-    return NULL;
-  }
-
-  if (zone == NULL) {
-    return NULL;
-  }
-
-  char* result = NULL;
-  DartTimelineEventIterator iterator(recorder);
-  while (iterator.HasNext()) {
-    DartTimelineEvent* event = iterator.Next();
-    if (!event->IsValid()) {
-      // Skip invalid
-      continue;
-    }
-    if ((isolate != NULL) && (isolate != event->isolate())) {
-      // If an isolate was specified, skip events from other isolates.
-      continue;
-    }
-    ASSERT(event->event_as_json() != NULL);
-    result = zone->ConcatStrings(result, event->event_as_json());
-  }
-  return result;
 }
 
 }  // namespace dart
