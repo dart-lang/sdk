@@ -573,6 +573,9 @@ class AnalysisServer {
       if (node is LibraryIdentifier) {
         node = node.parent;
       }
+      if (node is StringLiteral && node.parent is UriBasedDirective) {
+        continue;
+      }
       Element element = ElementLocator.locate(node);
       if (node is SimpleIdentifier && element is PrefixElement) {
         element = getImportElement(node);

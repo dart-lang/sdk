@@ -54,7 +54,7 @@ class AbstractAnalysisTest {
   final Map<AnalysisService, List<String>> analysisSubscriptions = {};
 
   String projectPath = '/project';
-  String testFolder = '/project/bin/';
+  String testFolder = '/project/bin';
   String testFile = '/project/bin/test.dart';
   String testCode;
 
