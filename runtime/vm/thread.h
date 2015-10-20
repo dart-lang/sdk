@@ -501,6 +501,7 @@ REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
 
   friend class ApiZone;
   friend class Isolate;
+  friend class Simulator;
   friend class StackZone;
   friend class ThreadIterator;
   friend class ThreadIteratorTestHelper;
