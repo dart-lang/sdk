@@ -834,6 +834,9 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
     //
     libraryElement.imports = imports;
     libraryElement.exports = exports;
+    // See commentary in the computation of the LIBRARY_CYCLE result
+    // for details on library cycle invalidation.
+    libraryElement.invalidateLibraryCycles();
     //
     // Record outputs.
     //
@@ -1842,6 +1845,33 @@ class ComputeLibraryCycleTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
+    // The computation of library cycles is necessarily non-local, since we
+    // in general have to look at all of the reachable libraries
+    // in order to find the strongly connected components.  Repeating this
+    // computation for every node would be quadratic.  The libraryCycle getter
+    // will avoid this by computing the library cycles for every reachable
+    // library and recording it in the element model.  This means that this
+    // task implicitly produces the output for many other targets.  This
+    // can't be expressed in the task model right now: instead, we just
+    // run tasks for those other targets, and they pick up the recorded
+    // version off of the element model.  Unfortunately, this means that
+    // the task model will not handle the invalidation of the recorded
+    // results for us.  Instead, we must explicitly invalidate the recorded
+    // library cycle information when we add or subtract edges from the
+    // import/export graph.  Any update that changes the
+    // import/export graph will induce a recomputation of the LIBRARY_ELEMENT2
+    // result for the changed node. This recomputation is responsible for
+    // conservatively invalidating the library cycle information recorded
+    // in the element model.  The LIBRARY_CYCLE results that have been cached
+    // by the task model are conservatively invalidated by the
+    // IMPORT_EXPORT_SOURCE_CLOSURE dependency below.  If anything reachable
+    // from a node is changed, its LIBRARY_CYCLE results will be re-computed
+    // here (possibly re-using the result from the element model if invalidation
+    // did not cause it to be erased).  In summary, task model dependencies
+    // on the import/export source closure ensure that this method will be
+    // re-run if anything reachable from this target has been invalidated,
+    // and the invalidation code (invalidateLibraryCycles) will ensure that
+    // element model results will be re-used here only if they are still valid.
     if (context.analysisOptions.strongMode) {
       LibraryElementImpl library = getRequiredInput(LIBRARY_ELEMENT_INPUT);
       List<LibraryElement> component = library.libraryCycle;
@@ -1856,7 +1886,6 @@ class ComputeLibraryCycleTask extends SourceBasedAnalysisTask {
         l.importedLibraries.forEach(addLibrary);
         l.exportedLibraries.forEach(addLibrary);
       }
-
       //
       // Record outputs.
       //
