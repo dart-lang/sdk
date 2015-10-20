@@ -376,8 +376,6 @@ class TypeRules {
 
   // Produce a coercion which coerces something of type fromT
   // to something of type toT.
-  // If wrap is true and both are function types, a closure
-  // wrapper coercion is produced using _wrapTo (see above)
   // Returns the error coercion if the types cannot be coerced
   // according to our current criteria.
   Coercion _coerceTo(DartType fromT, DartType toT) {
@@ -387,11 +385,12 @@ class TypeRules {
     // fromT <: toT, no coercion needed
     if (isSubTypeOf(fromT, toT)) return Coercion.identity(toT);
 
-    // For now, reject conversions between function types and
-    // call method objects.  We could choose to allow casts here.
-    // Wrapping a function type to assign it to a call method
-    // object will never succeed.  Wrapping the other way could
-    // be allowed.
+    // TODO(vsm): We can get rid of the second clause if we disallow
+    // all sideways casts - see TODO below.
+    // -------
+    // Note: a function type is never assignable to a class per the Dart
+    // spec - even if it has a compatible call method.  We disallow as
+    // well for consistency.
     if ((fromT is FunctionType && getCallMethodType(toT) != null) ||
         (toT is FunctionType && getCallMethodType(fromT) != null)) {
       return Coercion.error();
@@ -400,6 +399,10 @@ class TypeRules {
     // Downcast if toT <: fromT
     if (isSubTypeOf(toT, fromT)) return Coercion.cast(fromT, toT);
 
+    // TODO(vsm): Once we have generic methods, we should delete this
+    // workaround.  These sideways casts are always ones we warn about
+    // - i.e., we think they are likely to fail at runtime.
+    // -------
     // Downcast if toT <===> fromT
     // The intention here is to allow casts that are sideways in the restricted
     // type system, but allowed in the regular dart type system, since these
@@ -409,6 +412,7 @@ class TypeRules {
     if (fromT.isAssignableTo(toT)) {
       return Coercion.cast(fromT, toT);
     }
+
     return Coercion.error();
   }
 

@@ -154,11 +154,28 @@ abstract class DownCast extends CoercionInfo {
       return new StaticTypeError(rules, expression, toT, reason: reason);
     }
 
+    // TODO(vsm): Change this to an assert when we have generic methods and
+    // fix TypeRules._coerceTo to disallow implicit sideways casts.
+    if (!rules.isSubTypeOf(toT, fromT)) {
+      assert(toT.isSubtypeOf(fromT) || fromT.isAssignableTo(toT));
+      return new DownCastComposite(rules, expression, cast);
+    }
+
     // Composite cast: these are more likely to fail.
     if (!rules.isGroundType(toT)) {
       // This cast is (probably) due to our different treatment of dynamic.
       // It may be more likely to fail at runtime.
-      return new DownCastComposite(rules, expression, cast);
+      if (fromT is InterfaceType) {
+        // For class types, we'd like to allow non-generic down casts, e.g.,
+        // Iterable<T> to List<T>.  The intuition here is that raw (generic)
+        // casts are problematic, and we should complain about those.
+        var typeArgs = fromT.typeArguments;
+        if (typeArgs.isEmpty || typeArgs.any((t) => t.isDynamic)) {
+          return new DownCastComposite(rules, expression, cast);
+        }
+      } else {
+        return new DownCastComposite(rules, expression, cast);
+      }
     }
 
     // Dynamic cast
