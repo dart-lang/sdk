@@ -473,6 +473,14 @@ abstract class ExtendedAnalysisContext implements InternalAnalysisContext {
  */
 class InfiniteTaskLoopException extends AnalysisException {
   /**
+   * A concrete cyclic path of [TargetedResults] within the [dependencyCycle],
+   * `null` if no such path exists.  All nodes in the path are in the
+   * dependencyCycle, but the path is not guaranteed to cover the
+   * entire cycle.
+   */
+  final List<TargetedResult> cyclicPath;
+
+  /**
    * If a dependency cycle was found while computing the inputs for the task,
    * the set of [WorkItem]s contained in the cycle (if there are overlapping
    * cycles, this is the set of all [WorkItem]s in the entire strongly
@@ -484,7 +492,8 @@ class InfiniteTaskLoopException extends AnalysisException {
    * Initialize a newly created exception to represent a failed attempt to
    * perform the given [task] due to the given [dependencyCycle].
    */
-  InfiniteTaskLoopException(AnalysisTask task, this.dependencyCycle)
+  InfiniteTaskLoopException(AnalysisTask task, this.dependencyCycle,
+      [this.cyclicPath])
       : super(
             'Infinite loop while performing task ${task.descriptor.name} for ${task.target}');
 }
