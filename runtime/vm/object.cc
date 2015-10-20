@@ -13940,7 +13940,31 @@ void MegamorphicCache::set_filled_entry_count(intptr_t count) const {
 }
 
 
+void MegamorphicCache::set_target_name(const String& value) const {
+  StorePointer(&raw_ptr()->target_name_, value.raw());
+}
+
+
+void MegamorphicCache::set_arguments_descriptor(const Array& value) const {
+  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
+}
+
+
 RawMegamorphicCache* MegamorphicCache::New() {
+  MegamorphicCache& result = MegamorphicCache::Handle();
+  { RawObject* raw = Object::Allocate(MegamorphicCache::kClassId,
+                                      MegamorphicCache::InstanceSize(),
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+  }
+  result.set_filled_entry_count(0);
+  return result.raw();
+}
+
+
+RawMegamorphicCache* MegamorphicCache::New(const String& target_name,
+                                           const Array& arguments_descriptor) {
   MegamorphicCache& result = MegamorphicCache::Handle();
   { RawObject* raw = Object::Allocate(MegamorphicCache::kClassId,
                                       MegamorphicCache::InstanceSize(),
@@ -13958,6 +13982,8 @@ RawMegamorphicCache* MegamorphicCache::New() {
   }
   result.set_buckets(buckets);
   result.set_mask(capacity - 1);
+  result.set_target_name(target_name);
+  result.set_arguments_descriptor(arguments_descriptor);
   result.set_filled_entry_count(0);
   return result.raw();
 }
@@ -14015,7 +14041,9 @@ void MegamorphicCache::Insert(const Smi& class_id,
 
 
 const char* MegamorphicCache::ToCString() const {
-  return "MegamorphicCache";
+  const String& name = String::Handle(target_name());
+  return OS::SCreate(Thread::Current()->zone(),
+                     "MegamorphicCache(%s)", name.ToCString());
 }
 
 
@@ -14023,11 +14051,14 @@ void MegamorphicCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);
   jsobj.AddServiceId(*this);
+  jsobj.AddProperty("_selector", String::Handle(target_name()).ToCString());
   if (ref) {
     return;
   }
   jsobj.AddProperty("_buckets", Object::Handle(buckets()));
   jsobj.AddProperty("_mask", mask());
+  jsobj.AddProperty("_argumentsDescriptor",
+                    Object::Handle(arguments_descriptor()));
 }
 
 

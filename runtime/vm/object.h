@@ -4599,6 +4599,14 @@ class MegamorphicCache : public Object {
   intptr_t mask() const;
   void set_mask(intptr_t mask) const;
 
+  RawString* target_name() const {
+    return raw_ptr()->target_name_;
+  }
+
+  RawArray* arguments_descriptor() const {
+    return raw_ptr()->args_descriptor_;
+  }
+
   intptr_t filled_entry_count() const;
   void set_filled_entry_count(intptr_t num) const;
 
@@ -4608,8 +4616,12 @@ class MegamorphicCache : public Object {
   static intptr_t mask_offset() {
     return OFFSET_OF(RawMegamorphicCache, mask_);
   }
+  static intptr_t arguments_descriptor_offset() {
+    return OFFSET_OF(RawMegamorphicCache, args_descriptor_);
+  }
 
-  static RawMegamorphicCache* New();
+  static RawMegamorphicCache* New(const String& target_name,
+                                  const Array& arguments_descriptor);
 
   void EnsureCapacity() const;
 
@@ -4621,6 +4633,11 @@ class MegamorphicCache : public Object {
 
  private:
   friend class Class;
+
+  static RawMegamorphicCache* New();
+
+  void set_target_name(const String& value) const;
+  void set_arguments_descriptor(const Array& value) const;
 
   enum {
     kClassIdIndex,

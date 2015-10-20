@@ -21,25 +21,22 @@ RawMegamorphicCache* MegamorphicCacheTable::Lookup(Isolate* isolate,
   // TODO(rmacnak): Make a proper hashtable a la symbol table.
   GrowableObjectArray& table = GrowableObjectArray::Handle(
       isolate->object_store()->megamorphic_cache_table());
+  MegamorphicCache& cache = MegamorphicCache::Handle();
   if (table.IsNull()) {
     table = GrowableObjectArray::New(Heap::kOld);
-    ASSERT((table.Length() % kEntrySize) == 0);
     isolate->object_store()->set_megamorphic_cache_table(table);
   } else {
-    for (intptr_t i = 0; i < table.Length(); i += kEntrySize) {
-      if ((table.At(i + kEntryNameOffset) == name.raw()) &&
-          (table.At(i + kEntryDescriptorOffset) == descriptor.raw())) {
-        return MegamorphicCache::RawCast(table.At(i + kEntryCacheOffset));
+    for (intptr_t i = 0; i < table.Length(); i++) {
+      cache ^= table.At(i);
+      if ((cache.target_name() == name.raw()) &&
+          (cache.arguments_descriptor() == descriptor.raw())) {
+        return cache.raw();
       }
     }
   }
 
-  const MegamorphicCache& cache =
-      MegamorphicCache::Handle(MegamorphicCache::New());
-  table.Add(name, Heap::kOld);
-  table.Add(descriptor, Heap::kOld);
+  cache = MegamorphicCache::New(name, descriptor);
   table.Add(cache, Heap::kOld);
-  ASSERT((table.Length() % kEntrySize) == 0);
   return cache.raw();
 }
 
@@ -89,14 +86,14 @@ void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {
   const GrowableObjectArray& table = GrowableObjectArray::Handle(
       isolate->object_store()->megamorphic_cache_table());
   if (table.IsNull()) return;
-  for (intptr_t i = 0; i < table.Length(); i += kEntrySize) {
-    cache ^= table.At(i + kEntryCacheOffset);
+  for (intptr_t i = 0; i < table.Length(); i++) {
+    cache ^= table.At(i);
     buckets = cache.buckets();
     size += MegamorphicCache::InstanceSize();
     size += Array::InstanceSize(buckets.Length());
   }
   OS::Print("%" Pd " megamorphic caches using %" Pd "KB.\n",
-            table.Length() / kEntrySize, size / 1024);
+            table.Length(), size / 1024);
 }
 
 }  // namespace dart

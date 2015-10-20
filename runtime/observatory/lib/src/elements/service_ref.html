@@ -15,7 +15,7 @@
         <em>{{ ref.vmType }}</em> ({{ ref.length }})
       </a>
     </template>
-    <template if="{{ ref.isICData }}">
+    <template if="{{ ref.isICData || ref.isMegamorphicCache }}">
       <a on-click="{{ goto }}" _href="{{ url }}">
         <em>{{ ref.vmType }}</em> ({{ ref.selector }})
       </a>
@@ -25,7 +25,7 @@
         <em>{{ ref.vmType }}</em> ({{ ref.code.name }})
       </a>
     </template>
-    <template if="{{ !(ref.isObjectPool || ref.isICData || ref.isInstructions) }}">
+    <template if="{{ !(ref.isObjectPool || ref.isICData || ref.isMegamorphicCache || ref.isInstructions) }}">
       <template if="{{ nameIsEmpty }}">
         <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.vmType }}</em></a>
       </template>

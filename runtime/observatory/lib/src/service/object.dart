@@ -114,6 +114,7 @@ abstract class ServiceObject extends Observable {
   String _vmType;
 
   bool get isICData => vmType == 'ICData';
+  bool get isMegamorphicCache => vmType == 'MegamorphicCache';
   bool get isInstructions => vmType == 'Instructions';
   bool get isObjectPool => vmType == 'ObjectPool';
   bool get isContext => type == 'Context';
@@ -3338,6 +3339,8 @@ class ICData extends HeapObject {
 class MegamorphicCache extends HeapObject {
   @observable int mask;
   @observable Instance buckets;
+  @observable String selector;
+  @observable Instance argumentsDescriptor;
 
   bool get canCache => false;
   bool get immutable => false;
@@ -3348,12 +3351,14 @@ class MegamorphicCache extends HeapObject {
     _upgradeCollection(map, isolate);
     super._update(map, mapIsRef);
 
+    selector = map['_selector'];
     if (mapIsRef) {
       return;
     }
 
     mask = map['_mask'];
     buckets = map['_buckets'];
+    argumentsDescriptor = map['_argumentsDescriptor'];
   }
 }
 

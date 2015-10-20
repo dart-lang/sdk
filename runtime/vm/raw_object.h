@@ -1421,8 +1421,10 @@ class RawMegamorphicCache : public RawObject {
   }
   RawArray* buckets_;
   RawSmi* mask_;
+  RawString* target_name_;     // Name of target function.
+  RawArray* args_descriptor_;  // Arguments descriptor.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->mask_);
+    return reinterpret_cast<RawObject**>(&ptr()->args_descriptor_);
   }
 
   int32_t filled_entry_count_;

@@ -357,6 +357,7 @@ void Precompiler::AddCalleesOf(const Function& function) {
 
   const ObjectPool& pool = ObjectPool::Handle(Z, code.GetObjectPool());
   ICData& call_site = ICData::Handle(Z);
+  MegamorphicCache& cache = MegamorphicCache::Handle(Z);
   String& selector = String::Handle(Z);
   Field& field = Field::Handle(Z);
   Class& cls = Class::Handle(Z);
@@ -386,6 +387,11 @@ void Precompiler::AddCalleesOf(const Function& function) {
             AddClosureCall(call_site);
           }
         }
+      } else if (entry.IsMegamorphicCache()) {
+        // A dynamic call.
+        cache ^= entry.raw();
+        selector = cache.target_name();
+        AddSelector(selector);
       } else if (entry.IsField()) {
         // Potential need for field initializer.
         field ^= entry.raw();
