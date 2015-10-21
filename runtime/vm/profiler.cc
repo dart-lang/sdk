@@ -469,11 +469,12 @@ class ProfilerStackWalker : public ValueObject {
 // Given an exit frame, walk the Dart stack.
 class ProfilerDartExitStackWalker : public ProfilerStackWalker {
  public:
-  ProfilerDartExitStackWalker(Isolate* isolate,
+  ProfilerDartExitStackWalker(Thread* thread,
+                              Isolate* isolate,
                               Sample* sample,
                               SampleBuffer* sample_buffer)
       : ProfilerStackWalker(isolate, sample, sample_buffer),
-        frame_iterator_(isolate) {
+        frame_iterator_(thread) {
   }
 
   void walk() {
@@ -1052,7 +1053,8 @@ void Profiler::RecordAllocation(Thread* thread, intptr_t cid) {
                                  sample_buffer,
                                  OSThread::GetCurrentThreadId());
     sample->SetAllocationCid(cid);
-    ProfilerDartExitStackWalker dart_exit_stack_walker(isolate,
+    ProfilerDartExitStackWalker dart_exit_stack_walker(thread,
+                                                       isolate,
                                                        sample,
                                                        sample_buffer);
     dart_exit_stack_walker.walk();
@@ -1154,7 +1156,8 @@ void Profiler::RecordSampleInterruptCallback(
                                                 fp,
                                                 sp);
 
-  ProfilerDartExitStackWalker dart_exit_stack_walker(isolate,
+  ProfilerDartExitStackWalker dart_exit_stack_walker(thread,
+                                                     isolate,
                                                      sample,
                                                      sample_buffer);
 

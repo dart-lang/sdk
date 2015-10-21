@@ -35,7 +35,7 @@ bool StackFrame::IsStubFrame() const {
 
 
 const char* StackFrame::ToCString() const {
-  ASSERT(isolate_ == Isolate::Current());
+  ASSERT(thread_ == Thread::Current());
   Zone* zone = Thread::Current()->zone();
   if (IsDartFrame()) {
     const Code& code = Code::Handle(LookupDartCode());
@@ -68,7 +68,7 @@ void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  ASSERT(isolate() == Isolate::Current());
+  ASSERT(thread() == Thread::Current());
   // Visit objects between SP and (FP - callee_save_area).
   ASSERT(visitor != NULL);
   RawObject** first = reinterpret_cast<RawObject**>(sp());
@@ -85,7 +85,7 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // these handles are not traversed. The use of handles is mainly to
   // be able to reuse the handle based code and avoid having to add
   // helper functions to the raw object interface.
-  ASSERT(isolate_ == Isolate::Current());
+  ASSERT(thread() == Thread::Current());
   ASSERT(visitor != NULL);
   NoSafepointScope no_safepoint;
   Code code;
@@ -165,7 +165,6 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 RawFunction* StackFrame::LookupDartFunction() const {
-  ASSERT(isolate_ == Isolate::Current());
   const Code& code = Code::Handle(LookupDartCode());
   if (!code.IsNull()) {
     return code.function();
@@ -175,7 +174,6 @@ RawFunction* StackFrame::LookupDartFunction() const {
 
 
 RawCode* StackFrame::LookupDartCode() const {
-  ASSERT(isolate_ == Isolate::Current());
   // We add a no gc scope to ensure that the code below does not trigger
   // a GC as we are handling raw object references here. It is possible
   // that the code is called while a GC is in progress, that is ok.
@@ -270,9 +268,8 @@ bool StackFrame::IsValid() const {
 
 
 void StackFrameIterator::SetupLastExitFrameData() {
-  // This gets called by profiler which may run in a different thread (Windows)
-  // but needs the info from mutator_thread instead.
-  uword exit_marker = isolate_->top_exit_frame_info();
+  ASSERT(thread_ != NULL);
+  uword exit_marker = thread_->top_exit_frame_info();
   frames_.fp_ = exit_marker;
 }
 
@@ -286,6 +283,7 @@ void StackFrameIterator::SetupNextExitFrameData() {
 }
 
 
+// TODO(johnmccutchan): Remove |isolate| argument.
 // Tell MemorySanitizer that generated code initializes part of the stack.
 // TODO(koda): Limit to frames that are actually written by generated code.
 static void UnpoisonStack(Isolate* isolate, uword fp) {
@@ -295,28 +293,28 @@ static void UnpoisonStack(Isolate* isolate, uword fp) {
 }
 
 
-StackFrameIterator::StackFrameIterator(bool validate, Isolate* isolate)
+StackFrameIterator::StackFrameIterator(bool validate, Thread* thread)
     : validate_(validate),
-      entry_(isolate),
-      exit_(isolate),
-      frames_(isolate),
+      entry_(thread),
+      exit_(thread),
+      frames_(thread),
       current_frame_(NULL),
-      isolate_(isolate) {
-  ASSERT((isolate_ == Isolate::Current()) ||
+      thread_(thread) {
+  ASSERT((thread_ == Thread::Current()) ||
          OS::AllowStackFrameIteratorFromAnotherThread());
   SetupLastExitFrameData();  // Setup data for last exit frame.
 }
 
 
 StackFrameIterator::StackFrameIterator(uword last_fp, bool validate,
-                                       Isolate* isolate)
+                                       Thread* thread)
     : validate_(validate),
-      entry_(isolate),
-      exit_(isolate),
-      frames_(isolate),
+      entry_(thread),
+      exit_(thread),
+      frames_(thread),
       current_frame_(NULL),
-      isolate_(isolate) {
-  ASSERT((isolate_ == Isolate::Current()) ||
+      thread_(thread) {
+  ASSERT((thread_ == Thread::Current()) ||
          OS::AllowStackFrameIteratorFromAnotherThread());
   frames_.fp_ = last_fp;
   frames_.sp_ = 0;
@@ -325,14 +323,14 @@ StackFrameIterator::StackFrameIterator(uword last_fp, bool validate,
 
 
 StackFrameIterator::StackFrameIterator(uword fp, uword sp, uword pc,
-                                       bool validate, Isolate* isolate)
+                                       bool validate, Thread* thread)
     : validate_(validate),
-      entry_(isolate),
-      exit_(isolate),
-      frames_(isolate),
+      entry_(thread),
+      exit_(thread),
+      frames_(thread),
       current_frame_(NULL),
-      isolate_(isolate) {
-  ASSERT((isolate_ == Isolate::Current()) ||
+      thread_(thread) {
+  ASSERT((thread_ == Thread::Current()) ||
          OS::AllowStackFrameIteratorFromAnotherThread());
   frames_.fp_ = fp;
   frames_.sp_ = sp;
@@ -357,7 +355,7 @@ StackFrame* StackFrameIterator::NextFrame() {
     if (!HasNextFrame()) {
       return NULL;
     }
-    UnpoisonStack(isolate_, frames_.fp_);
+    UnpoisonStack(thread_->isolate(), frames_.fp_);
     if (frames_.pc_ == 0) {
       // Iteration starts from an exit frame given by its fp.
       current_frame_ = NextExitFrame();
