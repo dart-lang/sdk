@@ -294,10 +294,7 @@ class AnalysisErrorWithProperties extends AnalysisError {
 }
 
 /**
- * The error codes used for errors in analysis options files. The convention for
- * this class is for the name of the error code to indicate the problem that
- * caused the error to be generated and for the error message to explain what is
- * wrong and, when appropriate, how the problem can be corrected.
+ * The error codes used for errors in analysis options files.
  */
 class AnalysisOptionsErrorCode extends ErrorCode {
   /**
@@ -310,10 +307,7 @@ class AnalysisOptionsErrorCode extends ErrorCode {
       const AnalysisOptionsErrorCode('PARSE_ERROR', '{0}');
 
   /**
-   * Initialize a newly created error code to have the given [name]. The message
-   * associated with the error will be created from the given [message]
-   * template. The correction associated with the error will be created from the
-   * given [correction] template.
+   * Initialize a newly created error code to have the given [name].
    */
   const AnalysisOptionsErrorCode(String name, String message,
       [String correction])
@@ -324,6 +318,36 @@ class AnalysisOptionsErrorCode extends ErrorCode {
 
   @override
   ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
+}
+
+/**
+ * The error codes used for warnings in analysis options files.
+ */
+class AnalysisOptionsWarningCode extends ErrorCode {
+  /**
+   * An error code indicating that a plugin is being configured with an
+   * unsupported option.
+   *
+   * Parameters:
+   * 0: the plugin name
+   * 1: the unsupported option key
+   */
+  static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION =
+      const AnalysisOptionsWarningCode('UNSUPPORTED_OPTION_ERROR',
+          "The option '{1}' is not supported by {0}");
+
+  /**
+   * Initialize a newly created warning code to have the given [name].
+   */
+  const AnalysisOptionsWarningCode(String name, String message,
+      [String correction])
+      : super(name, message, correction);
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;
+
+  @override
+  ErrorType get type => ErrorType.STATIC_WARNING;
 }
 
 /**

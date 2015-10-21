@@ -12,6 +12,7 @@ import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
+import 'package:yaml/yaml.dart';
 
 /// The errors produced while parsing `.analysis_options` files.
 ///
@@ -49,7 +50,9 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
     List<AnalysisError> errors = <AnalysisError>[];
 
     try {
-      optionsProvider.getOptionsFromString(content);
+      Map<String, YamlNode> options =
+          optionsProvider.getOptionsFromString(content);
+      errors.addAll(_validate(options));
     } on OptionsFormatException catch (e) {
       SourceSpan span = e.span;
       var error = new AnalysisError(source, span.start.column + 1, span.length,
@@ -63,6 +66,9 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
     outputs[ANALYSIS_OPTIONS_ERRORS] = errors;
   }
 
+  List<AnalysisError> _validate(Map<String, YamlNode> options) =>
+      new OptionsFileValidator(source).validate(options);
+
   /// Return a map from the names of the inputs of this kind of task to the
   /// task input descriptors describing those inputs for a task with the
   /// given [target].
@@ -73,4 +79,58 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
   static GenerateOptionsErrorsTask createTask(
           AnalysisContext context, AnalysisTarget target) =>
       new GenerateOptionsErrorsTask(context, target);
+}
+
+/// Validates options defined in an `.analysis_options` file.
+class OptionsFileValidator {
+  // TODO(pq): consider an extension point.
+  static final List<OptionsValidator> _validators = [
+    new AnalyzerOptionsValidator()
+  ];
+
+  final Source source;
+  OptionsFileValidator(this.source);
+
+  List<AnalysisError> validate(Map<String, YamlNode> options) {
+    List<AnalysisError> errors = <AnalysisError>[];
+    _validators.forEach(
+        (OptionsValidator v) => errors.addAll(v.validate(source, options)));
+    return errors;
+  }
+}
+
+AnalysisError _unsupportedOption(
+    Source source, YamlScalar key, String pluginName) {
+  SourceSpan span = key.span;
+  return new AnalysisError(source, span.start.column + 1, span.length,
+      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION, [pluginName, key.value]);
+}
+
+/// Validates options.
+abstract class OptionsValidator {
+  List<AnalysisError> validate(Source source, Map<String, YamlNode> options);
+}
+
+/// Validates `analyzer` options.
+class AnalyzerOptionsValidator extends OptionsValidator {
+  static const List<String> _supportedOptions = const [
+    'exclude',
+    'strong-mode'
+  ];
+
+  @override
+  List<AnalysisError> validate(Source source, Map<String, YamlNode> options) {
+    List<AnalysisError> errors = <AnalysisError>[];
+    YamlNode node = options['analyzer'];
+    if (node is YamlMap) {
+      node.nodes.forEach((k, v) {
+        if (k is YamlScalar) {
+          if (!_supportedOptions.contains(k.value)) {
+            errors.add(_unsupportedOption(source, k, 'analyzer'));
+          }
+        }
+      });
+    }
+    return errors;
+  }
 }
