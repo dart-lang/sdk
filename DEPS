@@ -5,7 +5,7 @@
 vars = {
   # The dart_root is the root of our sdk checkout. This is normally
   # simply sdk, but if using special gclient specs it can be different.
-  "dart_root": "sdk",
+  "dart_root": "dart-apix",
 
   # The svn location to pull out dependencies from
   "third_party": "http://dart.googlecode.com/svn/third_party",

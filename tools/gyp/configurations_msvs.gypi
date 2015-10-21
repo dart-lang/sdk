@@ -42,7 +42,7 @@
             'DebugInformationFormat': '3',
             'ExceptionHandling': '0',
             'RuntimeTypeInfo': 'false',
-            'RuntimeLibrary': '1',  # /MTd - Multi-threaded, static (debug)
+            'RuntimeLibrary': '3',  # /MDd - Multi-threaded, dynamic (debug)
           },
           'VCLinkerTool': {
             'LinkIncremental': '2',
@@ -84,7 +84,7 @@
             'ExceptionHandling': '0',
             'RuntimeTypeInfo': 'false',
             'StringPooling': 'true',
-            'RuntimeLibrary': '0',  # /MT - Multi-threaded, static
+            'RuntimeLibrary': '2',  # /MD - Multi-threaded, dynamic
           },
           'VCLinkerTool': {
             'LinkIncremental': '1',

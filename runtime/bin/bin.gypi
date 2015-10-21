@@ -554,7 +554,7 @@
     {
       # dart binary with a snapshot of corelibs built in.
       'target_name': 'dart',
-      'type': 'executable',
+      'type': 'shared_library',
       'dependencies': [
         'libdart',
         'libdart_builtin',
@@ -567,7 +567,6 @@
         '..',
       ],
       'sources': [
-        'main.cc',
         'builtin_common.cc',
         'builtin_natives.cc',
         'builtin_nolib.cc',
@@ -575,6 +574,12 @@
         'io_natives.h',
         'vmservice_impl.cc',
         'vmservice_impl.h',
+        '../include/dart_apix.h',
+        '../apix/dart_apix_impl.cc',
+        '../apix/boot.h',
+        '../apix/boot.cc',
+        '../apix/libregistry.h',
+        '../apix/libregistry.cc',
         '<(snapshot_cc_file)',
         '<(resources_cc_file)',
       ],
