@@ -1490,6 +1490,8 @@ void BackgroundCompiler::Run() {
         ASSERT(error.IsNull());
         temp_function = RemoveOrNull();
         ASSERT(temp_function.raw() == function.raw());
+        // Reset to 0 so that it can be recompiled if needed.
+        function.set_usage_counter(0);
         function = LastOrNull();
       }
     }

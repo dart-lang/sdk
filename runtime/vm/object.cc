@@ -5386,10 +5386,11 @@ void Function::SetInstructions(const Code& value) const {
 }
 
 void Function::AttachCode(const Code& value) const {
+  // Finish setting up code before activating it.
+  value.set_owner(*this);
   SetInstructions(value);
   ASSERT(Function::Handle(value.function()).IsNull() ||
-    (value.function() == this->raw()));
-  value.set_owner(*this);
+      (value.function() == this->raw()));
 }
 
 

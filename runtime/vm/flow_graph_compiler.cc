@@ -166,7 +166,6 @@ FlowGraphCompiler::FlowGraphCompiler(
     const GrowableArray<const Function*>& inline_id_to_function,
     const GrowableArray<intptr_t>& caller_inline_id)
       : thread_(Thread::Current()),
-        isolate_(Isolate::Current()),
         zone_(Thread::Current()->zone()),
         assembler_(assembler),
         parsed_function_(parsed_function),
@@ -183,15 +182,15 @@ FlowGraphCompiler::FlowGraphCompiler(
         may_reoptimize_(false),
         intrinsic_mode_(false),
         double_class_(Class::ZoneHandle(
-            isolate_->object_store()->double_class())),
+            isolate()->object_store()->double_class())),
         mint_class_(Class::ZoneHandle(
-            isolate_->object_store()->mint_class())),
+            isolate()->object_store()->mint_class())),
         float32x4_class_(Class::ZoneHandle(
-            isolate_->object_store()->float32x4_class())),
+            isolate()->object_store()->float32x4_class())),
         float64x2_class_(Class::ZoneHandle(
-            isolate_->object_store()->float64x2_class())),
+            isolate()->object_store()->float64x2_class())),
         int32x4_class_(Class::ZoneHandle(
-            isolate_->object_store()->int32x4_class())),
+            isolate()->object_store()->int32x4_class())),
         list_class_(Class::ZoneHandle(
             Library::Handle(Library::CoreLibrary()).
                 LookupClass(Symbols::List()))),

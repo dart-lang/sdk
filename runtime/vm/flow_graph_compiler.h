@@ -526,7 +526,7 @@ class FlowGraphCompiler : public ValueObject {
   }
 
   Thread* thread() const { return thread_; }
-  Isolate* isolate() const { return isolate_; }
+  Isolate* isolate() const { return thread_->isolate(); }
   Zone* zone() const { return zone_; }
 
   void AddStubCallTarget(const Code& code);
@@ -683,7 +683,6 @@ class FlowGraphCompiler : public ValueObject {
   };
 
   Thread* thread_;
-  Isolate* isolate_;
   Zone* zone_;
   Assembler* assembler_;
   const ParsedFunction& parsed_function_;
