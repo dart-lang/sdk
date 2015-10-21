@@ -14980,6 +14980,7 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
           if (!field.is_static()) {
             fieldValue ^= GetField(field);
             JSONObject jsfield(&jsarr);
+            jsfield.AddProperty("type", "BoundField");
             jsfield.AddProperty("decl", field);
             jsfield.AddProperty("value", fieldValue);
           }
