@@ -46,6 +46,8 @@ class TypeMaskSystem {
   TypeMask fixedLengthType;
   TypeMask interceptorType;
 
+  TypeMask _indexableTypeTest;
+
   ClassElement get jsNullClass => backend.jsNullClass;
 
   // TODO(karlklose): remove compiler here.
@@ -71,8 +73,17 @@ class TypeMaskSystem {
 
     TypeMask typedArray = nonNullSubclass(backend.typedArrayClass);
     fixedLengthType = new TypeMask.unionOf(
-            <TypeMask>[stringType, backend.fixedArrayType, typedArray],
-            classWorld);
+        <TypeMask>[stringType, backend.fixedArrayType, typedArray],
+        classWorld);
+
+    // Make a TypeMask containing Indexable and (redundantly) subtypes of
+    // string because the type inference does not infer that all strings are
+    // indexables.
+    TypeMask indexable =
+        new TypeMask.nonNullSubtype(backend.jsIndexableClass, classWorld);
+    _indexableTypeTest = new TypeMask.unionOf(
+        <TypeMask>[indexable, anyString],
+        classWorld);
   }
 
   bool methodUsesReceiverArgument(FunctionElement function) {
@@ -256,7 +267,7 @@ class TypeMaskSystem {
 
   bool isDefinitelyIndexable(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.nonNullable().satisfies(backend.jsIndexableClass, classWorld);
+    return _indexableTypeTest.containsMask(t.nonNullable(), classWorld);
   }
 
   bool isDefinitelyMutableIndexable(TypeMask t, {bool allowNull: false}) {

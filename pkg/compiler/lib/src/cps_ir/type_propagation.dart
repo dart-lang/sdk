@@ -1238,8 +1238,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         return true;
 
       case '[]=':
-        if (receiverValue.isNullable) return false;
-        if (!typeSystem.isDefinitelyMutableIndexable(receiverValue.type)) {
+        if (!typeSystem.isDefinitelyMutableIndexable(receiverValue.type,
+                allowNull: true)) {
           return false;
         }
         Primitive index = getDartArgument(node, 0);
