@@ -2783,7 +2783,7 @@ TEST_CASE(EmbedSmiInCode) {
 // Test for Embedded Smi object in the instructions.
 TEST_CASE(EmbedSmiIn64BitCode) {
   extern void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value);
-  const intptr_t kSmiTestValue = 5L << 32;
+  const intptr_t kSmiTestValue = DART_INT64_C(5) << 32;
   Assembler _assembler_;
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
   const Function& function =

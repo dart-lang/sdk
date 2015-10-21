@@ -76,11 +76,13 @@ DECLARE_FLAG(bool, interpret_irregexp);
 DECLARE_FLAG(bool, enable_mirrors);
 DECLARE_FLAG(bool, link_natives_lazily);
 
+bool FLAG_precompilation = false;
 static void PrecompilationModeHandler(bool value) {
   if (value) {
 #if defined(TARGET_ARCH_IA32)
     FATAL("Precompilation not supported on IA32");
 #endif
+    FLAG_precompilation = true;
 
     FLAG_always_megamorphic_calls = true;
     FLAG_polymorphic_with_deopt = false;

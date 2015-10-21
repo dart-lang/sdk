@@ -81,6 +81,7 @@ static void ThrowIOException(int status,
   Dart_Handle os_error = DartUtils::NewDartOSError(&os_error_struct);
   Dart_Handle exception =
       DartUtils::NewDartIOException(exception_type, message, os_error);
+  ASSERT(!Dart_IsError(exception));
   if (free_message) {
     free(const_cast<char*>(message));
   }

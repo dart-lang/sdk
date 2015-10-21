@@ -880,6 +880,14 @@ void Precompiler::FinalizeAllClasses() {
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    if (!lib.Loaded()) {
+      String& uri = String::Handle(Z, lib.url());
+      String& msg = String::Handle(Z, String::NewFormatted(
+          "Library '%s' is not loaded. "
+          "Did you forget to call Dart_FinalizeLoading?", uri.ToCString()));
+      Jump(Error::Handle(Z, ApiError::New(msg)));
+    }
+
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();

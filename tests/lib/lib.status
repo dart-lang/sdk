@@ -360,3 +360,5 @@ mirrors/typedef_library_test: Crash # Assertion failure: typedef(G) has not been
 
 [ $noopt ]
 mirrors/*: SkipByDesign
+convert/chunked_conversion_utf88_test: Pass, Timeout
+convert/utf85_test: Pass, Timeout

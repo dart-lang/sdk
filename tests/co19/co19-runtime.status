@@ -87,3 +87,9 @@ Language/15_Types/4_Interface_Types_A11_t01: Skip  # Issue 21174.
 
 [ $runtime == vm && $arch == arm ]
 LibTest/typed_data/Float32x4/operator_multiplication_A01_t01: Fail # Dart issue 24416
+
+[ $noopt ]
+LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
+LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
+LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout

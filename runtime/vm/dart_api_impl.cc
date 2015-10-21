@@ -52,6 +52,7 @@ namespace dart {
 
 
 DECLARE_FLAG(bool, load_deferred_eagerly);
+DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, verify_handles);
 #if defined(DART_NO_SNAPSHOT)
@@ -1280,6 +1281,9 @@ DART_EXPORT char* Dart_Initialize(
     Dart_FileWriteCallback file_write,
     Dart_FileCloseCallback file_close,
     Dart_EntropySource entropy_source) {
+  if ((instructions_snapshot != NULL) && !FLAG_precompilation) {
+    return strdup("Flag --precompilation was not specified.");
+  }
   const char* err_msg = Dart::InitOnce(vm_isolate_snapshot,
                                        instructions_snapshot,
                                        create, interrupt, unhandled, shutdown,
@@ -3780,6 +3784,11 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
         CURRENT_FUNC);
   }
   Class& cls = Class::Handle(Z, type_obj.type_class());
+#if defined(DEBUG)
+  if (!cls.is_allocated() && Dart::IsRunningPrecompiledCode()) {
+    return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
+  }
+#endif
   TypeArguments& type_arguments =
       TypeArguments::Handle(Z, type_obj.arguments());
 
@@ -3930,6 +3939,11 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
     RETURN_TYPE_ERROR(Z, type, Type);
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
+#if defined(DEBUG)
+  if (!cls.is_allocated() && Dart::IsRunningPrecompiledCode()) {
+    return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
+  }
+#endif
   const Error& error = Error::Handle(Z, cls.EnsureIsFinalized(T));
   if (!error.IsNull()) {
     // An error occurred, return error object.
@@ -3955,6 +3969,11 @@ DART_EXPORT Dart_Handle Dart_AllocateWithNativeFields(
     RETURN_NULL_ERROR(native_fields);
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
+#if defined(DEBUG)
+  if (!cls.is_allocated() && Dart::IsRunningPrecompiledCode()) {
+    return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
+  }
+#endif
   const Error& error = Error::Handle(Z, cls.EnsureIsFinalized(T));
   if (!error.IsNull()) {
     // An error occurred, return error object.
@@ -5991,6 +6010,9 @@ DART_EXPORT Dart_Handle Dart_Precompile(
     Dart_QualifiedFunctionName entry_points[],
     bool reset_fields) {
   DARTSCOPE(Thread::Current());
+  if (!FLAG_precompilation) {
+    return Dart_NewApiError("Flag --precompilation was not specified.");
+  }
   Dart_Handle result = Api::CheckAndFinalizePendingClasses(I);
   if (::Dart_IsError(result)) {
     return result;
@@ -6014,6 +6036,10 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
     intptr_t* instructions_snapshot_size) {
   ASSERT(FLAG_load_deferred_eagerly);
   DARTSCOPE(Thread::Current());
+  if (I->compilation_allowed()) {
+    return Dart_NewApiError("Isolate is not precompiled. "
+                            "Did you forget to call Dart_Precompile?");
+  }
   if (vm_isolate_snapshot_buffer == NULL) {
     RETURN_NULL_ERROR(vm_isolate_snapshot_buffer);
   }
