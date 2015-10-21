@@ -3072,74 +3072,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 
   if (IsSupportedByteArrayViewCid(class_ids[0]) &&
       (ic_data.NumberOfChecks() == 1)) {
-    // For elements that may not fit into a smi on all platforms, check if
-    // elements fit into a smi or the platform supports unboxed mints.
-    if ((recognized_kind == MethodRecognizer::kByteArrayBaseGetInt32) ||
-        (recognized_kind == MethodRecognizer::kByteArrayBaseGetUint32) ||
-        (recognized_kind == MethodRecognizer::kByteArrayBaseSetInt32) ||
-        (recognized_kind == MethodRecognizer::kByteArrayBaseSetUint32)) {
-      if (!CanUnboxInt32()) {
-        return false;
-      }
-    }
-
-    if ((recognized_kind == MethodRecognizer::kByteArrayBaseGetFloat32) ||
-        (recognized_kind == MethodRecognizer::kByteArrayBaseGetFloat64) ||
-        (recognized_kind == MethodRecognizer::kByteArrayBaseSetFloat32) ||
-        (recognized_kind == MethodRecognizer::kByteArrayBaseSetFloat64)) {
-      if (!CanUnboxDouble()) {
-        return false;
-      }
-    }
-
-    switch (recognized_kind) {
-      // ByteArray getters.
-      case MethodRecognizer::kByteArrayBaseGetInt8:
-        return BuildByteArrayBaseLoad(call, kTypedDataInt8ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetUint8:
-        return BuildByteArrayBaseLoad(call, kTypedDataUint8ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetInt16:
-        return BuildByteArrayBaseLoad(call, kTypedDataInt16ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetUint16:
-        return BuildByteArrayBaseLoad(call, kTypedDataUint16ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetInt32:
-        return BuildByteArrayBaseLoad(call, kTypedDataInt32ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetUint32:
-        return BuildByteArrayBaseLoad(call, kTypedDataUint32ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetFloat32:
-        return BuildByteArrayBaseLoad(call, kTypedDataFloat32ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetFloat64:
-        return BuildByteArrayBaseLoad(call, kTypedDataFloat64ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetFloat32x4:
-        return BuildByteArrayBaseLoad(call, kTypedDataFloat32x4ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetInt32x4:
-        return BuildByteArrayBaseLoad(call, kTypedDataInt32x4ArrayCid);
-
-      // ByteArray setters.
-      case MethodRecognizer::kByteArrayBaseSetInt8:
-        return BuildByteArrayBaseStore(call, kTypedDataInt8ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetUint8:
-        return BuildByteArrayBaseStore(call, kTypedDataUint8ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetInt16:
-        return BuildByteArrayBaseStore(call, kTypedDataInt16ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetUint16:
-        return BuildByteArrayBaseStore(call, kTypedDataUint16ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetInt32:
-        return BuildByteArrayBaseStore(call, kTypedDataInt32ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetUint32:
-        return BuildByteArrayBaseStore(call, kTypedDataUint32ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetFloat32:
-        return BuildByteArrayBaseStore(call, kTypedDataFloat32ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetFloat64:
-        return BuildByteArrayBaseStore(call, kTypedDataFloat64ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetFloat32x4:
-        return BuildByteArrayBaseStore(call, kTypedDataFloat32x4ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetInt32x4:
-        return BuildByteArrayBaseStore(call, kTypedDataInt32x4ArrayCid);
-      default:
-        // Unsupported method.
-        return false;
-    }
+    return TryReplaceInstanceCallWithInline(call);
   }
 
   if ((class_ids[0] == kFloat32x4Cid) && (ic_data.NumberOfChecks() == 1)) {
@@ -3929,38 +3862,6 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayBaseOp(
     *array = elements;
   }
   return array_cid;
-}
-
-
-bool FlowGraphOptimizer::BuildByteArrayBaseLoad(InstanceCallInstr* call,
-                                                intptr_t view_cid) {
-  const bool simd_view = (view_cid == kTypedDataFloat32x4ArrayCid) ||
-                         (view_cid == kTypedDataInt32x4ArrayCid);
-  const bool float_view = (view_cid == kTypedDataFloat32ArrayCid) ||
-                          (view_cid == kTypedDataFloat64ArrayCid);
-  if (float_view && !CanUnboxDouble()) {
-    return false;
-  }
-  if (simd_view && !ShouldInlineSimd()) {
-    return false;
-  }
-  return TryReplaceInstanceCallWithInline(call);
-}
-
-
-bool FlowGraphOptimizer::BuildByteArrayBaseStore(InstanceCallInstr* call,
-                                                 intptr_t view_cid) {
-  const bool simd_view = (view_cid == kTypedDataFloat32x4ArrayCid) ||
-                         (view_cid == kTypedDataInt32x4ArrayCid);
-  const bool float_view = (view_cid == kTypedDataFloat32ArrayCid) ||
-                          (view_cid == kTypedDataFloat64ArrayCid);
-  if (float_view && !CanUnboxDouble()) {
-    return false;
-  }
-  if (simd_view && !ShouldInlineSimd()) {
-    return false;
-  }
-  return TryReplaceInstanceCallWithInline(call);
 }
 
 

@@ -182,11 +182,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                         Definition* index,
                                         Instruction** cursor);
 
-  bool BuildByteArrayBaseLoad(InstanceCallInstr* call,
-                              intptr_t view_cid);
-  bool BuildByteArrayBaseStore(InstanceCallInstr* call,
-                               intptr_t view_cid);
-
   // Insert a check of 'to_check' determined by 'unary_checks'.  If the
   // check fails it will deoptimize to 'deopt_id' using the deoptimization
   // environment 'deopt_environment'.  The check is inserted immediately
