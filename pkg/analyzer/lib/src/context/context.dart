@@ -1508,7 +1508,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       CacheEntry cacheEntry = _cache.get(target);
       List<PendingFuture> pendingFutures = _pendingFutureTargets[target];
       for (int i = 0; i < pendingFutures.length;) {
-        if (pendingFutures[i].evaluate(cacheEntry)) {
+        if (cacheEntry == null) {
+          pendingFutures[i].forciblyComplete();
+          pendingFutures.removeAt(i);
+        } else if (pendingFutures[i].evaluate(cacheEntry)) {
           pendingFutures.removeAt(i);
         } else {
           i++;
