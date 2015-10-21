@@ -12,6 +12,9 @@
  *   list.
  * - Fields of type int are never null, and have a default value of zero.
  * - Fields of type String are never null, and have a default value of ''.
+ * - Fields of type bool are never null, and have a default value of false.
+ * - Fields whose type is an enum are never null, and have a default value of
+ *   the first value declared in the enum.
  *
  * Terminology used in this document:
  * - "Unlinked" refers to information that can be determined from reading the
@@ -52,18 +55,6 @@ const informative = null;
  * information.
  */
 const private = null;
-
-/**
- * Annotation used to mark possible values of a "flags" field.  These will be
- * transformed into static constants.
- */
-class Flag {
-  final String name;
-  final int value;
-  final String comment;
-
-  const Flag(this.name, this.value, this.comment);
-}
 
 /**
  * Information about a dependency that exists between one library and another
@@ -113,6 +104,32 @@ class PrelinkedLibrary {
 }
 
 /**
+ * Enum used to indicate the kind of entity referred to by a
+ * [PrelinkedReference].
+ */
+enum PrelinkedReferenceKind {
+  /**
+   * The entity is a class or enum.
+   */
+  classOrEnum,
+
+  /**
+   * The entity is a typedef.
+   */
+  typedef,
+
+  /**
+   * The entity is a variable or executable.
+   */
+  other,
+
+  /**
+   * The entity being referred to does not exist.
+   */
+  unresolved
+}
+
+/**
  * Information about the resolution of an [UnlinkedReference].
  */
 class PrelinkedReference {
@@ -122,14 +139,10 @@ class PrelinkedReference {
    */
   int dependency;
 
-  @Flag('CLASS', 0,
-      'Indicates that the thing being referred to is a class or enum')
-  @Flag('TYPEDEF', 1, 'Indicates that the thing being referred to is a typedef')
-  @Flag('OTHER', 2,
-      'Indicates that the thing being referred to is a variable or executable')
-  @Flag('UNRESOLVED', 3,
-      'Indicates that the thing being referred to was not found')
-  int flags;
+  /**
+   * The kind of the entity being referred to.
+   */
+  PrelinkedReferenceKind kind;
 }
 
 /**
@@ -180,11 +193,15 @@ class UnlinkedClass {
    */
   List<UnlinkedExecutable> executables;
 
-  @Flag(
-      'ABSTRACT', 1, 'Set if the class is declared with the `abstract` keyword')
-  @Flag('MIXIN_APP', 2,
-      'Set if the class is declared using mixin appliation syntax')
-  int flags;
+  /**
+   * Indicates whether the class is declared with the `abstract` keyword.
+   */
+  bool isAbstract;
+
+  /**
+   * Indicates whether the class is declared using mixin application syntax.
+   */
+  bool isMixinApplication;
 }
 
 /**
@@ -237,6 +254,31 @@ class UnlinkedEnumValue {
 }
 
 /**
+ * Enum used to indicate the kind of an executable.
+ */
+enum UnlinkedExecutableKind {
+  /**
+   * Executable is a function or method.
+   */
+  functionOrMethod,
+
+  /**
+   * Executable is a getter.
+   */
+  getter,
+
+  /**
+   * Executable is a setter.
+   */
+  setter,
+
+  /**
+   * Executable is a constructor.
+   */
+  constructor
+}
+
+/**
  * Unlinked summary information about a function, method, getter, or setter
  * declaration.
  */
@@ -276,18 +318,35 @@ class UnlinkedExecutable {
    */
   List<UnlinkedParam> parameters;
 
-  @Flag('FUNCTION', 0,
-      'Indicates that the declaration is for a function or method')
-  @Flag('GETTER', 1, 'Indicates that the declaration is for a getter')
-  @Flag('SETTER', 2, 'Indicates that the declaration is for a setter')
-  @Flag('CONSTRUCTOR', 3, 'Indicates that the declaration is for a constructor')
-  @Flag('ABSTRACT', 4, 'Set if the declaration lacks a function body')
-  @Flag('STATIC', 8, 'Set if the declaration includes the `static` keyword')
-  @Flag('CONST', 16,
-      'Set if the declaration includes the `const` keyword (constructors only)')
-  @Flag('FACTORY', 32,
-      'Set if the declaration includes the `factory` keyword (constructors only)')
-  int flags;
+  /**
+   * The kind of the executable (function/method, getter, setter, or
+   * constructor).
+   */
+  UnlinkedExecutableKind kind;
+
+  /**
+   * Indicates whether the executable is declared using the `abstract` keyword.
+   */
+  bool isAbstract;
+
+  /**
+   * Indicates whether the executable is declared using the `static` keyword.
+   *
+   * Note that for top level executables, this flag is false, since they are
+   * not declared using the `static` keyword (even though they are considered
+   * static for semantic purposes).
+   */
+  bool isStatic;
+
+  /**
+   * Indicates whether the executable is declared using the `const` keyword.
+   */
+  bool isConst;
+
+  /**
+   * Indicates whether the executable is declared using the `factory` keyword.
+   */
+  bool isFactory;
 }
 
 /**
@@ -315,11 +374,8 @@ class UnlinkedImport {
   String uri;
 
   /**
-   * Offset of the "import" keyword.  Zero for implicit imports.
-   *
-   * Note that explicit imports may also have an offset of zero.  To
-   * distinguish explicit from implicit imports, look for the presence of the
-   * [IMPLICIT] flag.
+   * If [isImplicit] is false, offset of the "import" keyword.  If [isImplicit]
+   * is true, zero.
    */
   @informative
   int offset;
@@ -337,9 +393,15 @@ class UnlinkedImport {
    */
   List<UnlinkedCombinator> combinators;
 
-  @Flag('DEFERRED', 1, 'Set if this declaration uses the `deferred` keyword')
-  @Flag('IMPLICIT', 2, 'Set if this is an implicit import')
-  int flags;
+  /**
+   * Indicates whether the import declaration uses the `deferred` keyword.
+   */
+  bool isDeferred;
+
+  /**
+   * Indicates whether the import declaration is implicit.
+   */
+  bool isImplicit;
 }
 
 /**
@@ -406,6 +468,26 @@ class UnlinkedLibrary {
 }
 
 /**
+ * Enum used to indicate the kind of a parameter.
+ */
+enum UnlinkedParamKind {
+  /**
+   * Parameter is required.
+   */
+  required,
+
+  /**
+   * Parameter is positional optional (enclosed in `[]`)
+   */
+  positional,
+
+  /**
+   * Parameter is named optional (enclosed in `{}`)
+   */
+  named
+}
+
+/**
  * Unlinked summary information about a function parameter.
  */
 class UnlinkedParam {
@@ -415,27 +497,34 @@ class UnlinkedParam {
   String name;
 
   /**
-   * If this is a function-typed parameter, the declared return type.
-   * Otherwise, the declared type.  Absent if this is a function-typed
-   * parameter and the declared return type is `void`.  Note that when strong
-   * mode is enabled, the actual type may be different due to type inference.
+   * If [isFunctionTyped] is `true`, the declared return type.  If
+   * [isFunctionTyped] is `false`, the declared type.  Absent if
+   * [isFunctionTyped] is `true` and the declared return type is `void`.  Note
+   * that when strong mode is enabled, the actual type may be different due to
+   * type inference.
    */
   UnlinkedTypeRef type;
 
   /**
-   * If this is a function-typed parameter, the parameters of the function
-   * type.
+   * If [isFunctionTyped] is `true`, the parameters of the function type.
    */
   List<UnlinkedParam> parameters;
 
-  @Flag('REQUIRED', 0, 'Indicates that this is a required parameter')
-  @Flag(
-      'POSITIONAL', 1, 'Indicates that this is a positional optional parameter')
-  @Flag('NAMED', 2, 'Indicates that this is a named optional parameter')
-  @Flag('FUNCTION_TYPED', 4, 'Set if this is a function-typed parameter')
-  @Flag('INITIALIZING_FORMAL', 8,
-      'Set if this is an initializing formal parameter')
-  int flags;
+  /**
+   * Kind of the parameter.
+   */
+  UnlinkedParamKind kind;
+
+  /**
+   * Indicates whether this is a function-typed parameter.
+   */
+  bool isFunctionTyped;
+
+  /**
+   * Indicates whether this is an initializing formal parameter (i.e. it is
+   * declared using `this.` syntax).
+   */
+  bool isInitializingFormal;
 }
 
 class UnlinkedPrefix {
@@ -582,8 +671,22 @@ class UnlinkedVariable {
    */
   UnlinkedTypeRef type;
 
-  @Flag('STATIC', 1, 'Set if the declaration includes the `static` keyword')
-  @Flag('FINAL', 2, 'Set if the declaration includes the `final` keyword')
-  @Flag('CONST', 4, 'Set if the declaration includes the `const` keyword')
-  int flags;
+  /**
+   * Indicates whether the variable is declared using the `static` keyword.
+   *
+   * Note that for top level variables, this flag is false, since they are not
+   * declared using the `static` keyword (even though they are considered
+   * static for semantic purposes).
+   */
+  bool isStatic;
+
+  /**
+   * Indicates whether the variable is declared using the `final` keyword.
+   */
+  bool isFinal;
+
+  /**
+   * Indicates whether the variable is declared using the `const` keyword.
+   */
+  bool isConst;
 }
