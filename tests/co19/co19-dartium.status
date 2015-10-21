@@ -24,15 +24,13 @@ LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInt
 LayoutTests/fast/xpath/attr-namespace_t01: RuntimeError # Dartium JsInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/axes_t01: RuntimeError # Dartium JSInterop failure
-WebPlatformTest/custom-elements/instantiating/isAttribute_A02_t01: RuntimeError # Dartium JSInterop failure
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Pass, RuntimeError # Flaky with Dartium JsInterop. Seems like timing issues in the test.
 LibTest/html/IFrameElement/IFrameElement.created_A01_t01: RuntimeError # Issue 24568
 LibTest/html/Window/document_A01_t01: RuntimeError # Issue 24585
+LibTest/html/Window/requestFileSystem_A02_t01: Skip # Issue 24585.
 
 [ $compiler == none && $runtime == dartium && $checked ]
 LayoutTests/fast/css/style-scoped/style-scoped-scoping-nodes-different-order_t01: RuntimeError # Dartium JSInterop failure
-LibTest/html/Window/requestFileSystem_A02_t01: Skip # Times out. Issue 24585.  This also has an untriaged dartium failure, in the section below.
-WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: RuntimeError # Issue 24585
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01: Skip # Issue 20540
@@ -241,7 +239,6 @@ LibTest/html/Window/find_A06_t01: RuntimeError # co19-roll r706.  Please triage 
 LibTest/html/Window/moveTo_A01_t01: RuntimeError, Pass # co19-roll r706.  Please triage this failure.
 LibTest/html/Window/moveTo_A02_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/Window/postMessage_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
-LibTest/html/Window/requestFileSystem_A02_t01: RuntimeError, Pass # co19-roll r706.  Please triage this failure.
 LibTest/html/Window/resizeBy_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/Window/resizeTo_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/isolate/SendPort/send_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.

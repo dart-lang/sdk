@@ -206,8 +206,6 @@ io/http_client_stays_alive_test: Skip  # Timeout.
 [ $runtime == vm ]
 # Failures in secure networking while NSS is replaced with BoringSSL
 io/https_client_certificate_test: RuntimeError # Issue 24070
-io/secure_server_client_certificate_test: RuntimeError # Issue 24069
-io/secure_server_client_no_certificate_test: RuntimeError # Issue 24069
 io/secure_socket_renegotiate_test: RuntimeError
 io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection just puts a READ_CLOSED on the stream, rather than signaling an error on the stream.
 

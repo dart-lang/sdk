@@ -231,7 +231,7 @@ class HtmlWorkManager implements WorkManager {
     scriptTargets.forEach(partition.remove);
     for (Source htmlSource in htmlSources) {
       CacheEntry entry = partition.get(htmlSource);
-      if (htmlSource != null) {
+      if (entry != null) {
         entry.setState(HTML_ERRORS, CacheState.INVALID);
         if (invalidateUris) {
           entry.setState(REFERENCED_LIBRARIES, CacheState.INVALID);

@@ -223,12 +223,28 @@ $if DARTIUM
     return isElement ? jsClassName : null;
   }
 
+  // Get the first class that's a super of a dart.dom library.
+  ClassMirror _getDartHtmlClassName(ClassMirror classMirror) {
+    while (classMirror.superclass != null) {
+      var fullName = classMirror.superclass.qualifiedName;
+      var domLibrary = MirrorSystem.getName(fullName).startsWith('dart.dom.');
+      if (domLibrary) {
+        return classMirror.superclass;
+      }
+
+      classMirror = classMirror.superclass;
+    }
+
+    return null;
+  }
+
   /**
    * Get the class that immediately derived from a class in dart:html or
    * dart:svg (has an attribute DomName of either HTML* or SVG*).
    */
   ClassMirror _getDomSuperClass(ClassMirror classMirror) {
     var isElement = false;
+    var foundSuperElement = null;
 
     while (classMirror.superclass != null) {
       var fullName = classMirror.superclass.qualifiedName;
@@ -236,6 +252,9 @@ $if DARTIUM
 
       var domLibrary = MirrorSystem.getName(fullName).startsWith('dart.dom.');
       if (domLibrary) {
+        if (foundSuperElement == null) {
+          foundSuperElement = classMirror.superclass;
+        }
         // Lookup JS class (if not found).
         var metadatas = classMirror.metadata;
         for (var metadata in metadatas) {
@@ -243,7 +262,7 @@ $if DARTIUM
           var metaType = reflectClass(metaDataMirror.runtimeType);
           if (MirrorSystem.getName(metaType.simpleName) == 'DomName' &&
               (metaDataMirror.name.startsWith('HTML') || metaDataMirror.name.startsWith('SVG'))) {
-            if (isElement) return classMirror;
+            if (isElement) return foundSuperElement;
           }
         }
       }
@@ -369,6 +388,25 @@ $else
       throw new DomException.jsInterop("HierarchyRequestError: Only HTML elements can be customized.");
     }
 
+    var customClassType = _getDartHtmlClassName(classMirror);
+
+    if (extendsTag != null) {
+      var nativeElement = document.createElement(extendsTag);
+
+      // Trying to extend a native element is it the Dart class consistent with the
+      // extendsTag?
+      if (nativeElement.runtimeType != customClassType.reflectedType) {
+        var nativeElementClassMirror = reflectClass(nativeElement.runtimeType);
+        var customClassNativeElement = MirrorSystem.getName(customClassType.simpleName);
+        var extendsNativeElement = MirrorSystem.getName(nativeElementClassMirror.simpleName);
+        throw new DomException.jsInterop("HierarchyRequestError: Custom class type ($customClassNativeElement) and extendsTag class ($extendsNativeElement) don't match .");
+      }
+    } else if (customClassType.reflectedType != HtmlElement && customClassType.reflectedType != svg.SvgElement) {
+      var customClassName = MirrorSystem.getName(classMirror.simpleName);
+      var customClassElement = MirrorSystem.getName(customClassType.simpleName);
+      throw new DomException.jsInterop("HierarchyRequestError: Custom element $customClassName is a native $customClassElement should be derived from HtmlElement or SvgElement.");
+    }
+
     if (_hasCreatedConstructor(classMirror)) {
       // Start the hookup the JS way create an <x-foo> element that extends the
       // <x-base> custom element. Inherit its prototype and signal what tag is
@@ -384,7 +422,7 @@ $else
       var elemProto = js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'Object'), "create", [js.JsNative.getProperty(baseElement, 'prototype')]);
 
       // Remember for any upgrading done in wrap_jso.
-      _addCustomElementType(tag, customElementClass, extendsTag);
+      addCustomElementType(tag, customElementClass, extendsTag);
 
       // TODO(terry): Hack to stop recursion re-creating custom element when the
       //              created() constructor of the custom element does e.g.,
@@ -405,9 +443,26 @@ $else
 
           var dartClass;
           try {
+            if (extendsTag != null) {
+              // If we're extending a native element then create that element.
+              // Then upgrade that element to the customElementClass through
+              // normal flow.
+              dartClass = document.createElement(extendsTag);
+              js.setDartHtmlWrapperFor($this, dartClass);
+              dartClass.blink_jsObject = $this;
+            }
+
+            // Upgrade to the CustomElement Dart class.
             dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
           } catch (e) {
+            // Got a problem make it an HtmlElement and rethrow the error.
             dartClass = HtmlElement.internalCreateHtmlElement();
+            // We need to remember the JS object (because constructElement failed
+            // it normally sets up the blink_jsObject.
+            dartClass.blink_jsObject = $this;
+
+            // Mark to only try this once don't try upgrading from HtmlElement
+            // to the user's Dart class - we had a problem.
             dartClass._badUpgrade();
             throw e;
           } finally {

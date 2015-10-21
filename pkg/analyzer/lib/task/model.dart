@@ -214,6 +214,50 @@ abstract class AnalysisTask {
   String toString() => description;
 
   /**
+   * Given a strongly connected component, find and return a list of
+   * [TargetedResult]s that describes a cyclic path within the cycle.  Returns
+   * null if no cyclic path is found.
+   */
+  List<TargetedResult> _findCyclicPath(List<WorkItem> cycle) {
+    WorkItem findInCycle(AnalysisTarget target, ResultDescriptor descriptor) {
+      for (WorkItem item in cycle) {
+        if (target == item.target && descriptor == item.spawningResult) {
+          return item;
+        }
+      }
+      return null;
+    }
+
+    HashSet<WorkItem> active = new HashSet<WorkItem>();
+    List<TargetedResult> path = null;
+    bool traverse(WorkItem item) {
+      if (!active.add(item)) {
+        // We've found a cycle
+        path = <TargetedResult>[];
+        return true;
+      }
+      for (TargetedResult result in item.inputTargetedResults) {
+        WorkItem item = findInCycle(result.target, result.result);
+        // Ignore edges that leave the cycle.
+        if (item != null) {
+          if (traverse(item)) {
+            // This edge is in a cycle (or leads to a cycle) so add it to the
+            // path
+            path.add(result);
+            return true;
+          }
+        }
+      }
+      // There was no cycle.
+      return false;
+    }
+    if (cycle.length > 0) {
+      traverse(cycle[0]);
+    }
+    return path;
+  }
+
+  /**
    * Perform this analysis task, ensuring that all exceptions are wrapped in an
    * [AnalysisException].
    *
@@ -250,7 +294,8 @@ abstract class AnalysisTask {
       //
       try {
         if (dependencyCycle != null && !handlesDependencyCycles) {
-          throw new InfiniteTaskLoopException(this, dependencyCycle);
+          throw new InfiniteTaskLoopException(
+              this, dependencyCycle, _findCyclicPath(dependencyCycle));
         }
         internalPerform();
       } finally {

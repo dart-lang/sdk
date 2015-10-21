@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Js()
+@JS()
 library js_typed_interop_test;
 
 import 'dart:html';
@@ -22,7 +22,7 @@ _injectJs() {
 """);
 }
 
-@Js()
+@JS()
 external String jsToStringViaCoercion(obj);
 
 class ExampleClassWithCustomToString {

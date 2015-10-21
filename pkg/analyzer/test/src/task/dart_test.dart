@@ -1471,6 +1471,109 @@ class ComputeLibraryCycleTaskTest extends _AbstractDartTaskTest {
     enableStrongMode();
   }
 
+  void test_library_cycle_incremental() {
+    enableStrongMode();
+    Source lib1Source = newSource(
+        '/my_lib1.dart',
+        '''
+library my_lib1;
+''');
+    Source lib2Source = newSource(
+        '/my_lib2.dart',
+        '''
+library my_lib2;
+import 'my_lib1.dart';
+''');
+    Source lib3Source = newSource(
+        '/my_lib3.dart',
+        '''
+library my_lib3;
+import 'my_lib2.dart';
+''');
+    AnalysisTarget lib1Target = new LibrarySpecificUnit(lib1Source, lib1Source);
+    AnalysisTarget lib2Target = new LibrarySpecificUnit(lib2Source, lib2Source);
+    AnalysisTarget lib3Target = new LibrarySpecificUnit(lib3Source, lib3Source);
+    computeResult(lib1Target, LIBRARY_CYCLE);
+    expect(outputs[LIBRARY_CYCLE], hasLength(1));
+    computeResult(lib2Target, LIBRARY_CYCLE);
+    expect(outputs[LIBRARY_CYCLE], hasLength(1));
+    computeResult(lib3Target, LIBRARY_CYCLE);
+    expect(outputs[LIBRARY_CYCLE], hasLength(1));
+
+    // complete the cycle
+    context.setContents(
+        lib1Source,
+        '''
+library my_lib1;
+import 'my_lib3.dart';
+''');
+    computeResult(lib1Target, LIBRARY_CYCLE);
+    expect(outputs[LIBRARY_CYCLE], hasLength(3));
+    computeResult(lib2Target, LIBRARY_CYCLE);
+    expect(outputs[LIBRARY_CYCLE], hasLength(3));
+    computeResult(lib3Target, LIBRARY_CYCLE);
+    expect(outputs[LIBRARY_CYCLE], hasLength(3));
+
+    // break the cycle again
+    context.setContents(
+        lib1Source,
+        '''
+library my_lib1;
+''');
+    computeResult(lib1Target, LIBRARY_CYCLE);
+    expect(outputs[LIBRARY_CYCLE], hasLength(1));
+    computeResult(lib2Target, LIBRARY_CYCLE);
+    expect(outputs[LIBRARY_CYCLE], hasLength(1));
+    computeResult(lib3Target, LIBRARY_CYCLE);
+    expect(outputs[LIBRARY_CYCLE], hasLength(1));
+  }
+
+  void test_library_cycle_incremental_partial() {
+    enableStrongMode();
+    Source lib1Source = newSource(
+        '/my_lib1.dart',
+        '''
+library my_lib1;
+''');
+    Source lib2Source = newSource(
+        '/my_lib2.dart',
+        '''
+library my_lib2;
+import 'my_lib1.dart';
+''');
+    Source lib3Source = newSource(
+        '/my_lib3.dart',
+        '''
+library my_lib3;
+import 'my_lib2.dart';
+''');
+    AnalysisTarget lib1Target = new LibrarySpecificUnit(lib1Source, lib1Source);
+    AnalysisTarget lib2Target = new LibrarySpecificUnit(lib2Source, lib2Source);
+    AnalysisTarget lib3Target = new LibrarySpecificUnit(lib3Source, lib3Source);
+    computeResult(lib1Target, LIBRARY_CYCLE);
+    expect(outputs[LIBRARY_CYCLE], hasLength(1));
+    computeResult(lib2Target, LIBRARY_CYCLE);
+    expect(outputs[LIBRARY_CYCLE], hasLength(1));
+    // lib3 is not reachable, so we have not yet computed its library
+    // cycles
+
+    // complete the cycle, via lib3
+    context.setContents(
+        lib1Source,
+        '''
+library my_lib1;
+import 'my_lib3.dart';
+''');
+    // Ensure that invalidation correctly invalidated everything reachable
+    // through lib3
+    computeResult(lib1Target, LIBRARY_CYCLE);
+    expect(outputs[LIBRARY_CYCLE], hasLength(3));
+    computeResult(lib2Target, LIBRARY_CYCLE);
+    expect(outputs[LIBRARY_CYCLE], hasLength(3));
+    computeResult(lib3Target, LIBRARY_CYCLE);
+    expect(outputs[LIBRARY_CYCLE], hasLength(3));
+  }
+
   void test_library_cycle_linear() {
     List<Source> sources = newSources({
       '/a.dart': '''
@@ -3208,6 +3311,7 @@ class C extends A {}
       ClassElement classC = library.getType('C');
       expect(classC.supertype.displayName, 'A');
     }
+    expect(library.loadLibraryFunction, isNotNull);
   }
 
   test_perform_external() {

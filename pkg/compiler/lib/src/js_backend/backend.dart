@@ -2065,7 +2065,7 @@ class JavaScriptBackend extends Backend {
         typedArrayClass = findClass('NativeTypedArray');
         typedArrayOfIntClass = findClass('NativeTypedArrayOfInt');
       } else if (uri == PACKAGE_JS) {
-        jsAnnotationClass = find(library, 'Js');
+        jsAnnotationClass = find(library, 'JS');
       }
       annotations.onLibraryScanned(library);
     });

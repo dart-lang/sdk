@@ -1107,31 +1107,13 @@ Function _getSvgFunction(String key) {
  **********                                                          **********
  ******************************************************************************/
 
-// List of known tagName to DartClass for custom elements, used for upgrade.
-var _knownCustomElements = new Map<String, Map<Type, String>>();
-
-void _addCustomElementType(String tagName, Type dartClass, [String extendTag]) {
-  _knownCustomElements[tagName] = 
-      {'type': dartClass, 'extends': extendTag != null ? extendTag : "" };
-}
-
-Type _getCustomElementType(object) {
-  var entry = _knownCustomElements[_getCustomElementName(object)];
-  if (entry != null) {
-    return entry['type'];
-  }
-  return null;
-}
-
 String _getCustomElementExtends(object) {
-  var entry = _knownCustomElements[_getCustomElementName(object)];
+  var entry = getCustomElementEntry(object);
   if (entry != null) {
     return entry['extends'];
   }
   return null;
 }
-
-_getCustomElement(object) => _knownCustomElements[_getCustomElementName(object)];
 
 // Return the tag name or is attribute of the custom element or data binding.
 String _getCustomElementName(element) {
@@ -1162,13 +1144,6 @@ String _getCustomElementName(element) {
   return tag;
 }
 
-Rectangle make_dart_rectangle(r) =>
-    r == null ? null : new Rectangle(
-    js.JsNative.getProperty(r, 'left'),
-    js.JsNative.getProperty(r, 'top'),
-    js.JsNative.getProperty(r, 'width'),
-    js.JsNative.getProperty(r, 'height'));
-
 /// An abstract class for all DOM objects we wrap in dart:html and related
 ///  libraries.
 class DartHtmlDomObject {
@@ -1178,247 +1153,14 @@ class DartHtmlDomObject {
 
 }
 
-// Flag to disable JS interop asserts.  Setting to false will speed up the
-// wrap_jso calls.
-bool __interop_checks = true;
-
-/** Expando for JsObject, used by every Dart class associated with a Javascript
- *  class (e.g., DOM, WebAudio, etc.).
- */
-
-/**
- * Return the JsObject associated with a Dart class [dartClass_instance].
- */
-unwrap_jso(dartClass_instance) => js.unwrap_jso(dartClass_instance);
-
-/**
- * Create Dart class that maps to the JS Type, add the JsObject as an expando
- * on the Dart class and return the created Dart class.
- */
-wrap_jso(jsObject) {
-  try {
-    if (jsObject is! js.JsObject || jsObject == null) {
-      // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
-      // or it's a simple type.
-      return jsObject;
-    }
-
-    var wrapper = js.getDartHtmlWrapperFor(jsObject);
-    // if we have a wrapper return the Dart instance.
-    if (wrapper != null) {
-      if (wrapper.runtimeType == HtmlElement && !wrapper._isBadUpgrade) {
-        // We're a Dart instance but we need to upgrade.
-        var customElementClass = _getCustomElementType(wrapper);
-        if (customElementClass != null) {
-          var dartClass_instance;
-          try {
-            dartClass_instance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
-          } finally {
-            dartClass_instance.blink_jsObject = jsObject;
-            jsObject['dart_class'] = dartClass_instance;
-            js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
-            return dartClass_instance;
-          }
-        }
-      }
-
-      return wrapper;
-    }
-
-    if (jsObject is js.JsArray) {
-      var wrappingList = new _DartHtmlWrappingList(jsObject);
-      js.setDartHtmlWrapperFor(jsObject, wrappingList);
-      return wrappingList;
-    }
-
-    // Try the most general type conversions on it.
-    // TODO(alanknight): We may be able to do better. This maintains identity,
-    // which is useful, but expensive. And if we nest something that only
-    // this conversion handles, how does that work? e.g. a list of maps of elements.
-    var converted = convertNativeToDart_SerializedScriptValue(jsObject);
-    if (!identical(converted, jsObject)) {
-      return converted;
-    }
-
-    var constructor = js.JsNative.getProperty(jsObject, 'constructor');
-    if (constructor == null) {
-      // Perfectly valid case for JavaScript objects where __proto__ has
-      // intentionally been set to null.
-      js.setDartHtmlWrapperFor(jsObject, jsObject);
-      return jsObject;
-    }
-    var jsTypeName = js.JsNative.getProperty(constructor, 'name');
-    if (jsTypeName is! String || jsTypeName.length == 0) {
-      // Not an html type.
-      js.setDartHtmlWrapperFor(jsObject, jsObject);
-      return jsObject;
-    }
-
-    var dartClass_instance;
-    if (jsObject.hasProperty('dart_class')) {
-      // Got a dart_class (it's a custom element) use it it's already set up
-      // make sure it's upgraded.
-      dartClass_instance = _upgradeHtmlElement(jsObject['dart_class']);
-    } else {
-      var customElementClass = null;
-      var extendsTag = "";
-      var custom = _getCustomElement(jsObject);
-      if (custom != null) {
-        customElementClass = custom['type'];
-        extendsTag = custom['extends'];
-      }
-      // Custom Element to upgrade.
-      if (jsTypeName == 'HTMLElement' && customElementClass != null && extendsTag == "") {
-        try {
-          dartClass_instance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
-        } finally {
-          dartClass_instance.blink_jsObject = jsObject;
-          jsObject['dart_class'] = dartClass_instance;
-          js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
-       }
-      } else {
-        // TODO(terry): Verify with jakemacd that this is right?
-        // If we every get an auto-binding we're matching previous non-JS Interop
-        // did to return a TemplateElement.
-        if (jsTypeName == 'auto-binding') {
-          jsTypeName = "HTMLTemplateElement";
-        }
-
-        var func = getHtmlCreateFunction(jsTypeName);
-        if (func == null) {
-          // One last ditch effort could be a JS custom element.
-          if (jsObject.toString() == "[object HTMLElement]") {
-            func = getHtmlCreateFunction("HTMLElement");
-          }
-        }
-        if (func != null) {
-          dartClass_instance = func();
-          dartClass_instance.blink_jsObject = jsObject;
-          js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
-        }
-      }
-    }
-    // TODO(jacobr): cache that this is not a dart:html JS class.
-    return dartClass_instance;
-  } catch(e, stacktrace){
-    if (__interop_checks) {
-      if (e is DebugAssertException)
-        window.console.log("${e.message}\n ${stacktrace}");
-      else
-        window.console.log("${stacktrace}");
-    }
-  }
-
-  return null;
-}
-
-/**
- * Create Dart class that maps to the JS Type, add the JsObject as an expando
- * on the Dart class and return the created Dart class.
- */
-wrap_jso_no_SerializedScriptvalue(jsObject) {
-  try {
-    if (jsObject is! js.JsObject || jsObject == null) {
-      // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
-      // or it's a simple type.
-      return jsObject;
-    }
-
-    // TODO(alanknight): With upgraded custom elements this causes a failure because
-    // we need a new wrapper after the type changes. We could possibly invalidate this
-    // if the constructor name didn't match?
-    var wrapper = js.getDartHtmlWrapperFor(jsObject);
-    if (wrapper != null) {
-      return wrapper;
-    }
-
-    if (jsObject is js.JsArray) {
-      var wrappingList = new _DartHtmlWrappingList(jsObject);
-      js.setDartHtmlWrapperFor(jsObject, wrappingList);
-      return wrappingList;
-    }
-
-    var constructor = js.JsNative.getProperty(jsObject, 'constructor');
-    if (constructor == null) {
-      // Perfectly valid case for JavaScript objects where __proto__ has
-      // intentionally been set to null.
-      js.setDartHtmlWrapperFor(jsObject, jsObject);
-      return jsObject;
-    }
-    var jsTypeName = js.JsNative.getProperty(constructor, 'name');
-    if (jsTypeName is! String || jsTypeName.length == 0) {
-      // Not an html type.
-      js.setDartHtmlWrapperFor(jsObject, jsObject);
-      return jsObject;
-    }
-
-    var func = getHtmlCreateFunction(jsTypeName);
-    if (func != null) {
-      var dartClass_instance = func();
-      dartClass_instance.blink_jsObject = jsObject;
-      js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
-      return dartClass_instance;
-    }
-    return jsObject;
-  } catch(e, stacktrace){
-    if (__interop_checks) {
-      if (e is DebugAssertException)
-        window.console.log("${e.message}\n ${stacktrace}");
-      else
-        window.console.log("${stacktrace}");
-    }
-  }
-
-  return null;
-}
-
-/**
- * Create Dart class that maps to the JS Type that is the JS type being
- * extended using JS interop createCallback (we need the base type of the
- * custom element) not the Dart created constructor.
- */
-wrap_jso_custom_element(jsObject) {
-  try {
-    if (jsObject is! js.JsObject) {
-      // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
-      return jsObject;
-    }
-
-    // Find out what object we're extending.
-    var objectName = jsObject.toString();
-    // Expect to see something like '[object HTMLElement]'.
-    if (!objectName.startsWith('[object ')) {
-      return jsObject;
-    }
-
-    var extendsClass = objectName.substring(8, objectName.length - 1);
-    var func = getHtmlCreateFunction(extendsClass);
-    if (__interop_checks)
-      debug_or_assert("func != null name = ${extendsClass}", func != null);
-    var dartClass_instance = func();
-    dartClass_instance.blink_jsObject = jsObject;
-    return dartClass_instance;
-  } catch(e, stacktrace){
-    if (__interop_checks) {
-      if (e is DebugAssertException)
-        window.console.log("${e.message}\n ${stacktrace}");
-      else
-        window.console.log("${stacktrace}");
-    }
-
-    // Problem?
-    return null;
-  }
-}
-
-// Upgrade a Dart HtmlElement to the user's Dart custom element class.
+/// Upgrade a Dart HtmlElement to the user's Dart custom element class.
 _upgradeHtmlElement(dartInstance) {
   // Only try upgrading HtmlElement (Dart class) if there is a failure then
   // don't try it again - one failure is enough.
-  if (dartInstance.runtimeType == HtmlElement && !dartInstance._isBadUpgrade) {
+  if (dartInstance.runtimeType == HtmlElement && !dartInstance.isBadUpgrade) {
     // Must be exactly HtmlElement not something derived from it.
 
-    var customElementClass = _getCustomElementType(dartInstance);
+    var customElementClass = getCustomElementType(dartInstance);
 
     // Custom Element to upgrade.
     if (customElementClass != null) {
@@ -1429,7 +1171,6 @@ _upgradeHtmlElement(dartInstance) {
         dartInstance._badUpgrade();
       } finally {
         dartInstance.blink_jsObject = jsObject;
-        jsObject['dart_class'] = dartInstance;
         js.setDartHtmlWrapperFor(jsObject, dartInstance);
      }
    }
@@ -1475,53 +1216,10 @@ Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
   return result;
 }
 
-// Converts a flat Dart map into a JavaScript object with properties this is
-// is the Dartium only version it uses dart:js.
-// TODO(alanknight): This could probably be unified with the dart2js conversions
-// code in html_common and be more general.
-convertDartToNative_Dictionary(Map dict) {
-  if (dict == null) return null;
-  var jsObject = new js.JsObject(js.JsNative.getProperty(js.context, 'Object'));
-  dict.forEach((String key, value) {
-    if (value is List) {
-      var jsArray = new js.JsArray();
-      value.forEach((elem) {
-        jsArray.add(elem is Map ? convertDartToNative_Dictionary(elem): elem);
-      });
-      jsObject[key] = jsArray;
-    } else {
-      jsObject[key] = value;
-    }
-  });
-  return jsObject;
-}
-
-// Converts a Dart list into a JsArray. For the Dartium version only.
-convertDartToNative_List(List input) => new js.JsArray()..addAll(input);
-
-// Conversion function place holder (currently not used in dart2js or dartium).
-List convertDartToNative_StringArray(List<String> input) => input;
-
-/**
- * Wraps a JsArray and will call wrap_jso on its entries.
- */
-class _DartHtmlWrappingList extends ListBase implements NativeFieldWrapperClass2 {
-  _DartHtmlWrappingList(this.blink_jsObject);
-
-  final js.JsArray blink_jsObject;
-
-  operator [](int index) => wrap_jso(js.JsNative.getArrayIndex(blink_jsObject, index));
-
-  operator []=(int index, value) => blink_jsObject[index] = value;
-
-  int get length => blink_jsObject.length;
-  int set length(int newLength) => blink_jsObject.length = newLength;
-}
-
 /**
  * Upgrade the JS HTMLElement to the Dart class.  Used by Dart's Polymer.
  */
-createCustomUpgrader(Type customElementClass, $this) {
+_createCustomUpgrader(Type customElementClass, $this) {
   var dartClass;
   try {
     dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
@@ -9327,7 +9025,7 @@ class CustomEvent extends Event {
     }
 
     // Need for identity.
-    e.blink_jsObject['dart_class'] = e;
+    js.setDartHtmlWrapperFor(e.blink_jsObject, e);
 
     return e;
   }
@@ -20322,12 +20020,28 @@ class HtmlDocument extends Document {
     return isElement ? jsClassName : null;
   }
 
+  // Get the first class that's a super of a dart.dom library.
+  ClassMirror _getDartHtmlClassName(ClassMirror classMirror) {
+    while (classMirror.superclass != null) {
+      var fullName = classMirror.superclass.qualifiedName;
+      var domLibrary = MirrorSystem.getName(fullName).startsWith('dart.dom.');
+      if (domLibrary) {
+        return classMirror.superclass;
+      }
+
+      classMirror = classMirror.superclass;
+    }
+
+    return null;
+  }
+
   /**
    * Get the class that immediately derived from a class in dart:html or
    * dart:svg (has an attribute DomName of either HTML* or SVG*).
    */
   ClassMirror _getDomSuperClass(ClassMirror classMirror) {
     var isElement = false;
+    var foundSuperElement = null;
 
     while (classMirror.superclass != null) {
       var fullName = classMirror.superclass.qualifiedName;
@@ -20335,6 +20049,9 @@ class HtmlDocument extends Document {
 
       var domLibrary = MirrorSystem.getName(fullName).startsWith('dart.dom.');
       if (domLibrary) {
+        if (foundSuperElement == null) {
+          foundSuperElement = classMirror.superclass;
+        }
         // Lookup JS class (if not found).
         var metadatas = classMirror.metadata;
         for (var metadata in metadatas) {
@@ -20342,7 +20059,7 @@ class HtmlDocument extends Document {
           var metaType = reflectClass(metaDataMirror.runtimeType);
           if (MirrorSystem.getName(metaType.simpleName) == 'DomName' &&
               (metaDataMirror.name.startsWith('HTML') || metaDataMirror.name.startsWith('SVG'))) {
-            if (isElement) return classMirror;
+            if (isElement) return foundSuperElement;
           }
         }
       }
@@ -20463,6 +20180,25 @@ class HtmlDocument extends Document {
       throw new DomException.jsInterop("HierarchyRequestError: Only HTML elements can be customized.");
     }
 
+    var customClassType = _getDartHtmlClassName(classMirror);
+
+    if (extendsTag != null) {
+      var nativeElement = document.createElement(extendsTag);
+
+      // Trying to extend a native element is it the Dart class consistent with the
+      // extendsTag?
+      if (nativeElement.runtimeType != customClassType.reflectedType) {
+        var nativeElementClassMirror = reflectClass(nativeElement.runtimeType);
+        var customClassNativeElement = MirrorSystem.getName(customClassType.simpleName);
+        var extendsNativeElement = MirrorSystem.getName(nativeElementClassMirror.simpleName);
+        throw new DomException.jsInterop("HierarchyRequestError: Custom class type ($customClassNativeElement) and extendsTag class ($extendsNativeElement) don't match .");
+      }
+    } else if (customClassType.reflectedType != HtmlElement && customClassType.reflectedType != svg.SvgElement) {
+      var customClassName = MirrorSystem.getName(classMirror.simpleName);
+      var customClassElement = MirrorSystem.getName(customClassType.simpleName);
+      throw new DomException.jsInterop("HierarchyRequestError: Custom element $customClassName is a native $customClassElement should be derived from HtmlElement or SvgElement.");
+    }
+
     if (_hasCreatedConstructor(classMirror)) {
       // Start the hookup the JS way create an <x-foo> element that extends the
       // <x-base> custom element. Inherit its prototype and signal what tag is
@@ -20478,7 +20214,7 @@ class HtmlDocument extends Document {
       var elemProto = js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'Object'), "create", [js.JsNative.getProperty(baseElement, 'prototype')]);
 
       // Remember for any upgrading done in wrap_jso.
-      _addCustomElementType(tag, customElementClass, extendsTag);
+      addCustomElementType(tag, customElementClass, extendsTag);
 
       // TODO(terry): Hack to stop recursion re-creating custom element when the
       //              created() constructor of the custom element does e.g.,
@@ -20499,9 +20235,26 @@ class HtmlDocument extends Document {
 
           var dartClass;
           try {
+            if (extendsTag != null) {
+              // If we're extending a native element then create that element.
+              // Then upgrade that element to the customElementClass through
+              // normal flow.
+              dartClass = document.createElement(extendsTag);
+              js.setDartHtmlWrapperFor($this, dartClass);
+              dartClass.blink_jsObject = $this;
+            }
+
+            // Upgrade to the CustomElement Dart class.
             dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
           } catch (e) {
+            // Got a problem make it an HtmlElement and rethrow the error.
             dartClass = HtmlElement.internalCreateHtmlElement();
+            // We need to remember the JS object (because constructElement failed
+            // it normally sets up the blink_jsObject.
+            dartClass.blink_jsObject = $this;
+
+            // Mark to only try this once don't try upgrading from HtmlElement
+            // to the user's Dart class - we had a problem.
             dartClass._badUpgrade();
             throw e;
           } finally {
@@ -21239,10 +20992,17 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   @Experimental() // untriaged
   ElementStream<Event> get onWaiting => waitingEvent.forElement(this);
 
-  // Flags to only try upgrading once if there's a failure don't try upgrading
+  // Flags to only try upgrading once. If there's a failure don't try upgrading
   // anymore.
   bool _badUpgradeOccurred = false;
-  bool get _isBadUpgrade => _badUpgradeOccurred;
+
+  /// Required for SDK Infrastructure. Internal use only.
+  ///
+  /// Did this encounter a failure attempting to upgrade to
+  /// a custom element.
+  @Deprecated("Required for SDK Infrastructure. Internal use only.")
+  bool get isBadUpgrade => _badUpgradeOccurred;
+
   void _badUpgrade() { _badUpgradeOccurred = true; }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -37202,10 +36962,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -47163,9 +46923,11 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
 class _VMElementUpgrader implements ElementUpgrader {
   final Type _type;
   final Type _nativeType;
+  final String _extendsTag;
 
   _VMElementUpgrader(Document document, Type type, String extendsTag) :
       _type = type,
+      _extendsTag = extendsTag,
       _nativeType = _validateCustomType(type).reflectedType {
 
     if (extendsTag == null) {
@@ -47183,20 +46945,39 @@ class _VMElementUpgrader implements ElementUpgrader {
 
   Element upgrade(element) {
     var jsObject;
-    var tag = _getCustomElementName(element);
+    var tag;
+    var isNativeElementExtension = false;
+
+    try {
+      tag = _getCustomElementName(element);
+    } catch (e) {
+      isNativeElementExtension = element.localName == _extendsTag;
+    }
+
     if (element.runtimeType == HtmlElement || element.runtimeType == TemplateElement) {
+      if (tag != _extendsTag) {
+        throw new UnsupportedError('$tag is not registered.');
+      }
       jsObject = unwrap_jso(element);
     } else if (element.runtimeType == js.JsObjectImpl) {
       // It's a Polymer core element (written in JS).
       jsObject = element;
-    } else {
+    } else if (isNativeElementExtension) {
+      // Extending a native element.
+      jsObject = element.blink_jsObject;
+
+      // Element to extend is the real tag.
+      tag = element.localName;
+    } else if (tag != null && element.localName != tag) {
+      throw new UnsupportedError('Element is incorrect type. Got ${element.runtimeType}, expected native Html or Svg element to extend.');
+    } else if (tag == null) {
       throw new UnsupportedError('Element is incorrect type. Got ${element.runtimeType}, expected HtmlElement/JsObjectImpl.');
     }
 
     // Remember Dart class to tagName for any upgrading done in wrap_jso.
-    _addCustomElementType(tag, _type);
+    addCustomElementType(tag, _type, _extendsTag);
 
-    return createCustomUpgrader(_nativeType, jsObject);
+    return _createCustomUpgrader(_type, jsObject);
   }
 }
 

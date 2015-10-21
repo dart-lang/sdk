@@ -92,6 +92,7 @@ import 'dart:nativewrappers';
 import 'dart:math' as math;
 import 'dart:mirrors' as mirrors;
 import 'dart:html' as html;
+import 'dart:html_common' as html_common;
 import 'dart:indexed_db' as indexed_db;
 import 'dart:typed_data';
 
@@ -258,7 +259,7 @@ _finalizeJsInterfaces() native "Js_finalizeJsInterfaces";
 
 String _getJsName(mirrors.DeclarationMirror mirror) {
   for (var annotation in mirror.metadata) {
-    if (mirrors.MirrorSystem.getName(annotation.type.simpleName) == "Js") {
+    if (mirrors.MirrorSystem.getName(annotation.type.simpleName) == "JS") {
       mirrors.LibraryMirror library = annotation.type.owner;
       var uri = library.uri;
       // make sure the annotation is from package://js
@@ -700,7 +701,7 @@ JsObject get context {
 }
 
 _maybeWrap(o) {
-  var wrapped = html.wrap_jso_no_SerializedScriptvalue(o);
+  var wrapped = html_common.wrap_jso_no_SerializedScriptvalue(o);
   if (identical(wrapped, o)) return o;
   return (wrapped is html.Blob
       || wrapped is html.Event
@@ -819,7 +820,7 @@ class JsObject extends NativeFieldWrapperClass2 {
 
   static JsObject _jsify(object) native "JsObject_jsify";
 
-  static JsObject _fromBrowserObject(object) => html.unwrap_jso(object);
+  static JsObject _fromBrowserObject(object) => html_common.unwrap_jso(object);
 
   /**
    * Returns the value associated with [property] from the proxied JavaScript
@@ -858,7 +859,7 @@ class JsObject extends NativeFieldWrapperClass2 {
   operator ==(other) {
     var is_JsObject = other is JsObject;
     if (!is_JsObject) {
-      other = html.unwrap_jso(other);
+      other = html_common.unwrap_jso(other);
       is_JsObject = other is JsObject;
     }
     return is_JsObject && _identityEquality(this, other);
