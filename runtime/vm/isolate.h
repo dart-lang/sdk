@@ -188,10 +188,6 @@ class Isolate : public BaseIsolate {
   ObjectStore* object_store() const { return object_store_; }
   void set_object_store(ObjectStore* value) { object_store_ = value; }
 
-  uword top_exit_frame_info() const {
-    return mutator_thread_->top_exit_frame_info();
-  }
-
   ApiState* api_state() const { return api_state_; }
   void set_api_state(ApiState* value) { api_state_ = value; }
 
