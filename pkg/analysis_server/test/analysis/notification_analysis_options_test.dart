@@ -8,6 +8,7 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/services/lint.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -85,6 +86,33 @@ analyzer:
     super.tearDown();
   }
 
+  test_lint_options_changes() async {
+    addOptionsFile('''
+linter:
+  rules:
+    - camel_case_types
+    - constant_identifier_names
+''');
+
+    addTestFile(testSource);
+    setAnalysisRoot();
+
+    await waitForTasksFinished();
+
+    verifyLintsEnabled(['camel_case_types', 'constant_identifier_names']);
+
+    addOptionsFile('''
+linter:
+  rules:
+    - camel_case_types
+''');
+
+    await pumpEventQueue();
+    await waitForTasksFinished();
+
+    verifyLintsEnabled(['camel_case_types']);
+  }
+
   test_options_file_added() async {
     addTestFile(testSource);
     setAnalysisRoot();
@@ -159,6 +187,12 @@ analyzer:
     await waitForTasksFinished();
 
     verifyStrongMode(enabled: false);
+  }
+
+  void verifyLintsEnabled(List<String> lints) {
+    expect(testContext.analysisOptions.lint, true);
+    var rules = getLints(testContext).map((rule) => rule.name);
+    expect(rules, unorderedEquals(lints));
   }
 
   verifyStrongMode({bool enabled}) {
