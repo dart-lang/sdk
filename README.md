@@ -81,10 +81,6 @@ The following tools are a available today:
     `live_code_size_analysis` can correlate that with the `.info.json`, so you
     determine why code that is not used is being included in your app.
 
-  * [`verify_deps`][verify_deps]: a tool that verifies that all elements are
-    reachable from the program's entrypoint. If there are unreachable elements,
-    this indicates that the dependency information is incomplete.
-
 Next we describe in detail how to use each of these tools.
 
 ### Code deps tool
@@ -263,23 +259,6 @@ dart2js_info_coverage_log_server main.dart.js
 dart2js_info_live_code_size_analysis main.dart.info.json main.dart.coverage.json
 ```
 
-### Verifying dependencies
-
-Coverage of dependency information may be incomplete. If there are elements that
-are live in the output that are unreachable through dependencies from the
-program's entrypoint, then we have incomplete dependency information. Note,
-however, that all elements may be reachable from the entrypoint even if there
-is missing dependency information. In order to verify that all elements are
-reachable from the app's entrypoint, simply run the tool as so:
-
-```bash
-dart2js_info_verify_deps foo.info.json
-```
-
-If all elements are reachable from the entrypoint, then the tool will return
-with exitcode 0. Otherwise, the tool will output the list of all functions that
-are not reachable from the entrypoint and return with exitcode 1.
-
 ## Code location, features and bugs
 
 This package is developed in [github][repo].  Please file feature requests and
@@ -292,5 +271,4 @@ bugs at the [issue tracker][tracker].
 [coverage]: https://github.com/dart-lang/dart2js_info/blob/master/bin/coverage_log_server.dart
 [live]: https://github.com/dart-lang/dart2js_info/blob/master/bin/live_code_size_analysis.dart
 [function_analysis]: https://github.com/dart-lang/dart2js_info/blob/master/bin/function_size_analysis.dart
-[verify_deps]: https://github.com/dart-lang/dart2js_info/blob/master/bin/verify_deps.dart
 [AllInfo]: http://dart-lang.github.io/dart2js_info/doc/api/dart2js_info.info/AllInfo-class.html

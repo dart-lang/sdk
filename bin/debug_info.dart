@@ -11,6 +11,7 @@ import 'dart:io';
 
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/graph.dart';
+import 'package:dart2js_info/src/util.dart';
 
 main(args) {
   if (args.length < 1) {
@@ -28,6 +29,13 @@ main(args) {
     debugLibName = args[2];
   }
 
+  validateSize(info, debugLibName);
+  compareGraphs(info);
+  verifyDeps(info);
+}
+
+/// Validates that codesize of elements adds up to total codesize.
+validateSize(AllInfo info, String debugLibName) {
   // Gather data from visiting all info elements.
   var tracker = new _SizeTracker(debugLibName);
   info.accept(tracker);
@@ -67,9 +75,6 @@ main(args) {
     var percent = (missingTotal * 100 / realTotal).toStringAsFixed(2);
     _fail('$percent% size missing in libraries (sum of elements > lib.size)');
   }
-
-  // Validate dependency data.
-  compareGraphs(info);
 }
 
 class _SizeTracker extends RecursiveInfoVisitor {
@@ -208,6 +213,7 @@ class _State {
   int _bodySize = 0;
 }
 
+/// Validates that both forms of dependency information match.
 void compareGraphs(AllInfo info) {
   var g1 = new EdgeListGraph<Info>();
   var g2 = new EdgeListGraph<Info>();
@@ -255,6 +261,24 @@ void compareGraphs(AllInfo info) {
     _fail('inconsistencies in dependency data:\n'
         '   $inUsesNotInDependencies edges missing from "dependencies" graph\n'
         '   $inDependenciesNotInUses edges missing from "uses" graph');
+  }
+}
+
+// Validates that all elements are reachable from `main` in the dependency
+// graph.
+verifyDeps(AllInfo info) {
+  var graph = graphFromInfo(info);
+  var entrypoint = info.program.entrypoint;
+  var reachables = new Set.from(graph.preOrder(entrypoint));
+
+  var functionsAndFields = []..addAll(info.functions)..addAll(info.fields);
+  var unreachables =
+      functionsAndFields.where((func) => !reachables.contains(func));
+  if (unreachables.isNotEmpty) {
+    _fail('${unreachables.length} elements are unreachable from the '
+        'entrypoint');
+  } else {
+    _pass('all elements are reachable from the entrypoint');
   }
 }
 
