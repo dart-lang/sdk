@@ -1988,9 +1988,9 @@ class _CompilerResolution implements Resolution {
       assert(invariant(element, !element.isSynthesized || tree == null));
       ResolutionImpact resolutionImpact =
           compiler.resolver.resolve(element);
-      if (tree != null &&
-          !compiler.analyzeSignaturesOnly &&
-          !reporter.options.suppressWarnings) {
+      if (tree != null && !compiler.analyzeSignaturesOnly) {
+        // TODO(het): don't do this if suppressWarnings is on, currently we have
+        // to do it because the typechecker also sets types
         // Only analyze nodes with a corresponding [TreeElements].
         compiler.checker.check(element);
       }

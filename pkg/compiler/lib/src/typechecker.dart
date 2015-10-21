@@ -75,7 +75,7 @@ class TypeCheckerTask extends CompilerTask {
 }
 
 /**
- * Class used to report different warnings for differrent kinds of members.
+ * Class used to report different warnings for different kinds of members.
  */
 class MemberKind {
   static const MemberKind METHOD = const MemberKind("method");
