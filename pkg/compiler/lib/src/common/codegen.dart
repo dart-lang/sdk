@@ -106,6 +106,7 @@ class CodegenRegistry extends Registry {
 
   void registerCompileTimeConstant(ConstantValue constant) {
     backend.registerCompileTimeConstant(constant, this);
+    backend.addCompileTimeConstantForEmission(constant);
   }
 
   void registerTypeVariableBoundsSubtypeCheck(DartType subtype,

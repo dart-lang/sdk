@@ -119,6 +119,7 @@ class TypeVariableHandler {
               arguments);
       ConstantValue value = constant.value;
       _backend.registerCompileTimeConstant(value, _compiler.globalDependencies);
+      _backend.addCompileTimeConstantForEmission(value);
       _backend.constants.addCompileTimeConstantForEmission(value);
       constants.add(
           _reifyTypeVariableConstant(value, currentTypeVariable.element));

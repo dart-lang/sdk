@@ -979,8 +979,7 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerCompileTimeConstant(ConstantValue constant, Registry registry,
-      {bool addForEmission: true}) {
+  void registerCompileTimeConstant(ConstantValue constant, Registry registry) {
     registerCompileTimeConstantInternal(constant, registry);
 
     if (!registry.isForResolution &&
@@ -991,11 +990,12 @@ class JavaScriptBackend extends Backend {
     }
 
     for (ConstantValue dependency in constant.getDependencies()) {
-      registerCompileTimeConstant(dependency, registry,
-          addForEmission: false);
+      registerCompileTimeConstant(dependency, registry);
     }
+  }
 
-    if (addForEmission) constants.addCompileTimeConstantForEmission(constant);
+  void addCompileTimeConstantForEmission(ConstantValue constant) {
+    constants.addCompileTimeConstantForEmission(constant);
   }
 
   void registerCompileTimeConstantInternal(ConstantValue constant,
@@ -1039,7 +1039,7 @@ class JavaScriptBackend extends Backend {
                                 Registry registry) {
     assert(registry.isForResolution);
     ConstantValue constant = constants.getConstantValueForMetadata(metadata);
-    registerCompileTimeConstant(constant, registry, addForEmission: false);
+    registerCompileTimeConstant(constant, registry);
     metadataConstants.add(new Dependency(constant, annotatedElement));
   }
 
@@ -1574,6 +1574,7 @@ class JavaScriptBackend extends Backend {
           constants.getConstantValueForVariable(element);
       if (initialValue != null) {
         registerCompileTimeConstant(initialValue, work.registry);
+        addCompileTimeConstantForEmission(initialValue);
         // We don't need to generate code for static or top-level
         // variables. For instance variables, we may need to generate
         // the checked setter.
@@ -2501,16 +2502,14 @@ class JavaScriptBackend extends Backend {
           registerCompileTimeConstant(
               dependency.constant,
               new EagerRegistry(compiler,
-                  dependency.annotatedElement.analyzableElement.treeElements),
-              addForEmission: false);
+                  dependency.annotatedElement.analyzableElement.treeElements));
         }
       } else {
         for (Dependency dependency in metadataConstants) {
           registerCompileTimeConstant(
               dependency.constant,
               new CodegenRegistry(compiler,
-                  dependency.annotatedElement.analyzableElement.treeElements),
-              addForEmission: false);
+                  dependency.annotatedElement.analyzableElement.treeElements));
         }
         metadataConstants.clear();
       }

@@ -411,8 +411,7 @@ class _LookupMapInfo {
     ConstantValue constant = unusedEntries.remove(key);
     usedEntries[key] = constant;
     analysis.backend.registerCompileTimeConstant(constant,
-        analysis.backend.compiler.globalDependencies,
-        addForEmission: false);
+        analysis.backend.compiler.globalDependencies);
   }
 
   /// Restores [original] to contain all of the entries marked as possibly used.
