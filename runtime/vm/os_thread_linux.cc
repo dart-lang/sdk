@@ -16,12 +16,24 @@
 
 namespace dart {
 
+static char* strerror_helper(int err, char* buffer, size_t bufsize) {
+#if !defined(__GLIBC__) || \
+    ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !_GNU_SOURCE)
+  // Use the standard version
+  return strerror_r(err, buffer, bufsize) == 0 ?
+    buffer : const_cast<char*>("strerror_r failed");
+#else
+  // Use the gnu specific version
+  return strerror_r(err, buffer, bufsize);
+#endif
+}
+
 #define VALIDATE_PTHREAD_RESULT(result) \
   if (result != 0) { \
     const int kBufferSize = 1024; \
     char error_buf[kBufferSize]; \
     FATAL2("pthread error: %d (%s)", result, \
-           strerror_r(result, error_buf, kBufferSize)); \
+           strerror_helper(result, error_buf, kBufferSize)); \
   }
 
 
@@ -40,7 +52,7 @@ namespace dart {
     char error_buf[kBufferSize]; \
     fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", \
             __FILE__, __LINE__, result, \
-            strerror_r(result, error_buf, kBufferSize)); \
+            strerror_helper(result, error_buf, kBufferSize)); \
     return result; \
   }
 #else

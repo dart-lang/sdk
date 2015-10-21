@@ -8,7 +8,6 @@
 #include "vm/virtual_memory.h"
 
 #include <sys/mman.h>  // NOLINT
-#include <sys/unistd.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 
 #include "platform/assert.h"
