@@ -188,7 +188,6 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
                bool includeParentEnvironment,
                bool runInShell,
                ProcessStartMode mode) : super() {
-    _processes[_serviceId] = this;
     if (runInShell) {
       arguments = _getShellArguments(path, arguments);
       path = _getShellCommand();
@@ -439,7 +438,6 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
             _exitCode.complete(exitCode(exitDataBuffer));
             // Kill stdin, helping hand if the user forgot to do it.
             _stdin._sink.destroy();
-            _processes.remove(_serviceId);
           }
 
           exitDataBuffer.setRange(
@@ -487,8 +485,6 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
       if (encoding == null) return output;
       return encoding.decode(output);
     }
-
-    _processes.remove(_serviceId);
 
     return new ProcessResult(
         result[0],
