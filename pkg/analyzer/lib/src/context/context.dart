@@ -651,19 +651,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         !AnalysisEngine.isDartFileName(librarySource.shortName)) {
       return new CancelableFuture.error(new AnalysisNotScheduledError());
     }
-    var unitTarget = new LibrarySpecificUnit(librarySource, unitSource);
-    return new _AnalysisFutureHelper<CompilationUnit>(this)
-        .computeAsync(unitTarget, (CacheEntry entry) {
-      CacheState state = entry.getState(RESOLVED_UNIT);
-      if (state == CacheState.ERROR) {
-        throw entry.exception;
-      } else if (state == CacheState.INVALID) {
-        return null;
-      }
-      return entry.getValue(RESOLVED_UNIT);
-    }, () {
-      dartWorkManager.addPriorityResult(unitTarget, RESOLVED_UNIT);
-    });
+    return new AnalysisFutureHelper<CompilationUnit>(
+        this,
+        new LibrarySpecificUnit(librarySource, unitSource),
+        RESOLVED_UNIT).computeAsync();
   }
 
   @override
@@ -2078,44 +2069,43 @@ class SdkAnalysisContext extends AnalysisContextImpl {
  * A helper class used to create futures for [AnalysisContextImpl].
  * Using a helper class allows us to preserve the generic parameter T.
  */
-class _AnalysisFutureHelper<T> {
+class AnalysisFutureHelper<T> {
   final AnalysisContextImpl _context;
+  final AnalysisTarget _target;
+  final ResultDescriptor<T> _descriptor;
 
-  _AnalysisFutureHelper(this._context);
+  AnalysisFutureHelper(this._context, this._target, this._descriptor);
 
   /**
-   * Return a future that will be completed with the result of calling
-   * [computeValue]. If [computeValue] returns non-`null`, the future will be
-   * completed immediately with the resulting value. If it returns `null`, then
-   * [scheduleComputation] is invoked to schedule analysis that will produce
-   * the required result, and [computeValue] will be re-executed in the future,
-   * after the next time the cached information for [target] has changed. If
-   * [computeValue] throws an exception, the future will fail with that
-   * exception.
-   *
-   * If the [computeValue] still returns `null` after there is no further
-   * analysis to be done for [target], then the future will be completed with
+   * Return a future that will be completed with the result specified
+   * in the constructor. If the result is cached, the future will be
+   * completed immediately with the resulting value. If not, then
+   * analysis is scheduled that will produce the required result.
+   * If the result cannot be generated, then the future will be completed with
    * the error AnalysisNotScheduledError.
-   *
-   * Since [computeValue] will be called while the state of analysis is being
-   * updated, it should be free of side effects so that it doesn't cause
-   * reentrant changes to the analysis state.
    */
-  CancelableFuture<T> computeAsync(AnalysisTarget target,
-      T computeValue(CacheEntry entry), void scheduleComputation()) {
+  CancelableFuture<T> computeAsync() {
     if (_context.isDisposed) {
       // No further analysis is expected, so return a future that completes
       // immediately with AnalysisNotScheduledError.
       return new CancelableFuture.error(new AnalysisNotScheduledError());
     }
-    CacheEntry entry = _context.getCacheEntry(target);
+    CacheEntry entry = _context.getCacheEntry(_target);
     PendingFuture pendingFuture =
-        new PendingFuture<T>(_context, target, computeValue);
+        new PendingFuture<T>(_context, _target, (CacheEntry entry) {
+      CacheState state = entry.getState(_descriptor);
+      if (state == CacheState.ERROR) {
+        throw entry.exception;
+      } else if (state == CacheState.INVALID) {
+        return null;
+      }
+      return entry.getValue(_descriptor);
+    });
     if (!pendingFuture.evaluate(entry)) {
       _context._pendingFutureTargets
-          .putIfAbsent(target, () => <PendingFuture>[])
+          .putIfAbsent(_target, () => <PendingFuture>[])
           .add(pendingFuture);
-      scheduleComputation();
+      _context.dartWorkManager.addPriorityResult(_target, _descriptor);
     }
     return pendingFuture.future;
   }
