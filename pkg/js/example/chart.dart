@@ -7,14 +7,14 @@ library chart;
 import 'dart:html';
 import 'package:js/js.dart';
 
-@Js()
+@JS()
 class Chart {
   external Chart(CanvasRenderingContext2D ctx);
 
   external dynamic Line(Data data, Options options);
 }
 
-@Js()
+@JS()
 class Data {
   external List get labels;
   external List<DataSet> get datasets;
@@ -25,7 +25,7 @@ class Data {
 /// Minimal implementation of dataset for line chart
 ///
 /// http://www.chartjs.org/docs/#line-chart-data-structure
-@Js()
+@JS()
 class DataSet {
   external String get label;
   external String get fillColor;
@@ -51,7 +51,7 @@ class DataSet {
 /// Minimal implementation of options
 ///
 /// http://www.chartjs.org/docs/#getting-started-global-chart-configuration
-@Js()
+@JS()
 class Options {
   external bool get responsive;
 
