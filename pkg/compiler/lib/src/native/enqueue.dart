@@ -348,7 +348,10 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   registerElement(Element element) {
     reporter.withCurrentElement(element, () {
-      if (element.isFunction || element.isGetter || element.isSetter) {
+      if (element.isFunction ||
+          element.isFactoryConstructor ||
+          element.isGetter ||
+          element.isSetter) {
         handleMethodAnnotations(element);
         if (element.isNative) {
           registerMethodUsed(element);
