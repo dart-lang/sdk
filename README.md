@@ -1,33 +1,35 @@
-# Dart
+# Dart-ApiX
 
-[Dart][website] is an open-source, scalable programming language, with robust
-libraries and runtimes, for building web, server, and mobile apps.
+The goal of Dart-ApiX is to ease the process of embedding Dart in applications. The Dart VM is delivered in the form of a shared library. A set of embedding API extesions is provided.
 
-## Using Dart
+## API Extensions
 
-Visit the [dartlang.org][website] to learn more about the
-[language][lang], [tools][tools],
-[getting started][codelab], and more.
+## Getting Source
 
-Browse [pub.dartlang.org][pubsite] for more packages and libraries contributed
-by the community and the Dart team.
+Dart-ApiX is developed on top of official standalone Dart VM. Therefore you need [depot_tools](http://www.chromium.org/developers/how-tos/install-depot-tools).
 
-## Contributing to Dart
+One time setup
 
-The easiest way to contribute to Dart is to [file issues][dartbug].
+```
+gclient config https://github.com/stakira/dart-apix.git@origin/stable --name=dart-apix --unmanaged
+```
 
-You can also contribute patches, as described in [Contributing][contrib].
+Source checkout
 
-## License
+```
+gclient sync
+```
 
-See [LICENSE][license].
+For more details refer to [this](https://github.com/dart-lang/sdk/wiki/Getting-The-Source)
 
-[website]: https://www.dartlang.org
-[license]: https://github.com/dart-lang/sdk/blob/master/LICENSE
-[repo]: https://github.com/dart-lang/sdk
-[lang]: https://www.dartlang.org/docs/dart-up-and-running/ch02.html
-[tools]: https://www.dartlang.org/tools/
-[codelab]: https://www.dartlang.org/codelabs/darrrt/
-[dartbug]: http://dartbug.com
-[contrib]: https://github.com/dart-lang/sdk/wiki/Contributing
-[pubsite]: https://pub.dartlang.org
+## Building
+
+#### Building on Windows with Visual Studio 2013
+
+```
+set gyp_msvs_version=2013
+gclient runhooks
+./tools/build.py --mode release --arch ia32
+```
+
+For more details refer to [this](https://github.com/dart-lang/sdk/wiki/Building)

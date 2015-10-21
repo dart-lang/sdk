@@ -16,17 +16,17 @@
 /.flaky.log
 /.debug.log
 /*.Makefile
-/*.opensdf
-/*.pyc
-/*.sdf
-/*.sln
-/*.suo
+*.opensdf
+*.pyc
+*.sdf
+*.sln
+*.suo
 /*.target.mk
 *.host.mk
-/*.vcproj
-/*.vcxproj
-/*.vcxproj.filters
-/*.vcxproj.user
+*.vcproj
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
 
 # End generated ignores. The following are hand-added because the svn:ignore
 # stuff doesn't handle them well.
