@@ -33,12 +33,14 @@ class AnalysisOptionsProvider {
     if (optionsSource == null) {
       return options;
     }
-    var doc = loadYaml(optionsSource);
+    YamlNode doc = loadYamlNode(optionsSource);
+    // Empty options.
+    if (doc is YamlScalar && doc.value == null) {
+      return options;
+    }
     if ((doc != null) && (doc is! YamlMap)) {
       throw new OptionsFormatException(
-          'Bad options file format (expected map, got ${doc.runtimeType})\n'
-          'contents of options file:\n'
-          '$optionsSource\n',
+          'Bad options file format (expected map, got ${doc.runtimeType})',
           doc.span);
     }
     if (doc is YamlMap) {

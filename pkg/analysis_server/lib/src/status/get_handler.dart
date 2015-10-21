@@ -36,6 +36,7 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/html.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
@@ -327,6 +328,8 @@ class GetHandler {
         results.add(HTML_DOCUMENT_ERRORS);
         results.add(HTML_ERRORS);
         results.add(REFERENCED_LIBRARIES);
+      } else if (AnalysisEngine.isAnalysisOptionsFileName(name)) {
+        results.add(ANALYSIS_OPTIONS_ERRORS);
       }
     } else if (target is LibrarySpecificUnit) {
       results.add(COMPILATION_UNIT_CONSTANTS);

@@ -36,6 +36,8 @@ main() {
 
   List<AnalysisError> get errors => filesErrors[testFile];
 
+  List<AnalysisError> get optionsFileErrors => filesErrors[optionsFilePath];
+
   String get optionsFilePath => '$projectPath/.analysis_options';
 
   AnalysisContext get testContext => server.getContainingContext(testFile);
@@ -102,6 +104,19 @@ analyzer:
     await waitForTasksFinished();
 
     verifyStrongMode(enabled: true);
+  }
+
+  test_options_file_parse_error() async {
+    addOptionsFile('''
+; #bang
+''');
+    setAnalysisRoot();
+
+    await waitForTasksFinished();
+
+    expect(optionsFileErrors, hasLength(1));
+    expect(optionsFileErrors.first.severity, AnalysisErrorSeverity.ERROR);
+    expect(optionsFileErrors.first.type, AnalysisErrorType.COMPILE_TIME_ERROR);
   }
 
   test_options_file_removed() async {
