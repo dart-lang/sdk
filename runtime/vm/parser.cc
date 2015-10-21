@@ -11249,7 +11249,8 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
     // NoSuchMethodError to be thrown.
     // In an instance method, we convert this into a getter call
     // for a field (which may be defined in a subclass.)
-    String& name = String::CheckedZoneHandle(primary->primary().raw());
+    const String& name =
+        String::Cast(Object::ZoneHandle(primary->primary().raw()));
     if (current_function().is_static() ||
         current_function().IsInFactoryScope()) {
       StaticGetterNode* getter = new(Z) StaticGetterNode(
@@ -11271,7 +11272,7 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
 AstNode* Parser::LoadClosure(PrimaryNode* primary) {
   ASSERT(primary->primary().IsFunction());
   const Function& func =
-      Function::CheckedZoneHandle(primary->primary().raw());
+      Function::Cast(Object::ZoneHandle(primary->primary().raw()));
   const String& funcname = String::ZoneHandle(Z, func.name());
   if (func.is_static()) {
     // Static function access.
@@ -11460,8 +11461,8 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           if (primary_node->IsSuper()) {
             ReportError(primary_pos, "illegal use of super");
           }
-          String& name =
-              String::CheckedZoneHandle(primary_node->primary().raw());
+          const String& name =
+              String::Cast(Object::ZoneHandle(primary_node->primary().raw()));
           if (current_function().is_static()) {
             // The static call will be converted to throwing a NSM error.
             selector = ParseStaticCall(current_class(), name, primary_pos);

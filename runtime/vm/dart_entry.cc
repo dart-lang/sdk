@@ -251,12 +251,12 @@ ArgumentsDescriptor::ArgumentsDescriptor(const Array& array)
 
 
 intptr_t ArgumentsDescriptor::Count() const {
-  return Smi::CheckedHandle(array_.At(kCountIndex)).Value();
+  return Smi::Cast(Object::Handle(array_.At(kCountIndex))).Value();
 }
 
 
 intptr_t ArgumentsDescriptor::PositionalCount() const {
-  return Smi::CheckedHandle(array_.At(kPositionalCountIndex)).Value();
+  return Smi::Cast(Object::Handle(array_.At(kPositionalCountIndex))).Value();
 }
 
 
