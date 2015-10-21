@@ -794,6 +794,26 @@ main() {
     assertNoAssistAt('vvv =', DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE);
   }
 
+  void test_assignToLocalVariable_inClosure() {
+    resolveTestUnit(r'''
+main() {
+  print(() {
+    12345;
+  });
+}
+''');
+    assertHasAssistAt(
+        '345',
+        DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE,
+        '''
+main() {
+  print(() {
+    var i = 12345;
+  });
+}
+''');
+  }
+
   void test_assignToLocalVariable_invocationArgument() {
     resolveTestUnit(r'''
 main() {
