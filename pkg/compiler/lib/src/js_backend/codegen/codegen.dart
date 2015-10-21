@@ -471,6 +471,13 @@ class CodeGenerator extends tree_ir.StatementVisitor
            other is tree_ir.Break && node.target == other.target;
   }
 
+  /// True if the given break is equivalent to an unlabeled continue.
+  bool isShortContinue(tree_ir.Break node) {
+    tree_ir.Statement next = node.target.binding.next;
+    return next is tree_ir.Continue &&
+           next.target.binding == shortContinue.target;
+  }
+
   @override
   void visitBreak(tree_ir.Break node) {
     if (isEffectiveBreakTarget(node, fallthrough.target)) {
@@ -480,6 +487,10 @@ class CodeGenerator extends tree_ir.StatementVisitor
       // Unlabeled break to the break target or to an equivalent break.
       shortBreak.use();
       accumulator.add(new js.Break(null));
+    } else if (isShortContinue(node)) {
+      // An unlabeled continue is better than a labeled break.
+      shortContinue.use();
+      accumulator.add(new js.Continue(null));
     } else {
       usedLabels.add(node.target);
       accumulator.add(new js.Break(node.target.name));
