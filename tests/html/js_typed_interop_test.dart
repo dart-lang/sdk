@@ -38,6 +38,7 @@ _injectJs() {
     callClosureWithArgAndThis: function(closure, arg) {
       return closure.apply(this, [arg]);
     },
+
     getBar: function() {
       return bar;
     }
@@ -111,7 +112,6 @@ class Foo {
   external callClosureWithArg2(Function closure, arg1, arg2);
   external Bar getBar();
   external static int multiplyDefault2(int a, [int b]);
-
 }
 
 @JS()
@@ -129,8 +129,7 @@ class Foob extends Foo {
 }
 
 @JS('Bar')
-class Bar
- {
+class Bar {
   external String get x;
   external bool get multiplyByX;
   external Foo getFoo();
@@ -255,6 +254,7 @@ main() {
       addThisXAndArg(Foo that, int arg) {
         return foo.x + arg;
       }
+
       var wrappedCaptureThisClosure = allowInteropCaptureThis(addThisXAndArg);
       foo.x = 20;
       expect(foo.callClosureWithArgAndThis(wrappedCaptureThisClosure, 10),
@@ -266,6 +266,27 @@ main() {
           identical(allowInteropCaptureThis(addThisXAndArg),
               wrappedCaptureThisClosure),
           isTrue);
+
+      ExampleLiteral addXValues(that, ExampleLiteral arg) {
+        return new ExampleLiteral(x: that.x + arg.x);
+      }
+
+      // Check to make sure returning a JavaScript value from a Dart closure
+      // works as expected.
+      expect(
+          foo
+              .callClosureWithArg2(allowInterop(addXValues),
+                  new ExampleLiteral(x: 20), new ExampleLiteral(x: 10))
+              .x,
+          equals(30));
+
+      foo.x = 50;
+      expect(
+          foo
+              .callClosureWithArgAndThis(allowInteropCaptureThis(addXValues),
+                  new ExampleLiteral(x: 10))
+              .x,
+          equals(60));
     });
 
     test('call from dart', () {
@@ -274,10 +295,10 @@ main() {
       expect(returnNumArgsFn(), equals(0));
       expect(returnNumArgsFn("a", "b", "c"), equals(3));
       expect(returnNumArgsFn("a", "b", "c", null, null), equals(5));
-      expect(returnNumArgsFn(1,2,3,4,5,6, null), equals(7));
-      expect(returnNumArgsFn(1,2,3,4,5,6,7,8), equals(8));
-      expect(returnLastArgFn(1,2,"foo"), equals("foo"));
-      expect(returnLastArgFn(1,2,3,4,5,6,"foo"), equals("foo"));
+      expect(returnNumArgsFn(1, 2, 3, 4, 5, 6, null), equals(7));
+      expect(returnNumArgsFn(1, 2, 3, 4, 5, 6, 7, 8), equals(8));
+      expect(returnLastArgFn(1, 2, "foo"), equals("foo"));
+      expect(returnLastArgFn(1, 2, 3, 4, 5, 6, "foo"), equals("foo"));
     });
   });
 

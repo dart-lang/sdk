@@ -704,7 +704,7 @@ _callDartFunctionFast(callback, List arguments) {
 }
 
 _callDartFunctionFastCaptureThis(callback, self, List arguments) {
-  return _convertToJS(Function.apply(callback, [self]..addAll(arguments)));
+  return Function.apply(callback, [self]..addAll(arguments));
 }
 
 Function allowInterop(Function f) {
