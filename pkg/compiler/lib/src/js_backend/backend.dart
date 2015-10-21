@@ -2527,7 +2527,7 @@ class JavaScriptBackend extends Backend {
   }
 
   void onElementResolved(Element element, TreeElements elements) {
-    if ((element.isFunction || element.isGenerativeConstructor) &&
+    if ((element.isFunction || element.isConstructor) &&
         annotations.noInline(element)) {
       inlineCache.markAsNonInlinable(element);
     }
@@ -2565,10 +2565,11 @@ class JavaScriptBackend extends Backend {
         inlineCache.markAsNonInlinable(element);
       } else if (cls == noThrowsClass) {
         hasNoThrows = true;
-        if (!Elements.isStaticOrTopLevelFunction(element)) {
+        if (!Elements.isStaticOrTopLevelFunction(element) &&
+            !element.isFactoryConstructor) {
           reporter.internalError(element,
               "@NoThrows() is currently limited to top-level"
-              " or static functions");
+              " or static functions and factory constructors.");
         }
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(

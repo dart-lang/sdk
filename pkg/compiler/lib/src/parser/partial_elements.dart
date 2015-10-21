@@ -237,6 +237,8 @@ class PartialSetterElement extends SetterElementX
   }
 }
 
+// TODO(johnniwinther): Create [PartialGenerativeConstructor] and
+// [PartialFactoryConstructor] subclasses and make this abstract.
 class PartialConstructorElement extends ConstructorElementX
     with PartialElement, PartialFunctionMixin {
   PartialConstructorElement(String name,

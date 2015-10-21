@@ -216,7 +216,7 @@ function() {
 }"""),
 
 
-const TestEntry.forMethod('function(Foo#make)', r"""
+const TestEntry.forMethod('factory_constructor(Foo#make)', r"""
 class Foo {
   factory Foo.make(x) {
     print('Foo');

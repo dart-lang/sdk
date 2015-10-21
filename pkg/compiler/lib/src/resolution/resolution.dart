@@ -87,15 +87,14 @@ class ResolverTask extends CompilerTask {
         return result;
       }
 
-      ElementKind kind = element.kind;
-      if (identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR) ||
-          identical(kind, ElementKind.FUNCTION) ||
-          identical(kind, ElementKind.GETTER) ||
-          identical(kind, ElementKind.SETTER)) {
+      if (element.isConstructor ||
+          element.isFunction ||
+          element.isGetter ||
+          element.isSetter) {
         return processMetadata(resolveMethodElement(element));
       }
 
-      if (identical(kind, ElementKind.FIELD)) {
+      if (element.isField) {
         return processMetadata(resolveField(element));
       }
       if (element.isClass) {

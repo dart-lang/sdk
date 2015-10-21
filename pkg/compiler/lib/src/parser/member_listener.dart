@@ -116,7 +116,7 @@ class MemberListener extends NodeListener {
     }
     Element memberElement = new PartialConstructorElement(
         name, beginToken, endToken,
-        ElementKind.FUNCTION,
+        ElementKind.FACTORY_CONSTRUCTOR,
         method.modifiers,
         enclosingClass);
     addMember(memberElement);

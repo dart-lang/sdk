@@ -1226,7 +1226,7 @@ class TypeGraphInferrerEngine
         assert(invariant(element,
             element.isField ||
             element.isFunction ||
-            element.isGenerativeConstructor ||
+            element.isConstructor ||
             element.isGetter ||
             element.isSetter,
             message: 'Unexpected element kind: ${element.kind}'));

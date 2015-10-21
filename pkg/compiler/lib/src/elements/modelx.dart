@@ -100,7 +100,6 @@ abstract class ElementX extends Element with ElementCommon {
   bool get isInstanceMember => false;
   bool get isDeferredLoaderGetter => false;
 
-  bool get isFactoryConstructor => modifiers.isFactory;
   bool get isConst => modifiers.isConst;
   bool get isFinal => modifiers.isFinal;
   bool get isStatic => modifiers.isStatic;
@@ -122,7 +121,7 @@ abstract class ElementX extends Element with ElementCommon {
 
   bool get isAssignable {
     if (isFinal || isConst) return false;
-    if (isFunction || isGenerativeConstructor) return false;
+    if (isFunction || isConstructor) return false;
     return true;
   }
 

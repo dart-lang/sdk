@@ -3715,7 +3715,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class(true, 42);
         ''',
         const Visit(VisitKind.VISIT_FACTORY_CONSTRUCTOR_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
             selector: 'CallStructure(arity=2)')),
@@ -3728,7 +3728,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class(true, 42);
         ''',
         const Visit(VisitKind.VISIT_CONSTRUCTOR_INCOMPATIBLE_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
             selector: 'CallStructure(arity=2)')),
@@ -3742,7 +3742,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class<double>(true, 42);
         ''',
         const Visit(VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class<double>',
             target: 'generative_constructor(Class#b)',
@@ -3758,7 +3758,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class<double>(true, 42);
         ''',
         const Visit(VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class<double>',
             target: 'generative_constructor(Class#b)',
@@ -3774,7 +3774,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(
             VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
             selector: 'CallStructure(arity=2)')),
@@ -3789,7 +3789,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(
             VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class<double>',
             selector: 'CallStructure(arity=2)')),
@@ -3830,7 +3830,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(
             VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
             selector: 'CallStructure(arity=2)')),
@@ -3843,7 +3843,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(
             VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
             selector: 'CallStructure(arity=2)')),
@@ -3857,7 +3857,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(
             VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
             selector: 'CallStructure(arity=2)')),
@@ -3873,7 +3873,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(
             VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
             selector: 'CallStructure(arity=2)')),

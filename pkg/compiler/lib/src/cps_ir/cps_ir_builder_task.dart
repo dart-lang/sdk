@@ -2629,6 +2629,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           root = buildConstructorBody(element);
           break;
 
+        case ElementKind.FACTORY_CONSTRUCTOR:
         case ElementKind.FUNCTION:
         case ElementKind.GETTER:
         case ElementKind.SETTER:

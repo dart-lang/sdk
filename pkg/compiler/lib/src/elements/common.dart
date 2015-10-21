@@ -60,6 +60,9 @@ abstract class ElementCommon implements Element {
   bool get isGenerativeConstructorBody =>
       kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY;
 
+  bool get isFactoryConstructor =>
+      kind == ElementKind.FACTORY_CONSTRUCTOR;
+
   @override
   bool get isVariable => kind == ElementKind.VARIABLE;
 

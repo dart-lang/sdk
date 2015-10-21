@@ -1145,18 +1145,18 @@ class SsaBuilder extends ast.Visitor
   HGraph build() {
     assert(invariant(target, target.isImplementation));
     HInstruction.idCounter = 0;
-    ElementKind kind = target.kind;
     // TODO(sigmund): remove `result` and return graph directly, need to ensure
     // that it can never be null (see result in buildFactory for instance).
     var result;
-    if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+    if (target.isGenerativeConstructor) {
       result = buildFactory(target);
-    } else if (kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY ||
-               kind == ElementKind.FUNCTION ||
-               kind == ElementKind.GETTER ||
-               kind == ElementKind.SETTER) {
+    } else if (target.isGenerativeConstructorBody ||
+               target.isFactoryConstructor ||
+               target.isFunction ||
+               target.isGetter ||
+               target.isSetter) {
       result = buildMethod(target);
-    } else if (kind == ElementKind.FIELD) {
+    } else if (target.isField) {
       if (target.isInstanceMember) {
         assert(compiler.enableTypeAssertions);
         result = buildCheckedSetter(target);
@@ -1164,7 +1164,7 @@ class SsaBuilder extends ast.Visitor
         result = buildLazyInitializer(target);
       }
     } else {
-      reporter.internalError(target, 'Unexpected element kind $kind.');
+      reporter.internalError(target, 'Unexpected element kind $target.');
     }
     assert(result.isValid());
     return result;

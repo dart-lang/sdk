@@ -3758,7 +3758,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (modifiers.isVar && (modifiers.isConst || node.type != null)) {
       reportExtraModifier('var');
     }
-    if (enclosingElement.isFunction) {
+    if (enclosingElement.isFunction || enclosingElement.isConstructor) {
       if (modifiers.isAbstract) {
         reportExtraModifier('abstract');
       }

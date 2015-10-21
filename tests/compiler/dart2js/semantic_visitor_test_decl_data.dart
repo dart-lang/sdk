@@ -536,7 +536,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_FACTORY_CONSTRUCTOR_DECL,
-              element: 'function(C#)',
+              element: 'factory_constructor(C#)',
               parameters: '(a,b)',
               body: '=>null;'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
@@ -556,7 +556,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_DECL,
-              element: 'function(C#)',
+              element: 'factory_constructor(C#)',
               parameters: '(a,b)',
               target: 'generative_constructor(C#_)',
               type: 'C'),
@@ -579,7 +579,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_DECL,
-              element: 'function(C#)',
+              element: 'factory_constructor(C#)',
               parameters: '(a,b)',
               target: 'generative_constructor(D#)',
               type: 'D'),
@@ -602,7 +602,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_DECL,
-              element: 'function(C#)',
+              element: 'factory_constructor(C#)',
               parameters: '(a,b)',
               target: 'generative_constructor(D#)',
               type: 'D<int>'),
@@ -628,9 +628,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_DECL,
-              element: 'function(C#)',
+              element: 'factory_constructor(C#)',
               parameters: '(a,b)',
-              target: 'function(D#)',
+              target: 'factory_constructor(D#)',
               type: 'D<int>'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
               element: 'parameter(#a)',

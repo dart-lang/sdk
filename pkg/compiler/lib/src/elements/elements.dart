@@ -84,6 +84,8 @@ class ElementKind {
       const ElementKind('class', ElementCategory.CLASS);
   static const ElementKind GENERATIVE_CONSTRUCTOR =
       const ElementKind('generative_constructor', ElementCategory.FACTORY);
+  static const ElementKind FACTORY_CONSTRUCTOR =
+      const ElementKind('factory_constructor', ElementCategory.FACTORY);
   static const ElementKind FIELD =
       const ElementKind('field', ElementCategory.VARIABLE);
   static const ElementKind FIELD_LIST =
@@ -212,8 +214,8 @@ abstract class Element implements Entity {
   /// `true` if this element is a top level function, static or instance
   /// method, local function or closure defined by a function expression.
   ///
-  /// This property is `true` for operator methods and factory constructors but
-  /// `false` for getter and setter methods, and generative constructors.
+  /// This property is `true` for operator methods but `false` for getter and
+  /// setter methods, and generative and factory constructors.
   ///
   /// See also [isConstructor], [isGenerativeConstructor], and
   /// [isFactoryConstructor] for constructor properties, and [isAccessor],
@@ -499,8 +501,7 @@ class Elements {
   }
 
   static bool isStaticOrTopLevelFunction(Element element) {
-    return isStaticOrTopLevel(element)
-           && (identical(element.kind, ElementKind.FUNCTION));
+    return isStaticOrTopLevel(element) && element.isFunction;
   }
 
   static bool isInstanceMethod(Element element) {
