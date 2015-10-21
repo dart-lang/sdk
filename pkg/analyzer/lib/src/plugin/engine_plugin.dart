@@ -13,6 +13,7 @@ import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/html_work_manager.dart';
+import 'package:analyzer/src/task/options_work_manager.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:plugin/plugin.dart';
 
@@ -235,6 +236,8 @@ class EnginePlugin implements Plugin {
         (InternalAnalysisContext context) => new DartWorkManager(context));
     registerExtension(taskId,
         (InternalAnalysisContext context) => new HtmlWorkManager(context));
+    registerExtension(taskId,
+        (InternalAnalysisContext context) => new OptionsWorkManager(context));
   }
 
   /**
