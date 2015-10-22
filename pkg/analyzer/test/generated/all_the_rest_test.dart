@@ -30,6 +30,7 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:path/path.dart';
+import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -7332,6 +7333,27 @@ class ErrorReporterTest extends EngineTestCase {
         ['A']);
     AnalysisError error = listener.errors[0];
     expect(error.offset, element.nameOffset);
+  }
+
+  void test_reportErrorForSpan() {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    ErrorReporter reporter = new ErrorReporter(listener, new TestSource());
+
+    var src = '''
+foo: bar
+zap: baz
+''';
+
+    int offset = src.indexOf('baz');
+    int length = 'baz'.length;
+
+    SourceSpan span = new SourceFile(src).span(offset, offset + length);
+
+    reporter.reportErrorForSpan(
+        AnalysisOptionsWarningCode.UNSUPPORTED_OPTION, span, ['test', 'zap']);
+    expect(listener.errors, hasLength(1));
+    expect(listener.errors.first.offset, offset);
+    expect(listener.errors.first.length, length);
   }
 
   void test_reportTypeErrorForNode_differentNames() {
