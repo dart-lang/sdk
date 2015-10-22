@@ -1807,6 +1807,31 @@ void g() { f(null); }''');
         reason: "libA has an error");
   }
 
+  void test_performAnalysisTask_interruptBy_setContents() {
+    Source sourceA = addSource(
+        "/a.dart",
+        r'''
+library expectedToFindSemicolon
+''');
+    // Analyze to the point where some of the results stop depending on
+    // the source content.
+    LibrarySpecificUnit unitA = new LibrarySpecificUnit(sourceA, sourceA);
+    for (int i = 0; i < 10000; i++) {
+      context.performAnalysisTask();
+      if (context.getResult(unitA, RESOLVED_UNIT2) != null) {
+        break;
+      }
+    }
+    // Update the source.
+    // This should invalidate all the results and also reset the driver.
+    context.setContents(sourceA, "library semicolonWasAdded;");
+    expect(context.getResult(unitA, RESOLVED_UNIT2), isNull);
+    expect(analysisDriver.currentWorkOrder, isNull);
+    // Continue analysis.
+    _analyzeAll_assertFinished();
+    expect(context.getErrors(sourceA).errors, isEmpty);
+  }
+
   void test_performAnalysisTask_IOException() {
     TestSource source = _addSourceWithException2("/test.dart", "library test;");
     source.generateExceptionOnRead = false;
