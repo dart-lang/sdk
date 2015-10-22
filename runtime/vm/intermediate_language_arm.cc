@@ -2445,7 +2445,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
     const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
     const Register temp = locs()->temp(0).reg();
-    __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes()));
+    __ LoadFieldFromOffset(kWord, temp, instance_reg, offset_in_bytes());
     const intptr_t cid = field()->UnboxedFieldCid();
     switch (cid) {
       case kDoubleCid:

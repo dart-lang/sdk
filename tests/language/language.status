@@ -136,4 +136,3 @@ tearoff_basic_test: RuntimeError, Crash # Conflicting flag.
 vm/type_cast_vm_test: RuntimeError # Line number mismatch.
 regress_23408_test: RuntimeError
 issue21159_test: Pass, Crash # Issue 24659 - missing stack overflow check
-large_class_declaration_test: Pass, Crash # Issue 24673

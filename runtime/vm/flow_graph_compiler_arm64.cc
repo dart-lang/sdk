@@ -948,7 +948,7 @@ void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   // Sequence node has one return node, its input is load field node.
   __ Comment("Inlined Getter");
   __ LoadFromOffset(R0, SP, 0 * kWordSize);
-  __ LoadFromOffset(R0, R0, offset - kHeapObjectTag);
+  __ LoadFieldFromOffset(R0, R0, offset);
   __ ret();
 }
 

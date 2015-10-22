@@ -2300,7 +2300,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
     DRegister result = locs()->out(0).fpu_reg();
     Register temp = locs()->temp(0).reg();
-    __ lw(temp, FieldAddress(instance_reg, offset_in_bytes()));
+    __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes());
     intptr_t cid = field()->UnboxedFieldCid();
     switch (cid) {
       case kDoubleCid:
