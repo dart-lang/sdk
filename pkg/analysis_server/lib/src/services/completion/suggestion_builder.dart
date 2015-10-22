@@ -436,12 +436,16 @@ class InterfaceTypeSuggestionBuilder {
       {bool isSuper: false, String containingMethodName: null}) {
     CompilationUnit compilationUnit =
         request.target.containingNode.getAncestor((n) => n is CompilationUnit);
-    LibraryElement library = compilationUnit.element.library;
+    CompilationUnitElement unitElem = compilationUnit.element;
+    if (unitElem == null) {
+      return;
+    }
+    LibraryElement library = unitElem.library;
     if (type is DynamicTypeImpl) {
       type = request.cache.objectClassElement.type;
     }
     if (type is InterfaceType) {
-      return new InterfaceTypeSuggestionBuilder(request)
+      new InterfaceTypeSuggestionBuilder(request)
           ._buildSuggestions(type, library, isSuper, containingMethodName);
     }
   }
