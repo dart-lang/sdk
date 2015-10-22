@@ -371,6 +371,11 @@ class RunServiceTask : public ThreadPool::Task {
   }
 
   void RunMain(Isolate* I) {
+    if (Dart::IsRunningPrecompiledCode()) {
+      // TODO(24651): Remove this.
+      return;
+    }
+
     StartIsolateScope iso_scope(I);
     Thread* T = Thread::Current();
     ASSERT(I == T->isolate());

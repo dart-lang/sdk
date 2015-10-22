@@ -18,7 +18,12 @@
 namespace dart {
 
 void CPU::FlushICache(uword start, uword size) {
-#if !defined(USING_SIMULATOR)
+#if TARGET_OS_IOS
+  // Precompilation never patches code so there should be no I cache flushes.
+  UNREACHABLE();
+#endif
+
+#if !defined(USING_SIMULATOR) && !TARGET_OS_IOS
   // Nothing to do. Flushing no instructions.
   if (size == 0) {
     return;

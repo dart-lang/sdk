@@ -94,7 +94,7 @@
 // TODO(iposva): Rename TARGET_OS_MACOS to TARGET_OS_MAC to inherit
 // the value defined in TargetConditionals.h
 #define TARGET_OS_MACOS 1
-#if TARGET_OS_IPHONE && !defined(TARGET_OS_IOS)
+#if TARGET_OS_IPHONE
 #define TARGET_OS_IOS 1
 #endif
 
@@ -279,17 +279,17 @@ typedef simd128_value_t fpu_register_t;
 #elif defined(TARGET_ARCH_X64)
   // No simulator used.
 #elif defined(TARGET_ARCH_ARM)
-#if !defined(HOST_ARCH_ARM) || TARGET_OS_IOS
+#if !defined(HOST_ARCH_ARM)
 #define USING_SIMULATOR 1
 #endif
 
 #elif defined(TARGET_ARCH_ARM64)
-#if !defined(HOST_ARCH_ARM64) || TARGET_OS_IOS
+#if !defined(HOST_ARCH_ARM64)
 #define USING_SIMULATOR 1
 #endif
 
 #elif defined(TARGET_ARCH_MIPS)
-#if !defined(HOST_ARCH_MIPS) || TARGET_OS_IOS
+#if !defined(HOST_ARCH_MIPS)
 #define USING_SIMULATOR 1
 #endif
 
