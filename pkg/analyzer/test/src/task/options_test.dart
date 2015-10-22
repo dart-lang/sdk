@@ -12,6 +12,7 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
 import '../../utils.dart';
 import '../context/abstract_context.dart';
@@ -83,6 +84,17 @@ class GenerateOptionsErrorsTaskTest extends AbstractContextTest {
     expect(errors[0].errorCode, AnalysisOptionsErrorCode.PARSE_ERROR);
   }
 
+  test_perform_OK() {
+    String code = r'''
+analyzer:
+  strong-mode: true
+''';
+    AnalysisTarget target = newSource(optionsFilePath, code);
+    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
+    expect(task, isGenerateOptionsErrorsTask);
+    expect(outputs[ANALYSIS_OPTIONS_ERRORS], isEmpty);
+  }
+
   test_perform_unsupported_analyzer_option() {
     String code = r'''
 analyzer:
@@ -97,22 +109,12 @@ analyzer:
     expect(errors[0].message,
         "The option 'not_supported' is not supported by analyzer");
   }
-
-  test_perform_OK() {
-    String code = r'''
-analyzer:
-  strong-mode: true
-''';
-    AnalysisTarget target = newSource(optionsFilePath, code);
-    computeResult(target, ANALYSIS_OPTIONS_ERRORS);
-    expect(task, isGenerateOptionsErrorsTask);
-    expect(outputs[ANALYSIS_OPTIONS_ERRORS], isEmpty);
-  }
 }
 
 @reflectiveTest
 class OptionsFileValidatorTest {
-  final OptionsFileValidator validator = new OptionsFileValidator(null);
+  final OptionsFileValidator validator =
+      new OptionsFileValidator(new TestSource());
   final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
 
   test_analyzer_supported_exclude() {
@@ -139,6 +141,25 @@ analyzer:
         '''
 analyzer:
   not_supported: true
+    ''',
+        [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION]);
+  }
+
+  test_linter_supported_rules() {
+    validate(
+        '''
+linter:
+  rules:
+    - camel_case_types
+    ''',
+        []);
+  }
+
+  test_linter_unssupported_option() {
+    validate(
+        '''
+linter:
+  unsupported: true
     ''',
         [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION]);
   }

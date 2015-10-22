@@ -21,6 +21,12 @@ final ListResultDescriptor<AnalysisError> ANALYSIS_OPTIONS_ERRORS =
     new ListResultDescriptor<AnalysisError>(
         'ANALYSIS_OPTIONS_ERRORS', AnalysisError.NO_ERRORS);
 
+/// Validates `analyzer` top-level options.
+class AnalyzerOptionsValidator extends TopLevelOptionValidator {
+  AnalyzerOptionsValidator()
+      : super('analyzer', const ['exclude', 'plugins', 'strong-mode']);
+}
+
 /// A task that generates errors for an `.analysis_options` file.
 class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
   /// The name of the input whose value is the content of the file.
@@ -81,56 +87,59 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
       new GenerateOptionsErrorsTask(context, target);
 }
 
+/// Validates `linter` top-level options.
+/// TODO(pq): move into `linter` package and plugin.
+class LinterOptionsValidator extends TopLevelOptionValidator {
+  LinterOptionsValidator() : super('linter', const ['rules']);
+}
+
 /// Validates options defined in an `.analysis_options` file.
 class OptionsFileValidator {
-  // TODO(pq): consider an extension point.
+  // TODO(pq): move to an extension point.
   static final List<OptionsValidator> _validators = [
-    new AnalyzerOptionsValidator()
+    new AnalyzerOptionsValidator(), new LinterOptionsValidator()
   ];
 
   final Source source;
   OptionsFileValidator(this.source);
 
   List<AnalysisError> validate(Map<String, YamlNode> options) {
-    List<AnalysisError> errors = <AnalysisError>[];
-    _validators.forEach(
-        (OptionsValidator v) => errors.addAll(v.validate(source, options)));
-    return errors;
+    RecordingErrorListener recorder = new RecordingErrorListener();
+    ErrorReporter reporter = new ErrorReporter(recorder, source);
+    _validators.forEach((OptionsValidator v) => v.validate(reporter, options));
+    return recorder.errors;
   }
-}
-
-AnalysisError _unsupportedOption(
-    Source source, YamlScalar key, String pluginName) {
-  SourceSpan span = key.span;
-  return new AnalysisError(source, span.start.column + 1, span.length,
-      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION, [pluginName, key.value]);
 }
 
 /// Validates options.
 abstract class OptionsValidator {
-  List<AnalysisError> validate(Source source, Map<String, YamlNode> options);
+  /// Validate [options], reporting any errors to the given [reporter].
+  void validate(ErrorReporter reporter, Map<String, YamlNode> options);
 }
 
-/// Validates `analyzer` options.
-class AnalyzerOptionsValidator extends OptionsValidator {
-  static const List<String> _supportedOptions = const [
-    'exclude',
-    'strong-mode'
-  ];
+/// Validates top-level options. For example,
+///     plugin:
+///       top-level-option: true
+class TopLevelOptionValidator extends OptionsValidator {
+  final String pluginName;
+  final List<String> supportedOptions;
 
+  TopLevelOptionValidator(this.pluginName, this.supportedOptions);
   @override
-  List<AnalysisError> validate(Source source, Map<String, YamlNode> options) {
-    List<AnalysisError> errors = <AnalysisError>[];
-    YamlNode node = options['analyzer'];
+  void validate(ErrorReporter reporter, Map<String, YamlNode> options) {
+    YamlNode node = options[pluginName];
     if (node is YamlMap) {
       node.nodes.forEach((k, v) {
         if (k is YamlScalar) {
-          if (!_supportedOptions.contains(k.value)) {
-            errors.add(_unsupportedOption(source, k, 'analyzer'));
+          if (!supportedOptions.contains(k.value)) {
+            reporter.reportErrorForSpan(
+                AnalysisOptionsWarningCode.UNSUPPORTED_OPTION,
+                k.span,
+                [pluginName, k.value]);
           }
         }
+        //TODO(pq): consider an error if the node is not a Scalar.
       });
     }
-    return errors;
   }
 }
