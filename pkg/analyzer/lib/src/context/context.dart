@@ -1731,6 +1731,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * that referenced the source before it existed.
    */
   void _sourceAvailable(Source source) {
+    driver.reset();
     // TODO(brianwilkerson) This method needs to check whether the source was
     // previously being implicitly analyzed. If so, the cache entry needs to be
     // update to reflect the new status and an event needs to be generated to
@@ -1807,6 +1808,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
       entry.setState(CONTENT, CacheState.INVALID);
     }
+    driver.reset();
     for (WorkManager workManager in workManagers) {
       workManager.applyChange(
           Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);
@@ -1848,6 +1850,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * Record that the given [source] has been removed.
    */
   void _sourceRemoved(Source source) {
+    driver.reset();
     _removeFromCache(source);
     _removeFromPriorityOrder(source);
   }
