@@ -20,16 +20,6 @@ class Isolate {
   static Isolate get current => _currentIsolateCache;
 
   @patch
-  static Future<Uri> get packageRoot {
-    throw new UnsupportedError("Isolate.packageRoot");
-  }
-
-  @patch
-  static Future<Map<String, Uri>> get packageMap {
-    throw new UnsupportedError("Isolate.packageMap");
-  }
-
-  @patch
   static Future<Isolate> spawn(void entryPoint(message), var message,
                                {bool paused: false, bool errorsAreFatal,
                                 SendPort onExit, SendPort onError}) {
@@ -76,11 +66,9 @@ class Isolate {
        bool errorsAreFatal,
        bool checked,
        Map<String, String> environment,
-       Uri packageRoot,
-       Map<String, Uri> packageMap}) {
+       Uri packageRoot}) {
     if (environment != null) throw new UnimplementedError("environment");
     if (packageRoot != null) throw new UnimplementedError("packageRoot");
-    if (packageMap != null) throw new UnimplementedError("packageMap");
     bool forcePause = (errorsAreFatal != null) ||
                       (onExit != null) ||
                       (onError != null);
@@ -94,7 +82,7 @@ class Isolate {
       } else if (args != null) {
         throw new ArgumentError("Args must be a list of Strings $args");
       }
-      // TODO: Handle [packageRoot]/[packages] somehow, possibly by throwing.
+      // TODO: Handle [packageRoot] somehow, possibly by throwing.
       // TODO: Consider passing the errorsAreFatal/onExit/onError values
       //       as arguments to the internal spawnUri instead of setting
       //       them after the isolate has been created.
