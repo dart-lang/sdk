@@ -13,8 +13,9 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart' as path;
 
 const String DYNAMIC = 'dynamic';
@@ -438,6 +439,8 @@ class InterfaceTypeSuggestionBuilder {
         request.target.containingNode.getAncestor((n) => n is CompilationUnit);
     CompilationUnitElement unitElem = compilationUnit.element;
     if (unitElem == null) {
+      engine.AnalysisEngine.instance.logger
+          .logInformation('Completion expected resolved AST');
       return;
     }
     LibraryElement library = unitElem.library;
