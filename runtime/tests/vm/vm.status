@@ -12,6 +12,8 @@ cc/SNPrint_BadArgs: Skip
 # Flaky on buildbot. Issue 5133 and 10409.
 cc/Sleep: Pass, Fail
 
+cc/ThreadIterator_AddFindRemove: Pass, Fail # Issue 24700
+
 [ $mode == debug ]
 # This is a benchmark that is not informative in debug mode.
 cc/CorelibIsolateStartup: Skip
