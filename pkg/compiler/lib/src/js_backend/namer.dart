@@ -637,8 +637,9 @@ class Namer {
   }
 
   String _jsNameHelper(Element e) {
-    if (e.jsInteropName != null && e.jsInteropName.isNotEmpty)
-      return e.jsInteropName;
+    String jsInteropName = backend.getJsInteropName(e);
+    if (jsInteropName != null && jsInteropName.isNotEmpty)
+      return jsInteropName;
     return e.isLibrary ? 'self' : e.name;
   }
 
@@ -649,7 +650,7 @@ class Namer {
   /// Map class of the goog.map JavaScript library would have path
   /// "goog.maps.Map".
   String fixedBackendPath(Element element) {
-    if (!element.isJsInterop) return null;
+    if (!backend.isJsInterop(element)) return null;
     if (element.isInstanceMember) return 'this';
     if (element.isConstructor) return fixedBackendPath(element.enclosingClass);
     if (element.isLibrary) return 'self';
@@ -791,8 +792,8 @@ class Namer {
   jsAst.Name instanceFieldPropertyName(FieldElement element) {
     ClassElement enclosingClass = element.enclosingClass;
 
-    if (element.hasFixedBackendName) {
-      return new StringBackedName(element.fixedBackendName);
+    if (backend.hasFixedBackendName(element)) {
+      return new StringBackedName(backend.getFixedBackendName(element));
     }
 
     // Instances of BoxFieldElement are special. They are already created with
@@ -832,8 +833,8 @@ class Namer {
 
   /// True if [class_] is a non-native class that inherits from a native class.
   bool _isUserClassExtendingNative(ClassElement class_) {
-    return !class_.isNative &&
-           Elements.isNativeOrExtendsNative(class_.superclass);
+    return !backend.isNative(class_) &&
+           backend.isNativeOrExtendsNative(class_.superclass);
   }
 
   /// Annotated name for the setter of [element].
@@ -1216,11 +1217,11 @@ class Namer {
       return cls.name;
     }
     List<String> names = classes
-        .where((cls) => !Elements.isNativeOrExtendsNative(cls))
+        .where((cls) => !backend.isNativeOrExtendsNative(cls))
         .map(abbreviate)
         .toList();
     // There is one dispatch mechanism for all native classes.
-    if (classes.any((cls) => Elements.isNativeOrExtendsNative(cls))) {
+    if (classes.any((cls) => backend.isNativeOrExtendsNative(cls))) {
       names.add("x");
     }
     // Sort the names of the classes after abbreviating them to ensure

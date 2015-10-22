@@ -191,7 +191,7 @@ class ResolverTask extends CompilerTask {
   bool _isNativeClassOrExtendsNativeClass(ClassElement classElement) {
     assert(classElement != null);
     while (classElement != null) {
-      if (classElement.isNative) return true;
+      if (compiler.backend.isNative(classElement)) return true;
       classElement = classElement.superclass;
     }
     return false;

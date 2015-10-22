@@ -423,7 +423,8 @@ class PartialClassElement extends ClassElementX with PartialElement {
     DiagnosticReporter reporter = parsing.reporter;
     reporter.withCurrentElement(this, () {
       parsing.measure(() {
-        MemberListener listener = new MemberListener(reporter, this);
+        MemberListener listener = new MemberListener(
+            parsing.getScannerOptionsFor(this), reporter, this);
         Parser parser = new ClassElementParser(listener);
         try {
           Token token = parser.parseTopLevelDeclaration(beginToken);
@@ -481,7 +482,8 @@ Node parse(
   return parsing.measure(() {
     return reporter.withCurrentElement(element, () {
       CompilationUnitElement unit = element.compilationUnit;
-      NodeListener listener = new NodeListener(reporter, unit);
+      NodeListener listener = new NodeListener(
+          parsing.getScannerOptionsFor(element), reporter, unit);
       listener.memberErrors = listener.memberErrors.prepend(false);
       try {
         if (partial.hasParseError) {

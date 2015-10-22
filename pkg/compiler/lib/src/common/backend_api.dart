@@ -42,7 +42,8 @@ import '../library_loader.dart' show
     LibraryLoader,
     LoadedLibraries;
 import '../native/native.dart' as native show
-    NativeEnqueuer;
+    NativeEnqueuer,
+    maybeEnableNative;
 import '../patch_parser.dart' show
     checkNativeAnnotation, checkJsInteropAnnotation;
 import '../resolution/tree_elements.dart' show
@@ -260,6 +261,20 @@ abstract class Backend {
   /// backend has specialized handling for the element.
   bool isForeign(Element element) => false;
 
+  /// Returns `true` if [element] is a native element, that is, that the
+  /// corresponding entity already exists in the target language.
+  bool isNative(Element element) => false;
+
+  /// Returns `true` if [element] is implemented via typed JavaScript interop.
+  // TODO(johnniwinther): Move this to [JavaScriptBackend].
+  bool isJsInterop(Element element) => false;
+
+  /// Returns `true` if the `native` pseudo keyword is supported for [library].
+  bool canLibraryUseNative(LibraryElement library) {
+    // TODO(johnniwinther): Move this to [JavaScriptBackend].
+    return native.maybeEnableNative(compiler, library);
+  }
+
   /// Processes [element] for resolution and returns the [FunctionElement] that
   /// defines the implementation of [element].
   FunctionElement resolveExternalFunction(FunctionElement element) => element;
@@ -287,7 +302,8 @@ abstract class Backend {
   /// This method is called immediately after the [library] and its parts have
   /// been scanned.
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
-    if (library.canUseNative) {
+    // TODO(johnniwinther): Move this to [JavaScriptBackend].
+    if (canLibraryUseNative(library)) {
       library.forEachLocalMember((Element element) {
         if (element.isClass) {
           checkNativeAnnotation(compiler, element);
@@ -297,7 +313,7 @@ abstract class Backend {
     checkJsInteropAnnotation(compiler, library);
     library.forEachLocalMember((Element element) {
       checkJsInteropAnnotation(compiler, element);
-      if (element.isClass && element.isJsInterop) {
+      if (element.isClass && isJsInterop(element)) {
         ClassElement classElement = element;
         classElement.forEachMember((_, memberElement) {
           checkJsInteropAnnotation(compiler, memberElement);

@@ -183,6 +183,7 @@ abstract class Enqueuer {
       cls.ensureResolved(resolution);
       universe.registerTypeInstantiation(
           type,
+          isNative: compiler.backend.isNative(cls),
           byMirrors: mirrorUsage,
           onImplemented: (ClassElement cls) {
         compiler.backend.registerImplementedClass(
@@ -214,7 +215,7 @@ abstract class Enqueuer {
       // its metadata parsed and analyzed.
       // Note: this assumes that there are no non-native fields on native
       // classes, which may not be the case when a native class is subclassed.
-      if (cls.isNative) {
+      if (compiler.backend.isNative(cls)) {
         compiler.world.registerUsedElement(member);
         nativeEnqueuer.handleFieldAnnotations(member);
         if (universe.hasInvokedGetter(member, compiler.world) ||
@@ -585,7 +586,7 @@ abstract class Enqueuer {
         if (member.isFunction && selector.isGetter) {
           registerClosurizedMember(member);
         }
-        if (member.isField && member.enclosingClass.isNative) {
+        if (member.isField && compiler.backend.isNative(member.enclosingClass)) {
           if (selector.isGetter || selector.isCall) {
             nativeEnqueuer.registerFieldLoad(member);
             // We have to also handle storing to the field because we only get

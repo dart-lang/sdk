@@ -353,7 +353,7 @@ class LocalsHandler {
     // Instead of allocating and initializing the object, the constructor
     // 'upgrades' the native subclass object by initializing the Dart fields.
     bool isNativeUpgradeFactory = element.isGenerativeConstructor
-        && Elements.isNativeOrExtendsNative(cls);
+        && backend.isNativeOrExtendsNative(cls);
     if (backend.isInterceptedMethod(element)) {
       bool isInterceptorClass = backend.isInterceptorClass(cls.declaration);
       String name = isInterceptorClass ? 'receiver' : '_';
@@ -1339,7 +1339,7 @@ class SsaBuilder extends ast.Visitor
     // enqueued.
     backend.registerStaticUse(element, compiler.enqueuer.codegen);
 
-    if (element.isJsInterop && !element.isFactoryConstructor) {
+    if (backend.isJsInterop(element) && !element.isFactoryConstructor) {
       // We only inline factory JavaScript interop constructors.
       return false;
     }
@@ -1374,7 +1374,7 @@ class SsaBuilder extends ast.Visitor
         }
       }
 
-      if (element.isJsInterop) return false;
+      if (backend.isJsInterop(element)) return false;
 
       // Don't inline operator== methods if the parameter can be null.
       if (element.name == '==') {
@@ -1387,7 +1387,7 @@ class SsaBuilder extends ast.Visitor
       // Generative constructors of native classes should not be called directly
       // and have an extra argument that causes problems with inlining.
       if (element.isGenerativeConstructor
-          && Elements.isNativeOrExtendsNative(element.enclosingClass)) {
+          && backend.isNativeOrExtendsNative(element.enclosingClass)) {
         return false;
       }
 
@@ -1651,7 +1651,7 @@ class SsaBuilder extends ast.Visitor
     assert(elements.getFunctionDefinition(function) != null);
     openFunction(functionElement, function);
     String name = functionElement.name;
-    if (functionElement.isJsInterop) {
+    if (backend.isJsInterop(functionElement)) {
       push(invokeJsInteropFunction(functionElement, parameters.values.toList(),
           sourceInformationBuilder.buildGeneric(function)));
       var value = pop();
@@ -2136,7 +2136,7 @@ class SsaBuilder extends ast.Visitor
             if (initializer == null) {
               // Unassigned fields of native classes are not initialized to
               // prevent overwriting pre-initialized native properties.
-              if (!Elements.isNativeOrExtendsNative(classElement)) {
+              if (!backend.isNativeOrExtendsNative(classElement)) {
                 fieldValues[member] = graph.addConstantNull(compiler);
               }
             } else {
@@ -2169,8 +2169,8 @@ class SsaBuilder extends ast.Visitor
     ClassElement classElement =
         functionElement.enclosingClass.implementation;
     bool isNativeUpgradeFactory =
-        Elements.isNativeOrExtendsNative(classElement)
-            && !classElement.isJsInterop;
+        backend.isNativeOrExtendsNative(classElement)
+            && !backend.isJsInterop(classElement);
     ast.FunctionExpression function = functionElement.node;
     // Note that constructors (like any other static function) do not need
     // to deal with optional arguments. It is the callers job to provide all
@@ -3979,7 +3979,7 @@ class SsaBuilder extends ast.Visitor
         arguments,
         element,
         compileArgument,
-        element.isJsInterop ?
+        backend.isJsInterop(element) ?
             handleConstantForOptionalParameterJsInterop :
             handleConstantForOptionalParameter);
   }
@@ -5065,7 +5065,7 @@ class SsaBuilder extends ast.Visitor
         TypeMask inferred =
             TypeMaskFactory.inferredForNode(sourceElement, send, compiler);
         ClassElement cls = element.enclosingClass;
-        assert(cls.thisType.element.isNative);
+        assert(backend.isNative(cls.thisType.element));
         return inferred.containsAll(compiler.world)
             ? new TypeMask.nonNullExact(cls.thisType.element, compiler.world)
             : inferred;
@@ -5126,8 +5126,8 @@ class SsaBuilder extends ast.Visitor
 
     var inputs = <HInstruction>[];
     if (constructor.isGenerativeConstructor &&
-        Elements.isNativeOrExtendsNative(constructor.enclosingClass) &&
-        !constructor.isJsInterop) {
+        backend.isNativeOrExtendsNative(constructor.enclosingClass) &&
+        !backend.isJsInterop(constructor)) {
       // Native class generative constructors take a pre-constructed object.
       inputs.add(graph.addConstantNull(compiler));
     }
@@ -5845,7 +5845,7 @@ class SsaBuilder extends ast.Visitor
   HForeignCode invokeJsInteropFunction(Element element,
                                        List<HInstruction> arguments,
                                        SourceInformation sourceInformation) {
-    assert(element.isJsInterop);
+    assert(backend.isJsInterop(element));
     nativeEmitter.nativeMethods.add(element);
     String templateString;
 
@@ -5890,7 +5890,7 @@ class SsaBuilder extends ast.Visitor
     }
     var target = new HForeignCode(js.js.parseForeignJS(
             "${backend.namer.fixedBackendPath(element)}."
-            "${element.fixedBackendName}"),
+            "${backend.getFixedBackendName(element)}"),
         backend.dynamicType,
         <HInstruction>[]);
     add(target);
@@ -5951,7 +5951,7 @@ class SsaBuilder extends ast.Visitor
     bool targetCanThrow = !compiler.world.getCannotThrow(element);
     // TODO(5346): Try to avoid the need for calling [declaration] before
     var instruction;
-    if (element.isJsInterop) {
+    if (backend.isJsInterop(element)) {
       instruction = invokeJsInteropFunction(element, arguments,
           sourceInformation);
     } else {

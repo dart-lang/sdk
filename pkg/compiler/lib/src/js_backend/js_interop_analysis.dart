@@ -68,10 +68,11 @@ class JsInteropAnalysis {
         ConstantValue value = constructedConstant.fields[nameField];
         if (value.isString) {
           StringConstantValue stringValue = value;
-          e.setJsInteropName(stringValue.primitiveValue.slowToString());
+          backend.setJsInteropName(
+              e, stringValue.primitiveValue.slowToString());
         } else {
           // TODO(jacobr): report a warning if the value is not a String.
-          e.setJsInteropName('');
+          backend.setJsInteropName(e, '');
         }
         enabledJsInterop = true;
         return;
@@ -83,7 +84,7 @@ class JsInteropAnalysis {
     processJsInteropAnnotation(library);
     library.implementation.forEachLocalMember((Element element) {
       processJsInteropAnnotation(element);
-      if (!element.isClass || !element.isJsInterop) return;
+      if (!element.isClass || !backend.isJsInterop(element)) return;
 
       ClassElement classElement = element;
 
@@ -101,7 +102,7 @@ class JsInteropAnalysis {
         processJsInteropAnnotation(member);
 
         if (!member.isSynthesized &&
-            classElement.isJsInterop &&
+            backend.isJsInterop(classElement) &&
             member is FunctionElement) {
           FunctionElement fn = member;
           if (!fn.isExternal && !fn.isAbstract) {

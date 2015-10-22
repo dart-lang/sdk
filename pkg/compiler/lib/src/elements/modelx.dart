@@ -231,62 +231,6 @@ abstract class ElementX extends Element with ElementCommon {
     }
   }
 
-  String _fixedBackendName = null;
-  bool _isNative = false;
-  String _jsInteropName = null;
-  bool _isJsInterop = false;
-
-  /// Whether the element is implemented via typed JavaScript interop.
-  bool get isJsInterop => _isJsInterop;
-  /// JavaScript name for the element if it is implemented via typed JavaScript
-  /// interop.
-  String get jsInteropName => _jsInteropName;
-
-  void markAsJsInterop() {
-    _isJsInterop = true;
-  }
-
-  void setJsInteropName(String name) {
-    assert(invariant(this,
-        _isJsInterop,
-        message: 'Element is not js interop but given a js interop name.'));
-    _jsInteropName = name;
-  }
-
-  /// Whether the element corresponds to a native JavaScript construct either
-  /// through the existing [setNative] mechanism which is only allowed
-  /// for internal libraries or via the new typed JavaScriptInterop mechanism
-  /// which is allowed for user libraries.
-  bool get isNative => _isNative || isJsInterop;
-  bool get hasFixedBackendName => fixedBackendName != null || isJsInterop;
-
-  String _jsNameHelper(Element e) {
-    assert(invariant(this,
-        !(_isJsInterop &&  _jsInteropName == null),
-        message:
-            'Element is js interop but js interop name has not yet been'
-            'computed.'));
-    if (e.jsInteropName != null && e.jsInteropName.isNotEmpty) {
-      return e.jsInteropName;
-    }
-    return e.isLibrary ? 'self' : e.name;
-  }
-
-  String get fixedBackendName {
-    if (_fixedBackendName == null && isJsInterop) {
-      // If an element isJsInterop but _isJsInterop is false that means it is
-      // considered interop as the parent class is interop.
-      _fixedBackendName =  _jsNameHelper(isConstructor ? enclosingClass : this);
-    }
-    return _fixedBackendName;
-  }
-
-  // Marks this element as a native element.
-  void setNative(String name) {
-    _isNative = true;
-    _fixedBackendName = name;
-  }
-
   FunctionElement asFunctionElement() => null;
 
   bool get isAbstract => modifiers.isAbstract;
@@ -1055,7 +999,6 @@ class LibraryElementX
   LinkBuilder<LibraryTag> tagsBuilder = new LinkBuilder<LibraryTag>();
   List<LibraryTag> tagsCache;
   LibraryName libraryTag;
-  bool canUseNative = false;
   Link<Element> localMembers = const Link<Element>();
   final ScopeX localScope = new ScopeX();
   final ImportScope importScope = new ImportScope();
@@ -2054,18 +1997,6 @@ abstract class BaseFunctionElementX
     typeCache = _functionSignatureCache.type;
   }
 
-  /// An function is part of JsInterop in the following cases:
-  /// * It has a jsInteropName annotation
-  /// * It is external member of a class or library tagged as JsInterop.
-  bool get isJsInterop {
-    if (!isExternal) return false;
-
-    if (super.isJsInterop) return true;
-    if (isClassMember) return contextClass.isJsInterop;
-    if (isTopLevel) return library.isJsInterop;
-    return false;
-  }
-
   List<ParameterElement> get parameters {
     // TODO(johnniwinther): Store the list directly, possibly by using List
     // instead of Link in FunctionSignature.
@@ -2558,7 +2489,6 @@ abstract class BaseClassElementX extends ElementX
 
   DartType supertype;
   Link<DartType> interfaces;
-  String nativeTagInfo;
   int supertypeLoadState;
   int resolutionState;
   bool isProxy = false;
@@ -2684,19 +2614,6 @@ abstract class BaseClassElementX extends ElementX
 
   bool implementsFunction(Compiler compiler) {
     return asInstanceOf(compiler.functionClass) != null || callType != null;
-  }
-
-  bool get isNative => nativeTagInfo != null || isJsInterop;
-
-  void setNative(String name) {
-    // TODO(johnniwinther): Assert that this is only called once. The memory
-    // compiler copies pre-processed elements into a new compiler through
-    // [Compiler.onLibraryScanned] and thereby causes multiple calls to this
-    // method.
-    assert(invariant(this, nativeTagInfo == null || nativeTagInfo == name,
-        message: "Native tag info set inconsistently on $this: "
-                 "Existing name '$nativeTagInfo', new name '$name'."));
-    nativeTagInfo = name;
   }
 
   // TODO(johnniwinther): Remove these when issue 18630 is fixed.

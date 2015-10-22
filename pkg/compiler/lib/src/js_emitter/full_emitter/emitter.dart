@@ -1833,14 +1833,16 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
   ClassBuilder getElementDescriptor(Element element, Fragment fragment) {
     Element owner = element.library;
-    if (!element.isLibrary && !element.isTopLevel && !element.isNative) {
+    if (!element.isLibrary &&
+        !element.isTopLevel &&
+        !backend.isNative(element)) {
       // For static (not top level) elements, record their code in a buffer
       // specific to the class. For now, not supported for native classes and
       // native elements.
       ClassElement cls =
           element.enclosingClassOrCompilationUnit.declaration;
       if (compiler.codegenWorld.directlyInstantiatedClasses.contains(cls) &&
-          !cls.isNative &&
+          !backend.isNative(cls) &&
           compiler.deferredLoadTask.outputUnitForElement(element) ==
               compiler.deferredLoadTask.outputUnitForElement(cls)) {
         owner = cls;

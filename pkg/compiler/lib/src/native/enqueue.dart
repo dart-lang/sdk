@@ -120,7 +120,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   void processNativeClassesInLibrary(LibraryElement library) {
     // Use implementation to ensure the inclusion of injected members.
     library.implementation.forEachLocalMember((Element element) {
-      if (element.isClass && element.isNative) {
+      if (element.isClass && backend.isNative(element)) {
         processNativeClass(element);
       }
     });
@@ -162,7 +162,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     // fact a subclass of a native class.
 
     ClassElement nativeSuperclassOf(ClassElement classElement) {
-      if (classElement.isNative) return classElement;
+      if (backend.isNative(classElement)) return classElement;
       if (classElement.superclass == null) return null;
       return nativeSuperclassOf(classElement.superclass);
     }
@@ -173,7 +173,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       ClassElement nativeSuperclass = nativeSuperclassOf(element);
       if (nativeSuperclass != null) {
         nativeClassesAndSubclasses.add(element);
-        if (!element.isNative) {
+        if (!backend.isNative(element)) {
           nonNativeSubclasses.putIfAbsent(nativeSuperclass,
               () => new Set<ClassElement>())
             .add(element);
@@ -353,12 +353,12 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
           element.isGetter ||
           element.isSetter) {
         handleMethodAnnotations(element);
-        if (element.isNative) {
+        if (backend.isNative(element)) {
           registerMethodUsed(element);
         }
       } else if (element.isField) {
         handleFieldAnnotations(element);
-        if (element.isNative) {
+        if (backend.isNative(element)) {
           registerFieldLoad(element);
           registerFieldStore(element);
         }
@@ -367,7 +367,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   }
 
   handleFieldAnnotations(Element element) {
-    if (element.enclosingElement.isNative) {
+    if (backend.isNative(element.enclosingElement)) {
       // Exclude non-instance (static) fields - they not really native and are
       // compiled as isolate globals.  Access of a property of a constructor
       // function or a non-method property in the prototype chain, must be coded
@@ -390,10 +390,10 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   /// Sets the native name of [element], either from an annotation, or
   /// defaulting to the Dart name.
-  void setNativeName(ElementX element) {
+  void setNativeName(MemberElement element) {
     String name = findJsNameFromAnnotation(element);
     if (name == null) name = element.name;
-    element.setNative(name);
+    backend.setNativeMemberName(element, name);
   }
 
   /// Sets the native name of the static native method [element], using the
@@ -404,26 +404,27 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   ///    use the declared @JSName as the expression
   /// 3. If [element] does not have a @JSName annotation, qualify the name of
   ///    the method with the @Native name of the enclosing class.
-  void setNativeNameForStaticMethod(ElementX element) {
+  void setNativeNameForStaticMethod(MethodElement element) {
     String name = findJsNameFromAnnotation(element);
     if (name == null) name = element.name;
     if (isIdentifier(name)) {
-      List<String> nativeNames = nativeTagsOfClassRaw(element.enclosingClass);
+      List<String> nativeNames =
+          backend.getNativeTagsOfClassRaw(element.enclosingClass);
       if (nativeNames.length != 1) {
         reporter.internalError(element,
             'Unable to determine a native name for the enclosing class, '
             'options: $nativeNames');
       }
-      element.setNative('${nativeNames[0]}.$name');
+      backend.setNativeMemberName(element, '${nativeNames[0]}.$name');
     } else {
-      element.setNative(name);
+      backend.setNativeMemberName(element, name);
     }
   }
 
   bool isIdentifier(String s) => _identifier.hasMatch(s);
 
   bool isNativeMethod(FunctionElementX element) {
-    if (!element.library.canUseNative) return false;
+    if (!backend.canLibraryUseNative(element.library)) return false;
     // Native method?
     return reporter.withCurrentElement(element, () {
       Node node = element.parseNode(resolution.parsing);
@@ -548,10 +549,10 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
     super.processNativeClass(classElement);
 
     // Js Interop interfaces do not have tags.
-    if (classElement.isJsInterop) return;
+    if (backend.isJsInterop(classElement)) return;
     // Since we map from dispatch tags to classes, a dispatch tag must be used
     // on only one native class.
-    for (String tag in nativeTagsOfClass(classElement)) {
+    for (String tag in backend.getNativeTagsOfClass(classElement)) {
       ClassElement owner = tagOwner[tag];
       if (owner != null) {
         if (owner != classElement) {
@@ -651,7 +652,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
   }
 
   void addSubtypes(ClassElement cls, NativeEmitter emitter) {
-    if (!cls.isNative) return;
+    if (!backend.isNative(cls)) return;
     if (doneAddSubtypes.contains(cls)) return;
     doneAddSubtypes.add(cls);
 
@@ -671,7 +672,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
     // natives classes.
     ClassElement superclass = cls.superclass;
     while (superclass != null && superclass.isMixinApplication) {
-      assert(!superclass.isNative);
+      assert(!backend.isNative(superclass));
       superclass = superclass.superclass;
     }
 

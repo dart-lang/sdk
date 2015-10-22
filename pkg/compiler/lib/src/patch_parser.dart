@@ -233,7 +233,9 @@ class PatchMemberListener extends MemberListener {
 
   PatchMemberListener(Compiler compiler, ClassElement enclosingClass)
       : this.compiler = compiler,
-        super(compiler.reporter, enclosingClass);
+        super(compiler.parsing.getScannerOptionsFor(enclosingClass),
+              compiler.reporter,
+              enclosingClass);
 
   @override
   void addMember(Element patch) {
@@ -274,7 +276,8 @@ class PatchElementListener extends ElementListener implements Listener {
                        CompilationUnitElement patchElement,
                        int idGenerator())
     : this.compiler = compiler,
-      super(compiler.reporter, patchElement, idGenerator);
+      super(compiler.parsing.getScannerOptionsFor(patchElement),
+            compiler.reporter, patchElement, idGenerator);
 
   @override
   void pushElement(Element patch) {
@@ -445,8 +448,8 @@ class NativeAnnotationHandler implements EagerAnnotationHandler<String> {
     if (element.isClass) {
       String native = getNativeAnnotation(annotation);
       if (native != null) {
-        ClassElementX declaration = element.declaration;
-        declaration.setNative(native);
+        JavaScriptBackend backend = compiler.backend;
+        backend.setNativeClassTagInfo(element, native);
         return native;
       }
     }
@@ -478,7 +481,8 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
              MetadataAnnotation annotation) {
     bool hasJsInterop = hasJsNameAnnotation(annotation);
     if (hasJsInterop) {
-      element.markAsJsInterop();
+      JavaScriptBackend backend = compiler.backend;
+      backend.markAsJsInterop(element);
     }
     // Due to semantics of apply in the baseclass we have to return null to
     // indicate that no match was found.

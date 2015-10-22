@@ -54,6 +54,16 @@ import 'listener.dart' show
 
 typedef int IdGenerator();
 
+/// Options used for scanning.
+///
+/// Use this to conditionally support special tokens.
+class ScannerOptions {
+  /// If `true` the pseudo keyword `native` is supported.
+  final bool canUseNative;
+
+  const ScannerOptions({this.canUseNative: false});
+}
+
 /**
  * A parser event listener designed to work with [PartialParser]. It
  * builds elements representing the top-level declarations found in
@@ -63,6 +73,7 @@ typedef int IdGenerator();
 class ElementListener extends Listener {
   final IdGenerator idGenerator;
   final DiagnosticReporter reporter;
+  final ScannerOptions scannerOptions;
   final CompilationUnitElementX compilationUnitElement;
   final StringValidator stringValidator;
   Link<StringQuoting> interpolationScope;
@@ -84,6 +95,7 @@ class ElementListener extends Listener {
   bool suppressParseErrors = false;
 
   ElementListener(
+      this.scannerOptions,
       DiagnosticReporter reporter,
       this.compilationUnitElement,
       this.idGenerator)

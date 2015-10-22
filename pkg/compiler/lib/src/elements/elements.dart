@@ -309,8 +309,6 @@ abstract class Element implements Entity {
   /// as all other classes.
   bool get isTopLevel;
   bool get isAssignable;
-  bool get isNative;
-  bool get isJsInterop;
 
   bool get isDeferredLoaderGetter;
 
@@ -405,11 +403,6 @@ abstract class Element implements Entity {
   bool get isSynthesized;
   bool get isMixinApplication;
 
-  bool get hasFixedBackendName;
-  String get fixedBackendName;
-
-  String get jsInteropName;
-
   bool get isAbstract;
 
   Scope buildScope();
@@ -419,9 +412,6 @@ abstract class Element implements Entity {
   AnalyzableElement get analyzableElement;
 
   accept(ElementVisitor visitor, arg);
-
-  void setJsInteropName(String name);
-  void markAsJsInterop();
 }
 
 class Elements {
@@ -528,13 +518,6 @@ class Elements {
         !element.isAbstract &&
         element.isInstanceMember &&
         (element.isFunction || element.isAccessor);
-  }
-
-  static bool isNativeOrExtendsNative(ClassElement element) {
-    if (element == null) return false;
-    if (element.isNative || element.isJsInterop) return true;
-    assert(element.isResolved);
-    return isNativeOrExtendsNative(element.superclass);
   }
 
   static bool isInstanceSend(Send send, TreeElements elements) {
@@ -756,7 +739,7 @@ class Elements {
     constructor = constructor.effectiveTarget;
     ClassElement cls = constructor.enclosingClass;
     return cls.library == compiler.typedDataLibrary
-        && cls.isNative
+        && compiler.backend.isNative(cls)
         && compiler.world.isSubtypeOf(cls, compiler.typedDataClass)
         && compiler.world.isSubtypeOf(cls, compiler.listClass)
         && constructor.name == '';
@@ -914,7 +897,6 @@ abstract class LibraryElement extends Element
    */
   bool get isInternalLibrary;
 
-  bool get canUseNative;
   bool get exportsHandled;
 
   LibraryElement get implementation;
@@ -1403,8 +1385,6 @@ abstract class ClassElement extends TypeDeclarationElement
   ClassElement get origin;
   ClassElement get declaration;
   ClassElement get implementation;
-
-  String get nativeTagInfo;
 
   /// `true` if this class is an enum declaration.
   bool get isEnumClass;

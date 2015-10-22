@@ -85,6 +85,8 @@ import 'null_compiler_output.dart' show
     NullSink;
 import 'parser/diet_parser_task.dart' show
     DietParserTask;
+import 'parser/element_listener.dart' show
+    ScannerOptions;
 import 'parser/parser_task.dart' show
     ParserTask;
 import 'patch_parser.dart' show
@@ -2028,6 +2030,11 @@ class _CompilerParsing implements Parsing {
         compiler.patchParser.parsePatchClassNode(cls);
       }
     });
+  }
+
+  ScannerOptions getScannerOptionsFor(Element element) {
+    return new ScannerOptions(
+      canUseNative: compiler.backend.canLibraryUseNative(element.library));
   }
 }
 

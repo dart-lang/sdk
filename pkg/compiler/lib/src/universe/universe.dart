@@ -261,6 +261,7 @@ class Universe {
   // TODO(johnniwinther): Support unknown type arguments for generic types.
   void registerTypeInstantiation(InterfaceType type,
                                  {bool byMirrors: false,
+                                  bool isNative: false,
                                   void onImplemented(ClassElement cls)}) {
     _instantiatedTypes.add(type);
     ClassElement cls = type.element;
@@ -269,7 +270,7 @@ class Universe {
         // classes; a native abstract class may have non-abstract subclasses
         // not declared to the program.  Instances of these classes are
         // indistinguishable from the abstract class.
-        || cls.isNative
+        || isNative
         // Likewise, if this registration comes from the mirror system,
         // all bets are off.
         // TODO(herhut): Track classes required by mirrors seperately.

@@ -1140,7 +1140,9 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     if (target is! FieldElement) return false;
     // TODO(asgerf): Inlining native fields will make some tests pass for the
     // wrong reason, so for testing reasons avoid inlining them.
-    if (target.isNative || target.isJsInterop) return false;
+    if (backend.isNative(target) || backend.isJsInterop(target)) {
+      return false;
+    }
     Continuation cont = node.continuation.definition;
     if (node.selector.isGetter) {
       GetField get = new GetField(getDartReceiver(node), target);

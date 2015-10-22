@@ -1548,12 +1548,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // Split returns a List, so we make sure the backend knows the
         // list class is instantiated.
         registry.registerInstantiatedClass(compiler.listClass);
-      } else if (target.isNative && target.isFunction
+      } else if (backend.isNative(target) && target.isFunction
                  && !node.isInterceptedCall) {
         // A direct (i.e. non-interceptor) native call is the result of
         // optimization.  The optimization ensures any type checks or
         // conversions have been satisified.
-        methodName = target.fixedBackendName;
+        methodName = backend.getFixedBackendName(target);
       }
     }
 

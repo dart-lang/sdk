@@ -236,7 +236,7 @@ class Collector {
     List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);
 
     for (ClassElement element in sortedClasses) {
-      if (Elements.isNativeOrExtendsNative(element) &&
+      if (backend.isNativeOrExtendsNative(element) &&
           !classesOnlyNeededForRti.contains(element)) {
         // For now, native classes and related classes cannot be deferred.
         nativeClassesAndSubclasses.add(element);

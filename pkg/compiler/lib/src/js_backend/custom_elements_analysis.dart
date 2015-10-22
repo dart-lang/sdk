@@ -68,12 +68,12 @@ class CustomElementsAnalysis {
 
   void registerInstantiatedClass(ClassElement classElement, Enqueuer enqueuer) {
     classElement.ensureResolved(compiler.resolution);
-    if (!Elements.isNativeOrExtendsNative(classElement)) return;
+    if (!backend.isNativeOrExtendsNative(classElement)) return;
     if (classElement.isMixinApplication) return;
     if (classElement.isAbstract) return;
     // JsInterop classes are opaque interfaces without a concrete
     // implementation.
-    if (classElement.isJsInterop) return;
+    if (backend.isJsInterop(classElement)) return;
     joinFor(enqueuer).instantiatedClasses.add(classElement);
   }
 
@@ -149,9 +149,9 @@ class CustomElementsAnalysisJoin {
     if (!demanded) return;
     var newActiveClasses = new Set<ClassElement>();
     for (ClassElement classElement in instantiatedClasses) {
-      bool isNative = classElement.isNative;
+      bool isNative = backend.isNative(classElement);
       bool isExtension =
-          !isNative && Elements.isNativeOrExtendsNative(classElement);
+          !isNative && backend.isNativeOrExtendsNative(classElement);
       // Generate table entries for native classes that are explicitly named and
       // extensions that fix our criteria.
       if ((isNative && selectedClasses.contains(classElement)) ||
@@ -185,7 +185,7 @@ class CustomElementsAnalysisJoin {
     // Only classes that extend native classes have constructors in the table.
     // We could refine this to classes that extend Element, but that would break
     // the tests and there is no sane reason to subclass other native classes.
-    if (classElement.isNative) return result;
+    if (backend.isNative(classElement)) return result;
 
     selectGenerativeConstructors(ClassElement enclosing, Element member) {
       if (member.isGenerativeConstructor) {

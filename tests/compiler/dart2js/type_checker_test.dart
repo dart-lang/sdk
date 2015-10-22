@@ -19,6 +19,7 @@ import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/resolution/tree_elements.dart' show
     TreeElements,
     TreeElementMapping;
+import 'package:compiler/src/parser/element_listener.dart';
 import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/typechecker.dart';
 import 'package:compiler/src/script.dart';
@@ -2550,7 +2551,8 @@ analyze(MockCompiler compiler,
   compiler.diagnosticHandler = createHandler(compiler, text);
 
   Token tokens = scan(text);
-  NodeListener listener = new NodeListener(compiler.reporter, null);
+  NodeListener listener = new NodeListener(
+      const ScannerOptions(), compiler.reporter, null);
   Parser parser = new Parser(listener);
   parser.parseStatement(tokens);
   Node node = listener.popNode();
@@ -2597,7 +2599,8 @@ analyzeIn(MockCompiler compiler,
 
   compiler.resolver.resolve(element);
   Token tokens = scan(text);
-  NodeListener listener = new NodeListener(compiler.reporter, null);
+  NodeListener listener = new NodeListener(
+      const ScannerOptions(), compiler.reporter, null);
   Parser parser = new Parser(listener,
       yieldIsKeyword: element.asyncMarker.isYielding,
       awaitIsKeyword: element.asyncMarker.isAsync);

@@ -424,7 +424,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         && element.name == node.selector.name) {
       FunctionElement method = element;
 
-      if (method.isNative) {
+      if (backend.isNative(method)) {
         HInstruction folded = tryInlineNativeMethod(node, method);
         if (folded != null) return folded;
       } else {
@@ -858,7 +858,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     bool isAssignable = !compiler.world.fieldNeverChanges(field);
 
     TypeMask type;
-    if (field.enclosingClass.isNative) {
+    if (backend.isNative(field.enclosingClass)) {
       type = TypeMaskFactory.fromNativeBehavior(
           native.NativeBehavior.ofFieldLoad(field, compiler),
           compiler);
@@ -2129,6 +2129,8 @@ class MemorySet {
 
   MemorySet(this.compiler);
 
+  JavaScriptBackend get backend => compiler.backend;
+
   /**
    * Returns whether [first] and [second] always alias to the same object.
    */
@@ -2185,7 +2187,9 @@ class MemorySet {
   void registerFieldValueUpdate(Element element,
                                 HInstruction receiver,
                                 HInstruction value) {
-    if (element.isNative) return; // TODO(14955): Remove this restriction?
+    if (backend.isNative(element)) {
+      return; // TODO(14955): Remove this restriction?
+    }
     // [value] is being set in some place in memory, we remove it from
     // the non-escaping set.
     nonEscapingReceivers.remove(value);
@@ -2203,7 +2207,9 @@ class MemorySet {
   void registerFieldValue(Element element,
                           HInstruction receiver,
                           HInstruction value) {
-    if (element.isNative) return; // TODO(14955): Remove this restriction?
+    if (backend.isNative(element)) {
+      return; // TODO(14955): Remove this restriction?
+    }
     Map<HInstruction, HInstruction> map = fieldValues.putIfAbsent(
         element, () => <HInstruction, HInstruction> {});
     map[receiver] = value;

@@ -440,7 +440,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     SourceInformation source = sourceInformationBuilder.buildReturn(node);
     if (node.beginToken.value == 'native') {
       FunctionElement function = irBuilder.state.currentElement;
-      assert(function.isNative);
+      assert(compiler.backend.isNative(function));
       ast.Node nativeBody = node.expression;
       if (nativeBody != null) {
         ast.LiteralString jsCode = nativeBody.asLiteralString();
@@ -454,7 +454,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
               'functions with zero parameters.'));
         irBuilder.buildNativeFunctionBody(function, javaScriptCode);
       } else {
-        irBuilder.buildRedirectingNativeFunctionBody(function, source);
+        JavaScriptBackend backend = compiler.backend;
+        String name = backend.getFixedBackendName(function);
+        irBuilder.buildRedirectingNativeFunctionBody(function, name, source);
       }
     } else {
       irBuilder.buildReturn(
@@ -2793,7 +2795,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         if (value != null) {
           instanceArguments.add(value);
         } else {
-          assert(Elements.isNativeOrExtendsNative(c));
+          assert(backend.isNativeOrExtendsNative(c));
           // Native fields are initialized elsewhere.
         }
       }, includeSuperAndInjectedMembers: true);
@@ -2858,7 +2860,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         if (field.initializer != null) {
           fieldValues[field] = inlineExpression(field, field.initializer);
         } else {
-          if (Elements.isNativeOrExtendsNative(c)) {
+          if (backend.isNativeOrExtendsNative(c)) {
             // Native field is initialized elsewhere.
           } else {
             // Fields without an initializer default to null.

@@ -2073,8 +2073,8 @@ class IrBuilder {
   /// `fixedBackendName`, passing all parameters as arguments.  The target can
   /// be the JavaScript implementation of a function, getter, or setter.
   void buildRedirectingNativeFunctionBody(FunctionElement function,
+                                          String name,
                                           SourceInformation source) {
-    String name = function.fixedBackendName;
     List<ir.Primitive> arguments = <ir.Primitive>[];
     NativeBehavior behavior = new NativeBehavior();
     behavior.sideEffects.setAllSideEffects();

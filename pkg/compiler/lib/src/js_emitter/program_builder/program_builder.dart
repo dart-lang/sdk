@@ -369,7 +369,7 @@ class ProgramBuilder {
     var stubNames = new Set<String>();
     librariesMap.forEach((LibraryElement library, List<Element> elements) {
       for (Element e in elements) {
-        if (e is ClassElement && e.isJsInterop) {
+        if (e is ClassElement && backend.isJsInterop(e)) {
           e.declaration.forEachMember((_, Element member) {
             if (!member.isInstanceMember) return;
             if (member.isGetter || member.isField || member.isFunction) {
@@ -481,12 +481,12 @@ class ProgramBuilder {
         element, name, null, [], instanceFields, [], [], [], [], [], [], null,
         isDirectlyInstantiated: true,
         onlyForRti: false,
-        isNative: element.isNative);
+        isNative: backend.isNative(element));
   }
 
   Class _buildClass(ClassElement element) {
     bool onlyForRti = collector.classesOnlyNeededForRti.contains(element);
-    if (element.isJsInterop) {
+    if (backend.isJsInterop(element)) {
       // TODO(jacobr): check whether the class has any active static fields
       // if it does not we can suppress it completely.
       onlyForRti = true;
@@ -572,7 +572,7 @@ class ProgramBuilder {
 
     List<StubMethod> checkedSetters = <StubMethod>[];
     List<StubMethod> isChecks = <StubMethod>[];
-    if (element.isJsInterop) {
+    if (backend.isJsInterop(element)) {
       typeTests.properties.forEach((js.Name name, js.Node code) {
         _classes[backend.jsInterceptorClass].isChecks.add(
             _buildStubMethod(name, code));
@@ -599,12 +599,12 @@ class ProgramBuilder {
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a class.
     Holder holder = _registry.registerHolder(holderName);
-    bool isInstantiated = !element.isJsInterop &&
+    bool isInstantiated = !backend.isJsInterop(element) &&
         _compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
 
     Class result;
     if (element.isMixinApplication && !onlyForRti) {
-      assert(!element.isNative);
+      assert(!backend.isNative(element));
       assert(methods.isEmpty);
 
       result = new MixinApplication(element,
@@ -630,7 +630,7 @@ class ProgramBuilder {
                          typeTests.functionTypeIndex,
                          isDirectlyInstantiated: isInstantiated,
                          onlyForRti: onlyForRti,
-                         isNative: element.isNative);
+                         isNative: backend.isNative(element));
     }
     _classes[element] = result;
     return result;

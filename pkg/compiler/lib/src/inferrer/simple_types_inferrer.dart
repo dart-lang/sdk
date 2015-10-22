@@ -451,9 +451,9 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   }
 
   bool isNativeElement(Element element) {
-    if (element.isNative) return true;
+    if (compiler.backend.isNative(element)) return true;
     return element.isClassMember
-        && element.enclosingClass.isNative
+        && compiler.backend.isNative(element.enclosingClass)
         && element.isField;
   }
 
@@ -555,7 +555,7 @@ class SimpleTypeInferrerVisitor<T>
       inferrer.setDefaultTypeOfParameter(element, type);
     });
 
-    if (analyzedElement.isNative) {
+    if (compiler.backend.isNative(analyzedElement)) {
       // Native methods do not have a body, and we currently just say
       // they return dynamic.
       return types.dynamicType;

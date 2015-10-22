@@ -79,7 +79,7 @@ class InterceptorStubGenerator {
         // unresolved PlainJavaScriptObject by testing for anyNativeClasses.
 
         if (anyNativeClasses) {
-          if (Elements.isNativeOrExtendsNative(cls)) hasNative = true;
+          if (backend.isNativeOrExtendsNative(cls)) hasNative = true;
         }
       }
     }

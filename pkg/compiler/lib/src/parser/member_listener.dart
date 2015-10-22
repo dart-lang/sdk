@@ -19,20 +19,23 @@ import '../tokens/token.dart' show
     Token;
 import '../tree/tree.dart';
 
+import 'element_listener.dart' show
+    ScannerOptions;
+import 'node_listener.dart' show
+    NodeListener;
 import 'partial_elements.dart' show
     PartialConstructorElement,
     PartialFunctionElement,
     PartialMetadataAnnotation;
-import 'node_listener.dart' show
-    NodeListener;
 
 class MemberListener extends NodeListener {
   final ClassElementX enclosingClass;
 
-  MemberListener(DiagnosticReporter listener,
+  MemberListener(ScannerOptions scannerOptions,
+                 DiagnosticReporter listener,
                  ClassElementX enclosingElement)
       : this.enclosingClass = enclosingElement,
-        super(listener, enclosingElement.compilationUnit);
+        super(scannerOptions, listener, enclosingElement.compilationUnit);
 
   bool isConstructorName(Node nameNode) {
     if (enclosingClass == null ||

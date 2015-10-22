@@ -17,7 +17,8 @@ import '../tokens/token.dart' show
 import 'listener.dart' show
     ParserError;
 import 'element_listener.dart' show
-    ElementListener;
+    ElementListener,
+    ScannerOptions;
 import 'partial_parser.dart' show
     PartialParser;
 
@@ -28,8 +29,11 @@ class DietParserTask extends CompilerTask {
   dietParse(CompilationUnitElement compilationUnit, Token tokens) {
     measure(() {
       Function idGenerator = compiler.getNextFreeClassId;
-      ElementListener listener =
-          new ElementListener(compiler.reporter, compilationUnit, idGenerator);
+      ScannerOptions scannerOptions = new ScannerOptions(
+          canUseNative: compiler.backend.canLibraryUseNative(
+              compilationUnit.library));
+      ElementListener listener = new ElementListener(
+          scannerOptions, compiler.reporter, compilationUnit, idGenerator);
       PartialParser parser = new PartialParser(listener);
       try {
         parser.parseUnit(tokens);

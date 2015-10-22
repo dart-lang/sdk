@@ -16,6 +16,8 @@ import '../tokens/token.dart' show
 import '../tree/tree.dart' show
     Node;
 
+import 'element_listener.dart' show
+    ScannerOptions;
 import 'listener.dart' show
     ParserError;
 import 'node_listener.dart' show
@@ -33,7 +35,8 @@ class ParserTask extends CompilerTask {
 
   Node parseCompilationUnit(Token token) {
     return measure(() {
-      NodeListener listener = new NodeListener(reporter, null);
+      NodeListener listener = new NodeListener(
+          const ScannerOptions(), reporter, null);
       Parser parser = new Parser(listener);
       try {
         parser.parseUnit(token);

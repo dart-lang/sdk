@@ -167,7 +167,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       // code is completely insensitive to the specific instance subclasses, we
       // can use the non-leaf class directly.
       ClassElement element = type.singleClass(classWorld);
-      if (element != null && element.isNative) {
+      if (element != null && backend.isNative(element)) {
         return element;
       }
     }

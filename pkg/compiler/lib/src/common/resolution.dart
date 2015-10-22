@@ -27,6 +27,8 @@ import '../elements/elements.dart' show
     TypeVariableElement;
 import '../enqueue.dart' show
     ResolutionEnqueuer;
+import '../parser/element_listener.dart' show
+    ScannerOptions;
 import '../tree/tree.dart' show
     AsyncForIn,
     Send,
@@ -37,8 +39,6 @@ import '../universe/world_impact.dart' show
     WorldImpact;
 import '../util/util.dart' show
     Setlet;
-import 'registry.dart' show
-    Registry;
 import 'work.dart' show
     ItemCompilationContext,
     WorkItem;
@@ -322,4 +322,5 @@ abstract class Parsing {
   DiagnosticReporter get reporter;
   void parsePatchClass(ClassElement cls);
   measure(f());
+  ScannerOptions getScannerOptionsFor(Element element);
 }
