@@ -117,13 +117,13 @@ Smi* Object::smi_illegal_cid_ = NULL;
 LanguageError* Object::snapshot_writer_error_ = NULL;
 LanguageError* Object::branch_offset_error_ = NULL;
 Array* Object::vm_isolate_snapshot_object_table_ = NULL;
+Type* Object::dynamic_type_ = NULL;
+Type* Object::void_type_ = NULL;
 
 RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-RawType* Object::dynamic_type_ = reinterpret_cast<RawType*>(RAW_NULL);
-RawType* Object::void_type_ = reinterpret_cast<RawType*>(RAW_NULL);
 RawClass* Object::unresolved_class_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::type_arguments_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -490,6 +490,8 @@ void Object::InitOnce(Isolate* isolate) {
   snapshot_writer_error_ = LanguageError::ReadOnlyHandle();
   branch_offset_error_ = LanguageError::ReadOnlyHandle();
   vm_isolate_snapshot_object_table_ = Array::ReadOnlyHandle();
+  dynamic_type_ = Type::ReadOnlyHandle();
+  void_type_ = Type::ReadOnlyHandle();
 
   *null_object_ = Object::null();
   *null_array_ = Array::null();
@@ -803,10 +805,10 @@ void Object::InitOnce(Isolate* isolate) {
   cls.set_is_finalized();
 
   cls = dynamic_class_;
-  dynamic_type_ = Type::NewNonParameterizedType(cls);
+  *dynamic_type_ = Type::NewNonParameterizedType(cls);
 
   cls = void_class_;
-  void_type_ = Type::NewNonParameterizedType(cls);
+  *void_type_ = Type::NewNonParameterizedType(cls);
 
   // Allocate and initialize singleton true and false boolean objects.
   cls = Class::New<Bool>();
@@ -901,7 +903,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
 
   // Allocate the parameter arrays for method extractor types and names.
   *extractor_parameter_types_ = Array::New(1, Heap::kOld);
-  extractor_parameter_types_->SetAt(0, Type::Handle(Type::DynamicType()));
+  extractor_parameter_types_->SetAt(0, Object::dynamic_type());
   *extractor_parameter_names_ = Array::New(1, Heap::kOld);
   extractor_parameter_names_->SetAt(0, Symbols::This());
 
@@ -2744,12 +2746,12 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
   invocation.set_parameter_names(Array::Handle(Array::New(desc.Count(),
                                                           Heap::kOld)));
   // Receiver.
-  invocation.SetParameterTypeAt(0, Type::Handle(Type::DynamicType()));
+  invocation.SetParameterTypeAt(0, Object::dynamic_type());
   invocation.SetParameterNameAt(0, Symbols::This());
   // Remaining positional parameters.
   intptr_t i = 1;
   for (; i < desc.PositionalCount(); i++) {
-    invocation.SetParameterTypeAt(i, Type::Handle(Type::DynamicType()));
+    invocation.SetParameterTypeAt(i, Object::dynamic_type());
     char name[64];
     OS::SNPrint(name, 64, ":p%" Pd, i);
     invocation.SetParameterNameAt(i, String::Handle(Symbols::New(name)));
@@ -2757,11 +2759,11 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
 
   // Named parameters.
   for (; i < desc.Count(); i++) {
-    invocation.SetParameterTypeAt(i, Type::Handle(Type::DynamicType()));
+    invocation.SetParameterTypeAt(i, Object::dynamic_type());
     intptr_t index = i - desc.PositionalCount();
     invocation.SetParameterNameAt(i, String::Handle(desc.NameAt(index)));
   }
-  invocation.set_result_type(Type::Handle(Type::DynamicType()));
+  invocation.set_result_type(Object::dynamic_type());
   invocation.set_is_debuggable(false);
   invocation.set_is_visible(false);
   invocation.set_is_reflectable(false);
@@ -2799,7 +2801,7 @@ RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
   extractor.SetNumOptionalParameters(0, 0);
   extractor.set_parameter_types(Object::extractor_parameter_types());
   extractor.set_parameter_names(Object::extractor_parameter_names());
-  extractor.set_result_type(Type::Handle(Type::DynamicType()));
+  extractor.set_result_type(Object::dynamic_type());
 
   extractor.set_extracted_method_closure(closure_function);
   extractor.set_is_debuggable(false);
@@ -3082,7 +3084,7 @@ static RawFunction* EvaluateHelper(const Class& cls,
 
   const Function& func = Function::Handle(
        Function::NewEvalFunction(cls, script, is_static));
-  func.set_result_type(Type::Handle(Type::DynamicType()));
+  func.set_result_type(Object::dynamic_type());
   const intptr_t num_implicit_params = is_static ? 0 : 1;
   func.set_num_fixed_parameters(num_implicit_params + param_names.Length());
   func.SetNumOptionalParameters(0, true);
@@ -7687,7 +7689,7 @@ RawInstance* Field::AccessorClosure(bool make_setter) const {
                              field_owner,
                              this->token_pos());
   closure_field.SetStaticValue(Instance::Cast(result), true);
-  closure_field.set_type(Type::Handle(Type::DynamicType()));
+  closure_field.set_type(Object::dynamic_type());
   field_owner.AddField(closure_field);
 
   return Instance::RawCast(result.raw());
@@ -9304,7 +9306,7 @@ void Library::AddMetadata(const Class& cls,
                                           false,  // is_reflectable
                                           cls,
                                           token_pos));
-  field.set_type(Type::Handle(Type::DynamicType()));
+  field.set_type(Object::dynamic_type());
   field.SetStaticValue(Array::empty_array(), true);
   GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(this->metadata());
@@ -10817,7 +10819,7 @@ void Namespace::AddMetadata(intptr_t token_pos, const Class& owner_class) {
                                           false,  // is_reflectable
                                           owner_class,
                                           token_pos));
-  field.set_type(Type::Handle(Type::DynamicType()));
+  field.set_type(Object::dynamic_type());
   field.SetStaticValue(Array::empty_array(), true);
   set_metadata_field(field);
   owner_class.AddField(field);
@@ -15523,12 +15525,12 @@ RawType* Type::NullType() {
 
 
 RawType* Type::DynamicType() {
-  return Object::dynamic_type();
+  return Object::dynamic_type().raw();
 }
 
 
 RawType* Type::VoidType() {
-  return Object::void_type();
+  return Object::void_type().raw();
 }
 
 
@@ -15599,15 +15601,6 @@ RawType* Type::Function() {
 
 RawType* Type::NewNonParameterizedType(const Class& type_class) {
   ASSERT(type_class.NumTypeArguments() == 0);
-  if (type_class.raw() == Object::dynamic_class()) {
-    // If the dynamic type has not been setup in the VM isolate, then we need
-    // to allocate it here.
-    if (Object::dynamic_type() != reinterpret_cast<RawType*>(RAW_NULL)) {
-      ASSERT(Type::Handle(Object::dynamic_type()).IsFinalized());
-      return Object::dynamic_type();
-    }
-    ASSERT(Isolate::Current() == Dart::vm_isolate());
-  }
   Type& type = Type::Handle(type_class.CanonicalType());
   if (type.IsNull()) {
     const TypeArguments& no_type_arguments = TypeArguments::Handle();
@@ -15947,7 +15940,7 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
   Type& type = Type::Handle(zone);
   const Class& cls = Class::Handle(zone, type_class());
   if (cls.raw() == Object::dynamic_class() && (isolate != Dart::vm_isolate())) {
-    return Object::dynamic_type();
+    return Object::dynamic_type().raw();
   }
   // Fast canonical lookup/registry for simple types.
   if (cls.NumTypeArguments() == 0) {

@@ -472,13 +472,20 @@ class Object {
     ASSERT(vm_isolate_snapshot_object_table_ != NULL);
     return *vm_isolate_snapshot_object_table_;
   }
+  static const Type& dynamic_type() {
+    ASSERT(dynamic_type_ != NULL);
+    return *dynamic_type_;
+  }
+  static const Type& void_type() {
+    ASSERT(void_type_ != NULL);
+    return *void_type_;
+  }
+
   static void InitVmIsolateSnapshotObjectTable(intptr_t len);
 
   static RawClass* class_class() { return class_class_; }
   static RawClass* dynamic_class() { return dynamic_class_; }
   static RawClass* void_class() { return void_class_; }
-  static RawType* dynamic_type() { return dynamic_type_; }
-  static RawType* void_type() { return void_type_; }
   static RawClass* unresolved_class_class() { return unresolved_class_class_; }
   static RawClass* type_arguments_class() { return type_arguments_class_; }
   static RawClass* patch_class_class() { return patch_class_class_; }
@@ -740,8 +747,6 @@ class Object {
   static RawClass* class_class_;  // Class of the Class vm object.
   static RawClass* dynamic_class_;  // Class of the 'dynamic' type.
   static RawClass* void_class_;  // Class of the 'void' type.
-  static RawType* dynamic_type_;  // Class of the 'dynamic' type.
-  static RawType* void_type_;  // Class of the 'void' type.
   static RawClass* unresolved_class_class_;  // Class of UnresolvedClass.
   static RawClass* type_arguments_class_;  // Class of TypeArguments vm object.
   static RawClass* patch_class_class_;  // Class of the PatchClass vm object.
@@ -798,6 +803,8 @@ class Object {
   static LanguageError* snapshot_writer_error_;
   static LanguageError* branch_offset_error_;
   static Array* vm_isolate_snapshot_object_table_;
+  static Type* dynamic_type_;
+  static Type* void_type_;
 
   friend void ClassTable::Register(const Class& cls);
   friend void RawObject::Validate(Isolate* isolate) const;

@@ -558,10 +558,9 @@ struct ParamList {
   }
 
   void EraseParameterTypes() {
-    const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
     const int num_parameters = parameters->length();
     for (int i = 0; i < num_parameters; i++) {
-      (*parameters)[i].type = &dynamic_type;
+      (*parameters)[i].type = &Object::dynamic_type();
     }
   }
 
@@ -4721,7 +4720,6 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   // Add instance field 'final int index'.
   Field& index_field = Field::ZoneHandle(Z);
   const Type& int_type = Type::Handle(Z, Type::IntType());
-  const Type& dynamic_type = Type::Handle(Type::DynamicType());
   index_field = Field::New(Symbols::Index(),
                            false,  // Not static.
                            true,  // Field is final.
@@ -4748,7 +4746,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   getter.set_result_type(int_type);
   getter.set_is_debuggable(false);
   ParamList params;
-  params.AddReceiver(&dynamic_type, cls.token_pos());
+  params.AddReceiver(&Object::dynamic_type(), cls.token_pos());
   AddFormalParamsToFunction(&params, getter);
   enum_members.AddFunction(getter);
 
@@ -4801,7 +4799,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
                             /* is_reflectable = */ true,
                             cls,
                             cls.token_pos());
-    enum_value.set_type(dynamic_type);
+    enum_value.set_type(Object::dynamic_type());
     enum_value.set_has_initializer(false);
     enum_members.AddField(enum_value);
     // Initialize the field with the ordinal value. It will be patched
@@ -6237,15 +6235,13 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   OpenBlock();  // Catch block.
 
   // Add the exception and stack trace parameters to the scope.
-  const AbstractType& dynamic_type =
-      AbstractType::ZoneHandle(Z, Type::DynamicType());
   CatchParamDesc exception_param;
   CatchParamDesc stack_trace_param;
   exception_param.token_pos = Scanner::kNoSourcePos;
-  exception_param.type = &dynamic_type;
+  exception_param.type = &Object::dynamic_type();
   exception_param.name = &Symbols::ExceptionParameter();
   stack_trace_param.token_pos = Scanner::kNoSourcePos;
-  stack_trace_param.type = &dynamic_type;
+  stack_trace_param.type = &Object::dynamic_type();
   stack_trace_param.name = &Symbols::StackTraceParameter();
 
   AddCatchParamsToScope(
@@ -6367,7 +6363,8 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
 
   const GrowableObjectArray& handler_types =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New(Heap::kOld));
-  handler_types.Add(dynamic_type);  // Catch block handles all exceptions.
+  // Catch block handles all exceptions.
+  handler_types.Add(Object::dynamic_type());
 
   CatchClauseNode* catch_clause = new(Z) CatchClauseNode(
       Scanner::kNoSourcePos,
@@ -6406,15 +6403,13 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
 
   OpenBlock();  // Catch handler list.
   OpenBlock();  // Catch block.
-  const AbstractType& dynamic_type =
-      AbstractType::ZoneHandle(Z, Type::DynamicType());
   CatchParamDesc exception_param;
   CatchParamDesc stack_trace_param;
   exception_param.token_pos = Scanner::kNoSourcePos;
-  exception_param.type = &dynamic_type;
+  exception_param.type = &Object::dynamic_type();
   exception_param.name = &Symbols::ExceptionParameter();
   stack_trace_param.token_pos = Scanner::kNoSourcePos;
-  stack_trace_param.type = &dynamic_type;
+  stack_trace_param.type = &Object::dynamic_type();
   stack_trace_param.name = &Symbols::StackTraceParameter();
 
   AddCatchParamsToScope(
@@ -6544,14 +6539,14 @@ void Parser::AddSyncGenClosureParameters(ParamList* params) {
   // Create the parameter list for the body closure of a sync generator:
   // 1) Implicit closure parameter;
   // 2) Iterator
-  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
   // Add implicit closure parameter if not already present.
   if (params->parameters->length() == 0) {
-    params->AddFinalParameter(0, &Symbols::ClosureParameter(), &dynamic_type);
+    params->AddFinalParameter(
+        0, &Symbols::ClosureParameter(), &Object::dynamic_type());
   }
   ParamDesc iterator_param;
   iterator_param.name = &Symbols::IteratorParameter();
-  iterator_param.type = &dynamic_type;
+  iterator_param.type = &Object::dynamic_type();
   params->parameters->Add(iterator_param);
   params->num_fixed_parameters++;
 }
@@ -6679,26 +6674,26 @@ void Parser::AddAsyncClosureParameters(ParamList* params) {
   // * A continuation result.
   // * A continuation error.
   // * A continuation stack trace.
-  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
   ASSERT(params->parameters->length() <= 1);
   // Add implicit closure parameter if not yet present.
   if (params->parameters->length() == 0) {
-    params->AddFinalParameter(0, &Symbols::ClosureParameter(), &dynamic_type);
+    params->AddFinalParameter(
+        0, &Symbols::ClosureParameter(), &Object::dynamic_type());
   }
   ParamDesc result_param;
   result_param.name = &Symbols::AsyncOperationParam();
   result_param.default_value = &Object::null_instance();
-  result_param.type = &dynamic_type;
+  result_param.type = &Object::dynamic_type();
   params->parameters->Add(result_param);
   ParamDesc error_param;
   error_param.name = &Symbols::AsyncOperationErrorParam();
   error_param.default_value = &Object::null_instance();
-  error_param.type = &dynamic_type;
+  error_param.type = &Object::dynamic_type();
   params->parameters->Add(error_param);
   ParamDesc stack_trace_param;
   stack_trace_param.name = &Symbols::AsyncOperationStackTraceParam();
   stack_trace_param.default_value = &Object::null_instance();
-  stack_trace_param.type = &dynamic_type;
+  stack_trace_param.type = &Object::dynamic_type();
   params->parameters->Add(stack_trace_param);
   params->has_optional_positional_parameters = true;
   params->num_optional_parameters += 3;
@@ -6772,12 +6767,13 @@ void Parser::AddContinuationVariables() {
   // Add to current block's scope:
   //   var :await_jump_var;
   //   var :await_ctx_var;
-  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
   LocalVariable* await_jump_var = new (Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AwaitJumpVar(), dynamic_type);
+      Scanner::kNoSourcePos, Symbols::AwaitJumpVar(), Object::dynamic_type());
   current_block_->scope->AddVariable(await_jump_var);
   LocalVariable* await_ctx_var = new (Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AwaitContextVar(), dynamic_type);
+      Scanner::kNoSourcePos,
+      Symbols::AwaitContextVar(),
+      Object::dynamic_type());
   current_block_->scope->AddVariable(await_ctx_var);
 }
 
@@ -6788,18 +6784,23 @@ void Parser::AddAsyncClosureVariables() {
   //   var :async_then_callback;
   //   var :async_catch_error_callback;
   //   var :async_completer;
-  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
   LocalVariable* async_op_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AsyncOperation(), dynamic_type);
+      Scanner::kNoSourcePos, Symbols::AsyncOperation(), Object::dynamic_type());
   current_block_->scope->AddVariable(async_op_var);
   LocalVariable* async_then_callback_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AsyncThenCallback(), dynamic_type);
+      Scanner::kNoSourcePos,
+      Symbols::AsyncThenCallback(),
+      Object::dynamic_type());
   current_block_->scope->AddVariable(async_then_callback_var);
   LocalVariable* async_catch_error_callback_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AsyncCatchErrorCallback(), dynamic_type);
+      Scanner::kNoSourcePos,
+      Symbols::AsyncCatchErrorCallback(),
+      Object::dynamic_type());
   current_block_->scope->AddVariable(async_catch_error_callback_var);
   LocalVariable* async_completer = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AsyncCompleter(), dynamic_type);
+      Scanner::kNoSourcePos,
+      Symbols::AsyncCompleter(),
+      Object::dynamic_type());
   current_block_->scope->AddVariable(async_completer);
 }
 
@@ -6815,18 +6816,21 @@ void Parser::AddAsyncGeneratorVariables() {
   //   var :async_catch_error_callback;
   // These variables are used to store the async generator closure containing
   // the body of the async* function. They are used by the await operator.
-  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
   LocalVariable* controller_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::Controller(), dynamic_type);
+      Scanner::kNoSourcePos, Symbols::Controller(), Object::dynamic_type());
   current_block_->scope->AddVariable(controller_var);
   LocalVariable* async_op_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AsyncOperation(), dynamic_type);
+      Scanner::kNoSourcePos, Symbols::AsyncOperation(), Object::dynamic_type());
   current_block_->scope->AddVariable(async_op_var);
   LocalVariable* async_then_callback_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AsyncThenCallback(), dynamic_type);
+      Scanner::kNoSourcePos,
+      Symbols::AsyncThenCallback(),
+      Object::dynamic_type());
   current_block_->scope->AddVariable(async_then_callback_var);
   LocalVariable* async_catch_error_callback_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AsyncCatchErrorCallback(), dynamic_type);
+      Scanner::kNoSourcePos,
+      Symbols::AsyncCatchErrorCallback(),
+      Object::dynamic_type());
   current_block_->scope->AddVariable(async_catch_error_callback_var);
 }
 
@@ -8861,9 +8865,9 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   // Create the try-statement and add to the current sequence, which is
   // the block around the loop statement.
 
-  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
   const Array& handler_types = Array::ZoneHandle(Z, Array::New(1, Heap::kOld));
-  handler_types.SetAt(0, dynamic_type);  // Catch block handles all exceptions.
+  // Catch block handles all exceptions.
+  handler_types.SetAt(0, Object::dynamic_type());
 
   CatchClauseNode* catch_clause = new(Z) CatchClauseNode(await_for_pos,
       catch_block,
@@ -9584,14 +9588,13 @@ void Parser::SetupExceptionVariables(LocalScope* try_scope,
                                      LocalVariable** stack_trace_var,
                                      LocalVariable** saved_exception_var,
                                      LocalVariable** saved_stack_trace_var) {
-  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
   // Consecutive try statements share the same set of variables.
   *context_var = try_scope->LocalLookupVariable(Symbols::SavedTryContextVar());
   if (*context_var == NULL) {
     *context_var = new(Z) LocalVariable(
         TokenPos(),
         Symbols::SavedTryContextVar(),
-        dynamic_type);
+        Object::dynamic_type());
     try_scope->AddVariable(*context_var);
   }
   *exception_var = try_scope->LocalLookupVariable(Symbols::ExceptionVar());
@@ -9599,7 +9602,7 @@ void Parser::SetupExceptionVariables(LocalScope* try_scope,
     *exception_var = new(Z) LocalVariable(
         TokenPos(),
         Symbols::ExceptionVar(),
-        dynamic_type);
+        Object::dynamic_type());
     try_scope->AddVariable(*exception_var);
   }
   *stack_trace_var = try_scope->LocalLookupVariable(Symbols::StackTraceVar());
@@ -9607,7 +9610,7 @@ void Parser::SetupExceptionVariables(LocalScope* try_scope,
     *stack_trace_var = new(Z) LocalVariable(
         TokenPos(),
         Symbols::StackTraceVar(),
-        dynamic_type);
+        Object::dynamic_type());
     try_scope->AddVariable(*stack_trace_var);
   }
   if (is_async) {
@@ -9617,7 +9620,7 @@ void Parser::SetupExceptionVariables(LocalScope* try_scope,
       *saved_exception_var = new(Z) LocalVariable(
           TokenPos(),
           Symbols::SavedExceptionVar(),
-          dynamic_type);
+          Object::dynamic_type());
       try_scope->AddVariable(*saved_exception_var);
     }
     *saved_stack_trace_var = try_scope->LocalLookupVariable(
@@ -9626,7 +9629,7 @@ void Parser::SetupExceptionVariables(LocalScope* try_scope,
       *saved_stack_trace_var = new(Z) LocalVariable(
           TokenPos(),
           Symbols::SavedStackTraceVar(),
-          dynamic_type);
+          Object::dynamic_type());
       try_scope->AddVariable(*saved_stack_trace_var);
     }
   }

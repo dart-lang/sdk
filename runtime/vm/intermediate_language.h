@@ -4366,7 +4366,8 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
         field_(NULL),
         token_pos_(token_pos) {
     ASSERT(offset_in_bytes >= 0);
-    ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
+    // May be null if field is not an instance.
+    ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     SetInputAt(0, instance);
   }
 
@@ -4382,7 +4383,8 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
         field_(field),
         token_pos_(token_pos) {
     ASSERT(field->IsZoneHandle());
-    ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
+    // May be null if field is not an instance.
+    ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     SetInputAt(0, instance);
   }
 
@@ -4457,7 +4459,7 @@ class InstantiateTypeInstr : public TemplateDefinition<1, Throws> {
         token_pos_(token_pos),
         type_(type),
         instantiator_class_(instantiator_class) {
-    ASSERT(type.IsZoneHandle());
+    ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     SetInputAt(0, instantiator);
   }
 

@@ -2072,7 +2072,6 @@ void ClassFinalizer::CreateForwardingConstructors(
   const String& mixin_name = String::Handle(mixin_app.Name());
   const Class& super_class = Class::Handle(mixin_app.SuperClass());
   const String& super_name = String::Handle(super_class.Name());
-  const Type& dynamic_type = Type::Handle(Type::DynamicType());
   const Array& functions = Array::Handle(super_class.functions());
   const intptr_t num_functions = functions.Length();
   Function& func = Function::Handle();
@@ -2105,7 +2104,7 @@ void ClassFinalizer::CreateForwardingConstructors(
       clone.set_num_fixed_parameters(func.num_fixed_parameters());
       clone.SetNumOptionalParameters(func.NumOptionalParameters(),
                                      func.HasOptionalPositionalParameters());
-      clone.set_result_type(dynamic_type);
+      clone.set_result_type(Object::dynamic_type());
       clone.set_is_debuggable(false);
 
       const intptr_t num_parameters = func.NumParameters();
@@ -2117,7 +2116,7 @@ void ClassFinalizer::CreateForwardingConstructors(
       // The parameter types of the cloned constructor are 'dynamic'.
       clone.set_parameter_types(Array::Handle(Array::New(num_parameters)));
       for (intptr_t n = 0; n < num_parameters; n++) {
-        clone.SetParameterTypeAt(n, dynamic_type);
+        clone.SetParameterTypeAt(n, Object::dynamic_type());
       }
       cloned_funcs.Add(clone);
     }
