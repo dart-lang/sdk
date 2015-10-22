@@ -1556,11 +1556,6 @@ class BuildTypeProviderTask extends SourceBasedAnalysisTask {
  */
 class ComputeConstantDependenciesTask extends ConstantEvaluationAnalysisTask {
   /**
-   * The name of the [RESOLVED_UNIT9] input.
-   */
-  static const String UNIT_INPUT = 'UNIT_INPUT';
-
-  /**
    * The name of the [TYPE_PROVIDER] input.
    */
   static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
@@ -1583,10 +1578,6 @@ class ComputeConstantDependenciesTask extends ConstantEvaluationAnalysisTask {
     //
     // Prepare inputs.
     //
-    // Note: UNIT_INPUT is not needed.  It is merely a bookkeeping dependency
-    // to ensure that resolution has occurred before we attempt to determine
-    // constant dependencies.
-    //
     ConstantEvaluationTarget constant = target;
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     //
@@ -1608,18 +1599,31 @@ class ComputeConstantDependenciesTask extends ConstantEvaluationAnalysisTask {
    * given [target].
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    //
+    // We need to force the computation of the RESOLVED_UNIT9 for each unit
+    // reachable from the target's library so that all of the AST's for the
+    // contructor initializers that we might encounter have been copied into
+    // the element model.
+    //
+    // TODO(brianwilkerson) This could be improved by computing a more accurate
+    // list of the sources containing constructors that are actually referenced.
+    //
     if (target is Element) {
       CompilationUnitElementImpl unit = target
           .getAncestor((Element element) => element is CompilationUnitElement);
+      Source librarySource = unit.librarySource;
       return <String, TaskInput>{
-        UNIT_INPUT: RESOLVED_UNIT9
-            .of(new LibrarySpecificUnit(unit.librarySource, target.source)),
+        'resolvedUnits': IMPORT_EXPORT_SOURCE_CLOSURE.of(librarySource).toList(
+            (Source library) => UNITS.of(library).toList((Source source) =>
+                RESOLVED_UNIT9.of(new LibrarySpecificUnit(library, source)))),
         TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
       };
     } else if (target is ConstantEvaluationTarget_Annotation) {
+      Source librarySource = target.librarySource;
       return <String, TaskInput>{
-        UNIT_INPUT: RESOLVED_UNIT9
-            .of(new LibrarySpecificUnit(target.librarySource, target.source)),
+        'resolvedUnits': IMPORT_EXPORT_SOURCE_CLOSURE.of(librarySource).toList(
+            (Source library) => UNITS.of(library).toList((Source source) =>
+                RESOLVED_UNIT9.of(new LibrarySpecificUnit(library, source)))),
         TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
       };
     }
@@ -3925,6 +3929,10 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
     unit.accept(visitor);
     //
     // Record outputs.
+    //
+    // TODO(brianwilkerson) This task modifies the element model (by copying the
+    // AST's for constructor initializers into it) but does not produce an
+    // updated version of the element model.
     //
     outputs[RESOLVE_UNIT_ERRORS] = errorListener.errors;
     outputs[RESOLVED_UNIT9] = unit;
