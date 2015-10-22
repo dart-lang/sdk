@@ -3751,7 +3751,7 @@ class FunctionTypeInfoDecoderRing {
   bool get _hasReturnType => JS('bool', '"ret" in #', _typeData);
   get _returnType => JS('', '#.ret', _typeData);
 
-  bool get _isVoid => JS('bool', '!!#.void', _typeData);
+  bool get _isVoid => JS('bool', '!!#.v', _typeData);
 
   bool get _hasArguments => JS('bool', '"args" in #', _typeData);
   List get _arguments => JS('JSExtendableArray', '#.args', _typeData);
