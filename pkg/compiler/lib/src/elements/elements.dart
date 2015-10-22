@@ -88,8 +88,6 @@ class ElementKind {
       const ElementKind('factory_constructor', ElementCategory.FACTORY);
   static const ElementKind FIELD =
       const ElementKind('field', ElementCategory.VARIABLE);
-  static const ElementKind FIELD_LIST =
-      const ElementKind('field_list', ElementCategory.NONE);
   static const ElementKind GENERATIVE_CONSTRUCTOR_BODY =
       const ElementKind('generative_constructor_body', ElementCategory.NONE);
   static const ElementKind COMPILATION_UNIT =
@@ -274,7 +272,7 @@ abstract class Element implements Entity {
   bool get isInitializingFormal;
 
   /// `true` if this element represents a resolution error.
-  bool get isErroneous;
+  bool get isError;
 
   /// `true` if this element represents an ambiguous name.
   ///
@@ -282,6 +280,10 @@ abstract class Element implements Entity {
   /// by the same name. If an ambiguous name is resolved an warning or error
   /// is produced.
   bool get isAmbiguous;
+
+  /// True if there has been errors during resolution or parsing of this
+  /// element.
+  bool get isMalformed;
 
   /// `true` if this element represents an entity whose access causes one or
   /// more warnings.
@@ -424,9 +426,16 @@ abstract class Element implements Entity {
 
 class Elements {
   static bool isUnresolved(Element e) {
-    return e == null || e.isErroneous;
+    return e == null || e.isMalformed;
   }
-  static bool isErroneous(Element e) => e != null && e.isErroneous;
+
+  static bool isError(Element e) {
+    return e != null && e.isError;
+  }
+
+  static bool isMalformed(Element e) {
+    return e != null && e.isMalformed;
+  }
 
   /// Unwraps [element] reporting any warnings attached to it, if any.
   static Element unwrap(Element element,
@@ -787,7 +796,7 @@ class Elements {
 /// or otherwise invalid.
 ///
 /// Accessing any field or calling any method defined on [ErroneousElement]
-/// except [isErroneous] will currently throw an exception. (This might
+/// except [isError] will currently throw an exception. (This might
 /// change when we actually want more information on the erroneous element,
 /// e.g., the name of the element we were trying to resolve.)
 ///

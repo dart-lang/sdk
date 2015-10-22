@@ -546,7 +546,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       result = resolveConstructor(result.type, diagnosticNode, '');
     } else {
       Element element = result.element;
-      if (element.isErroneous) {
+      if (element.isMalformed) {
         result = constructorResultForErroneous(diagnosticNode, element);
       } else {
         result = reportAndCreateErroneousConstructorElement(
@@ -576,7 +576,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     assert(invariant(node.receiver, receiver != null,
         message: 'No result returned for $node.receiver.'));
     if (receiver.kind != null) {
-      assert(invariant(node, receiver.element.isErroneous,
+      assert(invariant(node, receiver.element.isMalformed,
           message: "Unexpected prefix result: $receiver."));
       // We have already found an error.
       return receiver;
@@ -634,7 +634,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
           resolver.enclosingElement, name,
           MessageKind.CANNOT_RESOLVE,
           {'name': name});
-    } else if (element.isErroneous) {
+    } else if (element.isMalformed) {
       return constructorResultForErroneous(node, element);
     } else if (element.isClass) {
       ClassElement cls = element;

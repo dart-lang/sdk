@@ -830,7 +830,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     // initializers are handled correctly.
     ConstructorElement implementation = target.implementation;
 
-    if (implementation.isErroneous) {
+    if (implementation.isMalformed) {
       // TODO(johnniwinther): This should probably be an [ErroneousAstConstant].
       return new AstConstant(context, node, new ConstructedConstantExpression(
               type, constructor, callStructure, const <ConstantExpression>[]),
@@ -1089,7 +1089,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    * parameters (like [:this.x:]), also updates the [fieldValues] map.
    */
   void assignArgumentsToParameters(List<AstConstant> arguments) {
-    if (constructor.isErroneous) return;
+    if (constructor.isMalformed) return;
     // Assign arguments to parameters.
     FunctionSignature signature = constructor.functionSignature;
     int index = 0;
@@ -1193,7 +1193,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    * native JavaScript constructor.
    */
   void evaluateConstructorFieldValues(List<AstConstant> arguments) {
-    if (constructor.isErroneous) return;
+    if (constructor.isMalformed) return;
     reporter.withCurrentElement(constructor, () {
       assignArgumentsToParameters(arguments);
       evaluateConstructorInitializers();

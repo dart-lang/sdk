@@ -975,7 +975,7 @@ class LibraryDependencyNode {
 
     Element existingElement = exportScope[name];
     if (existingElement != null && existingElement != element) {
-      if (existingElement.isErroneous) {
+      if (existingElement.isMalformed) {
         createDuplicateExportMessage(element, exports);
         createDuplicateExportDeclMessage(element, exports);
         element = existingElement;

@@ -72,7 +72,7 @@ class ResolverTask extends CompilerTask {
 
   ResolutionImpact resolve(Element element) {
     return measure(() {
-      if (Elements.isErroneous(element)) {
+      if (Elements.isMalformed(element)) {
         // TODO(johnniwinther): Add a predicate for this.
         assert(invariant(element, element is! ErroneousElement,
             message: "Element $element expected to have parse errors."));
@@ -296,12 +296,12 @@ class ResolverTask extends CompilerTask {
           // resolved. This is the only place where the resolver is
           // seeing this element.
           element.computeType(resolution);
-          if (!target.isErroneous) {
+          if (!target.isMalformed) {
             registry.registerImplicitSuperCall(target);
           }
           return registry.worldImpact;
         } else {
-          assert(element.isDeferredLoaderGetter || element.isErroneous);
+          assert(element.isDeferredLoaderGetter || element.isMalformed);
           _ensureTreeElements(element);
           return const ResolutionImpact();
         }
@@ -830,7 +830,7 @@ class ResolverTask extends CompilerTask {
       reporter.internalError(member,
           "No abstract field for accessor");
     } else if (!identical(lookupElement.kind, ElementKind.ABSTRACT_FIELD)) {
-      if (lookupElement.isErroneous || lookupElement.isAmbiguous) return;
+      if (lookupElement.isMalformed || lookupElement.isAmbiguous) return;
       reporter.internalError(member,
           "Inaccessible abstract field for accessor");
     }

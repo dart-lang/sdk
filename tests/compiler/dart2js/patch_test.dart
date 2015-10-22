@@ -972,7 +972,7 @@ Future testEffectiveTarget() async {
 
   ConstructorElement forwardTwo = clsA.lookupConstructor("forwardTwo");
   target = forwardTwo.effectiveTarget;
-  Expect.isFalse(forwardTwo.isErroneous);
+  Expect.isFalse(forwardTwo.isMalformed);
   Expect.isFalse(target.isPatch);
   Expect.equals("originTarget", target.name);
 }

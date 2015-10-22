@@ -58,7 +58,7 @@ abstract class ElementX extends Element with ElementCommon {
   List<MetadataAnnotation> metadataInternal;
 
   ElementX(this.name, this.kind, this.enclosingElement) {
-    assert(isErroneous || implementationLibrary != null);
+    assert(isError || implementationLibrary != null);
   }
 
   Modifiers get modifiers => Modifiers.EMPTY;
@@ -321,6 +321,8 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   bool get isSynthesized => true;
 
   bool get isCyclicRedirection => false;
+
+  bool get isMalformed => true;
 
   PrefixElement get redirectionDeferredPrefix => null;
 
@@ -635,7 +637,7 @@ class DuplicatedElementX extends AmbiguousElementX {
       : super(messageKind, messageArguments, enclosingElement, existingElement,
               newElement);
 
-  bool get isErroneous => true;
+  bool get isMalformed => true;
 }
 
 class ScopeX {
@@ -1706,7 +1708,7 @@ class ErroneousFieldElementX extends ElementX
 
   get initializer => null;
 
-  bool get isErroneous => true;
+  bool get isMalformed => true;
 
   get nestedClosures {
     throw new UnsupportedError("nestedClosures");
@@ -1912,7 +1914,7 @@ class ErroneousInitializingFormalElementX extends ParameterElementX
 
   bool get isLocal => false;
 
-  bool get isErroneous => true;
+  bool get isMalformed => true;
 
   DynamicType get type => const DynamicType();
 }
@@ -2279,7 +2281,7 @@ abstract class ConstructorElementX extends FunctionElementX
   }
 
   ConstructorElement get effectiveTarget {
-    if (Elements.isErroneous(immediateRedirectionTarget)) {
+    if (Elements.isMalformed(immediateRedirectionTarget)) {
       return immediateRedirectionTarget;
     }
     assert(!isRedirectingFactory || internalEffectiveTarget != null);
@@ -2434,7 +2436,7 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
 
   void _computeSignature(Resolution resolution) {
     if (hasFunctionSignature) return;
-    if (definingConstructor.isErroneous) {
+    if (definingConstructor.isMalformed) {
       functionSignature = new FunctionSignatureX(
           type: new FunctionType.synthesized(enclosingClass.thisType));
     }

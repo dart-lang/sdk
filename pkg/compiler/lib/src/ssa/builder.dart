@@ -2022,7 +2022,7 @@ class SsaBuilder extends ast.Visitor
       }
 
       Element target = constructor.definingConstructor.implementation;
-      bool match = !target.isErroneous &&
+      bool match = !target.isMalformed &&
           CallStructure.addForwardingElementArgumentsToList(
               constructor,
               arguments,
@@ -3475,7 +3475,7 @@ class SsaBuilder extends ast.Visitor
       handleInvalidStaticGet(node, element);
     } else {
       // This happens when [element] has parse errors.
-      assert(invariant(node, element == null || element.isErroneous));
+      assert(invariant(node, element == null || element.isMalformed));
       // TODO(ahe): Do something like the above, that is, emit a runtime
       // error.
       stack.add(graph.addConstantNull(compiler));
@@ -3764,13 +3764,11 @@ class SsaBuilder extends ast.Visitor
         addWithPosition(new HStaticStore(element, value), location);
       }
       stack.add(value);
-    } else if (Elements.isErroneous(element)) {
-      if (element is ErroneousElement) {
-        generateNoSuchSetter(location, element,  send == null ? null : value);
-      } else {
-        // TODO(ahe): Do something like [generateWrongArgumentCountError].
-        stack.add(graph.addConstantNull(compiler));
-      }
+    } else if (Elements.isError(element)) {
+      generateNoSuchSetter(location, element,  send == null ? null : value);
+    } else if (Elements.isMalformed(element)) {
+      // TODO(ahe): Do something like [generateWrongArgumentCountError].
+      stack.add(graph.addConstantNull(compiler));
     } else {
       stack.add(value);
       LocalElement local = element;
@@ -5136,7 +5134,7 @@ class SsaBuilder extends ast.Visitor
     // TODO(5347): Try to avoid the need for calling [implementation] before
     // calling [makeStaticArgumentList].
     constructorImplementation = constructor.implementation;
-    if (constructorImplementation.isErroneous ||
+    if (constructorImplementation.isMalformed ||
         !callStructure.signatureApplies(
             constructorImplementation.functionSignature)) {
       generateWrongArgumentCountError(send, constructor, send.arguments);
@@ -5724,16 +5722,11 @@ class SsaBuilder extends ast.Visitor
   void bulkHandleNew(ast.NewExpression node, [_]) {
     Element element = elements[node.send];
     final bool isSymbolConstructor = element == compiler.symbolConstructor;
-    if (!Elements.isErroneous(element)) {
+    if (!Elements.isMalformed(element)) {
       ConstructorElement function = element;
       element = function.effectiveTarget;
     }
-    if (Elements.isErroneous(element)) {
-      if (element is !ErroneousElement) {
-        // TODO(ahe): Do something like [generateWrongArgumentCountError].
-        stack.add(graph.addConstantNull(compiler));
-        return;
-      }
+    if (Elements.isError(element)) {
       ErroneousElement error = element;
       if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
         generateThrowNoSuchMethod(
@@ -5745,6 +5738,9 @@ class SsaBuilder extends ast.Visitor
         Message message = template.message(error.messageArguments);
         generateRuntimeError(node.send, message.toString());
       }
+    } else if (Elements.isMalformed(element)) {
+      // TODO(ahe): Do something like [generateWrongArgumentCountError].
+      stack.add(graph.addConstantNull(compiler));
     } else if (node.isConst) {
       stack.add(addConstant(node));
       if (isSymbolConstructor) {
@@ -6881,7 +6877,7 @@ class SsaBuilder extends ast.Visitor
       return;
     }
 
-    if (getter.isErroneous) {
+    if (getter.isMalformed) {
       generateStaticUnresolvedGet(node, getter);
     } else if (getter.isField) {
       generateStaticFieldGet(node, getter);

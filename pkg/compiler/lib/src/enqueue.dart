@@ -799,7 +799,7 @@ class ResolutionEnqueuer extends Enqueuer {
   }
 
   bool internalAddToWorkList(Element element) {
-    if (element.isErroneous) return false;
+    if (element.isMalformed) return false;
 
     assert(invariant(element, element is AnalyzableElement,
         message: 'Element $element is not analyzable.'));

@@ -1023,8 +1023,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   ElementAccess computeAccess(Send node, String name, Element element,
                               MemberKind memberKind,
                               {bool lookupClassMember: false}) {
-    if (element != null && element.isErroneous) {
-      // An error has already been reported for this node.
+    if (Elements.isMalformed(element)) {
       return const DynamicAccess();
     }
     if (node.receiver != null) {
@@ -1063,7 +1062,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (element == null) {
       // foo() where foo is unresolved.
       return lookupMember(node, thisType, name, memberKind, null);
-    } else if (element.isErroneous) {
+    } else if (element.isMalformed) {
       // foo() where foo is erroneous.
       return const DynamicAccess();
     } else if (element.impliesType) {
@@ -1206,7 +1205,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         DartType type = analyze(node.selector);
         return analyzeInvocation(node, new TypeAccess(type));
       }
-    } else if (Elements.isErroneous(element) && selector == null) {
+    } else if (Elements.isMalformed(element) && selector == null) {
       // exp() where exp is an erroneous construct like `new Unresolved()`.
       DartType type = analyze(node.selector);
       return analyzeInvocation(node, new TypeAccess(type));

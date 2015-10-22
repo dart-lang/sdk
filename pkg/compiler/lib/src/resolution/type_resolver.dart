@@ -165,7 +165,7 @@ class TypeResolver {
           infos: ambiguous.computeInfos(
               registry.mapping.analyzedElement, reporter));
       ;
-    } else if (element.isErroneous) {
+    } else if (element.isMalformed) {
       if (element is ErroneousElement) {
         type = reportFailureAndCreateType(
             element.messageKind, element.messageArguments,

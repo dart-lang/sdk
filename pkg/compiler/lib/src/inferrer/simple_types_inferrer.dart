@@ -901,7 +901,7 @@ class SimpleTypeInferrerVisitor<T>
       T getterType;
       T newType;
 
-      if (Elements.isErroneous(element)) return types.dynamicType;
+      if (Elements.isMalformed(element)) return types.dynamicType;
 
       if (Elements.isStaticOrTopLevelField(element)) {
         Element getterElement = elements[node.selector];
@@ -1260,7 +1260,7 @@ class SimpleTypeInferrerVisitor<T>
                           T rhsType,
                           ast.Node rhs) {
     ArgumentsTypes arguments = new ArgumentsTypes<T>([rhsType], null);
-    if (Elements.isErroneous(element)) {
+    if (Elements.isMalformed(element)) {
       // Code will always throw.
     } else if (Elements.isStaticOrTopLevelField(element)) {
       handleStaticSend(node, setterSelector, setterMask, element, arguments);
@@ -2211,7 +2211,7 @@ class SimpleTypeInferrerVisitor<T>
 
   T visitRedirectingFactoryBody(ast.RedirectingFactoryBody node) {
     Element element = elements.getRedirectingTargetConstructor(node);
-    if (Elements.isErroneous(element)) {
+    if (Elements.isMalformed(element)) {
       recordReturnType(types.dynamicType);
     } else {
       // We don't create a selector for redirecting factories, and

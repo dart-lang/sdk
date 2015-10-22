@@ -376,8 +376,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         if (!inInstanceContext) {
           element = reportCannotResolve(node, name);
         }
-      } else if (element.isErroneous) {
-        // Use the erroneous element.
+      } else if (element.isMalformed) {
+        // Use the malformed element.
       } else {
         if ((element.kind.category & allowedCategory) == 0) {
           element = reportAndCreateErroneousElement(
@@ -824,7 +824,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   /// Compute the [AccessSemantics] corresponding to a super access of [target].
   AccessSemantics computeSuperAccessSemantics(Spannable node, Element target) {
-    if (target.isErroneous) {
+    if (target.isMalformed) {
       return new StaticAccess.unresolvedSuper(target);
     } else if (target.isGetter) {
       return new StaticAccess.superGetter(target);
@@ -850,8 +850,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Element getter,
       Element setter,
       {bool isIndex: false}) {
-    if (getter.isErroneous) {
-      if (setter.isErroneous) {
+    if (getter.isMalformed) {
+      if (setter.isMalformed) {
         return new StaticAccess.unresolvedSuper(getter);
       } else if (setter.isFunction) {
         assert(invariant(node, setter.name == '[]=',
@@ -865,7 +865,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             CompoundAccessKind.UNRESOLVED_SUPER_GETTER, getter, setter);
       }
     } else if (getter.isField) {
-      if (setter.isErroneous) {
+      if (setter.isMalformed) {
         assert(invariant(node, getter.isFinal,
             message: "Unexpected super setter '$setter' for getter '$getter."));
         return new StaticAccess.superFinalField(getter);
@@ -886,7 +886,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             CompoundAccessKind.SUPER_FIELD_SETTER, getter, setter);
       }
     } else if (getter.isGetter) {
-      if (setter.isErroneous) {
+      if (setter.isMalformed) {
         return new CompoundAccessSemantics(
             CompoundAccessKind.UNRESOLVED_SUPER_SETTER, getter, setter);
       } else if (setter.isField) {
@@ -901,7 +901,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else {
       assert(invariant(node, getter.isFunction,
           message: "Unexpected super getter '$getter'."));
-      if (setter.isErroneous) {
+      if (setter.isMalformed) {
         if (isIndex) {
           return new CompoundAccessSemantics(
               CompoundAccessKind.UNRESOLVED_SUPER_SETTER, getter, setter);
@@ -953,10 +953,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Element target) {
 
     target = target.declaration;
-    if (target.isErroneous) {
+    if (target.isMalformed) {
       // This handles elements with parser errors.
-      // TODO(johnniwinther): Elements with parse error should not set
-      // [isErroneous] to `true`.
       return new StaticAccess.unresolved(target);
     }
     if (target.isStatic) {
@@ -2891,7 +2889,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // of parse errors to make [element] erroneous. Fix this!
       member.computeType(resolution);
       registry.registerStaticUse(member);
-      if (member.isErroneous) {
+      if (member.isMalformed) {
         // [member] has parse errors.
         semantics = new StaticAccess.unresolved(member);
       } else if (member.isFunction) {
@@ -2934,10 +2932,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (element.isAmbiguous) {
       return handleAmbiguousSend(node, name, element);
     }
-    if (element.isErroneous) {
+    if (element.isMalformed) {
       // This handles elements with parser errors.
-      // TODO(johnniwinther): Elements with parse error should not set
-      // [isErroneous] to `true`.
       assert(invariant(node, element is! ErroneousElement,
           message: "Unexpected erroneous element $element."));
       return handleErroneousAccess(node, name,
@@ -2976,10 +2972,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (element.isAmbiguous) {
       return handleAmbiguousUpdate(node, name, element);
     }
-    if (element.isErroneous) {
-      // This handles elements with parser errors.
-      // TODO(johnniwinther): Elements with parse error should not set
-      // [isErroneous] to `true`.
+    if (element.isMalformed) {
+      // This handles elements with parser errors..
       assert(invariant(node, element is! ErroneousElement,
           message: "Unexpected erroneous element $element."));
       return handleUpdate(node, name,new StaticAccess.unresolved(element));

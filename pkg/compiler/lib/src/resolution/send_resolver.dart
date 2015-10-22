@@ -33,7 +33,7 @@ abstract class SendResolverMixin {
       return new ConstructorAccessSemantics(
           ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR, constructor, type);
     }
-    if (constructor.isErroneous) {
+    if (constructor.isMalformed) {
       if (constructor is ErroneousElement) {
         ErroneousElement error = constructor;
         if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
@@ -46,7 +46,7 @@ abstract class SendResolverMixin {
     } else if (constructor.isRedirectingFactory) {
       ConstructorElement effectiveTarget = constructor.effectiveTarget;
       if (effectiveTarget == constructor ||
-          effectiveTarget.isErroneous ||
+          effectiveTarget.isMalformed ||
           (mustBeConstant && !effectiveTarget.isConst)) {
         return new ConstructorAccessSemantics(
             ConstructorAccessKind.ERRONEOUS_REDIRECTING_FACTORY,

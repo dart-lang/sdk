@@ -1408,7 +1408,7 @@ class IrBuilder {
     // TODO(johnniwinther): Extract this as a provided strategy.
     if (Elements.isLocal(variableElement)) {
       bodyBuilder.buildLocalVariableSet(variableElement, currentValue);
-    } else if (Elements.isErroneous(variableElement)) {
+    } else if (Elements.isMalformed(variableElement)) {
       bodyBuilder.buildErroneousInvocation(variableElement,
           new Selector.setter(
               new Name(variableElement.name, variableElement.library)),

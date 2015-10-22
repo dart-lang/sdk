@@ -890,7 +890,7 @@ abstract class Compiler {
             Identifiers.main, mainApp);
       }
       mainFunction = backend.helperForMissingMain();
-    } else if (main.isErroneous && main.isSynthesized) {
+    } else if (main.isError && main.isSynthesized) {
       if (main is ErroneousElement) {
         errorElement = main;
       } else {
@@ -1105,7 +1105,7 @@ abstract class Compiler {
 
   void processQueue(Enqueuer world, Element main) {
     world.nativeEnqueuer.processNativeClasses(libraryLoader.libraries);
-    if (main != null && !main.isErroneous) {
+    if (main != null && !main.isMalformed) {
       FunctionElement mainMethod = main;
       mainMethod.computeType(resolution);
       if (mainMethod.functionSignature.parameterCount != 0) {
@@ -1300,7 +1300,7 @@ abstract class Compiler {
 
   void reportUnusedCode() {
     void checkLive(member) {
-      if (member.isErroneous) return;
+      if (member.isMalformed) return;
       if (member.isFunction) {
         if (!enqueuer.resolution.hasBeenProcessed(member)) {
           reporter.reportHintMessage(

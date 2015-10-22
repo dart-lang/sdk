@@ -66,7 +66,7 @@ abstract class PartialElement implements DeclarationSite {
 
   bool hasParseError = false;
 
-  bool get isErroneous => hasParseError;
+  bool get isMalformed => hasParseError;
 
   DeclarationSite get declarationSite => this;
 }
@@ -344,7 +344,7 @@ class PartialMetadataAnnotation extends MetadataAnnotationX
 
   PartialMetadataAnnotation(this.beginToken, this.tokenAfterEndToken);
 
-  bool get isErroneous => hasParseError;
+  bool get isMalformed => hasParseError;
 
   DeclarationSite get declarationSite => this;
 

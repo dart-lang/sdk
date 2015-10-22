@@ -259,8 +259,8 @@ class DeferredLoadTask extends CompilerTask {
       Set<ConstantValue> constants,
       isMirrorUsage) {
 
-    if (element.isErroneous) {
-      // Erroneous elements are ignored.
+    if (element.isMalformed) {
+      // Malformed elements are ignored.
       return;
     }
 

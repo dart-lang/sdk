@@ -149,7 +149,7 @@ class TreeElementMapping extends TreeElements {
     // TODO(johnniwinther): Simplify this invariant to use only declarations in
     // [TreeElements].
     assert(invariant(node, () {
-      if (!element.isErroneous && analyzedElement != null && element.isPatch) {
+      if (!element.isMalformed && analyzedElement != null && element.isPatch) {
         return analyzedElement.implementationLibrary.isPatch;
       }
       return true;

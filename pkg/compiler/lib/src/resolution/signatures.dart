@@ -310,7 +310,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     int requiredParameterCount = 0;
     if (formalParameters == null) {
       if (!element.isGetter) {
-        if (element.isErroneous) {
+        if (element.isMalformed) {
           // If the element is erroneous, an error should already have been
           // reported. In the case of parse errors, it is possible that there
           // are formal parameters, but something else in the method failed to

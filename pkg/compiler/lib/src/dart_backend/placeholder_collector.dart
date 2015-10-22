@@ -97,7 +97,7 @@ class SendVisitor extends Visitor {
 
   visitDynamicSend(Send node) {
     final element = elements[node];
-    if (element == null || !element.isErroneous) {
+    if (element == null || !element.isMalformed) {
       collector.tryMakeMemberPlaceholder(node.selector);
     }
   }
@@ -107,7 +107,7 @@ class SendVisitor extends Visitor {
     // element == null means dynamic property access.
     if (element == null) {
       collector.tryMakeMemberPlaceholder(node.selector);
-    } else if (element.isErroneous) {
+    } else if (element.isMalformed) {
       collector.makeUnresolvedPlaceholder(node);
       return;
     } else if (element.isPrefix) {
@@ -489,7 +489,7 @@ class PlaceholderCollector extends Visitor {
     Element constructor = treeElements[send];
     assert(constructor != null);
     assert(send.receiver == null);
-    if (!Elements.isErroneous(constructor)) {
+    if (!Elements.isMalformed(constructor)) {
       tryMakeConstructorPlaceholder(node.send.selector, constructor);
       // TODO(smok): Should this be in visitNamedArgument?
       // Field names can be exposed as names of optional arguments, e.g.
@@ -530,7 +530,7 @@ class PlaceholderCollector extends Visitor {
 
   visitSendSet(SendSet send) {
     Element element = treeElements[send];
-    if (Elements.isErroneous(element)) {
+    if (Elements.isMalformed(element)) {
       // Complicated case: constructs like receiver.selector++ can resolve
       // to ErroneousElement.  Fortunately, receiver.selector still
       // can be resoved via treeElements[send.selector], that's all
@@ -540,7 +540,7 @@ class PlaceholderCollector extends Visitor {
     tryMakePrivateIdentifier(send.selector, element);
     if (element == null) {
       if (send.receiver != null) tryMakeMemberPlaceholder(send.selector);
-    } else if (!element.isErroneous) {
+    } else if (!element.isMalformed) {
       if (Elements.isStaticOrTopLevel(element)) {
         // TODO(smok): Worth investigating why sometimes we get getter/setter
         // here and sometimes abstract field.
