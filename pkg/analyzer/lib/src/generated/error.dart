@@ -296,7 +296,10 @@ class AnalysisErrorWithProperties extends AnalysisError {
 }
 
 /**
- * The error codes used for errors in analysis options files.
+ * The error codes used for errors in analysis options files. The convention for
+ * this class is for the name of the error code to indicate the problem that
+ * caused the error to be generated and for the error message to explain what is
+ * wrong and, when appropriate, how the problem can be corrected.
  */
 class AnalysisOptionsErrorCode extends ErrorCode {
   /**
@@ -323,7 +326,10 @@ class AnalysisOptionsErrorCode extends ErrorCode {
 }
 
 /**
- * The error codes used for warnings in analysis options files.
+ * The error codes used for warnings in analysis options files. The convention
+ * for this class is for the name of the error code to indicate the problem that
+ * caused the error to be generated and for the error message to explain what is
+ * wrong and, when appropriate, how the problem can be corrected.
  */
 class AnalysisOptionsWarningCode extends ErrorCode {
   /**
