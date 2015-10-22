@@ -567,7 +567,6 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
         node,
         malformedIsError: inConstContext,
         deferredIsMalformed: false);
-    registry.registerRequiredType(type, resolver.enclosingElement);
     return constructorResultForType(node, type);
   }
 

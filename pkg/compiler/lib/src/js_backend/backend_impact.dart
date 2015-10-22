@@ -151,6 +151,11 @@ class BackendImpacts {
       staticUses: [
         helpers.compiler.symbolValidatedConstructor]);
 
+  BackendImpact get constSymbol => new BackendImpact(
+      instantiatedClasses: [
+        compiler.symbolClass],
+      staticUses: [
+        compiler.symbolConstructor.declaration]);
 
   BackendImpact get incDecOperation =>
       needsInt('Needed for the `+ 1` or `- 1` operation of ++/--.');
@@ -220,6 +225,8 @@ class BackendImpacts {
         helpers.createRuntimeType]);
 
   BackendImpact get stackTraceInCatch => new BackendImpact(
+      instantiatedClasses: [
+        helpers.compiler.stackTraceClass],
       staticUses: [
         helpers.traceFromException]);
 
@@ -286,4 +293,8 @@ class BackendImpacts {
         // JavaScript object prototype, so we make sure
         // [:defineProperty:] is compiled.
         helpers.defineProperty]);
+
+  BackendImpact get closure => new BackendImpact(
+      instantiatedClasses: [
+        helpers.compiler.functionClass]);
 }

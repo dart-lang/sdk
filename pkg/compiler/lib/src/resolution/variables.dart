@@ -54,7 +54,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
 
   Identifier visitIdentifier(Identifier node) {
     // The variable is initialized to null.
-    registry.registerInstantiatedClass(compiler.nullClass);
+    registry.registerInstantiatedType(compiler.coreTypes.nullType);
     if (definitions.modifiers.isConst) {
       reporter.reportErrorMessage(
           node, MessageKind.CONST_WITHOUT_INITIALIZER);

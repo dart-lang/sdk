@@ -185,9 +185,7 @@ class ListLiteralUse {
 
 /// Mutable implementation of [WorldImpact] used to transform
 /// [ResolutionImpact] to [WorldImpact].
-// TODO(johnniwinther): Remove [Registry] when dependency is tracked directly
-// on [WorldImpact].
-class TransformedWorldImpact extends WorldImpact {
+class TransformedWorldImpact implements WorldImpact {
   final ResolutionImpact worldImpact;
 
   Setlet<Element> _staticUses;
@@ -229,6 +227,9 @@ class TransformedWorldImpact extends WorldImpact {
 
   @override
   Iterable<DartType> get isChecks => worldImpact.isChecks;
+
+  @override
+  Iterable<DartType> get onCatchTypes => worldImpact.onCatchTypes;
 
   _unsupported(String message) => throw new UnsupportedError(message);
 
@@ -294,7 +295,7 @@ class TransformedWorldImpact extends WorldImpact {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('TransformedWorldImpact($worldImpact)');
-    sb.write(super.toString());
+    WorldImpact.printOn(sb, this);
     return sb.toString();
   }
 }

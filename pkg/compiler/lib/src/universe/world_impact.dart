@@ -40,15 +40,23 @@ class WorldImpact {
 
   Iterable<DartType> get asCasts => const <DartType>[];
 
+  Iterable<DartType> get onCatchTypes => const <DartType>[];
+
   Iterable<MethodElement> get closurizedFunctions => const <MethodElement>[];
 
   Iterable<LocalFunctionElement> get closures => const <LocalFunctionElement>[];
 
   Iterable<DartType> get typeLiterals => const <DartType>[];
 
-  String toString() {
-    StringBuffer sb = new StringBuffer();
+  String toString() => dump(this);
 
+  static String dump(WorldImpact worldImpact) {
+    StringBuffer sb = new StringBuffer();
+    printOn(sb, worldImpact);
+    return sb.toString();
+  }
+
+  static void printOn(StringBuffer sb, WorldImpact worldImpact) {
     void add(String title, Iterable iterable) {
       if (iterable.isNotEmpty) {
         sb.write('\n $title:');
@@ -56,19 +64,18 @@ class WorldImpact {
       }
     }
 
-    add('dynamic invocations', dynamicInvocations);
-    add('dynamic getters', dynamicGetters);
-    add('dynamic setters', dynamicSetters);
-    add('static uses', staticUses);
-    add('instantiated types', instantiatedTypes);
-    add('is-checks', isChecks);
-    add('checked-mode checks', checkedModeChecks);
-    add('as-casts', asCasts);
-    add('closurized functions', closurizedFunctions);
-    add('closures', closures);
-    add('type literals', typeLiterals);
-
-    return sb.toString();
+    add('dynamic invocations', worldImpact.dynamicInvocations);
+    add('dynamic getters', worldImpact.dynamicGetters);
+    add('dynamic setters', worldImpact.dynamicSetters);
+    add('static uses', worldImpact.staticUses);
+    add('instantiated types', worldImpact.instantiatedTypes);
+    add('is-checks', worldImpact.isChecks);
+    add('checked-mode checks', worldImpact.checkedModeChecks);
+    add('as-casts', worldImpact.asCasts);
+    add('on-catch-types', worldImpact.onCatchTypes);
+    add('closurized functions', worldImpact.closurizedFunctions);
+    add('closures', worldImpact.closures);
+    add('type literals', worldImpact.typeLiterals);
   }
 }
 
@@ -83,6 +90,7 @@ class WorldImpactBuilder {
   Setlet<DartType> _isChecks;
   Setlet<DartType> _asCasts;
   Setlet<DartType> _checkedModeChecks;
+  Setlet<DartType> _onCatchTypes;
   Setlet<MethodElement> _closurizedFunctions;
   Setlet<LocalFunctionElement> _closures;
   Setlet<DartType> _typeLiterals;
@@ -199,6 +207,19 @@ class WorldImpactBuilder {
   Iterable<DartType> get checkedModeChecks {
     return _checkedModeChecks != null
         ? _checkedModeChecks : const <DartType>[];
+  }
+
+  void registerOnCatchType(DartType type) {
+    assert(type != null);
+    if (_onCatchTypes == null) {
+      _onCatchTypes = new Setlet<DartType>();
+    }
+    _onCatchTypes.add(type);
+  }
+
+  Iterable<DartType> get onCatchTypes {
+    return _onCatchTypes != null
+        ? _onCatchTypes : const <DartType>[];
   }
 
   void registerClosurizedFunction(MethodElement element) {

@@ -227,8 +227,6 @@ abstract class Backend {
   /// Call this method to enable support for isolates.
   void enableIsolateSupport(Enqueuer enqueuer) {}
 
-  void registerRequiredType(DartType type) {}
-
   void registerConstSymbol(String name) {}
 
   bool isNullImplementation(ClassElement cls) {

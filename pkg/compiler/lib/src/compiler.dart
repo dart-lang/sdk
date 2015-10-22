@@ -1555,6 +1555,12 @@ class _CompilerCoreTypes implements CoreTypes {
   }
 
   @override
+  InterfaceType get stackTraceType {
+    stackTraceClass.ensureResolved(resolution);
+    return stackTraceClass.rawType;
+  }
+
+  @override
   InterfaceType iterableType([DartType elementType]) {
     iterableClass.ensureResolved(resolution);
     InterfaceType type = iterableClass.rawType;

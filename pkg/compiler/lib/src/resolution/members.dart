@@ -228,14 +228,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return element;
   }
 
-  doInCheckContext(action()) {
-    bool wasInCheckContext = inCheckContext;
-    inCheckContext = true;
-    var result = action();
-    inCheckContext = wasInCheckContext;
-    return result;
-  }
-
   doInPromotionScope(Node node, action()) {
     promotionScope = promotionScope.prepend(node);
     var result = action();
@@ -639,7 +631,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     enclosingElement = previousEnclosingElement;
 
     registry.registerClosure(function);
-    registry.registerInstantiatedClass(compiler.functionClass);
     return const NoneResult();
   }
 
@@ -3526,8 +3517,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ConstantResult visitLiteralSymbol(LiteralSymbol node) {
-    registry.registerInstantiatedClass(compiler.symbolClass);
-    registry.registerStaticUse(compiler.symbolConstructor.declaration);
     String name = node.slowNameString;
     registry.registerConstSymbol(name);
     if (!validateSymbol(node, name, reportError: false)) {
@@ -3644,15 +3633,17 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     // redirecting constructor.
     ClassElement targetClass = redirectionTarget.enclosingClass;
     InterfaceType type = registry.getType(node);
-    FunctionType targetType = redirectionTarget.computeType(resolution)
-        .subst(type.typeArguments, targetClass.typeVariables);
+    FunctionType targetConstructorType =
+        redirectionTarget.computeType(resolution)
+            .subst(type.typeArguments, targetClass.typeVariables);
     FunctionType constructorType = constructor.computeType(resolution);
-    bool isSubtype = compiler.types.isSubtype(targetType, constructorType);
+    bool isSubtype = compiler.types.isSubtype(
+        targetConstructorType, constructorType);
     if (!isSubtype) {
       reporter.reportWarningMessage(
           node,
           MessageKind.NOT_ASSIGNABLE,
-          {'fromType': targetType, 'toType': constructorType});
+          {'fromType': targetConstructorType, 'toType': constructorType});
       // TODO(johnniwinther): Handle this (potentially) erroneous case.
       isValidAsConstant = false;
     }
@@ -3675,8 +3666,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     registry.registerStaticUse(redirectionTarget);
     // TODO(johnniwinther): Register the effective target type instead.
-    registry.registerInstantiatedClass(
-        redirectionTarget.enclosingClass.declaration);
+    registry.registerInstantiatedType(
+        redirectionTarget.enclosingClass.thisType
+            .subst(type.typeArguments, targetClass.typeVariables));
     if (isSymbolConstructor) {
       registry.registerSymbolConstructor();
     }
@@ -3989,7 +3981,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         deferredIsMalformed: deferredIsMalformed);
     if (inCheckContext) {
       registry.registerCheckedModeCheck(type);
-      registry.registerRequiredType(type, enclosingElement);
     }
     return type;
   }
@@ -4033,7 +4024,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         listType,
         isConstant: node.isConst,
         isEmpty: node.elements.isEmpty);
-    registry.registerRequiredType(listType, enclosingElement);
     if (node.isConst) {
       List<ConstantExpression> constantExpressions = <ConstantExpression>[];
       inConstantContext(() {
@@ -4357,9 +4347,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         mapType,
         isConstant: node.isConst,
         isEmpty: node.entries.isEmpty);
-    registry.registerRequiredType(mapType, enclosingElement);
-    if (node.isConst) {
 
+    if (node.isConst) {
       List<ConstantExpression> keyExpressions = <ConstantExpression>[];
       List<ConstantExpression> valueExpressions = <ConstantExpression>[];
       inConstantContext(() {
@@ -4653,26 +4642,29 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
 
     Scope blockScope = new BlockScope(scope);
-    doInCheckContext(() => visitIn(node.type, blockScope));
+    TypeResult exceptionTypeResult = visitIn(node.type, blockScope);
     visitIn(node.formals, blockScope);
     var oldInCatchBlock = inCatchBlock;
     inCatchBlock = true;
     visitIn(node.block, blockScope);
     inCatchBlock = oldInCatchBlock;
 
-    if (node.type != null && exceptionDefinition != null) {
-      DartType exceptionType = registry.getType(node.type);
-      Node exceptionVariable = exceptionDefinition.definitions.nodes.head;
-      VariableElementX exceptionElement =
-          registry.getDefinition(exceptionVariable);
-      exceptionElement.variables.type = exceptionType;
+    if (exceptionTypeResult != null) {
+      DartType exceptionType = exceptionTypeResult.type;
+      if (exceptionDefinition != null) {
+        Node exceptionVariable = exceptionDefinition.definitions.nodes.head;
+        VariableElementX exceptionElement =
+            registry.getDefinition(exceptionVariable);
+        exceptionElement.variables.type = exceptionType;
+      }
+      registry.registerOnCatchType(exceptionType);
     }
     if (stackTraceDefinition != null) {
       Node stackTraceVariable = stackTraceDefinition.definitions.nodes.head;
       VariableElementX stackTraceElement =
           registry.getDefinition(stackTraceVariable);
-      registry.registerInstantiatedClass(compiler.stackTraceClass);
-      stackTraceElement.variables.type = compiler.stackTraceClass.rawType;
+      InterfaceType stackTraceType = coreTypes.stackTraceType;
+      stackTraceElement.variables.type = stackTraceType;
     }
     return const NoneResult();
   }

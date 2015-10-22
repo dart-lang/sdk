@@ -1589,7 +1589,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   DartType visitLiteralSymbol(LiteralSymbol node) {
-    return compiler.symbolClass.rawType;
+    return coreTypes.symbolType;
   }
 
   DartType computeConstructorType(ConstructorElement constructor,
@@ -1828,8 +1828,6 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   visitAsyncForIn(AsyncForIn node) {
     DartType elementType = computeForInElementType(node);
     DartType expressionType = analyze(node.expression);
-    // TODO(johnniwinther): Move this to _CompilerCoreTypes.
-    compiler.streamClass.ensureResolved(resolution);
     DartType streamOfDynamic = coreTypes.streamType();
     if (!types.isAssignable(expressionType, streamOfDynamic)) {
       reportMessage(node.expression,

@@ -171,6 +171,7 @@ abstract class Enqueuer {
     if (compiler.enableTypeAssertions) {
       worldImpact.checkedModeChecks.forEach(registerIsCheck);
     }
+    worldImpact.onCatchTypes.forEach(registerIsCheck);
     worldImpact.closurizedFunctions.forEach(registerGetOfStaticFunction);
     worldImpact.closures.forEach(registerClosure);
   }

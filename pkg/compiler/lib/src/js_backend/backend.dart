@@ -1604,18 +1604,6 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerRequiredType(DartType type) {
-    // If [argument] has type variables or is a type variable, this method
-    // registers a RTI dependency between the class where the type variable is
-    // defined (that is the enclosing class of the current element being
-    // resolved) and the class of [type]. If the class of [type] requires RTI,
-    // then the class of the type variable does too.
-    ClassElement contextClass = Types.getClassContext(type);
-    if (contextClass != null) {
-      rti.registerRtiDependency(type.element, contextClass);
-    }
-  }
-
   bool classNeedsRti(ClassElement cls) {
     return rti.classesNeedingRti.contains(cls.declaration) ||
         compiler.enabledRuntimeType;
@@ -3074,6 +3062,11 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
           break;
       }
     }
+
+    for (InterfaceType type in worldImpact.instantiatedTypes) {
+      registerRequiredType(type);
+    }
+
     for (DartType type in worldImpact.isChecks) {
       onIsCheck(type, transformed);
     }
@@ -3091,8 +3084,8 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
       }
     }
 
-    for (DartType requiredType in worldImpact.requiredTypes) {
-      backend.registerRequiredType(requiredType);
+    for (DartType type in worldImpact.onCatchTypes) {
+      onIsCheck(type, transformed);
     }
 
     for (MapLiteralUse mapLiteralUse in worldImpact.mapLiterals) {
@@ -3103,12 +3096,14 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
       } else {
         transformed.registerInstantiatedType(mapLiteralUse.type);
       }
+      registerRequiredType(mapLiteralUse.type);
     }
 
     for (ListLiteralUse listLiteralUse in worldImpact.listLiterals) {
       // TODO(johnniwinther): Use the [isConstant] and [isEmpty] property when
       // factory constructors are registered directly.
       transformed.registerInstantiatedType(listLiteralUse.type);
+      registerRequiredType(listLiteralUse.type);
     }
 
     if (worldImpact.typeLiterals.isNotEmpty) {
@@ -3127,17 +3122,24 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
       }
     }
 
-    for (String constSymbolName in worldImpact.constSymbolNames) {
-      backend.registerConstSymbol(constSymbolName);
-    }
-
-    for (LocalFunctionElement closure in worldImpact.closures) {
-      if (closure.computeType(backend.resolution).containsTypeVariables) {
-        backend.compiler.enqueuer.resolution.universe
-            .closuresWithFreeTypeVariables.add(closure);
-        registerBackendImpact(transformed, impacts.computeSignature);
+    if (worldImpact.constSymbolNames.isNotEmpty) {
+      registerBackendImpact(transformed, impacts.constSymbol);
+      for (String constSymbolName in worldImpact.constSymbolNames) {
+        backend.registerConstSymbol(constSymbolName);
       }
     }
+
+    if (worldImpact.closures.isNotEmpty) {
+      registerBackendImpact(transformed, impacts.closure);
+      for (LocalFunctionElement closure in worldImpact.closures) {
+        if (closure.computeType(backend.resolution).containsTypeVariables) {
+          backend.compiler.enqueuer.resolution.universe
+              .closuresWithFreeTypeVariables.add(closure);
+          registerBackendImpact(transformed, impacts.computeSignature);
+        }
+      }
+    }
+
     return transformed;
   }
 
@@ -3162,8 +3164,22 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     }
   }
 
+  /// Register [type] as required for the runtime type information system.
+  void registerRequiredType(DartType type) {
+    // If [argument] has type variables or is a type variable, this method
+    // registers a RTI dependency between the class where the type variable is
+    // defined (that is the enclosing class of the current element being
+    // resolved) and the class of [type]. If the class of [type] requires RTI,
+    // then the class of the type variable does too.
+    ClassElement contextClass = Types.getClassContext(type);
+    if (contextClass != null) {
+      backend.rti.registerRtiDependency(type.element, contextClass);
+    }
+  }
+
   // TODO(johnniwinther): Maybe split this into [onAssertType] and [onTestType].
   void onIsCheck(DartType type, TransformedWorldImpact transformed) {
+    registerRequiredType(type);
     type.computeUnaliased(backend.resolution);
     type = type.unaliased;
     registerBackendImpact(transformed, impacts.typeCheck);

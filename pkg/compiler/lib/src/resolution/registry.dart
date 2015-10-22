@@ -90,27 +90,11 @@ class EagerRegistry extends Registry {
 class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
   final String name;
   Setlet<Feature> _features;
-  // TODO(johnniwinther): This seems to be a union of other sets.
-  Setlet<DartType> _requiredTypes;
   Setlet<MapLiteralUse> _mapLiterals;
   Setlet<ListLiteralUse> _listLiterals;
   Setlet<String> _constSymbolNames;
 
   _ResolutionWorldImpact(this.name);
-
-  void registerRequiredType(DartType type) {
-    assert(type != null);
-    if (_requiredTypes == null) {
-      _requiredTypes = new Setlet<DartType>();
-    }
-    _requiredTypes.add(type);
-  }
-
-  @override
-  Iterable<DartType> get requiredTypes {
-    return _requiredTypes != null
-        ? _requiredTypes : const <DartType>[];
-  }
 
   void registerMapLiteral(MapLiteralUse mapLiteralUse) {
     assert(mapLiteralUse != null);
@@ -369,14 +353,6 @@ class ResolutionRegistry extends Registry {
     registerStaticUse(superConstructor);
   }
 
-  // TODO(johnniwinther): Remove this.
-  // Use [registerInstantiatedType] of `rawType` instead.
-  @deprecated
-  void registerInstantiatedClass(ClassElement element) {
-    element.ensureResolved(compiler.resolution);
-    registerInstantiatedType(element.rawType);
-  }
-
   void registerLazyField() {
     worldImpact.registerFeature(Feature.LAZY_FIELD);
   }
@@ -404,19 +380,21 @@ class ResolutionRegistry extends Registry {
   /// Register a checked mode check against [type].
   void registerCheckedModeCheck(DartType type) {
     worldImpact.registerCheckedModeCheckedType(type);
-    mapping.addRequiredType(type);
+  }
+
+  /// Register an on-catch clause of [type].
+  void registerOnCatchType(DartType type) {
+    worldImpact.registerOnCatchType(type);
   }
 
   /// Register an is-test or is-not-test of [type].
   void registerIsCheck(DartType type) {
     worldImpact.registerIsCheck(type);
-    mapping.addRequiredType(type);
   }
 
   /// Register an as-cast of [type].
   void registerAsCast(DartType type) {
     worldImpact.registerAsCast(type);
-    mapping.addRequiredType(type);
   }
 
   void registerClosure(LocalFunctionElement element) {
@@ -491,16 +469,10 @@ class ResolutionRegistry extends Registry {
 
   void registerInstantiatedType(InterfaceType type) {
     worldImpact.registerInstantiatedType(type);
-    mapping.addRequiredType(type);
   }
 
   void registerAbstractClassInstantiation() {
     worldImpact.registerFeature(Feature.ABSTRACT_CLASS_INSTANTIATION);
-  }
-
-  void registerRequiredType(DartType type, Element enclosingElement) {
-    worldImpact.registerRequiredType(type);
-    mapping.addRequiredType(type);
   }
 
   void registerStringInterpolation() {

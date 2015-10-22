@@ -319,16 +319,16 @@ class DeferredLoadTask extends CompilerTask {
             elements.add(type.element);
           }
         }
-        for (InterfaceType type in worldImpact.instantiatedTypes) {
-          elements.add(type.element);
+        worldImpact.instantiatedTypes.forEach(collectTypeDependencies);
+        worldImpact.isChecks.forEach(collectTypeDependencies);
+        worldImpact.asCasts.forEach(collectTypeDependencies);
+        worldImpact.onCatchTypes.forEach(collectTypeDependencies);
+        if (compiler.enableTypeAssertions) {
+          worldImpact.checkedModeChecks.forEach(collectTypeDependencies);
         }
 
         TreeElements treeElements = analyzableElement.resolvedAst.elements;
         assert(treeElements != null);
-
-        for (DartType type in treeElements.requiredTypes) {
-          collectTypeDependencies(type);
-        }
 
         treeElements.forEachConstantNode((Node node, _) {
           // Explicitly depend on the backend constants.

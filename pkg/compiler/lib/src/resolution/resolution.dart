@@ -22,6 +22,8 @@ import '../compile_time_constants.dart' show
     ConstantCompiler;
 import '../constants/values.dart' show
     ConstantValue;
+import '../core_types.dart' show
+    CoreTypes;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
@@ -69,6 +71,8 @@ class ResolverTask extends CompilerTask {
   Resolution get resolution => compiler.resolution;
 
   Parsing get parsing => compiler.parsing;
+
+  CoreTypes get coreTypes => compiler.coreTypes;
 
   ResolutionImpact resolve(Element element) {
     return measure(() {
@@ -363,7 +367,7 @@ class ResolverTask extends CompilerTask {
       reporter.reportErrorMessage(
           element, MessageKind.FINAL_WITHOUT_INITIALIZER);
     } else {
-      registry.registerInstantiatedClass(compiler.nullClass);
+      registry.registerInstantiatedType(coreTypes.nullType);
     }
 
     if (Elements.isStaticOrTopLevelField(element)) {

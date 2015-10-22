@@ -42,6 +42,9 @@ abstract class CoreTypes {
   /// The `Type` type defined in 'dart:core'.
   InterfaceType get typeType;
 
+  /// The `StackTrace` type defined in 'dart:core';
+  InterfaceType get stackTraceType;
+
   /// Returns an instance of the `List` type defined in 'dart:core' with
   /// [elementType] as its type argument.
   ///
