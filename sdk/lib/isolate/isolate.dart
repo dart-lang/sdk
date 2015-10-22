@@ -127,29 +127,6 @@ class Isolate {
   external static Isolate get current;
 
   /**
-   * Returns the package root of the current isolate, if any.
-   *
-   * If the isolate is using a [packageMap], this getter returns `null`,
-   * otherwise it returns the package root - a directory that package
-   * URIs are resolved against.
-   */
-  external static Future<Uri> get packageRoot;
-
-  /**
-   * Returns the package mapping of the current isolate, if any.
-   *
-   * If the current isolate is using a [packageRoot], this getter
-   * returns `null`.
-   *
-   * The package map maps the name of a package that is available to the
-   * program, to a URI that package URIs for that package are resolved against.
-   *
-   * Returns an empty map if the isolate does not have a way to resolve package
-   * URIs.
-   */
-  external static Future<Map<String, Uri>> get packageMap;
-
-  /**
    * Creates and spawns an isolate that shares the same code as the current
    * isolate.
    *
@@ -235,8 +212,8 @@ class Isolate {
    *
    * WARNING: The [checked] parameter is not implemented on all platforms yet.
    *
-   * If either the [packageRoot] or the [packageMap] parameter is provided,
-   * it is used to find the location of package sources in the spawned isolate.
+   * If the [packageRoot] parameter is provided, it is used to find the location
+   * of package sources in the spawned isolate.
    *
    * The `packageRoot` URI must be a "file" or "http"/"https" URI that specifies
    * a directory. If it doesn't end in a slash, one will be added before
@@ -244,21 +221,6 @@ class Isolate {
    * Package imports (like `"package:foo/bar.dart"`) in the new isolate are
    * resolved against this location, as by
    * `packageRoot.resolve("foo/bar.dart")`.
-   *
-   * The `packageMap` map maps package names to URIs with the same requirements
-   * as `packageRoot`. Package imports (like `"package:foo/bar/baz.dart"`) in
-   * the new isolate are resolved against the URI for that package (if any),
-   * as by `packages["foo"].resolve("bar/baz.dart")
-   *
-   * This resolution also applies to the main entry [uri]
-   * if that happens to be a package-URI.
-   *
-   * If both [packageRoot] and [packageMap] are omitted, the new isolate uses
-   * the same package resolution as the current isolate.
-   * It's not allowed to provide both a `packageRoot` and a `package` parameter.
-   *
-   * WARNING: The [packageRoot] and [packageMap] parameters are not implemented
-   * on all platforms yet.
    *
    * The [environment] is a mapping from strings to strings which the
    * spawned isolate uses when looking up [String.fromEnvironment] values.
@@ -282,8 +244,7 @@ class Isolate {
        bool errorsAreFatal,
        bool checked,
        Map<String, String> environment,
-       Uri packageRoot,
-       Map<String, Uri> packageMap});
+       Uri packageRoot});
 
   /**
    * Requests the isolate to pause.
