@@ -6,6 +6,8 @@ library engine.error;
 
 import 'dart:collection';
 
+import 'package:source_span/source_span.dart';
+
 import 'ast.dart' show AstNode;
 import 'element.dart';
 import 'java_core.dart';
@@ -2660,6 +2662,15 @@ class ErrorReporter {
       [List<Object> arguments]) {
     _errorListener.onError(
         new AnalysisError(_source, offset, length, errorCode, arguments));
+  }
+
+  /**
+   * Report an error with the given [errorCode] and [arguments]. The location of
+   * the error is specified by the given [span].
+   */
+  void reportErrorForSpan(ErrorCode errorCode, SourceSpan span,
+      [List<Object> arguments]) {
+    reportErrorForOffset(errorCode, span.start.offset, span.length, arguments);
   }
 
   /**
