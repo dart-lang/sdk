@@ -740,6 +740,8 @@ class WorkOrder implements Iterator<WorkItem> {
    */
   final _WorkOrderDependencyWalker _dependencyWalker;
 
+  List<WorkItem> get workItems => _dependencyWalker._path;
+
   /**
    * The strongly connected component most recently returned by
    * [_dependencyWalker], minus any [WorkItem]s that the iterator has already
