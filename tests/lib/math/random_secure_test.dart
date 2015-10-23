@@ -30,8 +30,8 @@ main() {
   rng0 = new Random.secure();
   for(var i = 0; i <= 32; i++) {
     rng1 = new Random.secure();
-    checkInt(1 << 32);
-    checkInt(1 << (32 - i));
+    checkInt(pow(2, 32));
+    checkInt(pow(2, 32 - i));
     checkInt(1000000000);
   }
   var checkDouble = () {

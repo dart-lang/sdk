@@ -327,4 +327,11 @@ if (typeof global != "undefined") self = global;  // Node.js.
       errorCallback(error);
     }
   };
+
+  // Mock cryptographically secure random by using plain random.
+  self.crypto = {getRandomValues: function(array) {
+    for (var i = 0; i < array.length; i++) {
+      array[i] = Math.random() * 256;
+    }
+  }};
 })(self);
