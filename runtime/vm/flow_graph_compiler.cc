@@ -1553,6 +1553,7 @@ ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
   if (resolver->compiler_->intrinsic_mode()) {
     // Block additional registers that must be preserved for intrinsics.
     blocked_mask |= RegMaskBit(ARGS_DESC_REG);
+    blocked_mask |= RegMaskBit(CODE_REG);
   }
   reg_ = static_cast<Register>(
       resolver_->AllocateScratchRegister(Location::kRegister,
