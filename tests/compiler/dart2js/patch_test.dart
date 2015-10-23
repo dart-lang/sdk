@@ -148,8 +148,8 @@ Future testPatchFunctionMetadata() async {
       @a external test();
       """,
       """
-      const b = 1;
-      @patch @b test() {}
+      const _b = 1;
+      @patch @_b test() {}
       """);
   Element origin = ensure(compiler, "test", compiler.coreLibrary.find,
          expectIsPatched: true, checkHasBody: true);
@@ -408,7 +408,7 @@ Future testRegularMember() async {
                 "Unexpected errors: ${compiler.errors}");
 }
 
-Future testGhostMember() async {
+Future testInjectedMember() async {
   var compiler = await applyPatch(
       """
       class Class {
@@ -416,7 +416,7 @@ Future testGhostMember() async {
       """,
       """
       @patch class Class {
-        void ghost() {}
+        void _injected() {}
       }
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
@@ -425,9 +425,9 @@ Future testGhostMember() async {
   ensure(compiler, "Class", compiler.coreLibrary.patch.find,
          expectIsPatch: true);
 
-  ensure(compiler, "ghost", container.lookupLocalMember,
+  ensure(compiler, "_injected", container.lookupLocalMember,
          expectIsFound: false);
-  ensure(compiler, "ghost", container.patch.lookupLocalMember,
+  ensure(compiler, "_injected", container.patch.lookupLocalMember,
          checkHasBody: true, expectIsRegular: true);
 
   Expect.isTrue(compiler.warnings.isEmpty,
@@ -436,7 +436,37 @@ Future testGhostMember() async {
                 "Unexpected errors: ${compiler.errors}");
 }
 
-Future testInjectFunction() async {
+Future testInjectedPublicMember() async {
+  var compiler = await applyPatch(
+      """
+      class Class {
+      }
+      """,
+      """
+      @patch class Class {
+        void injected() {}
+      }
+      """);
+  var container = ensure(compiler, "Class", compiler.coreLibrary.find,
+                         expectIsPatched: true);
+  container.parseNode(compiler.parsing);
+  ensure(compiler, "Class", compiler.coreLibrary.patch.find,
+         expectIsPatch: true);
+
+  ensure(compiler, "injected", container.lookupLocalMember,
+         expectIsFound: false);
+  ensure(compiler, "injected", container.patch.lookupLocalMember,
+         checkHasBody: true, expectIsRegular: true);
+
+  Expect.isTrue(compiler.warnings.isEmpty,
+                "Unexpected warnings: ${compiler.warnings}");
+  Expect.equals(1, compiler.errors.length,
+                "Unexpected errors: ${compiler.errors}");
+  Expect.isTrue(
+      compiler.errors[0].message.kind == MessageKind.INJECTED_PUBLIC_MEMBER);
+}
+
+Future testInjectedFunction() async {
   var compiler = await applyPatch(
       "",
       "int _function() => 5;");
@@ -453,6 +483,27 @@ Future testInjectFunction() async {
                 "Unexpected warnings: ${compiler.warnings}");
   Expect.isTrue(compiler.errors.isEmpty,
                 "Unexpected errors: ${compiler.errors}");
+}
+
+Future testInjectedPublicFunction() async {
+  var compiler = await applyPatch(
+      "",
+      "int function() => 5;");
+  ensure(compiler,
+         "function",
+         compiler.coreLibrary.find,
+         expectIsFound: false);
+  ensure(compiler,
+         "function",
+         compiler.coreLibrary.patch.find,
+         checkHasBody: true, expectIsRegular: true);
+
+  Expect.isTrue(compiler.warnings.isEmpty,
+                "Unexpected warnings: ${compiler.warnings}");
+  Expect.equals(1, compiler.errors.length,
+                "Unexpected errors: ${compiler.errors}");
+  Expect.isTrue(
+      compiler.errors[0].message.kind == MessageKind.INJECTED_PUBLIC_MEMBER);
 }
 
 Future testPatchSignatureCheck() async {
@@ -1001,8 +1052,10 @@ main() {
     await testPatchMember();
     await testPatchGetter();
     await testRegularMember();
-    await testGhostMember();
-    await testInjectFunction();
+    await testInjectedMember();
+    await testInjectedPublicMember();
+    await testInjectedFunction();
+    await testInjectedPublicFunction();
     await testPatchSignatureCheck();
 
     await testPatchVersioned();

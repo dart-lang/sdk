@@ -251,6 +251,9 @@ class PatchMemberListener extends MemberListener {
         // Skip this element.
       }
     } else {
+      if (Name.isPublicName(patch.name)) {
+        reporter.reportErrorMessage(patch, MessageKind.INJECTED_PUBLIC_MEMBER);
+      }
       enclosingClass.addMember(patch, reporter);
     }
   }
@@ -295,6 +298,9 @@ class PatchElementListener extends ElementListener implements Listener {
         // Skip this element.
       }
     } else {
+      if (Name.isPublicName(patch.name)) {
+        reporter.reportErrorMessage(patch, MessageKind.INJECTED_PUBLIC_MEMBER);
+      }
       compilationUnitElement.addMember(patch, reporter);
     }
   }

@@ -237,6 +237,7 @@ enum MessageKind {
   INHERITED_EXPLICIT_GETTER,
   INHERITED_IMPLICIT_GETTER,
   INHERITED_METHOD,
+  INJECTED_PUBLIC_MEMBER,
   INIT_STATIC_FIELD,
   INITIALIZING_FORMAL_NOT_ALLOWED,
   INSTANCE_STATIC_SAME_NAME,
@@ -3328,6 +3329,10 @@ part of test.main;
         const MessageTemplate(MessageKind.PATCH_NON_FUNCTION,
           "Cannot patch non-function with function patch "
           "'#{functionName}'."),
+
+      MessageKind.INJECTED_PUBLIC_MEMBER:
+        const MessageTemplate(MessageKind.INJECTED_PUBLIC_MEMBER,
+            "Non-patch members in patch libraries must be private."),
 
       MessageKind.EXTERNAL_WITH_BODY:
         const MessageTemplate(MessageKind.EXTERNAL_WITH_BODY,

@@ -27,11 +27,11 @@ import 'dart:_async_await_error_codes' as async_error_codes;
 class _AsyncRun {
   @patch
   static void _scheduleImmediate(void callback()) {
-    scheduleImmediateClosure(callback);
+    _scheduleImmediateClosure(callback);
   }
 
   // Lazily initialized.
-  static final Function scheduleImmediateClosure =
+  static final Function _scheduleImmediateClosure =
       _initializeScheduleImmediate();
 
   static Function _initializeScheduleImmediate() {
