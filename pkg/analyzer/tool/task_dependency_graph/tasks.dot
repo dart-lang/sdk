@@ -67,7 +67,6 @@ digraph G {
   IMPORTED_LIBRARIES -> BuildDirectiveElementsTask
   IMPORTED_LIBRARIES -> ResolveUnitTypeNamesTask
   IMPORTED_LIBRARIES [shape=box]
-  IMPORT_EXPORT_SOURCE_CLOSURE -> ComputeConstantDependenciesTask
   IMPORT_EXPORT_SOURCE_CLOSURE -> ComputeLibraryCycleTask
   IMPORT_EXPORT_SOURCE_CLOSURE -> PartiallyResolveUnitReferencesTask
   IMPORT_EXPORT_SOURCE_CLOSURE -> ResolveLibraryReferencesTask
@@ -120,7 +119,6 @@ digraph G {
   LIBRARY_ELEMENT5 -> ResolveUnitTask
   LIBRARY_ELEMENT5 [shape=box]
   LIBRARY_ERRORS_READY [shape=box]
-  LIBRARY_SPECIFIC_UNITS -> ComputeConstantDependenciesTask
   LIBRARY_SPECIFIC_UNITS -> GenerateHintsTask
   LIBRARY_SPECIFIC_UNITS -> ResolveLibraryReferencesTask
   LIBRARY_SPECIFIC_UNITS -> ResolveLibraryTypeNamesTask

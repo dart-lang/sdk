@@ -1612,13 +1612,14 @@ class ComputeConstantDependenciesTask extends ConstantEvaluationAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     //
-    // We need to force the computation of the RESOLVED_UNIT9 for each unit
-    // reachable from the target's library so that all of the AST's for the
-    // constructor initializers that we might encounter have been copied into
-    // the element model.
-    //
-    // TODO(brianwilkerson) This could be improved by computing a more accurate
-    // list of the sources containing constructors that are actually referenced.
+    // TODO(brianwilkerson) I believe that this does not properly guarantee that
+    // all of the constructor initializers that we might encounter have been
+    // copied into the element model. We tried forcing the computation of the
+    // RESOLVED_UNIT9 for each unit reachable from the target's library, but
+    // that had too big a performance impact. We could potentially mitigate the
+    // impact by computing a more accurate list of the sources containing
+    // constructors that are actually referenced, but other approaches should
+    // be considered.
     //
     Source librarySource;
     if (target is Element) {
@@ -1632,10 +1633,8 @@ class ComputeConstantDependenciesTask extends ConstantEvaluationAnalysisTask {
           'Cannot build inputs for a ${target.runtimeType}');
     }
     return <String, TaskInput>{
-      'resolvedUnits': IMPORT_EXPORT_SOURCE_CLOSURE
-          .of(librarySource)
-          .toFlattenListOf(LIBRARY_SPECIFIC_UNITS)
-          .toListOf(RESOLVED_UNIT9),
+      'resolvedUnit': RESOLVED_UNIT9
+          .of(new LibrarySpecificUnit(librarySource, target.source)),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }
