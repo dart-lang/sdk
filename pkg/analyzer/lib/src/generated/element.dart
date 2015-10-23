@@ -2128,7 +2128,7 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
  *
  * This class is not intended to be part of the public API for analyzer.
  */
-abstract class ConstVariableElement implements PotentiallyConstVariableElement {
+abstract class ConstVariableElement {
   /**
    * If this element represents a constant variable, and it has an initializer,
    * a copy of the initializer for the constant.  Otherwise `null`.
@@ -4157,7 +4157,6 @@ abstract class FieldElement
  * A concrete implementation of a [FieldElement].
  */
 class FieldElementImpl extends PropertyInducingElementImpl
-    with PotentiallyConstVariableElement
     implements FieldElement {
   /**
    * An empty list of field elements.
@@ -7913,7 +7912,6 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {
  * A concrete implementation of a [LocalVariableElement].
  */
 class LocalVariableElementImpl extends VariableElementImpl
-    with PotentiallyConstVariableElement
     implements LocalVariableElement {
   /**
    * An empty list of field elements.
@@ -8850,7 +8848,7 @@ abstract class ParameterElement
  * A concrete implementation of a [ParameterElement].
  */
 class ParameterElementImpl extends VariableElementImpl
-    with ParameterElementMixin, PotentiallyConstVariableElement
+    with ParameterElementMixin
     implements ParameterElement {
   /**
    * An empty list of parameter elements.
@@ -9206,28 +9204,6 @@ class ParameterMember extends VariableMember
     }
     return new ParameterMember(parameter, definingType);
   }
-}
-
-/**
- * Interface used by elements that might represent constant variables.
- *
- * This class may be used as a mixin in the case where [constInitializer] is
- * known to return null.
- *
- * This class is not intended to be part of the public API for analyzer.
- */
-abstract class PotentiallyConstVariableElement
-    implements VariableElementImpl, ConstantEvaluationTarget {
-  /**
-   * If this element represents a constant variable, and it has an initializer,
-   * a copy of the initializer for the constant.  Otherwise `null`.
-   *
-   * Note that in correct Dart code, all constant variables must have
-   * initializers.  However, analyzer also needs to handle incorrect Dart code,
-   * in which case there might be some constant variables that lack
-   * initializers.
-   */
-  Expression get constantInitializer => null;
 }
 
 /**
@@ -10039,7 +10015,6 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
  * A concrete implementation of a [TopLevelVariableElement].
  */
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
-    with PotentiallyConstVariableElement
     implements TopLevelVariableElement {
   /**
    * An empty list of top-level variable elements.
@@ -10734,6 +10709,17 @@ abstract class VariableElementImpl extends ElementImpl
   void set const3(bool isConst) {
     setModifier(Modifier.CONST, isConst);
   }
+
+  /**
+   * If this element represents a constant variable, and it has an initializer,
+   * a copy of the initializer for the constant.  Otherwise `null`.
+   *
+   * Note that in correct Dart code, all constant variables must have
+   * initializers.  However, analyzer also needs to handle incorrect Dart code,
+   * in which case there might be some constant variables that lack
+   * initializers.
+   */
+  Expression get constantInitializer => null;
 
   /**
    * Return the result of evaluating this variable's initializer as a

@@ -596,6 +596,21 @@ class CacheEntryTest extends AbstractCacheTest {
     expect(cache.get(target), entry);
   }
 
+  test_setState_invalid_keepEmpty_ifExplicitlyAdded() {
+    AnalysisTarget target = new TestSource('/a.dart');
+    CacheEntry entry = new CacheEntry(target);
+    entry.explicitlyAdded = true;
+    cache.put(entry);
+    ResultDescriptor result = new ResultDescriptor('result1', -1);
+    // set results, all of them are VALID
+    entry.setValue(result, 111, TargetedResult.EMPTY_LIST);
+    expect(entry.getState(result), CacheState.VALID);
+    expect(entry.getValue(result), 111);
+    // invalidate result, keep entry
+    entry.setState(result, CacheState.INVALID);
+    expect(cache.get(target), isNotNull);
+  }
+
   test_setState_invalid_removeEmptyEntry() {
     AnalysisTarget target1 = new TestSource('/a.dart');
     AnalysisTarget target2 = new TestSource('/b.dart');

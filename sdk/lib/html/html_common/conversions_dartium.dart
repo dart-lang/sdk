@@ -121,24 +121,7 @@ wrap_jso(jsObject) {
 
     var wrapper = js.getDartHtmlWrapperFor(jsObject);
     // if we have a wrapper return the Dart instance.
-    if (wrapper != null) {
-      var customElementClass = getCustomElementType(wrapper.blink_jsObject);
-      if (wrapper.runtimeType != customElementClass && customElementClass != null) {
-        if (wrapper.runtimeType == HtmlElement && !wrapper.isBadUpgrade) {
-          // We're a Dart instance if it's HtmlElement and we have a customElement
-          // class then we need to upgrade.
-          if (customElementClass != null) {
-            var dartClass_instance;
-            try {
-              dartClass_instance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
-            } finally {
-              dartClass_instance.blink_jsObject = jsObject;
-              return dartClass_instance;
-            }
-          }
-        }
-      }
-
+    if (wrapper != null && wrapper is! js.JsObject) {
       return wrapper;
     }
 
@@ -180,33 +163,35 @@ wrap_jso(jsObject) {
       extendsTag = custom['extends'];
     }
 
-    // Custom Element to upgrade.
-    // Only allow custome elements to be created in the html or svg default
+    // Only allow custom elements to be created in the html or svg default
     // namespace.
+    var func;
     var defaultNS = jsObject['namespaceURI'] == 'http://www.w3.org/1999/xhtml' ||
         jsObject['namespaceURI'] ==  'http://www.w3.org/2000/svg';
     if (customElementClass != null && extendsTag == "" && defaultNS) {
-      try {
-        dartClass_instance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
-      } finally {
-        dartClass_instance.blink_jsObject = jsObject;
-        js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
-     }
+      // The customElementClass is known but we can't create the real class so
+      // create the HtmlElement and it will get upgraded when registerElement's
+      // createdCallback is called.
+      func = getHtmlCreateFunction('HTMLElement');
     } else {
-      var func = getHtmlCreateFunction(jsTypeName);
+      func = getHtmlCreateFunction(jsTypeName);
       if (func == null) {
         if (jsTypeName == 'auto-binding') {
-          func = getHtmlCreateFunction("HTMLTemplateElement");
+          func = getHtmlCreateFunction('HTMLTemplateElement');
         } else if (jsObject.toString() == "[object HTMLElement]") {
           // One last ditch effort could be a JS custom element.
-          func = getHtmlCreateFunction("HTMLElement");
+          func = getHtmlCreateFunction('HTMLElement');
         }
       }
-      if (func != null) {
-        dartClass_instance = func();
-        dartClass_instance.blink_jsObject = jsObject;
-        js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
-      }
+    }
+
+    // Can we construct a Dart class?
+    if (func != null) {
+      dartClass_instance = func();
+
+      // Wrap our Dart instance in both directions.
+      dartClass_instance.blink_jsObject = jsObject;
+      js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
     }
 
     // TODO(jacobr): cache that this is not a dart:html JS class.

@@ -319,16 +319,17 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
       //
       // Convert errors.
       //
-      List<ParseError> parseErrors = parser.errors;
       List<AnalysisError> errors = <AnalysisError>[];
-      for (ParseError parseError in parseErrors) {
-        if (parseError.errorCode == 'expected-doctype-but-got-start-tag') {
-          continue;
-        }
-        SourceSpan span = parseError.span;
-        errors.add(new AnalysisError(target.source, span.start.offset,
-            span.length, HtmlErrorCode.PARSE_ERROR, [parseError.message]));
-      }
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/24643
+//      List<ParseError> parseErrors = parser.errors;
+//      for (ParseError parseError in parseErrors) {
+//        if (parseError.errorCode == 'expected-doctype-but-got-start-tag') {
+//          continue;
+//        }
+//        SourceSpan span = parseError.span;
+//        errors.add(new AnalysisError(target.source, span.start.offset,
+//            span.length, HtmlErrorCode.PARSE_ERROR, [parseError.message]));
+//      }
       //
       // Record outputs.
       //

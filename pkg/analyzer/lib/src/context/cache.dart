@@ -565,8 +565,8 @@ class CacheEntry {
     }
     // Invalidate results that depend on this result.
     _invalidateDependentResults(id, thisData, delta, level + 1);
-    // If empty, remove the entry altogether.
-    if (_resultMap.isEmpty) {
+    // If empty and not explicitly added, remove the entry altogether.
+    if (_resultMap.isEmpty && !explicitlyAdded) {
       _partition._targetMap.remove(target);
       _partition._removeIfSource(target);
     }

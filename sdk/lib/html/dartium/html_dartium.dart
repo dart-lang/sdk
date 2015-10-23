@@ -529,7 +529,6 @@ final htmlBlinkMap = {
   'XPathNSResolver': () => XPathNSResolver,
   'XPathResult': () => XPathResult,
   'XSLTProcessor': () => XsltProcessor,
-
 };
 
 // TODO(leafp): We may want to move this elsewhere if html becomes
@@ -20228,6 +20227,13 @@ class HtmlDocument extends Document {
       //
       //              See https://github.com/dart-lang/sdk/issues/23666
       int creating = 0;
+
+      // If any JS code is hooked we want to call it too.
+      var oldCreatedCallback = elemProto['createdCallback'];
+      var oldAttributeChangedCallback = elemProto['attributeChangedCallback'];
+      var oldAttachedCallback = elemProto['attachedCallback'];
+      var oldDetachedCallback = elemProto['detachedCallback'];
+
       // TODO(jacobr): warning:
       elemProto['createdCallback'] = js.JsNative.withThis(($this) {
         if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
@@ -20266,15 +20272,27 @@ class HtmlDocument extends Document {
             creating--;
           }
         }
+
+        if (oldCreatedCallback != null)
+          oldCreatedCallback.apply([], thisArg: unwrap_jso($this));
       });
       elemProto['attributeChangedCallback'] = new js.JsFunction.withThis(($this, attrName, oldVal, newVal) {
         $this.attributeChanged(attrName, oldVal, newVal);
+
+        if (oldAttributeChangedCallback != null)
+          oldAttributeChangedCallback.apply([], thisArg: unwrap_jso($this));
       });
       elemProto['attachedCallback'] = new js.JsFunction.withThis(($this) {
         $this.attached();
+
+        if (oldAttachedCallback != null)
+          oldAttachedCallback.apply([], thisArg: unwrap_jso($this));
       });
       elemProto['detachedCallback'] = new js.JsFunction.withThis(($this) {
         $this.detached();
+
+        if (oldDetachedCallback != null)
+          oldDetachedCallback.apply([], thisArg: unwrap_jso($this));
       });
       // document.registerElement('x-foo', {prototype: elemProto, extends: extendsTag});
       var jsMap = new js.JsObject.jsify({'prototype': elemProto, 'extends': extendsTag});
@@ -36962,10 +36980,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");

@@ -57,12 +57,12 @@ class CompletionDomainHandler implements RequestHandler {
   StreamSubscription<SourcesChangedEvent> _sourcesChangedSubscription;
 
   /**
-   * Code completion peformance for the last completion operation.
+   * Code completion performance for the last completion operation.
    */
   CompletionPerformance performance;
 
   /**
-   * A list of code completion peformance measurements for the latest
+   * A list of code completion performance measurements for the latest
    * completion operation up to [performanceListMaxLength] measurements.
    */
   final List<CompletionPerformance> performanceList =
@@ -131,15 +131,19 @@ class CompletionDomainHandler implements RequestHandler {
     if (searchEngine == null) {
       return new Response.noIndexGenerated(request);
     }
-    try {
-      String requestName = request.method;
-      if (requestName == COMPLETION_GET_SUGGESTIONS) {
-        return processRequest(request);
+    return runZoned(() {
+      try {
+        String requestName = request.method;
+        if (requestName == COMPLETION_GET_SUGGESTIONS) {
+          return processRequest(request);
+        }
+      } on RequestFailure catch (exception) {
+        return exception.response;
       }
-    } on RequestFailure catch (exception) {
-      return exception.response;
-    }
-    return null;
+      return null;
+    }, onError: (exception, stackTrace) {
+      server.sendServerErrorNotification(exception, stackTrace);
+    });
   }
 
   /**

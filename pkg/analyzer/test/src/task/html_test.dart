@@ -177,6 +177,23 @@ class DartScriptsTaskTest extends AbstractContextTest {
 
 @reflectiveTest
 class HtmlErrorsTaskTest extends AbstractContextTest {
+  fail_perform_htmlErrors() {
+    AnalysisTarget target = newSource(
+        '/test.html',
+        r'''
+<html>
+  <head>
+    <title>test page</not-title>
+  </head>
+  <body>
+    Test
+  </body>
+</html>
+''');
+    computeResult(target, HTML_ERRORS, matcher: isHtmlErrorsTask);
+    expect(outputs[HTML_ERRORS], hasLength(1));
+  }
+
   test_constructor() {
     Source source = newSource('/test.html');
     HtmlErrorsTask task = new HtmlErrorsTask(context, source);
@@ -217,23 +234,6 @@ class HtmlErrorsTaskTest extends AbstractContextTest {
     </script>
   </head>
   <body>Test</body>
-</html>
-''');
-    computeResult(target, HTML_ERRORS, matcher: isHtmlErrorsTask);
-    expect(outputs[HTML_ERRORS], hasLength(1));
-  }
-
-  test_perform_htmlErrors() {
-    AnalysisTarget target = newSource(
-        '/test.html',
-        r'''
-<html>
-  <head>
-    <title>test page</not-title>
-  </head>
-  <body>
-    Test
-  </body>
 </html>
 ''');
     computeResult(target, HTML_ERRORS, matcher: isHtmlErrorsTask);
@@ -303,7 +303,7 @@ class ParseHtmlTaskTest extends AbstractContextTest {
     <title>test page</title>
   </head>
   <body>
-    <h1 Test>
+    <h1>Test</h1>
   </body>
 </html>
 ''';
@@ -311,7 +311,7 @@ class ParseHtmlTaskTest extends AbstractContextTest {
     computeResult(target, HTML_DOCUMENT);
     expect(task, isParseHtmlTask);
     expect(outputs[HTML_DOCUMENT], isNotNull);
-    expect(outputs[HTML_DOCUMENT_ERRORS], isNotEmpty);
+    expect(outputs[HTML_DOCUMENT_ERRORS], isEmpty);
     // LINE_INFO
     {
       LineInfo lineInfo = outputs[LINE_INFO];

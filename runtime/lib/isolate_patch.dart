@@ -275,22 +275,6 @@ patch class Isolate {
 
   /* patch */ static Isolate get current => _currentIsolate;
 
-  /* patch */ static Future<Uri> get packageRoot {
-    var hook = VMLibraryHooks.getPackageRoot;
-    if (hook == null) {
-      throw new UnimplementedError("Isolate.packageRoot");
-    }
-    return hook();
-  }
-
-  /* patch */ static Future<Map<String, Uri>> get packageMap {
-    var hook = VMLibraryHooks.getPackageMap;
-    if (hook == null) {
-      throw new UnimplementedError("Isolate.packageMap");
-    }
-    return hook();
-  }
-
   /* patch */ static Future<Isolate> spawn(
       void entryPoint(message), var message,
       {bool paused: false, bool errorsAreFatal,
@@ -330,8 +314,7 @@ patch class Isolate {
        bool errorsAreFatal,
        bool checked,
        Map<String, String> environment,
-       Uri packageRoot,
-       Map<String, Uri> packageMap}) {
+       Uri packageRoot}) {
     RawReceivePort readyPort;
     if (environment != null) throw new UnimplementedError("environment");
     try {
@@ -340,14 +323,6 @@ patch class Isolate {
       var packageRootString =
           (packageRoot == null) ? null : packageRoot.toString();
       var packagesList = null;
-      if (packageMap != null) {
-        packagesList = new List(2 * packageMap.length);
-        var i = 0;
-        packageMap.forEach((key, value) {
-          packagesList[i++] = key;
-          packagesList[i++] = Uri.base.resolveUri(value).toString();
-        });
-      }
 
       _spawnUri(readyPort.sendPort, uri.toString(),
                 args, message,

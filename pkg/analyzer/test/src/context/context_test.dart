@@ -56,6 +56,21 @@ main() {
 
 @reflectiveTest
 class AnalysisContextImplTest extends AbstractContextTest {
+  void fail_getErrors_html_some() {
+    Source source = addSource(
+        "/test.html",
+        r'''
+<html><head>
+<script type='application/dart' src='test.dart'/>
+</head></html>''');
+    AnalysisErrorInfo errorInfo = context.getErrors(source);
+    expect(errorInfo, isNotNull);
+    List<AnalysisError> errors = errorInfo.errors;
+    expect(errors, hasLength(0));
+    errors = context.computeErrors(source);
+    expect(errors, hasLength(2));
+  }
+
   Future fail_implicitAnalysisEvents_removed() async {
     AnalyzedSourcesListener listener = new AnalyzedSourcesListener();
     context.implicitAnalysisEvents.listen(listener.onData);
@@ -891,21 +906,6 @@ class A {
     context.computeErrors(source);
     errors = errorInfo.errors;
     expect(errors, hasLength(0));
-  }
-
-  void test_getErrors_html_some() {
-    Source source = addSource(
-        "/test.html",
-        r'''
-<html><head>
-<script type='application/dart' src='test.dart'/>
-</head></html>''');
-    AnalysisErrorInfo errorInfo = context.getErrors(source);
-    expect(errorInfo, isNotNull);
-    List<AnalysisError> errors = errorInfo.errors;
-    expect(errors, hasLength(0));
-    errors = context.computeErrors(source);
-    expect(errors, hasLength(2));
   }
 
   void test_getHtmlFilesReferencing_html() {
