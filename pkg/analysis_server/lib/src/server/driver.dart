@@ -381,12 +381,14 @@ class Driver implements ServerStarter {
     //
     // Initialize the instrumentation service.
     //
-    if (instrumentationServer != null) {
-      String filePath = results[INSTRUMENTATION_LOG_FILE];
-      if (filePath != null) {
-        instrumentationServer = new MulticastInstrumentationServer(
-            [instrumentationServer, new FileInstrumentationServer(filePath)]);
-      }
+    String logFilePath = results[INSTRUMENTATION_LOG_FILE];
+    if (logFilePath != null) {
+      FileInstrumentationServer fileBasedServer =
+          new FileInstrumentationServer(logFilePath);
+      instrumentationServer = instrumentationServer != null
+          ? new MulticastInstrumentationServer(
+              [instrumentationServer, fileBasedServer])
+          : fileBasedServer;
     }
     InstrumentationService service =
         new InstrumentationService(instrumentationServer);
