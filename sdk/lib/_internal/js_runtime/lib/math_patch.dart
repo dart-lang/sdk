@@ -284,7 +284,7 @@ class _JSSecureRandom implements Random {
     // To get 53 bits, we extract the 53rd bit from higthByte before
     // overwriting it, and add that as a least significant bit.
     // The getFloat64 method is big-endian as default.
-    int result = _buffer.getFloat64(0) - 1.0;
+    double result = _buffer.getFloat64(0) - 1.0;
     if (highByte & 0x10 != 0) {
       result += 1.1102230246251565e-16;  // pow(2,-53).
     }
