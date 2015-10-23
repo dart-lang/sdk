@@ -67,6 +67,7 @@ digraph G {
   IMPORTED_LIBRARIES -> BuildDirectiveElementsTask
   IMPORTED_LIBRARIES -> ResolveUnitTypeNamesTask
   IMPORTED_LIBRARIES [shape=box]
+  IMPORT_EXPORT_SOURCE_CLOSURE -> ComputeConstantDependenciesTask
   IMPORT_EXPORT_SOURCE_CLOSURE -> ComputeLibraryCycleTask
   IMPORT_EXPORT_SOURCE_CLOSURE -> PartiallyResolveUnitReferencesTask
   IMPORT_EXPORT_SOURCE_CLOSURE -> ResolveLibraryReferencesTask
@@ -119,6 +120,13 @@ digraph G {
   LIBRARY_ELEMENT5 -> ResolveUnitTask
   LIBRARY_ELEMENT5 [shape=box]
   LIBRARY_ERRORS_READY [shape=box]
+  LIBRARY_SPECIFIC_UNITS -> ComputeConstantDependenciesTask
+  LIBRARY_SPECIFIC_UNITS -> GenerateHintsTask
+  LIBRARY_SPECIFIC_UNITS -> ResolveLibraryReferencesTask
+  LIBRARY_SPECIFIC_UNITS -> ResolveLibraryTypeNamesTask
+  LIBRARY_SPECIFIC_UNITS -> StrongModeVerifyUnitTask
+  LIBRARY_SPECIFIC_UNITS -> VerifyUnitTask
+  LIBRARY_SPECIFIC_UNITS [shape=box]
   LIBRARY_UNIT_ERRORS -> dartErrorsForUnit
   LIBRARY_UNIT_ERRORS [shape=box]
   LINE_INFO -> ParseDartTask
@@ -137,6 +145,7 @@ digraph G {
   ParseDartTask -> EXPORTED_LIBRARIES
   ParseDartTask -> IMPORTED_LIBRARIES
   ParseDartTask -> INCLUDED_PARTS
+  ParseDartTask -> LIBRARY_SPECIFIC_UNITS
   ParseDartTask -> PARSED_UNIT
   ParseDartTask -> PARSE_ERRORS
   ParseDartTask -> SOURCE_KIND
@@ -223,12 +232,7 @@ digraph G {
   TYPE_PROVIDER -> StrongModeVerifyUnitTask
   TYPE_PROVIDER -> VerifyUnitTask
   TYPE_PROVIDER [shape=box]
-  UNITS -> GenerateHintsTask
   UNITS -> LibraryErrorsReadyTask
-  UNITS -> ResolveLibraryReferencesTask
-  UNITS -> ResolveLibraryTypeNamesTask
-  UNITS -> StrongModeVerifyUnitTask
-  UNITS -> VerifyUnitTask
   UNITS [shape=box]
   USED_IMPORTED_ELEMENTS -> GenerateHintsTask
   USED_IMPORTED_ELEMENTS [shape=box]
