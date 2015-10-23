@@ -906,6 +906,9 @@ class IncrementalBodyDelta extends Delta {
         isByTask(ComputeConstantValueTask.DESCRIPTOR) ||
         isByTask(ComputeLibraryCycleTask.DESCRIPTOR) ||
         isByTask(DartErrorsTask.DESCRIPTOR) ||
+        isByTask(ReadyResolvedUnitTask.DESCRIPTOR) ||
+        isByTask(ReadyResolvedUnit9Task.DESCRIPTOR) ||
+        isByTask(ReadyResolvedUnit10Task.DESCRIPTOR) ||
         isByTask(EvaluateUnitConstantsTask.DESCRIPTOR) ||
         isByTask(GenerateHintsTask.DESCRIPTOR) ||
         isByTask(InferInstanceMembersInUnitTask.DESCRIPTOR) ||
