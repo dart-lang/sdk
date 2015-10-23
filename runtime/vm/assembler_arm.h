@@ -513,8 +513,11 @@ class Assembler : public ValueObject {
   // ldrd and strd actually support the full range of addressing modes, but
   // we don't use them, and we need to split them up into two instructions for
   // ARMv5TE, so we only support the base + offset mode.
-  void ldrd(Register rd, Register rn, int32_t offset, Condition cond = AL);
-  void strd(Register rd, Register rn, int32_t offset, Condition cond = AL);
+  // rd must be an even register and rd2 must be rd + 1.
+  void ldrd(Register rd, Register rd2, Register rn, int32_t offset,
+            Condition cond = AL);
+  void strd(Register rd, Register rd2, Register rn, int32_t offset,
+            Condition cond = AL);
 
   void ldm(BlockAddressMode am, Register base,
            RegList regs, Condition cond = AL);

@@ -1150,10 +1150,10 @@ ASSEMBLER_TEST_RUN(Ldrh1, test) {
 ASSEMBLER_TEST_GENERATE(Ldrd, assembler) {
   __ mov(IP, Operand(SP));
   __ sub(SP, SP, Operand(kWordSize*30));
-  __ strd(R2, SP, 0);
-  __ strd(R0, IP, (-kWordSize*28));
-  __ ldrd(R2, IP, (-kWordSize*28));
-  __ ldrd(R0, SP, 0);
+  __ strd(R2, R3, SP, 0);
+  __ strd(R0, R1, IP, (-kWordSize*28));
+  __ ldrd(R2, R3, IP, (-kWordSize*28));
+  __ ldrd(R0, R1, SP, 0);
   __ add(SP, SP, Operand(kWordSize*30));
   __ sub(R0, R0, Operand(R2));
   __ add(R1, R1, Operand(R3));

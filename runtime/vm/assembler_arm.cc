@@ -493,10 +493,11 @@ void Assembler::ldrsh(Register rd, Address ad, Condition cond) {
 }
 
 
-void Assembler::ldrd(Register rd, Register rn, int32_t offset, Condition cond) {
+void Assembler::ldrd(Register rd, Register rd2, Register rn, int32_t offset,
+                     Condition cond) {
   ASSERT((rd % 2) == 0);
+  ASSERT(rd2 == rd + 1);
   if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-    const Register rd2 = static_cast<Register>(static_cast<int32_t>(rd) + 1);
     ldr(rd, Address(rn, offset), cond);
     ldr(rd2, Address(rn, offset + kWordSize), cond);
   } else {
@@ -505,10 +506,11 @@ void Assembler::ldrd(Register rd, Register rn, int32_t offset, Condition cond) {
 }
 
 
-void Assembler::strd(Register rd, Register rn, int32_t offset, Condition cond) {
+void Assembler::strd(Register rd, Register rd2, Register rn, int32_t offset,
+                     Condition cond) {
   ASSERT((rd % 2) == 0);
+  ASSERT(rd2 == rd + 1);
   if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-    const Register rd2 = static_cast<Register>(static_cast<int32_t>(rd) + 1);
     str(rd, Address(rn, offset), cond);
     str(rd2, Address(rn, offset + kWordSize), cond);
   } else {
@@ -1707,15 +1709,16 @@ void Assembler::WriteShadowedFieldPair(Register base,
                                        Register value_odd,
                                        Condition cond) {
   ASSERT(value_odd == value_even + 1);
+  ASSERT(value_even % 2 == 0);
   if (VerifiedMemory::enabled()) {
     ASSERT(base != value_even);
     ASSERT(base != value_odd);
     Operand shadow(GetVerifiedMemoryShadow());
     add(base, base, shadow, cond);
-    strd(value_even, base, offset, cond);
+    strd(value_even, value_odd, base, offset, cond);
     sub(base, base, shadow, cond);
   }
-  strd(value_even, base, offset, cond);
+  strd(value_even, value_odd, base, offset, cond);
 }
 
 
@@ -2831,6 +2834,7 @@ void Assembler::LoadFromOffset(OperandSize size,
                                Register base,
                                int32_t offset,
                                Condition cond) {
+  ASSERT(size != kWordPair);
   int32_t offset_mask = 0;
   if (!Address::CanHoldLoadOffset(size, offset, &offset_mask)) {
     ASSERT(base != IP);
@@ -2854,9 +2858,6 @@ void Assembler::LoadFromOffset(OperandSize size,
     case kWord:
       ldr(reg, Address(base, offset), cond);
       break;
-    case kWordPair:
-      ldrd(reg, base, offset, cond);
-      break;
     default:
       UNREACHABLE();
   }
@@ -2868,6 +2869,7 @@ void Assembler::StoreToOffset(OperandSize size,
                               Register base,
                               int32_t offset,
                               Condition cond) {
+  ASSERT(size != kWordPair);
   int32_t offset_mask = 0;
   if (!Address::CanHoldStoreOffset(size, offset, &offset_mask)) {
     ASSERT(reg != IP);
@@ -2885,9 +2887,6 @@ void Assembler::StoreToOffset(OperandSize size,
       break;
     case kWord:
       str(reg, Address(base, offset), cond);
-      break;
-    case kWordPair:
-      strd(reg, base, offset, cond);
       break;
     default:
       UNREACHABLE();
