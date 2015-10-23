@@ -115,7 +115,6 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph,
   // generating intrinsic code.
   if (intrinsic_mode) {
     blocked_cpu_registers_[ARGS_DESC_REG] = true;
-    blocked_cpu_registers_[CODE_REG] = true;
   }
 }
 
