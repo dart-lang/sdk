@@ -342,6 +342,13 @@ abstract class ListResultDescriptor<E> implements ResultDescriptor<List<E>> {
  */
 abstract class ListTaskInput<E> extends TaskInput<List<E>> {
   /**
+   * Return a task input that can be used to compute a flatten list whose
+   * elements are combined [subListResult]'s associated with those elements.
+   */
+  ListTaskInput /*<V>*/ toFlattenListOf(
+      ListResultDescriptor /*<V>*/ subListResult);
+
+  /**
    * Return a task input that can be used to compute a list whose elements are
    * the result of passing the elements of this input to the [mapper] function.
    */
