@@ -1060,6 +1060,12 @@ class GetHandler {
       _writePage(
           buffer, 'Analysis Server - Context', ['Context: $contextFilter'],
           (StringBuffer buffer) {
+
+        buffer.write('<h3>Most Recently Perfomed Tasks</h3>');
+        AnalysisTask.LAST_TASKS.forEach((String description) {
+          buffer.write('<p>$description</p>');
+        });
+
         _writeFiles(buffer, 'Priority Files', priorityNames);
         _writeFiles(buffer, 'Explicitly Analyzed Files', explicitNames);
         _writeFiles(buffer, 'Implicitly Analyzed Files', implicitNames);

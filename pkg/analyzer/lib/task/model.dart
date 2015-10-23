@@ -79,6 +79,11 @@ abstract class AnalysisTarget {
  */
 abstract class AnalysisTask {
   /**
+   * A queue storing the last 10 task descriptions for diagnostic purposes.
+   */
+  static final LimitedQueue<String> LAST_TASKS = new LimitedQueue<String>(10);
+
+  /**
    * A table mapping the types of analysis tasks to the number of times each
    * kind of task has been performed.
    */
@@ -265,6 +270,11 @@ abstract class AnalysisTask {
    */
   void _safelyPerform() {
     try {
+      //
+      // Store task description for diagnostics.
+      //
+      LAST_TASKS.add(description);
+
       //
       // Report that this task is being performed.
       //
