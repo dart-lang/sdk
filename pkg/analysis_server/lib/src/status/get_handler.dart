@@ -1069,13 +1069,19 @@ class GetHandler {
           buffer.write('<p>$description</p>');
         });
 
+        String _describe(WorkItem item) {
+          if (item == null) {
+            return 'None';
+          }
+          return '${item.descriptor?.name} computing ${item.spawningResult?.name} for ${item.target?.toString()}';
+        }
+
         buffer.write('<h3>Work Items</h3>');
         buffer.write(
-            '<p><b>Current: ${driver.currentWorkOrder?.current?.descriptor?.name}</b></p>');
-        buffer.write('<br>');
+            '<p><b>Current:</b> ${_describe(driver.currentWorkOrder?.current)}</p>');
         if (workItems != null) {
-          buffer.writeAll(workItems
-              .map((item) => '<p>${item.descriptor?.name}</p>')
+          buffer.writeAll(workItems.reversed
+              .map((item) => '<p>${_describe(item)}</p>')
               ?.toList());
         }
 
