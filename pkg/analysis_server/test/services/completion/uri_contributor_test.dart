@@ -28,6 +28,46 @@ class UriContributorTest extends AbstractCompletionTest {
     contributor = new UriContributor();
   }
 
+  test_after_import() {
+    addTestSource('import "p"^');
+    computeFast();
+    expect(request.replacementOffset, completionOffset);
+    expect(request.replacementLength, 0);
+    assertNoSuggestions();
+  }
+
+  test_after_import_raw() {
+    addTestSource('import r"p"^');
+    computeFast();
+    expect(request.replacementOffset, completionOffset);
+    expect(request.replacementLength, 0);
+    assertNoSuggestions();
+  }
+
+  test_before_import() {
+    addTestSource('import ^"p"');
+    computeFast();
+    expect(request.replacementOffset, completionOffset);
+    expect(request.replacementLength, 0);
+    assertNoSuggestions();
+  }
+
+  test_before_import_raw() {
+    addTestSource('import ^r"p"');
+    computeFast();
+    expect(request.replacementOffset, completionOffset);
+    expect(request.replacementLength, 0);
+    assertNoSuggestions();
+  }
+
+  test_before_import_raw2() {
+    addTestSource('import r^"p"');
+    computeFast();
+    expect(request.replacementOffset, completionOffset);
+    expect(request.replacementLength, 0);
+    assertNoSuggestions();
+  }
+
   test_export_package2() {
     addPackageSource('foo', 'foo.dart', 'library foo;');
     addPackageSource('foo', 'baz/too.dart', 'library too;');
@@ -196,6 +236,16 @@ class UriContributorTest extends AbstractCompletionTest {
         csKind: CompletionSuggestionKind.IMPORT);
   }
 
+  test_import_package2_raw() {
+    addPackageSource('foo', 'foo.dart', 'library foo;');
+    addPackageSource('foo', 'baz/too.dart', 'library too;');
+    addPackageSource('bar', 'bar.dart', 'library bar;');
+    addTestSource('import r"package:foo/baz/^" import');
+    computeFast();
+    assertSuggest('package:foo/baz/too.dart',
+        csKind: CompletionSuggestionKind.IMPORT);
+  }
+
   test_import_package_missing_lib() {
     var pkgSrc = addPackageSource('bar', 'bar.dart', 'library bar;');
     provider.deleteFolder(dirname(pkgSrc.fullName));
@@ -206,6 +256,34 @@ class UriContributorTest extends AbstractCompletionTest {
     assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('package:bar/', csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('package:bar/bar.dart');
+  }
+
+  test_import_package_raw() {
+    addPackageSource('foo', 'foo.dart', 'library foo;');
+    addPackageSource('foo', 'baz/too.dart', 'library too;');
+    addPackageSource('bar', 'bar.dart', 'library bar;');
+    addTestSource('import r"p^" import');
+    computeFast();
+    expect(request.replacementOffset, completionOffset - 1);
+    expect(request.replacementLength, 1);
+    assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('package:foo/', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('package:foo/foo.dart',
+        csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('package:foo/baz/', csKind: CompletionSuggestionKind.IMPORT);
+    assertNotSuggested('package:foo/baz/too.dart');
+    assertSuggest('package:bar/', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('package:bar/bar.dart',
+        csKind: CompletionSuggestionKind.IMPORT);
+  }
+
+  test_import_raw() {
+    addTestSource('import r"^" import');
+    computeFast();
+    expect(request.replacementOffset, completionOffset);
+    expect(request.replacementLength, 0);
+    assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
   }
 
   test_outside_import() {

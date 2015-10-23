@@ -74,19 +74,17 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
   visitSimpleStringLiteral(SimpleStringLiteral node) {
     AstNode parent = node.parent;
     if (parent is NamespaceDirective && parent.uri == node) {
-      String partial = node.literal.lexeme.substring(
-          node.contentsOffset - node.offset, request.offset - node.offset);
-      request.replacementOffset = node.contentsOffset;
-      request.replacementLength = node.contentsEnd - node.contentsOffset;
-      _addDartSuggestions();
-      _addPackageSuggestions(partial);
-      _addFileSuggestions(partial);
+      String partialUri = _extractPartialUri(node);
+      if (partialUri != null) {
+        _addDartSuggestions();
+        _addPackageSuggestions(partialUri);
+        _addFileSuggestions(partialUri);
+      }
     } else if (parent is PartDirective && parent.uri == node) {
-      String partial = node.literal.lexeme.substring(
-          node.contentsOffset - node.offset, request.offset - node.offset);
-      request.replacementOffset = node.contentsOffset;
-      request.replacementLength = node.contentsEnd - node.contentsOffset;
-      _addFileSuggestions(partial);
+      String partialUri = _extractPartialUri(node);
+      if (partialUri != null) {
+        _addFileSuggestions(partialUri);
+      }
     }
   }
 
@@ -189,5 +187,16 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
         0,
         false,
         false));
+  }
+
+  String _extractPartialUri(SimpleStringLiteral node) {
+    if (request.offset < node.contentsOffset) {
+      return null;
+    }
+    String partial = node.literal.lexeme.substring(
+        node.contentsOffset - node.offset, request.offset - node.offset);
+    request.replacementOffset = node.contentsOffset;
+    request.replacementLength = node.contentsEnd - node.contentsOffset;
+    return partial;
   }
 }
