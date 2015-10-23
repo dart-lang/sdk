@@ -626,6 +626,16 @@ class CallSiteInliner : public ValueObject {
       return false;
     }
 
+    // Function has no type feedback. With precompilation we don't rely on
+    // type feedback.
+    if (!Compiler::always_optimize() &&
+        function.ic_data_array() == Object::null()) {
+      TRACE_INLINING(THR_Print("     Bailout: not compiled yet\n"));
+      PRINT_INLINING_TREE("Not compiled",
+          &call_data->caller, &function, call_data->call);
+      return false;
+    }
+
     // Abort if this function has deoptimized too much.
     if (function.deoptimization_counter() >=
         FLAG_deoptimization_counter_threshold) {

@@ -588,7 +588,11 @@ bool CompileType::IsNull() {
 
 const AbstractType* CompileType::ToAbstractType() {
   if (type_ == NULL) {
-    ASSERT(cid_ != kIllegalCid);
+    // Type propagation has not run. Return dynamic-type.
+    if (cid_ == kIllegalCid) {
+      type_ = &Type::ZoneHandle(Type::DynamicType());
+      return type_;
+    }
 
     // VM-internal objects don't have a compile-type. Return dynamic-type
     // in this case.

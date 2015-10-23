@@ -187,8 +187,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   GrowableArray<intptr_t> class_ids(call->ic_data()->NumArgsTested());
   ASSERT(call->ic_data()->NumArgsTested() <= call->ArgumentCount());
   for (intptr_t i = 0; i < call->ic_data()->NumArgsTested(); i++) {
-    const intptr_t cid = call->PushArgumentAt(i)->value()->Type()->ToCid();
-    class_ids.Add(cid);
+    class_ids.Add(call->PushArgumentAt(i)->value()->Type()->ToCid());
   }
 
   const Token::Kind op_kind = call->token_kind();
@@ -218,10 +217,6 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   }
 
   if (all_cids_known) {
-    const Array& args_desc_array = Array::Handle(Z,
-        ArgumentsDescriptor::New(call->ArgumentCount(),
-                                 call->argument_names()));
-    ArgumentsDescriptor args_desc(args_desc_array);
     const Class& receiver_class = Class::Handle(Z,
         isolate()->class_table()->At(class_ids[0]));
     if (!receiver_class.is_finalized()) {
@@ -230,6 +225,10 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
       // finalized yet.
       return false;
     }
+    const Array& args_desc_array = Array::Handle(Z,
+        ArgumentsDescriptor::New(call->ArgumentCount(),
+                                 call->argument_names()));
+    ArgumentsDescriptor args_desc(args_desc_array);
     const Function& function = Function::Handle(Z,
         Resolver::ResolveDynamicForReceiverClass(
             receiver_class,
@@ -4210,30 +4209,9 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
 void FlowGraphOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
   // TODO(srdjan): Investigate other attempts, as they are not allowed to
   // deoptimize.
-  const Token::Kind op_kind = instr->token_kind();
-  if ((op_kind == Token::kGET) &&
-      TryInlineInstanceGetter(instr, false /* no checks allowed */)) {
-    return;
-  }
-  const ICData& unary_checks =
-      ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
-  if ((instr->ic_data()->NumberOfChecks() > 0) &&
-      (op_kind == Token::kSET) &&
-      TryInlineInstanceSetter(instr, unary_checks, false /* no checks */)) {
-    return;
-  }
-  if (instr->HasICData() && (instr->ic_data()->NumberOfUsedChecks() > 0)) {
-    ASSERT(!FLAG_polymorphic_with_deopt);
-    // OK to use checks with PolymorphicInstanceCallInstr since no
-    // deoptimization is allowed.
-    PolymorphicInstanceCallInstr* call =
-        new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                            true /* call_with_checks */);
-    instr->ReplaceWith(call, current_iterator());
-    return;
-  }
 
   // Type test is special as it always gets converted into inlined code.
+  const Token::Kind op_kind = instr->token_kind();
   if (Token::IsTypeTestOperator(op_kind)) {
     ReplaceWithInstanceOf(instr);
     return;
@@ -4241,6 +4219,99 @@ void FlowGraphOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
   if (Token::IsTypeCastOperator(op_kind)) {
     ReplaceWithTypeCast(instr);
     return;
+  }
+
+  if ((op_kind == Token::kGET) &&
+      TryInlineInstanceGetter(instr, false /* no checks allowed */)) {
+    return;
+  }
+  const ICData& unary_checks =
+      ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
+  if ((unary_checks.NumberOfChecks() > 0) &&
+      (op_kind == Token::kSET) &&
+      TryInlineInstanceSetter(instr, unary_checks, false /* no checks */)) {
+    return;
+  }
+
+  bool has_one_target =
+      (unary_checks.NumberOfChecks() > 0) && unary_checks.HasOneTarget();
+  if (has_one_target) {
+    // Check if the single target is a polymorphic target, if it is,
+    // we don't have one target.
+    const Function& target =
+        Function::Handle(Z, unary_checks.GetTargetAt(0));
+    const bool polymorphic_target = MethodRecognizer::PolymorphicTarget(target);
+    has_one_target = !polymorphic_target;
+  }
+
+  if (has_one_target) {
+    RawFunction::Kind function_kind =
+        Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
+    if (!InstanceCallNeedsClassCheck(instr, function_kind)) {
+      PolymorphicInstanceCallInstr* call =
+          new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
+                                              /* with_checks = */ false);
+      instr->ReplaceWith(call, current_iterator());
+      return;
+    }
+  }
+
+  // More than one targets. Generate generic polymorphic call without
+  // deoptimization.
+  if (instr->ic_data()->NumberOfUsedChecks() > 0) {
+    ASSERT(!FLAG_polymorphic_with_deopt);
+    // OK to use checks with PolymorphicInstanceCallInstr since no
+    // deoptimization is allowed.
+    PolymorphicInstanceCallInstr* call =
+        new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
+                                            /* with_checks = */ true);
+    instr->ReplaceWith(call, current_iterator());
+    return;
+  }
+
+  // No IC data checks. Try resolve target using the propagated type.
+  // If the propagated type has a method with the target name and there are
+  // no overrides with that name according to CHA, call the method directly.
+  const AbstractType* receiver_type =
+      instr->PushArgumentAt(0)->value()->Type()->ToAbstractType();
+  if (receiver_type->IsDynamicType()) return;
+  if (receiver_type->HasResolvedTypeClass()) {
+    const Class& receiver_class = Class::Handle(Z,
+        receiver_type->type_class());
+    const Array& args_desc_array = Array::Handle(Z,
+        ArgumentsDescriptor::New(instr->ArgumentCount(),
+                                 instr->argument_names()));
+    ArgumentsDescriptor args_desc(args_desc_array);
+    const Function& function = Function::Handle(Z,
+        Resolver::ResolveDynamicForReceiverClass(
+            receiver_class,
+            instr->function_name(),
+            args_desc));
+    if (function.IsNull()) {
+      return;
+    }
+    if (!thread()->cha()->HasOverride(receiver_class, instr->function_name())) {
+      if (FLAG_trace_cha) {
+        THR_Print("  **(CHA) Instance call needs no check, "
+            "no overrides of '%s' '%s'\n",
+            instr->function_name().ToCString(), receiver_class.ToCString());
+      }
+      thread()->cha()->AddToLeafClasses(receiver_class);
+
+      // Create fake IC data with the resolved target.
+      const ICData& ic_data = ICData::Handle(
+          ICData::New(flow_graph_->function(),
+                      instr->function_name(),
+                      args_desc_array,
+                      Thread::kNoDeoptId,
+                      /* args_tested = */ 1));
+      ic_data.AddReceiverCheck(receiver_class.id(), function);
+      PolymorphicInstanceCallInstr* call =
+          new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
+                                              /* with_checks = */ false);
+      instr->ReplaceWith(call, current_iterator());
+      return;
+    }
   }
 }
 
@@ -4332,10 +4403,9 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     RawFunction::Kind function_kind =
         Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
     if (!InstanceCallNeedsClassCheck(instr, function_kind)) {
-      const bool call_with_checks = false;
       PolymorphicInstanceCallInstr* call =
           new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                              call_with_checks);
+                                              /* call_with_checks = */ false);
       instr->ReplaceWith(call, current_iterator());
       return;
     }

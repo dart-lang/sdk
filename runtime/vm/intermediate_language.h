@@ -337,8 +337,6 @@ class Value : public ZoneAllocated {
 
   const char* ToCString() const;
 
-  const char* DebugName() const { return "Value"; }
-
   bool IsSmiValue() { return Type()->ToCid() == kSmiCid; }
 
   // Returns true if this value binds to the constant: 0xFFFFFFFF.

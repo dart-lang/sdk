@@ -1098,9 +1098,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
   if (is_optimizing() && (ic_data.NumberOfUsedChecks() == 0)) {
     // Emit IC call that will count and thus may need reoptimization at
     // function entry.
-    ASSERT(!is_optimizing()
-           || may_reoptimize()
-           || flow_graph().IsCompiledForOsr());
+    ASSERT(may_reoptimize() || flow_graph().IsCompiledForOsr());
     switch (ic_data.NumArgsTested()) {
       case 1:
         EmitOptimizedInstanceCall(

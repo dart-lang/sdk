@@ -5911,7 +5911,6 @@ void Function::SetIsNativeAutoSetupScope(bool value) const {
 bool Function::CanBeInlined() const {
   return is_inlinable() &&
          !is_generated_body() &&
-         HasCode() &&
          !Isolate::Current()->debugger()->HasBreakpoint(*this);
 }
 
