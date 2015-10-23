@@ -288,7 +288,8 @@ final ArgParser argParser = new ArgParser()
 
   // general options
   ..addFlag('help', abbr: 'h', help: 'Display this message')
-  ..addFlag('version', help: 'Display the Dev Compiler verion')
+  ..addFlag('version',
+      negatable: false, help: 'Display the Dev Compiler verion')
   ..addFlag('server', help: 'Run as a development server.', defaultsTo: false)
   ..addFlag('hashing',
       help: 'Enable hash-based file caching.', defaultsTo: null)
