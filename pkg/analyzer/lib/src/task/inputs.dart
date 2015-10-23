@@ -88,12 +88,19 @@ class ListTaskInputImpl<E> extends SimpleTaskInput<List<E>>
  * A mixin-ready implementation of [ListTaskInput].
  */
 abstract class ListTaskInputMixin<E> implements ListTaskInput<E> {
+  @override
+  ListTaskInput /*<V>*/ toFlattenListOf(
+      ListResultDescriptor /*<V>*/ subListResult) {
+    return new ListToFlattenListTaskInput<E, dynamic /*V*/ >(
+        this, subListResult.of as dynamic);
+  }
+
   ListTaskInput /*<V>*/ toList(UnaryFunction<E, dynamic /*<V>*/ > mapper) {
     return new ListToListTaskInput<E, dynamic /*V*/ >(this, mapper);
   }
 
   ListTaskInput /*<V>*/ toListOf(ResultDescriptor /*<V>*/ valueResult) {
-    return (this as ListTaskInputImpl<AnalysisTarget>).toList(valueResult.of);
+    return (this as ListTaskInput<AnalysisTarget>).toList(valueResult.of);
   }
 
   MapTaskInput<E, dynamic /*V*/ > toMap(
@@ -104,6 +111,60 @@ abstract class ListTaskInputMixin<E> implements ListTaskInput<E> {
   MapTaskInput<AnalysisTarget, dynamic /*V*/ > toMapOf(
       ResultDescriptor /*<V>*/ valueResult) {
     return (this as ListTaskInputImpl<AnalysisTarget>).toMap(valueResult.of);
+  }
+}
+
+/**
+ * An input to an [AnalysisTask] that is computed by the following steps. First
+ * another (base) task input is used to compute a [List]-valued result. An input
+ * generator function is then used to map each element of that list to a task
+ * input. Finally, each of the task inputs are used to access analysis results,
+ * and the list of the analysis results is used as the input to the task.
+ */
+class ListToFlattenListTaskInput<B, E>
+    extends _ListToCollectionTaskInput<B, E, List<E>>
+    with ListTaskInputMixin<E>
+    implements ListTaskInput<E> {
+  /**
+   * Initialize a result accessor to use the given [baseAccessor] to access a
+   * list of values that can be passed to the given [generateTaskInputs] to
+   * generate a list of task inputs that can be used to access the elements of
+   * the input being accessed.
+   */
+  ListToFlattenListTaskInput(TaskInput<List<B>> baseAccessor,
+      GenerateTaskInputs<B, E> generateTaskInputs)
+      : super(baseAccessor, generateTaskInputs);
+
+  @override
+  TaskInputBuilder<List<E>> createBuilder() =>
+      new ListToFlattenListTaskInputBuilder<B, E>(this);
+}
+
+/**
+ * A [TaskInputBuilder] used to build an input based on a [ListToFlattenListTaskInput].
+ */
+class ListToFlattenListTaskInputBuilder<B, E>
+    extends _ListToCollectionTaskInputBuilder<B, E, List<E>> {
+  /**
+   * The list of values being built.
+   */
+  List<E> _resultValue;
+
+  /**
+   * Initialize a newly created task input builder that computes the result
+   * specified by the given [input].
+   */
+  ListToFlattenListTaskInputBuilder(ListToFlattenListTaskInput<B, E> input)
+      : super(input);
+
+  @override
+  void _addResultElement(B baseElement, E resultElement) {
+    _resultValue.addAll(resultElement as Iterable);
+  }
+
+  @override
+  void _initResultValue() {
+    _resultValue = <E>[];
   }
 }
 
@@ -377,6 +438,13 @@ class ObjectToListTaskInput<E> extends TaskInputImpl<List<E>>
   @override
   TaskInputBuilder<List<E>> createBuilder() =>
       new ObjectToListTaskInputBuilder<E>(this);
+
+  @override
+  ListTaskInput /*<V>*/ toFlattenListOf(
+      ListResultDescriptor /*<V>*/ subListResult) {
+    return new ListToFlattenListTaskInput<E, dynamic /*V*/ >(
+        this, subListResult.of as dynamic);
+  }
 
   @override
   ListTaskInput /*<V>*/ toListOf(ResultDescriptor /*<V>*/ valueResult) {

@@ -304,6 +304,18 @@ final ResultDescriptor<bool> LIBRARY_ERRORS_READY =
     new ResultDescriptor<bool>('LIBRARY_ERRORS_READY', false);
 
 /**
+ * The [LibrarySpecificUnit]s that a library consists of.
+ *
+ * The list will include the defining unit and units for [INCLUDED_PARTS].
+ * So, it is never empty or `null`.
+ *
+ * The result is only available for [Source]s representing a library.
+ */
+final ListResultDescriptor<LibrarySpecificUnit> LIBRARY_SPECIFIC_UNITS =
+    new ListResultDescriptor<LibrarySpecificUnit>(
+        'LIBRARY_SPECIFIC_UNITS', LibrarySpecificUnit.EMPTY_LIST);
+
+/**
  * The analysis errors associated with a compilation unit in a specific library.
  *
  * The result is only available for [LibrarySpecificUnit]s.
@@ -1466,7 +1478,7 @@ class BuildSourceImportExportClosureTask extends SourceBasedAnalysisTask {
   /**
    * Return a map from the names of the inputs of this kind of task to the task
    * input descriptors describing those inputs for a task with the
-   * given library [libSource].
+   * given library [target].
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     Source source = target;
@@ -1602,33 +1614,30 @@ class ComputeConstantDependenciesTask extends ConstantEvaluationAnalysisTask {
     //
     // We need to force the computation of the RESOLVED_UNIT9 for each unit
     // reachable from the target's library so that all of the AST's for the
-    // contructor initializers that we might encounter have been copied into
+    // constructor initializers that we might encounter have been copied into
     // the element model.
     //
     // TODO(brianwilkerson) This could be improved by computing a more accurate
     // list of the sources containing constructors that are actually referenced.
     //
+    Source librarySource;
     if (target is Element) {
       CompilationUnitElementImpl unit = target
           .getAncestor((Element element) => element is CompilationUnitElement);
-      Source librarySource = unit.librarySource;
-      return <String, TaskInput>{
-        'resolvedUnits': IMPORT_EXPORT_SOURCE_CLOSURE.of(librarySource).toList(
-            (Source library) => UNITS.of(library).toList((Source source) =>
-                RESOLVED_UNIT9.of(new LibrarySpecificUnit(library, source)))),
-        TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
-      };
+      librarySource = unit.librarySource;
     } else if (target is ConstantEvaluationTarget_Annotation) {
-      Source librarySource = target.librarySource;
-      return <String, TaskInput>{
-        'resolvedUnits': IMPORT_EXPORT_SOURCE_CLOSURE.of(librarySource).toList(
-            (Source library) => UNITS.of(library).toList((Source source) =>
-                RESOLVED_UNIT9.of(new LibrarySpecificUnit(library, source)))),
-        TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
-      };
+      librarySource = target.librarySource;
+    } else {
+      throw new AnalysisException(
+          'Cannot build inputs for a ${target.runtimeType}');
     }
-    throw new AnalysisException(
-        'Cannot build inputs for a ${target.runtimeType}');
+    return <String, TaskInput>{
+      'resolvedUnits': IMPORT_EXPORT_SOURCE_CLOSURE
+          .of(librarySource)
+          .toFlattenListOf(LIBRARY_SPECIFIC_UNITS)
+          .toListOf(RESOLVED_UNIT9),
+      TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
+    };
   }
 
   /**
@@ -2582,14 +2591,10 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
     Source libSource = unit.library;
     return <String, TaskInput>{
       RESOLVED_UNIT_INPUT: RESOLVED_UNIT.of(unit),
-      USED_LOCAL_ELEMENTS_INPUT: UNITS.of(libSource).toList((unit) {
-        LibrarySpecificUnit target = new LibrarySpecificUnit(libSource, unit);
-        return USED_LOCAL_ELEMENTS.of(target);
-      }),
-      USED_IMPORTED_ELEMENTS_INPUT: UNITS.of(libSource).toList((unit) {
-        LibrarySpecificUnit target = new LibrarySpecificUnit(libSource, unit);
-        return USED_IMPORTED_ELEMENTS.of(target);
-      }),
+      USED_LOCAL_ELEMENTS_INPUT:
+          LIBRARY_SPECIFIC_UNITS.of(libSource).toListOf(USED_LOCAL_ELEMENTS),
+      USED_IMPORTED_ELEMENTS_INPUT:
+          LIBRARY_SPECIFIC_UNITS.of(libSource).toListOf(USED_IMPORTED_ELEMENTS),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }
@@ -3036,7 +3041,7 @@ class LibraryErrorsReadyTask extends SourceBasedAnalysisTask {
   /**
    * Return a map from the names of the inputs of this kind of task to the task
    * input descriptors describing those inputs for a task with the
-   * given [library].
+   * given [target].
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     Source source = target;
@@ -3215,6 +3220,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     EXPORTED_LIBRARIES,
     IMPORTED_LIBRARIES,
     INCLUDED_PARTS,
+    LIBRARY_SPECIFIC_UNITS,
     PARSE_ERRORS,
     PARSED_UNIT,
     SOURCE_KIND,
@@ -3301,10 +3307,13 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     List<AnalysisError> parseErrors =
         removeDuplicateErrors(errorListener.errors);
     List<Source> unitSources = <Source>[source]..addAll(includedSourceSet);
+    List<LibrarySpecificUnit> librarySpecificUnits =
+        unitSources.map((s) => new LibrarySpecificUnit(source, s)).toList();
     outputs[EXPLICITLY_IMPORTED_LIBRARIES] = explicitlyImportedSources;
     outputs[EXPORTED_LIBRARIES] = exportedSources;
     outputs[IMPORTED_LIBRARIES] = importedSources;
     outputs[INCLUDED_PARTS] = includedSources;
+    outputs[LIBRARY_SPECIFIC_UNITS] = librarySpecificUnits;
     outputs[PARSE_ERRORS] = parseErrors;
     outputs[PARSED_UNIT] = unit;
     outputs[SOURCE_KIND] = sourceKind;
@@ -3785,13 +3794,11 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
     Source source = target;
     return <String, TaskInput>{
       LIBRARY_INPUT: LIBRARY_ELEMENT5.of(source),
-      UNITS_INPUT: UNITS.of(source).toList((Source unit) =>
-          RESOLVED_UNIT9.of(new LibrarySpecificUnit(source, unit))),
+      UNITS_INPUT: LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT9),
       'resolvedUnits': IMPORT_EXPORT_SOURCE_CLOSURE
           .of(source)
-          .toMapOf(UNITS)
-          .toFlattenList((Source library, Source unit) =>
-              RESOLVED_UNIT9.of(new LibrarySpecificUnit(library, unit))),
+          .toFlattenListOf(LIBRARY_SPECIFIC_UNITS)
+          .toListOf(RESOLVED_UNIT9),
     };
   }
 
@@ -3861,8 +3868,8 @@ class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     Source source = target;
     return <String, TaskInput>{
-      'resolvedUnit': UNITS.of(source).toList((Source unit) =>
-          RESOLVED_UNIT3.of(new LibrarySpecificUnit(source, unit))),
+      'resolvedUnit':
+          LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT3),
       LIBRARY_INPUT: LIBRARY_ELEMENT4.of(source),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
@@ -4316,9 +4323,8 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
     return <String, TaskInput>{
       'resolvedUnits': IMPORT_EXPORT_SOURCE_CLOSURE
           .of(unit.library)
-          .toMapOf(UNITS)
-          .toFlattenList((Source library, Source unit) =>
-              RESOLVED_UNIT10.of(new LibrarySpecificUnit(library, unit))),
+          .toFlattenListOf(LIBRARY_SPECIFIC_UNITS)
+          .toListOf(RESOLVED_UNIT10),
       UNIT_INPUT: RESOLVED_UNIT10.of(unit),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
@@ -4447,9 +4453,8 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     return <String, TaskInput>{
       'resolvedUnits': IMPORT_EXPORT_SOURCE_CLOSURE
           .of(unit.library)
-          .toMapOf(UNITS)
-          .toFlattenList((Source library, Source unit) =>
-              RESOLVED_UNIT.of(new LibrarySpecificUnit(library, unit))),
+          .toFlattenListOf(LIBRARY_SPECIFIC_UNITS)
+          .toListOf(RESOLVED_UNIT),
       UNIT_INPUT: RESOLVED_UNIT.of(unit),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
@@ -4483,6 +4488,12 @@ class _ExportSourceClosureTaskInput extends TaskInputImpl<List<Source>> {
       new _SourceClosureTaskInputBuilder(
           target, _SourceClosureKind.EXPORT, resultDescriptor);
 }
+
+/**
+ * The lists of library source that are imported or exported directly or
+ * indirectly by a [Source].
+ */
+class _ImportExportClosure {}
 
 /**
  * A [TaskInput] whose value is a list of library sources imported or exported,
