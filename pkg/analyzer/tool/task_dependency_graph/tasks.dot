@@ -54,6 +54,11 @@ digraph G {
   DartErrorsTask -> DART_ERRORS
   EXPLICITLY_IMPORTED_LIBRARIES [shape=box]
   EXPORTED_LIBRARIES -> BuildDirectiveElementsTask
+  EXPORTED_LIBRARIES -> ReadyLibraryElement2Task
+  EXPORTED_LIBRARIES -> ReadyLibraryElement5Task
+  EXPORTED_LIBRARIES -> ReadyResolvedUnit10Task
+  EXPORTED_LIBRARIES -> ReadyResolvedUnit9Task
+  EXPORTED_LIBRARIES -> ReadyResolvedUnitTask
   EXPORTED_LIBRARIES [shape=box]
   EXPORT_SOURCE_CLOSURE -> BuildExportNamespaceTask
   EXPORT_SOURCE_CLOSURE [shape=box]
@@ -65,13 +70,13 @@ digraph G {
   HINTS -> LibraryUnitErrorsTask
   HINTS [shape=box]
   IMPORTED_LIBRARIES -> BuildDirectiveElementsTask
+  IMPORTED_LIBRARIES -> ReadyLibraryElement2Task
+  IMPORTED_LIBRARIES -> ReadyLibraryElement5Task
+  IMPORTED_LIBRARIES -> ReadyResolvedUnit10Task
+  IMPORTED_LIBRARIES -> ReadyResolvedUnit9Task
+  IMPORTED_LIBRARIES -> ReadyResolvedUnitTask
   IMPORTED_LIBRARIES -> ResolveUnitTypeNamesTask
   IMPORTED_LIBRARIES [shape=box]
-  IMPORT_EXPORT_SOURCE_CLOSURE -> ComputeLibraryCycleTask
-  IMPORT_EXPORT_SOURCE_CLOSURE -> PartiallyResolveUnitReferencesTask
-  IMPORT_EXPORT_SOURCE_CLOSURE -> ResolveLibraryReferencesTask
-  IMPORT_EXPORT_SOURCE_CLOSURE -> StrongModeVerifyUnitTask
-  IMPORT_EXPORT_SOURCE_CLOSURE -> VerifyUnitTask
   IMPORT_EXPORT_SOURCE_CLOSURE [shape=box]
   INCLUDED_PARTS -> BuildLibraryElementTask
   INCLUDED_PARTS [shape=box]
@@ -82,6 +87,7 @@ digraph G {
   INFERRED_STATIC_VARIABLE -> InferStaticVariableTypeTask
   INFERRED_STATIC_VARIABLE -> InferStaticVariableTypesInUnitTask
   INFERRED_STATIC_VARIABLE [shape=box]
+  IS_CLIENT -> ReadyLibraryElement2Task
   IS_CLIENT [shape=box]
   IS_LAUNCHABLE [shape=box]
   InferInstanceMembersInUnitTask -> RESOLVED_UNIT8
@@ -106,6 +112,7 @@ digraph G {
   LIBRARY_ELEMENT2 -> BuildSourceExportClosureTask
   LIBRARY_ELEMENT2 -> BuildSourceImportExportClosureTask
   LIBRARY_ELEMENT2 -> ComputeLibraryCycleTask
+  LIBRARY_ELEMENT2 -> ReadyLibraryElement2Task
   LIBRARY_ELEMENT2 [shape=box]
   LIBRARY_ELEMENT3 -> BuildExportNamespaceTask
   LIBRARY_ELEMENT3 -> BuildTypeProviderTask
@@ -114,16 +121,18 @@ digraph G {
   LIBRARY_ELEMENT4 -> ResolveUnitTypeNamesTask
   LIBRARY_ELEMENT4 [shape=box]
   LIBRARY_ELEMENT5 -> PartiallyResolveUnitReferencesTask
+  LIBRARY_ELEMENT5 -> ReadyLibraryElement5Task
   LIBRARY_ELEMENT5 -> ResolveInstanceFieldsInUnitTask
   LIBRARY_ELEMENT5 -> ResolveLibraryReferencesTask
   LIBRARY_ELEMENT5 -> ResolveUnitTask
   LIBRARY_ELEMENT5 [shape=box]
   LIBRARY_ERRORS_READY [shape=box]
   LIBRARY_SPECIFIC_UNITS -> GenerateHintsTask
+  LIBRARY_SPECIFIC_UNITS -> ReadyResolvedUnit10Task
+  LIBRARY_SPECIFIC_UNITS -> ReadyResolvedUnit9Task
+  LIBRARY_SPECIFIC_UNITS -> ReadyResolvedUnitTask
   LIBRARY_SPECIFIC_UNITS -> ResolveLibraryReferencesTask
   LIBRARY_SPECIFIC_UNITS -> ResolveLibraryTypeNamesTask
-  LIBRARY_SPECIFIC_UNITS -> StrongModeVerifyUnitTask
-  LIBRARY_SPECIFIC_UNITS -> VerifyUnitTask
   LIBRARY_SPECIFIC_UNITS [shape=box]
   LIBRARY_UNIT_ERRORS -> dartErrorsForUnit
   LIBRARY_UNIT_ERRORS [shape=box]
@@ -150,15 +159,32 @@ digraph G {
   ParseDartTask -> UNITS
   PartiallyResolveUnitReferencesTask -> INFERABLE_STATIC_VARIABLES_IN_UNIT
   PartiallyResolveUnitReferencesTask -> RESOLVED_UNIT5
+  READY_LIBRARY_ELEMENT2 -> ComputeLibraryCycleTask
+  READY_LIBRARY_ELEMENT2 -> ReadyLibraryElement2Task
+  READY_LIBRARY_ELEMENT2 [shape=box]
+  READY_LIBRARY_ELEMENT5 -> PartiallyResolveUnitReferencesTask
+  READY_LIBRARY_ELEMENT5 -> ReadyLibraryElement5Task
+  READY_LIBRARY_ELEMENT5 [shape=box]
+  READY_RESOLVED_UNIT -> ReadyResolvedUnitTask
+  READY_RESOLVED_UNIT -> VerifyUnitTask
+  READY_RESOLVED_UNIT [shape=box]
+  READY_RESOLVED_UNIT10 -> ReadyResolvedUnit10Task
+  READY_RESOLVED_UNIT10 -> StrongModeVerifyUnitTask
+  READY_RESOLVED_UNIT10 [shape=box]
+  READY_RESOLVED_UNIT9 -> ReadyResolvedUnit9Task
+  READY_RESOLVED_UNIT9 -> ResolveLibraryReferencesTask
+  READY_RESOLVED_UNIT9 [shape=box]
   REFERENCED_NAMES [shape=box]
   RESOLVED_UNIT -> GenerateHintsTask
   RESOLVED_UNIT -> GenerateLintsTask
+  RESOLVED_UNIT -> ReadyResolvedUnitTask
   RESOLVED_UNIT -> VerifyUnitTask
   RESOLVED_UNIT [shape=box]
   RESOLVED_UNIT1 -> BuildDirectiveElementsTask
   RESOLVED_UNIT1 -> BuildEnumMemberElementsTask
   RESOLVED_UNIT1 -> BuildLibraryElementTask
   RESOLVED_UNIT1 [shape=box]
+  RESOLVED_UNIT10 -> ReadyResolvedUnit10Task
   RESOLVED_UNIT10 -> StrongModeVerifyUnitTask
   RESOLVED_UNIT10 [shape=box]
   RESOLVED_UNIT2 -> ResolveUnitTypeNamesTask
@@ -186,12 +212,19 @@ digraph G {
   RESOLVED_UNIT9 -> EvaluateUnitConstantsTask
   RESOLVED_UNIT9 -> GatherUsedImportedElementsTask
   RESOLVED_UNIT9 -> GatherUsedLocalElementsTask
+  RESOLVED_UNIT9 -> ReadyResolvedUnit9Task
   RESOLVED_UNIT9 -> ResolveLibraryReferencesTask
   RESOLVED_UNIT9 [shape=box]
   RESOLVE_TYPE_NAMES_ERRORS -> LibraryUnitErrorsTask
   RESOLVE_TYPE_NAMES_ERRORS [shape=box]
   RESOLVE_UNIT_ERRORS -> LibraryUnitErrorsTask
   RESOLVE_UNIT_ERRORS [shape=box]
+  ReadyLibraryElement2Task -> IS_CLIENT
+  ReadyLibraryElement2Task -> READY_LIBRARY_ELEMENT2
+  ReadyLibraryElement5Task -> READY_LIBRARY_ELEMENT5
+  ReadyResolvedUnit10Task -> READY_RESOLVED_UNIT10
+  ReadyResolvedUnit9Task -> READY_RESOLVED_UNIT9
+  ReadyResolvedUnitTask -> READY_RESOLVED_UNIT
   ResolveInstanceFieldsInUnitTask -> RESOLVED_UNIT7
   ResolveLibraryReferencesTask -> LIBRARY_ELEMENT
   ResolveLibraryReferencesTask -> REFERENCED_NAMES

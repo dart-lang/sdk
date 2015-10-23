@@ -347,7 +347,26 @@ final ListResultDescriptor<AnalysisError> PARSE_ERRORS =
         'PARSE_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
- * The flag specifying that [RESOLVED_UNIT] is ready for a library.
+ * The flag specifying that [LIBRARY_ELEMENT2] is ready for a library and its
+ * import/export closure.
+ *
+ * The result is only available for [Source]s representing a library.
+ */
+final ResultDescriptor<bool> READY_LIBRARY_ELEMENT2 =
+    new ResultDescriptor<bool>('READY_LIBRARY_ELEMENT2', false);
+
+/**
+ * The flag specifying that [LIBRARY_ELEMENT5] is ready for a library and its
+ * import/export closure.
+ *
+ * The result is only available for [Source]s representing a library.
+ */
+final ResultDescriptor<bool> READY_LIBRARY_ELEMENT5 =
+    new ResultDescriptor<bool>('READY_LIBRARY_ELEMENT5', false);
+
+/**
+ * The flag specifying that [RESOLVED_UNIT] is ready for all of the units of a
+ * library and its import/export closure.
  *
  * The result is only available for [Source]s representing a library.
  */
@@ -355,7 +374,8 @@ final ResultDescriptor<bool> READY_RESOLVED_UNIT =
     new ResultDescriptor<bool>('READY_RESOLVED_UNIT', false);
 
 /**
- * The flag specifying that [RESOLVED_UNIT10] is ready for a library.
+ * The flag specifying that [RESOLVED_UNIT10] is ready for all of the units of a
+ * library and its import/export closure.
  *
  * The result is only available for [Source]s representing a library.
  */
@@ -363,7 +383,8 @@ final ResultDescriptor<bool> READY_RESOLVED_UNIT10 =
     new ResultDescriptor<bool>('READY_RESOLVED_UNIT10', false);
 
 /**
- * The flag specifying that [RESOLVED_UNIT9] is ready for a library.
+ * The flag specifying that [RESOLVED_UNIT9] is ready for all of the units of a
+ * library and its import/export closure.
  *
  * The result is only available for [Source]s representing a library.
  */
@@ -1943,10 +1964,8 @@ class ComputeLibraryCycleTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      'resolveReachableLibraries': IMPORT_EXPORT_SOURCE_CLOSURE
-          .of(unit.library)
-          .toListOf(LIBRARY_ELEMENT2),
-      LIBRARY_ELEMENT_INPUT: LIBRARY_ELEMENT2.of(unit.library)
+      LIBRARY_ELEMENT_INPUT: LIBRARY_ELEMENT2.of(unit.library),
+      'resolveReachableLibraries': READY_LIBRARY_ELEMENT2.of(unit.library),
     };
   }
 
@@ -3478,9 +3497,7 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      'fullyBuiltLibraryElements': IMPORT_EXPORT_SOURCE_CLOSURE
-          .of(unit.library)
-          .toListOf(LIBRARY_ELEMENT5),
+      'fullyBuiltLibraryElements': READY_LIBRARY_ELEMENT5.of(unit.library),
       LIBRARY_INPUT: LIBRARY_ELEMENT5.of(unit.library),
       UNIT_INPUT: RESOLVED_UNIT4.of(unit),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request),
@@ -3541,6 +3558,125 @@ class PublicNamespaceBuilder {
     compilationUnit.functions.forEach(_addIfPublic);
     compilationUnit.functionTypeAliases.forEach(_addIfPublic);
     compilationUnit.types.forEach(_addIfPublic);
+  }
+}
+
+/**
+ * A task that ensures that [LIBRARY_ELEMENT2] is ready for the target library
+ * source and its import/export closure.
+ */
+class ReadyLibraryElement2Task extends SourceBasedAnalysisTask {
+  static const String IS_CLIENT_LIST_INPUT1 = 'IS_CLIENT_LIST_INPUT1';
+  static const String IS_CLIENT_LIST_INPUT2 = 'IS_CLIENT_LIST_INPUT2';
+
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'ReadyLibraryElement2Task',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[READY_LIBRARY_ELEMENT2, IS_CLIENT]);
+
+  ReadyLibraryElement2Task(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  bool get handlesDependencyCycles => true;
+
+  @override
+  void internalPerform() {
+    bool isClient = _isClient();
+    outputs[READY_LIBRARY_ELEMENT2] = true;
+    outputs[IS_CLIENT] = isClient;
+  }
+
+  bool _isClient() {
+    Source htmlSource = context.sourceFactory.forUri(DartSdk.DART_HTML);
+    Source source = getRequiredSource();
+    if (source == htmlSource) {
+      return true;
+    }
+    if (_hasTrueElement(getRequiredInput(IS_CLIENT_LIST_INPUT1))) {
+      return true;
+    }
+    if (_hasTrueElement(getRequiredInput(IS_CLIENT_LIST_INPUT2))) {
+      return true;
+    }
+    return false;
+  }
+
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    Source source = target;
+    return <String, TaskInput>{
+      'thisLibraryElementReady': LIBRARY_ELEMENT2.of(source),
+      IS_CLIENT_LIST_INPUT1: IMPORTED_LIBRARIES.of(source).toListOf(IS_CLIENT),
+      IS_CLIENT_LIST_INPUT2: EXPORTED_LIBRARIES.of(source).toListOf(IS_CLIENT),
+      'directlyImportedLibrariesReady':
+          IMPORTED_LIBRARIES.of(source).toListOf(READY_LIBRARY_ELEMENT2),
+      'directlyExportedLibrariesReady':
+          EXPORTED_LIBRARIES.of(source).toListOf(READY_LIBRARY_ELEMENT2),
+    };
+  }
+
+  static ReadyLibraryElement2Task createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new ReadyLibraryElement2Task(context, target);
+  }
+
+  static bool _hasTrueElement(List<bool> elements) {
+    if (elements != null) {
+      for (bool isClient in elements) {
+        if (isClient == true) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+}
+
+/**
+ * A task that ensures that [LIBRARY_ELEMENT5] is ready for the target library
+ * source and its import/export closure.
+ */
+class ReadyLibraryElement5Task extends SourceBasedAnalysisTask {
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'ReadyLibraryElement5Task',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[READY_LIBRARY_ELEMENT5]);
+
+  ReadyLibraryElement5Task(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  bool get handlesDependencyCycles => true;
+
+  @override
+  void internalPerform() {
+    outputs[READY_LIBRARY_ELEMENT5] = true;
+  }
+
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    Source source = target;
+    return <String, TaskInput>{
+      'thisLibraryElementReady': LIBRARY_ELEMENT5.of(source),
+      'directlyImportedLibrariesReady':
+          IMPORTED_LIBRARIES.of(source).toListOf(READY_LIBRARY_ELEMENT5),
+      'directlyExportedLibrariesReady':
+          EXPORTED_LIBRARIES.of(source).toListOf(READY_LIBRARY_ELEMENT5),
+    };
+  }
+
+  static ReadyLibraryElement5Task createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new ReadyLibraryElement5Task(context, target);
   }
 }
 
@@ -3963,7 +4099,7 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * An artifitial task that does nothing except to force type names resolution
+ * An artificial task that does nothing except to force type names resolution
  * for the defining and part units of a library.
  */
 class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
