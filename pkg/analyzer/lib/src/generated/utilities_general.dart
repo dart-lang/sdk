@@ -4,6 +4,7 @@
 
 library engine.utilities.general;
 
+import 'dart:collection';
 import 'dart:developer' show UserTag;
 
 /**
@@ -29,6 +30,26 @@ class JenkinsSmiHash {
 
   static int hash4(a, b, c, d) =>
       finish(combine(combine(combine(combine(0, a), b), c), d));
+}
+
+/**
+ * A simple limited queue.
+ */
+class LimitedQueue<E> extends ListQueue<E> {
+  final int limit;
+
+  /**
+   * Create a queue with [limit] items.
+   */
+  LimitedQueue(this.limit);
+
+  @override
+  void add(E o) {
+    super.add(o);
+    while (length > limit) {
+      remove(first);
+    }
+  }
 }
 
 /**
