@@ -336,7 +336,6 @@ deferred_type_dependency_test/none: Crash # (lib2.getInstance()): deferred acces
 deferred_type_dependency_test/type_annotation: Crash # (lib1.fooAnnotation("string")): deferred access is not implemented
 field3a_negative_test: Fail # Bogus result from type inference in case of invalid program.
 first_class_types_test: RuntimeError # Please triage this failure.
-for2_test: Crash # The null object does not have a getter 'field'.
 for_variable_capture_test: Crash # (i=0): For-loop variable captured in loop header
 generic2_test: RuntimeError # Please triage this failure.
 generic_instanceof_test: RuntimeError # Please triage this failure.

@@ -906,6 +906,7 @@ class ClosureTranslator extends Visitor {
   }
 
   visitFor(For node) {
+    List<LocalVariableElement> boxedLoopVariables = <LocalVariableElement>[];
     inNewScope(node, () {
       // First visit initializer and update so we can easily check if a loop
       // variable was captured in one of these subexpressions.
@@ -929,24 +930,27 @@ class ClosureTranslator extends Visitor {
       // condition or body are indeed flagged as mutated.
       if (node.conditionStatement != null) visit(node.conditionStatement);
       if (node.body != null) visit(node.body);
+
+      // See if we have declared loop variables that need to be boxed.
+      if (node.initializer == null) return;
+      VariableDefinitions definitions =
+          node.initializer.asVariableDefinitions();
+      if (definitions == null) return;
+      for (Link<Node> link = definitions.definitions.nodes;
+           !link.isEmpty;
+           link = link.tail) {
+        Node definition = link.head;
+        LocalVariableElement element = elements[definition];
+        // Non-mutated variables should not be boxed.  The mutatedVariables set
+        // gets cleared when 'inNewScope' returns, so check it here.
+        if (isCapturedVariable(element) && mutatedVariables.contains(element)) {
+          boxedLoopVariables.add(element);
+        }
+      }
     });
-    // See if we have declared loop variables that need to be boxed.
-    if (node.initializer == null) return;
-    VariableDefinitions definitions = node.initializer.asVariableDefinitions();
-    if (definitions == null) return;
     ClosureScope scopeData = closureData.capturingScopes[node];
     if (scopeData == null) return;
-    List<LocalVariableElement> result = <LocalVariableElement>[];
-    for (Link<Node> link = definitions.definitions.nodes;
-         !link.isEmpty;
-         link = link.tail) {
-      Node definition = link.head;
-      LocalVariableElement element = elements[definition];
-      if (isCapturedVariable(element)) {
-        result.add(element);
-      }
-    }
-    scopeData.boxedLoopVariables = result;
+    scopeData.boxedLoopVariables = boxedLoopVariables;
   }
 
   /** Returns a non-unique name for the given closure element. */
