@@ -47,7 +47,33 @@
   of a number of issues uncovered by the first few non-observatory
   clients.  This is a potentially breaking change for clients.
 
-## 1.12.0
+## 1.12.2 - 2015-10-21
+
+### Core library changes
+
+* `dart:io`
+
+  * A memory leak in creation of Process objects is fixed.
+
+## 1.12.1 - 2015-09-08
+
+### Tool changes
+
+* Pub
+
+  * Pub will now respect `.gitignore` when validating a package before it's
+    published. For example, if a `LICENSE` file exists but is ignored, that is
+    now an error.
+
+  * If the package is in a subdirectory of a Git repository and the entire
+    subdirectory is ignored with `.gitignore`, pub will act as though nothing
+    was ignored instead of uploading an empty package.
+
+  * The heuristics for determining when `pub get` needs to be run before various
+    commands have been improved. There should no longer be false positives when
+    non-dependency sections of the pubspec have been modified.
+
+## 1.12.0 - 2015-08-31
 
 ### Language changes
 
@@ -220,14 +246,14 @@
 * Some RPCs that didn't include a `"jsonrpc"` property in their responses now
   include one.
 
-## 1.11.2
+## 1.11.2 - 2015-08-03
 
 ### Core library changes
 
 * Fix a bug where `WebSocket.close()` would crash if called after
   `WebSocket.cancel()`.
 
-## 1.11.1
+## 1.11.1 - 2015-07-02
 
 ### Tool changes
 
