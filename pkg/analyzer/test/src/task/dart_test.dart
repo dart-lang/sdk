@@ -841,8 +841,12 @@ part of lib;
 void set test(_) {}
 '''
     });
-    CompilationUnitElement unitElement1 = partUnits[0].element;
-    CompilationUnitElement unitElement2 = partUnits[1].element;
+    CompilationUnitElement unitElement1 = partUnits
+        .singleWhere((u) => u.element.name.endsWith('part1.dart'))
+        .element;
+    CompilationUnitElement unitElement2 = partUnits
+        .singleWhere((u) => u.element.name.endsWith('part2.dart'))
+        .element;
     PropertyAccessorElement getter = unitElement1.accessors[0];
     PropertyAccessorElement setter = unitElement2.accessors[0];
     PropertyInducingElement variable = getter.variable;
