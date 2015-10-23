@@ -25,6 +25,7 @@ import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -1030,6 +1031,9 @@ class GetHandler {
     explicitNames.sort();
     implicitNames.sort();
 
+    AnalysisDriver driver = (context as AnalysisContextImpl).driver;
+    List<WorkItem> workItems = driver.currentWorkOrder?.workItems;
+
     _overlayContents.clear();
     context.visitContentCache((String fullName, int stamp, String contents) {
       _overlayContents[fullName] = contents;
@@ -1060,11 +1064,20 @@ class GetHandler {
       _writePage(
           buffer, 'Analysis Server - Context', ['Context: $contextFilter'],
           (StringBuffer buffer) {
-
         buffer.write('<h3>Most Recently Perfomed Tasks</h3>');
         AnalysisTask.LAST_TASKS.forEach((String description) {
           buffer.write('<p>$description</p>');
         });
+
+        buffer.write('<h3>Work Items</h3>');
+        buffer.write(
+            '<p><b>Current: ${driver.currentWorkOrder?.current?.descriptor?.name}</b></p>');
+        buffer.write('<br>');
+        if (workItems != null) {
+          buffer.writeAll(workItems
+              .map((item) => '<p>${item.descriptor?.name}</p>')
+              ?.toList());
+        }
 
         _writeFiles(buffer, 'Priority Files', priorityNames);
         _writeFiles(buffer, 'Explicitly Analyzed Files', explicitNames);
