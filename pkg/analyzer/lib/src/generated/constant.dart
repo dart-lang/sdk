@@ -320,23 +320,21 @@ class ConstantEvaluationEngine {
    */
   void computeConstantValue(ConstantEvaluationTarget constant) {
     validator.beforeComputeValue(constant);
-    if (constant is ParameterElement) {
+    if (constant is ParameterElementImpl) {
       if (constant.initializer != null) {
-        Expression defaultValue =
-            (constant as PotentiallyConstVariableElement).constantInitializer;
+        Expression defaultValue = constant.constantInitializer;
         if (defaultValue != null) {
           RecordingErrorListener errorListener = new RecordingErrorListener();
           ErrorReporter errorReporter =
               new ErrorReporter(errorListener, constant.source);
           DartObjectImpl dartObject =
               defaultValue.accept(new ConstantVisitor(this, errorReporter));
-          (constant as ParameterElementImpl).evaluationResult =
+          constant.evaluationResult =
               new EvaluationResultImpl(dartObject, errorListener.errors);
         }
       }
-    } else if (constant is VariableElement) {
-      Expression constantInitializer =
-          (constant as PotentiallyConstVariableElement).constantInitializer;
+    } else if (constant is VariableElementImpl) {
+      Expression constantInitializer = constant.constantInitializer;
       if (constantInitializer != null) {
         RecordingErrorListener errorListener = new RecordingErrorListener();
         ErrorReporter errorReporter =
@@ -355,7 +353,7 @@ class ConstantEvaluationEngine {
                 [dartObject.type, constant.type]);
           }
         }
-        (constant as VariableElementImpl).evaluationResult =
+        constant.evaluationResult =
             new EvaluationResultImpl(dartObject, errorListener.errors);
       }
     } else if (constant is ConstructorElement) {
@@ -415,6 +413,12 @@ class ConstantEvaluationEngine {
           elementAnnotation.evaluationResult = new EvaluationResultImpl(null);
         }
       }
+    } else if (constant is VariableElement) {
+      // constant is a VariableElement but not a VariableElementImpl.  This can
+      // happen sometimes in the case of invalid user code (for example, a
+      // constant expression that refers to a nonstatic field inside a generic
+      // class will wind up referring to a FieldMember).  The error is detected
+      // elsewhere, so just silently ignore it here.
     } else {
       // Should not happen.
       assert(false);
@@ -439,15 +443,14 @@ class ConstantEvaluationEngine {
   void computeDependencies(
       ConstantEvaluationTarget constant, ReferenceFinderCallback callback) {
     ReferenceFinder referenceFinder = new ReferenceFinder(callback);
-    if (constant is ParameterElement) {
+    if (constant is ParameterElementImpl) {
       if (constant.initializer != null) {
-        Expression defaultValue =
-            (constant as ConstVariableElement).constantInitializer;
+        Expression defaultValue = constant.constantInitializer;
         if (defaultValue != null) {
           defaultValue.accept(referenceFinder);
         }
       }
-    } else if (constant is PotentiallyConstVariableElement) {
+    } else if (constant is VariableElementImpl) {
       Expression initializer = constant.constantInitializer;
       if (initializer != null) {
         initializer.accept(referenceFinder);
@@ -532,6 +535,12 @@ class ConstantEvaluationEngine {
       if (constNode.arguments != null) {
         constNode.arguments.accept(referenceFinder);
       }
+    } else if (constant is VariableElement) {
+      // constant is a VariableElement but not a VariableElementImpl.  This can
+      // happen sometimes in the case of invalid user code (for example, a
+      // constant expression that refers to a nonstatic field inside a generic
+      // class will wind up referring to a FieldMember).  So just don't bother
+      // computing any dependencies.
     } else {
       // Should not happen.
       assert(false);
