@@ -35,6 +35,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/task/dart.dart';
@@ -556,6 +557,51 @@ class GetHandler {
               classes: [null, "right", "right", "right"]);
           buffer.write('</table>');
         });
+        //
+        // Write task model inputs timing information.
+        //
+        {
+          buffer.write('<p><b>Task inputs performace data</b></p>');
+          buffer.write(
+              '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+          _writeRow(
+              buffer,
+              [
+                'Task Name',
+                'Count',
+                'Total Time (in ms)',
+                'Average Time (in ms)'
+              ],
+              header: true);
+
+          Map<TaskDescriptor, int> countMap = WorkItem.countMap;
+          Map<TaskDescriptor, Stopwatch> stopwatchMap = WorkItem.stopwatchMap;
+          List<TaskDescriptor> taskClasses = stopwatchMap.keys.toList();
+          taskClasses.sort((TaskDescriptor first, TaskDescriptor second) {
+            String firstName = first.name;
+            String secondName = second.name;
+            return firstName.compareTo(secondName);
+          });
+          taskClasses.forEach((TaskDescriptor descriptor) {
+            int count = countMap[descriptor];
+            if (count == null) {
+              count = 0;
+            }
+            int taskTime = stopwatchMap[descriptor].elapsedMilliseconds;
+            _writeRow(buffer, [
+              descriptor.name,
+              count,
+              taskTime,
+              count <= 0 ? '-' : (taskTime / count).toStringAsFixed(3)
+            ], classes: [
+              null,
+              "right",
+              "right",
+              "right"
+            ]);
+          });
+          buffer.write('</table>');
+        }
       });
     });
   }

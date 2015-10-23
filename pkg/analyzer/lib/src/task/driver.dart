@@ -17,7 +17,7 @@ import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/model.dart';
 
-final PerformanceTag workOrderMoveNextPerfTag =
+final PerformanceTag workOrderMoveNextPerformanceTag =
     new PerformanceTag('WorkOrder.moveNext');
 
 /**
@@ -520,10 +520,25 @@ class StronglyConnectedComponent<Node> {
 }
 
 /**
- * A description of a single anaysis task that can be performed to advance
+ * A description of a single analysis task that can be performed to advance
  * analysis.
  */
 class WorkItem {
+  /**
+   * A table mapping the names of analysis tasks to the number of times each
+   * kind of task has been performed.
+   */
+  static final Map<TaskDescriptor, int> countMap =
+      new HashMap<TaskDescriptor, int>();
+
+  /**
+   * A table mapping the names of analysis tasks to stopwatches used to compute
+   * how much time was spent between creating an item and creating (for
+   * performing) of each kind of task
+   */
+  static final Map<TaskDescriptor, Stopwatch> stopwatchMap =
+      new HashMap<TaskDescriptor, Stopwatch>();
+
   /**
    * The context in which the task will be performed.
    */
@@ -543,6 +558,11 @@ class WorkItem {
    * The [ResultDescriptor] which was led to this work item being spawned.
    */
   final ResultDescriptor spawningResult;
+
+  /**
+   * The current inputs computing stopwatch.
+   */
+  Stopwatch stopwatch;
 
   /**
    * An iterator used to iterate over the descriptors of the inputs to the task,
@@ -594,6 +614,19 @@ class WorkItem {
       builder = null;
     }
     inputs = new HashMap<String, dynamic>();
+    // Update performance counters.
+    {
+      stopwatch = stopwatchMap[descriptor];
+      if (stopwatch == null) {
+        stopwatch = new Stopwatch();
+        stopwatchMap[descriptor] = stopwatch;
+      }
+      stopwatch.start();
+    }
+    {
+      int count = countMap[descriptor];
+      countMap[descriptor] = count == null ? 1 : count + 1;
+    }
   }
 
   @override
@@ -613,6 +646,7 @@ class WorkItem {
    * Build the task represented by this work item.
    */
   AnalysisTask buildTask() {
+    stopwatch.stop();
     if (builder != null) {
       throw new StateError("some inputs have not been computed");
     }
@@ -730,7 +764,7 @@ class WorkOrder implements Iterator<WorkItem> {
 
   @override
   bool moveNext() {
-    return workOrderMoveNextPerfTag.makeCurrentWhile(() {
+    return workOrderMoveNextPerformanceTag.makeCurrentWhile(() {
       if (currentItems != null && currentItems.length > 1) {
         // Yield more items.
         currentItems.removeLast();
@@ -759,7 +793,7 @@ class WorkOrder implements Iterator<WorkItem> {
 }
 
 /**
- * Specilaization of [CycleAwareDependencyWalker] for use by [WorkOrder].
+ * Specialization of [CycleAwareDependencyWalker] for use by [WorkOrder].
  */
 class _WorkOrderDependencyWalker extends CycleAwareDependencyWalker<WorkItem> {
   /**
