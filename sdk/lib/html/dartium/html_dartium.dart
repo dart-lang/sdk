@@ -529,7 +529,6 @@ final htmlBlinkMap = {
   'XPathNSResolver': () => XPathNSResolver,
   'XPathResult': () => XPathResult,
   'XSLTProcessor': () => XsltProcessor,
-
 };
 
 // TODO(leafp): We may want to move this elsewhere if html becomes
