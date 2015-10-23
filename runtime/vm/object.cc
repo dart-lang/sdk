@@ -14831,7 +14831,8 @@ void Instance::SetNativeFields(uint16_t num_native_fields,
 
 
 bool Instance::IsClosure() const {
-  return Class::IsSignatureClass(clazz());
+  const Class& cls = Class::Handle(clazz());
+  return cls.IsSignatureClass();
 }
 
 
