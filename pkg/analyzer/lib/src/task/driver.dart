@@ -17,6 +17,9 @@ import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/model.dart';
 
+final PerformanceTag analysisDriverProcessOutputs =
+    new PerformanceTag('AnalysisDriver.processOutputs');
+
 final PerformanceTag workOrderMoveNextPerformanceTag =
     new PerformanceTag('WorkOrder.moveNext');
 
@@ -266,34 +269,36 @@ class AnalysisDriver {
     AnalysisTask task = item.buildTask();
     _onTaskStartedController.add(task);
     task.perform();
-    AnalysisTarget target = task.target;
-    CacheEntry entry = context.getCacheEntry(target);
-    if (task.caughtException == null) {
-      List<TargetedResult> dependedOn = item.inputTargetedResults.toList();
-      Map<ResultDescriptor, dynamic> outputs = task.outputs;
-      for (ResultDescriptor result in task.descriptor.results) {
-        // TODO(brianwilkerson) We could check here that a value was produced
-        // and throw an exception if not (unless we want to allow null values).
-        entry.setValue(result, outputs[result], dependedOn);
+    analysisDriverProcessOutputs.makeCurrentWhile(() {
+      AnalysisTarget target = task.target;
+      CacheEntry entry = context.getCacheEntry(target);
+      if (task.caughtException == null) {
+        List<TargetedResult> dependedOn = item.inputTargetedResults.toList();
+        Map<ResultDescriptor, dynamic> outputs = task.outputs;
+        for (ResultDescriptor result in task.descriptor.results) {
+          // TODO(brianwilkerson) We could check here that a value was produced
+          // and throw an exception if not (unless we want to allow null values).
+          entry.setValue(result, outputs[result], dependedOn);
 //        if (dependedOn.length > 250) {
 //          print('[${dependedOn.length}] $result or $target dependsOn: $dependedOn');
 //        }
-      }
-      outputs.forEach((ResultDescriptor descriptor, value) {
-        StreamController<ComputedResult> controller =
-            resultComputedControllers[descriptor];
-        if (controller != null) {
-          ComputedResult event =
-              new ComputedResult(context, descriptor, target, value);
-          controller.add(event);
         }
-      });
-      for (WorkManager manager in workManagers) {
-        manager.resultsComputed(target, outputs);
+        outputs.forEach((ResultDescriptor descriptor, value) {
+          StreamController<ComputedResult> controller =
+              resultComputedControllers[descriptor];
+          if (controller != null) {
+            ComputedResult event =
+                new ComputedResult(context, descriptor, target, value);
+            controller.add(event);
+          }
+        });
+        for (WorkManager manager in workManagers) {
+          manager.resultsComputed(target, outputs);
+        }
+      } else {
+        entry.setErrorState(task.caughtException, item.descriptor.results);
       }
-    } else {
-      entry.setErrorState(task.caughtException, item.descriptor.results);
-    }
+    });
     _onTaskCompletedController.add(task);
     return task;
   }
@@ -740,8 +745,6 @@ class WorkOrder implements Iterator<WorkItem> {
    */
   final _WorkOrderDependencyWalker _dependencyWalker;
 
-  List<WorkItem> get workItems => _dependencyWalker._path;
-
   /**
    * The strongly connected component most recently returned by
    * [_dependencyWalker], minus any [WorkItem]s that the iterator has already
@@ -766,6 +769,8 @@ class WorkOrder implements Iterator<WorkItem> {
       return currentItems.last;
     }
   }
+
+  List<WorkItem> get workItems => _dependencyWalker._path;
 
   @override
   bool moveNext() {

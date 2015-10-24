@@ -415,13 +415,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
-  /**
-   * Invalidate analysis cache.
-   */
-  void invalidateCachedResults() {
-    _cache = createCacheFromSourceFactory(_sourceFactory);
-  }
-
   @override
   List<Source> get sources {
     return _cache.sources.toList();
@@ -1029,6 +1022,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return changed;
   }
 
+  /**
+   * Invalidate analysis cache.
+   */
+  void invalidateCachedResults() {
+    _cache = createCacheFromSourceFactory(_sourceFactory);
+  }
+
   @override
   void invalidateLibraryHints(Source librarySource) {
     List<Source> sources = getResult(librarySource, UNITS);
@@ -1042,13 +1042,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   bool isClientLibrary(Source librarySource) {
     CacheEntry entry = _cache.get(librarySource);
-    return entry.getValue(IS_CLIENT) && entry.getValue(IS_LAUNCHABLE);
+    return _referencesDartHtml(librarySource) && entry.getValue(IS_LAUNCHABLE);
   }
 
   @override
   bool isServerLibrary(Source librarySource) {
     CacheEntry entry = _cache.get(librarySource);
-    return !entry.getValue(IS_CLIENT) && entry.getValue(IS_LAUNCHABLE);
+    return !_referencesDartHtml(librarySource) && entry.getValue(IS_LAUNCHABLE);
   }
 
   @override
@@ -1125,7 +1125,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       setValue(IMPORTED_LIBRARIES, Source.EMPTY_LIST);
       // IMPORT_SOURCE_CLOSURE
       setValue(INCLUDED_PARTS, Source.EMPTY_LIST);
-      setValue(IS_CLIENT, true);
       setValue(IS_LAUNCHABLE, false);
       setValue(LIBRARY_ELEMENT, library);
       setValue(LIBRARY_ELEMENT1, library);
@@ -1702,6 +1701,26 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
+  bool _referencesDartHtml(Source librarySource) {
+    Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
+    Set<Source> checkedSources = new Set<Source>();
+    bool _refHtml(Source source) {
+      if (!checkedSources.add(source)) {
+        return false;
+      }
+      if (source == htmlSource) {
+        return true;
+      }
+      LibraryElement library = _cache.getValue(source, LIBRARY_ELEMENT);
+      if (library != null) {
+        return library.importedLibraries.any((x) => _refHtml(x.source)) ||
+            library.exportedLibraries.any((x) => _refHtml(x.source));
+      }
+      return false;
+    }
+    return _refHtml(librarySource);
+  }
+
   void _removeFromCache(Source source) {
     CacheEntry entry = _cache.remove(source);
     if (entry != null && !entry.explicitlyAdded) {
@@ -1932,6 +1951,52 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 }
 
 /**
+ * A helper class used to create futures for [AnalysisContextImpl].
+ * Using a helper class allows us to preserve the generic parameter T.
+ */
+class AnalysisFutureHelper<T> {
+  final AnalysisContextImpl _context;
+  final AnalysisTarget _target;
+  final ResultDescriptor<T> _descriptor;
+
+  AnalysisFutureHelper(this._context, this._target, this._descriptor);
+
+  /**
+   * Return a future that will be completed with the result specified
+   * in the constructor. If the result is cached, the future will be
+   * completed immediately with the resulting value. If not, then
+   * analysis is scheduled that will produce the required result.
+   * If the result cannot be generated, then the future will be completed with
+   * the error AnalysisNotScheduledError.
+   */
+  CancelableFuture<T> computeAsync() {
+    if (_context.isDisposed) {
+      // No further analysis is expected, so return a future that completes
+      // immediately with AnalysisNotScheduledError.
+      return new CancelableFuture.error(new AnalysisNotScheduledError());
+    }
+    CacheEntry entry = _context.getCacheEntry(_target);
+    PendingFuture pendingFuture =
+        new PendingFuture<T>(_context, _target, (CacheEntry entry) {
+      CacheState state = entry.getState(_descriptor);
+      if (state == CacheState.ERROR) {
+        throw entry.exception;
+      } else if (state == CacheState.INVALID) {
+        return null;
+      }
+      return entry.getValue(_descriptor);
+    });
+    if (!pendingFuture.evaluate(entry)) {
+      _context._pendingFutureTargets
+          .putIfAbsent(_target, () => <PendingFuture>[])
+          .add(pendingFuture);
+      _context.dartWorkManager.addPriorityResult(_target, _descriptor);
+    }
+    return pendingFuture.future;
+  }
+}
+
+/**
  * An object that manages the partitions that can be shared between analysis
  * contexts.
  */
@@ -2068,51 +2133,5 @@ class SdkAnalysisContext extends AnalysisContextImpl {
     return new AnalysisCache(<CachePartition>[
       AnalysisEngine.instance.partitionManager_new.forSdk(sdk)
     ]);
-  }
-}
-
-/**
- * A helper class used to create futures for [AnalysisContextImpl].
- * Using a helper class allows us to preserve the generic parameter T.
- */
-class AnalysisFutureHelper<T> {
-  final AnalysisContextImpl _context;
-  final AnalysisTarget _target;
-  final ResultDescriptor<T> _descriptor;
-
-  AnalysisFutureHelper(this._context, this._target, this._descriptor);
-
-  /**
-   * Return a future that will be completed with the result specified
-   * in the constructor. If the result is cached, the future will be
-   * completed immediately with the resulting value. If not, then
-   * analysis is scheduled that will produce the required result.
-   * If the result cannot be generated, then the future will be completed with
-   * the error AnalysisNotScheduledError.
-   */
-  CancelableFuture<T> computeAsync() {
-    if (_context.isDisposed) {
-      // No further analysis is expected, so return a future that completes
-      // immediately with AnalysisNotScheduledError.
-      return new CancelableFuture.error(new AnalysisNotScheduledError());
-    }
-    CacheEntry entry = _context.getCacheEntry(_target);
-    PendingFuture pendingFuture =
-        new PendingFuture<T>(_context, _target, (CacheEntry entry) {
-      CacheState state = entry.getState(_descriptor);
-      if (state == CacheState.ERROR) {
-        throw entry.exception;
-      } else if (state == CacheState.INVALID) {
-        return null;
-      }
-      return entry.getValue(_descriptor);
-    });
-    if (!pendingFuture.evaluate(entry)) {
-      _context._pendingFutureTargets
-          .putIfAbsent(_target, () => <PendingFuture>[])
-          .add(pendingFuture);
-      _context.dartWorkManager.addPriorityResult(_target, _descriptor);
-    }
-    return pendingFuture.future;
   }
 }

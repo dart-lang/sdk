@@ -39,7 +39,6 @@ main() {
   runReflectiveTests(BuildLibraryElementTaskTest);
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(BuildSourceExportClosureTaskTest);
-  runReflectiveTests(BuildSourceImportExportClosureTaskTest);
   runReflectiveTests(BuildTypeProviderTaskTest);
   runReflectiveTests(ComputeConstantDependenciesTaskTest);
   runReflectiveTests(ComputeConstantValueTaskTest);
@@ -84,8 +83,6 @@ isInstanceOf isBuildPublicNamespaceTask =
     new isInstanceOf<BuildPublicNamespaceTask>();
 isInstanceOf isBuildSourceExportClosureTask =
     new isInstanceOf<BuildSourceExportClosureTask>();
-isInstanceOf isBuildSourceImportExportClosureTask =
-    new isInstanceOf<BuildSourceImportExportClosureTask>();
 isInstanceOf isBuildTypeProviderTask =
     new isInstanceOf<BuildTypeProviderTask>();
 isInstanceOf isComputeConstantDependenciesTask =
@@ -950,113 +947,6 @@ library lib_d;
       List<Source> closure = outputs[EXPORT_SOURCE_CLOSURE];
       expect(closure, unorderedEquals([sourceD]));
     }
-  }
-}
-
-@reflectiveTest
-class BuildSourceImportExportClosureTaskTest extends _AbstractDartTaskTest {
-  test_perform_importExportClosure() {
-    Source sourceA = newSource(
-        '/a.dart',
-        '''
-library lib_a;
-''');
-    Source sourceB = newSource(
-        '/b.dart',
-        '''
-library lib_b;
-export 'a.dart';
-''');
-    Source sourceC = newSource(
-        '/c.dart',
-        '''
-library lib_c;
-import 'b.dart';
-''');
-    Source coreSource = context.sourceFactory.resolveUri(null, 'dart:core');
-    // c.dart
-    {
-      computeResult(sourceC, IMPORT_EXPORT_SOURCE_CLOSURE,
-          matcher: isBuildSourceImportExportClosureTask);
-      List<Source> closure = outputs[IMPORT_EXPORT_SOURCE_CLOSURE];
-      expect(closure, contains(sourceA));
-      expect(closure, contains(sourceB));
-      expect(closure, contains(sourceC));
-      expect(closure, contains(coreSource));
-    }
-    // b.dart
-    {
-      computeResult(sourceB, IMPORT_EXPORT_SOURCE_CLOSURE,
-          matcher: isBuildSourceImportExportClosureTask);
-      List<Source> closure = outputs[IMPORT_EXPORT_SOURCE_CLOSURE];
-      expect(closure, contains(sourceA));
-      expect(closure, contains(sourceB));
-      expect(closure, contains(coreSource));
-    }
-  }
-
-  test_perform_isClient_false() {
-    Source sourceA = newSource(
-        '/a.dart',
-        '''
-library lib_a;
-import 'b.dart';
-''');
-    newSource(
-        '/b.dart',
-        '''
-library lib_b;
-''');
-    computeResult(sourceA, IS_CLIENT,
-        matcher: isBuildSourceImportExportClosureTask);
-    expect(outputs[IS_CLIENT], isFalse);
-  }
-
-  test_perform_isClient_true_export_indirect() {
-    newSource(
-        '/exports_html.dart',
-        '''
-library lib_exports_html;
-export 'dart:html';
-''');
-    Source source = newSource(
-        '/test.dart',
-        '''
-import 'exports_html.dart';
-''');
-    computeResult(source, IS_CLIENT,
-        matcher: isBuildSourceImportExportClosureTask);
-    expect(outputs[IS_CLIENT], isTrue);
-  }
-
-  test_perform_isClient_true_import_direct() {
-    Source sourceA = newSource(
-        '/a.dart',
-        '''
-library lib_a;
-import 'dart:html';
-''');
-    computeResult(sourceA, IS_CLIENT,
-        matcher: isBuildSourceImportExportClosureTask);
-    expect(outputs[IS_CLIENT], isTrue);
-  }
-
-  test_perform_isClient_true_import_indirect() {
-    Source sourceA = newSource(
-        '/a.dart',
-        '''
-library lib_a;
-import 'b.dart';
-''');
-    newSource(
-        '/b.dart',
-        '''
-library lib_b;
-import 'dart:html';
-''');
-    computeResult(sourceA, IS_CLIENT,
-        matcher: isBuildSourceImportExportClosureTask);
-    expect(outputs[IS_CLIENT], isTrue);
   }
 }
 

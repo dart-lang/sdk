@@ -810,19 +810,19 @@ part of lib;
     expect(contents.data.toString(), content);
   }
 
-  void test_getContents_overridden() {
-    String content = "library lib;";
-    Source source = new TestSource();
-    context.setContents(source, content);
-    TimestampedData<String> contents = context.getContents(source);
-    expect(contents.data.toString(), content);
-  }
-
-  void test_getContents_unoverridden() {
+  void test_getContents_notOverridden() {
     String content = "library lib;";
     Source source = new TestSource('/test.dart', content);
     context.setContents(source, "part of lib;");
     context.setContents(source, null);
+    TimestampedData<String> contents = context.getContents(source);
+    expect(contents.data.toString(), content);
+  }
+
+  void test_getContents_overridden() {
+    String content = "library lib;";
+    Source source = new TestSource();
+    context.setContents(source, content);
     TimestampedData<String> contents = context.getContents(source);
     expect(contents.data.toString(), content);
   }
@@ -1046,7 +1046,7 @@ import 'dart:html';
         r'''
 import 'a.dart';
 main() {}''');
-    context.computeLibraryElement(source);
+    _analyzeAll_assertFinished();
     sources = context.launchableClientLibrarySources;
     expect(sources, unorderedEquals([source]));
   }
@@ -1064,7 +1064,7 @@ export 'dart:html';
         r'''
 import 'a.dart';
 main() {}''');
-    context.computeLibraryElement(source);
+    _analyzeAll_assertFinished();
     sources = context.launchableClientLibrarySources;
     expect(sources, unorderedEquals([source]));
   }
@@ -1093,12 +1093,12 @@ main() {}
         r'''
 import 'dart:html';
 ''');
-    Source source = addSource(
+    addSource(
         "/test.dart",
         r'''
 import 'imports_html.dart';
 main() {}''');
-    context.computeLibraryElement(source);
+    _analyzeAll_assertFinished();
     expect(context.launchableServerLibrarySources, isEmpty);
   }
 

@@ -305,10 +305,8 @@ class GetHandler {
         results.add(EXPLICITLY_IMPORTED_LIBRARIES);
         results.add(EXPORT_SOURCE_CLOSURE);
         results.add(EXPORTED_LIBRARIES);
-        results.add(IMPORT_EXPORT_SOURCE_CLOSURE);
         results.add(IMPORTED_LIBRARIES);
         results.add(INCLUDED_PARTS);
-        results.add(IS_CLIENT);
         results.add(IS_LAUNCHABLE);
         results.add(LIBRARY_ELEMENT1);
         results.add(LIBRARY_ELEMENT2);
