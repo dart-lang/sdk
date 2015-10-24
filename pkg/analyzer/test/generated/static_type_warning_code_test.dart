@@ -832,6 +832,27 @@ class A {
     verify([source]);
   }
 
+  // https://github.com/dart-lang/sdk/issues/24713
+  void test_returnOfInvalidType_not_issued_for_valid_generic_return() {
+    Source source = addSource(r'''
+abstract class F<T, U>  {
+  U get value;
+}
+
+abstract class G<T> {
+  T test(F<int, T> arg) => arg.value;
+}
+
+abstract class H<S> {
+  S test(F<int, S> arg) => arg.value;
+}
+
+void main() { }''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_returnOfInvalidType_void() {
     Source source = addSource("void f() { return 42; }");
     computeLibrarySourceErrors(source);
