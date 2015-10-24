@@ -153,15 +153,6 @@ final ListResultDescriptor<AnalysisError> HINTS =
         'HINT_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
- * The sources representing the combined import/export closure of a library.
- * The [Source]s include only library sources, not their units.
- *
- * The result is only available for [Source]s representing a library.
- */
-final ListResultDescriptor<Source> IMPORT_EXPORT_SOURCE_CLOSURE =
-    new ListResultDescriptor<Source>('IMPORT_EXPORT_SOURCE_CLOSURE', null);
-
-/**
  * A list of the [VariableElement]s whose type should be inferred that another
  * inferable static variable (the target) depends on.
  *
@@ -1480,66 +1471,6 @@ class BuildSourceExportClosureTask extends SourceBasedAnalysisTask {
   static BuildSourceExportClosureTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new BuildSourceExportClosureTask(context, target);
-  }
-}
-
-/**
- * A task that builds [IMPORT_EXPORT_SOURCE_CLOSURE] of a library, and also
- * sets [IS_CLIENT].
- */
-class BuildSourceImportExportClosureTask extends SourceBasedAnalysisTask {
-  /**
-   * The name of the import/export closure.
-   */
-  static const String IMPORT_EXPORT_INPUT = 'IMPORT_EXPORT_INPUT';
-
-  /**
-   * The task descriptor describing this kind of task.
-   */
-  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'BuildSourceImportExportClosureTask',
-      createTask,
-      buildInputs,
-      <ResultDescriptor>[IMPORT_EXPORT_SOURCE_CLOSURE, IS_CLIENT]);
-
-  BuildSourceImportExportClosureTask(
-      InternalAnalysisContext context, AnalysisTarget target)
-      : super(context, target);
-
-  @override
-  TaskDescriptor get descriptor => DESCRIPTOR;
-
-  @override
-  void internalPerform() {
-    List<Source> importExportClosure = getRequiredInput(IMPORT_EXPORT_INPUT);
-    Source htmlSource = context.sourceFactory.forUri(DartSdk.DART_HTML);
-    //
-    // Record outputs.
-    //
-    outputs[IMPORT_EXPORT_SOURCE_CLOSURE] = importExportClosure;
-    outputs[IS_CLIENT] = importExportClosure.contains(htmlSource);
-  }
-
-  /**
-   * Return a map from the names of the inputs of this kind of task to the task
-   * input descriptors describing those inputs for a task with the
-   * given library [target].
-   */
-  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
-    Source source = target;
-    return <String, TaskInput>{
-      IMPORT_EXPORT_INPUT:
-          new _ImportExportSourceClosureTaskInput(source, LIBRARY_ELEMENT2)
-    };
-  }
-
-  /**
-   * Create a [BuildSourceImportExportClosureTask] based on the given [target]
-   * in the given [context].
-   */
-  static BuildSourceImportExportClosureTask createTask(
-      AnalysisContext context, AnalysisTarget target) {
-    return new BuildSourceImportExportClosureTask(context, target);
   }
 }
 
@@ -3566,14 +3497,11 @@ class PublicNamespaceBuilder {
  * source and its import/export closure.
  */
 class ReadyLibraryElement2Task extends SourceBasedAnalysisTask {
-  static const String IS_CLIENT_LIST_INPUT1 = 'IS_CLIENT_LIST_INPUT1';
-  static const String IS_CLIENT_LIST_INPUT2 = 'IS_CLIENT_LIST_INPUT2';
-
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'ReadyLibraryElement2Task',
       createTask,
       buildInputs,
-      <ResultDescriptor>[READY_LIBRARY_ELEMENT2, IS_CLIENT]);
+      <ResultDescriptor>[READY_LIBRARY_ELEMENT2]);
 
   ReadyLibraryElement2Task(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -3587,32 +3515,13 @@ class ReadyLibraryElement2Task extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
-    bool isClient = _isClient();
     outputs[READY_LIBRARY_ELEMENT2] = true;
-    outputs[IS_CLIENT] = isClient;
-  }
-
-  bool _isClient() {
-    Source htmlSource = context.sourceFactory.forUri(DartSdk.DART_HTML);
-    Source source = getRequiredSource();
-    if (source == htmlSource) {
-      return true;
-    }
-    if (_hasTrueElement(getRequiredInput(IS_CLIENT_LIST_INPUT1))) {
-      return true;
-    }
-    if (_hasTrueElement(getRequiredInput(IS_CLIENT_LIST_INPUT2))) {
-      return true;
-    }
-    return false;
   }
 
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     Source source = target;
     return <String, TaskInput>{
       'thisLibraryElementReady': LIBRARY_ELEMENT2.of(source),
-      IS_CLIENT_LIST_INPUT1: IMPORTED_LIBRARIES.of(source).toListOf(IS_CLIENT),
-      IS_CLIENT_LIST_INPUT2: EXPORTED_LIBRARIES.of(source).toListOf(IS_CLIENT),
       'directlyImportedLibrariesReady':
           IMPORTED_LIBRARIES.of(source).toListOf(READY_LIBRARY_ELEMENT2),
       'directlyExportedLibrariesReady':
@@ -3623,17 +3532,6 @@ class ReadyLibraryElement2Task extends SourceBasedAnalysisTask {
   static ReadyLibraryElement2Task createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ReadyLibraryElement2Task(context, target);
-  }
-
-  static bool _hasTrueElement(List<bool> elements) {
-    if (elements != null) {
-      for (bool isClient in elements) {
-        if (isClient == true) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 }
 
