@@ -177,7 +177,7 @@ final ListResultDescriptor<VariableElement> INFERABLE_STATIC_VARIABLES_IN_UNIT =
         'INFERABLE_STATIC_VARIABLES_IN_UNIT', null);
 
 /**
- * An inferrable static variable ([VariableElement]) whose type has been
+ * An inferable static variable ([VariableElement]) whose type has been
  * inferred.
  *
  * The result is only available for [VariableElement]s, and only when strong
@@ -2654,7 +2654,7 @@ class GenerateLintsTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * A task that ensures that all of the inferrable instance members in a
+ * A task that ensures that all of the inferable instance members in a
  * compilation unit have had their type inferred.
  */
 class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
@@ -2774,7 +2774,7 @@ abstract class InferStaticVariableTask extends ConstantEvaluationAnalysisTask {
 }
 
 /**
- * A task that ensures that all of the inferrable static variables in a
+ * A task that ensures that all of the inferable static variables in a
  * compilation unit have had their type inferred.
  */
 class InferStaticVariableTypesInUnitTask extends SourceBasedAnalysisTask {
@@ -2785,7 +2785,7 @@ class InferStaticVariableTypesInUnitTask extends SourceBasedAnalysisTask {
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
   /**
-   * The name of the input whose value is a list of the inferrable static
+   * The name of the input whose value is a list of the inferable static
    * variables whose types have been computed.
    */
   static const String INFERRED_VARIABLES_INPUT = 'INFERRED_VARIABLES_INPUT';
@@ -2850,7 +2850,7 @@ class InferStaticVariableTypesInUnitTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * A task that computes the type of an inferrable static variable and
+ * A task that computes the type of an inferable static variable and
  * stores it in the element model.
  */
 class InferStaticVariableTypeTask extends InferStaticVariableTask {
@@ -3807,7 +3807,7 @@ class ReferencedNamesBuilder extends RecursiveAstVisitor {
 }
 
 /**
- * A task that ensures that all of the inferrable instance members in a
+ * A task that ensures that all of the inferable instance members in a
  * compilation unit have had their right hand sides re-resolved
  */
 class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
@@ -4665,31 +4665,6 @@ class _ExportSourceClosureTaskInput extends TaskInputImpl<List<Source>> {
   TaskInputBuilder<List<Source>> createBuilder() =>
       new _SourceClosureTaskInputBuilder(
           target, _SourceClosureKind.EXPORT, resultDescriptor);
-}
-
-/**
- * The lists of library source that are imported or exported directly or
- * indirectly by a [Source].
- */
-class _ImportExportClosure {}
-
-/**
- * A [TaskInput] whose value is a list of library sources imported or exported,
- * directly or indirectly by the target [Source].
- *
- * [resultDescriptor] is the type of result which should be produced for each
- * target [Source].
- */
-class _ImportExportSourceClosureTaskInput extends TaskInputImpl<List<Source>> {
-  final Source target;
-  final ResultDescriptor resultDescriptor;
-
-  _ImportExportSourceClosureTaskInput(this.target, this.resultDescriptor);
-
-  @override
-  TaskInputBuilder<List<Source>> createBuilder() =>
-      new _SourceClosureTaskInputBuilder(
-          target, _SourceClosureKind.IMPORT_EXPORT, resultDescriptor);
 }
 
 /**
