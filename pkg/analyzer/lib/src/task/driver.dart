@@ -279,9 +279,6 @@ class AnalysisDriver {
           // TODO(brianwilkerson) We could check here that a value was produced
           // and throw an exception if not (unless we want to allow null values).
           entry.setValue(result, outputs[result], dependedOn);
-//        if (dependedOn.length > 250) {
-//          print('[${dependedOn.length}] $result or $target dependsOn: $dependedOn');
-//        }
         }
         outputs.forEach((ResultDescriptor descriptor, value) {
           StreamController<ComputedResult> controller =
