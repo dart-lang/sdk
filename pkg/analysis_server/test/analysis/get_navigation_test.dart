@@ -58,7 +58,7 @@ main() {
     return _checkInvalid(file, -1, -1);
   }
 
-  test_issue24599_importDirective() async {
+  test_importDirective() async {
     addTestFile('''
 import 'dart:math';
 
@@ -72,7 +72,7 @@ main() {
     expect(testTargets[0].kind, ElementKind.LIBRARY);
   }
 
-  test_issue24599_importKeyword() async {
+  test_importKeyword() async {
     addTestFile('''
 import 'dart:math';
 
@@ -86,7 +86,7 @@ main() {
     expect(testTargets[0].kind, ElementKind.LIBRARY);
   }
 
-  test_issue24599_importUri() async {
+  test_importUri() async {
     addTestFile('''
 import 'dart:math';
 
@@ -128,6 +128,52 @@ main() {
       assertHasTarget('ccc = 3');
     }
     assertNoRegionAt('ddd)');
+  }
+
+  test_operator_index() async {
+    addTestFile('''
+class A {
+  A operator [](index) => null;
+  operator []=(index, A value) {}
+}
+main() {
+  var a = new A();
+  a[0] // [];
+  a[1] = 1; // []=;
+  a[2] += 2;
+}
+''');
+    await waitForTasksFinished();
+    {
+      String search = '[0';
+      await _getNavigation(testFile, testCode.indexOf(search), 1);
+      assertHasOperatorRegion(search, 1, '[](index)', 2);
+    }
+    {
+      String search = '] // []';
+      await _getNavigation(testFile, testCode.indexOf(search), 1);
+      assertHasOperatorRegion(search, 1, '[](index)', 2);
+    }
+    {
+      String search = '[1';
+      await _getNavigation(testFile, testCode.indexOf(search), 1);
+      assertHasOperatorRegion(search, 1, '[]=(index', 3);
+    }
+    {
+      String search = '] = 1';
+      await _getNavigation(testFile, testCode.indexOf(search), 1);
+      assertHasOperatorRegion(search, 1, '[]=(index', 3);
+    }
+    {
+      String search = '[2';
+      await _getNavigation(testFile, testCode.indexOf(search), 1);
+      assertHasOperatorRegion(search, 1, '[]=(index', 3);
+    }
+    {
+      String search = '] += 2';
+      await _getNavigation(testFile, testCode.indexOf(search), 1);
+      assertHasOperatorRegion(search, 1, '[]=(index', 3);
+    }
   }
 
   test_removeContextAfterRequest() async {
