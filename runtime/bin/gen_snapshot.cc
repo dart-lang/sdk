@@ -724,7 +724,7 @@ static bool ParseEntryPointsManifestSingleLine(
       // These allocations are collected in |CleanupEntryPointsCollection|.
       char* entry_item =
           reinterpret_cast<char*>(calloc(chars_read + 1, sizeof(char)));
-      memcpy(entry_item, line + offset, chars_read);
+      memmove(entry_item, line + offset, chars_read);
 
       switch (i) {
         case 0:  // library
@@ -1047,7 +1047,8 @@ int main(int argc, char** argv) {
       DartUtils::ReadFile,
       DartUtils::WriteFile,
       DartUtils::CloseFile,
-      DartUtils::EntropySource);
+      DartUtils::EntropySource,
+      NULL);
   if (error != NULL) {
     Log::PrintErr("VM initialization failed: %s\n", error);
     free(error);

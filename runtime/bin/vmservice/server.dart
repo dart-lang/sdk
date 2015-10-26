@@ -136,12 +136,12 @@ class Server {
       return;
     }
 
-    var resource = Resource.resources[path];
-    if (resource != null) {
-      // Serving up a static resource (e.g. .css, .html, .png).
+    Asset asset = assets[path];
+    if (asset != null) {
+      // Serving up a static asset (e.g. .css, .html, .png).
       request.response.headers.contentType =
-          ContentType.parse(resource.mimeType);
-      request.response.add(resource.data);
+          ContentType.parse(asset.mimeType);
+      request.response.add(asset.data);
       request.response.close();
       return;
     }

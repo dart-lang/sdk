@@ -284,6 +284,27 @@ Dart_Handle DartUtils::ReadStringFromFile(const char* filename) {
 }
 
 
+Dart_Handle DartUtils::MakeUint8Array(const uint8_t* buffer, intptr_t len) {
+  Dart_Handle array = Dart_NewTypedData(Dart_TypedData_kUint8, len);
+  RETURN_IF_ERROR(array);
+  {
+    Dart_TypedData_Type td_type;
+    void* td_data;
+    intptr_t td_len;
+    Dart_Handle result =
+        Dart_TypedDataAcquireData(array, &td_type, &td_data, &td_len);
+    RETURN_IF_ERROR(result);
+    ASSERT(td_type == Dart_TypedData_kUint8);
+    ASSERT(td_len == len);
+    ASSERT(td_data != NULL);
+    memmove(td_data, buffer, td_len);
+    result = Dart_TypedDataReleaseData(array);
+    RETURN_IF_ERROR(result);
+  }
+  return array;
+}
+
+
 Dart_Handle DartUtils::SetWorkingDirectory(Dart_Handle builtin_lib) {
   Dart_Handle directory = NewString(original_working_directory);
   return SingleArgDart_Invoke(builtin_lib, "_setWorkingDirectory", directory);

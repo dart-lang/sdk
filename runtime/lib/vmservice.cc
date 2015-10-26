@@ -146,4 +146,9 @@ DEFINE_NATIVE_ENTRY(VMService_CancelStream, 1) {
   return Object::null();
 }
 
+
+DEFINE_NATIVE_ENTRY(VMService_RequestAssets, 0) {
+  return Service::RequestAssets();
+}
+
 }  // namespace dart

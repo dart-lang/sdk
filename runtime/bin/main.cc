@@ -1346,6 +1346,15 @@ bool RunMainIsolate(const char* script_name,
 
 #undef CHECK_RESULT
 
+extern unsigned int observatory_assets_archive_len;
+extern const char* observatory_assets_archive;
+
+Dart_Handle GetVMServiceAssetsArchiveCallback() {
+  return DartUtils::MakeUint8Array(
+      reinterpret_cast<const uint8_t*>(&observatory_assets_archive[0]),
+      observatory_assets_archive_len);
+}
+
 
 void main(int argc, char** argv) {
   char* script_name;
@@ -1436,7 +1445,8 @@ void main(int argc, char** argv) {
       DartUtils::ReadFile,
       DartUtils::WriteFile,
       DartUtils::CloseFile,
-      DartUtils::EntropySource);
+      DartUtils::EntropySource,
+      GetVMServiceAssetsArchiveCallback);
   if (error != NULL) {
     if (do_vm_shutdown) {
       DebuggerConnectionHandler::StopHandler();

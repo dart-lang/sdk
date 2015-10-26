@@ -868,6 +868,18 @@ typedef void (*Dart_FileCloseCallback)(void* stream);
 typedef bool (*Dart_EntropySource)(uint8_t* buffer, intptr_t length);
 
 /**
+ * Callback provided by the embedder that is used by the vmservice isolate
+ * to request the asset archive. The asset archive must be an uncompressed tar
+ * archive that is stored in a Uint8List.
+ *
+ * If the embedder has no vmservice isolate assets, the callback can be NULL.
+ *
+ * \return The embedder must return a handle to a Uint8List containing an
+ *   uncompressed tar archive or null.
+ */
+typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)();
+
+/**
  * Initializes the VM.
  *
  * \param vm_isolate_snapshot A buffer containing a snapshot of the VM isolate
@@ -883,6 +895,10 @@ typedef bool (*Dart_EntropySource)(uint8_t* buffer, intptr_t length);
  * \param shutdown A function to be called when an isolate is shutdown.
  *   See Dart_IsolateShutdownCallback.
  *
+ * \param get_service_assets A function to be called by the service isolate when
+ *    it requires the vmservice assets archive.
+ *    See Dart_GetVMServiceAssetsArchive.
+ *
  * \return NULL if initialization is successful. Returns an error message
  *   otherwise. The caller is responsible for freeing the error message.
  */
@@ -897,7 +913,8 @@ DART_EXPORT char* Dart_Initialize(
     Dart_FileReadCallback file_read,
     Dart_FileWriteCallback file_write,
     Dart_FileCloseCallback file_close,
-    Dart_EntropySource entropy_source);
+    Dart_EntropySource entropy_source,
+    Dart_GetVMServiceAssetsArchive get_service_assets);
 
 /**
  * Cleanup state in the VM before process termination.

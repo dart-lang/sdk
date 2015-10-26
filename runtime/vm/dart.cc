@@ -80,7 +80,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                            Dart_FileReadCallback file_read,
                            Dart_FileWriteCallback file_write,
                            Dart_FileCloseCallback file_close,
-                           Dart_EntropySource entropy_source) {
+                           Dart_EntropySource entropy_source,
+                           Dart_GetVMServiceAssetsArchive get_service_assets) {
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return "VM already initialized or flags not initialized.";
@@ -201,6 +202,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   Isolate::SetUnhandledExceptionCallback(unhandled);
   Isolate::SetShutdownCallback(shutdown);
 
+  Service::SetGetServiceAssetsCallback(get_service_assets);
   ServiceIsolate::Run();
 
   return NULL;

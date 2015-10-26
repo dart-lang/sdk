@@ -103,7 +103,7 @@ ServiceMethodDescriptor* FindMethod(const char* method_name);
 // Support for streams defined in embedders.
 Dart_ServiceStreamListenCallback Service::stream_listen_callback_ = NULL;
 Dart_ServiceStreamCancelCallback Service::stream_cancel_callback_ = NULL;
-
+Dart_GetVMServiceAssetsArchive Service::get_service_assets_callback_ = NULL;
 
 // These are the set of streams known to the core VM.
 StreamInfo Service::vm_stream("VM");
@@ -144,6 +144,7 @@ bool Service::ListenStream(const char* stream_id) {
   return false;
 }
 
+
 void Service::CancelStream(const char* stream_id) {
   if (FLAG_trace_service) {
     OS::Print("vm-service: stopping stream '%s'\n",
@@ -162,10 +163,48 @@ void Service::CancelStream(const char* stream_id) {
   }
 }
 
+RawObject* Service::RequestAssets() {
+  Thread* T = Thread::Current();
+  Api::Scope api_scope(T);
+  if (get_service_assets_callback_ == NULL) {
+    return Object::null();
+  }
+  Dart_Handle handle = get_service_assets_callback_();
+  if (Dart_IsError(handle)) {
+    Dart_PropagateError(handle);
+  }
+  const Object& object = Object::Handle(Api::UnwrapHandle(handle));
+  if (object.IsNull()) {
+    return Object::null();
+  }
+  if (!object.IsTypedData()) {
+    const String& error_message =
+        String::Handle(
+            String::New("An implementation of Dart_GetVMServiceAssetsArchive "
+                        "should return a Uint8Array or null."));
+    const Error& error = Error::Handle(ApiError::New(error_message));
+    Exceptions::PropagateError(error);
+    return Object::null();
+  }
+  const TypedData& typed_data = TypedData::Cast(object);
+  if (typed_data.ElementSizeInBytes() != 1) {
+    const String& error_message =
+        String::Handle(
+            String::New("An implementation of Dart_GetVMServiceAssetsArchive "
+                        "should return a Uint8Array or null."));
+    const Error& error = Error::Handle(ApiError::New(error_message));
+    Exceptions::PropagateError(error);
+    return Object::null();
+  }
+  return Api::UnwrapHandle(handle);
+}
+
+
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
 }
+
 
 static void PrintMissingParamError(JSONStream* js,
                                    const char* param) {
@@ -922,6 +961,12 @@ void Service::SetEmbedderStreamCallbacks(
     Dart_ServiceStreamCancelCallback cancel_callback) {
   stream_listen_callback_ = listen_callback;
   stream_cancel_callback_ = cancel_callback;
+}
+
+
+void Service::SetGetServiceAssetsCallback(
+    Dart_GetVMServiceAssetsArchive get_service_assets) {
+  get_service_assets_callback_ = get_service_assets;
 }
 
 
