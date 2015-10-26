@@ -1,3 +1,6 @@
+## 0.26.1+16
+* (Internal) Options validation plugin API update.
+
 ## 0.26.1+15
 * (Internal) Provisional options validation plugin API.
 
