@@ -115,6 +115,11 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph,
   // generating intrinsic code.
   if (intrinsic_mode) {
     blocked_cpu_registers_[ARGS_DESC_REG] = true;
+#if !defined(TARGET_ARCH_IA32)
+    // Need to preserve CODE_REG to be able to store the PC marker
+    // and load the pool pointer.
+    blocked_cpu_registers_[CODE_REG] = true;
+#endif
   }
 }
 
