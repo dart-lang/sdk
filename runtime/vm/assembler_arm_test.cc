@@ -1174,33 +1174,33 @@ ASSEMBLER_TEST_GENERATE(Ldm_stm_da, assembler) {
   __ mov(R1, Operand(7));
   __ mov(R2, Operand(11));
   __ mov(R3, Operand(31));
-  __ Push(R5);  // We use R5 as accumulator.
-  __ Push(R5);
-  __ Push(R5);
-  __ Push(R5);
-  __ Push(R5);
+  __ Push(R9);  // We use R9 as accumulator.
+  __ Push(R9);
+  __ Push(R9);
+  __ Push(R9);
+  __ Push(R9);
   __ Push(R0);  // Make room, so we can decrement after.
   __ stm(DA_W, SP, (1 << R0 | 1 << R1 | 1 << R2 | 1 << R3));
   __ str(R2, Address(SP));                 // Should be a free slot.
-  __ ldr(R5, Address(SP, 1 * kWordSize));  // R0.  R5 = +1.
+  __ ldr(R9, Address(SP, 1 * kWordSize));  // R0.  R9 = +1.
   __ ldr(IP, Address(SP, 2 * kWordSize));  // R1.
-  __ sub(R5, R5, Operand(IP));      // -R1. R5 = -6.
+  __ sub(R9, R9, Operand(IP));      // -R1. R9 = -6.
   __ ldr(IP, Address(SP, 3 * kWordSize));  // R2.
-  __ add(R5, R5, Operand(IP));      // +R2. R5 = +5.
+  __ add(R9, R9, Operand(IP));      // +R2. R9 = +5.
   __ ldr(IP, Address(SP, 4 * kWordSize));  // R3.
-  __ sub(R5, R5, Operand(IP));      // -R3. R5 = -26.
+  __ sub(R9, R9, Operand(IP));      // -R3. R9 = -26.
   __ ldm(IB_W, SP, (1 << R0 | 1 << R1 | 1 << R2 | 1 << R3));
   // Same operations again. But this time from the restore registers.
-  __ add(R5, R5, Operand(R0));
-  __ sub(R5, R5, Operand(R1));
-  __ add(R5, R5, Operand(R2));
-  __ sub(R0, R5, Operand(R3));  // R0 = result = -52.
+  __ add(R9, R9, Operand(R0));
+  __ sub(R9, R9, Operand(R1));
+  __ add(R9, R9, Operand(R2));
+  __ sub(R0, R9, Operand(R3));  // R0 = result = -52.
   __ Pop(R1);  // Remove storage slot.
-  __ Pop(R5);  // Restore R5.
-  __ Pop(R5);  // Restore R5.
-  __ Pop(R5);  // Restore R5.
-  __ Pop(R5);  // Restore R5.
-  __ Pop(R5);  // Restore R5.
+  __ Pop(R9);  // Restore R9.
+  __ Pop(R9);  // Restore R9.
+  __ Pop(R9);  // Restore R9.
+  __ Pop(R9);  // Restore R9.
+  __ Pop(R9);  // Restore R9.
   __ bx(LR);
 }
 

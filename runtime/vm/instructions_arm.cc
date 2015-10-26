@@ -65,7 +65,7 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
   InstructionPattern::DecodeLoadWordFromPool(native_function_load_end,
                                              &reg,
                                              &native_function_pool_index_);
-  ASSERT(reg == R5);
+  ASSERT(reg == R9);
 }
 
 
@@ -180,7 +180,8 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
   uword start = end - Instr::kInstrSize;
   int32_t instr = Instr::At(start)->InstructionBits();
   intptr_t offset = 0;
-  if ((instr & 0xffff0000) == 0xe5990000) {  // ldr reg, [pp, #+offset]
+  if ((instr & 0xffff0000) == (0xe5950000 | (PP << 16))) {
+    // ldr reg, [pp, #+offset]
     offset = instr & 0xfff;
     *reg = static_cast<Register>((instr & 0xf000) >> 12);
   } else {
@@ -188,13 +189,15 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
     offset = instr & 0xfff;
     start -= Instr::kInstrSize;
     instr = Instr::At(start)->InstructionBits();
-    if ((instr & 0xffff0000) == 0xe2890000) {  // add reg, pp, operand
+    if ((instr & 0xffff0000) == (0xe2850000 | (PP << 16))) {
+      // add reg, pp, operand
       const intptr_t rot = (instr & 0xf00) >> 7;
       const intptr_t imm8 = instr & 0xff;
       offset += (imm8 >> rot) | (imm8 << (32 - rot));
       *reg = static_cast<Register>((instr & 0xf000) >> 12);
     } else {
-      ASSERT((instr & 0xffff0000) == 0xe0890000);  // add reg, pp, reg
+      ASSERT((instr & 0xffff0000) == (0xe0800000 | (PP << 16)));
+      // add reg, pp, reg
       end = DecodeLoadWordImmediate(end, reg, &offset);
     }
   }
@@ -210,7 +213,7 @@ RawICData* CallPattern::IcData() {
                                          object_pool_,
                                          &reg,
                                          &ic_data_);
-    ASSERT(reg == R5);
+    ASSERT(reg == R9);
   }
   return ic_data_.raw();
 }

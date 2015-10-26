@@ -227,8 +227,8 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ ldr(R2, FieldAddress(R0, Function::entry_point_offset()));
 
   // R2: instructions entry point.
-  // R5: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
-  __ LoadImmediate(R5, 0);
+  // R9: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
+  __ LoadImmediate(R9, 0);
   __ blx(R2);
   compiler->RecordSafepoint(locs());
   // Marks either the continuation point in unoptimized code or the
@@ -970,7 +970,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   __ LoadImmediate(R1, argc_tag);
   ExternalLabel label(entry);
-  __ LoadNativeEntry(R5, &label, link_lazily() ? kPatchable : kNotPatchable);
+  __ LoadNativeEntry(R9, &label, link_lazily() ? kPatchable : kNotPatchable);
   compiler->GenerateCall(token_pos(),
                          *stub_entry,
                          RawPcDescriptors::kOther,
@@ -2325,8 +2325,8 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   __ TryAllocateArray(kArrayCid, instance_size, slow_path,
                       R0,  // instance
                       R3,  // end address
-                      R6,
-                      R10);
+                      R8,
+                      R6);
   // R0: new object start as a tagged pointer.
   // R3: new object end address.
 
@@ -2343,26 +2343,26 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // Initialize all array elements to raw_null.
   // R0: new object start as a tagged pointer.
   // R3: new object end address.
-  // R10: iterator which initially points to the start of the variable
+  // R6: iterator which initially points to the start of the variable
   // data area to be initialized.
-  // R6: null
+  // R8: null
   if (num_elements > 0) {
     const intptr_t array_size = instance_size - sizeof(RawArray);
-    __ LoadObject(R6, Object::null_object());
+    __ LoadObject(R8, Object::null_object());
     if (num_elements >= 2) {
-      __ mov(R7, Operand(R6));
+      __ mov(R9, Operand(R8));
     } else {
 #if defined(DEBUG)
       // Clobber R7 with an invalid pointer.
-      __ LoadImmediate(R7, 0x1);
+      __ LoadImmediate(R9, 0x1);
 #endif  // DEBUG
     }
-    __ AddImmediate(R10, R0, sizeof(RawArray) - kHeapObjectTag);
+    __ AddImmediate(R6, R0, sizeof(RawArray) - kHeapObjectTag);
     if (array_size < (kInlineArraySize * kWordSize)) {
-      __ InitializeFieldsNoBarrierUnrolled(R0, R10, 0, num_elements * kWordSize,
-                                           R6, R7);
+      __ InitializeFieldsNoBarrierUnrolled(R0, R6, 0, num_elements * kWordSize,
+                                           R8, R9);
     } else {
-      __ InitializeFieldsNoBarrier(R0, R10, R3, R6, R7);
+      __ InitializeFieldsNoBarrier(R0, R6, R3, R8, R9);
     }
   }
   __ b(done);

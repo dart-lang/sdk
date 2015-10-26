@@ -3308,7 +3308,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 void Assembler::EnterDartFrame(intptr_t frame_size) {
   ASSERT(!constant_pool_allowed());
 
-  // Registers are pushed in descending order: R9 | R10 | R11 | R14.
+  // Registers are pushed in descending order: R5 | R6 | R11 | R14.
   EnterFrame((1 << PP) | (1 << CODE_REG) | (1 << FP) | (1 << LR), 0);
 
   // Setup pool pointer for this dart function.

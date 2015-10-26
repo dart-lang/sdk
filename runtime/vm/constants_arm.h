@@ -231,15 +231,15 @@ const FpuRegister kNoFpuRegister = kNoQRegister;
 // Register aliases.
 const Register TMP = IP;  // Used as scratch register by assembler.
 const Register TMP2 = kNoRegister;  // There is no second assembler temporary.
-const Register CTX = R10;  // Location of current context at method entry.
-const Register PP = R9;  // Caches object pool pointer in generated code.
+const Register CTX = R6;  // Location of current context at method entry.
+const Register PP = R5;  // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
 const Register LRREG = LR;  // Link register.
-const Register ICREG = R5;  // IC data register.
+const Register ICREG = R9;  // IC data register.
 const Register ARGS_DESC_REG = R4;
-const Register CODE_REG = R10;
-const Register THR = R8;  // Caches current thread in generated code.
+const Register CODE_REG = R6;
+const Register THR = R10;  // Caches current thread in generated code.
 
 // R15 encodes APSR in the vmrs instruction.
 const Register APSR = R15;

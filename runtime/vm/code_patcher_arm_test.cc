@@ -42,7 +42,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   // Code accessing pp is generated, but not executed. Uninitialized pp is OK.
   __ set_constant_pool_allowed(true);
 
-  __ LoadObject(R5, ic_data);
+  __ LoadObject(R9, ic_data);
   __ BranchLinkPatchable(*StubCode::OneArgCheckInlineCache_entry());
   __ Ret();
 }

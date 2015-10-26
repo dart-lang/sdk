@@ -20,12 +20,12 @@ namespace dart {
 DECLARE_FLAG(bool, interpret_irregexp);
 
 // When entering intrinsics code:
-// R5: IC Data
 // R4: Arguments descriptor
 // LR: Return address
-// The R5, R4 registers can be destroyed only if there is no slow-path, i.e.
+// The R4 register can be destroyed only if there is no slow-path, i.e.
 // if the intrinsified method always executes a return.
 // The FP register should not be modified, because it is used by the profiler.
+// The PP and THR registers (see constants_arm64.h) must be preserved.
 
 #define __ assembler->
 

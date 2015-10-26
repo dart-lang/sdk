@@ -33,6 +33,7 @@ DECLARE_FLAG(bool, interpret_irregexp);
 // The ECX, EDX registers can be destroyed only if there is no slow-path, i.e.
 // if the intrinsified method always executes a return.
 // The EBP register should not be modified, because it is used by the profiler.
+// The THR register (see constants_ia32.h) must be preserved.
 
 #define __ assembler->
 
