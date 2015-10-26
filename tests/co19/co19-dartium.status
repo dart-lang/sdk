@@ -27,6 +27,8 @@ LayoutTests/fast/xpath/py-dom-xpath/axes_t01: RuntimeError # Dartium JSInterop f
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Pass, RuntimeError # Flaky with Dartium JsInterop. Seems like timing issues in the test.
 LibTest/html/IFrameElement/IFrameElement.created_A01_t01: RuntimeError # Issue 24568
 LibTest/html/Window/requestFileSystem_A02_t01: Skip # Issue 24585.
+LibTest/html/Window/document_A01_t01: Skip # accesses window.document from a cross-frame window
+WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: Skip # accesses window.document from a cross-frame window
 
 [ $compiler == none && $runtime == dartium && $checked ]
 LayoutTests/fast/css/style-scoped/style-scoped-scoping-nodes-different-order_t01: RuntimeError # Dartium JSInterop failure
