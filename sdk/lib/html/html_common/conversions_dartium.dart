@@ -121,7 +121,7 @@ wrap_jso(jsObject) {
 
     var wrapper = js.getDartHtmlWrapperFor(jsObject);
     // if we have a wrapper return the Dart instance.
-    if (wrapper != null && wrapper is! js.JsObject) {
+    if (wrapper != null) {
       return wrapper;
     }
 
