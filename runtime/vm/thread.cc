@@ -101,6 +101,23 @@ void Thread::RemoveThreadFromList(Thread* thread) {
 }
 
 
+bool Thread::IsThreadInList(ThreadId join_id) {
+  if (join_id == OSThread::kInvalidThreadJoinId) {
+    return false;
+  }
+  ThreadIterator it;
+  while (it.HasNext()) {
+    Thread* t = it.Next();
+    // An address test is not sufficient because the allocator may recycle
+    // the address for another Thread. Test against the thread's join id.
+    if (t->join_id() == join_id) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 static void DeleteThread(void* thread) {
   delete reinterpret_cast<Thread*>(thread);
 }
@@ -178,6 +195,7 @@ void Thread::EnsureInit() {
 
 Thread::Thread(bool init_vm_constants)
     : id_(OSThread::GetCurrentThreadId()),
+      join_id_(OSThread::GetCurrentThreadJoinId()),
       thread_interrupt_callback_(NULL),
       thread_interrupt_data_(NULL),
       isolate_(NULL),

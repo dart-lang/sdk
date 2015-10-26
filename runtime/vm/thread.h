@@ -371,6 +371,11 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
     return id_;
   }
 
+  ThreadId join_id() const {
+    ASSERT(join_id_ != OSThread::kInvalidThreadJoinId);
+    return join_id_;
+  }
+
   void SetThreadInterrupter(ThreadInterruptCallback callback, void* data);
 
   bool IsThreadInterrupterEnabled(ThreadInterruptCallback* callback,
@@ -409,12 +414,15 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
+  static bool IsThreadInList(ThreadId join_id);
+
  private:
   template<class T> T* AllocateReusableHandle();
 
   static ThreadLocalKey thread_key_;
 
   const ThreadId id_;
+  const ThreadId join_id_;
   ThreadInterruptCallback thread_interrupt_callback_;
   void* thread_interrupt_data_;
   Isolate* isolate_;
