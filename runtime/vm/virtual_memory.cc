@@ -33,7 +33,9 @@ VirtualMemory* VirtualMemory::ForInstructionsSnapshot(void* pointer,
   // Memory for precompilated instructions was allocated by the embedder, so
   // create a VirtualMemory without allocating.
   MemoryRegion region(pointer, size);
-  return new VirtualMemory(region);
+  VirtualMemory* memory = new VirtualMemory(region);
+  memory->embedder_allocated_ = true;
+  return memory;
 }
 
 }  // namespace dart

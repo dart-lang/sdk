@@ -1277,6 +1277,12 @@ Debugger::~Debugger() {
 
 
 void Debugger::Shutdown() {
+  // TODO(johnmccutchan): Do not create a debugger for isolates that don't need
+  // them. Then, assert here that isolate_ is not one of those isolates.
+  if ((isolate_ == Dart::vm_isolate()) ||
+      ServiceIsolate::IsServiceIsolateDescendant(isolate_)) {
+    return;
+  }
   while (breakpoint_locations_ != NULL) {
     BreakpointLocation* bpt = breakpoint_locations_;
     breakpoint_locations_ = breakpoint_locations_->next();
@@ -1294,9 +1300,7 @@ void Debugger::Shutdown() {
     delete bpt;
   }
   // Signal isolate shutdown event.
-  if (!ServiceIsolate::IsServiceIsolateDescendant(isolate_)) {
-    SignalIsolateEvent(DebuggerEvent::kIsolateShutdown);
-  }
+  SignalIsolateEvent(DebuggerEvent::kIsolateShutdown);
 }
 
 

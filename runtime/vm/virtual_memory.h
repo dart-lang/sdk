@@ -69,6 +69,8 @@ class VirtualMemory {
   // Commit a reserved memory area, so that the memory can be accessed.
   bool Commit(uword addr, intptr_t size, bool is_executable);
 
+  bool embedder_allocated() const { return embedder_allocated_; }
+
   static VirtualMemory* ForInstructionsSnapshot(void* pointer, uword size);
 
  private:
@@ -91,6 +93,9 @@ class VirtualMemory {
   intptr_t reserved_size_;
 
   static uword page_size_;
+
+  // True for a region provided by the embedder.
+  bool embedder_allocated_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(VirtualMemory);
 };
