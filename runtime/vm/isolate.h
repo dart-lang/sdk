@@ -151,8 +151,8 @@ class Isolate : public BaseIsolate {
   bool HasMutatorThread() {
     return mutator_thread_ != NULL;
   }
-  bool MutatorThreadIsCurrentThread() {
-    return mutator_thread_ == Thread::Current();
+  Thread* mutator_thread() const {
+    return mutator_thread_;
   }
 
   const char* name() const { return name_; }

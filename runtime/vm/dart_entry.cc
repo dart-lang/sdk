@@ -84,7 +84,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  ASSERT(isolate->MutatorThreadIsCurrentThread());
+  ASSERT(thread->IsMutatorThread());
   if (!function.HasCode()) {
     const Error& error = Error::Handle(
         zone, Compiler::CompileFunction(thread, function));

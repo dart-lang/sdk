@@ -1165,7 +1165,7 @@ RawError* Compiler::CompileOptimizedFunction(Thread* thread,
   // Optimization must happen in non-mutator/Dart thread if background
   // compilation is on. OSR compilation still occurs in the main thread.
   ASSERT((osr_id != Thread::kNoDeoptId) || !FLAG_background_compilation ||
-         !thread->isolate()->MutatorThreadIsCurrentThread());
+         !thread->IsMutatorThread());
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
   return CompileFunctionHelper(pipeline, function, true, osr_id);

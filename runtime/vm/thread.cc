@@ -359,7 +359,7 @@ void Thread::EnterIsolateAsHelper(Isolate* isolate, bool bypass_safepoint) {
   ASSERT(thread->thread_interrupt_data_ == NULL);
   // Do not update isolate->mutator_thread, but perform sanity check:
   // this thread should not be both the main mutator and helper.
-  ASSERT(!isolate->MutatorThreadIsCurrentThread());
+  ASSERT(!thread->IsMutatorThread());
   thread->Schedule(isolate, bypass_safepoint);
 }
 
@@ -373,7 +373,7 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   thread->StoreBufferRelease();
   thread->isolate_ = NULL;
   thread->heap_ = NULL;
-  ASSERT(!isolate->MutatorThreadIsCurrentThread());
+  ASSERT(!thread->IsMutatorThread());
 }
 
 
@@ -421,6 +421,11 @@ void Thread::StoreBufferRelease(StoreBuffer::ThresholdPolicy policy) {
 
 void Thread::StoreBufferAcquire() {
   store_buffer_block_ = isolate()->store_buffer()->PopNonFullBlock();
+}
+
+
+bool Thread::IsMutatorThread() const {
+  return ((isolate_ != NULL) && (isolate_->mutator_thread() == this));
 }
 
 

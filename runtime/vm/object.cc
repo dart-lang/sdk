@@ -1830,7 +1830,7 @@ RawObject* Object::Allocate(intptr_t cls_id,
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   // New space allocation allowed only in mutator thread (Dart thread);
-  ASSERT(isolate->MutatorThreadIsCurrentThread() || (space != Heap::kNew));
+  ASSERT(thread->IsMutatorThread() || (space != Heap::kNew));
   ASSERT(thread->no_callback_scope_depth() == 0);
   Heap* heap = isolate->heap();
 

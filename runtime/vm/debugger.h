@@ -651,7 +651,6 @@ class Debugger {
   void HandleSteppingRequest(DebuggerStackTrace* stack_trace);
 
   Zone* zone() const {
-    ASSERT(isolate_->MutatorThreadIsCurrentThread());
     return isolate_->current_zone();
   }
 

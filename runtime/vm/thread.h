@@ -161,6 +161,7 @@ class Thread {
   static intptr_t isolate_offset() {
     return OFFSET_OF(Thread, isolate_);
   }
+  bool IsMutatorThread() const;
 
   // The (topmost) CHA for the compilation in this thread.
   CHA* cha() const;
