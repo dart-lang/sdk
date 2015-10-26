@@ -28,6 +28,7 @@ bool LongJumpScope::IsSafeToJump() {
   Thread* thread = Thread::Current();
   uword jumpbuf_addr = Isolate::GetCurrentStackPointer();
 #if defined(USING_SIMULATOR)
+  Isolate* isolate = thread->isolate();
   uword top_exit_frame_info = isolate->simulator()->top_exit_frame_info();
 #else
   uword top_exit_frame_info = thread->top_exit_frame_info();
