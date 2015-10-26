@@ -15,6 +15,9 @@ import '../compiler.dart' show
 import '../constants/values.dart' show
     ConstantValue,
     IntConstantValue;
+import '../core_types.dart' show
+    CoreClasses,
+    CoreTypes;
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir show
     Node;
 import '../dart_types.dart' show
@@ -62,7 +65,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
                       DartType annotation,
                       {bool isNullable: true}) {
     if (annotation.treatAsDynamic) return type;
-    if (annotation.element == compiler.objectClass) return type;
+    if (annotation.isObject) return type;
     TypeMask otherType;
     if (annotation.isTypedef || annotation.isFunctionType) {
       otherType = functionType;
@@ -206,6 +209,10 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   InferrerEngine(Compiler compiler, this.types)
       : this.compiler = compiler,
         this.classWorld = compiler.world;
+
+  CoreClasses get coreClasses => compiler.coreClasses;
+
+  CoreTypes get coreTypes => compiler.coreTypes;
 
   /**
    * Records the default type of parameter [parameter].
@@ -388,20 +395,20 @@ abstract class InferrerEngine<T, V extends TypeSystem>
     for (var type in typesReturned) {
       T mappedType;
       if (type == native.SpecialType.JsObject) {
-        mappedType = types.nonNullExact(compiler.objectClass);
-      } else if (type.element == compiler.stringClass) {
+        mappedType = types.nonNullExact(coreClasses.objectClass);
+      } else if (type == coreTypes.stringType) {
         mappedType = types.stringType;
-      } else if (type.element == compiler.intClass) {
+      } else if (type == coreTypes.intType) {
         mappedType = types.intType;
-      } else if (type.element == compiler.numClass ||
-                 type.element == compiler.doubleClass) {
+      } else if (type == coreTypes.numType ||
+                 type == coreTypes.doubleType) {
         // Note: the backend double class is specifically for non-integer
         // doubles, and a native behavior returning 'double' does not guarantee
         // a non-integer return type, so we return the number type for those.
         mappedType = types.numType;
-      } else if (type.element == compiler.boolClass) {
+      } else if (type == coreTypes.boolType) {
         mappedType = types.boolType;
-      } else if (type.element == compiler.nullClass) {
+      } else if (type == coreTypes.nullType) {
         mappedType = types.nullType;
       } else if (type.isVoid) {
         mappedType = types.nullType;

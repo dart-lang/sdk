@@ -37,6 +37,7 @@ import 'common/work.dart' show
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
 import 'core_types.dart' show
+    CoreClasses,
     CoreTypes;
 import 'dart_backend/dart_backend.dart' as dart_backend;
 import 'dart_types.dart' show
@@ -280,25 +281,8 @@ abstract class Compiler {
   /// Initialized when dart:typed_data is loaded.
   LibraryElement typedDataLibrary;
 
-  ClassElement get objectClass => _coreTypes.objectClass;
-  ClassElement get boolClass => _coreTypes.boolClass;
-  ClassElement get numClass => _coreTypes.numClass;
-  ClassElement get intClass => _coreTypes.intClass;
-  ClassElement get doubleClass => _coreTypes.doubleClass;
-  ClassElement get resourceClass => _coreTypes.resourceClass;
-  ClassElement get stringClass => _coreTypes.stringClass;
-  ClassElement get functionClass => _coreTypes.functionClass;
-  ClassElement get nullClass => _coreTypes.nullClass;
-  ClassElement get listClass => _coreTypes.listClass;
-  ClassElement get typeClass => _coreTypes.typeClass;
-  ClassElement get mapClass => _coreTypes.mapClass;
-  ClassElement get symbolClass => _coreTypes.symbolClass;
-  ClassElement get stackTraceClass => _coreTypes.stackTraceClass;
-  ClassElement get futureClass => _coreTypes.futureClass;
-  ClassElement get iterableClass => _coreTypes.iterableClass;
-  ClassElement get streamClass => _coreTypes.streamClass;
-
   DiagnosticReporter get reporter => _reporter;
+  CoreClasses get coreClasses => _coreTypes;
   CoreTypes get coreTypes => _coreTypes;
   Resolution get resolution => _resolution;
   Parsing get parsing => _parsing;
@@ -731,8 +715,9 @@ abstract class Compiler {
                  MessageTemplate.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)});
       }
 
-      functionClass.ensureResolved(resolution);
-      functionApplyMethod = functionClass.lookupLocalMember('apply');
+      coreClasses.functionClass.ensureResolved(resolution);
+      functionApplyMethod =
+          coreClasses.functionClass.lookupLocalMember('apply');
 
       if (preserveComments) {
         return libraryLoader.loadLibrary(Uris.dart_mirrors)
@@ -771,23 +756,20 @@ abstract class Compiler {
 
   void onClassResolved(ClassElement cls) {
     if (mirrorSystemClass == cls) {
-      mirrorSystemGetNameFunction =
-        cls.lookupLocalMember('getName');
-    } else if (symbolClass == cls) {
+      mirrorSystemGetNameFunction = cls.lookupLocalMember('getName');
+    } else if (coreClasses.symbolClass == cls) {
       symbolConstructor = cls.constructors.head;
     } else if (symbolImplementationClass == cls) {
-      symbolValidatedConstructor = symbolImplementationClass.lookupConstructor(
+      symbolValidatedConstructor = cls.lookupConstructor(
           symbolValidatedConstructorSelector.name);
     } else if (mirrorsUsedClass == cls) {
       mirrorsUsedConstructor = cls.constructors.head;
-    } else if (intClass == cls) {
-      intEnvironment = intClass.lookupConstructor(Identifiers.fromEnvironment);
-    } else if (stringClass == cls) {
-      stringEnvironment =
-          stringClass.lookupConstructor(Identifiers.fromEnvironment);
-    } else if (boolClass == cls) {
-      boolEnvironment =
-          boolClass.lookupConstructor(Identifiers.fromEnvironment);
+    } else if (coreClasses.intClass == cls) {
+      intEnvironment = cls.lookupConstructor(Identifiers.fromEnvironment);
+    } else if (coreClasses.stringClass == cls) {
+      stringEnvironment = cls.lookupConstructor(Identifiers.fromEnvironment);
+    } else if (coreClasses.boolClass == cls) {
+      boolEnvironment = cls.lookupConstructor(Identifiers.fromEnvironment);
     }
   }
 
@@ -826,13 +808,15 @@ abstract class Compiler {
   Element _unnamedListConstructor;
   Element get unnamedListConstructor {
     if (_unnamedListConstructor != null) return _unnamedListConstructor;
-    return _unnamedListConstructor = listClass.lookupDefaultConstructor();
+    return _unnamedListConstructor =
+        coreClasses.listClass.lookupDefaultConstructor();
   }
 
   Element _filledListConstructor;
   Element get filledListConstructor {
     if (_filledListConstructor != null) return _filledListConstructor;
-    return _filledListConstructor = listClass.lookupConstructor("filled");
+    return _filledListConstructor =
+        coreClasses.listClass.lookupConstructor("filled");
   }
 
   /**
@@ -1440,7 +1424,7 @@ class SuppressionInfo {
   int hints = 0;
 }
 
-class _CompilerCoreTypes implements CoreTypes {
+class _CompilerCoreTypes implements CoreTypes, CoreClasses {
   final Resolution resolution;
 
   ClassElement objectClass;

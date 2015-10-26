@@ -180,7 +180,8 @@ class RuntimeTypeGenerator {
       return backend.rti.isTrivialSubstitution(a, b);
     }
 
-    if (superclass != null && superclass != compiler.objectClass &&
+    if (superclass != null &&
+        superclass != compiler.coreClasses.objectClass &&
         !haveSameTypeVariables(cls, superclass)) {
       // We cannot inherit the generated substitutions, because the type
       // variable layout for this class is different.  Instead we generate
@@ -216,7 +217,7 @@ class RuntimeTypeGenerator {
 
     // A class that defines a `call` method implicitly implements
     // [Function] and needs checks for all typedefs that are used in is-checks.
-    if (checkedClasses.contains(compiler.functionClass) ||
+    if (checkedClasses.contains(compiler.coreClasses.functionClass) ||
         checkedFunctionTypes.isNotEmpty) {
       Element call = cls.lookupLocalMember(Identifiers.call);
       if (call == null) {
@@ -228,7 +229,7 @@ class RuntimeTypeGenerator {
         // A superclass might already implement the Function interface. In such
         // a case, we can avoid emiting the is test here.
         if (!cls.superclass.implementsFunction(compiler)) {
-          _generateInterfacesIsTests(compiler.functionClass,
+          _generateInterfacesIsTests(compiler.coreClasses.functionClass,
                                     generateIsTest,
                                     generateSubstitution,
                                     generated);

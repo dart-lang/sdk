@@ -157,7 +157,7 @@ class MockCompiler extends Compiler {
       // dynamic invocation the ArgumentTypesRegistry eventually iterates over
       // the interfaces of the Object class which would be 'null' if the class
       // wasn't resolved.
-      objectClass.ensureResolved(resolution);
+      coreClasses.objectClass.ensureResolved(resolution);
     }).then((_) => uri);
   }
 

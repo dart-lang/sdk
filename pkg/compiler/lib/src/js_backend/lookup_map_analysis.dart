@@ -205,8 +205,7 @@ class LookupMapAnalysis {
     if (key is ConstructedConstantValue) {
       ClassElement element = key.type.element;
       return _typesWithEquals.putIfAbsent(element, () =>
-          element.lookupMember('==').enclosingClass !=
-          backend.compiler.objectClass);
+          !element.lookupMember('==').enclosingClass.isObject);
     }
     return false;
   }

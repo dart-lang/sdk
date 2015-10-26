@@ -756,11 +756,11 @@ void main() {
     patternClass = compiler.coreLibrary.find('Pattern');
 
     nonPrimitive1 = new TypeMask.nonNullSubtype(
-        compiler.mapClass, world);
+        compiler.coreClasses.mapClass, world);
     nonPrimitive2 = new TypeMask.nonNullSubtype(
-        compiler.functionClass, world);
+        compiler.coreClasses.functionClass, world);
     potentialArray = new TypeMask.subtype(
-        compiler.listClass, world);
+        compiler.coreClasses.listClass, world);
     potentialString = new TypeMask.subtype(patternClass, world);
     jsInterceptor = new TypeMask.nonNullSubclass(backend.jsInterceptorClass,
         world);
@@ -797,10 +797,10 @@ void main() {
     jsDoubleOrNull = new TypeMask.exact(backend.jsDoubleClass, world);
     nullType = const TypeMask.empty();
     objectType = new TypeMask.nonNullSubclass(
-        compiler.objectClass, world);
+        compiler.coreClasses.objectClass, world);
     emptyType = const TypeMask.nonNullEmpty();
     dynamicType = new TypeMask.subclass(
-        compiler.objectClass, world);
+        compiler.coreClasses.objectClass, world);
 
     testUnion(compiler);
     testIntersection(compiler);

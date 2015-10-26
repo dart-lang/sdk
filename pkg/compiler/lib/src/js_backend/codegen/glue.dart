@@ -89,7 +89,7 @@ class Glue {
     return _namer.safeVariableName(name);
   }
 
-  ClassElement get listClass => _compiler.listClass;
+  ClassElement get listClass => _compiler.coreClasses.listClass;
 
   ConstructorElement get mapLiteralConstructor {
     return _backend.mapLiteralConstructor;
@@ -276,11 +276,11 @@ class Glue {
 
   bool isStringClass(ClassElement classElement) =>
       classElement == _backend.jsStringClass ||
-      classElement == _compiler.stringClass;
+      classElement == _compiler.coreClasses.stringClass;
 
   bool isBoolClass(ClassElement classElement) =>
       classElement == _backend.jsBoolClass ||
-      classElement == _compiler.boolClass;
+      classElement == _compiler.coreClasses.boolClass;
 
   // TODO(sra): Should this be part of CodegenRegistry?
   void registerNativeBehavior(NativeBehavior nativeBehavior, node) {

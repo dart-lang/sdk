@@ -98,6 +98,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   Resolution get resolution => compiler.resolution;
 
   DiagnosticReporter get reporter => compiler.reporter;
+  CoreTypes get coreTypes => compiler.coreTypes;
 
   void processNativeClasses(Iterable<LibraryElement> libraries) {
     if (compiler.hasIncrementalSupport) {
@@ -471,20 +472,20 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         continue;
       }
       if (type is InterfaceType) {
-        if (type.element == compiler.intClass) {
+        if (type == coreTypes.intType) {
           backend.registerInstantiatedType(type, world, registry);
-        } else if (type.element == compiler.doubleClass) {
+        } else if (type == coreTypes.doubleType) {
           backend.registerInstantiatedType(type, world, registry);
-        } else if (type.element == compiler.numClass) {
+        } else if (type == coreTypes.numType) {
           backend.registerInstantiatedType(
-              compiler.coreTypes.doubleType, world, registry);
+              coreTypes.doubleType, world, registry);
           backend.registerInstantiatedType(
-              compiler.coreTypes.intType, world, registry);
-        } else if (type.element == compiler.stringClass) {
+              coreTypes.intType, world, registry);
+        } else if (type == coreTypes.stringType) {
           backend.registerInstantiatedType(type, world, registry);
-        } else if (type.element == compiler.nullClass) {
+        } else if (type == coreTypes.nullType) {
           backend.registerInstantiatedType(type, world, registry);
-        } else if (type.element == compiler.boolClass) {
+        } else if (type == coreTypes.boolType) {
           backend.registerInstantiatedType(type, world, registry);
         } else if (compiler.types.isSubtype(
                       type, backend.listImplementation.rawType)) {

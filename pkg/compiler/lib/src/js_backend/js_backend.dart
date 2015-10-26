@@ -42,6 +42,9 @@ import '../compile_time_constants.dart';
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
+import '../core_types.dart' show
+    CoreClasses,
+    CoreTypes;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/visitor.dart' show

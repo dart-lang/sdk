@@ -165,6 +165,6 @@ class FieldVisitor {
     // We never generate accessors for top-level/static fields.
     if (!member.isInstanceMember) return true;
     DartType type = member.type;
-    return type.treatAsDynamic || (type.element == compiler.objectClass);
+    return type.treatAsDynamic || type.isObject;
   }
 }

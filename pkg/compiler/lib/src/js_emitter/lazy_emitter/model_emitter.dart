@@ -9,6 +9,8 @@ import '../../compiler.dart' show
 import '../../constants/values.dart' show
     ConstantValue,
     FunctionConstantValue;
+import '../../core_types.dart' show
+    CoreClasses;
 import '../../elements/elements.dart' show
     ClassElement,
     FunctionElement;
@@ -346,12 +348,13 @@ class ModelEmitter {
   js.Property emitMangledGlobalNames() {
     List<js.Property> names = <js.Property>[];
 
+    CoreClasses coreClasses = compiler.coreClasses;
     // We want to keep the original names for the most common core classes when
     // calling toString on them.
     List<ClassElement> nativeClassesNeedingUnmangledName =
-        [compiler.intClass, compiler.doubleClass, compiler.numClass,
-         compiler.stringClass, compiler.boolClass, compiler.nullClass,
-         compiler.listClass];
+        [coreClasses.intClass, coreClasses.doubleClass, coreClasses.numClass,
+         coreClasses.stringClass, coreClasses.boolClass, coreClasses.nullClass,
+         coreClasses.listClass];
     nativeClassesNeedingUnmangledName.forEach((element) {
         names.add(new js.Property(js.quoteName(namer.className(element)),
                                   js.string(element.name)));

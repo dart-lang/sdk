@@ -16,16 +16,19 @@ import '../js_emitter.dart' show
     TypeTestProperties;
 import '../model.dart';
 
+import '../../closure.dart' show
+    ClosureFieldElement;
 import '../../common.dart';
 import '../../common/names.dart' show
-    Names;
+    Names,
+    Selectors;
 import '../../compiler.dart' show
     Compiler;
 import '../../constants/values.dart' show
     ConstantValue,
     InterceptorConstantValue;
-import '../../closure.dart' show
-    ClosureFieldElement;
+import '../../core_types.dart' show
+    CoreClasses;
 import '../../dart_types.dart' show
     DartType;
 import '../../elements/elements.dart' show
@@ -47,8 +50,6 @@ import '../../js_backend/js_backend.dart' show
     JavaScriptBackend,
     JavaScriptConstantCompiler,
     StringBackedName;
-import '../../universe/call_structure.dart' show
-    CallStructure;
 import '../../universe/selector.dart' show
     Selector;
 import '../../universe/universe.dart' show
@@ -347,15 +348,14 @@ class ProgramBuilder {
   }
 
   void _addJsInteropStubs(LibrariesMap librariesMap) {
-    if (_classes.containsKey(_compiler.objectClass)) {
-      var toStringInvocation = namer.invocationName(new Selector.call(
-          new Name("toString", _compiler.objectClass.library),
-          CallStructure.NO_ARGS));
+    if (_classes.containsKey(_compiler.coreClasses.objectClass)) {
+      var toStringInvocation = namer.invocationName(Selectors.toString_);
       // TODO(jacobr): register toString as used so that it is always accessible
       // from JavaScript.
-      _classes[_compiler.objectClass].callStubs.add(_buildStubMethod(
-          new StringBackedName("toString"),
-          js.js('function() { return this.#(this) }', toStringInvocation)));
+      _classes[_compiler.coreClasses.objectClass].callStubs.add(
+          _buildStubMethod(
+              new StringBackedName("toString"),
+              js.js('function() { return this.#(this) }', toStringInvocation)));
     }
 
     // We add all members from classes marked with isJsInterop to the base
@@ -528,7 +528,7 @@ class ProgramBuilder {
 
     List<StubMethod> noSuchMethodStubs = <StubMethod>[];
 
-    if (backend.enabledNoSuchMethod && element == _compiler.objectClass) {
+    if (backend.enabledNoSuchMethod && element.isObject) {
       Map<js.Name, Selector> selectors =
           classStubGenerator.computeSelectorsForNsmHandlers();
       selectors.forEach((js.Name name, Selector selector) {

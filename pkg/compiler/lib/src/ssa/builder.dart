@@ -1118,6 +1118,8 @@ class SsaBuilder extends ast.Visitor
 
   DiagnosticReporter get reporter => compiler.reporter;
 
+  CoreClasses get coreClasses => compiler.coreClasses;
+
   @override
   SemanticSendVisitor get sendVisitor => this;
 
@@ -1378,7 +1380,7 @@ class SsaBuilder extends ast.Visitor
 
       // Don't inline operator== methods if the parameter can be null.
       if (element.name == '==') {
-        if (element.enclosingClass != compiler.objectClass
+        if (element.enclosingClass != coreClasses.objectClass
             && providedArguments[1].canBeNull()) {
           return false;
         }
@@ -2576,9 +2578,9 @@ class SsaBuilder extends ast.Visitor
     type = type.unaliased;
     if (type.isDynamic) return original;
     if (!type.isInterfaceType) return original;
+    if (type.isObject) return original;
     // The type element is either a class or the void element.
     Element element = type.element;
-    if (element == compiler.objectClass) return original;
     TypeMask mask = new TypeMask.subtype(element, compiler.world);
     return new HTypeKnown.pinned(mask, original);
   }
@@ -2652,7 +2654,7 @@ class SsaBuilder extends ast.Visitor
     if (_checkOrTrustTypes) {
       return potentiallyCheckOrTrustType(
           value,
-          compiler.boolClass.rawType,
+          compiler.coreTypes.boolType,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
     HInstruction result = new HBoolify(value, backend.boolType);
@@ -3245,7 +3247,7 @@ class SsaBuilder extends ast.Visitor
     });
 
     TypeMask type =
-        new TypeMask.nonNullExact(compiler.functionClass, compiler.world);
+        new TypeMask.nonNullExact(coreClasses.functionClass, compiler.world);
     push(new HForeignNew(closureClassElement, type, capturedVariables)
         ..sourceInformation = sourceInformationBuilder.buildCreate(node));
 
@@ -4543,8 +4545,7 @@ class SsaBuilder extends ast.Visitor
 
     ClassElement cls = currentNonClosureClass;
     Element element = cls.lookupSuperMember(Identifiers.noSuchMethod_);
-    if (compiler.enabledInvokeOn
-        && element.enclosingElement.declaration != compiler.objectClass) {
+    if (compiler.enabledInvokeOn && !element.enclosingClass.isObject) {
       // Register the call as dynamic if [noSuchMethod] on the super
       // class is _not_ the default implementation from [Object], in
       // case the [noSuchMethod] implementation calls
@@ -5211,7 +5212,7 @@ class SsaBuilder extends ast.Visitor
     // not know about the type argument. Therefore we special case
     // this constructor to have the setRuntimeTypeInfo called where
     // the 'new' is done.
-    if (backend.classNeedsRti(compiler.listClass) &&
+    if (backend.classNeedsRti(coreClasses.listClass) &&
         (isFixedListConstructorCall || isGrowableListConstructorCall ||
          isJSArrayTypedConstructor)) {
       newInstance = handleListConstructor(type, send, pop());
@@ -7154,7 +7155,7 @@ class SsaBuilder extends ast.Visitor
     return type.isDynamic ||
            type.isObject ||
            (type is InterfaceType &&
-               type.element == compiler.futureClass);
+               type.element == coreClasses.futureClass);
   }
 
   visitReturn(ast.Return node) {
@@ -7207,8 +7208,8 @@ class SsaBuilder extends ast.Visitor
     visit(node.expression);
     HInstruction awaited = pop();
     // TODO(herhut): Improve this type.
-    push(new HAwait(awaited, new TypeMask.subclass(compiler.objectClass,
-                                                   compiler.world)));
+    push(new HAwait(awaited, new TypeMask.subclass(
+        coreClasses.objectClass, compiler.world)));
   }
 
   visitTypeAnnotation(ast.TypeAnnotation node) {
@@ -7371,8 +7372,8 @@ class SsaBuilder extends ast.Visitor
       TypeMask mask = elements.getMoveNextTypeMask(node);
       pushInvokeDynamic(node, selector, mask, [streamIterator]);
       HInstruction future = pop();
-      push(new HAwait(future, new TypeMask.subclass(compiler.objectClass,
-                                                    compiler.world)));
+      push(new HAwait(future,
+          new TypeMask.subclass(coreClasses.objectClass, compiler.world)));
       return popBoolified();
     }
     void buildBody() {
@@ -7419,8 +7420,8 @@ class SsaBuilder extends ast.Visitor
           Selectors.cancel,
           null,
           [streamIterator]);
-      push(new HAwait(pop(), new TypeMask.subclass(compiler.objectClass,
-          compiler.world)));
+      push(new HAwait(pop(), new TypeMask.subclass(
+          coreClasses.objectClass, compiler.world)));
       pop();
     });
   }

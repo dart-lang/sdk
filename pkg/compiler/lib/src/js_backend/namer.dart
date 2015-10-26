@@ -459,6 +459,8 @@ class Namer {
 
   DiagnosticReporter get reporter => compiler.reporter;
 
+  CoreClasses get coreClasses => compiler.coreClasses;
+
   String get deferredTypesName => 'deferredTypes';
   String get isolateName => 'Isolate';
   String get isolatePropertiesName => r'$isolateProperties';
@@ -509,11 +511,11 @@ class Namer {
         Element cls = backend.findHelper('JavaScriptIndexingBehavior');
         return operatorIs(cls);
       case JsGetName.NULL_CLASS_TYPE_NAME:
-        return runtimeTypeName(compiler.nullClass);
+        return runtimeTypeName(coreClasses.nullClass);
       case JsGetName.OBJECT_CLASS_TYPE_NAME:
-        return runtimeTypeName(compiler.objectClass);
+        return runtimeTypeName(coreClasses.objectClass);
       case JsGetName.FUNCTION_CLASS_TYPE_NAME:
-        return runtimeTypeName(compiler.functionClass);
+        return runtimeTypeName(coreClasses.functionClass);
       default:
         reporter.reportErrorMessage(
           node,
@@ -1205,7 +1207,7 @@ class Namer {
 
   String suffixForGetInterceptor(Iterable<ClassElement> classes) {
     String abbreviate(ClassElement cls) {
-      if (cls == compiler.objectClass) return "o";
+      if (cls == coreClasses.objectClass) return "o";
       if (cls == backend.jsStringClass) return "s";
       if (cls == backend.jsArrayClass) return "a";
       if (cls == backend.jsDoubleClass) return "d";

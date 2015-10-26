@@ -741,7 +741,7 @@ class Elements {
     return cls.library == compiler.typedDataLibrary
         && compiler.backend.isNative(cls)
         && compiler.world.isSubtypeOf(cls, compiler.typedDataClass)
-        && compiler.world.isSubtypeOf(cls, compiler.listClass)
+        && compiler.world.isSubtypeOf(cls, compiler.coreClasses.listClass)
         && constructor.name == '';
   }
 

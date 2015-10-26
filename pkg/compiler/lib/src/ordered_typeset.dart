@@ -157,13 +157,13 @@ class OrderedTypeSetBuilder {
 
   void add(Compiler compiler, InterfaceType type) {
     if (type.element == cls) {
-      if (type.element != compiler.objectClass) {
-        allSupertypes.addLast(compiler.objectClass.rawType);
+      if (type.element != compiler.coreClasses.objectClass) {
+        allSupertypes.addLast(compiler.coreTypes.objectType);
       }
       DiagnosticReporter reporter = compiler.reporter;
       _addAtDepth(reporter, type, maxDepth + 1);
     } else {
-      if (type.element != compiler.objectClass) {
+      if (type.element != compiler.coreClasses.objectClass) {
         allSupertypes.addLast(type);
       }
       DiagnosticReporter reporter = compiler.reporter;

@@ -7,6 +7,9 @@ library dart2js.resolution.class_hierarchy;
 import '../common.dart';
 import '../compiler.dart' show
     Compiler;
+import '../core_types.dart' show
+    CoreClasses,
+    CoreTypes;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
@@ -49,7 +52,7 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
         scope = Scope.buildEnclosingScope(element),
         super(compiler, registry);
 
-  DartType get objectType => compiler.objectClass.rawType;
+  DartType get objectType => compiler.coreTypes.objectType;
 
   void resolveTypeVariableBounds(NodeList node) {
     if (node == null) return;
@@ -374,7 +377,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       // [supertype] is not null if there was a cycle.
       assert(invariant(node, compiler.compilationFailed));
       supertype = mixinApplication.supertype;
-      assert(invariant(node, supertype.element == compiler.objectClass));
+      assert(invariant(node, supertype.isObject));
     } else {
       mixinApplication.supertype = supertype;
     }
@@ -582,7 +585,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       allSupertypes.add(compiler, cls.computeType(resolution));
       cls.allSupertypesAndSelf = allSupertypes.toTypeSet();
     } else {
-      assert(identical(cls, compiler.objectClass));
+      assert(cls == compiler.coreClasses.objectClass);
       cls.allSupertypesAndSelf =
           new OrderedTypeSet.singleton(cls.computeType(resolution));
     }
@@ -608,16 +611,17 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
   isBlackListed(DartType type) {
     LibraryElement lib = element.library;
+    CoreTypes coreTypes = compiler.coreTypes;
     return
       !identical(lib, compiler.coreLibrary) &&
       !compiler.backend.isBackendLibrary(lib) &&
       (type.isDynamic ||
-       identical(type.element, compiler.boolClass) ||
-       identical(type.element, compiler.numClass) ||
-       identical(type.element, compiler.intClass) ||
-       identical(type.element, compiler.doubleClass) ||
-       identical(type.element, compiler.stringClass) ||
-       identical(type.element, compiler.nullClass));
+       type == coreTypes.boolType ||
+       type == coreTypes.numType ||
+       type == coreTypes.intType ||
+       type == coreTypes.doubleType ||
+       type == coreTypes.stringType ||
+       type == coreTypes.nullType);
   }
 }
 
@@ -629,6 +633,8 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
     : context = Scope.buildEnclosingScope(cls),
       this.classElement = cls,
       super(compiler);
+
+  CoreClasses get coreClasses => compiler.coreClasses;
 
   void loadSupertype(ClassElement element, Node from) {
     if (!element.isResolved) {
@@ -647,8 +653,8 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
 
   void visitClassNode(ClassNode node) {
     if (node.superclass == null) {
-      if (!identical(classElement, compiler.objectClass)) {
-        loadSupertype(compiler.objectClass, node);
+      if (classElement != coreClasses.objectClass) {
+        loadSupertype(coreClasses.objectClass, node);
       }
     } else {
       node.superclass.accept(this);
@@ -657,7 +663,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
   }
 
   void visitEnum(Enum node) {
-    loadSupertype(compiler.objectClass, node);
+    loadSupertype(coreClasses.objectClass, node);
   }
 
   void visitMixinApplication(MixinApplication node) {

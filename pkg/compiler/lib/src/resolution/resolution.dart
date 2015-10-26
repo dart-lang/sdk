@@ -23,6 +23,7 @@ import '../compile_time_constants.dart' show
 import '../constants/values.dart' show
     ConstantValue;
 import '../core_types.dart' show
+    CoreClasses,
     CoreTypes;
 import '../dart_types.dart';
 import '../elements/elements.dart';
@@ -71,6 +72,8 @@ class ResolverTask extends CompilerTask {
   Resolution get resolution => compiler.resolution;
 
   Parsing get parsing => compiler.parsing;
+
+  CoreClasses get coreClasses => compiler.coreClasses;
 
   CoreTypes get coreTypes => compiler.coreTypes;
 
@@ -141,6 +144,7 @@ class ResolverTask extends CompilerTask {
                                  ResolutionRegistry registry) {
     DiagnosticReporter reporter = compiler.reporter;
     Resolution resolution = compiler.resolution;
+    CoreClasses coreClasses = compiler.coreClasses;
     FunctionExpression functionExpression = element.node;
     AsyncModifier asyncModifier = functionExpression.asyncModifier;
     if (asyncModifier != null) {
@@ -180,13 +184,13 @@ class ResolverTask extends CompilerTask {
       registry.registerAsyncMarker(element);
       switch (element.asyncMarker) {
       case AsyncMarker.ASYNC:
-        compiler.futureClass.ensureResolved(resolution);
+        coreClasses.futureClass.ensureResolved(resolution);
         break;
       case AsyncMarker.ASYNC_STAR:
-        compiler.streamClass.ensureResolved(resolution);
+        coreClasses.streamClass.ensureResolved(resolution);
         break;
       case AsyncMarker.SYNC_STAR:
-        compiler.iterableClass.ensureResolved(resolution);
+        coreClasses.iterableClass.ensureResolved(resolution);
         break;
       }
     }
@@ -496,7 +500,7 @@ class ResolverTask extends CompilerTask {
         cls.supertypeLoadState = STATE_DONE;
         cls.hasIncompleteHierarchy = true;
         cls.allSupertypesAndSelf =
-            compiler.objectClass.allSupertypesAndSelf.extendClass(
+            coreClasses.objectClass.allSupertypesAndSelf.extendClass(
                 cls.computeType(resolution));
         cls.supertype = cls.allSupertypes.head;
         assert(invariant(from, cls.supertype != null,
@@ -541,7 +545,8 @@ class ResolverTask extends CompilerTask {
         if (previousResolvedTypeDeclaration == null) {
           do {
             while (!pendingClassesToBeResolved.isEmpty) {
-              pendingClassesToBeResolved.removeFirst().ensureResolved(resolution);
+              pendingClassesToBeResolved.removeFirst()
+                  .ensureResolved(resolution);
             }
             while (!pendingClassesToBePostProcessed.isEmpty) {
               _postProcessClassElement(

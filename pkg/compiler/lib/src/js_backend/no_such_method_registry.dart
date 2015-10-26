@@ -167,7 +167,7 @@ class NoSuchMethodRegistry {
 
   bool _isDefaultNoSuchMethodImplementation(FunctionElement element) {
     ClassElement classElement = element.enclosingClass;
-    return classElement == _compiler.objectClass
+    return classElement == _compiler.coreClasses.objectClass
         || classElement == _backend.jsInterceptorClass
         || classElement == _backend.jsNullClass;
   }

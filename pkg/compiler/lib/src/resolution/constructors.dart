@@ -146,7 +146,7 @@ class InitializerResolver {
                                            {bool isSuperCall}) {
     if (isSuperCall) {
       // Calculate correct lookup target and constructor name.
-      if (identical(constructor.enclosingClass, visitor.compiler.objectClass)) {
+      if (constructor.enclosingClass.isObject) {
         reporter.reportErrorMessage(
             diagnosticNode, MessageKind.SUPER_INITIALIZER_IN_OBJECT);
         isValidAsConstant = false;
@@ -210,7 +210,7 @@ class InitializerResolver {
     // If the class has a super resolve the implicit super call.
     ClassElement classElement = constructor.enclosingClass;
     ClassElement superClass = classElement.superclass;
-    if (classElement != visitor.compiler.objectClass) {
+    if (!classElement.isObject) {
       assert(superClass != null);
       assert(superClass.isResolved);
 

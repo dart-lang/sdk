@@ -145,6 +145,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
                            this.optimizer,
                            this.work);
 
+  CoreClasses get coreClasses => compiler.coreClasses;
+
   void visitGraph(HGraph visitee) {
     graph = visitee;
     visitDominatorTree(visitee);
@@ -675,22 +677,22 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return node;
     } else if (type.isTypedef) {
       return node;
-    } else if (element == compiler.functionClass) {
+    } else if (element == coreClasses.functionClass) {
       return node;
     }
 
-    if (element == compiler.objectClass || type.treatAsDynamic) {
+    if (type.isObject || type.treatAsDynamic) {
       return graph.addConstantBool(true, compiler);
     }
 
     ClassWorld classWorld = compiler.world;
     HInstruction expression = node.expression;
     if (expression.isInteger(compiler)) {
-      if (identical(element, compiler.intClass)
-          || identical(element, compiler.numClass)
-          || Elements.isNumberOrStringSupertype(element, compiler)) {
+      if (element == coreClasses.intClass ||
+          element == coreClasses.numClass ||
+          Elements.isNumberOrStringSupertype(element, compiler)) {
         return graph.addConstantBool(true, compiler);
-      } else if (identical(element, compiler.doubleClass)) {
+      } else if (element == coreClasses.doubleClass) {
         // We let the JS semantics decide for that check. Currently
         // the code we emit will always return true.
         return node;
@@ -698,11 +700,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return graph.addConstantBool(false, compiler);
       }
     } else if (expression.isDouble(compiler)) {
-      if (identical(element, compiler.doubleClass)
-          || identical(element, compiler.numClass)
-          || Elements.isNumberOrStringSupertype(element, compiler)) {
+      if (element == coreClasses.doubleClass ||
+          element == coreClasses.numClass ||
+          Elements.isNumberOrStringSupertype(element, compiler)) {
         return graph.addConstantBool(true, compiler);
-      } else if (identical(element, compiler.intClass)) {
+      } else if (element == coreClasses.intClass) {
         // We let the JS semantics decide for that check. Currently
         // the code we emit will return true for a double that can be
         // represented as a 31-bit integer and for -0.0.
@@ -711,14 +713,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return graph.addConstantBool(false, compiler);
       }
     } else if (expression.isNumber(compiler)) {
-      if (identical(element, compiler.numClass)) {
+      if (element == coreClasses.numClass) {
         return graph.addConstantBool(true, compiler);
       } else {
         // We cannot just return false, because the expression may be of
         // type int or double.
       }
-    } else if (expression.canBePrimitiveNumber(compiler)
-               && identical(element, compiler.intClass)) {
+    } else if (expression.canBePrimitiveNumber(compiler) &&
+               element == coreClasses.intClass) {
       // We let the JS semantics decide for that check.
       return node;
     // We need the [:hasTypeArguments:] check because we don't have
@@ -728,7 +730,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     } else if (!RuntimeTypes.hasTypeArguments(type)) {
       TypeMask expressionMask = expression.instructionType;
       assert(TypeMask.assertIsNormalized(expressionMask, classWorld));
-      TypeMask typeMask = (element == compiler.nullClass)
+      TypeMask typeMask = (element == coreClasses.nullClass)
           ? new TypeMask.subtype(element, classWorld)
           : new TypeMask.nonNullSubtype(element, classWorld);
       if (expressionMask.union(typeMask, classWorld) == typeMask) {

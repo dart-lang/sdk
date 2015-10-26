@@ -757,8 +757,8 @@ void main() {
     checkReturn('returnInt8', typesTask.positiveIntType);
     checkReturn('returnEmpty1', const TypeMask.nonNullEmpty());
     checkReturn('returnEmpty2', const TypeMask.nonNullEmpty());
-    TypeMask intType = new TypeMask.nonNullSubtype(compiler.intClass,
-        compiler.world);
+    TypeMask intType = new TypeMask.nonNullSubtype(
+        compiler.coreClasses.intClass, compiler.world);
     checkReturn('testIsCheck1', intType);
     checkReturn('testIsCheck2', intType);
     checkReturn('testIsCheck3', intType.nullable());
@@ -790,8 +790,8 @@ void main() {
     checkReturn('testIsCheck29', typesTask.dynamicType);
     checkReturn('testIf1', typesTask.uint31Type.nullable());
     checkReturn('testIf2', typesTask.uint31Type.nullable());
-    checkReturn('returnAsString',
-        new TypeMask.subtype(compiler.stringClass, compiler.world));
+    checkReturn('returnAsString', new TypeMask.subtype(
+        compiler.coreClasses.stringClass, compiler.world));
     checkReturn('returnIntAsNum', typesTask.uint31Type);
     checkReturn('returnAsTypedef', typesTask.functionType.nullable());
     checkReturn('returnTopLevelGetter', typesTask.uint31Type);

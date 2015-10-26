@@ -230,28 +230,30 @@ abstract class Backend {
   void registerConstSymbol(String name) {}
 
   bool isNullImplementation(ClassElement cls) {
-    return cls == compiler.nullClass;
+    return cls == compiler.coreClasses.nullClass;
   }
 
-  ClassElement get intImplementation => compiler.intClass;
-  ClassElement get doubleImplementation => compiler.doubleClass;
-  ClassElement get numImplementation => compiler.numClass;
-  ClassElement get stringImplementation => compiler.stringClass;
-  ClassElement get listImplementation => compiler.listClass;
-  ClassElement get growableListImplementation => compiler.listClass;
-  ClassElement get fixedListImplementation => compiler.listClass;
-  ClassElement get constListImplementation => compiler.listClass;
-  ClassElement get mapImplementation => compiler.mapClass;
-  ClassElement get constMapImplementation => compiler.mapClass;
-  ClassElement get functionImplementation => compiler.functionClass;
-  ClassElement get typeImplementation => compiler.typeClass;
-  ClassElement get boolImplementation => compiler.boolClass;
-  ClassElement get nullImplementation => compiler.nullClass;
-  ClassElement get uint32Implementation => compiler.intClass;
-  ClassElement get uint31Implementation => compiler.intClass;
-  ClassElement get positiveIntImplementation => compiler.intClass;
+  ClassElement get intImplementation => compiler.coreClasses.intClass;
+  ClassElement get doubleImplementation => compiler.coreClasses.doubleClass;
+  ClassElement get numImplementation => compiler.coreClasses.numClass;
+  ClassElement get stringImplementation => compiler.coreClasses.stringClass;
+  ClassElement get listImplementation => compiler.coreClasses.listClass;
+  ClassElement get growableListImplementation => compiler.coreClasses.listClass;
+  ClassElement get fixedListImplementation => compiler.coreClasses.listClass;
+  ClassElement get constListImplementation => compiler.coreClasses.listClass;
+  ClassElement get mapImplementation => compiler.coreClasses.mapClass;
+  ClassElement get constMapImplementation => compiler.coreClasses.mapClass;
+  ClassElement get functionImplementation => compiler.coreClasses.functionClass;
+  ClassElement get typeImplementation => compiler.coreClasses.typeClass;
+  ClassElement get boolImplementation => compiler.coreClasses.boolClass;
+  ClassElement get nullImplementation => compiler.coreClasses.nullClass;
+  ClassElement get uint32Implementation => compiler.coreClasses.intClass;
+  ClassElement get uint31Implementation => compiler.coreClasses.intClass;
+  ClassElement get positiveIntImplementation => compiler.coreClasses.intClass;
 
-  ClassElement defaultSuperclass(ClassElement element) => compiler.objectClass;
+  ClassElement defaultSuperclass(ClassElement element) {
+    return compiler.coreClasses.objectClass;
+  }
 
   bool isInterceptorClass(ClassElement element) => false;
 

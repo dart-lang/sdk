@@ -265,7 +265,8 @@ class _RuntimeTypes implements RuntimeTypes {
     // JSArray needs type arguments.
     // TODO(karlklose): make this dependency visible from code.
     if (backend.jsArrayClass != null) {
-      registerRtiDependency(backend.jsArrayClass, compiler.listClass);
+      registerRtiDependency(
+          backend.jsArrayClass, compiler.coreClasses.listClass);
     }
     // Compute the set of all classes and methods that need runtime type
     // information.

@@ -871,7 +871,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
     // TODO(kasperl): We should be able to tell that the type of a literal
     // symbol is always a non-null exact symbol implementation -- not just
     // any non-null subtype of the symbol interface.
-    return types.nonNullSubtype(compiler.symbolClass);
+    return types.nonNullSubtype(compiler.coreClasses.symbolClass);
   }
 
   @override
@@ -1066,7 +1066,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
           }
         } else {
           // Narrow the elements to a non-null type.
-          DartType objectType = compiler.objectClass.rawType;
+          DartType objectType = compiler.coreTypes.objectType;
           if (Elements.isLocal(receiverElement)) {
             narrow(receiverElement, objectType, node);
           }

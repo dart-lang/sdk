@@ -66,7 +66,8 @@ void main() {
                 typesInferrer.getTypeOfElement(element), compiler.world));
     }
 
-    var intMask = new TypeMask.subtype(compiler.intClass, compiler.world);
+    var intMask = new TypeMask.subtype(
+        compiler.coreClasses.intClass, compiler.world);
 
     checkReturn('foo', intMask);
     checkReturn('faa', intMask);

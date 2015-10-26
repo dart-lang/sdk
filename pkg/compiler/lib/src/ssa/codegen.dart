@@ -163,6 +163,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   DiagnosticReporter get reporter => compiler.reporter;
 
+  CoreClasses get coreClasses => compiler.coreClasses;
+
   bool isGenerateAtUseSite(HInstruction instruction) {
     return generateAtUseSite.contains(instruction);
   }
@@ -1547,7 +1549,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         methodName = 'split';
         // Split returns a List, so we make sure the backend knows the
         // list class is instantiated.
-        registry.registerInstantiatedClass(compiler.listClass);
+        registry.registerInstantiatedClass(coreClasses.listClass);
       } else if (backend.isNative(target) && target.isFunction
                  && !node.isInterceptedCall) {
         // A direct (i.e. non-interceptor) native call is the result of
@@ -2276,7 +2278,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitLiteralList(HLiteralList node) {
-    registry.registerInstantiatedClass(compiler.listClass);
+    registry.registerInstantiatedClass(coreClasses.listClass);
     generateArrayLiteral(node);
   }
 
@@ -2509,7 +2511,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                                           DartType type,
                                           SourceInformation sourceInformation,
                                           {bool negative: false}) {
-    assert(!identical(type.element, compiler.listClass) &&
+    assert(!identical(type.element, coreClasses.listClass) &&
            !Elements.isListSupertype(type.element, compiler) &&
            !Elements.isStringOnlySupertype(type.element, compiler));
     String relation = negative ? '!==' : '===';
@@ -2535,7 +2537,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                                   DartType type,
                                   SourceInformation sourceInformation,
                                   {bool negative: false}) {
-    assert(!identical(type.element, compiler.listClass)
+    assert(!identical(type.element, coreClasses.listClass)
            && !Elements.isListSupertype(type.element, compiler)
            && !Elements.isNumberOrStringSupertype(type.element, compiler));
     String relation = negative ? '!==' : '===';
@@ -2555,7 +2557,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                                   DartType type,
                                   SourceInformation sourceInformation,
                                   { bool negative: false }) {
-    assert(!identical(type.element, compiler.stringClass)
+    assert(!identical(type.element, coreClasses.stringClass)
            && !Elements.isStringOnlySupertype(type.element, compiler)
            && !Elements.isNumberOrStringSupertype(type.element, compiler));
     String relation = negative ? '!==' : '===';
@@ -2595,9 +2597,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       assert(node.isRawCheck);
       HInstruction interceptor = node.interceptor;
-      ClassElement objectClass = compiler.objectClass;
+      ClassElement objectClass = coreClasses.objectClass;
       Element element = type.element;
-      if (element == compiler.nullClass) {
+      if (element == coreClasses.nullClass) {
         if (negative) {
           checkNonNull(input);
         } else {
@@ -2607,15 +2609,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // The constant folder also does this optimization, but we make
         // it safe by assuming it may have not run.
         push(newLiteralBool(!negative, sourceInformation));
-      } else if (element == compiler.stringClass) {
+      } else if (element == coreClasses.stringClass) {
         checkString(input, relation, sourceInformation);
-      } else if (element == compiler.doubleClass) {
+      } else if (element == coreClasses.doubleClass) {
         checkDouble(input, relation, sourceInformation);
-      } else if (element == compiler.numClass) {
+      } else if (element == coreClasses.numClass) {
         checkNum(input, relation, sourceInformation);
-      } else if (element == compiler.boolClass) {
+      } else if (element == coreClasses.boolClass) {
         checkBool(input, relation, sourceInformation);
-      } else if (element == compiler.intClass) {
+      } else if (element == coreClasses.intClass) {
         // The is check in the code tells us that it might not be an
         // int. So we do a typeof first to avoid possible
         // deoptimizations on the JS engine due to the Math.floor check.
@@ -2639,7 +2641,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             input, interceptor, type,
             sourceInformation,
             negative: negative);
-      } else if (identical(element, compiler.listClass) ||
+      } else if (identical(element, coreClasses.listClass) ||
                  Elements.isListSupertype(element, compiler)) {
         handleListOrSupertypeCheck(
             input, interceptor, type,
@@ -2752,7 +2754,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (type.isFunctionType) {
       // TODO(5022): We currently generate $isFunction checks for
       // function types.
-      registry.registerIsCheck(compiler.functionClass.rawType);
+      registry.registerIsCheck(compiler.coreTypes.functionType);
     }
     registry.registerIsCheck(type);
 

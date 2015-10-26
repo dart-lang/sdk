@@ -756,7 +756,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           // This is an access the implicit 'call' method of a function type.
           return new FunctionCallAccess(receiverElement, unaliasedBound);
         }
-        if (types.isSubtype(interface, compiler.functionClass.rawType)) {
+        if (types.isSubtype(interface, coreTypes.functionType)) {
           // This is an access of the special 'call' method implicitly defined
           // on 'Function'. This method can be called with any arguments, which
           // we ensure by giving it the type 'dynamic'.
@@ -1334,15 +1334,15 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       LinkBuilder<DartType> argumentTypesBuilder = new LinkBuilder<DartType>();
       DartType resultType =
           analyzeInvocation(node, access, argumentTypesBuilder);
-      if (identical(receiverType.element, compiler.intClass)) {
+      if (receiverType == intType) {
         if (identical(name, '+') ||
             identical(operatorName, '-') ||
             identical(name, '*') ||
             identical(name, '%')) {
           DartType argumentType = argumentTypesBuilder.toLink().head;
-          if (identical(argumentType.element, compiler.intClass)) {
+          if (argumentType == intType) {
             return intType;
-          } else if (identical(argumentType.element, compiler.doubleClass)) {
+          } else if (argumentType == doubleType) {
             return doubleType;
           }
         }
@@ -1839,7 +1839,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           Types.computeInterfaceType(resolution, expressionType);
       if (interfaceType != null) {
         InterfaceType streamType =
-            interfaceType.asInstanceOf(compiler.streamClass);
+            interfaceType.asInstanceOf(streamOfDynamic.element);
         if (streamType != null) {
           DartType streamElementType = streamType.typeArguments.first;
           if (!types.isAssignable(streamElementType, elementType)) {

@@ -2613,7 +2613,8 @@ abstract class BaseClassElementX extends ElementX
   }
 
   bool implementsFunction(Compiler compiler) {
-    return asInstanceOf(compiler.functionClass) != null || callType != null;
+    return asInstanceOf(compiler.coreClasses.functionClass) != null ||
+        callType != null;
   }
 
   // TODO(johnniwinther): Remove these when issue 18630 is fixed.

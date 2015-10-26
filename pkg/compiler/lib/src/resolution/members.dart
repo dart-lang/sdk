@@ -184,6 +184,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           ? ConstantState.CONSTANT : ConstantState.NON_CONSTANT,
       super(compiler, registry);
 
+  CoreClasses get coreClasses => compiler.coreClasses;
+
   CoreTypes get coreTypes => compiler.coreTypes;
 
   AsyncMarker get currentAsyncMarker {
@@ -359,7 +361,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (Elements.isUnresolved(element) && name == 'dynamic') {
         // TODO(johnniwinther): Remove this hack when we can return more complex
         // objects than [Element] from this method.
-        element = compiler.typeClass;
+        element = coreClasses.typeClass;
         // Set the type to be `dynamic` to mark that this is a type literal.
         registry.setType(node, const DynamicType());
       }
@@ -2110,7 +2112,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         node.isCall ? coreTypes.typeType : type);
     AccessSemantics semantics = new ConstantAccess.dynamicTypeLiteral(constant);
     return handleConstantTypeLiteralAccess(
-        node, const PublicName('dynamic'), compiler.typeClass, type, semantics);
+        node, const PublicName('dynamic'),
+        coreClasses.typeClass, type, semantics);
   }
 
   /// Handle update to a type literal of the type 'dynamic'. Like `dynamic++` or
@@ -2121,7 +2124,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         new TypeConstantExpression(const DynamicType());
     AccessSemantics semantics = new ConstantAccess.dynamicTypeLiteral(constant);
     return handleConstantTypeLiteralUpdate(
-        node, const PublicName('dynamic'), compiler.typeClass, type, semantics);
+        node, const PublicName('dynamic'),
+        coreClasses.typeClass, type, semantics);
   }
 
   /// Handle access to a type literal of a class. Like `C` or
@@ -3581,8 +3585,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitYield(Yield node) {
-    compiler.streamClass.ensureResolved(resolution);
-    compiler.iterableClass.ensureResolved(resolution);
+    coreClasses.streamClass.ensureResolved(resolution);
+    coreClasses.iterableClass.ensureResolved(resolution);
     visit(node.expression);
     return const NoneResult();
   }
@@ -3706,7 +3710,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAwait(Await node) {
-    compiler.futureClass.ensureResolved(resolution);
+    coreClasses.futureClass.ensureResolved(resolution);
     visit(node.expression);
     return const NoneResult();
   }
@@ -3857,7 +3861,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
                 enclosingElement)) {
           reporter.reportHintMessage(
               node.newToken, MessageKind.NON_CONST_BLOAT,
-              {'name': compiler.symbolClass.name});
+              {'name': coreClasses.symbolClass.name});
         }
       }
     } else if (isMirrorsUsedConstant) {
@@ -3905,9 +3909,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       ObjectConstantValue objectConstant = key;
       DartType keyType = objectConstant.type;
       ClassElement cls = keyType.element;
-      if (cls == compiler.stringClass) continue;
+      if (cls == coreClasses.stringClass) continue;
       Element equals = cls.lookupMember('==');
-      if (equals.enclosingClass != compiler.objectClass) {
+      if (equals.enclosingClass != coreClasses.objectClass) {
         reporter.reportErrorMessage(
             spannable,
             MessageKind.CONST_MAP_KEY_OVERRIDES_EQUALS,
@@ -4390,12 +4394,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   DartType typeOfConstant(ConstantValue constant) {
-    if (constant.isInt) return compiler.intClass.rawType;
-    if (constant.isBool) return compiler.boolClass.rawType;
-    if (constant.isDouble) return compiler.doubleClass.rawType;
-    if (constant.isString) return compiler.stringClass.rawType;
-    if (constant.isNull) return compiler.nullClass.rawType;
-    if (constant.isFunction) return compiler.functionClass.rawType;
+    if (constant.isInt) return coreTypes.intType;
+    if (constant.isBool) return coreTypes.boolType;
+    if (constant.isDouble) return coreTypes.doubleType;
+    if (constant.isString) return coreTypes.stringType;
+    if (constant.isNull) return coreTypes.nullType;
+    if (constant.isFunction) return coreTypes.functionType;
     assert(constant.isObject);
     ObjectConstantValue objectConstant = constant;
     return objectConstant.type;
@@ -4404,7 +4408,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   bool overridesEquals(DartType type) {
     ClassElement cls = type.element;
     Element equals = cls.lookupMember('==');
-    return equals.enclosingClass != compiler.objectClass;
+    return equals.enclosingClass != coreClasses.objectClass;
   }
 
   void checkCaseExpressions(SwitchStatement node) {
@@ -4429,7 +4433,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             message: 'No constant computed for $node'));
 
         ConstantValue value = compiler.constants.getConstantValue(constant);
-        DartType caseType = typeOfConstant(value);
+        DartType caseType = value.getType(coreTypes);//typeOfConstant(value);
 
         if (firstCaseType == null) {
           firstCase = caseMatch;
@@ -4437,12 +4441,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
           // We only report the bad type on the first class element. All others
           // get a "type differs" error.
-          if (caseType.element == compiler.doubleClass) {
+          if (caseType == coreTypes.doubleType) {
             reporter.reportErrorMessage(
                 node,
                 MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
                 {'type': "double"});
-          } else if (caseType.element == compiler.functionClass) {
+          } else if (caseType == coreTypes.functionType) {
             reporter.reportErrorMessage(
                 node, MessageKind.SWITCH_CASE_FORBIDDEN,
                 {'type': "Function"});

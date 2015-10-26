@@ -11,6 +11,8 @@ import 'common/backend_api.dart' show
     Backend;
 import 'compiler.dart' show
     Compiler;
+import 'core_types.dart' show
+    CoreClasses;
 import 'dart_types.dart';
 import 'elements/elements.dart' show
     ClassElement,
@@ -135,14 +137,14 @@ abstract class ClassWorld {
 }
 
 class World implements ClassWorld {
-  ClassElement get objectClass => compiler.objectClass;
-  ClassElement get functionClass => compiler.functionClass;
-  ClassElement get boolClass => compiler.boolClass;
-  ClassElement get numClass => compiler.numClass;
-  ClassElement get intClass => compiler.intClass;
-  ClassElement get doubleClass => compiler.doubleClass;
-  ClassElement get stringClass => compiler.stringClass;
-  ClassElement get nullClass => compiler.nullClass;
+  ClassElement get objectClass => coreClasses.objectClass;
+  ClassElement get functionClass => coreClasses.functionClass;
+  ClassElement get boolClass => coreClasses.boolClass;
+  ClassElement get numClass => coreClasses.numClass;
+  ClassElement get intClass => coreClasses.intClass;
+  ClassElement get doubleClass => coreClasses.doubleClass;
+  ClassElement get stringClass => coreClasses.stringClass;
+  ClassElement get nullClass => coreClasses.nullClass;
 
   /// Cache of [ti.FlatTypeMask]s grouped by the 8 possible values of the
   /// [ti.FlatTypeMask.flags] property.
@@ -433,6 +435,8 @@ class World implements ClassWorld {
         this.compiler = compiler,
         alreadyPopulated = compiler.cacheStrategy.newSet();
 
+  CoreClasses get coreClasses => compiler.coreClasses;
+
   DiagnosticReporter get reporter => compiler.reporter;
 
   /// Called to add [cls] to the set of known classes.
@@ -552,7 +556,7 @@ class World implements ClassWorld {
     } else {
       sb.write("Instantiated classes in the closed world:\n");
     }
-    getClassHierarchyNode(compiler.objectClass)
+    getClassHierarchyNode(coreClasses.objectClass)
         .printOn(sb, ' ', instantiatedOnly: cls == null, withRespectTo: cls);
     return sb.toString();
   }

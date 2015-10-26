@@ -37,8 +37,8 @@ main() {
     var subclassA = new TypeMask.nonNullSubclass(classA, classWorld);
     var subtypeA = new TypeMask.nonNullSubtype(classA, classWorld);
 
-    var subclassObject = new TypeMask.nonNullSubclass(compiler.objectClass,
-        classWorld);
+    var subclassObject = new TypeMask.nonNullSubclass(
+        compiler.coreClasses.objectClass, classWorld);
 
     var unionABC = UnionTypeMask.unionOf([exactA, exactB, exactC], classWorld);
     var unionABnC = UnionTypeMask.unionOf([exactA, exactB.nullable(), exactC],

@@ -681,6 +681,10 @@ class JavaScriptBackend extends Backend {
 
   DiagnosticReporter get reporter => compiler.reporter;
 
+  CoreClasses get coreClasses => compiler.coreClasses;
+
+  CoreTypes get coreTypes => compiler.coreTypes;
+
   Resolution get resolution => compiler.resolution;
 
   /// Returns constant environment for the JavaScript interpretation of the
@@ -1070,7 +1074,7 @@ class JavaScriptBackend extends Backend {
       ClassElement interceptorClass) {
     if (interceptorClass == null) return;
     interceptorClass.ensureResolved(resolution);
-    compiler.objectClass.forEachMember((_, Element member) {
+    coreClasses.objectClass.forEachMember((_, Element member) {
       if (member.isGenerativeConstructor) return;
       Element interceptorMember = interceptorClass.lookupMember(member.name);
       // Interceptors must override all Object methods due to calling convention
@@ -1092,7 +1096,7 @@ class JavaScriptBackend extends Backend {
         }
         if (member.isSynthesized) return;
         // All methods on [Object] are shadowed by [Interceptor].
-        if (classElement == compiler.objectClass) return;
+        if (classElement == coreClasses.objectClass) return;
         Set<Element> set = interceptedElements.putIfAbsent(
             member.name, () => new Set<Element>());
         set.add(member);
@@ -1118,7 +1122,7 @@ class JavaScriptBackend extends Backend {
       cls.ensureResolved(resolution);
       cls.forEachMember((ClassElement classElement, Element member) {
           // All methods on [Object] are shadowed by [Interceptor].
-          if (classElement == compiler.objectClass) return;
+          if (classElement == coreClasses.objectClass) return;
           Set<Element> set = interceptedElements.putIfAbsent(
               member.name, () => new Set<Element>());
           set.add(member);
@@ -1184,7 +1188,7 @@ class JavaScriptBackend extends Backend {
 
   void registerInstantiatedConstantType(DartType type, Registry registry) {
     DartType instantiatedType =
-        type.isFunctionType ? compiler.functionClass.rawType : type;
+        type.isFunctionType ? coreTypes.functionType : type;
     if (type is InterfaceType) {
       registry.registerInstantiation(instantiatedType);
       if (!type.treatAsRaw && classNeedsRti(type.element)) {
@@ -1230,24 +1234,24 @@ class JavaScriptBackend extends Backend {
 
     // Register any helper that will be needed by the backend.
     if (enqueuer.isResolutionQueue) {
-      if (cls == compiler.intClass
-          || cls == compiler.doubleClass
-          || cls == compiler.numClass) {
+      if (cls == coreClasses.intClass ||
+          cls == coreClasses.doubleClass ||
+          cls == coreClasses.numClass) {
         // The backend will try to optimize number operations and use the
         // `iae` helper directly.
         enqueue(enqueuer, findHelper('iae'), registry);
-      } else if (cls == compiler.listClass
-                 || cls == compiler.stringClass) {
+      } else if (cls == coreClasses.listClass ||
+                 cls == coreClasses.stringClass) {
         // The backend will try to optimize array and string access and use the
         // `ioore` and `iae` helpers directly.
         enqueue(enqueuer, findHelper('ioore'), registry);
         enqueue(enqueuer, findHelper('iae'), registry);
-      } else if (cls == compiler.functionClass) {
+      } else if (cls == coreClasses.functionClass) {
         enqueueClass(enqueuer, closureClass, registry);
-      } else if (cls == compiler.mapClass) {
+      } else if (cls == coreClasses.mapClass) {
         // The backend will use a literal list to initialize the entries
         // of the map.
-        enqueueClass(enqueuer, compiler.listClass, registry);
+        enqueueClass(enqueuer, coreClasses.listClass, registry);
         enqueueClass(enqueuer, mapLiteralClass, registry);
         // For map literals, the dependency between the implementation class
         // and [Map] is not visible, so we have to add it manually.
@@ -1305,9 +1309,10 @@ class JavaScriptBackend extends Backend {
     if (cls == closureClass) {
       enqueue(enqueuer, findHelper('closureFromTearOff'), registry);
     }
-    if (cls == compiler.stringClass || cls == jsStringClass) {
+    if (cls == coreClasses.stringClass ||
+        cls == jsStringClass) {
       addInterceptors(jsStringClass, enqueuer, registry);
-    } else if (cls == compiler.listClass ||
+    } else if (cls == coreClasses.listClass ||
                cls == jsArrayClass ||
                cls == jsFixedArrayClass ||
                cls == jsExtendableArrayClass ||
@@ -1317,20 +1322,25 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsFixedArrayClass, enqueuer, registry);
       addInterceptors(jsExtendableArrayClass, enqueuer, registry);
       addInterceptors(jsUnmodifiableArrayClass, enqueuer, registry);
-    } else if (cls == compiler.intClass || cls == jsIntClass) {
+    } else if (cls == coreClasses.intClass ||
+               cls == jsIntClass) {
       addInterceptors(jsIntClass, enqueuer, registry);
       addInterceptors(jsPositiveIntClass, enqueuer, registry);
       addInterceptors(jsUInt32Class, enqueuer, registry);
       addInterceptors(jsUInt31Class, enqueuer, registry);
       addInterceptors(jsNumberClass, enqueuer, registry);
-    } else if (cls == compiler.doubleClass || cls == jsDoubleClass) {
+    } else if (cls == coreClasses.doubleClass ||
+               cls == jsDoubleClass) {
       addInterceptors(jsDoubleClass, enqueuer, registry);
       addInterceptors(jsNumberClass, enqueuer, registry);
-    } else if (cls == compiler.boolClass || cls == jsBoolClass) {
+    } else if (cls == coreClasses.boolClass ||
+               cls == jsBoolClass) {
       addInterceptors(jsBoolClass, enqueuer, registry);
-    } else if (cls == compiler.nullClass || cls == jsNullClass) {
+    } else if (cls == coreClasses.nullClass ||
+               cls == jsNullClass) {
       addInterceptors(jsNullClass, enqueuer, registry);
-    } else if (cls == compiler.numClass || cls == jsNumberClass) {
+    } else if (cls == coreClasses.numClass ||
+               cls == jsNumberClass) {
       addInterceptors(jsIntClass, enqueuer, registry);
       addInterceptors(jsPositiveIntClass, enqueuer, registry);
       addInterceptors(jsUInt32Class, enqueuer, registry);
@@ -1484,7 +1494,7 @@ class JavaScriptBackend extends Backend {
     enqueueInResolution(helpers.setRuntimeTypeInfo, registry);
     registerGetRuntimeTypeArgument(registry);
     enqueueInResolution(helpers.getRuntimeTypeInfo, registry);
-    enqueueClass(enqueuer, compiler.listClass, registry);
+    enqueueClass(enqueuer, coreClasses.listClass, registry);
   }
 
   void registerIsCheckForCodegen(DartType type,
@@ -1492,7 +1502,7 @@ class JavaScriptBackend extends Backend {
                                  Registry registry) {
     assert(!registry.isForResolution);
     type = type.unaliased;
-    enqueueClass(world, compiler.boolClass, registry);
+    enqueueClass(world, coreClasses.boolClass, registry);
     bool inCheckedMode = compiler.enableTypeAssertions;
     // [registerIsCheck] is also called for checked mode checks, so we
     // need to register checked mode helpers.
@@ -1512,7 +1522,7 @@ class JavaScriptBackend extends Backend {
       }
     }
     if (!type.treatAsRaw || type.containsTypeVariables) {
-      enqueueClass(world, compiler.listClass, registry);
+      enqueueClass(world, coreClasses.listClass, registry);
     }
     if (type.element != null && isNative(type.element)) {
       // We will neeed to add the "$is" and "$as" properties on the
@@ -1530,7 +1540,8 @@ class JavaScriptBackend extends Backend {
   void registerCheckDeferredIsLoaded(Registry registry) {
     enqueueInResolution(helpers.checkDeferredIsLoaded, registry);
     // Also register the types of the arguments passed to this method.
-    enqueueClass(compiler.enqueuer.resolution, compiler.stringClass, registry);
+    enqueueClass(
+        compiler.enqueuer.resolution, coreClasses.stringClass, registry);
   }
 
   void registerNoSuchMethod(FunctionElement noSuchMethod) {
@@ -1615,7 +1626,7 @@ class JavaScriptBackend extends Backend {
   bool isDefaultEqualityImplementation(Element element) {
     assert(element.name == '==');
     ClassElement classElement = element.enclosingClass;
-    return classElement == compiler.objectClass
+    return classElement == coreClasses.objectClass
         || classElement == jsInterceptorClass
         || classElement == jsNullClass;
   }
@@ -1759,7 +1770,7 @@ class JavaScriptBackend extends Backend {
   ClassElement defaultSuperclass(ClassElement element) {
     if (isJsInterop(element)) return jsJavaScriptObjectClass;
     // Native classes inherit from Interceptor.
-    return isNative(element) ? jsInterceptorClass : compiler.objectClass;
+    return isNative(element) ? jsInterceptorClass : coreClasses.objectClass;
   }
 
   /**
@@ -1872,29 +1883,35 @@ class JavaScriptBackend extends Backend {
       assert(!typeCast); // Cannot cast to void.
       if (nativeCheckOnly) return null;
       return 'voidTypeCheck';
-    } else if (element == jsStringClass || element == compiler.stringClass) {
+    } else if (element == jsStringClass ||
+               element == coreClasses.stringClass) {
       if (nativeCheckOnly) return null;
       return typeCast
           ? 'stringTypeCast'
           : 'stringTypeCheck';
-    } else if (element == jsDoubleClass || element == compiler.doubleClass) {
+    } else if (element == jsDoubleClass ||
+               element == coreClasses.doubleClass) {
       if (nativeCheckOnly) return null;
       return typeCast
           ? 'doubleTypeCast'
           : 'doubleTypeCheck';
-    } else if (element == jsNumberClass || element == compiler.numClass) {
+    } else if (element == jsNumberClass ||
+               element == coreClasses.numClass) {
       if (nativeCheckOnly) return null;
       return typeCast
           ? 'numTypeCast'
           : 'numTypeCheck';
-    } else if (element == jsBoolClass || element == compiler.boolClass) {
+    } else if (element == jsBoolClass ||
+               element == coreClasses.boolClass) {
       if (nativeCheckOnly) return null;
       return typeCast
           ? 'boolTypeCast'
           : 'boolTypeCheck';
-    } else if (element == jsIntClass || element == compiler.intClass
-               || element == jsUInt32Class || element == jsUInt31Class
-               || element == jsPositiveIntClass) {
+    } else if (element == jsIntClass ||
+               element == coreClasses.intClass ||
+               element == jsUInt32Class ||
+               element == jsUInt31Class ||
+               element == jsPositiveIntClass) {
       if (nativeCheckOnly) return null;
       return typeCast
           ? 'intTypeCast'
@@ -1919,7 +1936,8 @@ class JavaScriptBackend extends Backend {
             ? 'stringSuperTypeCast'
             : 'stringSuperTypeCheck';
       }
-    } else if ((element == compiler.listClass || element == jsArrayClass) &&
+    } else if ((element == coreClasses.listClass ||
+                element == jsArrayClass) &&
                type.treatAsRaw) {
       if (nativeCheckOnly) return null;
       return typeCast
@@ -1978,11 +1996,11 @@ class JavaScriptBackend extends Backend {
    */
   bool hasDirectCheckFor(DartType type) {
     Element element = type.element;
-    return element == compiler.stringClass ||
-        element == compiler.boolClass ||
-        element == compiler.numClass ||
-        element == compiler.intClass ||
-        element == compiler.doubleClass ||
+    return element == coreClasses.stringClass ||
+        element == coreClasses.boolClass ||
+        element == coreClasses.numClass ||
+        element == coreClasses.intClass ||
+        element == coreClasses.doubleClass ||
         element == jsArrayClass ||
         element == jsMutableArrayClass ||
         element == jsExtendableArrayClass ||
@@ -2246,13 +2264,13 @@ class JavaScriptBackend extends Backend {
         message: "Element 'LinkedHashMap' not found in 'dart:core'."));
 
     implementationClasses = <ClassElement, ClassElement>{};
-    implementationClasses[compiler.intClass] = jsIntClass;
-    implementationClasses[compiler.boolClass] = jsBoolClass;
-    implementationClasses[compiler.numClass] = jsNumberClass;
-    implementationClasses[compiler.doubleClass] = jsDoubleClass;
-    implementationClasses[compiler.stringClass] = jsStringClass;
-    implementationClasses[compiler.listClass] = jsArrayClass;
-    implementationClasses[compiler.nullClass] = jsNullClass;
+    implementationClasses[coreClasses.intClass] = jsIntClass;
+    implementationClasses[coreClasses.boolClass] = jsBoolClass;
+    implementationClasses[coreClasses.numClass] = jsNumberClass;
+    implementationClasses[coreClasses.doubleClass] = jsDoubleClass;
+    implementationClasses[coreClasses.stringClass] = jsStringClass;
+    implementationClasses[coreClasses.listClass] = jsArrayClass;
+    implementationClasses[coreClasses.nullClass] = jsNullClass;
 
     // These methods are overwritten with generated versions.
     inlineCache.markAsNonInlinable(getInterceptorMethod, insideLoop: true);
@@ -2288,10 +2306,10 @@ class JavaScriptBackend extends Backend {
     jsStringOperatorAdd = compiler.lookupElementIn(jsStringClass, '+');
     jsStringToString = compiler.lookupElementIn(jsStringClass, 'toString');
 
-    objectEquals = compiler.lookupElementIn(compiler.objectClass, '==');
+    objectEquals = compiler.lookupElementIn(coreClasses.objectClass, '==');
 
     specialOperatorEqClasses
-        ..add(compiler.objectClass)
+        ..add(coreClasses.objectClass)
         ..add(jsInterceptorClass)
         ..add(jsNullClass);
 

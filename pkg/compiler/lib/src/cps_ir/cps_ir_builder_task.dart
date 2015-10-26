@@ -2496,7 +2496,7 @@ class GlobalProgramInformation {
 
   FunctionElement get throwTypeErrorHelper => _backend.helpers.throwTypeError;
 
-  ClassElement get nullClass => _compiler.nullClass;
+  ClassElement get nullClass => _compiler.coreClasses.nullClass;
 
   DartType unaliasType(DartType type) => type.unaliased;
 

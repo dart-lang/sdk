@@ -163,7 +163,8 @@ Future testTypeVariables() {
       compiler.parseScript('class Foo<T, U> {}');
       ClassElement foo = compiler.mainApp.find('Foo');
       matchResolvedTypes(visitor, 'Foo<int, String> x;', 'Foo',
-                         [compiler.intClass, compiler.stringClass]);
+                         [compiler.coreClasses.intClass,
+                          compiler.coreClasses.stringClass]);
       matchResolvedTypes(visitor, 'Foo<Foo, Foo> x;', 'Foo',
                          [foo, foo]);
     }),

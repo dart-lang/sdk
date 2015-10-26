@@ -16,11 +16,12 @@ import 'constants/constant_system.dart';
 import 'constants/evaluation.dart';
 import 'constants/expressions.dart';
 import 'constants/values.dart';
+import 'core_types.dart' show
+    CoreTypes;
 import 'dart_types.dart';
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show
     FunctionElementX;
-import 'helpers/helpers.dart';
 import 'resolution/tree_elements.dart' show
     TreeElements;
 import 'resolution/operators.dart';
@@ -161,6 +162,8 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
 
   DiagnosticReporter get reporter => compiler.reporter;
 
+  CoreTypes get coreTypes => compiler.coreTypes;
+
   @override
   ConstantValue getConstantValueForVariable(VariableElement element) {
     return getConstantValue(initialVariableValues[element.declaration]);
@@ -256,7 +259,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
             expression = null;
           }
         } else {
-          DartType constantType = value.getType(compiler.coreTypes);
+          DartType constantType = value.getType(coreTypes);
           if (!constantSystem.isSubtype(
               compiler.types, constantType, elementType)) {
             if (isConst) {
@@ -367,7 +370,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
 
   ConstantSystem get constantSystem => handler.constantSystem;
   Resolution get resolution => compiler.resolution;
-
+  CoreTypes get coreTypes => compiler.coreTypes;
   DiagnosticReporter get reporter => compiler.reporter;
 
   AstConstant evaluate(Node node) {
@@ -532,7 +535,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
   }
 
   AstConstant visitLiteralSymbol(LiteralSymbol node) {
-    InterfaceType type = compiler.symbolClass.rawType;
+    InterfaceType type = coreTypes.symbolType;
     String text = node.slowNameString;
     List<AstConstant> arguments = <AstConstant>[
       new AstConstant(context, node, new StringConstantExpression(text),
@@ -724,13 +727,13 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     if (condition == null) {
       return null;
     } else if (!condition.value.isBool) {
-      DartType conditionType = condition.value.getType(compiler.coreTypes);
+      DartType conditionType = condition.value.getType(coreTypes);
       if (isEvaluatingConstant) {
         reporter.reportErrorMessage(
             node.condition,
             MessageKind.NOT_ASSIGNABLE,
             {'fromType': conditionType,
-             'toType': compiler.boolClass.rawType});
+             'toType': coreTypes.boolType});
         return new ErroneousAstConstant(context, node);
       }
       return null;
@@ -885,45 +888,45 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     }
 
     if (!firstArgument.isString) {
-      DartType type = defaultValue.getType(compiler.coreTypes);
+      DartType type = defaultValue.getType(coreTypes);
       reporter.reportErrorMessage(
           normalizedArguments[0].node,
           MessageKind.NOT_ASSIGNABLE,
           {'fromType': type,
-           'toType': compiler.stringClass.rawType});
+           'toType': coreTypes.stringType});
       return null;
     }
 
     if (constructor == compiler.intEnvironment &&
         !(defaultValue.isNull || defaultValue.isInt)) {
-      DartType type = defaultValue.getType(compiler.coreTypes);
+      DartType type = defaultValue.getType(coreTypes);
       reporter.reportErrorMessage(
           normalizedArguments[1].node,
           MessageKind.NOT_ASSIGNABLE,
           {'fromType': type,
-           'toType': compiler.intClass.rawType});
+           'toType': coreTypes.intType});
       return null;
     }
 
     if (constructor == compiler.boolEnvironment &&
         !(defaultValue.isNull || defaultValue.isBool)) {
-      DartType type = defaultValue.getType(compiler.coreTypes);
+      DartType type = defaultValue.getType(coreTypes);
       reporter.reportErrorMessage(
           normalizedArguments[1].node,
           MessageKind.NOT_ASSIGNABLE,
           {'fromType': type,
-           'toType': compiler.boolClass.rawType});
+           'toType': coreTypes.boolType});
       return null;
     }
 
     if (constructor == compiler.stringEnvironment &&
         !(defaultValue.isNull || defaultValue.isString)) {
-      DartType type = defaultValue.getType(compiler.coreTypes);
+      DartType type = defaultValue.getType(coreTypes);
       reporter.reportErrorMessage(
           normalizedArguments[1].node,
           MessageKind.NOT_ASSIGNABLE,
           {'fromType': type,
-           'toType': compiler.stringClass.rawType});
+           'toType': coreTypes.stringType});
       return null;
     }
 
@@ -1064,7 +1067,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
   void potentiallyCheckType(TypedElement element, AstConstant constant) {
     if (compiler.enableTypeAssertions) {
       DartType elementType = element.type.substByContext(constructedType);
-      DartType constantType = constant.value.getType(compiler.coreTypes);
+      DartType constantType = constant.value.getType(coreTypes);
       if (!constantSystem.isSubtype(
           compiler.types, constantType, elementType)) {
         reporter.withCurrentElement(constant.element, () {
@@ -1169,7 +1172,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       // the class is not Object.
       ClassElement enclosingClass = constructor.enclosingClass;
       ClassElement superClass = enclosingClass.superclass;
-      if (enclosingClass != compiler.objectClass) {
+      if (!enclosingClass.isObject) {
         assert(superClass != null);
         assert(superClass.isResolved);
 

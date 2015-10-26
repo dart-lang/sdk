@@ -8,6 +8,8 @@ import '../common/names.dart' show
     Identifiers;
 import '../compiler.dart' show
     Compiler;
+import '../core_types.dart' show
+    CoreClasses;
 import '../dart_types.dart' show
     InterfaceType;
 import '../elements/elements.dart' show
@@ -41,6 +43,8 @@ class BackendImpacts {
 
   BackendHelpers get helpers => backend.helpers;
 
+  CoreClasses get coreClasses => compiler.coreClasses;
+
   BackendImpact get getRuntimeTypeArgument => new BackendImpact(
       staticUses: [
         helpers.getRuntimeTypeArgument,
@@ -54,7 +58,7 @@ class BackendImpacts {
         helpers.computeSignature,
         helpers.getRuntimeTypeArguments],
       instantiatedClasses: [
-        compiler.listClass]);
+        coreClasses.listClass]);
 
   BackendImpact get asyncBody => new BackendImpact(
       staticUses: [
@@ -118,13 +122,12 @@ class BackendImpacts {
         helpers.throwRuntimeError],
       // Also register the types of the arguments passed to this method.
       instantiatedClasses: [
-        helpers.compiler.stringClass]);
+        coreClasses.stringClass]);
 
   BackendImpact get superNoSuchMethod => new BackendImpact(
       staticUses: [
         helpers.createInvocationMirror,
-        helpers.compiler.objectClass.lookupLocalMember(
-            Identifiers.noSuchMethod_)],
+        coreClasses.objectClass.lookupLocalMember(Identifiers.noSuchMethod_)],
       otherImpacts: [
         needsInt(
             'Needed to encode the invocation kind of super.noSuchMethod.'),
@@ -153,7 +156,7 @@ class BackendImpacts {
 
   BackendImpact get constSymbol => new BackendImpact(
       instantiatedClasses: [
-        compiler.symbolClass],
+        coreClasses.symbolClass],
       staticUses: [
         compiler.symbolConstructor.declaration]);
 
@@ -164,14 +167,14 @@ class BackendImpacts {
   BackendImpact needsInt(String reason) {
     // TODO(johnniwinther): Register [reason] for use in dump-info.
     return new BackendImpact(
-        instantiatedClasses: [helpers.compiler.intClass]);
+        instantiatedClasses: [coreClasses.intClass]);
   }
 
   /// Helper for registering that `List` is needed.
   BackendImpact needsList(String reason) {
     // TODO(johnniwinther): Register [reason] for use in dump-info.
     return new BackendImpact(
-        instantiatedClasses: [helpers.compiler.listClass]);
+        instantiatedClasses: [coreClasses.listClass]);
   }
 
   /// Helper for registering that `String` is needed.
@@ -179,7 +182,7 @@ class BackendImpacts {
     // TODO(johnniwinther): Register [reason] for use in dump-info.
     return new BackendImpact(
         instantiatedClasses: [
-          helpers.compiler.stringClass]);
+          coreClasses.stringClass]);
   }
 
   BackendImpact get assertWithoutMessage => new BackendImpact(
@@ -226,7 +229,7 @@ class BackendImpacts {
 
   BackendImpact get stackTraceInCatch => new BackendImpact(
       instantiatedClasses: [
-        helpers.compiler.stackTraceClass],
+        coreClasses.stackTraceClass],
       staticUses: [
         helpers.traceFromException]);
 
@@ -243,14 +246,14 @@ class BackendImpacts {
         helpers.runtimeTypeToString,
         helpers.createRuntimeType],
       instantiatedClasses: [
-        helpers.compiler.listClass],
+        coreClasses.listClass],
       otherImpacts: [
         getRuntimeTypeArgument,
         needsInt('Needed for accessing a type variable literal on this.')]);
 
   BackendImpact get typeCheck => new BackendImpact(
       instantiatedClasses: [
-        helpers.compiler.boolClass]);
+        coreClasses.boolClass]);
 
   BackendImpact get checkedModeTypeCheck => new BackendImpact(
       staticUses: [
@@ -267,7 +270,7 @@ class BackendImpacts {
         helpers.setRuntimeTypeInfo,
         helpers.getRuntimeTypeInfo],
       instantiatedClasses: [
-        helpers.compiler.listClass],
+        coreClasses.listClass],
       otherImpacts: [
         getRuntimeTypeArgument]);
 
@@ -296,5 +299,5 @@ class BackendImpacts {
 
   BackendImpact get closure => new BackendImpact(
       instantiatedClasses: [
-        helpers.compiler.functionClass]);
+        coreClasses.functionClass]);
 }
