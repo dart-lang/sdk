@@ -224,6 +224,7 @@
         'vmservice_impl.cc',
         'vmservice_impl.h',
         '<(resources_cc_file)',
+        '<(observatory_assets_cc_file)',
       ],
       'sources/': [
         ['exclude', '_test\\.(cc|h)$'],
