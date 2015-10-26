@@ -310,10 +310,6 @@ class Base64Decoder extends Converter<String, List<int>> {
   List<int> convert(String input) {
     if (input.isEmpty) return new Uint8List(0);
     int length = input.length;
-    if (length % 4 != 0) {
-      throw new FormatException("Invalid length, must be multiple of four",
-                                input, length);
-    }
     var decoder = new _Base64Decoder();
     Uint8List buffer = decoder.decode(input, 0, input.length);
     decoder.close(input, input.length);
@@ -350,17 +346,27 @@ class _Base64Decoder {
    *
    * Uses [_invalid] for invalid indices and [_padding] for the padding
    * character.
+   *
+   * Accepts the "URL-safe" alphabet as well (`-` and `_` are the
+   * 62nd and 63rd alphabet characters), and considers `%` a padding
+   * character which mush be followed by `3D`, the percent-escape
+   * for `=`.
    */
   static final List<int> _inverseAlphabet = new Int8List.fromList([
     __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __,
     __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __,
-    __, __, __, __, __, __, __, __, __, __, __, 62, __, __, __, 63,
+    __, __, __, __, __, _p, __, __, __, __, __, 62, __, 62, __, 63,
     52, 53, 54, 55, 56, 57, 58, 59, 60, 61, __, __, __, _p, __, __,
     __,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
-    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, __, __, __, __, __,
+    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, __, __, __, __, 63,
     __, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
     41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, __, __, __, __, __,
   ]);
+
+  // Character constants.
+  static const int _char_percent = 0x25;  // '%'.
+  static const int _char_3       = 0x33;  // '3'.
+  static const int _char_d       = 0x64;  // 'd'.
 
   /**
    * Maintains the intermediate state of a partly-decoded input.
@@ -412,7 +418,7 @@ class _Base64Decoder {
    */
   static int _encodePaddingState(int expectedPadding) {
     assert(expectedPadding >= 0);
-    assert(expectedPadding <= 1);
+    assert(expectedPadding <= 5);
     return -expectedPadding - 1;  // ~expectedPadding adapted to dart2js.
   }
 
@@ -498,6 +504,7 @@ class _Base64Decoder {
         }
         continue;
       } else if (code == _padding && count > 1) {
+        if (charOr < 0 || charOr > asciiMax) break;
         if (count == 3) {
           if ((bits & 0x03) != 0) {
             throw new FormatException(
@@ -512,7 +519,13 @@ class _Base64Decoder {
           }
           output[outIndex++] = bits >> 4;
         }
-        int expectedPadding = 3 - count;
+        // Expected padding is the number of expected padding characters,
+        // where `=` counts as three and `%3D` counts as one per character.
+        //
+        // Expect either zero or one padding depending on count (2 or 3),
+        // plus two more characters if the code was `%` (a partial padding).
+        int expectedPadding = (3 - count) * 3;
+        if (char == _char_percent) expectedPadding += 2;
         state = _encodePaddingState(expectedPadding);
         return _checkPadding(input, i + 1, end, state);
       }
@@ -538,53 +551,134 @@ class _Base64Decoder {
   static Uint8List _allocateBuffer(String input, int start, int end,
                                    int state) {
     assert(state >= 0);
-    int padding = 0;
-    int length = _stateCount(state) + (end - start);
-    if (end > start && input.codeUnitAt(end - 1) == _paddingChar) {
-      padding++;
-      if (end - 1 > start && input.codeUnitAt(end - 2) == _paddingChar) {
-        padding++;
-      }
-    }
+    int paddingStart = _trimPaddingChars(input, start, end);
+    int length = _stateCount(state) + (paddingStart - start);
     // Three bytes per full four bytes in the input.
     int bufferLength = (length >> 2) * 3;
-    // If padding was seen, then remove the padding if it was counter, or
-    // add the last partial chunk it it wasn't counted.
+    // If padding was seen, then this is the last chunk, and the final partial
+    // chunk should be decoded too.
     int remainderLength = length & 3;
-    if (remainderLength == 0) {
-      bufferLength -= padding;
-    } else if (padding != 0 && remainderLength - padding > 1) {
-      bufferLength += remainderLength - 1 - padding;
+    if (remainderLength != 0 && paddingStart < end) {
+      bufferLength += remainderLength - 1;
     }
     if (bufferLength > 0) return new Uint8List(bufferLength);
-    // If the input plus state is less than four characters, no buffer
-    // is needed.
+    // If the input plus state is less than four characters, and it's not
+    // at the end of input, no buffer is needed.
     return null;
+  }
+
+  /**
+   * Returns the position of the start of padding at the end of the input.
+   *
+   * Returns the end of input if there is no padding.
+   *
+   * This is used to ensure that the decoding buffer has the exact size
+   * it needs when input is valid, and at least enough bytes to reach the error
+   * when input is invalid.
+   *
+   * Never count more than two padding sequences since any more than that
+   * will raise an error anyway, and we only care about being precise for
+   * successful conversions.
+   */
+  static int _trimPaddingChars(String input, int start, int end) {
+    // This may count '%=' as two paddings. That's ok, it will err later,
+    // but the buffer will be large enough to reach the error.
+    int padding = 0;
+    int index = end;
+    int newEnd = end;
+    while (index > start && padding < 2) {
+      index--;
+      int char = input.codeUnitAt(index);
+      if (char == _paddingChar) {
+        padding++;
+        newEnd = index;
+        continue;
+      }
+      if ((char | 0x20) == _char_d) {
+        if (index == start) break;
+        index--;
+        char = input.codeUnitAt(index);
+      }
+      if (char == _char_3) {
+        if (index == start) break;
+        index--;
+        char = input.codeUnitAt(index);
+      }
+      if (char == _char_percent) {
+        padding++;
+        newEnd = index;
+        continue;
+      }
+      break;
+    }
+    return newEnd;
   }
 
   /**
    * Check that the remainder of the string is valid padding.
    *
-   * That means zero or one padding character (depending on [_state])
-   * and nothing else.
+   * Valid padding is a correct number (0, 1 or 2) of `=` characters
+   * or `%3D` sequences depending on the number of preceding BASE-64 characters.
+   * The [state] parameter encodes which padding continuations are allowed
+   * as the number of expected characters. That number is the number of
+   * expected padding characters times 3 minus the number of padding characters
+   * seen so far, where `=` counts as 3 counts as three characters,
+   * and the padding sequence `%3D` counts as one character per character.
+   *
+   * The number of missing characters is always between 0 and 5 because we
+   * only call this function after having seen at least one `=` or `%`
+   * character.
+   * If the number of missing characters is not 3 or 0, we have seen (at least)
+   * a `%` character and expects the rest of the `%3D` sequence, and a `=` is
+   * not allowed. When missing 3 characters, either `=` or `%` is allowed.
+   *
+   * When the value is 0, no more padding (or any other character) is allowed.
    */
   static int _checkPadding(String input, int start, int end, int state) {
     assert(_hasSeenPadding(state));
     if (start == end) return state;
     int expectedPadding = _statePadding(state);
-    if (expectedPadding > 0) {
-      int firstChar = input.codeUnitAt(start);
-      if (firstChar != _paddingChar) {
-        throw new FormatException("Missing padding character", input, start);
+    assert(expectedPadding >= 0);
+    assert(expectedPadding < 6);
+    while (expectedPadding > 0) {
+      int char = input.codeUnitAt(start);
+      if (expectedPadding == 3) {
+        if (char == _paddingChar) {
+          expectedPadding -= 3;
+          start++;
+          break;
+        }
+        if (char == _char_percent) {
+          expectedPadding--;
+          start++;
+          if (start == end) break;
+          char = input.codeUnitAt(start);
+        } else {
+          break;
+        }
       }
-      state = _encodePaddingState(0);
+      // Partial padding means we have seen part of a "%3D" escape.
+      int expectedPartialPadding = expectedPadding;
+      if (expectedPartialPadding > 3) expectedPartialPadding -= 3;
+      if (expectedPartialPadding == 2) {
+        // Expects '3'
+        if (char != _char_3) break;
+        start++;
+        expectedPadding--;
+        if (start == end) break;
+        char = input.codeUnitAt(start);
+      }
+      // Expects 'D' or 'd'.
+      if ((char | 0x20) != _char_d) break;
       start++;
+      expectedPadding--;
+      if (start == end) break;
     }
     if (start != end) {
-      throw new FormatException("Invalid character after padding",
+      throw new FormatException("Invalid padding character",
                                 input, start);
     }
-    return state;
+    return _encodePaddingState(expectedPadding);
   }
 }
 
