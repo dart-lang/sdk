@@ -25,8 +25,6 @@ digraph G {
   BuildLibraryElementTask -> LIBRARY_ELEMENT1
   BuildPublicNamespaceTask -> LIBRARY_ELEMENT3
   BuildSourceExportClosureTask -> EXPORT_SOURCE_CLOSURE
-  BuildSourceImportExportClosureTask -> IMPORT_EXPORT_SOURCE_CLOSURE
-  BuildSourceImportExportClosureTask -> IS_CLIENT
   BuildTypeProviderTask -> TYPE_PROVIDER
   COMPILATION_UNIT_CONSTANTS -> EvaluateUnitConstantsTask
   COMPILATION_UNIT_CONSTANTS [shape=box]
@@ -77,7 +75,6 @@ digraph G {
   IMPORTED_LIBRARIES -> ReadyResolvedUnitTask
   IMPORTED_LIBRARIES -> ResolveUnitTypeNamesTask
   IMPORTED_LIBRARIES [shape=box]
-  IMPORT_EXPORT_SOURCE_CLOSURE [shape=box]
   INCLUDED_PARTS -> BuildLibraryElementTask
   INCLUDED_PARTS [shape=box]
   INFERABLE_STATIC_VARIABLES_IN_UNIT -> InferStaticVariableTypesInUnitTask
@@ -87,8 +84,6 @@ digraph G {
   INFERRED_STATIC_VARIABLE -> InferStaticVariableTypeTask
   INFERRED_STATIC_VARIABLE -> InferStaticVariableTypesInUnitTask
   INFERRED_STATIC_VARIABLE [shape=box]
-  IS_CLIENT -> ReadyLibraryElement2Task
-  IS_CLIENT [shape=box]
   IS_LAUNCHABLE [shape=box]
   InferInstanceMembersInUnitTask -> RESOLVED_UNIT8
   InferStaticVariableTypeTask -> INFERRED_STATIC_VARIABLE
@@ -110,7 +105,6 @@ digraph G {
   LIBRARY_ELEMENT1 [shape=box]
   LIBRARY_ELEMENT2 -> BuildPublicNamespaceTask
   LIBRARY_ELEMENT2 -> BuildSourceExportClosureTask
-  LIBRARY_ELEMENT2 -> BuildSourceImportExportClosureTask
   LIBRARY_ELEMENT2 -> ComputeLibraryCycleTask
   LIBRARY_ELEMENT2 -> ReadyLibraryElement2Task
   LIBRARY_ELEMENT2 [shape=box]
@@ -219,7 +213,6 @@ digraph G {
   RESOLVE_TYPE_NAMES_ERRORS [shape=box]
   RESOLVE_UNIT_ERRORS -> LibraryUnitErrorsTask
   RESOLVE_UNIT_ERRORS [shape=box]
-  ReadyLibraryElement2Task -> IS_CLIENT
   ReadyLibraryElement2Task -> READY_LIBRARY_ELEMENT2
   ReadyLibraryElement5Task -> READY_LIBRARY_ELEMENT5
   ReadyResolvedUnit10Task -> READY_RESOLVED_UNIT10
