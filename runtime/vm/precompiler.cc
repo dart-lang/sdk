@@ -230,6 +230,9 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     { "dart:isolate", "_RawReceivePortImpl", "_handleMessage" },
     { "dart:isolate", "_RawReceivePortImpl", "_lookupHandler" },
     { "dart:isolate", "_SendPortImpl", "send" },
+    { "dart:typed_data", "ByteData", "ByteData." },
+    { "dart:typed_data", "ByteData", "ByteData._view" },
+    { "dart:typed_data", "_ByteBuffer", "_ByteBuffer._New" },
     { "dart:vmservice", "::", "_registerIsolate" },
     { "dart:vmservice", "::", "boot" },
     { NULL, NULL, NULL }  // Must be terminated with NULL entries.
