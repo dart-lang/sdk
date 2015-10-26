@@ -31,7 +31,9 @@ import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/index/index_contributor.dart';
+import 'package:analysis_server/src/services/linter/linter.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:plugin/plugin.dart';
 
@@ -318,6 +320,12 @@ class ServerPlugin implements Plugin {
     //
     registerExtension(
         INDEX_CONTRIBUTOR_EXTENSION_POINT_ID, new DartIndexContributor());
+
+    //
+    // Register options validators.
+    //
+    registerExtension(
+        OPTIONS_VALIDATOR_EXTENSION_POINT_ID, new LinterRuleOptionsValidator());
   }
 
   /**
