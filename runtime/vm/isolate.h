@@ -609,10 +609,15 @@ class Isolate : public BaseIsolate {
   RawUserTag* default_tag() const { return default_tag_; }
   void set_default_tag(const UserTag& tag);
 
-  RawGrowableObjectArray* background_compilation_queue() const {
-    return background_compilation_queue_;
+  RawGrowableObjectArray* compilation_function_queue() const {
+    return compilation_function_queue_;
   }
-  void set_background_compilation_queue(const GrowableObjectArray& value);
+  void set_compilation_function_queue(const GrowableObjectArray& value);
+
+  RawGrowableObjectArray* compilation_code_queue() const {
+    return compilation_code_queue_;
+  }
+  void set_compilation_code_queue(const GrowableObjectArray& value);
 
   Metric* metrics_list_head() {
     return metrics_list_head_;
@@ -803,7 +808,8 @@ class Isolate : public BaseIsolate {
 
   // Background compilation.
   BackgroundCompiler* background_compiler_;
-  RawGrowableObjectArray* background_compilation_queue_;
+  RawGrowableObjectArray* compilation_function_queue_;
+  RawGrowableObjectArray* compilation_code_queue_;
 
   // We use 6 list entries for each pending service extension calls.
   enum {

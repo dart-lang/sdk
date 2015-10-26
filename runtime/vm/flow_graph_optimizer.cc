@@ -723,12 +723,12 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
              (to == kUnboxedDouble) &&
              CanConvertUnboxedMintToDouble()) {
     const intptr_t deopt_id = (deopt_target != NULL) ?
-      deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
+        deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
     ASSERT(CanUnboxDouble());
     converted = new MintToDoubleInstr(use->CopyWithType(), deopt_id);
   } else if ((from == kTagged) && Boxing::Supports(to)) {
     const intptr_t deopt_id = (deopt_target != NULL) ?
-      deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
+        deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
     converted = UnboxInstr::Create(to, use->CopyWithType(), deopt_id);
   } else if ((to == kTagged) && Boxing::Supports(from)) {
     converted = BoxInstr::Create(from, use->CopyWithType());
@@ -738,7 +738,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     // "from" and "to" representation. The inserted instructions will
     // trigger a deoptimization if executed. See #12417 for a discussion.
     const intptr_t deopt_id = (deopt_target != NULL) ?
-      deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
+        deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
     ASSERT(Boxing::Supports(from));
     ASSERT(Boxing::Supports(to));
     Definition* boxed = BoxInstr::Create(from, use->CopyWithType());

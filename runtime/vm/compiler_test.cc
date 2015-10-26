@@ -70,59 +70,7 @@ TEST_CASE(CompileFunction) {
 }
 
 
-class CompileFunctionTask : public ThreadPool::Task {
- public:
-  CompileFunctionTask(Isolate* isolate,
-                      const Function& func,
-                      Monitor* done_monitor,
-                      bool* done)
-      : isolate_(isolate),
-        func_(func),
-        done_monitor_(done_monitor),
-        done_(done) {
-  }
-
-  virtual void Run() {
-    Thread::EnterIsolateAsHelper(isolate_);
-    {
-      Thread* thread = Thread::Current();
-      StackZone stack_zone(thread);
-      HANDLESCOPE(thread);
-      EXPECT(func_.HasCode());
-      EXPECT(!func_.HasOptimizedCode());
-      const Error& err =
-          Error::Handle(Compiler::CompileOptimizedFunction(thread, func_));
-      EXPECT(err.IsNull());
-      EXPECT(func_.HasOptimizedCode());
-    }
-    Thread::ExitIsolateAsHelper();
-    // Tell main thread that we are done.
-    {
-      MonitorLocker ml(done_monitor_);
-      ASSERT(!*done_);
-      *done_ = true;
-      ml.Notify();
-    }
-  }
-
- private:
-  Isolate* isolate_;
-  const Function& func_;
-  Monitor* done_monitor_;
-  bool* done_;
-};
-
-
 TEST_CASE(CompileFunctionOnHelperThread) {
-  Monitor done_monitor;
-  bool done = false;
-  Isolate* isolate = Thread::Current()->isolate();
-  // Flush store buffers, etc.
-  // TODO(koda): Currently, the GC only does this for the current thread, (i.e,
-  // the helper, in this test), but it should be done for all *threads*
-  // after/at safepointing.
-  Thread::PrepareForGC();
-
   // Create a simple function and compile it without optimization.
   const char* kScriptChars =
             "class A {\n"
@@ -147,19 +95,17 @@ TEST_CASE(CompileFunctionOnHelperThread) {
   CompilerTest::TestCompileFunction(func);
   EXPECT(func.HasCode());
   EXPECT(!func.HasOptimizedCode());
-
-  // Now optimize it on a helper thread.
-  Dart::thread_pool()->Run(
-      new CompileFunctionTask(isolate, func, &done_monitor, &done));
-  {
-    // Manually wait.
-    // TODO(koda): Replace with execution of Dart and/or VM code when GC
-    // actually safepoints everything.
-    MonitorLocker ml(&done_monitor);
-    while (!done) {
-      ml.Wait();
-    }
+  BackgroundCompiler::EnsureInit(thread);
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate->background_compiler() != NULL);
+  isolate->background_compiler()->CompileOptimized(func);
+  Monitor* m = new Monitor();
+  MonitorLocker ml(m);
+  while (!func.HasOptimizedCode()) {
+    isolate->background_compiler()->InstallGeneratedCode();
+    ml.Wait(1);
   }
+  BackgroundCompiler::Stop(isolate->background_compiler());
 }
 
 

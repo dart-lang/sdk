@@ -708,7 +708,7 @@ class CallSiteInliner : public ValueObject {
       FlowGraphBuilder builder(*parsed_function,
                                *ic_data_array,
                                exit_collector,
-                               Thread::kNoDeoptId);
+                               Compiler::kNoOSRDeoptId);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
       {
@@ -1506,7 +1506,7 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
     GraphEntryInstr* graph_entry =
         new(Z) GraphEntryInstr(*temp_parsed_function,
                                entry,
-                               Thread::kNoDeoptId);  // No OSR id.
+                               Compiler::kNoOSRDeoptId);
     // Update polymorphic inliner state.
     inlined_entries_.Add(graph_entry);
     exit_collector_->Union(exit_collector);

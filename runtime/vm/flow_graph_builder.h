@@ -124,7 +124,7 @@ class InlineExitCollector: public ZoneAllocated {
 class FlowGraphBuilder : public ValueObject {
  public:
   // The inlining context is NULL if not inlining.  The osr_id is the deopt
-  // id of the OSR entry or Thread::kNoDeoptId if not compiling for OSR.
+  // id of the OSR entry or Compiler::kNoOSRDeoptId if not compiling for OSR.
   FlowGraphBuilder(const ParsedFunction& parsed_function,
                    const ZoneGrowableArray<const ICData*>& ic_data_array,
                    InlineExitCollector* exit_collector,
@@ -248,7 +248,7 @@ class FlowGraphBuilder : public ValueObject {
   // A stack of enclosing nested statements.
   NestedStatement* nesting_stack_;
 
-  // The deopt id of the OSR entry or Thread::kNoDeoptId if not compiling
+  // The deopt id of the OSR entry orCompiler::kNoOSRDeoptId if not compiling
   // for OSR.
   const intptr_t osr_id_;
 

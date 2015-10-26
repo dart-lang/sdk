@@ -1329,7 +1329,7 @@ class GraphEntryInstr : public BlockEntryInstr {
   }
   ConstantInstr* constant_null();
 
-  bool IsCompiledForOsr() const { return osr_id_ != Thread::kNoDeoptId; }
+  bool IsCompiledForOsr() const;
 
   intptr_t entry_count() const { return entry_count_; }
   void set_entry_count(intptr_t count) { entry_count_ = count; }

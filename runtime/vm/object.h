@@ -2024,7 +2024,7 @@ class ICData : public Object {
   void set_arguments_descriptor(const Array& value) const;
   void set_deopt_id(intptr_t value) const;
   void SetNumArgsTested(intptr_t value) const;
-  void set_ic_data(const Array& value) const;
+  void set_ic_data_array(const Array& value) const;
   void set_state_bits(uint32_t bits) const;
 
   enum {
@@ -2051,7 +2051,7 @@ class ICData : public Object {
 #endif  // DEBUG
 
   intptr_t TestEntryLength() const;
-  void WriteSentinel(const Array& data) const;
+  static void WriteSentinel(const Array& data, intptr_t test_entry_length);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
   friend class Class;
@@ -2137,7 +2137,9 @@ class Function : public Object {
   RawArray* parameter_names() const { return raw_ptr()->parameter_names_; }
   void set_parameter_names(const Array& value) const;
 
+  // Not thread-safe; must be called in the main thread.
   // Sets function's code and code's function.
+  void InstallOptimizedCode(const Code& code, bool is_osr) const;
   void AttachCode(const Code& value) const;
   void SetInstructions(const Code& value) const;
   void ClearCode() const;
@@ -2664,6 +2666,7 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_ACCESSORS)
 
  private:
   void set_ic_data_array(const Array& value) const;
+  void SetInstructionsSafe(const Code& value) const;
 
   enum KindTagBits {
     kKindTagPos = 0,

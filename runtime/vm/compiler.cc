@@ -378,10 +378,13 @@ RawError* Compiler::CompileClass(const Class& cls) {
 
 
 // Return false if bailed out.
+// If optimized_result_code is not NULL then it is caller's responsibility
+// to install code.
 static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
                                         ParsedFunction* parsed_function,
                                         bool optimized,
-                                        intptr_t osr_id) {
+                                        intptr_t osr_id,
+                                        Code* optimized_result_code) {
   const Function& function = parsed_function->function();
   if (optimized && !function.IsOptimizable()) {
     return false;
@@ -447,7 +450,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
           FlowGraphPrinter::ShouldPrint(function);
 
       if (print_flow_graph) {
-        if (osr_id == Thread::kNoDeoptId) {
+        if (osr_id == Compiler::kNoOSRDeoptId) {
           FlowGraphPrinter::PrintGraph("Before Optimizations", flow_graph);
         } else {
           FlowGraphPrinter::PrintGraph("For OSR", flow_graph);
@@ -730,6 +733,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         const Code& code = Code::Handle(
             Code::FinalizeCode(function, &assembler, optimized));
         code.set_is_optimized(optimized);
+        code.set_owner(function);
 
         const Array& intervals = graph_compiler.inlined_code_intervals();
         INC_STAT(thread, total_code_size,
@@ -757,12 +761,19 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         graph_compiler.FinalizeStaticCallTargetsTable(code);
 
         if (optimized) {
-          // We may not have previous code if 'always_optimize' is set.
-          if ((osr_id == Thread::kNoDeoptId) && function.HasCode()) {
-            Code::Handle(function.CurrentCode()).DisableDartCode();
+          if (optimized_result_code != NULL) {
+            // Do not install code, but return it instead.
+            // Since code dependencies (CHA, fields) are defined eagerly,
+            // the code may be disabled before installing it.
+            code.set_owner(function);
+            *optimized_result_code = code.raw();
+          } else {
+            const bool is_osr = osr_id != Compiler::kNoOSRDeoptId;
+            function.InstallOptimizedCode(code, is_osr);
           }
-          function.AttachCode(code);
 
+          // TODO(srdjan): In background compilation, verify that CHA has not
+          // been invalidated in the meantime.
           // Register code with the classes it depends on because of CHA.
           for (intptr_t i = 0;
                i < thread->cha()->leaf_classes().length();
@@ -1000,7 +1011,8 @@ static void CheckInliningIntervals(const Function& function) {
 static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
                                        bool optimized,
-                                       intptr_t osr_id) {
+                                       intptr_t osr_id,
+                                       Code* result_code) {
   // Check that we optimize if 'Compiler::always_optimize()' is set to true,
   // except if the function is marked as not optimizable.
   ASSERT(!function.IsOptimizable() ||
@@ -1019,7 +1031,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
         thread, Function::ZoneHandle(zone, function.raw()));
     if (FLAG_trace_compiler) {
       THR_Print("Compiling %s%sfunction: '%s' @ token %" Pd ", size %" Pd "\n",
-                (osr_id == Thread::kNoDeoptId ? "" : "osr "),
+                (osr_id == Compiler::kNoOSRDeoptId ? "" : "osr "),
                 (optimized ? "optimized " : ""),
                 function.ToFullyQualifiedCString(),
                 function.token_pos(),
@@ -1042,7 +1054,8 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     const bool success = CompileParsedFunctionHelper(pipeline,
                                                      parsed_function,
                                                      optimized,
-                                                     osr_id);
+                                                     osr_id,
+                                                     result_code);
     if (!success) {
       if (optimized) {
         ASSERT(!Compiler::always_optimize());  // Optimized is the only code.
@@ -1120,8 +1133,11 @@ RawError* Compiler::CompileFunction(Thread* thread,
   const bool optimized =
       Compiler::always_optimize() && function.IsOptimizable();
 
-  return CompileFunctionHelper(pipeline, function, optimized,
-      Thread::kNoDeoptId);
+  return CompileFunctionHelper(pipeline,
+                               function,
+                               optimized,
+                               kNoOSRDeoptId,  /* not OSR */
+                               NULL /* no result code */);
 }
 
 
@@ -1137,7 +1153,11 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
   const Error& error = Error::Handle(
-      CompileFunctionHelper(pipeline, function, false, Thread::kNoDeoptId));
+      CompileFunctionHelper(pipeline,
+                            function,
+                            false,  /* not optimized */
+                            kNoOSRDeoptId,  /* not OSR */
+                            NULL  /* no result code */));
   if (!error.IsNull()) {
     return error.raw();
   }
@@ -1157,18 +1177,23 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
 
 RawError* Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
-                                             intptr_t osr_id) {
+                                             intptr_t osr_id,
+                                             Code* result_code) {
   VMTagScope tagScope(thread, VMTag::kCompileOptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread,
                                          "OptimizedFunction", function);
 
   // Optimization must happen in non-mutator/Dart thread if background
   // compilation is on. OSR compilation still occurs in the main thread.
-  ASSERT((osr_id != Thread::kNoDeoptId) || !FLAG_background_compilation ||
+  ASSERT((osr_id != kNoOSRDeoptId) || !FLAG_background_compilation ||
          !thread->IsMutatorThread());
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
-  return CompileFunctionHelper(pipeline, function, true, osr_id);
+  return CompileFunctionHelper(pipeline,
+                               function,
+                               true,  /* optimized */
+                               osr_id,
+                               result_code);
 }
 
 
@@ -1182,7 +1207,8 @@ RawError* Compiler::CompileParsedFunction(
     CompileParsedFunctionHelper(&pipeline,
                                 parsed_function,
                                 false,
-                                Thread::kNoDeoptId);
+                                kNoOSRDeoptId,
+                                NULL /* no result code */);
     if (FLAG_disassemble) {
       DisassembleCode(parsed_function->function(), false);
     }
@@ -1288,7 +1314,8 @@ void Compiler::CompileStaticInitializer(const Field& field) {
   CompileParsedFunctionHelper(&pipeline,
                               parsed_function,
                               false,  // optimized
-                              Thread::kNoDeoptId);
+                              kNoOSRDeoptId,
+                              NULL /* no result code */);
 
   const Function& initializer = parsed_function->function();
   field.SetPrecompiledInitializer(initializer);
@@ -1319,7 +1346,8 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
       CompileParsedFunctionHelper(&pipeline,
                                   parsed_function,
                                   false,  // optimized
-                                  Thread::kNoDeoptId);
+                                  kNoOSRDeoptId,
+                                  NULL /* no result code */);
       initializer = parsed_function->function().raw();
       Code::Handle(initializer.unoptimized_code()).set_var_descriptors(
           Object::empty_var_descriptors());
@@ -1389,7 +1417,8 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     CompileParsedFunctionHelper(&pipeline,
                                 parsed_function,
                                 false,
-                                Thread::kNoDeoptId);
+                                kNoOSRDeoptId,
+                                NULL /* no result code */);
     Code::Handle(func.unoptimized_code()).set_var_descriptors(
         Object::empty_var_descriptors());
 
@@ -1409,51 +1438,63 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 }
 
 
-// A simple work queue containing functions to be optimized. Use
-// PushFront and PopBack to add and read from queue.
+// A simple work queue containing functions to be optimized or code generated.
+// Use PushFrontFunction and PopBackFunction to add and remove from the function
+// queue and PushBackCode and PopBackCode to add and remove from the code queue.
 // TODO(srdjan): Write a more efficient implementation.
 class CompilationWorkQueue : public ValueObject {
  public:
-  explicit CompilationWorkQueue(Isolate* isolate) :
-      data_(GrowableObjectArray::Handle()) {
-    data_ = isolate->background_compilation_queue();
-  }
+  explicit CompilationWorkQueue(GrowableObjectArray* data) : data_(data) {}
 
-  intptr_t IsEmpty() const { return data_.Length() == 0; }
-  intptr_t Length() const { return data_.Length(); }
+  intptr_t IsEmpty() const { return data_->Length() == 0; }
+  intptr_t Length() const { return data_->Length(); }
 
+  void PushFrontFunction(const Function& function) { PushFront(function); }
+  RawFunction* PopBackFunction() { return Function::RawCast(PopBack()); }
+  RawFunction* LastFunction() { return Function::RawCast(Last()); }
+
+  void PushBackCode(const Code& code) { PushBack(code); }
+  RawCode* PopBackCode() { return Code::RawCast(PopBack()); }
+  RawCode* LastCode() { return Code::RawCast(Last()); }
+
+ private:
   // Adds to the queue only if 'function' is not already in there.
-  void PushFront(const Function& function) {
-    for (intptr_t i = 0; i < data_.Length(); i++) {
-      if (data_.At(i) == function.raw()) {
+  void PushFront(const Object& value) {
+    for (intptr_t i = 0; i < data_->Length(); i++) {
+      if (data_->At(i) == value.raw()) {
         return;
       }
     }
     // Insert new element in front.
     Object& f = Object::Handle();
-    data_.Add(f);
-    for (intptr_t i = data_.Length() - 1; i > 0; i--) {
-      f = data_.At(i - 1);
-      data_.SetAt(i, f);
+    data_->Add(f);
+    for (intptr_t i = data_->Length() - 1; i > 0; i--) {
+      f = data_->At(i - 1);
+      data_->SetAt(i, f);
     }
-    data_.SetAt(0, function);
+    data_->SetAt(0, value);
   }
 
-  RawFunction* PopBack() {
+
+  void PushBack(const Object& value) {
+    data_->Add(value, Heap::kOld);
+  }
+
+
+  RawObject* PopBack() {
     ASSERT(!IsEmpty());
     Object& result = Object::Handle();
-    result = data_.At(data_.Length() - 1);
-    data_.SetLength(data_.Length() - 1);
-    return Function::Cast(result).raw();
+    result = data_->At(data_->Length() - 1);
+    data_->SetLength(data_->Length() - 1);
+    return result.raw();
   }
 
-  RawFunction* Last() {
+  RawObject* Last() {
     ASSERT(!IsEmpty());
-    return Function::RawCast(data_.At(data_.Length() - 1));
+    return data_->At(data_->Length() - 1);
   }
 
- private:
-  GrowableObjectArray& data_;
+  GrowableObjectArray* data_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(CompilationWorkQueue);
 };
@@ -1462,7 +1503,7 @@ class CompilationWorkQueue : public ValueObject {
 BackgroundCompiler::BackgroundCompiler(Isolate* isolate)
     : isolate_(isolate), running_(true), done_(new bool()),
       queue_monitor_(new Monitor()), done_monitor_(new Monitor()),
-      queue_length_(0) {
+      function_queue_length_(0) {
   *done_ = false;
 }
 
@@ -1479,27 +1520,34 @@ void BackgroundCompiler::Run() {
       Zone* zone = stack_zone.GetZone();
       Function& function = Function::Handle(zone);
       Function& temp_function = Function::Handle(zone);
-      function = LastOrNull();
-      while (!function.IsNull() && running_) {
+      Code& code = Code::Handle(zone);
+      function = LastFunctionOrNull();
+      // Finish all compilation before exiting (even if running_ is changed to
+      // false).
+      while (!function.IsNull()) {
         const Error& error = Error::Handle(zone,
-            Compiler::CompileOptimizedFunction(thread, function));
+            Compiler::CompileOptimizedFunction(thread,
+                                               function,
+                                               Compiler::kNoOSRDeoptId,
+                                               &code));
         // TODO(srdjan): We do not expect errors while compiling optimized
         // code, any errors should have been caught when compiling
         // unoptimized code.
         // If it still happens mark function as not optimizable.
         ASSERT(error.IsNull());
-        temp_function = RemoveOrNull();
+        temp_function = RemoveFunctionOrNull();
         ASSERT(temp_function.raw() == function.raw());
         // Reset to 0 so that it can be recompiled if needed.
         function.set_usage_counter(0);
-        function = LastOrNull();
+        function = LastFunctionOrNull();
+        AddCode(code);
       }
     }
     Thread::ExitIsolateAsHelper();
     {
       // Wait to be notified when the work queue is not empty.
       MonitorLocker ml(queue_monitor_);
-      while ((queue_length() == 0) && running_) {
+      while ((function_queue_length() == 0) && running_) {
         ml.Wait();
       }
     }
@@ -1514,36 +1562,72 @@ void BackgroundCompiler::Run() {
 
 
 void BackgroundCompiler::CompileOptimized(const Function& function) {
-  Add(function);
+  AddFunction(function);
 }
 
 
-void BackgroundCompiler::Add(const Function& f) {
+void BackgroundCompiler::InstallGeneratedCode() {
   MonitorLocker ml(queue_monitor_);
-  CompilationWorkQueue queue(isolate_);
-  queue.PushFront(f);
-  set_queue_length(queue.Length());
+  CompilationWorkQueue queue(CodesQueue());
+  Code& code = Code::Handle();
+  Object& owner = Object::Handle();
+  for (intptr_t i = 0; i < queue.Length(); i++) {
+    code = queue.PopBackCode();
+    if (code.IsDisabled()) continue;
+    owner = code.owner();
+    ASSERT(owner.IsFunction());
+    Function::Cast(owner).InstallOptimizedCode(code, false /* not OSR */);
+  }
+}
+
+
+GrowableObjectArray* BackgroundCompiler::FunctionsQueue() const {
+  return
+      &GrowableObjectArray::ZoneHandle(isolate_->compilation_function_queue());
+}
+
+
+GrowableObjectArray* BackgroundCompiler::CodesQueue() const {
+  // Use code queue
+  return &GrowableObjectArray::ZoneHandle(isolate_->compilation_code_queue());
+}
+
+
+void BackgroundCompiler::AddFunction(const Function& f) {
+  MonitorLocker ml(queue_monitor_);
+  CompilationWorkQueue queue(FunctionsQueue());
+  queue.PushFrontFunction(f);
+  set_function_queue_length(queue.Length());
+  // Notify waiting background compiler task.
   ml.Notify();
 }
 
 
-RawFunction* BackgroundCompiler::RemoveOrNull() {
+RawFunction* BackgroundCompiler::RemoveFunctionOrNull() {
   MonitorLocker ml(queue_monitor_);
-  CompilationWorkQueue queue(isolate_);
+  CompilationWorkQueue queue(FunctionsQueue());
   if (queue.IsEmpty()) return Function::null();
-  set_queue_length(queue.Length() - 1);
-  return queue.PopBack();
+  set_function_queue_length(queue.Length() - 1);
+  return queue.PopBackFunction();
 }
 
 
-RawFunction* BackgroundCompiler::LastOrNull() const {
+RawFunction* BackgroundCompiler::LastFunctionOrNull() const {
   MonitorLocker ml(queue_monitor_);
-  CompilationWorkQueue queue(isolate_);
-  return queue.IsEmpty() ? Function::null() : queue.Last();
+  CompilationWorkQueue queue(FunctionsQueue());
+  return queue.IsEmpty() ? Function::null() : queue.LastFunction();
+}
+
+
+void BackgroundCompiler::AddCode(const Code& c) {
+  MonitorLocker ml(queue_monitor_);
+  CompilationWorkQueue queue(CodesQueue());
+  queue.PushBackCode(c);
 }
 
 
 void BackgroundCompiler::Stop(BackgroundCompiler* task) {
+  ASSERT(Isolate::Current()->background_compiler() == task);
   if (task == NULL) {
     return;
   }
@@ -1568,6 +1652,7 @@ void BackgroundCompiler::Stop(BackgroundCompiler* task) {
   delete task_done;
   delete done_monitor;
   delete monitor;
+  Isolate::Current()->set_background_compiler(NULL);
 }
 
 
@@ -1579,7 +1664,9 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
     if (isolate->background_compiler() == NULL) {
       BackgroundCompiler* task = new BackgroundCompiler(isolate);
       isolate->set_background_compiler(task);
-      isolate->set_background_compilation_queue(GrowableObjectArray::Handle(
+      isolate->set_compilation_function_queue(GrowableObjectArray::Handle(
+          thread->zone(), GrowableObjectArray::New()));
+      isolate->set_compilation_code_queue(GrowableObjectArray::Handle(
           thread->zone(), GrowableObjectArray::New()));
       start_task = true;
     }

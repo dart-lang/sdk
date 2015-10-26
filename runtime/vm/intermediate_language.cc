@@ -5,6 +5,7 @@
 #include "vm/intermediate_language.h"
 
 #include "vm/bit_vector.h"
+#include "vm/compiler.h"
 #include "vm/constant_propagator.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
@@ -534,6 +535,11 @@ CatchBlockEntryInstr* GraphEntryInstr::GetCatchEntry(intptr_t index) {
     if (catch_entries_[i]->catch_try_index() == index) return catch_entries_[i];
   }
   return NULL;
+}
+
+
+bool GraphEntryInstr::IsCompiledForOsr() const {
+  return osr_id_ != Compiler::kNoOSRDeoptId;
 }
 
 

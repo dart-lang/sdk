@@ -7,6 +7,7 @@
 #include "lib/invocation_mirror.h"
 #include "vm/ast_printer.h"
 #include "vm/bit_vector.h"
+#include "vm/compiler.h"
 #include "vm/class_finalizer.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
@@ -4644,7 +4645,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   // When compiling for OSR, use a depth first search to prune instructions
   // unreachable from the OSR entry. Catch entries are always considered
   // reachable, even if they become unreachable after OSR.
-  if (osr_id_ != Thread::kNoDeoptId) {
+  if (osr_id_ != Compiler::kNoOSRDeoptId) {
     PruneUnreachable();
   }
 
@@ -4655,7 +4656,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 
 
 void FlowGraphBuilder::PruneUnreachable() {
-  ASSERT(osr_id_ != Thread::kNoDeoptId);
+  ASSERT(osr_id_ != Compiler::kNoOSRDeoptId);
   BitVector* block_marks = new(Z) BitVector(Z, last_used_block_id_ + 1);
   bool found = graph_entry_->PruneUnreachable(this, graph_entry_, NULL, osr_id_,
                                               block_marks);

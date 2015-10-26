@@ -5382,10 +5382,26 @@ bool Function::HasBreakpoint() const {
 }
 
 
+void Function::InstallOptimizedCode(const Code& code, bool is_osr) const {
+  // We may not have previous code if 'always_optimize' is set.
+  if (!is_osr && HasCode()) {
+    Code::Handle(CurrentCode()).DisableDartCode();
+  }
+  AttachCode(code);
+}
+
+
 void Function::SetInstructions(const Code& value) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
+  SetInstructionsSafe(value);
+}
+
+
+void Function::SetInstructionsSafe(const Code& value) const {
   StorePointer(&raw_ptr()->code_, value.raw());
   StoreNonPointer(&raw_ptr()->entry_point_, value.EntryPoint());
 }
+
 
 void Function::AttachCode(const Code& value) const {
   // Finish setting up code before activating it.
@@ -6492,7 +6508,8 @@ RawFunction* Function::New(const String& name,
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
   result.set_allows_bounds_check_generalization(true);
-  result.SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
+  result.SetInstructionsSafe(
+      Code::Handle(StubCode::LazyCompile_entry()->code()));
   if (kind == RawFunction::kClosureFunction) {
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);
@@ -12084,7 +12101,7 @@ void ICData::set_deopt_id(intptr_t value) const {
 }
 
 
-void ICData::set_ic_data(const Array& value) const {
+void ICData::set_ic_data_array(const Array& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->ic_data_, value.raw());
 }
@@ -12192,9 +12209,9 @@ intptr_t ICData::NumberOfUsedChecks() const {
 }
 
 
-void ICData::WriteSentinel(const Array& data) const {
+void ICData::WriteSentinel(const Array& data, intptr_t test_entry_length) {
   ASSERT(!data.IsNull());
-  for (intptr_t i = 1; i <= TestEntryLength(); i++) {
+  for (intptr_t i = 1; i <= test_entry_length; i++) {
     data.SetAt(data.Length() - i, smi_illegal_cid());
   }
 }
@@ -12247,8 +12264,7 @@ void ICData::AddTarget(const Function& target) const {
   Array& data = Array::Handle(ic_data());
   const intptr_t new_len = data.Length() + TestEntryLength();
   data = Array::Grow(data, new_len, Heap::kOld);
-  set_ic_data(data);
-  WriteSentinel(data);
+  WriteSentinel(data, TestEntryLength());
   intptr_t data_pos = old_num * TestEntryLength();
   ASSERT(!target.IsNull());
   data.SetAt(data_pos++, target);
@@ -12256,6 +12272,9 @@ void ICData::AddTarget(const Function& target) const {
   // call has been executed.
   const Smi& value = Smi::Handle(Smi::New(0));
   data.SetAt(data_pos, value);
+  // Multithreaded access to ICData requires setting of array to be the last
+  // operation.
+  set_ic_data_array(data);
 }
 
 
@@ -12293,8 +12312,7 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
   }
   const intptr_t new_len = data.Length() + TestEntryLength();
   data = Array::Grow(data, new_len, Heap::kOld);
-  set_ic_data(data);
-  WriteSentinel(data);
+  WriteSentinel(data, TestEntryLength());
   intptr_t data_pos = old_num * TestEntryLength();
   Smi& value = Smi::Handle();
   for (intptr_t i = 0; i < class_ids.length(); i++) {
@@ -12307,6 +12325,9 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
   data.SetAt(data_pos++, target);
   value = Smi::New(1);
   data.SetAt(data_pos, value);
+  // Multithreaded access to ICData requires setting of array to be the last
+  // operation.
+  set_ic_data_array(data);
 }
 
 
@@ -12326,8 +12347,7 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   Array& data = Array::Handle(ic_data());
   const intptr_t new_len = data.Length() + TestEntryLength();
   data = Array::Grow(data, new_len, Heap::kOld);
-  set_ic_data(data);
-  WriteSentinel(data);
+  WriteSentinel(data, TestEntryLength());
   intptr_t data_pos = old_num * TestEntryLength();
   if ((receiver_class_id == kSmiCid) && (data_pos > 0)) {
     ASSERT(GetReceiverClassIdAt(0) != kSmiCid);
@@ -12341,6 +12361,9 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
   data.SetAt(data_pos + 1, target);
   data.SetAt(data_pos + 2, Smi::Handle(Smi::New(count)));
+  // Multithreaded access to ICData requires setting of array to be the last
+  // operation.
+  set_ic_data_array(data);
 }
 
 
@@ -12636,8 +12659,8 @@ RawICData* ICData::New(const Function& owner,
   intptr_t len = result.TestEntryLength();
   // IC data array must be null terminated (sentinel entry).
   const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
-  result.set_ic_data(ic_data);
-  result.WriteSentinel(ic_data);
+  WriteSentinel(ic_data, result.TestEntryLength());
+  result.set_ic_data_array(ic_data);
   return result.raw();
 }
 

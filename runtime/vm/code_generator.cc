@@ -1387,7 +1387,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     ASSERT(function.unoptimized_code() != Object::null());
     intptr_t osr_id =
         Code::Handle(function.unoptimized_code()).GetDeoptIdForOsr(frame->pc());
-    ASSERT(osr_id != Thread::kNoDeoptId);
+    ASSERT(osr_id != Compiler::kNoOSRDeoptId);
     if (FLAG_trace_osr) {
       OS::Print("Attempting OSR for %s at id=%" Pd ", count=%" Pd "\n",
                 function.ToFullyQualifiedCString(),
@@ -1457,6 +1457,8 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
       BackgroundCompiler::EnsureInit(thread);
       ASSERT(isolate->background_compiler() != NULL);
       isolate->background_compiler()->CompileOptimized(function);
+      // Install all generated optimized code in the mutator thread (this one).
+      isolate->background_compiler()->InstallGeneratedCode();
       // Continue in the same code.
       arguments.SetReturn(Code::Handle(zone, function.CurrentCode()));
       return;
