@@ -10,6 +10,7 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analysis_server/src/plugin/linter_plugin.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -97,7 +98,11 @@ class AbstractAnalysisTest {
   AnalysisServer createAnalysisServer(Index index) {
     ServerPlugin serverPlugin = new ServerPlugin();
     // TODO(pq): this convoluted extension registry dance needs cleanup.
-    List<Plugin> plugins = <Plugin>[serverPlugin, linterPlugin];
+    List<Plugin> plugins = <Plugin>[
+      serverPlugin,
+      linterPlugin,
+      linterServerPlugin
+    ];
     // Accessing `taskManager` ensures that AE plugins are registered.
     AnalysisEngine.instance.taskManager;
     plugins.addAll(AnalysisEngine.instance.supportedPlugins);

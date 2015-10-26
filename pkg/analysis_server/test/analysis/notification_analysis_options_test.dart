@@ -113,6 +113,23 @@ linter:
     verifyLintsEnabled(['camel_case_types']);
   }
 
+  test_lint_options_unsupported() async {
+    addOptionsFile('''
+linter:
+  rules:
+    - unsupported
+''');
+
+    addTestFile(testSource);
+    setAnalysisRoot();
+
+    await waitForTasksFinished();
+
+    expect(optionsFileErrors, hasLength(1));
+    expect(optionsFileErrors.first.severity, AnalysisErrorSeverity.WARNING);
+    expect(optionsFileErrors.first.type, AnalysisErrorType.STATIC_WARNING);
+  }
+
   test_options_file_added() async {
     addTestFile(testSource);
     setAnalysisRoot();
