@@ -1339,6 +1339,7 @@ class FixProcessor {
     }
     // may be there is an existing import,
     // but it is with prefix and we don't use this prefix
+    Set<Source> alreadyImportedWithPrefix = new Set<Source>();
     for (ImportElement imp in unitLibraryElement.imports) {
       // prepare element
       LibraryElement libraryElement = imp.importedLibrary;
@@ -1375,13 +1376,13 @@ class FixProcessor {
         if (libraryElement.isInSdk) {
           libraryName = imp.uri;
         }
+        // don't add this library again
+        alreadyImportedWithPrefix.add(libraryElement.source);
         // update library
         String newShowCode = 'show ${StringUtils.join(showNames, ", ")}';
         _addReplaceEdit(
             rf.rangeOffsetEnd(showCombinator), newShowCode, unitLibraryElement);
         _addFix(DartFixKind.IMPORT_LIBRARY_SHOW, [libraryName]);
-        // we support only one import without prefix
-        return;
       }
     }
     // check SDK libraries
@@ -1420,6 +1421,10 @@ class FixProcessor {
       for (Source librarySource in librarySources) {
         // we don't need SDK libraries here
         if (librarySource.isInSystemLibrary) {
+          continue;
+        }
+        // maybe already imported with a prefix
+        if (alreadyImportedWithPrefix.contains(librarySource)) {
           continue;
         }
         // prepare LibraryElement

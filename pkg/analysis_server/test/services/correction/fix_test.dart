@@ -5,7 +5,8 @@
 library test.services.correction.fix;
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
-import 'package:analysis_server/plugin/protocol/protocol.dart' hide AnalysisError;
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    hide AnalysisError;
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -1543,6 +1544,37 @@ main(A a) {
 ''');
   }
 
+  void test_createGetter_location_afterLastGetter() {
+    resolveTestUnit('''
+class A {
+  int existingField;
+
+  int get existingGetter => null;
+
+  existingMethod() {}
+}
+main(A a) {
+  int v = a.test;
+}
+''');
+    assertHasFix(
+        DartFixKind.CREATE_GETTER,
+        '''
+class A {
+  int existingField;
+
+  int get existingGetter => null;
+
+  int get test => null;
+
+  existingMethod() {}
+}
+main(A a) {
+  int v = a.test;
+}
+''');
+  }
+
   void test_createGetter_multiLevel() {
     resolveTestUnit('''
 class A {
@@ -2212,37 +2244,6 @@ class B extends A {
 ''');
   }
 
-  void test_creatGetter_location_afterLastGetter() {
-    resolveTestUnit('''
-class A {
-  int existingField;
-
-  int get existingGetter => null;
-
-  existingMethod() {}
-}
-main(A a) {
-  int v = a.test;
-}
-''');
-    assertHasFix(
-        DartFixKind.CREATE_GETTER,
-        '''
-class A {
-  int existingField;
-
-  int get existingGetter => null;
-
-  int get test => null;
-
-  existingMethod() {}
-}
-main(A a) {
-  int v = a.test;
-}
-''');
-  }
-
   void test_creationFunction_forFunctionType_cascadeSecond() {
     resolveTestUnit('''
 class A {
@@ -2643,6 +2644,41 @@ import 'lib.dart';
 
 @Test(0)
 main() {
+}
+''');
+  }
+
+  void test_importLibraryProject_withClass_hasOtherLibraryWithPrefix() {
+    testFile = '/project/bin/test.dart';
+    addSource(
+        '/project/bin/a.dart',
+        '''
+library a;
+class One {}
+''');
+    addSource(
+        '/project/bin/b.dart',
+        '''
+library b;
+class One {}
+class Two {}
+''');
+    resolveTestUnit('''
+import 'b.dart' show Two;
+main () {
+  new Two();
+  new One();
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(
+        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        '''
+import 'b.dart' show Two;
+import 'a.dart';
+main () {
+  new Two();
+  new One();
 }
 ''');
   }
