@@ -233,12 +233,13 @@ static char* String2UTF8(const String& str) {
 }
 
 
-static char* CanonicalizeUri(Isolate* isolate,
+static char* CanonicalizeUri(Thread* thread,
                              const Library& library,
                              const String& uri,
                              char** error) {
   char* result = NULL;
-  Zone* zone = isolate->current_zone();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   Dart_LibraryTagHandler handler = isolate->library_tag_handler();
   if (handler != NULL) {
     Dart_EnterScope();
@@ -292,7 +293,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   const Library& root_lib =
       Library::Handle(isolate->object_store()->root_library());
   char* error = NULL;
-  char* canonical_uri = CanonicalizeUri(isolate, root_lib, uri, &error);
+  char* canonical_uri = CanonicalizeUri(thread, root_lib, uri, &error);
   if (canonical_uri == NULL) {
     const String& msg = String::Handle(String::New(error));
     ThrowIsolateSpawnException(msg);

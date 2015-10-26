@@ -1214,10 +1214,11 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
 }
 
 
-static bool CanOptimizeFunction(const Function& function, Isolate* isolate) {
+static bool CanOptimizeFunction(const Function& function, Thread* thread) {
   const intptr_t kLowInvocationCount = -100000000;
+  Isolate* isolate = thread->isolate();
   if (isolate->debugger()->IsStepping() ||
-      isolate->debugger()->HasBreakpoint(function)) {
+      isolate->debugger()->HasBreakpoint(function, thread->zone())) {
     // We cannot set breakpoints and single step in optimized code,
     // so do not optimize the function.
     function.set_usage_counter(0);
@@ -1378,7 +1379,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     ASSERT(function.HasCode());
     // Don't do OSR on intrinsified functions: The intrinsic code expects to be
     // called like a regular function and can't be entered via OSR.
-    if (!CanOptimizeFunction(function, isolate) || function.is_intrinsic()) {
+    if (!CanOptimizeFunction(function, thread) || function.is_intrinsic()) {
       return;
     }
 
@@ -1447,7 +1448,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(!function.IsNull());
   ASSERT(function.HasCode());
 
-  if (CanOptimizeFunction(function, isolate)) {
+  if (CanOptimizeFunction(function, thread)) {
     if (FLAG_background_compilation) {
       // Reduce the chance of triggering optimization while the function is
       // being optimized in the background. INT_MIN should ensure that it takes

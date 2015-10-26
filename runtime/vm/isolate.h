@@ -660,17 +660,6 @@ class Isolate : public BaseIsolate {
   // Handle service messages until we are told to resume execution.
   void PauseEventHandler();
 
-  // DEPRECATED: Use Thread's methods instead. During migration, these default
-  // to using the mutator thread (which must also be the current thread).
-  Zone* current_zone() const {
-    ASSERT(Thread::Current() == mutator_thread_);
-    return mutator_thread_->zone();
-  }
-  void set_current_zone(Zone* zone) {
-    ASSERT(Thread::Current() == mutator_thread_);
-    mutator_thread_->set_zone(zone);
-  }
-
   bool is_service_isolate() const { return is_service_isolate_; }
 
   static void KillAllIsolates(LibMsgId msg_id);
@@ -733,6 +722,13 @@ class Isolate : public BaseIsolate {
 #if defined(DEBUG)
   bool IsIsolateOf(Thread* thread);
 #endif  // DEBUG
+
+  // DEPRECATED: Use Thread's methods instead. During migration, these default
+  // to using the mutator thread (which must also be the current thread).
+  Zone* current_zone() const {
+    ASSERT(Thread::Current() == mutator_thread_);
+    return mutator_thread_->zone();
+  }
 
   // Accessed from generated code:
   uword stack_limit_;

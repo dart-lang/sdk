@@ -515,7 +515,9 @@ class Debugger {
 
   // Returns true if there is at least one breakpoint set in func or code.
   // Checks for both user-defined and internal temporary breakpoints.
-  bool HasBreakpoint(const Function& func);
+  // This may be called from different threads, therefore do not use the,
+  // debugger's zone.
+  bool HasBreakpoint(const Function& func, Zone* zone);
   bool HasBreakpoint(const Code& code);
 
   // Returns true if the call at address pc is patched to point to
@@ -649,10 +651,6 @@ class Debugger {
   void Pause(DebuggerEvent* event);
 
   void HandleSteppingRequest(DebuggerStackTrace* stack_trace);
-
-  Zone* zone() const {
-    return isolate_->current_zone();
-  }
 
   Isolate* isolate_;
   Dart_Port isolate_id_;  // A unique ID for the isolate in the debugger.

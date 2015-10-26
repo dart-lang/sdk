@@ -8002,7 +8002,7 @@ class UserTag : public Instance {
                          Heap::Space space = Heap::kOld);
   static RawUserTag* DefaultTag();
 
-  static bool TagTableIsFull(Isolate* isolate);
+  static bool TagTableIsFull(Thread* thread);
   static RawUserTag* FindTagById(uword tag_id);
 
  private:

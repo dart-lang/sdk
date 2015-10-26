@@ -984,18 +984,18 @@ class ProfileBuilder : public ValueObject {
     kNumProfileInfoKind,
   };
 
-  ProfileBuilder(Isolate* isolate,
+  ProfileBuilder(Thread* thread,
                  SampleFilter* filter,
                  Profile::TagOrder tag_order,
                  intptr_t extra_tags,
                  Profile* profile)
-      : isolate_(isolate),
+      : thread_(thread),
         vm_isolate_(Dart::vm_isolate()),
         filter_(filter),
         tag_order_(tag_order),
         extra_tags_(extra_tags),
         profile_(profile),
-        deoptimized_code_(new DeoptimizedCodeSet(isolate)),
+        deoptimized_code_(new DeoptimizedCodeSet(thread->isolate())),
         null_code_(Code::ZoneHandle()),
         null_function_(Function::ZoneHandle()),
         tick_functions_(false),
@@ -1051,8 +1051,9 @@ class ProfileBuilder : public ValueObject {
 
   void FilterSamples() {
     ScopeTimer sw("ProfileBuilder::FilterSamples", FLAG_trace_profiler);
-    MutexLocker profiler_data_lock(isolate_->profiler_data_mutex());
-    IsolateProfilerData* profiler_data = isolate_->profiler_data();
+    Isolate* isolate = thread_->isolate();
+    MutexLocker profiler_data_lock(isolate->profiler_data_mutex());
+    IsolateProfilerData* profiler_data = isolate->profiler_data();
     if (profiler_data == NULL) {
       return;
     }
@@ -1845,10 +1846,10 @@ class ProfileBuilder : public ValueObject {
   ProfileCode* CreateProfileCode(uword pc) {
     const intptr_t kDartCodeAlignment = OS::PreferredCodeAlignment();
     const intptr_t kDartCodeAlignmentMask = ~(kDartCodeAlignment - 1);
-    Code& code = Code::Handle(isolate_->current_zone());
+    Code& code = Code::Handle(thread_->zone());
 
     // Check current isolate for pc.
-    if (isolate_->heap()->CodeContains(pc)) {
+    if (thread_->isolate()->heap()->CodeContains(pc)) {
       code ^= Code::LookupCode(pc);
       if (!code.IsNull()) {
         deoptimized_code_->Add(code);
@@ -1957,7 +1958,7 @@ class ProfileBuilder : public ValueObject {
     return (extra_tags_ & extra_tags_bits) != 0;
   }
 
-  Isolate* isolate_;
+  Thread* thread_;
   Isolate* vm_isolate_;
   SampleFilter* filter_;
   Profile::TagOrder tag_order_;
@@ -1971,7 +1972,7 @@ class ProfileBuilder : public ValueObject {
 
   ProcessedSampleBuffer* samples_;
   ProfileInfoKind info_kind_;
-};
+};  // ProfileBuilder.
 
 
 Profile::Profile(Isolate* isolate)
@@ -1991,10 +1992,11 @@ Profile::Profile(Isolate* isolate)
 }
 
 
-void Profile::Build(SampleFilter* filter,
+void Profile::Build(Thread* thread,
+                    SampleFilter* filter,
                     TagOrder tag_order,
                     intptr_t extra_tags) {
-  ProfileBuilder builder(isolate_, filter, tag_order, extra_tags, this);
+  ProfileBuilder builder(thread, filter, tag_order, extra_tags, this);
   builder.Build();
 }
 
@@ -2216,7 +2218,7 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
-    profile.Build(filter, tag_order, extra_tags);
+    profile.Build(thread, filter, tag_order, extra_tags);
     profile.PrintJSON(stream);
   }
 

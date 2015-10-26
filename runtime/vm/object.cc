@@ -5378,7 +5378,8 @@ void PatchClass::set_source_class(const Class& value) const {
 
 
 bool Function::HasBreakpoint() const {
-  return Isolate::Current()->debugger()->HasBreakpoint(*this);
+  Thread* thread = Thread::Current();
+  return thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone());
 }
 
 
@@ -5925,9 +5926,10 @@ void Function::SetIsNativeAutoSetupScope(bool value) const {
 
 
 bool Function::CanBeInlined() const {
+  Thread* thread = Thread::Current();
   return is_inlinable() &&
          !is_generated_body() &&
-         !Isolate::Current()->debugger()->HasBreakpoint(*this);
+         !thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone());
 }
 
 
@@ -21660,7 +21662,7 @@ RawUserTag* UserTag::New(const String& label, Heap::Space space) {
     // Tag already exists, return existing instance.
     return result.raw();
   }
-  if (TagTableIsFull(isolate)) {
+  if (TagTableIsFull(thread)) {
     const String& error = String::Handle(
         String::NewFormatted("UserTag instance limit (%" Pd ") reached.",
                              UserTags::kMaxUserTags));
@@ -21727,10 +21729,10 @@ void UserTag::AddTagToIsolate(Thread* thread, const UserTag& tag) {
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table = GrowableObjectArray::Handle(
       zone, isolate->tag_table());
-  ASSERT(!TagTableIsFull(isolate));
+  ASSERT(!TagTableIsFull(thread));
 #if defined(DEBUG)
   // Verify that no existing tag has the same tag id.
-  UserTag& other = UserTag::Handle(isolate->current_zone());
+  UserTag& other = UserTag::Handle(thread->zone());
   for (intptr_t i = 0; i < tag_table.Length(); i++) {
     other ^= tag_table.At(i);
     ASSERT(!other.IsNull());
@@ -21747,10 +21749,11 @@ void UserTag::AddTagToIsolate(Thread* thread, const UserTag& tag) {
 }
 
 
-bool UserTag::TagTableIsFull(Isolate* isolate) {
+bool UserTag::TagTableIsFull(Thread* thread) {
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table = GrowableObjectArray::Handle(
-      isolate->current_zone(), isolate->tag_table());
+      thread->zone(), isolate->tag_table());
   ASSERT(tag_table.Length() <= UserTags::kMaxUserTags);
   return tag_table.Length() == UserTags::kMaxUserTags;
 }

@@ -2138,8 +2138,8 @@ TEST_CASE(Debug_GetSupertype) {
       "int main() {\n"
       "}\n";
 
-  Isolate* isolate = Isolate::Current();
-  Zone* zone = isolate->current_zone();
+
+  Zone* zone = thread->zone();
   LoadScript(kScriptChars);
   ASSERT(script_lib != NULL);
   ASSERT(Dart_IsLibrary(script_lib));

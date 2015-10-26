@@ -63,8 +63,8 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
     args.SetAt(0, port_int);
     args.SetAt(1, send_port);
     args.SetAt(2, name);
-    Object& r = Object::Handle(service_isolate_->current_zone());
-    r = DartEntry::InvokeFunction(register_function_, args);
+    const Object& r = Object::Handle(
+        DartEntry::InvokeFunction(register_function_, args));
     if (FLAG_trace_service) {
       OS::Print("vm-service: Isolate %s %" Pd64 " registered.\n",
                 name.ToCString(),

@@ -310,8 +310,8 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
 
   if (ServiceNeedsDebuggerEvent(event->type()) && event->IsPauseEvent()) {
     // If we were paused, notify the service that we have resumed.
-    const Error& error = Error::Handle(zone(),
-        isolate_->object_store()->sticky_error());
+    const Error& error =
+        Error::Handle(isolate_->object_store()->sticky_error());
     ASSERT(error.IsNull() || error.IsUnwindError());
 
     // Only send a resume event when the isolate is not unwinding.
@@ -365,7 +365,7 @@ RawError* Debugger::SignalIsolateInterrupted() {
 
   // If any error occurred while in the debug message loop, return it here.
   const Error& error =
-      Error::Handle(zone(), isolate_->object_store()->sticky_error());
+      Error::Handle(isolate_->object_store()->sticky_error());
   ASSERT(error.IsNull() || error.IsUnwindError());
   isolate_->object_store()->clear_sticky_error();
   return error.raw();
@@ -468,13 +468,13 @@ static bool FunctionContains(const Function& func,
 }
 
 
-bool Debugger::HasBreakpoint(const Function& func) {
+bool Debugger::HasBreakpoint(const Function& func, Zone* zone) {
   if (!func.HasCode()) {
     // If the function is not compiled yet, just check whether there
     // is a user-defined breakpoint that falls into the token
     // range of the function. This may be a false positive: the breakpoint
     // might be inside a local closure.
-    Script& script = Script::Handle(zone());
+    Script& script = Script::Handle(zone);
     BreakpointLocation* sbpt = breakpoint_locations_;
     while (sbpt != NULL) {
       script = sbpt->script();
@@ -1520,7 +1520,7 @@ ActivationFrame* Debugger::TopDartFrame() const {
   while ((frame != NULL) && !frame->IsDartFrame()) {
     frame = iterator.NextFrame();
   }
-  Code& code = Code::Handle(zone(), frame->LookupDartCode());
+  Code& code = Code::Handle(frame->LookupDartCode());
   ActivationFrame* activation =
       new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), code,
                           Object::null_array(), 0);
@@ -1867,11 +1867,11 @@ void Debugger::FindCompiledFunctions(const Script& script,
                                      intptr_t start_pos,
                                      intptr_t end_pos,
                                      GrowableObjectArray* function_list) {
-  Zone* zn = zone();
-  Class& cls = Class::Handle(zn);
-  Array& functions = Array::Handle(zn);
-  GrowableObjectArray& closures = GrowableObjectArray::Handle(zn);
-  Function& function = Function::Handle(zn);
+  Zone* zone = Thread::Current()->zone();
+  Class& cls = Class::Handle(zone);
+  Array& functions = Array::Handle(zone);
+  GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
+  Function& function = Function::Handle(zone);
 
   const ClassTable& class_table = *isolate_->class_table();
   const intptr_t num_classes = class_table.NumCids();
@@ -1951,13 +1951,13 @@ static void SelectBestFit(Function* best_fit, Function* func) {
 
 RawFunction* Debugger::FindBestFit(const Script& script,
                                    intptr_t token_pos) {
-  Zone* zn = zone();
-  Class& cls = Class::Handle(zn);
-  Array& functions = Array::Handle(zn);
-  GrowableObjectArray& closures = GrowableObjectArray::Handle(zn);
-  Function& function = Function::Handle(zn);
-  Function& best_fit = Function::Handle(zn);
-  Error& error = Error::Handle(zn);
+  Zone* zone = Thread::Current()->zone();
+  Class& cls = Class::Handle(zone);
+  Array& functions = Array::Handle(zone);
+  GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
+  Function& function = Function::Handle(zone);
+  Function& best_fit = Function::Handle(zone);
+  Error& error = Error::Handle(zone);
 
   const ClassTable& class_table = *isolate_->class_table();
   const intptr_t num_classes = class_table.NumCids();
@@ -2016,7 +2016,7 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
                                             intptr_t last_token_pos,
                                             intptr_t requested_line,
                                             intptr_t requested_column) {
-  Function& func = Function::Handle(zone());
+  Function& func = Function::Handle();
   func = FindBestFit(script, token_pos);
   if (func.IsNull()) {
     return NULL;
@@ -2208,12 +2208,13 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
     const String& script_url,
     intptr_t line_number,
     intptr_t column_number) {
-  Library& lib = Library::Handle(zone());
-  Script& script = Script::Handle(zone());
+  Zone* zone = Thread::Current()->zone();
+  Library& lib = Library::Handle(zone);
+  Script& script = Script::Handle(zone);
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(isolate_->object_store()->libraries());
   const GrowableObjectArray& scripts =
-    GrowableObjectArray::Handle(zone(), GrowableObjectArray::New());
+    GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
   for (intptr_t i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
     script = lib.LookupScript(script_url);
@@ -2403,10 +2404,11 @@ void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
                                     const String& prefix,
                                     bool include_private_fields) {
   DictionaryIterator it(lib);
-  Object& entry = Object::Handle(zone());
-  Field& field = Field::Handle(zone());
-  String& field_name = String::Handle(zone());
-  PassiveObject& field_value = PassiveObject::Handle(zone());
+  Zone* zone = Thread::Current()->zone();
+  Object& entry = Object::Handle(zone);
+  Field& field = Field::Handle(zone);
+  String& field_name = String::Handle(zone);
+  PassiveObject& field_value = PassiveObject::Handle(zone);
   while (it.HasNext()) {
     entry = it.GetNext();
     if (entry.IsField()) {
@@ -2437,26 +2439,28 @@ void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
 
 
 RawArray* Debugger::GetLibraryFields(const Library& lib) {
+  Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& field_list =
       GrowableObjectArray::Handle(GrowableObjectArray::New(8));
-  CollectLibraryFields(field_list, lib, String::Handle(zone()), true);
+  CollectLibraryFields(field_list, lib, String::Handle(zone), true);
   return Array::MakeArray(field_list);
 }
 
 
 RawArray* Debugger::GetGlobalFields(const Library& lib) {
+  Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& field_list =
-      GrowableObjectArray::Handle(GrowableObjectArray::New(8));
-  String& prefix_name = String::Handle(zone());
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New(8));
+  String& prefix_name = String::Handle(zone);
   CollectLibraryFields(field_list, lib, prefix_name, true);
-  Library& imported = Library::Handle(zone());
+  Library& imported = Library::Handle(zone);
   intptr_t num_imports = lib.num_imports();
   for (intptr_t i = 0; i < num_imports; i++) {
     imported = lib.ImportLibraryAt(i);
     ASSERT(!imported.IsNull());
     CollectLibraryFields(field_list, imported, prefix_name, false);
   }
-  LibraryPrefix& prefix = LibraryPrefix::Handle(zone());
+  LibraryPrefix& prefix = LibraryPrefix::Handle(zone);
   LibraryPrefixIterator it(lib);
   while (it.HasNext()) {
     prefix = it.GetNext();
@@ -2665,7 +2669,7 @@ RawError* Debugger::DebuggerStepCallback() {
 
   // If any error occurred while in the debug message loop, return it here.
   const Error& error =
-      Error::Handle(zone(), isolate_->object_store()->sticky_error());
+      Error::Handle(isolate_->object_store()->sticky_error());
   isolate_->object_store()->clear_sticky_error();
   return error.raw();
 }
@@ -2754,7 +2758,7 @@ RawError* Debugger::SignalBpReached() {
 
   // If any error occurred while in the debug message loop, return it here.
   const Error& error =
-      Error::Handle(zone(), isolate_->object_store()->sticky_error());
+      Error::Handle(isolate_->object_store()->sticky_error());
   isolate_->object_store()->clear_sticky_error();
   return error.raw();
 }
@@ -2811,7 +2815,7 @@ void Debugger::NotifyIsolateCreated() {
 // the given token position.
 RawFunction* Debugger::FindInnermostClosure(const Function& function,
                                             intptr_t token_pos) {
-  const Class& owner = Class::Handle(zone(), function.Owner());
+  const Class& owner = Class::Handle(function.Owner());
   if (owner.closures() == GrowableObjectArray::null()) {
     return Function::null();
   }
@@ -2819,12 +2823,13 @@ RawFunction* Debugger::FindInnermostClosure(const Function& function,
   // script as the outer function. We could have closures originating
   // in mixin classes whose source code is contained in a different
   // script.
-  const Script& outer_origin = Script::Handle(zone(), function.script());
+  Zone* zone = Thread::Current()->zone();
+  const Script& outer_origin = Script::Handle(zone, function.script());
   const GrowableObjectArray& closures =
-     GrowableObjectArray::Handle(zone(), owner.closures());
+     GrowableObjectArray::Handle(zone, owner.closures());
   const intptr_t num_closures = closures.Length();
-  Function& closure = Function::Handle(zone());
-  Function& best_fit = Function::Handle(zone());
+  Function& closure = Function::Handle(zone);
+  Function& best_fit = Function::Handle(zone);
   for (intptr_t i = 0; i < num_closures; i++) {
     closure ^= closures.At(i);
     if ((function.token_pos() < closure.token_pos()) &&
@@ -2852,13 +2857,14 @@ void Debugger::NotifyCompilation(const Function& func) {
   }
   // Iterate over all source breakpoints to check whether breakpoints
   // need to be set in the newly compiled function.
-  Script& script = Script::Handle(zone());
+  Zone* zone = Thread::Current()->zone();
+  Script& script = Script::Handle(zone);
   for (BreakpointLocation* loc = breakpoint_locations_;
       loc != NULL;
       loc = loc->next()) {
     script = loc->script();
     if (FunctionContains(func, script, loc->token_pos())) {
-      Function& inner_function = Function::Handle(zone());
+      Function& inner_function = Function::Handle(zone);
       inner_function = FindInnermostClosure(func, loc->token_pos());
       if (!inner_function.IsNull()) {
         // The local function of a function we just compiled cannot
@@ -2939,10 +2945,10 @@ void Debugger::NotifyDoneLoading() {
     // Common, fast path.
     return;
   }
-  Zone* zn = zone();
-  Library& lib = Library::Handle(zn);
-  Script& script = Script::Handle(zn);
-  String& url = String::Handle(zn);
+  Zone* zone = Thread::Current()->zone();
+  Library& lib = Library::Handle(zone);
+  Script& script = Script::Handle(zone);
+  String& url = String::Handle(zone);
   BreakpointLocation* loc = latent_locations_;
   BreakpointLocation* prev_loc = NULL;
   const GrowableObjectArray& libs =
@@ -3215,7 +3221,7 @@ BreakpointLocation* Debugger::GetLatentBreakpoint(const String& url,
                                                   intptr_t line,
                                                   intptr_t column) {
   BreakpointLocation* bpt = latent_locations_;
-  String& bpt_url = String::Handle(zone());
+  String& bpt_url = String::Handle();
   while (bpt != NULL) {
     bpt_url = bpt->url();
     if (bpt_url.Equals(url) &&
