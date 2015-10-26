@@ -155,7 +155,7 @@ linter:
         []);
   }
 
-  test_linter_unssupported_option() {
+  test_linter_unsupported_option() {
     validate(
         '''
 linter:

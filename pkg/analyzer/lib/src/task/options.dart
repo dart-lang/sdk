@@ -5,6 +5,7 @@
 library analyzer.src.task.options;
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -25,6 +26,16 @@ final ListResultDescriptor<AnalysisError> ANALYSIS_OPTIONS_ERRORS =
 class AnalyzerOptionsValidator extends TopLevelOptionValidator {
   AnalyzerOptionsValidator()
       : super('analyzer', const ['exclude', 'plugins', 'strong-mode']);
+}
+
+/// Convenience class for composing validators.
+class CompositeValidator extends OptionsValidator {
+  final List<OptionsValidator> validators;
+  CompositeValidator(this.validators);
+
+  @override
+  void validate(ErrorReporter reporter, Map<String, YamlNode> options) =>
+      validators.forEach((v) => v.validate(reporter, options));
 }
 
 /// A task that generates errors for an `.analysis_options` file.
@@ -96,12 +107,15 @@ class LinterOptionsValidator extends TopLevelOptionValidator {
 /// Validates options defined in an `.analysis_options` file.
 class OptionsFileValidator {
   // TODO(pq): move to an extension point.
-  static final List<OptionsValidator> _validators = [
-    new AnalyzerOptionsValidator(), new LinterOptionsValidator()
+  final List<OptionsValidator> _validators = [
+    new AnalyzerOptionsValidator(),
+    new LinterOptionsValidator()
   ];
 
   final Source source;
-  OptionsFileValidator(this.source);
+  OptionsFileValidator(this.source) {
+    _validators.addAll(AnalysisEngine.instance.optionsPlugin.optionsValidators);
+  }
 
   List<AnalysisError> validate(Map<String, YamlNode> options) {
     RecordingErrorListener recorder = new RecordingErrorListener();
@@ -109,12 +123,6 @@ class OptionsFileValidator {
     _validators.forEach((OptionsValidator v) => v.validate(reporter, options));
     return recorder.errors;
   }
-}
-
-/// Validates options.
-abstract class OptionsValidator {
-  /// Validate [options], reporting any errors to the given [reporter].
-  void validate(ErrorReporter reporter, Map<String, YamlNode> options);
 }
 
 /// Validates top-level options. For example,

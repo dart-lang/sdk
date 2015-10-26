@@ -7,6 +7,7 @@
 library analyzer.plugin.options;
 
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/plugin/options_plugin.dart';
 import 'package:plugin/plugin.dart';
 import 'package:yaml/yaml.dart';
@@ -18,7 +19,16 @@ final String OPTIONS_PROCESSOR_EXTENSION_POINT_ID = Plugin.join(
     OptionsPlugin.UNIQUE_IDENTIFIER,
     OptionsPlugin.OPTIONS_PROCESSOR_EXTENSION_POINT);
 
+/// The identifier of the extension point that allows plugins to validate
+/// options defined in the analysis options file. The object used as an
+/// extension must be an [OptionsValidator].
+final String OPTIONS_VALIDATOR_EXTENSION_POINT_ID = Plugin.join(
+    OptionsPlugin.UNIQUE_IDENTIFIER,
+    OptionsPlugin.OPTIONS_VALIDATOR_EXTENSION_POINT);
+
 /// Processes options defined in the analysis options file.
+///
+/// Clients may implement this class when implementing plugins.
 ///
 /// The options file format is intentionally very open-ended, giving clients
 /// utmost flexibility in defining their own options.  The only hardfast
@@ -60,4 +70,15 @@ abstract class OptionsProcessor {
   /// addition to the [options] map, the associated analysis [context] is
   /// provided as well to allow for context-specific configuration.
   void optionsProcessed(AnalysisContext context, Map<String, YamlNode> options);
+}
+
+/// Validates options as defined in an analysis options file.
+///
+/// Clients may implement this class when implementing plugins.
+///
+/// See [OptionsProcessor] for a description of the options file format.
+///
+abstract class OptionsValidator {
+  /// Validate [options], reporting any errors to the given [reporter].
+  void validate(ErrorReporter reporter, Map<String, YamlNode> options);
 }
