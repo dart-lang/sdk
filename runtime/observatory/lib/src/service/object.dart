@@ -829,10 +829,14 @@ abstract class VM extends ServiceObjectOwner {
     if (!loaded) {
       // The vm service relies on these events to keep the VM and
       // Isolate types up to date.
-      await listenEventStream(kVMStream, _dispatchEventToIsolate);
-      await listenEventStream(kIsolateStream, _dispatchEventToIsolate);
-      await listenEventStream(kDebugStream, _dispatchEventToIsolate);
-      await listenEventStream(_kGraphStream, _dispatchEventToIsolate);
+      try {
+        await listenEventStream(kVMStream, _dispatchEventToIsolate);
+        await listenEventStream(kIsolateStream, _dispatchEventToIsolate);
+        await listenEventStream(kDebugStream, _dispatchEventToIsolate);
+        await listenEventStream(_kGraphStream, _dispatchEventToIsolate);
+      } on FakeVMRpcException catch (e) {
+        // ignore FakeVMRpcExceptions here.  
+      }
     }
     return await invokeRpcNoUpgrade('getVM', {});
   }
