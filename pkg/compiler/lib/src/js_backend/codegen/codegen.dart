@@ -838,7 +838,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   js.Node handleForeignCode(tree_ir.ForeignCode node) {
-    registry.registerStaticUse(node.dependency);
+    if (node.dependency != null) {
+      // Dependency is only used if [node] calls a Dart function. Currently only
+      // through foreign function `RAW_DART_FUNCTION_REF`.
+      registry.registerStaticUse(node.dependency);
+    }
     // TODO(sra): Should this be in CodegenRegistry?
     glue.registerNativeBehavior(node.nativeBehavior, node);
     return node.codeTemplate.instantiate(visitExpressionList(node.arguments));

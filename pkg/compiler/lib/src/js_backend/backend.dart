@@ -630,7 +630,7 @@ class JavaScriptBackend extends Backend {
 
   JavaScriptConstantTask constantCompilerTask;
 
-  JavaScriptResolutionCallbacks resolutionCallbacks;
+  JavaScriptImpactTransformer impactTransformer;
 
   PatchResolverTask patchResolverTask;
 
@@ -669,7 +669,7 @@ class JavaScriptBackend extends Backend {
 
     noSuchMethodRegistry = new NoSuchMethodRegistry(this);
     constantCompilerTask = new JavaScriptConstantTask(compiler);
-    resolutionCallbacks = new JavaScriptResolutionCallbacks(this);
+    impactTransformer = new JavaScriptImpactTransformer(this);
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler = compiler.useCpsIr
          ? new CpsFunctionCompiler(
@@ -1459,7 +1459,7 @@ class JavaScriptBackend extends Backend {
 
   /// Call during codegen if an instance of [closure] is being created.
   void registerInstantiatedClosure(LocalFunctionElement closure,
-                                   CodegenRegistry registry) {
+                                   Registry registry) {
     if (methodNeedsRti(closure)) {
       registerComputeSignature(compiler.enqueuer.codegen, registry);
     }
@@ -1723,7 +1723,7 @@ class JavaScriptBackend extends Backend {
     if (compiler.elementHasCompileTimeError(element)) {
       generatedCode[element] = jsAst.js(
           "function () { throw new Error('Compile time error in $element') }");
-      return const WorldImpact();
+      return const CodegenImpact();
     }
     var kind = element.kind;
     if (kind == ElementKind.TYPEDEF) {
@@ -1731,7 +1731,7 @@ class JavaScriptBackend extends Backend {
     }
     if (element.isConstructor && element.enclosingClass == jsNullClass) {
       // Work around a problem compiling JSNull's constructor.
-      return const WorldImpact();
+      return const CodegenImpact();
     }
     if (kind.category == ElementCategory.VARIABLE) {
       ConstantValue initialValue =
@@ -1743,7 +1743,8 @@ class JavaScriptBackend extends Backend {
         // variables. For instance variables, we may need to generate
         // the checked setter.
         if (Elements.isStaticOrTopLevel(element)) {
-          return const WorldImpact();
+          return impactTransformer.transformCodegenImpact(
+              work.registry.worldImpact);
         }
       } else {
         // If the constant-handler was not able to produce a result we have to
@@ -1756,7 +1757,7 @@ class JavaScriptBackend extends Backend {
     }
 
     generatedCode[element] = functionCompiler.compile(work);
-    return const WorldImpact();
+    return impactTransformer.transformCodegenImpact(work.registry.worldImpact);
   }
 
   native.NativeEnqueuer nativeResolutionEnqueuer(Enqueuer world) {
@@ -2668,20 +2669,12 @@ class JavaScriptBackend extends Backend {
       reporter.log('Retaining metadata.');
 
       compiler.libraryLoader.libraries.forEach(retainMetadataOf);
-      if (enqueuer.isResolutionQueue) {
-        for (Dependency dependency in metadataConstants) {
-          registerCompileTimeConstant(
-              dependency.constant,
-              new EagerRegistry(compiler,
-                  dependency.annotatedElement.analyzableElement.treeElements));
-        }
-      } else {
-        for (Dependency dependency in metadataConstants) {
-          registerCompileTimeConstant(
-              dependency.constant,
-              new CodegenRegistry(compiler,
-                  dependency.annotatedElement.analyzableElement.treeElements));
-        }
+      for (Dependency dependency in metadataConstants) {
+        registerCompileTimeConstant(
+            dependency.constant,
+            new EagerRegistry('EagerRegistry for ${dependency}', enqueuer));
+      }
+      if (!enqueuer.isResolutionQueue) {
         metadataConstants.clear();
       }
     }
@@ -2999,14 +2992,15 @@ class Annotations {
   }
 }
 
-class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
+class JavaScriptImpactTransformer extends ImpactTransformer {
   final JavaScriptBackend backend;
 
-  JavaScriptResolutionCallbacks(this.backend);
+  JavaScriptImpactTransformer(this.backend);
 
   BackendImpacts get impacts => backend.impacts;
 
-  WorldImpact transformImpact(ResolutionImpact worldImpact) {
+  @override
+  WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
     TransformedWorldImpact transformed =
         new TransformedWorldImpact(worldImpact);
     for (Feature feature in worldImpact.features) {
@@ -3228,6 +3222,95 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     if (type.element != null && backend.isNative(type.element)) {
       registerBackendImpact(transformed, impacts.nativeTypeCheck);
     }
+  }
+
+  @override
+  WorldImpact transformCodegenImpact(CodegenImpact impact) {
+    EagerRegistry registry = impact.registry;
+    Enqueuer world = registry.world;
+
+    for (InterfaceType type in impact.instantiatedTypes) {
+      backend.registerInstantiatedType(type, world, registry);
+    }
+
+    for (Element element in impact.staticUses) {
+      world.registerStaticUse(element);
+    }
+
+    for (UniverseSelector selector in impact.dynamicInvocations) {
+      world.registerDynamicInvocation(selector);
+    }
+
+    for (UniverseSelector selector in impact.dynamicGetters) {
+      world.registerDynamicGetter(selector);
+    }
+
+    for (UniverseSelector selector in impact.dynamicSetters) {
+      world.registerDynamicSetter(selector);
+    }
+
+    for (UniverseSelector selector in impact.dynamicSetters) {
+      world.registerDynamicSetter(selector);
+    }
+
+    for (Element element in impact.getterForSuperElements) {
+      world.registerGetterForSuperMethod(element);
+    }
+
+    for (Element element in impact.fieldGetters) {
+      world.registerFieldGetter(element);
+    }
+
+    for (Element element in impact.fieldSetters) {
+      world.registerFieldSetter(element);
+    }
+
+    for (DartType type in impact.isChecks) {
+      world.registerIsCheck(type);
+      backend.registerIsCheckForCodegen(type, world, registry);
+    }
+
+    for (ConstantValue constant in impact.compileTimeConstants) {
+      backend.registerCompileTimeConstant(constant, registry);
+      backend.addCompileTimeConstantForEmission(constant);
+    }
+
+    for (Pair<DartType, DartType> check in
+            impact.typeVariableBoundsSubtypeChecks) {
+      backend.registerTypeVariableBoundsSubtypeCheck(check.a, check.b);
+    }
+
+    for (LocalFunctionElement element in impact.closures) {
+      backend.registerInstantiatedClosure(element, registry);
+    }
+
+    for (Element element in impact.closurizedFunctions) {
+      world.registerGetOfStaticFunction(element);
+    }
+
+    for (String name in impact.constSymbols) {
+      backend.registerConstSymbol(name);
+    }
+
+    for (Set<ClassElement> classes in impact.specializedGetInterceptors) {
+      backend.registerSpecializedGetInterceptor(classes);
+    }
+
+    if (impact.usesInterceptor) {
+      backend.registerUseInterceptor(world);
+    }
+
+    for (ClassElement element in impact.typeConstants) {
+      backend.customElementsAnalysis.registerTypeConstant(element, world);
+      backend.lookupMapAnalysis.registerTypeConstant(element);
+    }
+
+    for (FunctionElement element in impact.asyncMarkers) {
+      backend.registerAsyncMarker(element, world, registry);
+    }
+
+    // TODO(johnniwinther): Remove eager registration.
+    return const WorldImpact();
   }
 }
 

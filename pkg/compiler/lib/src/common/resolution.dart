@@ -33,12 +33,8 @@ import '../tree/tree.dart' show
     AsyncForIn,
     Send,
     TypeAnnotation;
-import '../universe/universe.dart' show
-    UniverseSelector;
 import '../universe/world_impact.dart' show
     WorldImpact;
-import '../util/util.dart' show
-    Setlet;
 import 'work.dart' show
     ItemCompilationContext,
     WorkItem;
@@ -58,15 +54,6 @@ class ResolutionWorkItem extends WorkItem {
   }
 
   bool get isAnalyzed => _isAnalyzed;
-}
-
-// TODO(johnniwinther): Rename this to something like  `BackendResolutionApi`
-// and clean up the interface.
-/// Backend callbacks function specific to the resolution phase.
-class ResolutionCallbacks {
-  /// Transform the [ResolutionImpact] into a [WorldImpact] adding the
-  /// backend dependencies for features used in [worldImpact].
-  WorldImpact transformImpact(ResolutionImpact worldImpact) => worldImpact;
 }
 
 class ResolutionImpact extends WorldImpact {
@@ -180,123 +167,6 @@ class ListLiteralUse {
         type == other.type &&
         isConstant == other.isConstant &&
         isEmpty == other.isEmpty;
-  }
-}
-
-/// Mutable implementation of [WorldImpact] used to transform
-/// [ResolutionImpact] to [WorldImpact].
-class TransformedWorldImpact implements WorldImpact {
-  final ResolutionImpact worldImpact;
-
-  Setlet<Element> _staticUses;
-  Setlet<InterfaceType> _instantiatedTypes;
-  Setlet<UniverseSelector> _dynamicGetters;
-  Setlet<UniverseSelector> _dynamicInvocations;
-  Setlet<UniverseSelector> _dynamicSetters;
-
-  TransformedWorldImpact(this.worldImpact);
-
-  @override
-  Iterable<DartType> get asCasts => worldImpact.asCasts;
-
-  @override
-  Iterable<DartType> get checkedModeChecks => worldImpact.checkedModeChecks;
-
-  @override
-  Iterable<MethodElement> get closurizedFunctions {
-    return worldImpact.closurizedFunctions;
-  }
-
-  @override
-  Iterable<UniverseSelector> get dynamicGetters {
-    return _dynamicGetters != null
-        ? _dynamicGetters : worldImpact.dynamicGetters;
-  }
-
-  @override
-  Iterable<UniverseSelector> get dynamicInvocations {
-    return _dynamicInvocations != null
-        ? _dynamicInvocations : worldImpact.dynamicInvocations;
-  }
-
-  @override
-  Iterable<UniverseSelector> get dynamicSetters {
-    return _dynamicSetters != null
-        ? _dynamicSetters : worldImpact.dynamicSetters;
-  }
-
-  @override
-  Iterable<DartType> get isChecks => worldImpact.isChecks;
-
-  @override
-  Iterable<DartType> get onCatchTypes => worldImpact.onCatchTypes;
-
-  _unsupported(String message) => throw new UnsupportedError(message);
-
-  void registerDynamicGetter(UniverseSelector selector) {
-    if (_dynamicGetters == null) {
-      _dynamicGetters = new Setlet<UniverseSelector>();
-      _dynamicGetters.addAll(worldImpact.dynamicGetters);
-    }
-    _dynamicGetters.add(selector);
-  }
-
-  void registerDynamicInvocation(UniverseSelector selector) {
-    if (_dynamicInvocations == null) {
-      _dynamicInvocations = new Setlet<UniverseSelector>();
-      _dynamicInvocations.addAll(worldImpact.dynamicInvocations);
-    }
-    _dynamicInvocations.add(selector);
-  }
-
-  void registerDynamicSetter(UniverseSelector selector) {
-    if (_dynamicSetters == null) {
-      _dynamicSetters = new Setlet<UniverseSelector>();
-      _dynamicSetters.addAll(worldImpact.dynamicSetters);
-    }
-    _dynamicSetters.add(selector);
-  }
-
-  void registerInstantiatedType(InterfaceType type) {
-    if (_instantiatedTypes == null) {
-      _instantiatedTypes = new Setlet<InterfaceType>();
-      _instantiatedTypes.addAll(worldImpact.instantiatedTypes);
-    }
-    _instantiatedTypes.add(type);
-  }
-
-  @override
-  Iterable<InterfaceType> get instantiatedTypes {
-    return _instantiatedTypes != null
-        ? _instantiatedTypes : worldImpact.instantiatedTypes;
-  }
-
-  @override
-  Iterable<DartType> get typeLiterals {
-    return worldImpact.typeLiterals;
-  }
-
-  void registerStaticUse(Element element) {
-    if (_staticUses == null) {
-      _staticUses = new Setlet<Element>();
-      _staticUses.addAll(worldImpact.staticUses);
-    }
-    _staticUses.add(element);
-  }
-
-  @override
-  Iterable<Element> get staticUses {
-    return _staticUses != null ? _staticUses : worldImpact.staticUses;
-  }
-
-  @override
-  Iterable<LocalFunctionElement> get closures => worldImpact.closures;
-
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write('TransformedWorldImpact($worldImpact)');
-    WorldImpact.printOn(sb, this);
-    return sb.toString();
   }
 }
 

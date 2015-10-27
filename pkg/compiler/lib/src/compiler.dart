@@ -17,12 +17,13 @@ import 'common.dart';
 import 'common/backend_api.dart' show
     Backend;
 import 'common/codegen.dart' show
-    CodegenRegistry,
+    CodegenImpact,
     CodegenWorkItem;
 import 'common/names.dart' show
     Identifiers,
     Uris;
 import 'common/registry.dart' show
+    EagerRegistry,
     Registry;
 import 'common/resolution.dart' show
     Parsing,
@@ -1988,7 +1989,7 @@ class _CompilerResolution implements Resolution {
         compiler.checker.check(element);
       }
       WorldImpact worldImpact =
-          compiler.backend.resolutionCallbacks.transformImpact(
+          compiler.backend.impactTransformer.transformResolutionImpact(
               resolutionImpact);
       return worldImpact;
     });
@@ -2028,11 +2029,16 @@ class _CompilerParsing implements Parsing {
   }
 }
 
-class GlobalDependencyRegistry extends CodegenRegistry {
+class GlobalDependencyRegistry extends EagerRegistry {
+  final Compiler compiler;
   Setlet<Element> _otherDependencies;
 
-  GlobalDependencyRegistry(Compiler compiler)
-      : super(compiler, new TreeElementMapping(null));
+  GlobalDependencyRegistry(this.compiler) : super('GlobalDependencies', null);
+
+  // TODO(johnniwinther): Rename world/universe/enqueuer through out the
+  // compiler.
+  @override
+  Enqueuer get world => compiler.enqueuer.codegen;
 
   void registerDependency(Element element) {
     if (element == null) return;

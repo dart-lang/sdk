@@ -42,7 +42,7 @@ class DartBackend extends Backend {
 
   DartConstantTask constantCompilerTask;
 
-  DartResolutionCallbacks resolutionCallbacks;
+  DartImpactTransformer impactTransformer;
 
   final Set<ClassElement> usedTypeLiterals = new Set<ClassElement>();
 
@@ -113,7 +113,7 @@ class DartBackend extends Backend {
             multiFile: multiFile,
             enableMinification: compiler.enableMinification),
         super(compiler) {
-    resolutionCallbacks = new DartResolutionCallbacks(this);
+    impactTransformer = new DartImpactTransformer(this);
   }
 
 
@@ -146,7 +146,9 @@ class DartBackend extends Backend {
         new UniverseSelector(Selectors.compareTo, null));
   }
 
-  WorldImpact codegen(CodegenWorkItem work) => const WorldImpact();
+  WorldImpact codegen(CodegenWorkItem work) {
+    return const WorldImpact();
+  }
 
   /**
    * Tells whether we should output given element. Corelib classes like
@@ -355,13 +357,13 @@ class DartBackend extends Backend {
   }
 }
 
-class DartResolutionCallbacks extends ResolutionCallbacks {
+class DartImpactTransformer extends ImpactTransformer {
   final DartBackend backend;
 
-  DartResolutionCallbacks(this.backend);
+  DartImpactTransformer(this.backend);
 
   @override
-  WorldImpact transformImpact(ResolutionImpact worldImpact) {
+  WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
     TransformedWorldImpact transformed =
         new TransformedWorldImpact(worldImpact);
     for (DartType typeLiteral in worldImpact.typeLiterals) {

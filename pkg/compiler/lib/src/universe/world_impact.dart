@@ -246,3 +246,120 @@ class WorldImpactBuilder {
         ? _closures : const <LocalFunctionElement>[];
   }
 }
+
+/// Mutable implementation of [WorldImpact] used to transform
+/// [ResolutionImpact] or [CodegenImpact] to [WorldImpact].
+class TransformedWorldImpact implements WorldImpact {
+  final WorldImpact worldImpact;
+
+  Setlet<Element> _staticUses;
+  Setlet<InterfaceType> _instantiatedTypes;
+  Setlet<UniverseSelector> _dynamicGetters;
+  Setlet<UniverseSelector> _dynamicInvocations;
+  Setlet<UniverseSelector> _dynamicSetters;
+
+  TransformedWorldImpact(this.worldImpact);
+
+  @override
+  Iterable<DartType> get asCasts => worldImpact.asCasts;
+
+  @override
+  Iterable<DartType> get checkedModeChecks => worldImpact.checkedModeChecks;
+
+  @override
+  Iterable<MethodElement> get closurizedFunctions {
+    return worldImpact.closurizedFunctions;
+  }
+
+  @override
+  Iterable<UniverseSelector> get dynamicGetters {
+    return _dynamicGetters != null
+        ? _dynamicGetters : worldImpact.dynamicGetters;
+  }
+
+  @override
+  Iterable<UniverseSelector> get dynamicInvocations {
+    return _dynamicInvocations != null
+        ? _dynamicInvocations : worldImpact.dynamicInvocations;
+  }
+
+  @override
+  Iterable<UniverseSelector> get dynamicSetters {
+    return _dynamicSetters != null
+        ? _dynamicSetters : worldImpact.dynamicSetters;
+  }
+
+  @override
+  Iterable<DartType> get isChecks => worldImpact.isChecks;
+
+  @override
+  Iterable<DartType> get onCatchTypes => worldImpact.onCatchTypes;
+
+  _unsupported(String message) => throw new UnsupportedError(message);
+
+  void registerDynamicGetter(UniverseSelector selector) {
+    if (_dynamicGetters == null) {
+      _dynamicGetters = new Setlet<UniverseSelector>();
+      _dynamicGetters.addAll(worldImpact.dynamicGetters);
+    }
+    _dynamicGetters.add(selector);
+  }
+
+  void registerDynamicInvocation(UniverseSelector selector) {
+    if (_dynamicInvocations == null) {
+      _dynamicInvocations = new Setlet<UniverseSelector>();
+      _dynamicInvocations.addAll(worldImpact.dynamicInvocations);
+    }
+    _dynamicInvocations.add(selector);
+  }
+
+  void registerDynamicSetter(UniverseSelector selector) {
+    if (_dynamicSetters == null) {
+      _dynamicSetters = new Setlet<UniverseSelector>();
+      _dynamicSetters.addAll(worldImpact.dynamicSetters);
+    }
+    _dynamicSetters.add(selector);
+  }
+
+  void registerInstantiatedType(InterfaceType type) {
+    if (_instantiatedTypes == null) {
+      _instantiatedTypes = new Setlet<InterfaceType>();
+      _instantiatedTypes.addAll(worldImpact.instantiatedTypes);
+    }
+    _instantiatedTypes.add(type);
+  }
+
+  @override
+  Iterable<InterfaceType> get instantiatedTypes {
+    return _instantiatedTypes != null
+        ? _instantiatedTypes : worldImpact.instantiatedTypes;
+  }
+
+  @override
+  Iterable<DartType> get typeLiterals {
+    return worldImpact.typeLiterals;
+  }
+
+  void registerStaticUse(Element element) {
+    if (_staticUses == null) {
+      _staticUses = new Setlet<Element>();
+      _staticUses.addAll(worldImpact.staticUses);
+    }
+    _staticUses.add(element);
+  }
+
+  @override
+  Iterable<Element> get staticUses {
+    return _staticUses != null ? _staticUses : worldImpact.staticUses;
+  }
+
+  @override
+  Iterable<LocalFunctionElement> get closures => worldImpact.closures;
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('TransformedWorldImpact($worldImpact)');
+    WorldImpact.printOn(sb, this);
+    return sb.toString();
+  }
+}

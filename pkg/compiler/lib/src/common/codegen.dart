@@ -29,140 +29,306 @@ import '../universe/selector.dart' show
 import '../universe/universe.dart' show
     UniverseSelector;
 import '../universe/world_impact.dart' show
-    WorldImpact;
+    WorldImpact,
+    WorldImpactBuilder;
 import '../util/util.dart' show
+    Pair,
     Setlet;
 import 'registry.dart' show
-    Registry;
+    Registry,
+    EagerRegistry;
 import 'work.dart' show
     ItemCompilationContext,
     WorkItem;
+
+class CodegenImpact extends WorldImpact {
+  const CodegenImpact();
+
+  // TODO(johnniwinther): Remove this.
+  Registry get registry => null;
+
+  Iterable<Element> get getterForSuperElements => const <Element>[];
+
+  Iterable<Element> get fieldGetters => const <Element>[];
+
+  Iterable<Element> get fieldSetters => const <Element>[];
+
+  Iterable<ConstantValue> get compileTimeConstants => const <ConstantValue>[];
+
+  Iterable<Pair<DartType, DartType>> get typeVariableBoundsSubtypeChecks {
+    return const <Pair<DartType, DartType>>[];
+  }
+
+  Iterable<String> get constSymbols => const <String>[];
+
+  Iterable<Set<ClassElement>> get specializedGetInterceptors {
+    return const <Set<ClassElement>>[];
+  }
+
+  bool get usesInterceptor => false;
+
+  Iterable<ClassElement> get typeConstants => const <ClassElement>[];
+
+  Iterable<Element> get asyncMarkers => const <FunctionElement>[];
+}
+
+class _CodegenImpact extends WorldImpactBuilder implements CodegenImpact {
+  // TODO(johnniwinther): Remove this.
+  final Registry registry;
+
+
+  Setlet<Element> _getterForSuperElements;
+  Setlet<Element> _fieldGetters;
+  Setlet<Element> _fieldSetters;
+  Setlet<ConstantValue> _compileTimeConstants;
+  Setlet<Pair<DartType, DartType>> _typeVariableBoundsSubtypeChecks;
+  Setlet<String> _constSymbols;
+  List<Set<ClassElement>> _specializedGetInterceptors;
+  bool _usesInterceptor = false;
+  Setlet<ClassElement> _typeConstants;
+  Setlet<FunctionElement> _asyncMarkers;
+
+  _CodegenImpact(this.registry);
+
+  void registerGetterForSuperMethod(Element element) {
+    if (_getterForSuperElements == null) {
+      _getterForSuperElements = new Setlet<Element>();
+    }
+    _getterForSuperElements.add(element);
+  }
+
+  Iterable<Element> get getterForSuperElements {
+    return _getterForSuperElements != null
+        ? _getterForSuperElements : const <Element>[];
+  }
+
+  void registerFieldGetter(Element element) {
+    if (_fieldGetters == null) {
+      _fieldGetters = new Setlet<Element>();
+    }
+    _fieldGetters.add(element);
+  }
+
+  Iterable<Element> get fieldGetters {
+    return _fieldGetters != null
+        ? _fieldGetters : const <Element>[];
+  }
+
+  void registerFieldSetter(Element element) {
+    if (_fieldSetters == null) {
+      _fieldSetters = new Setlet<Element>();
+    }
+    _fieldSetters.add(element);
+  }
+
+  Iterable<Element> get fieldSetters {
+    return _fieldSetters != null
+        ? _fieldSetters : const <Element>[];
+  }
+
+  void registerCompileTimeConstant(ConstantValue constant) {
+    if (_compileTimeConstants == null) {
+      _compileTimeConstants = new Setlet<ConstantValue>();
+    }
+    _compileTimeConstants.add(constant);
+  }
+
+  Iterable<ConstantValue> get compileTimeConstants {
+    return _compileTimeConstants != null
+        ? _compileTimeConstants : const <ConstantValue>[];
+  }
+
+  void registerTypeVariableBoundsSubtypeCheck(DartType subtype,
+                                              DartType supertype) {
+    if (_typeVariableBoundsSubtypeChecks == null) {
+      _typeVariableBoundsSubtypeChecks = new Setlet<Pair<DartType, DartType>>();
+    }
+    _typeVariableBoundsSubtypeChecks.add(
+        new Pair<DartType, DartType>(subtype, supertype));
+  }
+
+  Iterable<Pair<DartType, DartType>> get typeVariableBoundsSubtypeChecks {
+    return _typeVariableBoundsSubtypeChecks != null
+        ? _typeVariableBoundsSubtypeChecks : const <Pair<DartType, DartType>>[];
+  }
+
+  void registerConstSymbol(String name) {
+    if (_constSymbols == null) {
+      _constSymbols = new Setlet<String>();
+    }
+    _constSymbols.add(name);
+  }
+
+  Iterable<String> get constSymbols {
+    return _constSymbols != null
+        ? _constSymbols : const <String>[];
+  }
+
+  void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
+    if (_specializedGetInterceptors == null) {
+      _specializedGetInterceptors = <Set<ClassElement>>[];
+    }
+    _specializedGetInterceptors.add(classes);
+  }
+
+  Iterable<Set<ClassElement>> get specializedGetInterceptors {
+    return _specializedGetInterceptors != null
+        ? _specializedGetInterceptors : const <Set<ClassElement>>[];
+  }
+
+  void registerUseInterceptor() {
+    _usesInterceptor = true;
+  }
+
+  bool get usesInterceptor => _usesInterceptor;
+
+  void registerTypeConstant(ClassElement element) {
+    if (_typeConstants == null) {
+      _typeConstants = new Setlet<ClassElement>();
+    }
+    _typeConstants.add(element);
+  }
+
+  Iterable<ClassElement> get typeConstants {
+    return _typeConstants != null
+        ? _typeConstants : const <ClassElement>[];
+  }
+
+  void registerAsyncMarker(FunctionElement element) {
+    if (_asyncMarkers == null) {
+      _asyncMarkers = new Setlet<FunctionElement>();
+    }
+    _asyncMarkers.add(element);
+  }
+
+  Iterable<Element> get asyncMarkers {
+    return _asyncMarkers != null
+        ? _asyncMarkers : const <FunctionElement>[];
+  }
+}
 
 // TODO(johnniwinther): Split this class into interface and implementation.
 // TODO(johnniwinther): Move this implementation to the JS backend.
 class CodegenRegistry extends Registry {
   final Compiler compiler;
-  final TreeElements treeElements;
+  final Element currentElement;
+  final _CodegenImpact worldImpact;
 
-  CodegenRegistry(this.compiler, this.treeElements);
+  CodegenRegistry(Compiler compiler, AstElement currentElement)
+      : this.compiler = compiler,
+        this.currentElement = currentElement,
+        this.worldImpact = new _CodegenImpact(new EagerRegistry(
+          'EagerRegistry for $currentElement', compiler.enqueuer.codegen));
 
   bool get isForResolution => false;
 
-  Element get currentElement => treeElements.analyzedElement;
-
   String toString() => 'CodegenRegistry for $currentElement';
 
-  CodegenEnqueuer get world => compiler.enqueuer.codegen;
-  JavaScriptBackend get backend => compiler.backend;
-
-  void registerAssert(bool hasMessage) {
-    // Codegen does not register asserts.  They have been lowered to calls.
-    assert(false);
-  }
-
   void registerInstantiatedClass(ClassElement element) {
-    backend.registerInstantiatedType(element.rawType, world, this);
+    registerInstantiatedType(element.rawType);
   }
 
   void registerInstantiatedType(InterfaceType type) {
-    backend.registerInstantiatedType(type, world, this);
+    worldImpact.registerInstantiatedType(type);
   }
 
   void registerStaticUse(Element element) {
-    world.registerStaticUse(element);
+    worldImpact.registerStaticUse(element);
   }
 
   void registerDynamicInvocation(UniverseSelector selector) {
-    world.registerDynamicInvocation(selector);
+    worldImpact.registerDynamicInvocation(selector);
     compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
   }
 
   void registerDynamicSetter(UniverseSelector selector) {
-    world.registerDynamicSetter(selector);
+    worldImpact.registerDynamicSetter(selector);
     compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
   }
 
   void registerDynamicGetter(UniverseSelector selector) {
-    world.registerDynamicGetter(selector);
+    worldImpact.registerDynamicGetter(selector);
     compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
   }
 
   void registerGetterForSuperMethod(Element element) {
-    world.registerGetterForSuperMethod(element);
+    worldImpact.registerGetterForSuperMethod(element);
   }
 
   void registerFieldGetter(Element element) {
-    world.registerFieldGetter(element);
+    worldImpact.registerFieldGetter(element);
   }
 
   void registerFieldSetter(Element element) {
-    world.registerFieldSetter(element);
+    worldImpact.registerFieldSetter(element);
   }
 
   void registerIsCheck(DartType type) {
-    world.registerIsCheck(type);
-    backend.registerIsCheckForCodegen(type, world, this);
+    worldImpact.registerIsCheck(type);
   }
 
   void registerCompileTimeConstant(ConstantValue constant) {
-    backend.registerCompileTimeConstant(constant, this);
-    backend.addCompileTimeConstantForEmission(constant);
+    worldImpact.registerCompileTimeConstant(constant);
   }
 
   void registerTypeVariableBoundsSubtypeCheck(DartType subtype,
                                               DartType supertype) {
-    backend.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
+    worldImpact.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
   }
 
   void registerInstantiatedClosure(LocalFunctionElement element) {
-    backend.registerInstantiatedClosure(element, this);
+    worldImpact.registerClosure(element);
   }
 
   void registerGetOfStaticFunction(FunctionElement element) {
-    world.registerGetOfStaticFunction(element);
+    worldImpact.registerClosurizedFunction(element);
   }
 
   void registerSelectorUse(Selector selector) {
-    world.registerSelectorUse(new UniverseSelector(selector, null));
+    if (selector.isGetter) {
+      registerDynamicGetter(new UniverseSelector(selector, null));
+    } else if (selector.isSetter) {
+      registerDynamicSetter(new UniverseSelector(selector, null));
+    } else {
+      registerDynamicInvocation(new UniverseSelector(selector, null));
+    }
   }
 
   void registerConstSymbol(String name) {
-    backend.registerConstSymbol(name);
+    worldImpact.registerConstSymbol(name);
   }
 
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
-    backend.registerSpecializedGetInterceptor(classes);
+    worldImpact.registerSpecializedGetInterceptor(classes);
   }
 
   void registerUseInterceptor() {
-    backend.registerUseInterceptor(world);
+    worldImpact.registerUseInterceptor();
   }
 
   void registerTypeConstant(ClassElement element) {
-    backend.customElementsAnalysis.registerTypeConstant(element, world);
-    backend.lookupMapAnalysis.registerTypeConstant(element);
+    worldImpact.registerTypeConstant(element);
   }
 
   void registerStaticInvocation(Element element) {
-    world.registerStaticUse(element);
+    registerStaticUse(element);
   }
 
   void registerSuperInvocation(Element element) {
-    world.registerStaticUse(element);
+    registerStaticUse(element);
   }
 
   void registerDirectInvocation(Element element) {
-    world.registerStaticUse(element);
+    registerStaticUse(element);
   }
 
   void registerInstantiation(InterfaceType type) {
-    backend.registerInstantiatedType(type, world, this);
+    registerInstantiatedType(type);
   }
 
   void registerAsyncMarker(FunctionElement element) {
-    backend.registerAsyncMarker(element, world, this);
+    worldImpact.registerAsyncMarker(element);
   }
-
 }
 
 /// [WorkItem] used exclusively by the [CodegenEnqueuer].
@@ -195,7 +361,7 @@ class CodegenWorkItem extends WorkItem {
   WorldImpact run(Compiler compiler, CodegenEnqueuer world) {
     if (world.isProcessed(element)) return const WorldImpact();
 
-    registry = new CodegenRegistry(compiler, resolutionTree);
+    registry = new CodegenRegistry(compiler, element);
     return compiler.codegen(this, world);
   }
 }

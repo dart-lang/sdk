@@ -5,12 +5,14 @@
 library dart2js.common.registry;
 
 import '../dart_types.dart' show
-  InterfaceType;
+    InterfaceType;
+import '../enqueue.dart' show
+    Enqueuer;
 import '../elements/elements.dart' show
-  Element,
-  FunctionElement;
+    Element,
+    FunctionElement;
 import '../universe/universe.dart' show
-  UniverseSelector;
+    UniverseSelector;
 
 /// Interface for registration of element dependencies.
 abstract class Registry {
@@ -30,4 +32,46 @@ abstract class Registry {
   void registerInstantiation(InterfaceType type);
 
   void registerGetOfStaticFunction(FunctionElement element);
+}
+
+// TODO(johnniwinther): Remove this.
+class EagerRegistry extends Registry {
+  final String name;
+  final Enqueuer world;
+
+  EagerRegistry(this.name, this.world);
+
+  bool get isForResolution => world.isResolutionQueue;
+
+  @override
+  void registerDynamicGetter(UniverseSelector selector) {
+    world.registerDynamicGetter(selector);
+  }
+
+  @override
+  void registerDynamicInvocation(UniverseSelector selector) {
+    world.registerDynamicInvocation(selector);
+  }
+
+  @override
+  void registerDynamicSetter(UniverseSelector selector) {
+    world.registerDynamicSetter(selector);
+  }
+
+  @override
+  void registerGetOfStaticFunction(FunctionElement element) {
+    world.registerGetOfStaticFunction(element);
+  }
+
+  @override
+  void registerInstantiation(InterfaceType type) {
+    world.registerInstantiatedType(type);
+  }
+
+  @override
+  void registerStaticInvocation(Element element) {
+    world.registerStaticUse(element);
+  }
+
+  String toString() => name;
 }

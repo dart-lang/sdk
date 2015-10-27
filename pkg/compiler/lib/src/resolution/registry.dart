@@ -42,51 +42,6 @@ import 'members.dart' show
 import 'tree_elements.dart' show
     TreeElementMapping;
 
-// TODO(johnniwinther): Remove this.
-class EagerRegistry extends Registry {
-  final Compiler compiler;
-  final TreeElementMapping mapping;
-
-  EagerRegistry(this.compiler, this.mapping);
-
-  ResolutionEnqueuer get world => compiler.enqueuer.resolution;
-
-  @override
-  bool get isForResolution => true;
-
-  @override
-  void registerDynamicGetter(UniverseSelector selector) {
-    world.registerDynamicGetter(selector);
-  }
-
-  @override
-  void registerDynamicInvocation(UniverseSelector selector) {
-    world.registerDynamicInvocation(selector);
-  }
-
-  @override
-  void registerDynamicSetter(UniverseSelector selector) {
-    world.registerDynamicSetter(selector);
-  }
-
-  @override
-  void registerGetOfStaticFunction(FunctionElement element) {
-    world.registerGetOfStaticFunction(element);
-  }
-
-  @override
-  void registerInstantiation(InterfaceType type) {
-    world.registerInstantiatedType(type);
-  }
-
-  @override
-  void registerStaticInvocation(Element element) {
-    world.registerStaticUse(element);
-  }
-
-  String toString() => 'EagerRegistry for ${mapping.analyzedElement}';
-}
-
 class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
   final String name;
   Setlet<Feature> _features;

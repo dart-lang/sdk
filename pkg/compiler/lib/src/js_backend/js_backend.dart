@@ -14,8 +14,10 @@ import '../closure.dart';
 import '../common.dart';
 import '../common/backend_api.dart' show
     Backend,
+    ImpactTransformer,
     ForeignResolver;
 import '../common/codegen.dart' show
+    CodegenImpact,
     CodegenRegistry,
     CodegenWorkItem;
 import '../common/names.dart' show
@@ -23,6 +25,7 @@ import '../common/names.dart' show
     Selectors,
     Uris;
 import '../common/registry.dart' show
+    EagerRegistry,
     Registry;
 import '../common/tasks.dart' show
     CompilerTask;
@@ -31,9 +34,7 @@ import '../common/resolution.dart' show
     ListLiteralUse,
     MapLiteralUse,
     Resolution,
-    ResolutionCallbacks,
-    ResolutionImpact,
-    TransformedWorldImpact;
+    ResolutionImpact;
 import '../common/work.dart' show
     ItemCompilationContext;
 import '../compiler.dart' show
@@ -73,10 +74,6 @@ import '../js_emitter/js_emitter.dart' show
     USE_LAZY_EMITTER;
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
-import '../patch_parser.dart' show
-    checkJsInteropAnnotation;
-import '../resolution/registry.dart' show
-    EagerRegistry;
 import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../ssa/ssa.dart';
@@ -89,6 +86,7 @@ import '../universe/selector.dart' show
     SelectorKind;
 import '../universe/universe.dart';
 import '../universe/world_impact.dart' show
+    TransformedWorldImpact,
     WorldImpact;
 import '../util/characters.dart';
 import '../util/util.dart';

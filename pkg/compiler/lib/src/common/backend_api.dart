@@ -7,6 +7,10 @@ library dart2js.backend_api;
 import 'dart:async' show Future;
 
 import '../common.dart';
+import '../common/codegen.dart' show
+    CodegenImpact;
+import '../common/resolution.dart' show
+    ResolutionImpact;
 import '../compiler.dart' show
     Compiler;
 import '../compile_time_constants.dart' show
@@ -60,8 +64,6 @@ import 'codegen.dart' show
     CodegenWorkItem;
 import 'registry.dart' show
     Registry;
-import 'resolution.dart' show
-    ResolutionCallbacks;
 import 'tasks.dart' show
     CompilerTask;
 import 'work.dart' show
@@ -88,8 +90,8 @@ abstract class Backend {
   /// the frontend and the backend.
   ConstantCompilerTask get constantCompilerTask;
 
-  /// Backend callback methods for the resolution phase.
-  ResolutionCallbacks get resolutionCallbacks;
+  /// Backend transformation methods for the world impacts.
+  ImpactTransformer get impactTransformer;
 
   /// The strategy used for collecting and emitting source information.
   SourceInformationStrategy get sourceInformationStrategy {
@@ -110,6 +112,7 @@ abstract class Backend {
   void initializeHelperClasses() {}
 
   void enqueueHelpers(ResolutionEnqueuer world, Registry registry);
+
   WorldImpact codegen(CodegenWorkItem work);
 
   // The backend determines the native resolution enqueuer, with a no-op
@@ -425,4 +428,19 @@ abstract class ForeignResolver {
 
   /// Resolves [typeName] to a type in the context of [node].
   DartType resolveTypeFromString(Node node, String typeName);
+}
+
+/// Backend transformation methods for the world impacts.
+class ImpactTransformer {
+  /// Transform the [ResolutionImpact] into a [WorldImpact] adding the
+  /// backend dependencies for features used in [worldImpact].
+  WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
+    return worldImpact;
+  }
+
+  /// Transform the [CodegenImpact] into a [WorldImpact] adding the
+  /// backend dependencies for features used in [worldImpact].
+  WorldImpact transformCodegenImpact(CodegenImpact worldImpact) {
+    return worldImpact;
+  }
 }
