@@ -7,8 +7,6 @@ library dev_compiler.src.summary;
 
 import 'dart:collection' show HashSet;
 
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:source_span/source_span.dart';
 
 /// Summary information computed by the DDC checker.
@@ -123,15 +121,9 @@ class LibrarySummary implements IndividualSummary {
         'lines': lines,
       };
 
-  void countSourceLines(AnalysisContext context, Source source) {
-    if (_uris.add(source.uri)) {
-      // TODO(jmesserly): parsing is serious overkill for this.
-      // Should be cached, but still.
-      // On the other hand, if we are going to parse, we could get a much better
-      // source lines of code estimate by excluding things like comments,
-      // blank lines, and closing braces.
-      var unit = context.parseCompilationUnit(source);
-      _lines += unit.lineInfo.getLocation(unit.endToken.end).lineNumber;
+  void recordSourceLines(Uri uri, int computeLines()) {
+    if (_uris.add(uri)) {
+      _lines += computeLines();
     }
   }
 
@@ -139,7 +131,8 @@ class LibrarySummary implements IndividualSummary {
 
   static LibrarySummary parse(Map json) =>
       new LibrarySummary(json['library_name'],
-          messages: json['messages'].map(MessageSummary.parse).toList(),
+          messages: new List<MessageSummary>.from(
+              json['messages'].map(MessageSummary.parse)),
           lines: json['lines']);
 }
 
@@ -160,7 +153,9 @@ class HtmlSummary implements IndividualSummary {
   void accept(SummaryVisitor visitor) => visitor.visitHtml(this);
 
   static HtmlSummary parse(Map json) => new HtmlSummary(
-      json['name'], json['messages'].map(MessageSummary.parse).toList());
+      json['name'],
+      new List<MessageSummary>.from(
+          json['messages'].map(MessageSummary.parse)));
 }
 
 /// A single message produced by the checker.

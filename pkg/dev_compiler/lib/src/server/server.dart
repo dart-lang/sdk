@@ -25,7 +25,7 @@ import '../codegen/code_generator.dart' show CodeGenerator;
 import '../codegen/html_codegen.dart' show generateEntryHtml;
 import '../codegen/js_codegen.dart';
 import '../analysis_context.dart';
-import '../compiler.dart' show AbstractCompiler;
+import '../compiler.dart' show AbstractCompiler, createErrorReporter;
 import '../info.dart'
     show AnalyzerMessage, CheckerResults, LibraryInfo, LibraryUnit;
 import '../options.dart';
@@ -229,7 +229,8 @@ class DevServer {
     }
     var port = options.port;
     var host = options.host;
-    var compiler = new ServerCompiler(context, options);
+    var reporter = createErrorReporter(context, options);
+    var compiler = new ServerCompiler(context, options, reporter: reporter);
     return new DevServer._(compiler, outDir, host, port, entryPath);
   }
 

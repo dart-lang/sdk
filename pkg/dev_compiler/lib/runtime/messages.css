@@ -27,7 +27,7 @@
 .dev-compiler-messages .warning {
   color: orange;
 }
-.dev-compiler-messages .severe {
+.dev-compiler-messages .error {
   color: red;
 }
 .dev-compiler-messages div.text {

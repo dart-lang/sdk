@@ -137,7 +137,15 @@ class SummaryReporter implements AnalysisErrorListener {
     var span = _toSpan(_context, error);
     var summary = _getIndividualSummary(error.source.uri);
     if (summary is LibrarySummary) {
-      summary.countSourceLines(_context, error.source);
+      summary.recordSourceLines(error.source.uri, () {
+        // TODO(jmesserly): parsing is serious overkill for this.
+        // Should be cached, but still.
+        // On the other hand, if we are going to parse, we could get a much
+        // better source lines of code estimate by excluding things like
+        // comments, blank lines, and closing braces.
+        var unit = _context.parseCompilationUnit(error.source);
+        return unit.lineInfo.getLocation(unit.endToken.end).lineNumber;
+      });
     }
     summary.messages.add(new MessageSummary(errorCodeName(code),
         code.errorSeverity.displayName, span, error.message));
