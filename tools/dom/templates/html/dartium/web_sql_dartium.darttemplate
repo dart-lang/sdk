@@ -26,12 +26,14 @@ import 'dart:js' as js;
 
 $!GENERATED_DART_FILES
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final web_sqlBlinkMap = {
 $!TYPE_MAP
 };
 
 $if JSINTEROP
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final web_sqlBlinkFunctionMap = {
 $!TYPE_FUNCTION_MAP
 };

@@ -119,6 +119,7 @@ Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
   return _Utils.spawnDomUri(uri.toString());
 }
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final htmlBlinkMap = {
   '_HistoryCrossFrame': () => _HistoryCrossFrame,
   '_LocationCrossFrame': () => _LocationCrossFrame,
@@ -1013,6 +1014,7 @@ final htmlBlinkFunctionMap = {
 
 // TODO(terry): We may want to move this elsewhere if html becomes
 // a package to avoid dartium depending on pkg:html.
+@Deprecated("Internal Use Only")
 getHtmlCreateFunction(String key) {
   var result;
 
@@ -1145,9 +1147,13 @@ String _getCustomElementName(element) {
 
 /// An abstract class for all DOM objects we wrap in dart:html and related
 ///  libraries.
+///
+/// ** Internal Use Only **
+@Deprecated("Internal Use Only")
 class DartHtmlDomObject {
 
   /// The underlying JS DOM object.
+  @Deprecated("Internal Use Only")
   js.JsObject blink_jsObject;
 
 }
@@ -1178,11 +1184,13 @@ _upgradeHtmlElement(dartInstance) {
   return dartInstance;
 }
 
+@Deprecated("Internal Use Only")
 class DebugAssertException implements Exception {
   String message;
   DebugAssertException(this.message);
 }
 
+@Deprecated("Internal Use Only")
 debug_or_assert(message, expression) {
   if (!expression) {
     throw new DebugAssertException("$message");
@@ -1195,6 +1203,7 @@ debug_or_assert(message, expression) {
 //              user's this (this is needed for futures) and listener function.
 Map<int, Map<int, js.JsFunction>> _knownListeners = {};
 
+@Deprecated("Internal Use Only")
 js.JsFunction wrap_event_listener(theObject, Function listener) {
   var thisHashCode = theObject.hashCode;
   var listenerHashCode = identityHashCode(listener);
@@ -1206,6 +1215,7 @@ js.JsFunction wrap_event_listener(theObject, Function listener) {
   return _knownListeners[thisHashCode][listenerHashCode];
 }
 
+@Deprecated("Internal Use Only")
 Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
   var result = new Map();
   var keys = js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'Object'), 'keys', [jsObject]);
@@ -1283,6 +1293,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   }
 
 
+  @Deprecated("Internal Use Only")
   static AnchorElement internalCreateAnchorElement() {
     return new AnchorElement._internalWrap();
   }
@@ -1476,6 +1487,7 @@ class Animation extends AnimationNode {
   }
 
 
+  @Deprecated("Internal Use Only")
   static Animation internalCreateAnimation() {
     return new Animation._internalWrap();
   }
@@ -1502,6 +1514,7 @@ class AnimationEffect extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimationEffect._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AnimationEffect internalCreateAnimationEffect() {
     return new AnimationEffect._internalWrap();
   }
@@ -1533,6 +1546,7 @@ class AnimationEvent extends Event {
   factory AnimationEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static AnimationEvent internalCreateAnimationEvent() {
     return new AnimationEvent._internalWrap();
   }
@@ -1567,6 +1581,7 @@ class AnimationNode extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimationNode._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AnimationNode internalCreateAnimationNode() {
     return new AnimationNode._internalWrap();
   }
@@ -1636,6 +1651,7 @@ class AnimationPlayer extends EventTarget {
   factory AnimationPlayer._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static AnimationPlayer internalCreateAnimationPlayer() {
     return new AnimationPlayer._internalWrap();
   }
@@ -1736,6 +1752,7 @@ class AnimationPlayerEvent extends Event {
   factory AnimationPlayerEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static AnimationPlayerEvent internalCreateAnimationPlayerEvent() {
     return new AnimationPlayerEvent._internalWrap();
   }
@@ -1772,6 +1789,7 @@ class AnimationTimeline extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimationTimeline._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AnimationTimeline internalCreateAnimationTimeline() {
     return new AnimationTimeline._internalWrap();
   }
@@ -1904,6 +1922,7 @@ class ApplicationCache extends EventTarget {
   static const EventStreamProvider<Event> updateReadyEvent = const EventStreamProvider<Event>('updateready');
 
 
+  @Deprecated("Internal Use Only")
   static ApplicationCache internalCreateApplicationCache() {
     return new ApplicationCache._internalWrap();
   }
@@ -2014,6 +2033,7 @@ class ApplicationCacheErrorEvent extends Event {
   factory ApplicationCacheErrorEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ApplicationCacheErrorEvent internalCreateApplicationCacheErrorEvent() {
     return new ApplicationCacheErrorEvent._internalWrap();
   }
@@ -2074,6 +2094,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   factory AreaElement() => document.createElement("area");
 
 
+  @Deprecated("Internal Use Only")
   static AreaElement internalCreateAreaElement() {
     return new AreaElement._internalWrap();
   }
@@ -2234,6 +2255,7 @@ class AudioElement extends MediaElement {
   }
 
 
+  @Deprecated("Internal Use Only")
   static AudioElement internalCreateAudioElement() {
     return new AudioElement._internalWrap();
   }
@@ -2272,6 +2294,7 @@ class AudioTrack extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AudioTrack._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AudioTrack internalCreateAudioTrack() {
     return new AudioTrack._internalWrap();
   }
@@ -2336,6 +2359,7 @@ class AudioTrackList extends EventTarget {
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
 
+  @Deprecated("Internal Use Only")
   static AudioTrackList internalCreateAudioTrackList() {
     return new AudioTrackList._internalWrap();
   }
@@ -2384,6 +2408,7 @@ class AutocompleteErrorEvent extends Event {
   factory AutocompleteErrorEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static AutocompleteErrorEvent internalCreateAutocompleteErrorEvent() {
     return new AutocompleteErrorEvent._internalWrap();
   }
@@ -2418,6 +2443,7 @@ class BRElement extends HtmlElement {
   factory BRElement() => document.createElement("br");
 
 
+  @Deprecated("Internal Use Only")
   static BRElement internalCreateBRElement() {
     return new BRElement._internalWrap();
   }
@@ -2451,6 +2477,7 @@ class BarProp extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory BarProp._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static BarProp internalCreateBarProp() {
     return new BarProp._internalWrap();
   }
@@ -2487,6 +2514,7 @@ class BaseElement extends HtmlElement {
   factory BaseElement() => document.createElement("base");
 
 
+  @Deprecated("Internal Use Only")
   static BaseElement internalCreateBaseElement() {
     return new BaseElement._internalWrap();
   }
@@ -2537,6 +2565,7 @@ class BatteryManager extends EventTarget {
   factory BatteryManager._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static BatteryManager internalCreateBatteryManager() {
     return new BatteryManager._internalWrap();
   }
@@ -2579,6 +2608,7 @@ class BeforeUnloadEvent extends Event {
   factory BeforeUnloadEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static BeforeUnloadEvent internalCreateBeforeUnloadEvent() {
     return new BeforeUnloadEvent._internalWrap();
   }
@@ -2609,6 +2639,7 @@ class Blob extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Blob._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Blob internalCreateBlob() {
     return new Blob._internalWrap();
   }
@@ -2677,6 +2708,7 @@ class Body extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Body._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Body internalCreateBody() {
     return new Body._internalWrap();
   }
@@ -2859,6 +2891,7 @@ class BodyElement extends HtmlElement implements WindowEventHandlers {
   factory BodyElement() => document.createElement("body");
 
 
+  @Deprecated("Internal Use Only")
   static BodyElement internalCreateBodyElement() {
     return new BodyElement._internalWrap();
   }
@@ -2960,6 +2993,7 @@ class ButtonElement extends HtmlElement {
   factory ButtonElement() => document.createElement("button");
 
 
+  @Deprecated("Internal Use Only")
   static ButtonElement internalCreateButtonElement() {
     return new ButtonElement._internalWrap();
   }
@@ -3103,6 +3137,7 @@ class CDataSection extends Text {
   factory CDataSection._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CDataSection internalCreateCDataSection() {
     return new CDataSection._internalWrap();
   }
@@ -3129,6 +3164,7 @@ class CacheStorage extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CacheStorage._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CacheStorage internalCreateCacheStorage() {
     return new CacheStorage._internalWrap();
   }
@@ -3183,6 +3219,7 @@ class Canvas2DContextAttributes extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Canvas2DContextAttributes._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Canvas2DContextAttributes internalCreateCanvas2DContextAttributes() {
     return new Canvas2DContextAttributes._internalWrap();
   }
@@ -3255,6 +3292,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   }
 
 
+  @Deprecated("Internal Use Only")
   static CanvasElement internalCreateCanvasElement() {
     return new CanvasElement._internalWrap();
   }
@@ -3430,6 +3468,7 @@ class CanvasGradient extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CanvasGradient._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CanvasGradient internalCreateCanvasGradient() {
     return new CanvasGradient._internalWrap();
   }
@@ -3497,6 +3536,7 @@ class CanvasPattern extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CanvasPattern._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CanvasPattern internalCreateCanvasPattern() {
     return new CanvasPattern._internalWrap();
   }
@@ -3530,6 +3570,7 @@ class CanvasRenderingContext2D extends DartHtmlDomObject implements CanvasRender
   // To suppress missing implicit constructor warnings.
   factory CanvasRenderingContext2D._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CanvasRenderingContext2D internalCreateCanvasRenderingContext2D() {
     return new CanvasRenderingContext2D._internalWrap();
   }
@@ -4318,6 +4359,7 @@ class CharacterData extends Node implements ChildNode {
   factory CharacterData._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CharacterData internalCreateCharacterData() {
     return new CharacterData._internalWrap();
   }
@@ -4422,6 +4464,7 @@ class CircularGeofencingRegion extends GeofencingRegion {
   }
 
 
+  @Deprecated("Internal Use Only")
   static CircularGeofencingRegion internalCreateCircularGeofencingRegion() {
     return new CircularGeofencingRegion._internalWrap();
   }
@@ -4473,6 +4516,7 @@ class CloseEvent extends Event {
   factory CloseEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CloseEvent internalCreateCloseEvent() {
     return new CloseEvent._internalWrap();
   }
@@ -4518,6 +4562,7 @@ class Comment extends CharacterData {
   }
 
 
+  @Deprecated("Internal Use Only")
   static Comment internalCreateComment() {
     return new Comment._internalWrap();
   }
@@ -4555,6 +4600,7 @@ class CompositionEvent extends UIEvent {
   factory CompositionEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CompositionEvent internalCreateCompositionEvent() {
     return new CompositionEvent._internalWrap();
   }
@@ -4604,6 +4650,7 @@ class Console extends ConsoleBase {
   factory Console._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static Console internalCreateConsole() {
     return new Console._internalWrap();
   }
@@ -4635,6 +4682,7 @@ class ConsoleBase extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ConsoleBase._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ConsoleBase internalCreateConsoleBase() {
     return new ConsoleBase._internalWrap();
   }
@@ -4785,6 +4833,7 @@ class ContentElement extends HtmlElement {
   factory ContentElement() => document.createElement("content");
 
 
+  @Deprecated("Internal Use Only")
   static ContentElement internalCreateContentElement() {
     return new ContentElement._internalWrap();
   }
@@ -4831,6 +4880,7 @@ class Coordinates extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Coordinates._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Coordinates internalCreateCoordinates() {
     return new Coordinates._internalWrap();
   }
@@ -4887,6 +4937,7 @@ class Credential extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Credential._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Credential internalCreateCredential() {
     return new Credential._internalWrap();
   }
@@ -4930,6 +4981,7 @@ class CredentialsContainer extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CredentialsContainer._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CredentialsContainer internalCreateCredentialsContainer() {
     return new CredentialsContainer._internalWrap();
   }
@@ -4993,6 +5045,7 @@ class Crypto extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Crypto._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Crypto internalCreateCrypto() {
     return new Crypto._internalWrap();
   }
@@ -5033,6 +5086,7 @@ class CryptoKey extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CryptoKey._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CryptoKey internalCreateCryptoKey() {
     return new CryptoKey._internalWrap();
   }
@@ -5082,6 +5136,7 @@ class Css extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Css._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Css internalCreateCss() {
     return new Css._internalWrap();
   }
@@ -5120,6 +5175,7 @@ class CssCharsetRule extends CssRule {
   factory CssCharsetRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssCharsetRule internalCreateCssCharsetRule() {
     return new CssCharsetRule._internalWrap();
   }
@@ -5158,6 +5214,7 @@ class CssFilterRule extends CssRule {
   factory CssFilterRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssFilterRule internalCreateCssFilterRule() {
     return new CssFilterRule._internalWrap();
   }
@@ -5188,6 +5245,7 @@ class CssFontFaceRule extends CssRule {
   factory CssFontFaceRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssFontFaceRule internalCreateCssFontFaceRule() {
     return new CssFontFaceRule._internalWrap();
   }
@@ -5218,6 +5276,7 @@ class CssImportRule extends CssRule {
   factory CssImportRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssImportRule internalCreateCssImportRule() {
     return new CssImportRule._internalWrap();
   }
@@ -5257,6 +5316,7 @@ class CssKeyframeRule extends CssRule {
   factory CssKeyframeRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssKeyframeRule internalCreateCssKeyframeRule() {
     return new CssKeyframeRule._internalWrap();
   }
@@ -5299,6 +5359,7 @@ class CssKeyframesRule extends CssRule {
   factory CssKeyframesRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssKeyframesRule internalCreateCssKeyframesRule() {
     return new CssKeyframesRule._internalWrap();
   }
@@ -5360,6 +5421,7 @@ class CssMediaRule extends CssRule {
   factory CssMediaRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssMediaRule internalCreateCssMediaRule() {
     return new CssMediaRule._internalWrap();
   }
@@ -5402,6 +5464,7 @@ class CssPageRule extends CssRule {
   factory CssPageRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssPageRule internalCreateCssPageRule() {
     return new CssPageRule._internalWrap();
   }
@@ -5439,6 +5502,7 @@ class CssRule extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CssRule._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CssRule internalCreateCssRule() {
     return new CssRule._internalWrap();
   }
@@ -5637,6 +5701,7 @@ class CssStyleDeclaration  extends DartHtmlDomObject with
   // To suppress missing implicit constructor warnings.
   factory CssStyleDeclaration._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CssStyleDeclaration internalCreateCssStyleDeclaration() {
     return new CssStyleDeclaration._internalWrap();
   }
@@ -8833,6 +8898,7 @@ class CssStyleRule extends CssRule {
   factory CssStyleRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssStyleRule internalCreateCssStyleRule() {
     return new CssStyleRule._internalWrap();
   }
@@ -8871,6 +8937,7 @@ class CssStyleSheet extends StyleSheet {
   factory CssStyleSheet._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssStyleSheet internalCreateCssStyleSheet() {
     return new CssStyleSheet._internalWrap();
   }
@@ -8933,6 +9000,7 @@ class CssSupportsRule extends CssRule {
   factory CssSupportsRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssSupportsRule internalCreateCssSupportsRule() {
     return new CssSupportsRule._internalWrap();
   }
@@ -8976,6 +9044,7 @@ class CssViewportRule extends CssRule {
   factory CssViewportRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssViewportRule internalCreateCssViewportRule() {
     return new CssViewportRule._internalWrap();
   }
@@ -9040,6 +9109,7 @@ class CustomEvent extends Event {
   factory CustomEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CustomEvent internalCreateCustomEvent() {
     return new CustomEvent._internalWrap();
   }
@@ -9078,6 +9148,7 @@ class DListElement extends HtmlElement {
   factory DListElement() => document.createElement("dl");
 
 
+  @Deprecated("Internal Use Only")
   static DListElement internalCreateDListElement() {
     return new DListElement._internalWrap();
   }
@@ -9118,6 +9189,7 @@ class DataListElement extends HtmlElement {
   factory DataListElement() => document.createElement("datalist");
 
 
+  @Deprecated("Internal Use Only")
   static DataListElement internalCreateDataListElement() {
     return new DataListElement._internalWrap();
   }
@@ -9157,6 +9229,7 @@ class DataTransfer extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DataTransfer._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DataTransfer internalCreateDataTransfer() {
     return new DataTransfer._internalWrap();
   }
@@ -9245,6 +9318,7 @@ class DataTransferItem extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DataTransferItem._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DataTransferItem internalCreateDataTransferItem() {
     return new DataTransferItem._internalWrap();
   }
@@ -9302,6 +9376,7 @@ class DataTransferItemList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DataTransferItemList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DataTransferItemList internalCreateDataTransferItemList() {
     return new DataTransferItemList._internalWrap();
   }
@@ -9394,6 +9469,7 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
 
+  @Deprecated("Internal Use Only")
   static DedicatedWorkerGlobalScope internalCreateDedicatedWorkerGlobalScope() {
     return new DedicatedWorkerGlobalScope._internalWrap();
   }
@@ -9431,6 +9507,7 @@ class DeprecatedStorageInfo extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DeprecatedStorageInfo._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DeprecatedStorageInfo internalCreateDeprecatedStorageInfo() {
     return new DeprecatedStorageInfo._internalWrap();
   }
@@ -9495,6 +9572,7 @@ class DeprecatedStorageQuota extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DeprecatedStorageQuota._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DeprecatedStorageQuota internalCreateDeprecatedStorageQuota() {
     return new DeprecatedStorageQuota._internalWrap();
   }
@@ -9552,6 +9630,7 @@ class DetailsElement extends HtmlElement {
   factory DetailsElement() => document.createElement("details");
 
 
+  @Deprecated("Internal Use Only")
   static DetailsElement internalCreateDetailsElement() {
     return new DetailsElement._internalWrap();
   }
@@ -9596,6 +9675,7 @@ class DeviceAcceleration extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DeviceAcceleration._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DeviceAcceleration internalCreateDeviceAcceleration() {
     return new DeviceAcceleration._internalWrap();
   }
@@ -9637,6 +9717,7 @@ class DeviceLightEvent extends Event {
   factory DeviceLightEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static DeviceLightEvent internalCreateDeviceLightEvent() {
     return new DeviceLightEvent._internalWrap();
   }
@@ -9670,6 +9751,7 @@ class DeviceMotionEvent extends Event {
   factory DeviceMotionEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static DeviceMotionEvent internalCreateDeviceMotionEvent() {
     return new DeviceMotionEvent._internalWrap();
   }
@@ -9725,6 +9807,7 @@ class DeviceOrientationEvent extends Event {
   factory DeviceOrientationEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static DeviceOrientationEvent internalCreateDeviceOrientationEvent() {
     return new DeviceOrientationEvent._internalWrap();
   }
@@ -9772,6 +9855,7 @@ class DeviceRotationRate extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DeviceRotationRate._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DeviceRotationRate internalCreateDeviceRotationRate() {
     return new DeviceRotationRate._internalWrap();
   }
@@ -9813,6 +9897,7 @@ class DialogElement extends HtmlElement {
   factory DialogElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static DialogElement internalCreateDialogElement() {
     return new DialogElement._internalWrap();
   }
@@ -9911,6 +9996,7 @@ class DirectoryEntry extends Entry {
   factory DirectoryEntry._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static DirectoryEntry internalCreateDirectoryEntry() {
     return new DirectoryEntry._internalWrap();
   }
@@ -10009,6 +10095,7 @@ class DirectoryReader extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DirectoryReader._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DirectoryReader internalCreateDirectoryReader() {
     return new DirectoryReader._internalWrap();
   }
@@ -10080,6 +10167,7 @@ class DivElement extends HtmlElement {
   factory DivElement() => document.createElement("div");
 
 
+  @Deprecated("Internal Use Only")
   static DivElement internalCreateDivElement() {
     return new DivElement._internalWrap();
   }
@@ -10163,6 +10251,7 @@ class Document extends Node
   static const EventStreamProvider<Event> selectionChangeEvent = const EventStreamProvider<Event>('selectionchange');
 
 
+  @Deprecated("Internal Use Only")
   static Document internalCreateDocument() {
     return new Document._internalWrap();
   }
@@ -11100,6 +11189,7 @@ class DocumentFragment extends Node implements ParentNode {
   factory DocumentFragment._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static DocumentFragment internalCreateDocumentFragment() {
     return new DocumentFragment._internalWrap();
   }
@@ -11168,6 +11258,7 @@ class DomError extends DartHtmlDomObject {
     return wrap_jso(_blink.BlinkDOMError.instance.constructorCallback_2_(name, message));
   }
 
+  @Deprecated("Internal Use Only")
   static DomError internalCreateDomError() {
     return new DomError._internalWrap();
   }
@@ -11228,6 +11319,7 @@ class DomException extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomException._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DomException internalCreateDomException() {
     return new DomException._internalWrap();
   }
@@ -11277,6 +11369,7 @@ class DomImplementation extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomImplementation._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DomImplementation internalCreateDomImplementation() {
     return new DomImplementation._internalWrap();
   }
@@ -11321,6 +11414,7 @@ class DomIterator extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomIterator._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DomIterator internalCreateDomIterator() {
     return new DomIterator._internalWrap();
   }
@@ -11369,6 +11463,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
 
+  @Deprecated("Internal Use Only")
   static DomMatrix internalCreateDomMatrix() {
     return new DomMatrix._internalWrap();
   }
@@ -11674,6 +11769,7 @@ class DomMatrixReadOnly extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomMatrixReadOnly._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DomMatrixReadOnly internalCreateDomMatrixReadOnly() {
     return new DomMatrixReadOnly._internalWrap();
   }
@@ -11891,6 +11987,7 @@ class DomParser extends DartHtmlDomObject {
     return wrap_jso(_blink.BlinkDOMParser.instance.constructorCallback_0_());
   }
 
+  @Deprecated("Internal Use Only")
   static DomParser internalCreateDomParser() {
     return new DomParser._internalWrap();
   }
@@ -11946,6 +12043,7 @@ class DomPoint extends DomPointReadOnly {
   }
 
 
+  @Deprecated("Internal Use Only")
   static DomPoint internalCreateDomPoint() {
     return new DomPoint._internalWrap();
   }
@@ -12021,6 +12119,7 @@ class DomPointReadOnly extends DartHtmlDomObject {
     return wrap_jso(_blink.BlinkDOMPointReadOnly.instance.constructorCallback_4_(x, y, z, w));
   }
 
+  @Deprecated("Internal Use Only")
   static DomPointReadOnly internalCreateDomPointReadOnly() {
     return new DomPointReadOnly._internalWrap();
   }
@@ -12163,6 +12262,7 @@ class DomRectReadOnly extends DartHtmlDomObject implements Rectangle {
     return wrap_jso(_blink.BlinkDOMRectReadOnly.instance.constructorCallback_4_(x, y, width, height));
   }
 
+  @Deprecated("Internal Use Only")
   static DomRectReadOnly internalCreateDomRectReadOnly() {
     return new DomRectReadOnly._internalWrap();
   }
@@ -12229,6 +12329,7 @@ class DomSettableTokenList extends DomTokenList {
   factory DomSettableTokenList._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static DomSettableTokenList internalCreateDomSettableTokenList() {
     return new DomSettableTokenList._internalWrap();
   }
@@ -12266,6 +12367,7 @@ class DomStringList extends DartHtmlDomObject with ListMixin<String>, ImmutableL
   // To suppress missing implicit constructor warnings.
   factory DomStringList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DomStringList internalCreateDomStringList() {
     return new DomStringList._internalWrap();
   }
@@ -12397,6 +12499,7 @@ class DomTokenList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomTokenList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DomTokenList internalCreateDomTokenList() {
     return new DomTokenList._internalWrap();
   }
@@ -15404,6 +15507,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
   static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
 
 
+  @Deprecated("Internal Use Only")
   static Element internalCreateElement() {
     return new Element._internalWrap();
   }
@@ -16294,6 +16398,7 @@ class EmbedElement extends HtmlElement {
   factory EmbedElement() => document.createElement("embed");
 
 
+  @Deprecated("Internal Use Only")
   static EmbedElement internalCreateEmbedElement() {
     return new EmbedElement._internalWrap();
   }
@@ -16399,6 +16504,7 @@ class Entry extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Entry._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Entry internalCreateEntry() {
     return new Entry._internalWrap();
   }
@@ -16579,6 +16685,7 @@ class ErrorEvent extends Event {
   factory ErrorEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ErrorEvent internalCreateErrorEvent() {
     return new ErrorEvent._internalWrap();
   }
@@ -16674,6 +16781,7 @@ class Event extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Event._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Event internalCreateEvent() {
     return new Event._internalWrap();
   }
@@ -16865,6 +16973,7 @@ class EventSource extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static EventSource internalCreateEventSource() {
     return new EventSource._internalWrap();
   }
@@ -17048,6 +17157,7 @@ class EventTarget extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory EventTarget._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static EventTarget internalCreateEventTarget() {
     return new EventTarget._internalWrap();
   }
@@ -17115,6 +17225,7 @@ class ExtendableEvent extends Event {
   factory ExtendableEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ExtendableEvent internalCreateExtendableEvent() {
     return new ExtendableEvent._internalWrap();
   }
@@ -17153,6 +17264,7 @@ class FederatedCredential extends Credential {
   }
 
 
+  @Deprecated("Internal Use Only")
   static FederatedCredential internalCreateFederatedCredential() {
     return new FederatedCredential._internalWrap();
   }
@@ -17185,6 +17297,7 @@ class FetchEvent extends Event {
   factory FetchEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static FetchEvent internalCreateFetchEvent() {
     return new FetchEvent._internalWrap();
   }
@@ -17231,6 +17344,7 @@ class FieldSetElement extends HtmlElement {
   factory FieldSetElement() => document.createElement("fieldset");
 
 
+  @Deprecated("Internal Use Only")
   static FieldSetElement internalCreateFieldSetElement() {
     return new FieldSetElement._internalWrap();
   }
@@ -17311,6 +17425,7 @@ class File extends Blob {
   factory File._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static File internalCreateFile() {
     return new File._internalWrap();
   }
@@ -17371,6 +17486,7 @@ class FileEntry extends Entry {
   factory FileEntry._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static FileEntry internalCreateFileEntry() {
     return new FileEntry._internalWrap();
   }
@@ -17433,6 +17549,7 @@ class FileError extends DomError {
   factory FileError._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static FileError internalCreateFileError() {
     return new FileError._internalWrap();
   }
@@ -17510,6 +17627,7 @@ class FileList extends DartHtmlDomObject with ListMixin<File>, ImmutableListMixi
   // To suppress missing implicit constructor warnings.
   factory FileList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static FileList internalCreateFileList() {
     return new FileList._internalWrap();
   }
@@ -17667,6 +17785,7 @@ class FileReader extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static FileReader internalCreateFileReader() {
     return new FileReader._internalWrap();
   }
@@ -17768,6 +17887,7 @@ class FileStream extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory FileStream._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static FileStream internalCreateFileStream() {
     return new FileStream._internalWrap();
   }
@@ -17803,6 +17923,7 @@ class FileSystem extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory FileSystem._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static FileSystem internalCreateFileSystem() {
     return new FileSystem._internalWrap();
   }
@@ -17915,6 +18036,7 @@ class FileWriter extends EventTarget {
   static const EventStreamProvider<ProgressEvent> writeStartEvent = const EventStreamProvider<ProgressEvent>('writestart');
 
 
+  @Deprecated("Internal Use Only")
   static FileWriter internalCreateFileWriter() {
     return new FileWriter._internalWrap();
   }
@@ -18026,6 +18148,7 @@ class FocusEvent extends UIEvent {
   factory FocusEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static FocusEvent internalCreateFocusEvent() {
     return new FocusEvent._internalWrap();
   }
@@ -18083,6 +18206,7 @@ class FontFace extends DartHtmlDomObject {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @Deprecated("Internal Use Only")
   static FontFace internalCreateFontFace() {
     return new FontFace._internalWrap();
   }
@@ -18197,6 +18321,7 @@ class FontFaceSet extends EventTarget {
   factory FontFaceSet._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static FontFaceSet internalCreateFontFaceSet() {
     return new FontFaceSet._internalWrap();
   }
@@ -18280,6 +18405,7 @@ class FontFaceSetLoadEvent extends Event {
   factory FontFaceSetLoadEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static FontFaceSetLoadEvent internalCreateFontFaceSetLoadEvent() {
     return new FontFaceSetLoadEvent._internalWrap();
   }
@@ -18321,6 +18447,7 @@ class FormData extends DartHtmlDomObject {
   @DocsEditable()
   static FormData _create(form) => wrap_jso(_blink.BlinkFormData.instance.constructorCallback_1_(form));
 
+  @Deprecated("Internal Use Only")
   static FormData internalCreateFormData() {
     return new FormData._internalWrap();
   }
@@ -18364,6 +18491,7 @@ class FormElement extends HtmlElement {
   factory FormElement() => document.createElement("form");
 
 
+  @Deprecated("Internal Use Only")
   static FormElement internalCreateFormElement() {
     return new FormElement._internalWrap();
   }
@@ -18505,6 +18633,7 @@ class Gamepad extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Gamepad._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Gamepad internalCreateGamepad() {
     return new Gamepad._internalWrap();
   }
@@ -18559,6 +18688,7 @@ class GamepadButton extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory GamepadButton._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static GamepadButton internalCreateGamepadButton() {
     return new GamepadButton._internalWrap();
   }
@@ -18598,6 +18728,7 @@ class GamepadEvent extends Event {
   factory GamepadEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static GamepadEvent internalCreateGamepadEvent() {
     return new GamepadEvent._internalWrap();
   }
@@ -18629,6 +18760,7 @@ class Geofencing extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Geofencing._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Geofencing internalCreateGeofencing() {
     return new Geofencing._internalWrap();
   }
@@ -18672,6 +18804,7 @@ class GeofencingRegion extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory GeofencingRegion._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static GeofencingRegion internalCreateGeofencingRegion() {
     return new GeofencingRegion._internalWrap();
   }
@@ -18774,6 +18907,7 @@ class Geolocation extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Geolocation._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Geolocation internalCreateGeolocation() {
     return new Geolocation._internalWrap();
   }
@@ -18829,6 +18963,7 @@ class Geoposition extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Geoposition._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Geoposition internalCreateGeoposition() {
     return new Geoposition._internalWrap();
   }
@@ -19404,6 +19539,7 @@ class HRElement extends HtmlElement {
   factory HRElement() => document.createElement("hr");
 
 
+  @Deprecated("Internal Use Only")
   static HRElement internalCreateHRElement() {
     return new HRElement._internalWrap();
   }
@@ -19455,6 +19591,7 @@ class HashChangeEvent extends Event {
   factory HashChangeEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static HashChangeEvent internalCreateHashChangeEvent() {
     return new HashChangeEvent._internalWrap();
   }
@@ -19500,6 +19637,7 @@ class HeadElement extends HtmlElement {
   factory HeadElement() => document.createElement("head");
 
 
+  @Deprecated("Internal Use Only")
   static HeadElement internalCreateHeadElement() {
     return new HeadElement._internalWrap();
   }
@@ -19548,6 +19686,7 @@ class Headers extends DartHtmlDomObject {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @Deprecated("Internal Use Only")
   static Headers internalCreateHeaders() {
     return new Headers._internalWrap();
   }
@@ -19624,6 +19763,7 @@ class HeadingElement extends HtmlElement {
   factory HeadingElement.h6() => document.createElement("h6");
 
 
+  @Deprecated("Internal Use Only")
   static HeadingElement internalCreateHeadingElement() {
     return new HeadingElement._internalWrap();
   }
@@ -19663,6 +19803,7 @@ class History extends DartHtmlDomObject implements HistoryBase {
   // To suppress missing implicit constructor warnings.
   factory History._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static History internalCreateHistory() {
     return new History._internalWrap();
   }
@@ -19725,6 +19866,7 @@ class HtmlCollection extends DartHtmlDomObject with ListMixin<Node>, ImmutableLi
   // To suppress missing implicit constructor warnings.
   factory HtmlCollection._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static HtmlCollection internalCreateHtmlCollection() {
     return new HtmlCollection._internalWrap();
   }
@@ -19810,6 +19952,7 @@ class HtmlDocument extends Document {
   factory HtmlDocument._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static HtmlDocument internalCreateHtmlDocument() {
     return new HtmlDocument._internalWrap();
   }
@@ -20618,6 +20761,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
 
 
+  @Deprecated("Internal Use Only")
   static HtmlElement internalCreateHtmlElement() {
     return new HtmlElement._internalWrap();
   }
@@ -21037,6 +21181,7 @@ class HtmlFormControlsCollection extends HtmlCollection {
   factory HtmlFormControlsCollection._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static HtmlFormControlsCollection internalCreateHtmlFormControlsCollection() {
     return new HtmlFormControlsCollection._internalWrap();
   }
@@ -21071,6 +21216,7 @@ class HtmlHtmlElement extends HtmlElement {
   factory HtmlHtmlElement() => document.createElement("html");
 
 
+  @Deprecated("Internal Use Only")
   static HtmlHtmlElement internalCreateHtmlHtmlElement() {
     return new HtmlHtmlElement._internalWrap();
   }
@@ -21103,6 +21249,7 @@ class HtmlOptionsCollection extends HtmlCollection {
   factory HtmlOptionsCollection._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static HtmlOptionsCollection internalCreateHtmlOptionsCollection() {
     return new HtmlOptionsCollection._internalWrap();
   }
@@ -21513,6 +21660,7 @@ class HttpRequest extends HttpRequestEventTarget {
   static HttpRequest _create() => wrap_jso(_blink.BlinkXMLHttpRequest.instance.constructorCallback_0_());
 
 
+  @Deprecated("Internal Use Only")
   static HttpRequest internalCreateHttpRequest() {
     return new HttpRequest._internalWrap();
   }
@@ -21926,6 +22074,7 @@ class HttpRequestEventTarget extends EventTarget {
   static const EventStreamProvider<ProgressEvent> timeoutEvent = const EventStreamProvider<ProgressEvent>('timeout');
 
 
+  @Deprecated("Internal Use Only")
   static HttpRequestEventTarget internalCreateHttpRequestEventTarget() {
     return new HttpRequestEventTarget._internalWrap();
   }
@@ -22004,6 +22153,7 @@ class HttpRequestUpload extends HttpRequestEventTarget {
   factory HttpRequestUpload._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static HttpRequestUpload internalCreateHttpRequestUpload() {
     return new HttpRequestUpload._internalWrap();
   }
@@ -22034,6 +22184,7 @@ class IFrameElement extends HtmlElement {
   factory IFrameElement() => document.createElement("iframe");
 
 
+  @Deprecated("Internal Use Only")
   static IFrameElement internalCreateIFrameElement() {
     return new IFrameElement._internalWrap();
   }
@@ -22138,6 +22289,7 @@ class ImageBitmap extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ImageBitmap._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ImageBitmap internalCreateImageBitmap() {
     return new ImageBitmap._internalWrap();
   }
@@ -22192,6 +22344,7 @@ class ImageData extends DartHtmlDomObject {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @Deprecated("Internal Use Only")
   static ImageData internalCreateImageData() {
     return new ImageData._internalWrap();
   }
@@ -22239,6 +22392,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   }
 
 
+  @Deprecated("Internal Use Only")
   static ImageElement internalCreateImageElement() {
     return new ImageElement._internalWrap();
   }
@@ -22374,6 +22528,7 @@ class InjectedScriptHost extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory InjectedScriptHost._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static InjectedScriptHost internalCreateInjectedScriptHost() {
     return new InjectedScriptHost._internalWrap();
   }
@@ -22437,6 +22592,7 @@ class InputElement extends HtmlElement implements
   factory InputElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static InputElement internalCreateInputElement() {
     return new InputElement._internalWrap();
   }
@@ -23457,6 +23613,7 @@ class InputMethodContext extends EventTarget {
   factory InputMethodContext._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static InputMethodContext internalCreateInputMethodContext() {
     return new InputMethodContext._internalWrap();
   }
@@ -23507,6 +23664,7 @@ class InstallEvent extends ExtendableEvent {
   factory InstallEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static InstallEvent internalCreateInstallEvent() {
     return new InstallEvent._internalWrap();
   }
@@ -23559,6 +23717,7 @@ class KeyboardEvent extends UIEvent {
   factory KeyboardEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static KeyboardEvent internalCreateKeyboardEvent() {
     return new KeyboardEvent._internalWrap();
   }
@@ -23658,6 +23817,7 @@ class KeygenElement extends HtmlElement {
   factory KeygenElement() => document.createElement("keygen");
 
 
+  @Deprecated("Internal Use Only")
   static KeygenElement internalCreateKeygenElement() {
     return new KeygenElement._internalWrap();
   }
@@ -23770,6 +23930,7 @@ class LIElement extends HtmlElement {
   factory LIElement() => document.createElement("li");
 
 
+  @Deprecated("Internal Use Only")
   static LIElement internalCreateLIElement() {
     return new LIElement._internalWrap();
   }
@@ -23814,6 +23975,7 @@ class LabelElement extends HtmlElement {
   factory LabelElement() => document.createElement("label");
 
 
+  @Deprecated("Internal Use Only")
   static LabelElement internalCreateLabelElement() {
     return new LabelElement._internalWrap();
   }
@@ -23866,6 +24028,7 @@ class LegendElement extends HtmlElement {
   factory LegendElement() => document.createElement("legend");
 
 
+  @Deprecated("Internal Use Only")
   static LegendElement internalCreateLegendElement() {
     return new LegendElement._internalWrap();
   }
@@ -23904,6 +24067,7 @@ class LinkElement extends HtmlElement {
   factory LinkElement() => document.createElement("link");
 
 
+  @Deprecated("Internal Use Only")
   static LinkElement internalCreateLinkElement() {
     return new LinkElement._internalWrap();
   }
@@ -24030,6 +24194,7 @@ class LocalCredential extends Credential {
   }
 
 
+  @Deprecated("Internal Use Only")
   static LocalCredential internalCreateLocalCredential() {
     return new LocalCredential._internalWrap();
   }
@@ -24058,6 +24223,7 @@ class Location extends DartHtmlDomObject implements LocationBase {
   // To suppress missing implicit constructor warnings.
   factory Location._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Location internalCreateLocation() {
     return new Location._internalWrap();
   }
@@ -24204,6 +24370,7 @@ class MapElement extends HtmlElement {
   factory MapElement() => document.createElement("map");
 
 
+  @Deprecated("Internal Use Only")
   static MapElement internalCreateMapElement() {
     return new MapElement._internalWrap();
   }
@@ -24256,6 +24423,7 @@ class MediaController extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static MediaController internalCreateMediaController() {
     return new MediaController._internalWrap();
   }
@@ -24358,6 +24526,7 @@ class MediaDeviceInfo extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MediaDeviceInfo._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MediaDeviceInfo internalCreateMediaDeviceInfo() {
     return new MediaDeviceInfo._internalWrap();
   }
@@ -24473,6 +24642,7 @@ class MediaElement extends HtmlElement {
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
 
 
+  @Deprecated("Internal Use Only")
   static MediaElement internalCreateMediaElement() {
     return new MediaElement._internalWrap();
   }
@@ -24835,6 +25005,7 @@ class MediaError extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MediaError._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MediaError internalCreateMediaError() {
     return new MediaError._internalWrap();
   }
@@ -24890,6 +25061,7 @@ class MediaKeyError extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MediaKeyError._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MediaKeyError internalCreateMediaKeyError() {
     return new MediaKeyError._internalWrap();
   }
@@ -24953,6 +25125,7 @@ class MediaKeyEvent extends Event {
   factory MediaKeyEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MediaKeyEvent internalCreateMediaKeyEvent() {
     return new MediaKeyEvent._internalWrap();
   }
@@ -25009,6 +25182,7 @@ class MediaKeyMessageEvent extends Event {
   factory MediaKeyMessageEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MediaKeyMessageEvent internalCreateMediaKeyMessageEvent() {
     return new MediaKeyMessageEvent._internalWrap();
   }
@@ -25045,6 +25219,7 @@ class MediaKeyNeededEvent extends Event {
   factory MediaKeyNeededEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MediaKeyNeededEvent internalCreateMediaKeyNeededEvent() {
     return new MediaKeyNeededEvent._internalWrap();
   }
@@ -25082,6 +25257,7 @@ class MediaKeySession extends EventTarget {
   factory MediaKeySession._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MediaKeySession internalCreateMediaKeySession() {
     return new MediaKeySession._internalWrap();
   }
@@ -25151,6 +25327,7 @@ class MediaKeys extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MediaKeys._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MediaKeys internalCreateMediaKeys() {
     return new MediaKeys._internalWrap();
   }
@@ -25200,6 +25377,7 @@ class MediaList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MediaList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MediaList internalCreateMediaList() {
     return new MediaList._internalWrap();
   }
@@ -25258,6 +25436,7 @@ class MediaQueryList extends EventTarget {
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
 
+  @Deprecated("Internal Use Only")
   static MediaQueryList internalCreateMediaQueryList() {
     return new MediaQueryList._internalWrap();
   }
@@ -25306,6 +25485,7 @@ class MediaQueryListEvent extends Event {
   factory MediaQueryListEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MediaQueryListEvent internalCreateMediaQueryListEvent() {
     return new MediaQueryListEvent._internalWrap();
   }
@@ -25352,6 +25532,7 @@ class MediaSource extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static MediaSource internalCreateMediaSource() {
     return new MediaSource._internalWrap();
   }
@@ -25467,6 +25648,7 @@ class MediaStream extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static MediaStream internalCreateMediaStream() {
     return new MediaStream._internalWrap();
   }
@@ -25567,6 +25749,7 @@ class MediaStreamEvent extends Event {
   factory MediaStreamEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MediaStreamEvent internalCreateMediaStreamEvent() {
     return new MediaStreamEvent._internalWrap();
   }
@@ -25633,6 +25816,7 @@ class MediaStreamTrack extends EventTarget {
   static const EventStreamProvider<Event> unmuteEvent = const EventStreamProvider<Event>('unmute');
 
 
+  @Deprecated("Internal Use Only")
   static MediaStreamTrack internalCreateMediaStreamTrack() {
     return new MediaStreamTrack._internalWrap();
   }
@@ -25728,6 +25912,7 @@ class MediaStreamTrackEvent extends Event {
   factory MediaStreamTrackEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MediaStreamTrackEvent internalCreateMediaStreamTrackEvent() {
     return new MediaStreamTrackEvent._internalWrap();
   }
@@ -25771,6 +25956,7 @@ class MemoryInfo extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MemoryInfo._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MemoryInfo internalCreateMemoryInfo() {
     return new MemoryInfo._internalWrap();
   }
@@ -25825,6 +26011,7 @@ class MenuElement extends HtmlElement {
   factory MenuElement() => document.createElement("menu");
 
 
+  @Deprecated("Internal Use Only")
   static MenuElement internalCreateMenuElement() {
     return new MenuElement._internalWrap();
   }
@@ -25878,6 +26065,7 @@ class MenuItemElement extends HtmlElement {
   factory MenuItemElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MenuItemElement internalCreateMenuItemElement() {
     return new MenuItemElement._internalWrap();
   }
@@ -25960,6 +26148,7 @@ class MessageChannel extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MessageChannel._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MessageChannel internalCreateMessageChannel() {
     return new MessageChannel._internalWrap();
   }
@@ -26007,6 +26196,7 @@ class MessageEvent extends Event {
   factory MessageEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MessageEvent internalCreateMessageEvent() {
     return new MessageEvent._internalWrap();
   }
@@ -26065,6 +26255,7 @@ class MessagePort extends EventTarget {
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
 
+  @Deprecated("Internal Use Only")
   static MessagePort internalCreateMessagePort() {
     return new MessagePort._internalWrap();
   }
@@ -26112,6 +26303,7 @@ class MetaElement extends HtmlElement {
   factory MetaElement() => document.createElement("meta");
 
 
+  @Deprecated("Internal Use Only")
   static MetaElement internalCreateMetaElement() {
     return new MetaElement._internalWrap();
   }
@@ -26169,6 +26361,7 @@ class Metadata extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Metadata._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Metadata internalCreateMetadata() {
     return new Metadata._internalWrap();
   }
@@ -26224,6 +26417,7 @@ class MeterElement extends HtmlElement {
   factory MeterElement() => document.createElement("meter");
 
 
+  @Deprecated("Internal Use Only")
   static MeterElement internalCreateMeterElement() {
     return new MeterElement._internalWrap();
   }
@@ -26334,6 +26528,7 @@ class MidiAccess extends EventTarget {
   static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
 
 
+  @Deprecated("Internal Use Only")
   static MidiAccess internalCreateMidiAccess() {
     return new MidiAccess._internalWrap();
   }
@@ -26385,6 +26580,7 @@ class MidiConnectionEvent extends Event {
   factory MidiConnectionEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MidiConnectionEvent internalCreateMidiConnectionEvent() {
     return new MidiConnectionEvent._internalWrap();
   }
@@ -26427,6 +26623,7 @@ class MidiInput extends MidiPort {
   static const EventStreamProvider<MidiMessageEvent> midiMessageEvent = const EventStreamProvider<MidiMessageEvent>('midimessage');
 
 
+  @Deprecated("Internal Use Only")
   static MidiInput internalCreateMidiInput() {
     return new MidiInput._internalWrap();
   }
@@ -26458,6 +26655,7 @@ class MidiInputMap extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MidiInputMap._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MidiInputMap internalCreateMidiInputMap() {
     return new MidiInputMap._internalWrap();
   }
@@ -26518,6 +26716,7 @@ class MidiMessageEvent extends Event {
   factory MidiMessageEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MidiMessageEvent internalCreateMidiMessageEvent() {
     return new MidiMessageEvent._internalWrap();
   }
@@ -26554,6 +26753,7 @@ class MidiOutput extends MidiPort {
   factory MidiOutput._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MidiOutput internalCreateMidiOutput() {
     return new MidiOutput._internalWrap();
   }
@@ -26589,6 +26789,7 @@ class MidiOutputMap extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MidiOutputMap._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MidiOutputMap internalCreateMidiOutputMap() {
     return new MidiOutputMap._internalWrap();
   }
@@ -26659,6 +26860,7 @@ class MidiPort extends EventTarget {
   static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
 
 
+  @Deprecated("Internal Use Only")
   static MidiPort internalCreateMidiPort() {
     return new MidiPort._internalWrap();
   }
@@ -26710,6 +26912,7 @@ class MimeType extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MimeType._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MimeType internalCreateMimeType() {
     return new MimeType._internalWrap();
   }
@@ -26754,6 +26957,7 @@ class MimeTypeArray extends DartHtmlDomObject with ListMixin<MimeType>, Immutabl
   // To suppress missing implicit constructor warnings.
   factory MimeTypeArray._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MimeTypeArray internalCreateMimeTypeArray() {
     return new MimeTypeArray._internalWrap();
   }
@@ -26845,6 +27049,7 @@ class ModElement extends HtmlElement {
   factory ModElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ModElement internalCreateModElement() {
     return new ModElement._internalWrap();
   }
@@ -26907,6 +27112,7 @@ class MouseEvent extends UIEvent {
   factory MouseEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MouseEvent internalCreateMouseEvent() {
     return new MouseEvent._internalWrap();
   }
@@ -27097,6 +27303,7 @@ class MutationObserver extends DartHtmlDomObject {
   @DocsEditable()
   factory MutationObserver._(MutationCallback callback) => wrap_jso(_create(callback));
 
+  @Deprecated("Internal Use Only")
   static MutationObserver internalCreateMutationObserver() {
     return new MutationObserver._internalWrap();
   }
@@ -27207,6 +27414,7 @@ class MutationRecord extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MutationRecord._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MutationRecord internalCreateMutationRecord() {
     return new MutationRecord._internalWrap();
   }
@@ -27324,6 +27532,7 @@ class Navigator extends DartHtmlDomObject implements NavigatorCpu, NavigatorLang
   // To suppress missing implicit constructor warnings.
   factory Navigator._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Navigator internalCreateNavigator() {
     return new Navigator._internalWrap();
   }
@@ -27653,6 +27862,7 @@ class NavigatorUserMediaError extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory NavigatorUserMediaError._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static NavigatorUserMediaError internalCreateNavigatorUserMediaError() {
     return new NavigatorUserMediaError._internalWrap();
   }
@@ -27716,6 +27926,7 @@ class NetworkInformation extends EventTarget {
   factory NetworkInformation._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static NetworkInformation internalCreateNetworkInformation() {
     return new NetworkInformation._internalWrap();
   }
@@ -28017,6 +28228,7 @@ class Node extends EventTarget {
   factory Node._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static Node internalCreateNode() {
     return new Node._internalWrap();
   }
@@ -28359,6 +28571,7 @@ class NodeFilter extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory NodeFilter._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static NodeFilter internalCreateNodeFilter() {
     return new NodeFilter._internalWrap();
   }
@@ -28431,6 +28644,7 @@ class NodeIterator extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory NodeIterator._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static NodeIterator internalCreateNodeIterator() {
     return new NodeIterator._internalWrap();
   }
@@ -28486,6 +28700,7 @@ class NodeList extends DartHtmlDomObject with ListMixin<Node>, ImmutableListMixi
   // To suppress missing implicit constructor warnings.
   factory NodeList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static NodeList internalCreateNodeList() {
     return new NodeList._internalWrap();
   }
@@ -28629,6 +28844,7 @@ class Notification extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static Notification internalCreateNotification() {
     return new Notification._internalWrap();
   }
@@ -28747,6 +28963,7 @@ class OListElement extends HtmlElement {
   factory OListElement() => document.createElement("ol");
 
 
+  @Deprecated("Internal Use Only")
   static OListElement internalCreateOListElement() {
     return new OListElement._internalWrap();
   }
@@ -28811,6 +29028,7 @@ class ObjectElement extends HtmlElement {
   factory ObjectElement() => document.createElement("object");
 
 
+  @Deprecated("Internal Use Only")
   static ObjectElement internalCreateObjectElement() {
     return new ObjectElement._internalWrap();
   }
@@ -28940,6 +29158,7 @@ class OptGroupElement extends HtmlElement {
   factory OptGroupElement() => document.createElement("optgroup");
 
 
+  @Deprecated("Internal Use Only")
   static OptGroupElement internalCreateOptGroupElement() {
     return new OptGroupElement._internalWrap();
   }
@@ -28992,6 +29211,7 @@ class OptionElement extends HtmlElement {
   }
 
 
+  @Deprecated("Internal Use Only")
   static OptionElement internalCreateOptionElement() {
     return new OptionElement._internalWrap();
   }
@@ -29079,6 +29299,7 @@ class OutputElement extends HtmlElement {
   factory OutputElement() => document.createElement("output");
 
 
+  @Deprecated("Internal Use Only")
   static OutputElement internalCreateOutputElement() {
     return new OutputElement._internalWrap();
   }
@@ -29176,6 +29397,7 @@ class OverflowEvent extends Event {
   factory OverflowEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static OverflowEvent internalCreateOverflowEvent() {
     return new OverflowEvent._internalWrap();
   }
@@ -29228,6 +29450,7 @@ class PageTransitionEvent extends Event {
   factory PageTransitionEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PageTransitionEvent internalCreatePageTransitionEvent() {
     return new PageTransitionEvent._internalWrap();
   }
@@ -29262,6 +29485,7 @@ class ParagraphElement extends HtmlElement {
   factory ParagraphElement() => document.createElement("p");
 
 
+  @Deprecated("Internal Use Only")
   static ParagraphElement internalCreateParagraphElement() {
     return new ParagraphElement._internalWrap();
   }
@@ -29299,6 +29523,7 @@ class ParamElement extends HtmlElement {
   factory ParamElement() => document.createElement("param");
 
 
+  @Deprecated("Internal Use Only")
   static ParamElement internalCreateParamElement() {
     return new ParamElement._internalWrap();
   }
@@ -29407,6 +29632,7 @@ class Path2D extends DartHtmlDomObject implements _CanvasPathMethods {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @Deprecated("Internal Use Only")
   static Path2D internalCreatePath2D() {
     return new Path2D._internalWrap();
   }
@@ -29506,6 +29732,7 @@ class Performance extends EventTarget {
   static const EventStreamProvider<Event> resourceTimingBufferFullEvent = const EventStreamProvider<Event>('webkitresourcetimingbufferfull');
 
 
+  @Deprecated("Internal Use Only")
   static Performance internalCreatePerformance() {
     return new Performance._internalWrap();
   }
@@ -29618,6 +29845,7 @@ class PerformanceEntry extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PerformanceEntry._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PerformanceEntry internalCreatePerformanceEntry() {
     return new PerformanceEntry._internalWrap();
   }
@@ -29664,6 +29892,7 @@ class PerformanceMark extends PerformanceEntry {
   factory PerformanceMark._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PerformanceMark internalCreatePerformanceMark() {
     return new PerformanceMark._internalWrap();
   }
@@ -29692,6 +29921,7 @@ class PerformanceMeasure extends PerformanceEntry {
   factory PerformanceMeasure._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PerformanceMeasure internalCreatePerformanceMeasure() {
     return new PerformanceMeasure._internalWrap();
   }
@@ -29718,6 +29948,7 @@ class PerformanceNavigation extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PerformanceNavigation._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PerformanceNavigation internalCreatePerformanceNavigation() {
     return new PerformanceNavigation._internalWrap();
   }
@@ -29772,6 +30003,7 @@ class PerformanceResourceTiming extends PerformanceEntry {
   factory PerformanceResourceTiming._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PerformanceResourceTiming internalCreatePerformanceResourceTiming() {
     return new PerformanceResourceTiming._internalWrap();
   }
@@ -29849,6 +30081,7 @@ class PerformanceTiming extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PerformanceTiming._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PerformanceTiming internalCreatePerformanceTiming() {
     return new PerformanceTiming._internalWrap();
   }
@@ -29962,6 +30195,7 @@ class PictureElement extends HtmlElement {
   factory PictureElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PictureElement internalCreatePictureElement() {
     return new PictureElement._internalWrap();
   }
@@ -29994,6 +30228,7 @@ class Plugin extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Plugin._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Plugin internalCreatePlugin() {
     return new Plugin._internalWrap();
   }
@@ -30050,6 +30285,7 @@ class PluginArray extends DartHtmlDomObject with ListMixin<Plugin>, ImmutableLis
   // To suppress missing implicit constructor warnings.
   factory PluginArray._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PluginArray internalCreatePluginArray() {
     return new PluginArray._internalWrap();
   }
@@ -30145,6 +30381,7 @@ class PluginPlaceholderElement extends DivElement {
   factory PluginPlaceholderElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PluginPlaceholderElement internalCreatePluginPlaceholderElement() {
     return new PluginPlaceholderElement._internalWrap();
   }
@@ -30196,6 +30433,7 @@ class PopStateEvent extends Event {
   factory PopStateEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PopStateEvent internalCreatePopStateEvent() {
     return new PopStateEvent._internalWrap();
   }
@@ -30236,6 +30474,7 @@ class PositionError extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PositionError._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PositionError internalCreatePositionError() {
     return new PositionError._internalWrap();
   }
@@ -30298,6 +30537,7 @@ class PreElement extends HtmlElement {
   factory PreElement() => document.createElement("pre");
 
 
+  @Deprecated("Internal Use Only")
   static PreElement internalCreatePreElement() {
     return new PreElement._internalWrap();
   }
@@ -30331,6 +30571,7 @@ class Presentation extends EventTarget {
   factory Presentation._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static Presentation internalCreatePresentation() {
     return new Presentation._internalWrap();
   }
@@ -30358,6 +30599,7 @@ class ProcessingInstruction extends CharacterData {
   factory ProcessingInstruction._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ProcessingInstruction internalCreateProcessingInstruction() {
     return new ProcessingInstruction._internalWrap();
   }
@@ -30401,6 +30643,7 @@ class ProgressElement extends HtmlElement {
   factory ProgressElement() => document.createElement("progress");
 
 
+  @Deprecated("Internal Use Only")
   static ProgressElement internalCreateProgressElement() {
     return new ProgressElement._internalWrap();
   }
@@ -30461,6 +30704,7 @@ class ProgressEvent extends Event {
   factory ProgressEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ProgressEvent internalCreateProgressEvent() {
     return new ProgressEvent._internalWrap();
   }
@@ -30500,6 +30744,7 @@ class PushEvent extends Event {
   factory PushEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PushEvent internalCreatePushEvent() {
     return new PushEvent._internalWrap();
   }
@@ -30531,6 +30776,7 @@ class PushManager extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PushManager._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PushManager internalCreatePushManager() {
     return new PushManager._internalWrap();
   }
@@ -30564,6 +30810,7 @@ class PushRegistration extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PushRegistration._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PushRegistration internalCreatePushRegistration() {
     return new PushRegistration._internalWrap();
   }
@@ -30606,6 +30853,7 @@ class QuoteElement extends HtmlElement {
   factory QuoteElement() => document.createElement("q");
 
 
+  @Deprecated("Internal Use Only")
   static QuoteElement internalCreateQuoteElement() {
     return new QuoteElement._internalWrap();
   }
@@ -30682,6 +30930,7 @@ class Range extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Range._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Range internalCreateRange() {
     return new Range._internalWrap();
   }
@@ -30878,6 +31127,7 @@ class ReadableStream extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ReadableStream._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ReadableStream internalCreateReadableStream() {
     return new ReadableStream._internalWrap();
   }
@@ -30932,6 +31182,7 @@ class RelatedEvent extends Event {
   factory RelatedEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static RelatedEvent internalCreateRelatedEvent() {
     return new RelatedEvent._internalWrap();
   }
@@ -30974,6 +31225,7 @@ class ResourceProgressEvent extends ProgressEvent {
   factory ResourceProgressEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ResourceProgressEvent internalCreateResourceProgressEvent() {
     return new ResourceProgressEvent._internalWrap();
   }
@@ -31046,6 +31298,7 @@ class RtcDataChannel extends EventTarget {
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
 
+  @Deprecated("Internal Use Only")
   static RtcDataChannel internalCreateRtcDataChannel() {
     return new RtcDataChannel._internalWrap();
   }
@@ -31188,6 +31441,7 @@ class RtcDataChannelEvent extends Event {
   factory RtcDataChannelEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static RtcDataChannelEvent internalCreateRtcDataChannelEvent() {
     return new RtcDataChannelEvent._internalWrap();
   }
@@ -31230,6 +31484,7 @@ class RtcDtmfSender extends EventTarget {
   static const EventStreamProvider<RtcDtmfToneChangeEvent> toneChangeEvent = const EventStreamProvider<RtcDtmfToneChangeEvent>('tonechange');
 
 
+  @Deprecated("Internal Use Only")
   static RtcDtmfSender internalCreateRtcDtmfSender() {
     return new RtcDtmfSender._internalWrap();
   }
@@ -31296,6 +31551,7 @@ class RtcDtmfToneChangeEvent extends Event {
   factory RtcDtmfToneChangeEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static RtcDtmfToneChangeEvent internalCreateRtcDtmfToneChangeEvent() {
     return new RtcDtmfToneChangeEvent._internalWrap();
   }
@@ -31335,6 +31591,7 @@ class RtcIceCandidate extends DartHtmlDomObject {
     return wrap_jso(_blink.BlinkRTCIceCandidate.instance.constructorCallback_1_(dictionary_1));
   }
 
+  @Deprecated("Internal Use Only")
   static RtcIceCandidate internalCreateRtcIceCandidate() {
     return new RtcIceCandidate._internalWrap();
   }
@@ -31389,6 +31646,7 @@ class RtcIceCandidateEvent extends Event {
   factory RtcIceCandidateEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static RtcIceCandidateEvent internalCreateRtcIceCandidateEvent() {
     return new RtcIceCandidateEvent._internalWrap();
   }
@@ -31529,6 +31787,7 @@ class RtcPeerConnection extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static RtcPeerConnection internalCreateRtcPeerConnection() {
     return new RtcPeerConnection._internalWrap();
   }
@@ -31725,6 +31984,7 @@ class RtcSessionDescription extends DartHtmlDomObject {
     return wrap_jso(_blink.BlinkRTCSessionDescription.instance.constructorCallback_0_());
   }
 
+  @Deprecated("Internal Use Only")
   static RtcSessionDescription internalCreateRtcSessionDescription() {
     return new RtcSessionDescription._internalWrap();
   }
@@ -31770,6 +32030,7 @@ class RtcStatsReport extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory RtcStatsReport._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static RtcStatsReport internalCreateRtcStatsReport() {
     return new RtcStatsReport._internalWrap();
   }
@@ -31827,6 +32088,7 @@ class RtcStatsResponse extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory RtcStatsResponse._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static RtcStatsResponse internalCreateRtcStatsResponse() {
     return new RtcStatsResponse._internalWrap();
   }
@@ -31871,6 +32133,7 @@ class Screen extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Screen._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Screen internalCreateScreen() {
     return new Screen._internalWrap();
   }
@@ -31943,6 +32206,7 @@ class ScreenOrientation extends EventTarget {
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
 
+  @Deprecated("Internal Use Only")
   static ScreenOrientation internalCreateScreenOrientation() {
     return new ScreenOrientation._internalWrap();
   }
@@ -31998,6 +32262,7 @@ class ScriptElement extends HtmlElement {
   factory ScriptElement() => document.createElement("script");
 
 
+  @Deprecated("Internal Use Only")
   static ScriptElement internalCreateScriptElement() {
     return new ScriptElement._internalWrap();
   }
@@ -32106,6 +32371,7 @@ class SecurityPolicyViolationEvent extends Event {
   factory SecurityPolicyViolationEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static SecurityPolicyViolationEvent internalCreateSecurityPolicyViolationEvent() {
     return new SecurityPolicyViolationEvent._internalWrap();
   }
@@ -32174,6 +32440,7 @@ class SelectElement extends HtmlElement {
   factory SelectElement() => document.createElement("select");
 
 
+  @Deprecated("Internal Use Only")
   static SelectElement internalCreateSelectElement() {
     return new SelectElement._internalWrap();
   }
@@ -32345,6 +32612,7 @@ class Selection extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Selection._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Selection internalCreateSelection() {
     return new Selection._internalWrap();
   }
@@ -32497,6 +32765,7 @@ class ServiceWorkerClient extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerClient._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ServiceWorkerClient internalCreateServiceWorkerClient() {
     return new ServiceWorkerClient._internalWrap();
   }
@@ -32535,6 +32804,7 @@ class ServiceWorkerClients extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerClients._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ServiceWorkerClients internalCreateServiceWorkerClients() {
     return new ServiceWorkerClients._internalWrap();
   }
@@ -32570,6 +32840,7 @@ class ServiceWorkerContainer extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerContainer._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ServiceWorkerContainer internalCreateServiceWorkerContainer() {
     return new ServiceWorkerContainer._internalWrap();
   }
@@ -32628,6 +32899,7 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
 
+  @Deprecated("Internal Use Only")
   static ServiceWorkerGlobalScope internalCreateServiceWorkerGlobalScope() {
     return new ServiceWorkerGlobalScope._internalWrap();
   }
@@ -32696,6 +32968,7 @@ class ServiceWorkerRegistration extends EventTarget {
   factory ServiceWorkerRegistration._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ServiceWorkerRegistration internalCreateServiceWorkerRegistration() {
     return new ServiceWorkerRegistration._internalWrap();
   }
@@ -32754,6 +33027,7 @@ class ShadowElement extends HtmlElement {
   factory ShadowElement() => document.createElement("shadow");
 
 
+  @Deprecated("Internal Use Only")
   static ShadowElement internalCreateShadowElement() {
     return new ShadowElement._internalWrap();
   }
@@ -32796,6 +33070,7 @@ class ShadowRoot extends DocumentFragment {
   factory ShadowRoot._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ShadowRoot internalCreateShadowRoot() {
     return new ShadowRoot._internalWrap();
   }
@@ -32922,6 +33197,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   }
 
 
+  @Deprecated("Internal Use Only")
   static SharedWorker internalCreateSharedWorker() {
     return new SharedWorker._internalWrap();
   }
@@ -32974,6 +33250,7 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
   static const EventStreamProvider<Event> connectEvent = const EventStreamProvider<Event>('connect');
 
 
+  @Deprecated("Internal Use Only")
   static SharedWorkerGlobalScope internalCreateSharedWorkerGlobalScope() {
     return new SharedWorkerGlobalScope._internalWrap();
   }
@@ -33013,6 +33290,7 @@ class SourceBuffer extends EventTarget {
   factory SourceBuffer._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static SourceBuffer internalCreateSourceBuffer() {
     return new SourceBuffer._internalWrap();
   }
@@ -33116,6 +33394,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   factory SourceBufferList._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static SourceBufferList internalCreateSourceBufferList() {
     return new SourceBufferList._internalWrap();
   }
@@ -33200,6 +33479,7 @@ class SourceElement extends HtmlElement {
   factory SourceElement() => document.createElement("source");
 
 
+  @Deprecated("Internal Use Only")
   static SourceElement internalCreateSourceElement() {
     return new SourceElement._internalWrap();
   }
@@ -33286,6 +33566,7 @@ class SourceInfo extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SourceInfo._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static SourceInfo internalCreateSourceInfo() {
     return new SourceInfo._internalWrap();
   }
@@ -33338,6 +33619,7 @@ class SpanElement extends HtmlElement {
   factory SpanElement() => document.createElement("span");
 
 
+  @Deprecated("Internal Use Only")
   static SpanElement internalCreateSpanElement() {
     return new SpanElement._internalWrap();
   }
@@ -33377,6 +33659,7 @@ class SpeechGrammar extends DartHtmlDomObject {
     return wrap_jso(_blink.BlinkSpeechGrammar.instance.constructorCallback_0_());
   }
 
+  @Deprecated("Internal Use Only")
   static SpeechGrammar internalCreateSpeechGrammar() {
     return new SpeechGrammar._internalWrap();
   }
@@ -33428,6 +33711,7 @@ class SpeechGrammarList extends DartHtmlDomObject with ListMixin<SpeechGrammar>,
     return wrap_jso(_blink.BlinkSpeechGrammarList.instance.constructorCallback_0_());
   }
 
+  @Deprecated("Internal Use Only")
   static SpeechGrammarList internalCreateSpeechGrammarList() {
     return new SpeechGrammarList._internalWrap();
   }
@@ -33647,6 +33931,7 @@ class SpeechRecognition extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static SpeechRecognition internalCreateSpeechRecognition() {
     return new SpeechRecognition._internalWrap();
   }
@@ -33785,6 +34070,7 @@ class SpeechRecognitionAlternative extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionAlternative._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static SpeechRecognitionAlternative internalCreateSpeechRecognitionAlternative() {
     return new SpeechRecognitionAlternative._internalWrap();
   }
@@ -33824,6 +34110,7 @@ class SpeechRecognitionError extends Event {
   factory SpeechRecognitionError._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static SpeechRecognitionError internalCreateSpeechRecognitionError() {
     return new SpeechRecognitionError._internalWrap();
   }
@@ -33861,6 +34148,7 @@ class SpeechRecognitionEvent extends Event {
   factory SpeechRecognitionEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static SpeechRecognitionEvent internalCreateSpeechRecognitionEvent() {
     return new SpeechRecognitionEvent._internalWrap();
   }
@@ -33905,6 +34193,7 @@ class SpeechRecognitionResult extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionResult._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static SpeechRecognitionResult internalCreateSpeechRecognitionResult() {
     return new SpeechRecognitionResult._internalWrap();
   }
@@ -33947,6 +34236,7 @@ class SpeechSynthesis extends EventTarget {
   factory SpeechSynthesis._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static SpeechSynthesis internalCreateSpeechSynthesis() {
     return new SpeechSynthesis._internalWrap();
   }
@@ -34007,6 +34297,7 @@ class SpeechSynthesisEvent extends Event {
   factory SpeechSynthesisEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static SpeechSynthesisEvent internalCreateSpeechSynthesisEvent() {
     return new SpeechSynthesisEvent._internalWrap();
   }
@@ -34123,6 +34414,7 @@ class SpeechSynthesisUtterance extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static SpeechSynthesisUtterance internalCreateSpeechSynthesisUtterance() {
     return new SpeechSynthesisUtterance._internalWrap();
   }
@@ -34233,6 +34525,7 @@ class SpeechSynthesisVoice extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SpeechSynthesisVoice._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static SpeechSynthesisVoice internalCreateSpeechSynthesisVoice() {
     return new SpeechSynthesisVoice._internalWrap();
   }
@@ -34357,6 +34650,7 @@ class Storage extends DartHtmlDomObject
   // To suppress missing implicit constructor warnings.
   factory Storage._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Storage internalCreateStorage() {
     return new Storage._internalWrap();
   }
@@ -34461,6 +34755,7 @@ class StorageEvent extends Event {
   factory StorageEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static StorageEvent internalCreateStorageEvent() {
     return new StorageEvent._internalWrap();
   }
@@ -34512,6 +34807,7 @@ class StorageInfo extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory StorageInfo._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static StorageInfo internalCreateStorageInfo() {
     return new StorageInfo._internalWrap();
   }
@@ -34551,6 +34847,7 @@ class StorageQuota extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory StorageQuota._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static StorageQuota internalCreateStorageQuota() {
     return new StorageQuota._internalWrap();
   }
@@ -34631,6 +34928,7 @@ class StyleElement extends HtmlElement {
   factory StyleElement() => document.createElement("style");
 
 
+  @Deprecated("Internal Use Only")
   static StyleElement internalCreateStyleElement() {
     return new StyleElement._internalWrap();
   }
@@ -34692,6 +34990,7 @@ class StyleMedia extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory StyleMedia._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static StyleMedia internalCreateStyleMedia() {
     return new StyleMedia._internalWrap();
   }
@@ -34727,6 +35026,7 @@ class StyleSheet extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory StyleSheet._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static StyleSheet internalCreateStyleSheet() {
     return new StyleSheet._internalWrap();
   }
@@ -34791,6 +35091,7 @@ class TableCaptionElement extends HtmlElement {
   factory TableCaptionElement() => document.createElement("caption");
 
 
+  @Deprecated("Internal Use Only")
   static TableCaptionElement internalCreateTableCaptionElement() {
     return new TableCaptionElement._internalWrap();
   }
@@ -34827,6 +35128,7 @@ class TableCellElement extends HtmlElement {
   factory TableCellElement() => document.createElement("td");
 
 
+  @Deprecated("Internal Use Only")
   static TableCellElement internalCreateTableCellElement() {
     return new TableCellElement._internalWrap();
   }
@@ -34891,6 +35193,7 @@ class TableColElement extends HtmlElement {
   factory TableColElement() => document.createElement("col");
 
 
+  @Deprecated("Internal Use Only")
   static TableColElement internalCreateTableColElement() {
     return new TableColElement._internalWrap();
   }
@@ -34953,6 +35256,7 @@ class TableElement extends HtmlElement {
   factory TableElement() => document.createElement("table");
 
 
+  @Deprecated("Internal Use Only")
   static TableElement internalCreateTableElement() {
     return new TableElement._internalWrap();
   }
@@ -35069,6 +35373,7 @@ class TableRowElement extends HtmlElement {
   factory TableRowElement() => document.createElement("tr");
 
 
+  @Deprecated("Internal Use Only")
   static TableRowElement internalCreateTableRowElement() {
     return new TableRowElement._internalWrap();
   }
@@ -35133,6 +35438,7 @@ class TableSectionElement extends HtmlElement {
   factory TableSectionElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static TableSectionElement internalCreateTableSectionElement() {
     return new TableSectionElement._internalWrap();
   }
@@ -35186,6 +35492,7 @@ class TemplateElement extends HtmlElement {
   factory TemplateElement() => document.createElement("template");
 
 
+  @Deprecated("Internal Use Only")
   static TemplateElement internalCreateTemplateElement() {
     return new TemplateElement._internalWrap();
   }
@@ -35241,6 +35548,7 @@ class Text extends CharacterData {
   factory Text._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static Text internalCreateText() {
     return new Text._internalWrap();
   }
@@ -35284,6 +35592,7 @@ class TextAreaElement extends HtmlElement {
   factory TextAreaElement() => document.createElement("textarea");
 
 
+  @Deprecated("Internal Use Only")
   static TextAreaElement internalCreateTextAreaElement() {
     return new TextAreaElement._internalWrap();
   }
@@ -35529,6 +35838,7 @@ class TextEvent extends UIEvent {
   factory TextEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static TextEvent internalCreateTextEvent() {
     return new TextEvent._internalWrap();
   }
@@ -35562,6 +35872,7 @@ class TextMetrics extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory TextMetrics._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static TextMetrics internalCreateTextMetrics() {
     return new TextMetrics._internalWrap();
   }
@@ -35661,6 +35972,7 @@ class TextTrack extends EventTarget {
   static const EventStreamProvider<Event> cueChangeEvent = const EventStreamProvider<Event>('cuechange');
 
 
+  @Deprecated("Internal Use Only")
   static TextTrack internalCreateTextTrack() {
     return new TextTrack._internalWrap();
   }
@@ -35770,6 +36082,7 @@ class TextTrackCue extends EventTarget {
   static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
 
 
+  @Deprecated("Internal Use Only")
   static TextTrackCue internalCreateTextTrackCue() {
     return new TextTrackCue._internalWrap();
   }
@@ -35843,6 +36156,7 @@ class TextTrackCueList extends DartHtmlDomObject with ListMixin<TextTrackCue>, I
   // To suppress missing implicit constructor warnings.
   factory TextTrackCueList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static TextTrackCueList internalCreateTextTrackCueList() {
     return new TextTrackCueList._internalWrap();
   }
@@ -35946,6 +36260,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
 
+  @Deprecated("Internal Use Only")
   static TextTrackList internalCreateTextTrackList() {
     return new TextTrackList._internalWrap();
   }
@@ -36041,6 +36356,7 @@ class TimeRanges extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory TimeRanges._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static TimeRanges internalCreateTimeRanges() {
     return new TimeRanges._internalWrap();
   }
@@ -36090,6 +36406,7 @@ class Timing extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Timing._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Timing internalCreateTiming() {
     return new Timing._internalWrap();
   }
@@ -36212,6 +36529,7 @@ class TitleElement extends HtmlElement {
   factory TitleElement() => document.createElement("title");
 
 
+  @Deprecated("Internal Use Only")
   static TitleElement internalCreateTitleElement() {
     return new TitleElement._internalWrap();
   }
@@ -36243,6 +36561,7 @@ class Touch extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Touch._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Touch internalCreateTouch() {
     return new Touch._internalWrap();
   }
@@ -36377,6 +36696,7 @@ class TouchEvent extends UIEvent {
   factory TouchEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static TouchEvent internalCreateTouchEvent() {
     return new TouchEvent._internalWrap();
   }
@@ -36448,6 +36768,7 @@ class TouchList extends DartHtmlDomObject with ListMixin<Touch>, ImmutableListMi
   // To suppress missing implicit constructor warnings.
   factory TouchList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static TouchList internalCreateTouchList() {
     return new TouchList._internalWrap();
   }
@@ -36542,6 +36863,7 @@ class TrackElement extends HtmlElement {
   factory TrackElement() => document.createElement("track");
 
 
+  @Deprecated("Internal Use Only")
   static TrackElement internalCreateTrackElement() {
     return new TrackElement._internalWrap();
   }
@@ -36652,6 +36974,7 @@ class TrackEvent extends Event {
   factory TrackEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static TrackEvent internalCreateTrackEvent() {
     return new TrackEvent._internalWrap();
   }
@@ -36682,6 +37005,7 @@ class TransitionEvent extends Event {
   factory TransitionEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static TransitionEvent internalCreateTransitionEvent() {
     return new TransitionEvent._internalWrap();
   }
@@ -36720,6 +37044,7 @@ class TreeWalker extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory TreeWalker._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static TreeWalker internalCreateTreeWalker() {
     return new TreeWalker._internalWrap();
   }
@@ -36811,6 +37136,7 @@ class UIEvent extends Event {
   factory UIEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static UIEvent internalCreateUIEvent() {
     return new UIEvent._internalWrap();
   }
@@ -36900,6 +37226,7 @@ class UListElement extends HtmlElement {
   factory UListElement() => document.createElement("ul");
 
 
+  @Deprecated("Internal Use Only")
   static UListElement internalCreateUListElement() {
     return new UListElement._internalWrap();
   }
@@ -36932,6 +37259,7 @@ class UnknownElement extends HtmlElement {
   factory UnknownElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static UnknownElement internalCreateUnknownElement() {
     return new UnknownElement._internalWrap();
   }
@@ -36963,6 +37291,7 @@ class Url extends DartHtmlDomObject implements UrlUtils {
   // To suppress missing implicit constructor warnings.
   factory Url._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Url internalCreateUrl() {
     return new Url._internalWrap();
   }
@@ -36980,10 +37309,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -37319,6 +37648,7 @@ class ValidityState extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ValidityState._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ValidityState internalCreateValidityState() {
     return new ValidityState._internalWrap();
   }
@@ -37388,6 +37718,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   factory VideoElement() => document.createElement("video");
 
 
+  @Deprecated("Internal Use Only")
   static VideoElement internalCreateVideoElement() {
     return new VideoElement._internalWrap();
   }
@@ -37487,6 +37818,7 @@ class VideoPlaybackQuality extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory VideoPlaybackQuality._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static VideoPlaybackQuality internalCreateVideoPlaybackQuality() {
     return new VideoPlaybackQuality._internalWrap();
   }
@@ -37535,6 +37867,7 @@ class VideoTrack extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory VideoTrack._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static VideoTrack internalCreateVideoTrack() {
     return new VideoTrack._internalWrap();
   }
@@ -37599,6 +37932,7 @@ class VideoTrackList extends EventTarget {
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
 
+  @Deprecated("Internal Use Only")
   static VideoTrackList internalCreateVideoTrackList() {
     return new VideoTrackList._internalWrap();
   }
@@ -37668,6 +38002,7 @@ class VttCue extends TextTrackCue {
   }
 
 
+  @Deprecated("Internal Use Only")
   static VttCue internalCreateVttCue() {
     return new VttCue._internalWrap();
   }
@@ -37785,6 +38120,7 @@ class VttRegion extends DartHtmlDomObject {
     return wrap_jso(_blink.BlinkVTTRegion.instance.constructorCallback_0_());
   }
 
+  @Deprecated("Internal Use Only")
   static VttRegion internalCreateVttRegion() {
     return new VttRegion._internalWrap();
   }
@@ -37898,6 +38234,7 @@ class VttRegionList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory VttRegionList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static VttRegionList internalCreateVttRegionList() {
     return new VttRegionList._internalWrap();
   }
@@ -38036,6 +38373,7 @@ class WebSocket extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static WebSocket internalCreateWebSocket() {
     return new WebSocket._internalWrap();
   }
@@ -38208,6 +38546,7 @@ class WheelEvent extends MouseEvent {
   factory WheelEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static WheelEvent internalCreateWheelEvent() {
     return new WheelEvent._internalWrap();
   }
@@ -38548,6 +38887,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
 
+  @Deprecated("Internal Use Only")
   static Window internalCreateWindow() {
     return new Window._internalWrap();
   }
@@ -40025,6 +40365,7 @@ class Worker extends EventTarget implements AbstractWorker {
   }
 
 
+  @Deprecated("Internal Use Only")
   static Worker internalCreateWorker() {
     return new Worker._internalWrap();
   }
@@ -40074,6 +40415,7 @@ class WorkerConsole extends ConsoleBase {
   factory WorkerConsole._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static WorkerConsole internalCreateWorkerConsole() {
     return new WorkerConsole._internalWrap();
   }
@@ -40112,6 +40454,7 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
 
+  @Deprecated("Internal Use Only")
   static WorkerGlobalScope internalCreateWorkerGlobalScope() {
     return new WorkerGlobalScope._internalWrap();
   }
@@ -40283,6 +40626,7 @@ class WorkerPerformance extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory WorkerPerformance._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static WorkerPerformance internalCreateWorkerPerformance() {
     return new WorkerPerformance._internalWrap();
   }
@@ -40328,6 +40672,7 @@ class XPathEvaluator extends DartHtmlDomObject {
     return wrap_jso(_blink.BlinkXPathEvaluator.instance.constructorCallback_0_());
   }
 
+  @Deprecated("Internal Use Only")
   static XPathEvaluator internalCreateXPathEvaluator() {
     return new XPathEvaluator._internalWrap();
   }
@@ -40369,6 +40714,7 @@ class XPathExpression extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory XPathExpression._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static XPathExpression internalCreateXPathExpression() {
     return new XPathExpression._internalWrap();
   }
@@ -40402,6 +40748,7 @@ class XPathNSResolver extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory XPathNSResolver._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static XPathNSResolver internalCreateXPathNSResolver() {
     return new XPathNSResolver._internalWrap();
   }
@@ -40435,6 +40782,7 @@ class XPathResult extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory XPathResult._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static XPathResult internalCreateXPathResult() {
     return new XPathResult._internalWrap();
   }
@@ -40540,6 +40888,7 @@ class XmlDocument extends Document {
   factory XmlDocument._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static XmlDocument internalCreateXmlDocument() {
     return new XmlDocument._internalWrap();
   }
@@ -40573,6 +40922,7 @@ class XmlSerializer extends DartHtmlDomObject {
     return wrap_jso(_blink.BlinkXMLSerializer.instance.constructorCallback_0_());
   }
 
+  @Deprecated("Internal Use Only")
   static XmlSerializer internalCreateXmlSerializer() {
     return new XmlSerializer._internalWrap();
   }
@@ -40614,6 +40964,7 @@ class XsltProcessor extends DartHtmlDomObject {
     return wrap_jso(_blink.BlinkXSLTProcessor.instance.constructorCallback_0_());
   }
 
+  @Deprecated("Internal Use Only")
   static XsltProcessor internalCreateXsltProcessor() {
     return new XsltProcessor._internalWrap();
   }
@@ -40677,6 +41028,7 @@ class _Attr extends Node {
   factory _Attr._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _Attr internalCreate_Attr() {
     return new _Attr._internalWrap();
   }
@@ -40742,6 +41094,7 @@ class _CSSPrimitiveValue extends _CSSValue {
   factory _CSSPrimitiveValue._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _CSSPrimitiveValue internalCreate_CSSPrimitiveValue() {
     return new _CSSPrimitiveValue._internalWrap();
   }
@@ -40770,6 +41123,7 @@ class _CSSUnknownRule extends CssRule {
   factory _CSSUnknownRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _CSSUnknownRule internalCreate_CSSUnknownRule() {
     return new _CSSUnknownRule._internalWrap();
   }
@@ -40797,6 +41151,7 @@ class _CSSValue extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _CSSValue._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _CSSValue internalCreate_CSSValue() {
     return new _CSSValue._internalWrap();
   }
@@ -40825,6 +41180,7 @@ class _Cache extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _Cache._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _Cache internalCreate_Cache() {
     return new _Cache._internalWrap();
   }
@@ -40955,6 +41311,7 @@ class _ClientRect extends DartHtmlDomObject implements Rectangle {
     // To suppress missing implicit constructor warnings.
   factory _ClientRect._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _ClientRect internalCreate_ClientRect() {
     return new _ClientRect._internalWrap();
   }
@@ -41040,6 +41397,7 @@ class _ClientRectList extends DartHtmlDomObject with ListMixin<Rectangle>, Immut
   // To suppress missing implicit constructor warnings.
   factory _ClientRectList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _ClientRectList internalCreate_ClientRectList() {
     return new _ClientRectList._internalWrap();
   }
@@ -41123,6 +41481,7 @@ class _Counter extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _Counter._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _Counter internalCreate_Counter() {
     return new _Counter._internalWrap();
   }
@@ -41150,6 +41509,7 @@ class _CssRuleList extends DartHtmlDomObject with ListMixin<CssRule>, ImmutableL
   // To suppress missing implicit constructor warnings.
   factory _CssRuleList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _CssRuleList internalCreate_CssRuleList() {
     return new _CssRuleList._internalWrap();
   }
@@ -41234,6 +41594,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
   factory _CssValueList._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _CssValueList internalCreate_CssValueList() {
     return new _CssValueList._internalWrap();
   }
@@ -41316,6 +41677,7 @@ class _DOMFileSystemSync extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _DOMFileSystemSync._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _DOMFileSystemSync internalCreate_DOMFileSystemSync() {
     return new _DOMFileSystemSync._internalWrap();
   }
@@ -41346,6 +41708,7 @@ class _DirectoryEntrySync extends _EntrySync {
   factory _DirectoryEntrySync._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _DirectoryEntrySync internalCreate_DirectoryEntrySync() {
     return new _DirectoryEntrySync._internalWrap();
   }
@@ -41373,6 +41736,7 @@ class _DirectoryReaderSync extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _DirectoryReaderSync._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _DirectoryReaderSync internalCreate_DirectoryReaderSync() {
     return new _DirectoryReaderSync._internalWrap();
   }
@@ -41401,6 +41765,7 @@ class _DocumentType extends Node implements ChildNode {
   factory _DocumentType._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _DocumentType internalCreate_DocumentType() {
     return new _DocumentType._internalWrap();
   }
@@ -41450,6 +41815,7 @@ class _DomRect extends DomRectReadOnly {
   }
 
 
+  @Deprecated("Internal Use Only")
   static _DomRect internalCreate_DomRect() {
     return new _DomRect._internalWrap();
   }
@@ -41517,6 +41883,7 @@ class _EntrySync extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _EntrySync._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _EntrySync internalCreate_EntrySync() {
     return new _EntrySync._internalWrap();
   }
@@ -41547,6 +41914,7 @@ class _FileEntrySync extends _EntrySync {
   factory _FileEntrySync._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _FileEntrySync internalCreate_FileEntrySync() {
     return new _FileEntrySync._internalWrap();
   }
@@ -41580,6 +41948,7 @@ class _FileReaderSync extends DartHtmlDomObject {
     return wrap_jso(_blink.BlinkFileReaderSync.instance.constructorCallback_0_());
   }
 
+  @Deprecated("Internal Use Only")
   static _FileReaderSync internalCreate_FileReaderSync() {
     return new _FileReaderSync._internalWrap();
   }
@@ -41609,6 +41978,7 @@ class _FileWriterSync extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _FileWriterSync._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _FileWriterSync internalCreate_FileWriterSync() {
     return new _FileWriterSync._internalWrap();
   }
@@ -41638,6 +42008,7 @@ class _GamepadList extends DartHtmlDomObject with ListMixin<Gamepad>, ImmutableL
   // To suppress missing implicit constructor warnings.
   factory _GamepadList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _GamepadList internalCreate_GamepadList() {
     return new _GamepadList._internalWrap();
   }
@@ -41721,6 +42092,7 @@ class _HTMLAllCollection extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _HTMLAllCollection._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _HTMLAllCollection internalCreate_HTMLAllCollection() {
     return new _HTMLAllCollection._internalWrap();
   }
@@ -41755,6 +42127,7 @@ class _HTMLAppletElement extends HtmlElement {
   factory _HTMLAppletElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _HTMLAppletElement internalCreate_HTMLAppletElement() {
     return new _HTMLAppletElement._internalWrap();
   }
@@ -41789,6 +42162,7 @@ class _HTMLDirectoryElement extends HtmlElement {
   factory _HTMLDirectoryElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _HTMLDirectoryElement internalCreate_HTMLDirectoryElement() {
     return new _HTMLDirectoryElement._internalWrap();
   }
@@ -41823,6 +42197,7 @@ class _HTMLFontElement extends HtmlElement {
   factory _HTMLFontElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _HTMLFontElement internalCreate_HTMLFontElement() {
     return new _HTMLFontElement._internalWrap();
   }
@@ -41857,6 +42232,7 @@ class _HTMLFrameElement extends HtmlElement {
   factory _HTMLFrameElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _HTMLFrameElement internalCreate_HTMLFrameElement() {
     return new _HTMLFrameElement._internalWrap();
   }
@@ -41889,6 +42265,7 @@ class _HTMLFrameSetElement extends HtmlElement implements WindowEventHandlers {
   factory _HTMLFrameSetElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _HTMLFrameSetElement internalCreate_HTMLFrameSetElement() {
     return new _HTMLFrameSetElement._internalWrap();
   }
@@ -41932,6 +42309,7 @@ class _HTMLMarqueeElement extends HtmlElement {
   factory _HTMLMarqueeElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _HTMLMarqueeElement internalCreate_HTMLMarqueeElement() {
     return new _HTMLMarqueeElement._internalWrap();
   }
@@ -41972,6 +42350,7 @@ class _MutationEvent extends Event {
   factory _MutationEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _MutationEvent internalCreate_MutationEvent() {
     return new _MutationEvent._internalWrap();
   }
@@ -41999,6 +42378,7 @@ class _NamedNodeMap extends DartHtmlDomObject with ListMixin<Node>, ImmutableLis
   // To suppress missing implicit constructor warnings.
   factory _NamedNodeMap._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _NamedNodeMap internalCreate_NamedNodeMap() {
     return new _NamedNodeMap._internalWrap();
   }
@@ -42109,6 +42489,7 @@ class _PagePopupController extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _PagePopupController._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _PagePopupController internalCreate_PagePopupController() {
     return new _PagePopupController._internalWrap();
   }
@@ -42138,6 +42519,7 @@ class _RGBColor extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _RGBColor._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _RGBColor internalCreate_RGBColor() {
     return new _RGBColor._internalWrap();
   }
@@ -42163,6 +42545,7 @@ class _RadioNodeList extends NodeList {
   factory _RadioNodeList._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _RadioNodeList internalCreate_RadioNodeList() {
     return new _RadioNodeList._internalWrap();
   }
@@ -42190,6 +42573,7 @@ class _Rect extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _Rect._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _Rect internalCreate_Rect() {
     return new _Rect._internalWrap();
   }
@@ -42239,6 +42623,7 @@ class _Request extends Body {
   }
 
 
+  @Deprecated("Internal Use Only")
   static _Request internalCreate_Request() {
     return new _Request._internalWrap();
   }
@@ -42330,6 +42715,7 @@ class _Response extends Body {
   }
 
 
+  @Deprecated("Internal Use Only")
   static _Response internalCreate_Response() {
     return new _Response._internalWrap();
   }
@@ -42355,6 +42741,7 @@ class _ServiceWorker extends EventTarget implements AbstractWorker {
   factory _ServiceWorker._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _ServiceWorker internalCreate_ServiceWorker() {
     return new _ServiceWorker._internalWrap();
   }
@@ -42385,6 +42772,7 @@ class _SpeechRecognitionResultList extends DartHtmlDomObject with ListMixin<Spee
   // To suppress missing implicit constructor warnings.
   factory _SpeechRecognitionResultList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _SpeechRecognitionResultList internalCreate_SpeechRecognitionResultList() {
     return new _SpeechRecognitionResultList._internalWrap();
   }
@@ -42466,6 +42854,7 @@ class _StyleSheetList extends DartHtmlDomObject with ListMixin<StyleSheet>, Immu
   // To suppress missing implicit constructor warnings.
   factory _StyleSheetList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _StyleSheetList internalCreate_StyleSheetList() {
     return new _StyleSheetList._internalWrap();
   }
@@ -42552,6 +42941,7 @@ class _SubtleCrypto extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _SubtleCrypto._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _SubtleCrypto internalCreate_SubtleCrypto() {
     return new _SubtleCrypto._internalWrap();
   }
@@ -42582,6 +42972,7 @@ class _WebKitCSSFilterValue extends _CssValueList {
   factory _WebKitCSSFilterValue._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _WebKitCSSFilterValue internalCreate_WebKitCSSFilterValue() {
     return new _WebKitCSSFilterValue._internalWrap();
   }
@@ -42618,6 +43009,7 @@ class _WebKitCSSMatrix extends DartHtmlDomObject {
     return wrap_jso(_blink.BlinkWebKitCSSMatrix.instance.constructorCallback_1_(cssValue));
   }
 
+  @Deprecated("Internal Use Only")
   static _WebKitCSSMatrix internalCreate_WebKitCSSMatrix() {
     return new _WebKitCSSMatrix._internalWrap();
   }
@@ -42648,6 +43040,7 @@ class _WebKitCSSTransformValue extends _CssValueList {
   factory _WebKitCSSTransformValue._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _WebKitCSSTransformValue internalCreate_WebKitCSSTransformValue() {
     return new _WebKitCSSTransformValue._internalWrap();
   }
@@ -42708,6 +43101,7 @@ class _WorkerLocation extends DartHtmlDomObject implements UrlUtilsReadOnly {
   // To suppress missing implicit constructor warnings.
   factory _WorkerLocation._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _WorkerLocation internalCreate_WorkerLocation() {
     return new _WorkerLocation._internalWrap();
   }
@@ -42746,6 +43140,7 @@ class _WorkerNavigator extends DartHtmlDomObject implements NavigatorCpu, Naviga
   // To suppress missing implicit constructor warnings.
   factory _WorkerNavigator._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _WorkerNavigator internalCreate_WorkerNavigator() {
     return new _WorkerNavigator._internalWrap();
   }
@@ -42786,6 +43181,7 @@ class _XMLHttpRequestProgressEvent extends ProgressEvent {
   factory _XMLHttpRequestProgressEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _XMLHttpRequestProgressEvent internalCreate_XMLHttpRequestProgressEvent() {
     return new _XMLHttpRequestProgressEvent._internalWrap();
   }
