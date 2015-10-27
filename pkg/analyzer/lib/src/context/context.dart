@@ -696,6 +696,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     _pendingFutureTargets.clear();
     _privatePartition.dispose();
+    _cache.dispose();
   }
 
   @override

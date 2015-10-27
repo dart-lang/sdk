@@ -41,18 +41,33 @@ class AnalysisCache {
   final ReentrantSynchronousStream<InvalidatedResult> onResultInvalidated =
       new ReentrantSynchronousStream<InvalidatedResult>();
 
+  final List<
+      ReentrantSynchronousStreamSubscription> onResultInvalidatedPartitionSubscriptions = <
+      ReentrantSynchronousStreamSubscription>[];
+
   /**
-   * Initialize a newly created cache to have the given [partitions]. The
+   * Initialize a newly created cache to have the given [_partitions]. The
    * partitions will be searched in the order in which they appear in the array,
    * so the most specific partition (usually an [SdkCachePartition]) should be
    * first and the most general (usually a [UniversalCachePartition]) last.
    */
   AnalysisCache(this._partitions) {
     for (CachePartition partition in _partitions) {
-      partition.onResultInvalidated.listen((InvalidatedResult event) {
+      ReentrantSynchronousStreamSubscription<InvalidatedResult> subscription =
+          partition.onResultInvalidated.listen((InvalidatedResult event) {
         onResultInvalidated.add(event);
       });
+      onResultInvalidatedPartitionSubscriptions.add(subscription);
     }
+  }
+
+  /**
+   * Return an iterator returning all of the [Source] targets.
+   */
+  Iterable<Source> get sources {
+    return _partitions
+        .map((CachePartition partition) => partition._sources)
+        .expand((Iterable<Source> sources) => sources);
   }
 
   // TODO(brianwilkerson) Implement or delete this.
@@ -73,12 +88,13 @@ class AnalysisCache {
 //  }
 
   /**
-   * Return an iterator returning all of the [Source] targets.
+   * Free any allocated resources and references.
    */
-  Iterable<Source> get sources {
-    return _partitions
-        .map((CachePartition partition) => partition._sources)
-        .expand((Iterable<Source> sources) => sources);
+  void dispose() {
+    for (ReentrantSynchronousStreamSubscription subscription
+        in onResultInvalidatedPartitionSubscriptions) {
+      subscription.cancel();
+    }
   }
 
   /**
@@ -1042,7 +1058,7 @@ class Delta {
 }
 
 /**
- * The possible results of validating analysis results againt a [Delta].
+ * The possible results of validating analysis results against a [Delta].
  */
 enum DeltaResult {
   /**
@@ -1118,8 +1134,27 @@ class ReentrantSynchronousStream<T> {
    * Note that if the [listener] fires a new event, then the [listener] will be
    * invoked again before returning from the [add] invocation.
    */
-  void listen(void listener(T event)) {
+  ReentrantSynchronousStreamSubscription<T> listen(void listener(T event)) {
     listeners.add(listener);
+    return new ReentrantSynchronousStreamSubscription<T>(this, listener);
+  }
+}
+
+/**
+ * A subscription on events from a [ReentrantSynchronousStream].
+ */
+class ReentrantSynchronousStreamSubscription<T> {
+  final ReentrantSynchronousStream<T> _stream;
+  final Function _listener;
+
+  ReentrantSynchronousStreamSubscription(this._stream, this._listener);
+
+  /**
+   * Cancels this subscription.
+   * It will no longer receive events.
+   */
+  void cancel() {
+    _stream.listeners.remove(_listener);
   }
 }
 
