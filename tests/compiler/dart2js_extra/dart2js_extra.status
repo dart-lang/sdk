@@ -74,7 +74,6 @@ big_allocation_expression_test: Crash # Issue 24635
 16407_test: Pass # Please triage this failure.
 23432_test: RuntimeError # Issue 23432
 async_stacktrace_test/asyncStar: Crash # (foo()async*{try {tr...  cannot handle sync*/async* functions
-closure_capture5_test: Crash # (i=0): For-loop variable captured in loop header
 deferred/deferred_class_test: RuntimeError # Z.loadLibrary is not a function
 deferred/deferred_constant2_test: RuntimeError # U.loadLibrary is not a function
 deferred/deferred_constant3_test: RuntimeError # Y.loadLibrary is not a function
