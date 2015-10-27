@@ -34,7 +34,6 @@ import '../universe/selector.dart' show
     SelectorKind;
 
 import 'cps_ir_builder_task.dart' show
-    DartCapturedVariables,
     GlobalProgramInformation;
 import 'cps_ir_nodes.dart' as ir;
 

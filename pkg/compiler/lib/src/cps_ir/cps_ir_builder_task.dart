@@ -2277,16 +2277,11 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
 final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";
 
-/// Classifies local variables and local functions as captured, if they
-/// are accessed from within a nested function.
-///
-/// This class is specific to the [DartIrBuilder], in that it gives up if it
-/// sees a feature that is currently unsupport by that builder. In particular,
-/// loop variables captured in a for-loop initializer, condition, or update
-/// expression are unsupported.
-class DartCapturedVariables extends ast.Visitor {
+/// Determines which local variables should be boxed in a mutable variable
+/// inside a given try block.
+class TryBoxedVariables extends ast.Visitor {
   final TreeElements elements;
-  DartCapturedVariables(this.elements);
+  TryBoxedVariables(this.elements);
 
   FunctionElement currentFunction;
   bool insideInitializer = false;
@@ -2330,25 +2325,6 @@ class DartCapturedVariables extends ast.Visitor {
 
   visitNode(ast.Node node) {
     node.visitChildren(this);
-  }
-
-  visitFor(ast.For node) {
-    if (node.initializer != null) visit(node.initializer);
-    if (node.condition != null) visit(node.condition);
-    if (node.update != null) visit(node.update);
-
-    // Give up if a variable was captured outside of the loop body.
-    if (node.initializer is ast.VariableDefinitions) {
-      ast.VariableDefinitions definitions = node.initializer;
-      for (ast.Node node in definitions.definitions.nodes) {
-        LocalElement loopVariable = elements[node];
-        if (capturedVariables.contains(loopVariable)) {
-          return giveup(node, 'For-loop variable captured in loop header');
-        }
-      }
-    }
-
-    if (node.body != null) visit(node.body);
   }
 
   void handleSend(ast.Send node) {
@@ -2408,18 +2384,14 @@ class DartCapturedVariables extends ast.Visitor {
     if (currentFunction.asyncMarker != AsyncMarker.SYNC &&
         currentFunction.asyncMarker != AsyncMarker.SYNC_STAR &&
         currentFunction.asyncMarker != AsyncMarker.ASYNC) {
-      giveup(node, "cannot handle sync*/async* functions");
+      giveup(node, "cannot handle async* functions");
     }
 
-    bool savedInsideInitializer = insideInitializer;
     if (node.initializers != null) {
-      insideInitializer = true;
       visit(node.initializers);
     }
-    insideInitializer = false;
     visit(node.body);
     currentFunction = savedFunction;
-    insideInitializer = savedInsideInitializer;
   }
 
   visitTryStatement(ast.TryStatement node) {
@@ -3127,8 +3099,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     return parameters;
   }
 
-  DartCapturedVariables _analyzeCapturedVariables(ast.Node node) {
-    DartCapturedVariables variables = new DartCapturedVariables(elements);
+  TryBoxedVariables _analyzeTryBoxedVariables(ast.Node node) {
+    TryBoxedVariables variables = new TryBoxedVariables(elements);
     try {
       variables.analyze(node);
     } catch (e) {
@@ -3158,7 +3130,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     // error-prone.
     // TODO(kmillikin): We should combine closure conversion and try/catch
     // variable analysis in some way.
-    DartCapturedVariables variables = _analyzeCapturedVariables(node);
+    TryBoxedVariables variables = _analyzeTryBoxedVariables(node);
     tryStatements = variables.tryStatements;
     IrBuilder builder = getBuilderFor(body);
 
@@ -3183,7 +3155,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
             element,
             node,
             elements);
-    DartCapturedVariables variables = _analyzeCapturedVariables(node);
+    TryBoxedVariables variables = _analyzeTryBoxedVariables(node);
     tryStatements = variables.tryStatements;
     IrBuilder builder = getBuilderFor(element);
     return withBuilder(builder, () => _makeFunctionBody(element, node));
