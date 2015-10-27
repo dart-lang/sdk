@@ -2012,6 +2012,13 @@ class ICData : public Object {
                         intptr_t token_pos,
                         bool is_static_call) const;
 
+  // Initialize the preallocated empty ICData entry arrays.
+  static void InitOnce();
+
+  enum {
+    kCachedICDataArrayCount = 4
+  };
+
  private:
   static RawICData* New();
 
@@ -2051,10 +2058,24 @@ class ICData : public Object {
 #endif  // DEBUG
 
   intptr_t TestEntryLength() const;
+  static RawArray* NewNonCachedEmptyICDataArray(intptr_t num_args_tested);
+  static RawArray* NewEmptyICDataArray(intptr_t num_args_tested);
+  static RawICData* NewDescriptor(Zone* zone,
+                                  const Function& owner,
+                                  const String& target_name,
+                                  const Array& arguments_descriptor,
+                                  intptr_t deopt_id,
+                                  intptr_t num_args_tested);
+
   static void WriteSentinel(const Array& data, intptr_t test_entry_length);
+
+  // A cache of VM heap allocated preinitialized empty ic data entry arrays.
+  static RawArray* cached_icdata_arrays_[kCachedICDataArrayCount];
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
   friend class Class;
+  friend class SnapshotReader;
+  friend class SnapshotWriter;
 };
 
 

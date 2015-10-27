@@ -83,6 +83,9 @@ static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
 static const char* kSetterPrefix = "set:";
 static const intptr_t kSetterPrefixLength = strlen(kSetterPrefix);
 
+// A cache of VM heap allocated preinitialized empty ic data entry arrays.
+RawArray* ICData::cached_icdata_arrays_[kCachedICDataArrayCount];
+
 cpp_vtable Object::handle_vtable_ = 0;
 cpp_vtable Object::builtin_vtables_[kNumPredefinedCids] = { 0 };
 cpp_vtable Smi::handle_vtable_ = 0;
@@ -12616,6 +12619,64 @@ bool ICData::IsUsedAt(intptr_t i) const {
 }
 
 
+void ICData::InitOnce() {
+  for (int i = 0; i < kCachedICDataArrayCount; i++) {
+    cached_icdata_arrays_[i] = ICData::NewNonCachedEmptyICDataArray(i);
+  }
+}
+
+
+RawArray* ICData::NewNonCachedEmptyICDataArray(intptr_t num_args_tested) {
+  // IC data array must be null terminated (sentinel entry).
+  const intptr_t len = TestEntryLengthFor(num_args_tested);
+  const Array& array = Array::Handle(Array::New(len, Heap::kOld));
+  WriteSentinel(array, len);
+  array.MakeImmutable();
+  return array.raw();
+}
+
+
+RawArray* ICData::NewEmptyICDataArray(intptr_t num_args_tested) {
+  ASSERT(num_args_tested >= 0);
+  if (num_args_tested < kCachedICDataArrayCount) {
+    return cached_icdata_arrays_[num_args_tested];
+  }
+  return NewNonCachedEmptyICDataArray(num_args_tested);
+}
+
+
+
+// Does not initialize ICData array.
+RawICData* ICData::NewDescriptor(Zone* zone,
+                                 const Function& owner,
+                                 const String& target_name,
+                                 const Array& arguments_descriptor,
+                                 intptr_t deopt_id,
+                                 intptr_t num_args_tested) {
+  ASSERT(!owner.IsNull());
+  ASSERT(!target_name.IsNull());
+  ASSERT(!arguments_descriptor.IsNull());
+  ASSERT(Object::icdata_class() != Class::null());
+  ASSERT(num_args_tested >= 0);
+  ICData& result = ICData::Handle(zone);
+  {
+    // IC data objects are long living objects, allocate them in old generation.
+    RawObject* raw = Object::Allocate(ICData::kClassId,
+                                      ICData::InstanceSize(),
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+  }
+  result.set_owner(owner);
+  result.set_target_name(target_name);
+  result.set_arguments_descriptor(arguments_descriptor);
+  result.set_deopt_id(deopt_id);
+  result.set_state_bits(0);
+  result.SetNumArgsTested(num_args_tested);
+  return result.raw();
+}
+
+
 RawICData* ICData::New() {
   ICData& result = ICData::Handle();
   {
@@ -12637,32 +12698,16 @@ RawICData* ICData::New(const Function& owner,
                        const Array& arguments_descriptor,
                        intptr_t deopt_id,
                        intptr_t num_args_tested) {
-  ASSERT(!owner.IsNull());
-  ASSERT(!target_name.IsNull());
-  ASSERT(!arguments_descriptor.IsNull());
-  ASSERT(Object::icdata_class() != Class::null());
-  ASSERT(num_args_tested >= 0);
-  ICData& result = ICData::Handle();
-  {
-    // IC data objects are long living objects, allocate them in old generation.
-    RawObject* raw = Object::Allocate(ICData::kClassId,
-                                      ICData::InstanceSize(),
-                                      Heap::kOld);
-    NoSafepointScope no_safepoint;
-    result ^= raw;
-  }
-  result.set_owner(owner);
-  result.set_target_name(target_name);
-  result.set_arguments_descriptor(arguments_descriptor);
-  result.set_deopt_id(deopt_id);
-  result.set_state_bits(0);
-  result.SetNumArgsTested(num_args_tested);
-  // Number of array elements in one test entry.
-  intptr_t len = result.TestEntryLength();
-  // IC data array must be null terminated (sentinel entry).
-  const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
-  WriteSentinel(ic_data, result.TestEntryLength());
-  result.set_ic_data_array(ic_data);
+  Zone* zone = Thread::Current()->zone();
+  const ICData& result = ICData::Handle(zone,
+                                        NewDescriptor(zone,
+                                                      owner,
+                                                      target_name,
+                                                      arguments_descriptor,
+                                                      deopt_id,
+                                                      num_args_tested));
+  result.set_ic_data_array(
+      Array::Handle(zone, NewEmptyICDataArray(num_args_tested)));
   return result.raw();
 }
 

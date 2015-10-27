@@ -1333,6 +1333,13 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
     }
   }
 
+  // Check if it is a singleton ICData array object.
+  for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
+    if (object_id == (kCachedICDataArray0 + i)) {
+      return ICData::cached_icdata_arrays_[i];
+    }
+  }
+
   ASSERT(Symbols::IsVMSymbolId(object_id));
   return Symbols::GetVMSymbol(object_id);  // return VM symbol.
 }
@@ -1671,6 +1678,14 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     if (rawobj == ArgumentsDescriptor::cached_args_descriptors_[i]) {
       WriteVMIsolateObject(kCachedArgumentsDescriptor0 + i);
+      return true;
+    }
+  }
+
+  // Check if it is a singleton ICData array object.
+  for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
+    if (rawobj == ICData::cached_icdata_arrays_[i]) {
+      WriteVMIsolateObject(kCachedICDataArray0 + i);
       return true;
     }
   }

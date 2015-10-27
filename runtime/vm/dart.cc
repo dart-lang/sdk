@@ -142,6 +142,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     TargetCPUFeatures::InitOnce();
     Object::InitOnce(vm_isolate_);
     ArgumentsDescriptor::InitOnce();
+    ICData::InitOnce();
     // When precompiled the stub code is initialized from the snapshot.
     if (!precompiled) {
       StubCode::InitOnce();
