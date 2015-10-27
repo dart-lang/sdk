@@ -4566,6 +4566,21 @@ class SourceRangeTest {
 
 @reflectiveTest
 class StringUtilitiesTest {
+  void test_computeLineStarts_n() {
+    List<int> starts = StringUtilities.computeLineStarts('a\nbb\nccc');
+    expect(starts, <int>[0, 2, 5]);
+  }
+
+  void test_computeLineStarts_r() {
+    List<int> starts = StringUtilities.computeLineStarts('a\rbb\rccc');
+    expect(starts, <int>[0, 2, 5]);
+  }
+
+  void test_computeLineStarts_rn() {
+    List<int> starts = StringUtilities.computeLineStarts('a\r\nbb\r\nccc');
+    expect(starts, <int>[0, 3, 7]);
+  }
+
   void test_EMPTY() {
     expect(StringUtilities.EMPTY, "");
     expect(StringUtilities.EMPTY.isEmpty, isTrue);

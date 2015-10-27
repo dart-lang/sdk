@@ -360,12 +360,7 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
    * Compute [LineInfo] for the given [content].
    */
   static LineInfo _computeLineInfo(String content) {
-    List<int> lineStarts = <int>[0];
-    for (int index = 0; index < content.length; index++) {
-      if (content.codeUnitAt(index) == 0x0A) {
-        lineStarts.add(index + 1);
-      }
-    }
+    List<int> lineStarts = StringUtilities.computeLineStarts(content);
     return new LineInfo(lineStarts);
   }
 }

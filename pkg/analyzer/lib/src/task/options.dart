@@ -8,6 +8,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/task/general.dart';
@@ -95,25 +96,7 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
 
   /// Compute [LineInfo] for the given [content].
   static LineInfo computeLineInfo(String content) {
-    List<int> lineStarts = <int>[0];
-    int length = content.length;
-    int unit;
-    for (int index = 0; index < length; index++) {
-      unit = content.codeUnitAt(index);
-      // Special-case \r\n.
-      if (unit == 0x0D /* \r */) {
-        // Peek ahead to detect a following \n.
-        if ((index + 1 < length) && content.codeUnitAt(index + 1) == 0x0A) {
-          // Line start will get registered at next index at the \n.
-        } else {
-          lineStarts.add(index + 1);
-        }
-      }
-
-      if (unit == 0x0A) {
-        lineStarts.add(index + 1);
-      }
-    }
+    List<int> lineStarts = StringUtilities.computeLineStarts(content);
     return new LineInfo(lineStarts);
   }
 

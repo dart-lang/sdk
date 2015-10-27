@@ -121,6 +121,33 @@ class StringUtilities {
 
   static Interner INTERNER = new NullInterner();
 
+  /**
+   * Compute line starts for the given [content].
+   * Lines end with `\r`, `\n` or `\r\n`.
+   */
+  static List<int> computeLineStarts(String content) {
+    List<int> lineStarts = <int>[0];
+    int length = content.length;
+    int unit;
+    for (int index = 0; index < length; index++) {
+      unit = content.codeUnitAt(index);
+      // Special-case \r\n.
+      if (unit == 0x0D /* \r */) {
+        // Peek ahead to detect a following \n.
+        if ((index + 1 < length) && content.codeUnitAt(index + 1) == 0x0A) {
+          // Line start will get registered at next index at the \n.
+        } else {
+          lineStarts.add(index + 1);
+        }
+      }
+      // \n
+      if (unit == 0x0A) {
+        lineStarts.add(index + 1);
+      }
+    }
+    return lineStarts;
+  }
+
   static endsWith3(String str, int c1, int c2, int c3) {
     var length = str.length;
     return length >= 3 &&
