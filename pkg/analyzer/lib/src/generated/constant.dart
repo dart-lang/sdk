@@ -1234,8 +1234,9 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   @override
   Object visitAnnotation(Annotation node) {
     super.visitAnnotation(node);
+    AnalysisContext owningContext = _getOwningContext();
     constantsToCompute.add(new ConstantEvaluationTarget_Annotation(
-        context, source, librarySource, node));
+        owningContext, source, librarySource, node));
     return null;
   }
 
@@ -1284,6 +1285,14 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
       }
     }
     return null;
+  }
+
+  AnalysisContext _getOwningContext() {
+    if (context is InternalAnalysisContext) {
+      InternalAnalysisContext internalContext = context;
+      return internalContext.getContextFor(librarySource);
+    }
+    return context;
   }
 }
 

@@ -886,7 +886,7 @@ class ConstantFinderTest extends EngineTestCase {
   void setUp() {
     super.setUp();
     _typeProvider = new TestTypeProvider();
-    _context = new TestAnalysisContext();
+    _context = new TestAnalysisContext_ConstantFinderTest();
     _source = new TestSource();
   }
 
@@ -9065,6 +9065,16 @@ class StringScannerTest extends AbstractScannerTest {
   @override
   ht.AbstractScanner newScanner(String input) {
     return new ht.StringScanner(null, input);
+  }
+}
+
+class TestAnalysisContext_ConstantFinderTest extends TestAnalysisContext {
+  bool invoked = false;
+  TestAnalysisContext_ConstantFinderTest();
+
+  @override
+  InternalAnalysisContext getContextFor(Source source) {
+    return this;
   }
 }
 
