@@ -16,9 +16,9 @@ typedef unsigned __int8 uint8_t;
 namespace dart {
 namespace bin {
 
-static const char observatory_assets_archive_[] = { '\0' };
+static uint8_t char observatory_assets_archive_[] = { '\0' };
 unsigned int observatory_assets_archive_len = 0;
-const char* observatory_assets_archive = observatory_assets_archive_;
+const uint8_t* observatory_assets_archive = observatory_assets_archive_;
 
 }  // namespace bin
 }  // namespace dart
