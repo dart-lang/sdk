@@ -1347,7 +1347,7 @@ bool RunMainIsolate(const char* script_name,
 #undef CHECK_RESULT
 
 extern unsigned int observatory_assets_archive_len;
-extern const uint8_t* const observatory_assets_archive;
+extern const uint8_t* observatory_assets_archive;
 
 Dart_Handle GetVMServiceAssetsArchiveCallback() {
   return DartUtils::MakeUint8Array(
