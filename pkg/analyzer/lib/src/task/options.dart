@@ -48,7 +48,7 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
       'GenerateOptionsErrorsTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[ANALYSIS_OPTIONS_ERRORS]);
+      <ResultDescriptor>[ANALYSIS_OPTIONS_ERRORS, LINE_INFO]);
 
   final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
 
@@ -81,6 +81,7 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
     // Record outputs.
     //
     outputs[ANALYSIS_OPTIONS_ERRORS] = errors;
+    outputs[LINE_INFO] = _computeLineInfo(content);
   }
 
   List<AnalysisError> _validate(Map<String, YamlNode> options) =>
@@ -96,6 +97,17 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
   static GenerateOptionsErrorsTask createTask(
           AnalysisContext context, AnalysisTarget target) =>
       new GenerateOptionsErrorsTask(context, target);
+
+  /// Compute [LineInfo] for the given [content].
+  static LineInfo _computeLineInfo(String content) {
+    List<int> lineStarts = <int>[0];
+    for (int index = 0; index < content.length; index++) {
+      if (content.codeUnitAt(index) == 0x0A) {
+        lineStarts.add(index + 1);
+      }
+    }
+    return new LineInfo(lineStarts);
+  }
 }
 
 /// Validates `linter` top-level options.

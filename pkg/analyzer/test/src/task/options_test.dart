@@ -9,6 +9,7 @@ import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:unittest/unittest.dart';
 
@@ -93,6 +94,10 @@ analyzer:
     computeResult(target, ANALYSIS_OPTIONS_ERRORS);
     expect(task, isGenerateOptionsErrorsTask);
     expect(outputs[ANALYSIS_OPTIONS_ERRORS], isEmpty);
+    LineInfo lineInfo = outputs[LINE_INFO];
+    expect(lineInfo, isNotNull);
+    expect(lineInfo.getLocation(1).lineNumber, 1);
+    expect(lineInfo.getLocation(10).lineNumber, 2);
   }
 
   test_perform_unsupported_analyzer_option() {
