@@ -1164,15 +1164,31 @@ Function _wrapAsDebuggerVarArgsFunction(JsFunction jsFunction) =>
         a9 = _UNDEFINED, a10 = _UNDEFINED]) => jsFunction._applyDebuggerOnly(
             _stripUndefinedArgs([a1, a2, a3, a4, a5, a6, a7, a8, a9, a10]));
 
-// This method is a no-op in Dartium.
+// The allowInterop method is a no-op in Dartium.
 // TODO(jacobr): tag methods so we can throw if a Dart method is passed to
 // JavaScript using the new interop without calling allowInterop.
-@Deprecated("Internal Use Only")
+
+/// Returns a wrapper around function [f] that can be called from JavaScript
+/// using the package:js Dart-JavaScript interop.
+///
+/// For performance reasons in Dart2Js, by default Dart functions cannot be
+/// passed directly to JavaScript unless this method is called to create
+/// a Function compatible with both Dart and JavaScript.
+/// Calling this method repeatedly on a function will return the same function.
+/// The [Function] returned by this method can be used from both Dart and
+/// JavaScript. We may remove the need to call this method completely in the
+/// future if Dart2Js is refactored so that its function calling conventions
+/// are more compatible with JavaScript.
 Function allowInterop(Function f) => f;
 
 Expando<JsFunction> _interopCaptureThisExpando = new Expando<JsFunction>();
 
-@Deprecated("Internal Use Only")
+/// Returns a [Function] that when called from JavaScript captures its 'this'
+/// binding and calls [f] with the value of this passed as the first argument.
+/// When called from Dart, [null] will be passed as the first argument.
+///
+/// See the documention for [allowInterop]. This method should only be used with
+/// package:js Dart-JavaScript interop.
 Function allowInteropCaptureThis(Function f) {
   if (f is JsFunction) {
     // Behavior when the function is already a JS function is unspecified.
