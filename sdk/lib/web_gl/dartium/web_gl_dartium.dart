@@ -20,6 +20,7 @@ import 'dart:js' as js;
 
 
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final web_glBlinkMap = {
   'ANGLEInstancedArrays': () => AngleInstancedArrays,
   'EXTBlendMinMax': () => ExtBlendMinMax,
@@ -60,6 +61,7 @@ final web_glBlinkMap = {
 };
 
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final web_glBlinkFunctionMap = {
   'ANGLEInstancedArrays': () => AngleInstancedArrays.internalCreateAngleInstancedArrays,
   'EXTBlendMinMax': () => ExtBlendMinMax.internalCreateExtBlendMinMax,
@@ -412,6 +414,7 @@ class ActiveInfo extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ActiveInfo._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ActiveInfo internalCreateActiveInfo() {
     return new ActiveInfo._internalWrap();
   }
@@ -452,6 +455,7 @@ class AngleInstancedArrays extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AngleInstancedArrays._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AngleInstancedArrays internalCreateAngleInstancedArrays() {
     return new AngleInstancedArrays._internalWrap();
   }
@@ -500,6 +504,7 @@ class Buffer extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Buffer._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Buffer internalCreateBuffer() {
     return new Buffer._internalWrap();
   }
@@ -529,6 +534,7 @@ class CompressedTextureAtc extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureAtc._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CompressedTextureAtc internalCreateCompressedTextureAtc() {
     return new CompressedTextureAtc._internalWrap();
   }
@@ -569,6 +575,7 @@ class CompressedTextureETC1 extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureETC1._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CompressedTextureETC1 internalCreateCompressedTextureETC1() {
     return new CompressedTextureETC1._internalWrap();
   }
@@ -603,6 +610,7 @@ class CompressedTexturePvrtc extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CompressedTexturePvrtc._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CompressedTexturePvrtc internalCreateCompressedTexturePvrtc() {
     return new CompressedTexturePvrtc._internalWrap();
   }
@@ -648,6 +656,7 @@ class CompressedTextureS3TC extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureS3TC._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CompressedTextureS3TC internalCreateCompressedTextureS3TC() {
     return new CompressedTextureS3TC._internalWrap();
   }
@@ -714,6 +723,7 @@ class ContextAttributes extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ContextAttributes._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ContextAttributes internalCreateContextAttributes() {
     return new ContextAttributes._internalWrap();
   }
@@ -801,6 +811,7 @@ class ContextEvent extends Event {
   factory ContextEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ContextEvent internalCreateContextEvent() {
     return new ContextEvent._internalWrap();
   }
@@ -832,6 +843,7 @@ class DebugRendererInfo extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DebugRendererInfo._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DebugRendererInfo internalCreateDebugRendererInfo() {
     return new DebugRendererInfo._internalWrap();
   }
@@ -869,6 +881,7 @@ class DebugShaders extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DebugShaders._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DebugShaders internalCreateDebugShaders() {
     return new DebugShaders._internalWrap();
   }
@@ -902,6 +915,7 @@ class DepthTexture extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DepthTexture._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DepthTexture internalCreateDepthTexture() {
     return new DepthTexture._internalWrap();
   }
@@ -935,6 +949,7 @@ class DrawBuffers extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DrawBuffers._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DrawBuffers internalCreateDrawBuffers() {
     return new DrawBuffers._internalWrap();
   }
@@ -1103,6 +1118,7 @@ class ExtBlendMinMax extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ExtBlendMinMax._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ExtBlendMinMax internalCreateExtBlendMinMax() {
     return new ExtBlendMinMax._internalWrap();
   }
@@ -1142,6 +1158,7 @@ class ExtFragDepth extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ExtFragDepth._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ExtFragDepth internalCreateExtFragDepth() {
     return new ExtFragDepth._internalWrap();
   }
@@ -1170,6 +1187,7 @@ class ExtShaderTextureLod extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ExtShaderTextureLod._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ExtShaderTextureLod internalCreateExtShaderTextureLod() {
     return new ExtShaderTextureLod._internalWrap();
   }
@@ -1199,6 +1217,7 @@ class ExtTextureFilterAnisotropic extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ExtTextureFilterAnisotropic._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ExtTextureFilterAnisotropic internalCreateExtTextureFilterAnisotropic() {
     return new ExtTextureFilterAnisotropic._internalWrap();
   }
@@ -1235,6 +1254,7 @@ class Framebuffer extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Framebuffer._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Framebuffer internalCreateFramebuffer() {
     return new Framebuffer._internalWrap();
   }
@@ -1264,6 +1284,7 @@ class LoseContext extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory LoseContext._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static LoseContext internalCreateLoseContext() {
     return new LoseContext._internalWrap();
   }
@@ -1301,6 +1322,7 @@ class OesElementIndexUint extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory OesElementIndexUint._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static OesElementIndexUint internalCreateOesElementIndexUint() {
     return new OesElementIndexUint._internalWrap();
   }
@@ -1330,6 +1352,7 @@ class OesStandardDerivatives extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory OesStandardDerivatives._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static OesStandardDerivatives internalCreateOesStandardDerivatives() {
     return new OesStandardDerivatives._internalWrap();
   }
@@ -1363,6 +1386,7 @@ class OesTextureFloat extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory OesTextureFloat._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static OesTextureFloat internalCreateOesTextureFloat() {
     return new OesTextureFloat._internalWrap();
   }
@@ -1392,6 +1416,7 @@ class OesTextureFloatLinear extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory OesTextureFloatLinear._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static OesTextureFloatLinear internalCreateOesTextureFloatLinear() {
     return new OesTextureFloatLinear._internalWrap();
   }
@@ -1421,6 +1446,7 @@ class OesTextureHalfFloat extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory OesTextureHalfFloat._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static OesTextureHalfFloat internalCreateOesTextureHalfFloat() {
     return new OesTextureHalfFloat._internalWrap();
   }
@@ -1454,6 +1480,7 @@ class OesTextureHalfFloatLinear extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory OesTextureHalfFloatLinear._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static OesTextureHalfFloatLinear internalCreateOesTextureHalfFloatLinear() {
     return new OesTextureHalfFloatLinear._internalWrap();
   }
@@ -1483,6 +1510,7 @@ class OesVertexArrayObject extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory OesVertexArrayObject._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static OesVertexArrayObject internalCreateOesVertexArrayObject() {
     return new OesVertexArrayObject._internalWrap();
   }
@@ -1531,6 +1559,7 @@ class Program extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Program._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Program internalCreateProgram() {
     return new Program._internalWrap();
   }
@@ -1559,6 +1588,7 @@ class Renderbuffer extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Renderbuffer._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Renderbuffer internalCreateRenderbuffer() {
     return new Renderbuffer._internalWrap();
   }
@@ -1587,6 +1617,7 @@ class RenderingContext extends DartHtmlDomObject implements CanvasRenderingConte
   // To suppress missing implicit constructor warnings.
   factory RenderingContext._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static RenderingContext internalCreateRenderingContext() {
     return new RenderingContext._internalWrap();
   }
@@ -3532,6 +3563,7 @@ class Shader extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Shader._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Shader internalCreateShader() {
     return new Shader._internalWrap();
   }
@@ -3559,6 +3591,7 @@ class ShaderPrecisionFormat extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ShaderPrecisionFormat._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ShaderPrecisionFormat internalCreateShaderPrecisionFormat() {
     return new ShaderPrecisionFormat._internalWrap();
   }
@@ -3598,6 +3631,7 @@ class Texture extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Texture._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Texture internalCreateTexture() {
     return new Texture._internalWrap();
   }
@@ -3625,6 +3659,7 @@ class UniformLocation extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory UniformLocation._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static UniformLocation internalCreateUniformLocation() {
     return new UniformLocation._internalWrap();
   }
@@ -3654,6 +3689,7 @@ class VertexArrayObject extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory VertexArrayObject._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static VertexArrayObject internalCreateVertexArrayObject() {
     return new VertexArrayObject._internalWrap();
   }
