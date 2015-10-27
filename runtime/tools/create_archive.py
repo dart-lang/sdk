@@ -56,7 +56,7 @@ typedef unsigned __int8 uint8_t;
     cc_text += 'namespace %s {\n' % inner_namespace
   cc_text += '\n\n'
   # Write the archive.
-  cc_text += 'static const uint8_t %s_[] = {\n  ' % name
+  cc_text += 'static const char %s_[] = {\n   ' % name
   lineCounter = 0
   for byte in tar_archive:
     cc_text += r" '\x%02x'," % ord(byte)
@@ -68,7 +68,8 @@ typedef unsigned __int8 uint8_t;
     cc_text += '\n   '
   cc_text += '};\n'
   cc_text += '\nunsigned int %s_len = %d;\n' % (name, len(tar_archive))
-  cc_text += '\nconst uint8_t* %s = %s_;\n' % (name, name)
+  cc_text += '\nconst uint8_t* %s = ' % name
+  cc_text += 'reinterpret_cast<const uint8_t*>(&%s_[0]);\n' % name
   if inner_namespace != None:
     cc_text += '}  // namespace %s\n' % inner_namespace
   cc_text += '} // namespace %s\n' % outer_namespace
