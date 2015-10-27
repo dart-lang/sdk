@@ -1,0 +1,274 @@
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+//
+// This file has been automatically generated.  Please do not edit it manually.
+// To regenerate the file, use the script
+// "pkg/analyzer/tool/task_dependency_graph/generate.dart".
+//
+// To render this graph using Graphviz (www.graphviz.org) use the command:
+// "dot tasks.dot -Tpdf -O".
+digraph G {
+  BUILD_DIRECTIVES_ERRORS -> LibraryUnitErrorsTask
+  BUILD_DIRECTIVES_ERRORS [shape=box]
+  BUILD_LIBRARY_ERRORS -> LibraryUnitErrorsTask
+  BUILD_LIBRARY_ERRORS [shape=box]
+  BuildCompilationUnitElementTask -> COMPILATION_UNIT_CONSTANTS
+  BuildCompilationUnitElementTask -> COMPILATION_UNIT_ELEMENT
+  BuildCompilationUnitElementTask -> RESOLVED_UNIT1
+  BuildDirectiveElementsTask -> BUILD_DIRECTIVES_ERRORS
+  BuildDirectiveElementsTask -> LIBRARY_ELEMENT2
+  BuildEnumMemberElementsTask -> RESOLVED_UNIT2
+  BuildExportNamespaceTask -> LIBRARY_ELEMENT4
+  BuildLibraryElementTask -> BUILD_LIBRARY_ERRORS
+  BuildLibraryElementTask -> IS_LAUNCHABLE
+  BuildLibraryElementTask -> LIBRARY_ELEMENT1
+  BuildPublicNamespaceTask -> LIBRARY_ELEMENT3
+  BuildSourceExportClosureTask -> EXPORT_SOURCE_CLOSURE
+  BuildTypeProviderTask -> TYPE_PROVIDER
+  COMPILATION_UNIT_CONSTANTS -> EvaluateUnitConstantsTask
+  COMPILATION_UNIT_CONSTANTS [shape=box]
+  COMPILATION_UNIT_ELEMENT [shape=box]
+  CONSTANT_DEPENDENCIES -> ComputeConstantValueTask
+  CONSTANT_DEPENDENCIES [shape=box]
+  CONSTANT_VALUE -> ComputeConstantValueTask
+  CONSTANT_VALUE -> EvaluateUnitConstantsTask
+  CONSTANT_VALUE [shape=box]
+  CONTAINING_LIBRARIES -> DartErrorsTask
+  CONTAINING_LIBRARIES [shape=box]
+  CONTENT -> ScanDartTask
+  CONTENT [shape=box]
+  ComputeConstantDependenciesTask -> CONSTANT_DEPENDENCIES
+  ComputeConstantValueTask -> CONSTANT_VALUE
+  ComputeInferableStaticVariableDependenciesTask -> INFERABLE_STATIC_VARIABLE_DEPENDENCIES
+  ComputeLibraryCycleTask -> LIBRARY_CYCLE
+  ComputeLibraryCycleTask -> LIBRARY_CYCLE_DEPENDENCIES
+  ComputeLibraryCycleTask -> LIBRARY_CYCLE_UNITS
+  ContainingLibrariesTask -> CONTAINING_LIBRARIES
+  DART_ERRORS -> LibraryErrorsReadyTask
+  DART_ERRORS [shape=box]
+  DART_SCRIPTS -> ScanDartTask
+  DART_SCRIPTS [shape=box]
+  DartErrorsTask -> DART_ERRORS
+  EXPLICITLY_IMPORTED_LIBRARIES [shape=box]
+  EXPORTED_LIBRARIES -> BuildDirectiveElementsTask
+  EXPORTED_LIBRARIES -> ReadyLibraryElement2Task
+  EXPORTED_LIBRARIES -> ReadyLibraryElement5Task
+  EXPORTED_LIBRARIES -> ReadyResolvedUnit10Task
+  EXPORTED_LIBRARIES -> ReadyResolvedUnit9Task
+  EXPORTED_LIBRARIES -> ReadyResolvedUnitTask
+  EXPORTED_LIBRARIES [shape=box]
+  EXPORT_SOURCE_CLOSURE -> BuildExportNamespaceTask
+  EXPORT_SOURCE_CLOSURE [shape=box]
+  EvaluateUnitConstantsTask -> RESOLVED_UNIT10
+  GatherUsedImportedElementsTask -> USED_IMPORTED_ELEMENTS
+  GatherUsedLocalElementsTask -> USED_LOCAL_ELEMENTS
+  GenerateHintsTask -> HINTS
+  GenerateLintsTask -> LINTS
+  HINTS -> LibraryUnitErrorsTask
+  HINTS [shape=box]
+  IMPORTED_LIBRARIES -> BuildDirectiveElementsTask
+  IMPORTED_LIBRARIES -> ReadyLibraryElement2Task
+  IMPORTED_LIBRARIES -> ReadyLibraryElement5Task
+  IMPORTED_LIBRARIES -> ReadyResolvedUnit10Task
+  IMPORTED_LIBRARIES -> ReadyResolvedUnit9Task
+  IMPORTED_LIBRARIES -> ReadyResolvedUnitTask
+  IMPORTED_LIBRARIES -> ResolveUnitTypeNamesTask
+  IMPORTED_LIBRARIES [shape=box]
+  INCLUDED_PARTS -> BuildLibraryElementTask
+  INCLUDED_PARTS [shape=box]
+  INFERABLE_STATIC_VARIABLES_IN_UNIT -> InferStaticVariableTypesInUnitTask
+  INFERABLE_STATIC_VARIABLES_IN_UNIT [shape=box]
+  INFERABLE_STATIC_VARIABLE_DEPENDENCIES -> InferStaticVariableTypeTask
+  INFERABLE_STATIC_VARIABLE_DEPENDENCIES [shape=box]
+  INFERRED_STATIC_VARIABLE -> InferStaticVariableTypeTask
+  INFERRED_STATIC_VARIABLE -> InferStaticVariableTypesInUnitTask
+  INFERRED_STATIC_VARIABLE [shape=box]
+  IS_LAUNCHABLE [shape=box]
+  InferInstanceMembersInUnitTask -> RESOLVED_UNIT8
+  InferStaticVariableTypeTask -> INFERRED_STATIC_VARIABLE
+  InferStaticVariableTypesInUnitTask -> RESOLVED_UNIT6
+  LIBRARY_CYCLE [shape=box]
+  LIBRARY_CYCLE_DEPENDENCIES -> InferInstanceMembersInUnitTask
+  LIBRARY_CYCLE_DEPENDENCIES -> InferStaticVariableTypeTask
+  LIBRARY_CYCLE_DEPENDENCIES -> PartiallyResolveUnitReferencesTask
+  LIBRARY_CYCLE_DEPENDENCIES -> ResolveInstanceFieldsInUnitTask
+  LIBRARY_CYCLE_DEPENDENCIES [shape=box]
+  LIBRARY_CYCLE_UNITS -> InferInstanceMembersInUnitTask
+  LIBRARY_CYCLE_UNITS -> ResolveInstanceFieldsInUnitTask
+  LIBRARY_CYCLE_UNITS -> ResolveUnitTask
+  LIBRARY_CYCLE_UNITS [shape=box]
+  LIBRARY_ELEMENT -> EvaluateUnitConstantsTask
+  LIBRARY_ELEMENT [shape=box]
+  LIBRARY_ELEMENT1 -> BuildDirectiveElementsTask
+  LIBRARY_ELEMENT1 -> ResolveVariableReferencesTask
+  LIBRARY_ELEMENT1 [shape=box]
+  LIBRARY_ELEMENT2 -> BuildPublicNamespaceTask
+  LIBRARY_ELEMENT2 -> BuildSourceExportClosureTask
+  LIBRARY_ELEMENT2 -> ComputeLibraryCycleTask
+  LIBRARY_ELEMENT2 -> ReadyLibraryElement2Task
+  LIBRARY_ELEMENT2 [shape=box]
+  LIBRARY_ELEMENT3 -> BuildExportNamespaceTask
+  LIBRARY_ELEMENT3 -> BuildTypeProviderTask
+  LIBRARY_ELEMENT3 [shape=box]
+  LIBRARY_ELEMENT4 -> ResolveLibraryTypeNamesTask
+  LIBRARY_ELEMENT4 -> ResolveUnitTypeNamesTask
+  LIBRARY_ELEMENT4 [shape=box]
+  LIBRARY_ELEMENT5 -> PartiallyResolveUnitReferencesTask
+  LIBRARY_ELEMENT5 -> ReadyLibraryElement5Task
+  LIBRARY_ELEMENT5 -> ResolveInstanceFieldsInUnitTask
+  LIBRARY_ELEMENT5 -> ResolveLibraryReferencesTask
+  LIBRARY_ELEMENT5 -> ResolveUnitTask
+  LIBRARY_ELEMENT5 [shape=box]
+  LIBRARY_ERRORS_READY [shape=box]
+  LIBRARY_SPECIFIC_UNITS -> GenerateHintsTask
+  LIBRARY_SPECIFIC_UNITS -> ReadyResolvedUnit10Task
+  LIBRARY_SPECIFIC_UNITS -> ReadyResolvedUnit9Task
+  LIBRARY_SPECIFIC_UNITS -> ReadyResolvedUnitTask
+  LIBRARY_SPECIFIC_UNITS -> ResolveLibraryReferencesTask
+  LIBRARY_SPECIFIC_UNITS -> ResolveLibraryTypeNamesTask
+  LIBRARY_SPECIFIC_UNITS [shape=box]
+  LIBRARY_UNIT_ERRORS -> dartErrorsForUnit
+  LIBRARY_UNIT_ERRORS [shape=box]
+  LINE_INFO -> ParseDartTask
+  LINE_INFO [shape=box]
+  LINTS -> LibraryUnitErrorsTask
+  LINTS [shape=box]
+  LibraryErrorsReadyTask -> LIBRARY_ERRORS_READY
+  LibraryUnitErrorsTask -> LIBRARY_UNIT_ERRORS
+  MODIFICATION_TIME -> ParseDartTask
+  MODIFICATION_TIME [shape=box]
+  PARSED_UNIT -> BuildCompilationUnitElementTask
+  PARSED_UNIT [shape=box]
+  PARSE_ERRORS -> dartErrorsForSource
+  PARSE_ERRORS [shape=box]
+  ParseDartTask -> EXPLICITLY_IMPORTED_LIBRARIES
+  ParseDartTask -> EXPORTED_LIBRARIES
+  ParseDartTask -> IMPORTED_LIBRARIES
+  ParseDartTask -> INCLUDED_PARTS
+  ParseDartTask -> LIBRARY_SPECIFIC_UNITS
+  ParseDartTask -> PARSED_UNIT
+  ParseDartTask -> PARSE_ERRORS
+  ParseDartTask -> SOURCE_KIND
+  ParseDartTask -> UNITS
+  PartiallyResolveUnitReferencesTask -> INFERABLE_STATIC_VARIABLES_IN_UNIT
+  PartiallyResolveUnitReferencesTask -> RESOLVED_UNIT5
+  READY_LIBRARY_ELEMENT2 -> ComputeLibraryCycleTask
+  READY_LIBRARY_ELEMENT2 -> ReadyLibraryElement2Task
+  READY_LIBRARY_ELEMENT2 [shape=box]
+  READY_LIBRARY_ELEMENT5 -> PartiallyResolveUnitReferencesTask
+  READY_LIBRARY_ELEMENT5 -> ReadyLibraryElement5Task
+  READY_LIBRARY_ELEMENT5 [shape=box]
+  READY_RESOLVED_UNIT -> ReadyResolvedUnitTask
+  READY_RESOLVED_UNIT -> VerifyUnitTask
+  READY_RESOLVED_UNIT [shape=box]
+  READY_RESOLVED_UNIT10 -> ReadyResolvedUnit10Task
+  READY_RESOLVED_UNIT10 -> StrongModeVerifyUnitTask
+  READY_RESOLVED_UNIT10 [shape=box]
+  READY_RESOLVED_UNIT9 -> ReadyResolvedUnit9Task
+  READY_RESOLVED_UNIT9 -> ResolveLibraryReferencesTask
+  READY_RESOLVED_UNIT9 [shape=box]
+  REFERENCED_NAMES [shape=box]
+  RESOLVED_UNIT -> GenerateHintsTask
+  RESOLVED_UNIT -> GenerateLintsTask
+  RESOLVED_UNIT -> ReadyResolvedUnitTask
+  RESOLVED_UNIT -> VerifyUnitTask
+  RESOLVED_UNIT [shape=box]
+  RESOLVED_UNIT1 -> BuildDirectiveElementsTask
+  RESOLVED_UNIT1 -> BuildEnumMemberElementsTask
+  RESOLVED_UNIT1 -> BuildLibraryElementTask
+  RESOLVED_UNIT1 [shape=box]
+  RESOLVED_UNIT10 -> ReadyResolvedUnit10Task
+  RESOLVED_UNIT10 -> StrongModeVerifyUnitTask
+  RESOLVED_UNIT10 [shape=box]
+  RESOLVED_UNIT2 -> ResolveUnitTypeNamesTask
+  RESOLVED_UNIT2 [shape=box]
+  RESOLVED_UNIT3 -> ResolveLibraryTypeNamesTask
+  RESOLVED_UNIT3 -> ResolveVariableReferencesTask
+  RESOLVED_UNIT3 [shape=box]
+  RESOLVED_UNIT4 -> PartiallyResolveUnitReferencesTask
+  RESOLVED_UNIT4 [shape=box]
+  RESOLVED_UNIT5 -> ComputeInferableStaticVariableDependenciesTask
+  RESOLVED_UNIT5 -> InferStaticVariableTypeTask
+  RESOLVED_UNIT5 -> InferStaticVariableTypesInUnitTask
+  RESOLVED_UNIT5 [shape=box]
+  RESOLVED_UNIT6 -> ResolveInstanceFieldsInUnitTask
+  RESOLVED_UNIT6 [shape=box]
+  RESOLVED_UNIT7 -> InferInstanceMembersInUnitTask
+  RESOLVED_UNIT7 [shape=box]
+  RESOLVED_UNIT8 -> InferInstanceMembersInUnitTask
+  RESOLVED_UNIT8 -> InferStaticVariableTypeTask
+  RESOLVED_UNIT8 -> PartiallyResolveUnitReferencesTask
+  RESOLVED_UNIT8 -> ResolveInstanceFieldsInUnitTask
+  RESOLVED_UNIT8 -> ResolveUnitTask
+  RESOLVED_UNIT8 [shape=box]
+  RESOLVED_UNIT9 -> ComputeConstantDependenciesTask
+  RESOLVED_UNIT9 -> EvaluateUnitConstantsTask
+  RESOLVED_UNIT9 -> GatherUsedImportedElementsTask
+  RESOLVED_UNIT9 -> GatherUsedLocalElementsTask
+  RESOLVED_UNIT9 -> ReadyResolvedUnit9Task
+  RESOLVED_UNIT9 -> ResolveLibraryReferencesTask
+  RESOLVED_UNIT9 [shape=box]
+  RESOLVE_TYPE_NAMES_ERRORS -> LibraryUnitErrorsTask
+  RESOLVE_TYPE_NAMES_ERRORS [shape=box]
+  RESOLVE_UNIT_ERRORS -> LibraryUnitErrorsTask
+  RESOLVE_UNIT_ERRORS [shape=box]
+  ReadyLibraryElement2Task -> READY_LIBRARY_ELEMENT2
+  ReadyLibraryElement5Task -> READY_LIBRARY_ELEMENT5
+  ReadyResolvedUnit10Task -> READY_RESOLVED_UNIT10
+  ReadyResolvedUnit9Task -> READY_RESOLVED_UNIT9
+  ReadyResolvedUnitTask -> READY_RESOLVED_UNIT
+  ResolveInstanceFieldsInUnitTask -> RESOLVED_UNIT7
+  ResolveLibraryReferencesTask -> LIBRARY_ELEMENT
+  ResolveLibraryReferencesTask -> REFERENCED_NAMES
+  ResolveLibraryTypeNamesTask -> LIBRARY_ELEMENT5
+  ResolveUnitTask -> RESOLVED_UNIT9
+  ResolveUnitTask -> RESOLVE_UNIT_ERRORS
+  ResolveUnitTypeNamesTask -> RESOLVED_UNIT3
+  ResolveUnitTypeNamesTask -> RESOLVE_TYPE_NAMES_ERRORS
+  ResolveVariableReferencesTask -> RESOLVED_UNIT4
+  ResolveVariableReferencesTask -> VARIABLE_REFERENCE_ERRORS
+  SCAN_ERRORS -> dartErrorsForSource
+  SCAN_ERRORS [shape=box]
+  SOURCE_KIND -> BuildDirectiveElementsTask
+  SOURCE_KIND [shape=box]
+  STRONG_MODE_ERRORS -> LibraryUnitErrorsTask
+  STRONG_MODE_ERRORS [shape=box]
+  ScanDartTask -> LINE_INFO
+  ScanDartTask -> SCAN_ERRORS
+  ScanDartTask -> TOKEN_STREAM
+  StrongModeVerifyUnitTask -> RESOLVED_UNIT
+  StrongModeVerifyUnitTask -> STRONG_MODE_ERRORS
+  TOKEN_STREAM -> ParseDartTask
+  TOKEN_STREAM [shape=box]
+  TYPE_PROVIDER -> BuildEnumMemberElementsTask
+  TYPE_PROVIDER -> ComputeConstantDependenciesTask
+  TYPE_PROVIDER -> ComputeConstantValueTask
+  TYPE_PROVIDER -> GenerateHintsTask
+  TYPE_PROVIDER -> InferInstanceMembersInUnitTask
+  TYPE_PROVIDER -> InferStaticVariableTypeTask
+  TYPE_PROVIDER -> PartiallyResolveUnitReferencesTask
+  TYPE_PROVIDER -> ResolveInstanceFieldsInUnitTask
+  TYPE_PROVIDER -> ResolveLibraryTypeNamesTask
+  TYPE_PROVIDER -> ResolveUnitTask
+  TYPE_PROVIDER -> ResolveUnitTypeNamesTask
+  TYPE_PROVIDER -> ResolveVariableReferencesTask
+  TYPE_PROVIDER -> StrongModeVerifyUnitTask
+  TYPE_PROVIDER -> VerifyUnitTask
+  TYPE_PROVIDER [shape=box]
+  UNITS -> LibraryErrorsReadyTask
+  UNITS [shape=box]
+  USED_IMPORTED_ELEMENTS -> GenerateHintsTask
+  USED_IMPORTED_ELEMENTS [shape=box]
+  USED_LOCAL_ELEMENTS -> GenerateHintsTask
+  USED_LOCAL_ELEMENTS [shape=box]
+  VARIABLE_REFERENCE_ERRORS -> LibraryUnitErrorsTask
+  VARIABLE_REFERENCE_ERRORS [shape=box]
+  VERIFY_ERRORS -> LibraryUnitErrorsTask
+  VERIFY_ERRORS [shape=box]
+  VerifyUnitTask -> VERIFY_ERRORS
+  dartErrorsForSource -> DartErrorsTask
+  dartErrorsForSource [shape=hexagon]
+  dartErrorsForUnit -> DartErrorsTask
+  dartErrorsForUnit [shape=hexagon]
+}

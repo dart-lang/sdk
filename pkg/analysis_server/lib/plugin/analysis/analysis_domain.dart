@@ -57,7 +57,7 @@ typedef void SetAnalysisDomain(AnalysisDomain domain);
  * An object that gives plugins access to the analysis domain of the analysis
  * server.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class AnalysisDomain {
   /**

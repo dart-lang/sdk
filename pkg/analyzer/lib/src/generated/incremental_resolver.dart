@@ -901,11 +901,15 @@ class IncrementalBodyDelta extends Delta {
         isByTask(BuildLibraryElementTask.DESCRIPTOR) ||
         isByTask(BuildPublicNamespaceTask.DESCRIPTOR) ||
         isByTask(BuildSourceExportClosureTask.DESCRIPTOR) ||
-        isByTask(BuildSourceImportExportClosureTask.DESCRIPTOR) ||
         isByTask(ComputeConstantDependenciesTask.DESCRIPTOR) ||
         isByTask(ComputeConstantValueTask.DESCRIPTOR) ||
         isByTask(ComputeLibraryCycleTask.DESCRIPTOR) ||
         isByTask(DartErrorsTask.DESCRIPTOR) ||
+        isByTask(ReadyLibraryElement2Task.DESCRIPTOR) ||
+        isByTask(ReadyLibraryElement5Task.DESCRIPTOR) ||
+        isByTask(ReadyResolvedUnitTask.DESCRIPTOR) ||
+        isByTask(ReadyResolvedUnit9Task.DESCRIPTOR) ||
+        isByTask(ReadyResolvedUnit10Task.DESCRIPTOR) ||
         isByTask(EvaluateUnitConstantsTask.DESCRIPTOR) ||
         isByTask(GenerateHintsTask.DESCRIPTOR) ||
         isByTask(InferInstanceMembersInUnitTask.DESCRIPTOR) ||

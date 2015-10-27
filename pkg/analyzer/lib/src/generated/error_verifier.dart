@@ -2157,7 +2157,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         overriddenMember = _enclosingClass.lookUpInheritedConcreteMethod(
             memberName, _currentLibrary);
       }
-      if (overriddenMember == null) {
+      if (overriddenMember == null && !_hasNoSuchMethod(_enclosingClass)) {
         _errorReporter.reportErrorForNode(
             StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
             nameNode,
@@ -4422,19 +4422,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       SimpleIdentifier classNameNode) {
     if (_enclosingClass.isAbstract) {
       return false;
+    } else if (_hasNoSuchMethod(_enclosingClass)) {
+      return false;
     }
     //
     // Store in local sets the set of all method and accessor names
     //
-    MethodElement method =
-        _enclosingClass.getMethod(FunctionElement.NO_SUCH_METHOD_METHOD_NAME);
-    if (method != null) {
-      // If the enclosing class declares the method noSuchMethod(), then return.
-      // From Spec:  It is a static warning if a concrete class does not have an
-      // implementation for a method in any of its superinterfaces unless it
-      // declares its own noSuchMethod method (7.10).
-      return false;
-    }
     HashSet<ExecutableElement> missingOverrides =
         new HashSet<ExecutableElement>();
     //
@@ -5596,8 +5589,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // If there is a noSuchMethod method, then don't report the warning,
     // see dartbug.com/16078
-    if (classElement.getMethod(FunctionElement.NO_SUCH_METHOD_METHOD_NAME) !=
-        null) {
+    if (_hasNoSuchMethod(classElement)) {
       return false;
     }
     ExecutableElement callMethod = _inheritanceManager.lookupMember(
@@ -5744,6 +5736,22 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return foundError;
+  }
+
+  /**
+   * Return `true` if the given [classElement] has a noSuchMethod() method
+   * distinct from the one declared in class Object, as per the Dart Language
+   * Specification (section 10.4).
+   */
+  bool _hasNoSuchMethod(ClassElement classElement) {
+    MethodElement method = classElement.lookUpMethod(
+        FunctionElement.NO_SUCH_METHOD_METHOD_NAME, classElement.library);
+    if (method == null) {
+      return false;
+    }
+    ClassElement definingClass =
+        method.getAncestor((Element element) => element is ClassElement);
+    return definingClass != null && !definingClass.type.isObject;
   }
 
   /**

@@ -87,10 +87,8 @@ linter:
     handleSuccessfulRequest(request);
 
     return waitForTasksFinished().then((_) {
-      // Confirm lint is registered.
-      expect(lintRegistry, isNotEmpty);
       AnalysisContext testContext = server.getContainingContext(testFile);
-      List<Linter> lints = lintRegistry[testContext];
+      List<Linter> lints = getLints(testContext);
       // Registry should only contain single lint rule.
       expect(lints, hasLength(1));
       LintRule lint = lints.first as LintRule;

@@ -20,12 +20,20 @@ main() {
     testRoundtrip(new Uint8List.fromList(list), "Uint8List#${list.length}");
   }
   testErrors();
+
+  // Decoder is lenienet with mixed styles.
+  Expect.listEquals([0xfb, 0xff, 0xbf, 0x00], BASE64.decode("-_+/AA%3D="));
+  Expect.listEquals([0xfb, 0xff, 0xbf, 0x00], BASE64.decode("-_+/AA=%3D"));
 }
 
 void testRoundtrip(list, name) {
   // Direct.
-  String encoded = BASE64.encode(list);
-  List result = BASE64.decode(encoded);
+  String encodedNormal = BASE64.encode(list);
+  String encodedPercent = encodedNormal.replaceAll("=", "%3D");
+  String uriEncoded = encodedNormal.replaceAll("+", "-").replaceAll("/", "_");
+  List result = BASE64.decode(encodedNormal);
+  Expect.listEquals(list, result, name);
+  result = BASE64.decode(encodedPercent);
   Expect.listEquals(list, result, name);
 
   int increment = list.length ~/ 7 + 1;
@@ -42,7 +50,7 @@ void testRoundtrip(list, name) {
         encoder.add(list.sublist(j, list.length));
         encoder.close();
         var name = "0-$i-$j-${list.length}: list";
-        Expect.equals(encoded, results.join(""), name);
+        Expect.equals(encodedNormal, results.join(""), name);
       }
       {
         // Using addSlice
@@ -53,36 +61,40 @@ void testRoundtrip(list, name) {
         encoder.addSlice(list, i, j, false);
         encoder.addSlice(list, j, list.length, true);
         var name = "0-$i-$j-${list.length}: $list";
-        Expect.equals(encoded, results.join(""), name);
+        Expect.equals(encodedNormal, results.join(""), name);
       }
     }
   }
 
-  increment = encoded.length ~/ 7 + 1;
-  for (int i = 0; i < encoded.length; i += increment) {
-    for (int j = i; j < encoded.length; j += increment) {
-      {
-        // Using add/close
-        var results;
-        var sink = new ChunkedConversionSink.withCallback((v) { results = v; });
-        var decoder = BASE64.decoder.startChunkedConversion(sink);
-        decoder.add(encoded.substring(0, i));
-        decoder.add(encoded.substring(i, j));
-        decoder.add(encoded.substring(j, encoded.length));
-        decoder.close();
-        var name = "0-$i-$j-${encoded.length}: $encoded";
-        Expect.listEquals(list, results.expand((x)=>x).toList(), name);
-      }
-      {
-        // Using addSlice
-        var results;
-        var sink = new ChunkedConversionSink.withCallback((v) { results = v; });
-        var decoder = BASE64.decoder.startChunkedConversion(sink);
-        decoder.addSlice(encoded, 0, i, false);
-        decoder.addSlice(encoded, i, j, false);
-        decoder.addSlice(encoded, j, encoded.length, true);
-        var name = "0-$i-$j-${encoded.length}: $encoded";
-        Expect.listEquals(list, results.expand((x)=>x).toList(), name);
+  for (var encoded in [encodedNormal, encodedPercent, uriEncoded]) {
+    increment = encoded.length ~/ 7 + 1;
+    for (int i = 0; i < encoded.length; i += increment) {
+      for (int j = i; j < encoded.length; j += increment) {
+        {
+          // Using add/close
+          var results;
+          var sink =
+              new ChunkedConversionSink.withCallback((v) { results = v; });
+          var decoder = BASE64.decoder.startChunkedConversion(sink);
+          decoder.add(encoded.substring(0, i));
+          decoder.add(encoded.substring(i, j));
+          decoder.add(encoded.substring(j, encoded.length));
+          decoder.close();
+          var name = "0-$i-$j-${encoded.length}: $encoded";
+          Expect.listEquals(list, results.expand((x)=>x).toList(), name);
+        }
+        {
+          // Using addSlice
+          var results;
+          var sink =
+              new ChunkedConversionSink.withCallback((v) { results = v; });
+          var decoder = BASE64.decoder.startChunkedConversion(sink);
+          decoder.addSlice(encoded, 0, i, false);
+          decoder.addSlice(encoded, i, j, false);
+          decoder.addSlice(encoded, j, encoded.length, true);
+          var name = "0-$i-$j-${encoded.length}: $encoded";
+          Expect.listEquals(list, results.expand((x)=>x).toList(), name);
+        }
       }
     }
   }
@@ -123,6 +135,11 @@ void testErrors() {
   badDecode("AAAA==");
   badDecode("AAAA===");
   badDecode("AAAA====");
+  badDecode("AAAA%");
+  badDecode("AAAA%3");
+  badDecode("AAAA%3D");
+  badDecode("AAA%3D%");
+  badDecode("AAA%3D=");
   badDecode("A=");
   badDecode("A=A");
   badDecode("A==");
@@ -130,11 +147,12 @@ void testErrors() {
   badDecode("A===");
   badDecode("====");
   badDecode("AA=");
+  badDecode("AA%=");
+  badDecode("AA%3");
+  badDecode("AA%3D");
   badDecode("AA===");
   badDecode("AAA==");
   badDecode("AAA=AAAA");
-  badDecode("AAA-");
-  badDecode("AAA_");
   badDecode("AAA\x00");
   badDecode("AAA=\x00");
   badDecode("AAA\x80");
@@ -142,9 +160,12 @@ void testErrors() {
   badDecode("AAA\u{141}");
   badDecode("AAA\u{1041}");
   badDecode("AAA\u{10041}");
+  badDecode("AA\u{141}=");
+  badDecode("AA\u{1041}=");
+  badDecode("AA\u{10041}=");
 
   var alphabet =
-    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/";
+    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/-_";
   var units = alphabet.codeUnits;
   for (int i = 0; i < 128; i++) {
     if (!units.contains(i)) {

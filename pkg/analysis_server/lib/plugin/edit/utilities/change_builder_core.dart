@@ -11,7 +11,7 @@ import 'package:analyzer/src/generated/source.dart';
 /**
  * A builder used to build a [SourceChange].
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class ChangeBuilder {
   /**
@@ -37,7 +37,7 @@ abstract class ChangeBuilder {
 /**
  * A builder used to build a [SourceEdit] as part of a [SourceFileEdit].
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class EditBuilder {
   /**
@@ -64,7 +64,7 @@ abstract class EditBuilder {
 /**
  * A builder used to build a [SourceFileEdit] within a [SourceChange].
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class FileEditBuilder {
   /**
@@ -97,7 +97,7 @@ abstract class FileEditBuilder {
 /**
  * A builder used to build a [LinkedEdit] region within an edit.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class LinkedEditBuilder {
   /**

@@ -10,6 +10,7 @@ import 'dart:math';
 
 import 'package:analysis_server/plugin/analysis/resolver_provider.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/plugin/linter_plugin.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
@@ -25,7 +26,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
-import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 
 /**
@@ -381,12 +381,14 @@ class Driver implements ServerStarter {
     //
     // Initialize the instrumentation service.
     //
-    if (instrumentationServer != null) {
-      String filePath = results[INSTRUMENTATION_LOG_FILE];
-      if (filePath != null) {
-        instrumentationServer = new MulticastInstrumentationServer(
-            [instrumentationServer, new FileInstrumentationServer(filePath)]);
-      }
+    String logFilePath = results[INSTRUMENTATION_LOG_FILE];
+    if (logFilePath != null) {
+      FileInstrumentationServer fileBasedServer =
+          new FileInstrumentationServer(logFilePath);
+      instrumentationServer = instrumentationServer != null
+          ? new MulticastInstrumentationServer(
+              [instrumentationServer, fileBasedServer])
+          : fileBasedServer;
     }
     InstrumentationService service =
         new InstrumentationService(instrumentationServer);
@@ -405,6 +407,7 @@ class Driver implements ServerStarter {
     plugins.add(serverPlugin);
     plugins.addAll(_userDefinedPlugins);
     plugins.add(linterPlugin);
+    plugins.add(linterServerPlugin);
 
     // Defer to the extension manager in AE for plugin registration.
     AnalysisEngine.instance.userDefinedPlugins = plugins;

@@ -854,7 +854,7 @@ abstract class IntegrationTestMixin {
   StreamController<AnalysisOutlineParams> _onAnalysisOutline;
 
   /**
-   * Reports the overridding members in a file.
+   * Reports the overriding members in a file.
    *
    * This notification is not subscribed to by default. Clients can subscribe
    * by including the value "OVERRIDES" in the list of services passed in an
@@ -1445,7 +1445,7 @@ abstract class IntegrationTestMixin {
    *
    * If directives of the Dart file cannot be organized, for example because it
    * has scan or parse errors, or by other reasons, ORGANIZE_DIRECTIVES_ERROR
-   * will be generated. The message will provide datails about the reason.
+   * will be generated. The message will provide details about the reason.
    *
    * Parameters
    *

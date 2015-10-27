@@ -30,6 +30,7 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:path/path.dart';
+import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -609,7 +610,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
     expect(result.isValid, isTrue);
     DartObject value = result.value;
     expect(value.type.name, "double");
-    expect(value.doubleValue.isInfinite, isTrue);
+    expect(value.toDoubleValue().isInfinite, isTrue);
   }
 
   void test_divide_int_int() {
@@ -825,7 +826,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
     EvaluationResult result = _getExpressionValue(contents);
     DartObject value = result.value;
     expect(value.type.name, "bool");
-    expect(value.boolValue, expectedValue);
+    expect(value.toBoolValue(), expectedValue);
   }
 
   void _assertValue2(double expectedValue, String contents) {
@@ -833,7 +834,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
     expect(result.isValid, isTrue);
     DartObject value = result.value;
     expect(value.type.name, "double");
-    expect(value.doubleValue, expectedValue);
+    expect(value.toDoubleValue(), expectedValue);
   }
 
   void _assertValue3(int expectedValue, String contents) {
@@ -841,7 +842,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
     expect(result.isValid, isTrue);
     DartObject value = result.value;
     expect(value.type.name, "int");
-    expect(value.intValue, expectedValue);
+    expect(value.toIntValue(), expectedValue);
   }
 
   void _assertValue4(String expectedValue, String contents) {
@@ -851,7 +852,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
     ParameterizedType type = value.type;
     expect(type, isNotNull);
     expect(type.name, "String");
-    expect(value.stringValue, expectedValue);
+    expect(value.toStringValue(), expectedValue);
   }
 
   EvaluationResult _getExpressionValue(String contents) {
@@ -885,7 +886,7 @@ class ConstantFinderTest extends EngineTestCase {
   void setUp() {
     super.setUp();
     _typeProvider = new TestTypeProvider();
-    _context = new TestAnalysisContext();
+    _context = new TestAnalysisContext_ConstantFinderTest();
     _source = new TestSource();
   }
 
@@ -2165,7 +2166,7 @@ const A a = const A();
       Map<String, DartObjectImpl> fields, String fieldName, int expectedValue) {
     DartObjectImpl field = fields[fieldName];
     expect(field.type.name, "int");
-    expect(field.intValue, expectedValue);
+    expect(field.toIntValue(), expectedValue);
   }
 
   void _assertNullField(Map<String, DartObjectImpl> fields, String fieldName) {
@@ -2198,7 +2199,7 @@ const A a = const A();
     expect(result.value, isNotNull);
     DartObjectImpl value = result.value;
     expect(value.type, typeProvider.boolType);
-    bool boolValue = value.boolValue;
+    bool boolValue = value.toBoolValue();
     expect(boolValue, isNotNull);
     return boolValue;
   }
@@ -2207,7 +2208,7 @@ const A a = const A();
     expect(result.value, isNotNull);
     DartObjectImpl value = result.value;
     expect(value.type, typeProvider.intType);
-    return value.intValue;
+    return value.toIntValue();
   }
 
   void _assertValidNull(EvaluationResultImpl result) {
@@ -2527,7 +2528,7 @@ const b = 3;''');
   void _assertValue(int expectedValue, DartObjectImpl result) {
     expect(result, isNotNull);
     expect(result.type.name, "int");
-    expect(result.intValue, expectedValue);
+    expect(result.toIntValue(), expectedValue);
   }
 
   NonExistingSource _dummySource() {
@@ -3140,84 +3141,84 @@ class DartObjectImplTest extends EngineTestCase {
     _assertGreaterThanOrEqual(_boolValue(null), _intValue(null), _intValue(2));
   }
 
-  void test_hasExactValue_bool_false() {
-    expect(_boolValue(false).hasExactValue, isTrue);
+  void test_hasKnownValue_bool_false() {
+    expect(_boolValue(false).hasKnownValue, isTrue);
   }
 
-  void test_hasExactValue_bool_true() {
-    expect(_boolValue(true).hasExactValue, isTrue);
+  void test_hasKnownValue_bool_true() {
+    expect(_boolValue(true).hasKnownValue, isTrue);
   }
 
-  void test_hasExactValue_bool_unknown() {
-    expect(_boolValue(null).hasExactValue, isTrue);
+  void test_hasKnownValue_bool_unknown() {
+    expect(_boolValue(null).hasKnownValue, isFalse);
   }
 
-  void test_hasExactValue_double_known() {
-    expect(_doubleValue(2.3).hasExactValue, isTrue);
+  void test_hasKnownValue_double_known() {
+    expect(_doubleValue(2.3).hasKnownValue, isTrue);
   }
 
-  void test_hasExactValue_double_unknown() {
-    expect(_doubleValue(null).hasExactValue, isTrue);
+  void test_hasKnownValue_double_unknown() {
+    expect(_doubleValue(null).hasKnownValue, isFalse);
   }
 
-  void test_hasExactValue_dynamic() {
-    expect(_dynamicValue().hasExactValue, isFalse);
+  void test_hasKnownValue_dynamic() {
+    expect(_dynamicValue().hasKnownValue, isTrue);
   }
 
-  void test_hasExactValue_int_known() {
-    expect(_intValue(23).hasExactValue, isTrue);
+  void test_hasKnownValue_int_known() {
+    expect(_intValue(23).hasKnownValue, isTrue);
   }
 
-  void test_hasExactValue_int_unknown() {
-    expect(_intValue(null).hasExactValue, isTrue);
+  void test_hasKnownValue_int_unknown() {
+    expect(_intValue(null).hasKnownValue, isFalse);
   }
 
-  void test_hasExactValue_list_empty() {
-    expect(_listValue().hasExactValue, isTrue);
+  void test_hasKnownValue_list_empty() {
+    expect(_listValue().hasKnownValue, isTrue);
   }
 
-  void test_hasExactValue_list_invalid() {
-    expect(_dynamicValue().hasExactValue, isFalse);
+  void test_hasKnownValue_list_invalidElement() {
+    expect(_listValue([_dynamicValue]).hasKnownValue, isTrue);
   }
 
-  void test_hasExactValue_list_valid() {
-    expect(_listValue([_intValue(23)]).hasExactValue, isTrue);
+  void test_hasKnownValue_list_valid() {
+    expect(_listValue([_intValue(23)]).hasKnownValue, isTrue);
   }
 
-  void test_hasExactValue_map_empty() {
-    expect(_mapValue().hasExactValue, isTrue);
+  void test_hasKnownValue_map_empty() {
+    expect(_mapValue().hasKnownValue, isTrue);
   }
 
-  void test_hasExactValue_map_invalidKey() {
-    expect(_mapValue([_dynamicValue(), _stringValue("value")]).hasExactValue,
-        isFalse);
-  }
-
-  void test_hasExactValue_map_invalidValue() {
-    expect(_mapValue([_stringValue("key"), _dynamicValue()]).hasExactValue,
-        isFalse);
-  }
-
-  void test_hasExactValue_map_valid() {
-    expect(
-        _mapValue([_stringValue("key"), _stringValue("value")]).hasExactValue,
+  void test_hasKnownValue_map_invalidKey() {
+    expect(_mapValue([_dynamicValue(), _stringValue("value")]).hasKnownValue,
         isTrue);
   }
 
-  void test_hasExactValue_null() {
-    expect(_nullValue().hasExactValue, isTrue);
+  void test_hasKnownValue_map_invalidValue() {
+    expect(_mapValue([_stringValue("key"), _dynamicValue()]).hasKnownValue,
+        isTrue);
   }
 
-  void test_hasExactValue_num() {
-    expect(_numValue().hasExactValue, isFalse);
+  void test_hasKnownValue_map_valid() {
+    expect(
+        _mapValue([_stringValue("key"), _stringValue("value")]).hasKnownValue,
+        isTrue);
   }
 
-  void test_hasExactValue_string_known() {
-    expect(_stringValue("twenty-three").hasExactValue, isTrue);
+  void test_hasKnownValue_null() {
+    expect(_nullValue().hasKnownValue, isTrue);
   }
 
-  void test_hasExactValue_string_unknown() {
-    expect(_stringValue(null).hasExactValue, isTrue);
+  void test_hasKnownValue_num() {
+    expect(_numValue().hasKnownValue, isFalse);
+  }
+
+  void test_hasKnownValue_string_known() {
+    expect(_stringValue("twenty-three").hasKnownValue, isTrue);
+  }
+
+  void test_hasKnownValue_string_unknown() {
+    expect(_stringValue(null).hasKnownValue, isFalse);
   }
 
   void test_identical_bool_false() {
@@ -4774,7 +4775,7 @@ class DeclaredVariablesTest extends EngineTestCase {
     variables.define(variableName, "false");
     DartObject object = variables.getBool(typeProvider, variableName);
     expect(object, isNotNull);
-    expect(object.boolValue, false);
+    expect(object.toBoolValue(), false);
   }
 
   void test_getBool_invalid() {
@@ -4793,7 +4794,7 @@ class DeclaredVariablesTest extends EngineTestCase {
     variables.define(variableName, "true");
     DartObject object = variables.getBool(typeProvider, variableName);
     expect(object, isNotNull);
-    expect(object.boolValue, true);
+    expect(object.toBoolValue(), true);
   }
 
   void test_getBool_undefined() {
@@ -4828,7 +4829,7 @@ class DeclaredVariablesTest extends EngineTestCase {
     variables.define(variableName, "23");
     DartObject object = variables.getInt(typeProvider, variableName);
     expect(object, isNotNull);
-    expect(object.intValue, 23);
+    expect(object.toIntValue(), 23);
   }
 
   void test_getString_defined() {
@@ -4839,7 +4840,7 @@ class DeclaredVariablesTest extends EngineTestCase {
     variables.define(variableName, value);
     DartObject object = variables.getString(typeProvider, variableName);
     expect(object, isNotNull);
-    expect(object.stringValue, value);
+    expect(object.toStringValue(), value);
   }
 
   void test_getString_undefined() {
@@ -7334,6 +7335,27 @@ class ErrorReporterTest extends EngineTestCase {
     expect(error.offset, element.nameOffset);
   }
 
+  void test_reportErrorForSpan() {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    ErrorReporter reporter = new ErrorReporter(listener, new TestSource());
+
+    var src = '''
+foo: bar
+zap: baz
+''';
+
+    int offset = src.indexOf('baz');
+    int length = 'baz'.length;
+
+    SourceSpan span = new SourceFile(src).span(offset, offset + length);
+
+    reporter.reportErrorForSpan(
+        AnalysisOptionsWarningCode.UNSUPPORTED_OPTION, span, ['test', 'zap']);
+    expect(listener.errors, hasLength(1));
+    expect(listener.errors.first.offset, offset);
+    expect(listener.errors.first.length, length);
+  }
+
   void test_reportTypeErrorForNode_differentNames() {
     DartType firstType = createType("/test1.dart", "A");
     DartType secondType = createType("/test2.dart", "B");
@@ -9043,6 +9065,16 @@ class StringScannerTest extends AbstractScannerTest {
   @override
   ht.AbstractScanner newScanner(String input) {
     return new ht.StringScanner(null, input);
+  }
+}
+
+class TestAnalysisContext_ConstantFinderTest extends TestAnalysisContext {
+  bool invoked = false;
+  TestAnalysisContext_ConstantFinderTest();
+
+  @override
+  InternalAnalysisContext getContextFor(Source source) {
+    return this;
   }
 }
 

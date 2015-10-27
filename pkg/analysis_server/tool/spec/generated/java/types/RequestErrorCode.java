@@ -135,7 +135,7 @@ public class RequestErrorCode {
 
   /**
    * A request was received which the analysis server does not recognize, or cannot handle in its
-   * current configuation.
+   * current configuration.
    */
   public static final String UNKNOWN_REQUEST = "UNKNOWN_REQUEST";
 

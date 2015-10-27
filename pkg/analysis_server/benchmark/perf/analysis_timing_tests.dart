@@ -9,7 +9,6 @@ import 'dart:io';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:args/args.dart';
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../test/utils.dart';
@@ -34,11 +33,15 @@ main(List<String> arguments) {
   metricNames.addAll(args[METRIC_NAME_OPTION]);
   unittestConfiguration.timeout = new Duration(minutes: 20);
 
+  var test;
+
   if (metricNames.isEmpty) {
-    defineReflectiveTests(AnalysisTimingTest);
+    test = new AnalysisTimingTest();
   } else {
-    defineReflectiveTests(SubscriptionTimingTest);
+    test = new SubscriptionTimingTest();
   }
+
+  Future.wait([test.test_timing()]);
 }
 
 const DEFAULT_METRIC = 'analysis';
@@ -57,25 +60,23 @@ ArgParser _createArgParser() => new ArgParser()
   ..addOption(PRIORITY_FILE_OPTION,
       help: '(optional) full path to a priority file');
 
-class AbstractTimingTest extends AbstractAnalysisServerPerformanceTest {
-  @override
-  Future setUp() => super.setUp().then((_) {
-        sourceDirectory = new Directory(source);
-        subscribeToStatusNotifications();
-      });
-}
-
-@reflectiveTest
+/**
+ * AnalysisTimingTest measures the time taken by the analsyis server to fully analyze
+ * the given directory. Measurement is started after setting the analysis root, and
+ * analysis is considered complete on receiving the `"isAnalyzing": false` message
+ * from the analysis server.
+ */
 class AnalysisTimingTest extends AbstractTimingTest {
-  Future test_timing() {
+  Future test_timing() async {
     // Set root after subscribing to avoid empty notifications.
-    setAnalysisRoot();
+    await init(source);
 
+    setAnalysisRoot();
     stopwatch.start();
-    return analysisFinished.then((_) {
-      print('analysis completed in ${stopwatch.elapsed}');
-      stopwatch.reset();
-    });
+    await analysisFinished;
+    print('analysis completed in ${stopwatch.elapsed}');
+
+    await shutdown();
   }
 }
 
@@ -88,7 +89,14 @@ class Metric {
   String toString() => '$name: $service, ${eventStream.runtimeType}, $timings';
 }
 
-@reflectiveTest
+/**
+ * SubscriptionTimingTest measures the time taken by the analysis server to return
+ * information for navigation, semantic highlighting, outline, get occurances,
+ * overrides, folding and implemented. These timings are wrt to the specified priority file
+ * - the file that is currently opened and has focus in the editor. Measure the time from
+ * when the client subscribes for the notifications till there is a response from the server.
+ * Does not wait for analysis to be complete before subscribing for notifications.
+ */
 class SubscriptionTimingTest extends AbstractTimingTest {
   List<Metric> _metrics;
 
@@ -121,7 +129,7 @@ class SubscriptionTimingTest extends AbstractTimingTest {
     return null; // Won't get here.
   }
 
-  Future test_timing() {
+  Future test_timing() async {
 //   debugStdio();
 
     expect(metrics, isNotEmpty);
@@ -129,6 +137,7 @@ class SubscriptionTimingTest extends AbstractTimingTest {
         reason: 'A priority file must be specified for '
             '${metrics.first.name} testing.');
 
+    await init(source);
     stopwatch.start();
 
     metrics.forEach((Metric m) => m.eventStream.listen((_) {
@@ -146,10 +155,10 @@ class SubscriptionTimingTest extends AbstractTimingTest {
 
     sendAnalysisSetPriorityFiles([priorityFile]);
 
-    return analysisFinished.then((_) {
-      print('analysis completed in ${stopwatch.elapsed}');
-      metrics.forEach((Metric m) => print('${m.name} timings: ${m.timings}'));
-      stopwatch.reset();
-    });
+    await analysisFinished;
+    print('analysis completed in ${stopwatch.elapsed}');
+    metrics.forEach((Metric m) => print('${m.name} timings: ${m.timings}'));
+
+    await shutdown();
   }
 }

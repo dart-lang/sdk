@@ -888,7 +888,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else if (staticElement is MethodElement) {
       staticType = staticElement.type;
     } else if (staticElement is PropertyAccessorElement) {
-      staticType = _getTypeOfProperty(staticElement, node.prefix.staticType);
+      staticType = _getTypeOfProperty(staticElement);
       propagatedType =
           _getPropertyPropagatedType(staticElement, propagatedType);
     } else if (staticElement is ExecutableElement) {
@@ -921,8 +921,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else if (propagatedElement is MethodElement) {
       propagatedType = propagatedElement.type;
     } else if (propagatedElement is PropertyAccessorElement) {
-      propagatedType =
-          _getTypeOfProperty(propagatedElement, node.prefix.staticType);
+      propagatedType = _getTypeOfProperty(propagatedElement);
       propagatedType =
           _getPropertyPropagatedType(propagatedElement, propagatedType);
     } else if (propagatedElement is ExecutableElement) {
@@ -1024,9 +1023,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     if (staticElement is MethodElement) {
       staticType = staticElement.type;
     } else if (staticElement is PropertyAccessorElement) {
-      Expression realTarget = node.realTarget;
-      staticType = _getTypeOfProperty(staticElement,
-          realTarget != null ? _getStaticType(realTarget) : null);
+      staticType = _getTypeOfProperty(staticElement);
     } else {
       // TODO(brianwilkerson) Report this internal error.
     }
@@ -1040,8 +1037,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       propagatedType = propagatedElement.type;
     } else if (propagatedElement is PropertyAccessorElement) {
       Expression realTarget = node.realTarget;
-      propagatedType = _getTypeOfProperty(
-          propagatedElement, realTarget != null ? realTarget.bestType : null);
+      propagatedType = _getTypeOfProperty(propagatedElement);
     } else {
       // TODO(brianwilkerson) Report this internal error.
     }
@@ -1117,7 +1113,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else if (element is MethodElement) {
       staticType = element.type;
     } else if (element is PropertyAccessorElement) {
-      staticType = _getTypeOfProperty(element, null);
+      staticType = _getTypeOfProperty(element);
     } else if (element is ExecutableElement) {
       staticType = element.type;
     } else if (element is TypeParameterElement) {
@@ -1419,11 +1415,16 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   // TODO(vsm): Use leafp's matchType here?
-  DartType _findIteratedType(InterfaceType type, DartType targetType) {
+  DartType _findIteratedType(DartType type, DartType targetType) {
     // Set by _find if match is found
     DartType result = null;
     // Elements we've already visited on a given inheritance path.
     HashSet<ClassElement> visitedClasses = null;
+
+    while (type is TypeParameterType) {
+      TypeParameterElement element = type.element;
+      type = element.bound;
+    }
 
     bool _find(InterfaceType type) {
       ClassElement element = type.element;
@@ -1451,7 +1452,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         visitedClasses.remove(element);
       }
     }
-    _find(type);
+    if (type is InterfaceType) {
+      _find(type);
+    }
     return result;
   }
 
@@ -1621,14 +1624,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * Return the type that should be recorded for a node that resolved to the given accessor.
    *
    * @param accessor the accessor that the node resolved to
-   * @param context if the accessor element has context [by being the RHS of a
-   *          [PrefixedIdentifier] or [PropertyAccess]], and the return type of the
-   *          accessor is a parameter type, then the type of the LHS can be used to get more
-   *          specific type information
    * @return the type that should be recorded for a node that resolved to the given accessor
    */
-  DartType _getTypeOfProperty(
-      PropertyAccessorElement accessor, DartType context) {
+  DartType _getTypeOfProperty(PropertyAccessorElement accessor) {
     FunctionType functionType = accessor.type;
     if (functionType == null) {
       // TODO(brianwilkerson) Report this internal error. This happens when we
@@ -1651,29 +1649,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       }
       return _dynamicType;
     }
-    DartType returnType = functionType.returnType;
-    if (returnType is TypeParameterType && context is InterfaceType) {
-      // if the return type is a TypeParameter, we try to use the context [that
-      // the function is being called on] to get a more accurate returnType type
-      InterfaceType interfaceTypeContext = context;
-      //      Type[] argumentTypes = interfaceTypeContext.getTypeArguments();
-      List<TypeParameterElement> typeParameterElements =
-          interfaceTypeContext.element != null
-              ? interfaceTypeContext.element.typeParameters
-              : null;
-      if (typeParameterElements != null) {
-        for (int i = 0; i < typeParameterElements.length; i++) {
-          TypeParameterElement typeParameterElement = typeParameterElements[i];
-          if (returnType.name == typeParameterElement.name) {
-            return interfaceTypeContext.typeArguments[i];
-          }
-        }
-        // TODO(jwren) troubleshoot why call to substitute doesn't work
-//        Type[] parameterTypes = TypeParameterTypeImpl.getTypes(parameterElements);
-//        return returnType.substitute(argumentTypes, parameterTypes);
-      }
-    }
-    return returnType;
+    return functionType.returnType;
   }
 
   /**
@@ -1691,15 +1667,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         Expression expr = loop.iterable;
         LocalVariableElementImpl element = loopVariable.element;
         DartType exprType = expr.staticType;
-        if (exprType is InterfaceType) {
-          DartType targetType = (loop.awaitKeyword == null)
-              ? _typeProvider.iterableType
-              : _typeProvider.streamType;
-          DartType iteratedType = _findIteratedType(exprType, targetType);
-          if (element != null && iteratedType != null) {
-            element.type = iteratedType;
-            loopVariable.identifier.staticType = iteratedType;
-          }
+        DartType targetType = (loop.awaitKeyword == null)
+            ? _typeProvider.iterableType
+            : _typeProvider.streamType;
+        DartType iteratedType = _findIteratedType(exprType, targetType);
+        if (element != null && iteratedType != null) {
+          element.type = iteratedType;
+          loopVariable.identifier.staticType = iteratedType;
         }
       }
     }

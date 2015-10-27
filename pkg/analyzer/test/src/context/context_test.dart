@@ -664,6 +664,15 @@ main() {}''');
     });
   }
 
+  void test_configurationData() {
+    var key = new ResultDescriptor('test_key', '');
+    var testData = ['test', 'data'];
+    context.setConfigurationData(key, testData);
+    expect(context.getConfigurationData(key), testData);
+    var unusedKey = new ResultDescriptor('unused_key', '');
+    expect(context.getConfigurationData(unusedKey), null);
+  }
+
   void test_dispose() {
     expect(context.isDisposed, isFalse);
     context.dispose();
@@ -801,19 +810,19 @@ part of lib;
     expect(contents.data.toString(), content);
   }
 
-  void test_getContents_overridden() {
-    String content = "library lib;";
-    Source source = new TestSource();
-    context.setContents(source, content);
-    TimestampedData<String> contents = context.getContents(source);
-    expect(contents.data.toString(), content);
-  }
-
-  void test_getContents_unoverridden() {
+  void test_getContents_notOverridden() {
     String content = "library lib;";
     Source source = new TestSource('/test.dart', content);
     context.setContents(source, "part of lib;");
     context.setContents(source, null);
+    TimestampedData<String> contents = context.getContents(source);
+    expect(contents.data.toString(), content);
+  }
+
+  void test_getContents_overridden() {
+    String content = "library lib;";
+    Source source = new TestSource();
+    context.setContents(source, content);
     TimestampedData<String> contents = context.getContents(source);
     expect(contents.data.toString(), content);
   }
@@ -1037,7 +1046,7 @@ import 'dart:html';
         r'''
 import 'a.dart';
 main() {}''');
-    context.computeLibraryElement(source);
+    _analyzeAll_assertFinished();
     sources = context.launchableClientLibrarySources;
     expect(sources, unorderedEquals([source]));
   }
@@ -1055,7 +1064,7 @@ export 'dart:html';
         r'''
 import 'a.dart';
 main() {}''');
-    context.computeLibraryElement(source);
+    _analyzeAll_assertFinished();
     sources = context.launchableClientLibrarySources;
     expect(sources, unorderedEquals([source]));
   }
@@ -1084,12 +1093,12 @@ main() {}
         r'''
 import 'dart:html';
 ''');
-    Source source = addSource(
+    addSource(
         "/test.dart",
         r'''
 import 'imports_html.dart';
 main() {}''');
-    context.computeLibraryElement(source);
+    _analyzeAll_assertFinished();
     expect(context.launchableServerLibrarySources, isEmpty);
   }
 
@@ -1796,6 +1805,31 @@ void g() { f(null); }''');
     expect(_hasAnalysisErrorWithErrorSeverity(context.getErrors(libASource)),
         isTrue,
         reason: "libA has an error");
+  }
+
+  void test_performAnalysisTask_interruptBy_setContents() {
+    Source sourceA = addSource(
+        "/a.dart",
+        r'''
+library expectedToFindSemicolon
+''');
+    // Analyze to the point where some of the results stop depending on
+    // the source content.
+    LibrarySpecificUnit unitA = new LibrarySpecificUnit(sourceA, sourceA);
+    for (int i = 0; i < 10000; i++) {
+      context.performAnalysisTask();
+      if (context.getResult(unitA, RESOLVED_UNIT2) != null) {
+        break;
+      }
+    }
+    // Update the source.
+    // This should invalidate all the results and also reset the driver.
+    context.setContents(sourceA, "library semicolonWasAdded;");
+    expect(context.getResult(unitA, RESOLVED_UNIT2), isNull);
+    expect(analysisDriver.currentWorkOrder, isNull);
+    // Continue analysis.
+    _analyzeAll_assertFinished();
+    expect(context.getErrors(sourceA).errors, isEmpty);
   }
 
   void test_performAnalysisTask_IOException() {

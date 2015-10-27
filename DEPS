@@ -38,7 +38,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "7zip_rev" : "@19997",
-  "analyzer_cli_rev" : "@af40be0e3cc0b9904151a45e8074a8e797443cb6",
+  "analyzer_cli_rev" : "@c7a22746baaa8ee6b3e6b0378f9ad9de6e486186",
   "args_tag": "@0.13.0",
   "async_tag": "@1.2.0",
   "barback_tag" : "@0.15.2+7",
@@ -51,7 +51,7 @@ vars = {
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
   "dart2js_info_rev" : "@c4ad464717e3a304fb0d44a6937c25ff2049b863",
-  "dartdoc_rev" : "@61bfb136ec1d314b977cfbfdbc79097243632ccf",
+  "dartdoc_rev" : "@02a94ec329ab8b5767e0d20f6585b9cf5c937c73",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.0",
   "dev_compiler_rev": "@0.1.9",
@@ -68,7 +68,7 @@ vars = {
   "intl_rev": "@32047558bd220a53c1f4d93a26d54b83533b1475",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@1.1.1",
-  "linter_rev": "@23ec957be86263c3c5ac6bdaeb463170ea5fb00d",
+  "linter_rev": "@4bc38ed44073e9a87b7f5adf333fb24f86e476a2",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "markdown_rev": "@4aaadf3d940bb172e1f6285af4d2b1710d309982",
   "matcher_tag": "@0.12.0",

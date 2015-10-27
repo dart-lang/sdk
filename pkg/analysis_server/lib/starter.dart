@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library driver;
+library analysis_server.starter;
 
 import 'package:analysis_server/plugin/analysis/resolver_provider.dart';
 import 'package:analysis_server/src/server/driver.dart';
@@ -10,9 +10,10 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:plugin/plugin.dart';
 
 /**
- * An object that can be used to start an analysis server.
+ * An object that can be used to start an analysis server. This class exists so
+ * that clients can configure an analysis server before starting it.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class ServerStarter {
   /**

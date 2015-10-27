@@ -68,15 +68,6 @@ final ListResultDescriptor<Source> INCLUDED_PARTS =
     new ListResultDescriptor<Source>('INCLUDED_PARTS', Source.EMPTY_LIST);
 
 /**
- * A flag specifying whether a library is dependent on code that is only
- * available in a client.
- *
- * The result is only available for [Source]s representing a library.
- */
-final ResultDescriptor<bool> IS_CLIENT =
-    new ResultDescriptor<bool>('IS_CLIENT', false);
-
-/**
  * A flag specifying whether a library is launchable.
  *
  * The result is only available for [Source]s representing a library.
@@ -151,6 +142,9 @@ final ListResultDescriptor<Source> UNITS =
  * change if a single part is included in more than one library.
  */
 class LibrarySpecificUnit implements AnalysisTarget {
+  static const List<LibrarySpecificUnit> EMPTY_LIST =
+      const <LibrarySpecificUnit>[];
+
   /**
    * The defining compilation unit of the library in which the [unit]
    * is analyzed.

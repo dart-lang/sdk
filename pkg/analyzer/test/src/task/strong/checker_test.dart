@@ -984,7 +984,7 @@ void main() {
           lOfAs = /*severe:StaticTypeError*/mOfOs;
           lOfAs = mOfAs;
           lOfAs = /*warning:DownCastComposite*/lOfDs;
-          lOfAs = /*warning:DownCastComposite*/lOfOs;
+          lOfAs = /*info:DownCastImplicit*/lOfOs;
           lOfAs = lOfAs;
         }
         {
@@ -993,7 +993,7 @@ void main() {
           mOfDs = mOfAs;
           mOfDs = /*info:DownCastImplicit*/lOfDs;
           mOfDs = /*info:DownCastImplicit*/lOfOs;
-          mOfDs = /*info:DownCastImplicit*/lOfAs;
+          mOfDs = /*warning:DownCastComposite*/lOfAs;
         }
         {
           mOfOs = mOfDs;
@@ -1005,11 +1005,11 @@ void main() {
         }
         {
           mOfAs = /*warning:DownCastComposite*/mOfDs;
-          mOfAs = /*warning:DownCastComposite*/mOfOs;
+          mOfAs = /*info:DownCastImplicit*/mOfOs;
           mOfAs = mOfAs;
           mOfAs = /*warning:DownCastComposite*/lOfDs;
-          mOfAs = /*warning:DownCastComposite*/lOfOs;
-          mOfAs = /*warning:DownCastComposite*/lOfAs;
+          mOfAs = /*info:DownCastImplicit*/lOfOs;
+          mOfAs = /*info:DownCastImplicit*/lOfAs;
         }
 
       }

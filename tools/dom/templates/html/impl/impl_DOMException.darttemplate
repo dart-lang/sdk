@@ -47,6 +47,7 @@ $if JSINTEROP
   // To suppress missing implicit constructor warnings.
   factory DomException._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DomException internalCreateDomException() {
     return new DomException._internalWrap();
   }

@@ -17,7 +17,10 @@ import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/model.dart';
 
-final PerformanceTag workOrderMoveNextPerfTag =
+final PerformanceTag analysisDriverProcessOutputs =
+    new PerformanceTag('AnalysisDriver.processOutputs');
+
+final PerformanceTag workOrderMoveNextPerformanceTag =
     new PerformanceTag('WorkOrder.moveNext');
 
 /**
@@ -266,31 +269,33 @@ class AnalysisDriver {
     AnalysisTask task = item.buildTask();
     _onTaskStartedController.add(task);
     task.perform();
-    AnalysisTarget target = task.target;
-    CacheEntry entry = context.getCacheEntry(target);
-    if (task.caughtException == null) {
-      List<TargetedResult> dependedOn = item.inputTargetedResults.toList();
-      Map<ResultDescriptor, dynamic> outputs = task.outputs;
-      for (ResultDescriptor result in task.descriptor.results) {
-        // TODO(brianwilkerson) We could check here that a value was produced
-        // and throw an exception if not (unless we want to allow null values).
-        entry.setValue(result, outputs[result], dependedOn);
-      }
-      outputs.forEach((ResultDescriptor descriptor, value) {
-        StreamController<ComputedResult> controller =
-            resultComputedControllers[descriptor];
-        if (controller != null) {
-          ComputedResult event =
-              new ComputedResult(context, descriptor, target, value);
-          controller.add(event);
+    analysisDriverProcessOutputs.makeCurrentWhile(() {
+      AnalysisTarget target = task.target;
+      CacheEntry entry = context.getCacheEntry(target);
+      if (task.caughtException == null) {
+        List<TargetedResult> dependedOn = item.inputTargetedResults.toList();
+        Map<ResultDescriptor, dynamic> outputs = task.outputs;
+        for (ResultDescriptor result in task.descriptor.results) {
+          // TODO(brianwilkerson) We could check here that a value was produced
+          // and throw an exception if not (unless we want to allow null values).
+          entry.setValue(result, outputs[result], dependedOn);
         }
-      });
-      for (WorkManager manager in workManagers) {
-        manager.resultsComputed(target, outputs);
+        outputs.forEach((ResultDescriptor descriptor, value) {
+          StreamController<ComputedResult> controller =
+              resultComputedControllers[descriptor];
+          if (controller != null) {
+            ComputedResult event =
+                new ComputedResult(context, descriptor, target, value);
+            controller.add(event);
+          }
+        });
+        for (WorkManager manager in workManagers) {
+          manager.resultsComputed(target, outputs);
+        }
+      } else {
+        entry.setErrorState(task.caughtException, item.descriptor.results);
       }
-    } else {
-      entry.setErrorState(task.caughtException, item.descriptor.results);
-    }
+    });
     _onTaskCompletedController.add(task);
     return task;
   }
@@ -520,10 +525,25 @@ class StronglyConnectedComponent<Node> {
 }
 
 /**
- * A description of a single anaysis task that can be performed to advance
+ * A description of a single analysis task that can be performed to advance
  * analysis.
  */
 class WorkItem {
+  /**
+   * A table mapping the names of analysis tasks to the number of times each
+   * kind of task has been performed.
+   */
+  static final Map<TaskDescriptor, int> countMap =
+      new HashMap<TaskDescriptor, int>();
+
+  /**
+   * A table mapping the names of analysis tasks to stopwatches used to compute
+   * how much time was spent between creating an item and creating (for
+   * performing) of each kind of task
+   */
+  static final Map<TaskDescriptor, Stopwatch> stopwatchMap =
+      new HashMap<TaskDescriptor, Stopwatch>();
+
   /**
    * The context in which the task will be performed.
    */
@@ -543,6 +563,11 @@ class WorkItem {
    * The [ResultDescriptor] which was led to this work item being spawned.
    */
   final ResultDescriptor spawningResult;
+
+  /**
+   * The current inputs computing stopwatch.
+   */
+  Stopwatch stopwatch;
 
   /**
    * An iterator used to iterate over the descriptors of the inputs to the task,
@@ -594,6 +619,19 @@ class WorkItem {
       builder = null;
     }
     inputs = new HashMap<String, dynamic>();
+    // Update performance counters.
+    {
+      stopwatch = stopwatchMap[descriptor];
+      if (stopwatch == null) {
+        stopwatch = new Stopwatch();
+        stopwatchMap[descriptor] = stopwatch;
+      }
+      stopwatch.start();
+    }
+    {
+      int count = countMap[descriptor];
+      countMap[descriptor] = count == null ? 1 : count + 1;
+    }
   }
 
   @override
@@ -613,6 +651,7 @@ class WorkItem {
    * Build the task represented by this work item.
    */
   AnalysisTask buildTask() {
+    stopwatch.stop();
     if (builder != null) {
       throw new StateError("some inputs have not been computed");
     }
@@ -728,9 +767,11 @@ class WorkOrder implements Iterator<WorkItem> {
     }
   }
 
+  List<WorkItem> get workItems => _dependencyWalker._path;
+
   @override
   bool moveNext() {
-    return workOrderMoveNextPerfTag.makeCurrentWhile(() {
+    return workOrderMoveNextPerformanceTag.makeCurrentWhile(() {
       if (currentItems != null && currentItems.length > 1) {
         // Yield more items.
         currentItems.removeLast();
@@ -759,7 +800,7 @@ class WorkOrder implements Iterator<WorkItem> {
 }
 
 /**
- * Specilaization of [CycleAwareDependencyWalker] for use by [WorkOrder].
+ * Specialization of [CycleAwareDependencyWalker] for use by [WorkOrder].
  */
 class _WorkOrderDependencyWalker extends CycleAwareDependencyWalker<WorkItem> {
   /**

@@ -331,30 +331,27 @@ class AssistProcessor {
 
   void _addProposal_assignToLocalVariable() {
     // prepare enclosing ExpressionStatement
-    Statement statement = node.getAncestor((node) => node is Statement);
-    if (statement is! ExpressionStatement) {
+    ExpressionStatement expressionStatement;
+    for (AstNode node = this.node; node != null; node = node.parent) {
+      if (node is ExpressionStatement) {
+        expressionStatement = node;
+        break;
+      }
+      if (node is ArgumentList ||
+          node is AssignmentExpression ||
+          node is Statement ||
+          node is ThrowExpression) {
+        _coverageMarker();
+        return;
+      }
+    }
+    if (expressionStatement == null) {
       _coverageMarker();
       return;
     }
-    ExpressionStatement expressionStatement = statement as ExpressionStatement;
     // prepare expression
     Expression expression = expressionStatement.expression;
     int offset = expression.offset;
-    // ignore if in arguments
-    if (node.getAncestor((node) => node is ArgumentList) != null) {
-      _coverageMarker();
-      return;
-    }
-    // ignore if already assignment
-    if (expression is AssignmentExpression) {
-      _coverageMarker();
-      return;
-    }
-    // ignore "throw"
-    if (expression is ThrowExpression) {
-      _coverageMarker();
-      return;
-    }
     // prepare expression type
     DartType type = expression.bestType;
     if (type.isVoid) {

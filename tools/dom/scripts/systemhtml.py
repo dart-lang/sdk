@@ -609,6 +609,7 @@ class HtmlDartInterfaceGenerator(object):
 
     js_interop_wrapper = '''
 
+  @Deprecated("Internal Use Only")
   static {0} internalCreate{0}() {{
     return new {0}._internalWrap();
   }}
@@ -622,6 +623,7 @@ class HtmlDartInterfaceGenerator(object):
 '''.format(class_name)
     if base_class == 'NativeFieldWrapperClass2' or base_class == 'DartHtmlDomObject':
         js_interop_wrapper = '''
+  @Deprecated("Internal Use Only")
   static {0} internalCreate{0}() {{
     return new {0}._internalWrap();
   }}

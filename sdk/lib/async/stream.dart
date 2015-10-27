@@ -1622,9 +1622,9 @@ abstract class StreamTransformer<S, T> {
    *                 onDone: controller.close,
    *                 cancelOnError: cancelOnError);
    *             },
-   *             onPause: subscription.pause,
-   *             onResume: subscription.resume,
-   *             onCancel: subscription.cancel,
+   *             onPause: () => subscription.pause(),
+   *             onResume: () => subscription.resume(),
+   *             onCancel: () => subscription.cancel(),
    *             sync: true);
    *           return controller.stream.listen(null);
    *         });

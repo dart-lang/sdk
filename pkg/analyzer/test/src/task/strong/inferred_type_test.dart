@@ -386,6 +386,23 @@ void main() {
         int bar = 42;
       }
 
+      class Bar<T extends Iterable<String>> {
+        void foo(T t) {
+          for (var i in t) {
+            int x = /*severe:StaticTypeError*/i;
+          }
+        }
+      }
+
+      class Baz<T, E extends Iterable<T>, S extends E> {
+        void foo(S t) {
+          for (var i in t) {
+            int x = /*severe:StaticTypeError*/i;
+            T y = i;
+          }
+        }
+      }
+
       test() {
         var list = <Foo>[];
         for (var x in list) {

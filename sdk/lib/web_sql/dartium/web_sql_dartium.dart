@@ -27,6 +27,7 @@ import 'dart:js' as js;
 
 
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final web_sqlBlinkMap = {
   'Database': () => SqlDatabase,
   'SQLError': () => SqlError,
@@ -37,6 +38,7 @@ final web_sqlBlinkMap = {
 };
 
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final web_sqlBlinkFunctionMap = {
   'Database': () => SqlDatabase.internalCreateSqlDatabase,
   'SQLError': () => SqlError.internalCreateSqlError,
@@ -107,6 +109,7 @@ class SqlDatabase extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SqlDatabase._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static SqlDatabase internalCreateSqlDatabase() {
     return new SqlDatabase._internalWrap();
   }
@@ -186,6 +189,7 @@ class SqlError extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SqlError._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static SqlError internalCreateSqlError() {
     return new SqlError._internalWrap();
   }
@@ -255,6 +259,7 @@ class SqlResultSet extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SqlResultSet._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static SqlResultSet internalCreateSqlResultSet() {
     return new SqlResultSet._internalWrap();
   }
@@ -296,6 +301,7 @@ class SqlResultSetRowList extends DartHtmlDomObject with ListMixin<Map>, Immutab
   // To suppress missing implicit constructor warnings.
   factory SqlResultSetRowList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static SqlResultSetRowList internalCreateSqlResultSetRowList() {
     return new SqlResultSetRowList._internalWrap();
   }
@@ -382,6 +388,7 @@ class SqlTransaction extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SqlTransaction._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static SqlTransaction internalCreateSqlTransaction() {
     return new SqlTransaction._internalWrap();
   }

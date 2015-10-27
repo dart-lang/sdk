@@ -107,12 +107,14 @@ class _KeyRangeFactoryProvider {
       KeyRange.bound_(lower, upper, lowerOpen, upperOpen);
 }
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final indexed_dbBlinkMap = {
 $!TYPE_MAP
 };
 
 $if JSINTEROP
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final indexed_dbBlinkFunctionMap = {
 $!TYPE_FUNCTION_MAP
 };

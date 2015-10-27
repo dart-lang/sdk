@@ -25,6 +25,7 @@ import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -35,7 +36,9 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/html.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
@@ -302,10 +305,8 @@ class GetHandler {
         results.add(EXPLICITLY_IMPORTED_LIBRARIES);
         results.add(EXPORT_SOURCE_CLOSURE);
         results.add(EXPORTED_LIBRARIES);
-        results.add(IMPORT_EXPORT_SOURCE_CLOSURE);
         results.add(IMPORTED_LIBRARIES);
         results.add(INCLUDED_PARTS);
-        results.add(IS_CLIENT);
         results.add(IS_LAUNCHABLE);
         results.add(LIBRARY_ELEMENT1);
         results.add(LIBRARY_ELEMENT2);
@@ -327,6 +328,8 @@ class GetHandler {
         results.add(HTML_DOCUMENT_ERRORS);
         results.add(HTML_ERRORS);
         results.add(REFERENCED_LIBRARIES);
+      } else if (AnalysisEngine.isAnalysisOptionsFileName(name)) {
+        results.add(ANALYSIS_OPTIONS_ERRORS);
       }
     } else if (target is LibrarySpecificUnit) {
       results.add(COMPILATION_UNIT_CONSTANTS);
@@ -553,6 +556,51 @@ class GetHandler {
               classes: [null, "right", "right", "right"]);
           buffer.write('</table>');
         });
+        //
+        // Write task model inputs timing information.
+        //
+        {
+          buffer.write('<p><b>Task inputs performace data</b></p>');
+          buffer.write(
+              '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+          _writeRow(
+              buffer,
+              [
+                'Task Name',
+                'Count',
+                'Total Time (in ms)',
+                'Average Time (in ms)'
+              ],
+              header: true);
+
+          Map<TaskDescriptor, int> countMap = WorkItem.countMap;
+          Map<TaskDescriptor, Stopwatch> stopwatchMap = WorkItem.stopwatchMap;
+          List<TaskDescriptor> taskClasses = stopwatchMap.keys.toList();
+          taskClasses.sort((TaskDescriptor first, TaskDescriptor second) {
+            String firstName = first.name;
+            String secondName = second.name;
+            return firstName.compareTo(secondName);
+          });
+          taskClasses.forEach((TaskDescriptor descriptor) {
+            int count = countMap[descriptor];
+            if (count == null) {
+              count = 0;
+            }
+            int taskTime = stopwatchMap[descriptor].elapsedMilliseconds;
+            _writeRow(buffer, [
+              descriptor.name,
+              count,
+              taskTime,
+              count <= 0 ? '-' : (taskTime / count).toStringAsFixed(3)
+            ], classes: [
+              null,
+              "right",
+              "right",
+              "right"
+            ]);
+          });
+          buffer.write('</table>');
+        }
       });
     });
   }
@@ -981,6 +1029,9 @@ class GetHandler {
     explicitNames.sort();
     implicitNames.sort();
 
+    AnalysisDriver driver = (context as AnalysisContextImpl).driver;
+    List<WorkItem> workItems = driver.currentWorkOrder?.workItems;
+
     _overlayContents.clear();
     context.visitContentCache((String fullName, int stamp, String contents) {
       _overlayContents[fullName] = contents;
@@ -1011,6 +1062,27 @@ class GetHandler {
       _writePage(
           buffer, 'Analysis Server - Context', ['Context: $contextFilter'],
           (StringBuffer buffer) {
+        buffer.write('<h3>Most Recently Perfomed Tasks</h3>');
+        AnalysisTask.LAST_TASKS.forEach((String description) {
+          buffer.write('<p>$description</p>');
+        });
+
+        String _describe(WorkItem item) {
+          if (item == null) {
+            return 'None';
+          }
+          return '${item.descriptor?.name} computing ${item.spawningResult?.name} for ${item.target?.toString()}';
+        }
+
+        buffer.write('<h3>Work Items</h3>');
+        buffer.write(
+            '<p><b>Current:</b> ${_describe(driver.currentWorkOrder?.current)}</p>');
+        if (workItems != null) {
+          buffer.writeAll(workItems.reversed
+              .map((item) => '<p>${_describe(item)}</p>')
+              ?.toList());
+        }
+
         _writeFiles(buffer, 'Priority Files', priorityNames);
         _writeFiles(buffer, 'Explicitly Analyzed Files', explicitNames);
         _writeFiles(buffer, 'Implicitly Analyzed Files', implicitNames);

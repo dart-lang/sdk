@@ -43,7 +43,7 @@ main() {
   });
   group('AnalysisOptionsProvider', () {
     setUp(() {
-      buildResourceProvider(true);
+      buildResourceProvider(emptyAnalysisOptions: true);
     });
     tearDown(() {
       clearResourceProvider();
@@ -57,7 +57,7 @@ main() {
   });
   group('AnalysisOptionsProvider', () {
     setUp(() {
-      buildResourceProvider(false, true);
+      buildResourceProvider(badAnalysisOptions: true);
     });
     tearDown(() {
       clearResourceProvider();
@@ -79,15 +79,15 @@ main() {
 
 MemoryResourceProvider resourceProvider;
 
-buildResourceProvider([bool emptyAnalysisOptions = false,
-                       bool badAnalysisOptions = false]) {
+buildResourceProvider({bool emptyAnalysisOptions : false,
+                       bool badAnalysisOptions : false}) {
   resourceProvider = new MemoryResourceProvider();
   resourceProvider.newFolder('/empty');
   resourceProvider.newFolder('/tmp');
   if (badAnalysisOptions) {
     resourceProvider.newFile('/.analysis_options', r''':''');
   } else if (emptyAnalysisOptions) {
-    resourceProvider.newFile('/.analysis_options', r'''''');
+    resourceProvider.newFile('/.analysis_options', r'''#empty''');
   } else {
     resourceProvider.newFile(
       '/.analysis_options',

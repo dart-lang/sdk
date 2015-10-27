@@ -31,12 +31,22 @@ class DartNavigationComputer implements NavigationContributor {
         if (offset == null || length == null) {
           unit.accept(visitor);
         } else {
-          _DartRangeAstVisitor partVisitor =
-              new _DartRangeAstVisitor(offset, offset + length, visitor);
-          unit.accept(partVisitor);
+          AstNode node = _getNodeForRange(unit, offset, length);
+          node?.accept(visitor);
         }
       }
     }
+  }
+
+  static AstNode _getNodeForRange(
+      CompilationUnit unit, int offset, int length) {
+    AstNode node = new NodeLocator(offset, offset + length).searchWithin(unit);
+    for (AstNode n = node; n != null; n = n.parent) {
+      if (n is Directive) {
+        return n;
+      }
+    }
+    return node;
   }
 }
 
@@ -198,7 +208,9 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   @override
   visitIndexExpression(IndexExpression node) {
     super.visitIndexExpression(node);
-    computer._addRegionForToken(node.rightBracket, node.bestElement);
+    MethodElement element = node.bestElement;
+    computer._addRegionForToken(node.leftBracket, element);
+    computer._addRegionForToken(node.rightBracket, element);
   }
 
   @override
@@ -296,42 +308,5 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
     if (node != null) {
       node.accept(this);
     }
-  }
-}
-
-/**
- * An AST visitor that forwards nodes intersecting with the range from
- * [start] to [end] to the given [visitor].
- */
-class _DartRangeAstVisitor extends UnifyingAstVisitor {
-  final int start;
-  final int end;
-  final AstVisitor visitor;
-
-  _DartRangeAstVisitor(this.start, this.end, this.visitor);
-
-  bool isInRange(int offset) {
-    return start <= offset && offset <= end;
-  }
-
-  @override
-  visitNode(AstNode node) {
-    // The node ends before the range starts.
-    if (node.end < start) {
-      return;
-    }
-    // The node starts after the range ends.
-    if (node.offset > end) {
-      return;
-    }
-    // The node starts or ends in the range.
-    if (node is! CompilationUnit) {
-      if (isInRange(node.offset) || isInRange(node.end) || node is Directive) {
-        node.accept(visitor);
-        return;
-      }
-    }
-    // Go deeper.
-    super.visitNode(node);
   }
 }

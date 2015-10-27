@@ -21,6 +21,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/domain_execution.dart';
+import 'package:analysis_server/src/domain_experimental.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
@@ -270,7 +271,8 @@ class ServerPlugin implements Plugin {
     registerExtension(
         ANALYZE_FILE_EXTENSION_POINT_ID,
         (File file) => AnalysisEngine.isDartFileName(file.path) ||
-            AnalysisEngine.isHtmlFileName(file.path));
+            AnalysisEngine.isHtmlFileName(file.path) ||
+            AnalysisEngine.isAnalysisOptionsFileName(file.path));
     //
     // Register assist contributors.
     //
@@ -304,6 +306,8 @@ class ServerPlugin implements Plugin {
         (AnalysisServer server) => new CompletionDomainHandler(server));
     registerExtension(domainId,
         (AnalysisServer server) => new ExecutionDomainHandler(server));
+    registerExtension(domainId,
+        (AnalysisServer server) => new ExperimentalDomainHandler(server));
     //
     // Register fix contributors.
     //
@@ -314,6 +318,7 @@ class ServerPlugin implements Plugin {
     //
     registerExtension(
         INDEX_CONTRIBUTOR_EXTENSION_POINT_ID, new DartIndexContributor());
+
   }
 
   /**

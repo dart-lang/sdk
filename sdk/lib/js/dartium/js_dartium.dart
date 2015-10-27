@@ -207,7 +207,6 @@ class _DeclarationSet {
  * Temporary method that we hope to remove at some point. This method should
  * generally only be called by machine generated code.
  */
-
 void registerJsInterfaces([List<Type> classes]) {
   // This method is now obsolete in Dartium.
 }
@@ -301,6 +300,7 @@ final _UNDEFINED_VAR = "_UNDEFINED_JS_CONST";
 String _accessJsPath(String path) =>
     "${_JS_LIBRARY_PREFIX}.context${path.split(".").map((p) => "['$p']").join('')}";
 
+@Deprecated("Internal Use Only")
 void addMemberHelper(mirrors.MethodMirror declaration, String path, StringBuffer sb, {bool isStatic: false, String memberName}) {
   var jsName = _getJsMemberName(declaration);
   path = (path != null && path.isNotEmpty) ? "${path}.${jsName}" : jsName;
@@ -717,6 +717,7 @@ _maybeWrap(o) {
  * we can access it from other libraries without it being
  * a public instance field on JsObject.
  */
+@Deprecated("Internal Use Only")
 getDartHtmlWrapperFor(JsObject object) => object._dartHtmlWrapper;
 
 /**
@@ -724,6 +725,7 @@ getDartHtmlWrapperFor(JsObject object) => object._dartHtmlWrapper;
  * we can access it from other libraries without it being
  * a public instance field on JsObject.
  */
+@Deprecated("Internal Use Only")
 void setDartHtmlWrapperFor(JsObject object, wrapper) {
   object._dartHtmlWrapper = wrapper;
 }
@@ -733,6 +735,7 @@ void setDartHtmlWrapperFor(JsObject object, wrapper) {
  * argument is a Dart class instance that delegates to a DOM object.  See
  * wrap_jso defined in dart:html.
  */
+@Deprecated("Internal Use Only")
 unwrap_jso(dartClass_instance) {
   if (dartClass_instance is html.DartHtmlDomObject)
     return dartClass_instance.blink_jsObject;
@@ -977,6 +980,7 @@ class JsObject extends NativeFieldWrapperClass2 {
 
 // JavaScript interop methods that do not automatically wrap to dart:html types.
 // Warning: this API is not exposed to dart:js.
+@Deprecated("Internal Use Only")
 class JsNative {
   static getProperty(JsObject o, name) {
     return o._operator_getter(name);
@@ -1160,13 +1164,31 @@ Function _wrapAsDebuggerVarArgsFunction(JsFunction jsFunction) =>
         a9 = _UNDEFINED, a10 = _UNDEFINED]) => jsFunction._applyDebuggerOnly(
             _stripUndefinedArgs([a1, a2, a3, a4, a5, a6, a7, a8, a9, a10]));
 
-// This method is a no-op in Dartium.
+// The allowInterop method is a no-op in Dartium.
 // TODO(jacobr): tag methods so we can throw if a Dart method is passed to
 // JavaScript using the new interop without calling allowInterop.
+
+/// Returns a wrapper around function [f] that can be called from JavaScript
+/// using the package:js Dart-JavaScript interop.
+///
+/// For performance reasons in Dart2Js, by default Dart functions cannot be
+/// passed directly to JavaScript unless this method is called to create
+/// a Function compatible with both Dart and JavaScript.
+/// Calling this method repeatedly on a function will return the same function.
+/// The [Function] returned by this method can be used from both Dart and
+/// JavaScript. We may remove the need to call this method completely in the
+/// future if Dart2Js is refactored so that its function calling conventions
+/// are more compatible with JavaScript.
 Function allowInterop(Function f) => f;
 
 Expando<JsFunction> _interopCaptureThisExpando = new Expando<JsFunction>();
 
+/// Returns a [Function] that when called from JavaScript captures its 'this'
+/// binding and calls [f] with the value of this passed as the first argument.
+/// When called from Dart, [null] will be passed as the first argument.
+///
+/// See the documention for [allowInterop]. This method should only be used with
+/// package:js Dart-JavaScript interop.
 Function allowInteropCaptureThis(Function f) {
   if (f is JsFunction) {
     // Behavior when the function is already a JS function is unspecified.

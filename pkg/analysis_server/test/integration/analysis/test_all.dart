@@ -7,6 +7,7 @@ library test.integration.analysis.all;
 import 'package:unittest/unittest.dart';
 
 import '../../utils.dart';
+import 'analysis_options_test.dart' as analysis_options_test;
 import 'error_test.dart' as error_test;
 import 'get_errors_after_analysis_test.dart' as get_errors_after_analysis_test;
 import 'get_errors_before_analysis_test.dart'
@@ -31,6 +32,7 @@ import 'update_content_test.dart' as update_content_test;
 main() {
   initializeTestEnvironment();
   group('analysis', () {
+    analysis_options_test.main();
     error_test.main();
     get_errors_after_analysis_test.main();
     get_errors_before_analysis_test.main();

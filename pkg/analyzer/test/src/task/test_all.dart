@@ -18,6 +18,8 @@ import 'incremental_element_builder_test.dart'
 import 'inputs_test.dart' as inputs_test;
 import 'manager_test.dart' as manager_test;
 import 'model_test.dart' as model_test;
+import 'options_test.dart' as options_test;
+import 'options_work_manager_test.dart' as options_work_manager_test;
 import 'strong_mode_test.dart' as strong_mode_test;
 
 /// Utility for manually running all tests.
@@ -34,6 +36,8 @@ main() {
     inputs_test.main();
     manager_test.main();
     model_test.main();
+    options_test.main();
+    options_work_manager_test.main();
     strong_mode_test.main();
   });
 }

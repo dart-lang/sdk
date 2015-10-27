@@ -325,7 +325,36 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    optype.includeTypeNameSuggestions = true;
+    dynamic entity = this.entity;
+    if (entity is Token && entity.previous != null) {
+      TokenType type = entity.previous.type;
+      if (type == TokenType.OPEN_PAREN || type == TokenType.COMMA) {
+        optype.includeTypeNameSuggestions = true;
+      }
+    }
+    // Handle default normal parameter just as a normal parameter.
+    if (entity is DefaultFormalParameter) {
+      entity = entity.parameter;
+    }
+    // "(^ this.field)"
+    if (entity is FieldFormalParameter) {
+      if (offset < entity.thisKeyword.offset) {
+        optype.includeTypeNameSuggestions = true;
+      }
+    }
+    // "(Type name)"
+    if (entity is SimpleFormalParameter) {
+      // "(Type^)" is parsed as a parameter with the _name_ "Type".
+      if (entity.type == null) {
+        optype.includeTypeNameSuggestions = true;
+      }
+      // If inside of "Type" in "(Type^ name)", then include types.
+      if (entity.type != null &&
+          entity.type.offset <= offset &&
+          offset <= entity.type.end) {
+        optype.includeTypeNameSuggestions = true;
+      }
+    }
   }
 
   @override
@@ -460,8 +489,10 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitNormalFormalParameter(NormalFormalParameter node) {
-    optype.includeReturnValueSuggestions = true;
-    optype.includeTypeNameSuggestions = true;
+    if (node.identifier != entity) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
   }
 
   void visitParenthesizedExpression(ParenthesizedExpression node) {

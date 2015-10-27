@@ -18,7 +18,7 @@ part 'generated_protocol.dart';
 /**
  * A [RequestHandler] that supports [startup] and [shutdown] methods.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class DomainHandler extends RequestHandler {
   /**
@@ -38,7 +38,7 @@ abstract class DomainHandler extends RequestHandler {
 /**
  * An interface for enumerated types in the protocol.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class Enum {
   /**
@@ -51,7 +51,7 @@ abstract class Enum {
 /**
  * A notification from the server about an event that occurred.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class Notification {
   /**
@@ -108,7 +108,7 @@ class Notification {
 /**
  * A request that was received from the client.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class Request {
   /**
@@ -254,7 +254,7 @@ class Request {
  * An exception that occurred during the handling of a request that requires
  * that an error be returned to the client.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class RequestFailure implements Exception {
   /**
@@ -271,7 +271,7 @@ class RequestFailure implements Exception {
 /**
  * An object that can handle requests and produce responses for them.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class RequestHandler {
   /**
@@ -286,7 +286,7 @@ abstract class RequestHandler {
 /**
  * A response to a request.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class Response {
   /**

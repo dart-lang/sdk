@@ -39,7 +39,6 @@ main() {
   runReflectiveTests(BuildLibraryElementTaskTest);
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(BuildSourceExportClosureTaskTest);
-  runReflectiveTests(BuildSourceImportExportClosureTaskTest);
   runReflectiveTests(BuildTypeProviderTaskTest);
   runReflectiveTests(ComputeConstantDependenciesTaskTest);
   runReflectiveTests(ComputeConstantValueTaskTest);
@@ -84,8 +83,6 @@ isInstanceOf isBuildPublicNamespaceTask =
     new isInstanceOf<BuildPublicNamespaceTask>();
 isInstanceOf isBuildSourceExportClosureTask =
     new isInstanceOf<BuildSourceExportClosureTask>();
-isInstanceOf isBuildSourceImportExportClosureTask =
-    new isInstanceOf<BuildSourceImportExportClosureTask>();
 isInstanceOf isBuildTypeProviderTask =
     new isInstanceOf<BuildTypeProviderTask>();
 isInstanceOf isComputeConstantDependenciesTask =
@@ -841,8 +838,12 @@ part of lib;
 void set test(_) {}
 '''
     });
-    CompilationUnitElement unitElement1 = partUnits[0].element;
-    CompilationUnitElement unitElement2 = partUnits[1].element;
+    CompilationUnitElement unitElement1 = partUnits
+        .singleWhere((u) => u.element.name.endsWith('part1.dart'))
+        .element;
+    CompilationUnitElement unitElement2 = partUnits
+        .singleWhere((u) => u.element.name.endsWith('part2.dart'))
+        .element;
     PropertyAccessorElement getter = unitElement1.accessors[0];
     PropertyAccessorElement setter = unitElement2.accessors[0];
     PropertyInducingElement variable = getter.variable;
@@ -946,113 +947,6 @@ library lib_d;
       List<Source> closure = outputs[EXPORT_SOURCE_CLOSURE];
       expect(closure, unorderedEquals([sourceD]));
     }
-  }
-}
-
-@reflectiveTest
-class BuildSourceImportExportClosureTaskTest extends _AbstractDartTaskTest {
-  test_perform_importExportClosure() {
-    Source sourceA = newSource(
-        '/a.dart',
-        '''
-library lib_a;
-''');
-    Source sourceB = newSource(
-        '/b.dart',
-        '''
-library lib_b;
-export 'a.dart';
-''');
-    Source sourceC = newSource(
-        '/c.dart',
-        '''
-library lib_c;
-import 'b.dart';
-''');
-    Source coreSource = context.sourceFactory.resolveUri(null, 'dart:core');
-    // c.dart
-    {
-      computeResult(sourceC, IMPORT_EXPORT_SOURCE_CLOSURE,
-          matcher: isBuildSourceImportExportClosureTask);
-      List<Source> closure = outputs[IMPORT_EXPORT_SOURCE_CLOSURE];
-      expect(closure, contains(sourceA));
-      expect(closure, contains(sourceB));
-      expect(closure, contains(sourceC));
-      expect(closure, contains(coreSource));
-    }
-    // b.dart
-    {
-      computeResult(sourceB, IMPORT_EXPORT_SOURCE_CLOSURE,
-          matcher: isBuildSourceImportExportClosureTask);
-      List<Source> closure = outputs[IMPORT_EXPORT_SOURCE_CLOSURE];
-      expect(closure, contains(sourceA));
-      expect(closure, contains(sourceB));
-      expect(closure, contains(coreSource));
-    }
-  }
-
-  test_perform_isClient_false() {
-    Source sourceA = newSource(
-        '/a.dart',
-        '''
-library lib_a;
-import 'b.dart';
-''');
-    newSource(
-        '/b.dart',
-        '''
-library lib_b;
-''');
-    computeResult(sourceA, IS_CLIENT,
-        matcher: isBuildSourceImportExportClosureTask);
-    expect(outputs[IS_CLIENT], isFalse);
-  }
-
-  test_perform_isClient_true_export_indirect() {
-    newSource(
-        '/exports_html.dart',
-        '''
-library lib_exports_html;
-export 'dart:html';
-''');
-    Source source = newSource(
-        '/test.dart',
-        '''
-import 'exports_html.dart';
-''');
-    computeResult(source, IS_CLIENT,
-        matcher: isBuildSourceImportExportClosureTask);
-    expect(outputs[IS_CLIENT], isTrue);
-  }
-
-  test_perform_isClient_true_import_direct() {
-    Source sourceA = newSource(
-        '/a.dart',
-        '''
-library lib_a;
-import 'dart:html';
-''');
-    computeResult(sourceA, IS_CLIENT,
-        matcher: isBuildSourceImportExportClosureTask);
-    expect(outputs[IS_CLIENT], isTrue);
-  }
-
-  test_perform_isClient_true_import_indirect() {
-    Source sourceA = newSource(
-        '/a.dart',
-        '''
-library lib_a;
-import 'b.dart';
-''');
-    newSource(
-        '/b.dart',
-        '''
-library lib_b;
-import 'dart:html';
-''');
-    computeResult(sourceA, IS_CLIENT,
-        matcher: isBuildSourceImportExportClosureTask);
-    expect(outputs[IS_CLIENT], isTrue);
   }
 }
 
@@ -1267,7 +1161,7 @@ class D {
     expect(evaluationResult.value.type, isNotNull);
     expect(evaluationResult.value.type.name, 'D');
     expect(evaluationResult.value.fields, contains('value'));
-    expect(evaluationResult.value.fields['value'].intValue, 1);
+    expect(evaluationResult.value.fields['value'].toIntValue(), 1);
   }
 
   test_annotation_without_args() {
@@ -1285,7 +1179,7 @@ const x = 1;
     // And check that it has the expected value.
     expect(evaluationResult, isNotNull);
     expect(evaluationResult.value, isNotNull);
-    expect(evaluationResult.value.intValue, 1);
+    expect(evaluationResult.value.toIntValue(), 1);
   }
 
   test_circular_reference() {
@@ -1342,7 +1236,7 @@ const y = 1;
 ''');
     expect(evaluationResult, isNotNull);
     expect(evaluationResult.value, isNotNull);
-    expect(evaluationResult.value.intValue, 2);
+    expect(evaluationResult.value.toIntValue(), 2);
   }
 
   test_external_const_factory() {
@@ -1368,7 +1262,7 @@ const x = 1;
 ''');
     expect(evaluationResult, isNotNull);
     expect(evaluationResult.value, isNotNull);
-    expect(evaluationResult.value.intValue, 1);
+    expect(evaluationResult.value.toIntValue(), 1);
   }
 
   void _checkCircularities(
@@ -2357,12 +2251,12 @@ class GenerateLintsTaskTest extends _AbstractDartTaskTest {
   void setUp() {
     super.setUp();
     enableLints();
-    lintRegistry[context] = [new GenerateLintsTaskTest_TestLinter()];
+    setLints(context, [new GenerateLintsTaskTest_TestLinter()]);
   }
 
   @override
   void tearDown() {
-    lintRegistry[context] = [];
+    setLints(context, []);
     super.tearDown();
   }
 
@@ -2799,11 +2693,12 @@ class ParseDartTaskTest extends _AbstractDartTaskTest {
     _performParseTask(r'''
 part of lib;
 class B {}''');
-    expect(outputs, hasLength(8));
+    expect(outputs, hasLength(9));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
     expect(outputs[INCLUDED_PARTS], hasLength(0));
+    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(0));
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.PART);
@@ -2832,11 +2727,12 @@ part 'test.dart';
 
   test_perform_doesNotExist() {
     _performParseTask(null);
-    expect(outputs, hasLength(8));
+    expect(outputs, hasLength(9));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
     expect(outputs[INCLUDED_PARTS], hasLength(0));
+    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(0));
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.UNKNOWN);
@@ -2851,11 +2747,12 @@ import '://invaliduri.dart';
 export '${a}lib3.dart';
 part 'part.dart';
 class A {}''');
-    expect(outputs, hasLength(8));
+    expect(outputs, hasLength(9));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
     expect(outputs[INCLUDED_PARTS], hasLength(1));
+    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(2));
     expect(outputs[PARSE_ERRORS], hasLength(2));
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
@@ -2869,11 +2766,12 @@ import 'lib2.dart';
 export 'lib3.dart';
 part 'part.dart';
 class A {''');
-    expect(outputs, hasLength(8));
+    expect(outputs, hasLength(9));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(1));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
     expect(outputs[INCLUDED_PARTS], hasLength(1));
+    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(2));
     expect(outputs[PARSE_ERRORS], hasLength(1));
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
@@ -2892,11 +2790,12 @@ part 'test.dart';
     _performParseTask(r'''
 part of lib;
 class B {}''');
-    expect(outputs, hasLength(8));
+    expect(outputs, hasLength(9));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
     expect(outputs[INCLUDED_PARTS], hasLength(0));
+    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(0));
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.PART);

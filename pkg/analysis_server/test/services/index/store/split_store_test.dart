@@ -637,6 +637,10 @@ class _SplitIndexStoreTest {
     });
   }
 
+  void test_aboutToIndexDart_nullContext() {
+    expect(store.aboutToIndex(null, unitElementA), isFalse);
+  }
+
   void test_aboutToIndexDart_nullLibraryElement() {
     when(unitElementA.library).thenReturn(null);
     expect(store.aboutToIndex(contextA, unitElementA), isFalse);

@@ -13,8 +13,9 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart' as path;
 
 const String DYNAMIC = 'dynamic';
@@ -140,7 +141,7 @@ visitInheritedTypeNames(ClassDeclaration node, void inherited(String name)) {
 }
 
 /**
- * Starting with the given class node, traverse the inheritence hierarchy
+ * Starting with the given class node, traverse the inheritance hierarchy
  * calling the given functions with each non-null non-empty inherited class
  * declaration. For each locally defined declaration, call [localDeclaration].
  * For each class identifier in the hierarchy that is not defined locally,
@@ -436,12 +437,18 @@ class InterfaceTypeSuggestionBuilder {
       {bool isSuper: false, String containingMethodName: null}) {
     CompilationUnit compilationUnit =
         request.target.containingNode.getAncestor((n) => n is CompilationUnit);
-    LibraryElement library = compilationUnit.element.library;
+    CompilationUnitElement unitElem = compilationUnit.element;
+    if (unitElem == null) {
+      engine.AnalysisEngine.instance.logger
+          .logInformation('Completion expected resolved AST');
+      return;
+    }
+    LibraryElement library = unitElem.library;
     if (type is DynamicTypeImpl) {
       type = request.cache.objectClassElement.type;
     }
     if (type is InterfaceType) {
-      return new InterfaceTypeSuggestionBuilder(request)
+      new InterfaceTypeSuggestionBuilder(request)
           ._buildSuggestions(type, library, isSuper, containingMethodName);
     }
   }

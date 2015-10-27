@@ -13,6 +13,7 @@ import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/html_work_manager.dart';
+import 'package:analyzer/src/task/options_work_manager.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:plugin/plugin.dart';
 
@@ -190,7 +191,6 @@ class EnginePlugin implements Plugin {
     registerExtension(taskId, BuildLibraryElementTask.DESCRIPTOR);
     registerExtension(taskId, BuildPublicNamespaceTask.DESCRIPTOR);
     registerExtension(taskId, BuildSourceExportClosureTask.DESCRIPTOR);
-    registerExtension(taskId, BuildSourceImportExportClosureTask.DESCRIPTOR);
     registerExtension(taskId, BuildTypeProviderTask.DESCRIPTOR);
     registerExtension(taskId, ComputeConstantDependenciesTask.DESCRIPTOR);
     registerExtension(taskId, ComputeConstantValueTask.DESCRIPTOR);
@@ -211,6 +211,11 @@ class EnginePlugin implements Plugin {
     registerExtension(taskId, LibraryUnitErrorsTask.DESCRIPTOR);
     registerExtension(taskId, ParseDartTask.DESCRIPTOR);
     registerExtension(taskId, PartiallyResolveUnitReferencesTask.DESCRIPTOR);
+    registerExtension(taskId, ReadyLibraryElement2Task.DESCRIPTOR);
+    registerExtension(taskId, ReadyLibraryElement5Task.DESCRIPTOR);
+    registerExtension(taskId, ReadyResolvedUnitTask.DESCRIPTOR);
+    registerExtension(taskId, ReadyResolvedUnit9Task.DESCRIPTOR);
+    registerExtension(taskId, ReadyResolvedUnit10Task.DESCRIPTOR);
     registerExtension(taskId, ResolveInstanceFieldsInUnitTask.DESCRIPTOR);
     registerExtension(taskId, ResolveLibraryReferencesTask.DESCRIPTOR);
     registerExtension(taskId, ResolveLibraryTypeNamesTask.DESCRIPTOR);
@@ -235,6 +240,8 @@ class EnginePlugin implements Plugin {
         (InternalAnalysisContext context) => new DartWorkManager(context));
     registerExtension(taskId,
         (InternalAnalysisContext context) => new HtmlWorkManager(context));
+    registerExtension(taskId,
+        (InternalAnalysisContext context) => new OptionsWorkManager(context));
   }
 
   /**

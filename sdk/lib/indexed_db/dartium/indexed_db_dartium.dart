@@ -108,6 +108,7 @@ class _KeyRangeFactoryProvider {
       KeyRange.bound_(lower, upper, lowerOpen, upperOpen);
 }
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final indexed_dbBlinkMap = {
   'IDBCursor': () => Cursor,
   'IDBCursorWithValue': () => CursorWithValue,
@@ -124,6 +125,7 @@ final indexed_dbBlinkMap = {
 };
 
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final indexed_dbBlinkFunctionMap = {
   'IDBCursor': () => Cursor.internalCreateCursor,
   'IDBCursorWithValue': () => CursorWithValue.internalCreateCursorWithValue,
@@ -167,6 +169,7 @@ class Cursor extends DartHtmlDomObject {
     // To suppress missing implicit constructor warnings.
   factory Cursor._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Cursor internalCreateCursor() {
     return new Cursor._internalWrap();
   }
@@ -238,6 +241,7 @@ class CursorWithValue extends Cursor {
   factory CursorWithValue._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CursorWithValue internalCreateCursorWithValue() {
     return new CursorWithValue._internalWrap();
   }
@@ -333,6 +337,7 @@ class Database extends EventTarget {
   static const EventStreamProvider<VersionChangeEvent> versionChangeEvent = const EventStreamProvider<VersionChangeEvent>('versionchange');
 
 
+  @Deprecated("Internal Use Only")
   static Database internalCreateDatabase() {
     return new Database._internalWrap();
   }
@@ -526,6 +531,7 @@ class IdbFactory extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory IdbFactory._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static IdbFactory internalCreateIdbFactory() {
     return new IdbFactory._internalWrap();
   }
@@ -677,6 +683,7 @@ class Index extends DartHtmlDomObject {
     // To suppress missing implicit constructor warnings.
   factory Index._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Index internalCreateIndex() {
     return new Index._internalWrap();
   }
@@ -766,6 +773,7 @@ class KeyRange extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory KeyRange._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static KeyRange internalCreateKeyRange() {
     return new KeyRange._internalWrap();
   }
@@ -963,6 +971,7 @@ class ObjectStore extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ObjectStore._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ObjectStore internalCreateObjectStore() {
     return new ObjectStore._internalWrap();
   }
@@ -1127,6 +1136,7 @@ class OpenDBRequest extends Request {
   static const EventStreamProvider<VersionChangeEvent> upgradeNeededEvent = const EventStreamProvider<VersionChangeEvent>('upgradeneeded');
 
 
+  @Deprecated("Internal Use Only")
   static OpenDBRequest internalCreateOpenDBRequest() {
     return new OpenDBRequest._internalWrap();
   }
@@ -1184,6 +1194,7 @@ class Request extends EventTarget {
   static const EventStreamProvider<Event> successEvent = const EventStreamProvider<Event>('success');
 
 
+  @Deprecated("Internal Use Only")
   static Request internalCreateRequest() {
     return new Request._internalWrap();
   }
@@ -1297,6 +1308,7 @@ class Transaction extends EventTarget {
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
 
+  @Deprecated("Internal Use Only")
   static Transaction internalCreateTransaction() {
     return new Transaction._internalWrap();
   }
@@ -1359,6 +1371,7 @@ class VersionChangeEvent extends Event {
   factory VersionChangeEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static VersionChangeEvent internalCreateVersionChangeEvent() {
     return new VersionChangeEvent._internalWrap();
   }

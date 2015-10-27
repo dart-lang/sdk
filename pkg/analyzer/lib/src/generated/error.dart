@@ -6,6 +6,8 @@ library engine.error;
 
 import 'dart:collection';
 
+import 'package:source_span/source_span.dart';
+
 import 'ast.dart' show AstNode;
 import 'element.dart';
 import 'java_core.dart';
@@ -291,6 +293,69 @@ class AnalysisErrorWithProperties extends AnalysisError {
   void setProperty(ErrorProperty property, Object value) {
     _propertyMap[property] = value;
   }
+}
+
+/**
+ * The error codes used for errors in analysis options files. The convention for
+ * this class is for the name of the error code to indicate the problem that
+ * caused the error to be generated and for the error message to explain what is
+ * wrong and, when appropriate, how the problem can be corrected.
+ */
+class AnalysisOptionsErrorCode extends ErrorCode {
+  /**
+   * An error code indicating that there is a syntactic error in the file.
+   *
+   * Parameters:
+   * 0: the error message from the parse error
+   */
+  static const AnalysisOptionsErrorCode PARSE_ERROR =
+      const AnalysisOptionsErrorCode('PARSE_ERROR', '{0}');
+
+  /**
+   * Initialize a newly created error code to have the given [name].
+   */
+  const AnalysisOptionsErrorCode(String name, String message,
+      [String correction])
+      : super(name, message, correction);
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
+
+  @override
+  ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
+}
+
+/**
+ * The error codes used for warnings in analysis options files. The convention
+ * for this class is for the name of the error code to indicate the problem that
+ * caused the error to be generated and for the error message to explain what is
+ * wrong and, when appropriate, how the problem can be corrected.
+ */
+class AnalysisOptionsWarningCode extends ErrorCode {
+  /**
+   * An error code indicating that a plugin is being configured with an
+   * unsupported option.
+   *
+   * Parameters:
+   * 0: the plugin name
+   * 1: the unsupported option key
+   */
+  static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION =
+      const AnalysisOptionsWarningCode('UNSUPPORTED_OPTION_ERROR',
+          "The option '{1}' is not supported by {0}");
+
+  /**
+   * Initialize a newly created warning code to have the given [name].
+   */
+  const AnalysisOptionsWarningCode(String name, String message,
+      [String correction])
+      : super(name, message, correction);
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;
+
+  @override
+  ErrorType get type => ErrorType.STATIC_WARNING;
 }
 
 /**
@@ -2603,6 +2668,15 @@ class ErrorReporter {
       [List<Object> arguments]) {
     _errorListener.onError(
         new AnalysisError(_source, offset, length, errorCode, arguments));
+  }
+
+  /**
+   * Report an error with the given [errorCode] and [arguments]. The location of
+   * the error is specified by the given [span].
+   */
+  void reportErrorForSpan(ErrorCode errorCode, SourceSpan span,
+      [List<Object> arguments]) {
+    reportErrorForOffset(errorCode, span.start.offset, span.length, arguments);
   }
 
   /**

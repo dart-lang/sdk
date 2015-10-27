@@ -4038,22 +4038,52 @@ class Parser {
         TokenType.INDEX
       ]);
     }
+    bool allowAdditionalTokens = true;
     // We know that we have an identifier, and need to see whether it might be
     // a type name.
+    if (_currentToken.type != TokenType.IDENTIFIER) {
+      allowAdditionalTokens = false;
+    }
     Token token = _skipTypeName(_currentToken);
     if (token == null) {
       // There was no type name, so this can't be a declaration.
       return false;
+    }
+    if (token.type != TokenType.IDENTIFIER) {
+      allowAdditionalTokens = false;
     }
     token = _skipSimpleIdentifier(token);
     if (token == null) {
       return false;
     }
     TokenType type = token.type;
-    return type == TokenType.EQ ||
+    // Usual cases in valid code:
+    //     String v = '';
+    //     String v, v2;
+    //     String v;
+    //     for (String item in items) {}
+    if (type == TokenType.EQ ||
         type == TokenType.COMMA ||
         type == TokenType.SEMICOLON ||
-        _tokenMatchesKeyword(token, Keyword.IN);
+        _tokenMatchesKeyword(token, Keyword.IN)) {
+      return true;
+    }
+    // It is OK to parse as a variable declaration in these cases:
+    //     String v }
+    //     String v if (true) print('OK');
+    //     String v { print(42); }
+    // ...but not in these cases:
+    //     get getterName {
+    //     String get getterName
+    if (allowAdditionalTokens) {
+      if (type == TokenType.CLOSE_CURLY_BRACKET ||
+          type == TokenType.KEYWORD ||
+          type == TokenType.IDENTIFIER ||
+          type == TokenType.OPEN_CURLY_BRACKET) {
+        return true;
+      }
+    }
+    return false;
   }
 
   bool _isLikelyParameterList() {
@@ -5829,12 +5859,12 @@ class Parser {
         _reportErrorForToken(
             ParserErrorCode.INVALID_AWAIT_IN_FOR, awaitKeyword);
       }
-      Token leftSeparator = _expect(TokenType.SEMICOLON);
+      Token leftSeparator = _expectSemicolon();
       Expression condition = null;
       if (!_matches(TokenType.SEMICOLON)) {
         condition = parseExpression2();
       }
-      Token rightSeparator = _expect(TokenType.SEMICOLON);
+      Token rightSeparator = _expectSemicolon();
       List<Expression> updaters = null;
       if (!_matches(TokenType.CLOSE_PAREN)) {
         updaters = _parseExpressionList();
@@ -8281,8 +8311,7 @@ class Parser {
    */
   Token _skipSimpleIdentifier(Token startToken) {
     if (_tokenMatches(startToken, TokenType.IDENTIFIER) ||
-        (_tokenMatches(startToken, TokenType.KEYWORD) &&
-            (startToken as KeywordToken).keyword.isPseudoKeyword)) {
+        _tokenMatchesPseudoKeyword(startToken)) {
       return startToken.next;
     }
     return null;
@@ -8506,8 +8535,7 @@ class Parser {
    */
   bool _tokenMatchesIdentifier(Token token) =>
       _tokenMatches(token, TokenType.IDENTIFIER) ||
-          (_tokenMatches(token, TokenType.KEYWORD) &&
-              (token as KeywordToken).keyword.isPseudoKeyword);
+          _tokenMatchesPseudoKeyword(token);
 
   /**
    * Return `true` if the given [token] matches the given [keyword].
@@ -8515,6 +8543,13 @@ class Parser {
   bool _tokenMatchesKeyword(Token token, Keyword keyword) =>
       token.type == TokenType.KEYWORD &&
           (token as KeywordToken).keyword == keyword;
+
+  /**
+   * Return `true` if the given [token] matches a pseudo keyword.
+   */
+  bool _tokenMatchesPseudoKeyword(Token token) =>
+      _tokenMatches(token, TokenType.KEYWORD) &&
+          (token as KeywordToken).keyword.isPseudoKeyword;
 
   /**
    * Return `true` if the given [token] matches the given [identifier].

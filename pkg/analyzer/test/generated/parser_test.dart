@@ -3221,6 +3221,17 @@ class B = Object with A {}''',
     expect(expression.thenExpression.isSynthetic, isTrue);
   }
 
+  void test_declarationBeforeDirective() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
+        "class foo { } import 'bar.dart';",
+        [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION]);
+    expect(unit.directives, hasLength(1));
+    expect(unit.declarations, hasLength(1));
+    ClassDeclaration classDecl = unit.childEntities.first;
+    expect(classDecl, isNotNull);
+    expect(classDecl.name.name, 'foo');
+  }
+
   void test_equalityExpression_missing_LHS() {
     BinaryExpression expression =
         parseExpression("== y", [ParserErrorCode.MISSING_IDENTIFIER]);
@@ -3336,17 +3347,6 @@ class B = Object with A {}''',
 
   void test_functionExpression_named() {
     parseExpression("m(f() => 0);", [ParserErrorCode.EXPECTED_TOKEN]);
-  }
-
-  void test_declarationBeforeDirective() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
-        "class foo { } import 'bar.dart';",
-        [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION]);
-    expect(unit.directives, hasLength(1));
-    expect(unit.declarations, hasLength(1));
-    ClassDeclaration classDecl = unit.childEntities.first;
-    expect(classDecl, isNotNull);
-    expect(classDecl.name.name, 'foo');
   }
 
   void test_importDirectivePartial_as() {
@@ -3547,6 +3547,53 @@ class C {
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
     expect(field.name.isSynthetic, isTrue);
+  }
+
+  void test_incompleteForEach() {
+    ForStatement statement = ParserTestCase.parseStatement(
+        'for (String item i) {}',
+        [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN]);
+    expect(statement, new isInstanceOf<ForStatement>());
+    expect(statement.toSource(), 'for (String item; i;) {}');
+    expect(statement.leftSeparator, isNotNull);
+    expect(statement.leftSeparator.type, TokenType.SEMICOLON);
+    expect(statement.rightSeparator, isNotNull);
+    expect(statement.rightSeparator.type, TokenType.SEMICOLON);
+  }
+
+  void test_incompleteLocalVariable_atTheEndOfBlock() {
+    Statement statement = ParserTestCase.parseStatement(
+        'String v }', [ParserErrorCode.EXPECTED_TOKEN]);
+    expect(statement, new isInstanceOf<VariableDeclarationStatement>());
+    expect(statement.toSource(), 'String v;');
+  }
+
+  void test_incompleteLocalVariable_beforeIdentifier() {
+    Statement statement = ParserTestCase.parseStatement(
+        'String v String v2;', [ParserErrorCode.EXPECTED_TOKEN]);
+    expect(statement, new isInstanceOf<VariableDeclarationStatement>());
+    expect(statement.toSource(), 'String v;');
+  }
+
+  void test_incompleteLocalVariable_beforeKeyword() {
+    Statement statement = ParserTestCase.parseStatement(
+        'String v if (true) {}', [ParserErrorCode.EXPECTED_TOKEN]);
+    expect(statement, new isInstanceOf<VariableDeclarationStatement>());
+    expect(statement.toSource(), 'String v;');
+  }
+
+  void test_incompleteLocalVariable_beforeNextBlock() {
+    Statement statement = ParserTestCase.parseStatement(
+        'String v {}', [ParserErrorCode.EXPECTED_TOKEN]);
+    expect(statement, new isInstanceOf<VariableDeclarationStatement>());
+    expect(statement.toSource(), 'String v;');
+  }
+
+  void test_incompleteLocalVariable_parameterizedType() {
+    Statement statement = ParserTestCase.parseStatement(
+        'List<String> v {}', [ParserErrorCode.EXPECTED_TOKEN]);
+    expect(statement, new isInstanceOf<VariableDeclarationStatement>());
+    expect(statement.toSource(), 'List<String> v;');
   }
 
   void test_invalidFunctionBodyModifier() {
@@ -9423,7 +9470,7 @@ void''');
     expect(identifier.name, lexeme);
   }
 
-  void test_parseStatement_emptyTypeArgumentListt() {
+  void test_parseStatement_emptyTypeArgumentList() {
     VariableDeclarationStatement statement = parse4(
         "parseStatement", "C<> c;", [ParserErrorCode.EXPECTED_TYPE_NAME]);
     VariableDeclarationList variables = statement.variables;

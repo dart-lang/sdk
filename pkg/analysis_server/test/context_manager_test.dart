@@ -15,7 +15,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart';
-import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -90,15 +89,6 @@ class AbstractContextManagerTest {
     callbacks = new TestContextManagerCallbacks(resourceProvider);
     manager.callbacks = callbacks;
     resourceProvider.newFolder(projPath);
-    ContextManagerImpl.ENABLE_PACKAGESPEC_SUPPORT = true;
-
-    // Options processing is required in context creation.
-    ExtensionManager em = new ExtensionManager();
-    em.processPlugins([AnalysisEngine.instance.optionsPlugin]);
-  }
-
-  void tearDown() {
-    ContextManagerImpl.ENABLE_PACKAGESPEC_SUPPORT = false;
   }
 
   test_analysis_options_parse_failure() async {
@@ -940,6 +930,19 @@ test_pack:lib/
     };
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
+  }
+
+  void test_setRoots_noContext_excludedFolder() {
+    // prepare paths
+    String project = '/project';
+    String excludedFolder = '$project/excluded';
+    String excludedPubspec = '$excludedFolder/pubspec.yaml';
+    // create files
+    resourceProvider.newFile(excludedPubspec, 'name: ignore-me');
+    // set "/project", and exclude "/project/excluded"
+    manager.setRoots(
+        <String>[project], <String>[excludedFolder], <String, String>{});
+    callbacks.assertContextPaths([project]);
   }
 
   void test_setRoots_noContext_inDotFolder() {

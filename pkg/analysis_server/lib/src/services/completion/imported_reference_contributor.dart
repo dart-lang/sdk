@@ -30,6 +30,11 @@ class ImportedReferenceContributor extends DartCompletionContributor {
 
   @override
   bool computeFast(DartCompletionRequest request) {
+    // Don't suggest in comments.
+    if (request.target.isCommentText) {
+      return true;
+    }
+
     OpType optype = request.optype;
     if (!optype.isPrefixed) {
       if (optype.includeReturnValueSuggestions ||

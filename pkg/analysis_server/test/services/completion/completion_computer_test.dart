@@ -113,7 +113,7 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
       // There is only one notification
       expect(count, equals(1));
     });
-    return pumpEventQueue().then((_) {
+    return pumpEventQueue(150).then((_) {
       expect(done, isTrue);
     });
   }

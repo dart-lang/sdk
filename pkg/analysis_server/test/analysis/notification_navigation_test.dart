@@ -777,8 +777,11 @@ main() {
 }
 ''');
     return prepareNavigation().then((_) {
+      assertHasOperatorRegion('[0', 1, '[](index)', 2);
       assertHasOperatorRegion('] // []', 1, '[](index)', 2);
+      assertHasOperatorRegion('[1', 1, '[]=(index,', 3);
       assertHasOperatorRegion('] = 1;', 1, '[]=(index,', 3);
+      assertHasOperatorRegion('[2', 1, '[]=(index,', 3);
       assertHasOperatorRegion('] += 2;', 1, '[]=(index,', 3);
       assertHasOperatorRegion('+= 2;', 2, '+(other)', 1);
     });
