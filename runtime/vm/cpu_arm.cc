@@ -128,6 +128,25 @@ bool HostCPUFeatures::initialized_ = false;
 
 
 #if !defined(USING_SIMULATOR)
+#if TARGET_OS_IOS
+void HostCPUFeatures::InitOnce() {
+  // TODO(24743): Actually check the CPU features and fail if we're missing
+  // something assumed in a precompiled snapshot.
+  hardware_ = "";
+  // When the VM is targetted to ARMv7, pretend that the CPU is ARMv7 even if
+  // the CPU is actually AArch64.
+  arm_version_ = ARMv7;
+  // Always assume we have floating point unit since we dont support ARMv6 in
+  // this path.
+  vfp_supported_ = FLAG_use_vfp;
+  integer_division_supported_ = FLAG_use_integer_division;
+  neon_supported_ = FLAG_use_neon;
+  hardfp_supported_ = true;
+#if defined(DEBUG)
+  initialized_ = true;
+#endif
+}
+#else  // TARGET_OS_IOS
 void HostCPUFeatures::InitOnce() {
   bool is_arm64 = false;
   CpuInfo::InitOnce();
@@ -202,7 +221,7 @@ void HostCPUFeatures::InitOnce() {
   initialized_ = true;
 #endif
 }
-
+#endif  // TARGET_OS_IOS
 
 void HostCPUFeatures::Cleanup() {
   DEBUG_ASSERT(initialized_);

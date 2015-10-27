@@ -141,9 +141,19 @@ void OS::AlignedFree(void* ptr) {
 
 
 intptr_t OS::ActivationFrameAlignment() {
+#if TARGET_OS_IOS
+#if TARGET_ARCH_ARM
+  // Even if we generate code that maintains a strong alignment, we cannot
+  // assert the stronger stack alignment because C++ code will not maintain it.
+  return 8;
+#elif TARGET_ARCH_ARM64
+  return 16;
+#endif
+#else  // TARGET_OS_IOS
   // OS X activation frames must be 16 byte-aligned; see "Mac OS X ABI
   // Function Call Guide".
   return 16;
+#endif  // TARGET_OS_IOS
 }
 
 
