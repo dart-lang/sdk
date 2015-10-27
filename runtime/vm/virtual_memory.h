@@ -84,7 +84,8 @@ class VirtualMemory {
   // It does not reserve any virtual address space on its own.
   explicit VirtualMemory(const MemoryRegion& region) :
       region_(region.pointer(), region.size()),
-      reserved_size_(region.size()) { }
+      reserved_size_(region.size()),
+      embedder_allocated_(false) { }
 
   MemoryRegion region_;
 
