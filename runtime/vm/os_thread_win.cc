@@ -198,8 +198,8 @@ Mutex::Mutex() {
   if (data_.semaphore_ == NULL) {
     FATAL1("Mutex allocation failed %d", GetLastError());
   }
-  // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
+  // When running with assertions enabled we do track the owner.
   owner_ = OSThread::kInvalidThreadId;
 #endif  // defined(DEBUG)
 }
@@ -207,8 +207,8 @@ Mutex::Mutex() {
 
 Mutex::~Mutex() {
   CloseHandle(data_.semaphore_);
-  // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
+  // When running with assertions enabled we do track the owner.
   ASSERT(owner_ == OSThread::kInvalidThreadId);
 #endif  // defined(DEBUG)
 }
@@ -219,8 +219,8 @@ void Mutex::Lock() {
   if (result != WAIT_OBJECT_0) {
     FATAL1("Mutex lock failed %d", GetLastError());
   }
-  // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
+  // When running with assertions enabled we do track the owner.
   owner_ = OSThread::GetCurrentThreadId();
 #endif  // defined(DEBUG)
 }
@@ -230,8 +230,8 @@ bool Mutex::TryLock() {
   // Attempt to pass the semaphore but return immediately.
   DWORD result = WaitForSingleObject(data_.semaphore_, 0);
   if (result == WAIT_OBJECT_0) {
-    // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
+    // When running with assertions enabled we do track the owner.
     owner_ = OSThread::GetCurrentThreadId();
 #endif  // defined(DEBUG)
     return true;
@@ -245,8 +245,8 @@ bool Mutex::TryLock() {
 
 
 void Mutex::Unlock() {
-  // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
+  // When running with assertions enabled we do track the owner.
   ASSERT(IsOwnedByCurrentThread());
   owner_ = OSThread::kInvalidThreadId;
 #endif  // defined(DEBUG)
@@ -266,10 +266,20 @@ Monitor::Monitor() {
   InitializeCriticalSection(&data_.waiters_cs_);
   data_.waiters_head_ = NULL;
   data_.waiters_tail_ = NULL;
+
+#if defined(DEBUG)
+  // When running with assertions enabled we track the owner.
+  owner_ = OSThread::kInvalidThreadId;
+#endif  // defined(DEBUG)
 }
 
 
 Monitor::~Monitor() {
+#if defined(DEBUG)
+  // When running with assertions enabled we track the owner.
+  ASSERT(owner_ == OSThread::kInvalidThreadId);
+#endif  // defined(DEBUG)
+
   DeleteCriticalSection(&data_.cs_);
   DeleteCriticalSection(&data_.waiters_cs_);
 }
@@ -277,10 +287,22 @@ Monitor::~Monitor() {
 
 void Monitor::Enter() {
   EnterCriticalSection(&data_.cs_);
+
+#if defined(DEBUG)
+  // When running with assertions enabled we track the owner.
+  ASSERT(owner_ == OSThread::kInvalidThreadId);
+  owner_ = OSThread::GetCurrentThreadId();
+#endif  // defined(DEBUG)
 }
 
 
 void Monitor::Exit() {
+#if defined(DEBUG)
+  // When running with assertions enabled we track the owner.
+  ASSERT(IsOwnedByCurrentThread());
+  owner_ = OSThread::kInvalidThreadId;
+#endif  // defined(DEBUG)
+
   LeaveCriticalSection(&data_.cs_);
 }
 
@@ -417,6 +439,13 @@ MonitorWaitData* MonitorData::GetMonitorWaitDataForThread() {
 
 
 Monitor::WaitResult Monitor::Wait(int64_t millis) {
+#if defined(DEBUG)
+  // When running with assertions enabled we track the owner.
+  ASSERT(IsOwnedByCurrentThread());
+  ThreadId saved_owner = owner_;
+  owner_ = OSThread::kInvalidThreadId;
+#endif  // defined(DEBUG)
+
   Monitor::WaitResult retval = kNotified;
 
   // Get the wait data object containing the event to wait for.
@@ -454,6 +483,12 @@ Monitor::WaitResult Monitor::Wait(int64_t millis) {
   // Reacquire the monitor critical section before continuing.
   EnterCriticalSection(&data_.cs_);
 
+#if defined(DEBUG)
+  // When running with assertions enabled we track the owner.
+  ASSERT(owner_ == OSThread::kInvalidThreadId);
+  owner_ = OSThread::GetCurrentThreadId();
+  ASSERT(owner_ == saved_owner);
+#endif  // defined(DEBUG)
   return retval;
 }
 
@@ -472,11 +507,15 @@ Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
 
 
 void Monitor::Notify() {
+  // When running with assertions enabled we track the owner.
+  ASSERT(IsOwnedByCurrentThread());
   data_.SignalAndRemoveFirstWaiter();
 }
 
 
 void Monitor::NotifyAll() {
+  // When running with assertions enabled we track the owner.
+  ASSERT(IsOwnedByCurrentThread());
   // If one of the objects in the list of waiters wakes because of a
   // timeout before we signal it, that object will get an extra
   // signal. This will be treated as a spurious wake-up and is OK

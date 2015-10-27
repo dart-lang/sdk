@@ -113,8 +113,22 @@ class Monitor {
   void Notify();
   void NotifyAll();
 
+#if defined(DEBUG)
+  bool IsOwnedByCurrentThread() const {
+    return owner_ == OSThread::GetCurrentThreadId();
+  }
+#else
+  bool IsOwnedByCurrentThread() const {
+    UNREACHABLE();
+    return false;
+  }
+#endif
+
  private:
   MonitorData data_;  // OS-specific data.
+#if defined(DEBUG)
+  ThreadId owner_;
+#endif  // defined(DEBUG)
 
   DISALLOW_COPY_AND_ASSIGN(Monitor);
 };
