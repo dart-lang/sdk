@@ -32,6 +32,9 @@ class GenerateOptionsErrorsTaskTest extends AbstractContextTest {
   final optionsFilePath = '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
 
   Source source;
+  LineInfo lineInfo(String source) =>
+      GenerateOptionsErrorsTask.computeLineInfo(source);
+
   @override
   setUp() {
     super.setUp();
@@ -44,6 +47,18 @@ class GenerateOptionsErrorsTaskTest extends AbstractContextTest {
     expect(inputs, isNotNull);
     expect(inputs.keys,
         unorderedEquals([GenerateOptionsErrorsTask.CONTENT_INPUT_NAME]));
+  }
+
+  test_compute_lineInfo() {
+    expect(lineInfo('foo\nbar').getLocation(4).lineNumber, 2);
+    expect(lineInfo('foo\nbar').getLocation(4).columnNumber, 1);
+    expect(lineInfo('foo\r\nbar').getLocation(5).lineNumber, 2);
+    expect(lineInfo('foo\r\nbar').getLocation(5).columnNumber, 1);
+    expect(lineInfo('foo\rbar').getLocation(4).lineNumber, 2);
+    expect(lineInfo('foo\rbar').getLocation(4).columnNumber, 1);
+    expect(lineInfo('foo').getLocation(0).lineNumber, 1);
+    expect(lineInfo('foo').getLocation(0).columnNumber, 1);
+    expect(lineInfo('').getLocation(1).lineNumber, 1);
   }
 
   test_constructor() {

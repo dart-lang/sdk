@@ -81,7 +81,7 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
     // Record outputs.
     //
     outputs[ANALYSIS_OPTIONS_ERRORS] = errors;
-    outputs[LINE_INFO] = _computeLineInfo(content);
+    outputs[LINE_INFO] = computeLineInfo(content);
   }
 
   List<AnalysisError> _validate(Map<String, YamlNode> options) =>
@@ -93,21 +93,34 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(Source source) =>
       <String, TaskInput>{CONTENT_INPUT_NAME: CONTENT.of(source)};
 
-  /// Create a task based on the given [target] in the given [context].
-  static GenerateOptionsErrorsTask createTask(
-          AnalysisContext context, AnalysisTarget target) =>
-      new GenerateOptionsErrorsTask(context, target);
-
   /// Compute [LineInfo] for the given [content].
-  static LineInfo _computeLineInfo(String content) {
+  static LineInfo computeLineInfo(String content) {
     List<int> lineStarts = <int>[0];
-    for (int index = 0; index < content.length; index++) {
-      if (content.codeUnitAt(index) == 0x0A) {
+    int length = content.length;
+    int unit;
+    for (int index = 0; index < length; index++) {
+      unit = content.codeUnitAt(index);
+      // Special-case \r\n.
+      if (unit == 0x0D /* \r */) {
+        // Peek ahead to detect a following \n.
+        if ((index + 1 < length) && content.codeUnitAt(index + 1) == 0x0A) {
+          // Line start will get registered at next index at the \n.
+        } else {
+          lineStarts.add(index + 1);
+        }
+      }
+
+      if (unit == 0x0A) {
         lineStarts.add(index + 1);
       }
     }
     return new LineInfo(lineStarts);
   }
+
+  /// Create a task based on the given [target] in the given [context].
+  static GenerateOptionsErrorsTask createTask(
+          AnalysisContext context, AnalysisTarget target) =>
+      new GenerateOptionsErrorsTask(context, target);
 }
 
 /// Validates `linter` top-level options.
