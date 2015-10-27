@@ -155,9 +155,6 @@ third_party/di_tests/di_test: Pass, Slow # Issue 22896
 [ $use_repository_packages ]
 analyzer/test/*: PubGetError
 
-[ $compiler == dart2js && $cps_ir ]
-lookup_map/test/lookup_map_test: RuntimeError # $async$temp1.get$tests is not a function
-
 [ $compiler == dart2js && $cps_ir && $host_checked ]
 analyzer/test/enum_test: Crash # Issue 24485
 analyzer/test/generated/all_the_rest_test: Crash # Issue 24485

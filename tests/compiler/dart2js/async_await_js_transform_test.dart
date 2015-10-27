@@ -64,12 +64,13 @@ r"""function() async {
       switch (__goto) {
         case 0:
           // Function start
+          closures = [new A.main_closure()];
           __goto = 2;
-        closures = [new A.main_closure()];
-        return thenHelper(closures, body, __completer);
+          return thenHelper(closures, body, __completer);
         case 2:
           // returning from await.
-          v0 = __result, v1 = 0;
+          v0 = __result;
+          v1 = 0;
           if (v1 < 0 || v1 >= v0.length)
             H.ioore(v0, v1);
           else

@@ -338,7 +338,6 @@ convert/streamed_conversion_json_utf8_decode_test: Skip  # Timeout.
 
 [ $compiler == dart2js && $cps_ir ]
 async/async_await_zones_test: Crash # (await for(var x in bar().take(100)){sum+= x;}): await for
-async/stream_empty_test: RuntimeError # $async$temp1.runTest_unreachable is not a function
 async/stream_iterator_test: Crash # (Stream createCancel...  cannot handle sync*/async* functions
 convert/json_pretty_test: RuntimeError # Please triage this failure.
 convert/line_splitter_test: RuntimeError # Please triage this failure.
