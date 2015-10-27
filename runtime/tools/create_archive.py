@@ -40,12 +40,23 @@ def writeCCFile(output_file,
 // BSD-style license that can be found in the LICENSE file.
 
 ''' % date.today().year
+  cc_text += '''
+
+#if defined(_WIN32)
+typedef unsigned __int8 uint8_t;
+#else
+#include <inttypes.h>
+#include <stdint.h>
+#endif
+#include <stddef.h>
+
+'''
   cc_text += 'namespace %s {\n' % outer_namespace
   if inner_namespace != None:
     cc_text += 'namespace %s {\n' % inner_namespace
   cc_text += '\n\n'
   # Write the archive.
-  cc_text += 'static const char %s_[] = {\n  ' % name
+  cc_text += 'static const uint8_t %s_[] = {\n  ' % name
   lineCounter = 0
   for byte in tar_archive:
     cc_text += r" '\x%02x'," % ord(byte)
@@ -57,7 +68,7 @@ def writeCCFile(output_file,
     cc_text += '\n   '
   cc_text += '};\n'
   cc_text += '\nunsigned int %s_len = %d;\n' % (name, len(tar_archive))
-  cc_text += '\nconst char* %s = %s_;\n' % (name, name)
+  cc_text += '\nconst uint8_t* %s = %s_;\n' % (name, name)
   if inner_namespace != None:
     cc_text += '}  // namespace %s\n' % inner_namespace
   cc_text += '} // namespace %s\n' % outer_namespace

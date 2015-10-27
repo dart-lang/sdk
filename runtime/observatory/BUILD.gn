@@ -10,7 +10,7 @@ declare_args() {
 
   # Specify the path to a host compatible version of pub.
   # This is used to compile the Observatory frontend sources.
-  dart_host_pub_exe = rebase_path("$dart_host_sdk/pub")
+  dart_host_pub_exe = rebase_path("$dart_host_sdk/bin/pub")
 }
 
 # Helper build rules for packaging the Dart observatory resources.
@@ -44,7 +44,7 @@ action("write_observatory_pubspec_yaml") {
   args = [
     "--silent=True",
     "--pub-executable",
-    rebase_path("//third_party/dart-sdk/dart-sdk/bin/pub"),
+    dart_host_pub_exe,
     "--directory",
     rebase_path("$root_gen_dir/observatory_copy/dart/runtime/observatory/"),
     "--command",
@@ -76,7 +76,7 @@ action("copy_observatory_deps") {
   args = [
     "--silent=True",
     "--pub-executable",
-    rebase_path("//third_party/dart-sdk/dart-sdk/bin/pub"),
+    dart_host_pub_exe,
     "--directory",
     rebase_path("$root_gen_dir/observatory_copy/dart/runtime/observatory/"),
     "--command",
@@ -109,7 +109,7 @@ action("pub_build_observatory") {
   args = [
     "--silent=True",
     "--pub-executable",
-    rebase_path("//third_party/dart-sdk/dart-sdk/bin/pub"),
+    dart_host_pub_exe,
     "--directory",
     rebase_path("$root_gen_dir/observatory_copy/dart/runtime/observatory/"),
     "--command",
@@ -139,7 +139,7 @@ action("deploy_observatory") {
   args = [
     "--silent=True",
     "--pub-executable",
-    rebase_path("//third_party/dart-sdk/dart-sdk/bin/pub"),
+    dart_host_pub_exe,
     "--directory",
     rebase_path("$root_out_dir/observatory"),
     "--command",
@@ -179,5 +179,15 @@ action("archive_observatory") {
   outputs = [
     "$root_gen_dir/observatory/observatory_archive.cc",
     "$root_gen_dir/observatory/observatory_archive.tar",
+  ]
+}
+
+source_set("embedded_observatory_archive") {
+  deps = [
+    ":archive_observatory",
+  ]
+
+  sources = [
+    rebase_path("$root_gen_dir/observatory/observatory_archive.cc"),
   ]
 }
