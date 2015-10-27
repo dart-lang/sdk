@@ -1878,6 +1878,11 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     // The target might not have an AST, for example if it deferred.
     if (!node.target.hasNode) return false;
 
+    if (node.target.asyncMarker != AsyncMarker.SYNC) {
+      // Inlining of async/sync*/async* methods is currently not supported.
+      return false;
+    }
+
     // True if an expression is non-expansive, in the sense defined by this
     // predicate.
     bool isNonExpansive(ast.Expression expr) {
