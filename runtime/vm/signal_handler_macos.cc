@@ -36,7 +36,7 @@ uintptr_t SignalHandler::GetFramePointer(const mcontext_t& mcontext) {
 #elif defined(HOST_ARCH_X64)
   fp = static_cast<uintptr_t>(mcontext->__ss.__rbp);
 #elif defined(HOST_ARCH_ARM)
-  fp = static_cast<uintptr_t>(mcontext->__ss.__r[11]);
+  fp = static_cast<uintptr_t>(mcontext->__ss.__r[7]);
 #elif defined(HOST_ARCH_ARM64)
   fp = static_cast<uintptr_t>(mcontext->__ss.__fp);
 #else

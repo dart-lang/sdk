@@ -31,13 +31,13 @@ enum Register {
   R2  =  2,
   R3  =  3,
   R4  =  4,
-  R5  =  5,
-  R6  =  6,
-  R7  =  7,
-  R8  =  8,  // THR
-  R9  =  9,  // PP
-  R10 = 10,  // CTX
-  R11 = 11,  // FP
+  R5  =  5,  // PP
+  R6  =  6,  // CTX
+  R7  =  7,  // iOS FP
+  R8  =  8,
+  R9  =  9,
+  R10 = 10,  // THR
+  R11 = 11,  // Linux FP
   R12 = 12,  // IP aka TMP
   R13 = 13,  // SP
   R14 = 14,  // LR
@@ -46,7 +46,13 @@ enum Register {
   kNoRegister = -1,  // Signals an illegal register.
 
   // Aliases.
-  FP  = R11,
+#if defined(TARGET_OS_MACOS)
+  FP   = R7,
+  NOTFP = R11,
+#else
+  FP   = R11,
+  NOTFP = R7,
+#endif
   IP  = R12,
   SP  = R13,
   LR  = R14,
@@ -261,10 +267,17 @@ const RegList kAllCpuRegistersList = 0xFFFF;
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs =
     (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3);
+#if defined(TARGET_OS_MACOS)
+const RegList kAbiPreservedCpuRegs =
+    (1 << R4)  | (1 << R5) | (1 << R6) | (1 << R8) |
+    (1 << R10) | (1 << R11);
+const int kAbiPreservedCpuRegCount = 6;
+#else
 const RegList kAbiPreservedCpuRegs =
     (1 << R4) | (1 << R5) | (1 << R6) | (1 << R7) |
     (1 << R8) | (1 << R9) | (1 << R10);
 const int kAbiPreservedCpuRegCount = 7;
+#endif
 const QRegister kAbiFirstPreservedFpuReg = Q4;
 const QRegister kAbiLastPreservedFpuReg = Q7;
 const int kAbiPreservedFpuRegCount = 4;
@@ -282,7 +295,11 @@ const RegList kDartAvailableCpuRegs =
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
+#if defined(TARGET_OS_MACOS)
+const int kDartVolatileCpuRegCount = 6;
+#else
 const int kDartVolatileCpuRegCount = 5;
+#endif
 const QRegister kDartFirstVolatileFpuReg = Q0;
 const QRegister kDartLastVolatileFpuReg = Q3;
 const int kDartVolatileFpuRegCount = 4;

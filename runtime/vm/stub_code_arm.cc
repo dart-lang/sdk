@@ -637,27 +637,27 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ ldr(R8, Address(R8, Isolate::heap_offset()));
   // Potential new object start.
   __ ldr(R0, Address(R8, Heap::TopOffset(space)));
-  __ adds(R7, R0, Operand(R9));  // Potential next object start.
+  __ adds(NOTFP, R0, Operand(R9));  // Potential next object start.
   __ b(&slow_case, CS);  // Branch if unsigned overflow.
 
   // Check if the allocation fits into the remaining space.
   // R0: potential new object start.
-  // R7: potential next object start.
+  // NOTFP: potential next object start.
   // R9: allocation size.
   __ ldr(R3, Address(R8, Heap::EndOffset(space)));
-  __ cmp(R7, Operand(R3));
+  __ cmp(NOTFP, Operand(R3));
   __ b(&slow_case, CS);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
   __ LoadAllocationStatsAddress(R3, cid, /* inline_isolate = */ false);
-  __ str(R7, Address(R8, Heap::TopOffset(space)));
+  __ str(NOTFP, Address(R8, Heap::TopOffset(space)));
   __ add(R0, R0, Operand(kHeapObjectTag));
 
   // Initialize the tags.
   // R0: new object start as a tagged pointer.
   // R3: allocation stats address.
-  // R7: new object end address.
+  // NOTFP: new object end address.
   // R9: allocation size.
   {
     const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
@@ -674,7 +674,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   }
 
   // R0: new object start as a tagged pointer.
-  // R7: new object end address.
+  // NOTFP: new object end address.
   // Store the type argument field.
   __ InitializeFieldNoBarrier(R0,
                               FieldAddress(R0, Array::type_arguments_offset()),
@@ -691,14 +691,14 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // R8, R9: null
   // R4: iterator which initially points to the start of the variable
   // data area to be initialized.
-  // R7: new object end address.
+  // NOTFP: new object end address.
   // R9: allocation size.
   __ IncrementAllocationStatsWithSize(R3, R9, space);
 
   __ LoadObject(R8, Object::null_object());
   __ mov(R9, Operand(R8));
   __ AddImmediate(R4, R0, sizeof(RawArray) - kHeapObjectTag);
-  __ InitializeFieldsNoBarrier(R0, R4, R7, R8, R9);
+  __ InitializeFieldsNoBarrier(R0, R4, NOTFP, R8, R9);
   __ Ret();  // Returns the newly allocated object in R0.
   // Unable to allocate the array using the fast inline code, just call
   // into the runtime.
@@ -770,7 +770,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
   __ Push(R4);
+#if defined(TARGET_OS_MAC)
+  ASSERT(kExitLinkSlotFromEntryFp == -26);
+#else
   ASSERT(kExitLinkSlotFromEntryFp == -27);
+#endif
   __ Push(R9);
 
   // Load arguments descriptor array into R4, which is passed to Dart code.
@@ -932,8 +936,8 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R8, R9: raw null.
     // R4: allocation stats address.
     Label loop;
-    __ AddImmediate(R7, R0, Context::variable_offset(0) - kHeapObjectTag);
-    __ InitializeFieldsNoBarrier(R0, R7, R3, R8, R9);
+    __ AddImmediate(NOTFP, R0, Context::variable_offset(0) - kHeapObjectTag);
+    __ InitializeFieldsNoBarrier(R0, NOTFP, R3, R8, R9);
     __ IncrementAllocationStatsWithSize(R4, R2, space);
 
     // Done allocating and initializing the context.
@@ -1039,7 +1043,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
   // Must load pool pointer before being able to patch.
-  Register new_pp = R7;
+  Register new_pp = NOTFP;
   __ LoadPoolPointer(new_pp);
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
@@ -1217,9 +1221,9 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
     __ PopList((1 << R9) | (1 << R8));  // Restore.
     __ LeaveStubFrame();
   }
-  __ ldr(R7, FieldAddress(func_reg, Function::usage_counter_offset()));
-  __ add(R7, R7, Operand(1));
-  __ str(R7, FieldAddress(func_reg, Function::usage_counter_offset()));
+  __ ldr(NOTFP, FieldAddress(func_reg, Function::usage_counter_offset()));
+  __ add(NOTFP, NOTFP, Operand(1));
+  __ str(NOTFP, FieldAddress(func_reg, Function::usage_counter_offset()));
 }
 
 
@@ -1232,9 +1236,9 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
     ASSERT(temp_reg == R8);
     __ Comment("Increment function counter");
     __ ldr(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
-    __ ldr(R7, FieldAddress(func_reg, Function::usage_counter_offset()));
-    __ add(R7, R7, Operand(1));
-    __ str(R7, FieldAddress(func_reg, Function::usage_counter_offset()));
+    __ ldr(NOTFP, FieldAddress(func_reg, Function::usage_counter_offset()));
+    __ add(NOTFP, NOTFP, Operand(1));
+    __ str(NOTFP, FieldAddress(func_reg, Function::usage_counter_offset()));
   }
 }
 
@@ -1376,11 +1380,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   // Get the receiver's class ID (first read number of arguments from
   // arguments descriptor array and then access the receiver from the stack).
-  __ ldr(R7, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
-  __ sub(R7, R7, Operand(Smi::RawValue(1)));
-  __ ldr(R0, Address(SP, R7, LSL, 1));  // R7 (argument_count - 1) is smi.
+  __ ldr(NOTFP, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+  __ sub(NOTFP, NOTFP, Operand(Smi::RawValue(1)));
+  __ ldr(R0, Address(SP, NOTFP, LSL, 1));  // NOTFP (argument_count - 1) is smi.
   __ LoadTaggedClassIdMayBeSmi(R0, R0);
-  // R7: argument_count - 1 (smi).
+  // NOTFP: argument_count - 1 (smi).
   // R0: receiver's class ID (smi).
   __ ldr(R1, Address(R8, 0));  // First class id (smi) to check.
   __ b(&test);
@@ -1390,7 +1394,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   for (int i = 0; i < num_args; i++) {
     if (i > 0) {
       // If not the first, load the next argument's class ID.
-      __ AddImmediate(R0, R7, Smi::RawValue(-i));
+      __ AddImmediate(R0, NOTFP, Smi::RawValue(-i));
       __ ldr(R0, Address(SP, R0, LSL, 1));
       __ LoadTaggedClassIdMayBeSmi(R0, R0);
       // R0: next argument class ID (smi).
@@ -1408,7 +1412,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ Bind(&update);
   // Reload receiver class ID.  It has not been destroyed when num_args == 1.
   if (num_args > 1) {
-    __ ldr(R0, Address(SP, R7, LSL, 1));
+    __ ldr(R0, Address(SP, NOTFP, LSL, 1));
     __ LoadTaggedClassIdMayBeSmi(R0, R0);
   }
 
@@ -1422,9 +1426,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   __ Comment("IC miss");
   // Compute address of arguments.
-  // R7: argument_count - 1 (smi).
-  __ add(R7, SP, Operand(R7, LSL, 1));  // R7 is Smi.
-  // R7: address of receiver.
+  // NOTFP: argument_count - 1 (smi).
+  __ add(NOTFP, SP, Operand(NOTFP, LSL, 1));  // NOTFP is Smi.
+  // NOTFP: address of receiver.
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
@@ -1434,7 +1438,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ PushList((1 << R0) | (1 << R4) | (1 << R9));
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
-    __ LoadFromOffset(kWord, IP, R7, -i * kWordSize);
+    __ LoadFromOffset(kWord, IP, NOTFP, -i * kWordSize);
     __ Push(IP);
   }
   // Pass IC data object.

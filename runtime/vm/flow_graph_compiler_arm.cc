@@ -769,13 +769,13 @@ void FlowGraphCompiler::CopyParameters() {
   // Argument i passed at fp[kParamEndSlotFromFp + num_args - i] is copied
   // to fp[kFirstLocalSlotFromFp - i].
 
-  __ ldr(R7, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
-  // Since R7 and R6 are Smi, use LSL 1 instead of LSL 2.
-  // Let R7 point to the last passed positional argument, i.e. to
+  __ ldr(NOTFP, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+  // Since NOTFP and R6 are Smi, use LSL 1 instead of LSL 2.
+  // Let NOTFP point to the last passed positional argument, i.e. to
   // fp[kParamEndSlotFromFp + num_args - (num_pos_args - 1)].
-  __ sub(R7, R7, Operand(R6));
-  __ add(R7, FP, Operand(R7, LSL, 1));
-  __ add(R7, R7, Operand((kParamEndSlotFromFp + 1) * kWordSize));
+  __ sub(NOTFP, NOTFP, Operand(R6));
+  __ add(NOTFP, FP, Operand(NOTFP, LSL, 1));
+  __ add(NOTFP, NOTFP, Operand((kParamEndSlotFromFp + 1) * kWordSize));
 
   // Let R8 point to the last copied positional argument, i.e. to
   // fp[kFirstLocalSlotFromFp - (num_pos_args - 1)].
@@ -787,7 +787,7 @@ void FlowGraphCompiler::CopyParameters() {
   // We do not use the final allocation index of the variable here, i.e.
   // scope->VariableAt(i)->index(), because captured variables still need
   // to be copied to the context that is not yet allocated.
-  const Address argument_addr(R7, R6, LSL, 2);
+  const Address argument_addr(NOTFP, R6, LSL, 2);
   const Address copy_addr(R8, R6, LSL, 2);
   __ Bind(&loop);
   __ ldr(IP, argument_addr);
@@ -823,14 +823,14 @@ void FlowGraphCompiler::CopyParameters() {
       opt_param_position[i + 1] = pos;
     }
     // Generate code handling each optional parameter in alphabetical order.
-    __ ldr(R7, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+    __ ldr(NOTFP, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
     __ ldr(R6,
            FieldAddress(R4, ArgumentsDescriptor::positional_count_offset()));
     __ SmiUntag(R6);
-    // Let R7 point to the first passed argument, i.e. to
-    // fp[kParamEndSlotFromFp + num_args - 0]; num_args (R7) is Smi.
-    __ add(R7, FP, Operand(R7, LSL, 1));
-    __ AddImmediate(R7, R7, kParamEndSlotFromFp * kWordSize);
+    // Let NOTFP point to the first passed argument, i.e. to
+    // fp[kParamEndSlotFromFp + num_args - 0]; num_args (NOTFP) is Smi.
+    __ add(NOTFP, FP, Operand(NOTFP, LSL, 1));
+    __ AddImmediate(NOTFP, NOTFP, kParamEndSlotFromFp * kWordSize);
     // Let R8 point to the entry of the first named argument.
     __ add(R8, R4, Operand(
         ArgumentsDescriptor::first_named_entry_offset() - kHeapObjectTag));
@@ -850,7 +850,7 @@ void FlowGraphCompiler::CopyParameters() {
       // Point to next named entry.
       __ add(R8, R8, Operand(ArgumentsDescriptor::named_entry_size()));
       __ rsb(R9, R9, Operand(0));
-      Address argument_addr(R7, R9, LSL, 1);  // R9 is a negative Smi.
+      Address argument_addr(NOTFP, R9, LSL, 1);  // R9 is a negative Smi.
       __ ldr(R9, argument_addr);
       __ b(&assign_optional_parameter);
       __ Bind(&load_default_value);
@@ -902,10 +902,10 @@ void FlowGraphCompiler::CopyParameters() {
       __ Bind(&next_parameter);
     }
     if (check_correct_named_args) {
-      __ ldr(R7, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
-      __ SmiUntag(R7);
-      // Check that R6 equals R7, i.e. no named arguments passed.
-      __ cmp(R6, Operand(R7));
+      __ ldr(NOTFP, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+      __ SmiUntag(NOTFP);
+      // Check that R6 equals NOTFP, i.e. no named arguments passed.
+      __ cmp(R6, Operand(NOTFP));
       __ b(&all_arguments_processed, EQ);
     }
   }
@@ -929,8 +929,8 @@ void FlowGraphCompiler::CopyParameters() {
   // R4 : arguments descriptor array.
   __ ldr(R6, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(R6);
-  __ add(R7, FP, Operand((kParamEndSlotFromFp + 1) * kWordSize));
-  const Address original_argument_addr(R7, R6, LSL, 2);
+  __ add(NOTFP, FP, Operand((kParamEndSlotFromFp + 1) * kWordSize));
+  const Address original_argument_addr(NOTFP, R6, LSL, 2);
   __ LoadObject(IP, Object::null_object());
   Label null_args_loop, null_args_loop_condition;
   __ b(&null_args_loop_condition);
@@ -967,7 +967,7 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 }
 
 
-static const Register new_pp = R7;
+static const Register new_pp = NOTFP;
 
 
 void FlowGraphCompiler::EmitFrameEntry() {

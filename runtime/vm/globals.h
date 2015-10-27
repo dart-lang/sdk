@@ -109,7 +109,11 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 #elif defined(HOST_ARCH_X64)
 #define COPY_FP_REGISTER(fp) asm volatile ("movq %%rbp, %0" : "=r" (fp) );
 #elif defined(HOST_ARCH_ARM)
+#  if defined(TARGET_OS_MAC)
+#define COPY_FP_REGISTER(fp) asm volatile ("mov %0, r7" : "=r" (fp) );
+#  else
 #define COPY_FP_REGISTER(fp) asm volatile ("mov %0, r11" : "=r" (fp) );
+#  endif
 #elif defined(HOST_ARCH_ARM64)
 #define COPY_FP_REGISTER(fp) asm volatile ("mov %0, x29" : "=r" (fp) );
 #elif defined(HOST_ARCH_MIPS)

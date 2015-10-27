@@ -2353,7 +2353,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
       __ mov(R9, Operand(R8));
     } else {
 #if defined(DEBUG)
-      // Clobber R7 with an invalid pointer.
+      // Clobber R9 with an invalid pointer.
       __ LoadImmediate(R9, 0x1);
 #endif  // DEBUG
     }
