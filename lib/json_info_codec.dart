@@ -48,8 +48,18 @@ class JsonToAllInfoConverter extends Converter<Map, AllInfo> {
       result.dependencies[idMap[k]] = deps.map((d) => idMap[d]).toList();
     });
 
+    result.outputUnits.addAll(json['outputUnits'].map(parseOutputUnit));
+
     result.program = parseProgram(json['program']);
     // todo: version, etc
+    return result;
+  }
+
+  OutputUnitInfo parseOutputUnit(Map json) {
+    OutputUnitInfo result = parseId(json['id']);
+    result
+      ..name = json['name']
+      ..size = json['size'];
     return result;
   }
 

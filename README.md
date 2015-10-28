@@ -69,6 +69,11 @@ The following tools are a available today:
     in many ways (e.g. to tally together all libraries that belong to a package,
     or all libraries that match certain name pattern).
 
+  * [`deferred_library_check`][deferred_lib]: a tool that verifies that code
+    was split into deferred parts as expected. This tool takes a specification
+    of the expected layout of code into deferred parts, and checks that the
+    output from `dart2js` meets the specification.
+
   * [`function_size_analysis`][function_analysis]: a tool that shows how much
     code was attributed to each function. This tool also uses dependency
     information to compute dominance and reachability data. This information can
@@ -188,6 +193,47 @@ size attributed of all libraries, constants, and the program size.
 size. Currently dart2js's `--dump-info` is not complete, so numbers for
 bootstrapping code and lazy static initializers are missing.
 
+### Deferred library verification
+
+This tool checks that the output from dart2js meets a given specification,
+given in a YAML file. It can be run as follows:
+
+```bash
+pub global activate dart2js_info # only needed once
+dart2js_info_deferred_library_check out.js.info.json manifest.yaml
+```
+
+The format of the YAML file is:
+
+```yaml
+main:
+  packages:
+    - some_package
+    - other_package
+
+foo:
+  packages:
+    - foo
+    - bar
+
+baz:
+  packages:
+    - baz
+    - quux
+```
+
+The YAML file consists of a list of declarations, one for each deferred
+part expected in the output. At least one of these parts must be named
+"main"; this is the main part that contains the program entrypoint. Each
+top-level part contains a list of package names that are expected to be
+contained in that part. Any package that is not explicitly listed is
+expected to be in the main part. For instance, in the example YAML above
+the part named "baz" is expected to contain the packages "baz" and "quux".
+
+The names for parts given in the specification YAML file (besides "main")
+are arbitrary and just used for reporting when the output does not meet the
+specification.
+
 ### Function size analysis tool
 
 This command-line tool presents how much each function contributes to the total
@@ -268,6 +314,7 @@ bugs at the [issue tracker][tracker].
 [tracker]: https://github.com/dart-lang/dart2js_info/issues
 [code_deps]: https://github.com/dart-lang/dart2js_info/blob/master/bin/code_deps.dart
 [lib_split]: https://github.com/dart-lang/dart2js_info/blob/master/bin/library_size_split.dart
+[lib_split]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_check.dart
 [coverage]: https://github.com/dart-lang/dart2js_info/blob/master/bin/coverage_log_server.dart
 [live]: https://github.com/dart-lang/dart2js_info/blob/master/bin/live_code_size_analysis.dart
 [function_analysis]: https://github.com/dart-lang/dart2js_info/blob/master/bin/function_size_analysis.dart
