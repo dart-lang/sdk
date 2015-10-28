@@ -3023,6 +3023,15 @@ class HintCode extends ErrorCode {
       "Either add a return statement or change the return type to 'void'");
 
   /**
+   * A condition in a control flow statement could evaluate to `null` because it
+   * uses the null-aware '?.' operator.
+   */
+  static const HintCode NULL_AWARE_IN_CONDITION = const HintCode(
+      'NULL_AWARE_IN_CONDITION',
+      "The value of the '?.' operator can be 'null', which is not appropriate in a condition",
+      "Replace the '?.' with a '.', testing the left-hand side for null if necessary");
+
+  /**
    * A getter with the override annotation does not override an existing getter.
    */
   static const HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER = const HintCode(

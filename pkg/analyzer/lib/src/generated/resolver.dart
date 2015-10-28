@@ -6,6 +6,8 @@ library engine.resolver;
 
 import 'dart:collection';
 
+import 'package:analyzer/src/generated/scanner.dart';
+
 import 'ast.dart';
 import 'constant.dart';
 import 'element.dart';
@@ -104,6 +106,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitAssertStatement(AssertStatement node) {
+    _checkForPossibleNullCondition(node.condition);
+    return super.visitAssertStatement(node);
+  }
+
+  @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     sc.TokenType operatorType = node.operator.type;
     if (operatorType == sc.TokenType.EQ) {
@@ -136,15 +144,39 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitConditionalExpression(ConditionalExpression node) {
+    _checkForPossibleNullCondition(node.condition);
+    return super.visitConditionalExpression(node);
+  }
+
+  @override
+  Object visitDoStatement(DoStatement node) {
+    _checkForPossibleNullCondition(node.condition);
+    return super.visitDoStatement(node);
+  }
+
+  @override
   Object visitExportDirective(ExportDirective node) {
     _checkForDeprecatedMemberUse(node.uriElement, node);
     return super.visitExportDirective(node);
   }
 
   @override
+  Object visitForStatement(ForStatement node) {
+    _checkForPossibleNullCondition(node.condition);
+    return super.visitForStatement(node);
+  }
+
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     _checkForMissingReturn(node.returnType, node.functionExpression.body);
     return super.visitFunctionDeclaration(node);
+  }
+
+  @override
+  Object visitIfStatement(IfStatement node) {
+    _checkForPossibleNullCondition(node.condition);
+    return super.visitIfStatement(node);
   }
 
   @override
@@ -221,6 +253,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     _checkForUseOfVoidResult(node.initializer);
     _checkForInvalidAssignment(node.name, node.initializer);
     return super.visitVariableDeclaration(node);
+  }
+
+  @override
+  Object visitWhileStatement(WhileStatement node) {
+    _checkForPossibleNullCondition(node.condition);
+    return super.visitWhileStatement(node);
   }
 
   /**
@@ -616,6 +654,54 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Produce a hint if the given [condition] could have a value of `null`.
+   */
+  void _checkForPossibleNullCondition(Expression condition) {
+    while (condition is ParenthesizedExpression) {
+      condition = (condition as ParenthesizedExpression).expression;
+    }
+    if (condition is BinaryExpression) {
+      _checkForPossibleNullConditionInBinaryExpression(condition);
+    } else {
+      _checkForPossibleNullConditionInSimpleExpression(condition);
+    }
+  }
+
+  /**
+   * Produce a hint if any of the parts of the given binary [condition] could
+   * have a value of `null`.
+   */
+  void _checkForPossibleNullConditionInBinaryExpression(
+      BinaryExpression condition) {
+    Token operator = condition.operator;
+    if (operator != null &&
+        (operator.type == TokenType.AMPERSAND_AMPERSAND ||
+            operator.type == TokenType.BAR_BAR)) {
+      _checkForPossibleNullCondition(condition.leftOperand);
+      _checkForPossibleNullCondition(condition.rightOperand);
+    }
+  }
+
+  /**
+   * Produce a hint if the given [condition] could have a value of `null`.
+   */
+  void _checkForPossibleNullConditionInSimpleExpression(Expression condition) {
+    if (condition is MethodInvocation) {
+      Token operator = condition.operator;
+      if (operator != null && operator.type == TokenType.QUESTION_PERIOD) {
+        _errorReporter.reportErrorForNode(
+            HintCode.NULL_AWARE_IN_CONDITION, condition);
+      }
+    } else if (condition is PropertyAccess) {
+      Token operator = condition.operator;
+      if (operator != null && operator.type == TokenType.QUESTION_PERIOD) {
+        _errorReporter.reportErrorForNode(
+            HintCode.NULL_AWARE_IN_CONDITION, condition);
+      }
+    }
   }
 
   /**
@@ -4824,7 +4910,7 @@ class HintGenerator {
     _usedImportedElementsVisitor =
         new GatherUsedImportedElementsVisitor(_library);
     _enableDart2JSHints = _context.analysisOptions.dart2jsHint;
-    _manager = new InheritanceManager(_compilationUnits[0].element.library);
+    _manager = new InheritanceManager(_library);
     _usedLocalElementsVisitor = new GatherUsedLocalElementsVisitor(_library);
   }
 

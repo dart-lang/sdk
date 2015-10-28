@@ -3153,6 +3153,149 @@ class A {
     verify([source]);
   }
 
+  void test_nullAwareInCondition_assert() {
+    Source source = addSource(r'''
+m(x) {
+  assert (x?.a);
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_conditionalExpression() {
+    Source source = addSource(r'''
+m(x) {
+  return x?.a ? 0 : 1;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_do() {
+    Source source = addSource(r'''
+m(x) {
+  do {} while (x?.a);
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_for() {
+    Source source = addSource(r'''
+m(x) {
+  for (var v = x; v?.a; v = v.next) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if() {
+    Source source = addSource(r'''
+m(x) {
+  if (x?.a) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_conditionalAnd_first() {
+    Source source = addSource(r'''
+m(x) {
+  if (x?.a && x.b) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_conditionalAnd_second() {
+    Source source = addSource(r'''
+m(x) {
+  if (x.a && x?.b) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_conditionalAnd_third() {
+    Source source = addSource(r'''
+m(x) {
+  if (x.a && x.b && x?.c) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_conditionalOr_first() {
+    Source source = addSource(r'''
+m(x) {
+  if (x?.a || x.b) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_conditionalOr_second() {
+    Source source = addSource(r'''
+m(x) {
+  if (x.a || x?.b) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_conditionalOr_third() {
+    Source source = addSource(r'''
+m(x) {
+  if (x.a || x.b || x?.c) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_parenthesized() {
+    Source source = addSource(r'''
+m(x) {
+  if ((x?.a)) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_while() {
+    Source source = addSource(r'''
+m(x) {
+  while (x?.a) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
   void test_overrideOnNonOverridingGetter_invalid() {
     Source source = addSource(r'''
 library dart.core;
@@ -6895,6 +7038,28 @@ abstract class A {
 
   void test_missingReturn_voidReturnType() {
     Source source = addSource("void f() {}");
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_for_noCondition() {
+    Source source = addSource(r'''
+m(x) {
+  for (var v = x; ; v++) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_notTopLevel() {
+    Source source = addSource(r'''
+m(x) {
+  if (x?.y == null) {}
+}
+''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
