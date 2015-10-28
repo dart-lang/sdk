@@ -14,6 +14,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, background_compilation);
+
 TEST_CASE(CompileScript) {
   const char* kScriptChars =
       "class A {\n"
@@ -95,6 +97,7 @@ TEST_CASE(CompileFunctionOnHelperThread) {
   CompilerTest::TestCompileFunction(func);
   EXPECT(func.HasCode());
   EXPECT(!func.HasOptimizedCode());
+  FLAG_background_compilation = true;
   BackgroundCompiler::EnsureInit(thread);
   Isolate* isolate = thread->isolate();
   ASSERT(isolate->background_compiler() != NULL);

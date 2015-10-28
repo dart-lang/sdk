@@ -83,7 +83,7 @@ void CodeCoverage::CompileAndAdd(const Function& function,
   // Print the hit counts for all IC datas.
   ZoneGrowableArray<const ICData*>* ic_data_array =
       new(zone) ZoneGrowableArray<const ICData*>();
-  function.RestoreICDataMap(ic_data_array);
+  function.RestoreICDataMap(ic_data_array, false /* clone descriptors */);
   const PcDescriptors& descriptors = PcDescriptors::Handle(
       zone, code.pc_descriptors());
 

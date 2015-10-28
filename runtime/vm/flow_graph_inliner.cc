@@ -700,7 +700,8 @@ class CallSiteInliner : public ValueObject {
       // Load IC data for the callee.
       ZoneGrowableArray<const ICData*>* ic_data_array =
             new(Z) ZoneGrowableArray<const ICData*>();
-      function.RestoreICDataMap(ic_data_array);
+      const bool clone_descriptors = Compiler::IsBackgroundCompilation();
+      function.RestoreICDataMap(ic_data_array, clone_descriptors);
 
       // Build the callee graph.
       InlineExitCollector* exit_collector =

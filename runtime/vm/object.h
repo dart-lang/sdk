@@ -1921,6 +1921,12 @@ class ICData : public Object {
                         intptr_t num_args_tested);
   static RawICData* NewFrom(const ICData& from, intptr_t num_args_tested);
 
+  // Generates a new ICData with descriptor data copied (shallow clone).
+  // Entry array of the result is the same as in 'from'. Once entry array is
+  // created, it can only change the 'count', all other properties are invariant
+  // (target, cids, number of checks).
+  static RawICData* CloneDescriptor(const ICData& from);
+
   static intptr_t TestEntryLengthFor(intptr_t num_args);
 
   static intptr_t TargetIndexFor(intptr_t num_args) {
@@ -2616,8 +2622,11 @@ class Function : public Object {
   void SaveICDataMap(
       const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
       const Array& edge_counters_array) const;
+  // Uses saved ICData to populate the table 'deopt_id_to_ic_data'. Clone
+  // descriptors if 'clone_descriptors' true.
   void RestoreICDataMap(
-      ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data) const;
+      ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
+      bool clone_descriptors) const;
 
   RawArray* ic_data_array() const;
   void ClearICDataArray() const;

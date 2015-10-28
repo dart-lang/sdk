@@ -26,6 +26,8 @@ class Compiler : public AllStatic {
  public:
   static const intptr_t kNoOSRDeoptId = Thread::kNoDeoptId;
 
+  static bool IsBackgroundCompilation();
+
   // Extracts top level entities from the script and populates
   // the class dictionary of the library.
   //

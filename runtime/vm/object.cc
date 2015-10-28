@@ -7093,7 +7093,8 @@ void Function::SaveICDataMap(
 
 
 void Function::RestoreICDataMap(
-    ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data) const {
+    ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
+    bool clone_descriptors) const {
   ASSERT(deopt_id_to_ic_data->is_empty());
   Zone* zone = Thread::Current()->zone();
   const Array& saved_ic_data = Array::Handle(zone, ic_data_array());
@@ -7112,6 +7113,9 @@ void Function::RestoreICDataMap(
     for (intptr_t i = 1; i < saved_length; i++) {
       ICData& ic_data = ICData::ZoneHandle(zone);
       ic_data ^= saved_ic_data.At(i);
+      if (clone_descriptors) {
+        ic_data = ICData::CloneDescriptor(ic_data);
+      }
       (*deopt_id_to_ic_data)[ic_data.deopt_id()] = &ic_data;
     }
   }
@@ -12719,6 +12723,23 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
       Array::Handle(from.arguments_descriptor()),
       from.deopt_id(),
       num_args_tested));
+  // Copy deoptimization reasons.
+  result.SetDeoptReasons(from.DeoptReasons());
+  return result.raw();
+}
+
+
+RawICData* ICData::CloneDescriptor(const ICData& from) {
+  Zone* zone = Thread::Current()->zone();
+  const ICData& result = ICData::Handle(ICData::NewDescriptor(
+      zone,
+      Function::Handle(zone, from.owner()),
+      String::Handle(zone, from.target_name()),
+      Array::Handle(zone, from.arguments_descriptor()),
+      from.deopt_id(),
+      from.NumArgsTested()));
+  // Preserve entry array.
+  result.set_ic_data_array(Array::Handle(zone, from.ic_data()));
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
   return result.raw();

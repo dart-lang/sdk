@@ -184,6 +184,12 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 }
 
 
+bool Compiler::IsBackgroundCompilation() {
+  // For now: compilation in non mutator thread is the background compoilation.
+  return !Thread::Current()->IsMutatorThread();
+}
+
+
 RawError* Compiler::Compile(const Library& library, const Script& script) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
@@ -427,7 +433,12 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
           // builder uses it to attach it to nodes.
           ASSERT(function.deoptimization_counter() <
                  FLAG_deoptimization_counter_threshold);
-          function.RestoreICDataMap(ic_data_array);
+
+          // 'Freeze' ICData in background compilation so that it does not
+          // change while compiling.
+          const bool clone_descriptors = Compiler::IsBackgroundCompilation();
+          function.RestoreICDataMap(ic_data_array, clone_descriptors);
+
           if (FLAG_print_ic_data_map) {
             for (intptr_t i = 0; i < ic_data_array->length(); i++) {
               if ((*ic_data_array)[i] != NULL) {
@@ -1537,9 +1548,8 @@ void BackgroundCompiler::Run() {
         ASSERT(error.IsNull());
         temp_function = RemoveFunctionOrNull();
         ASSERT(temp_function.raw() == function.raw());
-        // Reset to 0 so that it can be recompiled if needed.
-        function.set_usage_counter(0);
         function = LastFunctionOrNull();
+        ASSERT(!code.IsNull());
         AddCode(code);
       }
     }
@@ -1575,8 +1585,12 @@ void BackgroundCompiler::InstallGeneratedCode() {
     code = queue.PopBackCode();
     if (code.IsDisabled()) continue;
     owner = code.owner();
-    ASSERT(owner.IsFunction());
-    Function::Cast(owner).InstallOptimizedCode(code, false /* not OSR */);
+    const Function& function = Function::Cast(owner);
+    function.InstallOptimizedCode(code, false /* not OSR */);
+    if (function.usage_counter() < 0) {
+      // Reset to 0 so that it can be recompiled if needed.
+      function.set_usage_counter(0);
+    }
   }
 }
 
