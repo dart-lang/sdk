@@ -30,6 +30,9 @@ class AnalyzerOptions {
   static const String plugins = 'plugins';
   static const String strong_mode = 'strong-mode';
 
+  /// Ways to say `ignore`.
+  static const List<String> ignoreSynonyms = const ['ignore', 'false'];
+
   /// Supported top-level `analyzer` options.
   static const List<String> top_level = const [
     errors,

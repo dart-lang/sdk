@@ -27,6 +27,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
@@ -553,13 +554,13 @@ class ContextManagerImpl implements ContextManager {
     // If codes are enumerated, collect them as filters; else leave filters
     // empty to overwrite previous value.
     if (codes is YamlMap) {
-      String code, value;
+      String value;
       codes.nodes.forEach((k, v) {
         if (k is YamlScalar && v is YamlScalar) {
           value = v.value?.toString()?.toLowerCase();
-          if (value == 'false' || value == 'ignore') {
+          if (AnalyzerOptions.ignoreSynonyms.contains(value)) {
             // Case-insensitive.
-            code = k.value?.toString()?.toUpperCase();
+            String code = k.value?.toString()?.toUpperCase();
             filters.add((AnalysisError error) => error.errorCode.name == code);
           }
         }

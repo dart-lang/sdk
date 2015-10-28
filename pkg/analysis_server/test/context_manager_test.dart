@@ -162,6 +162,40 @@ analyzer:
         isTrue);
   }
 
+  test_error_filter_analysis_option_multiple_filters() async {
+    // Create files.
+    newFile(
+        [projPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE],
+        r'''
+analyzer:
+  errors:
+    invalid_assignment: ignore
+    unused_local_variable: ignore
+''');
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+
+    // Verify filter setup.
+    List<ErrorFilter> filters =
+        callbacks.currentContext.getConfigurationData(CONFIGURED_ERROR_FILTERS);
+    expect(filters, isNotNull);
+    expect(filters, hasLength(2));
+
+    var unused_error = new AnalysisError(
+        new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
+      ['x']
+    ]);
+
+    var invalid_assignment_error =
+        new AnalysisError(new TestSource(), 0, 1, HintCode.INVALID_ASSIGNMENT, [
+      ['x'],
+      ['y']
+    ]);
+
+    expect(filters.any((filter) => filter(unused_error)), isTrue);
+    expect(filters.any((filter) => filter(invalid_assignment_error)), isTrue);
+  }
+
   test_error_filter_analysis_option_synonyms() async {
     // Create files.
     newFile(
