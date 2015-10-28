@@ -1333,14 +1333,6 @@ class JavaScriptBackend extends Backend {
     super.registerClosureWithFreeTypeVariables(closure, enqueuer, registry);
   }
 
-  /// Call during codegen if an instance of [closure] is being created.
-  void registerInstantiatedClosure(LocalFunctionElement closure,
-                                   Registry registry) {
-    if (methodNeedsRti(closure)) {
-      registerComputeSignature(compiler.enqueuer.codegen, registry);
-    }
-  }
-
   void registerBoundClosure(Enqueuer enqueuer) {
     helpers.boundClosureClass.ensureResolved(resolution);
     registerInstantiatedType(
@@ -1371,41 +1363,6 @@ class JavaScriptBackend extends Backend {
     registerGetRuntimeTypeArgument(registry);
     enqueueInResolution(helpers.getRuntimeTypeInfo, registry);
     enqueueClass(enqueuer, coreClasses.listClass, registry);
-  }
-
-  void registerIsCheckForCodegen(DartType type,
-                                 Enqueuer world,
-                                 Registry registry) {
-    assert(!registry.isForResolution);
-    type = type.unaliased;
-    enqueueClass(world, coreClasses.boolClass, registry);
-    bool inCheckedMode = compiler.enableTypeAssertions;
-    // [registerIsCheck] is also called for checked mode checks, so we
-    // need to register checked mode helpers.
-    if (inCheckedMode) {
-      // All helpers are added to resolution queue in enqueueHelpers. These
-      // calls to enqueueInResolution serve as assertions that the helper was
-      // in fact added.
-      // TODO(13155): Find a way to enqueue helpers lazily.
-      CheckedModeHelper helper = getCheckedModeHelper(type, typeCast: false);
-      if (helper != null) {
-        enqueue(world, helper.getElement(compiler), registry);
-      }
-      // We also need the native variant of the check (for DOM types).
-      helper = getNativeCheckedModeHelper(type, typeCast: false);
-      if (helper != null) {
-        enqueue(world, helper.getElement(compiler), registry);
-      }
-    }
-    if (!type.treatAsRaw || type.containsTypeVariables) {
-      enqueueClass(world, coreClasses.listClass, registry);
-    }
-    if (type.element != null && isNative(type.element)) {
-      // We will neeed to add the "$is" and "$as" properties on the
-      // JavaScript object prototype, so we make sure
-      // [:defineProperty:] is compiled.
-      enqueue(world, helpers.defineProperty, registry);
-    }
   }
 
   void registerTypeVariableBoundsSubtypeCheck(DartType typeArgument,
@@ -2543,33 +2500,6 @@ class JavaScriptBackend extends Backend {
     return "${outName}_$name$extension";
   }
 
-  void registerAsyncMarker(FunctionElement element,
-                           Enqueuer enqueuer,
-                           Registry registry) {
-    if (element.asyncMarker == AsyncMarker.ASYNC) {
-      _registerAsync(enqueuer, registry);
-    } else if (element.asyncMarker == AsyncMarker.SYNC_STAR) {
-      _registerSyncStar(enqueuer, registry);
-    } else if (element.asyncMarker == AsyncMarker.ASYNC_STAR) {
-      _registerAsyncStar(enqueuer, registry);
-    }
-  }
-
-  void _registerAsync(Enqueuer enqueuer,
-                      Registry registry) {
-    enqueueImpact(enqueuer, impacts.asyncBody, registry);
-  }
-
-  void _registerSyncStar(Enqueuer enqueuer,
-                         Registry registry) {
-    enqueueImpact(enqueuer, impacts.syncStarBody, registry);
-  }
-
-  void _registerAsyncStar(Enqueuer enqueuer,
-                          Registry registry) {
-    enqueueImpact(enqueuer, impacts.asyncStarBody, registry);
-  }
-
   @override
   bool enableDeferredLoadingIfSupported(Spannable node, Registry registry) {
     registerCheckDeferredIsLoaded(registry);
@@ -2955,33 +2885,52 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
   }
 
+  void onIsCheckForCodegen(DartType type, TransformedWorldImpact transformed) {
+    type = type.unaliased;
+    registerBackendImpact(transformed, impacts.typeCheck);
+
+    bool inCheckedMode = backend.compiler.enableTypeAssertions;
+    // [registerIsCheck] is also called for checked mode checks, so we
+    // need to register checked mode helpers.
+    if (inCheckedMode) {
+      // All helpers are added to resolution queue in enqueueHelpers. These
+      // calls to enqueueInResolution serve as assertions that the helper was
+      // in fact added.
+      // TODO(13155): Find a way to enqueue helpers lazily.
+      CheckedModeHelper helper =
+          backend.getCheckedModeHelper(type, typeCast: false);
+      if (helper != null) {
+        Element helperElement = helper.getElement(backend.compiler);
+        transformed.registerStaticUse(helperElement);
+        backend.registerBackendUse(helperElement);
+      }
+      // We also need the native variant of the check (for DOM types).
+      helper = backend.getNativeCheckedModeHelper(type, typeCast: false);
+      if (helper != null) {
+        Element helperElement = helper.getElement(backend.compiler);
+        transformed.registerStaticUse(helperElement);
+        backend.registerBackendUse(helperElement);
+      }
+    }
+    if (!type.treatAsRaw || type.containsTypeVariables) {
+      registerBackendImpact(transformed, impacts.genericIsCheck);
+    }
+    if (type.element != null && backend.isNative(type.element)) {
+      // We will neeed to add the "$is" and "$as" properties on the
+      // JavaScript object prototype, so we make sure
+      // [:defineProperty:] is compiled.
+      registerBackendImpact(transformed, impacts.nativeTypeCheck);
+    }
+  }
+
   @override
   WorldImpact transformCodegenImpact(CodegenImpact impact) {
+    TransformedWorldImpact transformed = new TransformedWorldImpact(impact);
     EagerRegistry registry = impact.registry;
     Enqueuer world = registry.world;
 
     for (InterfaceType type in impact.instantiatedTypes) {
-      backend.registerInstantiatedType(type, world, registry);
-    }
-
-    for (Element element in impact.staticUses) {
-      world.registerStaticUse(element);
-    }
-
-    for (UniverseSelector selector in impact.dynamicInvocations) {
-      world.registerDynamicInvocation(selector);
-    }
-
-    for (UniverseSelector selector in impact.dynamicGetters) {
-      world.registerDynamicGetter(selector);
-    }
-
-    for (UniverseSelector selector in impact.dynamicSetters) {
-      world.registerDynamicSetter(selector);
-    }
-
-    for (UniverseSelector selector in impact.dynamicSetters) {
-      world.registerDynamicSetter(selector);
+      backend.lookupMapAnalysis.registerInstantiatedType(type, registry);
     }
 
     for (Element element in impact.getterForSuperElements) {
@@ -2997,8 +2946,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     for (DartType type in impact.isChecks) {
-      world.registerIsCheck(type);
-      backend.registerIsCheckForCodegen(type, world, registry);
+      onIsCheckForCodegen(type, transformed);
     }
 
     for (ConstantValue constant in impact.compileTimeConstants) {
@@ -3012,11 +2960,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     for (LocalFunctionElement element in impact.closures) {
-      backend.registerInstantiatedClosure(element, registry);
-    }
-
-    for (Element element in impact.closurizedFunctions) {
-      world.registerGetOfStaticFunction(element);
+      if (backend.methodNeedsRti(element)) {
+        registerBackendImpact(transformed, impacts.computeSignature);
+      }
     }
 
     for (String name in impact.constSymbols) {
@@ -3032,16 +2978,26 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     for (ClassElement element in impact.typeConstants) {
-      backend.customElementsAnalysis.registerTypeConstant(element, world);
+      backend.customElementsAnalysis.registerTypeConstant(element);
       backend.lookupMapAnalysis.registerTypeConstant(element);
     }
 
     for (FunctionElement element in impact.asyncMarkers) {
-      backend.registerAsyncMarker(element, world, registry);
+      switch (element.asyncMarker) {
+        case AsyncMarker.ASYNC:
+          registerBackendImpact(transformed, impacts.asyncBody);
+          break;
+        case AsyncMarker.SYNC_STAR:
+          registerBackendImpact(transformed, impacts.syncStarBody);
+          break;
+        case AsyncMarker.ASYNC_STAR:
+          registerBackendImpact(transformed, impacts.asyncStarBody);
+          break;
+      }
     }
 
     // TODO(johnniwinther): Remove eager registration.
-    return const WorldImpact();
+    return transformed;
   }
 }
 

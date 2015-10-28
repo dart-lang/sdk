@@ -113,10 +113,6 @@ class Glue {
     return _helpers.createInvocationMirror;
   }
 
-  void registerUseInterceptorInCodegen() {
-    _backend.registerUseInterceptor(_enqueuer);
-  }
-
   bool isInterceptedSelector(Selector selector) {
     return _backend.isInterceptedSelector(selector);
   }
@@ -249,11 +245,6 @@ class Glue {
     // Representation contains JavaScript Arrays.
     registry.registerInstantiatedClass(_helpers.jsArrayClass);
     return representation;
-  }
-
-  void registerIsCheck(DartType type, Registry registry) {
-    _enqueuer.registerIsCheck(type);
-    _backend.registerIsCheckForCodegen(type, _enqueuer, registry);
   }
 
   js.Name getTypeTestTag(DartType type) {

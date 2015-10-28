@@ -91,9 +91,8 @@ class CustomElementsAnalysis {
     }
   }
 
-  void registerTypeConstant(Element element, Enqueuer enqueuer) {
+  void registerTypeConstant(Element element) {
     assert(element.isClass);
-    assert(!enqueuer.isResolutionQueue);
     codegenJoin.selectedClasses.add(element);
   }
 

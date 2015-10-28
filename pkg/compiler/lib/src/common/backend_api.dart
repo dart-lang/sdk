@@ -181,11 +181,6 @@ abstract class Backend {
     enqueuer.registerInstantiatedType(type, mirrorUsage: mirrorUsage);
   }
 
-  /// Register an is check to the backend.
-  void registerIsCheckForCodegen(DartType type,
-                                 Enqueuer enqueuer,
-                                 Registry registry) {}
-
   /// Register a runtime type variable bound tests between [typeArgument] and
   /// [bound].
   void registerTypeVariableBoundsSubtypeCheck(DartType typeArgument,

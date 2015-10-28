@@ -274,6 +274,10 @@ class BackendImpacts {
       otherImpacts: [
         getRuntimeTypeArgument]);
 
+  BackendImpact get genericIsCheck => new BackendImpact(
+      instantiatedClasses: [
+        coreClasses.listClass]);
+
   BackendImpact get genericCheckedModeTypeCheck => new BackendImpact(
       staticUses: [
         helpers.assertSubtype]);

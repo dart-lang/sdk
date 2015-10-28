@@ -360,7 +360,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     List<js.Expression> typeArguments = visitExpressionList(node.typeArguments);
     DartType type = node.type;
     if (type is InterfaceType) {
-      glue.registerIsCheck(type, registry);
+      registry.registerIsCheck(type);
+      //glue.registerIsCheck(type, registry);
       ClassElement clazz = type.element;
 
       if (glue.isStringClass(clazz)) {
@@ -405,7 +406,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
           function,
           <js.Expression>[value, isT, typeArgumentArray, asT]);
     } else if (type is TypeVariableType || type is FunctionType) {
-      glue.registerIsCheck(type, registry);
+      registry.registerIsCheck(type);
+      //glue.registerIsCheck(type, registry);
 
       Element function = node.isTypeTest
           ? glue.getCheckSubtypeOfRuntimeType()
@@ -426,7 +428,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     js.Expression object = visitExpression(node.object);
     DartType dartType = node.dartType;
     assert(dartType.isInterfaceType);
-    glue.registerIsCheck(dartType, registry);
+    registry.registerIsCheck(dartType);
+    //glue.registerIsCheck(dartType, registry);
     js.Expression property = glue.getTypeTestTag(dartType);
     return js.js(r'#.#', [object, property]);
   }
@@ -716,7 +719,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitInterceptor(tree_ir.Interceptor node) {
-    glue.registerUseInterceptorInCodegen();
+    registry.registerUseInterceptor();
     registry.registerSpecializedGetInterceptor(node.interceptedClasses);
     js.Name helperName = glue.getInterceptorName(node.interceptedClasses);
     js.Expression globalHolder = glue.getInterceptorLibrary();
