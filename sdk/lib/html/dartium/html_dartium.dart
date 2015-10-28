@@ -48070,6 +48070,9 @@ class _Utils {
       // 'this' needs to be handled by calling Dart_EvaluateExpr with
       // 'this' as the target rather than by passing it as an argument.
       if (arg == 'this') return;
+      // Avoid being broken by bogus ':async_op' local passed in when within
+      // an async method.
+      if (arg.startsWith(':')) return;
       if (args.isNotEmpty) {
         sb.write(", ");
       }
