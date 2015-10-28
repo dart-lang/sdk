@@ -218,6 +218,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitMethodInvocation(MethodInvocation node) {
+    _checkForCanBeNullAfterNullAware(node.realTarget);
+    return super.visitMethodInvocation(node);
+  }
+
+  @override
   Object visitPostfixExpression(PostfixExpression node) {
     _checkForDeprecatedMemberUse(node.bestElement, node);
     return super.visitPostfixExpression(node);
@@ -227,6 +233,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitPrefixExpression(PrefixExpression node) {
     _checkForDeprecatedMemberUse(node.bestElement, node);
     return super.visitPrefixExpression(node);
+  }
+
+  @override
+  Object visitPropertyAccess(PropertyAccess node) {
+    _checkForCanBeNullAfterNullAware(node.realTarget);
+    return super.visitPropertyAccess(node);
   }
 
   @override
@@ -450,6 +462,25 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return problemReported;
+  }
+
+  /**
+   * Produce a hint if the given [expression] could have a value of `null`.
+   */
+  void _checkForCanBeNullAfterNullAware(Expression expression) {
+    if (expression is ParenthesizedExpression) {
+      _checkForCanBeNullAfterNullAware(expression.expression);
+    } else if (expression is MethodInvocation) {
+      if (expression.operator?.type == TokenType.QUESTION_PERIOD) {
+        _errorReporter.reportErrorForNode(
+            HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, expression);
+      }
+    } else if (expression is PropertyAccess) {
+      if (expression.operator.type == TokenType.QUESTION_PERIOD) {
+        _errorReporter.reportErrorForNode(
+            HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, expression);
+      }
+    }
   }
 
   /**

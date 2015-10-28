@@ -2358,6 +2358,39 @@ n(int i) {}''');
     verify([source]);
   }
 
+  void test_canBeNullAfterNullAware_methodInvocation() {
+    Source source = addSource(r'''
+m(x) {
+  x?.a.b();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+    verify([source]);
+  }
+
+  void test_canBeNullAfterNullAware_parenthesized() {
+    Source source = addSource(r'''
+m(x) {
+  (x?.a).b;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+    verify([source]);
+  }
+
+  void test_canBeNullAfterNullAware_propertyAccess() {
+    Source source = addSource(r'''
+m(x) {
+  x?.a.b;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+    verify([source]);
+  }
+
   void test_deadCode_deadBlock_conditionalElse() {
     Source source = addSource(r'''
 f() {

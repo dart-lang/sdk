@@ -3324,6 +3324,15 @@ class HintCode extends ErrorCode {
       "The argument type '{0}' cannot be assigned to the parameter type '{1}'");
 
   /**
+   * When the target expression uses '?.' operator, it can be `null`, so all the
+   * subsequent invocations should also use '?.' operator.
+   */
+  static const HintCode CAN_BE_NULL_AFTER_NULL_AWARE = const HintCode(
+      'CAN_BE_NULL_AFTER_NULL_AWARE',
+      "The expression uses '?.', so can be 'null'",
+      "Replace the '.' with a '?.' in the invocation");
+
+  /**
    * Dead code is code that is never reached, this can happen for instance if a
    * statement follows a return statement.
    */
