@@ -75,12 +75,31 @@ main() {
       expect(exceptionCaught, isTrue);
     });
   });
+  group('AnalysisOptionsProvider', () {
+    test('test_bad_yaml', () {
+      var src = '''
+      analyzer:
+  exclude:
+    - test/data/*
+  error:
+    invalid_assignment: ignore
+    unused_local_variable: # <=== bang
+linter:
+  rules:
+    - camel_case_types
+''';
+
+      var optionsProvider = new AnalysisOptionsProvider();
+      expect(() => optionsProvider.getOptionsFromString(src),
+          throwsA(new isInstanceOf<OptionsFormatException>()));
+    });
+  });
 }
 
 MemoryResourceProvider resourceProvider;
 
-buildResourceProvider({bool emptyAnalysisOptions : false,
-                       bool badAnalysisOptions : false}) {
+buildResourceProvider(
+    {bool emptyAnalysisOptions: false, bool badAnalysisOptions: false}) {
   resourceProvider = new MemoryResourceProvider();
   resourceProvider.newFolder('/empty');
   resourceProvider.newFolder('/tmp');
@@ -90,8 +109,8 @@ buildResourceProvider({bool emptyAnalysisOptions : false,
     resourceProvider.newFile('/.analysis_options', r'''#empty''');
   } else {
     resourceProvider.newFile(
-      '/.analysis_options',
-      r'''
+        '/.analysis_options',
+        r'''
 analyzer:
   ignore:
     - ignoreme.dart

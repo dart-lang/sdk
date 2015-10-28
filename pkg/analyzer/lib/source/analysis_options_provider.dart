@@ -33,7 +33,16 @@ class AnalysisOptionsProvider {
     if (optionsSource == null) {
       return options;
     }
-    YamlNode doc = loadYamlNode(optionsSource);
+
+    YamlNode doc;
+    try {
+      doc = loadYamlNode(optionsSource);
+    } on YamlException catch (e) {
+      throw new OptionsFormatException(e.message, e.span);
+    } catch (e) {
+      throw new OptionsFormatException('Unable to parse YAML document.');
+    }
+
     // Empty options.
     if (doc is YamlScalar && doc.value == null) {
       return options;
@@ -44,7 +53,7 @@ class AnalysisOptionsProvider {
           doc.span);
     }
     if (doc is YamlMap) {
-      doc.forEach((k, v) {
+      (doc as YamlMap).forEach((k, v) {
         if (k is! String) {
           throw new OptionsFormatException(
               'Bad options file format (expected String scope key, '
