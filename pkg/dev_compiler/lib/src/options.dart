@@ -313,7 +313,7 @@ final ArgParser argParser = new ArgParser()
       help: 'Emit Closure Compiler-friendly code (experimental)',
       defaultsTo: _CLOSURE_DEFAULT)
   ..addFlag('force-compile',
-      help: 'Compile code with static errors', defaultsTo: false)
+      abbr: 'f', help: 'Compile code with static errors', defaultsTo: false)
   ..addOption('log', abbr: 'l', help: 'Logging level (defaults to warning)')
   ..addFlag('dump-info',
       abbr: 'i', help: 'Dump summary information', defaultsTo: null)
@@ -323,9 +323,7 @@ final ArgParser argParser = new ArgParser()
       help: 'V8-based binary to run JavaScript output with (iojs, node, d8)',
       defaultsTo: 'iojs')
   ..addOption('dump-info-file',
-      abbr: 'f',
-      help: 'Dump info json file (requires dump-info)',
-      defaultsTo: null);
+      help: 'Dump info json file (requires dump-info)', defaultsTo: null);
 
 // TODO: Switch over to the `pub_cache` package (or the Resource API)?
 
