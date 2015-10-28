@@ -765,7 +765,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  Object getConfigurationData(ResultDescriptor key) => _configurationData[key];
+  Object getConfigurationData(ResultDescriptor key) =>
+      _configurationData[key] ?? key?.defaultValue;
 
   @override
   TimestampedData<String> getContents(Source source) {
@@ -1024,10 +1025,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Invalidate analysis cache.
+   * Invalidate analysis cache and notify work managers that they have work
+   * to do.
    */
   void invalidateCachedResults() {
     _cache = createCacheFromSourceFactory(_sourceFactory);
+    for (WorkManager workManager in workManagers) {
+      workManager.onAnalysisOptionsChanged();
+    }
   }
 
   @override

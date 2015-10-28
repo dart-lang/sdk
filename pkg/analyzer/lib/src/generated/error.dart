@@ -6,6 +6,8 @@ library engine.error;
 
 import 'dart:collection';
 
+import 'package:analyzer/src/task/model.dart';
+import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
 
 import 'ast.dart' show AstNode;
@@ -13,6 +15,20 @@ import 'element.dart';
 import 'java_core.dart';
 import 'scanner.dart' show Token;
 import 'source.dart';
+
+/**
+ * The descriptor used to associate error filters with analysis contexts in
+ * configuration data.
+ */
+final ListResultDescriptor<List<ErrorFilter>> CONFIGURED_ERROR_FILTERS =
+    new ListResultDescriptorImpl('configured.errors', const <ErrorFilter>[]);
+
+/**
+ * A predicate used to potentially filter an [error].
+ *
+ * Returns `true` if this error should be filtered from analysis results.
+ */
+typedef bool ErrorFilter(AnalysisError error);
 
 /**
  * An error discovered during the analysis of some Dart code.

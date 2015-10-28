@@ -22,6 +22,7 @@ import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/context.dart' as context;
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -520,6 +521,10 @@ class ContextManagerImpl implements ContextManager {
     if (exclude != null) {
       setIgnorePatternsForContext(info, exclude);
     }
+
+    // Set filters.
+    YamlNode filters = analyzer['errors'];
+    setFiltersForContext(info, filters);
   }
 
   @override
@@ -541,6 +546,26 @@ class ContextManagerImpl implements ContextManager {
 
     // Rebuild contexts based on the data last sent to setRoots().
     setRoots(includedPaths, excludedPaths, packageRoots);
+  }
+
+  void setFiltersForContext(ContextInfo info, YamlNode codes) {
+    List<ErrorFilter> filters = <ErrorFilter>[];
+    // If codes are enumerated, collect them as filters; else leave filters
+    // empty to overwrite previous value.
+    if (codes is YamlMap) {
+      String code, value;
+      codes.nodes.forEach((k, v) {
+        if (k is YamlScalar && v is YamlScalar) {
+          value = v.value?.toString()?.toLowerCase();
+          if (value == 'false' || value == 'ignore') {
+            // Case-insensitive.
+            code = k.value?.toString()?.toUpperCase();
+            filters.add((AnalysisError error) => error.errorCode.name == code);
+          }
+        }
+      });
+    }
+    info.context.setConfigurationData(CONFIGURED_ERROR_FILTERS, filters);
   }
 
   /**

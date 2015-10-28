@@ -147,6 +147,16 @@ analyzer:
         []);
   }
 
+  test_analyzer_supported_filter() {
+    validate(
+        '''
+analyzer:
+  errors:
+    unused_local_variable: ignore
+    ''',
+        []);
+  }
+
   test_analyzer_supported_strong_mode() {
     validate(
         '''

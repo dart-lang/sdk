@@ -11,6 +11,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:package_config/packages.dart';
@@ -136,6 +137,69 @@ class AbstractContextManagerTest {
     expect(contexts, contains(subProjContextInfo.context));
   }
 
+  test_error_filter_analysis_option() async {
+    // Create files.
+    newFile(
+        [projPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE],
+        r'''
+analyzer:
+  errors:
+    unused_local_variable: ignore
+''');
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+
+    // Verify filter setup.
+    List<ErrorFilter> filters =
+        callbacks.currentContext.getConfigurationData(CONFIGURED_ERROR_FILTERS);
+    expect(filters, isNotNull);
+    expect(filters, hasLength(1));
+    expect(
+        filters.first(new AnalysisError(
+            new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
+          ['x']
+        ])),
+        isTrue);
+  }
+
+  test_error_filter_analysis_option_synonyms() async {
+    // Create files.
+    newFile(
+        [projPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE],
+        r'''
+analyzer:
+  errors:
+    unused_local_variable: ignore
+    ambiguous_import: false
+''');
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+
+    // Verify filter setup.
+    List<ErrorFilter> filters =
+        callbacks.currentContext.getConfigurationData(CONFIGURED_ERROR_FILTERS);
+    expect(filters, isNotNull);
+    expect(filters, hasLength(2));
+  }
+
+  test_error_filter_analysis_option_unpsecified() async {
+    // Create files.
+    newFile(
+        [projPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE],
+        r'''
+analyzer:
+#  errors:
+#    unused_local_variable: ignore
+''');
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+
+    // Verify filter setup.
+    List<ErrorFilter> filters =
+        callbacks.currentContext.getConfigurationData(CONFIGURED_ERROR_FILTERS);
+    expect(filters, isEmpty);
+  }
+
   test_ignoreFilesInPackagesFolder() {
     // create a context with a pubspec.yaml file
     String pubspecPath = posix.join(projPath, 'pubspec.yaml');
@@ -233,7 +297,7 @@ class AbstractContextManagerTest {
     newFile([sdkExtSrcPath, 'part.dart']);
     // Setup analysis options file with ignore list.
     newFile(
-        [projPath, '.analysis_options'],
+        [projPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE],
         r'''
 analyzer:
   exclude:
@@ -270,7 +334,7 @@ name: other_lib
     // Setup analysis options file with ignore list that ignores the 'other_lib'
     // directory by name.
     newFile(
-        [projPath, '.analysis_options'],
+        [projPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE],
         r'''
 analyzer:
   exclude:
@@ -306,7 +370,7 @@ analyzer:
     // Setup analysis options file with ignore list that ignores 'other_lib'
     // and all descendants.
     newFile(
-        [projPath, '.analysis_options'],
+        [projPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE],
         r'''
 analyzer:
   exclude:
@@ -342,7 +406,7 @@ name: other_lib
     // Setup analysis options file with ignore list that ignores 'other_lib'
     // and all immediate children.
     newFile(
-        [projPath, '.analysis_options'],
+        [projPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE],
         r'''
 analyzer:
   exclude:
@@ -1133,7 +1197,7 @@ test_pack:lib/
   test_strong_mode_analysis_option() async {
     // Create files.
     newFile(
-        [projPath, '.analysis_options'],
+        [projPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE],
         r'''
 analyzer:
   strong-mode: true

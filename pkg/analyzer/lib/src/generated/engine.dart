@@ -591,8 +591,8 @@ abstract class AnalysisContext {
       Source unitSource, Source librarySource);
 
   /**
-   * Return configuration data associated with the given key or `null` if no
-   * state has been associated with the given [key].
+   * Return configuration data associated with the given key or the [key]'s
+   * default value if no state has been associated.
    *
    * See [setConfigurationData].
    */

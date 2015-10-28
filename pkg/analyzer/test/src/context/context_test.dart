@@ -665,12 +665,12 @@ main() {}''');
   }
 
   void test_configurationData() {
-    var key = new ResultDescriptor('test_key', '');
+    var key = new ResultDescriptor('test_key', 'TEST_DEFAULT');
     var testData = ['test', 'data'];
     context.setConfigurationData(key, testData);
     expect(context.getConfigurationData(key), testData);
-    var unusedKey = new ResultDescriptor('unused_key', '');
-    expect(context.getConfigurationData(unusedKey), null);
+    var unusedKey = new ResultDescriptor('unused_key', 'UNUSED_DEFAULT');
+    expect(context.getConfigurationData(unusedKey), 'UNUSED_DEFAULT');
   }
 
   void test_dispose() {

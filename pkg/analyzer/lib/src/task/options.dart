@@ -23,10 +23,25 @@ final ListResultDescriptor<AnalysisError> ANALYSIS_OPTIONS_ERRORS =
     new ListResultDescriptor<AnalysisError>(
         'ANALYSIS_OPTIONS_ERRORS', AnalysisError.NO_ERRORS);
 
+/// `analyzer` analysis options constants.
+class AnalyzerOptions {
+  static const String errors = 'errors';
+  static const String exclude = 'exclude';
+  static const String plugins = 'plugins';
+  static const String strong_mode = 'strong-mode';
+
+  /// Supported top-level `analyzer` options.
+  static const List<String> top_level = const [
+    errors,
+    exclude,
+    plugins,
+    strong_mode
+  ];
+}
+
 /// Validates `analyzer` top-level options.
 class AnalyzerOptionsValidator extends TopLevelOptionValidator {
-  AnalyzerOptionsValidator()
-      : super('analyzer', const ['exclude', 'plugins', 'strong-mode']);
+  AnalyzerOptionsValidator() : super('analyzer', AnalyzerOptions.top_level);
 }
 
 /// Convenience class for composing validators.

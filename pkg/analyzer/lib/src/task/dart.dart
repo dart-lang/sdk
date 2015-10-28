@@ -2115,11 +2115,21 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
       String inputName = result.name + '_input';
       errorLists.add(getRequiredInput(inputName));
     }
+
+    //
+    // Gather error filters.
+    //
+    List<ErrorFilter> filters =
+        context.getConfigurationData(CONFIGURED_ERROR_FILTERS);
     for (ResultDescriptor result in enginePlugin.dartErrorsForUnit) {
       String inputName = result.name + '_input';
       Map<Source, List<AnalysisError>> errorMap = getRequiredInput(inputName);
       for (List<AnalysisError> errors in errorMap.values) {
-        errorLists.add(errors);
+        errorLists.add(errors
+            .where((AnalysisError error) {
+              return !filters.any((ErrorFilter filter) => filter(error));
+            })
+            .toList());
       }
     }
     //

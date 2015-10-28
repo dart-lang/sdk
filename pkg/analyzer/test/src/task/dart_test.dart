@@ -46,6 +46,7 @@ main() {
   runReflectiveTests(ComputeLibraryCycleTaskTest);
   runReflectiveTests(ContainingLibrariesTaskTest);
   runReflectiveTests(DartErrorsTaskTest);
+  runReflectiveTests(ErrorFilterTest);
   runReflectiveTests(EvaluateUnitConstantsTaskTest);
   runReflectiveTests(GatherUsedImportedElementsTaskTest);
   runReflectiveTests(GatherUsedLocalElementsTaskTest);
@@ -2236,6 +2237,30 @@ f(A a) {
     _fillErrorListener(HINTS);
     errorListener.assertErrorsWithCodes(
         <ErrorCode>[HintCode.UNUSED_ELEMENT, HintCode.UNUSED_ELEMENT]);
+  }
+}
+
+@reflectiveTest
+class ErrorFilterTest extends _AbstractDartTaskTest {
+  @override
+  setUp() {
+    super.setUp();
+    context.setConfigurationData(CONFIGURED_ERROR_FILTERS, [
+      (AnalysisError error) => error.errorCode.name == 'INVALID_ASSIGNMENT'
+    ]);
+  }
+
+  test_error_filters() {
+    AnalysisTarget library = newSource('/test.dart', '''
+main() {
+  int x = ""; // INVALID_ASSIGNMENT (suppressed)
+  // UNUSED_LOCAL_VARIABLE
+}''');
+    computeResult(library, DART_ERRORS, matcher: isDartErrorsTask);
+    expect(outputs, hasLength(1));
+    List<AnalysisError> errors = outputs[DART_ERRORS];
+    expect(errors, hasLength(1));
+    expect(errors.first.errorCode, HintCode.UNUSED_LOCAL_VARIABLE);
   }
 }
 
