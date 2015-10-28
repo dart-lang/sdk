@@ -18,7 +18,7 @@ import 'package:linter/src/linter.dart';
  */
 const AnalysisOptionsWarningCode UNDEFINED_LINT_WARNING =
     const AnalysisOptionsWarningCode(
-        'UNDEFINED_LINT_WARNING', "Undefined lint rule '{0}'");
+        'UNDEFINED_LINT_WARNING', "'{0}' is not a recognized lint rule");
 
 /// Validates `linter` rule configurations.
 class LinterRuleOptionsValidator extends OptionsValidator {

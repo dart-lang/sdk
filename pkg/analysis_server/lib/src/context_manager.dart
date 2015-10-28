@@ -501,14 +501,14 @@ class ContextManagerImpl implements ContextManager {
     }
 
     // Analysis options are processed 'in-line'.
-    YamlMap analyzer = options['analyzer'];
+    YamlMap analyzer = options[AnalyzerOptions.analyzer];
     if (analyzer == null) {
       // No options for analyzer.
       return;
     }
 
     // Set strong mode (default is false).
-    bool strongMode = analyzer['strong-mode'] ?? false;
+    bool strongMode = analyzer[AnalyzerOptions.strong_mode] ?? false;
     AnalysisContext context = info.context;
     if (context.analysisOptions.strongMode != strongMode) {
       AnalysisOptionsImpl options =
@@ -518,13 +518,13 @@ class ContextManagerImpl implements ContextManager {
     }
 
     // Set ignore patterns.
-    YamlList exclude = analyzer['exclude'];
+    YamlList exclude = analyzer[AnalyzerOptions.exclude];
     if (exclude != null) {
       setIgnorePatternsForContext(info, exclude);
     }
 
     // Set filters.
-    YamlNode filters = analyzer['errors'];
+    YamlNode filters = analyzer[AnalyzerOptions.errors];
     setFiltersForContext(info, filters);
   }
 

@@ -25,6 +25,7 @@ final ListResultDescriptor<AnalysisError> ANALYSIS_OPTIONS_ERRORS =
 
 /// `analyzer` analysis options constants.
 class AnalyzerOptions {
+  static const String analyzer = 'analyzer';
   static const String errors = 'errors';
   static const String exclude = 'exclude';
   static const String plugins = 'plugins';
@@ -32,6 +33,9 @@ class AnalyzerOptions {
 
   /// Ways to say `ignore`.
   static const List<String> ignoreSynonyms = const ['ignore', 'false'];
+
+  /// Ways to say `include`.
+  static const List<String> includeSynonyms = const ['include', 'true'];
 
   /// Supported top-level `analyzer` options.
   static const List<String> top_level = const [
@@ -42,9 +46,65 @@ class AnalyzerOptions {
   ];
 }
 
+/// Validates `analyzer` error filter options.
+class ErrorFilterOptionValidator extends OptionsValidator {
+  /// Pretty list of legal includes.
+  static final String legalIncludes = StringUtilities.printListOfQuotedNames(
+      new List.from(AnalyzerOptions.ignoreSynonyms)
+        ..addAll(AnalyzerOptions.includeSynonyms));
+
+  @override
+  void validate(ErrorReporter reporter, Map<String, YamlNode> options) {
+    YamlMap analyzer = options[AnalyzerOptions.analyzer];
+    if (analyzer == null) {
+      // No options for analyzer.
+      return;
+    }
+
+    YamlNode filters = analyzer[AnalyzerOptions.errors];
+
+    if (filters is YamlMap) {
+      String value;
+      filters.nodes.forEach((k, v) {
+        if (k is YamlScalar) {
+          value = k.value?.toString()?.toUpperCase();
+          if (!ErrorCode.values.any((ErrorCode code) => code.name == value)) {
+            reporter.reportErrorForSpan(
+                AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
+                k.span,
+                [k.value?.toString()]);
+          }
+        }
+        if (v is YamlScalar) {
+          value = v.value?.toString()?.toLowerCase();
+          if (!AnalyzerOptions.ignoreSynonyms.contains(value) &&
+              !AnalyzerOptions.includeSynonyms.contains(value)) {
+            reporter.reportErrorForSpan(
+                AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES,
+                v.span,
+                [AnalyzerOptions.errors, v.value?.toString(), legalIncludes]);
+          }
+
+          value = v.value?.toString()?.toLowerCase();
+        }
+      });
+    }
+  }
+}
+
 /// Validates `analyzer` top-level options.
-class AnalyzerOptionsValidator extends TopLevelOptionValidator {
-  AnalyzerOptionsValidator() : super('analyzer', AnalyzerOptions.top_level);
+class TopLevelAnalyzerOptionsValidator extends TopLevelOptionValidator {
+  TopLevelAnalyzerOptionsValidator()
+      : super(AnalyzerOptions.analyzer, AnalyzerOptions.top_level);
+}
+
+/// Validates `analyzer` options.
+class AnalyzerOptionsValidator extends CompositeValidator {
+  AnalyzerOptionsValidator()
+      : super([
+          new TopLevelAnalyzerOptionsValidator(),
+          new ErrorFilterOptionValidator()
+        ]);
 }
 
 /// Convenience class for composing validators.
@@ -157,8 +217,21 @@ class OptionsFileValidator {
 class TopLevelOptionValidator extends OptionsValidator {
   final String pluginName;
   final List<String> supportedOptions;
+  String _valueProposal;
+  AnalysisOptionsWarningCode _warningCode;
+  TopLevelOptionValidator(this.pluginName, this.supportedOptions) {
+    assert(supportedOptions != null && !supportedOptions.isEmpty);
+    if (supportedOptions.length > 1) {
+      _valueProposal = StringUtilities.printListOfQuotedNames(supportedOptions);
+      _warningCode =
+          AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES;
+    } else {
+      _valueProposal = "'${supportedOptions.join()}'";
+      _warningCode =
+          AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE;
+    }
+  }
 
-  TopLevelOptionValidator(this.pluginName, this.supportedOptions);
   @override
   void validate(ErrorReporter reporter, Map<String, YamlNode> options) {
     YamlNode node = options[pluginName];
@@ -167,9 +240,7 @@ class TopLevelOptionValidator extends OptionsValidator {
         if (k is YamlScalar) {
           if (!supportedOptions.contains(k.value)) {
             reporter.reportErrorForSpan(
-                AnalysisOptionsWarningCode.UNSUPPORTED_OPTION,
-                k.span,
-                [pluginName, k.value]);
+                _warningCode, k.span, [pluginName, k.value, _valueProposal]);
           }
         }
         //TODO(pq): consider an error if the node is not a Scalar.

@@ -125,9 +125,12 @@ analyzer:
     expect(task, isGenerateOptionsErrorsTask);
     List<AnalysisError> errors = outputs[ANALYSIS_OPTIONS_ERRORS];
     expect(errors, hasLength(1));
-    expect(errors[0].errorCode, AnalysisOptionsWarningCode.UNSUPPORTED_OPTION);
-    expect(errors[0].message,
-        "The option 'not_supported' is not supported by analyzer");
+    expect(errors[0].errorCode,
+        AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES);
+    expect(
+        errors[0].message,
+        "The option 'not_supported' is not supported by analyzer, "
+        "supported values are 'errors', 'exclude', 'plugins' and 'strong-mode'");
   }
 }
 
@@ -137,22 +140,42 @@ class OptionsFileValidatorTest {
       new OptionsFileValidator(new TestSource());
   final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
 
+  test_analyzer_error_code_supported() {
+    validate(
+        '''
+analyzer:
+  errors:
+    unused_local_variable: ignore
+    ''',
+        []);
+  }
+
+  test_analyzer_error_code_supported_bad_value() {
+    validate(
+        '''
+analyzer:
+  errors:
+    unused_local_variable: ftw
+    ''',
+        [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
+  }
+
+  test_analyzer_error_code_unsupported() {
+    validate(
+        '''
+analyzer:
+  errors:
+    not_supported: ignore
+    ''',
+        [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE]);
+  }
+
   test_analyzer_supported_exclude() {
     validate(
         '''
 analyzer:
   exclude:
     - test/_data/p4/lib/lib1.dart
-    ''',
-        []);
-  }
-
-  test_analyzer_supported_filter() {
-    validate(
-        '''
-analyzer:
-  errors:
-    unused_local_variable: ignore
     ''',
         []);
   }
@@ -172,7 +195,7 @@ analyzer:
 analyzer:
   not_supported: true
     ''',
-        [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION]);
+        [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
   }
 
   test_linter_supported_rules() {
@@ -191,7 +214,7 @@ linter:
 linter:
   unsupported: true
     ''',
-        [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION]);
+        [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
   }
 
   void validate(String source, List<AnalysisOptionsErrorCode> expected) {
