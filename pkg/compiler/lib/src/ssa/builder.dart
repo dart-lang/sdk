@@ -1691,7 +1691,7 @@ class SsaBuilder extends ast.Visitor
           p.instructionType.isEmpty && !p.instructionType.isNullable);
       if (emptyParameters.length > 0) {
         addComment('${emptyParameters} inferred as [empty]');
-        pushInvokeStatic(function.body, backend.assertUnreachableMethod, []);
+        pushInvokeStatic(function.body, helpers.assertUnreachableMethod, []);
         pop();
         return closeFunction();
       }
@@ -2561,7 +2561,7 @@ class SsaBuilder extends ast.Visitor
       pushInvokeDynamic(
           null,
           new Selector.call(
-              new Name(name, backend.jsHelperLibrary), CallStructure.ONE_ARG),
+              new Name(name, helpers.jsHelperLibrary), CallStructure.ONE_ARG),
           null,
           arguments);
 
@@ -3875,7 +3875,7 @@ class SsaBuilder extends ast.Visitor
       pushInvokeDynamic(
           node,
           new Selector.call(
-              new PrivateName('_isTest', backend.jsHelperLibrary),
+              new PrivateName('_isTest', helpers.jsHelperLibrary),
               CallStructure.ONE_ARG),
           null,
           arguments);
@@ -4202,7 +4202,7 @@ class SsaBuilder extends ast.Visitor
       // Call a helper method from the isolate library. The isolate
       // library uses its own isolate structure, that encapsulates
       // Leg's isolate.
-      Element element = backend.isolateHelperLibrary.find('_currentIsolate');
+      Element element = helpers.currentIsolate;
       if (element == null) {
         reporter.internalError(node,
             'Isolate library and compiler mismatch.');
@@ -4277,7 +4277,7 @@ class SsaBuilder extends ast.Visitor
     Element element = elements[argument];
     if (element == null ||
         element is! FieldElement ||
-        element.enclosingClass != backend.jsGetNameEnum) {
+        element.enclosingClass != helpers.jsGetNameEnum) {
       reporter.reportErrorMessage(
           argument, MessageKind.GENERIC,
           {'text': 'Error: Expected a JsGetName enum value.'});
@@ -4302,7 +4302,7 @@ class SsaBuilder extends ast.Visitor
     Element builtinElement = elements[arguments[1]];
     if (builtinElement == null ||
         (builtinElement is! FieldElement) ||
-        builtinElement.enclosingClass != backend.jsBuiltinEnum) {
+        builtinElement.enclosingClass != helpers.jsBuiltinEnum) {
       reporter.reportErrorMessage(
           argument, MessageKind.GENERIC,
           {'text': 'Error: Expected a JsBuiltin enum value.'});
@@ -4411,7 +4411,7 @@ class SsaBuilder extends ast.Visitor
                               backend.dynamicType));
     } else {
       // Call a helper method from the isolate library.
-      Element element = backend.isolateHelperLibrary.find('_callInIsolate');
+      Element element = helpers.callInIsolate;
       if (element == null) {
         reporter.internalError(node,
             'Isolate library and compiler mismatch.');
@@ -5088,7 +5088,7 @@ class SsaBuilder extends ast.Visitor
     final bool isSymbolConstructor =
         constructorDeclaration == compiler.symbolConstructor;
     final bool isJSArrayTypedConstructor =
-        constructorDeclaration == backend.jsArrayTypedConstructor;
+        constructorDeclaration == helpers.jsArrayTypedConstructor;
 
     if (isSymbolConstructor) {
       constructor = compiler.symbolValidatedConstructor;
@@ -5782,11 +5782,11 @@ class SsaBuilder extends ast.Visitor
       if (isLength || selector.isIndex) {
         return compiler.world.isSubtypeOf(
             element.enclosingClass.declaration,
-            backend.jsIndexableClass);
+            helpers.jsIndexableClass);
       } else if (selector.isIndexSet) {
         return compiler.world.isSubtypeOf(
             element.enclosingClass.declaration,
-            backend.jsMutableIndexableClass);
+            helpers.jsMutableIndexableClass);
       } else {
         return false;
       }
@@ -5800,9 +5800,9 @@ class SsaBuilder extends ast.Visitor
       if (selector.isSetter) return true;
       if (selector.isIndex) return true;
       if (selector.isIndexSet) return true;
-      if (element == backend.jsArrayAdd
-          || element == backend.jsArrayRemoveLast
-          || element == backend.jsStringSplit) {
+      if (element == helpers.jsArrayAdd ||
+          element == helpers.jsArrayRemoveLast ||
+          element == helpers.jsStringSplit) {
         return true;
       }
       return false;
@@ -5922,9 +5922,9 @@ class SsaBuilder extends ast.Visitor
     var nativeBehavior = new native.NativeBehavior()
       ..codeTemplate = codeTemplate
       ..typesReturned.add(
-          backend.jsJavaScriptObjectClass.thisType)
+          helpers.jsJavaScriptObjectClass.thisType)
       ..typesInstantiated.add(
-          backend.jsJavaScriptObjectClass.thisType)
+          helpers.jsJavaScriptObjectClass.thisType)
       ..sideEffects.setAllSideEffects();
     return new HForeignCode(
         codeTemplate,
@@ -7441,7 +7441,7 @@ class SsaBuilder extends ast.Visitor
     TypeMask mask = elements.getIteratorTypeMask(node);
 
     ClassWorld classWorld = compiler.world;
-    if (mask != null && mask.satisfies(backend.jsIndexableClass, classWorld)) {
+    if (mask != null && mask.satisfies(helpers.jsIndexableClass, classWorld)) {
       return buildSyncForInIndexable(node, mask);
     }
     buildSyncForInIterator(node);
@@ -7528,7 +7528,7 @@ class SsaBuilder extends ast.Visitor
     HInstruction originalLength = null;  // Set for growable lists.
 
     HInstruction buildGetLength() {
-      Element lengthElement = backend.jsIndexableLength;
+      Element lengthElement = helpers.jsIndexableLength;
       HFieldGet result = new HFieldGet(
           lengthElement, array, backend.positiveIntType,
           isAssignable: !isFixed);
@@ -7674,9 +7674,9 @@ class SsaBuilder extends ast.Visitor
     List<HInstruction> inputs = <HInstruction>[];
 
     if (listInputs.isEmpty) {
-      constructor = backend.mapLiteralConstructorEmpty;
+      constructor = helpers.mapLiteralConstructorEmpty;
     } else {
-      constructor = backend.mapLiteralConstructor;
+      constructor = helpers.mapLiteralConstructor;
       HLiteralList keyValuePairs = buildLiteralList(listInputs);
       add(keyValuePairs);
       inputs.add(keyValuePairs);
@@ -7704,9 +7704,9 @@ class SsaBuilder extends ast.Visitor
       // in the output.
       if (typeInputs.every((HInstruction input) => input.isNull())) {
         if (listInputs.isEmpty) {
-          constructor = backend.mapLiteralUntypedEmptyMaker;
+          constructor = helpers.mapLiteralUntypedEmptyMaker;
         } else {
-          constructor = backend.mapLiteralUntypedMaker;
+          constructor = helpers.mapLiteralUntypedMaker;
         }
       } else {
         inputs.addAll(typeInputs);
@@ -7722,7 +7722,7 @@ class SsaBuilder extends ast.Visitor
     // type inference might discover a more specific type, or find nothing (in
     // dart2js unit tests).
     TypeMask mapType =
-        new TypeMask.nonNullSubtype(backend.mapLiteralClass, compiler.world);
+        new TypeMask.nonNullSubtype(helpers.mapLiteralClass, compiler.world);
     TypeMask returnTypeMask = TypeMaskFactory.inferredReturnTypeForElement(
         constructor, compiler);
     TypeMask instructionType =
@@ -9064,13 +9064,13 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
   void visit(DartType type, SsaBuilder builder) => type.accept(this, builder);
 
   void visitVoidType(VoidType type, SsaBuilder builder) {
-    ClassElement cls = builder.backend.findHelper('VoidRuntimeType');
+    ClassElement cls = builder.backend.helpers.VoidRuntimeType;
     builder.push(new HVoidType(type, new TypeMask.exact(cls, classWorld)));
   }
 
   void visitTypeVariableType(TypeVariableType type,
                              SsaBuilder builder) {
-    ClassElement cls = builder.backend.findHelper('RuntimeType');
+    ClassElement cls = builder.backend.helpers.RuntimeType;
     TypeMask instructionType = new TypeMask.subclass(cls, classWorld);
     if (!builder.sourceElement.enclosingElement.isClosure &&
         builder.sourceElement.isInstanceMember) {
@@ -9108,7 +9108,7 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
       inputs.add(builder.pop());
     }
 
-    ClassElement cls = builder.backend.findHelper('RuntimeFunctionType');
+    ClassElement cls = builder.backend.helpers.RuntimeFunctionType;
     builder.push(new HFunctionType(inputs, type,
         new TypeMask.exact(cls, classWorld)));
   }
@@ -9129,9 +9129,9 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
     }
     ClassElement cls;
     if (type.typeArguments.isEmpty) {
-      cls = builder.backend.findHelper('RuntimeTypePlain');
+      cls = builder.backend.helpers.RuntimeTypePlain;
     } else {
-      cls = builder.backend.findHelper('RuntimeTypeGeneric');
+      cls = builder.backend.helpers.RuntimeTypeGeneric;
     }
     builder.push(new HInterfaceType(inputs, type,
         new TypeMask.exact(cls, classWorld)));
@@ -9145,7 +9145,7 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
 
   void visitDynamicType(DynamicType type, SsaBuilder builder) {
     JavaScriptBackend backend = builder.compiler.backend;
-    ClassElement cls = backend.findHelper('DynamicRuntimeType');
+    ClassElement cls = backend.helpers.DynamicRuntimeType;
     builder.push(new HDynamicType(type, new TypeMask.exact(cls, classWorld)));
   }
 }

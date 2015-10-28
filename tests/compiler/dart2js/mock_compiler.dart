@@ -17,8 +17,10 @@ import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/js_backend/js_backend.dart'
-    show JavaScriptBackend;
+import 'package:compiler/src/js_backend/backend_helpers.dart'
+    show BackendHelpers;
+import 'package:compiler/src/js_backend/lookup_map_analysis.dart'
+    show LookupMapAnalysis;
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/resolution/members.dart';
 import 'package:compiler/src/resolution/registry.dart';
@@ -119,16 +121,16 @@ class MockCompiler extends Compiler {
                    buildLibrarySource(DEFAULT_CORE_LIBRARY, coreSource));
     registerSource(PATCH_CORE, DEFAULT_PATCH_CORE_SOURCE);
 
-    registerSource(JavaScriptBackend.DART_JS_HELPER,
+    registerSource(BackendHelpers.DART_JS_HELPER,
                    buildLibrarySource(DEFAULT_JS_HELPER_LIBRARY));
-    registerSource(JavaScriptBackend.DART_FOREIGN_HELPER,
+    registerSource(BackendHelpers.DART_FOREIGN_HELPER,
                    buildLibrarySource(DEFAULT_FOREIGN_HELPER_LIBRARY));
-    registerSource(JavaScriptBackend.DART_INTERCEPTORS,
+    registerSource(BackendHelpers.DART_INTERCEPTORS,
                    buildLibrarySource(DEFAULT_INTERCEPTORS_LIBRARY));
-    registerSource(JavaScriptBackend.DART_ISOLATE_HELPER,
+    registerSource(BackendHelpers.DART_ISOLATE_HELPER,
                    buildLibrarySource(DEFAULT_ISOLATE_HELPER_LIBRARY));
     registerSource(Uris.dart_mirrors, DEFAULT_MIRRORS_SOURCE);
-    registerSource(JavaScriptBackend.DART_JS_MIRRORS,
+    registerSource(BackendHelpers.DART_JS_MIRRORS,
         DEFAULT_JS_MIRRORS_SOURCE);
 
     Map<String, String> asyncLibrarySource = <String, String>{};
@@ -138,7 +140,7 @@ class MockCompiler extends Compiler {
     }
     registerSource(Uris.dart_async,
                    buildLibrarySource(asyncLibrarySource));
-    registerSource(JavaScriptBackend.PACKAGE_LOOKUP_MAP,
+    registerSource(LookupMapAnalysis.PACKAGE_LOOKUP_MAP,
                    buildLibrarySource(DEFAULT_LOOKUP_MAP_LIBRARY));
   }
 

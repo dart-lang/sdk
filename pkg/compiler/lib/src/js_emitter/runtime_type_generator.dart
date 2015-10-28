@@ -314,7 +314,7 @@ class RuntimeTypeGenerator {
               js.number(index));
     }
     jsAst.Expression convertRtiToRuntimeType = backend.emitter
-         .staticFunctionAccess(backend.findHelper('convertRtiToRuntimeType'));
+         .staticFunctionAccess(backend.helpers.convertRtiToRuntimeType);
 
     return new StubMethod(name,
                           js('function () { return #(#) }',

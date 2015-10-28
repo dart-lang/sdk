@@ -19,6 +19,8 @@ import '../dart_types.dart' as types;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show
     SourceInformation;
+import '../js_backend/backend_helpers.dart' show
+    BackendHelpers;
 import '../js_backend/js_backend.dart' show
     JavaScriptBackend;
 import '../js_backend/codegen/task.dart' show
@@ -664,6 +666,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   final CpsFunctionCompiler functionCompiler;
 
   JavaScriptBackend get backend => compiler.backend;
+  BackendHelpers get helpers => backend.helpers;
   TypeMaskSystem get typeSystem => lattice.typeSystem;
   types.DartTypes get dartTypes => lattice.dartTypes;
   World get classWorld => typeSystem.classWorld;
@@ -1006,8 +1009,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         for (Element target in getAllTargets(left.type, node.selector)) {
           ClassElement clazz = target.enclosingClass.declaration;
           if (clazz != compiler.world.objectClass &&
-              clazz != backend.jsInterceptorClass &&
-              clazz != backend.jsNullClass) {
+              clazz != helpers.jsInterceptorClass &&
+              clazz != helpers.jsNullClass) {
             behavesLikeIdentical = false;
             break;
           }
@@ -1186,7 +1189,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         <Primitive>[index, cps.letPrim(new GetLength(list))]);
     cps.ifTruthy(isTooLarge).invokeContinuation(fail);
     cps.insideContinuation(fail).invokeStaticThrower(
-        backend.helpers.throwIndexOutOfBoundsError,
+        helpers.throwIndexOutOfBoundsError,
         <Primitive>[list, index]);
     return cps;
   }
@@ -1204,7 +1207,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         BuiltinOperator.StrictNeq,
         <Primitive>[originalLength, cps.letPrim(new GetLength(list))]);
     cps.ifTruthy(lengthChanged).invokeStaticThrower(
-        backend.helpers.throwConcurrentModificationError,
+        helpers.throwConcurrentModificationError,
         <Primitive>[list]);
     return cps;
   }
@@ -1311,7 +1314,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
             [length, cps.makeZero()]);
         CpsFragment fail = cps.ifTruthy(isEmpty);
         fail.invokeStaticThrower(
-            backend.helpers.throwIndexOutOfBoundsError,
+            helpers.throwIndexOutOfBoundsError,
             [list, fail.makeConstant(new IntConstantValue(-1))]);
         Primitive removedItem = cps.invokeBuiltin(BuiltinMethod.Pop,
             list,
@@ -2206,17 +2209,17 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     TypeMask interceptedInputs = value.type.intersection(
         typeSystem.interceptorType.nullable(), classWorld);
     bool interceptNull =
-        node.interceptedClasses.contains(backend.jsNullClass) ||
-        node.interceptedClasses.contains(backend.jsInterceptorClass);
+        node.interceptedClasses.contains(helpers.jsNullClass) ||
+        node.interceptedClasses.contains(helpers.jsInterceptorClass);
 
     void filterInterceptedClasses() {
       if (lattice.isDefinitelyInt(value, allowNull: !interceptNull)) {
-        node.interceptedClasses..clear()..add(backend.jsIntClass);
+        node.interceptedClasses..clear()..add(helpers.jsIntClass);
         return;
       }
       if (lattice.isDefinitelyNum(value, allowNull: !interceptNull) &&
                   jsNumberClassSuffices(node)) {
-        node.interceptedClasses..clear()..add(backend.jsNumberClass);
+        node.interceptedClasses..clear()..add(helpers.jsNumberClass);
         return;
       }
       TypeMask interceptedClassesType = new TypeMask.unionOf(
@@ -2260,17 +2263,17 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       //               ALL interceptor classes.
       if (node.interceptedClasses.length > 1 &&
           node.interceptedClasses.length < 4 &&
-          node.interceptedClasses.contains(backend.jsInterceptorClass)) {
+          node.interceptedClasses.contains(helpers.jsInterceptorClass)) {
         TypeMask specificInterceptors = new TypeMask.unionOf(
             node.interceptedClasses
-              .where((cl) => cl != backend.jsInterceptorClass)
+              .where((cl) => cl != helpers.jsInterceptorClass)
               .map(typeSystem.getInterceptorSubtypes),
             classWorld);
         if (specificInterceptors.containsMask(interceptedInputs, classWorld)) {
           // All possible inputs are caught by an Interceptor subclass (or are
           // self-interceptors), so there is no need to have the check for
           // the Interceptor root class (which is expensive).
-          node.interceptedClasses.remove(backend.jsInterceptorClass);
+          node.interceptedClasses.remove(helpers.jsInterceptorClass);
         }
       }
     }
@@ -2294,7 +2297,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         node.clearFlag(Interceptor.NULL);
       } else if (interceptNull) {
         node.clearFlag(Interceptor.NULL_BYPASS);
-        if (class_ == backend.jsNullClass) {
+        if (class_ == helpers.jsNullClass) {
           node.clearFlag(Interceptor.NULL_INTERCEPT_SUBCLASS);
         } else {
           node.clearFlag(Interceptor.NULL_INTERCEPT_EXACT);
@@ -2311,11 +2314,11 @@ class TransformingVisitor extends DeepRecursiveVisitor {
               classWorld)) {
         node.clearFlag(Interceptor.NON_NULL_BYPASS);
       }
-      if (class_ == backend.jsNumberClass) {
+      if (class_ == helpers.jsNumberClass) {
         // See [jsNumberClassSuffices].  We know that JSInt and JSDouble are
         // not intercepted classes so JSNumber is sufficient.
         node.clearFlag(Interceptor.NON_NULL_INTERCEPT_SUBCLASS);
-      } else if (class_ == backend.jsArrayClass) {
+      } else if (class_ == helpers.jsArrayClass) {
         // JSArray has compile-time subclasses like JSFixedArray, but should
         // still be considered "exact" if the input is any subclass of JSArray.
         if (typeSystem.isDefinitelyNativeList(interceptedInputsNonNullable)) {
@@ -2343,8 +2346,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         if (invoke.receiver != ref) return false;
         var interceptedClasses =
             functionCompiler.glue.getInterceptedClassesOn(invoke.selector);
-        if (interceptedClasses.contains(backend.jsDoubleClass)) return false;
-        if (interceptedClasses.contains(backend.jsIntClass)) return false;
+        if (interceptedClasses.contains(helpers.jsDoubleClass)) return false;
+        if (interceptedClasses.contains(helpers.jsIntClass)) return false;
         continue;
       }
       // Other uses need full distinction.
@@ -3006,7 +3009,7 @@ class TypePropagationVisitor implements Visitor {
     if (value.isNothing) {
       setValue(node, nothing);
     } else if (value.isNullable &&
-        !node.interceptedClasses.contains(backend.jsNullClass)) {
+        !node.interceptedClasses.contains(backend.helpers.jsNullClass)) {
       // If the input is null and null is not mapped to an interceptor then
       // null gets returned.
       // TODO(asgerf): Add the NullInterceptor when it enables us to

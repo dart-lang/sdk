@@ -8,7 +8,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/enqueue.dart';
-import 'package:compiler/src/js_backend/js_backend.dart';
+import 'package:compiler/src/js_backend/backend_helpers.dart';
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 
@@ -50,7 +50,7 @@ analyze(String code,
       compiler, compiler.coreLibrary.find('Deprecated'), deprecatedClass);
 
   LibraryElement jsHelperLibrary =
-      compiler.libraryLoader.lookupLibrary(JavaScriptBackend.DART_JS_HELPER);
+      compiler.libraryLoader.lookupLibrary(BackendHelpers.DART_JS_HELPER);
   jsHelperLibrary.forEachLocalMember((Element element) {
     Uri uri = element.compilationUnit.script.resourceUri;
     if (element.isClass && uri.path.endsWith('annotations.dart')) {

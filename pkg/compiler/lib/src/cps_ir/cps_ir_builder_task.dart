@@ -22,6 +22,8 @@ import '../elements/modelx.dart' show
     ConstructorBodyElementX,
     FunctionSignatureX;
 import '../io/source_information.dart';
+import '../js_backend/backend_helpers.dart' show
+    BackendHelpers;
 import '../js_backend/js_backend.dart' show
     JavaScriptBackend,
     SyntheticConstantKind;
@@ -2507,6 +2509,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
                      SourceInformationBuilder sourceInformationBuilder)
       : super(elements, compiler, sourceInformationBuilder);
 
+  BackendHelpers get helpers => backend.helpers;
 
   /// Builds the IR for creating an instance of the closure class corresponding
   /// to the given nested function.
@@ -3343,9 +3346,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
 
     /// Call a helper method from the isolate library. The isolate library uses
     /// its own isolate structure, that encapsulates dart2js's isolate.
-    ir.Primitive buildIsolateHelperInvocation(String helperName,
+    ir.Primitive buildIsolateHelperInvocation(Element element,
                                               CallStructure callStructure) {
-      Element element = backend.isolateHelperLibrary.find(helperName);
       if (element == null) {
         reporter.internalError(node,
             'Isolate library and compiler mismatch.');
@@ -3427,7 +3429,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         validateArgumentCount(minimum: 2);
 
         ast.Node builtin = argumentNodes.tail.head;
-        JsBuiltin value = getEnumValue(builtin, backend.jsBuiltinEnum,
+        JsBuiltin value = getEnumValue(builtin, helpers.jsBuiltinEnum,
                                        JsBuiltin.values);
         js.Template template = backend.emitter.builtinTemplateFor(value);
         List<ir.Primitive> arguments =
@@ -3465,7 +3467,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         validateArgumentCount(exactly: 1);
 
         ast.Node argument = argumentNodes.head;
-        JsGetName id = getEnumValue(argument, backend.jsGetNameEnum,
+        JsGetName id = getEnumValue(argument, helpers.jsGetNameEnum,
             JsGetName.values);
         js.Name name = backend.namer.getNameForJsGetName(argument, id);
         ConstantValue nameConstant =
@@ -3504,7 +3506,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           // to fetch the current isolate.
           continue getStaticState;
         }
-        return buildIsolateHelperInvocation('_currentIsolate',
+        return buildIsolateHelperInvocation(backend.helpers.currentIsolate,
             CallStructure.NO_ARGS);
 
       getStaticState: case 'JS_GET_STATIC_STATE':
@@ -3533,7 +3535,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           return irBuilder.buildCallInvocation(closure, CallStructure.NO_ARGS,
               const <ir.Primitive>[]);
         }
-        return buildIsolateHelperInvocation('_callInIsolate',
+        return buildIsolateHelperInvocation(backend.helpers.callInIsolate,
             CallStructure.TWO_ARGS);
 
       default:

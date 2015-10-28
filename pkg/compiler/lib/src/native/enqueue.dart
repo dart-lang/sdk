@@ -95,6 +95,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         processedLibraries = compiler.cacheStrategy.newSet();
 
   JavaScriptBackend get backend => compiler.backend;
+  BackendHelpers get helpers => backend.helpers;
   Resolution get resolution => compiler.resolution;
 
   DiagnosticReporter get reporter => compiler.reporter;
@@ -108,8 +109,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       libraries = libraries.where(processedLibraries.add);
     }
     libraries.forEach(processNativeClassesInLibrary);
-    if (backend.isolateHelperLibrary != null) {
-      processNativeClassesInLibrary(backend.isolateHelperLibrary);
+    if (helpers.isolateHelperLibrary != null) {
+      processNativeClassesInLibrary(helpers.isolateHelperLibrary);
     }
     processSubclassesOfNativeClasses(libraries);
     if (!enableLiveTypeAnalysis) {
@@ -269,7 +270,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   void findAnnotationClasses() {
     if (_annotationCreatesClass != null) return;
     ClassElement find(name) {
-      Element e = backend.findHelper(name);
+      Element e = helpers.findHelper(name);
       if (e == null || e is! ClassElement) {
         reporter.internalError(NO_LOCATION_SPANNABLE,
             "Could not find implementation class '${name}'.");
@@ -516,7 +517,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   onFirstNativeClass() {
     staticUse(name) {
       backend.enqueue(
-          world, backend.findHelper(name), compiler.globalDependencies);
+          world, helpers.findHelper(name), compiler.globalDependencies);
     }
 
     staticUse('defineProperty');

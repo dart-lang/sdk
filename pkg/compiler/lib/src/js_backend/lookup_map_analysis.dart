@@ -68,6 +68,9 @@ import 'package:pub_semver/pub_semver.dart';
 // ClassElement of a type to refer to keys we need to discover).
 // TODO(sigmund): detect uses of mirrors
 class LookupMapAnalysis {
+  static final Uri PACKAGE_LOOKUP_MAP =
+      new Uri(scheme: 'package', path: 'lookup_map/lookup_map.dart');
+
   /// Reference to [JavaScriptBackend] to be able to enqueue work when we
   /// discover that a key in a map is potentially used.
   final JavaScriptBackend backend;

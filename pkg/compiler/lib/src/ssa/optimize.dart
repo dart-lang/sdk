@@ -111,8 +111,8 @@ bool isFixedLength(mask, Compiler compiler) {
     return true;
   }
   // TODO(sra): Recognize any combination of fixed length indexables.
-  if (mask.containsOnly(backend.jsFixedArrayClass) ||
-      mask.containsOnly(backend.jsUnmodifiableArrayClass) ||
+  if (mask.containsOnly(backend.helpers.jsFixedArrayClass) ||
+      mask.containsOnly(backend.helpers.jsUnmodifiableArrayClass) ||
       mask.containsOnlyString(classWorld) ||
       backend.isTypedArray(mask)) {
     return true;
@@ -146,6 +146,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
                            this.work);
 
   CoreClasses get coreClasses => compiler.coreClasses;
+
+  BackendHelpers get helpers => backend.helpers;
 
   void visitGraph(HGraph visitee) {
     graph = visitee;
@@ -252,7 +254,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     // All values that cannot be 'true' are boolified to false.
     TypeMask mask = input.instructionType;
-    if (!mask.contains(backend.jsBoolClass, compiler.world)) {
+    if (!mask.contains(helpers.jsBoolClass, compiler.world)) {
       return graph.addConstantBool(false, compiler);
     }
     return node;
@@ -299,17 +301,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
         ListConstantValue constant = constantInput.constant;
         return graph.addConstantInt(constant.length, compiler);
       }
-      Element element = backend.jsIndexableLength;
+      Element element = helpers.jsIndexableLength;
       bool isFixed = isFixedLength(actualReceiver.instructionType, compiler);
       TypeMask actualType = node.instructionType;
       ClassWorld classWorld = compiler.world;
       TypeMask resultType = backend.positiveIntType;
       // If we already have computed a more specific type, keep that type.
       if (HInstruction.isInstanceOf(
-              actualType, backend.jsUInt31Class, classWorld)) {
+              actualType, helpers.jsUInt31Class, classWorld)) {
         resultType = backend.uint31Type;
       } else if (HInstruction.isInstanceOf(
-              actualType, backend.jsUInt32Class, classWorld)) {
+              actualType, helpers.jsUInt32Class, classWorld)) {
         resultType = backend.uint32Type;
       }
       HFieldGet result = new HFieldGet(
@@ -353,22 +355,22 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (selector.isCall || selector.isOperator) {
       Element target;
       if (input.isExtendableArray(compiler)) {
-        if (applies(backend.jsArrayRemoveLast)) {
-          target = backend.jsArrayRemoveLast;
-        } else if (applies(backend.jsArrayAdd)) {
+        if (applies(helpers.jsArrayRemoveLast)) {
+          target = helpers.jsArrayRemoveLast;
+        } else if (applies(helpers.jsArrayAdd)) {
           // The codegen special cases array calls, but does not
           // inline argument type checks.
           if (!compiler.enableTypeAssertions) {
-            target = backend.jsArrayAdd;
+            target = helpers.jsArrayAdd;
           }
         }
       } else if (input.isStringOrNull(compiler)) {
-        if (applies(backend.jsStringSplit)) {
+        if (applies(helpers.jsStringSplit)) {
           HInstruction argument = node.inputs[2];
           if (argument.isString(compiler)) {
-            target = backend.jsStringSplit;
+            target = helpers.jsStringSplit;
           }
-        } else if (applies(backend.jsStringOperatorAdd)) {
+        } else if (applies(helpers.jsStringOperatorAdd)) {
           // `operator+` is turned into a JavaScript '+' so we need to
           // make sure the receiver and the argument are not null.
           // TODO(sra): Do this via [node.specializer].
@@ -378,7 +380,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
             return new HStringConcat(input, argument, null,
                                      node.instructionType);
           }
-        } else if (applies(backend.jsStringToString)
+        } else if (applies(helpers.jsStringToString)
                    && !input.canBeNull()) {
           return input;
         }
@@ -399,7 +401,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return result;
       }
     } else if (selector.isGetter) {
-      if (selector.applies(backend.jsIndexableLength, world)) {
+      if (selector.applies(helpers.jsIndexableLength, world)) {
         HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
         if (optimized != null) return optimized;
       }
@@ -783,7 +785,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitFieldGet(HFieldGet node) {
     if (node.isNullCheck) return node;
     var receiver = node.receiver;
-    if (node.element == backend.jsIndexableLength) {
+    if (node.element == helpers.jsIndexableLength) {
       JavaScriptItemCompilationContext context = work.compilationContext;
       if (context.allocatedFixedLists.contains(receiver)) {
         // TODO(ngeoffray): checking if the second input is an integer
@@ -1005,6 +1007,8 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
                    this.work,
                    this.boundsChecked);
 
+  BackendHelpers get helpers => backend.helpers;
+
   void visitGraph(HGraph graph) {
     this.graph = graph;
 
@@ -1030,7 +1034,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
                                  HInstruction indexArgument) {
     Compiler compiler = backend.compiler;
     HFieldGet length = new HFieldGet(
-        backend.jsIndexableLength, array, backend.positiveIntType,
+        helpers.jsIndexableLength, array, backend.positiveIntType,
         isAssignable: !isFixedLength(array.instructionType, compiler));
     indexNode.block.addBefore(indexNode, length);
 
@@ -1069,7 +1073,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   void visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     Element element = node.element;
     if (node.isInterceptedCall) return;
-    if (element != backend.jsArrayRemoveLast) return;
+    if (element != helpers.jsArrayRemoveLast) return;
     if (boundsChecked.contains(node)) return;
     // `0` is the index we want to check, but we want to report `-1`, as if we
     // executed `a[a.length-1]`

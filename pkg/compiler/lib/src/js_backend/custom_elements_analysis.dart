@@ -101,8 +101,7 @@ class CustomElementsAnalysis {
     assert(element != null);
     if (!fetchedTableAccessorMethod) {
       fetchedTableAccessorMethod = true;
-      tableAccessorMethod = backend.findInterceptor(
-          'findIndexForNativeSubclassType');
+      tableAccessorMethod = backend.helpers.findIndexForNativeSubclassType;
     }
     if (element == tableAccessorMethod) {
       joinFor(enqueuer).demanded = true;

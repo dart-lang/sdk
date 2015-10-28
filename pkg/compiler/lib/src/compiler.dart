@@ -74,6 +74,8 @@ import 'enqueue.dart' show
     QueueFilter;
 import 'io/source_information.dart' show
     SourceInformation;
+import 'js_backend/backend_helpers.dart' as js_backend show
+    BackendHelpers;
 import 'js_backend/js_backend.dart' as js_backend show
     JavaScriptBackend;
 import 'library_loader.dart' show
@@ -597,7 +599,7 @@ abstract class Compiler {
       _coreTypes.streamClass = findRequiredElement(library, 'Stream');
     } else if (uri == Uris.dart__native_typed_data) {
       typedDataClass = findRequiredElement(library, 'NativeTypedData');
-    } else if (uri == js_backend.JavaScriptBackend.DART_JS_HELPER) {
+    } else if (uri == js_backend.BackendHelpers.DART_JS_HELPER) {
       patchAnnotationClass = findRequiredElement(library, '_Patch');
       nativeAnnotationClass = findRequiredElement(library, 'Native');
     }

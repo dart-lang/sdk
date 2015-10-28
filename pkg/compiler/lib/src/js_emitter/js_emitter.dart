@@ -48,6 +48,8 @@ import '../elements/elements.dart' show
     TypeVariableElement;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
+import '../js_backend/backend_helpers.dart' show
+    BackendHelpers;
 import '../js_backend/js_backend.dart' show
     CheckedModeHelper,
     CompoundName,

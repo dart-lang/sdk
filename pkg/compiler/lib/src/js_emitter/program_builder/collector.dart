@@ -42,6 +42,8 @@ class Collector {
 
   JavaScriptBackend get backend => compiler.backend;
 
+  BackendHelpers get helpers => backend.helpers;
+
   CoreClasses get coreClasses => compiler.coreClasses;
 
   Collector(this.compiler, this.namer, this.rtiNeededClasses, this.emitter);
@@ -92,12 +94,12 @@ class Collector {
     }
 
     // These classes are just helpers for the backend's type system.
-    unneededClasses.add(backend.jsMutableArrayClass);
-    unneededClasses.add(backend.jsFixedArrayClass);
-    unneededClasses.add(backend.jsExtendableArrayClass);
-    unneededClasses.add(backend.jsUInt32Class);
-    unneededClasses.add(backend.jsUInt31Class);
-    unneededClasses.add(backend.jsPositiveIntClass);
+    unneededClasses.add(helpers.jsMutableArrayClass);
+    unneededClasses.add(helpers.jsFixedArrayClass);
+    unneededClasses.add(helpers.jsExtendableArrayClass);
+    unneededClasses.add(helpers.jsUInt32Class);
+    unneededClasses.add(helpers.jsUInt31Class);
+    unneededClasses.add(helpers.jsPositiveIntClass);
 
     return (ClassElement cls) => !unneededClasses.contains(cls);
   }
@@ -215,22 +217,22 @@ class Collector {
     neededClasses.addAll(classesOnlyNeededForRti);
 
     // TODO(18175, floitsch): remove once issue 18175 is fixed.
-    if (neededClasses.contains(backend.jsIntClass)) {
+    if (neededClasses.contains(helpers.jsIntClass)) {
       neededClasses.add(coreClasses.intClass);
     }
-    if (neededClasses.contains(backend.jsDoubleClass)) {
+    if (neededClasses.contains(helpers.jsDoubleClass)) {
       neededClasses.add(coreClasses.doubleClass);
     }
-    if (neededClasses.contains(backend.jsNumberClass)) {
+    if (neededClasses.contains(helpers.jsNumberClass)) {
       neededClasses.add(coreClasses.numClass);
     }
-    if (neededClasses.contains(backend.jsStringClass)) {
+    if (neededClasses.contains(helpers.jsStringClass)) {
       neededClasses.add(coreClasses.stringClass);
     }
-    if (neededClasses.contains(backend.jsBoolClass)) {
+    if (neededClasses.contains(helpers.jsBoolClass)) {
       neededClasses.add(coreClasses.boolClass);
     }
-    if (neededClasses.contains(backend.jsArrayClass)) {
+    if (neededClasses.contains(helpers.jsArrayClass)) {
       neededClasses.add(coreClasses.listClass);
     }
 

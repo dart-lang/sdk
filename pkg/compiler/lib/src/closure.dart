@@ -196,8 +196,8 @@ class ClosureClassElement extends ClassElementX {
               STATE_DONE) {
     JavaScriptBackend backend = compiler.backend;
     ClassElement superclass = methodElement.isInstanceMember
-        ? backend.boundClosureClass
-        : backend.closureClass;
+        ? backend.helpers.boundClosureClass
+        : backend.helpers.closureClass;
     superclass.ensureResolved(compiler.resolution);
     supertype = superclass.thisType;
     interfaces = const Link<DartType>();

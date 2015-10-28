@@ -32,7 +32,7 @@ class TypeVariableHandler {
 
   TypeVariableHandler(this._compiler);
 
-  ClassElement get _typeVariableClass => _backend.typeVariableClass;
+  ClassElement get _typeVariableClass => _backend.helpers.typeVariableClass;
   CodeEmitterTask get _task => _backend.emitter;
   MetadataCollector get _metadataCollector => _task.metadataCollector;
   JavaScriptBackend get _backend => _compiler.backend;

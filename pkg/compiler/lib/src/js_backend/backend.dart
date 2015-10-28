@@ -220,43 +220,18 @@ enum SyntheticConstantKind {
 }
 
 class JavaScriptBackend extends Backend {
-  static final Uri DART_JS_HELPER = new Uri(scheme: 'dart', path: '_js_helper');
-  static final Uri DART_INTERCEPTORS =
-      new Uri(scheme: 'dart', path: '_interceptors');
-  static final Uri DART_FOREIGN_HELPER =
-      new Uri(scheme: 'dart', path: '_foreign_helper');
-  static final Uri DART_JS_MIRRORS =
-      new Uri(scheme: 'dart', path: '_js_mirrors');
-  static final Uri DART_JS_NAMES =
-      new Uri(scheme: 'dart', path: '_js_names');
-  static final Uri DART_EMBEDDED_NAMES =
-      new Uri(scheme: 'dart', path: '_js_embedded_names');
-  static final Uri DART_ISOLATE_HELPER =
-      new Uri(scheme: 'dart', path: '_isolate_helper');
-  static final Uri PACKAGE_JS =
-         new Uri(scheme: 'package', path: 'js/js.dart');
-  static final Uri PACKAGE_LOOKUP_MAP =
-      new Uri(scheme: 'package', path: 'lookup_map/lookup_map.dart');
-
-  static const String INVOKE_ON = '_getCachedInvocation';
-  static const String START_ROOT_ISOLATE = 'startRootIsolate';
-
-
   String get patchVersion => emitter.patchVersion;
 
   bool get supportsReflection => emitter.emitter.supportsReflection;
 
   final Annotations annotations;
 
-  /// Reference to the internal library to lookup functions to always inline.
-  LibraryElement internalLibrary;
-
 
   /// Set of classes that need to be considered for reflection although not
   /// otherwise visible during resolution.
   Iterable<ClassElement> get classesRequiredForReflection {
     // TODO(herhut): Clean this up when classes needed for rti are tracked.
-    return [closureClass, jsIndexableClass];
+    return [helpers.closureClass, helpers.jsIndexableClass];
   }
 
   FunctionCompiler functionCompiler;
@@ -271,74 +246,6 @@ class JavaScriptBackend extends Backend {
   }
 
   FunctionInlineCache inlineCache = new FunctionInlineCache();
-
-  LibraryElement jsHelperLibrary;
-  LibraryElement asyncLibrary;
-  LibraryElement interceptorsLibrary;
-  LibraryElement foreignLibrary;
-  LibraryElement isolateHelperLibrary;
-
-  ClassElement closureClass;
-  ClassElement boundClosureClass;
-  Element assertUnreachableMethod;
-  Element invokeOnMethod;
-
-  ClassElement jsInterceptorClass;
-  ClassElement jsStringClass;
-  ClassElement jsArrayClass;
-  ClassElement jsNumberClass;
-  ClassElement jsIntClass;
-  ClassElement jsDoubleClass;
-  ClassElement jsNullClass;
-  ClassElement jsBoolClass;
-  ClassElement jsPlainJavaScriptObjectClass;
-  ClassElement jsUnknownJavaScriptObjectClass;
-  ClassElement jsJavaScriptFunctionClass;
-  ClassElement jsJavaScriptObjectClass;
-
-  ClassElement jsIndexableClass;
-  ClassElement jsMutableIndexableClass;
-
-  ClassElement jsMutableArrayClass;
-  ClassElement jsFixedArrayClass;
-  ClassElement jsExtendableArrayClass;
-  ClassElement jsUnmodifiableArrayClass;
-  ClassElement jsPositiveIntClass;
-  ClassElement jsUInt32Class;
-  ClassElement jsUInt31Class;
-
-  Element jsIndexableLength;
-  Element jsArrayTypedConstructor;
-  Element jsArrayRemoveLast;
-  Element jsArrayAdd;
-  Element jsStringSplit;
-  Element jsStringToString;
-  Element jsStringOperatorAdd;
-  Element objectEquals;
-
-  ClassElement typeLiteralClass;
-  ClassElement mapLiteralClass;
-  ClassElement constMapLiteralClass;
-  ClassElement typeVariableClass;
-  ConstructorElement mapLiteralConstructor;
-  ConstructorElement mapLiteralConstructorEmpty;
-  Element mapLiteralUntypedMaker;
-  Element mapLiteralUntypedEmptyMaker;
-
-  ClassElement noSideEffectsClass;
-  ClassElement noThrowsClass;
-  ClassElement noInlineClass;
-  ClassElement forceInlineClass;
-  ClassElement irRepresentationClass;
-
-  ClassElement jsAnnotationClass;
-
-  Element getInterceptorMethod;
-
-  ClassElement jsInvocationMirrorClass;
-
-  ClassElement typedArrayClass;
-  ClassElement typedArrayOfIntClass;
 
   /// If [true], the compiler will emit code that logs whenever a method is
   /// called. When TRACE_METHOD is 'console' this will be logged
@@ -364,8 +271,8 @@ class JavaScriptBackend extends Backend {
   TypeMask _indexablePrimitiveTypeCache;
   TypeMask get indexablePrimitiveType {
     if (_indexablePrimitiveTypeCache == null) {
-      _indexablePrimitiveTypeCache =
-          new TypeMask.nonNullSubtype(jsIndexableClass, compiler.world);
+      _indexablePrimitiveTypeCache = new TypeMask.nonNullSubtype(
+          helpers.jsIndexableClass, compiler.world);
     }
     return _indexablePrimitiveTypeCache;
   }
@@ -373,8 +280,8 @@ class JavaScriptBackend extends Backend {
   TypeMask _readableArrayTypeCache;
   TypeMask get readableArrayType {
     if (_readableArrayTypeCache == null) {
-      _readableArrayTypeCache = new TypeMask.nonNullSubclass(jsArrayClass,
-          compiler.world);
+      _readableArrayTypeCache = new TypeMask.nonNullSubclass(
+          helpers.jsArrayClass, compiler.world);
     }
     return _readableArrayTypeCache;
   }
@@ -382,8 +289,8 @@ class JavaScriptBackend extends Backend {
   TypeMask _mutableArrayTypeCache;
   TypeMask get mutableArrayType {
     if (_mutableArrayTypeCache == null) {
-      _mutableArrayTypeCache = new TypeMask.nonNullSubclass(jsMutableArrayClass,
-          compiler.world);
+      _mutableArrayTypeCache = new TypeMask.nonNullSubclass(
+          helpers.jsMutableArrayClass, compiler.world);
     }
     return _mutableArrayTypeCache;
   }
@@ -391,8 +298,8 @@ class JavaScriptBackend extends Backend {
   TypeMask _fixedArrayTypeCache;
   TypeMask get fixedArrayType {
     if (_fixedArrayTypeCache == null) {
-      _fixedArrayTypeCache = new TypeMask.nonNullExact(jsFixedArrayClass,
-          compiler.world);
+      _fixedArrayTypeCache = new TypeMask.nonNullExact(
+          helpers.jsFixedArrayClass, compiler.world);
     }
     return _fixedArrayTypeCache;
   }
@@ -400,8 +307,8 @@ class JavaScriptBackend extends Backend {
   TypeMask _extendableArrayTypeCache;
   TypeMask get extendableArrayType {
     if (_extendableArrayTypeCache == null) {
-      _extendableArrayTypeCache =
-          new TypeMask.nonNullExact(jsExtendableArrayClass, compiler.world);
+      _extendableArrayTypeCache = new TypeMask.nonNullExact(
+          helpers.jsExtendableArrayClass, compiler.world);
     }
     return _extendableArrayTypeCache;
   }
@@ -409,8 +316,8 @@ class JavaScriptBackend extends Backend {
   TypeMask _unmodifiableArrayTypeCache;
   TypeMask get unmodifiableArrayType {
     if (_unmodifiableArrayTypeCache == null) {
-      _unmodifiableArrayTypeCache =
-          new TypeMask.nonNullExact(jsUnmodifiableArrayClass, compiler.world);
+      _unmodifiableArrayTypeCache = new TypeMask.nonNullExact(
+          helpers.jsUnmodifiableArrayClass, compiler.world);
     }
     return _fixedArrayTypeCache;
   }
@@ -427,22 +334,10 @@ class JavaScriptBackend extends Backend {
   /// Maps special classes to their implementation (JSXxx) class.
   Map<ClassElement, ClassElement> implementationClasses;
 
-  Element getNativeInterceptorMethod;
   bool needToInitializeIsolateAffinityTag = false;
   bool needToInitializeDispatchProperty = false;
 
-  /// Holds the method "getIsolateAffinityTag" when dart:_js_helper has been
-  /// loaded.
-  FunctionElement getIsolateAffinityTagMarker;
-
   final Namer namer;
-
-  /**
-   * Interface used to determine if an object has the JavaScript
-   * indexing behavior. The interface is only visible to specific
-   * libraries.
-   */
-  ClassElement jsIndexingBehaviorInterface;
 
   /**
    * A collection of selectors that must have a one shot interceptor
@@ -514,35 +409,6 @@ class JavaScriptBackend extends Backend {
 
   final RuntimeTypes rti;
   final RuntimeTypesEncoder rtiEncoder;
-
-  /// Holds the method "disableTreeShaking" in js_mirrors when
-  /// dart:mirrors has been loaded.
-  FunctionElement disableTreeShakingMarker;
-
-  /// Holds the method "preserveNames" in js_mirrors when
-  /// dart:mirrors has been loaded.
-  FunctionElement preserveNamesMarker;
-
-  /// Holds the method "preserveMetadata" in js_mirrors when
-  /// dart:mirrors has been loaded.
-  FunctionElement preserveMetadataMarker;
-
-  /// Holds the method "preserveUris" in js_mirrors when
-  /// dart:mirrors has been loaded.
-  FunctionElement preserveUrisMarker;
-
-  /// Holds the method "preserveLibraryNames" in js_mirrors when
-  /// dart:mirrors has been loaded.
-  FunctionElement preserveLibraryNamesMarker;
-
-  /// Holds the method "requiresPreamble" in _js_helper.
-  FunctionElement requiresPreambleMarker;
-
-  /// Holds the class for the [JsGetName] enum.
-  EnumClassElement jsGetNameEnum;
-
-  /// Holds the class for the [JsBuiltins] enum.
-  EnumClassElement jsBuiltinEnum;
 
   /// True if a call to preserveMetadataMarker has been seen.  This means that
   /// metadata must be retained for dart:mirrors to work correctly.
@@ -700,24 +566,11 @@ class JavaScriptBackend extends Backend {
     });
   }
 
-  // TODO(karlklose): Split into findHelperFunction and findHelperClass and
-  // add a check that the element has the expected kind.
-  Element findHelper(String name) => find(jsHelperLibrary, name);
-  Element findAsyncHelper(String name) => find(asyncLibrary, name);
-  Element findInterceptor(String name) => find(interceptorsLibrary, name);
-
-  Element find(LibraryElement library, String name) {
-    Element element = library.implementation.findLocal(name);
-    assert(invariant(library, element != null,
-        message: "Element '$name' not found in '${library.canonicalUri}'."));
-    return element;
-  }
-
-  bool isForeign(Element element) => element.library == foreignLibrary;
+  bool isForeign(Element element) => element.library == helpers.foreignLibrary;
 
   bool isBackendLibrary(LibraryElement library) {
-    return library == interceptorsLibrary ||
-           library == jsHelperLibrary;
+    return library == helpers.interceptorsLibrary ||
+           library == helpers.jsHelperLibrary;
   }
 
   static Namer determineNamer(Compiler compiler) {
@@ -1022,20 +875,20 @@ class JavaScriptBackend extends Backend {
   /// True if the given class is an internal class used for type inference
   /// and never exists at runtime.
   bool isCompileTimeOnlyClass(ClassElement class_) {
-    return class_ == jsPositiveIntClass ||
-           class_ == jsUInt32Class ||
-           class_ == jsUInt31Class ||
-           class_ == jsFixedArrayClass ||
-           class_ == jsUnmodifiableArrayClass ||
-           class_ == jsMutableArrayClass ||
-           class_ == jsExtendableArrayClass;
+    return class_ == helpers.jsPositiveIntClass ||
+           class_ == helpers.jsUInt32Class ||
+           class_ == helpers.jsUInt31Class ||
+           class_ == helpers.jsFixedArrayClass ||
+           class_ == helpers.jsUnmodifiableArrayClass ||
+           class_ == helpers.jsMutableArrayClass ||
+           class_ == helpers.jsExtendableArrayClass;
   }
 
   /// Maps compile-time classes to their runtime class.  The runtime class is
   /// always a superclass or the class itself.
   ClassElement getRuntimeClass(ClassElement class_) {
-    if (class_.isSubclassOf(jsIntClass)) return jsIntClass;
-    if (class_.isSubclassOf(jsArrayClass)) return jsArrayClass;
+    if (class_.isSubclassOf(helpers.jsIntClass)) return helpers.jsIntClass;
+    if (class_.isSubclassOf(helpers.jsArrayClass)) return helpers.jsArrayClass;
     return class_;
   }
 
@@ -1138,7 +991,7 @@ class JavaScriptBackend extends Backend {
                        Enqueuer enqueuer,
                        Registry registry) {
     if (enqueuer.isResolutionQueue) {
-      _interceptedClasses.add(jsInterceptorClass);
+      _interceptedClasses.add(helpers.jsInterceptorClass);
       _interceptedClasses.add(cls);
       cls.ensureResolved(resolution);
       cls.forEachMember((ClassElement classElement, Element member) {
@@ -1160,7 +1013,7 @@ class JavaScriptBackend extends Backend {
 
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
     jsAst.Name name = namer.nameForGetInterceptor(classes);
-    if (classes.contains(jsInterceptorClass)) {
+    if (classes.contains(helpers.jsInterceptorClass)) {
       // We can't use a specialized [getInterceptorMethod], so we make
       // sure we emit the one with all checks.
       specializedGetInterceptors[name] = interceptedClasses;
@@ -1260,33 +1113,34 @@ class JavaScriptBackend extends Backend {
           cls == coreClasses.numClass) {
         // The backend will try to optimize number operations and use the
         // `iae` helper directly.
-        enqueue(enqueuer, findHelper('iae'), registry);
+        enqueue(enqueuer, helpers.throwIllegalArgumentException, registry);
       } else if (cls == coreClasses.listClass ||
                  cls == coreClasses.stringClass) {
         // The backend will try to optimize array and string access and use the
         // `ioore` and `iae` helpers directly.
-        enqueue(enqueuer, findHelper('ioore'), registry);
-        enqueue(enqueuer, findHelper('iae'), registry);
+        enqueue(enqueuer, helpers.throwIndexOutOfRangeException, registry);
+        enqueue(enqueuer, helpers.throwIllegalArgumentException, registry);
       } else if (cls == coreClasses.functionClass) {
-        enqueueClass(enqueuer, closureClass, registry);
+        enqueueClass(enqueuer, helpers.closureClass, registry);
       } else if (cls == coreClasses.mapClass) {
         // The backend will use a literal list to initialize the entries
         // of the map.
         enqueueClass(enqueuer, coreClasses.listClass, registry);
-        enqueueClass(enqueuer, mapLiteralClass, registry);
+        enqueueClass(enqueuer, helpers.mapLiteralClass, registry);
         // For map literals, the dependency between the implementation class
         // and [Map] is not visible, so we have to add it manually.
-        rti.registerRtiDependency(mapLiteralClass, cls);
-      } else if (cls == boundClosureClass) {
+        rti.registerRtiDependency(helpers.mapLiteralClass, cls);
+      } else if (cls == helpers.boundClosureClass) {
         // TODO(johnniwinther): Is this a noop?
-        enqueueClass(enqueuer, boundClosureClass, registry);
+        enqueueClass(enqueuer, helpers.boundClosureClass, registry);
       } else if (isNativeOrExtendsNative(cls)) {
-        enqueue(enqueuer, getNativeInterceptorMethod, registry);
-        enqueueClass(enqueuer, jsInterceptorClass, compiler.globalDependencies);
-        enqueueClass(enqueuer, jsJavaScriptObjectClass, registry);
-        enqueueClass(enqueuer, jsPlainJavaScriptObjectClass, registry);
-        enqueueClass(enqueuer, jsJavaScriptFunctionClass, registry);
-      } else if (cls == mapLiteralClass) {
+        enqueue(enqueuer, helpers.getNativeInterceptorMethod, registry);
+        enqueueClass(enqueuer, helpers.jsInterceptorClass,
+            compiler.globalDependencies);
+        enqueueClass(enqueuer, helpers.jsJavaScriptObjectClass, registry);
+        enqueueClass(enqueuer, helpers.jsPlainJavaScriptObjectClass, registry);
+        enqueueClass(enqueuer, helpers.jsJavaScriptFunctionClass, registry);
+      } else if (cls == helpers.mapLiteralClass) {
         // For map literals, the dependency between the implementation class
         // and [Map] is not visible, so we have to add it manually.
         Element getFactory(String name, int arity) {
@@ -1294,13 +1148,14 @@ class JavaScriptBackend extends Backend {
           // have a patch class.
           ClassElement implementation = cls.patch != null ? cls.patch : cls;
           ConstructorElement ctor = implementation.lookupConstructor(name);
-          if (ctor == null
-              || (Name.isPrivateName(name)
-                  && ctor.library != mapLiteralClass.library)) {
-            reporter.internalError(mapLiteralClass,
-                                   "Map literal class $mapLiteralClass missing "
-                                   "'$name' constructor"
-                                   "  ${mapLiteralClass.constructors}");
+          if (ctor == null ||
+              (Name.isPrivateName(name) &&
+               ctor.library != helpers.mapLiteralClass.library)) {
+            reporter.internalError(
+                helpers.mapLiteralClass,
+                "Map literal class ${helpers.mapLiteralClass} missing "
+                "'$name' constructor"
+                "  ${helpers.mapLiteralClass.constructors}");
           }
           return ctor;
         }
@@ -1310,79 +1165,79 @@ class JavaScriptBackend extends Backend {
           ClassElement implementation = cls.patch != null ? cls.patch : cls;
           Element element = implementation.lookupLocalMember(name);
           if (element == null || !element.isFunction || !element.isStatic) {
-            reporter.internalError(mapLiteralClass,
-                "Map literal class $mapLiteralClass missing "
+            reporter.internalError(helpers.mapLiteralClass,
+                "Map literal class ${helpers.mapLiteralClass} missing "
                 "'$name' static member function");
           }
           return element;
         }
-        mapLiteralConstructor = getFactory('_literal', 1);
-        mapLiteralConstructorEmpty = getFactory('_empty', 0);
-        enqueueInResolution(mapLiteralConstructor, registry);
-        enqueueInResolution(mapLiteralConstructorEmpty, registry);
+        helpers.mapLiteralConstructor = getFactory('_literal', 1);
+        helpers.mapLiteralConstructorEmpty = getFactory('_empty', 0);
+        enqueueInResolution(helpers.mapLiteralConstructor, registry);
+        enqueueInResolution(helpers.mapLiteralConstructorEmpty, registry);
 
-        mapLiteralUntypedMaker = getMember('_makeLiteral');
-        mapLiteralUntypedEmptyMaker = getMember('_makeEmpty');
-        enqueueInResolution(mapLiteralUntypedMaker, registry);
-        enqueueInResolution(mapLiteralUntypedEmptyMaker, registry);
+        helpers.mapLiteralUntypedMaker = getMember('_makeLiteral');
+        helpers.mapLiteralUntypedEmptyMaker = getMember('_makeEmpty');
+        enqueueInResolution(helpers.mapLiteralUntypedMaker, registry);
+        enqueueInResolution(helpers.mapLiteralUntypedEmptyMaker, registry);
       }
     }
-    if (cls == closureClass) {
-      enqueue(enqueuer, findHelper('closureFromTearOff'), registry);
+    if (cls == helpers.closureClass) {
+      enqueue(enqueuer, helpers.closureFromTearOff, registry);
     }
     if (cls == coreClasses.stringClass ||
-        cls == jsStringClass) {
-      addInterceptors(jsStringClass, enqueuer, registry);
+        cls == helpers.jsStringClass) {
+      addInterceptors(helpers.jsStringClass, enqueuer, registry);
     } else if (cls == coreClasses.listClass ||
-               cls == jsArrayClass ||
-               cls == jsFixedArrayClass ||
-               cls == jsExtendableArrayClass ||
-               cls == jsUnmodifiableArrayClass) {
-      addInterceptors(jsArrayClass, enqueuer, registry);
-      addInterceptors(jsMutableArrayClass, enqueuer, registry);
-      addInterceptors(jsFixedArrayClass, enqueuer, registry);
-      addInterceptors(jsExtendableArrayClass, enqueuer, registry);
-      addInterceptors(jsUnmodifiableArrayClass, enqueuer, registry);
+               cls == helpers.jsArrayClass ||
+               cls == helpers.jsFixedArrayClass ||
+               cls == helpers.jsExtendableArrayClass ||
+               cls == helpers.jsUnmodifiableArrayClass) {
+      addInterceptors(helpers.jsArrayClass, enqueuer, registry);
+      addInterceptors(helpers.jsMutableArrayClass, enqueuer, registry);
+      addInterceptors(helpers.jsFixedArrayClass, enqueuer, registry);
+      addInterceptors(helpers.jsExtendableArrayClass, enqueuer, registry);
+      addInterceptors(helpers.jsUnmodifiableArrayClass, enqueuer, registry);
     } else if (cls == coreClasses.intClass ||
-               cls == jsIntClass) {
-      addInterceptors(jsIntClass, enqueuer, registry);
-      addInterceptors(jsPositiveIntClass, enqueuer, registry);
-      addInterceptors(jsUInt32Class, enqueuer, registry);
-      addInterceptors(jsUInt31Class, enqueuer, registry);
-      addInterceptors(jsNumberClass, enqueuer, registry);
+               cls == helpers.jsIntClass) {
+      addInterceptors(helpers.jsIntClass, enqueuer, registry);
+      addInterceptors(helpers.jsPositiveIntClass, enqueuer, registry);
+      addInterceptors(helpers.jsUInt32Class, enqueuer, registry);
+      addInterceptors(helpers.jsUInt31Class, enqueuer, registry);
+      addInterceptors(helpers.jsNumberClass, enqueuer, registry);
     } else if (cls == coreClasses.doubleClass ||
-               cls == jsDoubleClass) {
-      addInterceptors(jsDoubleClass, enqueuer, registry);
-      addInterceptors(jsNumberClass, enqueuer, registry);
+               cls == helpers.jsDoubleClass) {
+      addInterceptors(helpers.jsDoubleClass, enqueuer, registry);
+      addInterceptors(helpers.jsNumberClass, enqueuer, registry);
     } else if (cls == coreClasses.boolClass ||
-               cls == jsBoolClass) {
-      addInterceptors(jsBoolClass, enqueuer, registry);
+               cls == helpers.jsBoolClass) {
+      addInterceptors(helpers.jsBoolClass, enqueuer, registry);
     } else if (cls == coreClasses.nullClass ||
-               cls == jsNullClass) {
-      addInterceptors(jsNullClass, enqueuer, registry);
+               cls == helpers.jsNullClass) {
+      addInterceptors(helpers.jsNullClass, enqueuer, registry);
     } else if (cls == coreClasses.numClass ||
-               cls == jsNumberClass) {
-      addInterceptors(jsIntClass, enqueuer, registry);
-      addInterceptors(jsPositiveIntClass, enqueuer, registry);
-      addInterceptors(jsUInt32Class, enqueuer, registry);
-      addInterceptors(jsUInt31Class, enqueuer, registry);
-      addInterceptors(jsDoubleClass, enqueuer, registry);
-      addInterceptors(jsNumberClass, enqueuer, registry);
-    } else if (cls == jsJavaScriptObjectClass) {
-      addInterceptors(jsJavaScriptObjectClass, enqueuer, registry);
-    } else if (cls == jsPlainJavaScriptObjectClass) {
-      addInterceptors(jsPlainJavaScriptObjectClass, enqueuer, registry);
-    } else if (cls == jsUnknownJavaScriptObjectClass) {
-      addInterceptors(jsUnknownJavaScriptObjectClass, enqueuer, registry);
-    } else if (cls == jsJavaScriptFunctionClass) {
-      addInterceptors(jsJavaScriptFunctionClass, enqueuer, registry);
+               cls == helpers.jsNumberClass) {
+      addInterceptors(helpers.jsIntClass, enqueuer, registry);
+      addInterceptors(helpers.jsPositiveIntClass, enqueuer, registry);
+      addInterceptors(helpers.jsUInt32Class, enqueuer, registry);
+      addInterceptors(helpers.jsUInt31Class, enqueuer, registry);
+      addInterceptors(helpers.jsDoubleClass, enqueuer, registry);
+      addInterceptors(helpers.jsNumberClass, enqueuer, registry);
+    } else if (cls == helpers.jsJavaScriptObjectClass) {
+      addInterceptors(helpers.jsJavaScriptObjectClass, enqueuer, registry);
+    } else if (cls == helpers.jsPlainJavaScriptObjectClass) {
+      addInterceptors(helpers.jsPlainJavaScriptObjectClass, enqueuer, registry);
+    } else if (cls == helpers.jsUnknownJavaScriptObjectClass) {
+      addInterceptors(helpers.jsUnknownJavaScriptObjectClass, enqueuer, registry);
+    } else if (cls == helpers.jsJavaScriptFunctionClass) {
+      addInterceptors(helpers.jsJavaScriptFunctionClass, enqueuer, registry);
     } else if (isNativeOrExtendsNative(cls)) {
       addInterceptorsForNativeClassMembers(cls, enqueuer);
-    } else if (cls == jsIndexingBehaviorInterface) {
+    } else if (cls == helpers.jsIndexingBehaviorInterface) {
       // These two helpers are used by the emitter and the codegen.
       // Because we cannot enqueue elements at the time of emission,
       // we make sure they are always generated.
-      enqueue(enqueuer, findHelper('isJsIndexable'), registry);
+      enqueue(enqueuer, helpers.isJsIndexable, registry);
     }
 
     customElementsAnalysis.registerInstantiatedClass(cls, enqueuer);
@@ -1404,10 +1259,10 @@ class JavaScriptBackend extends Backend {
     assert(!enqueuer.isResolutionQueue);
     if (!enqueuer.nativeEnqueuer.hasInstantiatedNativeClasses()) return;
     Registry registry = compiler.globalDependencies;
-    enqueue(enqueuer, getNativeInterceptorMethod, registry);
-    enqueueClass(enqueuer, jsJavaScriptObjectClass, registry);
-    enqueueClass(enqueuer, jsPlainJavaScriptObjectClass, registry);
-    enqueueClass(enqueuer, jsJavaScriptFunctionClass, registry);
+    enqueue(enqueuer, helpers.getNativeInterceptorMethod, registry);
+    enqueueClass(enqueuer, helpers.jsJavaScriptObjectClass, registry);
+    enqueueClass(enqueuer, helpers.jsPlainJavaScriptObjectClass, registry);
+    enqueueClass(enqueuer, helpers.jsJavaScriptFunctionClass, registry);
     needToInitializeIsolateAffinityTag = true;
     needToInitializeDispatchProperty = true;
   }
@@ -1417,27 +1272,27 @@ class JavaScriptBackend extends Backend {
   }
 
   void enqueueHelpers(ResolutionEnqueuer world, Registry registry) {
-    assert(interceptorsLibrary != null);
+    assert(helpers.interceptorsLibrary != null);
     // TODO(ngeoffray): Not enqueuing those two classes currently make
     // the compiler potentially crash. However, any reasonable program
     // will instantiate those two classes.
-    addInterceptors(jsBoolClass, world, registry);
-    addInterceptors(jsNullClass, world, registry);
+    addInterceptors(helpers.jsBoolClass, world, registry);
+    addInterceptors(helpers.jsNullClass, world, registry);
     if (compiler.enableTypeAssertions) {
       // Unconditionally register the helper that checks if the
       // expression in an if/while/for is a boolean.
       // TODO(ngeoffray): Should we have the resolver register those instead?
-      Element e = findHelper('boolConversionCheck');
+      Element e = helpers.boolConversionCheck;
       if (e != null) enqueue(world, e, registry);
     }
 
     if (TRACE_CALLS) {
-      traceHelper = findHelper(
-          TRACE_METHOD == 'console' ? 'consoleTraceHelper' : 'postTraceHelper');
+      traceHelper = TRACE_METHOD == 'console'
+          ? helpers.consoleTraceHelper : helpers.postTraceHelper;
       assert(traceHelper != null);
       enqueueInResolution(traceHelper, registry);
     }
-    enqueueInResolution(assertUnreachableMethod, registry);
+    enqueueInResolution(helpers.assertUnreachableMethod, registry);
     registerCheckedModeHelpers(registry);
   }
 
@@ -1487,18 +1342,18 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerBoundClosure(Enqueuer enqueuer) {
-    boundClosureClass.ensureResolved(resolution);
+    helpers.boundClosureClass.ensureResolved(resolution);
     registerInstantiatedType(
-        boundClosureClass.rawType,
+        helpers.boundClosureClass.rawType,
         enqueuer,
         // Precise dependency is not important here.
         compiler.globalDependencies);
   }
 
   void registerGetOfStaticFunction(Enqueuer enqueuer) {
-    closureClass.ensureResolved(resolution);
+    helpers.closureClass.ensureResolved(resolution);
     registerInstantiatedType(
-        closureClass.rawType,
+        helpers.closureClass.rawType,
         enqueuer,
         compiler.globalDependencies);
   }
@@ -1549,7 +1404,7 @@ class JavaScriptBackend extends Backend {
       // We will neeed to add the "$is" and "$as" properties on the
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.
-      enqueue(world, findHelper('defineProperty'), registry);
+      enqueue(world, helpers.defineProperty, registry);
     }
   }
 
@@ -1623,16 +1478,18 @@ class JavaScriptBackend extends Backend {
       enqueuer.registerGetOfStaticFunction(compiler.mainFunction);
     }
     if (enqueuer.isResolutionQueue) {
-      for (String name in const [START_ROOT_ISOLATE,
-                                 '_currentIsolate',
-                                 '_callInIsolate']) {
-        Element element = find(isolateHelperLibrary, name);
+
+      void enqueue(Element element) {
         enqueuer.addToWorkList(element);
         compiler.globalDependencies.registerDependency(element);
         helpersUsed.add(element.declaration);
       }
+
+      enqueue(helpers.startRootIsolate);
+      enqueue(helpers.currentIsolate);
+      enqueue(helpers.callInIsolate);
     } else {
-      enqueuer.addToWorkList(find(isolateHelperLibrary, START_ROOT_ISOLATE));
+      enqueuer.addToWorkList(helpers.startRootIsolate);
     }
   }
 
@@ -1648,8 +1505,8 @@ class JavaScriptBackend extends Backend {
     assert(element.name == '==');
     ClassElement classElement = element.enclosingClass;
     return classElement == coreClasses.objectClass
-        || classElement == jsInterceptorClass
-        || classElement == jsNullClass;
+        || classElement == helpers.jsInterceptorClass
+        || classElement == helpers.jsNullClass;
   }
 
   bool methodNeedsRti(FunctionElement function) {
@@ -1750,7 +1607,8 @@ class JavaScriptBackend extends Backend {
     if (kind == ElementKind.TYPEDEF) {
       return const WorldImpact();
     }
-    if (element.isConstructor && element.enclosingClass == jsNullClass) {
+    if (element.isConstructor &&
+        element.enclosingClass == helpers.jsNullClass) {
       // Work around a problem compiling JSNull's constructor.
       return const CodegenImpact();
     }
@@ -1790,9 +1648,12 @@ class JavaScriptBackend extends Backend {
   }
 
   ClassElement defaultSuperclass(ClassElement element) {
-    if (isJsInterop(element)) return jsJavaScriptObjectClass;
+    if (isJsInterop(element)) {
+      return helpers.jsJavaScriptObjectClass;
+    }
     // Native classes inherit from Interceptor.
-    return isNative(element) ? jsInterceptorClass : coreClasses.objectClass;
+    return isNative(element)
+        ? helpers.jsInterceptorClass : coreClasses.objectClass;
   }
 
   /**
@@ -1905,35 +1766,35 @@ class JavaScriptBackend extends Backend {
       assert(!typeCast); // Cannot cast to void.
       if (nativeCheckOnly) return null;
       return 'voidTypeCheck';
-    } else if (element == jsStringClass ||
+    } else if (element == helpers.jsStringClass ||
                element == coreClasses.stringClass) {
       if (nativeCheckOnly) return null;
       return typeCast
           ? 'stringTypeCast'
           : 'stringTypeCheck';
-    } else if (element == jsDoubleClass ||
+    } else if (element == helpers.jsDoubleClass ||
                element == coreClasses.doubleClass) {
       if (nativeCheckOnly) return null;
       return typeCast
           ? 'doubleTypeCast'
           : 'doubleTypeCheck';
-    } else if (element == jsNumberClass ||
+    } else if (element == helpers.jsNumberClass ||
                element == coreClasses.numClass) {
       if (nativeCheckOnly) return null;
       return typeCast
           ? 'numTypeCast'
           : 'numTypeCheck';
-    } else if (element == jsBoolClass ||
+    } else if (element == helpers.jsBoolClass ||
                element == coreClasses.boolClass) {
       if (nativeCheckOnly) return null;
       return typeCast
           ? 'boolTypeCast'
           : 'boolTypeCheck';
-    } else if (element == jsIntClass ||
+    } else if (element == helpers.jsIntClass ||
                element == coreClasses.intClass ||
-               element == jsUInt32Class ||
-               element == jsUInt31Class ||
-               element == jsPositiveIntClass) {
+               element == helpers.jsUInt32Class ||
+               element == helpers.jsUInt31Class ||
+               element == helpers.jsPositiveIntClass) {
       if (nativeCheckOnly) return null;
       return typeCast
           ? 'intTypeCast'
@@ -1959,7 +1820,7 @@ class JavaScriptBackend extends Backend {
             : 'stringSuperTypeCheck';
       }
     } else if ((element == coreClasses.listClass ||
-                element == jsArrayClass) &&
+                element == helpers.jsArrayClass) &&
                type.treatAsRaw) {
       if (nativeCheckOnly) return null;
       return typeCast
@@ -2023,11 +1884,11 @@ class JavaScriptBackend extends Backend {
         element == coreClasses.numClass ||
         element == coreClasses.intClass ||
         element == coreClasses.doubleClass ||
-        element == jsArrayClass ||
-        element == jsMutableArrayClass ||
-        element == jsExtendableArrayClass ||
-        element == jsFixedArrayClass ||
-        element == jsUnmodifiableArrayClass;
+        element == helpers.jsArrayClass ||
+        element == helpers.jsMutableArrayClass ||
+        element == helpers.jsExtendableArrayClass ||
+        element == helpers.jsFixedArrayClass ||
+        element == helpers.jsUnmodifiableArrayClass;
   }
 
   bool mayGenerateInstanceofCheck(DartType type) {
@@ -2041,49 +1902,48 @@ class JavaScriptBackend extends Backend {
   }
 
   bool isNullImplementation(ClassElement cls) {
-    return cls == jsNullClass;
+    return cls == helpers.jsNullClass;
   }
 
-  ClassElement get intImplementation => jsIntClass;
-  ClassElement get uint32Implementation => jsUInt32Class;
-  ClassElement get uint31Implementation => jsUInt31Class;
-  ClassElement get positiveIntImplementation => jsPositiveIntClass;
-  ClassElement get doubleImplementation => jsDoubleClass;
-  ClassElement get numImplementation => jsNumberClass;
-  ClassElement get stringImplementation => jsStringClass;
-  ClassElement get listImplementation => jsArrayClass;
-  ClassElement get constListImplementation => jsUnmodifiableArrayClass;
-  ClassElement get fixedListImplementation => jsFixedArrayClass;
-  ClassElement get growableListImplementation => jsExtendableArrayClass;
-  ClassElement get mapImplementation => mapLiteralClass;
-  ClassElement get constMapImplementation => constMapLiteralClass;
-  ClassElement get typeImplementation => typeLiteralClass;
-  ClassElement get boolImplementation => jsBoolClass;
-  ClassElement get nullImplementation => jsNullClass;
+  ClassElement get intImplementation => helpers.jsIntClass;
+  ClassElement get uint32Implementation => helpers.jsUInt32Class;
+  ClassElement get uint31Implementation => helpers.jsUInt31Class;
+  ClassElement get positiveIntImplementation => helpers.jsPositiveIntClass;
+  ClassElement get doubleImplementation => helpers.jsDoubleClass;
+  ClassElement get numImplementation => helpers.jsNumberClass;
+  ClassElement get stringImplementation => helpers.jsStringClass;
+  ClassElement get listImplementation => helpers.jsArrayClass;
+  ClassElement get constListImplementation => helpers.jsUnmodifiableArrayClass;
+  ClassElement get fixedListImplementation => helpers.jsFixedArrayClass;
+  ClassElement get growableListImplementation => helpers.jsExtendableArrayClass;
+  ClassElement get mapImplementation => helpers.mapLiteralClass;
+  ClassElement get constMapImplementation => helpers.constMapLiteralClass;
+  ClassElement get typeImplementation => helpers.typeLiteralClass;
+  ClassElement get boolImplementation => helpers.jsBoolClass;
+  ClassElement get nullImplementation => helpers.jsNullClass;
 
   void registerStaticUse(Element element, Enqueuer enqueuer) {
-    if (element == disableTreeShakingMarker) {
+    if (element == helpers.disableTreeShakingMarker) {
       compiler.disableTypeInferenceForMirrors = true;
       isTreeShakingDisabled = true;
-    } else if (element == preserveNamesMarker) {
+    } else if (element == helpers.preserveNamesMarker) {
       mustPreserveNames = true;
-    } else if (element == preserveMetadataMarker) {
+    } else if (element == helpers.preserveMetadataMarker) {
       mustRetainMetadata = true;
-    } else if (element == preserveUrisMarker) {
+    } else if (element == helpers.preserveUrisMarker) {
       if (compiler.preserveUris) mustPreserveUris = true;
-    } else if (element == preserveLibraryNamesMarker) {
+    } else if (element == helpers.preserveLibraryNamesMarker) {
       mustRetainLibraryNames = true;
-    } else if (element == getIsolateAffinityTagMarker) {
+    } else if (element == helpers.getIsolateAffinityTagMarker) {
       needToInitializeIsolateAffinityTag = true;
     } else if (element.isDeferredLoaderGetter) {
       // TODO(sigurdm): Create a function registerLoadLibraryAccess.
       if (compiler.loadLibraryFunction == null) {
-        compiler.loadLibraryFunction =
-            findHelper("_loadLibraryWrapper");
+        compiler.loadLibraryFunction = helpers.loadLibraryWrapper;
         enqueueInResolution(compiler.loadLibraryFunction,
                             compiler.globalDependencies);
       }
-    } else if (element == requiresPreambleMarker) {
+    } else if (element == helpers.requiresPreambleMarker) {
       requiresPreamble = true;
     }
     customElementsAnalysis.registerStaticUse(element, enqueuer);
@@ -2135,39 +1995,7 @@ class JavaScriptBackend extends Backend {
   }
 
   void onLibraryCreated(LibraryElement library) {
-    Uri uri = library.canonicalUri;
-    if (uri == DART_JS_HELPER) {
-      jsHelperLibrary = library;
-    } else if (uri == Uris.dart_async) {
-      asyncLibrary = library;
-    } else if (uri == Uris.dart__internal) {
-      internalLibrary = library;
-    } else if (uri ==  DART_INTERCEPTORS) {
-      interceptorsLibrary = library;
-    } else if (uri ==  DART_FOREIGN_HELPER) {
-      foreignLibrary = library;
-    } else if (uri == DART_ISOLATE_HELPER) {
-      isolateHelperLibrary = library;
-    }
-  }
-
-  void initializeHelperClasses() {
-    final List missingHelperClasses = [];
-    ClassElement lookupHelperClass(String name) {
-      ClassElement result = findHelper(name);
-      if (result == null) {
-        missingHelperClasses.add(name);
-      }
-      return result;
-    }
-    jsInvocationMirrorClass = lookupHelperClass('JSInvocationMirror');
-    boundClosureClass = lookupHelperClass('BoundClosure');
-    closureClass = lookupHelperClass('Closure');
-    if (!missingHelperClasses.isEmpty) {
-      reporter.internalError(jsHelperLibrary,
-          'dart:_js_helper library does not contain required classes: '
-          '$missingHelperClasses');
-    }
+    helpers.onLibraryCreated(library);
   }
 
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
@@ -2183,83 +2011,12 @@ class JavaScriptBackend extends Backend {
         }
       }
     }).then((_) {
+      helpers.onLibraryScanned(library);
       Uri uri = library.canonicalUri;
-
-      FunctionElement findMethod(String name) {
-        return find(library, name);
-      }
-
-      ClassElement findClass(String name) {
-        return find(library, name);
-      }
-
-      if (uri == DART_INTERCEPTORS) {
-        getInterceptorMethod = findMethod('getInterceptor');
-        getNativeInterceptorMethod = findMethod('getNativeInterceptor');
-        jsInterceptorClass = findClass('Interceptor');
-        jsStringClass = findClass('JSString');
-        jsArrayClass = findClass('JSArray');
-        // The int class must be before the double class, because the
-        // emitter relies on this list for the order of type checks.
-        jsIntClass = findClass('JSInt');
-        jsPositiveIntClass = findClass('JSPositiveInt');
-        jsUInt32Class = findClass('JSUInt32');
-        jsUInt31Class = findClass('JSUInt31');
-        jsDoubleClass = findClass('JSDouble');
-        jsNumberClass = findClass('JSNumber');
-        jsNullClass = findClass('JSNull');
-        jsBoolClass = findClass('JSBool');
-        jsMutableArrayClass = findClass('JSMutableArray');
-        jsFixedArrayClass = findClass('JSFixedArray');
-        jsExtendableArrayClass = findClass('JSExtendableArray');
-        jsUnmodifiableArrayClass = findClass('JSUnmodifiableArray');
-        jsPlainJavaScriptObjectClass = findClass('PlainJavaScriptObject');
-        jsJavaScriptObjectClass = findClass('JavaScriptObject');
-        jsJavaScriptFunctionClass = findClass('JavaScriptFunction');
-        jsUnknownJavaScriptObjectClass = findClass('UnknownJavaScriptObject');
-        jsIndexableClass = findClass('JSIndexable');
-        jsMutableIndexableClass = findClass('JSMutableIndexable');
-      } else if (uri == DART_JS_HELPER) {
-        initializeHelperClasses();
-        helpers.assertTest = findHelper('assertTest');
-        helpers.assertThrow = findHelper('assertThrow');
-        helpers.assertHelper = findHelper('assertHelper');
-        assertUnreachableMethod = findHelper('assertUnreachable');
-
-        typeLiteralClass = findClass('TypeImpl');
-        constMapLiteralClass = findClass('ConstantMap');
-        typeVariableClass = findClass('TypeVariable');
-
-        jsIndexingBehaviorInterface = findClass('JavaScriptIndexingBehavior');
-
-        noSideEffectsClass = findClass('NoSideEffects');
-        noThrowsClass = findClass('NoThrows');
-        noInlineClass = findClass('NoInline');
-        forceInlineClass = findClass('ForceInline');
-        irRepresentationClass = findClass('IrRepresentation');
-
-        getIsolateAffinityTagMarker = findMethod('getIsolateAffinityTag');
-
-        requiresPreambleMarker = findMethod('requiresPreamble');
-      } else if (uri == DART_JS_MIRRORS) {
-        disableTreeShakingMarker = find(library, 'disableTreeShaking');
-        preserveMetadataMarker = find(library, 'preserveMetadata');
-        preserveUrisMarker = find(library, 'preserveUris');
-        preserveLibraryNamesMarker = find(library, 'preserveLibraryNames');
-      } else if (uri == DART_JS_NAMES) {
-        preserveNamesMarker = find(library, 'preserveNames');
-      } else if (uri == DART_EMBEDDED_NAMES) {
-        jsGetNameEnum = find(library, 'JsGetName');
-        jsBuiltinEnum = find(library, 'JsBuiltin');
-      } else if (uri == Uris.dart_html) {
+      if (uri == Uris.dart_html) {
         htmlLibraryIsLoaded = true;
-      } else if (uri == PACKAGE_LOOKUP_MAP) {
+      } else if (uri == LookupMapAnalysis.PACKAGE_LOOKUP_MAP) {
         lookupMapAnalysis.init(library);
-      } else if (uri == Uris.dart__native_typed_data) {
-        typedArrayClass = findClass('NativeTypedArray');
-        typedArrayOfIntClass = findClass('NativeTypedArrayOfInt');
-      } else if (uri == PACKAGE_JS) {
-        jsAnnotationClass = find(library, 'JS');
       }
       annotations.onLibraryScanned(library);
     });
@@ -2270,74 +2027,29 @@ class JavaScriptBackend extends Backend {
       return new Future.value();
     }
 
-    assert(loadedLibraries.containsLibrary(Uris.dart_core));
-    assert(loadedLibraries.containsLibrary(DART_INTERCEPTORS));
-    assert(loadedLibraries.containsLibrary(DART_JS_HELPER));
-
-    if (jsInvocationMirrorClass != null) {
-      jsInvocationMirrorClass.ensureResolved(resolution);
-      invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(INVOKE_ON);
-    }
-
-    // [LinkedHashMap] is reexported from dart:collection and can therefore not
-    // be loaded from dart:core in [onLibraryScanned].
-    mapLiteralClass = compiler.coreLibrary.find('LinkedHashMap');
-    assert(invariant(compiler.coreLibrary, mapLiteralClass != null,
-        message: "Element 'LinkedHashMap' not found in 'dart:core'."));
+    helpers.onLibrariesLoaded(loadedLibraries);
 
     implementationClasses = <ClassElement, ClassElement>{};
-    implementationClasses[coreClasses.intClass] = jsIntClass;
-    implementationClasses[coreClasses.boolClass] = jsBoolClass;
-    implementationClasses[coreClasses.numClass] = jsNumberClass;
-    implementationClasses[coreClasses.doubleClass] = jsDoubleClass;
-    implementationClasses[coreClasses.stringClass] = jsStringClass;
-    implementationClasses[coreClasses.listClass] = jsArrayClass;
-    implementationClasses[coreClasses.nullClass] = jsNullClass;
+    implementationClasses[coreClasses.intClass] = helpers.jsIntClass;
+    implementationClasses[coreClasses.boolClass] = helpers.jsBoolClass;
+    implementationClasses[coreClasses.numClass] = helpers.jsNumberClass;
+    implementationClasses[coreClasses.doubleClass] = helpers.jsDoubleClass;
+    implementationClasses[coreClasses.stringClass] = helpers.jsStringClass;
+    implementationClasses[coreClasses.listClass] = helpers.jsArrayClass;
+    implementationClasses[coreClasses.nullClass] = helpers.jsNullClass;
 
     // These methods are overwritten with generated versions.
-    inlineCache.markAsNonInlinable(getInterceptorMethod, insideLoop: true);
-
-    // TODO(kasperl): Some tests do not define the special JSArray
-    // subclasses, so we check to see if they are defined before
-    // trying to resolve them.
-    if (jsFixedArrayClass != null) {
-      jsFixedArrayClass.ensureResolved(resolution);
-    }
-    if (jsExtendableArrayClass != null) {
-      jsExtendableArrayClass.ensureResolved(resolution);
-    }
-    if (jsUnmodifiableArrayClass != null) {
-      jsUnmodifiableArrayClass.ensureResolved(resolution);
-    }
-
-    jsIndexableClass.ensureResolved(resolution);
-    jsIndexableLength = compiler.lookupElementIn(
-        jsIndexableClass, 'length');
-    if (jsIndexableLength != null && jsIndexableLength.isAbstractField) {
-      AbstractFieldElement element = jsIndexableLength;
-      jsIndexableLength = element.getter;
-    }
-
-    jsArrayClass.ensureResolved(resolution);
-    jsArrayTypedConstructor = compiler.lookupElementIn(jsArrayClass, 'typed');
-    jsArrayRemoveLast = compiler.lookupElementIn(jsArrayClass, 'removeLast');
-    jsArrayAdd = compiler.lookupElementIn(jsArrayClass, 'add');
-
-    jsStringClass.ensureResolved(resolution);
-    jsStringSplit = compiler.lookupElementIn(jsStringClass, 'split');
-    jsStringOperatorAdd = compiler.lookupElementIn(jsStringClass, '+');
-    jsStringToString = compiler.lookupElementIn(jsStringClass, 'toString');
-
-    objectEquals = compiler.lookupElementIn(coreClasses.objectClass, '==');
+    inlineCache.markAsNonInlinable(
+        helpers.getInterceptorMethod, insideLoop: true);
 
     specialOperatorEqClasses
         ..add(coreClasses.objectClass)
-        ..add(jsInterceptorClass)
-        ..add(jsNullClass);
+        ..add(helpers.jsInterceptorClass)
+        ..add(helpers.jsNullClass);
 
-    validateInterceptorImplementsAllObjectMethods(jsInterceptorClass);
+    validateInterceptorImplementsAllObjectMethods(helpers.jsInterceptorClass);
     // The null-interceptor must also implement *all* methods.
-    validateInterceptorImplementsAllObjectMethods(jsNullClass);
+    validateInterceptorImplementsAllObjectMethods(helpers.jsNullClass);
 
     return new Future.value();
   }
@@ -2550,11 +2262,11 @@ class JavaScriptBackend extends Backend {
     // As we do not think about closures as classes, yet, we have to make sure
     // their superclasses are available for reflection manually.
     if (foundClosure) {
-      reflectableMembers.add(closureClass);
+      reflectableMembers.add(helpers.closureClass);
     }
     Set<Element> closurizedMembers = compiler.resolverWorld.closurizedMembers;
     if (closurizedMembers.any(reflectableMembers.contains)) {
-      reflectableMembers.add(boundClosureClass);
+      reflectableMembers.add(helpers.boundClosureClass);
     }
     // Add typedefs.
     reflectableMembers
@@ -2590,7 +2302,7 @@ class JavaScriptBackend extends Backend {
         new jsAst.PropertyAccess(use2, dispatchProperty);
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[use1, record];
-    FunctionElement helper = findHelper('isJsIndexable');
+    FunctionElement helper = helpers.isJsIndexable;
     jsAst.Expression helperExpression = emitter.staticFunctionAccess(helper);
     return new jsAst.Call(helperExpression, arguments);
   }
@@ -2603,7 +2315,7 @@ class JavaScriptBackend extends Backend {
         compiler.typedDataClass != null &&
         compiler.world.isInstantiated(compiler.typedDataClass) &&
         mask.satisfies(compiler.typedDataClass, compiler.world) &&
-        mask.satisfies(jsIndexingBehaviorInterface, compiler.world);
+        mask.satisfies(helpers.jsIndexingBehaviorInterface, compiler.world);
   }
 
   bool couldBeTypedArray(TypeMask mask) {
@@ -2617,7 +2329,7 @@ class JavaScriptBackend extends Backend {
         intersects(mask,
             new TypeMask.subtype(compiler.typedDataClass, compiler.world)) &&
         intersects(mask,
-            new TypeMask.subtype(jsIndexingBehaviorInterface, compiler.world));
+            new TypeMask.subtype(helpers.jsIndexingBehaviorInterface, compiler.world));
   }
 
   /// Returns all static fields that are referenced through [targetsUsed].
@@ -2664,7 +2376,7 @@ class JavaScriptBackend extends Backend {
 
     if (compiler.hasIncrementalSupport) {
       // Always enable tear-off closures during incremental compilation.
-      Element e = findHelper('closureFromTearOff');
+      Element e = helpers.closureFromTearOff;
       if (e != null && !enqueuer.isProcessed(e)) {
         registerBackendUse(e);
         enqueuer.addToWorkList(e);
@@ -2730,7 +2442,7 @@ class JavaScriptBackend extends Backend {
       if (!constantValue.isConstructedObject) continue;
       ObjectConstantValue value = constantValue;
       ClassElement cls = value.type.element;
-      if (cls == forceInlineClass) {
+      if (cls == helpers.forceInlineClass) {
         hasForceInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
@@ -2739,7 +2451,7 @@ class JavaScriptBackend extends Backend {
               {'text': "Must inline"});
         }
         inlineCache.markAsMustInline(element);
-      } else if (cls == noInlineClass) {
+      } else if (cls == helpers.noInlineClass) {
         hasNoInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
@@ -2748,7 +2460,7 @@ class JavaScriptBackend extends Backend {
               {'text': "Cannot inline"});
         }
         inlineCache.markAsNonInlinable(element);
-      } else if (cls == noThrowsClass) {
+      } else if (cls == helpers.noThrowsClass) {
         hasNoThrows = true;
         if (!Elements.isStaticOrTopLevelFunction(element) &&
             !element.isFactoryConstructor) {
@@ -2763,7 +2475,7 @@ class JavaScriptBackend extends Backend {
               {'text': "Cannot throw"});
         }
         compiler.world.registerCannotThrow(element);
-      } else if (cls == noSideEffectsClass) {
+      } else if (cls == helpers.noSideEffectsClass) {
         hasNoSideEffects = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
@@ -2786,7 +2498,7 @@ class JavaScriptBackend extends Backend {
       reporter.internalError(element,
           "@NoSideEffects() should always be combined with @NoInline.");
     }
-    if (element == invokeOnMethod) {
+    if (element == helpers.invokeOnMethod) {
       compiler.enabledInvokeOn = true;
     }
   }
@@ -2797,13 +2509,11 @@ class JavaScriptBackend extends Backend {
         : null;
   }
 
-  FunctionElement helperForBadMain() => findHelper('badMain');
+  FunctionElement helperForBadMain() => helpers.badMain;
 
-  FunctionElement helperForMissingMain() => findHelper('missingMain');
+  FunctionElement helperForMissingMain() => helpers.missingMain;
 
-  FunctionElement helperForMainArity() {
-    return findHelper('mainHasTooManyParameters');
-  }
+  FunctionElement helperForMainArity() => helpers.mainHasTooManyParameters;
 
   void forgetElement(Element element) {
     constants.forgetElement(element);
@@ -2978,7 +2688,7 @@ class Annotations {
       // TODO(floitsch): restrict to elements from the test directory.
       return true;
     }
-    return _hasAnnotation(element, backend.noInlineClass);
+    return _hasAnnotation(element, backend.helpers.noInlineClass);
   }
 
   /// Returns `true` if parameter and returns types should be trusted for

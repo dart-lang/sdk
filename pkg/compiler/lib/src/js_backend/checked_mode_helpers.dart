@@ -11,7 +11,7 @@ class CheckedModeHelper {
 
   Element getElement(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    return backend.findHelper(name);
+    return backend.helpers.findHelper(name);
   }
 
   jsAst.Expression generateCall(SsaCodeGenerator codegen,

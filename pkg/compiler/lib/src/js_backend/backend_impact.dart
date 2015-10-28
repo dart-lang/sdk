@@ -139,7 +139,7 @@ class BackendImpacts {
   BackendImpact get constantMapLiteral {
 
     ClassElement find(String name) {
-      return helpers.find(backend.jsHelperLibrary, name);
+      return helpers.find(helpers.jsHelperLibrary, name);
     }
 
     return new BackendImpact(
@@ -206,8 +206,8 @@ class BackendImpacts {
       staticUses: [
         helpers.exceptionUnwrapper],
       instantiatedClasses: [
-        backend.jsPlainJavaScriptObjectClass,
-        backend.jsUnknownJavaScriptObjectClass]);
+        helpers.jsPlainJavaScriptObjectClass,
+        helpers.jsUnknownJavaScriptObjectClass]);
 
   BackendImpact get throwExpression => new BackendImpact(
       // We don't know ahead of time whether we will need the throw in a

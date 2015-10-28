@@ -30,6 +30,8 @@ import '../elements/modelx.dart' show
     FunctionElementX,
     LibraryElementX;
 import '../js/js.dart' as js;
+import '../js_backend/backend_helpers.dart' show
+    BackendHelpers;
 import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show
     CodeEmitterTask,

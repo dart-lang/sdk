@@ -45,6 +45,8 @@ import '../../elements/elements.dart' show
     TypedefElement,
     VariableElement;
 import '../../js/js.dart' as js;
+import '../../js_backend/backend_helpers.dart' show
+    BackendHelpers;
 import '../../js_backend/js_backend.dart' show
     Namer,
     JavaScriptBackend,
@@ -94,6 +96,7 @@ class ProgramBuilder {
         this._registry = new Registry(compiler);
 
   JavaScriptBackend get backend => _compiler.backend;
+  BackendHelpers get helpers => backend.helpers;
   Universe get universe => _compiler.codegenWorld;
 
   /// Mapping from [ClassElement] to constructed [Class]. We need this to
@@ -365,7 +368,7 @@ class ProgramBuilder {
     // a regular getter that returns a JavaScript function and tearing off
     // a method in the case where there exist multiple JavaScript classes
     // that conflict on whether the member is a getter or a method.
-    var interceptorClass = _classes[backend.jsJavaScriptObjectClass];
+    var interceptorClass = _classes[helpers.jsJavaScriptObjectClass];
     var stubNames = new Set<String>();
     librariesMap.forEach((LibraryElement library, List<Element> elements) {
       for (Element e in elements) {
@@ -449,7 +452,7 @@ class ProgramBuilder {
         .map(_buildStaticMethod)
         .toList();
 
-    if (library == backend.interceptorsLibrary) {
+    if (library == helpers.interceptorsLibrary) {
       statics.addAll(_generateGetInterceptorMethods());
       statics.addAll(_generateOneShotInterceptors());
     }
@@ -544,7 +547,7 @@ class ProgramBuilder {
       });
     }
 
-    if (element == backend.closureClass) {
+    if (element == helpers.closureClass) {
       // We add a special getter here to allow for tearing off a closure from
       // itself.
       js.Name name = namer.getterForMember(Names.call);
@@ -574,7 +577,7 @@ class ProgramBuilder {
     List<StubMethod> isChecks = <StubMethod>[];
     if (backend.isJsInterop(element)) {
       typeTests.properties.forEach((js.Name name, js.Node code) {
-        _classes[backend.jsInterceptorClass].isChecks.add(
+        _classes[helpers.jsInterceptorClass].isChecks.add(
             _buildStubMethod(name, code));
       });
     } else {
@@ -814,7 +817,7 @@ class ProgramBuilder {
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(_compiler, namer, backend);
 
-    String holderName = namer.globalObjectFor(backend.interceptorsLibrary);
+    String holderName = namer.globalObjectFor(helpers.interceptorsLibrary);
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
@@ -879,7 +882,7 @@ class ProgramBuilder {
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(_compiler, namer, backend);
 
-    String holderName = namer.globalObjectFor(backend.interceptorsLibrary);
+    String holderName = namer.globalObjectFor(helpers.interceptorsLibrary);
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);

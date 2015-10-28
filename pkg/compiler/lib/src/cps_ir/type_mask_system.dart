@@ -9,6 +9,7 @@ import '../compiler.dart' as dart2js show Compiler;
 import '../constants/values.dart';
 import '../dart_types.dart' as types;
 import '../elements/elements.dart';
+import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;
@@ -49,7 +50,9 @@ class TypeMaskSystem {
 
   TypeMask _indexableTypeTest;
 
-  ClassElement get jsNullClass => backend.jsNullClass;
+  ClassElement get jsNullClass => helpers.jsNullClass;
+
+  BackendHelpers get helpers => backend.helpers;
 
   // TODO(karlklose): remove compiler here.
   TypeMaskSystem(dart2js.Compiler compiler)
@@ -70,7 +73,7 @@ class TypeMaskSystem {
         new TypeMask.unionOf(<TypeMask>[anyNum, anyString, anyBool],
             classWorld);
     interceptorType =
-        new TypeMask.nonNullSubtype(backend.jsInterceptorClass, classWorld);
+        new TypeMask.nonNullSubtype(helpers.jsInterceptorClass, classWorld);
 
     // We redundantly include subtypes of num/string/bool as intercepted types,
     // because the type system does not infer that their implementations are
@@ -78,7 +81,7 @@ class TypeMaskSystem {
     interceptedTypes = new TypeMask.unionOf(
         <TypeMask>[interceptorType, numStringBoolType], classWorld);
 
-    TypeMask typedArray = nonNullSubclass(backend.typedArrayClass);
+    TypeMask typedArray = nonNullSubclass(helpers.typedArrayClass);
     fixedLengthType = new TypeMask.unionOf(
         <TypeMask>[stringType, backend.fixedArrayType, typedArray],
         classWorld);
@@ -87,7 +90,7 @@ class TypeMaskSystem {
     // string because the type inference does not infer that all strings are
     // indexables.
     TypeMask indexable =
-        new TypeMask.nonNullSubtype(backend.jsIndexableClass, classWorld);
+        new TypeMask.nonNullSubtype(helpers.jsIndexableClass, classWorld);
     _indexableTypeTest = new TypeMask.unionOf(
         <TypeMask>[indexable, anyString],
         classWorld);
@@ -96,7 +99,7 @@ class TypeMaskSystem {
   bool methodUsesReceiverArgument(FunctionElement function) {
     assert(backend.isInterceptedMethod(function));
     ClassElement clazz = function.enclosingClass.declaration;
-    return clazz.isSubclassOf(backend.jsInterceptorClass) ||
+    return clazz.isSubclassOf(helpers.jsInterceptorClass) ||
            classWorld.isUsedAsMixin(clazz);
   }
 
@@ -225,7 +228,7 @@ class TypeMaskSystem {
   bool isDefinitelyNonNegativeInt(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
     // The JSPositiveInt class includes zero, despite the name.
-    return t.satisfies(backend.jsPositiveIntClass, classWorld);
+    return t.satisfies(helpers.jsPositiveIntClass, classWorld);
   }
 
   bool isDefinitelyInt(TypeMask t, {bool allowNull: false}) {
@@ -235,17 +238,17 @@ class TypeMaskSystem {
 
   bool isDefinitelyUint31(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.satisfies(backend.jsUInt31Class, classWorld);
+    return t.satisfies(helpers.jsUInt31Class, classWorld);
   }
 
   bool isDefinitelyUint32(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.satisfies(backend.jsUInt32Class, classWorld);
+    return t.satisfies(helpers.jsUInt32Class, classWorld);
   }
 
   bool isDefinitelyUint(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.satisfies(backend.jsPositiveIntClass, classWorld);
+    return t.satisfies(helpers.jsPositiveIntClass, classWorld);
   }
 
   // TODO(sra): Find a better name.  'NativeList' is a bad name because there
@@ -253,22 +256,22 @@ class TypeMaskSystem {
   // should not be) included in this predicate.
   bool isDefinitelyNativeList(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.nonNullable().satisfies(backend.jsArrayClass, classWorld);
+    return t.nonNullable().satisfies(helpers.jsArrayClass, classWorld);
   }
 
   bool isDefinitelyMutableNativeList(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.nonNullable().satisfies(backend.jsMutableArrayClass, classWorld);
+    return t.nonNullable().satisfies(helpers.jsMutableArrayClass, classWorld);
   }
 
   bool isDefinitelyFixedNativeList(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.nonNullable().satisfies(backend.jsFixedArrayClass, classWorld);
+    return t.nonNullable().satisfies(helpers.jsFixedArrayClass, classWorld);
   }
 
   bool isDefinitelyExtendableNativeList(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.nonNullable().satisfies(backend.jsExtendableArrayClass,
+    return t.nonNullable().satisfies(helpers.jsExtendableArrayClass,
                                      classWorld);
   }
 
@@ -279,7 +282,7 @@ class TypeMaskSystem {
 
   bool isDefinitelyMutableIndexable(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.nonNullable().satisfies(backend.jsMutableIndexableClass,
+    return t.nonNullable().satisfies(helpers.jsMutableIndexableClass,
         classWorld);
   }
 
@@ -297,9 +300,9 @@ class TypeMaskSystem {
   /// Given a class from the interceptor hierarchy, returns a [TypeMask]
   /// matching all values with that interceptor (or a subtype thereof).
   TypeMask getInterceptorSubtypes(ClassElement class_) {
-    if (class_ == backend.jsInterceptorClass) {
+    if (class_ == helpers.jsInterceptorClass) {
       return interceptorType.nullable();
-    } else if (class_ == backend.jsNullClass) {
+    } else if (class_ == helpers.jsNullClass) {
       return nullType;
     } else {
       return nonNullSubclass(class_);
@@ -408,8 +411,8 @@ class TypeMaskSystem {
     if (isDefinitelyString(type)) {
       return stringType;
     }
-    if (type.satisfies(backend.typedArrayClass, classWorld)) {
-      if (type.satisfies(backend.typedArrayOfIntClass, classWorld)) {
+    if (type.satisfies(helpers.typedArrayClass, classWorld)) {
+      if (type.satisfies(helpers.typedArrayOfIntClass, classWorld)) {
         return intType;
       }
       return numType;

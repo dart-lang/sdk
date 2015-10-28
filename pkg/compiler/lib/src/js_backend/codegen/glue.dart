@@ -4,6 +4,8 @@
 
 library code_generator_dependencies;
 
+import '../backend_helpers.dart' show
+    BackendHelpers;
 import '../js_backend.dart';
 
 import '../../common.dart';
@@ -39,9 +41,11 @@ class Glue {
 
   CodegenEnqueuer get _enqueuer => _compiler.enqueuer.codegen;
 
-  FunctionElement get getInterceptorMethod => _backend.getInterceptorMethod;
+  FunctionElement get getInterceptorMethod => _helpers.getInterceptorMethod;
 
   JavaScriptBackend get _backend => _compiler.backend;
+
+  BackendHelpers get _helpers => _backend.helpers;
 
   CodeEmitterTask get _emitter => _backend.emitter;
 
@@ -92,11 +96,11 @@ class Glue {
   ClassElement get listClass => _compiler.coreClasses.listClass;
 
   ConstructorElement get mapLiteralConstructor {
-    return _backend.mapLiteralConstructor;
+    return _helpers.mapLiteralConstructor;
   }
 
   ConstructorElement get mapLiteralConstructorEmpty {
-    return _backend.mapLiteralConstructorEmpty;
+    return _helpers.mapLiteralConstructorEmpty;
   }
 
   FunctionElement get identicalFunction => _compiler.identicalFunction;
@@ -106,7 +110,7 @@ class Glue {
   }
 
   FunctionElement get createInvocationMirrorMethod {
-    return _backend.helpers.createInvocationMirror;
+    return _helpers.createInvocationMirror;
   }
 
   void registerUseInterceptorInCodegen() {
@@ -122,7 +126,7 @@ class Glue {
   }
 
   bool isInterceptorClass(ClassElement element) {
-    return element.isSubclassOf(_backend.jsInterceptorClass);
+    return element.isSubclassOf(_helpers.jsInterceptorClass);
   }
 
   Set<ClassElement> getInterceptedClassesOn(Selector selector) {
@@ -161,59 +165,59 @@ class Glue {
 
   js.Expression getInterceptorLibrary() {
     return new js.VariableUse(
-        _backend.namer.globalObjectFor(_backend.interceptorsLibrary));
+        _backend.namer.globalObjectFor(_helpers.interceptorsLibrary));
   }
 
   FunctionElement getWrapExceptionHelper() {
-    return _backend.helpers.wrapExceptionHelper;
+    return _helpers.wrapExceptionHelper;
   }
 
   FunctionElement getExceptionUnwrapper() {
-    return _backend.helpers.exceptionUnwrapper;
+    return _helpers.exceptionUnwrapper;
   }
 
   FunctionElement getTraceFromException() {
-    return _backend.helpers.traceFromException;
+    return _helpers.traceFromException;
   }
 
   FunctionElement getCreateRuntimeType() {
-    return _backend.helpers.createRuntimeType;
+    return _helpers.createRuntimeType;
   }
 
   FunctionElement getRuntimeTypeToString() {
-    return _backend.helpers.runtimeTypeToString;
+    return _helpers.runtimeTypeToString;
   }
 
   FunctionElement getRuntimeTypeArgument() {
-    return _backend.helpers.getRuntimeTypeArgument;
+    return _helpers.getRuntimeTypeArgument;
   }
 
   FunctionElement getTypeArgumentByIndex() {
-    return _backend.helpers.getTypeArgumentByIndex;
+    return _helpers.getTypeArgumentByIndex;
   }
 
   FunctionElement getAddRuntimeTypeInformation() {
-    return _backend.helpers.setRuntimeTypeInfo;
+    return _helpers.setRuntimeTypeInfo;
   }
 
   /// checkSubtype(value, $isT, typeArgs, $asT)
   FunctionElement getCheckSubtype() {
-    return _backend.helpers.checkSubtype;
+    return _helpers.checkSubtype;
   }
 
   /// subtypeCast(value, $isT, typeArgs, $asT)
   FunctionElement getSubtypeCast() {
-    return _backend.helpers.subtypeCast;
+    return _helpers.subtypeCast;
   }
 
   /// checkSubtypeOfRuntime(value, runtimeType)
   FunctionElement getCheckSubtypeOfRuntimeType() {
-    return _backend.helpers.checkSubtypeOfRuntimeType;
+    return _helpers.checkSubtypeOfRuntimeType;
   }
 
   /// subtypeOfRuntimeTypeCast(value, runtimeType)
   FunctionElement getSubtypeOfRuntimeTypeCast() {
-    return _backend.helpers.subtypeOfRuntimeTypeCast;
+    return _helpers.subtypeOfRuntimeTypeCast;
   }
 
   js.Expression getRuntimeTypeName(ClassElement cls) {
@@ -243,7 +247,7 @@ class Glue {
         (_) => arguments[variableIndex++]);
     assert(variableIndex == arguments.length);
     // Representation contains JavaScript Arrays.
-    registry.registerInstantiatedClass(_backend.jsArrayClass);
+    registry.registerInstantiatedClass(_helpers.jsArrayClass);
     return representation;
   }
 
@@ -268,18 +272,18 @@ class Glue {
     return _compiler.world.hasAnyStrictSubtype(element);
   }
 
-  ClassElement get jsFixedArrayClass => _backend.jsFixedArrayClass;
-  ClassElement get jsExtendableArrayClass => _backend.jsExtendableArrayClass;
+  ClassElement get jsFixedArrayClass => _helpers.jsFixedArrayClass;
+  ClassElement get jsExtendableArrayClass => _helpers.jsExtendableArrayClass;
   ClassElement get jsUnmodifiableArrayClass =>
-      _backend.jsUnmodifiableArrayClass;
-  ClassElement get jsMutableArrayClass => _backend.jsMutableArrayClass;
+      _helpers.jsUnmodifiableArrayClass;
+  ClassElement get jsMutableArrayClass => _helpers.jsMutableArrayClass;
 
   bool isStringClass(ClassElement classElement) =>
-      classElement == _backend.jsStringClass ||
+      classElement == _helpers.jsStringClass ||
       classElement == _compiler.coreClasses.stringClass;
 
   bool isBoolClass(ClassElement classElement) =>
-      classElement == _backend.jsBoolClass ||
+      classElement == _helpers.jsBoolClass ||
       classElement == _compiler.coreClasses.boolClass;
 
   // TODO(sra): Should this be part of CodegenRegistry?

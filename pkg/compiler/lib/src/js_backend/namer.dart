@@ -457,6 +457,8 @@ class Namer {
 
   JavaScriptBackend get backend => compiler.backend;
 
+  BackendHelpers get helpers => backend.helpers;
+
   DiagnosticReporter get reporter => compiler.reporter;
 
   CoreClasses get coreClasses => compiler.coreClasses;
@@ -508,8 +510,7 @@ class Namer {
       case JsGetName.FUNCTION_TYPE_NAMED_PARAMETERS_TAG:
         return asName(functionTypeNamedParametersTag);
       case JsGetName.IS_INDEXABLE_FIELD_NAME:
-        Element cls = backend.findHelper('JavaScriptIndexingBehavior');
-        return operatorIs(cls);
+        return operatorIs(helpers.jsIndexingBehaviorInterface);
       case JsGetName.NULL_CLASS_TYPE_NAME:
         return runtimeTypeName(coreClasses.nullClass);
       case JsGetName.OBJECT_CLASS_TYPE_NAME:
@@ -1208,14 +1209,14 @@ class Namer {
   String suffixForGetInterceptor(Iterable<ClassElement> classes) {
     String abbreviate(ClassElement cls) {
       if (cls == coreClasses.objectClass) return "o";
-      if (cls == backend.jsStringClass) return "s";
-      if (cls == backend.jsArrayClass) return "a";
-      if (cls == backend.jsDoubleClass) return "d";
-      if (cls == backend.jsIntClass) return "i";
-      if (cls == backend.jsNumberClass) return "n";
-      if (cls == backend.jsNullClass) return "u";
-      if (cls == backend.jsBoolClass) return "b";
-      if (cls == backend.jsInterceptorClass) return "I";
+      if (cls == helpers.jsStringClass) return "s";
+      if (cls == helpers.jsArrayClass) return "a";
+      if (cls == helpers.jsDoubleClass) return "d";
+      if (cls == helpers.jsIntClass) return "i";
+      if (cls == helpers.jsNumberClass) return "n";
+      if (cls == helpers.jsNullClass) return "u";
+      if (cls == helpers.jsBoolClass) return "b";
+      if (cls == helpers.jsInterceptorClass) return "I";
       return cls.name;
     }
     List<String> names = classes
@@ -1234,8 +1235,8 @@ class Namer {
 
   /// Property name used for `getInterceptor` or one of its specializations.
   jsAst.Name nameForGetInterceptor(Iterable<ClassElement> classes) {
-    FunctionElement getInterceptor = backend.getInterceptorMethod;
-    if (classes.contains(backend.jsInterceptorClass)) {
+    FunctionElement getInterceptor = helpers.getInterceptorMethod;
+    if (classes.contains(helpers.jsInterceptorClass)) {
       // If the base Interceptor class is in the set of intercepted classes, we
       // need to go through the generic getInterceptorMethod, since any subclass
       // of the base Interceptor could match.
@@ -1257,7 +1258,7 @@ class Namer {
     // other global names.
     jsAst.Name root = invocationName(selector);
 
-    if (classes.contains(backend.jsInterceptorClass)) {
+    if (classes.contains(helpers.jsInterceptorClass)) {
       // If the base Interceptor class is in the set of intercepted classes,
       // this is the most general specialization which uses the generic
       // getInterceptor method.
@@ -1367,7 +1368,7 @@ class Namer {
   String globalObjectFor(Element element) {
     if (_isPropertyOfStaticStateHolder(element)) return staticStateHolder;
     LibraryElement library = element.library;
-    if (library == backend.interceptorsLibrary) return 'J';
+    if (library == helpers.interceptorsLibrary) return 'J';
     if (library.isInternalLibrary) return 'H';
     if (library.isPlatformLibrary) {
       if ('${library.canonicalUri}' == 'dart:html') return 'W';

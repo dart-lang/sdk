@@ -34,8 +34,10 @@ class NativeEmitter {
 
   JavaScriptBackend get backend => compiler.backend;
 
+  BackendHelpers get helpers => backend.helpers;
+
   jsAst.Expression get defPropFunction {
-    Element element = backend.findHelper('defineProperty');
+    Element element = helpers.defineProperty;
     return emitterTask.staticFunctionAccess(element);
   }
 
@@ -90,7 +92,7 @@ class NativeEmitter {
         objectClass = cls;
         return;
       }
-      if (cls.element == backend.jsInterceptorClass) {
+      if (cls.element == helpers.jsInterceptorClass) {
         jsInterceptorClass = cls;
         return;
       }
@@ -262,7 +264,7 @@ class NativeEmitter {
       FunctionElement member,
       List<jsAst.Parameter> stubParameters) {
     FunctionSignature parameters = member.functionSignature;
-    Element converter = backend.findHelper('convertDartClosureToJS');
+    Element converter = helpers.closureConverter;
     jsAst.Expression closureConverter =
         emitterTask.staticFunctionAccess(converter);
     parameters.forEachParameter((ParameterElement parameter) {

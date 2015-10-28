@@ -327,7 +327,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
         ? (hasProtoKey ? JavaScriptMapConstant.DART_PROTO_CLASS
                        : JavaScriptMapConstant.DART_STRING_CLASS)
         : JavaScriptMapConstant.DART_GENERAL_CLASS;
-    ClassElement classElement = backend.jsHelperLibrary.find(className);
+    ClassElement classElement = backend.helpers.jsHelperLibrary.find(className);
     classElement.ensureResolved(compiler.resolution);
     List<DartType> typeArgument = sourceType.typeArguments;
     InterfaceType type;

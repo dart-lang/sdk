@@ -531,7 +531,7 @@ void test() {
   runTest(TEST_14, {'f': (types) => types.uint31Type});
   runTest(TEST_15, {'f': (types) {
                             ClassElement cls =
-                                types.compiler.backend.jsIndexableClass;
+                                types.compiler.backend.helpers.jsIndexableClass;
                             return new TypeMask.nonNullSubtype(cls,
                                 types.compiler.world);
                          }});

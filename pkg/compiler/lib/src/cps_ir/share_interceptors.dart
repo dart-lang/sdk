@@ -10,6 +10,7 @@ import 'loop_hierarchy.dart';
 import 'cps_fragment.dart';
 import '../constants/values.dart';
 import '../elements/elements.dart';
+import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../types/types.dart' show TypeMask;
 import '../io/source_information.dart' show SourceInformation;
@@ -39,6 +40,8 @@ class ShareInterceptors extends TrampolineRecursiveVisitor implements Pass {
   Continuation currentLoopHeader;
 
   ShareInterceptors(this.backend);
+
+  BackendHelpers get helpers => backend.helpers;
 
   void rewrite(FunctionDefinition node) {
     loopHierarchy = new LoopHierarchy(node);
@@ -87,11 +90,11 @@ class ShareInterceptors extends TrampolineRecursiveVisitor implements Pass {
   }
 
   bool hasNoFalsyValues(ClassElement class_) {
-    return class_ != backend.jsInterceptorClass &&
-       class_ != backend.jsNullClass &&
-       class_ != backend.jsBoolClass &&
-       class_ != backend.jsStringClass &&
-       !class_.isSubclassOf(backend.jsNumberClass);
+    return class_ != helpers.jsInterceptorClass &&
+       class_ != helpers.jsNullClass &&
+       class_ != helpers.jsBoolClass &&
+       class_ != helpers.jsStringClass &&
+       !class_.isSubclassOf(helpers.jsNumberClass);
   }
 
   Continuation getCurrentOuterLoop({Continuation scope}) {

@@ -190,7 +190,7 @@ class ParameterStubGenerator {
                                                    {bool canTearOff: true}) {
     if (member.enclosingElement.isClosure) {
       ClosureClassElement cls = member.enclosingElement;
-      if (cls.supertype.element == backend.boundClosureClass) {
+      if (cls.supertype.element == backend.helpers.boundClosureClass) {
         reporter.internalError(cls.methodElement, 'Bound closure1.');
       }
       if (cls.methodElement.isInstanceMember) {

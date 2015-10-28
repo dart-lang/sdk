@@ -40,6 +40,8 @@ import '../io/code_output.dart' show
     CodeBuffer;
 import '../io/source_information.dart' show
     SourceInformationStrategy;
+import '../js_backend/backend_helpers.dart' as js_backend show
+    BackendHelpers;
 import '../js_backend/js_backend.dart' as js_backend show
     JavaScriptBackend;
 import '../library_loader.dart' show
@@ -289,8 +291,8 @@ abstract class Backend {
     // TODO(johnniwinther): Remove this when patching is only done by the
     // JavaScript backend.
     Uri canonicalUri = library.canonicalUri;
-    if (canonicalUri == js_backend.JavaScriptBackend.DART_JS_HELPER ||
-        canonicalUri == js_backend.JavaScriptBackend.DART_INTERCEPTORS) {
+    if (canonicalUri == js_backend.BackendHelpers.DART_JS_HELPER ||
+        canonicalUri == js_backend.BackendHelpers.DART_INTERCEPTORS) {
       return true;
     }
     return false;

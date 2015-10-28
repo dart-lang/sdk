@@ -502,7 +502,7 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
                 ConstantValue constant) {
     JavaScriptBackend backend = compiler.backend;
     if (constant.getType(compiler.coreTypes).element !=
-        backend.jsAnnotationClass) {
+        backend.helpers.jsAnnotationClass) {
       compiler.reporter.internalError(annotation, 'Invalid @JS(...) annotation.');
     }
   }
