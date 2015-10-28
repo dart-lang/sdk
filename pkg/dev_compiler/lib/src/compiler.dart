@@ -32,6 +32,7 @@ import 'info.dart'
     show AnalyzerMessage, CheckerResults, LibraryInfo, LibraryUnit;
 import 'options.dart';
 import 'report.dart';
+import 'report/html_reporter.dart';
 
 /// Sets up the type checker logger to print a span that highlights error
 /// messages.
@@ -67,8 +68,10 @@ bool compile(CompilerOptions options) {
   var reporter = createErrorReporter(context, options);
   bool status = new BatchCompiler(context, options, reporter: reporter).run();
 
-  if (options.dumpInfo && reporter is SummaryReporter) {
-    var result = (reporter as SummaryReporter).result;
+  if (reporter is HtmlReporter) {
+    reporter.finish(options);
+  } else if (options.dumpInfo && reporter is SummaryReporter) {
+    var result = reporter.result;
     print(summaryToString(result));
     if (options.dumpInfoFile != null) {
       var file = new File(options.dumpInfoFile);
@@ -476,7 +479,7 @@ abstract class AbstractCompiler {
 
 AnalysisErrorListener createErrorReporter(
     AnalysisContext context, CompilerOptions options) {
-  return options.dumpInfo
+  return options.htmlReport ? new HtmlReporter(context) : options.dumpInfo
       ? new SummaryReporter(context, options.logLevel)
       : new LogReporter(context, useColors: options.useColors);
 }
