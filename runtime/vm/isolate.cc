@@ -1076,6 +1076,7 @@ void Isolate::DoneLoading() {
       lib.SetLoaded();
     }
   }
+  TokenStream::CloseSharedTokenList(this);
 }
 
 

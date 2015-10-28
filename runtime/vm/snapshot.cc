@@ -194,7 +194,7 @@ SnapshotReader::SnapshotReader(
       library_(Library::Handle(zone_)),
       type_(AbstractType::Handle(zone_)),
       type_arguments_(TypeArguments::Handle(zone_)),
-      tokens_(Array::Handle(zone_)),
+      tokens_(GrowableObjectArray::Handle(zone_)),
       stream_(TokenStream::Handle(zone_)),
       data_(ExternalTypedData::Handle(zone_)),
       typed_data_(TypedData::Handle(zone_)),

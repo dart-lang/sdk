@@ -88,6 +88,8 @@ ObjectStore::ObjectStore()
     handle_message_function_(Function::null()),
     library_load_error_table_(Array::null()),
     compile_time_constants_(Array::null()),
+    token_objects_(GrowableObjectArray::null()),
+    token_objects_map_(Array::null()),
     megamorphic_cache_table_(GrowableObjectArray::null()),
     megamorphic_miss_code_(Code::null()),
     megamorphic_miss_function_(Function::null()) {

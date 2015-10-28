@@ -666,6 +666,11 @@ void Object::InitOnce(Isolate* isolate) {
   cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   cls.set_num_type_arguments(1);
   cls.set_num_own_type_arguments(1);
+  cls = Class::New<GrowableObjectArray>();
+  isolate->object_store()->set_growable_object_array_class(cls);
+  cls.set_type_arguments_field_offset(
+      GrowableObjectArray::type_arguments_offset());
+  cls.set_num_type_arguments(1);
   cls = Class::NewStringClass(kOneByteStringCid);
   isolate->object_store()->set_one_byte_string_class(cls);
   cls = Class::NewStringClass(kTwoByteStringCid);
@@ -3083,7 +3088,7 @@ static RawFunction* EvaluateHelper(const Class& cls,
   const Library& lib = Library::Handle(cls.library());
   ASSERT(!lib.IsNull());
   const String& lib_key = String::Handle(lib.private_key());
-  script.Tokenize(lib_key);
+  script.Tokenize(lib_key, false);
 
   const Function& func = Function::Handle(
        Function::NewEvalFunction(cls, script, is_static));
@@ -8062,12 +8067,12 @@ void LiteralToken::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-RawArray* TokenStream::TokenObjects() const {
+RawGrowableObjectArray* TokenStream::TokenObjects() const {
   return raw_ptr()->token_objects_;
 }
 
 
-void TokenStream::SetTokenObjects(const Array& value) const {
+void TokenStream::SetTokenObjects(const GrowableObjectArray& value) const {
   StorePointer(&raw_ptr()->token_objects_, value.raw());
 }
 
@@ -8349,10 +8354,6 @@ class CompressedTokenTraits {
       return String::Cast(key).Hash();
     }
   }
-
-  static RawObject* NewKey(const Scanner::TokenDescriptor& descriptor) {
-    return LiteralToken::New(descriptor.kind, *descriptor.literal);
-  }
 };
 typedef UnorderedHashMap<CompressedTokenTraits> CompressedTokenMap;
 
@@ -8361,33 +8362,60 @@ typedef UnorderedHashMap<CompressedTokenTraits> CompressedTokenMap;
 class CompressedTokenStreamData : public ValueObject {
  public:
   static const intptr_t kInitialBufferSize = 16 * KB;
-  CompressedTokenStreamData() :
+  static const bool kPrintTokenObjects = false;
+
+  CompressedTokenStreamData(const GrowableObjectArray& ta,
+                            CompressedTokenMap* map) :
       buffer_(NULL),
       stream_(&buffer_, Reallocate, kInitialBufferSize),
-      tokens_(HashTables::New<CompressedTokenMap>(kInitialTableSize)) {
-  }
-  ~CompressedTokenStreamData() {
-    // Safe to discard the hash table now.
-    tokens_.Release();
+      token_objects_(ta),
+      tokens_(map),
+      value_(Object::Handle()),
+      fresh_index_smi_(Smi::Handle()) {
   }
 
   // Add an IDENT token into the stream and the token hash map.
-  void AddIdentToken(const String* ident) {
-    ASSERT(ident->IsSymbol());
-    const intptr_t fresh_index = tokens_.NumOccupied();
+  void AddIdentToken(const String& ident) {
+    ASSERT(ident.IsSymbol());
+    const intptr_t fresh_index = token_objects_.Length();
+    fresh_index_smi_ = Smi::New(fresh_index);
     intptr_t index = Smi::Value(Smi::RawCast(
-        tokens_.InsertOrGetValue(*ident,
-                                 Smi::Handle(Smi::New(fresh_index)))));
+        tokens_->InsertOrGetValue(ident, fresh_index_smi_)));
+    if (index == fresh_index) {
+      token_objects_.Add(ident);
+      if (kPrintTokenObjects) {
+        int iid = Isolate::Current()->main_port() % 1024;
+        OS::Print("ident  %03x  %p <%s>\n",
+                  iid, ident.raw(), ident.ToCString());
+      }
+    }
     WriteIndex(index);
   }
 
   // Add a LITERAL token into the stream and the token hash map.
   void AddLiteralToken(const Scanner::TokenDescriptor& descriptor) {
     ASSERT(descriptor.literal->IsSymbol());
-    const intptr_t fresh_index = tokens_.NumOccupied();
-    intptr_t index = Smi::Value(Smi::RawCast(
-        tokens_.InsertNewOrGetValue(descriptor,
-                                    Smi::Handle(Smi::New(fresh_index)))));
+    bool is_present = false;
+    value_ = tokens_->GetOrNull(descriptor, &is_present);
+    intptr_t index = -1;
+    if (is_present) {
+      ASSERT(value_.IsSmi());
+      index = Smi::Cast(value_).Value();
+    } else {
+      const intptr_t fresh_index = token_objects_.Length();
+      fresh_index_smi_ = Smi::New(fresh_index);
+      const LiteralToken& lit = LiteralToken::Handle(
+          LiteralToken::New(descriptor.kind, *descriptor.literal));
+      index = Smi::Value(Smi::RawCast(
+          tokens_->InsertOrGetValue(lit, fresh_index_smi_)));
+      token_objects_.Add(lit);
+      if (kPrintTokenObjects) {
+        int iid = Isolate::Current()->main_port() % 1024;
+        printf("lit    %03x  %p  %p  %p  <%s>\n",
+               iid, token_objects_.raw(), lit.literal(), lit.value(),
+               String::Handle(lit.literal()).ToCString());
+      }
+    }
     WriteIndex(index);
   }
 
@@ -8402,20 +8430,6 @@ class CompressedTokenStreamData : public ValueObject {
   // Return the compressed token stream length.
   intptr_t Length() const { return stream_.bytes_written(); }
 
-  // Generate and return the token objects array.
-  RawArray* MakeTokenObjectsArray() const {
-    Array& result = Array::Handle(
-        Array::New(tokens_.NumOccupied(), Heap::kOld));
-    CompressedTokenMap::Iterator it(&tokens_);
-    Object& key = Object::Handle();
-    while (it.MoveNext()) {
-      intptr_t entry = it.Current();
-      key = tokens_.GetKey(entry);
-      result.SetAt(Smi::Value(Smi::RawCast(tokens_.GetPayload(entry, 0))), key);
-    }
-    return result.raw();
-  }
-
  private:
   void WriteIndex(intptr_t value) {
     stream_.WriteUnsigned(value + Token::kNumTokens);
@@ -8428,27 +8442,53 @@ class CompressedTokenStreamData : public ValueObject {
     return reinterpret_cast<uint8_t*>(new_ptr);
   }
 
-  static const intptr_t kInitialTableSize = 32;
-
   uint8_t* buffer_;
   WriteStream stream_;
-  CompressedTokenMap tokens_;
+  const GrowableObjectArray& token_objects_;
+  CompressedTokenMap* tokens_;
+  Object& value_;
+  Smi& fresh_index_smi_;
 
   DISALLOW_COPY_AND_ASSIGN(CompressedTokenStreamData);
 };
 
 
 RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
-                                 const String& private_key) {
-  Zone* zone = Thread::Current()->zone();
+                                 const String& private_key,
+                                 bool use_shared_tokens) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   // Copy the relevant data out of the scanner into a compressed stream of
   // tokens.
-  CompressedTokenStreamData data;
+
+  GrowableObjectArray& token_objects = GrowableObjectArray::Handle(zone);
+  Array& token_objects_map = Array::Handle(zone);
+  if (use_shared_tokens) {
+    // Use the shared token objects array in the object store. Allocate
+    // a new array if necessary.
+    ObjectStore* store = thread->isolate()->object_store();
+    if (store->token_objects() == GrowableObjectArray::null()) {
+      OpenSharedTokenList(thread->isolate());
+    }
+    token_objects = store->token_objects();
+    token_objects_map = store->token_objects_map();
+  } else {
+    // Use new, non-shared token array.
+    const int kInitialPrivateCapacity = 256;
+    token_objects =
+        GrowableObjectArray::New(kInitialPrivateCapacity, Heap::kOld);
+    token_objects_map =
+        HashTables::New<CompressedTokenMap>(kInitialPrivateCapacity,
+                                            Heap::kOld);
+  }
+  CompressedTokenMap map(token_objects_map.raw());
+  CompressedTokenStreamData data(token_objects, &map);
+
   intptr_t len = tokens.length();
   for (intptr_t i = 0; i < len; i++) {
     Scanner::TokenDescriptor token = tokens[i];
     if (token.kind == Token::kIDENT) {  // Identifier token.
-      data.AddIdentToken(token.literal);
+      data.AddIdentToken(*token.literal);
     } else if (Token::NeedsLiteralToken(token.kind)) {  // Literal token.
       data.AddLiteralToken(token);
     } else {  // Keyword, pseudo keyword etc.
@@ -8466,14 +8506,37 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
   stream.AddFinalizer(data.GetStream(), DataFinalizer);
   const TokenStream& result = TokenStream::Handle(zone, New());
   result.SetPrivateKey(private_key);
-  const Array& token_objects =
-      Array::Handle(zone, data.MakeTokenObjectsArray());
   {
     NoSafepointScope no_safepoint;
     result.SetStream(stream);
     result.SetTokenObjects(token_objects);
   }
+
+  token_objects_map = map.Release().raw();
+  if (use_shared_tokens) {
+    thread->isolate()->object_store()->set_token_objects_map(token_objects_map);
+  }
   return result.raw();
+}
+
+
+void TokenStream::OpenSharedTokenList(Isolate* isolate) {
+  const int kInitialSharedCapacity = 5*1024;
+  ObjectStore* store = isolate->object_store();
+  ASSERT(store->token_objects() == GrowableObjectArray::null());
+  const GrowableObjectArray& token_objects = GrowableObjectArray::Handle(
+      GrowableObjectArray::New(kInitialSharedCapacity, Heap::kOld));
+  store->set_token_objects(token_objects);
+  const Array& token_objects_map = Array::Handle(
+      HashTables::New<CompressedTokenMap>(kInitialSharedCapacity,
+                                          Heap::kOld));
+  store->set_token_objects_map(token_objects_map);
+}
+
+
+void TokenStream::CloseSharedTokenList(Isolate* isolate) {
+  isolate->object_store()->set_token_objects(GrowableObjectArray::Handle());
+  isolate->object_store()->set_token_objects_map(Array::null_array());
 }
 
 
@@ -8505,7 +8568,7 @@ TokenStream::Iterator::Iterator(const TokenStream& tokens,
     : tokens_(TokenStream::Handle(tokens.raw())),
       data_(ExternalTypedData::Handle(tokens.GetStream())),
       stream_(reinterpret_cast<uint8_t*>(data_.DataAddr(0)), data_.Length()),
-      token_objects_(Array::Handle(tokens.TokenObjects())),
+      token_objects_(GrowableObjectArray::Handle(tokens.TokenObjects())),
       obj_(Object::Handle()),
       cur_token_pos_(token_pos),
       cur_token_kind_(Token::kILLEGAL),
@@ -8776,7 +8839,8 @@ void Script::set_tokens(const TokenStream& value) const {
 }
 
 
-void Script::Tokenize(const String& private_key) const {
+void Script::Tokenize(const String& private_key,
+                      bool use_shared_tokens) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const TokenStream& tkns = TokenStream::Handle(zone, tokens());
@@ -8791,7 +8855,8 @@ void Script::Tokenize(const String& private_key) const {
   Scanner scanner(src, private_key);
   const Scanner::GrowableTokenStream& ts = scanner.GetStream();
   INC_STAT(thread, num_tokens_scanned, ts.length());
-  set_tokens(TokenStream::Handle(zone, TokenStream::New(ts, private_key)));
+  set_tokens(TokenStream::Handle(zone,
+      TokenStream::New(ts, private_key, use_shared_tokens)));
   INC_STAT(thread, src_length, src.Length());
 }
 

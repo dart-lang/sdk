@@ -918,7 +918,7 @@ class RawTokenStream : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->private_key_);
   }
   RawString* private_key_;  // Key used for private identifiers.
-  RawArray* token_objects_;
+  RawGrowableObjectArray* token_objects_;
   RawExternalTypedData* stream_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->stream_);

@@ -3130,8 +3130,8 @@ class LiteralToken : public Object {
 
 class TokenStream : public Object {
  public:
-  RawArray* TokenObjects() const;
-  void SetTokenObjects(const Array& value) const;
+  RawGrowableObjectArray* TokenObjects() const;
+  void SetTokenObjects(const GrowableObjectArray& value) const;
 
   RawExternalTypedData* GetStream() const;
   void SetStream(const ExternalTypedData& stream) const;
@@ -3151,7 +3151,11 @@ class TokenStream : public Object {
 
   static RawTokenStream* New(intptr_t length);
   static RawTokenStream* New(const Scanner::GrowableTokenStream& tokens,
-                             const String& private_key);
+                             const String& private_key,
+                             bool use_shared_tokens);
+
+  static void OpenSharedTokenList(Isolate* isolate);
+  static void CloseSharedTokenList(Isolate* isolate);
 
   // The class Iterator encapsulates iteration over the tokens
   // in a TokenStream object.
@@ -3196,7 +3200,7 @@ class TokenStream : public Object {
     TokenStream& tokens_;
     ExternalTypedData& data_;
     ReadStream stream_;
-    Array& token_objects_;
+    GrowableObjectArray& token_objects_;
     Object& obj_;
     intptr_t cur_token_pos_;
     Token::Kind cur_token_kind_;
@@ -3233,7 +3237,8 @@ class Script : public Object {
 
   RawTokenStream* tokens() const { return raw_ptr()->tokens_; }
 
-  void Tokenize(const String& private_key) const;
+  void Tokenize(const String& private_key,
+                bool use_shared_tokens = true) const;
 
   RawLibrary* FindLibrary() const;
   RawString* GetLine(intptr_t line_number,

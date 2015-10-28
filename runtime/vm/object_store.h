@@ -429,6 +429,20 @@ class ObjectStore {
     compile_time_constants_ = value.raw();
   }
 
+  RawGrowableObjectArray* token_objects() const {
+    return token_objects_;
+  }
+  void set_token_objects(const GrowableObjectArray& value) {
+    token_objects_ = value.raw();
+  }
+
+  RawArray* token_objects_map() const {
+    return token_objects_map_;
+  }
+  void set_token_objects_map(const Array& value) {
+    token_objects_map_ = value.raw();
+  }
+
   RawGrowableObjectArray* megamorphic_cache_table() const {
     return megamorphic_cache_table_;
   }
@@ -536,6 +550,8 @@ class ObjectStore {
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&compile_time_constants_);
   }
+  RawGrowableObjectArray* token_objects_;
+  RawArray* token_objects_map_;
   RawGrowableObjectArray* megamorphic_cache_table_;
   RawCode* megamorphic_miss_code_;
   RawFunction* megamorphic_miss_function_;

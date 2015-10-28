@@ -173,7 +173,7 @@ TEST_CASE(TokenStream) {
   EXPECT_EQ(6, ts.length());
   EXPECT_EQ(Token::kLPAREN, ts[1].kind);
   const TokenStream& token_stream = TokenStream::Handle(
-      TokenStream::New(ts, private_key));
+      TokenStream::New(ts, private_key, false));
   TokenStream::Iterator iterator(token_stream, 0);
   // EXPECT_EQ(6, token_stream.Length());
   iterator.Advance();  // Advance to '(' token.

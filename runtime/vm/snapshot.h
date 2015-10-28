@@ -362,7 +362,7 @@ class SnapshotReader : public BaseReader {
   String* StringHandle() { return &str_; }
   AbstractType* TypeHandle() { return &type_; }
   TypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
-  Array* TokensHandle() { return &tokens_; }
+  GrowableObjectArray* TokensHandle() { return &tokens_; }
   TokenStream* StreamHandle() { return &stream_; }
   ExternalTypedData* DataHandle() { return &data_; }
   TypedData* TypedDataHandle() { return &typed_data_; }
@@ -539,7 +539,7 @@ class SnapshotReader : public BaseReader {
   Library& library_;  // Temporary library handle.
   AbstractType& type_;  // Temporary type handle.
   TypeArguments& type_arguments_;  // Temporary type argument handle.
-  Array& tokens_;  // Temporary tokens handle.
+  GrowableObjectArray& tokens_;  // Temporary tokens handle.
   TokenStream& stream_;  // Temporary token stream handle.
   ExternalTypedData& data_;  // Temporary stream data handle.
   TypedData& typed_data_;  // Temporary typed data handle.

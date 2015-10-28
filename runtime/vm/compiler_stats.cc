@@ -37,11 +37,6 @@ class TokenStreamVisitor : public ObjectVisitor {
       Token::Kind kind = tkit.CurrentTokenKind();
       while (kind != Token::kEOS) {
         ++stats_->num_tokens_total;
-        if (kind == Token::kIDENT) {
-          ++stats_->num_ident_tokens_total;
-        } else if (Token::NeedsLiteralToken(kind)) {
-          ++stats_->num_literal_tokens_total;
-        }
         tkit.Advance();
         kind = tkit.CurrentTokenKind();
       }
@@ -71,8 +66,6 @@ CompilerStats::CompilerStats(Isolate* isolate)
       graphcompiler_timer(true, "flow graph compiler timer"),
       codefinalizer_timer(true, "code finalization timer"),
       num_tokens_total(0),
-      num_literal_tokens_total(0),
-      num_ident_tokens_total(0),
       num_tokens_scanned(0),
       num_tokens_consumed(0),
       num_cached_consts(0),
@@ -117,8 +110,6 @@ void CompilerStats::Update() {
   // Traverse the heap and compute number of tokens in all
   // TokenStream objects.
   num_tokens_total = 0;
-  num_literal_tokens_total = 0;
-  num_ident_tokens_total = 0;
   TokenStreamVisitor visitor(isolate_, this);
   isolate_->heap()->IterateObjects(&visitor);
   Dart::vm_isolate()->heap()->IterateObjects(&visitor);
@@ -199,8 +190,6 @@ char* CompilerStats::PrintToZone() {
   log.Print("==== Compiler Stats for isolate '%s' ====\n",
             isolate_->debugger_name());
   log.Print("Number of tokens:        %" Pd64 "\n", num_tokens_total);
-  log.Print("  Literal tokens:        %" Pd64 "\n", num_literal_tokens_total);
-  log.Print("  Ident tokens:          %" Pd64 "\n", num_ident_tokens_total);
   log.Print("Source length:           %" Pd64 " characters\n", src_length);
   log.Print("Number of source tokens: %" Pd64 "\n", num_tokens_scanned);
 
