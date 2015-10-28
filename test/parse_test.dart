@@ -18,6 +18,7 @@ main() {
         },
         'holding': {},
         'program': {'size': 10},
+        'outputUnits': [],
       };
 
       expect(new AllInfoJsonCodec().decode(json).program.size, 10);
