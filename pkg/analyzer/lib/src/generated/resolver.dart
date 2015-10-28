@@ -665,6 +665,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
     if (condition is BinaryExpression) {
       _checkForPossibleNullConditionInBinaryExpression(condition);
+    } else if (condition is PrefixExpression) {
+      _checkForPossibleNullConditionInPrefixExpression(condition);
     } else {
       _checkForPossibleNullConditionInSimpleExpression(condition);
     }
@@ -682,6 +684,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
             operator.type == TokenType.BAR_BAR)) {
       _checkForPossibleNullCondition(condition.leftOperand);
       _checkForPossibleNullCondition(condition.rightOperand);
+    }
+  }
+
+  /**
+   * Produce a hint if the operand of the given prefix [condition] could
+   * have a value of `null`.
+   */
+  void _checkForPossibleNullConditionInPrefixExpression(
+      PrefixExpression condition) {
+    if (condition.operator?.type == TokenType.BANG) {
+      _checkForPossibleNullCondition(condition.operand);
     }
   }
 

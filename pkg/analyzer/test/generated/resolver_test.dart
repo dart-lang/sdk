@@ -2762,10 +2762,10 @@ f(A a) {
     verify([source]);
   }
 
-  void test_deprecatedAnnotationUse_Deprecated() {
+  void test_deprecatedAnnotationUse_deprecated() {
     Source source = addSource(r'''
 class A {
-  @Deprecated('0.9')
+  @deprecated
   m() {}
   n() {m();}
 }''');
@@ -2774,10 +2774,10 @@ class A {
     verify([source]);
   }
 
-  void test_deprecatedAnnotationUse_deprecated() {
+  void test_deprecatedAnnotationUse_Deprecated() {
     Source source = addSource(r'''
 class A {
-  @deprecated
+  @Deprecated('0.9')
   m() {}
   n() {m();}
 }''');
@@ -3267,6 +3267,17 @@ m(x) {
     Source source = addSource(r'''
 m(x) {
   if (x.a || x.b || x?.c) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_not() {
+    Source source = addSource(r'''
+m(x) {
+  if (!x?.a) {}
 }
 ''');
     computeLibrarySourceErrors(source);
