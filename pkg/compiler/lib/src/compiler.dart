@@ -683,7 +683,7 @@ abstract class Compiler {
       for (Uri uri in disallowedLibraryUris) {
         if (loadedLibraries.containsLibrary(uri)) {
           Set<String> importChains =
-              computeImportChainsFor(loadedLibraries, Uri.parse('dart:io'));
+              computeImportChainsFor(loadedLibraries, uri);
           reporter.reportInfo(NO_LOCATION_SPANNABLE,
              MessageKind.DISALLOWED_LIBRARY_IMPORT,
               {'uri': uri,
