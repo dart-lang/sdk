@@ -1184,22 +1184,85 @@ class CreateInstance extends Primitive {
   }
 }
 
+/// Obtains the interceptor for the given value.  This is a method table
+/// corresponding to the Dart class of the value.
+///
+/// All values are either intercepted or self-intercepted.  The interceptor for
+/// an "intercepted value" is one of the subclasses of Interceptor.
+/// The interceptor for a "self-intercepted value" is the value itself.
+///
+/// If the input is an intercepted value, and any of its superclasses is in
+/// [interceptedClasses], the method table for the input is returned.
+/// Otherwise, the input itself is returned.
+///
+/// There are thus three significant cases:
+/// - the input is a self-interceptor
+/// - the input is an intercepted value and is caught by [interceptedClasses]
+/// - the input is an intercepted value but is bypassed by [interceptedClasses]
+///
+/// The [flags] field indicates which of the above cases may happen, with
+/// additional special cases for null (which can either by intercepted or
+/// bypassed).
 class Interceptor extends Primitive {
   final Reference<Primitive> input;
   final Set<ClassElement> interceptedClasses = new Set<ClassElement>();
   final SourceInformation sourceInformation;
 
-  /// If non-null, all uses of this the interceptor call are guaranteed to
-  /// see this value.
-  ///
-  /// The interceptor call is not immediately replaced by the constant, because
-  /// that might prevent the interceptor from being shared.
-  ///
-  /// The precise input type is not known when sharing interceptors, because
-  /// refinement nodes have been removed by then. So this field carries the
-  /// known constant until we know if it should be shared or replaced by
-  /// the constant.
-  values.InterceptorConstantValue constantValue;
+  /// The input was a self-interceptor.
+  static const int SELF_INTERCEPT = 1 << 0;
+
+  /// A non-null value was mapped to an interceptor that was mentioned in
+  /// [interceptedClasses].
+  static const int NON_NULL_INTERCEPT_EXACT = 1 << 1;
+
+  /// A non-null value was mapped to an interceptor that is a subclass of
+  /// one mentioned in [interceptedClasses].
+  static const int NON_NULL_INTERCEPT_SUBCLASS = 1 << 2;
+
+  /// A non-null intercepted value was bypassed because none of its supertypes
+  /// were mentioned in [interceptedClasses].
+  static const int NON_NULL_BYPASS = 1 << 3;
+
+  /// Null was returned as-is.
+  static const int NULL_BYPASS = 1 << 4;
+
+  /// Null was mapped to JSNull, which was mentioned in [interceptedClasses].
+  static const int NULL_INTERCEPT_EXACT = 1 << 5;
+
+  /// Null was mapped to JSNull, because a superclass thereof (the interceptor
+  /// root class) was mentioned in [interceptedClasses].
+  static const int NULL_INTERCEPT_SUBCLASS = 1 << 6;
+
+  static const int NON_NULL_INTERCEPT = NON_NULL_INTERCEPT_EXACT |
+                                        NON_NULL_INTERCEPT_SUBCLASS;
+  static const int NULL_INTERCEPT = NULL_INTERCEPT_EXACT |
+                                    NULL_INTERCEPT_SUBCLASS;
+  static const int NULL = NULL_BYPASS |
+                          NULL_INTERCEPT;
+  static const int INTERCEPT_EXACT = NON_NULL_INTERCEPT_EXACT |
+                                     NULL_INTERCEPT_EXACT;
+  static const int INTERCEPT_SUBCLASS = NON_NULL_INTERCEPT_SUBCLASS |
+                                        NULL_INTERCEPT_SUBCLASS;
+  static const int INTERCEPT = NULL_INTERCEPT | NON_NULL_INTERCEPT;
+  static const int BYPASS = NULL_BYPASS | NON_NULL_BYPASS;
+
+  static const int ALL_FLAGS = SELF_INTERCEPT | BYPASS | INTERCEPT;
+
+  /// Which of the above cases may happen at runtime. Set by type propagation.
+  int flags = ALL_FLAGS;
+
+  void clearFlag(int flag) {
+    flags &= ~flag;
+  }
+
+  bool get isAlwaysIntercepted => flags & ~INTERCEPT == 0;
+  bool get isAlwaysNullOrIntercepted => flags & ~(NULL | INTERCEPT) == 0;
+
+  /// If the value is intercepted, it always matches exactly a class in
+  /// [interceptedClasses].
+  bool get isInterceptedClassAlwaysExact {
+    return flags & (INTERCEPT & ~INTERCEPT_EXACT) == 0;
+  }
 
   Interceptor(Primitive input, this.sourceInformation)
       : this.input = new Reference<Primitive>(input);

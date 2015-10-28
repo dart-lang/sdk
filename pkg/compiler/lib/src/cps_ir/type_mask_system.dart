@@ -45,6 +45,7 @@ class TypeMaskSystem {
   TypeMask numStringBoolType;
   TypeMask fixedLengthType;
   TypeMask interceptorType;
+  TypeMask interceptedTypes; // Does not include null.
 
   TypeMask _indexableTypeTest;
 
@@ -70,6 +71,12 @@ class TypeMaskSystem {
             classWorld);
     interceptorType =
         new TypeMask.nonNullSubtype(backend.jsInterceptorClass, classWorld);
+
+    // We redundantly include subtypes of num/string/bool as intercepted types,
+    // because the type system does not infer that their implementations are
+    // all subclasses of Interceptor.
+    interceptedTypes = new TypeMask.unionOf(
+        <TypeMask>[interceptorType, numStringBoolType], classWorld);
 
     TypeMask typedArray = nonNullSubclass(backend.typedArrayClass);
     fixedLengthType = new TypeMask.unionOf(
@@ -279,6 +286,24 @@ class TypeMaskSystem {
   bool isDefinitelyFixedLengthIndexable(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
     return fixedLengthType.containsMask(t.nonNullable(), classWorld);
+  }
+
+  bool isDefinitelyIntercepted(TypeMask t, {bool allowNull}) {
+    assert(allowNull != null);
+    if (!allowNull && t.isNullable) return false;
+    return interceptedTypes.containsMask(t.nonNullable(), classWorld);
+  }
+
+  /// Given a class from the interceptor hierarchy, returns a [TypeMask]
+  /// matching all values with that interceptor (or a subtype thereof).
+  TypeMask getInterceptorSubtypes(ClassElement class_) {
+    if (class_ == backend.jsInterceptorClass) {
+      return interceptorType.nullable();
+    } else if (class_ == backend.jsNullClass) {
+      return nullType;
+    } else {
+      return nonNullSubclass(class_);
+    }
   }
 
   bool areDisjoint(TypeMask leftType, TypeMask rightType) {

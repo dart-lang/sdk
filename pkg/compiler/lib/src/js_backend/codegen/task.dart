@@ -214,7 +214,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
       applyCpsPass(new RedundantPhiEliminator(), cpsFunction);
       applyCpsPass(new BoundsChecker(typeSystem, compiler.world), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
-      applyCpsPass(new ShareInterceptors(), cpsFunction);
+      applyCpsPass(new ShareInterceptors(backend), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
     });
     return cpsFunction;

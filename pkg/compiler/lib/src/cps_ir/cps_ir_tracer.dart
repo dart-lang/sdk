@@ -81,17 +81,15 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
         });
       });
       tag("HIR", () {
+        String formatParameter(cps_ir.Parameter param) {
+          return '${names.name(param)} ${param.type}';
+        }
         if (entryPointParameters != null) {
-          String formatParameter(cps_ir.Parameter param) {
-            return '${names.name(param)} ${param.type}';
-          }
           String params = entryPointParameters.map(formatParameter).join(', ');
           printStmt('x0', 'Entry ($params)');
         }
-        for (cps_ir.Parameter param in block.parameters) {
-          String name = names.name(param);
-          printStmt(name, "Parameter $name [useCount=${countUses(param)}]");
-        }
+        String params = block.parameters.map(formatParameter).join(', ');
+        printStmt('x0', 'Parameters ($params)');
         visit(block.body);
       });
     });
@@ -327,7 +325,8 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   visitInterceptor(cps_ir.Interceptor node) {
-    return "Interceptor(${formatReference(node.input)})";
+    return 'Interceptor(${formatReference(node.input)}, '
+           '${node.interceptedClasses})';
   }
 
   visitCreateFunction(cps_ir.CreateFunction node) {

@@ -666,6 +666,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   JavaScriptBackend get backend => compiler.backend;
   TypeMaskSystem get typeSystem => lattice.typeSystem;
   types.DartTypes get dartTypes => lattice.dartTypes;
+  World get classWorld => typeSystem.classWorld;
   Map<Variable, ConstantValue> get values => analyzer.values;
 
   final InternalErrorFunction internalError;
@@ -2202,39 +2203,131 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
   Primitive visitInterceptor(Interceptor node) {
     AbstractValue value = getValue(node.input.definition);
-    // If the exact class of the input is known, replace with a constant
-    // or the input itself.
-    ClassElement singleClass;
-    if (lattice.isDefinitelyInt(value)) {
-      // Classes like JSUInt31 and JSUInt32 do not exist at runtime, so ensure
-      // all the int classes get mapped tor their runtime class.
-      singleClass = backend.jsIntClass;
-    } else if (lattice.isDefinitelyNum(value)) {
-      if (jsNumberClassSuffices(node)) {
-        singleClass = backend.jsNumberClass;
+    TypeMask interceptedInputs = value.type.intersection(
+        typeSystem.interceptorType.nullable(), classWorld);
+    bool interceptNull =
+        node.interceptedClasses.contains(backend.jsNullClass) ||
+        node.interceptedClasses.contains(backend.jsInterceptorClass);
+
+    void filterInterceptedClasses() {
+      if (lattice.isDefinitelyInt(value, allowNull: !interceptNull)) {
+        node.interceptedClasses..clear()..add(backend.jsIntClass);
+        return;
       }
-    } else if (lattice.isDefinitelyNativeList(value)) {
-      // Ensure all the array subclasses get mapped to the array class.
-      singleClass = backend.jsArrayClass;
-    } else {
-      singleClass = typeSystem.singleClass(value.type);
-    }
-    if (singleClass != null &&
-        singleClass.isSubclassOf(backend.jsInterceptorClass)) {
-      node.constantValue = new InterceptorConstantValue(singleClass.rawType);
-    }
-    // Filter out intercepted classes that do not match the input type.
-    node.interceptedClasses.retainWhere((ClassElement clazz) {
-      if (clazz == typeSystem.jsNullClass) {
-        return value.isNullable;
-      } else {
-        TypeMask classMask = typeSystem.nonNullSubclass(clazz);
-        return !typeSystem.areDisjoint(value.type, classMask);
+      if (lattice.isDefinitelyNum(value, allowNull: !interceptNull) &&
+                  jsNumberClassSuffices(node)) {
+        node.interceptedClasses..clear()..add(backend.jsNumberClass);
+        return;
       }
-    });
+      TypeMask interceptedClassesType = new TypeMask.unionOf(
+          node.interceptedClasses.map(typeSystem.getInterceptorSubtypes),
+          classWorld);
+      TypeMask interceptedAndCaught =
+          interceptedInputs.intersection(interceptedClassesType, classWorld);
+      ClassElement single = interceptedAndCaught.singleClass(classWorld);
+      if (single != null) {
+        node.interceptedClasses..clear()..add(backend.getRuntimeClass(single));
+        return;
+      }
+
+      // Filter out intercepted classes that do not match the input type.
+      node.interceptedClasses.retainWhere((ClassElement clazz) {
+        return !typeSystem.areDisjoint(
+            value.type,
+            typeSystem.getInterceptorSubtypes(clazz));
+      });
+
+      // The interceptor root class will usually not be filtered out because all
+      // intercepted values are subtypes of it.  But it can be "shadowed" by a
+      // more specific interceptor classes if all possible intercepted values
+      // will hit one of the more specific classes.
+      //
+      // For example, if all classes can respond to a given call, but we know
+      // the input is a string or an unknown JavaScript object, we want to
+      // use a specialized interceptor:
+      //
+      //   getInterceptor(x).get$hashCode(x);
+      //     ==>
+      //   getInterceptor$su(x).get$hashCode(x)
+      //
+      // In this case, the intercepted classes that were not filtered out above
+      // are {UnknownJavaScriptObject, JSString, Interceptor}, but there is no
+      // need to include the Interceptor class.
+      //
+      // We only do this optimization if the resulting interceptor call is
+      // sufficiently specialized to be worth it (#classes <= 2).
+      // TODO(asgerf): Reconsider when TypeTest interceptors don't intercept
+      //               ALL interceptor classes.
+      if (node.interceptedClasses.length > 1 &&
+          node.interceptedClasses.length < 4 &&
+          node.interceptedClasses.contains(backend.jsInterceptorClass)) {
+        TypeMask specificInterceptors = new TypeMask.unionOf(
+            node.interceptedClasses
+              .where((cl) => cl != backend.jsInterceptorClass)
+              .map(typeSystem.getInterceptorSubtypes),
+            classWorld);
+        if (specificInterceptors.containsMask(interceptedInputs, classWorld)) {
+          // All possible inputs are caught by an Interceptor subclass (or are
+          // self-interceptors), so there is no need to have the check for
+          // the Interceptor root class (which is expensive).
+          node.interceptedClasses.remove(backend.jsInterceptorClass);
+        }
+      }
+    }
+
+    filterInterceptedClasses();
+
     // Remove the interceptor call if it can only return its input.
     if (node.interceptedClasses.isEmpty) {
       node.input.definition.substituteFor(node);
+      return null;
+    }
+
+    node.flags = Interceptor.ALL_FLAGS;
+
+    // If there is only one caught interceptor class, determine more precisely
+    // how this might resolve at runtime.  Later optimizations depend on this,
+    // but do not have refined type information available.
+    if (node.interceptedClasses.length == 1) {
+      ClassElement class_ = node.interceptedClasses.single;
+      if (value.isDefinitelyNotNull) {
+        node.clearFlag(Interceptor.NULL);
+      } else if (interceptNull) {
+        node.clearFlag(Interceptor.NULL_BYPASS);
+        if (class_ == backend.jsNullClass) {
+          node.clearFlag(Interceptor.NULL_INTERCEPT_SUBCLASS);
+        } else {
+          node.clearFlag(Interceptor.NULL_INTERCEPT_EXACT);
+        }
+      } else {
+        node.clearFlag(Interceptor.NULL_INTERCEPT);
+      }
+      if (typeSystem.isDefinitelyIntercepted(value.type, allowNull: true)) {
+        node.clearFlag(Interceptor.SELF_INTERCEPT);
+      }
+      TypeMask interceptedInputsNonNullable = interceptedInputs.nonNullable();
+      TypeMask interceptedType = typeSystem.getInterceptorSubtypes(class_);
+      if (interceptedType.containsMask(interceptedInputsNonNullable,
+              classWorld)) {
+        node.clearFlag(Interceptor.NON_NULL_BYPASS);
+      }
+      if (class_ == backend.jsNumberClass) {
+        // See [jsNumberClassSuffices].  We know that JSInt and JSDouble are
+        // not intercepted classes so JSNumber is sufficient.
+        node.clearFlag(Interceptor.NON_NULL_INTERCEPT_SUBCLASS);
+      } else if (class_ == backend.jsArrayClass) {
+        // JSArray has compile-time subclasses like JSFixedArray, but should
+        // still be considered "exact" if the input is any subclass of JSArray.
+        if (typeSystem.isDefinitelyNativeList(interceptedInputsNonNullable)) {
+          node.clearFlag(Interceptor.NON_NULL_INTERCEPT_SUBCLASS);
+        }
+      } else {
+        TypeMask exactInterceptedType = typeSystem.nonNullExact(class_);
+        if (exactInterceptedType.containsMask(interceptedInputsNonNullable,
+                classWorld)) {
+          node.clearFlag(Interceptor.NON_NULL_INTERCEPT_SUBCLASS);
+        }
+      }
     }
     return null;
   }

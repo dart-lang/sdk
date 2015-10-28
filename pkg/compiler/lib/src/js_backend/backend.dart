@@ -1019,6 +1019,26 @@ class JavaScriptBackend extends Backend {
     });
   }
 
+  /// True if the given class is an internal class used for type inference
+  /// and never exists at runtime.
+  bool isCompileTimeOnlyClass(ClassElement class_) {
+    return class_ == jsPositiveIntClass ||
+           class_ == jsUInt32Class ||
+           class_ == jsUInt31Class ||
+           class_ == jsFixedArrayClass ||
+           class_ == jsUnmodifiableArrayClass ||
+           class_ == jsMutableArrayClass ||
+           class_ == jsExtendableArrayClass;
+  }
+
+  /// Maps compile-time classes to their runtime class.  The runtime class is
+  /// always a superclass or the class itself.
+  ClassElement getRuntimeClass(ClassElement class_) {
+    if (class_.isSubclassOf(jsIntClass)) return jsIntClass;
+    if (class_.isSubclassOf(jsArrayClass)) return jsArrayClass;
+    return class_;
+  }
+
   final Map<String, Set<ClassElement>> interceptedClassesCache =
       new Map<String, Set<ClassElement>>();
 
@@ -1035,6 +1055,7 @@ class JavaScriptBackend extends Backend {
       Set<ClassElement> result = new Set<ClassElement>();
       for (Element element in intercepted) {
         ClassElement classElement = element.enclosingClass;
+        if (isCompileTimeOnlyClass(classElement)) continue;
         if (isNativeOrExtendsNative(classElement)
             || interceptedClasses.contains(classElement)) {
           result.add(classElement);
@@ -3321,4 +3342,3 @@ class Dependency {
 
   const Dependency(this.constant, this.annotatedElement);
 }
-
