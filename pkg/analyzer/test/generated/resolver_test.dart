@@ -12709,70 +12709,6 @@ class TypeOverrideManagerTest extends EngineTestCase {
 
 @reflectiveTest
 class TypePropagationTest extends ResolverTestCase {
-  void fail_finalPropertyInducingVariable_classMember_instance() {
-    addNamedSource(
-        "/lib.dart",
-        r'''
-class A {
-  final v = 0;
-}''');
-    String code = r'''
-import 'lib.dart';
-f(A a) {
-  return a.v; // marker
-}''';
-    _assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
-  void fail_finalPropertyInducingVariable_classMember_instance_inherited() {
-    addNamedSource(
-        "/lib.dart",
-        r'''
-class A {
-  final v = 0;
-}''');
-    String code = r'''
-import 'lib.dart';
-class B extends A {
-  m() {
-    return v; // marker
-  }
-}''';
-    _assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
-  void fail_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
-    addNamedSource(
-        "/lib.dart",
-        r'''
-class A {
-  final v = 0;
-}''');
-    String code = r'''
-import 'lib.dart';
-f(p) {
-  if (p is A) {
-    return p.v; // marker
-  }
-}''';
-    _assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
-  void fail_finalPropertyInducingVariable_classMember_instance_unprefixed() {
-    String code = r'''
-class A {
-  final v = 0;
-  m() {
-    v; // marker
-  }
-}''';
-    _assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
   void fail_finalPropertyInducingVariable_classMember_static() {
     addNamedSource(
         "/lib.dart",
@@ -13093,6 +13029,70 @@ main(CanvasElement canvas) {
     SimpleIdentifier identifier = EngineTestCase.findNode(
         unit, code, "context", (node) => node is SimpleIdentifier);
     expect(identifier.propagatedType.name, "CanvasRenderingContext2D");
+  }
+
+  void test_finalPropertyInducingVariable_classMember_instance() {
+    addNamedSource(
+        "/lib.dart",
+        r'''
+class A {
+  final v = 0;
+}''');
+    String code = r'''
+import 'lib.dart';
+f(A a) {
+  return a.v; // marker
+}''';
+    _assertTypeOfMarkedExpression(
+        code, typeProvider.dynamicType, typeProvider.intType);
+  }
+
+  void test_finalPropertyInducingVariable_classMember_instance_inherited() {
+    addNamedSource(
+        "/lib.dart",
+        r'''
+class A {
+  final v = 0;
+}''');
+    String code = r'''
+import 'lib.dart';
+class B extends A {
+  m() {
+    return v; // marker
+  }
+}''';
+    _assertTypeOfMarkedExpression(
+        code, typeProvider.dynamicType, typeProvider.intType);
+  }
+
+  void test_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
+    addNamedSource(
+        "/lib.dart",
+        r'''
+class A {
+  final v = 0;
+}''');
+    String code = r'''
+import 'lib.dart';
+f(p) {
+  if (p is A) {
+    return p.v; // marker
+  }
+}''';
+    _assertTypeOfMarkedExpression(
+        code, typeProvider.dynamicType, typeProvider.intType);
+  }
+
+  void test_finalPropertyInducingVariable_classMember_instance_unprefixed() {
+    String code = r'''
+class A {
+  final v = 0;
+  m() {
+    v; // marker
+  }
+}''';
+    _assertTypeOfMarkedExpression(
+        code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_forEach() {
