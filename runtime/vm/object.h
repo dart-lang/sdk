@@ -3200,7 +3200,7 @@ class TokenStream : public Object {
     TokenStream& tokens_;
     ExternalTypedData& data_;
     ReadStream stream_;
-    GrowableObjectArray& token_objects_;
+    Array& token_objects_;
     Object& obj_;
     intptr_t cur_token_pos_;
     Token::Kind cur_token_kind_;

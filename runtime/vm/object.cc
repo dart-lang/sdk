@@ -8568,7 +8568,8 @@ TokenStream::Iterator::Iterator(const TokenStream& tokens,
     : tokens_(TokenStream::Handle(tokens.raw())),
       data_(ExternalTypedData::Handle(tokens.GetStream())),
       stream_(reinterpret_cast<uint8_t*>(data_.DataAddr(0)), data_.Length()),
-      token_objects_(GrowableObjectArray::Handle(tokens.TokenObjects())),
+      token_objects_(Array::Handle(
+          GrowableObjectArray::Handle(tokens.TokenObjects()).data())),
       obj_(Object::Handle()),
       cur_token_pos_(token_pos),
       cur_token_kind_(Token::kILLEGAL),
@@ -8584,7 +8585,7 @@ void TokenStream::Iterator::SetStream(const TokenStream& tokens,
   data_ = tokens.GetStream();
   stream_.SetStream(reinterpret_cast<uint8_t*>(data_.DataAddr(0)),
                     data_.Length());
-  token_objects_ = tokens.TokenObjects();
+  token_objects_ = GrowableObjectArray::Handle(tokens.TokenObjects()).data();
   obj_ = Object::null();
   cur_token_pos_ = token_pos;
   cur_token_kind_ = Token::kILLEGAL;
