@@ -48,7 +48,7 @@ const LibraryInfo mock2LibraryInfo = const LibraryInfo(
     platforms: DART2JS_PLATFORM);
 
 
-class CustomCompiler extends Compiler {
+class CustomCompiler extends CompilerImpl {
   final Map<String, LibraryInfo> customLibraryInfo;
 
   CustomCompiler(
@@ -111,7 +111,7 @@ main() {
     Expect.equals(1, actualMessageCount);
   }
 
-  Compiler compiler = new CustomCompiler(
+  CompilerImpl compiler = new CustomCompiler(
       {},
       new LegacyCompilerInput(wrappedProvider),
       new LegacyCompilerDiagnostics(wrappedHandler),

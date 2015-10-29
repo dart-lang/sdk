@@ -54,7 +54,7 @@ Future<MirrorSystem> analyze(List<Uri> libraries,
     diagnosticHandler(uri, begin, end, message, kind);
   }
 
-  Compiler compiler = new apiimpl.Compiler(
+  Compiler compiler = new apiimpl.CompilerImpl(
       new LegacyCompilerInput(inputProvider),
       new LegacyCompilerOutput(),
       new LegacyCompilerDiagnostics(internalDiagnosticHandler),

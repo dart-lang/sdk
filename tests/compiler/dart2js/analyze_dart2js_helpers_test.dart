@@ -10,7 +10,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart' show
     Diagnostic;
 import 'package:compiler/src/apiimpl.dart' show
-    Compiler;
+    CompilerImpl;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/constants/expressions.dart' show
     ConstructedConstantExpression;
@@ -44,7 +44,7 @@ main(List<String> arguments) {
     options.add(Flags.verbose);
   }
   asyncTest(() async {
-    Compiler compiler = compilerFor(
+    CompilerImpl compiler = compilerFor(
         options: options, showDiagnostics: verbose);
     FormattingDiagnosticHandler diagnostics =
         new FormattingDiagnosticHandler(compiler.provider);

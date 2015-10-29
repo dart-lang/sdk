@@ -7,7 +7,7 @@ import 'dart:async';
 import "package:async_helper/async_helper.dart";
 import 'memory_compiler.dart' show runCompiler;
 import 'package:compiler/src/apiimpl.dart' show
-    Compiler;
+    CompilerImpl;
 import 'package:compiler/src/dart_backend/dart_backend.dart' show
     DartBackend;
 import 'package:compiler/src/tree/tree.dart' show
@@ -22,7 +22,7 @@ main() {
   });
 }
 
-Future<Compiler> run({useMirrorHelperLibrary: false, minify: false}) async {
+Future<CompilerImpl> run({useMirrorHelperLibrary: false, minify: false}) async {
   List<String> options = ['--output-type=dart'];
   if (minify) {
     options.add('--minify');
@@ -30,7 +30,7 @@ Future<Compiler> run({useMirrorHelperLibrary: false, minify: false}) async {
   var result = await runCompiler(
       memorySourceFiles: MEMORY_SOURCE_FILES,
       options: options,
-      beforeRun: (Compiler compiler) {
+      beforeRun: (CompilerImpl compiler) {
         DartBackend backend = compiler.backend;
         backend.useMirrorHelperLibrary = useMirrorHelperLibrary;
       });
@@ -38,7 +38,7 @@ Future<Compiler> run({useMirrorHelperLibrary: false, minify: false}) async {
 }
 
 Future testUniqueMinification() async {
-  Compiler compiler = await run(useMirrorHelperLibrary: true, minify: true);
+  CompilerImpl compiler = await run(useMirrorHelperLibrary: true, minify: true);
   DartBackend backend = compiler.backend;
   MirrorRenamerImpl mirrorRenamer = backend.mirrorRenamer;
   Map<Node, String> renames = backend.placeholderRenamer.renames;
@@ -63,7 +63,8 @@ Future testUniqueMinification() async {
 }
 
 Future testNoUniqueMinification() async {
-  Compiler compiler = await run(useMirrorHelperLibrary: false, minify: true);
+  CompilerImpl compiler =
+      await run(useMirrorHelperLibrary: false, minify: true);
   DartBackend backend = compiler.backend;
   Map<Node, String> renames = backend.placeholderRenamer.renames;
 

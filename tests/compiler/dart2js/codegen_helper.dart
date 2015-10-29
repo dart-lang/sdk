@@ -16,7 +16,7 @@ Future<Map<String, String>> generate(String code,
   var provider = new MemorySourceFileProvider({ 'main.dart': code });
   var handler = new FormattingDiagnosticHandler(provider);
 
-  Compiler compiler = new Compiler(provider,
+  CompilerImpl compiler = new CompilerImpl(provider,
                                    const NullCompilerOutput(),
                                    handler,
                                    libraryRoot,

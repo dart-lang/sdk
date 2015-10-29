@@ -131,16 +131,16 @@ Future<CompilationResult> runCompiler(
      CompilerDiagnostics diagnosticHandler,
      CompilerOutput outputProvider,
      List<String> options: const <String>[],
-     Compiler cachedCompiler,
+     CompilerImpl cachedCompiler,
      bool showDiagnostics: true,
      Uri packageRoot,
      Uri packageConfig,
      PackagesDiscoveryProvider packagesDiscoveryProvider,
-     void beforeRun(Compiler compiler)}) async {
+     void beforeRun(CompilerImpl compiler)}) async {
   if (entryPoint == null) {
     entryPoint = Uri.parse('memory:main.dart');
   }
-  Compiler compiler = compilerFor(
+  CompilerImpl compiler = compilerFor(
       memorySourceFiles: memorySourceFiles,
       diagnosticHandler: diagnosticHandler,
       outputProvider: outputProvider,
@@ -158,12 +158,12 @@ Future<CompilationResult> runCompiler(
   return new CompilationResult(compiler, isSuccess: isSuccess);
 }
 
-Compiler compilerFor(
+CompilerImpl compilerFor(
     {Map<String, String> memorySourceFiles: const <String, String>{},
      CompilerDiagnostics diagnosticHandler,
      CompilerOutput outputProvider,
      List<String> options: const <String>[],
-     Compiler cachedCompiler,
+     CompilerImpl cachedCompiler,
      bool showDiagnostics: true,
      Uri packageRoot,
      Uri packageConfig,
@@ -196,7 +196,7 @@ Compiler compilerFor(
     outputProvider = const NullCompilerOutput();
   }
 
-  Compiler compiler = new Compiler(
+  CompilerImpl compiler = new CompilerImpl(
       provider,
       outputProvider,
       diagnosticHandler,

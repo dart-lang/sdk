@@ -8,7 +8,7 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/apiimpl.dart' show
-    Compiler;
+    CompilerImpl;
 import 'memory_compiler.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/elements/elements.dart' show
@@ -33,13 +33,13 @@ String formatTest(Map test) {
   return test[TEST_MAIN_FILE];
 }
 
-String getCodeForMain(Compiler compiler) {
+String getCodeForMain(CompilerImpl compiler) {
   Element mainFunction = compiler.mainFunction;
   js.Node ast = compiler.enqueuer.codegen.generatedCode[mainFunction];
   return js.prettyPrint(ast, compiler).getText();
 }
 
-String getCodeForMethod(Compiler compiler,
+String getCodeForMethod(CompilerImpl compiler,
                         String name) {
   Element foundElement;
   for (Element element in compiler.enqueuer.codegen.generatedCode.keys) {
@@ -70,7 +70,7 @@ runTests(List<TestEntry> tests) {
             memorySourceFiles: files,
             options: <String>['--use-cps-ir']);
         Expect.isTrue(result.isSuccess);
-        Compiler compiler = result.compiler;
+        CompilerImpl compiler = result.compiler;
         String expectation = test.expectation;
         if (expectation != null) {
           String expected = test.expectation;

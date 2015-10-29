@@ -12,7 +12,7 @@ import 'dart:developer' show
     UserTag;
 
 import 'package:compiler/src/apiimpl.dart' show
-    Compiler;
+    CompilerImpl;
 
 import 'package:compiler/compiler_new.dart' show
     CompilerDiagnostics,
@@ -59,7 +59,7 @@ class IncrementalCompiler {
   final List<String> _updates = <String>[];
   final IncrementalCompilerContext _context = new IncrementalCompilerContext();
 
-  Compiler _compiler;
+  CompilerImpl _compiler;
 
   IncrementalCompiler({
       this.libraryRoot,
@@ -86,16 +86,16 @@ class IncrementalCompiler {
 
   LibraryElement get mainApp => _compiler.mainApp;
 
-  Compiler get compiler => _compiler;
+  CompilerImpl get compiler => _compiler;
 
   Future<bool> compile(Uri script) {
-    return _reuseCompiler(null).then((Compiler compiler) {
+    return _reuseCompiler(null).then((CompilerImpl compiler) {
       _compiler = compiler;
       return compiler.run(script);
     });
   }
 
-  Future<Compiler> _reuseCompiler(
+  Future<CompilerImpl> _reuseCompiler(
       Future<bool> reuseLibrary(LibraryElement library)) {
     List<String> options = this.options == null
         ? <String> [] : new List<String>.from(this.options);
@@ -133,7 +133,7 @@ class IncrementalCompiler {
         logVerbose,
         _context);
     _context.registerUriWithUpdates(updatedFiles.keys);
-    Future<Compiler> future = _reuseCompiler(updater.reuseLibrary);
+    Future<CompilerImpl> future = _reuseCompiler(updater.reuseLibrary);
     return future.then((Compiler compiler) {
       _compiler = compiler;
       if (compiler.compilationFailed) {

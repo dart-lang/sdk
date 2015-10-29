@@ -13,7 +13,7 @@ import 'memory_compiler.dart' show
     runCompiler;
 
 import 'package:compiler/src/apiimpl.dart' show
-    Compiler;
+    CompilerImpl;
 
 import 'package:compiler/src/constants/values.dart' show
     ConstantValue,
@@ -55,7 +55,7 @@ void main() {
       memorySourceFiles: MEMORY_SOURCE_FILES,
       diagnosticHandler: new LegacyCompilerDiagnostics(expectOnlyVerboseInfo),
       options: ['--enable-experimental-mirrors']);
-    Compiler compiler = result.compiler;
+    CompilerImpl compiler = result.compiler;
     print('');
     List generatedCode =
         Elements.sortedByPosition(compiler.enqueuer.codegen.generatedCode.keys);

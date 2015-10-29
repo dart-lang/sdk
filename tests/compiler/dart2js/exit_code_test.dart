@@ -32,7 +32,7 @@ import 'package:compiler/src/scanner/scanner_task.dart';
 import 'package:compiler/src/universe/world_impact.dart';
 import 'diagnostic_reporter_helper.dart';
 
-class TestCompiler extends apiimpl.Compiler {
+class TestCompiler extends apiimpl.CompilerImpl {
   final String testMarker;
   final String testType;
   final Function onTest;

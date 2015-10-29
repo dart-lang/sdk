@@ -21,7 +21,7 @@ import 'commandline_options.dart';
 import 'common.dart';
 import 'common/tasks.dart' show
     GenericTask;
-import 'compiler.dart' as leg;
+import 'compiler.dart';
 import 'diagnostics/diagnostic_listener.dart' show
     DiagnosticOptions;
 import 'diagnostics/messages.dart' show
@@ -33,7 +33,9 @@ import 'script.dart';
 const bool forceIncrementalSupport =
     const bool.fromEnvironment('DART2JS_EXPERIMENTAL_INCREMENTAL_SUPPORT');
 
-class Compiler extends leg.Compiler {
+/// Implements the [Compiler] using a [api.CompilerInput] for supplying the
+/// sources.
+class CompilerImpl extends Compiler {
   api.CompilerInput provider;
   api.CompilerDiagnostics handler;
   final Uri libraryRoot;
@@ -50,7 +52,7 @@ class Compiler extends leg.Compiler {
   GenericTask userProviderTask;
   GenericTask userPackagesDiscoveryTask;
 
-  Compiler(this.provider,
+  CompilerImpl(this.provider,
            api.CompilerOutput outputProvider,
            this.handler,
            this.libraryRoot,
@@ -203,7 +205,7 @@ class Compiler extends leg.Compiler {
         null, null, null, null, message, api.Diagnostic.VERBOSE_INFO);
   }
 
-  /// See [leg.Compiler.translateResolvedUri].
+  /// See [Compiler.translateResolvedUri].
   Uri translateResolvedUri(elements.LibraryElement importingLibrary,
                            Uri resolvedUri, Spannable spannable) {
     if (resolvedUri.scheme == 'dart') {

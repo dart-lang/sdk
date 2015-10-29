@@ -23,7 +23,7 @@ void main() {
          '-o${tmpDir.path}/out.js',
          '--library-root=sdk']);
       return result.then((CompilationResult result) {
-        Compiler compiler = result.compiler;
+        CompilerImpl compiler = result.compiler;
         Uri uri =
             new Uri.file('${tmpDir.path}/out.js', windows: Platform.isWindows);
         validateSourceMap(uri,
