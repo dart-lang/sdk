@@ -18,6 +18,11 @@ abstract class SecureSocket implements Socket {
    * [host] on port [port]. The returned Future will complete with a
    * [SecureSocket] that is connected and ready for subscription.
    *
+   * The certificate provided by the server is checked
+   * using the trusted certificates set in the SecurityContext object.
+   * The default SecurityContext object contains a built-in set of trusted
+   * root certificates for well-known certificate authorities.
+   *
    * [onBadCertificate] is an optional handler for unverifiable certificates.
    * The handler receives the [X509Certificate], and can inspect it and
    * decide (or let the user decide) whether to accept
@@ -29,7 +34,6 @@ abstract class SecureSocket implements Socket {
       int port,
       {SecurityContext context,
        bool onBadCertificate(X509Certificate certificate),
-       bool sendClientCertificate,
        List<String> supportedProtocols}) {
     return RawSecureSocket.connect(host,
                                    port,
@@ -166,8 +170,9 @@ abstract class SecureSocket implements Socket {
  * RawSecureServerSocket, also returns RawSecureSocket objects representing
  * the server end of a secure connection.
  * The certificate provided by the server is checked
- * using the trusted certificates set in the SecurityContext object and/or
- * the default built-in root certificates.
+ * using the trusted certificates set in the SecurityContext object.
+ * The default SecurityContext object contains a built-in set of trusted
+ * root certificates for well-known certificate authorities.
  */
 abstract class RawSecureSocket implements RawSocket {
   /**
@@ -176,15 +181,10 @@ abstract class RawSecureSocket implements RawSocket {
    * RawSecureSocket when it is connected and ready for subscription.
    *
    * The certificate provided by the server is checked
-   * using the trusted certificates set in the SecurityContext object and/or
-   * the default built-in
-   * root certificates. If [sendClientCertificate] is
-   * set to true, the socket will send a client certificate if one is
-   * requested by the server. If [certificateName] is the nickname of
-   * a certificate in the certificate database, that certificate will be sent.
-   * If [certificateName] is null, which is the usual use case, an
-   * appropriate certificate will be searched for in the database and
-   * sent automatically, based on what the server says it will accept.
+   * using the trusted certificates set in the SecurityContext object
+   * If a certificate and key are set on the client, using useCertificateChain
+   * and usePrivateKey, and the server asks for a client certificate,
+   * then that client certificate is sent to the server.
    *
    * [onBadCertificate] is an optional handler for unverifiable certificates.
    * The handler receives the [X509Certificate], and can inspect it and
@@ -425,7 +425,6 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
        List<int> bufferedData,
        bool requestClientCertificate: false,
        bool requireClientCertificate: false,
-       bool sendClientCertificate: false,
        bool onBadCertificate(X509Certificate certificate),
        List<String> supportedProtocols}) {
     _verifyFields(host, requestedPort, is_server,
@@ -513,9 +512,6 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
                             requestClientCertificate ||
                                 requireClientCertificate,
                             requireClientCertificate,
-                            // TODO(whesse): Remove sendClientCertificate
-                            // argument, or add it to API.
-                            false, // sendClientCertificate,
                             encodedProtocols);
       _secureHandshake();
     } catch (e, s) {
@@ -1168,7 +1164,6 @@ abstract class _SecureFilter {
                bool is_server,
                bool requestClientCertificate,
                bool requireClientCertificate,
-               bool sendClientCertificate,
                Uint8List protocols);
   void destroy();
   void handshake();
