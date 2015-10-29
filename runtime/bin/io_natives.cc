@@ -96,7 +96,7 @@ namespace bin {
   V(Process_Pid, 1)                                                            \
   V(Process_SetSignalHandler, 1)                                               \
   V(Process_ClearSignalHandler, 1)                                             \
-  V(SecureSocket_Connect, 8)                                                   \
+  V(SecureSocket_Connect, 7)                                                   \
   V(SecureSocket_Destroy, 1)                                                   \
   V(SecureSocket_FilterPointer, 1)                                             \
   V(SecureSocket_GetSelectedProtocol, 1)                                       \

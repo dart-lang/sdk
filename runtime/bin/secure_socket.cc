@@ -184,10 +184,8 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
       DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 4));
   bool require_client_certificate =
       DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 5));
-  bool send_client_certificate =
-      DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 6));
   Dart_Handle protocols_handle =
-      ThrowIfError(Dart_GetNativeArgument(args, 7));
+      ThrowIfError(Dart_GetNativeArgument(args, 6));
 
   const char* host_name = NULL;
   // TODO(whesse): Is truncating a Dart string containing \0 what we want?
@@ -210,7 +208,6 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
                            is_server,
                            request_client_certificate,
                            require_client_certificate,
-                           send_client_certificate,
                            protocols_handle);
 }
 
@@ -891,7 +888,6 @@ void SSLFilter::Connect(const char* hostname,
                         bool is_server,
                         bool request_client_certificate,
                         bool require_client_certificate,
-                        bool send_client_certificate,
                         Dart_Handle protocols_handle) {
   is_server_ = is_server;
   if (in_handshake_) {

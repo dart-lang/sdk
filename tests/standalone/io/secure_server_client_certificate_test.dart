@@ -32,8 +32,8 @@ Future testClientCertificate({bool required, bool sendCert}) async {
   var server = await SecureServerSocket.bind(HOST, 0, serverContext,
       requestClientCertificate: true, requireClientCertificate: required);
   var clientContext = sendCert ? clientCertContext : clientNoCertContext;
-  var clientEndFuture = SecureSocket.connect(HOST, server.port,
-      context: clientContext, sendClientCertificate: true);
+  var clientEndFuture =
+      SecureSocket.connect(HOST, server.port, context: clientContext);
   if (required && !sendCert) {
     try {
       await server.first;

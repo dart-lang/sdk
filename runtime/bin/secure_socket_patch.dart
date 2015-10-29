@@ -81,7 +81,6 @@ class _SecureFilterImpl
                bool is_server,
                bool requestClientCertificate,
                bool requireClientCertificate,
-               bool sendClientCertificate,
                Uint8List protocols) native "SecureSocket_Connect";
 
   void destroy() {
