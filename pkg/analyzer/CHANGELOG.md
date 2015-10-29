@@ -1,3 +1,6 @@
+## 0.26.1+17
+* (Internal) Introduced context configuration logic (`configureContext()` extracted from server).
+
 ## 0.26.1+16
 * (Internal) Options validation plugin API update.
 

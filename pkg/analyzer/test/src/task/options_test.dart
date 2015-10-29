@@ -6,12 +6,13 @@ library test.src.task.options_test;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:unittest/unittest.dart';
+import 'package:yaml/yaml.dart';
 
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
@@ -20,12 +21,69 @@ import '../context/abstract_context.dart';
 
 main() {
   initializeTestEnvironment();
+  runReflectiveTests(ContextConfigurationTest);
   runReflectiveTests(GenerateOptionsErrorsTaskTest);
   runReflectiveTests(OptionsFileValidatorTest);
 }
 
 isInstanceOf isGenerateOptionsErrorsTask =
     new isInstanceOf<GenerateOptionsErrorsTask>();
+
+@reflectiveTest
+class ContextConfigurationTest extends AbstractContextTest {
+  final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
+
+  AnalysisOptions get analysisOptions => context.analysisOptions;
+
+  configureContext(String optionsSource) =>
+      configureContextOptions(context, parseOptions(optionsSource));
+
+  Map<String, YamlNode> parseOptions(String source) =>
+      optionsProvider.getOptionsFromString(source);
+
+  test_configure_enableSuperMixins() {
+    configureContext('''
+analyzer:
+  language:
+    enableSuperMixins: true
+''');
+    expect(analysisOptions.enableSuperMixins, true);
+  }
+
+  test_configure_error_filters() {
+    configureContext('''
+analyzer:
+  errors:
+    invalid_assignment: ignore
+    unused_local_variable: ignore
+''');
+
+    List<ErrorFilter> filters =
+        context.getConfigurationData(CONFIGURED_ERROR_FILTERS);
+    expect(filters, hasLength(2));
+
+    var unused_error = new AnalysisError(
+        new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
+      ['x']
+    ]);
+    var invalid_assignment_error =
+        new AnalysisError(new TestSource(), 0, 1, HintCode.INVALID_ASSIGNMENT, [
+      ['x'],
+      ['y']
+    ]);
+
+    expect(filters.any((filter) => filter(unused_error)), isTrue);
+    expect(filters.any((filter) => filter(invalid_assignment_error)), isTrue);
+  }
+
+  test_configure_strong_mode() {
+    configureContext('''
+analyzer:
+  strong-mode: true
+''');
+    expect(analysisOptions.strongMode, true);
+  }
+}
 
 @reflectiveTest
 class GenerateOptionsErrorsTaskTest extends AbstractContextTest {
@@ -129,8 +187,8 @@ analyzer:
         AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES);
     expect(
         errors[0].message,
-        "The option 'not_supported' is not supported by analyzer, "
-        "supported values are 'errors', 'exclude', 'plugins' and 'strong-mode'");
+        "The option 'not_supported' is not supported by analyzer, supported "
+        "values are 'errors', 'exclude', 'language', 'plugins' and 'strong-mode'");
   }
 }
 
@@ -146,7 +204,7 @@ class OptionsFileValidatorTest {
 analyzer:
   errors:
     unused_local_variable: ignore
-    ''',
+''',
         []);
   }
 
@@ -168,6 +226,36 @@ analyzer:
     not_supported: ignore
     ''',
         [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE]);
+  }
+
+  test_analyzer_language_supported() {
+    validate(
+        '''
+analyzer:
+  language:
+    enableSuperMixins: true
+''',
+        []);
+  }
+
+  test_analyzer_language_unsupported_key() {
+    validate(
+        '''
+analyzer:
+  language:
+    unsupported: true
+''',
+        [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
+  }
+
+  test_analyzer_language_unsupported_value() {
+    validate(
+        '''
+analyzer:
+  language:
+    enableSuperMixins: foo
+''',
+        [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 
   test_analyzer_supported_exclude() {

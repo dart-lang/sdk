@@ -395,8 +395,8 @@ class AnalysisOptionsWarningCode extends ErrorCode {
    * 0: the unrecognized error code
    */
   static const AnalysisOptionsWarningCode UNRECOGNIZED_ERROR_CODE =
-      const AnalysisOptionsWarningCode('UNRECOGNIZED_ERROR_CODE',
-          "'{0}' is not a recognized error code");
+      const AnalysisOptionsWarningCode(
+          'UNRECOGNIZED_ERROR_CODE', "'{0}' is not a recognized error code");
 
   /**
    * Initialize a newly created warning code to have the given [name].
