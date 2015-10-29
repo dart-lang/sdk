@@ -57,10 +57,7 @@ class TypeRules {
   /// return null.
   FunctionType getCallMethodType(DartType t) {
     if (t is InterfaceType) {
-      ClassElement element = t.element;
-      InheritanceManager manager = new InheritanceManager(element.library);
-      FunctionType callType = manager.lookupMemberType(t, "call");
-      return callType;
+      return t.lookUpMethod("call", null)?.type;
     }
     return null;
   }

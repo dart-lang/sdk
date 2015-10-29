@@ -1573,73 +1573,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       Expression target, DartType type, String getterName) {
     type = _resolveTypeParameter(type);
     if (type is InterfaceType) {
-      InterfaceType interfaceType = type;
-      PropertyAccessorElement accessor;
-      if (target is SuperExpression) {
-        accessor = interfaceType.lookUpGetterInSuperclass(
-            getterName, _definingLibrary);
-      } else {
-        accessor = interfaceType.lookUpGetter(getterName, _definingLibrary);
-      }
-      if (accessor != null) {
-        return accessor;
-      }
-      return _lookUpGetterInInterfaces(
-          interfaceType, false, getterName, new HashSet<ClassElement>());
+      return type.lookUpInheritedGetter(getterName,
+          library: _definingLibrary, thisType: target is! SuperExpression);
     }
     return null;
-  }
-
-  /**
-   * Look up the getter with the given [getterName] in the interfaces
-   * implemented by the given [targetType], either directly or indirectly.
-   * Return the element representing the getter that was found, or `null` if
-   * there is no getter with the given name. The flag [includeTargetType] should
-   * be `true` if the search should include the target type. The
-   * [visitedInterfaces] is a set containing all of the interfaces that have
-   * been examined, used to prevent infinite recursion and to optimize the
-   * search.
-   */
-  PropertyAccessorElement _lookUpGetterInInterfaces(
-      InterfaceType targetType,
-      bool includeTargetType,
-      String getterName,
-      HashSet<ClassElement> visitedInterfaces) {
-    // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the
-    // specification (titled "Inheritance and Overriding" under "Interfaces")
-    // describes a much more complex scheme for finding the inherited member.
-    // We need to follow that scheme. The code below should cover the 80% case.
-    ClassElement targetClass = targetType.element;
-    if (visitedInterfaces.contains(targetClass)) {
-      return null;
-    }
-    visitedInterfaces.add(targetClass);
-    if (includeTargetType) {
-      PropertyAccessorElement getter = targetType.getGetter(getterName);
-      if (getter != null && getter.isAccessibleIn(_definingLibrary)) {
-        return getter;
-      }
-    }
-    for (InterfaceType interfaceType in targetType.interfaces) {
-      PropertyAccessorElement getter = _lookUpGetterInInterfaces(
-          interfaceType, true, getterName, visitedInterfaces);
-      if (getter != null) {
-        return getter;
-      }
-    }
-    for (InterfaceType mixinType in targetType.mixins.reversed) {
-      PropertyAccessorElement getter = _lookUpGetterInInterfaces(
-          mixinType, true, getterName, visitedInterfaces);
-      if (getter != null) {
-        return getter;
-      }
-    }
-    InterfaceType superclass = targetType.superclass;
-    if (superclass == null) {
-      return null;
-    }
-    return _lookUpGetterInInterfaces(
-        superclass, true, getterName, visitedInterfaces);
   }
 
   /**
@@ -1650,76 +1587,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   ExecutableElement _lookupGetterOrMethod(DartType type, String memberName) {
     type = _resolveTypeParameter(type);
     if (type is InterfaceType) {
-      InterfaceType interfaceType = type;
-      ExecutableElement member =
-          interfaceType.lookUpMethod(memberName, _definingLibrary);
-      if (member != null) {
-        return member;
-      }
-      member = interfaceType.lookUpGetter(memberName, _definingLibrary);
-      if (member != null) {
-        return member;
-      }
-      return _lookUpGetterOrMethodInInterfaces(
-          interfaceType, false, memberName, new HashSet<ClassElement>());
+      return type.lookUpInheritedGetterOrMethod(memberName,
+          library: _definingLibrary);
     }
     return null;
-  }
-
-  /**
-   * Look up the method or getter with the given [memberName] in the interfaces
-   * implemented by the given [targetType], either directly or indirectly.
-   * Return the element representing the method or getter that was found, or
-   * `null` if there is no method or getter with the given name. The flag
-   * [includeTargetType] should be `true` if the search should include the
-   * target type. The [visitedInterfaces] is a set containing all of the
-   * interfaces that have been examined, used to prevent infinite recursion and
-   * to optimize the search.
-   */
-  ExecutableElement _lookUpGetterOrMethodInInterfaces(
-      InterfaceType targetType,
-      bool includeTargetType,
-      String memberName,
-      HashSet<ClassElement> visitedInterfaces) {
-    // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the
-    // specification (titled "Inheritance and Overriding" under "Interfaces")
-    // describes a much more complex scheme for finding the inherited member.
-    // We need to follow that scheme. The code below should cover the 80% case.
-    ClassElement targetClass = targetType.element;
-    if (visitedInterfaces.contains(targetClass)) {
-      return null;
-    }
-    visitedInterfaces.add(targetClass);
-    if (includeTargetType) {
-      ExecutableElement member = targetType.getMethod(memberName);
-      if (member != null) {
-        return member;
-      }
-      member = targetType.getGetter(memberName);
-      if (member != null) {
-        return member;
-      }
-    }
-    for (InterfaceType interfaceType in targetType.interfaces) {
-      ExecutableElement member = _lookUpGetterOrMethodInInterfaces(
-          interfaceType, true, memberName, visitedInterfaces);
-      if (member != null) {
-        return member;
-      }
-    }
-    for (InterfaceType mixinType in targetType.mixins.reversed) {
-      ExecutableElement member = _lookUpGetterOrMethodInInterfaces(
-          mixinType, true, memberName, visitedInterfaces);
-      if (member != null) {
-        return member;
-      }
-    }
-    InterfaceType superclass = targetType.superclass;
-    if (superclass == null) {
-      return null;
-    }
-    return _lookUpGetterOrMethodInInterfaces(
-        superclass, true, memberName, visitedInterfaces);
   }
 
   /**
@@ -1732,73 +1603,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       Expression target, DartType type, String methodName) {
     type = _resolveTypeParameter(type);
     if (type is InterfaceType) {
-      InterfaceType interfaceType = type;
-      MethodElement method;
-      if (target is SuperExpression) {
-        method = interfaceType.lookUpMethodInSuperclass(
-            methodName, _definingLibrary);
-      } else {
-        method = interfaceType.lookUpMethod(methodName, _definingLibrary);
-      }
-      if (method != null) {
-        return method;
-      }
-      return _lookUpMethodInInterfaces(
-          interfaceType, false, methodName, new HashSet<ClassElement>());
+      return type.lookUpInheritedMethod(methodName,
+          library: _definingLibrary, thisType: target is! SuperExpression);
     }
     return null;
-  }
-
-  /**
-   * Look up the method with the given [methodName] in the interfaces
-   * implemented by the given [targetType], either directly or indirectly.
-   * Return the element representing the method that was found, or `null` if
-   * there is no method with the given name. The flag [includeTargetType] should
-   * be `true` if the search should include the target type. The
-   * [visitedInterfaces] is a set containing all of the interfaces that have
-   * been examined, used to prevent infinite recursion and to optimize the
-   * search.
-   */
-  MethodElement _lookUpMethodInInterfaces(
-      InterfaceType targetType,
-      bool includeTargetType,
-      String methodName,
-      HashSet<ClassElement> visitedInterfaces) {
-    // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the
-    // specification (titled "Inheritance and Overriding" under "Interfaces")
-    // describes a much more complex scheme for finding the inherited member.
-    // We need to follow that scheme. The code below should cover the 80% case.
-    ClassElement targetClass = targetType.element;
-    if (visitedInterfaces.contains(targetClass)) {
-      return null;
-    }
-    visitedInterfaces.add(targetClass);
-    if (includeTargetType) {
-      MethodElement method = targetType.getMethod(methodName);
-      if (method != null && method.isAccessibleIn(_definingLibrary)) {
-        return method;
-      }
-    }
-    for (InterfaceType interfaceType in targetType.interfaces) {
-      MethodElement method = _lookUpMethodInInterfaces(
-          interfaceType, true, methodName, visitedInterfaces);
-      if (method != null) {
-        return method;
-      }
-    }
-    for (InterfaceType mixinType in targetType.mixins.reversed) {
-      MethodElement method = _lookUpMethodInInterfaces(
-          mixinType, true, methodName, visitedInterfaces);
-      if (method != null) {
-        return method;
-      }
-    }
-    InterfaceType superclass = targetType.superclass;
-    if (superclass == null) {
-      return null;
-    }
-    return _lookUpMethodInInterfaces(
-        superclass, true, methodName, visitedInterfaces);
   }
 
   /**
@@ -1811,74 +1619,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       Expression target, DartType type, String setterName) {
     type = _resolveTypeParameter(type);
     if (type is InterfaceType) {
-      InterfaceType interfaceType = type;
-      PropertyAccessorElement accessor;
-      if (target is SuperExpression) {
-        accessor = interfaceType.lookUpSetterInSuperclass(
-            setterName, _definingLibrary);
-      } else {
-        accessor = interfaceType.lookUpSetter(setterName, _definingLibrary);
-      }
-      if (accessor != null) {
-        return accessor;
-      }
-      return _lookUpSetterInInterfaces(
-          interfaceType, false, setterName, new HashSet<ClassElement>());
+      return type.lookUpInheritedSetter(setterName,
+          library: _definingLibrary, thisType: target is! SuperExpression);
     }
     return null;
-  }
-
-  /**
-   * Look up the setter with the given [setterName] in the interfaces
-   * implemented by the given [targetType], either directly or indirectly.
-   * Return the element representing the setter that was found, or `null` if
-   * there is no setter with the given name. The [targetType] is the type in
-   * which the setter might be defined. The flag [includeTargetType] should be
-   * `true` if the search should include the target type. The
-   * [visitedInterfaces] is a set containing all of the interfaces that have
-   * been examined, used to prevent infinite recursion and to optimize the
-   * search.
-   */
-  PropertyAccessorElement _lookUpSetterInInterfaces(
-      InterfaceType targetType,
-      bool includeTargetType,
-      String setterName,
-      HashSet<ClassElement> visitedInterfaces) {
-    // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the
-    // specification (titled "Inheritance and Overriding" under "Interfaces")
-    // describes a much more complex scheme for finding the inherited member.
-    // We need to follow that scheme. The code below should cover the 80% case.
-    ClassElement targetClass = targetType.element;
-    if (visitedInterfaces.contains(targetClass)) {
-      return null;
-    }
-    visitedInterfaces.add(targetClass);
-    if (includeTargetType) {
-      PropertyAccessorElement setter = targetType.getSetter(setterName);
-      if (setter != null && setter.isAccessibleIn(_definingLibrary)) {
-        return setter;
-      }
-    }
-    for (InterfaceType interfaceType in targetType.interfaces) {
-      PropertyAccessorElement setter = _lookUpSetterInInterfaces(
-          interfaceType, true, setterName, visitedInterfaces);
-      if (setter != null) {
-        return setter;
-      }
-    }
-    for (InterfaceType mixinType in targetType.mixins.reversed) {
-      PropertyAccessorElement setter = _lookUpSetterInInterfaces(
-          mixinType, true, setterName, visitedInterfaces);
-      if (setter != null) {
-        return setter;
-      }
-    }
-    InterfaceType superclass = targetType.superclass;
-    if (superclass == null) {
-      return null;
-    }
-    return _lookUpSetterInInterfaces(
-        superclass, true, setterName, visitedInterfaces);
   }
 
   /**

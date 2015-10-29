@@ -4891,9 +4891,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * [element].
    */
   @deprecated // Use new FunctionTypeImpl(element)
-  FunctionTypeImpl.con1(ExecutableElement element)
-      : prunedTypedefs = null,
-        super(element, null);
+  FunctionTypeImpl.con1(ExecutableElement element) : this(element);
 
   /**
    * Initialize a newly created function type to be declared by the given
@@ -4901,8 +4899,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    */
   @deprecated // Use new FunctionTypeImpl.forTypedef(element)
   FunctionTypeImpl.con2(FunctionTypeAliasElement element)
-      : prunedTypedefs = null,
-        super(element, element == null ? null : element.name);
+      : this.forTypedef(element);
 
   /**
    * Initialize a newly created function type to be declared by the given
@@ -6235,6 +6232,62 @@ abstract class InterfaceType implements ParameterizedType {
       String name, LibraryElement library);
 
   /**
+   * Look up the member with the given [name] in this type and all extended
+   * and mixed in classes, and by default including [thisType]. If the search
+   * fails, this will then search interfaces.
+   *
+   * Return the element representing the member that was found, or `null` if
+   * there is no getter with the given name.
+   *
+   * The [library] determines if a private member name is visible, and does not
+   * need to be supplied for public names.
+   */
+  PropertyAccessorElement lookUpInheritedGetter(String name,
+      {LibraryElement library, bool thisType: true});
+
+  /**
+   * Look up the member with the given [name] in this type and all extended
+   * and mixed in classes, starting from this type. If the search fails,
+   * search interfaces.
+   *
+   * Return the element representing the member that was found, or `null` if
+   * there is no getter with the given name.
+   *
+   * The [library] determines if a private member name is visible, and does not
+   * need to be supplied for public names.
+   */
+  ExecutableElement lookUpInheritedGetterOrMethod(String name,
+      {LibraryElement library});
+
+  /**
+   * Look up the member with the given [name] in this type and all extended
+   * and mixed in classes, and by default including [thisType]. If the search
+   * fails, this will then search interfaces.
+   *
+   * Return the element representing the member that was found, or `null` if
+   * there is no getter with the given name.
+   *
+   * The [library] determines if a private member name is visible, and does not
+   * need to be supplied for public names.
+   */
+  MethodElement lookUpInheritedMethod(String name,
+      {LibraryElement library, bool thisType: true});
+
+  /**
+   * Look up the member with the given [name] in this type and all extended
+   * and mixed in classes, and by default including [thisType]. If the search
+   * fails, this will then search interfaces.
+   *
+   * Return the element representing the member that was found, or `null` if
+   * there is no getter with the given name.
+   *
+   * The [library] determines if a private member name is visible, and does not
+   * need to be supplied for public names.
+   */
+  PropertyAccessorElement lookUpInheritedSetter(String name,
+      {LibraryElement library, bool thisType: true});
+
+  /**
    * Return the element representing the method that results from looking up the
    * method with the given [name] in this class with respect to the given
    * [library], or `null` if the look up fails. The behavior of this method is
@@ -6842,6 +6895,71 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  PropertyAccessorElement lookUpInheritedGetter(String name,
+      {LibraryElement library, bool thisType: true}) {
+    PropertyAccessorElement result;
+    if (thisType) {
+      result = lookUpGetter(name, library);
+    } else {
+      result = lookUpGetterInSuperclass(name, library);
+    }
+    if (result != null) {
+      return result;
+    }
+    return _lookUpMemberInInterfaces(this, false, library,
+        new HashSet<ClassElement>(), (InterfaceType t) => t.getGetter(name));
+  }
+
+  @override
+  ExecutableElement lookUpInheritedGetterOrMethod(String name,
+      {LibraryElement library}) {
+    ExecutableElement result =
+        lookUpGetter(name, library) ?? lookUpMethod(name, library);
+
+    if (result != null) {
+      return result;
+    }
+    return _lookUpMemberInInterfaces(
+        this,
+        false,
+        library,
+        new HashSet<ClassElement>(),
+        (InterfaceType t) => t.getGetter(name) ?? t.getMethod(name));
+  }
+
+  @override
+  MethodElement lookUpInheritedMethod(String name,
+      {LibraryElement library, bool thisType: true}) {
+    MethodElement result;
+    if (thisType) {
+      result = lookUpMethod(name, library);
+    } else {
+      result = lookUpMethodInSuperclass(name, library);
+    }
+    if (result != null) {
+      return result;
+    }
+    return _lookUpMemberInInterfaces(this, false, library,
+        new HashSet<ClassElement>(), (InterfaceType t) => t.getMethod(name));
+  }
+
+  @override
+  PropertyAccessorElement lookUpInheritedSetter(String name,
+      {LibraryElement library, bool thisType: true}) {
+    PropertyAccessorElement result;
+    if (thisType) {
+      result = lookUpSetter(name, library);
+    } else {
+      result = lookUpSetterInSuperclass(name, library);
+    }
+    if (result != null) {
+      return result;
+    }
+    return _lookUpMemberInInterfaces(this, false, library,
+        new HashSet<ClassElement>(), (t) => t.getSetter(name));
+  }
+
+  @override
   MethodElement lookUpMethod(String methodName, LibraryElement library) {
     MethodElement element = getMethod(methodName);
     if (element != null && element.isAccessibleIn(library)) {
@@ -7114,6 +7232,58 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     Set<InterfaceType> result = new HashSet<InterfaceType>.from(first);
     result.retainAll(second);
     return new List.from(result);
+  }
+
+  /**
+   * Look up the getter with the given [name] in the interfaces
+   * implemented by the given [targetType], either directly or indirectly.
+   * Return the element representing the getter that was found, or `null` if
+   * there is no getter with the given name. The flag [includeTargetType] should
+   * be `true` if the search should include the target type. The
+   * [visitedInterfaces] is a set containing all of the interfaces that have
+   * been examined, used to prevent infinite recursion and to optimize the
+   * search.
+   */
+  static ExecutableElement _lookUpMemberInInterfaces(
+      InterfaceType targetType,
+      bool includeTargetType,
+      LibraryElement library,
+      HashSet<ClassElement> visitedInterfaces,
+      ExecutableElement getMember(InterfaceType type)) {
+    // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the
+    // specification (titled "Inheritance and Overriding" under "Interfaces")
+    // describes a much more complex scheme for finding the inherited member.
+    // We need to follow that scheme. The code below should cover the 80% case.
+    ClassElement targetClass = targetType.element;
+    if (!visitedInterfaces.add(targetClass)) {
+      return null;
+    }
+    if (includeTargetType) {
+      ExecutableElement member = getMember(targetType);
+      if (member != null && member.isAccessibleIn(library)) {
+        return member;
+      }
+    }
+    for (InterfaceType interfaceType in targetType.interfaces) {
+      ExecutableElement member = _lookUpMemberInInterfaces(
+          interfaceType, true, library, visitedInterfaces, getMember);
+      if (member != null) {
+        return member;
+      }
+    }
+    for (InterfaceType mixinType in targetType.mixins.reversed) {
+      PropertyAccessorElement member = _lookUpMemberInInterfaces(
+          mixinType, true, library, visitedInterfaces, getMember);
+      if (member != null) {
+        return member;
+      }
+    }
+    InterfaceType superclass = targetType.superclass;
+    if (superclass == null) {
+      return null;
+    }
+    return _lookUpMemberInInterfaces(
+        superclass, true, library, visitedInterfaces, getMember);
   }
 }
 
@@ -7517,57 +7687,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     this._imports = imports;
   }
 
-  /** Given an update to this library which may have added or deleted edges
-   * in the import/export graph originating from this node only, remove any
-   * cached library cycles in the element model which may have been invalidated.
-   */
-  void invalidateLibraryCycles() {
-    if (_libraryCycle == null) {
-      // We have already invalidated this node, or we have never computed
-      // library cycle information for it.  In the former case, we're done. In
-      // the latter case, this node cannot be reachable from any node for which
-      // we have computed library cycle information.  Therefore, any edges added
-      // or deleted in the update causing this invalidation can only be edges to
-      // nodes which either have no library cycle information (and hence do not
-      // need invalidation), or which do not reach this node by any path.
-      // In either case, no further invalidation is needed.
-      return;
-    }
-    // If we have pre-computed library cycle information, then we must
-    // invalidate the information both on this element, and on certain
-    // other elements.  Edges originating at this node may have been
-    // added or deleted.  A deleted edge that points outside of this cycle
-    // cannot change the cycle information for anything outside of this cycle,
-    // and so it is sufficient to delete the cached library information on this
-    // cycle.  An added edge which points to another node within the cycle
-    // only invalidates the cycle.  An added edge which points to a node earlier
-    // in the topological sort of cycles induces no invalidation (since there
-    // are by definition no back edges from earlier cycles in the topological
-    // order, and hence no possible cycle can have been introduced.  The only
-    // remaining case is that we have added an edge to a node which is later
-    // in the topological sort of cycles.  This can induce cycles, since it
-    // represents a new back edge.  It would be sufficient to invalidate the
-    // cycle information for all nodes that are between the target and the
-    // node in the topological order.  For simplicity, we simply invalidate
-    // all nodes which are reachable from the the source node.
-    // Note that in the invalidation phase, we do not cut off when we encounter
-    // a node with no library cycle information, since we do not know whether
-    // we are in the case where invalidation has already been performed, or we
-    // are in the case where library cycles have simply never been computed from
-    // a newly reachable node.
-    Set<LibraryElementImpl> active = new HashSet();
-    void invalidate(LibraryElementImpl library) {
-      if (!active.add(library)) return;
-      if (library._libraryCycle != null) {
-        library._libraryCycle.forEach(invalidate);
-        library._libraryCycle = null;
-      }
-      library.exportedLibraries.forEach(invalidate);
-      library.importedLibraries.forEach(invalidate);
-    }
-    invalidate(this);
-  }
-
   @override
   bool get isBrowserApplication =>
       entryPoint != null && isOrImportsBrowserLibrary;
@@ -7803,6 +7922,57 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       }
     }
     return null;
+  }
+
+  /** Given an update to this library which may have added or deleted edges
+   * in the import/export graph originating from this node only, remove any
+   * cached library cycles in the element model which may have been invalidated.
+   */
+  void invalidateLibraryCycles() {
+    if (_libraryCycle == null) {
+      // We have already invalidated this node, or we have never computed
+      // library cycle information for it.  In the former case, we're done. In
+      // the latter case, this node cannot be reachable from any node for which
+      // we have computed library cycle information.  Therefore, any edges added
+      // or deleted in the update causing this invalidation can only be edges to
+      // nodes which either have no library cycle information (and hence do not
+      // need invalidation), or which do not reach this node by any path.
+      // In either case, no further invalidation is needed.
+      return;
+    }
+    // If we have pre-computed library cycle information, then we must
+    // invalidate the information both on this element, and on certain
+    // other elements.  Edges originating at this node may have been
+    // added or deleted.  A deleted edge that points outside of this cycle
+    // cannot change the cycle information for anything outside of this cycle,
+    // and so it is sufficient to delete the cached library information on this
+    // cycle.  An added edge which points to another node within the cycle
+    // only invalidates the cycle.  An added edge which points to a node earlier
+    // in the topological sort of cycles induces no invalidation (since there
+    // are by definition no back edges from earlier cycles in the topological
+    // order, and hence no possible cycle can have been introduced.  The only
+    // remaining case is that we have added an edge to a node which is later
+    // in the topological sort of cycles.  This can induce cycles, since it
+    // represents a new back edge.  It would be sufficient to invalidate the
+    // cycle information for all nodes that are between the target and the
+    // node in the topological order.  For simplicity, we simply invalidate
+    // all nodes which are reachable from the the source node.
+    // Note that in the invalidation phase, we do not cut off when we encounter
+    // a node with no library cycle information, since we do not know whether
+    // we are in the case where invalidation has already been performed, or we
+    // are in the case where library cycles have simply never been computed from
+    // a newly reachable node.
+    Set<LibraryElementImpl> active = new HashSet();
+    void invalidate(LibraryElementImpl library) {
+      if (!active.add(library)) return;
+      if (library._libraryCycle != null) {
+        library._libraryCycle.forEach(invalidate);
+        library._libraryCycle = null;
+      }
+      library.exportedLibraries.forEach(invalidate);
+      library.importedLibraries.forEach(invalidate);
+    }
+    invalidate(this);
   }
 
   @override

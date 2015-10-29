@@ -5883,28 +5883,6 @@ class InheritanceManager {
   }
 
   /**
-   * Given some [InterfaceType] and some member name, this returns the
-   * [FunctionType] of the [ExecutableElement] that the
-   * class either declares itself, or inherits, that has the member name, if no member is inherited
-   * `null` is returned. The returned [FunctionType] has all type
-   * parameters substituted with corresponding type arguments from the given [InterfaceType].
-   *
-   * @param interfaceType the interface type to query
-   * @param memberName the name of the executable element to find and return
-   * @return the member's function type, or `null` if no such member exists
-   */
-  FunctionType lookupMemberType(
-      InterfaceType interfaceType, String memberName) {
-    ExecutableElement iteratorMember =
-        lookupMember(interfaceType.element, memberName);
-    if (iteratorMember == null) {
-      return null;
-    }
-    return substituteTypeArgumentsInMemberFromInheritance(
-        iteratorMember.type, memberName, interfaceType);
-  }
-
-  /**
    * Determine the set of methods which is overridden by the given class member. If no member is
    * inherited, an empty list is returned. If one of the inherited members is a
    * [MultiplyInheritedExecutableElement], then it is expanded into its constituent inherited
@@ -5952,6 +5930,9 @@ class InheritanceManager {
    * @param definingType the type that is overriding the member
    * @return the passed function type with any parameterized types substituted
    */
+  // TODO(jmesserly): investigate why this is needed in ErrorVerifier's override
+  // checking. There seems to be some rare cases where we get partially
+  // substituted type arguments, and the function types don't compare equally.
   FunctionType substituteTypeArgumentsInMemberFromInheritance(
       FunctionType baseFunctionType,
       String memberName,
@@ -11623,8 +11604,8 @@ class ResolverVisitor extends ScopedVisitor {
     DartType expressionType = iteratorExpression.bestType;
     if (expressionType is InterfaceType) {
       InterfaceType interfaceType = expressionType;
-      FunctionType iteratorFunction =
-          _inheritanceManager.lookupMemberType(interfaceType, "iterator");
+      PropertyAccessorElement iteratorFunction =
+          interfaceType.lookUpInheritedGetter("iterator");
       if (iteratorFunction == null) {
         // TODO(brianwilkerson) Should we report this error?
         return null;
@@ -11632,8 +11613,8 @@ class ResolverVisitor extends ScopedVisitor {
       DartType iteratorType = iteratorFunction.returnType;
       if (iteratorType is InterfaceType) {
         InterfaceType iteratorInterfaceType = iteratorType;
-        FunctionType currentFunction = _inheritanceManager.lookupMemberType(
-            iteratorInterfaceType, "current");
+        PropertyAccessorElement currentFunction =
+            iteratorInterfaceType.lookUpInheritedGetter("current");
         if (currentFunction == null) {
           // TODO(brianwilkerson) Should we report this error?
           return null;
@@ -11646,16 +11627,15 @@ class ResolverVisitor extends ScopedVisitor {
 
   /**
    * The given expression is the expression used to compute the stream for an
-   * asyncronous for-each statement. Attempt to compute the type of objects that
-   * will be assigned to the loop variable and return that type. Return `null`
-   * if the type could not be determined. The [streamExpression] is the
-   * expression that will return the stream being iterated over.
+   * asynchronous for-each statement. Attempt to compute the type of objects
+   * that will be assigned to the loop variable and return that type.
+   * Return `null` if the type could not be determined. The [streamExpression]
+   * is the expression that will return the stream being iterated over.
    */
   DartType _getStreamElementType(Expression streamExpression) {
     DartType streamType = streamExpression.bestType;
     if (streamType is InterfaceType) {
-      FunctionType listenFunction =
-          _inheritanceManager.lookupMemberType(streamType, "listen");
+      MethodElement listenFunction = streamType.lookUpInheritedMethod("listen");
       if (listenFunction == null) {
         return null;
       }
@@ -11666,17 +11646,10 @@ class ResolverVisitor extends ScopedVisitor {
       DartType onDataType = listenParameters[0].type;
       if (onDataType is FunctionType) {
         List<ParameterElement> onDataParameters = onDataType.parameters;
-        if (onDataParameters == null || onDataParameters.length < 1) {
+        if (onDataParameters == null || onDataParameters.isEmpty) {
           return null;
         }
-        DartType eventType = onDataParameters[0].type;
-        // TODO(paulberry): checking that typeParameters.isNotEmpty is a
-        // band-aid fix for dartbug.com/24191.  Figure out what the correct
-        // logic should be.
-        if (streamType.typeParameters.isNotEmpty &&
-            eventType.element == streamType.typeParameters[0]) {
-          return streamType.typeArguments[0];
-        }
+        return onDataParameters[0].type;
       }
     }
     return null;
@@ -12912,10 +12885,7 @@ class StrongTypeSystemImpl implements TypeSystem {
 
   FunctionType _getCallMethodType(DartType t) {
     if (t is InterfaceType) {
-      ClassElement element = t.element;
-      InheritanceManager manager = new InheritanceManager(element.library);
-      FunctionType callType = manager.lookupMemberType(t, "call");
-      return callType;
+      return t.lookUpInheritedMethod("call")?.type;
     }
     return null;
   }

@@ -254,6 +254,12 @@ class AnalysisContextFactory {
     // TODO(brianwilkerson) This is missing the optional parameters.
     MethodElementImpl listenMethod =
         ElementFactory.methodElement('listen', returnType, parameterTypes);
+    (listenMethod.type as FunctionTypeImpl).typeArguments =
+        streamElement.type.typeArguments;
+    (parameterTypes[0] as FunctionTypeImpl).typeArguments =
+        streamElement.type.typeArguments;
+    (parameterTypes[0].element as FunctionElementImpl)
+        .enclosingElement = listenMethod;
     streamElement.methods = <MethodElement>[listenMethod];
 
     asyncUnit.types = <ClassElement>[
@@ -13142,6 +13148,39 @@ f(Stream<String> stream) async {
       SimpleIdentifier identifier = EngineTestCase.findNode(
           unit, code, "e;", (node) => node is SimpleIdentifier);
       expect(identifier.propagatedType, same(stringType));
+    }
+  }
+
+  void test_forEach_async_inheritedStream() {
+    // From https://github.com/dart-lang/sdk/issues/24191, this ensures that
+    // `await for` works for types where the generic parameter doesn't
+    // correspond to the type of the Stream's data.
+    String code = r'''
+import 'dart:async';
+abstract class MyCustomStream<T> implements Stream<List<T>> {}
+f(MyCustomStream<String> stream) async {
+  await for (var e in stream) {
+    e;
+  }
+}''';
+    Source source = addSource(code);
+    LibraryElement library = resolve2(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    InterfaceType listOfStringType =
+        typeProvider.listType.substitute4([typeProvider.stringType]);
+    // in the declaration
+    {
+      SimpleIdentifier identifier = EngineTestCase.findNode(
+          unit, code, "e in", (node) => node is SimpleIdentifier);
+      expect(identifier.propagatedType, equals(listOfStringType));
+    }
+    // in the loop body
+    {
+      SimpleIdentifier identifier = EngineTestCase.findNode(
+          unit, code, "e;", (node) => node is SimpleIdentifier);
+      expect(identifier.propagatedType, equals(listOfStringType));
     }
   }
 
