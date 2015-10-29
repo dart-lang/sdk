@@ -868,4 +868,23 @@ bool Intrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
   return true;
 }
 
+
+bool Intrinsifier::Build_DoubleFlipSignBit(FlowGraph* flow_graph) {
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  Definition* receiver = builder.AddParameter(1);
+  Definition* unboxed_value =
+      builder.AddUnboxInstr(kUnboxedDouble, new Value(receiver));
+  Definition* unboxed_result = builder.AddDefinition(
+      new UnaryDoubleOpInstr(Token::kNEGATE,
+                             new Value(unboxed_value),
+                             Thread::kNoDeoptId));
+  Definition* result = builder.AddDefinition(
+      BoxInstr::Create(kUnboxedDouble, new Value(unboxed_result)));
+  builder.AddIntrinsicReturn(new Value(result));
+  return true;
+}
+
 }  // namespace dart

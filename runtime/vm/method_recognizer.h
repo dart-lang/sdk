@@ -301,6 +301,7 @@ namespace dart {
   V(_GrowableList, [], GrowableArrayGetIndexed, 1962926024)                    \
   V(_GrowableList, []=, GrowableArraySetIndexed, 457344024)                    \
   V(_StringBase, get:length, StringBaseLength, 784518792)                      \
+  V(_Double, unary-, DoubleFlipSignBit, 2107492213)
 
 #define GRAPH_INTRINSICS_LIST(V)                                               \
   GRAPH_CORE_INTRINSICS_LIST(V)                                                \
