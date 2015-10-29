@@ -36,9 +36,13 @@
     allowed by the HTTP protocol.
     The `HttpServer` still gracefully receives fragments, but discards them
     before delivering the request.
-  * Removed server socket references. The use of server socket references
-    was deprecated back in 1.9. Use the `shared` flag when creating listening
-    sockets and `HttpServer` to distribute accepted sockets between isolates.
+  * To allow connections to be accepted on the same port across different
+    isolates, set the `shared` argument to `true` when creating server socket
+    and `HttpServer` instances.
+    * The deprecated `ServerSocketReference` and `RawServerSocketReference`
+      classes have been removed.
+    * The corresponding `reference` properties on `ServerSocket` and
+      `RawServerSocket` have been removed.
 
 * `dart:isolate`
   * `Isolate` added `packageRoot` and `packageMap` getters.
