@@ -2613,9 +2613,4 @@ RawInstance* IsolateSpawnState::BuildMessage(Thread* thread) {
 }
 
 
-void IsolateSpawnState::Cleanup() {
-  SwitchIsolateScope switch_scope(I);
-  Dart::ShutdownIsolate();
-}
-
 }  // namespace dart

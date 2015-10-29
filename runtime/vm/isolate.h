@@ -1009,7 +1009,6 @@ class IsolateSpawnState {
   RawObject* ResolveFunction();
   RawInstance* BuildArgs(Thread* thread);
   RawInstance* BuildMessage(Thread* thread);
-  void Cleanup();
 
  private:
   Isolate* isolate_;
