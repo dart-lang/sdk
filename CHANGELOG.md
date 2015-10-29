@@ -10,6 +10,10 @@
 
 ### Core library changes
 * `dart:async`
+  * `StreamController` added getters for `onListen`, `onPause`, and `onResume`
+    with the corresponding new `typedef void ControllerCallback()`.
+  * `StreamController` added a getter for `onCancel` with the corresponding
+    new `typedef ControllerCancelCallback()`;
   * `StreamTransformer` instances created with `fromHandlers` with no
     `handleError` callback now forward stack traces along with errors to the
     resulting streams.
