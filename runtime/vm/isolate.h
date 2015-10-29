@@ -912,9 +912,7 @@ class StartIsolateScope {
     if (saved_isolate_ != new_isolate_) {
       new_isolate_->ClearStackLimit();
       Thread::ExitIsolate();
-      if (saved_isolate_ != NULL) {
-        Thread::EnterIsolate(saved_isolate_);
-      }
+      ASSERT(saved_isolate_ == NULL);
     }
   }
 
