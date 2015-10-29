@@ -23,6 +23,7 @@ import 'dart:io' as io;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/codegen/tools.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -32,13 +33,20 @@ import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart' as path;
+import 'package:path/path.dart';
 
 /**
  * Generate the target .dot file.
  */
 main() {
-  new Driver().generateFile();
+  String script = Platform.script.toFilePath(windows: Platform.isWindows);
+  String pkgPath = normalize(join(dirname(script), '..', '..'));
+  target.generate(pkgPath);
 }
+
+final GeneratedFile target = new GeneratedFile(
+    'tool/task_dependency_graph/tasks.dot',
+    (String pkgPath) => new Driver(pkgPath).generateFileContents());
 
 typedef void GetterFinderCallback(PropertyAccessorElement element);
 
@@ -52,9 +60,7 @@ class Driver {
   InterfaceType extensionPointIdType;
   final String rootDir;
 
-  Driver()
-      : rootDir =
-            findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
+  Driver(String pkgPath) : rootDir = new Directory(pkgPath).absolute.path;
 
   /**
    * Get an [io.File] object corresponding to the file in which the generated
@@ -62,18 +68,6 @@ class Driver {
    */
   io.File get file => new io.File(
       path.join(rootDir, 'tool', 'task_dependency_graph', 'tasks.dot'));
-
-  /**
-   * Determine if the output [file] contains the expected contents.
-   */
-  bool checkFile() {
-    String expectedContents = generateFileContents();
-    String actualContents = file.readAsStringSync();
-    // Normalize Windows line endings to Unix line endings so that the
-    // comparison doesn't fail on Windows.
-    actualContents = actualContents.replaceAll('\r\n', '\n');
-    return expectedContents == actualContents;
-  }
 
   /**
    * Starting at [node], find all calls to registerExtension() which refer to
@@ -120,14 +114,6 @@ class Driver {
     for (PropertyAccessorElement resultDescriptor in resultDescriptors) {
       callback(resultDescriptor.name);
     }
-  }
-
-  /**
-   * Generate the task dependency graph and write it to the output [file].
-   */
-  void generateFile() {
-    String fileContents = generateFileContents();
-    file.writeAsStringSync(fileContents);
   }
 
   /**
@@ -267,21 +253,6 @@ ${lines.join('\n')}
     }
     throw new Exception(
         'Could not find extension ID corresponding to $resultListGetterName');
-  }
-
-  /**
-   * Find the root directory of the analyzer package by proceeding
-   * upward to the 'tool' dir, and then going up one more directory.
-   */
-  static String findRoot(String pathname) {
-    while (path.basename(pathname) != 'tool') {
-      String parent = path.dirname(pathname);
-      if (parent.length >= pathname.length) {
-        throw new Exception("Can't find root directory");
-      }
-      pathname = parent;
-    }
-    return path.dirname(pathname);
   }
 }
 

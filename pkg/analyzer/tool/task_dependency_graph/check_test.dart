@@ -16,9 +16,10 @@ import 'generate.dart';
  */
 main() {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
-  Driver driver = new Driver();
-  if (!driver.checkFile()) {
-    print('${driver.file.absolute} does not have expected contents.');
+  String pkgPath = normalize(join(dirname(script), '..', '..'));
+  if (!target.check(pkgPath)) {
+    print(
+        '${target.output(pkgPath).absolute} does not have expected contents.');
     print('Please regenerate using:');
     String executable = Platform.executable;
     String packageRoot = '';
