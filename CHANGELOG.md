@@ -18,6 +18,11 @@
     `handleError` callback now forward stack traces along with errors to the
     resulting streams.
 
+* `dart:convert`
+  * Added support for Base-64 encoding and decoding.
+    * Added new classes `Base64Codec`, `Base64Encoder`, and `Base64Decoder`.
+    * Added new top-level `const Base64Codec BASE64`.
+
 * `dart:core`
   * `Uri` added `removeFragment` method.
   * `String.allMatches` (implementing `Pattern.allMatches`) is now lazy,
