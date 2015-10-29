@@ -721,6 +721,10 @@ abstract class ByteData implements TypedData {
  *
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
+ *
+ * Integers stored in the list are truncated to their low eight bits,
+ * interpreted as a signed 8-bit two's complement integer with values in the
+ * range -128 to +127.
  */
 abstract class Int8List implements List<int>, TypedData {
   /**
@@ -734,7 +738,7 @@ abstract class Int8List implements List<int>, TypedData {
    * and copies over the elements.
    *
    * Values are truncated to fit in the list when they are copied,
-   * the same way `operator[]` truncates values.
+   * the same way storing values truncates them.
    */
   external factory Int8List.fromList(List<int> elements);
 
@@ -766,6 +770,10 @@ abstract class Int8List implements List<int>, TypedData {
  *
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
+ *
+ * Integers stored in the list are truncated to their low eight bits,
+ * interpreted as an unsigned 8-bit integer with values in the
+ * range 0 to 255.
  */
 abstract class Uint8List implements List<int>, TypedData {
   /**
@@ -779,7 +787,7 @@ abstract class Uint8List implements List<int>, TypedData {
    * and copies over the elements.
    *
    * Values are truncated to fit in the list when they are copied,
-   * the same way `operator[]` truncates values.
+   * the same way storing values truncates them.
    */
   external factory Uint8List.fromList(List<int> elements);
 
@@ -811,7 +819,10 @@ abstract class Uint8List implements List<int>, TypedData {
  *
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
- * Indexed store clamps the value to range 0..0xFF.
+ *
+ * Integers stored in the list are clamped to an unsigned eight bit value.
+ * That is, all values below zero are stored as zero
+ * and all values above 255 are stored as 255.
  */
 abstract class Uint8ClampedList implements List<int>, TypedData {
   /**
@@ -825,7 +836,7 @@ abstract class Uint8ClampedList implements List<int>, TypedData {
    * list and copies over the values clamping when needed.
    *
    * Values are clamped to fit in the list when they are copied,
-   * the same way `operator[]` clamps values.
+   * the same way storing values clamps them.
    */
   external factory Uint8ClampedList.fromList(List<int> elements);
 
@@ -859,6 +870,10 @@ abstract class Uint8ClampedList implements List<int>, TypedData {
  *
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
+ *
+ * Integers stored in the list are truncated to their low 16 bits,
+ * interpreted as a signed 16-bit two's complement integer with values in the
+ * range -32768 to +32767.
  */
 abstract class Int16List implements List<int>, TypedData {
   /**
@@ -872,7 +887,7 @@ abstract class Int16List implements List<int>, TypedData {
    * and copies over the elements.
    *
    * Values are truncated to fit in the list when they are copied,
-   * the same way `operator[]` truncates values.
+   * the same way storing values truncates them.
    */
   external factory Int16List.fromList(List<int> elements);
 
@@ -908,6 +923,10 @@ abstract class Int16List implements List<int>, TypedData {
  *
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
+ *
+ * Integers stored in the list are truncated to their low 16 bits,
+ * interpreted as an unsigned 16-bit integer with values in the
+ * range 0 to 65536.
  */
 abstract class Uint16List implements List<int>, TypedData {
   /**
@@ -921,7 +940,7 @@ abstract class Uint16List implements List<int>, TypedData {
    * and copies over the elements.
    *
    * Values are truncated to fit in the list when they are copied,
-   * the same way `operator[]` truncates values.
+   * the same way storing values truncates them.
    */
   external factory Uint16List.fromList(List<int> elements);
 
@@ -958,6 +977,10 @@ abstract class Uint16List implements List<int>, TypedData {
  *
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
+ *
+ * Integers stored in the list are truncated to their low 32 bits,
+ * interpreted as a signed 32-bit two's complement integer with values in the
+ * range -2147483648 to 2147483647.
  */
 abstract class Int32List implements List<int>, TypedData {
   /**
@@ -971,7 +994,7 @@ abstract class Int32List implements List<int>, TypedData {
    * and copies over the elements.
    *
    * Values are truncated to fit in the list when they are copied,
-   * the same way `operator[]` truncates values.
+   * the same way storing values truncates them.
    */
   external factory Int32List.fromList(List<int> elements);
 
@@ -1007,6 +1030,10 @@ abstract class Int32List implements List<int>, TypedData {
  *
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
+ *
+ * Integers stored in the list are truncated to their low 32 bits,
+ * interpreted as an unsigned 32-bit integer with values in the
+ * range 0 to 4294967295.
  */
 abstract class Uint32List implements List<int>, TypedData {
   /**
@@ -1020,7 +1047,7 @@ abstract class Uint32List implements List<int>, TypedData {
    * and copies over the elements.
    *
    * Values are truncated to fit in the list when they are copied,
-   * the same way `operator[]` truncates values.
+   * the same way storing values truncates them.
    */
   external factory Uint32List.fromList(List<int> elements);
 
@@ -1057,6 +1084,10 @@ abstract class Uint32List implements List<int>, TypedData {
  *
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
+ *
+ * Integers stored in the list are truncated to their low 64 bits,
+ * interpreted as a signed 64-bit two's complement integer with values in the
+ * range -9223372036854775808 to +9223372036854775807.
  */
 abstract class Int64List implements List<int>, TypedData {
   /**
@@ -1070,7 +1101,7 @@ abstract class Int64List implements List<int>, TypedData {
    * and copies over the elements.
    *
    * Values are truncated to fit in the list when they are copied,
-   * the same way `operator[]` truncates values.
+   * the same way storing values truncates them.
    */
   external factory Int64List.fromList(List<int> elements);
 
@@ -1106,6 +1137,10 @@ abstract class Int64List implements List<int>, TypedData {
  *
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
+ *
+ * Integers stored in the list are truncated to their low 64 bits,
+ * interpreted as an unsigned 64-bit integer with values in the
+ * range 0 to 18446744073709551616.
  */
 abstract class Uint64List implements List<int>, TypedData {
   /**
@@ -1119,7 +1154,7 @@ abstract class Uint64List implements List<int>, TypedData {
    * and copies over the elements.
    *
    * Values are truncated to fit in the list when they are copied,
-   * the same way `operator[]` truncates values.
+   * the same way storing values truncates them.
    */
   external factory Uint64List.fromList(List<int> elements);
 
@@ -1152,11 +1187,15 @@ abstract class Uint64List implements List<int>, TypedData {
 
 /**
  * A fixed-length list of IEEE 754 single-precision binary floating-point
- * numbers  that is viewable as a [TypedData].
+ * numbers that is viewable as a [TypedData].
  *
  * For long lists, this
  * implementation can be considerably more space- and time-efficient than
  * the default [List] implementation.
+ *
+ * Double values stored in the list are converted to the nearest
+ * single-precision value. Values read are converted to a double
+ * value with the same value.
  */
 abstract class Float32List implements List<double>, TypedData {
   /**
@@ -1170,7 +1209,7 @@ abstract class Float32List implements List<double>, TypedData {
    * and copies over the elements.
    *
    * Values are truncated to fit in the list when they are copied,
-   * the same way `operator[]` truncates values.
+   * the same way storing values truncates them.
    */
   external factory Float32List.fromList(List<double> elements);
 
