@@ -17298,8 +17298,12 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
         break;
       }
       case Token::kSUB: {
-        if (((left_value < 0) == (right_value < 0)) ||
-            ((left_value - right_value) < 0) == (left_value < 0)) {
+        // TODO(srdjan): Investigate why XCode 7 produces wrong code
+        // if the comparison is inlined as in above (Token::kADD).
+        const bool both_same_sign = (left_value < 0) == (right_value < 0);
+        const bool result_same_sign_as_left =
+            ((left_value - right_value) < 0) == (left_value < 0);
+        if (both_same_sign || result_same_sign_as_left) {
           return Integer::New(left_value - right_value, space);
         }
         break;
