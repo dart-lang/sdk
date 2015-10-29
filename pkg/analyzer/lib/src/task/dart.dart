@@ -812,6 +812,7 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
             importElement.deferred = importDirective.deferredKeyword != null;
             importElement.combinators = _buildCombinators(importDirective);
             importElement.importedLibrary = importedLibrary;
+            _setDocRange(importElement, importDirective);
             SimpleIdentifier prefixNode = directive.prefix;
             if (prefixNode != null) {
               importElement.prefixOffset = prefixNode.offset;
@@ -853,6 +854,7 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
             exportElement.uri = exportDirective.uriContent;
             exportElement.combinators = _buildCombinators(exportDirective);
             exportElement.exportedLibrary = exportedLibrary;
+            _setDocRange(exportElement, exportDirective);
             directive.element = exportElement;
             exports.add(exportElement);
             if (exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
@@ -890,6 +892,17 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
     //
     outputs[LIBRARY_ELEMENT2] = libraryElement;
     outputs[BUILD_DIRECTIVES_ERRORS] = errors;
+  }
+
+  /**
+   * If the given [node] has a documentation comment, remember its range
+   * into the given [element].
+   */
+  void _setDocRange(ElementImpl element, AnnotatedNode node) {
+    Comment comment = node.documentationComment;
+    if (comment != null && comment.isDocumentation) {
+      element.setDocRange(comment.offset, comment.length);
+    }
   }
 
   /**
@@ -1161,6 +1174,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     //
     // Update "part" directives.
     //
+    LibraryDirective libraryDirective = null;
     LibraryIdentifier libraryNameNode = null;
     String partsLibraryName = _UNKNOWN_LIBRARY_NAME;
     bool hasPartDirective = false;
@@ -1171,7 +1185,8 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         <CompilationUnitElementImpl>[];
     for (Directive directive in definingCompilationUnit.directives) {
       if (directive is LibraryDirective) {
-        if (libraryNameNode == null) {
+        if (libraryDirective == null) {
+          libraryDirective = directive;
           libraryNameNode = directive.name;
           directivesToResolve.add(directive);
         }
@@ -1255,6 +1270,9 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     if (sourcedCompilationUnits.isNotEmpty) {
       _patchTopLevelAccessors(libraryElement);
     }
+    if (libraryDirective != null) {
+      _setDocRange(libraryElement, libraryDirective);
+    }
     //
     // Record outputs.
     //
@@ -1337,6 +1355,17 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         variable.setter = setter;
         (setter as PropertyAccessorElementImpl).variable = variable;
       }
+    }
+  }
+
+  /**
+   * If the given [node] has a documentation comment, remember its range
+   * into the given [element].
+   */
+  void _setDocRange(ElementImpl element, AnnotatedNode node) {
+    Comment comment = node.documentationComment;
+    if (comment != null && comment.isDocumentation) {
+      element.setDocRange(comment.offset, comment.length);
     }
   }
 
