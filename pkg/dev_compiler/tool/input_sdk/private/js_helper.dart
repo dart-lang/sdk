@@ -24,7 +24,6 @@ class _Patch {
 
 const _Patch patch = const _Patch();
 
-
 /// Marks the internal map in dart2js, so that internal libraries can is-check
 // them.
 abstract class InternalMap {
@@ -176,7 +175,7 @@ class Primitives {
   /// In minified mode, uses the unminified names if available.
   static String objectToString(Object object) {
     // String name = objectTypeName(object);
-    String name = JS('String', 'dart.typeName(dart.realRuntimeType(#))', object); 
+    String name = JS('String', 'dart.typeName(dart.realRuntimeType(#))', object);
     return "Instance of '$name'";
   }
 

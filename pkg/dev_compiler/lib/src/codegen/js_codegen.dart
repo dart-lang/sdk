@@ -31,6 +31,7 @@ import '../utils.dart';
 
 import 'code_generator.dart';
 import 'js_field_storage.dart';
+import 'js_interop.dart';
 import 'js_names.dart' as JS;
 import 'js_metalet.dart' as JS;
 import 'js_module_item_order.dart';
@@ -247,7 +248,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   void visitLibraryDirective(LibraryDirective node) {
     assert(_jsModuleValue == null);
 
-    var jsName = findAnnotation(node.element, _isJsNameAnnotation);
+    var jsName = findAnnotation(node.element, isJsNameAnnotation);
     _jsModuleValue =
         getConstantField(jsName, 'name', types.stringType)?.toStringValue();
   }
@@ -420,7 +421,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   JS.Statement visitClassDeclaration(ClassDeclaration node) {
     var classElem = node.element;
     var type = classElem.type;
-    var jsName = findAnnotation(classElem, _isJsNameAnnotation);
+    var jsName = findAnnotation(classElem, isJsNameAnnotation);
 
     if (jsName != null) return _emitJsType(node.name.name, jsName);
 
@@ -441,7 +442,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         _classHeritage(classElem), _emitClassMethods(node, ctors, fields));
 
     String jsPeerName;
-    var jsPeer = findAnnotation(classElem, _isJsPeerInterface);
+    var jsPeer = findAnnotation(classElem, isJsPeerInterface);
     if (jsPeer != null) {
       jsPeerName =
           getConstantField(jsPeer, 'name', types.stringType)?.toStringValue();
@@ -596,7 +597,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       jsMethods.add(_emitImplicitConstructor(node, fields));
     }
 
-    bool hasJsPeer = findAnnotation(element, _isJsPeerInterface) != null;
+    bool hasJsPeer = findAnnotation(element, isJsPeerInterface) != null;
 
     bool hasIterator = false;
     for (var m in node.members) {
@@ -1853,6 +1854,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     for (var arg in node.arguments) {
       if (arg is NamedExpression) {
         named.add(_visit(arg));
+      } else if (arg is MethodInvocation && isJsSpreadInvocation(arg)) {
+        args.add(
+            new JS.RestParameter(_visit(arg.argumentList.arguments.single)));
       } else {
         args.add(_visit(arg));
       }
@@ -1871,8 +1875,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   }
 
   @override
-  List<JS.Identifier> visitFormalParameterList(FormalParameterList node) {
-    var result = <JS.Identifier>[];
+  List<JS.Parameter> visitFormalParameterList(FormalParameterList node) {
+    var result = <JS.Parameter>[];
     for (FormalParameter param in node.parameters) {
       if (param.kind == ParameterKind.NAMED) {
         result.add(_namedArgTemp);
@@ -2519,8 +2523,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       _visit(node.expression);
 
   @override
-  visitFormalParameter(FormalParameter node) =>
-      visitSimpleIdentifier(node.identifier);
+  visitFormalParameter(FormalParameter node) {
+    var id = visitSimpleIdentifier(node.identifier);
+
+    var isRestArg = findAnnotation(node.element, isJsRestAnnotation) != null;
+    return isRestArg ? new JS.RestParameter(id) : id;
+  }
 
   @override
   JS.This visitThisExpression(ThisExpression node) => new JS.This();
@@ -2682,7 +2690,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   // TODO(jmesserly): ideally we'd check the method and see if it is marked
   // `external`, but that doesn't work because it isn't in the element model.
   bool _useNativeJsIndexer(DartType type) =>
-      findAnnotation(type.element, _isJsNameAnnotation) != null;
+      findAnnotation(type.element, isJsNameAnnotation) != null;
 
   /// Gets the target of a [PropertyAccess], [IndexExpression], or
   /// [MethodInvocation]. These three nodes can appear in a [CascadeExpression].
@@ -3300,12 +3308,6 @@ String jsLibraryName(LibraryElement library) => canonicalLibraryName(library);
 /// identifiers if it can.
 // TODO(jmesserly): avoid the round tripping through quoted form.
 JS.LiteralString _propertyName(String name) => js.string(name, "'");
-
-// TODO(jmesserly): validate the library. See issue #135.
-bool _isJsNameAnnotation(DartObject value) => value.type.name == 'JsName';
-
-bool _isJsPeerInterface(DartObject value) =>
-    value.type.name == 'JsPeerInterface';
 
 // TODO(jacobr): we would like to do something like the following
 // but we don't have summary support yet.

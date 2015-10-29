@@ -479,9 +479,11 @@ abstract class AbstractCompiler {
 
 AnalysisErrorListener createErrorReporter(
     AnalysisContext context, CompilerOptions options) {
-  return options.htmlReport ? new HtmlReporter(context) : options.dumpInfo
-      ? new SummaryReporter(context, options.logLevel)
-      : new LogReporter(context, useColors: options.useColors);
+  return options.htmlReport
+      ? new HtmlReporter(context)
+      : options.dumpInfo
+          ? new SummaryReporter(context, options.logLevel)
+          : new LogReporter(context, useColors: options.useColors);
 }
 
 // TODO(jmesserly): find a better home for these.
