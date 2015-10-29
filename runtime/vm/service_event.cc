@@ -197,7 +197,7 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     JSONObject jssettings(&jsobj, "_debuggerSettings");
     isolate()->debugger()->PrintSettingsToJSONObject(&jssettings);
   }
-  if (top_frame() != NULL) {
+  if ((top_frame() != NULL) && Isolate::Current()->compilation_allowed()) {
     JSONObject jsFrame(&jsobj, "topFrame");
     top_frame()->PrintToJSONObject(&jsFrame);
     intptr_t index = 0;  // Avoid ambiguity in call to AddProperty.

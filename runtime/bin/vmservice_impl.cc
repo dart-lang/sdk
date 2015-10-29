@@ -31,6 +31,7 @@ namespace bin {
   }
 
 #define kLibrarySourceNamePrefix "/vmservice"
+static const char* kVMServiceIOLibraryUri = "dart:vmservice_io";
 static const char* kVMServiceIOLibraryScriptResourceName = "vmservice_io.dart";
 
 struct ResourcesEntry {
@@ -160,7 +161,23 @@ char VmService::server_ip_[kServerIpStringBufferSize];
 intptr_t VmService::server_port_ = 0;
 
 
-bool VmService::Setup(const char* server_ip, intptr_t server_port) {
+bool VmService::LoadForGenPrecompiled() {
+  Dart_Handle result;
+  Dart_SetLibraryTagHandler(LibraryTagHandler);
+  Dart_Handle library = LoadLibrary(kVMServiceIOLibraryScriptResourceName);
+  ASSERT(library != Dart_Null());
+  SHUTDOWN_ON_ERROR(library);
+  result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
+  SHUTDOWN_ON_ERROR(result);
+  result = Dart_FinalizeLoading(false);
+  SHUTDOWN_ON_ERROR(result);
+  return true;
+}
+
+
+bool VmService::Setup(const char* server_ip,
+                      intptr_t server_port,
+                      bool running_precompiled) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != NULL);
   SetServerIPAndPort("", 0);
@@ -177,15 +194,25 @@ bool VmService::Setup(const char* server_ip, intptr_t server_port) {
       NULL, NULL, NULL, true, false, builtin_lib);
   SHUTDOWN_ON_ERROR(result);
 
-  // Load main script.
-  Dart_SetLibraryTagHandler(LibraryTagHandler);
-  Dart_Handle library = LoadScript(kVMServiceIOLibraryScriptResourceName);
-  ASSERT(library != Dart_Null());
-  SHUTDOWN_ON_ERROR(library);
-  result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
-  SHUTDOWN_ON_ERROR(result);
-  result = Dart_FinalizeLoading(false);
-  SHUTDOWN_ON_ERROR(result);
+  if (running_precompiled) {
+    Dart_Handle url = DartUtils::NewString(kVMServiceIOLibraryUri);
+    Dart_Handle library = Dart_LookupLibrary(url);
+    SHUTDOWN_ON_ERROR(library);
+    result = Dart_SetRootLibrary(library);
+    SHUTDOWN_ON_ERROR(library);
+    result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
+    SHUTDOWN_ON_ERROR(result);
+  } else {
+    // Load main script.
+    Dart_SetLibraryTagHandler(LibraryTagHandler);
+    Dart_Handle library = LoadScript(kVMServiceIOLibraryScriptResourceName);
+    ASSERT(library != Dart_Null());
+    SHUTDOWN_ON_ERROR(library);
+    result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
+    SHUTDOWN_ON_ERROR(result);
+    result = Dart_FinalizeLoading(false);
+    SHUTDOWN_ON_ERROR(result);
+  }
 
   // Make runnable.
   Dart_ExitScope();
@@ -200,7 +227,7 @@ bool VmService::Setup(const char* server_ip, intptr_t server_port) {
   Dart_EnterIsolate(isolate);
   Dart_EnterScope();
 
-  library = Dart_RootLibrary();
+  Dart_Handle library = Dart_RootLibrary();
   SHUTDOWN_ON_ERROR(library);
 
   // Set HTTP server state.
@@ -279,16 +306,23 @@ Dart_Handle VmService::GetSource(const char* name) {
 
 
 Dart_Handle VmService::LoadScript(const char* name) {
-  Dart_Handle url = Dart_NewStringFromCString("dart:vmservice_io");
+  Dart_Handle uri = Dart_NewStringFromCString(kVMServiceIOLibraryUri);
   Dart_Handle source = GetSource(name);
-  return Dart_LoadScript(url, source, 0, 0);
+  return Dart_LoadScript(uri, source, 0, 0);
+}
+
+
+Dart_Handle VmService::LoadLibrary(const char* name) {
+  Dart_Handle uri = Dart_NewStringFromCString(kVMServiceIOLibraryUri);
+  Dart_Handle source = GetSource(name);
+  return Dart_LoadLibrary(uri, source, 0, 0);
 }
 
 
 Dart_Handle VmService::LoadSource(Dart_Handle library, const char* name) {
-  Dart_Handle url = Dart_NewStringFromCString(name);
+  Dart_Handle uri = Dart_NewStringFromCString(name);
   Dart_Handle source = GetSource(name);
-  return Dart_LoadSource(library, url, source, 0, 0);
+  return Dart_LoadSource(library, uri, source, 0, 0);
 }
 
 

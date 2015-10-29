@@ -4440,6 +4440,21 @@ class Code : public Object {
     DISALLOW_COPY_AND_ASSIGN(FindRawCodeVisitor);
   };
 
+  class SlowFindRawCodeVisitor : public FindObjectVisitor {
+   public:
+    explicit SlowFindRawCodeVisitor(uword pc)
+        : FindObjectVisitor(Isolate::Current()), pc_(pc) { }
+    virtual ~SlowFindRawCodeVisitor() { }
+
+    // Check if object matches find condition.
+    virtual bool FindObject(RawObject* obj) const;
+
+   private:
+    const uword pc_;
+
+    DISALLOW_COPY_AND_ASSIGN(SlowFindRawCodeVisitor);
+  };
+
   static bool IsOptimized(RawCode* code) {
     return Code::OptimizedBit::decode(code->ptr()->state_bits_);
   }

@@ -468,54 +468,51 @@ static Dart_Handle LoadGenericSnapshotCreationScript(
 
 
 static void PrintUsage() {
-#define STRINGERIZE(...) #__VA_ARGS__
-  // clang-format off
-  Log::PrintErr(STRINGERIZE(
-Usage:                                                                        \n
-  gen_snapshot [<vm-flags>] [<options>] [<dart-script-file>]                  \n
-                                                                              \n
-  Writes a snapshot of <dart-script-file> to the specified snapshot files. If \n
-  no <dart-script-file> is passed, a generic snapshot of all the corelibs is  \n
-  created. It is required to specify the VM isolate snapshot and the isolate  \n
-  snapshot. The other flags are related to precompilation and are optional.   \n
-                                                                              \n
-  Precompilation:                                                             \n
-  In order to configure the snapshotter for precompilation, both the          \n
-  instructions snapshot and embedder entry points manifest must be specified. \n
-  Machine code for the target architecture will be dumped into the            \n
-  instructions snapshot. This must be linked into the target binary in a      \n
-  separate step. The embedder entry points manifest lists the standalone entry\n
-  points into the VM. Not specifying these will cause the tree shaker to      \n
-  disregard the same as being used. The format of this manifest is as follows.\n
-  Each line in the manifest is a comma separated list of three elements. The  \n
-  first entry is the library URI, the second entry is the class name and the  \n
-  final entry the function name. The file must be terminated with a newline   \n
-  charater.                                                                   \n
-                                                                              \n
-    Example:                                                                  \n
-      dart:something,SomeClass,doSomething                                    \n
-                                                                              \n
-  Supported options:                                                          \n
-    --vm_isolate_snapshot=<file>      A full snapshot is a compact            \n
-    --isolate_snapshot=<file>         representation of the dart vm isolate   \n
-                                      heap and dart isolate heap states.      \n
-                                      Both these options are required         \n
-                                                                              \n
-    --package_root=<path>             Where to find packages, that is,        \n
-                                      package:...  imports.                   \n
-                                                                              \n
-    --url_mapping=<mapping>           Uses the URL mapping(s) specified on the\n
-                                      command line to load the libraries.     \n
-                                                                              \n
-    --instructions_snapshot=<file>    (Precompilation only) Contains the      \n
-                                      assembly that must be linked into       \n
-                                      the target binary                       \n
-                                                                              \n
-    --embedder_entry_points_manifest=<file> (Precompilation only) Contains the\n
-                                      stanalone embedder entry points         \n
-  ));
-  // clang-format on
-#undef STRINGERIZE
+  Log::PrintErr(
+"Usage:                                                                      \n"
+" gen_snapshot [<vm-flags>] [<options>] [<dart-script-file>]                 \n"
+"                                                                            \n"
+"  Writes a snapshot of <dart-script-file> to the specified snapshot files.  \n"
+"  If no <dart-script-file> is passed, a generic snapshot of all the corelibs\n"
+"  is created. It is required to specify the VM isolate snapshot and the     \n"
+"  isolate snapshot. The other flags are related to precompilation and are   \n"
+"  optional.                                                                 \n"
+"                                                                            \n"
+"  Precompilation:                                                           \n"
+"  In order to configure the snapshotter for precompilation, both the        \n"
+"  instructions snapshot and embedder entry points manifest must be          \n"
+"  specified. Assembly for the target architecture will be dumped into the   \n"
+"  instructions snapshot. This must be linked into the target binary in a    \n"
+"  separate step. The embedder entry points manifest lists the standalone    \n"
+"  entry points into the VM. Not specifying these will cause the tree shaker \n"
+"  to disregard the same as being used. The format of this manifest is as    \n"
+"  follows. Each line in the manifest is a comma separated list of three     \n"
+"  elements. The first entry is the library URI, the second entry is the     \n"
+"  class name and the final entry the function name. The file must be        \n"
+"  terminated with a newline charater.                                       \n"
+"                                                                            \n"
+"    Example:                                                                \n"
+"      dart:something,SomeClass,doSomething                                  \n"
+"                                                                            \n"
+"  Supported options:                                                        \n"
+"    --vm_isolate_snapshot=<file>      A full snapshot is a compact          \n"
+"    --isolate_snapshot=<file>         representation of the dart vm isolate \n"
+"                                      heap and dart isolate heap states.    \n"
+"                                      Both these options are required       \n"
+"                                                                            \n"
+"    --package_root=<path>             Where to find packages, that is,      \n"
+"                                      package:...  imports.                 \n"
+"                                                                            \n"
+"    --url_mapping=<mapping>           Uses the URL mapping(s) specified on  \n"
+"                                      the command line to load the          \n"
+"                                      libraries.                            \n"
+"                                                                            \n"
+"    --instructions_snapshot=<file>    (Precompilation only) Contains the    \n"
+"                                      assembly that must be linked into     \n"
+"                                      the target binary                     \n"
+"                                                                            \n"
+"    --embedder_entry_points_manifest=<file> (Precompilation only) Contains  \n"
+"                                      the stanalone embedder entry points\n");
 }
 
 
@@ -990,7 +987,7 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
   CHECK_RESULT(result);
   ASSERT(Dart_IsServiceIsolate(isolate));
   // Load embedder specific bits and return. Will not start http server.
-  if (!VmService::Setup("127.0.0.1", -1)) {
+  if (!VmService::Setup("127.0.0.1", -1, false /* running_precompiled */)) {
     *error = strdup(VmService::GetErrorMessage());
     return NULL;
   }

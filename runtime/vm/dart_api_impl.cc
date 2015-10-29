@@ -5191,6 +5191,18 @@ DART_EXPORT Dart_Handle Dart_RootLibrary() {
 }
 
 
+DART_EXPORT Dart_Handle Dart_SetRootLibrary(Dart_Handle library) {
+  DARTSCOPE(Thread::Current());
+  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(Z, library, Library);
+  }
+  Isolate* isolate = Isolate::Current();
+  isolate->object_store()->set_root_library(lib);
+  return library;
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
                                       Dart_Handle class_name) {
   DARTSCOPE(Thread::Current());

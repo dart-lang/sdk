@@ -13425,24 +13425,35 @@ bool Code::FindRawCodeVisitor::FindObject(RawObject* raw_obj) const {
 }
 
 
+bool Code::SlowFindRawCodeVisitor::FindObject(RawObject* raw_obj) const {
+  return RawCode::ContainsPC(raw_obj, pc_);
+}
+
+
 RawCode* Code::LookupCodeInIsolate(Isolate* isolate, uword pc) {
   ASSERT((isolate == Isolate::Current()) || (isolate == Dart::vm_isolate()));
-  NoSafepointScope no_safepoint;
-  FindRawCodeVisitor visitor(pc);
-  RawInstructions* instr;
-  if (Dart::IsRunningPrecompiledCode()) {
-    // TODO(johnmccutchan): Make code lookup work when running precompiled.
-    UNIMPLEMENTED();
-    return Code::null();
-  }
   if (isolate->heap() == NULL) {
     return Code::null();
   }
-  instr = isolate->heap()->FindObjectInCodeSpace(&visitor);
-  if (instr != Instructions::null()) {
-    return Instructions::Handle(instr).code();
+  NoSafepointScope no_safepoint;
+  // TODO(johnmccutchan): Make lookup without a back pointer faster and use for
+  // both cases.
+  if (Dart::IsRunningPrecompiledCode()) {
+    SlowFindRawCodeVisitor visitor(pc);
+    RawObject* needle = isolate->heap()->FindOldObject(&visitor);
+    if (needle != Code::null()) {
+      return static_cast<RawCode*>(needle);
+    }
+    return Code::null();
+  } else {
+    FindRawCodeVisitor visitor(pc);
+    RawInstructions* instr;
+    instr = isolate->heap()->FindObjectInCodeSpace(&visitor);
+    if (instr != Instructions::null()) {
+      return Instructions::Handle(instr).code();
+    }
+    return Code::null();
   }
-  return Code::null();
 }
 
 

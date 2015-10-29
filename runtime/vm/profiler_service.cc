@@ -1876,6 +1876,16 @@ class ProfileBuilder : public ValueObject {
                               code.compile_timestamp(),
                               code);
       }
+      // Precompiled instructions are in the VM isolate, but the code (except
+      // stubs) is in the current isolate.
+      code ^= Code::LookupCode(pc);
+      if (!code.IsNull()) {
+        return new ProfileCode(ProfileCode::kDartCode,
+                              code.EntryPoint(),
+                              code.EntryPoint() + code.Size(),
+                              code.compile_timestamp(),
+                              code);
+      }
       return new ProfileCode(ProfileCode::kCollectedCode,
                             pc,
                             (pc & kDartCodeAlignmentMask) + kDartCodeAlignment,

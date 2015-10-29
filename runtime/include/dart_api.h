@@ -2715,6 +2715,15 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
  */
 DART_EXPORT Dart_Handle Dart_RootLibrary();
 
+
+/**
+ * Sets the root library for the current isolate.
+ *
+ * \return Returns an error handle if `library` is not a library handle.
+ */
+DART_EXPORT Dart_Handle Dart_SetRootLibrary(Dart_Handle library);
+
+
 /**
  * Lookup or instantiate a type by name and type arguments from a Library.
  *

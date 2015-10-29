@@ -70,7 +70,8 @@ Dart_Isolate VmServiceServer::CreateIsolate(const uint8_t* snapshot_buffer) {
 
   ASSERT(Dart_IsServiceIsolate(isolate));
   if (!VmService::Setup(DEFAULT_VM_SERVICE_SERVER_IP,
-                        DEFAULT_VM_SERVICE_SERVER_PORT)) {
+                        DEFAULT_VM_SERVICE_SERVER_PORT,
+                        false /* running_precompiled */)) {
     fprintf(stderr,
             "Vmservice::Setup failed: %s\n", VmService::GetErrorMessage());
     isolate = NULL;

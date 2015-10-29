@@ -764,7 +764,9 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
 
   if (Dart_IsServiceIsolate(isolate)) {
     // If this is the service isolate, load embedder specific bits and return.
-    if (!VmService::Setup(vm_service_server_ip, vm_service_server_port)) {
+    if (!VmService::Setup(vm_service_server_ip,
+                          vm_service_server_port,
+                          has_run_precompiled_snapshot)) {
       *error = strdup(VmService::GetErrorMessage());
       return NULL;
     }
@@ -1225,6 +1227,18 @@ bool RunMainIsolate(const char* script_name,
     ASSERT(!Dart_IsError(builtin_lib));
     result = Dart_LibraryImportLibrary(builtin_lib, root_lib, Dart_Null());
 
+    if (has_gen_precompiled_snapshot) {
+      // Load the embedder's portion of the VM service's Dart code so it will
+      // be included in the precompiled snapshot.
+      if (!VmService::LoadForGenPrecompiled()) {
+        fprintf(stderr,
+                "VM service loading failed: %s\n",
+                VmService::GetErrorMessage());
+        fflush(stderr);
+        exit(kErrorExitCode);
+      }
+    }
+
     if (has_noopt || has_gen_precompiled_snapshot) {
       Dart_QualifiedFunctionName standalone_entry_points[] = {
         { "dart:_builtin", "::", "_getMainClosure" },
@@ -1236,6 +1250,7 @@ bool RunMainIsolate(const char* script_name,
         { "dart:io", "::", "_makeUint8ListView" },
         { "dart:io", "::", "_makeDatagram" },
         { "dart:io", "::", "_setupHooks" },
+        { "dart:io", "::", "_getWatchSignalInternal" },
         { "dart:io", "CertificateException", "CertificateException." },
         { "dart:io", "HandshakeException", "HandshakeException." },
         { "dart:io", "OSError", "OSError." },
@@ -1249,6 +1264,7 @@ bool RunMainIsolate(const char* script_name,
         { "dart:io", "_SecureFilterImpl", "get:SIZE" },
         { "dart:vmservice_io", "::", "_addResource" },
         { "dart:vmservice_io", "::", "main" },
+        { "dart:vmservice_io", "::", "boot" },
         { NULL, NULL, NULL }  // Must be terminated with NULL entries.
       };
 

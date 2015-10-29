@@ -6248,6 +6248,26 @@ TEST_CASE(RootLibrary) {
   const char* uri_cstr = "";
   EXPECT_VALID(Dart_StringToCString(lib_uri, &uri_cstr));
   EXPECT_STREQ(TestCase::url(), uri_cstr);
+
+
+  Dart_Handle core_uri = Dart_NewStringFromCString("dart:core");
+  Dart_Handle core_lib = Dart_LookupLibrary(core_uri);
+  EXPECT_VALID(core_lib);
+  EXPECT(Dart_IsLibrary(core_lib));
+
+  Dart_Handle result = Dart_SetRootLibrary(core_uri);  // Not a library.
+  EXPECT(Dart_IsError(result));
+  root_lib = Dart_RootLibrary();
+  lib_uri = Dart_LibraryUrl(root_lib);
+  EXPECT_VALID(Dart_StringToCString(lib_uri, &uri_cstr));
+  EXPECT_STREQ(TestCase::url(), uri_cstr);  // Root library didn't change.
+
+  result = Dart_SetRootLibrary(core_lib);
+  EXPECT_VALID(result);
+  root_lib = Dart_RootLibrary();
+  lib_uri = Dart_LibraryUrl(root_lib);
+  EXPECT_VALID(Dart_StringToCString(lib_uri, &uri_cstr));
+  EXPECT_STREQ("dart:core", uri_cstr);  // Root library did change.
 }
 
 

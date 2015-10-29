@@ -1025,6 +1025,11 @@ static const MethodParameter* get_stack_params[] = {
 
 
 static bool GetStack(Thread* thread, JSONStream* js) {
+  if (!thread->isolate()->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+        "Cannot get stack when running a precompiled program.");
+    return true;
+  }
   Isolate* isolate = thread->isolate();
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   // Do we want the complete script object and complete local variable objects?
@@ -2051,6 +2056,11 @@ class FunctionCoverageFilter : public CoverageFilter {
 
 
 static bool GetHitsOrSites(Thread* thread, JSONStream* js, bool as_sites) {
+  if (!thread->isolate()->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+        "Cannot get coverage data when running a precompiled program.");
+    return true;
+  }
   if (!js->HasParam("targetId")) {
     CodeCoverage::PrintJSON(thread, js, NULL, as_sites);
     return true;
@@ -2118,6 +2128,11 @@ static bool GetCallSiteData(Thread* thread, JSONStream* js) {
 static bool AddBreakpointCommon(Thread* thread,
                                 JSONStream* js,
                                 const String& script_uri) {
+  if (!thread->isolate()->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+        "Cannot use breakpoints when running a precompiled program.");
+    return true;
+  }
   const char* line_param = js->LookupParam("line");
   intptr_t line = UIntParameter::Parse(line_param);
   const char* col_param = js->LookupParam("column");
@@ -2155,6 +2170,11 @@ static const MethodParameter* add_breakpoint_params[] = {
 
 
 static bool AddBreakpoint(Thread* thread, JSONStream* js) {
+  if (!thread->isolate()->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+        "Cannot use breakpoints when running a precompiled program.");
+    return true;
+  }
   const char* script_id_param = js->LookupParam("scriptId");
   Object& obj = Object::Handle(LookupHeapObject(thread, script_id_param, NULL));
   if (obj.raw() == Object::sentinel().raw() || !obj.IsScript()) {
@@ -2178,6 +2198,11 @@ static const MethodParameter* add_breakpoint_with_script_uri_params[] = {
 
 
 static bool AddBreakpointWithScriptUri(Thread* thread, JSONStream* js) {
+  if (!thread->isolate()->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+        "Cannot use breakpoints when running a precompiled program.");
+    return true;
+  }
   const char* script_uri_param = js->LookupParam("scriptUri");
   const String& script_uri = String::Handle(String::New(script_uri_param));
   return AddBreakpointCommon(thread, js, script_uri);
@@ -2192,6 +2217,11 @@ static const MethodParameter* add_breakpoint_at_entry_params[] = {
 
 
 static bool AddBreakpointAtEntry(Thread* thread, JSONStream* js) {
+  if (!thread->isolate()->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+        "Cannot use breakpoints when running a precompiled program.");
+    return true;
+  }
   const char* function_id = js->LookupParam("functionId");
   Object& obj = Object::Handle(LookupHeapObject(thread, function_id, NULL));
   if (obj.raw() == Object::sentinel().raw() || !obj.IsFunction()) {
@@ -2220,6 +2250,11 @@ static const MethodParameter* add_breakpoint_at_activation_params[] = {
 
 
 static bool AddBreakpointAtActivation(Thread* thread, JSONStream* js) {
+  if (!thread->isolate()->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+        "Cannot use breakpoints when running a precompiled program.");
+    return true;
+  }
   const char* object_id = js->LookupParam("objectId");
   Object& obj = Object::Handle(LookupHeapObject(thread, object_id, NULL));
   if (obj.raw() == Object::sentinel().raw() || !obj.IsInstance()) {
@@ -2247,6 +2282,11 @@ static const MethodParameter* remove_breakpoint_params[] = {
 
 
 static bool RemoveBreakpoint(Thread* thread, JSONStream* js) {
+  if (!thread->isolate()->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+        "Cannot use breakpoints when running a precompiled program.");
+    return true;
+  }
   if (!js->HasParam("breakpointId")) {
     PrintMissingParamError(js, "breakpointId");
     return true;
@@ -3251,6 +3291,11 @@ static const MethodParameter* set_trace_class_allocation_params[] = {
 
 
 static bool SetTraceClassAllocation(Thread* thread, JSONStream* js) {
+  if (!thread->isolate()->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+        "Cannot trace allocation when running a precompiled program.");
+    return true;
+  }
   const char* class_id = js->LookupParam("classId");
   const bool enable = BoolParameter::Parse(js->LookupParam("enable"));
   intptr_t cid = -1;

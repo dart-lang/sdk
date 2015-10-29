@@ -370,10 +370,6 @@ class RunServiceTask : public ThreadPool::Task {
   }
 
   void RunMain(Isolate* I) {
-    if (Dart::IsRunningPrecompiledCode()) {
-      // TODO(24651): Remove this.
-      return;
-    }
     Thread* T = Thread::Current();
     ASSERT(I == T->isolate());
     StackZone zone(T);
