@@ -45,8 +45,7 @@
       `RawServerSocket` have been removed.
 
 * `dart:isolate`
-  * `Isolate` added `packageRoot` and `packageMap` getters.
-  * `Isolate.spawnUri` added `packageMap` parameter.
+  * `spawnUri` added an `environment` named argument.
 
 ### Tool changes
 
