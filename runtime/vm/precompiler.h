@@ -117,6 +117,7 @@ class Precompiler : public ValueObject {
   void DropUncompiledFunctions();
   void BindStaticCalls();
   void DedupStackmaps();
+  void ResetPrecompilerState();
 
   class FunctionVisitor : public ValueObject {
    public:

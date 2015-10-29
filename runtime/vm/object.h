@@ -1274,7 +1274,7 @@ class Class : public Object {
   bool is_allocated() const {
     return IsAllocatedBit::decode(raw_ptr()->state_bits_);
   }
-  void set_is_allocated() const;
+  void set_is_allocated(bool value) const;
 
   uint16_t num_native_fields() const {
     return raw_ptr()->num_native_fields_;

@@ -3661,8 +3661,8 @@ void Class::set_is_cycle_free() const {
 }
 
 
-void Class::set_is_allocated() const {
-  set_state_bits(IsAllocatedBit::update(true, raw_ptr()->state_bits_));
+void Class::set_is_allocated(bool value) const {
+  set_state_bits(IsAllocatedBit::update(value, raw_ptr()->state_bits_));
 }
 
 

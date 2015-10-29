@@ -68,19 +68,39 @@ Precompiler::Precompiler(Thread* thread, bool reset_fields) :
 
 void Precompiler::DoCompileAll(
     Dart_QualifiedFunctionName embedder_entry_points[]) {
-  ClearAllCode();
+  ASSERT(I->compilation_allowed());
 
   // Make sure class hierarchy is stable before compilation so that CHA
   // can be used. Also ensures lookup of entry points won't miss functions
   // because their class hasn't been finalized yet.
   FinalizeAllClasses();
 
-  // Start with the allocations and invocations that happen from C++.
-  AddRoots(embedder_entry_points);
+  const intptr_t kPrecompilerRounds = 1;
+  for (intptr_t round = 0; round < kPrecompilerRounds; round++) {
+    if (FLAG_trace_precompiler) {
+      OS::Print("Precompiler round %" Pd "\n", round);
+    }
 
-  // Compile newly found targets and add their callees until we reach a fixed
-  // point.
-  Iterate();
+    if (round > 0) {
+      ResetPrecompilerState();
+    }
+
+    // TODO(rmacnak): We should be able to do a more thorough job and drop some
+    //  - implicit static closures
+    //  - field initializers
+    //  - invoke-field-dispatchers
+    //  - method-extractors
+    // that are needed in early iterations but optimized away in later
+    // iterations.
+    ClearAllCode();
+
+    // Start with the allocations and invocations that happen from C++.
+    AddRoots(embedder_entry_points);
+
+    // Compile newly found targets and add their callees until we reach a fixed
+    // point.
+    Iterate();
+  }
 
   DropUncompiledFunctions();
 
@@ -338,6 +358,15 @@ void Precompiler::ProcessFunction(const Function& function) {
     if (!error_.IsNull()) {
       Jump(error_);
     }
+  } else {
+    if (FLAG_trace_precompiler) {
+      // This function was compiled from somewhere other than Precompiler,
+      // such as const constructors compiled by the parser.
+      THR_Print("Already has code: %s (%" Pd ", %s)\n",
+                function.ToLibNamePrefixedQualifiedCString(),
+                function.token_pos(),
+                Function::KindToCString(function.kind()));
+    }
   }
 
   ASSERT(function.HasCode());
@@ -502,14 +531,14 @@ void Precompiler::AddField(const Field& field) {
       const bool is_initialized = value.raw() != Object::sentinel().raw();
       if (is_initialized && !reset_fields_) return;
 
-      if (field.HasPrecompiledInitializer()) return;
-
-      if (FLAG_trace_precompiler) {
-        THR_Print("Precompiling initializer for %s\n", field.ToCString());
+      if (!field.HasPrecompiledInitializer()) {
+        if (FLAG_trace_precompiler) {
+          THR_Print("Precompiling initializer for %s\n", field.ToCString());
+        }
+        ASSERT(!Dart::IsRunningPrecompiledCode());
+        field.SetStaticValue(Instance::Handle(field.SavedInitialStaticValue()));
+        Compiler::CompileStaticInitializer(field);
       }
-      ASSERT(!Dart::IsRunningPrecompiledCode());
-      field.SetStaticValue(Instance::Handle(field.SavedInitialStaticValue()));
-      Compiler::CompileStaticInitializer(field);
 
       const Function& function =
           Function::Handle(Z, field.PrecompiledInitializer());
@@ -557,7 +586,7 @@ void Precompiler::AddInstantiatedClass(const Class& cls) {
   if (cls.is_allocated()) return;
 
   class_count_++;
-  cls.set_is_allocated();
+  cls.set_is_allocated(true);
   changed_ = true;
 
   if (FLAG_trace_precompiler) {
@@ -903,5 +932,31 @@ void Precompiler::FinalizeAllClasses() {
   I->set_all_classes_finalized(true);
 }
 
+
+void Precompiler::ResetPrecompilerState() {
+  changed_ = false;
+  function_count_ = 0;
+  class_count_ = 0;
+  selector_count_ = 0;
+  dropped_function_count_ = 0;
+  ASSERT(pending_functions_.Length() == 0);
+  sent_selectors_.Clear();
+  enqueued_functions_.Clear();
+
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      if (cls.IsDynamicClass()) {
+        continue;  // class 'dynamic' is in the read-only VM isolate.
+      }
+      cls.set_is_allocated(false);
+    }
+  }
+}
 
 }  // namespace dart
