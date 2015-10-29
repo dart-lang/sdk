@@ -10906,27 +10906,6 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitClassMembersInScope(ClassDeclaration node) {
-    safelyVisit(node.documentationComment);
-    node.metadata.accept(this);
-    //
-    // Visit the fields before other members so that instance fields will have
-    // propagated types associated with them before we see their use sites.
-    //
-    List<ClassMember> nonFields = <ClassMember>[];
-    for (ClassMember member in node.members) {
-      if (member is FieldDeclaration) {
-        member.accept(this);
-      } else {
-        nonFields.add(member);
-      }
-    }
-    for (ClassMember member in nonFields) {
-      member.accept(this);
-    }
-  }
-
-  @override
   Object visitComment(Comment node) {
     if (node.parent is FunctionDeclaration ||
         node.parent is ConstructorDeclaration ||
@@ -11538,30 +11517,9 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     VariableElement element = node.element;
-    FunctionElement initializerElement = element.initializer;
-    Expression initializer = node.initializer;
-    if (initializerElement is FunctionElementImpl && initializer != null) {
-      initializerElement.returnType = initializer.staticType;
-    }
-    //
-    // Propagate types for instance fields. Top-level variables and static
-    // fields are handled elsewhere.
-    //
-    // TODO(brianwilkerson) Instance field propagation should probably be moved
-    // into the class InstanceMemberInferrer because we're already doing
-    // something there for strong mode.
-    //
-    if (initializer != null &&
-        element is FieldElementImpl &&
-        !element.isStatic &&
-        element.isFinal) {
-      DartType staticType = element.type;
-      DartType bestType = initializer.bestType;
-      if (bestType != null &&
-          bestType != staticType &&
-          bestType.isMoreSpecificThan(staticType)) {
-        element.propagatedType = bestType;
-      }
+    if (element.initializer != null && node.initializer != null) {
+      (element.initializer as FunctionElementImpl).returnType =
+          node.initializer.staticType;
     }
     // Note: in addition to cloning the initializers for const variables, we
     // have to clone the initializers for non-static final fields (because if
@@ -11571,9 +11529,9 @@ class ResolverVisitor extends ScopedVisitor {
             (element is FieldElement &&
                 element.isFinal &&
                 !element.isStatic)) &&
-        initializer != null) {
+        node.initializer != null) {
       (element as ConstVariableElement).constantInitializer =
-          new ConstantAstCloner().cloneNode(initializer);
+          new ConstantAstCloner().cloneNode(node.initializer);
     }
     return null;
   }
