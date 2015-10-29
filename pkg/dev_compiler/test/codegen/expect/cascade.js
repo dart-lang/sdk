@@ -1,5 +1,5 @@
 dart_library.library('cascade', null, /* Imports */[
-  "dart_runtime/dart",
+  "dart/_runtime",
   'dart/core'
 ], /* Lazy imports */[
 ], function(exports, dart, core) {

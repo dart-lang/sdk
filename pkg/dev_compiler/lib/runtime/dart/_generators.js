@@ -14,9 +14,9 @@
  * Inspired by `co`: https://github.com/tj/co/blob/master/index.js, which is a
  * stepping stone for proposed ES7 async/await, and uses ES6 Promises.
  */
-dart_library.library('dart_runtime/_generators', null, /* Imports */[
+dart_library.library('dart/_generators', null, /* Imports */[
 ], /* Lazy Imports */[
-  'dart_runtime/_operations',
+  'dart/_operations',
   'dart/_js_helper',
   'dart/core',
   'dart/collection',

@@ -1,5 +1,5 @@
 dart_library.library('dir/html_input_e', null, /* Imports */[
-  "dart_runtime/dart"
+  "dart/_runtime"
 ], /* Lazy imports */[
 ], function(exports, dart) {
   'use strict';

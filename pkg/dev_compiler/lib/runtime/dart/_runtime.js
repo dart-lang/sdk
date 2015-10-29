@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-dart_library.library('dart_runtime/dart', null, /* Imports */[
-  'dart_runtime/_classes',
-  'dart_runtime/_errors',
-  'dart_runtime/_generators',
-  'dart_runtime/_operations',
-  'dart_runtime/_rtti',
-  'dart_runtime/_types',
+dart_library.library('dart/_runtime', null, /* Imports */[
+  'dart/_classes',
+  'dart/_errors',
+  'dart/_generators',
+  'dart/_operations',
+  'dart/_rtti',
+  'dart/_types',
 ], /* Lazy Imports */[
   'dart/_js_helper'
 ], function(exports, classes, errors, generators, operations, rtti, types,

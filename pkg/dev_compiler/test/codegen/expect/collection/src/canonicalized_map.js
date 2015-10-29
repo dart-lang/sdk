@@ -1,5 +1,5 @@
 dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
-  "dart_runtime/dart",
+  "dart/_runtime",
   'dart/core',
   'collection/src/utils',
   'dart/collection'

@@ -39,7 +39,7 @@ import 'side_effect_analysis.dart';
 
 // Various dynamic helpers we call.
 // If renaming these, make sure to check other places like the
-// dart_runtime.js file and comments.
+// _runtime.js file and comments.
 // TODO(jmesserly): ideally we'd have a "dynamic call" dart library we can
 // import and generate calls to, rather than dart_runtime.js
 const DPUT = 'dput';
@@ -195,7 +195,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       list.add(js.string(compiler.getModuleName(library.source.uri), "'"));
     };
 
-    var imports = <JS.Expression>[js.string('dart_runtime/dart')];
+    var imports = <JS.Expression>[js.string('dart/_runtime')];
     _imports.forEach((library, temp) {
       if (_loader.libraryIsLoaded(library)) {
         processImport(library, temp, imports);

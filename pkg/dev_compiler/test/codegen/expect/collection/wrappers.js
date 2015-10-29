@@ -1,5 +1,5 @@
 dart_library.library('collection/wrappers', null, /* Imports */[
-  "dart_runtime/dart",
+  "dart/_runtime",
   'collection/src/canonicalized_map',
   'dart/core',
   'dart/math',

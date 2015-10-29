@@ -5,11 +5,11 @@
 /* This library defines the representation of runtime types.
 */
 
-dart_library.library('dart_runtime/_types', null, /* Imports */[
+dart_library.library('dart/_types', null, /* Imports */[
 ], /* Lazy Imports */[
   'dart/core',
-  'dart_runtime/_classes',
-  'dart_runtime/_rtti'
+  'dart/_classes',
+  'dart/_rtti'
 ], function(exports, core, classes, rtti) {
   'use strict';
 

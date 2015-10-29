@@ -1,5 +1,5 @@
 dart_library.library('dart/js', null, /* Imports */[
-  "dart_runtime/dart",
+  "dart/_runtime",
   'dart/core',
   'dart/collection',
   'dart/_js_helper'

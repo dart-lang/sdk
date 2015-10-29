@@ -1,5 +1,5 @@
 dart_library.library('sunflower/painter', null, /* Imports */[
-  "dart_runtime/dart",
+  "dart/_runtime",
   'dart/math',
   'sunflower/dom',
   'dart/core',

@@ -1,5 +1,5 @@
 dart_library.library('syncstar_syntax', null, /* Imports */[
-  "dart_runtime/dart",
+  "dart/_runtime",
   'dart/core',
   'expect/expect'
 ], /* Lazy imports */[

@@ -1,5 +1,5 @@
 dart_library.library('unittest/unittest', null, /* Imports */[
-  "dart_runtime/dart",
+  "dart/_runtime",
   'matcher/matcher',
   'dom/dom',
   'dart/core',

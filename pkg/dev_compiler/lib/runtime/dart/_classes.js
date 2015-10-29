@@ -10,12 +10,12 @@
  */
 
 // TODO(leafp): Consider splitting some of this out.
-dart_library.library('dart_runtime/_classes', null, /* Imports */[
+dart_library.library('dart/_classes', null, /* Imports */[
 ], /* Lazy Imports */[
   'dart/core',
   'dart/_interceptors',
-  'dart_runtime/_types',
-  'dart_runtime/_rtti',
+  'dart/_types',
+  'dart/_rtti',
 ], function(exports, core, _interceptors, types, rtti) {
   'use strict';
 
@@ -29,8 +29,6 @@ dart_library.library('dart_runtime/_classes', null, /* Imports */[
   const defineProperty = Object.defineProperty;
   const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
   const getOwnPropertySymbols = Object.getOwnPropertySymbols;
-
-  const slice = [].slice;
 
   /** The Symbol for storing type arguments on a specialized generic type. */
   const _mixins = Symbol('mixins');
@@ -48,15 +46,14 @@ dart_library.library('dart_runtime/_classes', null, /* Imports */[
    * For each mixin, we only take its own properties, not anything from its
    * superclass (prototype).
    */
-  function mixin(base/*, ...mixins*/) {
+  function mixin(base, ...mixins) {
     // Create an initializer for the mixin, so when derived constructor calls
     // super, we can correctly initialize base and mixins.
-    let mixins = slice.call(arguments, 1);
 
     // Create a class that will hold all of the mixin methods.
     class Mixin extends base {
       // Initializer method: run mixin initializers, then the base.
-      [base.name](/*...args*/) {
+      [base.name](...args) {
         // Run mixin initializers. They cannot have arguments.
         // Run them backwards so most-derived mixin is initialized first.
         for (let i = mixins.length - 1; i >= 0; i--) {
@@ -66,7 +63,7 @@ dart_library.library('dart_runtime/_classes', null, /* Imports */[
         }
         // Run base initializer.
         let init = base.prototype[base.name];
-        if (init) init.apply(this, arguments);
+        if (init) init.apply(this, args);
       }
     }
     // Copy each mixin's methods, with later ones overwriting earlier entries.
@@ -113,11 +110,10 @@ dart_library.library('dart_runtime/_classes', null, /* Imports */[
       throwInternalError('must have at least one generic type argument');
     }
     let resultMap = new Map();
-    function makeGenericType(/*...arguments*/) {
-      if (arguments.length != length && arguments.length != 0) {
+    function makeGenericType(...args) {
+      if (args.length != length && args.length != 0) {
         throwInternalError('requires ' + length + ' or 0 type arguments');
       }
-      let args = slice.call(arguments);
       while (args.length < length) args.push(types.dynamic);
 
       let value = resultMap;
@@ -366,7 +362,7 @@ dart_library.library('dart_runtime/_classes', null, /* Imports */[
    */
   // TODO(jmesserly): essentially this gives two names to the same method.
   // This benefit is roughly equivalent call performance either way, but the
-  // cost is we need to call defineExtensionMembers any time a subclass 
+  // cost is we need to call defineExtensionMembers any time a subclass
   // overrides one of these methods.
   function defineExtensionMembers(type, methodNames) {
     let proto = type.prototype;

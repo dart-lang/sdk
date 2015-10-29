@@ -1,5 +1,5 @@
 dart_library.library('dart/_js_embedded_names', null, /* Imports */[
-  "dart_runtime/dart"
+  "dart/_runtime"
 ], /* Lazy imports */[
 ], function(exports, dart) {
   'use strict';

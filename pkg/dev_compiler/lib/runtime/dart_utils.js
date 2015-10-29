@@ -19,8 +19,6 @@ var dart_utils =
 
   const hasOwnProperty = Object.prototype.hasOwnProperty;
 
-  const slice = [].slice;
-
   class StrongModeError extends Error {
     constructor(message) {
       super(message);

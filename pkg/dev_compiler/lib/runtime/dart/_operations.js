@@ -5,16 +5,16 @@
 /* This library defines runtime operations on objects used by the code
  * generator.
  */
-dart_library.library('dart_runtime/_operations', null, /* Imports */[
+dart_library.library('dart/_operations', null, /* Imports */[
 ], /* Lazy Imports */[
   'dart/async',
   'dart/collection',
   'dart/core',
   'dart/_js_helper',
-  'dart_runtime/_classes',
-  'dart_runtime/_errors',
-  'dart_runtime/_rtti',
-  'dart_runtime/_types'
+  'dart/_classes',
+  'dart/_errors',
+  'dart/_rtti',
+  'dart/_types'
 ], function(exports, async, collection, core, _js_helper, classes, errors, rtti,
             types) {
   'use strict';
@@ -24,8 +24,6 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
 
   const getOwnPropertyNames = Object.getOwnPropertyNames;
   const hasOwnProperty = Object.prototype.hasOwnProperty;
-
-  const slice = [].slice;
 
   function _canonicalFieldName(obj, name, args, displayName) {
     name = classes.canonicalMember(obj, name);
@@ -143,8 +141,7 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
     throwNoSuchMethod(obj, name, args, f);
   }
 
-  function dcall(f/*, ...args*/) {
-    let args = slice.call(arguments, 1);
+  function dcall(f, ...args) {
     let ftype = rtti.read(f);
     return checkAndCall(f, ftype, void 0, args, 'call');
   }
@@ -158,8 +155,8 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
     return checkAndCall(f, ftype, obj, args, displayName);
   }
 
-  function dsend(obj, method/*, ...args*/) {
-    return callMethod(obj, method, slice.call(arguments, 2), method);
+  function dsend(obj, method, ...args) {
+    return callMethod(obj, method, args, method);
   }
   exports.dsend = dsend;
 
@@ -335,8 +332,7 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
    * Will call each successive callback, unless one returns null, which stops
    * the sequence.
    */
-  function nullSafe(obj /*, ...callbacks*/) {
-    let callbacks = slice.call(arguments, 1);
+  function nullSafe(obj, ...callbacks) {
     if (obj == null) return obj;
     for (const callback of callbacks) {
       obj = callback(obj);

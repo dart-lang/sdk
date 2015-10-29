@@ -1,5 +1,5 @@
 dart_library.library('closure', null, /* Imports */[
-  "dart_runtime/dart",
+  "dart/_runtime",
   'dart/core',
   'dart/js'
 ], /* Lazy imports */[

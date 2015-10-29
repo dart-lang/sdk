@@ -6,18 +6,16 @@
  * runtime types.
 */
 
-dart_library.library('dart_runtime/_rtti', null, /* Imports */[
+dart_library.library('dart/_rtti', null, /* Imports */[
 ], /* Lazy Imports */[
   'dart/core',
-  'dart_runtime/_types'
+  'dart/_types'
 ], function(exports, core, types) {
   'use strict';
 
   const defineLazyProperty = dart_utils.defineLazyProperty;
 
   const defineProperty = Object.defineProperty;
-
-  const slice = [].slice;
 
   /**
    * Runtime type information.  This module defines the mapping from
@@ -63,22 +61,20 @@ dart_library.library('dart_runtime/_rtti', null, /* Imports */[
    * Note that since we are producing a type for a concrete function,
    * it is sound to use the definite arrow type.
    */
-  function fn(closure/* ...args*/) {
+  function fn(closure, ...args) {
     // Closure and a lazy type constructor
-    if (arguments.length == 2) {
-      defineLazyProperty(closure, _runtimeType, {get : arguments[1]});
+    if (args.length == 1) {
+      defineLazyProperty(closure, _runtimeType, {get : args[0]});
       return closure;
     }
     let t;
-    if (arguments.length == 1) {
+    if (args.length == 0) {
       // No type arguments, it's all dynamic
-      let len = closure.length;
-      let args = Array.apply(null, new Array(len)).map(() => types.dynamic);
-      t = types.definiteFunctionType(types.dynamic, args);
+      t = types.definiteFunctionType(
+        types.dynamic, Array(closure.length).fill(types.dynamic));
     } else {
       // We're passed the piecewise components of the function type,
       // construct it.
-      let args = slice.call(arguments, 1);
       t = types.definiteFunctionType.apply(null, args);
     }
     tag(closure, t);
@@ -117,8 +113,7 @@ dart_library.library('dart_runtime/_rtti', null, /* Imports */[
 
   function getFunctionType(obj) {
     // TODO(vsm): Encode this properly on the function for Dart-generated code.
-    let args =
-      Array.apply(null, new Array(obj.length)).map(() => types.dynamic);
+    let args = Array(obj.length).fill(types.dynamic);
     return types.definiteFunctionType(types.bottom, args);
   }
 
@@ -153,7 +148,7 @@ dart_library.library('dart_runtime/_rtti', null, /* Imports */[
   }
   exports.LazyTagged = LazyTagged;
 
-  function read(value) { 
+  function read(value) {
     return value[_runtimeType];
   }
   exports.read = read;

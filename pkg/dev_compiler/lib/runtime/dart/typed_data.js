@@ -1,5 +1,5 @@
 dart_library.library('dart/typed_data', null, /* Imports */[
-  "dart_runtime/dart",
+  "dart/_runtime",
   'dart/core'
 ], /* Lazy imports */[
   'dart/_native_typed_data'

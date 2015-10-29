@@ -5,14 +5,14 @@
 var assert = chai.assert;
 var core = dart_library.import('dart/core');
 var collection = dart_library.import('dart/collection');
-var dart = dart_library.import('dart_runtime/dart');
+var dart = dart_library.import('dart/_runtime');
 var dartx = dart.dartx;
 
 // TODO(leafp): These are here to test some things not
 // currently exposed through the main dart entry point.
 // If we decide to expose them, this can go away.
-var classes = dart_library.import('dart_runtime/_classes');
-var types = dart_library.import('dart_runtime/_types');
+var classes = dart_library.import('dart/_classes');
+var types = dart_library.import('dart/_types');
 
 suite('generic', () => {
   "use strict";

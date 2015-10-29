@@ -1,5 +1,5 @@
 dart_library.library('dart/async', null, /* Imports */[
-  "dart_runtime/dart",
+  "dart/_runtime",
   'dart/core',
   'dart/_internal',
   'dart/collection'

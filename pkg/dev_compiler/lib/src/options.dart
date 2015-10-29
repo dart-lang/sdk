@@ -318,7 +318,7 @@ final ArgParser argParser = new ArgParser()
   ..addFlag('dump-info',
       abbr: 'i', help: 'Dump summary information', defaultsTo: null)
   ..addFlag('html-report',
-      help: 'Output compilation results to html', defaultsTo: null)
+      help: 'Output compilation results to html', defaultsTo: false)
   ..addOption('v8-binary',
       help: 'V8-based binary to run JavaScript output with (iojs, node, d8)',
       defaultsTo: 'iojs')

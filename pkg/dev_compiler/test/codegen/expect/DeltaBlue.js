@@ -1,5 +1,5 @@
 dart_library.library('DeltaBlue', null, /* Imports */[
-  "dart_runtime/dart",
+  "dart/_runtime",
   'BenchmarkBase',
   'dart/core'
 ], /* Lazy imports */[

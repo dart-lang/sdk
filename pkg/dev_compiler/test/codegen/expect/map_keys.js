@@ -1,5 +1,5 @@
 dart_library.library('map_keys', null, /* Imports */[
-  "dart_runtime/dart",
+  "dart/_runtime",
   'dart/core',
   'dart/math'
 ], /* Lazy imports */[

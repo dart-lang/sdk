@@ -7,9 +7,9 @@
  *
  */
 
-dart_library.library('dart_runtime/_errors', null, /* Imports */[
+dart_library.library('dart/_errors', null, /* Imports */[
 ], /* Lazy Imports */[
-  'dart_runtime/_operations',
+  'dart/_operations',
   'dart/core',
   'dart/_js_helper'
 ], function(exports, operations, core, _js_helper) {

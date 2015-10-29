@@ -1,5 +1,5 @@
 dart_library.library('collection/src/unmodifiable_wrappers', null, /* Imports */[
-  "dart_runtime/dart",
+  "dart/_runtime",
   'dart/collection',
   'dart/core'
 ], /* Lazy imports */[

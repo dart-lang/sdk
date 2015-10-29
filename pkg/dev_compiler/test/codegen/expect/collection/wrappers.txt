@@ -1,7 +1,4 @@
 // Messages from compiling wrappers.dart
-warning: [DownCastComposite] _base (Iterable<E>) will need runtime check to cast to type List<E> (package:collection/wrappers.dart, line 120, col 28)
-warning: [DownCastComposite] _base (Iterable<E>) will need runtime check to cast to type Set<E> (package:collection/wrappers.dart, line 219, col 26)
-warning: [DownCastComposite] _base (Iterable<E>) will need runtime check to cast to type Queue<E> (package:collection/wrappers.dart, line 272, col 30)
 warning: [DownCastComposite] _keyForValue(value) (dynamic) will need runtime check to cast to type K (package:collection/wrappers.dart, line 483, col 13)
 warning: [UninferredClosure] () {result = true; return value;} (() → dynamic) will need runtime check to cast to type () → V (package:collection/wrappers.dart, line 485, col 31)
 warning: [DownCastComposite] value (dynamic) will need runtime check to cast to type V (package:collection/wrappers.dart, line 536, col 16)
