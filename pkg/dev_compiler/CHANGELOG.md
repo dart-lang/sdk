@@ -1,9 +1,10 @@
 # dev_compiler changelog
 
-## unreleased
+## 0.1.10
 - added an `--html-report` option to create a file summarizing compilation
   issues
 - added a `-f` alias to the `--force-compile` command line option
+- removed many info level messages that were informational to the DDC team
 
 ## 0.1.9
 
