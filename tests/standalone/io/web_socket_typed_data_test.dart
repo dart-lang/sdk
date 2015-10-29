@@ -15,13 +15,17 @@ import "dart:typed_data";
 
 Future<HttpServer> createServer() => HttpServer.bind("127.0.0.1", 0);
 
-Future<WebSocket> createClient(int port) =>
-  WebSocket.connect('ws://127.0.0.1:$port/');
+Future<WebSocket> createClient(int port, bool compression) =>
+  compression ? WebSocket.connect('ws://127.0.0.1:$port/')
+    : WebSocket.connect('ws://127.0.0.1:$port/',
+        compression: CompressionOptions.OFF);
 
-void test(expected, testData) {
+void test(expected, testData, compression) {
   createServer().then((server) {
     var messageCount = 0;
-    server.transform(new WebSocketTransformer()).listen((webSocket) {
+    var transformer = compression ? new WebSocketTransformer()
+        : new WebSocketTransformer(compression: CompressionOptions.OFF);
+    server.transform(transformer).listen((webSocket) {
       webSocket.listen(
           (message) {
             Expect.listEquals(expected, message);
@@ -31,7 +35,7 @@ void test(expected, testData) {
           onDone: () => Expect.equals(testData.length, messageCount));
     });
 
-    createClient(server.port).then((webSocket) {
+    createClient(server.port, compression).then((webSocket) {
       var messageCount = 0;
       webSocket.listen(
           (message) {
@@ -45,7 +49,7 @@ void test(expected, testData) {
   });
 }
 
-testUintLists() {
+testUintLists({bool compression: false}) {
   var fillData = new List.generate(256, (index) => index);
   var testData = [
     new Uint8List(256),
@@ -55,10 +59,10 @@ testUintLists() {
     new Uint64List(256),
   ];
   testData.forEach((list) => list.setAll(0, fillData));
-  test(fillData, testData);
+  test(fillData, testData, compression);
 }
 
-testIntLists() {
+testIntLists({bool compression: false}) {
   var fillData = new List.generate(128, (index) => index);
   var testData = [
     new Int8List(128),
@@ -67,18 +71,20 @@ testIntLists() {
     new Int64List(128),
   ];
   testData.forEach((list) => list.setAll(0, fillData));
-  test(fillData, testData);
+  test(fillData, testData, compression);
 }
 
-void testOutOfRangeClient() {
+void testOutOfRangeClient({bool compression: false}) {
   createServer().then((server) {
     var messageCount = 0;
-    server.transform(new WebSocketTransformer()).listen((webSocket) {
+    var transformer = compression ? new WebSocketTransformer()
+        : new WebSocketTransformer(compression: CompressionOptions.OFF);
+    server.transform(transformer).listen((webSocket) {
       webSocket.listen((message) => Expect.fail("No message expected"));
     });
 
     Future clientError(data) {
-      return createClient(server.port).then((webSocket) {
+      return createClient(server.port, compression).then((webSocket) {
         var messageCount = 0;
         webSocket.listen((message) => Expect.fail("No message expected"));
         webSocket.add(data);
@@ -129,7 +135,7 @@ void testOutOfRangeClient() {
   });
 }
 
-void testOutOfRangeServer() {
+void testOutOfRangeServer({bool compression: false}) {
   var futures = [];
   var testData = [];
   var data;
@@ -175,7 +181,9 @@ void testOutOfRangeServer() {
 
   createServer().then((server) {
     var messageCount = 0;
-    server.transform(new WebSocketTransformer()).listen((webSocket) {
+    var transformer = compression ? new WebSocketTransformer()
+        : new WebSocketTransformer(compression: CompressionOptions.OFF);
+    server.transform(transformer).listen((webSocket) {
       webSocket.listen((message) {
         messageCount++;
         webSocket.add(testData[message[0]]);
@@ -187,7 +195,7 @@ void testOutOfRangeServer() {
 
     Future x(int i) {
       var completer = new Completer();
-      createClient(server.port).then((webSocket) {
+      createClient(server.port, compression).then((webSocket) {
           webSocket.listen((message) => Expect.fail("No message expected"),
                            onDone: () => completer.complete(true),
                            onError: (e) => completer.completeError(e));
@@ -204,7 +212,11 @@ void testOutOfRangeServer() {
 
 main() {
   testUintLists();
+  testUintLists(compression: true);
   testIntLists();
+  testIntLists(compression: true);
   testOutOfRangeClient();
+  testOutOfRangeClient(compression: true);
   // testOutOfRangeServer();
+  // testOutOfRangeServer(compression: true);
 }
