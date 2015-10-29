@@ -1,5 +1,5 @@
 name: js
-version: 0.6.0-beta.5
+version: 0.6.0-beta.6
 authors:
 - Dart Team <misc@dartlang.org>
 description: Access JavaScript from Dart.
