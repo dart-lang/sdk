@@ -314,7 +314,7 @@ bugs at the [issue tracker][tracker].
 [tracker]: https://github.com/dart-lang/dart2js_info/issues
 [code_deps]: https://github.com/dart-lang/dart2js_info/blob/master/bin/code_deps.dart
 [lib_split]: https://github.com/dart-lang/dart2js_info/blob/master/bin/library_size_split.dart
-[lib_split]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_check.dart
+[deferred_lib]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_check.dart
 [coverage]: https://github.com/dart-lang/dart2js_info/blob/master/bin/coverage_log_server.dart
 [live]: https://github.com/dart-lang/dart2js_info/blob/master/bin/live_code_size_analysis.dart
 [function_analysis]: https://github.com/dart-lang/dart2js_info/blob/master/bin/function_size_analysis.dart
