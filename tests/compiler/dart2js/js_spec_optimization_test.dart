@@ -67,7 +67,7 @@ main() {
   Future check(String test) {
     Uri uri = new Uri(scheme: 'dart', path: 'test');
     var compiler = compilerFor(test, uri, expectedErrors: 0);
-    return compiler.runCompiler(uri).then((_) {
+    return compiler.run(uri).then((_) {
       var element = findElement(compiler, 'main');
       var backend = compiler.backend;
       String generated = backend.getGeneratedCode(element);

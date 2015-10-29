@@ -1074,7 +1074,7 @@ Future compileScript(String source) {
   Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler = compilerFor(source, uri);
   compiler.diagnosticHandler = createHandler(compiler, source);
-  return compiler.runCompiler(uri).then((_) {
+  return compiler.run(uri).then((_) {
     return compiler;
   });
 }

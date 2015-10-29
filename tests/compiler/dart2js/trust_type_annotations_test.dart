@@ -49,7 +49,7 @@ main () {
 void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri, trustTypeAnnotations: true);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     var typesInferrer = compiler.typesTask.typesInferrer;
 
     ClassElement classA = findElement(compiler, "A");

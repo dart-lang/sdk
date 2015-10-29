@@ -134,7 +134,7 @@ class SourceMapProcessor {
     var handler = compiler.handler;
     SourceFileProvider sourceFileProvider = handler.provider;
     sourceFileManager = new ProviderSourceFileManager(sourceFileProvider);
-    await compiler.runCompiler(inputUri);
+    await compiler.run(inputUri);
 
     List<SourceMapInfo> infoList = <SourceMapInfo>[];
     backend.generatedCode.forEach((Element element, js.Expression node) {

@@ -17,7 +17,7 @@ void compileAndFind(String code,
                     check(compiler, element)) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(code, uri);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     compiler.disableInlining = disableInlining;
     var cls = findElement(compiler, className);
     var member = cls.lookupMember(memberName);

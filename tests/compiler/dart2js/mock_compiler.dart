@@ -163,9 +163,9 @@ class MockCompiler extends Compiler {
     }).then((_) => uri);
   }
 
-  Future runCompiler(Uri uri, [String mainSource = ""]) {
+  Future run(Uri uri, [String mainSource = ""]) {
     return init(mainSource).then((Uri mainUri) {
-      return super.runCompiler(uri == null ? mainUri : uri);
+      return super.run(uri == null ? mainUri : uri);
     }).then((result) {
       if (expectedErrors != null &&
           expectedErrors != errors.length) {

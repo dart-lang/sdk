@@ -146,8 +146,8 @@ Future<String> compileAll(String code,
       expectedWarnings: expectedWarnings,
       outputProvider: outputCollector);
   compiler.diagnosticHandler = createHandler(compiler, code);
-  return compiler.runCompiler(uri).then((_) {
-    Expect.isFalse(compiler.compilationFailed,
+  return compiler.run(uri).then((compilationSucceded) {
+    Expect.isTrue(compilationSucceded,
                    'Unexpected compilation error(s): ${compiler.errors}');
     return outputCollector.getOutput('', 'js');
   });
@@ -161,7 +161,7 @@ Future compileAndCheck(String code,
   MockCompiler compiler = compilerFor(code, uri,
       expectedErrors: expectedErrors,
       expectedWarnings: expectedWarnings);
-  return compiler.runCompiler(uri).then((_) {
+  return compiler.run(uri).then((_) {
     lego.Element element = findElement(compiler, name);
     return check(compiler, element);
   });
@@ -179,7 +179,7 @@ Future compileSources(Map<String, String> sources,
     compiler.registerSource(base.resolve(path), code);
   });
 
-  return compiler.runCompiler(mainUri).then((_) {
+  return compiler.run(mainUri).then((_) {
     return check(compiler);
   });
 }

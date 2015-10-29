@@ -12,7 +12,7 @@ Future compile(String source) {
   var compiler =
       compilerFor(source, uri, analyzeOnly: true, enableTypeAssertions: true);
   compiler.diagnosticHandler = createHandler(compiler, source);
-  return compiler.runCompiler(uri).then((_) {
+  return compiler.run(uri).then((_) {
     return compiler;
   });
 }

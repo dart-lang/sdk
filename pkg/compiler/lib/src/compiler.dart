@@ -542,10 +542,14 @@ abstract class Compiler {
     reporter.internalError(spannable, "$methodName not implemented.");
   }
 
+  // Compiles the dart script at [uri].
+  //
+  // The resulting future will complete with true if the compilation
+  // succeded.
   Future<bool> run(Uri uri) {
     totalCompileTime.start();
 
-    return new Future.sync(() => runCompiler(uri))
+    return new Future.sync(() => runInternal(uri))
         .catchError((error) => _reporter.onError(uri, error))
         .whenComplete(() {
       tracer.close();
@@ -828,7 +832,7 @@ abstract class Compiler {
    */
   Uri resolvePatchUri(String dartLibraryPath);
 
-  Future runCompiler(Uri uri) {
+  Future runInternal(Uri uri) {
     // TODO(ahe): This prevents memory leaks when invoking the compiler
     // multiple times. Implement a better mechanism where we can store
     // such caches in the compiler and get access to them through a

@@ -71,7 +71,7 @@ class TypeEnvironment {
       getWarnings = () => collector.warnings;
     }
     compiler.stopAfterTypeInference = stopAfterTypeInference;
-    return compiler.runCompiler(uri).then((_) {
+    return compiler.run(uri).then((_) {
       if (expectNoErrors || expectNoWarningsOrErrors) {
         var errors = getErrors();
         Expect.isTrue(errors.isEmpty,

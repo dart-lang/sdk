@@ -37,7 +37,7 @@ Future<Compiler> applyPatch(String script, String patch,
   compiler.registerSource(uri, "$DEFAULT_PATCH_CORE_SOURCE\n$patch");
   var future;
   if (runCompiler) {
-    future = compiler.runCompiler(null, main);
+    future = compiler.run(null, main);
   } else {
     future = compiler.init(main);
   }
@@ -966,7 +966,7 @@ Future testAnalyzeAllInjectedMembers() async {
     var compiler = await applyPatch('', patchText, analyzeAll: true,
                analyzeOnly: true);
       compiler.librariesToAnalyzeWhenRun = [Uri.parse('dart:core')];
-    await compiler.runCompiler(null);
+    await compiler.run(null);
     compareWarningKinds(patchText, expectedWarnings, compiler.warnings);
   }
 
@@ -1038,7 +1038,7 @@ Future testTypecheckPatchedMembers() async {
   var compiler = await applyPatch(originText, patchText,
              analyzeAll: true, analyzeOnly: true);
   compiler.librariesToAnalyzeWhenRun = [Uri.parse('dart:core')];
-  await compiler.runCompiler(null);
+  await compiler.run(null);
   compareWarningKinds(patchText,
       [MessageKind.NOT_ASSIGNABLE], compiler.warnings);
 }

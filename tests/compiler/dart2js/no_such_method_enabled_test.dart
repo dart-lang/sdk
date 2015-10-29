@@ -18,7 +18,7 @@ main() {
 """;
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     Expect.isFalse(compiler.backend.enabledNoSuchMethod);
     ClassElement clsA = findElement(compiler, 'A');
     Expect.isTrue(
@@ -40,7 +40,7 @@ main() {
 """;
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     Expect.isFalse(compiler.backend.enabledNoSuchMethod);
     ClassElement clsA = findElement(compiler, 'A');
     Expect.isTrue(
@@ -64,7 +64,7 @@ main() {
 """;
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     Expect.isFalse(compiler.backend.enabledNoSuchMethod);
     ClassElement clsA = findElement(compiler, 'A');
     Expect.isTrue(
@@ -88,7 +88,7 @@ main() {
 """;
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     Expect.isFalse(compiler.backend.enabledNoSuchMethod);
     ClassElement clsA = findElement(compiler, 'A');
     Expect.isTrue(
@@ -116,7 +116,7 @@ main() {
 """;
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     Expect.isTrue(compiler.backend.enabledNoSuchMethod);
     ClassElement clsA = findElement(compiler, 'A');
     Expect.isTrue(
@@ -140,7 +140,7 @@ main() {
 """;
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     Expect.isTrue(compiler.backend.enabledNoSuchMethod);
     ClassElement clsA = findElement(compiler, 'A');
     Expect.isTrue(
@@ -160,7 +160,7 @@ main() {
 """;
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     Expect.isFalse(compiler.backend.enabledNoSuchMethod);
     ClassElement clsA = findElement(compiler, 'A');
     Expect.isTrue(
@@ -180,7 +180,7 @@ main() {
 """;
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     Expect.isTrue(compiler.backend.enabledNoSuchMethod);
     ClassElement clsA = findElement(compiler, 'A');
     Expect.isTrue(
@@ -200,7 +200,7 @@ main() {
 """;
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     Expect.isTrue(compiler.backend.enabledNoSuchMethod);
     ClassElement clsA = findElement(compiler, 'A');
     Expect.isTrue(
@@ -222,7 +222,7 @@ main() {
 """;
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     Expect.isTrue(compiler.backend.enabledNoSuchMethod);
     ClassElement clsA = findElement(compiler, 'A');
     Expect.isTrue(
@@ -245,7 +245,7 @@ main() {
 """;
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     Expect.isTrue(compiler.backend.enabledNoSuchMethod);
     ClassElement clsA = findElement(compiler, 'A');
     Expect.isTrue(
@@ -270,7 +270,7 @@ main() {
 """;
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(source, uri);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     Expect.isTrue(compiler.backend.enabledNoSuchMethod);
     ClassElement clsA = findElement(compiler, 'A');
     Expect.isTrue(

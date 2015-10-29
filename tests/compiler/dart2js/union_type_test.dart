@@ -10,7 +10,7 @@ import "compiler_helper.dart";
 
 main() {
   MockCompiler compiler = new MockCompiler.internal(analyzeOnly: true);
-  asyncTest(() => compiler.runCompiler(null, """
+  asyncTest(() => compiler.run(null, """
       main() {
         print(2); print("Hello");
       }

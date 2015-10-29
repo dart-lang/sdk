@@ -23,7 +23,7 @@ main() {
   var compiler = compilerFor(CODE, uri);
   var classWorld = compiler.world;
 
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     var classA = findElement(compiler, 'A');
     var classB = findElement(compiler, 'B');
     var classC = findElement(compiler, 'C');

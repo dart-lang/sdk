@@ -30,16 +30,16 @@ main() {
 main() {
   Uri uri = Uri.parse('test:code');
   var compiler1 = compilerFor(SOURCE, uri, analyzeAll: false);
-  asyncTest(() => compiler1.runCompiler(uri).then((_) {
-    Expect.isFalse(compiler1.compilationFailed);
+  asyncTest(() => compiler1.run(uri).then((compilationSucceded) {
+    Expect.isTrue(compilationSucceded);
     print(compiler1.warnings);
     Expect.isTrue(compiler1.warnings.isEmpty, 'unexpected warnings');
     Expect.isTrue(compiler1.errors.isEmpty, 'unexpected errors');
   }));
 
   var compiler2 = compilerFor(SOURCE, uri, analyzeAll: true);
-  asyncTest(() => compiler2.runCompiler(uri).then((_) {
-    Expect.isTrue(compiler2.compilationFailed);
+  asyncTest(() => compiler2.run(uri).then((compilationSucceded) {
+    Expect.isFalse(compilationSucceded);
     Expect.isTrue(compiler2.warnings.isEmpty,
                   'unexpected warnings: ${compiler2.warnings}');
     Expect.equals(2, compiler2.errors.length,
