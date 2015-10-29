@@ -1813,6 +1813,12 @@ void Simulator::DecodeCop1(Instr* instr) {
         set_fregister_double(instr->FdField(), fs_val);
         break;
       }
+      case COP1_NEG: {
+        // Format(instr, "neg.'fmt 'fd, 'fs");
+        ASSERT(instr->FormatField() == FMT_D);
+        set_fregister_double(instr->FdField(), -fs_val);
+        break;
+      }
       case COP1_C_F: {
         ASSERT(instr->FormatField() == FMT_D);  // Only D supported.
         ASSERT(instr->FdField() == F0);
