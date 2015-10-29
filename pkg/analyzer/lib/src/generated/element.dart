@@ -7272,7 +7272,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
     }
     for (InterfaceType mixinType in targetType.mixins.reversed) {
-      PropertyAccessorElement member = _lookUpMemberInInterfaces(
+      ExecutableElement member = _lookUpMemberInInterfaces(
           mixinType, true, library, visitedInterfaces, getMember);
       if (member != null) {
         return member;
