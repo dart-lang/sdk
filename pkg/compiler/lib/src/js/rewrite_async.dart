@@ -2445,12 +2445,12 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
 
   @override
   bool visitStringConcatenation(js.StringConcatenation node) {
-    return true;
+    return false;
   }
 
   @override
   bool visitName(js.Name node) {
-    return true;
+    return false;
   }
 
   @override
