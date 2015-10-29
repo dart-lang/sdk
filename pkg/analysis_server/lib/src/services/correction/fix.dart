@@ -187,6 +187,10 @@ class DartFixKind {
       'REPLACE_RETURN_TYPE_FUTURE',
       50,
       "Return 'Future' from 'async' function");
+  static const REPLACE_WITH_NULL_AWARE = const FixKind(
+      'REPLACE_WITH_NULL_AWARE',
+      50,
+      "Replace the '.' with a '?.' in the invocation");
   static const USE_CONST = const FixKind('USE_CONST', 50, "Change to constant");
   static const USE_EFFECTIVE_INTEGER_DIVISION = const FixKind(
       'USE_EFFECTIVE_INTEGER_DIVISION',

@@ -219,7 +219,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitMethodInvocation(MethodInvocation node) {
-    _checkForCanBeNullAfterNullAware(node.realTarget);
+    _checkForCanBeNullAfterNullAware(node.realTarget, node.operator);
     return super.visitMethodInvocation(node);
   }
 
@@ -237,7 +237,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitPropertyAccess(PropertyAccess node) {
-    _checkForCanBeNullAfterNullAware(node.realTarget);
+    _checkForCanBeNullAfterNullAware(node.realTarget, node.operator);
     return super.visitPropertyAccess(node);
   }
 
@@ -465,20 +465,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Produce a hint if the given [expression] could have a value of `null`.
+   * Produce a hint if the given [target] could have a value of `null`.
    */
-  void _checkForCanBeNullAfterNullAware(Expression expression) {
-    if (expression is ParenthesizedExpression) {
-      _checkForCanBeNullAfterNullAware(expression.expression);
-    } else if (expression is MethodInvocation) {
-      if (expression.operator?.type == TokenType.QUESTION_PERIOD) {
+  void _checkForCanBeNullAfterNullAware(Expression target, Token operator) {
+    if (operator?.type == TokenType.QUESTION_PERIOD) {
+      return;
+    }
+    while (target is ParenthesizedExpression) {
+      target = (target as ParenthesizedExpression).expression;
+    }
+    if (target is MethodInvocation) {
+      if (target.operator?.type == TokenType.QUESTION_PERIOD) {
         _errorReporter.reportErrorForNode(
-            HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, expression);
+            HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, target);
       }
-    } else if (expression is PropertyAccess) {
-      if (expression.operator.type == TokenType.QUESTION_PERIOD) {
+    } else if (target is PropertyAccess) {
+      if (target.operator.type == TokenType.QUESTION_PERIOD) {
         _errorReporter.reportErrorForNode(
-            HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, expression);
+            HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, target);
       }
     }
   }

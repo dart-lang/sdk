@@ -398,6 +398,51 @@ main() {
 ''');
   }
 
+  void test_canBeNullAfterNullAware_chain() {
+    resolveTestUnit('''
+main(x) {
+  x?.a.b.c;
+}
+''');
+    assertHasFix(
+        DartFixKind.REPLACE_WITH_NULL_AWARE,
+        '''
+main(x) {
+  x?.a?.b?.c;
+}
+''');
+  }
+
+  void test_canBeNullAfterNullAware_methodInvocation() {
+    resolveTestUnit('''
+main(x) {
+  x?.a.b();
+}
+''');
+    assertHasFix(
+        DartFixKind.REPLACE_WITH_NULL_AWARE,
+        '''
+main(x) {
+  x?.a?.b();
+}
+''');
+  }
+
+  void test_canBeNullAfterNullAware_propertyAccess() {
+    resolveTestUnit('''
+main(x) {
+  x?.a().b;
+}
+''');
+    assertHasFix(
+        DartFixKind.REPLACE_WITH_NULL_AWARE,
+        '''
+main(x) {
+  x?.a()?.b;
+}
+''');
+  }
+
   void test_changeToStaticAccess_method() {
     resolveTestUnit('''
 class A {

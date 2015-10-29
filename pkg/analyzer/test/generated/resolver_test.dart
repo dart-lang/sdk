@@ -2364,6 +2364,28 @@ n(int i) {}''');
     verify([source]);
   }
 
+  void test_canBeNullAfterNullAware_false_methodInvocation() {
+    Source source = addSource(r'''
+m(x) {
+  x?.a()?.b();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_canBeNullAfterNullAware_false_propertyAccess() {
+    Source source = addSource(r'''
+m(x) {
+  x?.a?.b;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_canBeNullAfterNullAware_methodInvocation() {
     Source source = addSource(r'''
 m(x) {
