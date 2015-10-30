@@ -130,6 +130,7 @@ class BackendHelpers {
   ClassElement irRepresentationClass;
 
   ClassElement jsAnnotationClass;
+  ClassElement jsAnonymousClass;
 
   Element getInterceptorMethod;
 
@@ -303,6 +304,7 @@ class BackendHelpers {
       typedArrayOfIntClass = findClass('NativeTypedArrayOfInt');
     } else if (uri == PACKAGE_JS) {
       jsAnnotationClass = find(library, 'JS');
+      jsAnonymousClass = find(library, '_Anonymous');
     }
   }
 

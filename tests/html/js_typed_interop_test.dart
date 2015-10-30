@@ -114,6 +114,7 @@ class Foo {
   external static int multiplyDefault2(int a, [int b]);
 }
 
+@anonymous
 @JS()
 class ExampleLiteral {
   external factory ExampleLiteral({int x, String y, num z});
