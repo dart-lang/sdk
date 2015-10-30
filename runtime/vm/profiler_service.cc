@@ -1905,6 +1905,13 @@ class ProfileBuilder : public ValueObject {
                             0,
                             code);
     }
+
+#if defined(HOST_ARCH_ARM)
+    // The symbol for a Thumb function will be xxx1, but we may have samples
+    // at function entry which will have pc xxx0.
+    native_start &= ~1;
+#endif
+
     ASSERT(pc >= native_start);
     ProfileCode* profile_code =
         new ProfileCode(ProfileCode::kNativeCode,
@@ -1913,7 +1920,7 @@ class ProfileBuilder : public ValueObject {
                        0,
                        code);
     profile_code->SetName(native_name);
-    free(native_name);
+    NativeSymbolResolver::FreeSymbolName(native_name);
     return profile_code;
   }
 
