@@ -13878,13 +13878,13 @@ const char* Context::ToCString() const {
   Zone* zone = Thread::Current()->zone();
   const Context& parent_ctx = Context::Handle(parent());
   if (parent_ctx.IsNull()) {
-    return zone->PrintToString("Context@%p num_variables:% " Pd "",
-                               this->raw(), num_variables());
+    return zone->PrintToString("Context num_variables: %" Pd "",
+                               num_variables());
   } else {
     const char* parent_str = parent_ctx.ToCString();
     return zone->PrintToString(
-        "Context@%p num_variables:% " Pd " parent:{ %s }",
-        this->raw(), num_variables(), parent_str);
+        "Context num_variables: %" Pd " parent:{ %s }",
+        num_variables(), parent_str);
   }
 }
 
