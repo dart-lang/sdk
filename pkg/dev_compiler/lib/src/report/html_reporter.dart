@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
@@ -105,10 +106,16 @@ class HtmlReporter implements AnalysisErrorListener {
     }
 
     // Write the html report.
-    Page page = new Page(input, input, summaries);
-    String path = '${input.replaceAll('.', '_')}_results.html';
-    new File(path).writeAsStringSync(page.create());
-    print('Compilation report available at ${path}; ${errors.length} issues.');
+    var page = new Page(input, input, summaries);
+    var outPath = '${input.replaceAll('.', '_')}_results.html';
+    var link = outPath;
+    if (options.serverMode) {
+      var base = path.basename(outPath);
+      outPath = path.join(options.codegenOptions.outputDir, base);
+      link = 'http://${options.host}:${options.port}/$base';
+    }
+    new File(outPath).writeAsStringSync(page.create());
+    print('Compilation report available at ${link}; ${errors.length} issues.');
   }
 
   String _getPackageName() {

@@ -51,7 +51,8 @@ abstract class V8Runner {
 
   Future<Process> start(List<File> files, String startStatement) =>
       Process.start(
-          _v8Binary, [
+          _v8Binary,
+          [
             "--harmony",
             "-e",
             _GLOBALS + _getLoadStatements(files).join() + startStatement

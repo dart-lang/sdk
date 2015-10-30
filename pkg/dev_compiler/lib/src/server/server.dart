@@ -24,6 +24,7 @@ import 'package:shelf_static/shelf_static.dart' as shelf_static;
 import '../codegen/code_generator.dart' show CodeGenerator;
 import '../codegen/html_codegen.dart' show generateEntryHtml;
 import '../codegen/js_codegen.dart';
+import '../report/html_reporter.dart' show HtmlReporter;
 import '../analysis_context.dart';
 import '../compiler.dart' show AbstractCompiler, createErrorReporter;
 import '../info.dart'
@@ -184,14 +185,18 @@ class ServerCompiler extends AbstractCompiler {
   }
 
   _dumpInfoIfRequested() {
-    if (!options.dumpInfo || reporter is! SummaryReporter) return;
-    var result = (reporter as SummaryReporter).result;
-    if (!options.serverMode) print(summaryToString(result));
-    var filepath = options.serverMode
-        ? path.join(outputDir, 'messages.json')
-        : options.dumpInfoFile;
-    if (filepath == null) return;
-    new File(filepath).writeAsStringSync(JSON.encode(result.toJsonMap()));
+    if (reporter is HtmlReporter) {
+      (reporter as HtmlReporter).finish(options);
+    } else {
+      if (!options.dumpInfo || reporter is! SummaryReporter) return;
+      var result = (reporter as SummaryReporter).result;
+      if (!options.serverMode) print(summaryToString(result));
+      var filepath = options.serverMode
+          ? path.join(outputDir, 'messages.json')
+          : options.dumpInfoFile;
+      if (filepath == null) return;
+      new File(filepath).writeAsStringSync(JSON.encode(result.toJsonMap()));
+    }
   }
 }
 
