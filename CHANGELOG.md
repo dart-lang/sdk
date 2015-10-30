@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.3
+- Moved `deferred_library_check` functionality to a library
+
 ## 0.2.2
 - Added `deferred_libary_check` tool
 
