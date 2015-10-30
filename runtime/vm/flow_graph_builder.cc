@@ -548,6 +548,10 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
     call_->previous()->AppendInstruction(branch);
     call_block->set_last_instruction(branch);
 
+    // Replace uses of the return value with null to maintain valid
+    // SSA form - even though the rest of the caller is unreachable.
+    call_->ReplaceUsesWith(caller_graph_->constant_null());
+
     // Update dominator tree.
     call_block->AddDominatedBlock(callee_entry);
     call_block->AddDominatedBlock(false_block);
