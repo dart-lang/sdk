@@ -176,11 +176,19 @@ wrap_jso(jsObject) {
     } else {
       func = getHtmlCreateFunction(jsTypeName);
       if (func == null) {
-        if (jsTypeName == 'auto-binding') {
-          func = getHtmlCreateFunction('HTMLTemplateElement');
-        } else if (jsObject.toString() == "[object HTMLElement]") {
-          // One last ditch effort could be a JS custom element.
-          func = getHtmlCreateFunction('HTMLElement');
+        // Start walking the prototype chain looking for a JS class.
+        var prototype = jsObject['__proto__'];
+        var keepWalking = true;
+        while (keepWalking && prototype.hasProperty('__proto__')) {
+          prototype = prototype['__proto__'];
+          if (prototype != null && prototype is Element &&
+              prototype.blink_jsObject != null) {
+            // We're a Dart class that's pointing to a JS class.
+            var blinkJso = prototype.blink_jsObject;
+            jsTypeName = blinkJso['constructor']['name'];
+            func = getHtmlCreateFunction(jsTypeName);
+            keepWalking = func == null;
+          }
         }
       }
     }
