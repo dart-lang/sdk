@@ -30,7 +30,9 @@ import '../../constants/values.dart' show
 import '../../core_types.dart' show
     CoreClasses;
 import '../../dart_types.dart' show
-    DartType;
+    DartType,
+    FunctionType,
+    TypedefType;
 import '../../elements/elements.dart' show
     ClassElement,
     Element,
@@ -38,6 +40,7 @@ import '../../elements/elements.dart' show
     FieldElement,
     FunctionElement,
     FunctionSignature,
+    GetterElement,
     LibraryElement,
     MethodElement,
     Name,
@@ -407,10 +410,50 @@ class ProgramBuilder {
               }
             }
 
+            // Generating stubs for direct calls and stubs for call-through
+            // of getters that happen to be functions.
+            bool isFunctionLike = false;
+            FunctionType functionType = null;
+
             if (member.isFunction) {
+              FunctionElement fn = member;
+              functionType = fn.type;
+            } else if (member.isGetter) {
+              if (_compiler.trustTypeAnnotations) {
+                GetterElement getter = member;
+                DartType returnType = getter.type.returnType;
+                if (returnType.isFunctionType) {
+                  functionType = returnType;
+                } else if (returnType.treatAsDynamic ||
+                    _compiler.types.isSubtype(returnType,
+                        backend.coreTypes.functionType)) {
+                  if (returnType.isTypedef) {
+                    TypedefType typedef = returnType;
+                    // TODO(jacobr): can we just use typdef.unaliased instead?
+                    functionType = typedef.element.functionSignature.type;
+                  } else {
+                    // Other misc function type such as coreTypes.Function.
+                    // Allow any number of arguments.
+                    isFunctionLike = true;
+                  }
+                }
+              } else {
+                isFunctionLike = true;
+              }
+            } // TODO(jacobr): handle field elements.
+
+            if (isFunctionLike || functionType != null) {
+              int minArgs;
+              int maxArgs;
+              if (functionType != null) {
+                minArgs = functionType.parameterTypes.length;
+                maxArgs = minArgs + functionType.optionalParameterTypes.length;
+              } else {
+                minArgs = 0;
+                maxArgs = 32767;
+              }
               var selectors =
                   _compiler.codegenWorld.invocationsByName(member.name);
-              FunctionElement fn = member;
               // Named arguments are not yet supported. In the future we
               // may want to map named arguments to an object literal containing
               // all named arguments.
@@ -418,16 +461,23 @@ class ProgramBuilder {
                 for (var selector in selectors.keys) {
                   // Check whether the arity matches this member.
                   var argumentCount = selector.argumentCount;
-                  if (argumentCount > fn.parameters.length) break;
-                  if (argumentCount < fn.parameters.length &&
-                      !fn.parameters[argumentCount].isOptional) break;
+                  // JS interop does not support named arguments.
+                  if (selector.namedArgumentCount > 0) break;
+                  if (argumentCount < minArgs) break;
+                  if (argumentCount > maxArgs) break;
                   var stubName = namer.invocationName(selector);
                   if (!stubNames.add(stubName.key)) break;
-                  var candidateParameterNames =
-                      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLOMOPQRSTUVWXYZ';
                   var parameters = new List<String>.generate(argumentCount,
-                      (i) => candidateParameterNames[i]);
+                      (i) => 'p$i');
 
+                  // We intentionally generate the same stub method for direct
+                  // calls and call-throughs of getters so that calling a
+                  // getter that returns a function behaves the same as calling
+                  // a method. This is helpful as many typed JavaScript APIs
+                  // specify member functions with getters that return
+                  // functions. The behavior of this solution matches JavaScript
+                  // behavior implicitly binding this only when JavaScript
+                  // would.
                   interceptorClass.callStubs.add(_buildStubMethod(
                       stubName,
                       js.js('function(receiver, #) { return receiver.#(#) }',
