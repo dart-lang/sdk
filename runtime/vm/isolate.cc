@@ -788,8 +788,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
       background_compiler_(NULL),
-      compilation_function_queue_(GrowableObjectArray::null()),
-      compilation_result_queue_(GrowableObjectArray::null()),
       pending_service_extension_calls_(GrowableObjectArray::null()),
       registered_service_extension_handlers_(GrowableObjectArray::null()),
       metrics_list_head_(NULL),
@@ -1773,11 +1771,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit the tag table which is stored in the isolate.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&tag_table_));
 
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(
-      &compilation_function_queue_));
-
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(
-      &compilation_result_queue_));
+  if (background_compiler() != NULL) {
+    background_compiler()->VisitPointers(visitor);
+  }
 
   // Visit the deoptimized code array which is stored in the isolate.
   visitor->VisitPointer(
@@ -2001,18 +1997,6 @@ void Isolate::set_default_tag(const UserTag& tag) {
 
 void Isolate::set_deoptimized_code_array(const GrowableObjectArray& value) {
   deoptimized_code_array_ = value.raw();
-}
-
-
-void Isolate::set_compilation_function_queue(
-    const GrowableObjectArray& value) {
-  compilation_function_queue_ = value.raw();
-}
-
-
-void Isolate::set_compilation_result_queue(
-    const GrowableObjectArray& value) {
-  compilation_result_queue_ = value.raw();
 }
 
 

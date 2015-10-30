@@ -1614,7 +1614,9 @@ void BackgroundCompilationResult::PopFromQueue(CompilationWorkQueue* queue) {
 BackgroundCompiler::BackgroundCompiler(Isolate* isolate)
     : isolate_(isolate), running_(true), done_(new bool()),
       queue_monitor_(new Monitor()), done_monitor_(new Monitor()),
-      function_queue_length_(0) {
+      function_queue_length_(0),
+      compilation_function_queue_(GrowableObjectArray::null()),
+      compilation_result_queue_(GrowableObjectArray::null()) {
   *done_ = false;
 }
 
@@ -1702,13 +1704,12 @@ void BackgroundCompiler::InstallGeneratedCode() {
 
 
 GrowableObjectArray* BackgroundCompiler::FunctionsQueue() const {
-  return
-      &GrowableObjectArray::ZoneHandle(isolate_->compilation_function_queue());
+  return &GrowableObjectArray::ZoneHandle(compilation_function_queue_);
 }
 
 
 GrowableObjectArray* BackgroundCompiler::ResultQueue() const {
-  return &GrowableObjectArray::ZoneHandle(isolate_->compilation_result_queue());
+  return &GrowableObjectArray::ZoneHandle(compilation_result_queue_);
 }
 
 
@@ -1742,6 +1743,27 @@ void BackgroundCompiler::AddResult(const BackgroundCompilationResult& value) {
   MonitorLocker ml(queue_monitor_);
   CompilationWorkQueue queue(ResultQueue());
   value.PushOnQueue(&queue);
+}
+
+
+void BackgroundCompiler::set_compilation_function_queue(
+    const GrowableObjectArray& value) {
+  compilation_function_queue_ = value.raw();
+}
+
+
+void BackgroundCompiler::set_compilation_result_queue(
+    const GrowableObjectArray& value) {
+  compilation_result_queue_ = value.raw();
+}
+
+
+void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(
+      &compilation_function_queue_));
+
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(
+      &compilation_result_queue_));
 }
 
 
@@ -1783,9 +1805,9 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
     if (isolate->background_compiler() == NULL) {
       BackgroundCompiler* task = new BackgroundCompiler(isolate);
       isolate->set_background_compiler(task);
-      isolate->set_compilation_function_queue(GrowableObjectArray::Handle(
+      task->set_compilation_function_queue(GrowableObjectArray::Handle(
           thread->zone(), GrowableObjectArray::New()));
-      isolate->set_compilation_result_queue(GrowableObjectArray::Handle(
+      task->set_compilation_result_queue(GrowableObjectArray::Handle(
           thread->zone(), GrowableObjectArray::New()));
       start_task = true;
     }

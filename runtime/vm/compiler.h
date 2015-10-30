@@ -173,8 +173,13 @@ class BackgroundCompiler : public ThreadPool::Task {
     function_queue_length_ = value;
   }
 
+  void VisitPointers(ObjectPointerVisitor* visitor);
+
  private:
   explicit BackgroundCompiler(Isolate* isolate);
+
+  void set_compilation_function_queue(const GrowableObjectArray& value);
+  void set_compilation_result_queue(const GrowableObjectArray& value);
 
   GrowableObjectArray* FunctionsQueue() const;
   GrowableObjectArray* ResultQueue() const;
@@ -195,6 +200,9 @@ class BackgroundCompiler : public ThreadPool::Task {
 
   // Lightweight access to length of compiler queue.
   intptr_t function_queue_length_;
+
+  RawGrowableObjectArray* compilation_function_queue_;
+  RawGrowableObjectArray* compilation_result_queue_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BackgroundCompiler);
 };
