@@ -614,10 +614,10 @@ class Isolate : public BaseIsolate {
   }
   void set_compilation_function_queue(const GrowableObjectArray& value);
 
-  RawGrowableObjectArray* compilation_code_queue() const {
-    return compilation_code_queue_;
+  RawGrowableObjectArray* compilation_result_queue() const {
+    return compilation_result_queue_;
   }
-  void set_compilation_code_queue(const GrowableObjectArray& value);
+  void set_compilation_result_queue(const GrowableObjectArray& value);
 
   Metric* metrics_list_head() {
     return metrics_list_head_;
@@ -643,6 +643,18 @@ class Isolate : public BaseIsolate {
   void set_all_classes_finalized(bool value) {
     all_classes_finalized_ = value;
   }
+
+  void IncrCHAInvalidationGen() { cha_invalidation_gen_++; }
+  void ResetCHAInvalidationGen() { cha_invalidation_gen_ = 0; }
+  uint32_t cha_invalidation_gen() const { return cha_invalidation_gen_; }
+
+  void IncrFieldInvalidationGen() { field_invalidation_gen_++; }
+  void ResetFieldInvalidationGen() { field_invalidation_gen_ = 0; }
+  uint32_t field_invalidation_gen() const { return field_invalidation_gen_; }
+
+  void IncrPrefixInvalidationGen() { prefix_invalidation_gen_++; }
+  void ResetPrefixInvalidationGen() { prefix_invalidation_gen_ = 0; }
+  uint32_t prefix_invalidation_gen() const { return prefix_invalidation_gen_; }
 
   RawObject* InvokePendingServiceExtensionCalls();
   void AppendServiceExtensionCall(const Instance& closure,
@@ -805,7 +817,7 @@ class Isolate : public BaseIsolate {
   // Background compilation.
   BackgroundCompiler* background_compiler_;
   RawGrowableObjectArray* compilation_function_queue_;
-  RawGrowableObjectArray* compilation_code_queue_;
+  RawGrowableObjectArray* compilation_result_queue_;
 
   // We use 6 list entries for each pending service extension calls.
   enum {
@@ -837,6 +849,13 @@ class Isolate : public BaseIsolate {
 
   // Used to wake the isolate when it is in the pause event loop.
   Monitor* pause_loop_monitor_;
+
+  // Invalidation generations; used to track events occuring in parallel
+  // to background compilation. The counters may overflow, which is OK
+  // since we check for equality to detect if an event occured.
+  uint32_t cha_invalidation_gen_;
+  uint32_t field_invalidation_gen_;
+  uint32_t prefix_invalidation_gen_;
 
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
   type metric_##variable##_;

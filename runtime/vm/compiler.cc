@@ -390,7 +390,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
                                         ParsedFunction* parsed_function,
                                         bool optimized,
                                         intptr_t osr_id,
-                                        Code* optimized_result_code) {
+                                        BackgroundCompilationResult* result) {
   const Function& function = parsed_function->function();
   if (optimized && !function.IsOptimizable()) {
     return false;
@@ -772,12 +772,23 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         graph_compiler.FinalizeStaticCallTargetsTable(code);
 
         if (optimized) {
-          if (optimized_result_code != NULL) {
+          if (result != NULL) {
+            ASSERT(!Thread::Current()->IsMutatorThread());
             // Do not install code, but return it instead.
             // Since code dependencies (CHA, fields) are defined eagerly,
             // the code may be disabled before installing it.
             code.set_owner(function);
-            *optimized_result_code = code.raw();
+            result->set_result_code(code);
+            // Disable invalidation counters that are not relevant.
+            if (thread->cha()->leaf_classes().is_empty()) {
+              result->ClearCHAInvalidationGen();
+            }
+            if (flow_graph->guarded_fields()->is_empty()) {
+              result->ClearFieldInnvalidationGen();
+            }
+            if (!parsed_function->HasDeferredPrefixes()) {
+              result->ClearPrefixInnvalidationGen();
+            }
           } else {
             const bool is_osr = osr_id != Compiler::kNoOSRDeoptId;
             function.InstallOptimizedCode(code, is_osr);
@@ -1023,7 +1034,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
                                        bool optimized,
                                        intptr_t osr_id,
-                                       Code* result_code) {
+                                       BackgroundCompilationResult* result) {
   // Check that we optimize if 'Compiler::always_optimize()' is set to true,
   // except if the function is marked as not optimizable.
   ASSERT(!function.IsOptimizable() ||
@@ -1066,7 +1077,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                                      parsed_function,
                                                      optimized,
                                                      osr_id,
-                                                     result_code);
+                                                     result);
     if (!success) {
       if (optimized) {
         ASSERT(!Compiler::always_optimize());  // Optimized is the only code.
@@ -1189,7 +1200,7 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
 RawError* Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id,
-                                             Code* result_code) {
+                                             BackgroundCompilationResult* res) {
   VMTagScope tagScope(thread, VMTag::kCompileOptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread,
                                          "OptimizedFunction", function);
@@ -1204,7 +1215,7 @@ RawError* Compiler::CompileOptimizedFunction(Thread* thread,
                                function,
                                true,  /* optimized */
                                osr_id,
-                               result_code);
+                               res);
 }
 
 
@@ -1465,8 +1476,16 @@ class CompilationWorkQueue : public ValueObject {
   RawFunction* LastFunction() { return Function::RawCast(Last()); }
 
   void PushBackCode(const Code& code) { PushBack(code); }
+  void PushBackInteger(const Integer& value) { PushBack(value); }
   RawCode* PopBackCode() { return Code::RawCast(PopBack()); }
-  RawCode* LastCode() { return Code::RawCast(Last()); }
+  RawInteger* PopBackInteger() {
+    Object& o = Object::Handle(PopBack());
+    if (o.IsNull()) {
+      return Integer::null();
+    } else {
+      return Integer::Cast(o).raw();
+    }
+  }
 
  private:
   // Adds to the queue only if 'function' is not already in there.
@@ -1511,6 +1530,87 @@ class CompilationWorkQueue : public ValueObject {
 };
 
 
+
+BackgroundCompilationResult::BackgroundCompilationResult()
+    : result_code_(Code::Handle()),
+      cha_invalidation_gen_(Integer::Handle()),
+      field_invalidation_gen_(Integer::Handle()),
+      prefix_invalidation_gen_(Integer::Handle()) {
+}
+
+
+void BackgroundCompilationResult::Init() {
+  Isolate* i = Isolate::Current();
+  result_code_ = Code::null();
+  cha_invalidation_gen_ = Integer::New(i->cha_invalidation_gen(), Heap::kOld);
+  field_invalidation_gen_ =
+      Integer::New(i->field_invalidation_gen(), Heap::kOld);
+  prefix_invalidation_gen_ =
+      Integer::New(i->prefix_invalidation_gen(), Heap::kOld);
+}
+
+
+bool BackgroundCompilationResult::IsValid() const {
+  if (result_code().IsNull() || result_code().IsDisabled()) {
+    return false;
+  }
+  Isolate* i = Isolate::Current();
+  if (!cha_invalidation_gen_.IsNull() &&
+      (cha_invalidation_gen_.AsInt64Value() != i->cha_invalidation_gen())) {
+    return false;
+  }
+  if (!field_invalidation_gen_.IsNull() &&
+      (field_invalidation_gen_.AsInt64Value() != i->field_invalidation_gen())) {
+    return false;
+  }
+  if (!prefix_invalidation_gen_.IsNull() &&
+      (prefix_invalidation_gen_.AsInt64Value() !=
+          i->prefix_invalidation_gen())) {
+    return false;
+  }
+  return true;
+}
+
+
+void BackgroundCompilationResult::PrintValidity() const {
+  Object& o = Object::Handle(result_code().owner());
+  THR_Print("BackgroundCompilationResult: %s\n",
+      Function::Cast(o).ToQualifiedCString());
+  if (result_code().IsNull()) {
+    THR_Print(" result_code is NULL\n");
+    return;
+  }
+  if (result_code().IsDisabled()) {
+    THR_Print(" result_code is disabled\n");
+    return;
+  }
+  Isolate* i = Isolate::Current();
+  THR_Print("  cha_invalidation_gen: %s (current: %u)\n",
+      cha_invalidation_gen_.ToCString(), i->cha_invalidation_gen());
+  THR_Print("  field_invalidation_gen: %s (current: %u)\n",
+      field_invalidation_gen_.ToCString(), i->field_invalidation_gen());
+  THR_Print("  prefix_invalidation_gen: %s (current: %u)\n",
+      prefix_invalidation_gen_.ToCString(), i->prefix_invalidation_gen());
+}
+
+
+void BackgroundCompilationResult::PushOnQueue(
+    CompilationWorkQueue* queue) const {
+  queue->PushBackCode(result_code());
+  queue->PushBackInteger(cha_invalidation_gen_);
+  queue->PushBackInteger(field_invalidation_gen_);
+  queue->PushBackInteger(prefix_invalidation_gen_);
+}
+
+
+void BackgroundCompilationResult::PopFromQueue(CompilationWorkQueue* queue) {
+  prefix_invalidation_gen_ = queue->PopBackInteger();
+  field_invalidation_gen_ = queue->PopBackInteger();
+  cha_invalidation_gen_ = queue->PopBackInteger();
+  result_code_ = queue->PopBackCode();
+}
+
+
 BackgroundCompiler::BackgroundCompiler(Isolate* isolate)
     : isolate_(isolate), running_(true), done_(new bool()),
       queue_monitor_(new Monitor()), done_monitor_(new Monitor()),
@@ -1531,16 +1631,17 @@ void BackgroundCompiler::Run() {
       Zone* zone = stack_zone.GetZone();
       Function& function = Function::Handle(zone);
       Function& temp_function = Function::Handle(zone);
-      Code& code = Code::Handle(zone);
       function = LastFunctionOrNull();
+      BackgroundCompilationResult result;
       // Finish all compilation before exiting (even if running_ is changed to
       // false).
       while (!function.IsNull()) {
+        result.Init();
         const Error& error = Error::Handle(zone,
             Compiler::CompileOptimizedFunction(thread,
                                                function,
                                                Compiler::kNoOSRDeoptId,
-                                               &code));
+                                               &result));
         // TODO(srdjan): We do not expect errors while compiling optimized
         // code, any errors should have been caught when compiling
         // unoptimized code.
@@ -1549,8 +1650,8 @@ void BackgroundCompiler::Run() {
         temp_function = RemoveFunctionOrNull();
         ASSERT(temp_function.raw() == function.raw());
         function = LastFunctionOrNull();
-        ASSERT(!code.IsNull());
-        AddCode(code);
+        ASSERT(!result.result_code().IsNull());
+        AddResult(result);
       }
     }
     Thread::ExitIsolateAsHelper();
@@ -1577,16 +1678,21 @@ void BackgroundCompiler::CompileOptimized(const Function& function) {
 
 
 void BackgroundCompiler::InstallGeneratedCode() {
+  ASSERT(Thread::Current()->IsMutatorThread());
   MonitorLocker ml(queue_monitor_);
-  CompilationWorkQueue queue(CodesQueue());
-  Code& code = Code::Handle();
+  CompilationWorkQueue queue(ResultQueue());
   Object& owner = Object::Handle();
   for (intptr_t i = 0; i < queue.Length(); i++) {
-    code = queue.PopBackCode();
-    if (code.IsDisabled()) continue;
-    owner = code.owner();
+    BackgroundCompilationResult result;
+    result.PopFromQueue(&queue);
+    owner = result.result_code().owner();
     const Function& function = Function::Cast(owner);
-    function.InstallOptimizedCode(code, false /* not OSR */);
+    if (result.IsValid()) {
+      function.InstallOptimizedCode(result.result_code(), false /* not OSR */);
+    } else if (FLAG_trace_compiler) {
+      THR_Print("Drop code generated in the background compiler:\n");
+      result.PrintValidity();
+    }
     if (function.usage_counter() < 0) {
       // Reset to 0 so that it can be recompiled if needed.
       function.set_usage_counter(0);
@@ -1601,9 +1707,8 @@ GrowableObjectArray* BackgroundCompiler::FunctionsQueue() const {
 }
 
 
-GrowableObjectArray* BackgroundCompiler::CodesQueue() const {
-  // Use code queue
-  return &GrowableObjectArray::ZoneHandle(isolate_->compilation_code_queue());
+GrowableObjectArray* BackgroundCompiler::ResultQueue() const {
+  return &GrowableObjectArray::ZoneHandle(isolate_->compilation_result_queue());
 }
 
 
@@ -1633,10 +1738,10 @@ RawFunction* BackgroundCompiler::LastFunctionOrNull() const {
 }
 
 
-void BackgroundCompiler::AddCode(const Code& c) {
+void BackgroundCompiler::AddResult(const BackgroundCompilationResult& value) {
   MonitorLocker ml(queue_monitor_);
-  CompilationWorkQueue queue(CodesQueue());
-  queue.PushBackCode(c);
+  CompilationWorkQueue queue(ResultQueue());
+  value.PushOnQueue(&queue);
 }
 
 
@@ -1680,7 +1785,7 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
       isolate->set_background_compiler(task);
       isolate->set_compilation_function_queue(GrowableObjectArray::Handle(
           thread->zone(), GrowableObjectArray::New()));
-      isolate->set_compilation_code_queue(GrowableObjectArray::Handle(
+      isolate->set_compilation_result_queue(GrowableObjectArray::Handle(
           thread->zone(), GrowableObjectArray::New()));
       start_task = true;
     }

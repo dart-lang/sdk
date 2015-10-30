@@ -789,14 +789,17 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       deoptimized_code_array_(GrowableObjectArray::null()),
       background_compiler_(NULL),
       compilation_function_queue_(GrowableObjectArray::null()),
-      compilation_code_queue_(GrowableObjectArray::null()),
+      compilation_result_queue_(GrowableObjectArray::null()),
       pending_service_extension_calls_(GrowableObjectArray::null()),
       registered_service_extension_handlers_(GrowableObjectArray::null()),
       metrics_list_head_(NULL),
       compilation_allowed_(true),
       all_classes_finalized_(false),
       next_(NULL),
-      pause_loop_monitor_(NULL) {
+      pause_loop_monitor_(NULL),
+      cha_invalidation_gen_(0),
+      field_invalidation_gen_(0),
+      prefix_invalidation_gen_(0) {
   flags_.CopyFrom(api_flags);
   Thread::Current()->set_vm_tag(VMTag::kEmbedderTagId);
   set_user_tag(UserTags::kDefaultUserTag);
@@ -1774,7 +1777,7 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
       &compilation_function_queue_));
 
   visitor->VisitPointer(reinterpret_cast<RawObject**>(
-      &compilation_code_queue_));
+      &compilation_result_queue_));
 
   // Visit the deoptimized code array which is stored in the isolate.
   visitor->VisitPointer(
@@ -2007,9 +2010,9 @@ void Isolate::set_compilation_function_queue(
 }
 
 
-void Isolate::set_compilation_code_queue(
+void Isolate::set_compilation_result_queue(
     const GrowableObjectArray& value) {
-  compilation_code_queue_ = value.raw();
+  compilation_result_queue_ = value.raw();
 }
 
 

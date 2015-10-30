@@ -15,12 +15,53 @@ namespace dart {
 // Forward declarations.
 class Class;
 class Code;
+class CompilationWorkQueue;
 class Function;
 class Library;
 class ParsedFunction;
 class RawInstance;
 class Script;
 class SequenceNode;
+
+// Carries result from background compilation: code and generation counters
+// that help check if the code may have become invalid during background
+// compilation.
+class BackgroundCompilationResult : public ValueObject {
+ public:
+  BackgroundCompilationResult();
+
+  // Initializes with current isolate-stored generations
+  void Init();
+
+  void set_result_code(const Code& value) { result_code_ = value.raw(); }
+  const Code& result_code() const { return result_code_; }
+
+  // Returns true if all relevant gen-counts are current and code is valid.
+  bool IsValid() const;
+
+  // Remove gen-counts from validation check.
+  void ClearCHAInvalidationGen() {
+    cha_invalidation_gen_ = Integer::null();
+  }
+  void ClearFieldInnvalidationGen() {
+    field_invalidation_gen_ = Integer::null();
+  }
+  void ClearPrefixInnvalidationGen() {
+    prefix_invalidation_gen_ = Integer::null();
+  }
+
+  void PushOnQueue(CompilationWorkQueue* queue) const;
+  void PopFromQueue(CompilationWorkQueue* queue);
+
+  void PrintValidity() const;
+
+ private:
+  Code& result_code_;
+  Integer& cha_invalidation_gen_;
+  Integer& field_invalidation_gen_;
+  Integer& prefix_invalidation_gen_;
+};
+
 
 class Compiler : public AllStatic {
  public:
@@ -58,7 +99,7 @@ class Compiler : public AllStatic {
       Thread* thread,
       const Function& function,
       intptr_t osr_id = kNoOSRDeoptId,
-      Code* result_code = NULL);
+      BackgroundCompilationResult* res = NULL);
 
   // Generates code for given parsed function (without parsing it again) and
   // sets its code field.
@@ -136,7 +177,7 @@ class BackgroundCompiler : public ThreadPool::Task {
   explicit BackgroundCompiler(Isolate* isolate);
 
   GrowableObjectArray* FunctionsQueue() const;
-  GrowableObjectArray* CodesQueue() const;
+  GrowableObjectArray* ResultQueue() const;
 
   virtual void Run();
 
@@ -144,7 +185,7 @@ class BackgroundCompiler : public ThreadPool::Task {
   RawFunction* RemoveFunctionOrNull();
   RawFunction* LastFunctionOrNull() const;
 
-  void AddCode(const Code& c);
+  void AddResult(const BackgroundCompilationResult& value);
 
   Isolate* isolate_;
   bool running_;       // While true, will try to read queue and compile.

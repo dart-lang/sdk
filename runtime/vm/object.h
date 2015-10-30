@@ -2362,6 +2362,8 @@ class Function : public Object {
     return raw_ptr()->usage_counter_;
   }
   void set_usage_counter(intptr_t value) const {
+    // TODO(Srdjan): Assert that this is thread-safe, i.e., only
+    // set from mutator-thread or while at a safepoint (e.g., during marking).
     StoreNonPointer(&raw_ptr()->usage_counter_, value);
   }
 

@@ -2890,6 +2890,10 @@ class CHACodeArray : public WeakCodeReferences {
     }
   }
 
+  virtual void IncrementInvalidationGen() {
+    Isolate::Current()->IncrCHAInvalidationGen();
+  }
+
  private:
   const Class& cls_;
   DISALLOW_COPY_AND_ASSIGN(CHACodeArray);
@@ -7774,6 +7778,10 @@ class FieldDependentArray : public WeakCodeReferences {
     }
   }
 
+  virtual void IncrementInvalidationGen() {
+    Isolate::Current()->IncrFieldInvalidationGen();
+  }
+
  private:
   const Field& field_;
   DISALLOW_COPY_AND_ASSIGN(FieldDependentArray);
@@ -10813,6 +10821,10 @@ class PrefixDependentArray : public WeakCodeReferences {
           code.IsDisabled() ? "'patched'" : "'unpatched'",
           Function::Handle(code.function()).ToCString());
     }
+  }
+
+  virtual void IncrementInvalidationGen() {
+    Isolate::Current()->IncrPrefixInvalidationGen();
   }
 
  private:
@@ -17051,9 +17063,9 @@ void Number::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 const char* Integer::ToCString() const {
-  // Integer is an interface. No instances of Integer should exist.
-  UNREACHABLE();
-  return "Integer";
+  // Integer is an interface. No instances of Integer should exist except null.
+  ASSERT(IsNull());
+  return "NULL Integer";
 }
 
 
