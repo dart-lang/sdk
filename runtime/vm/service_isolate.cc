@@ -359,8 +359,10 @@ class RunServiceTask : public ThreadPool::Task {
         OS::PrintErr("vm-service: Error: %s\n", error.ToErrorCString());
       }
       Dart::RunShutdownCallback();
-
+    }
+    {
       // Shut the isolate down.
+      SwitchIsolateScope switch_scope(I);
       Dart::ShutdownIsolate();
     }
     if (FLAG_trace_service) {
