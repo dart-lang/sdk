@@ -3298,7 +3298,7 @@ main(Object p) {
 }
 ''');
     assertHasFix(
-        DartFixKind.REMOVE_UNNECASSARY_CAST,
+        DartFixKind.REMOVE_UNNECESSARY_CAST,
         '''
 main(Object p) {
   if (p is String) {

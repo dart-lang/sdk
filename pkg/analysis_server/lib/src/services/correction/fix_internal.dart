@@ -1617,7 +1617,7 @@ class FixProcessor {
     _addRemoveEdit(rf.rangeEndEnd(expression, asExpression));
     _removeEnclosingParentheses(asExpression, expressionPrecedence);
     // done
-    _addFix(DartFixKind.REMOVE_UNNECASSARY_CAST, []);
+    _addFix(DartFixKind.REMOVE_UNNECESSARY_CAST, []);
   }
 
   void _addFix_removeUnusedCatchClause() {
