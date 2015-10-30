@@ -150,6 +150,19 @@ class AnalysisContextImplTest extends AbstractContextTest {
     });
   }
 
+  void test_applyChanges_add_makesExplicit() {
+    Source source = newSource('/test.dart');
+    // get the entry, it's not explicit
+    CacheEntry entry = context.getCacheEntry(source);
+    expect(entry.explicitlyAdded, isFalse);
+    // add the source
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.addedSource(source);
+    context.applyChanges(changeSet);
+    // now the entry is explicit
+    expect(entry.explicitlyAdded, isTrue);
+  }
+
   Future test_applyChanges_change() {
     SourcesChangedListener listener = new SourcesChangedListener();
     context.onSourcesChanged.listen(listener.onData);

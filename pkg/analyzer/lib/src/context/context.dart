@@ -1765,6 +1765,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (entry == null) {
       _createCacheEntry(source, true);
     } else {
+      entry.explicitlyAdded = true;
       entry.modificationTime = getModificationStamp(source);
       entry.setState(CONTENT, CacheState.INVALID);
     }
