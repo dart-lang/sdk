@@ -132,7 +132,7 @@ class SimpleFormatter implements ReportFormatter {
 
   void writeLint(AnalysisError error, {int offset, int line, int column}) {
     if (machineOutput) {
-      //INFO|LINT|constant_identifier_names|test/linter_test.dart|91|22|3|Prefer using lowerCamelCase for constant names.
+      //INFO|LINT|constant_identifier_names|test/engine_test.dart|91|22|3|Prefer using lowerCamelCase for constant names.
       out
         ..write(error.errorCode.errorSeverity)
         ..write('|')
@@ -150,7 +150,7 @@ class SimpleFormatter implements ReportFormatter {
         ..write('|')
         ..writeln(_escapePipe(error.message));
     } else {
-      // test/linter_test.dart 452:9 [lint] DO name types using UpperCamelCase.
+      // test/engine_test.dart 452:9 [lint] DO name types using UpperCamelCase.
       out
         ..write('${shorten(fileRoot, error.source.fullName)} ')
         ..write('$line:$column ')

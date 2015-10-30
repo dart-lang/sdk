@@ -5,9 +5,35 @@
 /// Common AST helpers.
 library linter.src.ast;
 
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/ast.dart'
+    show
+        AssignmentExpression,
+        AstNode,
+        Block,
+        BlockFunctionBody,
+        ClassDeclaration,
+        ClassMember,
+        ClassTypeAlias,
+        ConstructorDeclaration,
+        Declaration,
+        EnumConstantDeclaration,
+        EnumDeclaration,
+        Expression,
+        ExpressionFunctionBody,
+        ExpressionStatement,
+        FieldDeclaration,
+        FunctionDeclaration,
+        FunctionTypeAlias,
+        MethodDeclaration,
+        ReturnStatement,
+        SimpleIdentifier,
+        TopLevelVariableDeclaration,
+        TypeParameter,
+        VariableDeclaration;
+import 'package:analyzer/src/generated/element.dart'
+    show Element, ParameterElement, PropertyAccessorElement;
+import 'package:analyzer/src/generated/scanner.dart'
+    show Keyword, KeywordToken, KeywordTokenWithComment, Token;
 import 'package:linter/src/util.dart';
 
 /// Returns the most specific AST node appropriate for associating errors.
@@ -18,6 +44,16 @@ AstNode getNodeToAnnotate(Declaration node) {
   }
   return node;
 }
+
+/// Returns `true` if the keyword associated with this token is `final` or
+/// `const`.
+bool isFinalOrConst(Token token) =>
+    isKeyword(token, Keyword.FINAL) || isKeyword(token, Keyword.CONST);
+
+/// Returns `true` if the keyword associated with the given [token] matches
+/// [keyword].
+bool isKeyword(Token token, Keyword keyword) =>
+    token is KeywordToken && token.keyword == keyword;
 
 /// Returns `true` if the given [id] is a Dart keyword.
 bool isKeyWord(String id) => Keyword.keywords.keys.contains(id);
@@ -91,6 +127,9 @@ bool isSimpleSetter(MethodDeclaration setter) {
 
 /// Returns `true` if the given [id] is a valid Dart identifier.
 bool isValidDartIdentifier(String id) => !isKeyWord(id) && isIdentifier(id);
+
+/// Returns `true` if the keyword associated with this token is `var`.
+bool isVar(Token token) => isKeyword(token, Keyword.VAR);
 
 bool _checkForSimpleGetter(MethodDeclaration getter, Expression expression) {
   if (expression is SimpleIdentifier) {

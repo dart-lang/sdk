@@ -8,6 +8,7 @@ import 'dart:collection';
 
 import 'package:linter/src/config.dart';
 import 'package:linter/src/linter.dart';
+import 'package:linter/src/rules/always_specify_types.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/rules/constant_identifier_names.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
@@ -25,6 +26,7 @@ import 'package:linter/src/rules/unnecessary_brace_in_string_interp.dart';
 import 'package:linter/src/rules/unnecessary_getters_setters.dart';
 
 final Registry ruleRegistry = new Registry()
+  ..register(new AlwaysSpecifyTypes())
   ..register(new CamelCaseTypes())
   ..register(new ConstantIdentifierNames())
   ..register(new EmptyConstructorBodies())
