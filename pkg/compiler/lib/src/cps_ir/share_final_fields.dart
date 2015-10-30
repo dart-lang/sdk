@@ -147,7 +147,15 @@ class ShareFinalFields extends TrampolineRecursiveVisitor implements Pass {
   }
 
   bool shouldShareField(FieldElement field) {
-    return backend.compiler.world.fieldNeverChanges(field);
+    // TODO(24781): This query is incorrect for fields assigned only via
+    //
+    //     super.field = ...
+    //
+    // return backend.compiler.world.fieldNeverChanges(field);
+
+    // Native fields are getters with side effects (e.g. layout).
+    if (backend.isNative(field)) return false;
+    return field.isFinal || field.isConst;
   }
 
   /// Returns the the innermost loop that effectively encloses both
