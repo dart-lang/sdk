@@ -94,7 +94,6 @@ class AnalysisDriver {
   }
 
   List<AnalysisErrorInfo> analyze(Iterable<File> files) {
-    AnalysisEngine.instance.useTaskModel = true;
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     registerLinters(context);
 
