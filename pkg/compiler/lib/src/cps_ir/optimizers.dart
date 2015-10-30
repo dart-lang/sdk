@@ -15,6 +15,7 @@ export 'shrinking_reductions.dart' show ShrinkingReducer;
 export 'mutable_ssa.dart' show MutableVariableEliminator;
 export 'insert_refinements.dart' show InsertRefinements;
 export 'remove_refinements.dart' show RemoveRefinements;
+export 'share_final_fields.dart' show ShareFinalFields;
 export 'share_interceptors.dart' show ShareInterceptors;
 export 'bounds_checker.dart' show BoundsChecker;
 export 'parent_visitor.dart' show ParentVisitor;

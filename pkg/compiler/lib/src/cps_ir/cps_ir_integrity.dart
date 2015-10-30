@@ -205,7 +205,7 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
       sexpr = '(Set DUMP_IR flag to enable SExpr dump)';
     }
     throw 'CPS integrity violation\n'
-          'After $previousPass on ${topLevelNode.element}\n'
+          'After \'$previousPass\' on ${topLevelNode.element}\n'
           '$message\n\n'
           '$sexpr\n';
   }
