@@ -67,7 +67,11 @@ uintptr_t SignalHandler::GetCStackPointer(const mcontext_t& mcontext) {
 
 
 uintptr_t SignalHandler::GetDartStackPointer(const mcontext_t& mcontext) {
+#if defined(TARGET_ARCH_ARM64) && !defined(USING_SIMULATOR)
+  return static_cast<uintptr_t>(mcontext->__ss.__x[19]);
+#else
   return GetCStackPointer(mcontext);
+#endif
 }
 
 

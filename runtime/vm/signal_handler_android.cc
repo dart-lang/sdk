@@ -66,7 +66,7 @@ uintptr_t SignalHandler::GetDartStackPointer(const mcontext_t& mcontext) {
 #elif defined(HOST_ARCH_ARM)
   sp = static_cast<uintptr_t>(mcontext.arm_sp);
 #elif defined(HOST_ARCH_ARM64)
-  sp = static_cast<uintptr_t>(mcontext.regs[18]);
+  sp = static_cast<uintptr_t>(mcontext.regs[19]);
 #else
 #error Unsupported architecture.
 #endif  // HOST_ARCH_...
