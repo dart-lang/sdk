@@ -233,6 +233,18 @@ typedef simd128_value_t fpu_register_t;
 #define DART_UNUSED
 #endif
 
+// DART_NORETURN indicates to the compiler that a function doees not return.
+// It should be used on functions that unconditionally call functions like
+// exit(), which end the program. We use it to avoid compiler warnings in
+// callers of DART_NORETURN functions.
+#ifdef _MSC_VER
+#define DART_NORETURN __declspec(noreturn)
+#elif __GNUC__
+#define DART_NORETURN __attribute__((noreturn))
+#else
+#error Automatic compiler detection failed.
+#endif
+
 #if !defined(TARGET_ARCH_MIPS)
 #if !defined(TARGET_ARCH_ARM)
 #if !defined(TARGET_ARCH_X64)

@@ -273,7 +273,7 @@ void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
 #endif
     EventHandler::Stop();
   }
-  exit(static_cast<int>(status));
+  Platform::Exit(static_cast<int>(status));
 }
 
 

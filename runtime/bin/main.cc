@@ -142,7 +142,7 @@ static void ErrorExit(int exit_code, const char* format, ...) {
     DebuggerConnectionHandler::StopHandler();
     EventHandler::Stop();
   }
-  exit(exit_code);
+  Platform::Exit(exit_code);
 }
 
 
@@ -1118,12 +1118,12 @@ static void* LoadLibrarySymbol(const char* libname, const char* symname) {
   void* library = Extensions::LoadExtensionLibrary(libname);
   if (library == NULL) {
     Log::PrintErr("Error: Failed to load library '%s'\n", libname);
-    exit(kErrorExitCode);
+    Platform::Exit(kErrorExitCode);
   }
   void* symbol = Extensions::ResolveSymbol(library, symname);
   if (symbol == NULL) {
     Log::PrintErr("Error: Failed to load symbol '%s'\n", symname);
-    exit(kErrorExitCode);
+    Platform::Exit(kErrorExitCode);
   }
   return symbol;
 }
@@ -1204,7 +1204,7 @@ bool RunMainIsolate(const char* script_name,
       DebuggerConnectionHandler::StopHandler();
       EventHandler::Stop();
     }
-    exit((exit_code != 0) ? exit_code : kErrorExitCode);
+    Platform::Exit((exit_code != 0) ? exit_code : kErrorExitCode);
   }
   delete [] isolate_name;
 
@@ -1400,18 +1400,18 @@ void main(int argc, char** argv) {
                      &verbose_debug_seen) < 0) {
     if (has_help_option) {
       PrintUsage();
-      exit(0);
+      Platform::Exit(0);
     } else if (has_version_option) {
       PrintVersion();
-      exit(0);
+      Platform::Exit(0);
     } else if (print_flags_seen) {
       // Will set the VM flags, print them out and then we exit as no
       // script was specified on the command line.
       Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
-      exit(0);
+      Platform::Exit(0);
     } else {
       PrintUsage();
-      exit(kErrorExitCode);
+      Platform::Exit(kErrorExitCode);
     }
   }
 
@@ -1421,7 +1421,7 @@ void main(int argc, char** argv) {
     OSError err;
     fprintf(stderr, "Error determining current directory: %s\n", err.message());
     fflush(stderr);
-    exit(kErrorExitCode);
+    Platform::Exit(kErrorExitCode);
   }
 
   if (generate_script_snapshot) {
@@ -1471,7 +1471,7 @@ void main(int argc, char** argv) {
     fprintf(stderr, "VM initialization failed: %s\n", error);
     fflush(stderr);
     free(error);
-    exit(kErrorExitCode);
+    Platform::Exit(kErrorExitCode);
   }
 
   Dart_RegisterIsolateServiceRequestCallback(
@@ -1513,7 +1513,7 @@ void main(int argc, char** argv) {
     delete environment;
   }
 
-  exit(Process::GlobalExitCode());
+  Platform::Exit(Process::GlobalExitCode());
 }
 
 }  // namespace bin

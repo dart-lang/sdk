@@ -76,6 +76,8 @@ class Platform {
     return argv_;
   }
 
+  static DART_NORETURN void Exit(int exit_code);
+
  private:
   // The path to the executable.
   static const char* executable_name_;

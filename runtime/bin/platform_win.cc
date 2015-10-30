@@ -105,6 +105,12 @@ char* Platform::ResolveExecutablePath() {
   return canon_path;
 }
 
+void Platform::Exit(int exit_code) {
+  // On Windows we use ExitProcess so that threads can't clobber the exit_code.
+  // See: https://code.google.com/p/nativeclient/issues/detail?id=2870
+  ::ExitProcess(exit_code);
+}
+
 }  // namespace bin
 }  // namespace dart
 

@@ -104,12 +104,22 @@ ThreadId Thread::GetCurrentThreadId() {
 
 bool Thread::Join(ThreadId id) {
   HANDLE handle = OpenThread(SYNCHRONIZE, false, id);
-  if (handle == INVALID_HANDLE_VALUE) {
+
+  // TODO(zra): OSThread::Start() closes the handle to the thread. Thus, by the
+  // time we try to join the thread, its resources may have already been
+  // reclaimed, and joining will fail. This can be avoided in a couple of ways.
+  // First, GetCurrentThreadJoinId could call OpenThread and return a handle.
+  // This is bad, because each of those handles would have to be closed.
+  // Second OSThread could be refactored to no longer be AllStatic. Then the
+  // handle could be cached in the object by the Start method.
+  if (handle == NULL) {
     return false;
   }
+
   DWORD res = WaitForSingleObject(handle, INFINITE);
   CloseHandle(handle);
-  return res == WAIT_OBJECT_0;
+  ASSERT(res == WAIT_OBJECT_0);
+  return true;
 }
 
 

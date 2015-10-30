@@ -125,6 +125,24 @@ static void DeleteThread(void* thread) {
 
 void Thread::Shutdown() {
   if (thread_list_lock_ != NULL) {
+    // Delete the current thread.
+    Thread* thread = Current();
+    ASSERT(thread != NULL);
+    delete thread;
+    thread = NULL;
+    SetCurrent(NULL);
+
+    // Check that there are no more threads, then delete the lock.
+    {
+      MutexLocker ml(thread_list_lock_);
+      ASSERT(thread_list_head_ == NULL);
+    }
+
+    // Clean up TLS.
+    OSThread::DeleteThreadLocal(thread_key_);
+    thread_key_ = OSThread::kUnsetThreadLocalKey;
+
+    // Delete the thread list lock.
     delete thread_list_lock_;
     thread_list_lock_ = NULL;
   }

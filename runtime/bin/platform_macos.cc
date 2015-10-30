@@ -120,6 +120,10 @@ char* Platform::ResolveExecutablePath() {
   return canon_path;
 }
 
+void Platform::Exit(int exit_code) {
+  exit(exit_code);
+}
+
 }  // namespace bin
 }  // namespace dart
 
