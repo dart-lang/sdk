@@ -684,9 +684,8 @@ Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
     // Wait for the service isolate to initialize the load port.
     Dart_Port load_port = Dart_ServiceWaitForLoadPort();
     if (load_port == ILLEGAL_PORT) {
-      // TODO(rmacnak): Return an error handle here once precompilation_test
-      // works.
-      return NewDartUnsupportedError("Service did not return load port.");
+      return Dart_NewUnhandledExceptionError(
+          NewDartUnsupportedError("Service did not return load port."));
     }
     result = Builtin::SetLoadPort(load_port);
     RETURN_IF_ERROR(result);
