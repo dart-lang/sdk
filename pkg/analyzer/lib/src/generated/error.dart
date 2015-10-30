@@ -6,15 +6,16 @@ library engine.error;
 
 import 'dart:collection';
 
+import 'package:analyzer/src/generated/ast.dart' show AstNode;
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
+import 'package:analyzer/src/generated/scanner.dart'
+    show ScannerErrorCode, Token;
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
-
-import 'ast.dart' show AstNode;
-import 'element.dart';
-import 'java_core.dart';
-import 'scanner.dart' show Token;
-import 'source.dart';
 
 /**
  * The descriptor used to associate error filters with analysis contexts in
@@ -2549,7 +2550,10 @@ abstract class ErrorCode {
     //
     // Manually generated.  FWIW, this get's you most of the way there:
     //
-    // > grep 'static const .*Code' error.dart | awk '{print $3"."$4","}'
+    // > grep 'static const .*Code' (error.dart|parser|scanner.dart)
+    //     | awk '{print $3"."$4","}'
+    //
+    // error.dart:
     //
     AnalysisOptionsErrorCode.PARSE_ERROR,
     AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,
@@ -2893,7 +2897,178 @@ abstract class ErrorCode {
     StaticWarningCode.UNDEFINED_SUPER_GETTER,
     StaticWarningCode.UNDEFINED_SUPER_SETTER,
     StaticWarningCode.VOID_RETURN_FOR_GETTER,
-    TodoCode.TODO
+    TodoCode.TODO,
+
+    //
+    // parser.dart:
+    //
+    ParserErrorCode.ABSTRACT_CLASS_MEMBER,
+    ParserErrorCode.ABSTRACT_ENUM,
+    ParserErrorCode.ABSTRACT_STATIC_METHOD,
+    ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION,
+    ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE,
+    ParserErrorCode.ABSTRACT_TYPEDEF,
+    ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT,
+    ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT,
+    ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE,
+    ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW,
+    ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW,
+    ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+    ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
+    ParserErrorCode.CLASS_IN_CLASS,
+    ParserErrorCode.COLON_IN_PLACE_OF_IN,
+    ParserErrorCode.CONST_AND_FINAL,
+    ParserErrorCode.CONST_AND_VAR,
+    ParserErrorCode.CONST_CLASS,
+    ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY,
+    ParserErrorCode.CONST_ENUM,
+    ParserErrorCode.CONST_FACTORY,
+    ParserErrorCode.CONST_METHOD,
+    ParserErrorCode.CONST_TYPEDEF,
+    ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE,
+    ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
+    ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE,
+    ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS,
+    ParserErrorCode.DIRECTIVE_AFTER_DECLARATION,
+    ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT,
+    ParserErrorCode.DUPLICATED_MODIFIER,
+    ParserErrorCode.EMPTY_ENUM_BODY,
+    ParserErrorCode.ENUM_IN_CLASS,
+    ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
+    ParserErrorCode.EXPECTED_CASE_OR_DEFAULT,
+    ParserErrorCode.EXPECTED_CLASS_MEMBER,
+    ParserErrorCode.EXPECTED_EXECUTABLE,
+    ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL,
+    ParserErrorCode.EXPECTED_STRING_LITERAL,
+    ParserErrorCode.EXPECTED_TOKEN,
+    ParserErrorCode.EXPECTED_TYPE_NAME,
+    ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
+    ParserErrorCode.EXTERNAL_AFTER_CONST,
+    ParserErrorCode.EXTERNAL_AFTER_FACTORY,
+    ParserErrorCode.EXTERNAL_AFTER_STATIC,
+    ParserErrorCode.EXTERNAL_CLASS,
+    ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY,
+    ParserErrorCode.EXTERNAL_ENUM,
+    ParserErrorCode.EXTERNAL_FIELD,
+    ParserErrorCode.EXTERNAL_GETTER_WITH_BODY,
+    ParserErrorCode.EXTERNAL_METHOD_WITH_BODY,
+    ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY,
+    ParserErrorCode.EXTERNAL_SETTER_WITH_BODY,
+    ParserErrorCode.EXTERNAL_TYPEDEF,
+    ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION,
+    ParserErrorCode.FACTORY_WITH_INITIALIZERS,
+    ParserErrorCode.FACTORY_WITHOUT_BODY,
+    ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
+    ParserErrorCode.FINAL_AND_VAR,
+    ParserErrorCode.FINAL_CLASS,
+    ParserErrorCode.FINAL_CONSTRUCTOR,
+    ParserErrorCode.FINAL_ENUM,
+    ParserErrorCode.FINAL_METHOD,
+    ParserErrorCode.FINAL_TYPEDEF,
+    ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR,
+    ParserErrorCode.GETTER_IN_FUNCTION,
+    ParserErrorCode.GETTER_WITH_PARAMETERS,
+    ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE,
+    ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS,
+    ParserErrorCode.IMPLEMENTS_BEFORE_WITH,
+    ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
+    ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH,
+    ParserErrorCode.INVALID_AWAIT_IN_FOR,
+    ParserErrorCode.INVALID_CODE_POINT,
+    ParserErrorCode.INVALID_COMMENT_REFERENCE,
+    ParserErrorCode.INVALID_HEX_ESCAPE,
+    ParserErrorCode.INVALID_OPERATOR,
+    ParserErrorCode.INVALID_OPERATOR_FOR_SUPER,
+    ParserErrorCode.INVALID_STAR_AFTER_ASYNC,
+    ParserErrorCode.INVALID_SYNC,
+    ParserErrorCode.INVALID_UNICODE_ESCAPE,
+    ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST,
+    ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER,
+    ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
+    ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER,
+    ParserErrorCode.MISSING_CATCH_OR_FINALLY,
+    ParserErrorCode.MISSING_CLASS_BODY,
+    ParserErrorCode.MISSING_CLOSING_PARENTHESIS,
+    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
+    ParserErrorCode.MISSING_ENUM_BODY,
+    ParserErrorCode.MISSING_EXPRESSION_IN_INITIALIZER,
+    ParserErrorCode.MISSING_EXPRESSION_IN_THROW,
+    ParserErrorCode.MISSING_FUNCTION_BODY,
+    ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
+    ParserErrorCode.MISSING_METHOD_PARAMETERS,
+    ParserErrorCode.MISSING_GET,
+    ParserErrorCode.MISSING_IDENTIFIER,
+    ParserErrorCode.MISSING_INITIALIZER,
+    ParserErrorCode.MISSING_KEYWORD_OPERATOR,
+    ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE,
+    ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE,
+    ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT,
+    ParserErrorCode.MISSING_STAR_AFTER_SYNC,
+    ParserErrorCode.MISSING_STATEMENT,
+    ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP,
+    ParserErrorCode.MISSING_TYPEDEF_PARAMETERS,
+    ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH,
+    ParserErrorCode.MIXED_PARAMETER_GROUPS,
+    ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES,
+    ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES,
+    ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES,
+    ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS,
+    ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES,
+    ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS,
+    ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH,
+    ParserErrorCode.MULTIPLE_WITH_CLAUSES,
+    ParserErrorCode.NAMED_FUNCTION_EXPRESSION,
+    ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP,
+    ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE,
+    ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE,
+    ParserErrorCode.NON_CONSTRUCTOR_FACTORY,
+    ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME,
+    ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART,
+    ParserErrorCode.NON_STRING_LITERAL_AS_URI,
+    ParserErrorCode.NON_USER_DEFINABLE_OPERATOR,
+    ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS,
+    ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT,
+    ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP,
+    ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR,
+    ParserErrorCode.SETTER_IN_FUNCTION,
+    ParserErrorCode.STATIC_AFTER_CONST,
+    ParserErrorCode.STATIC_AFTER_FINAL,
+    ParserErrorCode.STATIC_AFTER_VAR,
+    ParserErrorCode.STATIC_CONSTRUCTOR,
+    ParserErrorCode.STATIC_GETTER_WITHOUT_BODY,
+    ParserErrorCode.STATIC_OPERATOR,
+    ParserErrorCode.STATIC_SETTER_WITHOUT_BODY,
+    ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION,
+    ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE,
+    ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES,
+    ParserErrorCode.TOP_LEVEL_OPERATOR,
+    ParserErrorCode.TYPEDEF_IN_CLASS,
+    ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP,
+    ParserErrorCode.UNEXPECTED_TOKEN,
+    ParserErrorCode.WITH_BEFORE_EXTENDS,
+    ParserErrorCode.WITH_WITHOUT_EXTENDS,
+    ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER,
+    ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
+    ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
+    ParserErrorCode.VAR_AND_TYPE,
+    ParserErrorCode.VAR_AS_TYPE_NAME,
+    ParserErrorCode.VAR_CLASS,
+    ParserErrorCode.VAR_ENUM,
+    ParserErrorCode.VAR_RETURN_TYPE,
+    ParserErrorCode.VAR_TYPEDEF,
+    ParserErrorCode.VOID_PARAMETER,
+    ParserErrorCode.VOID_VARIABLE,
+
+    //
+    // scanner.dart:
+    //
+    ScannerErrorCode.ILLEGAL_CHARACTER,
+    ScannerErrorCode.MISSING_DIGIT,
+    ScannerErrorCode.MISSING_HEX_DIGIT,
+    ScannerErrorCode.MISSING_QUOTE,
+    ScannerErrorCode.UNABLE_GET_CONTENT,
+    ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT,
+    ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
   ];
 
   /**
