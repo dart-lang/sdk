@@ -278,6 +278,7 @@ static RawInstance* CreateMethodMirror(const Function& func,
   kind_flags |= ((is_ctor && func.is_redirecting())
                  << Mirrors::kRedirectingCtor);
   kind_flags |= ((is_ctor && func.IsFactory()) << Mirrors::kFactoryCtor);
+  kind_flags |= (func.is_external() << Mirrors::kExternal);
   args.SetAt(5, Smi::Handle(Smi::New(kind_flags)));
 
   return CreateMirror(Symbols::_LocalMethodMirror(), args);
