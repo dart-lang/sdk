@@ -1085,7 +1085,8 @@ class AnalysisServer {
         contextFound = true;
       }
       for (AnalysisContext context in folderMap.values) {
-        if (context.getKindOf(source) != SourceKind.UNKNOWN) {
+        if (context != preferredContext &&
+            context.getKindOf(source) != SourceKind.UNKNOWN) {
           sourceMap.putIfAbsent(context, () => <Source>[]).add(source);
           contextFound = true;
         }
