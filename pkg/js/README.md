@@ -26,21 +26,21 @@ There is a [full example](https://github.com/dart-lang/sdk/tree/master/pkg/js/ex
 
 ```dart
 // Calls invoke JavaScript `JSON.stringify(obj)`.
-@Js("JSON.stringify")
+@JS("JSON.stringify")
 external String stringify(obj);
 ```
 
 #### Classes and Namespaces
 
 ```dart
-@Js('google.maps')
+@JS('google.maps')
 library maps;
 
 // Invokes the JavaScript getter `google.maps.map`.
 external Map get map;
 
 // `new Map` invokes JavaScript `new google.maps.Map(location)`
-@Js()
+@JS()
 class Map {
   external Map(Location location);
   external Location getLocation();
@@ -51,7 +51,7 @@ class Map {
 // We recommend against using custom JavaScript names whenever
 // possible. It is easier for users if the JavaScript names and Dart names
 // are consistent.
-@Js("LatLng")
+@JS("LatLng")
 class Location {
   external Location(num lat, num lng);
 }
@@ -73,10 +73,10 @@ void main() {
   printOptions(new Options(responsive: true));
 }
 
-@Js()
+@JS()
 external printOptions(Options options);
 
-@Js()
+@JS()
 class Options {
   external bool get responsive;
 
