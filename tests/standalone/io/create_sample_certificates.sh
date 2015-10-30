@@ -34,7 +34,7 @@ openssl req -subj /CN=intermediateauthority -batch -verbose \
 # Sign the certificate of the intermediate authority with the root authority.
 # Add the certificate extensions marking it as a certificate authority.
 openssl x509 -req -in intermediate_authority_request.pem \
-    -out intermediate_authority.pem -set_serial 1 \
+    -out intermediate_authority.pem -set_serial 2 \
     -CA root_authority.pem -CAkey root_authority_key.pem \
     -passin $password -extfile ../sample_certificate_v3_extensions \
     -extensions intermediate_authority -days 3650
@@ -63,14 +63,22 @@ openssl req -subj /CN=user2 -batch -verbose -passout $password -new \
     -keyout client2_key.pem -out client2_request.pem
 
 # Sign the certificate requests with the client authority
-openssl x509 -req -in client1_request.pem -out client1.pem -set_serial 1 \
+openssl x509 -req -in client1_request.pem -out client1.pem -set_serial 2 \
     -CA client_authority.pem -CAkey client_authority_key.pem \
     -passin $password -extfile ../sample_certificate_v3_extensions \
     -extensions client_certificate -days 3650
-openssl x509 -req -in client2_request.pem -out client2.pem -set_serial 1 \
+openssl x509 -req -in client2_request.pem -out client2.pem -set_serial 3 \
     -CA client_authority.pem -CAkey client_authority_key.pem \
     -passin $password -extfile ../sample_certificate_v3_extensions \
     -extensions client_certificate -days 3650
+
+# Delete all the signing keys for the authorities, so testers that add
+# them as trusted are less vulnerable: only the sample server certificate
+# and client certificates will be signed by them. No more certificates
+# will ever be signed.
+rm root_authority_key.pem
+rm intermediate_authority.pem
+rm client_authority_key.pem
 
 # Copy the certificates we will use to the 'certificates' directory.
 CERTS=../certificates

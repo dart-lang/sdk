@@ -41,8 +41,7 @@ void expect(condition) {
 void runClient(int port) {
   SecureSocket.connect(HOST_NAME,
                        port,
-                       context: clientContext,
-                       sendClientCertificate: true)
+                       context: clientContext)
     .then((SecureSocket socket) {
       X509Certificate certificate = socket.peerCertificate;
       expect(certificate != null);

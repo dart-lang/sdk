@@ -397,7 +397,7 @@ import 'libB.dart';''';
     });
   }
 
-  void test_computeDocumentationComment_block() {
+  void test_computeDocumentationComment_class_block() {
     String comment = "/** Comment */";
     Source source = addSource(
         "/test.dart",
@@ -411,7 +411,7 @@ class A {}""");
     expect(context.computeDocumentationComment(classElement), comment);
   }
 
-  void test_computeDocumentationComment_none() {
+  void test_computeDocumentationComment_class_none() {
     Source source = addSource("/test.dart", "class A {}");
     LibraryElement libraryElement = context.computeLibraryElement(source);
     expect(libraryElement, isNotNull);
@@ -420,11 +420,7 @@ class A {}""");
     expect(context.computeDocumentationComment(classElement), isNull);
   }
 
-  void test_computeDocumentationComment_null() {
-    expect(context.computeDocumentationComment(null), isNull);
-  }
-
-  void test_computeDocumentationComment_singleLine_multiple_EOL_n() {
+  void test_computeDocumentationComment_class_singleLine_multiple_EOL_n() {
     String comment = "/// line 1\n/// line 2\n/// line 3\n";
     Source source = addSource("/test.dart", "${comment}class A {}");
     LibraryElement libraryElement = context.computeLibraryElement(source);
@@ -435,7 +431,7 @@ class A {}""");
     expect(actual, "/// line 1\n/// line 2\n/// line 3");
   }
 
-  void test_computeDocumentationComment_singleLine_multiple_EOL_rn() {
+  void test_computeDocumentationComment_class_singleLine_multiple_EOL_rn() {
     String comment = "/// line 1\r\n/// line 2\r\n/// line 3\r\n";
     Source source = addSource("/test.dart", "${comment}class A {}");
     LibraryElement libraryElement = context.computeLibraryElement(source);
@@ -444,6 +440,51 @@ class A {}""");
     expect(libraryElement, isNotNull);
     String actual = context.computeDocumentationComment(classElement);
     expect(actual, "/// line 1\n/// line 2\n/// line 3");
+  }
+
+  void test_computeDocumentationComment_exportDirective_block() {
+    String comment = '/** Comment */';
+    Source source = addSource(
+        "/test.dart",
+        '''
+$comment
+export 'dart:async';
+''');
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    expect(libraryElement, isNotNull);
+    ExportElement exportElement = libraryElement.exports[0];
+    expect(context.computeDocumentationComment(exportElement), comment);
+  }
+
+  void test_computeDocumentationComment_importDirective_block() {
+    String comment = '/** Comment */';
+    Source source = addSource(
+        "/test.dart",
+        '''
+$comment
+import 'dart:async';
+''');
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    expect(libraryElement, isNotNull);
+    ImportElement importElement = libraryElement.imports[0];
+    expect(context.computeDocumentationComment(importElement), comment);
+  }
+
+  void test_computeDocumentationComment_libraryDirective_block() {
+    String comment = '/** Comment */';
+    Source source = addSource(
+        "/test.dart",
+        '''
+$comment
+library lib;
+''');
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    expect(libraryElement, isNotNull);
+    expect(context.computeDocumentationComment(libraryElement), comment);
+  }
+
+  void test_computeDocumentationComment_null() {
+    expect(context.computeDocumentationComment(null), isNull);
   }
 
   void test_computeErrors_dart_none() {

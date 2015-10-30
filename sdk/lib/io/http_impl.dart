@@ -1636,7 +1636,6 @@ class _ConnectionTarget {
         ? SecureSocket.connect(host,
                                port,
                                context: context,
-                               sendClientCertificate: true,
                                onBadCertificate: callback)
         : Socket.connect(host, port));
     _connecting++;
