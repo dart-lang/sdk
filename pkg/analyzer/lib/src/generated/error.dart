@@ -2476,62 +2476,6 @@ class CompileTimeErrorCode extends ErrorCode {
 }
 
 /**
- * An error listener that can be enabled or disabled while executing a function.
- */
-class DisablableErrorListener implements AnalysisErrorListener {
-  /**
-   * The listener to which errors will be reported if this listener is enabled.
-   */
-  final AnalysisErrorListener baseListener;
-
-  /**
-   * A flag indicating whether this listener is currently enabled.
-   */
-  bool enabled = true;
-
-  /**
-   * Initialize a newly created listener to report errors to the given
-   * [baseListener].
-   */
-  DisablableErrorListener(this.baseListener);
-
-  /**
-   * Disable the processing of errors while evaluating the given [function].
-   * Return the value returned by the function.
-   */
-  dynamic disableWhile(dynamic function()) {
-    bool wasEnabled = enabled;
-    try {
-      enabled = false;
-      return function();
-    } finally {
-      enabled = wasEnabled;
-    }
-  }
-
-  /**
-   * Disable the processing of errors while evaluating the given [function].
-   * Return the value returned by the function.
-   */
-  dynamic enableWhile(dynamic function()) {
-    bool wasEnabled = enabled;
-    try {
-      enabled = true;
-      return function();
-    } finally {
-      enabled = wasEnabled;
-    }
-  }
-
-  @override
-  void onError(AnalysisError error) {
-    if (enabled) {
-      baseListener.onError(error);
-    }
-  }
-}
-
-/**
  * An error code associated with an [AnalysisError].
  *
  * Generally, we want to provide messages that consist of three sentences. From

@@ -9746,13 +9746,6 @@ class PartialResolverVisitor extends ResolverVisitor {
   final List<VariableElement> variablesAndFields = <VariableElement>[];
 
   /**
-   * A flag indicating whether we should discard errors while resolving the
-   * initializer for variable declarations. We do this for top-level variables
-   * and fields because their initializer will be re-resolved at a later time.
-   */
-  bool discardErrorsInInitializer = false;
-
-  /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
    * The [definingLibrary] is the element for the library containing the node
@@ -9775,8 +9768,7 @@ class PartialResolverVisitor extends ResolverVisitor {
       InheritanceManager inheritanceManager,
       StaticTypeAnalyzerFactory typeAnalyzerFactory})
       : strongMode = definingLibrary.context.analysisOptions.strongMode,
-        super(definingLibrary, source, typeProvider,
-            new DisablableErrorListener(errorListener));
+        super(definingLibrary, source, typeProvider, errorListener);
 
   @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
@@ -9798,26 +9790,12 @@ class PartialResolverVisitor extends ResolverVisitor {
   Object visitFieldDeclaration(FieldDeclaration node) {
     if (strongMode && node.isStatic) {
       _addVariables(node.fields.variables);
-      bool wasDiscarding = discardErrorsInInitializer;
-      discardErrorsInInitializer = true;
-      try {
-        return super.visitFieldDeclaration(node);
-      } finally {
-        discardErrorsInInitializer = wasDiscarding;
-      }
     }
     return super.visitFieldDeclaration(node);
   }
 
   @override
   Object visitNode(AstNode node) {
-    if (discardErrorsInInitializer) {
-      AstNode parent = node.parent;
-      if (parent is VariableDeclaration && parent.initializer == node) {
-        DisablableErrorListener listener = errorListener;
-        return listener.disableWhile(() => super.visitNode(node));
-      }
-    }
     return super.visitNode(node);
   }
 
@@ -9825,13 +9803,6 @@ class PartialResolverVisitor extends ResolverVisitor {
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     if (strongMode) {
       _addVariables(node.variables.variables);
-      bool wasDiscarding = discardErrorsInInitializer;
-      discardErrorsInInitializer = true;
-      try {
-        return super.visitTopLevelVariableDeclaration(node);
-      } finally {
-        discardErrorsInInitializer = wasDiscarding;
-      }
     }
     return super.visitTopLevelVariableDeclaration(node);
   }
