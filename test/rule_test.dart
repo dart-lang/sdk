@@ -14,6 +14,7 @@ import 'package:linter/src/io.dart';
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
+import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/package_prefixed_library_names.dart';
 import 'package:linter/src/util.dart';
 import 'package:path/path.dart' as p;
@@ -55,6 +56,66 @@ defineRuleTests() {
 }
 
 defineRuleUnitTests() {
+  group('uris', () {
+    group('isPackage', () {
+      var uris = [
+        Uri.parse('package:foo/src/bar.dart'),
+        Uri.parse('package:foo/src/baz/bar.dart')
+      ];
+      uris.forEach((uri) {
+        test(uri.toString(), () {
+          expect(isPackage(uri), isTrue);
+        });
+      });
+      var uris2 = [
+        Uri.parse('foo/bar.dart'),
+        Uri.parse('src/bar.dart'),
+        Uri.parse('dart:async')
+      ];
+      uris2.forEach((uri) {
+        test(uri.toString(), () {
+          expect(isPackage(uri), isFalse);
+        });
+      });
+    });
+
+    group('samePackage', () {
+      test('identity', () {
+        expect(
+            samePackage(Uri.parse('package:foo/src/bar.dart'),
+                Uri.parse('package:foo/src/bar.dart')),
+            isTrue);
+      });
+      test('foo/bar.dart', () {
+        expect(
+            samePackage(Uri.parse('package:foo/src/bar.dart'),
+                Uri.parse('package:foo/bar.dart')),
+            isTrue);
+      });
+    });
+
+    group('implementation', () {
+      var uris = [
+        Uri.parse('package:foo/src/bar.dart'),
+        Uri.parse('package:foo/src/baz/bar.dart')
+      ];
+      uris.forEach((uri) {
+        test(uri.toString(), () {
+          expect(isImplementation(uri), isTrue);
+        });
+      });
+      var uris2 = [
+        Uri.parse('package:foo/bar.dart'),
+        Uri.parse('src/bar.dart')
+      ];
+      uris2.forEach((uri) {
+        test(uri.toString(), () {
+          expect(isImplementation(uri), isFalse);
+        });
+      });
+    });
+  });
+
   group('names', () {
     group('keywords', () {
       var good = ['class', 'if', 'assert', 'catch', 'import'];

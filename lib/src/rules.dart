@@ -12,6 +12,7 @@ import 'package:linter/src/rules/always_specify_types.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/rules/constant_identifier_names.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
+import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/library_names.dart';
 import 'package:linter/src/rules/library_prefixes.dart';
 import 'package:linter/src/rules/non_constant_identifier_names.dart';
@@ -30,6 +31,7 @@ final Registry ruleRegistry = new Registry()
   ..register(new CamelCaseTypes())
   ..register(new ConstantIdentifierNames())
   ..register(new EmptyConstructorBodies())
+  ..register(new ImplementationImports())
   ..register(new LibraryNames())
   ..register(new LibraryPrefixes())
   ..register(new NonConstantIdentifierNames())
