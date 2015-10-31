@@ -100,3 +100,4 @@ cc/Dart2JSCompileAll: Skip  # Timeout.
 [ $noopt ]
 dart/redirection_type_shuffling_test: CompileTimeError # Imports dart:mirrors
 dart/byte_array_test: Crash # Incompatible flag --disable_alloc_stubs_after_gc
+dart/inline_stack_frame_test: Fail  # Issue 24783 - inlined frames missing

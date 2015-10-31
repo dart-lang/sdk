@@ -213,3 +213,4 @@ io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection 
 map_literal_oom_test: Pass, Crash # Issue 24678
 javascript*: SkipByDesign # JS overflow flag unsupported
 io/web_socket_test: Pass, RuntimeError # Issue 24674
+io/http_proxy_configuration_test: Fail  # Issue 24787
