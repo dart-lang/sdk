@@ -137,6 +137,11 @@ abstract class SourceFile implements LineColumnProvider {
     if (colorize == null) {
       colorize = (text) => text;
     }
+    if (end > length) {
+      start = length - 1;
+      end = length;
+    }
+
     int lineStart = getLine(start);
     int columnStart = getColumn(lineStart, start);
     int lineEnd = getLine(end);
