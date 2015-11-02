@@ -7,10 +7,13 @@ library linter.src.linter;
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisErrorInfo, AnalysisErrorInfoImpl, Logger;
+import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
+import 'package:analyzer/src/generated/scanner.dart' show Token;
+import 'package:analyzer/src/generated/source.dart'
+    show LineInfo, LineInfo_Location, Source;
+import 'package:analyzer/src/services/lint.dart' show Linter;
 import 'package:glob/glob.dart';
 import 'package:linter/src/analysis.dart';
 import 'package:linter/src/config.dart';
@@ -50,6 +53,7 @@ class DartLinter implements AnalysisErrorListener {
 
   final LinterOptions options;
   final Reporter reporter;
+
   /// The total number of sources that were analyzed.  Only valid after
   /// [lintFiles] has been called.
   int numSourcesAnalyzed;
@@ -262,6 +266,10 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 
   void reportLint(AstNode node) {
     reporter.reportErrorForNode(new _LintCode(name, description), node, []);
+  }
+
+  void reportLintForToken(Token token) {
+    reporter.reportErrorForToken(new _LintCode(name, description), token, []);
   }
 
   void reportPubLint(PSNode node) {

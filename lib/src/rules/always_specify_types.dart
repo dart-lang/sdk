@@ -7,11 +7,10 @@ library linter.src.rules.annotate_types;
 import 'package:analyzer/src/generated/ast.dart'
     show
         AstVisitor,
+        DeclaredIdentifier,
         SimpleAstVisitor,
         SimpleFormalParameter,
         VariableDeclarationList;
-import 'package:analyzer/src/generated/scanner.dart' show Token;
-import 'package:linter/src/ast.dart';
 import 'package:linter/src/linter.dart';
 
 const desc = 'Specify type annotations.';
@@ -56,38 +55,31 @@ class AlwaysSpecifyTypes extends LintRule {
 }
 
 class Visitor extends SimpleAstVisitor {
-  LintRule rule;
+  final LintRule rule;
   Visitor(this.rule);
 
-  bool hasNoAnnotation(SimpleFormalParameter param) =>
-      param.keyword == null && param.type == null;
-
-  bool isUntypedList(VariableDeclarationList list) {
-    if (isVar(list.keyword)) {
-      return true;
+  @override
+  visitDeclaredIdentifier(DeclaredIdentifier node) {
+    if (node.type == null) {
+      rule.reportLintForToken(node.keyword);
     }
-    return list.type == null && isFinalOrConst(list.keyword);
-  }
-
-  bool isUntypedParam(SimpleFormalParameter param) {
-    Token keyword = param.keyword;
-    if (hasNoAnnotation(param) || isVar(keyword)) {
-      return true;
-    }
-    return param.type == null && isFinalOrConst(keyword);
   }
 
   @override
   visitSimpleFormalParameter(SimpleFormalParameter param) {
-    if (isUntypedParam(param)) {
-      rule.reportLint(param);
+    if (param.type == null) {
+      if (param.keyword != null) {
+        rule.reportLintForToken(param.keyword);
+      } else {
+        rule.reportLint(param);
+      }
     }
   }
 
   @override
   visitVariableDeclarationList(VariableDeclarationList list) {
-    if (isUntypedList(list)) {
-      rule.reportLint(list);
+    if (list.type == null) {
+      rule.reportLintForToken(list.keyword);
     }
   }
 }

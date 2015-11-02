@@ -2,26 +2,36 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-
-
-final x = 1; //LINT
+final x = 1; //LINT [1:5]
 final int xx = 3;
 const y = 2; //LINT
 const int yy = 3;
 
 a(var x) {} //LINT
-b(s) {} //LINT
+b(s) {} //LINT [3:1]
 c(int x) {}
 d(final x) {} //LINT
 e(final int x) {}
 
 main() {
-  var x = ''; //LINT
-  for (var i = 0; i < 10; ++i) { //LINT
+  var x = ''; //LINT [3:3]
+  for (var i = 0; i < 10; ++i) {  //LINT [8:3]
+    print(i);
   }
-  List<String> l = <String>[];
-  l.forEach((s) => print(s)); //LINT
+  List<String> ls = <String>[];
+  ls.forEach((s) => print(s)); //LINT [15:1]
+  for (var l in ls) { //LINT [8:3]
+    print(l);
+  }
+  try {
+    for (final l in ls) { // LINT [10:5]
+      print(l);
+    }
+  } on Exception catch (ex) {
+    print(ex);
+  } catch (e) { // NO warning (https://codereview.chromium.org/1427223002/)
+    print(e);
+  }
 }
 
 var z; //LINT
@@ -31,5 +41,5 @@ class Foo {
   static final baz  = 1; //LINT
   static final int bazz = 42;
   var foo; //LINT
-  Foo(var bar); //LINT
+  Foo(var bar); //LINT [7:3]
 }
