@@ -299,28 +299,35 @@ class JsBuilder {
    // Start by escaping the backslashes.
     String escaped = value.replaceAll('\\', '\\\\');
 
+
+    // Replace $ in template strings:
+    // http://www.ecma-international.org/ecma-262/6.0/#sec-template-literal-lexical-components
+    var quoteReplace = quote == '`' ? r'`$' : quote;
+
     // http://www.ecma-international.org/ecma-262/6.0/#sec-literals-string-literals
     // > All code points may appear literally in a string literal except for the
     // > closing quote code points, U+005C (REVERSE SOLIDUS),
     // > U+000D (CARRIAGE RETURN), U+2028 (LINE SEPARATOR),
     // > U+2029 (PARAGRAPH SEPARATOR), and U+000A (LINE FEED).
-    var re = new RegExp('\n|\r|$quote|\b|\f|\t|\v|\u2028|\u2029');
+    var re = new RegExp('[\n\r$quoteReplace\b\f\t\v\u2028\u2029]');
     escaped = escaped.replaceAllMapped(re, (m) {
       switch (m.group(0)) {
         case "\n" : return r"\n";
         case "\r" : return r"\r";
         case "\u2028": return r"\u2028";
         case "\u2029": return r"\u2029";
-        // Quotes are only replaced if they conflict with the containing quote
-        case '"':   return r'\"';
-        case "'":   return r"\'";
-        case "`":   return r"\`";
+        // Quotes and $ are only replaced if they conflict with the containing
+        // quote, see regex above.
+        case '"': return r'\"';
+        case "'": return r"\'";
+        case "`": return r"\`";
+        case r"$": return r"\$";
         // TODO(jmesserly): these don't need to be escaped for correctness,
         // but they are conventionally escaped.
-        case "\b" : return r"\b";
-        case "\t" : return r"\t";
-        case "\f" : return r"\f";
-        case "\v" : return r"\v";
+        case "\b": return r"\b";
+        case "\t": return r"\t";
+        case "\f": return r"\f";
+        case "\v": return r"\v";
       }
     });
     LiteralString result = new LiteralString('$quote$escaped$quote');

@@ -2375,10 +2375,10 @@ dart_library.library('dart/_internal', null, /* Imports */[
   let POWERS_OF_TEN = dart.const([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22]);
   dart.defineLazyProperties(Symbol, {
     get publicSymbolPattern() {
-      return core.RegExp.new(`^(?:${Symbol.operatorRE}$|${Symbol.publicIdentifierRE}(?:=?$|[.](?!$)))+?$`);
+      return core.RegExp.new(`^(?:${Symbol.operatorRE}\$|${Symbol.publicIdentifierRE}(?:=?\$|[.](?!\$)))+?\$`);
     },
     get symbolPattern() {
-      return core.RegExp.new(`^(?:${Symbol.operatorRE}$|${Symbol.identifierRE}(?:=?$|[.](?!$)))+?$`);
+      return core.RegExp.new(`^(?:${Symbol.operatorRE}\$|${Symbol.identifierRE}(?:=?\$|[.](?!\$)))+?\$`);
     }
   });
   // Exports:

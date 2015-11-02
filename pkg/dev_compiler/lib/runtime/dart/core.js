@@ -1184,7 +1184,7 @@ dart_library.library('dart/core', null, /* Imports */[
       [_getKey]() {
         let key = dart.as(_js_helper.Primitives.getProperty(this, Expando$()._KEY_PROPERTY_NAME), String);
         if (key == null) {
-          key = `expando$key$${(() => {
+          key = `expando\$key\$${(() => {
             let x = Expando$()._keyCount;
             Expando$()._keyCount = dart.notNull(x) + 1;
             return x;

@@ -31,6 +31,7 @@ class Derived {
 bool _isWhitespace(String ch) =>
     ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t';
 
+const expr = 'foo';
 const _escapeMap = const {
   '\n': r'\n',
   '\r': r'\r',
@@ -39,6 +40,7 @@ const _escapeMap = const {
   '\t': r'\t',
   '\v': r'\v',
   '\x7F': r'\x7F', // delete
+  '\${${expr}}': ''
 };
 
 

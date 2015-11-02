@@ -43,7 +43,8 @@ dart_library.library('misc', null, /* Imports */[
     return ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t';
   }
   dart.fn(_isWhitespace, core.bool, [core.String]);
-  let _escapeMap = dart.const(dart.map({'\n': '\\n', '\r': '\\r', '\f': '\\f', '\b': '\\b', '\t': '\\t', '\v': '\\v', '': '\\x7F'}));
+  let expr = 'foo';
+  let _escapeMap = dart.const(dart.map({'\n': '\\n', '\r': '\\r', '\f': '\\f', '\b': '\\b', '\t': '\\t', '\v': '\\v', '': '\\x7F', [`\${${expr}}`]: ''}));
   function main() {
     core.print(dart.toString(1));
     core.print(dart.toString(1.0));
@@ -61,5 +62,6 @@ dart_library.library('misc', null, /* Imports */[
   exports.Generic = Generic;
   exports.Base = Base;
   exports.Derived = Derived;
+  exports.expr = expr;
   exports.main = main;
 });
