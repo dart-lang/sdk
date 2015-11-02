@@ -277,7 +277,7 @@ class Glue {
       classElement == _helpers.jsBoolClass ||
       classElement == _compiler.coreClasses.boolClass;
 
-  // TODO(sra): Should this be part of CodegenRegistry?
+  // TODO(sra,johnniwinther): Should this be part of CodegenRegistry?
   void registerNativeBehavior(NativeBehavior nativeBehavior, node) {
     if (nativeBehavior == null) return;
     _enqueuer.nativeEnqueuer.registerNativeBehavior(nativeBehavior, node);

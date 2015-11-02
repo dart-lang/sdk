@@ -1579,7 +1579,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     List<js.Expression> arguments = visitArguments(node.inputs);
     push(js.propertyCall(object, methodName, arguments)
          .withSourceInformation(node.sourceInformation));
-    registry.registerStaticUse(node.element);
+    registry.registerStaticUse(
+        new StaticUse.constructorBodyInvoke(
+            node.element, new CallStructure.unnamed(arguments.length)));
   }
 
   void visitOneShotInterceptor(HOneShotInterceptor node) {
@@ -1641,24 +1643,24 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // may know something about the types of closures that need
       // the specific closure call method.
       Selector call = new Selector.callClosureFrom(selector);
-      registry.registerDynamicInvocation(
+      registry.registerDynamicUse(
           new UniverseSelector(call, null));
     }
-    registry.registerDynamicInvocation(
+    registry.registerDynamicUse(
         new UniverseSelector(selector, mask));
   }
 
   void registerSetter(HInvokeDynamic node) {
     Selector selector = node.selector;
     TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
-    registry.registerDynamicSetter(
+    registry.registerDynamicUse(
         new UniverseSelector(selector, mask));
   }
 
   void registerGetter(HInvokeDynamic node) {
     Selector selector = node.selector;
     TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
-    registry.registerDynamicGetter(
+    registry.registerDynamicUse(
         new UniverseSelector(selector, mask));
   }
 
@@ -1685,7 +1687,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                          backend.namer.invocationName(call),
                          visitArguments(node.inputs))
             .withSourceInformation(node.sourceInformation));
-    registry.registerDynamicInvocation(
+    registry.registerDynamicUse(
         new UniverseSelector(call, null));
   }
 
@@ -1695,7 +1697,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     if (instantiatedTypes != null && !instantiatedTypes.isEmpty) {
       instantiatedTypes.forEach((type) {
-        registry.registerInstantiatedType(type);
+        registry.registerInstantiation(type);
       });
     }
 
@@ -1710,7 +1712,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
       assert(arguments.length == 2);
       Element throwFunction = backend.helpers.throwConcurrentModificationError;
-      registry.registerStaticInvocation(throwFunction);
+      registry.registerStaticUse(
+          new StaticUse.staticInvoke(throwFunction, CallStructure.ONE_ARG));
 
       // Calling using `(0, #)(#)` instead of `#(#)` separates the property load
       // of the static function access from the call.  For some reason this
@@ -1724,7 +1727,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           backend.emitter.staticFunctionAccess(throwFunction),
           arguments[1]]));
     } else {
-      registry.registerStaticInvocation(element);
+      CallStructure callStructure = new CallStructure.unnamed(arguments.length);
+      registry.registerStaticUse(
+          element.isConstructor
+            ? new StaticUse.constructorInvoke(element, callStructure)
+            : new StaticUse.staticInvoke(element, callStructure));
       push(backend.emitter.staticFunctionAccess(element));
       push(new js.Call(pop(), arguments,
           sourceInformation: node.sourceInformation));
@@ -1733,27 +1740,28 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitInvokeSuper(HInvokeSuper node) {
-    Element superMethod = node.element;
-    registry.registerSuperInvocation(superMethod);
-    ClassElement superClass = superMethod.enclosingClass;
-    if (superMethod.kind == ElementKind.FIELD) {
+    Element superElement = node.element;
+    ClassElement superClass = superElement.enclosingClass;
+    if (superElement.isField) {
       js.Name fieldName =
-          backend.namer.instanceFieldPropertyName(superMethod);
+          backend.namer.instanceFieldPropertyName(superElement);
       use(node.inputs[0]);
       js.PropertyAccess access =
           new js.PropertyAccess(pop(), fieldName)
               .withSourceInformation(node.sourceInformation);
       if (node.isSetter) {
+        registry.registerStaticUse(
+            new StaticUse.superSet(superElement));
         use(node.value);
         push(new js.Assignment(access, pop())
             .withSourceInformation(node.sourceInformation));
       } else {
+        registry.registerStaticUse(new StaticUse.superGet(superElement));
         push(access);
       }
     } else {
       Selector selector = node.selector;
-
-      if (!backend.maybeRegisterAliasedSuperMember(superMethod, selector)) {
+      if (!backend.maybeRegisterAliasedSuperMember(superElement, selector)) {
         js.Name methodName;
         if (selector.isGetter) {
           // If the selector we need to register a typed getter to the
@@ -1766,14 +1774,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
               new TypeMask.nonNullExact(node.caller.superclass, compiler.world);
           // TODO(floitsch): we know the target. We shouldn't register a
           // dynamic getter.
-          registry.registerDynamicGetter(
+          registry.registerDynamicUse(
               new UniverseSelector(selector, receiverType));
-          registry.registerGetterForSuperMethod(node.element);
+          if (superElement.isFunction) {
+            registry.registerStaticUse(
+                new StaticUse.superTearOff(superElement));
+          }
           methodName = backend.namer.invocationName(selector);
         } else {
           assert(invariant(node, compiler.hasIncrementalSupport));
-          methodName = backend.namer.instanceMethodName(superMethod);
+          methodName = backend.namer.instanceMethodName(superElement);
         }
+        registry.registerStaticUse(
+            new StaticUse.superInvoke(
+                superElement,
+                new CallStructure.unnamed(node.inputs.length)));
         push(js.js('#.#.call(#)',
                    [backend.emitter.prototypeAccess(superClass,
                                                     hasBeenInstantiated: true),
@@ -1781,9 +1796,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                 .withSourceInformation(node.sourceInformation));
       } else {
         use(node.receiver);
+        registry.registerStaticUse(
+            new StaticUse.superInvoke(
+                superElement,
+                new CallStructure.unnamed(node.inputs.length - 1)));
         push(
           js.js('#.#(#)', [
-            pop(), backend.namer.aliasedSuperMemberPropertyName(superMethod),
+            pop(), backend.namer.aliasedSuperMemberPropertyName(superElement),
             visitArguments(node.inputs, start: 1)]) // Skip receiver argument.
               .withSourceInformation(node.sourceInformation));
       }
@@ -1809,13 +1828,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Name name = backend.namer.instanceFieldPropertyName(element);
       push(new js.PropertyAccess(pop(), name)
           .withSourceInformation(node.sourceInformation));
-      registry.registerFieldGetter(element);
+      registry.registerStaticUse(new StaticUse.fieldGet(element));
     }
   }
 
   visitFieldSet(HFieldSet node) {
     Element element = node.element;
-    registry.registerFieldSetter(element);
+    registry.registerStaticUse(new StaticUse.fieldSet(element));
     js.Name name = backend.namer.instanceFieldPropertyName(element);
     use(node.receiver);
     js.Expression receiver = pop();
@@ -1826,7 +1845,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitReadModifyWrite(HReadModifyWrite node) {
     Element element = node.element;
-    registry.registerFieldSetter(element);
+    registry.registerStaticUse(new StaticUse.fieldGet(element));
+    registry.registerStaticUse(new StaticUse.fieldSet(element));
     js.Name name = backend.namer.instanceFieldPropertyName(element);
     use(node.receiver);
     js.Expression fieldReference = new js.PropertyAccess(pop(), name);
@@ -1901,7 +1921,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       return;
     }
     node.instantiatedTypes.forEach((type) {
-      registry.registerInstantiatedType(type);
+      registry.registerInstantiation(type);
     });
   }
 
@@ -1921,7 +1941,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                         SourceInformation sourceInformation) {
     if (constant.isFunction) {
       FunctionConstantValue function = constant;
-      registry.registerStaticUse(function.element);
+      registry.registerStaticUse(
+          new StaticUse.staticTearOff(function.element));
     }
     if (constant.isType) {
       // If the type is a web component, we need to ensure the constructors are
@@ -2157,7 +2178,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void generateThrowWithHelper(Element helper, argument,
                                {SourceInformation sourceInformation}) {
-    registry.registerStaticUse(helper);
     js.Expression jsHelper = backend.emitter.staticFunctionAccess(helper);
     List arguments = [];
     var location;
@@ -2172,6 +2192,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       use(argument);
       arguments.add(pop());
     }
+    registry.registerStaticUse(
+        new StaticUse.staticInvoke(
+            helper, new CallStructure.unnamed(arguments.length)));
     js.Call value = new js.Call(jsHelper, arguments.toList(growable: false),
         sourceInformation: sourceInformation);
     // BUG(4906): Using throw/return here adds to the size of the generated code
@@ -2200,7 +2223,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(argument);
 
     Element helper = helpers.throwExpressionHelper;
-    registry.registerStaticUse(helper);
+    registry.registerStaticUse(
+        new StaticUse.staticInvoke(helper, CallStructure.ONE_ARG));
 
     js.Expression jsHelper = backend.emitter.staticFunctionAccess(helper);
     js.Call value = new js.Call(jsHelper, [pop()])
@@ -2218,17 +2242,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (element.isFunction) {
       push(backend.emitter.isolateStaticClosureAccess(element)
            .withSourceInformation(node.sourceInformation));
-      registry.registerGetOfStaticFunction(element);
+      registry.registerStaticUse(
+          new StaticUse.staticTearOff(element));
     } else {
       push(backend.emitter.staticFieldAccess(element)
            .withSourceInformation(node.sourceInformation));
+      registry.registerStaticUse(
+          new StaticUse.staticGet(element));
     }
-    registry.registerStaticUse(element);
   }
 
   void visitLazyStatic(HLazyStatic node) {
     Element element = node.element;
-    registry.registerStaticUse(element);
+    registry.registerStaticUse(
+        new StaticUse.staticInit(element));
     js.Expression lazyGetter =
         backend.emitter.isolateLazyInitializerAccess(element);
     js.Call call = new js.Call(lazyGetter, <js.Expression>[],
@@ -2237,7 +2264,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitStaticStore(HStaticStore node) {
-    registry.registerStaticUse(node.element);
+    registry.registerStaticUse(
+        new StaticUse.staticSet(node.element));
     js.Node variable = backend.emitter.staticFieldAccess(node.element);
     use(node.inputs[0]);
     push(new js.Assignment(variable, pop())
@@ -2271,7 +2299,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     } else {
       Element convertToString = backend.helpers.stringInterpolationHelper;
-      registry.registerStaticUse(convertToString);
+      registry.registerStaticUse(
+          new StaticUse.staticInvoke(convertToString, CallStructure.ONE_ARG));
       js.Expression jsHelper =
           backend.emitter.staticFunctionAccess(convertToString);
       use(input);
@@ -2506,7 +2535,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       push(new js.Prefix('!', pop())
           .withSourceInformation(sourceInformation));
     }
-    registry.registerInstantiatedType(type);
+    registry.registerInstantiation(type);
   }
 
   void handleNumberOrStringSupertypeCheck(HInstruction input,
@@ -2831,7 +2860,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitReadTypeVariable(HReadTypeVariable node) {
     TypeVariableElement element = node.dartType.element;
     Element helperElement = helpers.convertRtiToRuntimeType;
-    registry.registerStaticUse(helperElement);
+    registry.registerStaticUse(
+        new StaticUse.staticInvoke(helperElement, CallStructure.ONE_ARG));
 
     use(node.inputs[0]);
     if (node.hasReceiver) {
@@ -2866,7 +2896,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (!typeArguments.isEmpty) {
       arguments.add(new js.ArrayInitializer(typeArguments));
     }
-    push(js.js('#(#)', [accessHelper('buildInterfaceType'), arguments]));
+    push(js.js('#(#)',
+        [accessHelper('buildInterfaceType', arguments.length), arguments]));
   }
 
   void visitVoidType(HVoidType node) {
@@ -2877,13 +2908,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(js.js('#()', accessHelper('getDynamicRuntimeType')));
   }
 
-  js.PropertyAccess accessHelper(String name) {
+  js.PropertyAccess accessHelper(String name, [int argumentCount = 0]) {
     Element helper = helpers.findHelper(name);
     if (helper == null) {
       // For mocked-up tests.
       return js.js('(void 0).$name');
     }
-    registry.registerStaticUse(helper);
+    registry.registerStaticUse(
+        new StaticUse.staticInvoke(helper,
+            new CallStructure.unnamed(argumentCount)));
     return backend.emitter.staticFunctionAccess(helper);
   }
 

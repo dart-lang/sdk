@@ -47,6 +47,8 @@ import 'tree/tree.dart' show
     LiteralString,
     NewExpression,
     Node;
+import 'universe/use.dart' show
+    StaticUse;
 import 'universe/world_impact.dart' show
     WorldImpact;
 import 'util/setlet.dart' show
@@ -312,7 +314,9 @@ class DeferredLoadTask extends CompilerTask {
 
         WorldImpact worldImpact =
             compiler.resolution.getWorldImpact(analyzableElement);
-        elements.addAll(worldImpact.staticUses);
+        worldImpact.staticUses.forEach((StaticUse staticUse) {
+          elements.add(staticUse.element);
+        });
         elements.addAll(worldImpact.closures);
         for (DartType type in worldImpact.typeLiterals) {
           if (type.isTypedef || type.isInterfaceType) {

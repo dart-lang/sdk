@@ -180,8 +180,12 @@ enum CompoundAccessKind {
   SUPER_GETTER_FIELD,
 
   /// Read from a superclass where the getter is unresolved.
+  // TODO(johnniwinther): Use [AccessKind.SUPER_GETTER] when the erroneous
+  // element is no longer needed.
   UNRESOLVED_SUPER_GETTER,
   /// Read from a superclass getter and write to an unresolved setter.
+  // TODO(johnniwinther): Use [AccessKind.SUPER_SETTER] when the erroneous
+  // element is no longer needed.
   UNRESOLVED_SUPER_SETTER,
 }
 

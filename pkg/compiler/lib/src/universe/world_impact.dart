@@ -16,17 +16,16 @@ import '../util/util.dart' show
 
 import 'universe.dart' show
     UniverseSelector;
+import 'use.dart' show
+    StaticUse;
 
 class WorldImpact {
   const WorldImpact();
 
-  Iterable<UniverseSelector> get dynamicInvocations =>
+  Iterable<UniverseSelector> get dynamicUses =>
       const <UniverseSelector>[];
-  Iterable<UniverseSelector> get dynamicGetters => const <UniverseSelector>[];
-  Iterable<UniverseSelector> get dynamicSetters => const <UniverseSelector>[];
 
-  // TODO(johnniwinther): Split this into more precise subsets.
-  Iterable<Element> get staticUses => const <Element>[];
+  Iterable<StaticUse> get staticUses => const <StaticUse>[];
 
   // TODO(johnniwinther): Replace this by called constructors with type
   // arguments.
@@ -41,8 +40,6 @@ class WorldImpact {
   Iterable<DartType> get asCasts => const <DartType>[];
 
   Iterable<DartType> get onCatchTypes => const <DartType>[];
-
-  Iterable<MethodElement> get closurizedFunctions => const <MethodElement>[];
 
   Iterable<LocalFunctionElement> get closures => const <LocalFunctionElement>[];
 
@@ -64,16 +61,13 @@ class WorldImpact {
       }
     }
 
-    add('dynamic invocations', worldImpact.dynamicInvocations);
-    add('dynamic getters', worldImpact.dynamicGetters);
-    add('dynamic setters', worldImpact.dynamicSetters);
+    add('dynamic uses', worldImpact.dynamicUses);
     add('static uses', worldImpact.staticUses);
     add('instantiated types', worldImpact.instantiatedTypes);
     add('is-checks', worldImpact.isChecks);
     add('checked-mode checks', worldImpact.checkedModeChecks);
     add('as-casts', worldImpact.asCasts);
     add('on-catch-types', worldImpact.onCatchTypes);
-    add('closurized functions', worldImpact.closurizedFunctions);
     add('closures', worldImpact.closures);
     add('type literals', worldImpact.typeLiterals);
   }
@@ -82,56 +76,27 @@ class WorldImpact {
 class WorldImpactBuilder {
   // TODO(johnniwinther): Do we benefit from lazy initialization of the
   // [Setlet]s?
-  Setlet<UniverseSelector> _dynamicInvocations;
-  Setlet<UniverseSelector> _dynamicGetters;
-  Setlet<UniverseSelector> _dynamicSetters;
+  Setlet<UniverseSelector> _dynamicUses;
   Setlet<InterfaceType> _instantiatedTypes;
-  Setlet<Element> _staticUses;
+  Setlet<StaticUse> _staticUses;
   Setlet<DartType> _isChecks;
   Setlet<DartType> _asCasts;
   Setlet<DartType> _checkedModeChecks;
   Setlet<DartType> _onCatchTypes;
-  Setlet<MethodElement> _closurizedFunctions;
   Setlet<LocalFunctionElement> _closures;
   Setlet<DartType> _typeLiterals;
 
-  void registerDynamicGetter(UniverseSelector selector) {
-    assert(selector != null);
-    if (_dynamicGetters == null) {
-      _dynamicGetters = new Setlet<UniverseSelector>();
+  void registerDynamicUse(UniverseSelector dynamicUse) {
+    assert(dynamicUse != null);
+    if (_dynamicUses == null) {
+      _dynamicUses = new Setlet<UniverseSelector>();
     }
-    _dynamicGetters.add(selector);
+    _dynamicUses.add(dynamicUse);
   }
 
-  Iterable<UniverseSelector> get dynamicGetters {
-    return _dynamicGetters != null
-        ? _dynamicGetters : const <UniverseSelector>[];
-  }
-
-  void registerDynamicInvocation(UniverseSelector selector) {
-    assert(selector != null);
-    if (_dynamicInvocations == null) {
-      _dynamicInvocations = new Setlet<UniverseSelector>();
-    }
-    _dynamicInvocations.add(selector);
-  }
-
-  Iterable<UniverseSelector> get dynamicInvocations {
-    return _dynamicInvocations != null
-        ? _dynamicInvocations : const <UniverseSelector>[];
-  }
-
-  void registerDynamicSetter(UniverseSelector selector) {
-    assert(selector != null);
-    if (_dynamicSetters == null) {
-      _dynamicSetters = new Setlet<UniverseSelector>();
-    }
-    _dynamicSetters.add(selector);
-  }
-
-  Iterable<UniverseSelector> get dynamicSetters {
-    return _dynamicSetters != null
-        ? _dynamicSetters : const <UniverseSelector>[];
+  Iterable<UniverseSelector> get dynamicUses {
+    return _dynamicUses != null
+        ? _dynamicUses : const <UniverseSelector>[];
   }
 
   void registerInstantiatedType(InterfaceType type) {
@@ -160,16 +125,16 @@ class WorldImpactBuilder {
         ? _typeLiterals : const <DartType>[];
   }
 
-  void registerStaticUse(Element element) {
-    assert(element != null);
+  void registerStaticUse(StaticUse staticUse) {
+    assert(staticUse != null);
     if (_staticUses == null) {
-      _staticUses = new Setlet<Element>();
+      _staticUses = new Setlet<StaticUse>();
     }
-    _staticUses.add(element);
+    _staticUses.add(staticUse);
   }
 
-  Iterable<Element> get staticUses {
-    return _staticUses != null ? _staticUses : const <Element>[];
+  Iterable<StaticUse> get staticUses {
+    return _staticUses != null ? _staticUses : const <StaticUse>[];
   }
 
   void registerIsCheck(DartType type) {
@@ -222,18 +187,6 @@ class WorldImpactBuilder {
         ? _onCatchTypes : const <DartType>[];
   }
 
-  void registerClosurizedFunction(MethodElement element) {
-    if (_closurizedFunctions == null) {
-      _closurizedFunctions = new Setlet<MethodElement>();
-    }
-    _closurizedFunctions.add(element);
-  }
-
-  Iterable<MethodElement> get closurizedFunctions {
-    return _closurizedFunctions != null
-        ? _closurizedFunctions : const <MethodElement>[];
-  }
-
   void registerClosure(LocalFunctionElement element) {
     if (_closures == null) {
       _closures = new Setlet<LocalFunctionElement>();
@@ -252,11 +205,9 @@ class WorldImpactBuilder {
 class TransformedWorldImpact implements WorldImpact {
   final WorldImpact worldImpact;
 
-  Setlet<Element> _staticUses;
+  Setlet<StaticUse> _staticUses;
   Setlet<InterfaceType> _instantiatedTypes;
-  Setlet<UniverseSelector> _dynamicGetters;
-  Setlet<UniverseSelector> _dynamicInvocations;
-  Setlet<UniverseSelector> _dynamicSetters;
+  Setlet<UniverseSelector> _dynamicUses;
 
   TransformedWorldImpact(this.worldImpact);
 
@@ -267,26 +218,9 @@ class TransformedWorldImpact implements WorldImpact {
   Iterable<DartType> get checkedModeChecks => worldImpact.checkedModeChecks;
 
   @override
-  Iterable<MethodElement> get closurizedFunctions {
-    return worldImpact.closurizedFunctions;
-  }
-
-  @override
-  Iterable<UniverseSelector> get dynamicGetters {
-    return _dynamicGetters != null
-        ? _dynamicGetters : worldImpact.dynamicGetters;
-  }
-
-  @override
-  Iterable<UniverseSelector> get dynamicInvocations {
-    return _dynamicInvocations != null
-        ? _dynamicInvocations : worldImpact.dynamicInvocations;
-  }
-
-  @override
-  Iterable<UniverseSelector> get dynamicSetters {
-    return _dynamicSetters != null
-        ? _dynamicSetters : worldImpact.dynamicSetters;
+  Iterable<UniverseSelector> get dynamicUses {
+    return _dynamicUses != null
+        ? _dynamicUses : worldImpact.dynamicUses;
   }
 
   @override
@@ -297,28 +231,12 @@ class TransformedWorldImpact implements WorldImpact {
 
   _unsupported(String message) => throw new UnsupportedError(message);
 
-  void registerDynamicGetter(UniverseSelector selector) {
-    if (_dynamicGetters == null) {
-      _dynamicGetters = new Setlet<UniverseSelector>();
-      _dynamicGetters.addAll(worldImpact.dynamicGetters);
+  void registerDynamicUse(UniverseSelector selector) {
+    if (_dynamicUses == null) {
+      _dynamicUses = new Setlet<UniverseSelector>();
+      _dynamicUses.addAll(worldImpact.dynamicUses);
     }
-    _dynamicGetters.add(selector);
-  }
-
-  void registerDynamicInvocation(UniverseSelector selector) {
-    if (_dynamicInvocations == null) {
-      _dynamicInvocations = new Setlet<UniverseSelector>();
-      _dynamicInvocations.addAll(worldImpact.dynamicInvocations);
-    }
-    _dynamicInvocations.add(selector);
-  }
-
-  void registerDynamicSetter(UniverseSelector selector) {
-    if (_dynamicSetters == null) {
-      _dynamicSetters = new Setlet<UniverseSelector>();
-      _dynamicSetters.addAll(worldImpact.dynamicSetters);
-    }
-    _dynamicSetters.add(selector);
+    _dynamicUses.add(selector);
   }
 
   void registerInstantiatedType(InterfaceType type) {
@@ -340,16 +258,16 @@ class TransformedWorldImpact implements WorldImpact {
     return worldImpact.typeLiterals;
   }
 
-  void registerStaticUse(Element element) {
+  void registerStaticUse(StaticUse staticUse) {
     if (_staticUses == null) {
-      _staticUses = new Setlet<Element>();
+      _staticUses = new Setlet<StaticUse>();
       _staticUses.addAll(worldImpact.staticUses);
     }
-    _staticUses.add(element);
+    _staticUses.add(staticUse);
   }
 
   @override
-  Iterable<Element> get staticUses {
+  Iterable<StaticUse> get staticUses {
     return _staticUses != null ? _staticUses : worldImpact.staticUses;
   }
 

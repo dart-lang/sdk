@@ -46,6 +46,10 @@ import '../tokens/token.dart' show
     isUnaryOperator,
     isUserDefinableOperator;
 import '../tree/tree.dart';
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/use.dart' show
+    StaticUse;
 import '../universe/world_impact.dart' show
     WorldImpact;
 import '../util/util.dart' show
@@ -305,7 +309,9 @@ class ResolverTask extends CompilerTask {
           // seeing this element.
           element.computeType(resolution);
           if (!target.isMalformed) {
-            registry.registerImplicitSuperCall(target);
+            registry.registerStaticUse(
+                new StaticUse.superConstructorInvoke(
+                    target, CallStructure.NO_ARGS));
           }
           return registry.worldImpact;
         } else {

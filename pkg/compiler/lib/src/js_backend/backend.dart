@@ -1048,7 +1048,7 @@ class JavaScriptBackend extends Backend {
 
     if (constant.isFunction) {
       FunctionConstantValue function = constant;
-      registry.registerGetOfStaticFunction(function.element);
+      registry.registerStaticUse(new StaticUse.staticTearOff(function.element));
     } else if (constant.isInterceptor) {
       // An interceptor constant references the class's prototype chain.
       InterceptorConstantValue interceptor = constant;
@@ -1066,13 +1066,20 @@ class JavaScriptBackend extends Backend {
     if (type is InterfaceType) {
       registry.registerInstantiation(instantiatedType);
       if (!type.treatAsRaw && classNeedsRti(type.element)) {
-        registry.registerStaticInvocation(helpers.setRuntimeTypeInfo);
+        registry.registerStaticUse(
+            new StaticUse.staticInvoke(
+                // TODO(johnniwinther): Find the right [CallStructure].
+                helpers.setRuntimeTypeInfo, null));
       }
       if (type.element == typeImplementation) {
         // If we use a type literal in a constant, the compile time
         // constant emitter will generate a call to the createRuntimeType
         // helper so we register a use of that.
-        registry.registerStaticInvocation(helpers.createRuntimeType);
+        registry.registerStaticUse(
+            new StaticUse.staticInvoke(
+                // TODO(johnniwinther): Find the right [CallStructure].
+
+                helpers.createRuntimeType, null));
       }
     }
   }
@@ -1417,7 +1424,7 @@ class JavaScriptBackend extends Backend {
 
   void enableNoSuchMethod(Enqueuer world) {
     enqueue(world, helpers.createInvocationMirror, compiler.globalDependencies);
-    world.registerInvocation(
+    world.registerDynamicUse(
         new UniverseSelector(Selectors.noSuchMethod_, null));
   }
 
@@ -1432,7 +1439,8 @@ class JavaScriptBackend extends Backend {
       // The JavaScript backend of [Isolate.spawnUri] uses the same internal
       // implementation as [Isolate.spawn], and fails if it cannot look main up
       // by name.
-      enqueuer.registerGetOfStaticFunction(compiler.mainFunction);
+      enqueuer.registerStaticUse(
+          new StaticUse.staticTearOff(compiler.mainFunction));
     }
     if (enqueuer.isResolutionQueue) {
 
@@ -1588,7 +1596,8 @@ class JavaScriptBackend extends Backend {
         // the static variable.
         // We also need to register the use of the cyclic-error helper.
         compiler.enqueuer.codegen.registerStaticUse(
-            helpers.cyclicThrowHelper);
+            new StaticUse.staticInvoke(
+                helpers.cyclicThrowHelper, CallStructure.ONE_ARG));
       }
     }
 
@@ -1826,7 +1835,7 @@ class JavaScriptBackend extends Backend {
     // We register all the helpers in the resolution queue.
     // TODO(13155): Find a way to register fewer helpers.
     for (CheckedModeHelper helper in checkedModeHelpers) {
-      enqueueInResolution(helper.getElement(compiler), registry);
+      enqueueInResolution(helper.getStaticUse(compiler).element, registry);
     }
   }
 
@@ -2843,7 +2852,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     for (Element staticUse in backendImpact.staticUses) {
       assert(staticUse != null);
       backend.registerBackendUse(staticUse);
-      worldImpact.registerStaticUse(staticUse);
+      worldImpact.registerStaticUse(
+          // TODO(johnniwinther): Store the correct use in impacts.
+          new StaticUse.foreignUse(staticUse));
     }
     for (InterfaceType instantiatedType in backendImpact.instantiatedTypes) {
       backend.registerBackendUse(instantiatedType.element);
@@ -2922,16 +2933,16 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       CheckedModeHelper helper =
           backend.getCheckedModeHelper(type, typeCast: false);
       if (helper != null) {
-        Element helperElement = helper.getElement(backend.compiler);
-        transformed.registerStaticUse(helperElement);
-        backend.registerBackendUse(helperElement);
+        StaticUse staticUse = helper.getStaticUse(backend.compiler);
+        transformed.registerStaticUse(staticUse);
+        backend.registerBackendUse(staticUse.element);
       }
       // We also need the native variant of the check (for DOM types).
       helper = backend.getNativeCheckedModeHelper(type, typeCast: false);
       if (helper != null) {
-        Element helperElement = helper.getElement(backend.compiler);
-        transformed.registerStaticUse(helperElement);
-        backend.registerBackendUse(helperElement);
+        StaticUse staticUse = helper.getStaticUse(backend.compiler);
+        transformed.registerStaticUse(staticUse);
+        backend.registerBackendUse(staticUse.element);
       }
     }
     if (!type.treatAsRaw || type.containsTypeVariables) {
@@ -2953,18 +2964,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
     for (InterfaceType type in impact.instantiatedTypes) {
       backend.lookupMapAnalysis.registerInstantiatedType(type, registry);
-    }
-
-    for (Element element in impact.getterForSuperElements) {
-      world.registerGetterForSuperMethod(element);
-    }
-
-    for (Element element in impact.fieldGetters) {
-      world.registerFieldGetter(element);
-    }
-
-    for (Element element in impact.fieldSetters) {
-      world.registerFieldSetter(element);
     }
 
     for (DartType type in impact.isChecks) {

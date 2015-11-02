@@ -137,12 +137,12 @@ class DartBackend extends Backend {
     }
     // Enqueue the methods that the VM might invoke on user objects because
     // we don't trust the resolution to always get these included.
-    world.registerInvocation(new UniverseSelector(Selectors.toString_, null));
-    world.registerInvokedGetter(
+    world.registerDynamicUse(new UniverseSelector(Selectors.toString_, null));
+    world.registerDynamicUse(
         new UniverseSelector(Selectors.hashCode_, null));
-    world.registerInvocation(
+    world.registerDynamicUse(
         new UniverseSelector(new Selector.binaryOperator('=='), null));
-    world.registerInvocation(
+    world.registerDynamicUse(
         new UniverseSelector(Selectors.compareTo, null));
   }
 
@@ -265,10 +265,7 @@ class DartBackend extends Backend {
                                 Enqueuer enqueuer,
                                 Registry registry,
                                 {bool mirrorUsage: false}) {
-    registerPlatformMembers(type,
-        registerGetter: registry.registerDynamicGetter,
-        registerSetter: registry.registerDynamicSetter,
-        registerInvocation: registry.registerDynamicInvocation);
+    registerPlatformMembers(type, registerUse: registry.registerDynamicUse);
     super.registerInstantiatedType(
         type, enqueuer, registry, mirrorUsage: mirrorUsage);
   }
@@ -277,9 +274,7 @@ class DartBackend extends Backend {
   /// of types defined in the platform libraries.
   void registerPlatformMembers(
       InterfaceType type,
-      {void registerGetter(UniverseSelector selector),
-       void registerSetter(UniverseSelector selector),
-       void registerInvocation(UniverseSelector selector)}) {
+      {void registerUse(UniverseSelector selector)}) {
 
     // Without patching, dart2dart has no way of performing sound tree-shaking
     // in face external functions. Therefore we employ another scheme:
@@ -331,16 +326,8 @@ class DartBackend extends Backend {
               FunctionElement function = element.asFunctionElement();
               element.computeType(resolution);
               Selector selector = new Selector.fromElement(element);
-              if (selector.isGetter) {
-                registerGetter(
-                    new UniverseSelector(selector, null));
-              } else if (selector.isSetter) {
-                registerSetter(
-                    new UniverseSelector(selector, null));
-              } else {
-                registerInvocation(
-                    new UniverseSelector(selector, null));
-              }
+              registerUse(
+                  new UniverseSelector(selector, null));
             });
           }
         }
@@ -382,9 +369,7 @@ class DartImpactTransformer extends ImpactTransformer {
       // the world impact itself.
       transformed.registerInstantiatedType(instantiatedType);
       backend.registerPlatformMembers(instantiatedType,
-          registerGetter: transformed.registerDynamicGetter,
-          registerSetter: transformed.registerDynamicSetter,
-          registerInvocation: transformed.registerDynamicInvocation);
+          registerUse: transformed.registerDynamicUse);
     }
     return transformed;
   }

@@ -31,6 +31,8 @@ import '../universe/selector.dart' show
     Selector;
 import '../universe/universe.dart' show
     UniverseSelector;
+import '../universe/use.dart' show
+    StaticUse;
 import '../universe/world_impact.dart' show
     WorldImpactBuilder;
 import '../world.dart' show World;
@@ -300,12 +302,8 @@ class ResolutionRegistry extends Registry {
   //  Various Backend/Enqueuer/World registration.
   //////////////////////////////////////////////////////////////////////////////
 
-  void registerStaticUse(Element element) {
-    worldImpact.registerStaticUse(element);
-  }
-
-  void registerImplicitSuperCall(FunctionElement superConstructor) {
-    registerStaticUse(superConstructor);
+  void registerStaticUse(StaticUse staticUse) {
+    worldImpact.registerStaticUse(staticUse);
   }
 
   void registerLazyField() {
@@ -360,10 +358,6 @@ class ResolutionRegistry extends Registry {
     mapping.addSuperUse(node);
   }
 
-  void registerDynamicInvocation(UniverseSelector selector) {
-    worldImpact.registerDynamicInvocation(selector);
-  }
-
   void registerSuperNoSuchMethod() {
     worldImpact.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
   }
@@ -400,18 +394,8 @@ class ResolutionRegistry extends Registry {
         new ForeignResolutionResolver(visitor, this));
   }
 
-  void registerGetOfStaticFunction(FunctionElement element) {
-    worldImpact.registerClosurizedFunction(element);
-  }
-
-  void registerDynamicGetter(UniverseSelector selector) {
-    assert(selector.selector.isGetter);
-    worldImpact.registerDynamicGetter(selector);
-  }
-
-  void registerDynamicSetter(UniverseSelector selector) {
-    assert(selector.selector.isSetter);
-    worldImpact.registerDynamicSetter(selector);
+  void registerDynamicUse(UniverseSelector selector) {
+    worldImpact.registerDynamicUse(selector);
   }
 
   void registerConstSymbol(String name) {
@@ -461,12 +445,6 @@ class ResolutionRegistry extends Registry {
 
   void registerThrowExpression() {
     worldImpact.registerFeature(Feature.THROW_EXPRESSION);
-  }
-
-  void registerStaticInvocation(Element element) {
-    // TODO(johnniwinther): Increase precision of [registerStaticUse].
-    if (element == null) return;
-    registerStaticUse(element);
   }
 
   void registerInstantiation(InterfaceType type) {

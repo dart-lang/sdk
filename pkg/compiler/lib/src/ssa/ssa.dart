@@ -62,6 +62,8 @@ import '../universe/side_effects.dart' show
     SideEffects;
 import '../universe/universe.dart' show
     UniverseSelector;
+import '../universe/use.dart' show
+    StaticUse;
 import '../util/util.dart';
 import '../world.dart' show
     ClassWorld,

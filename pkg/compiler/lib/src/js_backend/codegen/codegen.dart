@@ -23,10 +23,14 @@ import '../../tree_ir/tree_ir_nodes.dart' show
     BuiltinOperator;
 import '../../types/types.dart' show
     TypeMask;
+import '../../universe/call_structure.dart' show
+    CallStructure;
 import '../../universe/selector.dart' show
     Selector;
 import '../../universe/universe.dart' show
     UniverseSelector;
+import '../../universe/use.dart' show
+    StaticUse;
 import '../../util/maplet.dart';
 
 class CodegenBailout {
@@ -236,7 +240,17 @@ class CodeGenerator extends tree_ir.StatementVisitor
   js.Expression buildStaticInvoke(Element target,
                                   List<js.Expression> arguments,
                                   {SourceInformation sourceInformation}) {
-    registry.registerStaticInvocation(target.declaration);
+    if (target.isConstructor) {
+      // TODO(johnniwinther): Avoid dependency on [isGenerativeConstructor] by
+      // using backend-specific [StatisUse] classes.
+      registry.registerStaticUse(
+          new StaticUse.constructorInvoke(target.declaration,
+              new CallStructure.unnamed(arguments.length)));
+    } else {
+      registry.registerStaticUse(
+          new StaticUse.staticInvoke(target.declaration,
+              new CallStructure.unnamed(arguments.length)));
+    }
     js.Expression elementAccess = glue.staticFunctionAccess(target);
     return new js.Call(elementAccess, arguments,
         sourceInformation: sourceInformation);
@@ -246,20 +260,22 @@ class CodeGenerator extends tree_ir.StatementVisitor
   js.Expression visitInvokeConstructor(tree_ir.InvokeConstructor node) {
     if (node.constant != null) return giveup(node);
 
-    registry.registerInstantiatedType(node.type);
+    registry.registerInstantiation(node.type);
     FunctionElement target = node.target;
     List<js.Expression> arguments = visitExpressionList(node.arguments);
     return buildStaticInvoke(
-        target, arguments, sourceInformation: node.sourceInformation);
+        target,
+        arguments,
+        sourceInformation: node.sourceInformation);
   }
 
   void registerMethodInvoke(tree_ir.InvokeMethod node) {
     Selector selector = node.selector;
     TypeMask mask = node.mask;
     if (selector.isGetter) {
-      registry.registerDynamicGetter(new UniverseSelector(selector, mask));
+      registry.registerDynamicUse(new UniverseSelector(selector, mask));
     } else if (selector.isSetter) {
-      registry.registerDynamicSetter(new UniverseSelector(selector, mask));
+      registry.registerDynamicUse(new UniverseSelector(selector, mask));
     } else {
       assert(invariant(CURRENT_ELEMENT_SPANNABLE,
           selector.isCall || selector.isOperator ||
@@ -267,8 +283,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
           message: 'unexpected kind ${selector.kind}'));
       // TODO(sigurdm): We should find a better place to register the call.
       Selector call = new Selector.callClosureFrom(selector);
-      registry.registerDynamicInvocation(new UniverseSelector(call, null));
-      registry.registerDynamicInvocation(new UniverseSelector(selector, mask));
+      registry.registerDynamicUse(new UniverseSelector(call, null));
+      registry.registerDynamicUse(new UniverseSelector(selector, mask));
     }
   }
 
@@ -291,8 +307,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitInvokeMethodDirectly(tree_ir.InvokeMethodDirectly node) {
-    registry.registerDirectInvocation(node.target.declaration);
     if (node.target is ConstructorBodyElement) {
+      registry.registerStaticUse(
+          new StaticUse.constructorBodyInvoke(
+              node.target.declaration,
+              new CallStructure.unnamed(node.arguments.length)));
       // A constructor body cannot be overriden or intercepted, so we can
       // use the short form for this invocation.
       return js.js('#.#(#)',
@@ -301,6 +320,10 @@ class CodeGenerator extends tree_ir.StatementVisitor
            visitExpressionList(node.arguments)])
           .withSourceInformation(node.sourceInformation);
     }
+    registry.registerStaticUse(
+        new StaticUse.superInvoke(
+            node.target.declaration,
+            new CallStructure.unnamed(node.arguments.length)));
     return js.js('#.#.call(#, #)',
         [glue.prototypeAccess(node.target.enclosingClass),
          glue.invocationName(node.selector),
@@ -678,7 +701,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     //               carry a DartType so we can register the instantiated type
     //               with its type arguments. Otherwise dataflow analysis is
     //               needed to reconstruct the instantiated type.
-    registry.registerInstantiatedClass(classElement);
+    registry.registerInstantiation(classElement.rawType);
     if (classElement is ClosureClassElement) {
       registry.registerInstantiatedClosure(classElement.methodElement);
     }
@@ -730,7 +753,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitGetField(tree_ir.GetField node) {
-    registry.registerFieldGetter(node.field);
+    registry.registerStaticUse(new StaticUse.fieldGet(node.field));
     return new js.PropertyAccess(
         visitExpression(node.object),
         glue.instanceFieldPropertyName(node.field));
@@ -738,7 +761,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Assignment visitSetField(tree_ir.SetField node) {
-    registry.registerFieldSetter(node.field);
+    registry.registerStaticUse(new StaticUse.fieldSet(node.field));
     js.PropertyAccess field =
         new js.PropertyAccess(
             visitExpression(node.object),
@@ -751,25 +774,29 @@ class CodeGenerator extends tree_ir.StatementVisitor
     assert(node.element is FieldElement || node.element is FunctionElement);
     if (node.element is FunctionElement) {
       // Tear off a method.
-      registry.registerGetOfStaticFunction(node.element.declaration);
+      registry.registerStaticUse(
+          new StaticUse.staticTearOff(node.element.declaration));
       return glue.isolateStaticClosureAccess(node.element);
     }
     if (glue.isLazilyInitialized(node.element)) {
       // Read a lazily initialized field.
-      registry.registerStaticUse(node.element.declaration);
+      registry.registerStaticUse(
+          new StaticUse.staticInit(node.element.declaration));
       js.Expression getter = glue.isolateLazyInitializerAccess(node.element);
       return new js.Call(getter, <js.Expression>[],
           sourceInformation: node.sourceInformation);
     }
     // Read an eagerly initialized field.
-    registry.registerStaticUse(node.element.declaration);
+    registry.registerStaticUse(
+        new StaticUse.staticGet(node.element.declaration));
     return glue.staticFieldAccess(node.element);
   }
 
   @override
   js.Expression visitSetStatic(tree_ir.SetStatic node) {
     assert(node.element is FieldElement);
-    registry.registerStaticUse(node.element.declaration);
+    registry.registerStaticUse(
+        new StaticUse.staticSet(node.element.declaration));
     js.Expression field = glue.staticFieldAccess(node.element);
     js.Expression value = visitExpression(node.value);
     return new js.Assignment(field, value);
@@ -799,7 +826,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
       FunctionElement helper,
       List<js.Expression> arguments,
       {SourceInformation sourceInformation}) {
-    registry.registerStaticUse(helper);
+    registry.registerStaticUse(new StaticUse.staticInvoke(
+        helper, new CallStructure.unnamed(arguments.length)));
     return buildStaticInvoke(
         helper, arguments, sourceInformation: sourceInformation);
   }
@@ -844,9 +872,12 @@ class CodeGenerator extends tree_ir.StatementVisitor
     if (node.dependency != null) {
       // Dependency is only used if [node] calls a Dart function. Currently only
       // through foreign function `RAW_DART_FUNCTION_REF`.
-      registry.registerStaticUse(node.dependency);
+      registry.registerStaticUse(
+          new StaticUse.staticInvoke(
+              node.dependency,
+              new CallStructure.unnamed(node.arguments.length)));
     }
-    // TODO(sra): Should this be in CodegenRegistry?
+    // TODO(sra,johnniwinther): Should this be in CodegenRegistry?
     glue.registerNativeBehavior(node.nativeBehavior, node);
     return node.codeTemplate.instantiate(visitExpressionList(node.arguments));
   }
@@ -910,7 +941,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
         if (args.isEmpty) return js.string('');
         return args.reduce((e1,e2) => new js.Binary('+', e1, e2));
       case BuiltinOperator.Identical:
-        registry.registerStaticInvocation(glue.identicalFunction);
+        registry.registerStaticUse(new StaticUse.staticInvoke(
+            glue.identicalFunction, new CallStructure.unnamed(args.length)));
         return buildStaticHelperInvocation(glue.identicalFunction, args);
       case BuiltinOperator.StrictEq:
         return new js.Binary('===', args[0], args[1]);

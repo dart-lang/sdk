@@ -156,9 +156,11 @@ class CustomElementsAnalysisJoin {
           (isExtension &&
               (allClassesSelected || selectedClasses.contains(classElement)))) {
         newActiveClasses.add(classElement);
-        Iterable<Element> escapingConstructors =
+        Iterable<ConstructorElement> escapingConstructors =
             computeEscapingConstructors(classElement);
-        escapingConstructors.forEach(enqueuer.registerStaticUse);
+        for (ConstructorElement constructor in escapingConstructors) {
+          enqueuer.registerStaticUse(new StaticUse.foreignUse(constructor));
+        }
         escapingConstructors
             .forEach(compiler.globalDependencies.registerDependency);
         // Force the generaton of the type constant that is the key to an entry
@@ -178,17 +180,18 @@ class CustomElementsAnalysisJoin {
     return backend.constantSystem.createType(compiler, elementType);
   }
 
-  List<Element> computeEscapingConstructors(ClassElement classElement) {
-    List<Element> result = <Element>[];
+  List<ConstructorElement> computeEscapingConstructors(
+      ClassElement classElement) {
+    List<ConstructorElement> result = <ConstructorElement>[];
     // Only classes that extend native classes have constructors in the table.
     // We could refine this to classes that extend Element, but that would break
     // the tests and there is no sane reason to subclass other native classes.
     if (backend.isNative(classElement)) return result;
 
-    selectGenerativeConstructors(ClassElement enclosing, Element member) {
+    void selectGenerativeConstructors(ClassElement enclosing, Element member) {
       if (member.isGenerativeConstructor) {
         // Ignore constructors that cannot be called with zero arguments.
-        FunctionElement constructor = member;
+        ConstructorElement constructor = member;
         constructor.computeType(compiler.resolution);
         FunctionSignature parameters = constructor.functionSignature;
         if (parameters.requiredParameterCount == 0) {

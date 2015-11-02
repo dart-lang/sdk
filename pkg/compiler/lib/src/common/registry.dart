@@ -13,6 +13,8 @@ import '../elements/elements.dart' show
     FunctionElement;
 import '../universe/universe.dart' show
     UniverseSelector;
+import '../universe/use.dart' show
+    StaticUse;
 
 /// Interface for registration of element dependencies.
 abstract class Registry {
@@ -21,17 +23,11 @@ abstract class Registry {
 
   bool get isForResolution;
 
-  void registerDynamicInvocation(UniverseSelector selector);
+  void registerDynamicUse(UniverseSelector staticUse);
 
-  void registerDynamicGetter(UniverseSelector selector);
-
-  void registerDynamicSetter(UniverseSelector selector);
-
-  void registerStaticInvocation(Element element);
+  void registerStaticUse(StaticUse staticUse);
 
   void registerInstantiation(InterfaceType type);
-
-  void registerGetOfStaticFunction(FunctionElement element);
 }
 
 // TODO(johnniwinther): Remove this.
@@ -44,23 +40,8 @@ class EagerRegistry extends Registry {
   bool get isForResolution => world.isResolutionQueue;
 
   @override
-  void registerDynamicGetter(UniverseSelector selector) {
-    world.registerDynamicGetter(selector);
-  }
-
-  @override
-  void registerDynamicInvocation(UniverseSelector selector) {
-    world.registerDynamicInvocation(selector);
-  }
-
-  @override
-  void registerDynamicSetter(UniverseSelector selector) {
-    world.registerDynamicSetter(selector);
-  }
-
-  @override
-  void registerGetOfStaticFunction(FunctionElement element) {
-    world.registerGetOfStaticFunction(element);
+  void registerDynamicUse(UniverseSelector selector) {
+    world.registerDynamicUse(selector);
   }
 
   @override
@@ -69,8 +50,8 @@ class EagerRegistry extends Registry {
   }
 
   @override
-  void registerStaticInvocation(Element element) {
-    world.registerStaticUse(element);
+  void registerStaticUse(StaticUse staticUse) {
+    world.registerStaticUse(staticUse);
   }
 
   String toString() => name;

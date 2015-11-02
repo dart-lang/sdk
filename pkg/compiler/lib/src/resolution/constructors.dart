@@ -28,6 +28,8 @@ import '../universe/call_structure.dart' show
     CallStructure;
 import '../universe/selector.dart' show
     Selector;
+import '../universe/use.dart' show
+    StaticUse;
 
 import 'members.dart' show
     lookupInScope,
@@ -125,7 +127,9 @@ class InitializerResolver {
     }
     if (target != null) {
       registry.useElement(init, target);
-      registry.registerStaticUse(target);
+      if (!target.isMalformed) {
+        registry.registerStaticUse(new StaticUse.fieldInit(target));
+      }
       checkForDuplicateInitializers(target, init);
     }
     // Resolve initializing value.
@@ -183,7 +187,9 @@ class InitializerResolver {
                                      constructorSelector);
     if (calledConstructor != null) {
       registry.useElement(call, calledConstructor);
-      registry.registerStaticUse(calledConstructor);
+      registry.registerStaticUse(
+          new StaticUse.superConstructorInvoke(
+              calledConstructor, argumentsResult.callStructure));
     }
     if (isConst) {
       if (isValidAsConstant &&
@@ -232,7 +238,9 @@ class InitializerResolver {
                                        className,
                                        constructorSelector);
       if (calledConstructor != null) {
-        registry.registerImplicitSuperCall(calledConstructor);
+        registry.registerStaticUse(
+            new StaticUse.constructorInvoke(
+                calledConstructor, constructorSelector.callStructure));
       }
 
       if (isConst && isValidAsConstant) {

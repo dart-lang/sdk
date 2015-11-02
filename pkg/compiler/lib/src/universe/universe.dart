@@ -18,7 +18,17 @@ import '../world.dart' show
 
 import 'selector.dart' show
     Selector;
+import 'use.dart' show
+    StaticUse,
+    StaticUseKind;
 
+enum DynamicUseKind {
+  INVOKE,
+  GET,
+  SET,
+}
+
+// TODO(johnniwinther): Rename to `DynamicUse` and move to 'use.dart'.
 class UniverseSelector {
   final Selector selector;
   final ReceiverConstraint mask;
@@ -28,6 +38,16 @@ class UniverseSelector {
   bool appliesUnnamed(Element element, ClassWorld world) {
     return selector.appliesUnnamed(element, world) &&
         (mask == null || mask.canHit(element, selector, world));
+  }
+
+  DynamicUseKind get kind {
+    if (selector.isGetter) {
+      return DynamicUseKind.GET;
+    } else if (selector.isSetter) {
+      return DynamicUseKind.SET;
+    } else {
+      return DynamicUseKind.INVOKE;
+    }
   }
 
   int get hashCode => selector.hashCode * 13 + mask.hashCode * 17;
@@ -323,16 +343,15 @@ class Universe {
     return _hasMatchingSelector(_invokedSetters[member.name], member, world);
   }
 
-  bool registerInvocation(UniverseSelector selector) {
-    return _registerNewSelector(selector, _invokedNames);
-  }
-
-  bool registerInvokedGetter(UniverseSelector selector) {
-    return _registerNewSelector(selector, _invokedGetters);
-  }
-
-  bool registerInvokedSetter(UniverseSelector selector) {
-    return _registerNewSelector(selector, _invokedSetters);
+  bool registerDynamicUse(UniverseSelector selector) {
+    switch (selector.kind) {
+      case DynamicUseKind.INVOKE:
+        return _registerNewSelector(selector, _invokedNames);
+      case DynamicUseKind.GET:
+        return _registerNewSelector(selector, _invokedGetters);
+      case DynamicUseKind.SET:
+        return _registerNewSelector(selector, _invokedSetters);
+    }
   }
 
   bool _registerNewSelector(
@@ -391,11 +410,27 @@ class Universe {
     return type;
   }
 
-  void registerStaticFieldUse(FieldElement staticField) {
-    assert(Elements.isStaticOrTopLevel(staticField) && staticField.isField);
-    assert(staticField.isDeclaration);
-
-    allReferencedStaticFields.add(staticField);
+  void registerStaticUse(StaticUse staticUse) {
+    Element element = staticUse.element;
+    if (Elements.isStaticOrTopLevel(element) && element.isField) {
+      allReferencedStaticFields.add(element);
+    }
+    switch (staticUse.kind) {
+      case StaticUseKind.STATIC_TEAR_OFF:
+        staticFunctionsNeedingGetter.add(element);
+        break;
+      case StaticUseKind.FIELD_GET:
+        fieldGetters.add(element);
+        break;
+      case StaticUseKind.FIELD_SET:
+        fieldSetters.add(element);
+        break;
+      case StaticUseKind.SUPER_TEAR_OFF:
+        methodsNeedingSuperGetter.add(element);
+        break;
+      case StaticUseKind.GENERAL:
+        break;
+    }
   }
 
   void forgetElement(Element element, Compiler compiler) {

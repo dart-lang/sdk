@@ -20,14 +20,12 @@ import '../elements/elements.dart' show
     LocalFunctionElement;
 import '../enqueue.dart' show
     CodegenEnqueuer;
-import '../js_backend/js_backend.dart' show
-    JavaScriptBackend;
 import '../resolution/tree_elements.dart' show
     TreeElements;
-import '../universe/selector.dart' show
-    Selector;
 import '../universe/universe.dart' show
     UniverseSelector;
+import '../universe/use.dart' show
+    StaticUse;
 import '../universe/world_impact.dart' show
     WorldImpact,
     WorldImpactBuilder;
@@ -46,12 +44,6 @@ class CodegenImpact extends WorldImpact {
 
   // TODO(johnniwinther): Remove this.
   Registry get registry => null;
-
-  Iterable<Element> get getterForSuperElements => const <Element>[];
-
-  Iterable<Element> get fieldGetters => const <Element>[];
-
-  Iterable<Element> get fieldSetters => const <Element>[];
 
   Iterable<ConstantValue> get compileTimeConstants => const <ConstantValue>[];
 
@@ -76,10 +68,6 @@ class _CodegenImpact extends WorldImpactBuilder implements CodegenImpact {
   // TODO(johnniwinther): Remove this.
   final Registry registry;
 
-
-  Setlet<Element> _getterForSuperElements;
-  Setlet<Element> _fieldGetters;
-  Setlet<Element> _fieldSetters;
   Setlet<ConstantValue> _compileTimeConstants;
   Setlet<Pair<DartType, DartType>> _typeVariableBoundsSubtypeChecks;
   Setlet<String> _constSymbols;
@@ -89,42 +77,6 @@ class _CodegenImpact extends WorldImpactBuilder implements CodegenImpact {
   Setlet<FunctionElement> _asyncMarkers;
 
   _CodegenImpact(this.registry);
-
-  void registerGetterForSuperMethod(Element element) {
-    if (_getterForSuperElements == null) {
-      _getterForSuperElements = new Setlet<Element>();
-    }
-    _getterForSuperElements.add(element);
-  }
-
-  Iterable<Element> get getterForSuperElements {
-    return _getterForSuperElements != null
-        ? _getterForSuperElements : const <Element>[];
-  }
-
-  void registerFieldGetter(Element element) {
-    if (_fieldGetters == null) {
-      _fieldGetters = new Setlet<Element>();
-    }
-    _fieldGetters.add(element);
-  }
-
-  Iterable<Element> get fieldGetters {
-    return _fieldGetters != null
-        ? _fieldGetters : const <Element>[];
-  }
-
-  void registerFieldSetter(Element element) {
-    if (_fieldSetters == null) {
-      _fieldSetters = new Setlet<Element>();
-    }
-    _fieldSetters.add(element);
-  }
-
-  Iterable<Element> get fieldSetters {
-    return _fieldSetters != null
-        ? _fieldSetters : const <Element>[];
-  }
 
   void registerCompileTimeConstant(ConstantValue constant) {
     if (_compileTimeConstants == null) {
@@ -224,43 +176,18 @@ class CodegenRegistry extends Registry {
 
   String toString() => 'CodegenRegistry for $currentElement';
 
+  @deprecated
   void registerInstantiatedClass(ClassElement element) {
-    registerInstantiatedType(element.rawType);
+    registerInstantiation(element.rawType);
   }
 
-  void registerInstantiatedType(InterfaceType type) {
-    worldImpact.registerInstantiatedType(type);
+  void registerStaticUse(StaticUse staticUse) {
+    worldImpact.registerStaticUse(staticUse);
   }
 
-  void registerStaticUse(Element element) {
-    worldImpact.registerStaticUse(element);
-  }
-
-  void registerDynamicInvocation(UniverseSelector selector) {
-    worldImpact.registerDynamicInvocation(selector);
+  void registerDynamicUse(UniverseSelector selector) {
+    worldImpact.registerDynamicUse(selector);
     compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
-  }
-
-  void registerDynamicSetter(UniverseSelector selector) {
-    worldImpact.registerDynamicSetter(selector);
-    compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
-  }
-
-  void registerDynamicGetter(UniverseSelector selector) {
-    worldImpact.registerDynamicGetter(selector);
-    compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
-  }
-
-  void registerGetterForSuperMethod(Element element) {
-    worldImpact.registerGetterForSuperMethod(element);
-  }
-
-  void registerFieldGetter(Element element) {
-    worldImpact.registerFieldGetter(element);
-  }
-
-  void registerFieldSetter(Element element) {
-    worldImpact.registerFieldSetter(element);
   }
 
   void registerIsCheck(DartType type) {
@@ -280,20 +207,6 @@ class CodegenRegistry extends Registry {
     worldImpact.registerClosure(element);
   }
 
-  void registerGetOfStaticFunction(FunctionElement element) {
-    worldImpact.registerClosurizedFunction(element);
-  }
-
-  void registerSelectorUse(Selector selector) {
-    if (selector.isGetter) {
-      registerDynamicGetter(new UniverseSelector(selector, null));
-    } else if (selector.isSetter) {
-      registerDynamicSetter(new UniverseSelector(selector, null));
-    } else {
-      registerDynamicInvocation(new UniverseSelector(selector, null));
-    }
-  }
-
   void registerConstSymbol(String name) {
     worldImpact.registerConstSymbol(name);
   }
@@ -310,20 +223,8 @@ class CodegenRegistry extends Registry {
     worldImpact.registerTypeConstant(element);
   }
 
-  void registerStaticInvocation(Element element) {
-    registerStaticUse(element);
-  }
-
-  void registerSuperInvocation(Element element) {
-    registerStaticUse(element);
-  }
-
-  void registerDirectInvocation(Element element) {
-    registerStaticUse(element);
-  }
-
   void registerInstantiation(InterfaceType type) {
-    registerInstantiatedType(type);
+    worldImpact.registerInstantiatedType(type);
   }
 
   void registerAsyncMarker(FunctionElement element) {

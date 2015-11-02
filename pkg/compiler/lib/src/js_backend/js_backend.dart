@@ -85,6 +85,8 @@ import '../universe/selector.dart' show
     Selector,
     SelectorKind;
 import '../universe/universe.dart';
+import '../universe/use.dart' show
+    StaticUse;
 import '../universe/world_impact.dart' show
     TransformedWorldImpact,
     WorldImpact;

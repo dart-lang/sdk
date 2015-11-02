@@ -3236,7 +3236,7 @@ class SsaBuilder extends ast.Visitor
     // TODO(ahe): This should be registered in codegen, not here.
     // TODO(johnniwinther): Is [registerStaticUse] equivalent to
     // [addToWorkList]?
-    registry?.registerStaticUse(callElement);
+    registry?.registerStaticUse(new StaticUse.foreignUse(callElement));
 
     List<HInstruction> capturedVariables = <HInstruction>[];
     closureClassElement.closureFields.forEach((ClosureFieldElement field) {
@@ -4444,10 +4444,11 @@ class SsaBuilder extends ast.Visitor
           '"$name" does not handle closure with optional parameters.');
     }
 
-    registry?.registerStaticUse(element);
+    registry?.registerStaticUse(
+        new StaticUse.foreignUse(function));
     push(new HForeignCode(
         js.js.expressionTemplateYielding(
-            backend.emitter.staticFunctionAccess(element)),
+            backend.emitter.staticFunctionAccess(function)),
         backend.dynamicType,
         <HInstruction>[],
         nativeBehavior: native.NativeBehavior.PURE));
@@ -4550,7 +4551,8 @@ class SsaBuilder extends ast.Visitor
       // class is _not_ the default implementation from [Object], in
       // case the [noSuchMethod] implementation calls
       // [JSInvocationMirror._invokeOn].
-      registry?.registerSelectorUse(selector);
+      // TODO(johnniwinther): Register this more precisely.
+      registry?.registerDynamicUse(new UniverseSelector(selector, null));
     }
     String publicName = name;
     if (selector.isSetter) publicName += '=';
@@ -4989,7 +4991,7 @@ class SsaBuilder extends ast.Visitor
       inputs.add(analyzeTypeArgument(argument));
     });
     // TODO(15489): Register at codegen.
-    registry?.registerInstantiatedType(type);
+    registry?.registerInstantiation(type);
     return callSetRuntimeTypeInfo(type.element, inputs, newObject);
   }
 
@@ -7250,7 +7252,7 @@ class SsaBuilder extends ast.Visitor
       arguments.add(analyzeTypeArgument(argument));
     }
     // TODO(15489): Register at codegen.
-    registry?.registerInstantiatedType(type);
+    registry?.registerInstantiation(type);
     return callSetRuntimeTypeInfo(type.element, arguments, object);
   }
 

@@ -132,6 +132,8 @@ import 'universe/selector.dart' show
     Selector;
 import 'universe/universe.dart' show
     Universe;
+import 'universe/use.dart' show
+    StaticUse;
 import 'universe/world_impact.dart' show
     WorldImpact;
 import 'util/util.dart' show
@@ -909,7 +911,7 @@ abstract class Compiler {
               parameter);
           mainFunction = backend.helperForMainArity();
           // Don't warn about main not being used:
-          enqueuer.resolution.registerStaticUse(main);
+          enqueuer.resolution.registerStaticUse(new StaticUse.foreignUse(main));
         });
       }
     }
