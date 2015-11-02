@@ -4272,46 +4272,45 @@ void FlowGraphOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
   // No IC data checks. Try resolve target using the propagated type.
   // If the propagated type has a method with the target name and there are
   // no overrides with that name according to CHA, call the method directly.
-  const AbstractType* receiver_type =
-      instr->PushArgumentAt(0)->value()->Type()->ToAbstractType();
-  if (receiver_type->IsDynamicType()) return;
-  if (receiver_type->HasResolvedTypeClass()) {
-    const Class& receiver_class = Class::Handle(Z,
-        receiver_type->type_class());
-    const Array& args_desc_array = Array::Handle(Z,
-        ArgumentsDescriptor::New(instr->ArgumentCount(),
-                                 instr->argument_names()));
-    ArgumentsDescriptor args_desc(args_desc_array);
-    const Function& function = Function::Handle(Z,
-        Resolver::ResolveDynamicForReceiverClass(
-            receiver_class,
-            instr->function_name(),
-            args_desc));
-    if (function.IsNull()) {
-      return;
-    }
-    if (!thread()->cha()->HasOverride(receiver_class, instr->function_name())) {
-      if (FLAG_trace_cha) {
-        THR_Print("  **(CHA) Instance call needs no check, "
-            "no overrides of '%s' '%s'\n",
-            instr->function_name().ToCString(), receiver_class.ToCString());
-      }
-      thread()->cha()->AddToLeafClasses(receiver_class);
+  const intptr_t receiver_cid =
+      instr->PushArgumentAt(0)->value()->Type()->ToCid();
+  if (receiver_cid == kDynamicCid) return;
+  const Class& receiver_class = Class::Handle(Z,
+      isolate()->class_table()->At(receiver_cid));
 
-      // Create fake IC data with the resolved target.
-      const ICData& ic_data = ICData::Handle(
-          ICData::New(flow_graph_->function(),
-                      instr->function_name(),
-                      args_desc_array,
-                      Thread::kNoDeoptId,
-                      /* args_tested = */ 1));
-      ic_data.AddReceiverCheck(receiver_class.id(), function);
-      PolymorphicInstanceCallInstr* call =
-          new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
-                                              /* with_checks = */ false);
-      instr->ReplaceWith(call, current_iterator());
-      return;
+  const Array& args_desc_array = Array::Handle(Z,
+      ArgumentsDescriptor::New(instr->ArgumentCount(),
+                               instr->argument_names()));
+  ArgumentsDescriptor args_desc(args_desc_array);
+  const Function& function = Function::Handle(Z,
+      Resolver::ResolveDynamicForReceiverClass(
+          receiver_class,
+          instr->function_name(),
+          args_desc));
+  if (function.IsNull()) {
+    return;
+  }
+  if (!thread()->cha()->HasOverride(receiver_class, instr->function_name())) {
+    if (FLAG_trace_cha) {
+      THR_Print("  **(CHA) Instance call needs no check, "
+          "no overrides of '%s' '%s'\n",
+          instr->function_name().ToCString(), receiver_class.ToCString());
     }
+    thread()->cha()->AddToLeafClasses(receiver_class);
+
+    // Create fake IC data with the resolved target.
+    const ICData& ic_data = ICData::Handle(
+        ICData::New(flow_graph_->function(),
+                    instr->function_name(),
+                    args_desc_array,
+                    Thread::kNoDeoptId,
+                    /* args_tested = */ 1));
+    ic_data.AddReceiverCheck(receiver_class.id(), function);
+    PolymorphicInstanceCallInstr* call =
+        new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
+                                            /* with_checks = */ false);
+    instr->ReplaceWith(call, current_iterator());
+    return;
   }
 }
 

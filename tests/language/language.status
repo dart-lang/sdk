@@ -138,7 +138,3 @@ regress_23408_test: RuntimeError
 issue21159_test: Pass, Crash, Timeout # Issue 24659 - missing stack overflow check
 
 stack_trace_test: Fail  # Issue 24783 - inlined frames missing
-vm/type_vm_test: Fail  # Issue 24784 - wrong checked mode assertion
-cast_test/02: Fail  # Issue 24785 - MissingRuntimeError
-cast_test/03: Fail  # Issue 24785 - MissingRuntimeError
-vm/optimized_await_regress_test: Fail  # Issue 24789
