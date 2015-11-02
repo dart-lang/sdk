@@ -157,7 +157,7 @@ assert_test: Fail # Issue 14651.
 javascript_int_overflow_literal_test/01: Fail # Issue 14651.
 javascript_int_overflow_test: Fail # Issue 14651.
 
-[ $compiler == none && $runtime == drt ]
+[ $compiler == none && $runtime == drt && $arch == x64 ]
 map_literal_oom_test: RuntimeError # Issue 24571
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
