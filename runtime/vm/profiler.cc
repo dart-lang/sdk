@@ -950,6 +950,9 @@ void Profiler::SampleThread(Thread* thread,
   Simulator* simulator = NULL;
 #endif
 
+  ASSERT(thread != NULL);
+  Isolate* isolate = thread->isolate();
+
   if (in_dart_code) {
     // If we're in Dart code, use the Dart stack pointer.
 #if defined(USING_SIMULATOR)
@@ -969,8 +972,6 @@ void Profiler::SampleThread(Thread* thread,
     return;
   }
 
-  ASSERT(thread != NULL);
-  Isolate* isolate = thread->isolate();
   if (!CheckIsolate(isolate)) {
     return;
   }
