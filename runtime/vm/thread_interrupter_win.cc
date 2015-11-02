@@ -7,6 +7,7 @@
 
 #include "vm/flags.h"
 #include "vm/os.h"
+#include "vm/profiler.h"
 #include "vm/thread_interrupter.h"
 
 namespace dart {
@@ -69,7 +70,6 @@ class ThreadInterrupterWin : public AllStatic {
       return;
     }
     InterruptedThreadState its;
-    its.tid = thread->id();
     if (!GrabRegisters(handle, &its)) {
       // Failed to get thread registers.
       ResumeThread(handle);
@@ -80,11 +80,7 @@ class ThreadInterrupterWin : public AllStatic {
       CloseHandle(handle);
       return;
     }
-    ThreadInterruptCallback callback = NULL;
-    void* callback_data = NULL;
-    if (thread->IsThreadInterrupterEnabled(&callback, &callback_data)) {
-      callback(its, callback_data);
-    }
+    Profiler::SampleThread(thread, its);
     ResumeThread(handle);
     CloseHandle(handle);
   }

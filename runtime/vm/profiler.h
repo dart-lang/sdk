@@ -33,55 +33,21 @@ class Profiler : public AllStatic {
   static void SetSampleDepth(intptr_t depth);
   static void SetSamplePeriod(intptr_t period);
 
-  static void InitProfilingForIsolate(Isolate* isolate,
-                                      bool shared_buffer = true);
-  static void ShutdownProfilingForIsolate(Isolate* isolate);
-
-  static void BeginExecution(Isolate* isolate);
-  static void EndExecution(Isolate* isolate);
-
   static SampleBuffer* sample_buffer() {
     return sample_buffer_;
   }
 
-  static void RecordAllocation(Thread* thread, intptr_t cid);
+  static void SampleAllocation(Thread* thread, intptr_t cid);
+  static void SampleThread(Thread* thread,
+                           const InterruptedThreadState& state);
 
  private:
   static bool initialized_;
   static Monitor* monitor_;
 
-  static void RecordSampleInterruptCallback(const InterruptedThreadState& state,
-                                            void* data);
-
   static SampleBuffer* sample_buffer_;
-};
 
-
-class IsolateProfilerData {
- public:
-  IsolateProfilerData(SampleBuffer* sample_buffer, bool own_sample_buffer);
-  ~IsolateProfilerData();
-
-  SampleBuffer* sample_buffer() const { return sample_buffer_; }
-
-  void set_sample_buffer(SampleBuffer* sample_buffer) {
-    sample_buffer_ = sample_buffer;
-  }
-
-  bool blocked() const {
-    return block_count_ > 0;
-  }
-
-  void Block();
-
-  void Unblock();
-
- private:
-  SampleBuffer* sample_buffer_;
-  bool own_sample_buffer_;
-  intptr_t block_count_;
-
-  DISALLOW_COPY_AND_ASSIGN(IsolateProfilerData);
+  friend class Thread;
 };
 
 

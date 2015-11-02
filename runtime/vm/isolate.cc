@@ -784,7 +784,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       last_allocationprofile_gc_timestamp_(0),
       object_id_ring_(NULL),
       trace_buffer_(NULL),
-      profiler_data_(NULL),
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
       background_compiler_(NULL),
@@ -1716,7 +1715,6 @@ void Isolate::Shutdown() {
   Thread::ExitIsolate();
   // All threads should have exited by now.
   thread_registry()->CheckNotScheduled(this);
-  Profiler::ShutdownProfilingForIsolate(this);
 }
 
 
@@ -1918,62 +1916,6 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     JSONObject jssettings(&jsobj, "_debuggerSettings");
     debugger()->PrintSettingsToJSONObject(&jssettings);
   }
-}
-
-
-intptr_t Isolate::ProfileInterrupt() {
-  // Other threads might be modifying these fields. Save them in locals so that
-  // we can at least trust the NULL check.
-  IsolateProfilerData* prof_data = profiler_data();
-  if (prof_data == NULL) {
-    // Profiler not setup for isolate.
-    return 0;
-  }
-  if (prof_data->blocked()) {
-    // Profiler blocked for this isolate.
-    return 0;
-  }
-  Debugger* debug = debugger();
-  if ((debug != NULL) && debug->IsPaused()) {
-    // Paused at breakpoint. Don't tick.
-    return 0;
-  }
-  MessageHandler* msg_handler = message_handler();
-  if ((msg_handler != NULL) &&
-      (msg_handler->paused_on_start() ||
-       msg_handler->paused_on_exit())) {
-    // Paused at start / exit . Don't tick.
-    return 0;
-  }
-  // Make sure that the isolate's mutator thread does not change behind our
-  // backs. Otherwise we find the entry in the registry and end up reading
-  // the field again. Only by that time it has been reset to NULL because the
-  // thread was in process of exiting the isolate.
-  Thread* mutator = mutator_thread_;
-  if (mutator == NULL) {
-    // No active mutator.
-    ProfileIdle();
-    return 1;
-  }
-
-  // TODO(johnmccutchan): Sample all threads, not just the mutator thread.
-  // TODO(johnmccutchan): Keep a global list of threads and use that
-  // instead of Isolate.
-  ThreadRegistry::EntryIterator it(thread_registry());
-  while (it.HasNext()) {
-    const ThreadRegistry::Entry& entry = it.Next();
-    if (entry.thread == mutator) {
-      ThreadInterrupter::InterruptThread(mutator);
-      break;
-    }
-  }
-  return 1;
-}
-
-
-void Isolate::ProfileIdle() {
-  // Currently we are only sampling the mutator thread.
-  vm_tag_counters_.Increment(VMTag::kIdleTagId);
 }
 
 

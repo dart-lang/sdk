@@ -550,26 +550,11 @@ class Isolate : public BaseIsolate {
     return defer_finalization_count_ == 0;
   }
 
-  Mutex* profiler_data_mutex() {
-    return &profiler_data_mutex_;
-  }
-
-  void set_profiler_data(IsolateProfilerData* profiler_data) {
-    profiler_data_ = profiler_data;
-  }
-
-  IsolateProfilerData* profiler_data() const {
-    return profiler_data_;
-  }
-
   void PrintJSON(JSONStream* stream, bool ref = true);
 
   CompilerStats* compiler_stats() {
     return compiler_stats_;
   }
-
-  // Returns the number of sampled threads.
-  intptr_t ProfileInterrupt();
 
   VMTagCounters* vm_tag_counters() {
     return &vm_tag_counters_;
@@ -795,9 +780,6 @@ class Isolate : public BaseIsolate {
 
   // Trace buffer support.
   TraceBuffer* trace_buffer_;
-
-  IsolateProfilerData* profiler_data_;
-  Mutex profiler_data_mutex_;
 
   VMTagCounters vm_tag_counters_;
   RawGrowableObjectArray* tag_table_;

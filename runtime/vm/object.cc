@@ -1859,7 +1859,7 @@ RawObject* Object::Allocate(intptr_t cls_id,
   }
   const Class& cls = Class::Handle(class_table->At(cls_id));
   if (cls.TraceAllocation(isolate)) {
-    Profiler::RecordAllocation(thread, cls_id);
+    Profiler::SampleAllocation(thread, cls_id);
   }
   NoSafepointScope no_safepoint;
   InitializeObject(address, cls_id, size, (isolate == Dart::vm_isolate()));

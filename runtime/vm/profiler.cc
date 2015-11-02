@@ -9,10 +9,12 @@
 #include "vm/allocation.h"
 #include "vm/atomic.h"
 #include "vm/code_patcher.h"
+#include "vm/debugger.h"
 #include "vm/instructions.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/lockers.h"
+#include "vm/message_handler.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
 #include "vm/os.h"
@@ -100,120 +102,6 @@ void Profiler::SetSamplePeriod(intptr_t period) {
     FLAG_profile_period = kMinimumProfilePeriod;
   } else {
     FLAG_profile_period = period;
-  }
-}
-
-
-void Profiler::InitProfilingForIsolate(Isolate* isolate, bool shared_buffer) {
-  if (!FLAG_profile) {
-    return;
-  }
-  ASSERT(isolate == Isolate::Current());
-  ASSERT(isolate != NULL);
-  ASSERT(sample_buffer_ != NULL);
-  {
-    MutexLocker profiler_data_lock(isolate->profiler_data_mutex());
-    SampleBuffer* sample_buffer = sample_buffer_;
-    if (!shared_buffer) {
-      sample_buffer = new SampleBuffer();
-    }
-    IsolateProfilerData* profiler_data =
-        new IsolateProfilerData(sample_buffer, !shared_buffer);
-    ASSERT(profiler_data != NULL);
-    isolate->set_profiler_data(profiler_data);
-    if (FLAG_trace_profiled_isolates) {
-      OS::Print("Profiler Setup %p %s\n", isolate, isolate->name());
-    }
-  }
-  BeginExecution(isolate);
-}
-
-
-void Profiler::ShutdownProfilingForIsolate(Isolate* isolate) {
-  ASSERT(isolate != NULL);
-  if (!FLAG_profile) {
-    return;
-  }
-  // We do not have a current isolate.
-  ASSERT(Isolate::Current() == NULL);
-  {
-    MutexLocker profiler_data_lock(isolate->profiler_data_mutex());
-    IsolateProfilerData* profiler_data = isolate->profiler_data();
-    if (profiler_data == NULL) {
-      // Already freed.
-      return;
-    }
-    isolate->set_profiler_data(NULL);
-    delete profiler_data;
-    if (FLAG_trace_profiled_isolates) {
-      OS::Print("Profiler Shutdown %p %s\n", isolate, isolate->name());
-    }
-  }
-}
-
-
-void Profiler::BeginExecution(Isolate* isolate) {
-  if (isolate == NULL) {
-    return;
-  }
-  if (!FLAG_profile) {
-    return;
-  }
-  ASSERT(initialized_);
-  IsolateProfilerData* profiler_data = isolate->profiler_data();
-  if (profiler_data == NULL) {
-    return;
-  }
-  Thread* thread = Thread::Current();
-  thread->SetThreadInterrupter(RecordSampleInterruptCallback, thread);
-  ThreadInterrupter::WakeUp();
-}
-
-
-void Profiler::EndExecution(Isolate* isolate) {
-  if (isolate == NULL) {
-    return;
-  }
-  if (!FLAG_profile) {
-    return;
-  }
-  ASSERT(initialized_);
-  Thread* thread = Thread::Current();
-  thread->SetThreadInterrupter(NULL, NULL);
-}
-
-
-IsolateProfilerData::IsolateProfilerData(SampleBuffer* sample_buffer,
-                                         bool own_sample_buffer) {
-  ASSERT(sample_buffer != NULL);
-  sample_buffer_ = sample_buffer;
-  own_sample_buffer_ = own_sample_buffer;
-  block_count_ = 0;
-}
-
-
-IsolateProfilerData::~IsolateProfilerData() {
-  if (own_sample_buffer_) {
-    delete sample_buffer_;
-    sample_buffer_ = NULL;
-    own_sample_buffer_ = false;
-  }
-}
-
-
-void IsolateProfilerData::Block() {
-  block_count_++;
-}
-
-
-void IsolateProfilerData::Unblock() {
-  block_count_--;
-  if (block_count_ < 0) {
-    FATAL("Too many calls to Dart_IsolateUnblocked.");
-  }
-  if (!blocked()) {
-    // We just unblocked this isolate, wake up the thread interrupter.
-    ThreadInterrupter::WakeUp();
   }
 }
 
@@ -817,10 +705,10 @@ static void CollectSample(Isolate* isolate,
   if (FLAG_profile_vm) {
     // Always walk the native stack collecting both native and Dart frames.
     native_stack_walker->walk();
-  } else if (exited_dart_code) {
+  } else if (StubCode::HasBeenInitialized() && exited_dart_code) {
     // We have a valid exit frame info, use the Dart stack walker.
     dart_exit_stack_walker->walk();
-  } else if (in_dart_code) {
+  } else if (StubCode::HasBeenInitialized() && in_dart_code) {
     // We are executing Dart code. We have frame pointers.
     dart_stack_walker->walk();
   } else {
@@ -851,26 +739,11 @@ static void CollectSample(Isolate* isolate,
 }
 
 
-// Is |thread| executing Dart code?
-static bool ExecutingDart(Thread* thread) {
-  ASSERT(thread != NULL);
-  return (thread->top_exit_frame_info() == 0) &&
-         (thread->vm_tag() == VMTag::kDartTagId);
-}
-
-
-// Has |thread| exited Dart code?
-static bool ExitedDart(Thread* thread) {
-  return (thread->top_exit_frame_info() != 0) &&
-         (thread->vm_tag() != VMTag::kDartTagId);
-}
-
-
 // Get |isolate|'s stack boundary and verify that |sp| and |fp| are within
 // it. Return |false| if anything looks suspicious.
 static bool GetAndValidateIsolateStackBounds(Thread* thread,
-                                             uintptr_t sp,
                                              uintptr_t fp,
+                                             uintptr_t sp,
                                              uword* stack_lower,
                                              uword* stack_upper) {
   ASSERT(thread != NULL);
@@ -879,7 +752,7 @@ static bool GetAndValidateIsolateStackBounds(Thread* thread,
   ASSERT(stack_lower != NULL);
   ASSERT(stack_upper != NULL);
 #if defined(USING_SIMULATOR)
-  const bool in_dart_code = ExecutingDart(thread);
+  const bool in_dart_code = thread->IsExecutingDartCode();
   if (in_dart_code) {
     Simulator* simulator = isolate->simulator();
     *stack_lower = simulator->StackBase();
@@ -922,8 +795,8 @@ static bool GetAndValidateIsolateStackBounds(Thread* thread,
 }
 
 
-// Some simple sanity checking of |pc|, |sp|, and |fp|.
-static bool InitialRegisterCheck(uintptr_t pc, uintptr_t sp, uintptr_t fp) {
+// Some simple sanity checking of |pc|, |fp|, and |sp|.
+static bool InitialRegisterCheck(uintptr_t pc, uintptr_t fp, uintptr_t sp) {
   if ((sp == 0) || (fp == 0) || (pc == 0)) {
     // None of these registers should be zero.
     return false;
@@ -936,18 +809,6 @@ static bool InitialRegisterCheck(uintptr_t pc, uintptr_t sp, uintptr_t fp) {
   }
 
   return true;
-}
-
-
-// Return |isolate|'s sample buffer.
-static SampleBuffer* GetSampleBuffer(Isolate* isolate) {
-  IsolateProfilerData* profiler_data = isolate->profiler_data();
-  if (profiler_data == NULL) {
-    // Profiler not initialized.
-    return NULL;
-  }
-  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
-  return sample_buffer;
 }
 
 
@@ -980,8 +841,7 @@ static bool CheckIsolate(Isolate* isolate) {
     // No isolate.
     return false;
   }
-  ASSERT(isolate != Dart::vm_isolate());
-  return true;
+  return isolate != Dart::vm_isolate();
 }
 
 
@@ -997,16 +857,16 @@ static uintptr_t __attribute__((noinline)) GetProgramCounter() {
 }
 #endif
 
-void Profiler::RecordAllocation(Thread* thread, intptr_t cid) {
+void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
   ASSERT(thread != NULL);
   Isolate* isolate = thread->isolate();
   if (!CheckIsolate(isolate)) {
     return;
   }
 
-  const bool exited_dart_code = ExitedDart(thread);
+  const bool exited_dart_code = thread->HasExitedDartCode();
 
-  SampleBuffer* sample_buffer = GetSampleBuffer(isolate);
+  SampleBuffer* sample_buffer = Profiler::sample_buffer();
   if (sample_buffer == NULL) {
     // Profiler not initialized.
     return;
@@ -1022,13 +882,13 @@ void Profiler::RecordAllocation(Thread* thread, intptr_t cid) {
     uword stack_lower = 0;
     uword stack_upper = 0;
 
-    if (!InitialRegisterCheck(pc, sp, fp)) {
+    if (!InitialRegisterCheck(pc, fp, sp)) {
       return;
     }
 
     if (!GetAndValidateIsolateStackBounds(thread,
-                                          sp,
                                           fp,
+                                          sp,
                                           &stack_lower,
                                           &stack_upper)) {
       // Could not get stack boundary.
@@ -1071,25 +931,17 @@ void Profiler::RecordAllocation(Thread* thread, intptr_t cid) {
 }
 
 
-void Profiler::RecordSampleInterruptCallback(
-    const InterruptedThreadState& state,
-    void* data) {
-  Thread* thread = reinterpret_cast<Thread*>(data);
-  Isolate* isolate = thread->isolate();
-  if ((isolate == NULL) || (Dart::vm_isolate() == NULL)) {
-    // No isolate.
-    return;
-  }
-  ASSERT(isolate != Dart::vm_isolate());
-
-  SampleBuffer* sample_buffer = GetSampleBuffer(isolate);
-  if (sample_buffer == NULL) {
-    // Profiler not initialized.
+void Profiler::SampleThread(Thread* thread,
+                            const InterruptedThreadState& state) {
+  if (StubCode::HasBeenInitialized() &&
+      StubCode::InJumpToExceptionHandlerStub(state.pc)) {
+    // The JumpToExceptionHandler stub manually adjusts the stack pointer,
+    // frame pointer, and some isolate state before jumping to a catch entry.
+    // It is not safe to walk the stack when executing this stub.
     return;
   }
 
-  const bool exited_dart_code = ExitedDart(thread);
-  const bool in_dart_code = ExecutingDart(thread);
+  const bool in_dart_code = thread->IsExecutingDartCode();
 
   uintptr_t sp = 0;
   uintptr_t fp = state.fp;
@@ -1113,22 +965,27 @@ void Profiler::RecordSampleInterruptCallback(
     sp = state.csp;
   }
 
-  if (!InitialRegisterCheck(pc, sp, fp)) {
+  if (!InitialRegisterCheck(pc, fp, sp)) {
     return;
   }
 
-  if (StubCode::InJumpToExceptionHandlerStub(pc)) {
-    // The JumpToExceptionHandler stub manually adjusts the stack pointer,
-    // frame pointer, and some isolate state before jumping to a catch entry.
-    // It is not safe to walk the stack when executing this stub.
+  ASSERT(thread != NULL);
+  Isolate* isolate = thread->isolate();
+  if (!CheckIsolate(isolate)) {
+    return;
+  }
+
+  if (!thread->IsMutatorThread()) {
+    // Not a mutator thread.
+    // TODO(johnmccutchan): Profile all threads with an isolate.
     return;
   }
 
   uword stack_lower = 0;
   uword stack_upper = 0;
   if (!GetAndValidateIsolateStackBounds(thread,
-                                        sp,
                                         fp,
+                                        sp,
                                         &stack_lower,
                                         &stack_upper)) {
     // Could not get stack boundary.
@@ -1137,6 +994,11 @@ void Profiler::RecordSampleInterruptCallback(
 
   // At this point we have a valid stack boundary for this isolate and
   // know that our initial stack and frame pointers are within the boundary.
+  SampleBuffer* sample_buffer = Profiler::sample_buffer();
+  if (sample_buffer == NULL) {
+    // Profiler not initialized.
+    return;
+  }
 
   // Setup sample.
   Sample* sample = SetupSample(thread,
@@ -1169,6 +1031,8 @@ void Profiler::RecordSampleInterruptCallback(
                                             pc,
                                             fp,
                                             sp);
+
+  const bool exited_dart_code = thread->HasExitedDartCode();
 
   // All memory access is done inside CollectSample.
   CollectSample(isolate,

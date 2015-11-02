@@ -2515,7 +2515,12 @@ void Debugger::Pause(DebuggerEvent* event) {
   pause_event_->UpdateTimestamp();
   obj_cache_ = new RemoteObjectCache(64);
 
-  InvokeEventHandler(event);
+  // We are about to invoke the debuggers event handler. Disable interrupts
+  // for this thread while waiting for debug commands over the service protocol.
+  {
+    DisableThreadInterruptsScope dtis(Thread::Current());
+    InvokeEventHandler(event);
+  }
 
   pause_event_ = NULL;
   obj_cache_ = NULL;    // Zone allocated
@@ -2555,11 +2560,6 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace) {
         break;
       }
     }
-  }
-  if (!isolate_->single_step()) {
-    // We are no longer single stepping, make sure that the ThreadInterrupter
-    // is awake.
-    ThreadInterrupter::WakeUp();
   }
 }
 

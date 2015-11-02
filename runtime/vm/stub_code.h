@@ -109,6 +109,9 @@ class StubCode : public AllStatic {
 
   static void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
+  // Returns true if stub code has been initialized.
+  static bool HasBeenInitialized();
+
   // Check if specified pc is in the dart invocation stub used for
   // transitioning into dart code.
   static bool InInvocationStub(uword pc);
