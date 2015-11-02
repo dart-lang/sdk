@@ -11908,30 +11908,65 @@ bool Parser::IsInstantiatorRequired() const {
   return current_class().NumTypeParameters() > 0;
 }
 
+// We cache computed compile-time constants in a map so we can look them
+// up when the same code gets compiled again. The map key is a pair
+// (script url, token position) which is encoded in an array with 2
+// elements:
+// - key[0] contains the canonicalized url of the script.
+// - key[1] contains the token position of the constant in the script.
+
+// ConstantPosKey allows us to look up a constant in the map without
+// allocating a key pair (array).
+struct ConstantPosKey : ValueObject {
+  ConstantPosKey(const String& url, intptr_t pos)
+      : script_url(url), token_pos(pos) { }
+  const String& script_url;
+  intptr_t token_pos;
+};
+
 
 class ConstMapKeyEqualsTraits {
  public:
   static bool IsMatch(const Object& a, const Object& b) {
-    return String::Cast(a).Equals(String::Cast(b));
+    const Array& key1 = Array::Cast(a);
+    const Array& key2 = Array::Cast(b);
+    // Compare raw strings of script url symbol and raw smi of token positon.
+    return (key1.At(0) == key2.At(0)) && (key1.At(1) == key2.At(1));
   }
-  static bool IsMatch(const char* key, const Object& b) {
-    return String::Cast(b).Equals(key);
+  static bool IsMatch(const ConstantPosKey& key1, const Object& b) {
+    const Array& key2 = Array::Cast(b);
+    // Compare raw strings of script url symbol and token positon.
+    return (key1.script_url.raw() == key2.At(0))
+        && (key1.token_pos == Smi::Value(Smi::RawCast(key2.At(1))));
   }
   static uword Hash(const Object& obj) {
-    return String::Cast(obj).Hash();
+    const Array& key = Array::Cast(obj);
+    intptr_t url_hash = String::HashRawSymbol(String::RawCast(key.At(0)));
+    intptr_t pos = Smi::Value(Smi::RawCast(key.At(1)));
+    return HashValue(url_hash, pos);
   }
-  static uword Hash(const char* key) {
-    return String::Hash(key, strlen(key));
+  static uword Hash(const ConstantPosKey& key) {
+    return HashValue(String::HashRawSymbol(key.script_url.raw()),
+                     key.token_pos);
+  }
+  // Used by CachConstantValue if a new constant is added to the map.
+  static RawObject* NewKey(const ConstantPosKey& key) {
+    const Array& key_obj = Array::Handle(Array::New(2));
+    key_obj.SetAt(0, key.script_url);
+    key_obj.SetAt(1, Smi::Handle(Smi::New(key.token_pos)));
+    return key_obj.raw();;
+  }
+
+ private:
+  static uword HashValue(intptr_t url_hash, intptr_t pos) {
+    return url_hash * pos % (Smi::kMaxValue - 13);
   }
 };
 typedef UnorderedHashMap<ConstMapKeyEqualsTraits> ConstantsMap;
 
 
 void Parser::CacheConstantValue(intptr_t token_pos, const Instance& value) {
-  String& key = String::Handle(Z, script_.url());
-  String& suffix =
-      String::Handle(Z, String::NewFormatted("_%" Pd "", token_pos));
-  key = Symbols::FromConcat(key, suffix);
+  ConstantPosKey key(String::Handle(Z, script_.url()), token_pos);
   if (isolate()->object_store()->compile_time_constants() == Array::null()) {
     const intptr_t kInitialConstMapSize = 16;
     isolate()->object_store()->set_compile_time_constants(
@@ -11939,7 +11974,7 @@ void Parser::CacheConstantValue(intptr_t token_pos, const Instance& value) {
                                                        Heap::kNew)));
   }
   ConstantsMap constants(isolate()->object_store()->compile_time_constants());
-  constants.UpdateOrInsert(key, value);
+  constants.InsertNewOrGetValue(key, value);
   if (FLAG_compiler_stats) {
     isolate_->compiler_stats()->num_cached_consts = constants.NumOccupied();
   }
@@ -11951,17 +11986,7 @@ bool Parser::GetCachedConstant(intptr_t token_pos, Instance* value) {
   if (isolate()->object_store()->compile_time_constants() == Array::null()) {
     return false;
   }
-  // We don't want to allocate anything in the heap here since this code
-  // is called from the optimizing compiler in the background thread. Allocate
-  // the key value in the zone instead.
-  // const char* key = Z->PrintToString("%s_%" Pd "",
-  //     String::Handle(Z, script_.url()).ToCString(),
-  //    token_pos);
-
-  const String& key = String::Handle(Z,
-      Symbols::NewFormatted("%s_%" Pd "",
-          String::Handle(Z, script_.url()).ToCString(),
-          token_pos));
+  ConstantPosKey key(String::Handle(Z, script_.url()), token_pos);
   ConstantsMap constants(isolate()->object_store()->compile_time_constants());
   bool is_present = false;
   *value ^= constants.GetOrNull(key, &is_present);
