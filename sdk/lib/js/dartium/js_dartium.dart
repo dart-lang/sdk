@@ -98,6 +98,7 @@ import 'dart:typed_data';
 
 // Pretend we are always in checked mode as we aren't interested in users
 // running Dartium code outside of checked mode.
+@Deprecated("Internal Use Only")
 final bool CHECK_JS_INVOCATIONS = true;
 
 final _allowedMethods = new Map<Symbol, _DeclarationSet>();
@@ -105,6 +106,7 @@ final _allowedGetters = new Map<Symbol, _DeclarationSet>();
 final _allowedSetters = new Map<Symbol, _DeclarationSet>();
 
 final _jsInterfaceTypes = new Set<mirrors.ClassMirror>();
+@Deprecated("Internal Use Only")
 Iterable<mirrors.ClassMirror> get jsInterfaceTypes => _jsInterfaceTypes;
 
 /// A collection of methods where all methods have the same name.
@@ -207,6 +209,7 @@ class _DeclarationSet {
  * Temporary method that we hope to remove at some point. This method should
  * generally only be called by machine generated code.
  */
+@Deprecated("Internal Use Only")
 void registerJsInterfaces([List<Type> classes]) {
   // This method is now obsolete in Dartium.
 }
@@ -825,6 +828,7 @@ List _arraySort(List l, rawCompare) {
  * be added. Creating an instance of JsObject will also automatically trigger
  * all JsObjects to be finalized.
  */
+@Deprecated("Internal Use Only")
 void finalizeJsInterfaces() {
   if (_finalized == true) {
     throw 'JSInterop class registration already finalized';

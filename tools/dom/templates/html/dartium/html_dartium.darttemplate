@@ -254,6 +254,7 @@ Type _getSvgType(String key) {
 
 $if JSINTEROP
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final htmlBlinkFunctionMap = {
 $!TYPE_FUNCTION_MAP
 };

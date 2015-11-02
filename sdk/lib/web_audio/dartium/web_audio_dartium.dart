@@ -108,6 +108,7 @@ class AnalyserNode extends AudioNode {
     return new AnalyserNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnalyserNode.internal_() : super.internal_();
 
 
@@ -189,6 +190,7 @@ class AudioBuffer extends DartHtmlDomObject {
     return new AudioBuffer.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioBuffer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -264,6 +266,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
     return new AudioBufferSourceNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioBufferSourceNode.internal_() : super.internal_();
 
 
@@ -376,6 +379,7 @@ class AudioContext extends EventTarget {
     return new AudioContext.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioContext.internal_() : super.internal_();
 
 
@@ -542,6 +546,7 @@ class AudioDestinationNode extends AudioNode {
     return new AudioDestinationNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioDestinationNode.internal_() : super.internal_();
 
 
@@ -574,6 +579,7 @@ class AudioListener extends DartHtmlDomObject {
     return new AudioListener.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioListener.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -630,6 +636,7 @@ class AudioNode extends EventTarget {
     return new AudioNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioNode.internal_() : super.internal_();
 
 
@@ -717,6 +724,7 @@ class AudioParam extends DartHtmlDomObject {
     return new AudioParam.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioParam.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -784,6 +792,7 @@ class AudioProcessingEvent extends Event {
     return new AudioProcessingEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioProcessingEvent.internal_() : super.internal_();
 
 
@@ -826,6 +835,7 @@ class AudioSourceNode extends AudioNode {
     return new AudioSourceNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioSourceNode.internal_() : super.internal_();
 
 
@@ -855,6 +865,7 @@ class BiquadFilterNode extends AudioNode {
     return new BiquadFilterNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   BiquadFilterNode.internal_() : super.internal_();
 
 
@@ -912,6 +923,7 @@ class ChannelMergerNode extends AudioNode {
     return new ChannelMergerNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ChannelMergerNode.internal_() : super.internal_();
 
 
@@ -941,6 +953,7 @@ class ChannelSplitterNode extends AudioNode {
     return new ChannelSplitterNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ChannelSplitterNode.internal_() : super.internal_();
 
 
@@ -970,6 +983,7 @@ class ConvolverNode extends AudioNode {
     return new ConvolverNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ConvolverNode.internal_() : super.internal_();
 
 
@@ -1015,6 +1029,7 @@ class DelayNode extends AudioNode {
     return new DelayNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DelayNode.internal_() : super.internal_();
 
 
@@ -1048,6 +1063,7 @@ class DynamicsCompressorNode extends AudioNode {
     return new DynamicsCompressorNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DynamicsCompressorNode.internal_() : super.internal_();
 
 
@@ -1101,6 +1117,7 @@ class GainNode extends AudioNode {
     return new GainNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   GainNode.internal_() : super.internal_();
 
 
@@ -1134,6 +1151,7 @@ class MediaElementAudioSourceNode extends AudioSourceNode {
     return new MediaElementAudioSourceNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaElementAudioSourceNode.internal_() : super.internal_();
 
 
@@ -1168,6 +1186,7 @@ class MediaStreamAudioDestinationNode extends AudioNode {
     return new MediaStreamAudioDestinationNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaStreamAudioDestinationNode.internal_() : super.internal_();
 
 
@@ -1201,6 +1220,7 @@ class MediaStreamAudioSourceNode extends AudioSourceNode {
     return new MediaStreamAudioSourceNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaStreamAudioSourceNode.internal_() : super.internal_();
 
 
@@ -1234,6 +1254,7 @@ class OfflineAudioCompletionEvent extends Event {
     return new OfflineAudioCompletionEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   OfflineAudioCompletionEvent.internal_() : super.internal_();
 
 
@@ -1273,6 +1294,7 @@ class OfflineAudioContext extends AudioContext {
     return new OfflineAudioContext.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   OfflineAudioContext.internal_() : super.internal_();
 
 
@@ -1313,6 +1335,7 @@ class OscillatorNode extends AudioSourceNode {
     return new OscillatorNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   OscillatorNode.internal_() : super.internal_();
 
 
@@ -1395,6 +1418,7 @@ class PannerNode extends AudioNode {
     return new PannerNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PannerNode.internal_() : super.internal_();
 
 
@@ -1498,6 +1522,7 @@ class PeriodicWave extends DartHtmlDomObject {
     return new PeriodicWave.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PeriodicWave.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -1540,6 +1565,7 @@ class ScriptProcessorNode extends AudioNode {
     return new ScriptProcessorNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ScriptProcessorNode.internal_() : super.internal_();
 
 
@@ -1591,6 +1617,7 @@ class WaveShaperNode extends AudioNode {
     return new WaveShaperNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   WaveShaperNode.internal_() : super.internal_();
 
 

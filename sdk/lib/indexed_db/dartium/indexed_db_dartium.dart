@@ -178,6 +178,7 @@ class Cursor extends DartHtmlDomObject {
     return new Cursor.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Cursor.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -250,6 +251,7 @@ class CursorWithValue extends Cursor {
     return new CursorWithValue.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CursorWithValue.internal_() : super.internal_();
 
 
@@ -346,6 +348,7 @@ class Database extends EventTarget {
     return new Database.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Database.internal_() : super.internal_();
 
 
@@ -540,6 +543,7 @@ class IdbFactory extends DartHtmlDomObject {
     return new IdbFactory.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   IdbFactory.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -692,6 +696,7 @@ class Index extends DartHtmlDomObject {
     return new Index.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Index.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -782,6 +787,7 @@ class KeyRange extends DartHtmlDomObject {
     return new KeyRange.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   KeyRange.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -980,6 +986,7 @@ class ObjectStore extends DartHtmlDomObject {
     return new ObjectStore.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ObjectStore.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -1145,6 +1152,7 @@ class OpenDBRequest extends Request {
     return new OpenDBRequest.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   OpenDBRequest.internal_() : super.internal_();
 
 
@@ -1203,6 +1211,7 @@ class Request extends EventTarget {
     return new Request.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Request.internal_() : super.internal_();
 
 
@@ -1317,6 +1326,7 @@ class Transaction extends EventTarget {
     return new Transaction.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Transaction.internal_() : super.internal_();
 
 
@@ -1380,6 +1390,7 @@ class VersionChangeEvent extends Event {
     return new VersionChangeEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   VersionChangeEvent.internal_() : super.internal_();
 
 

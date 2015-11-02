@@ -34,6 +34,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
    *               all blink_jsObject.  Then needed private wrap/unwrap_jso
    *               functions that delegate to a public wrap/unwrap_jso.
    */
+  @Deprecated("Internal Use Only")
   js.JsObject blink_jsObject;
 
   /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
