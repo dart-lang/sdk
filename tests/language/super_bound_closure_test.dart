@@ -4,6 +4,10 @@
 
 import "package:expect/expect.dart";
 
+@AssumeDynamic()
+@NoInline()
+confuse(x) => x;
+
 class A {
   bar([var optional = 1]) => 498 + optional;
   bar2({ namedOptional: 2 }) => 40 + namedOptional;
@@ -91,11 +95,6 @@ class B extends A {
   toList({ growable: 2233 }) => -1;
   lastIndexOf(x, [optional = 424]) => -1;
   lastWhere(x, { orElse: 555 }) => -1;
-}
-
-confuse(x) {
-  if (new DateTime.now().millisecondsSinceEpoch == 42) return confuse(x - 1);
-  return x;
 }
 
 main() {
