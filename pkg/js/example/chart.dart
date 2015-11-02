@@ -15,6 +15,7 @@ class Chart {
 }
 
 @JS()
+@anonymous
 class Data {
   external List get labels;
   external List<DataSet> get datasets;
@@ -26,6 +27,7 @@ class Data {
 ///
 /// http://www.chartjs.org/docs/#line-chart-data-structure
 @JS()
+@anonymous
 class DataSet {
   external String get label;
   external String get fillColor;
@@ -52,6 +54,7 @@ class DataSet {
 ///
 /// http://www.chartjs.org/docs/#getting-started-global-chart-configuration
 @JS()
+@anonymous
 class Options {
   external bool get responsive;
 
