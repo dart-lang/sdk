@@ -2812,6 +2812,10 @@ class IrBuilder {
       return new ir.Yield(value, hasStar, k);
     });
   }
+
+  ir.Primitive buildRefinement(ir.Primitive value, TypeMask type) {
+    return addPrimitive(new ir.Refinement(value, type));
+  }
 }
 
 /// Location of a variable relative to a given closure.

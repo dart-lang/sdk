@@ -988,6 +988,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
               operator, <Primitive>[argument], node.sourceInformation));
     }
 
+    bool trustPrimitives = compiler.trustPrimitives;
+
     if (node.selector.isOperator && node.arguments.length == 2) {
       Primitive leftArg = getDartReceiver(node);
       Primitive rightArg = getDartArgument(node, 0);
@@ -1020,8 +1022,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
                                    leftArg, rightArg);
         }
       } else {
-        if (lattice.isDefinitelyNum(left, allowNull: false) &&
-            lattice.isDefinitelyNum(right, allowNull: false)) {
+        if (lattice.isDefinitelyNum(left, allowNull: trustPrimitives) &&
+            lattice.isDefinitelyNum(right, allowNull: trustPrimitives)) {
           // Try to insert a numeric operator.
           BuiltinOperator operator = NumBinaryBuiltins[opname];
           if (operator != null) {
@@ -1032,7 +1034,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           // shift count.
           // Try to insert a shift-left operator.
           if (opname == '<<' &&
-              lattice.isDefinitelyInt(left) &&
+              lattice.isDefinitelyInt(left, allowNull: trustPrimitives) &&
               lattice.isDefinitelyIntInRange(right, min: 0, max: 31)) {
             return replaceWithBinary(BuiltinOperator.NumShl, leftArg, rightArg);
           }
@@ -1040,14 +1042,14 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           // consistent with Dart's only for left operands in the unsigned
           // 32-bit range.
           if (opname == '>>' &&
-              lattice.isDefinitelyUint32(left) &&
+              lattice.isDefinitelyUint32(left, allowNull: trustPrimitives) &&
               lattice.isDefinitelyIntInRange(right, min: 0, max: 31)) {
             return replaceWithBinary(BuiltinOperator.NumShr, leftArg, rightArg);
           }
           // Try to use remainder for '%'. Both operands must be non-negative
           // and the divisor must be non-zero.
           if (opname == '%' &&
-              lattice.isDefinitelyUint(left) &&
+              lattice.isDefinitelyUint(left, allowNull: trustPrimitives) &&
               lattice.isDefinitelyUint(right) &&
               lattice.isDefinitelyIntInRange(right, min: 1)) {
             return replaceWithBinary(
@@ -1055,15 +1057,15 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           }
 
           if (opname == '~/' &&
-              lattice.isDefinitelyUint32(left) &&
+              lattice.isDefinitelyUint32(left, allowNull: trustPrimitives) &&
               lattice.isDefinitelyIntInRange(right, min: 2)) {
             return replaceWithBinary(
                 BuiltinOperator.NumTruncatingDivideToSigned32,
                 leftArg, rightArg);
           }
         }
-        if (lattice.isDefinitelyString(left, allowNull: false) &&
-            lattice.isDefinitelyString(right, allowNull: false) &&
+        if (lattice.isDefinitelyString(left, allowNull: trustPrimitives) &&
+            lattice.isDefinitelyString(right, allowNull: trustPrimitives) &&
             opname == '+') {
           return replaceWithBinary(BuiltinOperator.StringConcatenate,
                                    leftArg, rightArg);
@@ -1179,6 +1181,9 @@ class TransformingVisitor extends DeepRecursiveVisitor {
                               Primitive index,
                               SourceInformation sourceInfo) {
     CpsFragment cps = new CpsFragment(sourceInfo);
+    if (compiler.trustPrimitives) {
+      return cps;
+    }
     Continuation fail = cps.letCont();
     Primitive isTooSmall = cps.applyBuiltin(
         BuiltinOperator.NumLt,
@@ -3074,7 +3079,7 @@ class TypePropagationVisitor implements Visitor {
       // own bounds-check elimination?
       setValue(node, constantValue(new IntConstantValue(length)));
     } else {
-      setValue(node, nonConstant(typeSystem.intType));
+      setValue(node, nonConstant(typeSystem.uint32Type));
     }
   }
 

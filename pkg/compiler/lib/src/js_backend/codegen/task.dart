@@ -134,7 +134,8 @@ class CpsFunctionCompiler implements FunctionCompiler {
   }
 
   cps.FunctionDefinition compileToCpsIr(AstElement element) {
-    cps.FunctionDefinition cpsFunction = cpsBuilderTask.buildNode(element);
+    cps.FunctionDefinition cpsFunction =
+        cpsBuilderTask.buildNode(element, typeSystem);
     if (cpsFunction == null) {
       if (cpsBuilderTask.bailoutMessage == null) {
         giveUp('unable to build cps definition of $element');

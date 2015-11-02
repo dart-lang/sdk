@@ -414,7 +414,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   @override
   visitRefinement(cps_ir.Refinement node) {
     String value = formatReference(node.value);
-    return 'Refinement $value ${node.type}';
+    return 'Refinement $value ${node.refineType}';
   }
 }
 

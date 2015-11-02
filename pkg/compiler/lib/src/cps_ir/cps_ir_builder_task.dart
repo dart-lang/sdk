@@ -55,6 +55,8 @@ import '../util/util.dart';
 import 'package:js_runtime/shared/embedded_names.dart'
     show JsBuiltin, JsGetName;
 import '../constants/values.dart';
+import 'type_mask_system.dart' show
+    TypeMaskSystem;
 
 typedef void IrBuilderCallback(Element element, ir.FunctionDefinition irNode);
 
@@ -78,7 +80,8 @@ class IrBuilderTask extends CompilerTask {
 
   String get name => 'CPS builder';
 
-  ir.FunctionDefinition buildNode(AstElement element) {
+  ir.FunctionDefinition buildNode(AstElement element,
+                                  TypeMaskSystem typeMaskSystem) {
     return measure(() {
       bailoutMessage = null;
 
@@ -90,7 +93,8 @@ class IrBuilderTask extends CompilerTask {
 
         IrBuilderVisitor builder =
             new JsIrBuilderVisitor(
-                elementsMapping, compiler, sourceInformationBuilder);
+                elementsMapping, compiler, sourceInformationBuilder,
+                typeMaskSystem);
         ir.FunctionDefinition irNode = builder.buildExecutable(element);
         if (irNode == null) {
           bailoutMessage = builder.bailoutMessage;
@@ -129,6 +133,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   final TreeElements elements;
   final Compiler compiler;
   final SourceInformationBuilder sourceInformationBuilder;
+  final TypeMaskSystem typeMaskSystem;
 
   /// A map from try statements in the source to analysis information about
   /// them.
@@ -159,7 +164,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   /// Construct a top-level visitor.
   IrBuilderVisitor(this.elements,
                    this.compiler,
-                   this.sourceInformationBuilder);
+                   this.sourceInformationBuilder,
+                   this.typeMaskSystem);
 
   DiagnosticReporter get reporter => compiler.reporter;
 
@@ -411,6 +417,21 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         closureScope: getClosureScopeForNode(node));
   }
 
+  /// If compiling with trusted type annotations, assumes that [value] is
+  /// now known to be `null` or an instance of [type].
+  ///
+  /// This is also where we should add type checks in checked mode, but this
+  /// is not supported yet.
+  ir.Primitive checkType(ir.Primitive value, DartType dartType) {
+    if (!compiler.trustTypeAnnotations) return value;
+    TypeMask type = typeMaskSystem.subtypesOf(dartType).nullable();
+    return irBuilder.buildRefinement(value, type);
+  }
+
+  ir.Primitive checkTypeVsElement(ir.Primitive value, TypedElement element) {
+    return checkType(value, element.type);
+  }
+
   ir.Primitive visitVariableDefinitions(ast.VariableDefinitions node) {
     assert(irBuilder.isOpen);
     for (ast.Node definition in node.definitions.nodes) {
@@ -422,6 +443,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         assert(!definition.arguments.isEmpty);
         assert(definition.arguments.tail.isEmpty);
         initialValue = visit(definition.arguments.head);
+        initialValue = checkTypeVsElement(initialValue, element);
       } else {
         assert(definition is ast.Identifier);
       }
@@ -1406,7 +1428,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       LocalElement element,
       ast.Node rhs,
       _) {
-    return irBuilder.buildLocalVariableSet(element, visit(rhs));
+    ir.Primitive value = visit(rhs);
+    value = checkTypeVsElement(value, element);
+    return irBuilder.buildLocalVariableSet(element, value);
   }
 
   @override
@@ -2506,8 +2530,9 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
 
   JsIrBuilderVisitor(TreeElements elements,
                      Compiler compiler,
-                     SourceInformationBuilder sourceInformationBuilder)
-      : super(elements, compiler, sourceInformationBuilder);
+                     SourceInformationBuilder sourceInformationBuilder,
+                     TypeMaskSystem typeMaskSystem)
+      : super(elements, compiler, sourceInformationBuilder, typeMaskSystem);
 
   BackendHelpers get helpers => backend.helpers;
 
@@ -2662,7 +2687,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     return new JsIrBuilderVisitor(
         context.resolvedAst.elements,
         compiler,
-        sourceInformationBuilder.forContext(context));
+        sourceInformationBuilder.forContext(context),
+        typeMaskSystem);
   }
 
   /// Builds the IR for an [expression] taken from a different [context].
