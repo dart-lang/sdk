@@ -912,48 +912,6 @@ class StartIsolateScope {
   DISALLOW_COPY_AND_ASSIGN(StartIsolateScope);
 };
 
-// When we need to temporarily become another isolate, we use the
-// SwitchIsolateScope.  It is not permitted to run dart code while in
-// a SwitchIsolateScope.
-class SwitchIsolateScope {
- public:
-  explicit SwitchIsolateScope(Isolate* new_isolate)
-      : new_isolate_(new_isolate),
-        saved_isolate_(Isolate::Current()),
-        saved_stack_limit_(saved_isolate_
-                           ? saved_isolate_->saved_stack_limit() : 0) {
-    // TODO(koda): Audit users; why would these two ever be equal?
-    if (saved_isolate_ != new_isolate_) {
-      if (new_isolate_ == NULL) {
-        Thread::ExitIsolate();
-      } else {
-        Thread::EnterIsolate(new_isolate_);
-        // Don't allow dart code to execute.
-        new_isolate_->SetStackLimit(~static_cast<uword>(0));
-      }
-    }
-  }
-
-  ~SwitchIsolateScope() {
-    if (saved_isolate_ != new_isolate_) {
-      if (new_isolate_ != NULL) {
-        Thread::ExitIsolate();
-      }
-      if (saved_isolate_ != NULL) {
-        Thread::EnterIsolate(saved_isolate_);
-        saved_isolate_->SetStackLimit(saved_stack_limit_);
-      }
-    }
-  }
-
- private:
-  Isolate* new_isolate_;
-  Isolate* saved_isolate_;
-  uword saved_stack_limit_;
-
-  DISALLOW_COPY_AND_ASSIGN(SwitchIsolateScope);
-};
-
 
 class IsolateSpawnState {
  public:

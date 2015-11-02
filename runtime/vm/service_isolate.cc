@@ -360,11 +360,8 @@ class RunServiceTask : public ThreadPool::Task {
       }
       Dart::RunShutdownCallback();
     }
-    {
-      // Shut the isolate down.
-      SwitchIsolateScope switch_scope(I);
-      Dart::ShutdownIsolate();
-    }
+    // Shut the isolate down.
+    Dart::ShutdownIsolate(I);
     if (FLAG_trace_service) {
       OS::Print("vm-service: Shutdown.\n");
     }

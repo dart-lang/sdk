@@ -395,6 +395,17 @@ void Dart::RunShutdownCallback() {
 }
 
 
+void Dart::ShutdownIsolate(Isolate* isolate) {
+  ASSERT(Isolate::Current() == NULL);
+  // We need to enter the isolate in order to shut it down.
+  Thread::EnterIsolate(isolate);
+  ShutdownIsolate();
+  // Since the isolate is shutdown and deleted, there is no need to
+  // exit the isolate here.
+  ASSERT(Isolate::Current() == NULL);
+}
+
+
 void Dart::ShutdownIsolate() {
   Isolate* isolate = Isolate::Current();
   isolate->Shutdown();

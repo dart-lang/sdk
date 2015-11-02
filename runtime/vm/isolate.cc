@@ -1454,11 +1454,8 @@ static void ShutdownIsolate(uword parameter) {
     }
     Dart::RunShutdownCallback();
   }
-  {
-    // Shut the isolate down.
-    SwitchIsolateScope switch_scope(isolate);
-    Dart::ShutdownIsolate();
-  }
+  // Shut the isolate down.
+  Dart::ShutdownIsolate(isolate);
 }
 
 
@@ -1663,6 +1660,9 @@ void Isolate::Shutdown() {
   BackgroundCompiler::Stop(background_compiler_);
 
   Thread* thread = Thread::Current();
+
+  // Don't allow anymore dart code to execution on this isolate.
+  ClearStackLimit();
 
   // First, perform higher-level cleanup that may need to allocate.
   {

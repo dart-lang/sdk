@@ -1660,8 +1660,9 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
   Monitor monitor;
   MonitorLocker ml(&monitor);
   {
-    SwitchIsolateScope switch_scope(NULL);
-
+    // The message handler run loop does not expect to have a current isolate
+    // so we exit the isolate here and enter it again after the runloop is done.
+    Thread::ExitIsolate();
     RunLoopData data;
     data.monitor = &monitor;
     data.done = false;
@@ -1671,6 +1672,7 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     while (!data.done) {
       ml.Wait();
     }
+    Thread::EnterIsolate(I);
   }
   if (I->object_store()->sticky_error() != Object::null()) {
     Dart_Handle error = Api::NewHandle(I, I->object_store()->sticky_error());

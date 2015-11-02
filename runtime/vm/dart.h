@@ -39,6 +39,7 @@ class Dart : public AllStatic {
                                 const Dart_IsolateFlags& api_flags);
   static RawError* InitializeIsolate(const uint8_t* snapshot, void* data);
   static void RunShutdownCallback();
+  static void ShutdownIsolate(Isolate* isolate);
   static void ShutdownIsolate();
 
   static Isolate* vm_isolate() { return vm_isolate_; }
