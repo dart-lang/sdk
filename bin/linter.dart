@@ -11,6 +11,7 @@ import 'package:linter/src/config.dart';
 import 'package:linter/src/formatter.dart';
 import 'package:linter/src/io.dart';
 import 'package:linter/src/linter.dart';
+import 'package:linter/src/rules.dart';
 
 void main(List<String> args) {
   runLinter(args, new LinterOptions());
@@ -57,9 +58,13 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
         negatable: false)
     ..addOption('config', abbr: 'c', help: 'Use configuration from this file.')
     ..addOption('dart-sdk', help: 'Custom path to a Dart SDK.')
+    ..addOption('lints',
+        help: 'A list of lints to run.', allowMultiple: true)
     ..addOption('packages',
         help:
-            'Path to the package resolution configuration file, which supplies a mapping of package names to paths.  This option cannot be used with --package-root.')
+            'Path to the package resolution configuration file, which supplies '
+            'a mapping of package names to paths.  This option cannot be used '
+            'with --package-root.')
     ..addOption('package-root',
         abbr: 'p', help: 'Custom package root. (Discouraged.)');
 
@@ -92,6 +97,20 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
     lintOptions.configure(config);
   }
 
+  var lints = options['lints'];
+  if (lints != null && !lints.isEmpty) {
+    var rules = lints.map((lint) {
+      var rule = ruleRegistry[lint];
+      if (rule == null) {
+        errorSink.write('Unrecognized lint rule: $lint');
+        exit(unableToProcessExitCode);
+      }
+      return rule;
+    }).toList();
+
+    lintOptions.enabledLints = rules;
+  }
+
   var customSdk = options['dart-sdk'];
   if (customSdk != null) {
     lintOptions.dartSdkPath = customSdk;
@@ -109,7 +128,7 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
     exitCode = unableToProcessExitCode;
     return;
   }
-  
+
   lintOptions.packageConfigPath = packageConfigFile;
 
   lintOptions.visitTransitiveClosure = options['visit-transitive-closure'];
