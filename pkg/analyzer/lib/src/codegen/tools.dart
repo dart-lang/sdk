@@ -286,6 +286,53 @@ abstract class GeneratedContent {
    * [pkgPath] is the path to the current package.
    */
   FileSystemEntity output(String pkgPath);
+
+  /**
+   * Check that all of the [targets] are up to date.  If they are not, print
+   * out a message instructing the user to regenerate them, and exit with a
+   * nonzero error code.
+   *
+   * [pkgPath] is the path to the current package.  [generatorRelPath] is the
+   * path to a .dart script the user may use to regenerate the targets.
+   *
+   * To avoid mistakes when run on Windows, [generatorRelPath] always uses
+   * POSIX directory separators.
+   */
+  static void checkAll(String pkgPath, String generatorRelPath,
+      Iterable<GeneratedContent> targets) {
+    bool generateNeeded = false;
+    for (GeneratedContent target in targets) {
+      if (!target.check(pkgPath)) {
+        print(
+            '${target.output(pkgPath).absolute} does not have expected contents.');
+        generateNeeded = true;
+      }
+    }
+    if (generateNeeded) {
+      print('Please regenerate using:');
+      String executable = Platform.executable;
+      String packageRoot = '';
+      if (Platform.packageRoot.isNotEmpty) {
+        packageRoot = ' --package-root=${Platform.packageRoot}';
+      }
+      String generateScript =
+          join(pkgPath, joinAll(posix.split(generatorRelPath)));
+      print('  $executable$packageRoot $generateScript');
+      exit(1);
+    } else {
+      print('All generated files up to date.');
+    }
+  }
+
+  /**
+   * Regenerate all of the [targets].  [pkgPath] is the path to the current
+   * package.
+   */
+  static void generateAll(String pkgPath, Iterable<GeneratedContent> targets) {
+    for (GeneratedContent target in targets) {
+      target.generate(pkgPath);
+    }
+  }
 }
 
 /**

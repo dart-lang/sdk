@@ -41,7 +41,7 @@ import 'package:path/path.dart';
 main() {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
   String pkgPath = normalize(join(dirname(script), '..', '..'));
-  target.generate(pkgPath);
+  GeneratedContent.generateAll(pkgPath, <GeneratedContent>[target]);
 }
 
 final GeneratedFile target = new GeneratedFile(
