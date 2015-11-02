@@ -618,6 +618,7 @@ class HtmlDartInterfaceGenerator(object):
     return new {0}.internal_();
   }}
 
+  @Deprecated("Internal Use Only")
   {0}.internal_() : super.internal_();
 
 '''.format(class_name)
@@ -632,6 +633,7 @@ class HtmlDartInterfaceGenerator(object):
     return new {0}.internal_();
   }}
 
+  @Deprecated("Internal Use Only")
   {0}.internal_() {{ }}
 
 {1}'''.format(class_name, js_interop_equivalence_op)

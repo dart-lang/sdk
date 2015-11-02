@@ -118,6 +118,7 @@ class SqlDatabase extends DartHtmlDomObject {
     return new SqlDatabase.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SqlDatabase.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -198,6 +199,7 @@ class SqlError extends DartHtmlDomObject {
     return new SqlError.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SqlError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -268,6 +270,7 @@ class SqlResultSet extends DartHtmlDomObject {
     return new SqlResultSet.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SqlResultSet.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -310,6 +313,7 @@ class SqlResultSetRowList extends DartHtmlDomObject with ListMixin<Map>, Immutab
     return new SqlResultSetRowList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SqlResultSetRowList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -397,6 +401,7 @@ class SqlTransaction extends DartHtmlDomObject {
     return new SqlTransaction.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SqlTransaction.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
