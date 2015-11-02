@@ -929,7 +929,7 @@ abstract class Compiler {
     }
   }
 
-  /// Analyze all member of the library in [libraryUri].
+  /// Analyze all members of the library in [libraryUri].
   ///
   /// If [skipLibraryWithPartOfTag] is `true`, member analysis is skipped if the
   /// library has a `part of` tag, assuming it is a part and not a library.

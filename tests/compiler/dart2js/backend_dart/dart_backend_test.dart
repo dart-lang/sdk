@@ -4,6 +4,7 @@
 
 import "package:expect/expect.dart";
 import 'dart:async';
+import 'dart:io' as io;
 import "package:async_helper/async_helper.dart";
 import '../mock_compiler.dart';
 import '../mock_libraries.dart';
@@ -58,7 +59,9 @@ testDart2Dart(String mainSrc, {String librarySrc,
     if (uri.toString() == libUri.toString()) {
       return new Future.value(librarySrc);
     }
-    if (uri.path.endsWith('/core.dart')) {
+    if (uri.path.endsWith('/dart2dart.platform')) {
+      return new io.File.fromUri(uri).readAsBytes();
+    } else if (uri.path.endsWith('/core.dart')) {
       return new Future.value(buildLibrarySource(DEFAULT_CORE_LIBRARY));
     } else if (uri.path.endsWith('/core_patch.dart')) {
       return new Future.value(DEFAULT_PATCH_CORE_SOURCE);
@@ -87,7 +90,6 @@ testDart2Dart(String mainSrc, {String librarySrc,
 
   final options = <String>['--output-type=dart'];
   // Some tests below are using dart:io.
-  options.add('--categories=Client,Server');
   if (minify) options.add('--minify');
   if (stripTypes) options.add('--force-strip=types');
 
@@ -95,7 +97,7 @@ testDart2Dart(String mainSrc, {String librarySrc,
     OutputCollector outputCollector = new OutputCollector();
     return compile(
         scriptUri,
-        fileUri('libraryRoot/'),
+        Uri.base.resolve('sdk/'),
         fileUri('packageRoot/'),
         provider,
         handler,

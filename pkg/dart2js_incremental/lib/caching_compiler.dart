@@ -76,13 +76,16 @@ Future<CompilerImpl> reuseCompiler(
         ..needsStructuredMemberInfo = true;
 
     Uri core = Uri.parse("dart:core");
-    return compiler.libraryLoader.loadLibrary(core).then((_) {
-      // Likewise, always be prepared for runtimeType support.
-      // TODO(johnniwinther): Add global switch to force RTI.
-      compiler.enabledRuntimeType = true;
-      backend.registerRuntimeType(
-          compiler.enqueuer.resolution, compiler.globalDependencies);
-      return compiler;
+
+    return compiler.setupSdk().then((_) {
+      return compiler.libraryLoader.loadLibrary(core).then((_) {
+        // Likewise, always be prepared for runtimeType support.
+        // TODO(johnniwinther): Add global switch to force RTI.
+        compiler.enabledRuntimeType = true;
+        backend.registerRuntimeType(
+            compiler.enqueuer.resolution, compiler.globalDependencies);
+        return compiler;
+      });
     });
   } else {
     for (final task in compiler.tasks) {

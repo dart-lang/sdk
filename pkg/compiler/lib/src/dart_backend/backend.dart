@@ -355,6 +355,12 @@ class DartBackend extends Backend {
         node, MessageKind.DEFERRED_LIBRARY_DART_2_DART);
     return false;
   }
+
+  @override
+  Uri resolvePatchUri(String libraryName, Uri) {
+    // Dart2dart does not use patches.
+    return null;
+  }
 }
 
 class DartImpactTransformer extends ImpactTransformer {

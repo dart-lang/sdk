@@ -2577,6 +2577,28 @@ class JavaScriptBackend extends Backend {
     }
     return rewriter.rewrite(code);
   }
+
+  /// The locations of js patch-files relative to the sdk-descriptors.
+  static const _patchLocations = const <String, String>{
+    "async": "_internal/js_runtime/lib/async_patch.dart",
+    "collection":  "_internal/js_runtime/lib/collection_patch.dart",
+    "convert": "_internal/js_runtime/lib/convert_patch.dart",
+    "core": "_internal/js_runtime/lib/core_patch.dart",
+    "developer": "_internal/js_runtime/lib/developer_patch.dart",
+    "io": "_internal/js_runtime/lib/io_patch.dart",
+    "isolate": "_internal/js_runtime/lib/isolate_patch.dart",
+    "math": "_internal/js_runtime/lib/math_patch.dart",
+    "mirrors": "_internal/js_runtime/lib/mirrors_patch.dart",
+    "typed_data": "_internal/js_runtime/lib/typed_data_patch.dart",
+    "_internal": "_internal/js_runtime/lib/internal_patch.dart"
+  };
+
+  @override
+  Uri resolvePatchUri(String libraryName, Uri platformConfigUri) {
+    String patchLocation = _patchLocations[libraryName];
+    if (patchLocation == null) return null;
+    return platformConfigUri.resolve(patchLocation);
+  }
 }
 
 /// Handling of special annotations for tests.

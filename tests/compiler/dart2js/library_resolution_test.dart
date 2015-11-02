@@ -14,92 +14,58 @@ import "memory_source_file_helper.dart";
 
 import "package:async_helper/async_helper.dart";
 
-import 'package:expect/expect.dart' show
-    Expect;
+import 'package:expect/expect.dart' show Expect;
 
-import 'package:compiler/src/diagnostics/messages.dart' show
-    MessageKind,
-    MessageTemplate;
+import 'package:compiler/src/diagnostics/messages.dart'
+    show MessageKind, MessageTemplate;
 
-import 'package:compiler/src/elements/elements.dart' show
-    LibraryElement;
+import 'package:compiler/src/elements/elements.dart' show LibraryElement;
 
-import 'package:compiler/src/null_compiler_output.dart' show
-    NullCompilerOutput;
+import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
 
-import 'package:compiler/src/old_to_new_api.dart' show
-    LegacyCompilerDiagnostics,
-    LegacyCompilerInput;
+import 'package:compiler/src/old_to_new_api.dart'
+    show LegacyCompilerDiagnostics, LegacyCompilerInput;
 
-import 'package:sdk_library_metadata/libraries.dart' show
-    DART2JS_PLATFORM,
-    LibraryInfo;
-
-const LibraryInfo mock1LibraryInfo = const LibraryInfo(
-    "mock1.dart",
-    categories: "Client,Embedded",
-    documented: false,
-    platforms: DART2JS_PLATFORM);
-
-const LibraryInfo mock2LibraryInfo = const LibraryInfo(
-    "mock2.dart",
-    categories: "Client,Embedded",
-    documented: false,
-    platforms: DART2JS_PLATFORM);
-
+Uri sdkRoot = Uri.base.resolve("sdk/");
+Uri mock1LibraryUri = sdkRoot.resolve("lib/mock1.dart");
+Uri mock2LibraryUri = sdkRoot.resolve("lib/mock2.dart");
 
 class CustomCompiler extends CompilerImpl {
-  final Map<String, LibraryInfo> customLibraryInfo;
+  CustomCompiler(provider, handler, libraryRoot,
+      packageRoot, options, environment)
+      : super(provider, const NullCompilerOutput(), handler, libraryRoot,
+            packageRoot, options, environment);
 
-  CustomCompiler(
-      this.customLibraryInfo,
-      provider,
-      handler,
-      libraryRoot,
-      packageRoot,
-      options,
-      environment)
-      : super(
-          provider,
-          const NullCompilerOutput(),
-          handler,
-          libraryRoot,
-          packageRoot,
-          options,
-          environment);
-
-  LibraryInfo lookupLibraryInfo(String name) {
-    if (name == "m_o_c_k_1") return mock1LibraryInfo;
-    if (name == "m_o_c_k_2") return mock2LibraryInfo;
-    return super.lookupLibraryInfo(name);
+  Uri lookupLibraryUri(String libraryName) {
+    if (libraryName == "m_o_c_k_1") return mock1LibraryUri;
+    if (libraryName == "m_o_c_k_2") return mock2LibraryUri;
+    return super.lookupLibraryUri(libraryName);
   }
 }
 
-main() {
-  Uri sdkRoot = Uri.base.resolve("sdk/");
+main() async {
   Uri packageRoot = Uri.base.resolve(Platform.packageRoot);
 
   var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
   var handler = new FormattingDiagnosticHandler(provider);
 
   Future wrappedProvider(Uri uri) {
-    if (uri == sdkRoot.resolve('lib/mock1.dart')) {
+    if (uri == mock1LibraryUri) {
       return provider.readStringFromUri(Uri.parse('memory:mock1.dart'));
     }
-    if (uri == sdkRoot.resolve('lib/mock2.dart')) {
+    if (uri == mock2LibraryUri) {
       return provider.readStringFromUri(Uri.parse('memory:mock2.dart'));
     }
     return provider.readStringFromUri(uri);
   }
 
-  String expectedMessage =
-      MessageTemplate.TEMPLATES[MessageKind.LIBRARY_NOT_FOUND].message(
-          {'resolvedUri': 'dart:mock2.dart'}).computeMessage();
+  String expectedMessage = MessageTemplate.TEMPLATES[
+          MessageKind.LIBRARY_NOT_FOUND]
+      .message({'resolvedUri': 'dart:mock2.dart'}).computeMessage();
 
   int actualMessageCount = 0;
 
-  wrappedHandler(
-      Uri uri, int begin, int end, String message, kind) {
+  wrappedHandler(Uri uri, int begin, int end, String message, kind) {
     if (message == expectedMessage) {
       actualMessageCount++;
     } else {
@@ -112,7 +78,6 @@ main() {
   }
 
   CompilerImpl compiler = new CustomCompiler(
-      {},
       new LegacyCompilerInput(wrappedProvider),
       new LegacyCompilerDiagnostics(wrappedHandler),
       sdkRoot,
@@ -121,9 +86,11 @@ main() {
       {});
 
   asyncStart();
-  compiler.libraryLoader.loadLibrary(Uri.parse("dart:m_o_c_k_1"))
-      .then(checkLibrary)
-      .then(asyncSuccess);
+  await compiler.setupSdk();
+  var library =
+      await compiler.libraryLoader.loadLibrary(Uri.parse("dart:m_o_c_k_1"));
+  await checkLibrary(library);
+  asyncSuccess(null);
 }
 
 const Map MEMORY_SOURCE_FILES = const {

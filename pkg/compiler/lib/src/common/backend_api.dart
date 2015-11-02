@@ -412,6 +412,12 @@ abstract class Backend {
                            Element element,
                            CallStructure callStructure,
                            ForeignResolver resolver) {}
+
+  /// Returns the location of the patch-file associated with [libraryName]
+  /// resolved from [plaformConfigUri].
+  ///
+  /// Returns null if there is none.
+  Uri resolvePatchUri(String libraryName, Uri plaformConfigUri);
 }
 
 /// Interface for resolving calls to foreign functions.
