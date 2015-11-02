@@ -1441,6 +1441,11 @@ main() {}''');
     expect(context.isClientLibrary(source), isFalse);
   }
 
+  void test_isClientLibrary_unknown() {
+    Source source = newSource("/test.dart");
+    expect(context.isClientLibrary(source), isFalse);
+  }
+
   void test_isServerLibrary_dart() {
     Source source = addSource(
         "/test.dart",
@@ -1457,6 +1462,11 @@ main() {}''');
 
   void test_isServerLibrary_html() {
     Source source = addSource("/test.html", "<html></html>");
+    expect(context.isServerLibrary(source), isFalse);
+  }
+
+  void test_isServerLibrary_unknown() {
+    Source source = newSource("/test.dart");
     expect(context.isServerLibrary(source), isFalse);
   }
 
