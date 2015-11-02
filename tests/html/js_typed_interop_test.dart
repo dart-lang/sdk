@@ -124,6 +124,12 @@ class ExampleLiteral {
   external num get z;
 }
 
+@anonymous
+@JS()
+class EmptyLiteral {
+  external factory EmptyLiteral();
+}
+
 @JS('Foob')
 class Foob extends Foo {
   external String get y;
@@ -179,6 +185,11 @@ main() {
       expect(l.y, isNull);
       expect(l.z, equals(100));
       expect(stringify(l), equals('{"z":100}'));
+    });
+
+    test('empty', () {
+      var l = new EmptyLiteral();
+      expect(stringify(l), equals('{}'));
     });
   });
 
