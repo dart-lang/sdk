@@ -94,7 +94,7 @@ abstract class HttpStatus {
  * Use [bindSecure] to create an HTTPS server.
  *
  * The server presents a certificate to the client. The certificate
- * chain and the private key are set in the SecurityContext
+ * chain and the private key are set in the [SecurityContext]
  * object that is passed to [bindSecure].
  *
  *     import 'dart:io';
@@ -123,8 +123,8 @@ abstract class HttpStatus {
  *           });
  *     }
  *
- *  The certificates and keys are pem files, which can be created and
- *  managed with the tools in OpenSSL and BoringSSL.
+ *  The certificates and keys are PEM files, which can be created and
+ *  managed with the tools in OpenSSL.
  *
  * ## Connect to a server socket
  *
@@ -237,13 +237,12 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * value of [:0:] (the default) a reasonable value will be chosen by
    * the system.
    *
-   * The optional argument [shared] specify whether additional binds
-   * to the same `address`, `port` and `v6Only` combination is
-   * possible from the same Dart process. If `shared` is `true` and
-   * additional binds are performed, then the incoming connections
-   * will be distributed between that set of `HttpServer`s. One way of
-   * using this is to have number of isolates between which incoming
-   * connections are distributed.
+   * The optional argument [shared] specifies whether additional HttpServer
+   * objects can bind to the same combination of `address`, `port` and `v6Only`.
+   * If `shared` is `true` and more `HttpServer`s from this isolate or other
+   * isolates are bound to the port, then the incoming connections will be
+   * distributed among all the bound `HttpServer`s. Connections can be
+   * distributed over multiple isolates this way.
    */
   static Future<HttpServer> bind(address,
                                  int port,
@@ -278,18 +277,18 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * value of [:0:] (the default) a reasonable value will be chosen by
    * the system.
    *
-   * The certificate with nickname or distinguished name (DN) [certificateName]
-   * is looked up in the certificate database, and is used as the server
-   * certificate. If [requestClientCertificate] is true, the server will
+   * If [requestClientCertificate] is true, the server will
    * request clients to authenticate with a client certificate.
+   * The server will advertise the names of trusted issuers of client
+   * certificates, getting them from [context], where they have been
+   * set using [SecurityContext.setClientAuthorities].
    *
-   * The optional argument [shared] specify whether additional binds
-   * to the same `address`, `port` and `v6Only` combination is
-   * possible from the same Dart process. If `shared` is `true` and
-   * additional binds are performed, then the incoming connections
-   * will be distributed between that set of `HttpServer`s. One way of
-   * using this is to have number of isolates between which incoming
-   * connections are distributed.
+   * The optional argument [shared] specifies whether additional HttpServer
+   * objects can bind to the same combination of `address`, `port` and `v6Only`.
+   * If `shared` is `true` and more `HttpServer`s from this isolate or other
+   * isolates are bound to the port, then the incoming connections will be
+   * distributed among all the bound `HttpServer`s. Connections can be
+   * distributed over multiple isolates this way.
    */
 
   static Future<HttpServer> bindSecure(address,
@@ -297,7 +296,6 @@ abstract class HttpServer implements Stream<HttpRequest> {
                                        SecurityContext context,
                                        {int backlog: 0,
                                         bool v6Only: false,
-                                        String certificateName,
                                         bool requestClientCertificate: false,
                                         bool shared: false})
       => _HttpServer.bindSecure(address,
@@ -305,7 +303,6 @@ abstract class HttpServer implements Stream<HttpRequest> {
                                 context,
                                 backlog,
                                 v6Only,
-                                certificateName,
                                 requestClientCertificate,
                                 shared);
 
@@ -1243,6 +1240,19 @@ abstract class HttpResponse implements IOSink {
  *
  * The future for [HttpClientRequest] is created by methods such as
  * [getUrl] and [open].
+ *
+ * ## HTTPS connections
+ *
+ * An HttpClient can make HTTPS requests, connecting to a server using
+ * the TLS (SSL) secure networking protocol. Calling [getUrl] with an
+ * https: scheme will work automatically, if the server's certificate is
+ * signed by a root CA (certificate authority) on the default list of
+ * well-known trusted CAs, compiled by Mozilla.
+ *
+ * To add a custom trusted certificate authority, or to send a client
+ * certificate to servers that request one, pass a [SecurityContext] object
+ * as the optional [context] argument to the `HttpClient` constructor.
+ * The desired security options can be set on the [SecurityContext] object.
  *
  * ## Headers
  *
