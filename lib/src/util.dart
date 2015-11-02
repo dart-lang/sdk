@@ -4,6 +4,13 @@
 
 library linter.src.util;
 
+import 'dart:io';
+
+import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/src/generated/parser.dart' show Parser;
+import 'package:analyzer/src/generated/scanner.dart'
+    show CharSequenceReader, CommentToken, Scanner, Token;
+import 'package:analyzer/src/string_source.dart' show StringSource;
 import 'package:path/path.dart' as p;
 
 final _identifier = new RegExp(r'^([_a-zA-Z]+([_a-zA-Z0-9])*)$');
@@ -57,3 +64,96 @@ bool isLowerCaseUnderScoreWithDots(String id) =>
 
 /// Returns `true` if this [fileName] is a Pubspec file.
 bool isPubspecFileName(String fileName) => _pubspec.hasMatch(fileName);
+
+class _ErrorListener implements AnalysisErrorListener {
+  final errors = <AnalysisError>[];
+
+  void onError(AnalysisError error) {
+    errors.add(error);
+  }
+
+  void throwIfErrors() {
+    if (!errors.isEmpty) {
+      throw new Exception(errors);
+    }
+  }
+}
+
+class _SourceVisitor extends GeneralizingAstVisitor {
+  int indent = 0;
+
+  final IOSink sink;
+  _SourceVisitor(this.sink);
+
+  String asString(AstNode node) =>
+      typeInfo(node.runtimeType) + ' [${node.toString()}]';
+
+  List<CommentToken> getPrecedingComments(Token token) {
+    var comments = <CommentToken>[];
+    var comment = token.precedingComments;
+    while (comment is CommentToken) {
+      comments.add(comment);
+      comment = comment.next;
+    }
+    return comments;
+  }
+
+  String getTrailingComment(AstNode node) {
+    var successor = node.endToken.next;
+    if (successor != null) {
+      var precedingComments = successor.precedingComments;
+      if (precedingComments != null) {
+        return precedingComments.toString();
+      }
+    }
+    return '';
+  }
+
+  String typeInfo(Type type) => type.toString();
+
+  @override
+  visitNode(AstNode node) {
+    write(node);
+
+    ++indent;
+    node.visitChildren(this);
+    --indent;
+    return null;
+  }
+
+  write(AstNode node) {
+    //EOL comments
+    var comments = getPrecedingComments(node.beginToken);
+    comments.forEach((c) => sink.writeln('${"  " * indent}$c'));
+
+    sink.writeln(
+        '${"  " * indent}${asString(node)} ${getTrailingComment(node)}');
+  }
+}
+
+class Spelunker {
+  final String path;
+  final IOSink sink;
+  Spelunker(this.path, {IOSink sink}) : this.sink = sink ?? stdout;
+
+  void spelunk() {
+    var contents = new File(path).readAsStringSync();
+
+    var errorListener = new _ErrorListener();
+
+    var reader = new CharSequenceReader(contents);
+    var stringSource = new StringSource(contents, path);
+    var scanner = new Scanner(stringSource, reader, errorListener);
+    var startToken = scanner.tokenize();
+
+    errorListener.throwIfErrors();
+
+    var parser = new Parser(stringSource, errorListener);
+    var node = parser.parseCompilationUnit(startToken);
+
+    errorListener.throwIfErrors();
+
+    var visitor = new _SourceVisitor(sink);
+    node.accept(visitor);
+  }
+}

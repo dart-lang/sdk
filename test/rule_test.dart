@@ -10,6 +10,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:linter/src/ast.dart';
+import 'package:linter/src/formatter.dart';
 import 'package:linter/src/io.dart';
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/rules.dart';
@@ -19,6 +20,8 @@ import 'package:linter/src/rules/package_prefixed_library_names.dart';
 import 'package:linter/src/util.dart';
 import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
+
+import 'mocks.dart';
 
 main() {
   groupSep = ' | ';
@@ -336,7 +339,7 @@ testEach(Iterable<String> values, dynamic f(String s), Matcher m) {
   values.forEach((s) => test('"$s"', () => expect(f(s), m)));
 }
 
-testRule(String ruleName, File file) {
+testRule(String ruleName, File file, {bool debug: false}) {
   test('$ruleName', () {
     var expected = <AnnotationMatcher>[];
 
@@ -363,7 +366,24 @@ testRule(String ruleName, File file) {
         }
       });
     });
-    expect(actual, unorderedMatches(expected));
+    try {
+      expect(actual, unorderedMatches(expected));
+    } on Error catch (e) {
+
+      if (debug) {
+        // Dump results for debugging purposes.
+
+        //AST.
+        new Spelunker(file.absolute.path).spelunk();
+        print('');
+        // Lints.
+        var reporter = new ResultReporter(lints);
+        reporter.write();
+      }
+
+      // Rethrow and fail.
+      throw e;
+    }
   });
 }
 
@@ -424,4 +444,14 @@ class AnnotationMatcher extends Matcher {
     return _expected.type == other.type &&
         _expected.lineNumber == other.lineNumber;
   }
+}
+
+class NoFilter implements LintFilter {
+  @override
+  bool filter(AnalysisError lint) => false;
+}
+
+class ResultReporter extends DetailedReporter {
+  ResultReporter(Iterable<AnalysisErrorInfo> errors)
+      : super(errors, new NoFilter(), stdout);
 }

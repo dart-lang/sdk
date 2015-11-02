@@ -45,22 +45,75 @@ class CamelCaseString {
 }
 
 /// Dart source linter.
-abstract class DartLinter {
+class DartLinter implements AnalysisErrorListener {
+  final errors = <AnalysisError>[];
+
+  final LinterOptions options;
+  final Reporter reporter;
+  /// The total number of sources that were analyzed.  Only valid after
+  /// [lintFiles] has been called.
+  int numSourcesAnalyzed;
+
   /// Creates a new linter.
-  factory DartLinter([LinterOptions options]) => new SourceLinter(options);
+  DartLinter(this.options, {this.reporter: const PrintingReporter()});
 
   factory DartLinter.forRules(Iterable<LintRule> ruleSet) =>
       new DartLinter(new LinterOptions(ruleSet));
 
-  /// The total number of sources that were analyzed.  Only valid after
-  /// [lintFiles] has been called.
-  int get numSourcesAnalyzed;
+  Iterable<AnalysisErrorInfo> lintFiles(List<File> files) {
+    List<AnalysisErrorInfo> errors = [];
+    var analysisDriver = new AnalysisDriver(options);
+    errors.addAll(analysisDriver.analyze(files.where((f) => isDartFile(f))));
+    numSourcesAnalyzed = analysisDriver.numSourcesAnalyzed;
+    files.where((f) => isPubspecFile(f)).forEach((p) {
+      numSourcesAnalyzed++;
+      return errors.addAll(_lintPubspecFile(p));
+    });
+    return errors;
+  }
 
-  LinterOptions get options;
+  Iterable<AnalysisErrorInfo> lintPubspecSource(
+      {String contents, String sourcePath}) {
+    var results = <AnalysisErrorInfo>[];
 
-  Iterable<AnalysisErrorInfo> lintFiles(List<File> files);
+    Uri sourceUrl = sourcePath == null ? null : p.toUri(sourcePath);
 
-  Iterable<AnalysisErrorInfo> lintPubspecSource({String contents});
+    var spec = new Pubspec.parse(contents, sourceUrl: sourceUrl);
+
+    for (Linter lint in options.enabledLints) {
+      if (lint is LintRule) {
+        LintRule rule = lint;
+        var visitor = rule.getPubspecVisitor();
+        if (visitor != null) {
+          // Analyzer sets reporters; if this file is not being analyzed,
+          // we need to set one ourselves.  (Needless to say, when pubspec
+          // processing gets pushed down, this hack can go away.)
+          if (rule.reporter == null && sourceUrl != null) {
+            var source = createSource(sourceUrl);
+            rule.reporter = new ErrorReporter(this, source);
+          }
+          try {
+            spec.accept(visitor);
+          } on Exception catch (e) {
+            reporter.exception(new LinterException(e.toString()));
+          }
+          if (rule._locationInfo != null && !rule._locationInfo.isEmpty) {
+            results.addAll(rule._locationInfo);
+            rule._locationInfo.clear();
+          }
+        }
+      }
+    }
+
+    return results;
+  }
+
+  @override
+  onError(AnalysisError error) => errors.add(error);
+
+  Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
+      lintPubspecSource(
+          contents: sourceFile.readAsStringSync(), sourcePath: sourceFile.path);
 }
 
 class FileGlobFilter extends LintFilter {
