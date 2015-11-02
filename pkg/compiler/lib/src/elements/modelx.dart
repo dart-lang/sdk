@@ -2052,6 +2052,25 @@ abstract class FunctionElementX extends BaseFunctionElementX
 
   MemberElement get memberContext => this;
 
+  @override
+  SourceSpan get sourcePosition {
+    SourceSpan span = super.sourcePosition;
+    if (span != null && hasNode) {
+      FunctionExpression functionExpression = node.asFunctionExpression();
+      if (functionExpression != null) {
+        Token begin = functionExpression.getBeginToken();
+        Token end;
+        if (functionExpression.parameters != null) {
+          end = functionExpression.parameters.getEndToken();
+        } else {
+          end = functionExpression.name.getEndToken();
+        }
+        span = new SourceSpan.fromTokens(span.uri, begin, end);
+      }
+    }
+    return span;
+  }
+
   void reuseElement() {
     super.reuseElement();
     nestedClosures.clear();
