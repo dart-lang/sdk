@@ -14,7 +14,7 @@ abstract class SecureSocket implements Socket {
   external factory SecureSocket._(RawSecureSocket rawSocket);
 
   /**
-   * Constructs a new secure client socket and connect it to the given
+   * Constructs a new secure client socket and connects it to the given
    * [host] on port [port]. The returned Future will complete with a
    * [SecureSocket] that is connected and ready for subscription.
    *
@@ -167,24 +167,24 @@ abstract class SecureSocket implements Socket {
  * RawSecureSocket provides a secure (SSL or TLS) network connection.
  * Client connections to a server are provided by calling
  * RawSecureSocket.connect.  A secure server, created with
- * RawSecureServerSocket, also returns RawSecureSocket objects representing
+ * [RawSecureServerSocket], also returns RawSecureSocket objects representing
  * the server end of a secure connection.
  * The certificate provided by the server is checked
  * using the trusted certificates set in the SecurityContext object.
- * The default SecurityContext object contains a built-in set of trusted
+ * The default [SecurityContext] object contains a built-in set of trusted
  * root certificates for well-known certificate authorities.
  */
 abstract class RawSecureSocket implements RawSocket {
   /**
    * Constructs a new secure client socket and connect it to the given
-   * host on the given port. The returned Future is completed with the
+   * host on the given port. The returned [Future] is completed with the
    * RawSecureSocket when it is connected and ready for subscription.
    *
-   * The certificate provided by the server is checked
-   * using the trusted certificates set in the SecurityContext object
-   * If a certificate and key are set on the client, using useCertificateChain
-   * and usePrivateKey, and the server asks for a client certificate,
-   * then that client certificate is sent to the server.
+   * The certificate provided by the server is checked using the trusted
+   * certificates set in the SecurityContext object If a certificate and key are
+   * set on the client, using [SecurityContext.useCertificateChain] and
+   * [SecurityContext.usePrivateKey], and the server asks for a client
+   * certificate, then that client certificate is sent to the server.
    *
    * [onBadCertificate] is an optional handler for unverifiable certificates.
    * The handler receives the [X509Certificate], and can inspect it and

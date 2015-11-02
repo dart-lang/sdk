@@ -224,13 +224,12 @@ abstract class RawServerSocket implements Stream<RawSocket> {
    * value of [:0:] (the default) a reasonable value will be chosen by
    * the system.
    *
-   * The optional argument [shared] specify whether additional binds
-   * to the same `address`, `port` and `v6Only` combination is
-   * possible from the same Dart process. If `shared` is `true` and
-   * additional binds are performed, then the incoming connections
-   * will be distributed between that set of `RawServerSocket`s. One
-   * way of using this is to have number of isolates between which
-   * incoming connections are distributed.
+   * The optional argument [shared] specifies whether additional RawServerSocket
+   * objects can bind to the same combination of `address`, `port` and `v6Only`.
+   * If `shared` is `true` and more `RawServerSocket`s from this isolate or
+   * other isolates are bound to the port, then the incoming connections will be
+   * distributed among all the bound `RawServerSocket`s. Connections can be
+   * distributed over multiple isolates this way.
    */
   external static Future<RawServerSocket> bind(address,
                                                int port,
@@ -294,13 +293,12 @@ abstract class ServerSocket implements Stream<Socket> {
    * value of [:0:] (the default) a reasonable value will be chosen by
    * the system.
    *
-   * The optional argument [shared] specify whether additional binds
-   * to the same `address`, `port` and `v6Only` combination is
-   * possible from the same Dart process. If `shared` is `true` and
-   * additional binds are performed, then the incoming connections
-   * will be distributed between that set of `ServerSocket`s. One way
-   * of using this is to have number of isolates between which
-   * incoming connections are distributed.
+   * The optional argument [shared] specifies whether additional ServerSocket
+   * objects can bind to the same combination of `address`, `port` and `v6Only`.
+   * If `shared` is `true` and more `ServerSocket`s from this isolate or other
+   * isolates are bound to the port, then the incoming connections will be
+   * distributed among all the bound `ServerSocket`s. Connections can be
+   * distributed over multiple isolates this way.
    */
   external static Future<ServerSocket> bind(address,
                                             int port,
