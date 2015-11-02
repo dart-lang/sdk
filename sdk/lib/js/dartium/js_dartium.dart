@@ -410,17 +410,21 @@ List<String> _generateExternalMethods() {
             if (declaration is! mirrors.MethodMirror ||
                 !_isExternal(declaration)) return;
             if (declaration.isFactoryConstructor && _isAnonymousClass(clazz)) {
-              sbPatch.write("  factory ${className}({");
+              sbPatch.write("  factory ${className}(");
               int i = 0;
               var args = <String>[];
               for (var p in declaration.parameters) {
                 args.add(mirrors.MirrorSystem.getName(p.simpleName));
                 i++;
               }
-              sbPatch
-                ..write(
-                    args.map((name) => '$name:${_UNDEFINED_VAR}').join(", "))
-                ..write("}) {\n"
+              if (args.isNotEmpty) {
+                sbPatch
+                  ..write('{')
+                  ..write(
+                      args.map((name) => '$name:${_UNDEFINED_VAR}').join(", "))
+                  ..write('}');
+              }
+              sbPatch.write(") {\n"
                     "    var ret = new ${_JS_LIBRARY_PREFIX}.JsObject.jsify({});\n");
               i = 0;
               for (var p in declaration.parameters) {
