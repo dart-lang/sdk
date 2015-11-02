@@ -1043,13 +1043,17 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   bool isClientLibrary(Source librarySource) {
     CacheEntry entry = _cache.get(librarySource);
-    return _referencesDartHtml(librarySource) && entry.getValue(IS_LAUNCHABLE);
+    return entry != null &&
+        _referencesDartHtml(librarySource) &&
+        entry.getValue(IS_LAUNCHABLE);
   }
 
   @override
   bool isServerLibrary(Source librarySource) {
     CacheEntry entry = _cache.get(librarySource);
-    return !_referencesDartHtml(librarySource) && entry.getValue(IS_LAUNCHABLE);
+    return entry != null &&
+        !_referencesDartHtml(librarySource) &&
+        entry.getValue(IS_LAUNCHABLE);
   }
 
   @override
