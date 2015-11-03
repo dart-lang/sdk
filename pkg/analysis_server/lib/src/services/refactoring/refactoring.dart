@@ -72,6 +72,18 @@ abstract class ExtractLocalRefactoring implements Refactoring {
   }
 
   /**
+   * The lengths of the expressions that cover the specified selection,
+   * from the down most to the up most.
+   */
+  List<int> get coveringExpressionLengths;
+
+  /**
+   * The offsets of the expressions that cover the specified selection,
+   * from the down most to the up most.
+   */
+  List<int> get coveringExpressionOffsets;
+
+  /**
    * True if all occurrences of the expression within the scope in which the
    * variable will be defined should be replaced by a reference to the local
    * variable. The expression used to initiate the refactoring will always be
