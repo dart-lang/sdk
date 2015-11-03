@@ -29,10 +29,12 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:glob/glob.dart';
 import 'package:plugin/plugin.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
@@ -1404,7 +1406,34 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
    */
   final ResourceProvider resourceProvider;
 
+  /**
+   * A list of the globs used to determine which files should be analyzed. The
+   * list is lazily created and should be accessed using [analyzedFilesGlobs].
+   */
+  List<Glob> _analyzedFilesGlobs = null;
+
   ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
+
+  /**
+   * Return a list of the globs used to determine which files should be analyzed.
+   */
+  List<Glob> get analyzedFilesGlobs {
+    if (_analyzedFilesGlobs == null) {
+      _analyzedFilesGlobs = <Glob>[];
+      List<String> patterns = analysisServer.serverPlugin.analyzedFilePatterns;
+      for (String pattern in patterns) {
+        try {
+          _analyzedFilesGlobs
+              .add(new Glob(pattern, context: JavaFile.pathContext));
+        } catch (exception, stackTrace) {
+          AnalysisEngine.instance.logger.logError(
+              'Invalid glob pattern: "$pattern"',
+              new CaughtException(exception, stackTrace));
+        }
+      }
+    }
+    return _analyzedFilesGlobs;
+  }
 
   @override
   AnalysisContext addContext(Folder folder, FolderDisposition disposition) {
@@ -1463,10 +1492,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   bool shouldFileBeAnalyzed(File file) {
-    List<ShouldAnalyzeFile> functions =
-        analysisServer.serverPlugin.analyzeFileFunctions;
-    for (ShouldAnalyzeFile shouldAnalyzeFile in functions) {
-      if (shouldAnalyzeFile(file)) {
+    for (Glob glob in analyzedFilesGlobs) {
+      if (glob.matches(file.path)) {
         // Emacs creates dummy links to track the fact that a file is open for
         // editing and has unsaved changes (e.g. having unsaved changes to
         // 'foo.dart' causes a link '.#foo.dart' to be created, which points to

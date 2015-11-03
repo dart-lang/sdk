@@ -31,7 +31,6 @@ import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/index/index_contributor.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:plugin/plugin.dart';
 
@@ -48,9 +47,10 @@ typedef RequestHandler RequestHandlerFactory(AnalysisServer server);
 class ServerPlugin implements Plugin {
   /**
    * The simple identifier of the extension point that allows plugins to
-   * register functions that can cause files to be analyzed.
+   * register file patterns that will cause files to be analyzed.
    */
-  static const String ANALYZE_FILE_EXTENSION_POINT = 'analyzeFile';
+  static const String ANALYZED_FILE_PATTERNS_EXTENSION_POINT =
+      'analyzedFilePatterns';
 
   /**
    * The simple identifier of the extension point that allows plugins to
@@ -109,10 +109,10 @@ class ServerPlugin implements Plugin {
   static const String UNIQUE_IDENTIFIER = 'analysis_server.core';
 
   /**
-   * The extension point that allows plugins to register functions that can
+   * The extension point that allows plugins to register file patterns that will
    * cause files to be analyzed.
    */
-  ExtensionPoint analyzeFileExtensionPoint;
+  ExtensionPoint analyzedFilePatternsExtensionPoint;
 
   /**
    * The extension point that allows plugins to register assist contributors.
@@ -166,11 +166,17 @@ class ServerPlugin implements Plugin {
   ServerPlugin();
 
   /**
-   * Return a list containing all of the functions that can cause files to be
-   * analyzed.
+   * Return a list containing all of the file patterns that can cause files to
+   * be analyzed.
    */
-  List<ShouldAnalyzeFile> get analyzeFileFunctions =>
-      analyzeFileExtensionPoint.extensions;
+  List<String> get analyzedFilePatterns {
+    List<String> patterns = <String>[];
+    for (List<String> extension
+        in analyzedFilePatternsExtensionPoint.extensions) {
+      patterns.addAll(extension);
+    }
+    return patterns;
+  }
 
   /**
    * Return a list containing all of the assist contributors that were
@@ -241,8 +247,9 @@ class ServerPlugin implements Plugin {
     setAnalysisDomainExtensionPoint = registerExtensionPoint(
         SET_ANALISYS_DOMAIN_EXTENSION_POINT,
         _validateSetAnalysisDomainFunction);
-    analyzeFileExtensionPoint = registerExtensionPoint(
-        ANALYZE_FILE_EXTENSION_POINT, _validateAnalyzeFileExtension);
+    analyzedFilePatternsExtensionPoint = registerExtensionPoint(
+        ANALYZED_FILE_PATTERNS_EXTENSION_POINT,
+        _validateAnalyzedFilePatternsExtension);
     assistContributorExtensionPoint = registerExtensionPoint(
         ASSIST_CONTRIBUTOR_EXTENSION_POINT,
         _validateAssistContributorExtension);
@@ -266,13 +273,15 @@ class ServerPlugin implements Plugin {
   @override
   void registerExtensions(RegisterExtension registerExtension) {
     //
-    // Register analyze file functions.
+    // Register analyzed file patterns.
     //
-    registerExtension(
-        ANALYZE_FILE_EXTENSION_POINT_ID,
-        (File file) => AnalysisEngine.isDartFileName(file.path) ||
-            AnalysisEngine.isHtmlFileName(file.path) ||
-            AnalysisEngine.isAnalysisOptionsFileName(file.path));
+    List<String> patterns = <String>[
+      '/**/*.${AnalysisEngine.SUFFIX_DART}',
+      '/**/*.${AnalysisEngine.SUFFIX_HTML}',
+      '/**/*.${AnalysisEngine.SUFFIX_HTM}',
+      '/**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}'
+    ];
+    registerExtension(ANALYZED_FILE_PATTERNS_EXTENSION_POINT_ID, patterns);
     //
     // Register assist contributors.
     //
@@ -318,18 +327,29 @@ class ServerPlugin implements Plugin {
     //
     registerExtension(
         INDEX_CONTRIBUTOR_EXTENSION_POINT_ID, new DartIndexContributor());
+  }
 
+  /**
+   * Return `true` if the list being used as an [extension] contains any
+   * elements that are not strings.
+   */
+  bool _containsNonString(List extension) {
+    for (Object element in extension) {
+      if (element is! String) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
    * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid assist contributor.
+   * valid list of analyzed file patterns.
    */
-  void _validateAnalyzeFileExtension(Object extension) {
-    if (extension is! ShouldAnalyzeFile) {
-      String id = analyzeFileExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError(
-          'Extensions to $id must be a ShouldAnalyzeFile function');
+  void _validateAnalyzedFilePatternsExtension(Object extension) {
+    if (extension is! List || _containsNonString(extension)) {
+      String id = analyzedFilePatternsExtensionPoint.uniqueIdentifier;
+      throw new ExtensionError('Extensions to $id must be a List of Strings');
     }
   }
 

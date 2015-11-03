@@ -6,41 +6,35 @@
  * Support for client code that extends the set of files being analyzed by the
  * analysis server.
  *
- * Plugins can register a function that takes a [File] and returns a [bool]
- * indicating whether the plugin is interested in having that file be analyzed.
- * The analysis server will invoke the contributed functions and analyze the
- * file if at least one of the functions returns `true`. (The server is not
- * required to invoke every function with every file.)
+ * Plugins can contribute a list of file patterns. Any file whose path matches
+ * one or more of the contributed patterns will be analyzed. The file patterns
+ * are interpreted as glob patterns as defined by the 'glob' package.
  *
- * If a plugin is interested in analyzing a certain kind of files, it needs to
- * ensure that files of that kind will be analyzed. It should register a
- * function by including code like the following in the plugin's
+ * If a plugin is interested in analyzing a certain kind of file, it needs to
+ * ensure that files of that kind will be analyzed. It should register a list of
+ * file patterns by including code like the following in the plugin's
  * registerExtensions method:
  *
  *     @override
  *     void registerExtensions(RegisterExtension registerExtension) {
  *       ...
  *       registerExtension(
- *           ANALYZE_FILE_EXTENSION_POINT_ID,
- *           (File file) => file.path.endsWith(...));
+ *           ANALYZED_FILE_PATTERNS_EXTENSION_POINT_ID,
+ *           ['*.yaml']);
  *       ...
  *     }
  */
 library analysis_server.plugin.analysis.analyzed_files;
 
 import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:plugin/plugin.dart';
 
 /**
- * The identifier of the extension point that allows plugins to register
- * functions that can cause files to be analyzed. The object used as an
- * extension must be a [ShouldAnalyzeFile] function.
+ * The identifier of the extension point that allows plugins to cause certain
+ * kinds of files to be analyzed. The object used as an extension must be a list
+ * of strings. The strings are interpreted as glob patterns as defined by the
+ * 'glob' package.
  */
-final String ANALYZE_FILE_EXTENSION_POINT_ID = Plugin.join(
-    ServerPlugin.UNIQUE_IDENTIFIER, ServerPlugin.ANALYZE_FILE_EXTENSION_POINT);
-
-/**
- * A function that returns `true` if the given [file] should be analyzed.
- */
-typedef bool ShouldAnalyzeFile(File file);
+final String ANALYZED_FILE_PATTERNS_EXTENSION_POINT_ID = Plugin.join(
+    ServerPlugin.UNIQUE_IDENTIFIER,
+    ServerPlugin.ANALYZED_FILE_PATTERNS_EXTENSION_POINT);
