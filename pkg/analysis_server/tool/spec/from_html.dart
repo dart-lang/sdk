@@ -138,8 +138,9 @@ void checkName(dom.Element element, String expectedName, [String context]) {
 Domain domainFromHtml(dom.Element html) {
   checkName(html, 'domain');
   String name = html.attributes['name'];
-  String context = name != null ? name : 'domain';
-  checkAttributes(html, ['name'], context);
+  String context = name ?? 'domain';
+  bool experimental = html.attributes['experimental'] == 'true';
+  checkAttributes(html, ['name'], context, optionalAttributes: ['experimental']);
   List<Request> requests = <Request>[];
   List<Notification> notifications = <Notification>[];
   recurse(html, context, {
@@ -150,7 +151,7 @@ Domain domainFromHtml(dom.Element html) {
       notifications.add(notificationFromHtml(child, context));
     }
   });
-  return new Domain(name, requests, notifications, html);
+  return new Domain(name, experimental, requests, notifications, html);
 }
 
 dom.Element getAncestor(dom.Element html, String name, String context) {

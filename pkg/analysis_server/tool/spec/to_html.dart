@@ -222,7 +222,10 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   void generateIndex() {
     h3(() => write('Domains'));
     for (var domain in api.domains) {
-      if (domain.requests.length == 0 && domain.notifications == 0) continue;
+      if (domain.experimental ||
+          (domain.requests.length == 0 && domain.notifications == 0)) {
+        continue;
+      }
       generateDomainIndex(domain);
     }
 
@@ -394,6 +397,9 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
   @override
   void visitDomain(Domain domain) {
+    if (domain.experimental) {
+      return;
+    }
     h2('domain', () {
       anchor('domain_${domain.name}', () {
         write('Domain: ${domain.name}');

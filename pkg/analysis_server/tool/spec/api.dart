@@ -60,10 +60,12 @@ abstract class ApiVisitor<T> {
  */
 class Domain extends ApiNode {
   final String name;
+  final bool experimental;
   final List<Request> requests;
   final List<Notification> notifications;
 
-  Domain(this.name, this.requests, this.notifications, dom.Element html)
+  Domain(this.name, this.experimental, this.requests, this.notifications,
+      dom.Element html)
       : super(html);
 }
 
