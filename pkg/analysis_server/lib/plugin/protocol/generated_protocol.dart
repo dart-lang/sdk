@@ -15000,8 +15000,8 @@ class ConvertMethodToGetterOptions {
  * extractLocalVariable feedback
  *
  * {
- *   "coveringExpressionOffsets": List<int>
- *   "coveringExpressionLengths": List<int>
+ *   "coveringExpressionOffsets": optional List<int>
+ *   "coveringExpressionLengths": optional List<int>
  *   "names": List<String>
  *   "offsets": List<int>
  *   "lengths": List<int>
@@ -15031,7 +15031,6 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
    * the down most to the up most.
    */
   void set coveringExpressionOffsets(List<int> value) {
-    assert(value != null);
     this._coveringExpressionOffsets = value;
   }
 
@@ -15046,7 +15045,6 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
    * the down most to the up most.
    */
   void set coveringExpressionLengths(List<int> value) {
-    assert(value != null);
     this._coveringExpressionLengths = value;
   }
 
@@ -15097,7 +15095,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
     this._lengths = value;
   }
 
-  ExtractLocalVariableFeedback(List<int> coveringExpressionOffsets, List<int> coveringExpressionLengths, List<String> names, List<int> offsets, List<int> lengths) {
+  ExtractLocalVariableFeedback(List<String> names, List<int> offsets, List<int> lengths, {List<int> coveringExpressionOffsets, List<int> coveringExpressionLengths}) {
     this.coveringExpressionOffsets = coveringExpressionOffsets;
     this.coveringExpressionLengths = coveringExpressionLengths;
     this.names = names;
@@ -15113,14 +15111,10 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
       List<int> coveringExpressionOffsets;
       if (json.containsKey("coveringExpressionOffsets")) {
         coveringExpressionOffsets = jsonDecoder.decodeList(jsonPath + ".coveringExpressionOffsets", json["coveringExpressionOffsets"], jsonDecoder.decodeInt);
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "coveringExpressionOffsets");
       }
       List<int> coveringExpressionLengths;
       if (json.containsKey("coveringExpressionLengths")) {
         coveringExpressionLengths = jsonDecoder.decodeList(jsonPath + ".coveringExpressionLengths", json["coveringExpressionLengths"], jsonDecoder.decodeInt);
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "coveringExpressionLengths");
       }
       List<String> names;
       if (json.containsKey("names")) {
@@ -15140,7 +15134,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
       } else {
         throw jsonDecoder.missingKey(jsonPath, "lengths");
       }
-      return new ExtractLocalVariableFeedback(coveringExpressionOffsets, coveringExpressionLengths, names, offsets, lengths);
+      return new ExtractLocalVariableFeedback(names, offsets, lengths, coveringExpressionOffsets: coveringExpressionOffsets, coveringExpressionLengths: coveringExpressionLengths);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "extractLocalVariable feedback", json);
     }
@@ -15148,8 +15142,12 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["coveringExpressionOffsets"] = coveringExpressionOffsets;
-    result["coveringExpressionLengths"] = coveringExpressionLengths;
+    if (coveringExpressionOffsets != null) {
+      result["coveringExpressionOffsets"] = coveringExpressionOffsets;
+    }
+    if (coveringExpressionLengths != null) {
+      result["coveringExpressionLengths"] = coveringExpressionLengths;
+    }
     result["names"] = names;
     result["offsets"] = offsets;
     result["lengths"] = lengths;

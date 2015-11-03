@@ -1881,7 +1881,7 @@ main() {
     await waitForTasksFinished();
     Request request =
         new EditGetAvailableRefactoringsParams(testFile, 0, 0).toRequest('0');
-    return _assertErrorResposeNoIndex(request);
+    return _assertErrorResponseNoIndex(request);
   }
 
   test_getRefactoring_noSearchEngine() async {
@@ -1894,10 +1894,10 @@ main() {
     Request request = new EditGetRefactoringParams(
             RefactoringKind.EXTRACT_LOCAL_VARIABLE, testFile, 0, 0, true)
         .toRequest('0');
-    return _assertErrorResposeNoIndex(request);
+    return _assertErrorResponseNoIndex(request);
   }
 
-  _assertErrorResposeNoIndex(Request request) async {
+  _assertErrorResponseNoIndex(Request request) async {
     Response response = await serverChannel.sendRequest(request);
     expect(response.error, isNotNull);
     expect(response.error.code, RequestErrorCode.NO_INDEX_GENERATED);

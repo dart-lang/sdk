@@ -2243,8 +2243,8 @@ final Matcher isConvertMethodToGetterOptions = isNull;
  * extractLocalVariable feedback
  *
  * {
- *   "coveringExpressionOffsets": List<int>
- *   "coveringExpressionLengths": List<int>
+ *   "coveringExpressionOffsets": optional List<int>
+ *   "coveringExpressionLengths": optional List<int>
  *   "names": List<String>
  *   "offsets": List<int>
  *   "lengths": List<int>
@@ -2252,11 +2252,12 @@ final Matcher isConvertMethodToGetterOptions = isNull;
  */
 final Matcher isExtractLocalVariableFeedback = new LazyMatcher(() => new MatchesJsonObject(
   "extractLocalVariable feedback", {
-    "coveringExpressionOffsets": isListOf(isInt),
-    "coveringExpressionLengths": isListOf(isInt),
     "names": isListOf(isString),
     "offsets": isListOf(isInt),
     "lengths": isListOf(isInt)
+  }, optionalFields: {
+    "coveringExpressionOffsets": isListOf(isInt),
+    "coveringExpressionLengths": isListOf(isInt)
   }));
 
 /**

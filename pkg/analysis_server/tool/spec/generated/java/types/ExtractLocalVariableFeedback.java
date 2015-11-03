@@ -96,8 +96,8 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
   }
 
   public static ExtractLocalVariableFeedback fromJson(JsonObject jsonObject) {
-    int[] coveringExpressionOffsets = JsonUtilities.decodeIntArray(jsonObject.get("coveringExpressionOffsets").getAsJsonArray());
-    int[] coveringExpressionLengths = JsonUtilities.decodeIntArray(jsonObject.get("coveringExpressionLengths").getAsJsonArray());
+    int[] coveringExpressionOffsets = jsonObject.get("coveringExpressionOffsets") == null ? null : JsonUtilities.decodeIntArray(jsonObject.get("coveringExpressionOffsets").getAsJsonArray());
+    int[] coveringExpressionLengths = jsonObject.get("coveringExpressionLengths") == null ? null : JsonUtilities.decodeIntArray(jsonObject.get("coveringExpressionLengths").getAsJsonArray());
     List<String> names = JsonUtilities.decodeStringList(jsonObject.get("names").getAsJsonArray());
     int[] offsets = JsonUtilities.decodeIntArray(jsonObject.get("offsets").getAsJsonArray());
     int[] lengths = JsonUtilities.decodeIntArray(jsonObject.get("lengths").getAsJsonArray());
@@ -168,16 +168,20 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
-    JsonArray jsonArrayCoveringExpressionOffsets = new JsonArray();
-    for (int elt : coveringExpressionOffsets) {
-      jsonArrayCoveringExpressionOffsets.add(new JsonPrimitive(elt));
+    if (coveringExpressionOffsets != null) {
+      JsonArray jsonArrayCoveringExpressionOffsets = new JsonArray();
+      for (int elt : coveringExpressionOffsets) {
+        jsonArrayCoveringExpressionOffsets.add(new JsonPrimitive(elt));
+      }
+      jsonObject.add("coveringExpressionOffsets", jsonArrayCoveringExpressionOffsets);
     }
-    jsonObject.add("coveringExpressionOffsets", jsonArrayCoveringExpressionOffsets);
-    JsonArray jsonArrayCoveringExpressionLengths = new JsonArray();
-    for (int elt : coveringExpressionLengths) {
-      jsonArrayCoveringExpressionLengths.add(new JsonPrimitive(elt));
+    if (coveringExpressionLengths != null) {
+      JsonArray jsonArrayCoveringExpressionLengths = new JsonArray();
+      for (int elt : coveringExpressionLengths) {
+        jsonArrayCoveringExpressionLengths.add(new JsonPrimitive(elt));
+      }
+      jsonObject.add("coveringExpressionLengths", jsonArrayCoveringExpressionLengths);
     }
-    jsonObject.add("coveringExpressionLengths", jsonArrayCoveringExpressionLengths);
     JsonArray jsonArrayNames = new JsonArray();
     for (String elt : names) {
       jsonArrayNames.add(new JsonPrimitive(elt));
