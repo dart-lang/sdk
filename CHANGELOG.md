@@ -32,6 +32,18 @@
     the last release to contain the Resource class.
 
 * `dart:io`
+  * **Breaking:** Secure networking has changed, replacing the NSS library
+    with the BoringSSL library. `SecureSocket`, `SecureServerSocket`,
+    `RawSecureSocket`,`RawSecureServerSocket`, `HttpClient`, and `HttpServer`
+    now all use a `SecurityContext` object which contains the certificates
+    and keys used for secure TLS (SSL) networking.
+
+    This is a breaking change for server applications and for some client
+    applications. Certificates and keys are loaded into the `SecurityContext`
+    from PEM files, instead of from an NSS certificate database. Information
+    about how to change applications that use secure networking is at
+    https://www.dartlang.org/server/tls-ssl.html
+
   * `HttpClient` no longer sends URI fragments in the request. This is not
     allowed by the HTTP protocol.
     The `HttpServer` still gracefully receives fragments, but discards them
