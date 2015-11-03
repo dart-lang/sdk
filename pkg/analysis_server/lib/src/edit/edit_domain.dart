@@ -628,6 +628,10 @@ class _RefactoringManager {
       feedback.names = refactoring.names;
       feedback.offsets = refactoring.offsets;
       feedback.lengths = refactoring.lengths;
+      feedback.coveringExpressionOffsets =
+          refactoring.coveringExpressionOffsets;
+      feedback.coveringExpressionLengths =
+          refactoring.coveringExpressionLengths;
     }
     if (refactoring is ExtractMethodRefactoring) {
       ExtractMethodRefactoring refactoring = this.refactoring;

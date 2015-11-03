@@ -275,6 +275,26 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
     super.tearDown();
   }
 
+  test_coveringExpressions() {
+    addTestFile('''
+main() {
+  var v = 111 + 222 + 333;
+}
+''');
+    return getRefactoringResult(() {
+      return sendExtractRequest(testCode.indexOf('222 +'), 0, 'res', true);
+    }).then((result) {
+      ExtractLocalVariableFeedback feedback = result.feedback;
+      expect(feedback.coveringExpressionOffsets, [
+        testCode.indexOf('222 +'),
+        testCode.indexOf('111 +'),
+        testCode.indexOf('111 +')
+      ]);
+      expect(feedback.coveringExpressionLengths,
+          ['222'.length, '111 + 222'.length, '111 + 222 + 333'.length]);
+    });
+  }
+
   test_extractAll() {
     addTestFile('''
 main() {
