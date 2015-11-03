@@ -24,6 +24,7 @@ RawArray* ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
 
 RawObject* DartEntry::InvokeFunction(const Function& function,
                                      const Array& arguments) {
+  ASSERT(Thread::Current()->IsMutatorThread());
   const Array& arguments_descriptor =
       Array::Handle(ArgumentsDescriptor::New(arguments.Length()));
   return InvokeFunction(function, arguments, arguments_descriptor);

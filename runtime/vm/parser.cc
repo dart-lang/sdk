@@ -1429,8 +1429,10 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
   }
 
   if (func.HasOptionalNamedParameters()) {
+    // TODO(srdjan): Must allocate array in old space, since it
+    // runs in background compiler. Find a better way.
     const Array& arg_names =
-        Array::ZoneHandle(Array::New(func.NumOptionalParameters()));
+        Array::ZoneHandle(Array::New(func.NumOptionalParameters(), Heap::kOld));
     for (intptr_t i = 0; i < arg_names.Length(); ++i) {
       intptr_t index = func.num_fixed_parameters() + i;
       arg_names.SetAt(i, String::Handle(func.ParameterNameAt(index)));

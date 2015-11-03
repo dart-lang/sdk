@@ -161,6 +161,7 @@ uword Heap::AllocatePretenured(intptr_t size) {
 void Heap::AllocateExternal(intptr_t size, Space space) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   if (space == kNew) {
+    isolate()->AssertCurrentThreadIsMutator();
     new_space_.AllocateExternal(size);
     if (new_space_.ExternalInWords() > (FLAG_new_gen_ext_limit * MBInWords)) {
       // Attempt to free some external allocation by a scavenge. (If the total
@@ -178,6 +179,7 @@ void Heap::AllocateExternal(intptr_t size, Space space) {
 
 void Heap::FreeExternal(intptr_t size, Space space) {
   if (space == kNew) {
+    isolate()->AssertCurrentThreadIsMutator();
     new_space_.FreeExternal(size);
   } else {
     ASSERT(space == kOld);

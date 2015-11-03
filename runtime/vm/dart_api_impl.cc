@@ -382,6 +382,7 @@ Dart_Handle Api::NewHandle(Isolate* isolate, RawObject* raw) {
 
 RawObject* Api::UnwrapHandle(Dart_Handle object) {
 #if defined(DEBUG)
+  ASSERT(Thread::Current()->IsMutatorThread());
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ApiState* state = isolate->api_state();

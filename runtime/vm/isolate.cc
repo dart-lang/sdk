@@ -1649,15 +1649,15 @@ void Isolate::LowLevelShutdown() {
 
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
+  // Wait until all background compilation has finished.
+  BackgroundCompiler::Stop(background_compiler_);
+
 #if defined(DEBUG)
   if (heap_ != NULL) {
     // The VM isolate keeps all objects marked.
     heap_->Verify(this == Dart::vm_isolate() ? kRequireMarked : kForbidMarked);
   }
 #endif  // DEBUG
-
-  // Wait until all background compilation has finished.
-  BackgroundCompiler::Stop(background_compiler_);
 
   Thread* thread = Thread::Current();
 
@@ -1938,6 +1938,7 @@ void Isolate::set_default_tag(const UserTag& tag) {
 
 
 void Isolate::set_deoptimized_code_array(const GrowableObjectArray& value) {
+  ASSERT(Thread::Current()->IsMutatorThread());
   deoptimized_code_array_ = value.raw();
 }
 

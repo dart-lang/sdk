@@ -1497,7 +1497,7 @@ class CompilationWorkQueue : public ValueObject {
     }
     // Insert new element in front.
     Object& f = Object::Handle();
-    data_->Add(f);
+    data_->Add(f, Heap::kOld);
     for (intptr_t i = data_->Length() - 1; i > 0; i--) {
       f = data_->At(i - 1);
       data_->SetAt(i, f);
@@ -1629,8 +1629,8 @@ void BackgroundCompiler::Run() {
     {
       Thread* thread = Thread::Current();
       StackZone stack_zone(thread);
-      HANDLESCOPE(thread);
       Zone* zone = stack_zone.GetZone();
+      HANDLESCOPE(thread);
       Function& function = Function::Handle(zone);
       Function& temp_function = Function::Handle(zone);
       function = LastFunctionOrNull();
@@ -1664,7 +1664,10 @@ void BackgroundCompiler::Run() {
         ml.Wait();
       }
     }
-  }
+  }  // while running
+
+  compilation_function_queue_ = GrowableObjectArray::null();
+  compilation_result_queue_ = GrowableObjectArray::null();
   {
     // Notify that the thread is done.
     MonitorLocker ml_done(done_monitor_);
@@ -1772,7 +1775,7 @@ void BackgroundCompiler::Stop(BackgroundCompiler* task) {
   if (task == NULL) {
     return;
   }
-  Monitor* monitor = task->queue_monitor_;
+  Monitor* queue_monitor = task->queue_monitor_;
   Monitor* done_monitor = task->done_monitor_;
   bool* task_done = task->done_;
   // Wake up compiler task and stop it.
@@ -1792,7 +1795,7 @@ void BackgroundCompiler::Stop(BackgroundCompiler* task) {
   }
   delete task_done;
   delete done_monitor;
-  delete monitor;
+  delete queue_monitor;
   Isolate::Current()->set_background_compiler(NULL);
 }
 
@@ -1805,10 +1808,17 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
     if (isolate->background_compiler() == NULL) {
       BackgroundCompiler* task = new BackgroundCompiler(isolate);
       isolate->set_background_compiler(task);
-      task->set_compilation_function_queue(GrowableObjectArray::Handle(
-          thread->zone(), GrowableObjectArray::New()));
-      task->set_compilation_result_queue(GrowableObjectArray::Handle(
-          thread->zone(), GrowableObjectArray::New()));
+      // TODO(srdjan): Temporary fix to prevent growing (and thus GC-ing) of
+      // queues while inside a MonitorLocker. Will replace GrowableObjectArray
+      // with C heap allocated linked list.
+      GrowableObjectArray& a = GrowableObjectArray::Handle(
+          thread->zone(), GrowableObjectArray::New(Heap::kOld));
+      a.Grow(1000, Heap::kOld);
+      task->set_compilation_function_queue(a);
+
+      a = GrowableObjectArray::New(Heap::kOld);
+      a.Grow(1000, Heap::kOld);
+      task->set_compilation_result_queue(a);
       start_task = true;
     }
   }
