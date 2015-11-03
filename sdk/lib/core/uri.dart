@@ -2251,6 +2251,11 @@ class Uri {
   static const int _LOWER_CASE_Z = 0x7A;
   static const int _BAR = 0x7C;
 
+  // Matches a String that _uriEncodes to itself regardless of the kind of
+  // component.  This corresponds to [_unreservedTable], i.e. characters that
+  // are not encoded by any encoding table.
+  static final RegExp _needsNoEncoding = new RegExp(r'^[\-\.0-9A-Z_a-z~]*$');
+
   /**
    * This is the internal implementation of JavaScript's encodeURI function.
    * It encodes all characters in the string [text] except for those
@@ -2260,6 +2265,8 @@ class Uri {
                            String text,
                            {Encoding encoding: UTF8,
                             bool spaceToPlus: false}) {
+    if (_needsNoEncoding.hasMatch(text)) return text;
+
     byteToHex(byte, buffer) {
       const String hex = '0123456789ABCDEF';
       buffer.writeCharCode(hex.codeUnitAt(byte >> 4));
