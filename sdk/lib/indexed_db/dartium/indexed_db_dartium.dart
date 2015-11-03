@@ -358,7 +358,7 @@ class Database extends EventTarget {
   
   @DomName('IDBDatabase.objectStoreNames')
   @DocsEditable()
-  List<String> get objectStoreNames => _blink.BlinkIDBDatabase.instance.objectStoreNames_Getter_(unwrap_jso(this));
+  List<String> get objectStoreNames => wrap_jso(_blink.BlinkIDBDatabase.instance.objectStoreNames_Getter_(unwrap_jso(this)));
   
   @DomName('IDBDatabase.version')
   @DocsEditable()
@@ -998,7 +998,7 @@ class ObjectStore extends DartHtmlDomObject {
   
   @DomName('IDBObjectStore.indexNames')
   @DocsEditable()
-  List<String> get indexNames => _blink.BlinkIDBObjectStore.instance.indexNames_Getter_(unwrap_jso(this));
+  List<String> get indexNames => wrap_jso(_blink.BlinkIDBObjectStore.instance.indexNames_Getter_(unwrap_jso(this)));
   
   @DomName('IDBObjectStore.keyPath')
   @DocsEditable()
