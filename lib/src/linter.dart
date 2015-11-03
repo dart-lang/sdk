@@ -61,9 +61,6 @@ class DartLinter implements AnalysisErrorListener {
   /// Creates a new linter.
   DartLinter(this.options, {this.reporter: const PrintingReporter()});
 
-  factory DartLinter.forRules(Iterable<LintRule> ruleSet) =>
-      new DartLinter(new LinterOptions(ruleSet));
-
   Iterable<AnalysisErrorInfo> lintFiles(List<File> files) {
     List<AnalysisErrorInfo> errors = [];
     var analysisDriver = new AnalysisDriver(options);

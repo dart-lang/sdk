@@ -353,8 +353,12 @@ testRule(String ruleName, File file, {bool debug: false}) {
       ++lineNumber;
     }
 
-    DartLinter driver = new DartLinter.forRules(
-        [ruleRegistry[ruleName]].where((rule) => rule != null));
+    LinterOptions options = new LinterOptions(
+        [ruleRegistry[ruleName]].where((rule) => rule != null))
+      ..useMockSdk = true
+      ..packageRootPath = '.';
+
+    DartLinter driver = new DartLinter(options);
 
     Iterable<AnalysisErrorInfo> lints = driver.lintFiles([file]);
 
@@ -369,7 +373,6 @@ testRule(String ruleName, File file, {bool debug: false}) {
     try {
       expect(actual, unorderedMatches(expected));
     } on Error catch (e) {
-
       if (debug) {
         // Dump results for debugging purposes.
 

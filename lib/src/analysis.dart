@@ -25,6 +25,7 @@ import 'package:linter/src/io.dart';
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/project.dart';
 import 'package:linter/src/rules.dart';
+import 'package:linter/src/sdk.dart';
 import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
@@ -62,8 +63,12 @@ class AnalysisDriver {
   int get numSourcesAnalyzed => _sourcesAnalyzed.length;
 
   List<UriResolver> get resolvers {
-    DartSdk sdk = new DirectoryBasedDartSdk(new JavaFile(sdkDir));
+    DartSdk sdk = options.useMockSdk
+        ? new MockSdk()
+        : new DirectoryBasedDartSdk(new JavaFile(sdkDir));
+
     List<UriResolver> resolvers = [new DartUriResolver(sdk)];
+
     if (options.packageRootPath != null) {
       JavaFile packageDirectory = new JavaFile(options.packageRootPath);
       resolvers.add(new PackageUriResolver([packageDirectory]));
@@ -78,6 +83,7 @@ class AnalysisDriver {
             PhysicalResourceProvider.INSTANCE, packageMap));
       }
     }
+
     // File URI resolver must come last so that files inside "/lib" are
     // are analyzed via "package:" URI's.
     resolvers.add(new FileUriResolver());
@@ -211,16 +217,19 @@ class DriverOptions {
   /// The path to the package root.
   String packageRootPath;
 
+  /// If non-null, the function to use to run pub list.  This is used to mock
+  /// out executions of pub list when testing the linter.
+  RunPubList runPubList = null;
+
   /// Whether to show SDK warnings.
   bool showSdkWarnings = false;
+
+  /// Whether to use a mock SDK (to speed up testing).
+  bool useMockSdk = false;
 
   /// Whether to show lints for the transitive closure of imported and exported
   /// libraries.
   bool visitTransitiveClosure = false;
-
-  /// If non-null, the function to use to run pub list.  This is used to mock
-  /// out executions of pub list when testing the linter.
-  RunPubList runPubList = null;
 }
 
 /// Prints logging information comments to the [outSink] and error messages to
