@@ -358,4 +358,3 @@ mirrors/typedef_library_test: Crash # Assertion failure: typedef(G) has not been
 mirrors/*: SkipByDesign
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
-async/stream_periodic3_test: Pass, Fail  # Flaky. Issue 24788
