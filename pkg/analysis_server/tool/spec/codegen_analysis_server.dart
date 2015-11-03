@@ -7,20 +7,14 @@
  */
 library java.generator.server;
 
+import 'package:analyzer/src/codegen/tools.dart';
+
 import 'api.dart';
 import 'codegen_java.dart';
-import 'codegen_tools.dart';
 
 final GeneratedFile target = javaGeneratedFile(
-    'generated/java/AnalysisServer.java',
+    'tool/spec/generated/java/AnalysisServer.java',
     (Api api) => new CodegenAnalysisServer(api));
-
-/**
- * Translate spec_input.html into AnalysisServer.java.
- */
-main() {
-  target.generate();
-}
 
 class CodegenAnalysisServer extends CodegenJavaVisitor {
   CodegenAnalysisServer(Api api) : super(api);

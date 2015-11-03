@@ -7,10 +7,10 @@
  */
 library CodegenJava;
 
+import 'package:analyzer/src/codegen/tools.dart';
 import 'package:html/dom.dart' as dom;
 
 import 'api.dart';
-import 'codegen_tools.dart';
 import 'from_html.dart';
 import 'to_html.dart';
 
@@ -20,8 +20,8 @@ import 'to_html.dart';
  */
 GeneratedFile javaGeneratedFile(
     String path, CodegenJavaVisitor createVisitor(Api api)) {
-  return new GeneratedFile(path, () {
-    CodegenJavaVisitor visitor = createVisitor(readApi());
+  return new GeneratedFile(path, (String pkgPath) {
+    CodegenJavaVisitor visitor = createVisitor(readApi(pkgPath));
     return visitor.collectCode(visitor.visitApi);
   });
 }

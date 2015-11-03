@@ -9,11 +9,12 @@ library from.html;
 
 import 'dart:io';
 
+import 'package:analyzer/src/codegen/html.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart' as parser;
+import 'package:path/path.dart';
 
 import 'api.dart';
-import 'html_tools.dart';
 
 const List<String> specialElements = const [
   'domain',
@@ -287,10 +288,11 @@ List<TypeDecl> processContentsAsTypes(dom.Element html, String context) {
 }
 
 /**
- * Read the API description from the file 'spec_input.html'.
+ * Read the API description from the file 'spec_input.html'.  [pkgPath] is the
+ * path to the current package.
  */
-Api readApi() {
-  File htmlFile = new File('spec_input.html');
+Api readApi(String pkgPath) {
+  File htmlFile = new File(join(pkgPath, 'tool', 'spec', 'spec_input.html'));
   String htmlContents = htmlFile.readAsStringSync();
   dom.Document document = parser.parse(htmlContents);
   dom.Element htmlElement = document.children

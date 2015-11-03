@@ -9,24 +9,18 @@ library codegen.matchers;
 
 import 'dart:convert';
 
+import 'package:analyzer/src/codegen/tools.dart';
+
 import 'api.dart';
-import 'codegen_tools.dart';
 import 'from_html.dart';
 import 'implied_types.dart';
 import 'to_html.dart';
 
-final GeneratedFile target =
-    new GeneratedFile('../../test/integration/protocol_matchers.dart', () {
-  CodegenMatchersVisitor visitor = new CodegenMatchersVisitor(readApi());
+final GeneratedFile target = new GeneratedFile(
+    'test/integration/protocol_matchers.dart', (String pkgPath) {
+  CodegenMatchersVisitor visitor = new CodegenMatchersVisitor(readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });
-
-/**
- * Translate spec_input.html into protocol_matchers.dart.
- */
-main() {
-  target.generate();
-}
 
 class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   /**
