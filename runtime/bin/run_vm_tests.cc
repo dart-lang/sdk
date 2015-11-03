@@ -5,11 +5,10 @@
 #include <stdio.h>
 
 #include "bin/file.h"
-#include "bin/dartutils.h"
-#include "bin/platform.h"
 
 #include "vm/benchmark_test.h"
 #include "vm/dart.h"
+#include "bin/dartutils.h"
 #include "vm/unit_test.h"
 
 
@@ -134,5 +133,5 @@ static int Main(int argc, const char** argv) {
 
 
 int main(int argc, const char** argv) {
-  dart::bin::Platform::Exit(dart::Main(argc, argv));
+  return dart::Main(argc, argv);
 }
