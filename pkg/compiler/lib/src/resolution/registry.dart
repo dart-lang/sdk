@@ -182,26 +182,12 @@ class ResolutionRegistry extends Registry {
     mapping.setSelector(node, selector);
   }
 
-  Selector getSelector(Node node) => mapping.getSelector(node);
-
   void setGetterSelectorInComplexSendSet(SendSet node, Selector selector) {
     mapping.setGetterSelectorInComplexSendSet(node, selector);
   }
 
   void setOperatorSelectorInComplexSendSet(SendSet node, Selector selector) {
     mapping.setOperatorSelectorInComplexSendSet(node, selector);
-  }
-
-  void setIteratorSelector(ForIn node, Selector selector) {
-    mapping.setIteratorSelector(node, selector);
-  }
-
-  void setMoveNextSelector(ForIn node, Selector selector) {
-    mapping.setMoveNextSelector(node, selector);
-  }
-
-  void setCurrentSelector(ForIn node, Selector selector) {
-    mapping.setCurrentSelector(node, selector);
   }
 
   //////////////////////////////////////////////////////////////////////////////

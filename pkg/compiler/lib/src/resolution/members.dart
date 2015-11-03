@@ -4254,10 +4254,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolutionResult visitAsyncForIn(AsyncForIn node) {
     registry.registerAsyncForIn(node);
-    registry.setCurrentSelector(node, Selectors.current);
     registry.registerDynamicUse(
         new UniverseSelector(Selectors.current, null));
-    registry.setMoveNextSelector(node, Selectors.moveNext);
     registry.registerDynamicUse(
         new UniverseSelector(Selectors.moveNext, null));
 
@@ -4271,13 +4269,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolutionResult visitSyncForIn(SyncForIn node) {
     registry.registerSyncForIn(node);
-    registry.setIteratorSelector(node, Selectors.iterator);
     registry.registerDynamicUse(
         new UniverseSelector(Selectors.iterator, null));
-    registry.setCurrentSelector(node, Selectors.current);
     registry.registerDynamicUse(
         new UniverseSelector(Selectors.current, null));
-    registry.setMoveNextSelector(node, Selectors.moveNext);
     registry.registerDynamicUse(
         new UniverseSelector(Selectors.moveNext, null));
 

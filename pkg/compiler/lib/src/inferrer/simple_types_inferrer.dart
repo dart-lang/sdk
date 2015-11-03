@@ -2283,9 +2283,9 @@ class SimpleTypeInferrerVisitor<T>
   T visitAsyncForIn(ast.AsyncForIn node) {
     T expressionType = visit(node.expression);
 
-    Selector currentSelector = elements.getCurrentSelector(node);
+    Selector currentSelector = Selectors.current;
     TypeMask currentMask = elements.getCurrentTypeMask(node);
-    Selector moveNextSelector = elements.getMoveNextSelector(node);
+    Selector moveNextSelector = Selectors.moveNext;
     TypeMask moveNextMask = elements.getMoveNextTypeMask(node);
 
     js.JavaScriptBackend backend = compiler.backend;
@@ -2302,11 +2302,11 @@ class SimpleTypeInferrerVisitor<T>
 
   T visitSyncForIn(ast.SyncForIn node) {
     T expressionType = visit(node.expression);
-    Selector iteratorSelector = elements.getIteratorSelector(node);
+    Selector iteratorSelector = Selectors.iterator;
     TypeMask iteratorMask = elements.getIteratorTypeMask(node);
-    Selector currentSelector = elements.getCurrentSelector(node);
+    Selector currentSelector = Selectors.current;
     TypeMask currentMask = elements.getCurrentTypeMask(node);
-    Selector moveNextSelector = elements.getMoveNextSelector(node);
+    Selector moveNextSelector = Selectors.moveNext;
     TypeMask moveNextMask = elements.getMoveNextTypeMask(node);
 
     T iteratorType = handleDynamicSend(

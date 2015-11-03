@@ -7374,7 +7374,7 @@ class SsaBuilder extends ast.Visitor
     void buildInitializer() {}
 
     HInstruction buildCondition() {
-      Selector selector = elements.getMoveNextSelector(node);
+      Selector selector = Selectors.moveNext;
       TypeMask mask = elements.getMoveNextTypeMask(node);
       pushInvokeDynamic(node, selector, mask, [streamIterator]);
       HInstruction future = pop();
@@ -7383,7 +7383,7 @@ class SsaBuilder extends ast.Visitor
       return popBoolified();
     }
     void buildBody() {
-      Selector call = elements.getCurrentSelector(node);
+      Selector call = Selectors.current;
       TypeMask callMask = elements.getCurrentTypeMask(node);
       pushInvokeDynamic(node, call, callMask, [streamIterator]);
 
@@ -7443,7 +7443,7 @@ class SsaBuilder extends ast.Visitor
     // method is inlined.  We would require full scalar replacement in that
     // case.
 
-    Selector selector = elements.getIteratorSelector(node);
+    Selector selector = Selectors.iterator;
     TypeMask mask = elements.getIteratorTypeMask(node);
 
     ClassWorld classWorld = compiler.world;
@@ -7465,7 +7465,7 @@ class SsaBuilder extends ast.Visitor
     HInstruction iterator;
 
     void buildInitializer() {
-      Selector selector = elements.getIteratorSelector(node);
+      Selector selector = Selectors.iterator;
       TypeMask mask = elements.getIteratorTypeMask(node);
       visit(node.expression);
       HInstruction receiver = pop();
@@ -7474,14 +7474,14 @@ class SsaBuilder extends ast.Visitor
     }
 
     HInstruction buildCondition() {
-      Selector selector = elements.getMoveNextSelector(node);
+      Selector selector = Selectors.moveNext;
       TypeMask mask = elements.getMoveNextTypeMask(node);
       pushInvokeDynamic(node, selector, mask, [iterator]);
       return popBoolified();
     }
 
     void buildBody() {
-      Selector call = elements.getCurrentSelector(node);
+      Selector call = Selectors.current;
       TypeMask mask = elements.getCurrentTypeMask(node);
       pushInvokeDynamic(node, call, mask, [iterator]);
       buildAssignLoopVariable(node, pop());

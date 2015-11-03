@@ -45,9 +45,6 @@ abstract class TreeElements {
 
   /// Returns the for-in loop variable for [node].
   Element getForInVariable(ForIn node);
-  Selector getIteratorSelector(ForIn node);
-  Selector getMoveNextSelector(ForIn node);
-  Selector getCurrentSelector(ForIn node);
   TypeMask getIteratorTypeMask(ForIn node);
   TypeMask getMoveNextTypeMask(ForIn node);
   TypeMask getCurrentTypeMask(ForIn node);
@@ -221,34 +218,6 @@ class TreeElementMapping extends TreeElements {
 
   Selector getOperatorSelectorInComplexSendSet(SendSet node) {
     return _getSelector(node.assignmentOperator);
-  }
-
-  // The following methods set selectors on the "for in" node. Since
-  // we're using three selectors, we need to use children of the node,
-  // and we arbitrarily choose which ones.
-
-  void setIteratorSelector(ForIn node, Selector selector) {
-    _setSelector(node, selector);
-  }
-
-  Selector getIteratorSelector(ForIn node) {
-    return _getSelector(node);
-  }
-
-  void setMoveNextSelector(ForIn node, Selector selector) {
-    _setSelector(node.forToken, selector);
-  }
-
-  Selector getMoveNextSelector(ForIn node) {
-    return _getSelector(node.forToken);
-  }
-
-  void setCurrentSelector(ForIn node, Selector selector) {
-    _setSelector(node.inToken, selector);
-  }
-
-  Selector getCurrentSelector(ForIn node) {
-    return _getSelector(node.inToken);
   }
 
   Element getForInVariable(ForIn node) {
