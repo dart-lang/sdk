@@ -1338,37 +1338,8 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
       }
     }
     return;
-  } else if (node->kind() == Token::kIFNULL) {
-    // left ?? right. This operation cannot be overloaded.
-    // temp = left; temp === null ? right : temp
-    ValueGraphVisitor for_left_value(owner());
-    node->left()->Visit(&for_left_value);
-    Append(for_left_value);
-    Do(BuildStoreExprTemp(for_left_value.value()));
-
-    LocalVariable* temp_var = owner()->parsed_function().expression_temp_var();
-    LoadLocalNode* load_temp =
-        new(Z) LoadLocalNode(Scanner::kNoSourcePos, temp_var);
-    LiteralNode* null_constant =
-        new(Z) LiteralNode(Scanner::kNoSourcePos, Object::null_instance());
-    ComparisonNode* check_is_null =
-        new(Z) ComparisonNode(Scanner::kNoSourcePos,
-                              Token::kEQ_STRICT,
-                              load_temp,
-                              null_constant);
-    TestGraphVisitor for_test(owner(), Scanner::kNoSourcePos);
-    check_is_null->Visit(&for_test);
-
-    ValueGraphVisitor for_right_value(owner());
-    node->right()->Visit(&for_right_value);
-    for_right_value.Do(BuildStoreExprTemp(for_right_value.value()));
-
-    ValueGraphVisitor for_temp(owner());
-    // Nothing to do, left value is already loaded into temp.
-
-    Join(for_test, for_right_value, for_temp);
-    return;
   }
+  ASSERT(node->kind() != Token::kIFNULL);
   ValueGraphVisitor for_left_value(owner());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
@@ -1440,37 +1411,6 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
       for_true.Do(BuildStoreExprTemp(constant_true));
       Join(for_test, for_true, for_right);
     }
-    ReturnDefinition(BuildLoadExprTemp());
-    return;
-  } else if (node->kind() == Token::kIFNULL) {
-    // left ?? right. This operation cannot be overloaded.
-    // temp = left; temp === null ? right : temp
-    ValueGraphVisitor for_left_value(owner());
-    node->left()->Visit(&for_left_value);
-    Append(for_left_value);
-    Do(BuildStoreExprTemp(for_left_value.value()));
-
-    LocalVariable* temp_var = owner()->parsed_function().expression_temp_var();
-    LoadLocalNode* load_temp =
-        new(Z) LoadLocalNode(Scanner::kNoSourcePos, temp_var);
-    LiteralNode* null_constant =
-        new(Z) LiteralNode(Scanner::kNoSourcePos, Object::null_instance());
-    ComparisonNode* check_is_null =
-        new(Z) ComparisonNode(Scanner::kNoSourcePos,
-                              Token::kEQ_STRICT,
-                              load_temp,
-                              null_constant);
-    TestGraphVisitor for_test(owner(), Scanner::kNoSourcePos);
-    check_is_null->Visit(&for_test);
-
-    ValueGraphVisitor for_right_value(owner());
-    node->right()->Visit(&for_right_value);
-    for_right_value.Do(BuildStoreExprTemp(for_right_value.value()));
-
-    ValueGraphVisitor for_temp(owner());
-    // Nothing to do, left value is already loaded into temp.
-
-    Join(for_test, for_right_value, for_temp);
     ReturnDefinition(BuildLoadExprTemp());
     return;
   }

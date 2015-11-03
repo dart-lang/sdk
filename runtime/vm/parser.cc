@@ -10568,6 +10568,25 @@ AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
       }
     }
   }
+  if (binary_op == Token::kIFNULL) {
+    // Handle a ?? b.
+    LetNode* result = new(Z) LetNode(op_pos);
+    LocalVariable* left_temp = result->AddInitializer(lhs);
+    const intptr_t no_pos = Scanner::kNoSourcePos;
+    LiteralNode* null_operand =
+        new(Z) LiteralNode(no_pos, Instance::ZoneHandle(Z));
+    LoadLocalNode* load_left_temp = new(Z) LoadLocalNode(no_pos, left_temp);
+    ComparisonNode* null_compare =
+        new(Z) ComparisonNode(no_pos,
+                              Token::kNE_STRICT,
+                              load_left_temp,
+                              null_operand);
+    result->AddNode(new(Z) ConditionalExprNode(op_pos,
+                                               null_compare,
+                                               load_left_temp,
+                                               rhs));
+    return result;
+  }
   return new(Z) BinaryOpNode(op_pos, binary_op, lhs, rhs);
 }
 
@@ -10739,10 +10758,10 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
                              ifnull->right(),
                              left_ident,
                              left_pos);
-    result = new(Z) BinaryOpNode(rhs->token_pos(),
-                                 Token::kIFNULL,
-                                 ifnull->left(),
-                                 modified_assign);
+    result = OptimizeBinaryOpNode(ifnull->token_pos(),
+                                  ifnull->kind(),
+                                  ifnull->left(),
+                                  modified_assign);
   }
   return result;
 }
