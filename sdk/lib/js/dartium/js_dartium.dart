@@ -98,14 +98,16 @@ import 'dart:typed_data';
 
 // Pretend we are always in checked mode as we aren't interested in users
 // running Dartium code outside of checked mode.
+@Deprecated("Internal Use Only")
 final bool CHECK_JS_INVOCATIONS = true;
 
 final _allowedMethods = new Map<Symbol, _DeclarationSet>();
 final _allowedGetters = new Map<Symbol, _DeclarationSet>();
 final _allowedSetters = new Map<Symbol, _DeclarationSet>();
 
-final _jsInterfaceTypes = new Set<Type>();
-Iterable<Type> get jsInterfaceTypes => _jsInterfaceTypes;
+final _jsInterfaceTypes = new Set<mirrors.ClassMirror>();
+@Deprecated("Internal Use Only")
+Iterable<mirrors.ClassMirror> get jsInterfaceTypes => _jsInterfaceTypes;
 
 /// A collection of methods where all methods have the same name.
 /// This class is intended to optimize whether a specific invocation is
@@ -207,13 +209,13 @@ class _DeclarationSet {
  * Temporary method that we hope to remove at some point. This method should
  * generally only be called by machine generated code.
  */
+@Deprecated("Internal Use Only")
 void registerJsInterfaces([List<Type> classes]) {
   // This method is now obsolete in Dartium.
 }
 
 void _registerJsInterfaces(List<Type> classes) {
   for (Type type in classes) {
-    if (!_jsInterfaceTypes.add(type)) continue; // Already registered.
     mirrors.ClassMirror typeMirror = mirrors.reflectType(type);
     typeMirror.declarations.forEach((symbol, declaration) {
       if (declaration is mirrors.MethodMirror ||
@@ -266,22 +268,33 @@ String _getJsName(mirrors.DeclarationMirror mirror) {
         try {
           var name = annotation.reflectee.name;
           return name != null ? name : "";
-        } catch (e) {
-        }
+        } catch (e) {}
       }
     }
   }
   return null;
 }
 
-bool _hasJsName(mirrors.DeclarationMirror mirror) =>
-  _getJsName(mirror) != null;
+bool _isAnonymousClass(mirrors.ClassMirror mirror) {
+  for (var annotation in mirror.metadata) {
+    if (mirrors.MirrorSystem.getName(annotation.type.simpleName) ==
+        "_Anonymous") {
+      mirrors.LibraryMirror library = annotation.type.owner;
+      var uri = library.uri;
+      // make sure the annotation is from package://js
+      if (uri.scheme == 'package' && uri.path == 'js/js.dart') {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
+bool _hasJsName(mirrors.DeclarationMirror mirror) => _getJsName(mirror) != null;
 
 _getJsMemberName(mirrors.DeclarationMirror mirror) {
   var name = _getJsName(mirror);
-  return name == null || name.isEmpty ? _getDeclarationName(mirror) :
-      name;
+  return name == null || name.isEmpty ? _getDeclarationName(mirror) : name;
 }
 
 // TODO(jacobr): handle setters correctyl.
@@ -301,9 +314,13 @@ String _accessJsPath(String path) =>
     "${_JS_LIBRARY_PREFIX}.context${path.split(".").map((p) => "['$p']").join('')}";
 
 @Deprecated("Internal Use Only")
-void addMemberHelper(mirrors.MethodMirror declaration, String path, StringBuffer sb, {bool isStatic: false, String memberName}) {
-  var jsName = _getJsMemberName(declaration);
-  path = (path != null && path.isNotEmpty) ? "${path}.${jsName}" : jsName;
+void addMemberHelper(
+    mirrors.MethodMirror declaration, String path, StringBuffer sb,
+    {bool isStatic: false, String memberName}) {
+  if (!declaration.isConstructor) {
+    var jsName = _getJsMemberName(declaration);
+    path = (path != null && path.isNotEmpty) ? "${path}.${jsName}" : jsName;
+  }
   var name = memberName != null ? memberName : _getDeclarationName(declaration);
   if (declaration.isConstructor) {
     sb.write("factory");
@@ -346,7 +363,7 @@ void addMemberHelper(mirrors.MethodMirror declaration, String path, StringBuffer
     // TODO(jacobr):
     sb.write(") => ");
     if (declaration.isConstructor) {
-        sb.write("new ${_JS_LIBRARY_PREFIX}.JsObject(");
+      sb.write("new ${_JS_LIBRARY_PREFIX}.JsObject(");
     }
     sb
       ..write(_accessJsPath(path))
@@ -362,8 +379,13 @@ void addMemberHelper(mirrors.MethodMirror declaration, String path, StringBuffer
 }
 
 // TODO(jacobr): make this check more robust.
-bool _isExternal(mirrors.MethodMirror mirror) =>
-    mirror.source != null && mirror.source.startsWith("external ");
+bool _isExternal(mirrors.Mirror mirror) {
+  /*
+  var source = mirror.source;
+  return source != null && source.startsWith("external ");
+  */
+  return mirror.isExternal;
+}
 
 List<String> _generateExternalMethods() {
   var staticCodegen = <String>[];
@@ -372,49 +394,59 @@ List<String> _generateExternalMethods() {
     String jsLibraryName = _getJsName(library);
     library.declarations.forEach((name, declaration) {
       if (declaration is mirrors.MethodMirror) {
-        if (_isExternal(declaration) && (_hasJsName(declaration) || jsLibraryName != null)) {
+        if ((_hasJsName(declaration) || jsLibraryName != null) &&
+            _isExternal(declaration)) {
           addMemberHelper(declaration, jsLibraryName, sb);
         }
       } else if (declaration is mirrors.ClassMirror) {
         mirrors.ClassMirror clazz = declaration;
         if (_hasJsName(clazz)) {
           // TODO(jacobr): verify class implements JavaScriptObject.
-          assert(clazz.hasReflectedType);
-          jsInterfaceTypes.add(clazz.reflectedType);
           String jsClassName = _getJsMemberName(clazz);
           var className = mirrors.MirrorSystem.getName(clazz.simpleName);
           var sbPatch = new StringBuffer();
+          jsInterfaceTypes.add(clazz);
           clazz.declarations.forEach((name, declaration) {
-            if (declaration is! mirrors.MethodMirror || !_isExternal(declaration)) return;
-            if (declaration.isFactoryConstructor) {
-              sbPatch.write("  factory ${className}({");
+            if (declaration is! mirrors.MethodMirror ||
+                !_isExternal(declaration)) return;
+            if (declaration.isFactoryConstructor && _isAnonymousClass(clazz)) {
+              sbPatch.write("  factory ${className}(");
               int i = 0;
               var args = <String>[];
               for (var p in declaration.parameters) {
-                assert(p.isNamed); // XXX throw
                 args.add(mirrors.MirrorSystem.getName(p.simpleName));
                 i++;
               }
-              sbPatch
-                ..write(args.map((name) => '$name:${_UNDEFINED_VAR}').join(", "))
-                ..write("}) {\n"
-                        "    var ret = new ${_JS_LIBRARY_PREFIX}.JsObject.jsify({});\n");
+              if (args.isNotEmpty) {
+                sbPatch
+                  ..write('{')
+                  ..write(
+                      args.map((name) => '$name:${_UNDEFINED_VAR}').join(", "))
+                  ..write('}');
+              }
+              sbPatch.write(") {\n"
+                    "    var ret = new ${_JS_LIBRARY_PREFIX}.JsObject.jsify({});\n");
               i = 0;
               for (var p in declaration.parameters) {
                 assert(p.isNamed); // XXX throw
                 var name = args[i];
                 var jsName = mirrors.MirrorSystem.getName(p.simpleName);
                 // XXX apply name conversion rules.
-                sbPatch.write("    if($name != ${_UNDEFINED_VAR}) ret['$jsName'] = $name;\n");
+                sbPatch.write(
+                    "    if($name != ${_UNDEFINED_VAR}) ret['$jsName'] = $name;\n");
                 i++;
               }
 
               sbPatch.write("    return ret;\n"
-                            "  }\n");
-            } else if (declaration.isConstructor) {
+                  "  }\n");
+            } else if (declaration.isConstructor ||
+                declaration.isFactoryConstructor) {
               sbPatch.write("  ");
-              addMemberHelper(declaration,
-                  (jsLibraryName != null && jsLibraryName.isNotEmpty) ? "${jsLibraryName}" : "",
+              addMemberHelper(
+                  declaration,
+                  (jsLibraryName != null && jsLibraryName.isNotEmpty)
+                      ? "${jsLibraryName}.${jsClassName}"
+                      : jsClassName,
                   sbPatch,
                   isStatic: true,
                   memberName: className);
@@ -424,15 +456,136 @@ List<String> _generateExternalMethods() {
           clazz.staticMembers.forEach((memberName, member) {
             if (_isExternal(member)) {
               sbPatch.write("  ");
-              addMemberHelper(member,
-                  (jsLibraryName != null && jsLibraryName.isNotEmpty) ? "${jsLibraryName}.${jsClassName}" : jsClassName,
+              addMemberHelper(
+                  member,
+                  (jsLibraryName != null && jsLibraryName.isNotEmpty)
+                      ? "${jsLibraryName}.${jsClassName}"
+                      : jsClassName,
                   sbPatch,
                   isStatic: true);
             }
           });
+          var typeVariablesClause = '';
+          if (!clazz.typeVariables.isEmpty) {
+            typeVariablesClause =
+                '<${clazz.typeVariables.map((m) => mirrors.MirrorSystem.getName(m.simpleName)).join(',')}>';
+          }
           if (sbPatch.isNotEmpty) {
             sb.write("""
-patch class $className {
+patch class $className$typeVariablesClause {
+$sbPatch
+}
+""");
+          }
+        }
+      }
+    });
+    if (sb.isNotEmpty) {
+      staticCodegen
+        ..add(uri.toString())
+        ..add("${uri}_js_interop_patch.dart")
+        ..add("""
+import 'dart:js' as ${_JS_LIBRARY_PREFIX};
+
+/**
+ * Placeholder object for cases where we need to determine exactly how many
+ * args were passed to a function.
+ */
+const ${_UNDEFINED_VAR} = const Object();
+
+${sb}
+""");
+    }
+  });
+
+  return staticCodegen;
+}
+
+List<String> _generateExternalMethods2() {
+  var staticCodegen = <String>[];
+  mirrors.currentMirrorSystem().libraries.forEach((uri, library) {
+    var sb = new StringBuffer();
+    String jsLibraryName = _getJsName(library);
+    library.declarations.forEach((name, declaration) {
+      var isExternal = _isExternal(declaration);
+      if (declaration is mirrors.MethodMirror) {
+        if (isExternal && (_hasJsName(declaration) || jsLibraryName != null)) {
+          addMemberHelper(declaration, jsLibraryName, sb);
+        }
+      } else if (declaration is mirrors.ClassMirror) {
+        mirrors.ClassMirror clazz = declaration;
+        if (_hasJsName(clazz)) {
+          // TODO(jacobr): verify class implements JavaScriptObject.
+          String jsClassName = _getJsMemberName(clazz);
+          var className = mirrors.MirrorSystem.getName(clazz.simpleName);
+          var sbPatch = new StringBuffer();
+          jsInterfaceTypes.add(clazz);
+          clazz.declarations.forEach((name, declaration) {
+            if (declaration is! mirrors.MethodMirror ||
+                !declaration.isAbstract ||
+                !isExternal) return;
+            if (_hasLiteralAnnotation(declaration) &&
+                declaration.isFactoryConstructor) {
+              sbPatch.write("  factory ${className}({");
+              int i = 0;
+              var args = <String>[];
+              for (var p in declaration.parameters) {
+                assert(p.isNamed); // XXX throw
+                args.add(mirrors.MirrorSystem.getName(p.simpleName));
+                i++;
+              }
+              sbPatch
+                ..write(
+                    args.map((name) => '$name:${_UNDEFINED_VAR}').join(", "))
+                ..write("}) {\n"
+                    "    var ret = new ${_JS_LIBRARY_PREFIX}.JsObject.jsify({});\n");
+              i = 0;
+              for (var p in declaration.parameters) {
+                assert(p.isNamed); // XXX throw
+                var name = args[i];
+                var jsName = mirrors.MirrorSystem.getName(p.simpleName);
+                // XXX apply name conversion rules.
+                sbPatch.write(
+                    "    if($name != ${_UNDEFINED_VAR}) ret['$jsName'] = $name;\n");
+                i++;
+              }
+
+              sbPatch.write("    return ret;\n"
+                  "  }\n");
+            } else if (declaration.isConstructor ||
+                declaration.isFactoryConstructor) {
+              sbPatch.write("  ");
+              addMemberHelper(
+                  declaration,
+                  (jsLibraryName != null && jsLibraryName.isNotEmpty)
+                      ? "${jsLibraryName}.${jsClassName}"
+                      : jsClassName,
+                  sbPatch,
+                  isStatic: true,
+                  memberName: className);
+            }
+          });
+
+          clazz.staticMembers.forEach((memberName, member) {
+            if (_isExternal(member)) {
+              sbPatch.write("  ");
+              addMemberHelper(
+                  member,
+                  (jsLibraryName != null && jsLibraryName.isNotEmpty)
+                      ? "${jsLibraryName}.${jsClassName}"
+                      : jsClassName,
+                  sbPatch,
+                  isStatic: true);
+            }
+          });
+          var typeVariablesClause = '';
+          if (!clazz.typeVariables.isEmpty) {
+            typeVariablesClause =
+                '<${clazz.typeVariables.map((m) => mirrors.MirrorSystem.getName(m.simpleName)).join(',')}>';
+          }
+          if (sbPatch.isNotEmpty) {
+            sb.write("""
+patch class $className$typeVariablesClause {
 $sbPatch
 }
 """);
@@ -476,8 +629,7 @@ List<String> _generateInteropPatchFiles() {
   var implementsArray = <String>[];
   var listMirror = mirrors.reflectType(List);
 
-  for (var type in jsInterfaceTypes) {
-    mirrors.ClassMirror typeMirror = mirrors.reflectType(type);
+  for (var typeMirror in jsInterfaceTypes) {
     mirrors.LibraryMirror libraryMirror = typeMirror.owner;
     var prefixName;
     if (libraryPrefixes.containsKey(libraryMirror)) {
@@ -504,7 +656,7 @@ List<String> _generateInteropPatchFiles() {
     sb.writeln('import "${libraryMirror.uri}" as $prefix;');
   });
   buildImplementsClause(classes) =>
-      classes.isEmpty ? "" : "implements ${classes.join(', ')}"
+      classes.isEmpty ? "" : "implements ${classes.join(', ')}";
   var implementsClause = buildImplementsClause(implements);
   // TODO(jacobr): only certain classes need to be implemented by
   // JsFunctionImpl.
@@ -579,7 +731,7 @@ String _arrayJoin(List list, sep) {
 String _arrayToString(List list) => _arrayJoin(list, ",");
 
 int _arrayPush(List list, List args) {
-  for(var e in args) {
+  for (var e in args) {
     list.add(e);
   }
   return list.length;
@@ -680,6 +832,7 @@ List _arraySort(List l, rawCompare) {
  * be added. Creating an instance of JsObject will also automatically trigger
  * all JsObjects to be finalized.
  */
+@Deprecated("Internal Use Only")
 void finalizeJsInterfaces() {
   if (_finalized == true) {
     throw 'JSInterop class registration already finalized';
@@ -703,13 +856,13 @@ JsObject get context {
 _maybeWrap(o) {
   var wrapped = html_common.wrap_jso_no_SerializedScriptvalue(o);
   if (identical(wrapped, o)) return o;
-  return (wrapped is html.Blob
-      || wrapped is html.Event
-      || wrapped is indexed_db.KeyRange
-      || wrapped is html.ImageData
-      || wrapped is html.Node
-      || wrapped is TypedData
-      || wrapped is html.Window) ? wrapped : o;
+  return (wrapped is html.Blob ||
+      wrapped is html.Event ||
+      wrapped is indexed_db.KeyRange ||
+      wrapped is html.ImageData ||
+      wrapped is html.Node ||
+      wrapped is TypedData ||
+      wrapped is html.Window) ? wrapped : o;
 }
 
 /**
@@ -737,10 +890,9 @@ void setDartHtmlWrapperFor(JsObject object, wrapper) {
  */
 @Deprecated("Internal Use Only")
 unwrap_jso(dartClass_instance) {
-  if (dartClass_instance is html.DartHtmlDomObject)
-    return dartClass_instance.blink_jsObject;
-  else
-    return dartClass_instance;
+  if (dartClass_instance is html.DartHtmlDomObject &&
+      dartClass_instance is! JsObject) return dartClass_instance.blink_jsObject;
+  else return dartClass_instance;
 }
 
 /**
@@ -764,15 +916,15 @@ class JsObject extends NativeFieldWrapperClass2 {
    */
   factory JsObject(JsFunction constructor, [List arguments]) {
     try {
-      return _create(constructor, arguments);
+      return html_common.unwrap_jso(_create(constructor, arguments));
     } catch (e) {
       // Re-throw any errors (returned as a string) as a DomException.
       throw new html.DomException.jsInterop(e);
     }
   }
 
-  static JsObject _create(
-      JsFunction constructor, arguments) native "JsObject_constructorCallback";
+  static JsObject _create(JsFunction constructor, arguments)
+      native "JsObject_constructorCallback";
 
   _buildArgs(Invocation invocation) {
     if (invocation.namedArguments.isEmpty) {
@@ -839,6 +991,7 @@ class JsObject extends NativeFieldWrapperClass2 {
       throw new html.DomException.jsInterop(e);
     }
   }
+
   _operator_getter(property) native "JsObject_[]";
 
   /**
@@ -855,6 +1008,7 @@ class JsObject extends NativeFieldWrapperClass2 {
       throw new html.DomException.jsInterop(e);
     }
   }
+
   _operator_setter(property, value) native "JsObject_[]=";
 
   int get hashCode native "JsObject_hashCode";
@@ -868,8 +1022,8 @@ class JsObject extends NativeFieldWrapperClass2 {
     return is_JsObject && _identityEquality(this, other);
   }
 
-  static bool _identityEquality(
-      JsObject a, JsObject b) native "JsObject_identityEquality";
+  static bool _identityEquality(JsObject a, JsObject b)
+      native "JsObject_identityEquality";
 
   /**
    * Returns `true` if the JavaScript object contains the specified property
@@ -1019,7 +1173,7 @@ class JsFunction extends JsObject implements Function {
    * supplied it is the value of `this` for the invocation.
    */
   dynamic apply(List args, {thisArg}) =>
-    _maybeWrap(_apply(args, thisArg: thisArg));
+      _maybeWrap(_apply(args, thisArg: thisArg));
 
   dynamic _apply(List args, {thisArg}) native "JsFunction_apply";
 
@@ -1036,8 +1190,8 @@ class JsFunction extends JsObject implements Function {
    * efficiently implemented in Dart2Js so should only be used by internal
    * tools.
    */
-  _applyDebuggerOnly(List args,
-      {thisArg}) native "JsFunction_applyDebuggerOnly";
+  _applyDebuggerOnly(List args, {thisArg})
+      native "JsFunction_applyDebuggerOnly";
 
   static JsFunction _withThis(Function f) native "JsFunction_withThis";
 }
@@ -1055,8 +1209,8 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   factory JsArray.from(Iterable<E> other) =>
       _newJsArrayFromSafeList(new List.from(other));
 
-  static JsArray _newJsArrayFromSafeList(
-      List list) native "JsArray_newJsArrayFromSafeList";
+  static JsArray _newJsArrayFromSafeList(List list)
+      native "JsArray_newJsArrayFromSafeList";
 
   _checkIndex(int index, {bool insert: false}) {
     int length = insert ? this.length + 1 : this.length;
@@ -1158,11 +1312,19 @@ List _stripUndefinedArgs(List args) =>
  * Returns a method that can be called with an arbitrary number (for n less
  * than 11) of arguments without violating Dart type checks.
  */
-Function _wrapAsDebuggerVarArgsFunction(JsFunction jsFunction) =>
-    ([a1 = _UNDEFINED, a2 = _UNDEFINED, a3 = _UNDEFINED, a4 = _UNDEFINED,
-        a5 = _UNDEFINED, a6 = _UNDEFINED, a7 = _UNDEFINED, a8 = _UNDEFINED,
-        a9 = _UNDEFINED, a10 = _UNDEFINED]) => jsFunction._applyDebuggerOnly(
-            _stripUndefinedArgs([a1, a2, a3, a4, a5, a6, a7, a8, a9, a10]));
+Function _wrapAsDebuggerVarArgsFunction(JsFunction jsFunction) => (
+        [a1 = _UNDEFINED,
+        a2 = _UNDEFINED,
+        a3 = _UNDEFINED,
+        a4 = _UNDEFINED,
+        a5 = _UNDEFINED,
+        a6 = _UNDEFINED,
+        a7 = _UNDEFINED,
+        a8 = _UNDEFINED,
+        a9 = _UNDEFINED,
+        a10 = _UNDEFINED]) =>
+    jsFunction._applyDebuggerOnly(
+        _stripUndefinedArgs([a1, a2, a3, a4, a5, a6, a7, a8, a9, a10]));
 
 // The allowInterop method is a no-op in Dartium.
 // TODO(jacobr): tag methods so we can throw if a Dart method is passed to

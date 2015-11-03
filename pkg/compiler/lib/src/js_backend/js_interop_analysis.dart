@@ -23,6 +23,7 @@ import '../elements/elements.dart'
         FieldElement,
         FunctionElement,
         LibraryElement,
+        ParameterElement,
         MetadataAnnotation;
 
 import '../js/js.dart' as jsAst;
@@ -79,11 +80,39 @@ class JsInteropAnalysis {
     }
   }
 
+  bool hasAnonymousAnnotation(Element element) {
+    if (backend.jsAnonymousClass == null) return false;
+    return element.metadata.any((MetadataAnnotation annotation) {
+      ConstantValue constant = backend.compiler.constants.getConstantValue(
+          annotation.constant);
+      if (constant == null ||
+          constant is! ConstructedConstantValue) return false;
+      ConstructedConstantValue constructedConstant = constant;
+      return constructedConstant.type.element ==
+          backend.jsAnonymousClass;
+    });
+  }
+
+  void _checkFunctionParameters(FunctionElement fn) {
+    if (fn.hasFunctionSignature &&
+        fn.functionSignature.optionalParametersAreNamed) {
+      backend.reporter.reportErrorMessage(fn,
+          MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS, {
+            'method': fn.name
+          });
+    }
+  }
+
   void processJsInteropAnnotationsInLibrary(LibraryElement library) {
     processJsInteropAnnotation(library);
     library.implementation.forEachLocalMember((Element element) {
       processJsInteropAnnotation(element);
-      if (!element.isClass || !element.isJsInterop) return;
+      if (!element.isJsInterop) return;
+      if (element is FunctionElement) {
+        _checkFunctionParameters(element);
+      }
+
+      if (!element.isClass) return;
 
       ClassElement classElement = element;
 
@@ -104,11 +133,29 @@ class JsInteropAnalysis {
             classElement.isJsInterop &&
             member is FunctionElement) {
           FunctionElement fn = member;
-          if (!fn.isExternal && !fn.isAbstract) {
+          if (!fn.isExternal && !fn.isAbstract && !fn.isConstructor &&
+              !fn.isStatic) {
             backend.reporter.reportErrorMessage(
                 fn,
                 MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
                 {'cls': classElement.name, 'member': member.name});
+          }
+
+          if (fn.isFactoryConstructor && hasAnonymousAnnotation(classElement)) {
+              fn.functionSignature.orderedForEachParameter(
+                  (ParameterElement parameter) {
+                if (!parameter.isNamed) {
+                  backend.reporter.reportErrorMessage(parameter,
+                    MessageKind
+                        .JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
+                    {
+                      'parameter': parameter.name,
+                      'cls': classElement.name
+                    });
+              }
+            });
+          } else {
+            _checkFunctionParameters(fn);
           }
         }
       });

@@ -353,6 +353,7 @@ class AElement extends GraphicsElement implements UriReference {
     return new AElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AElement.internal_() : super.internal_();
 
   /**
@@ -402,6 +403,7 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
     return new AltGlyphElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AltGlyphElement.internal_() : super.internal_();
 
   /**
@@ -458,6 +460,7 @@ class Angle extends DartHtmlDomObject {
     return new Angle.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Angle.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -551,6 +554,7 @@ class AnimateElement extends AnimationElement {
     return new AnimateElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimateElement.internal_() : super.internal_();
 
   /**
@@ -595,6 +599,7 @@ class AnimateMotionElement extends AnimationElement {
     return new AnimateMotionElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimateMotionElement.internal_() : super.internal_();
 
   /**
@@ -639,6 +644,7 @@ class AnimateTransformElement extends AnimationElement {
     return new AnimateTransformElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimateTransformElement.internal_() : super.internal_();
 
   /**
@@ -675,6 +681,7 @@ class AnimatedAngle extends DartHtmlDomObject {
     return new AnimatedAngle.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedAngle.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -712,6 +719,7 @@ class AnimatedBoolean extends DartHtmlDomObject {
     return new AnimatedBoolean.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedBoolean.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -753,6 +761,7 @@ class AnimatedEnumeration extends DartHtmlDomObject {
     return new AnimatedEnumeration.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedEnumeration.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -794,6 +803,7 @@ class AnimatedInteger extends DartHtmlDomObject {
     return new AnimatedInteger.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedInteger.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -835,6 +845,7 @@ class AnimatedLength extends DartHtmlDomObject {
     return new AnimatedLength.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedLength.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -872,6 +883,7 @@ class AnimatedLengthList extends DartHtmlDomObject {
     return new AnimatedLengthList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedLengthList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -909,6 +921,7 @@ class AnimatedNumber extends DartHtmlDomObject {
     return new AnimatedNumber.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedNumber.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -950,6 +963,7 @@ class AnimatedNumberList extends DartHtmlDomObject {
     return new AnimatedNumberList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedNumberList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -987,6 +1001,7 @@ class AnimatedPreserveAspectRatio extends DartHtmlDomObject {
     return new AnimatedPreserveAspectRatio.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedPreserveAspectRatio.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -1024,6 +1039,7 @@ class AnimatedRect extends DartHtmlDomObject {
     return new AnimatedRect.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedRect.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -1061,6 +1077,7 @@ class AnimatedString extends DartHtmlDomObject {
     return new AnimatedString.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedString.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -1102,6 +1119,7 @@ class AnimatedTransformList extends DartHtmlDomObject {
     return new AnimatedTransformList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedTransformList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -1144,6 +1162,7 @@ class AnimationElement extends SvgElement implements Tests {
     return new AnimationElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimationElement.internal_() : super.internal_();
 
   /**
@@ -1230,6 +1249,7 @@ class CircleElement extends GeometryElement {
     return new CircleElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CircleElement.internal_() : super.internal_();
 
   /**
@@ -1280,6 +1300,7 @@ class ClipPathElement extends GraphicsElement {
     return new ClipPathElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ClipPathElement.internal_() : super.internal_();
 
   /**
@@ -1322,6 +1343,7 @@ class DefsElement extends GraphicsElement {
     return new DefsElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DefsElement.internal_() : super.internal_();
 
   /**
@@ -1360,6 +1382,7 @@ class DescElement extends SvgElement {
     return new DescElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DescElement.internal_() : super.internal_();
 
   /**
@@ -1394,6 +1417,7 @@ class DiscardElement extends SvgElement {
     return new DiscardElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DiscardElement.internal_() : super.internal_();
 
   /**
@@ -1432,6 +1456,7 @@ class EllipseElement extends GeometryElement {
     return new EllipseElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   EllipseElement.internal_() : super.internal_();
 
   /**
@@ -1490,6 +1515,7 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
     return new FEBlendElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEBlendElement.internal_() : super.internal_();
 
   /**
@@ -1591,6 +1617,7 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
     return new FEColorMatrixElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEColorMatrixElement.internal_() : super.internal_();
 
   /**
@@ -1688,6 +1715,7 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
     return new FEComponentTransferElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEComponentTransferElement.internal_() : super.internal_();
 
   /**
@@ -1749,6 +1777,7 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
     return new FECompositeElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FECompositeElement.internal_() : super.internal_();
 
   /**
@@ -1867,6 +1896,7 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
     return new FEConvolveMatrixElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEConvolveMatrixElement.internal_() : super.internal_();
 
   /**
@@ -1996,6 +2026,7 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
     return new FEDiffuseLightingElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEDiffuseLightingElement.internal_() : super.internal_();
 
   /**
@@ -2081,6 +2112,7 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
     return new FEDisplacementMapElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEDisplacementMapElement.internal_() : super.internal_();
 
   /**
@@ -2186,6 +2218,7 @@ class FEDistantLightElement extends SvgElement {
     return new FEDistantLightElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEDistantLightElement.internal_() : super.internal_();
 
   /**
@@ -2239,6 +2272,7 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
     return new FEFloodElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEFloodElement.internal_() : super.internal_();
 
   /**
@@ -2304,6 +2338,7 @@ class FEFuncAElement extends _SVGComponentTransferFunctionElement {
     return new FEFuncAElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEFuncAElement.internal_() : super.internal_();
 
   /**
@@ -2349,6 +2384,7 @@ class FEFuncBElement extends _SVGComponentTransferFunctionElement {
     return new FEFuncBElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEFuncBElement.internal_() : super.internal_();
 
   /**
@@ -2394,6 +2430,7 @@ class FEFuncGElement extends _SVGComponentTransferFunctionElement {
     return new FEFuncGElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEFuncGElement.internal_() : super.internal_();
 
   /**
@@ -2439,6 +2476,7 @@ class FEFuncRElement extends _SVGComponentTransferFunctionElement {
     return new FEFuncRElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEFuncRElement.internal_() : super.internal_();
 
   /**
@@ -2484,6 +2522,7 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
     return new FEGaussianBlurElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEGaussianBlurElement.internal_() : super.internal_();
 
   /**
@@ -2565,6 +2604,7 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
     return new FEImageElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEImageElement.internal_() : super.internal_();
 
   /**
@@ -2638,6 +2678,7 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
     return new FEMergeElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEMergeElement.internal_() : super.internal_();
 
   /**
@@ -2703,6 +2744,7 @@ class FEMergeNodeElement extends SvgElement {
     return new FEMergeNodeElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEMergeNodeElement.internal_() : super.internal_();
 
   /**
@@ -2748,6 +2790,7 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
     return new FEMorphologyElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEMorphologyElement.internal_() : super.internal_();
 
   /**
@@ -2838,6 +2881,7 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
     return new FEOffsetElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEOffsetElement.internal_() : super.internal_();
 
   /**
@@ -2915,6 +2959,7 @@ class FEPointLightElement extends SvgElement {
     return new FEPointLightElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEPointLightElement.internal_() : super.internal_();
 
   /**
@@ -2972,6 +3017,7 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
     return new FESpecularLightingElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FESpecularLightingElement.internal_() : super.internal_();
 
   /**
@@ -3053,6 +3099,7 @@ class FESpotLightElement extends SvgElement {
     return new FESpotLightElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FESpotLightElement.internal_() : super.internal_();
 
   /**
@@ -3130,6 +3177,7 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
     return new FETileElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FETileElement.internal_() : super.internal_();
 
   /**
@@ -3199,6 +3247,7 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
     return new FETurbulenceElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FETurbulenceElement.internal_() : super.internal_();
 
   /**
@@ -3312,6 +3361,7 @@ class FilterElement extends SvgElement implements UriReference {
     return new FilterElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FilterElement.internal_() : super.internal_();
 
   /**
@@ -3454,6 +3504,7 @@ class ForeignObjectElement extends GraphicsElement {
     return new ForeignObjectElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ForeignObjectElement.internal_() : super.internal_();
 
   /**
@@ -3511,6 +3562,7 @@ class GElement extends GraphicsElement {
     return new GElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   GElement.internal_() : super.internal_();
 
   /**
@@ -3545,6 +3597,7 @@ class GeometryElement extends GraphicsElement {
     return new GeometryElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   GeometryElement.internal_() : super.internal_();
 
   /**
@@ -3589,6 +3642,7 @@ class GraphicsElement extends SvgElement implements Tests {
     return new GraphicsElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   GraphicsElement.internal_() : super.internal_();
 
   /**
@@ -3682,6 +3736,7 @@ class ImageElement extends GraphicsElement implements UriReference {
     return new ImageElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ImageElement.internal_() : super.internal_();
 
   /**
@@ -3739,6 +3794,7 @@ class Length extends DartHtmlDomObject {
     return new Length.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Length.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -3848,6 +3904,7 @@ class LengthList extends DartHtmlDomObject with ListMixin<Length>, ImmutableList
     return new LengthList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   LengthList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -3968,6 +4025,7 @@ class LineElement extends GeometryElement {
     return new LineElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   LineElement.internal_() : super.internal_();
 
   /**
@@ -4022,6 +4080,7 @@ class LinearGradientElement extends _GradientElement {
     return new LinearGradientElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   LinearGradientElement.internal_() : super.internal_();
 
   /**
@@ -4076,6 +4135,7 @@ class MarkerElement extends SvgElement implements FitToViewBox {
     return new MarkerElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MarkerElement.internal_() : super.internal_();
 
   /**
@@ -4182,6 +4242,7 @@ class MaskElement extends SvgElement implements Tests {
     return new MaskElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MaskElement.internal_() : super.internal_();
 
   /**
@@ -4255,6 +4316,7 @@ class Matrix extends DartHtmlDomObject {
     return new Matrix.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Matrix.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -4377,6 +4439,7 @@ class MetadataElement extends SvgElement {
     return new MetadataElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MetadataElement.internal_() : super.internal_();
 
   /**
@@ -4410,6 +4473,7 @@ class Number extends DartHtmlDomObject {
     return new Number.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Number.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -4447,6 +4511,7 @@ class NumberList extends DartHtmlDomObject with ListMixin<Number>, ImmutableList
     return new NumberList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   NumberList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -4567,6 +4632,7 @@ class PathElement extends GeometryElement {
     return new PathElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathElement.internal_() : super.internal_();
 
   /**
@@ -4708,6 +4774,7 @@ class PathSeg extends DartHtmlDomObject {
     return new PathSeg.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSeg.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -4826,6 +4893,7 @@ class PathSegArcAbs extends PathSeg {
     return new PathSegArcAbs.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegArcAbs.internal_() : super.internal_();
 
 
@@ -4910,6 +4978,7 @@ class PathSegArcRel extends PathSeg {
     return new PathSegArcRel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegArcRel.internal_() : super.internal_();
 
 
@@ -4994,6 +5063,7 @@ class PathSegClosePath extends PathSeg {
     return new PathSegClosePath.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegClosePath.internal_() : super.internal_();
 
 
@@ -5022,6 +5092,7 @@ class PathSegCurvetoCubicAbs extends PathSeg {
     return new PathSegCurvetoCubicAbs.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegCurvetoCubicAbs.internal_() : super.internal_();
 
 
@@ -5098,6 +5169,7 @@ class PathSegCurvetoCubicRel extends PathSeg {
     return new PathSegCurvetoCubicRel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegCurvetoCubicRel.internal_() : super.internal_();
 
 
@@ -5174,6 +5246,7 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
     return new PathSegCurvetoCubicSmoothAbs.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegCurvetoCubicSmoothAbs.internal_() : super.internal_();
 
 
@@ -5234,6 +5307,7 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
     return new PathSegCurvetoCubicSmoothRel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegCurvetoCubicSmoothRel.internal_() : super.internal_();
 
 
@@ -5294,6 +5368,7 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
     return new PathSegCurvetoQuadraticAbs.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticAbs.internal_() : super.internal_();
 
 
@@ -5354,6 +5429,7 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
     return new PathSegCurvetoQuadraticRel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticRel.internal_() : super.internal_();
 
 
@@ -5414,6 +5490,7 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
     return new PathSegCurvetoQuadraticSmoothAbs.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticSmoothAbs.internal_() : super.internal_();
 
 
@@ -5458,6 +5535,7 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
     return new PathSegCurvetoQuadraticSmoothRel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticSmoothRel.internal_() : super.internal_();
 
 
@@ -5502,6 +5580,7 @@ class PathSegLinetoAbs extends PathSeg {
     return new PathSegLinetoAbs.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegLinetoAbs.internal_() : super.internal_();
 
 
@@ -5546,6 +5625,7 @@ class PathSegLinetoHorizontalAbs extends PathSeg {
     return new PathSegLinetoHorizontalAbs.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegLinetoHorizontalAbs.internal_() : super.internal_();
 
 
@@ -5582,6 +5662,7 @@ class PathSegLinetoHorizontalRel extends PathSeg {
     return new PathSegLinetoHorizontalRel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegLinetoHorizontalRel.internal_() : super.internal_();
 
 
@@ -5618,6 +5699,7 @@ class PathSegLinetoRel extends PathSeg {
     return new PathSegLinetoRel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegLinetoRel.internal_() : super.internal_();
 
 
@@ -5662,6 +5744,7 @@ class PathSegLinetoVerticalAbs extends PathSeg {
     return new PathSegLinetoVerticalAbs.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegLinetoVerticalAbs.internal_() : super.internal_();
 
 
@@ -5698,6 +5781,7 @@ class PathSegLinetoVerticalRel extends PathSeg {
     return new PathSegLinetoVerticalRel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegLinetoVerticalRel.internal_() : super.internal_();
 
 
@@ -5733,6 +5817,7 @@ class PathSegList extends DartHtmlDomObject with ListMixin<PathSeg>, ImmutableLi
     return new PathSegList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -5849,6 +5934,7 @@ class PathSegMovetoAbs extends PathSeg {
     return new PathSegMovetoAbs.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegMovetoAbs.internal_() : super.internal_();
 
 
@@ -5893,6 +5979,7 @@ class PathSegMovetoRel extends PathSeg {
     return new PathSegMovetoRel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegMovetoRel.internal_() : super.internal_();
 
 
@@ -5941,6 +6028,7 @@ class PatternElement extends SvgElement implements FitToViewBox, UriReference, T
     return new PatternElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PatternElement.internal_() : super.internal_();
 
   /**
@@ -6030,6 +6118,7 @@ class Point extends DartHtmlDomObject {
     return new Point.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Point.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -6079,6 +6168,7 @@ class PointList extends DartHtmlDomObject {
     return new PointList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PointList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -6155,6 +6245,7 @@ class PolygonElement extends GeometryElement {
     return new PolygonElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PolygonElement.internal_() : super.internal_();
 
   /**
@@ -6201,6 +6292,7 @@ class PolylineElement extends GeometryElement {
     return new PolylineElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PolylineElement.internal_() : super.internal_();
 
   /**
@@ -6242,6 +6334,7 @@ class PreserveAspectRatio extends DartHtmlDomObject {
     return new PreserveAspectRatio.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PreserveAspectRatio.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -6348,6 +6441,7 @@ class RadialGradientElement extends _GradientElement {
     return new RadialGradientElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RadialGradientElement.internal_() : super.internal_();
 
   /**
@@ -6405,6 +6499,7 @@ class Rect extends DartHtmlDomObject {
     return new Rect.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Rect.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -6471,6 +6566,7 @@ class RectElement extends GeometryElement {
     return new RectElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RectElement.internal_() : super.internal_();
 
   /**
@@ -6528,6 +6624,7 @@ class RenderingIntent extends DartHtmlDomObject {
     return new RenderingIntent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RenderingIntent.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -6586,6 +6683,7 @@ class ScriptElement extends SvgElement implements UriReference {
     return new ScriptElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ScriptElement.internal_() : super.internal_();
 
   /**
@@ -6639,6 +6737,7 @@ class SetElement extends AnimationElement {
     return new SetElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SetElement.internal_() : super.internal_();
 
   /**
@@ -6680,6 +6779,7 @@ class StopElement extends SvgElement {
     return new StopElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   StopElement.internal_() : super.internal_();
 
   /**
@@ -6717,6 +6817,7 @@ class StringList extends DartHtmlDomObject with ListMixin<String>, ImmutableList
     return new StringList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   StringList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -6838,6 +6939,7 @@ class StyleElement extends SvgElement {
     return new StyleElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   StyleElement.internal_() : super.internal_();
 
   /**
@@ -7318,6 +7420,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
     return new SvgElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SvgElement.internal_() : super.internal_();
 
   /**
@@ -7672,6 +7775,7 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
     return new SvgSvgElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SvgSvgElement.internal_() : super.internal_();
 
   /**
@@ -7874,6 +7978,7 @@ class SwitchElement extends GraphicsElement {
     return new SwitchElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SwitchElement.internal_() : super.internal_();
 
   /**
@@ -7912,6 +8017,7 @@ class SymbolElement extends SvgElement implements FitToViewBox {
     return new SymbolElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SymbolElement.internal_() : super.internal_();
 
   /**
@@ -7958,6 +8064,7 @@ class TSpanElement extends TextPositioningElement {
     return new TSpanElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TSpanElement.internal_() : super.internal_();
 
   /**
@@ -8023,6 +8130,7 @@ class TextContentElement extends GraphicsElement {
     return new TextContentElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextContentElement.internal_() : super.internal_();
 
   /**
@@ -8117,6 +8225,7 @@ class TextElement extends TextPositioningElement {
     return new TextElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextElement.internal_() : super.internal_();
 
   /**
@@ -8151,6 +8260,7 @@ class TextPathElement extends TextContentElement implements UriReference {
     return new TextPathElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextPathElement.internal_() : super.internal_();
 
   /**
@@ -8225,6 +8335,7 @@ class TextPositioningElement extends TextContentElement {
     return new TextPositioningElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextPositioningElement.internal_() : super.internal_();
 
   /**
@@ -8283,6 +8394,7 @@ class TitleElement extends SvgElement {
     return new TitleElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TitleElement.internal_() : super.internal_();
 
   /**
@@ -8316,6 +8428,7 @@ class Transform extends DartHtmlDomObject {
     return new Transform.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Transform.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -8409,6 +8522,7 @@ class TransformList extends DartHtmlDomObject with ListMixin<Transform>, Immutab
     return new TransformList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TransformList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -8532,6 +8646,7 @@ class UnitTypes extends DartHtmlDomObject {
     return new UnitTypes.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   UnitTypes.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -8597,6 +8712,7 @@ class UseElement extends GraphicsElement implements UriReference {
     return new UseElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   UseElement.internal_() : super.internal_();
 
   /**
@@ -8655,6 +8771,7 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
     return new ViewElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ViewElement.internal_() : super.internal_();
 
   /**
@@ -8708,6 +8825,7 @@ class ViewSpec extends DartHtmlDomObject implements FitToViewBox, ZoomAndPan {
     return new ViewSpec.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ViewSpec.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -8817,6 +8935,7 @@ class ZoomEvent extends UIEvent {
     return new ZoomEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ZoomEvent.internal_() : super.internal_();
 
 
@@ -8865,6 +8984,7 @@ class _GradientElement extends SvgElement implements UriReference {
     return new _GradientElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _GradientElement.internal_() : super.internal_();
 
   /**
@@ -8931,6 +9051,7 @@ class _SVGAltGlyphDefElement extends SvgElement {
     return new _SVGAltGlyphDefElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGAltGlyphDefElement.internal_() : super.internal_();
 
   /**
@@ -8965,6 +9086,7 @@ class _SVGAltGlyphItemElement extends SvgElement {
     return new _SVGAltGlyphItemElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGAltGlyphItemElement.internal_() : super.internal_();
 
   /**
@@ -8999,6 +9121,7 @@ class _SVGComponentTransferFunctionElement extends SvgElement {
     return new _SVGComponentTransferFunctionElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGComponentTransferFunctionElement.internal_() : super.internal_();
 
   /**
@@ -9035,6 +9158,7 @@ class _SVGCursorElement extends SvgElement implements UriReference, Tests {
     return new _SVGCursorElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGCursorElement.internal_() : super.internal_();
 
   /**
@@ -9077,6 +9201,7 @@ class _SVGFEDropShadowElement extends SvgElement implements FilterPrimitiveStand
     return new _SVGFEDropShadowElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGFEDropShadowElement.internal_() : super.internal_();
 
   /**
@@ -9118,6 +9243,7 @@ class _SVGFontElement extends SvgElement {
     return new _SVGFontElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGFontElement.internal_() : super.internal_();
 
   /**
@@ -9152,6 +9278,7 @@ class _SVGFontFaceElement extends SvgElement {
     return new _SVGFontFaceElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGFontFaceElement.internal_() : super.internal_();
 
   /**
@@ -9186,6 +9313,7 @@ class _SVGFontFaceFormatElement extends SvgElement {
     return new _SVGFontFaceFormatElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGFontFaceFormatElement.internal_() : super.internal_();
 
   /**
@@ -9220,6 +9348,7 @@ class _SVGFontFaceNameElement extends SvgElement {
     return new _SVGFontFaceNameElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGFontFaceNameElement.internal_() : super.internal_();
 
   /**
@@ -9254,6 +9383,7 @@ class _SVGFontFaceSrcElement extends SvgElement {
     return new _SVGFontFaceSrcElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGFontFaceSrcElement.internal_() : super.internal_();
 
   /**
@@ -9288,6 +9418,7 @@ class _SVGFontFaceUriElement extends SvgElement {
     return new _SVGFontFaceUriElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGFontFaceUriElement.internal_() : super.internal_();
 
   /**
@@ -9326,6 +9457,7 @@ class _SVGGlyphElement extends SvgElement {
     return new _SVGGlyphElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGGlyphElement.internal_() : super.internal_();
 
   /**
@@ -9358,6 +9490,7 @@ class _SVGGlyphRefElement extends SvgElement implements UriReference {
     return new _SVGGlyphRefElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGGlyphRefElement.internal_() : super.internal_();
 
   /**
@@ -9399,6 +9532,7 @@ class _SVGHKernElement extends SvgElement {
     return new _SVGHKernElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGHKernElement.internal_() : super.internal_();
 
   /**
@@ -9434,6 +9568,7 @@ class _SVGMPathElement extends SvgElement implements UriReference {
     return new _SVGMPathElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGMPathElement.internal_() : super.internal_();
 
   /**
@@ -9471,6 +9606,7 @@ class _SVGMissingGlyphElement extends SvgElement {
     return new _SVGMissingGlyphElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGMissingGlyphElement.internal_() : super.internal_();
 
   /**
@@ -9509,6 +9645,7 @@ class _SVGVKernElement extends SvgElement {
     return new _SVGVKernElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGVKernElement.internal_() : super.internal_();
 
   /**

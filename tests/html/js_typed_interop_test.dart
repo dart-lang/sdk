@@ -114,6 +114,7 @@ class Foo {
   external static int multiplyDefault2(int a, [int b]);
 }
 
+@anonymous
 @JS()
 class ExampleLiteral {
   external factory ExampleLiteral({int x, String y, num z});
@@ -121,6 +122,12 @@ class ExampleLiteral {
   external int get x;
   external String get y;
   external num get z;
+}
+
+@anonymous
+@JS()
+class EmptyLiteral {
+  external factory EmptyLiteral();
 }
 
 @JS('Foob')
@@ -178,6 +185,11 @@ main() {
       expect(l.y, isNull);
       expect(l.z, equals(100));
       expect(stringify(l), equals('{"z":100}'));
+    });
+
+    test('empty', () {
+      var l = new EmptyLiteral();
+      expect(stringify(l), equals('{}'));
     });
   });
 

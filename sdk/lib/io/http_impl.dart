@@ -2224,7 +2224,6 @@ class _HttpServer
                                        SecurityContext context,
                                        int backlog,
                                        bool v6Only,
-                                       String certificate_name,
                                        bool requestClientCertificate,
                                        bool shared) {
     return SecureServerSocket.bind(

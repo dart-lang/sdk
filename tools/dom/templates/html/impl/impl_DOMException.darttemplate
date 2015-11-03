@@ -52,14 +52,17 @@ $if JSINTEROP
     return new DomException._internalWrap();
   }
 
+  @Deprecated("Internal Use Only")
   js.JsObject blink_jsObject;
 
   factory DomException._internalWrap() {
     return new DomException.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomException.internal_() { }
 
+  @Deprecated("Internal Use Only")
   DomException.jsInterop(String m) {
     var name_index = m.indexOf(': ');
     if (name_index < 0) {

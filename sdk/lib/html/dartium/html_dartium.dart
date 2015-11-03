@@ -530,6 +530,7 @@ final htmlBlinkMap = {
   'XPathNSResolver': () => XPathNSResolver,
   'XPathResult': () => XPathResult,
   'XSLTProcessor': () => XsltProcessor,
+
 };
 
 // TODO(leafp): We may want to move this elsewhere if html becomes
@@ -621,6 +622,7 @@ Type _getSvgType(String key) {
 }
 
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final htmlBlinkFunctionMap = {
   'Animation': () => Animation.internalCreateAnimation,
   'AnimationEffect': () => AnimationEffect.internalCreateAnimationEffect,
@@ -1302,6 +1304,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
     return new AnchorElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnchorElement.internal_() : super.internal_();
 
   /**
@@ -1496,6 +1499,7 @@ class Animation extends AnimationNode {
     return new Animation.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Animation.internal_() : super.internal_();
 
 
@@ -1523,6 +1527,7 @@ class AnimationEffect extends DartHtmlDomObject {
     return new AnimationEffect.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimationEffect.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -1555,6 +1560,7 @@ class AnimationEvent extends Event {
     return new AnimationEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimationEvent.internal_() : super.internal_();
 
 
@@ -1590,6 +1596,7 @@ class AnimationNode extends DartHtmlDomObject {
     return new AnimationNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimationNode.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -1660,6 +1667,7 @@ class AnimationPlayer extends EventTarget {
     return new AnimationPlayer.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimationPlayer.internal_() : super.internal_();
 
 
@@ -1761,6 +1769,7 @@ class AnimationPlayerEvent extends Event {
     return new AnimationPlayerEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimationPlayerEvent.internal_() : super.internal_();
 
 
@@ -1798,6 +1807,7 @@ class AnimationTimeline extends DartHtmlDomObject {
     return new AnimationTimeline.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimationTimeline.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -1931,6 +1941,7 @@ class ApplicationCache extends EventTarget {
     return new ApplicationCache.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ApplicationCache.internal_() : super.internal_();
 
 
@@ -2042,6 +2053,7 @@ class ApplicationCacheErrorEvent extends Event {
     return new ApplicationCacheErrorEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ApplicationCacheErrorEvent.internal_() : super.internal_();
 
 
@@ -2103,6 +2115,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
     return new AreaElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AreaElement.internal_() : super.internal_();
 
   /**
@@ -2264,6 +2277,7 @@ class AudioElement extends MediaElement {
     return new AudioElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioElement.internal_() : super.internal_();
 
   /**
@@ -2303,6 +2317,7 @@ class AudioTrack extends DartHtmlDomObject {
     return new AudioTrack.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioTrack.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -2368,6 +2383,7 @@ class AudioTrackList extends EventTarget {
     return new AudioTrackList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioTrackList.internal_() : super.internal_();
 
 
@@ -2417,6 +2433,7 @@ class AutocompleteErrorEvent extends Event {
     return new AutocompleteErrorEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AutocompleteErrorEvent.internal_() : super.internal_();
 
 
@@ -2452,6 +2469,7 @@ class BRElement extends HtmlElement {
     return new BRElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   BRElement.internal_() : super.internal_();
 
   /**
@@ -2486,6 +2504,7 @@ class BarProp extends DartHtmlDomObject {
     return new BarProp.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   BarProp.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -2523,6 +2542,7 @@ class BaseElement extends HtmlElement {
     return new BaseElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   BaseElement.internal_() : super.internal_();
 
   /**
@@ -2574,6 +2594,7 @@ class BatteryManager extends EventTarget {
     return new BatteryManager.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   BatteryManager.internal_() : super.internal_();
 
 
@@ -2617,6 +2638,7 @@ class BeforeUnloadEvent extends Event {
     return new BeforeUnloadEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   BeforeUnloadEvent.internal_() : super.internal_();
 
 
@@ -2648,6 +2670,7 @@ class Blob extends DartHtmlDomObject {
     return new Blob.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Blob.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -2717,6 +2740,7 @@ class Body extends DartHtmlDomObject {
     return new Body.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Body.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -2900,6 +2924,7 @@ class BodyElement extends HtmlElement implements WindowEventHandlers {
     return new BodyElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   BodyElement.internal_() : super.internal_();
 
   /**
@@ -3002,6 +3027,7 @@ class ButtonElement extends HtmlElement {
     return new ButtonElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ButtonElement.internal_() : super.internal_();
 
   /**
@@ -3146,6 +3172,7 @@ class CDataSection extends Text {
     return new CDataSection.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CDataSection.internal_() : super.internal_();
 
 
@@ -3173,6 +3200,7 @@ class CacheStorage extends DartHtmlDomObject {
     return new CacheStorage.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CacheStorage.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -3228,6 +3256,7 @@ class Canvas2DContextAttributes extends DartHtmlDomObject {
     return new Canvas2DContextAttributes.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Canvas2DContextAttributes.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -3301,6 +3330,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
     return new CanvasElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CanvasElement.internal_() : super.internal_();
 
   /**
@@ -3477,6 +3507,7 @@ class CanvasGradient extends DartHtmlDomObject {
     return new CanvasGradient.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CanvasGradient.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -3545,6 +3576,7 @@ class CanvasPattern extends DartHtmlDomObject {
     return new CanvasPattern.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CanvasPattern.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -3579,6 +3611,7 @@ class CanvasRenderingContext2D extends DartHtmlDomObject implements CanvasRender
     return new CanvasRenderingContext2D.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CanvasRenderingContext2D.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -4368,6 +4401,7 @@ class CharacterData extends Node implements ChildNode {
     return new CharacterData.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CharacterData.internal_() : super.internal_();
 
 
@@ -4473,6 +4507,7 @@ class CircularGeofencingRegion extends GeofencingRegion {
     return new CircularGeofencingRegion.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CircularGeofencingRegion.internal_() : super.internal_();
 
 
@@ -4525,6 +4560,7 @@ class CloseEvent extends Event {
     return new CloseEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CloseEvent.internal_() : super.internal_();
 
 
@@ -4571,6 +4607,7 @@ class Comment extends CharacterData {
     return new Comment.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Comment.internal_() : super.internal_();
 
 }
@@ -4609,6 +4646,7 @@ class CompositionEvent extends UIEvent {
     return new CompositionEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CompositionEvent.internal_() : super.internal_();
 
 
@@ -4659,6 +4697,7 @@ class Console extends ConsoleBase {
     return new Console.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Console.internal_() : super.internal_();
 
 
@@ -4691,6 +4730,7 @@ class ConsoleBase extends DartHtmlDomObject {
     return new ConsoleBase.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ConsoleBase.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -4842,6 +4882,7 @@ class ContentElement extends HtmlElement {
     return new ContentElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ContentElement.internal_() : super.internal_();
 
   /**
@@ -4889,6 +4930,7 @@ class Coordinates extends DartHtmlDomObject {
     return new Coordinates.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Coordinates.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -4946,6 +4988,7 @@ class Credential extends DartHtmlDomObject {
     return new Credential.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Credential.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -4990,6 +5033,7 @@ class CredentialsContainer extends DartHtmlDomObject {
     return new CredentialsContainer.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CredentialsContainer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -5054,6 +5098,7 @@ class Crypto extends DartHtmlDomObject {
     return new Crypto.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Crypto.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -5095,6 +5140,7 @@ class CryptoKey extends DartHtmlDomObject {
     return new CryptoKey.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CryptoKey.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -5145,6 +5191,7 @@ class Css extends DartHtmlDomObject {
     return new Css.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Css.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -5184,6 +5231,7 @@ class CssCharsetRule extends CssRule {
     return new CssCharsetRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssCharsetRule.internal_() : super.internal_();
 
 
@@ -5223,6 +5271,7 @@ class CssFilterRule extends CssRule {
     return new CssFilterRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssFilterRule.internal_() : super.internal_();
 
 
@@ -5254,6 +5303,7 @@ class CssFontFaceRule extends CssRule {
     return new CssFontFaceRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssFontFaceRule.internal_() : super.internal_();
 
 
@@ -5285,6 +5335,7 @@ class CssImportRule extends CssRule {
     return new CssImportRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssImportRule.internal_() : super.internal_();
 
 
@@ -5325,6 +5376,7 @@ class CssKeyframeRule extends CssRule {
     return new CssKeyframeRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssKeyframeRule.internal_() : super.internal_();
 
 
@@ -5368,6 +5420,7 @@ class CssKeyframesRule extends CssRule {
     return new CssKeyframesRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssKeyframesRule.internal_() : super.internal_();
 
 
@@ -5430,6 +5483,7 @@ class CssMediaRule extends CssRule {
     return new CssMediaRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssMediaRule.internal_() : super.internal_();
 
 
@@ -5473,6 +5527,7 @@ class CssPageRule extends CssRule {
     return new CssPageRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssPageRule.internal_() : super.internal_();
 
 
@@ -5511,6 +5566,7 @@ class CssRule extends DartHtmlDomObject {
     return new CssRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssRule.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -5710,6 +5766,7 @@ class CssStyleDeclaration  extends DartHtmlDomObject with
     return new CssStyleDeclaration.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssStyleDeclaration.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -8907,6 +8964,7 @@ class CssStyleRule extends CssRule {
     return new CssStyleRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssStyleRule.internal_() : super.internal_();
 
 
@@ -8946,6 +9004,7 @@ class CssStyleSheet extends StyleSheet {
     return new CssStyleSheet.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssStyleSheet.internal_() : super.internal_();
 
 
@@ -9009,6 +9068,7 @@ class CssSupportsRule extends CssRule {
     return new CssSupportsRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssSupportsRule.internal_() : super.internal_();
 
 
@@ -9053,6 +9113,7 @@ class CssViewportRule extends CssRule {
     return new CssViewportRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssViewportRule.internal_() : super.internal_();
 
 
@@ -9118,6 +9179,7 @@ class CustomEvent extends Event {
     return new CustomEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CustomEvent.internal_() : super.internal_();
 
 
@@ -9157,6 +9219,7 @@ class DListElement extends HtmlElement {
     return new DListElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DListElement.internal_() : super.internal_();
 
   /**
@@ -9198,6 +9261,7 @@ class DataListElement extends HtmlElement {
     return new DataListElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DataListElement.internal_() : super.internal_();
 
   /**
@@ -9238,6 +9302,7 @@ class DataTransfer extends DartHtmlDomObject {
     return new DataTransfer.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DataTransfer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -9327,6 +9392,7 @@ class DataTransferItem extends DartHtmlDomObject {
     return new DataTransferItem.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DataTransferItem.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -9385,6 +9451,7 @@ class DataTransferItemList extends DartHtmlDomObject {
     return new DataTransferItemList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DataTransferItemList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -9478,6 +9545,7 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
     return new DedicatedWorkerGlobalScope.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DedicatedWorkerGlobalScope.internal_() : super.internal_();
 
 
@@ -9516,6 +9584,7 @@ class DeprecatedStorageInfo extends DartHtmlDomObject {
     return new DeprecatedStorageInfo.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DeprecatedStorageInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -9581,6 +9650,7 @@ class DeprecatedStorageQuota extends DartHtmlDomObject {
     return new DeprecatedStorageQuota.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DeprecatedStorageQuota.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -9639,6 +9709,7 @@ class DetailsElement extends HtmlElement {
     return new DetailsElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DetailsElement.internal_() : super.internal_();
 
   /**
@@ -9684,6 +9755,7 @@ class DeviceAcceleration extends DartHtmlDomObject {
     return new DeviceAcceleration.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DeviceAcceleration.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -9726,6 +9798,7 @@ class DeviceLightEvent extends Event {
     return new DeviceLightEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DeviceLightEvent.internal_() : super.internal_();
 
 
@@ -9760,6 +9833,7 @@ class DeviceMotionEvent extends Event {
     return new DeviceMotionEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DeviceMotionEvent.internal_() : super.internal_();
 
 
@@ -9816,6 +9890,7 @@ class DeviceOrientationEvent extends Event {
     return new DeviceOrientationEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DeviceOrientationEvent.internal_() : super.internal_();
 
 
@@ -9864,6 +9939,7 @@ class DeviceRotationRate extends DartHtmlDomObject {
     return new DeviceRotationRate.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DeviceRotationRate.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -9906,6 +9982,7 @@ class DialogElement extends HtmlElement {
     return new DialogElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DialogElement.internal_() : super.internal_();
 
   /**
@@ -10005,6 +10082,7 @@ class DirectoryEntry extends Entry {
     return new DirectoryEntry.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DirectoryEntry.internal_() : super.internal_();
 
 
@@ -10104,6 +10182,7 @@ class DirectoryReader extends DartHtmlDomObject {
     return new DirectoryReader.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DirectoryReader.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -10176,6 +10255,7 @@ class DivElement extends HtmlElement {
     return new DivElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DivElement.internal_() : super.internal_();
 
   /**
@@ -10260,6 +10340,7 @@ class Document extends Node
     return new Document.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Document.internal_() : super.internal_();
 
 
@@ -11198,6 +11279,7 @@ class DocumentFragment extends Node implements ParentNode {
     return new DocumentFragment.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DocumentFragment.internal_() : super.internal_();
 
 
@@ -11267,6 +11349,7 @@ class DomError extends DartHtmlDomObject {
     return new DomError.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -11324,14 +11407,17 @@ class DomException extends DartHtmlDomObject {
     return new DomException._internalWrap();
   }
 
+  @Deprecated("Internal Use Only")
   js.JsObject blink_jsObject;
 
   factory DomException._internalWrap() {
     return new DomException.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomException.internal_() { }
 
+  @Deprecated("Internal Use Only")
   DomException.jsInterop(String m) {
     var name_index = m.indexOf(': ');
     if (name_index < 0) {
@@ -11378,6 +11464,7 @@ class DomImplementation extends DartHtmlDomObject {
     return new DomImplementation.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomImplementation.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -11423,6 +11510,7 @@ class DomIterator extends DartHtmlDomObject {
     return new DomIterator.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomIterator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -11472,6 +11560,7 @@ class DomMatrix extends DomMatrixReadOnly {
     return new DomMatrix.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomMatrix.internal_() : super.internal_();
 
 
@@ -11778,6 +11867,7 @@ class DomMatrixReadOnly extends DartHtmlDomObject {
     return new DomMatrixReadOnly.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomMatrixReadOnly.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -11996,6 +12086,7 @@ class DomParser extends DartHtmlDomObject {
     return new DomParser.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomParser.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -12052,6 +12143,7 @@ class DomPoint extends DomPointReadOnly {
     return new DomPoint.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomPoint.internal_() : super.internal_();
 
 
@@ -12128,6 +12220,7 @@ class DomPointReadOnly extends DartHtmlDomObject {
     return new DomPointReadOnly.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomPointReadOnly.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -12271,6 +12364,7 @@ class DomRectReadOnly extends DartHtmlDomObject implements Rectangle {
     return new DomRectReadOnly.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomRectReadOnly.internal_() { }
 
 
@@ -12338,6 +12432,7 @@ class DomSettableTokenList extends DomTokenList {
     return new DomSettableTokenList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomSettableTokenList.internal_() : super.internal_();
 
 
@@ -12376,6 +12471,7 @@ class DomStringList extends DartHtmlDomObject with ListMixin<String>, ImmutableL
     return new DomStringList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomStringList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -12508,6 +12604,7 @@ class DomTokenList extends DartHtmlDomObject {
     return new DomTokenList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomTokenList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -15516,6 +15613,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
     return new Element.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Element.internal_() : super.internal_();
 
 
@@ -16407,6 +16505,7 @@ class EmbedElement extends HtmlElement {
     return new EmbedElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   EmbedElement.internal_() : super.internal_();
 
   /**
@@ -16513,6 +16612,7 @@ class Entry extends DartHtmlDomObject {
     return new Entry.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Entry.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -16694,6 +16794,7 @@ class ErrorEvent extends Event {
     return new ErrorEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ErrorEvent.internal_() : super.internal_();
 
 
@@ -16790,6 +16891,7 @@ class Event extends DartHtmlDomObject {
     return new Event.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Event.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -16982,6 +17084,7 @@ class EventSource extends EventTarget {
     return new EventSource.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   EventSource.internal_() : super.internal_();
 
 
@@ -17166,6 +17269,7 @@ class EventTarget extends DartHtmlDomObject {
     return new EventTarget.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   EventTarget.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -17234,6 +17338,7 @@ class ExtendableEvent extends Event {
     return new ExtendableEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ExtendableEvent.internal_() : super.internal_();
 
 
@@ -17273,6 +17378,7 @@ class FederatedCredential extends Credential {
     return new FederatedCredential.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FederatedCredential.internal_() : super.internal_();
 
 
@@ -17306,6 +17412,7 @@ class FetchEvent extends Event {
     return new FetchEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FetchEvent.internal_() : super.internal_();
 
 
@@ -17353,6 +17460,7 @@ class FieldSetElement extends HtmlElement {
     return new FieldSetElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FieldSetElement.internal_() : super.internal_();
 
   /**
@@ -17434,6 +17542,7 @@ class File extends Blob {
     return new File.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   File.internal_() : super.internal_();
 
 
@@ -17495,6 +17604,7 @@ class FileEntry extends Entry {
     return new FileEntry.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FileEntry.internal_() : super.internal_();
 
 
@@ -17558,6 +17668,7 @@ class FileError extends DomError {
     return new FileError.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FileError.internal_() : super.internal_();
 
 
@@ -17636,6 +17747,7 @@ class FileList extends DartHtmlDomObject with ListMixin<File>, ImmutableListMixi
     return new FileList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FileList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -17794,6 +17906,7 @@ class FileReader extends EventTarget {
     return new FileReader.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FileReader.internal_() : super.internal_();
 
 
@@ -17896,6 +18009,7 @@ class FileStream extends DartHtmlDomObject {
     return new FileStream.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FileStream.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -17932,6 +18046,7 @@ class FileSystem extends DartHtmlDomObject {
     return new FileSystem.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FileSystem.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -18045,6 +18160,7 @@ class FileWriter extends EventTarget {
     return new FileWriter.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FileWriter.internal_() : super.internal_();
 
 
@@ -18157,6 +18273,7 @@ class FocusEvent extends UIEvent {
     return new FocusEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FocusEvent.internal_() : super.internal_();
 
 
@@ -18215,6 +18332,7 @@ class FontFace extends DartHtmlDomObject {
     return new FontFace.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FontFace.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -18330,6 +18448,7 @@ class FontFaceSet extends EventTarget {
     return new FontFaceSet.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FontFaceSet.internal_() : super.internal_();
 
 
@@ -18414,6 +18533,7 @@ class FontFaceSetLoadEvent extends Event {
     return new FontFaceSetLoadEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FontFaceSetLoadEvent.internal_() : super.internal_();
 
 
@@ -18456,6 +18576,7 @@ class FormData extends DartHtmlDomObject {
     return new FormData.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FormData.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -18500,6 +18621,7 @@ class FormElement extends HtmlElement {
     return new FormElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FormElement.internal_() : super.internal_();
 
   /**
@@ -18642,6 +18764,7 @@ class Gamepad extends DartHtmlDomObject {
     return new Gamepad.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Gamepad.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -18697,6 +18820,7 @@ class GamepadButton extends DartHtmlDomObject {
     return new GamepadButton.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   GamepadButton.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -18737,6 +18861,7 @@ class GamepadEvent extends Event {
     return new GamepadEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   GamepadEvent.internal_() : super.internal_();
 
 
@@ -18769,6 +18894,7 @@ class Geofencing extends DartHtmlDomObject {
     return new Geofencing.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Geofencing.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -18813,6 +18939,7 @@ class GeofencingRegion extends DartHtmlDomObject {
     return new GeofencingRegion.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   GeofencingRegion.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -18916,6 +19043,7 @@ class Geolocation extends DartHtmlDomObject {
     return new Geolocation.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Geolocation.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -18972,6 +19100,7 @@ class Geoposition extends DartHtmlDomObject {
     return new Geoposition.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Geoposition.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -19548,6 +19677,7 @@ class HRElement extends HtmlElement {
     return new HRElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HRElement.internal_() : super.internal_();
 
   /**
@@ -19600,6 +19730,7 @@ class HashChangeEvent extends Event {
     return new HashChangeEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HashChangeEvent.internal_() : super.internal_();
 
 
@@ -19646,6 +19777,7 @@ class HeadElement extends HtmlElement {
     return new HeadElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HeadElement.internal_() : super.internal_();
 
   /**
@@ -19695,6 +19827,7 @@ class Headers extends DartHtmlDomObject {
     return new Headers.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Headers.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -19772,6 +19905,7 @@ class HeadingElement extends HtmlElement {
     return new HeadingElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HeadingElement.internal_() : super.internal_();
 
   /**
@@ -19812,6 +19946,7 @@ class History extends DartHtmlDomObject implements HistoryBase {
     return new History.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   History.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -19875,6 +20010,7 @@ class HtmlCollection extends DartHtmlDomObject with ListMixin<Node>, ImmutableLi
     return new HtmlCollection.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HtmlCollection.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -19961,6 +20097,7 @@ class HtmlDocument extends Document {
     return new HtmlDocument.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HtmlDocument.internal_() : super.internal_();
 
 
@@ -20770,6 +20907,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
     return new HtmlElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HtmlElement.internal_() : super.internal_();
 
   /**
@@ -21190,6 +21328,7 @@ class HtmlFormControlsCollection extends HtmlCollection {
     return new HtmlFormControlsCollection.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HtmlFormControlsCollection.internal_() : super.internal_();
 
 
@@ -21225,6 +21364,7 @@ class HtmlHtmlElement extends HtmlElement {
     return new HtmlHtmlElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HtmlHtmlElement.internal_() : super.internal_();
 
   /**
@@ -21258,6 +21398,7 @@ class HtmlOptionsCollection extends HtmlCollection {
     return new HtmlOptionsCollection.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HtmlOptionsCollection.internal_() : super.internal_();
 
 
@@ -21669,6 +21810,7 @@ class HttpRequest extends HttpRequestEventTarget {
     return new HttpRequest.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HttpRequest.internal_() : super.internal_();
 
 
@@ -22083,6 +22225,7 @@ class HttpRequestEventTarget extends EventTarget {
     return new HttpRequestEventTarget.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HttpRequestEventTarget.internal_() : super.internal_();
 
 
@@ -22162,6 +22305,7 @@ class HttpRequestUpload extends HttpRequestEventTarget {
     return new HttpRequestUpload.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HttpRequestUpload.internal_() : super.internal_();
 
 
@@ -22193,6 +22337,7 @@ class IFrameElement extends HtmlElement {
     return new IFrameElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   IFrameElement.internal_() : super.internal_();
 
   /**
@@ -22298,6 +22443,7 @@ class ImageBitmap extends DartHtmlDomObject {
     return new ImageBitmap.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ImageBitmap.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -22353,6 +22499,7 @@ class ImageData extends DartHtmlDomObject {
     return new ImageData.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ImageData.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -22401,6 +22548,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
     return new ImageElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ImageElement.internal_() : super.internal_();
 
   /**
@@ -22537,6 +22685,7 @@ class InjectedScriptHost extends DartHtmlDomObject {
     return new InjectedScriptHost.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   InjectedScriptHost.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -22601,6 +22750,7 @@ class InputElement extends HtmlElement implements
     return new InputElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   InputElement.internal_() : super.internal_();
 
   /**
@@ -23622,6 +23772,7 @@ class InputMethodContext extends EventTarget {
     return new InputMethodContext.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   InputMethodContext.internal_() : super.internal_();
 
 
@@ -23673,6 +23824,7 @@ class InstallEvent extends ExtendableEvent {
     return new InstallEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   InstallEvent.internal_() : super.internal_();
 
 
@@ -23726,6 +23878,7 @@ class KeyboardEvent extends UIEvent {
     return new KeyboardEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   KeyboardEvent.internal_() : super.internal_();
 
 
@@ -23826,6 +23979,7 @@ class KeygenElement extends HtmlElement {
     return new KeygenElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   KeygenElement.internal_() : super.internal_();
 
   /**
@@ -23939,6 +24093,7 @@ class LIElement extends HtmlElement {
     return new LIElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   LIElement.internal_() : super.internal_();
 
   /**
@@ -23984,6 +24139,7 @@ class LabelElement extends HtmlElement {
     return new LabelElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   LabelElement.internal_() : super.internal_();
 
   /**
@@ -24037,6 +24193,7 @@ class LegendElement extends HtmlElement {
     return new LegendElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   LegendElement.internal_() : super.internal_();
 
   /**
@@ -24076,6 +24233,7 @@ class LinkElement extends HtmlElement {
     return new LinkElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   LinkElement.internal_() : super.internal_();
 
   /**
@@ -24203,6 +24361,7 @@ class LocalCredential extends Credential {
     return new LocalCredential.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   LocalCredential.internal_() : super.internal_();
 
 
@@ -24232,6 +24391,7 @@ class Location extends DartHtmlDomObject implements LocationBase {
     return new Location.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Location.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -24379,6 +24539,7 @@ class MapElement extends HtmlElement {
     return new MapElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MapElement.internal_() : super.internal_();
 
   /**
@@ -24432,6 +24593,7 @@ class MediaController extends EventTarget {
     return new MediaController.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaController.internal_() : super.internal_();
 
 
@@ -24535,6 +24697,7 @@ class MediaDeviceInfo extends DartHtmlDomObject {
     return new MediaDeviceInfo.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaDeviceInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -24651,6 +24814,7 @@ class MediaElement extends HtmlElement {
     return new MediaElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaElement.internal_() : super.internal_();
 
   /**
@@ -25014,6 +25178,7 @@ class MediaError extends DartHtmlDomObject {
     return new MediaError.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -25070,6 +25235,7 @@ class MediaKeyError extends DartHtmlDomObject {
     return new MediaKeyError.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaKeyError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -25134,6 +25300,7 @@ class MediaKeyEvent extends Event {
     return new MediaKeyEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaKeyEvent.internal_() : super.internal_();
 
 
@@ -25191,6 +25358,7 @@ class MediaKeyMessageEvent extends Event {
     return new MediaKeyMessageEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaKeyMessageEvent.internal_() : super.internal_();
 
 
@@ -25228,6 +25396,7 @@ class MediaKeyNeededEvent extends Event {
     return new MediaKeyNeededEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaKeyNeededEvent.internal_() : super.internal_();
 
 
@@ -25266,6 +25435,7 @@ class MediaKeySession extends EventTarget {
     return new MediaKeySession.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaKeySession.internal_() : super.internal_();
 
 
@@ -25336,6 +25506,7 @@ class MediaKeys extends DartHtmlDomObject {
     return new MediaKeys.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaKeys.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -25386,6 +25557,7 @@ class MediaList extends DartHtmlDomObject {
     return new MediaList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -25445,6 +25617,7 @@ class MediaQueryList extends EventTarget {
     return new MediaQueryList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaQueryList.internal_() : super.internal_();
 
 
@@ -25494,6 +25667,7 @@ class MediaQueryListEvent extends Event {
     return new MediaQueryListEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaQueryListEvent.internal_() : super.internal_();
 
 
@@ -25541,6 +25715,7 @@ class MediaSource extends EventTarget {
     return new MediaSource.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaSource.internal_() : super.internal_();
 
 
@@ -25657,6 +25832,7 @@ class MediaStream extends EventTarget {
     return new MediaStream.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaStream.internal_() : super.internal_();
 
 
@@ -25758,6 +25934,7 @@ class MediaStreamEvent extends Event {
     return new MediaStreamEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaStreamEvent.internal_() : super.internal_();
 
 
@@ -25825,6 +26002,7 @@ class MediaStreamTrack extends EventTarget {
     return new MediaStreamTrack.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaStreamTrack.internal_() : super.internal_();
 
 
@@ -25921,6 +26099,7 @@ class MediaStreamTrackEvent extends Event {
     return new MediaStreamTrackEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaStreamTrackEvent.internal_() : super.internal_();
 
 
@@ -25965,6 +26144,7 @@ class MemoryInfo extends DartHtmlDomObject {
     return new MemoryInfo.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MemoryInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -26020,6 +26200,7 @@ class MenuElement extends HtmlElement {
     return new MenuElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MenuElement.internal_() : super.internal_();
 
   /**
@@ -26074,6 +26255,7 @@ class MenuItemElement extends HtmlElement {
     return new MenuItemElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MenuItemElement.internal_() : super.internal_();
 
   /**
@@ -26157,6 +26339,7 @@ class MessageChannel extends DartHtmlDomObject {
     return new MessageChannel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MessageChannel.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -26205,6 +26388,7 @@ class MessageEvent extends Event {
     return new MessageEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MessageEvent.internal_() : super.internal_();
 
 
@@ -26264,6 +26448,7 @@ class MessagePort extends EventTarget {
     return new MessagePort.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MessagePort.internal_() : super.internal_();
 
 
@@ -26312,6 +26497,7 @@ class MetaElement extends HtmlElement {
     return new MetaElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MetaElement.internal_() : super.internal_();
 
   /**
@@ -26370,6 +26556,7 @@ class Metadata extends DartHtmlDomObject {
     return new Metadata.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Metadata.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -26426,6 +26613,7 @@ class MeterElement extends HtmlElement {
     return new MeterElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MeterElement.internal_() : super.internal_();
 
   /**
@@ -26537,6 +26725,7 @@ class MidiAccess extends EventTarget {
     return new MidiAccess.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MidiAccess.internal_() : super.internal_();
 
 
@@ -26589,6 +26778,7 @@ class MidiConnectionEvent extends Event {
     return new MidiConnectionEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MidiConnectionEvent.internal_() : super.internal_();
 
 
@@ -26632,6 +26822,7 @@ class MidiInput extends MidiPort {
     return new MidiInput.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MidiInput.internal_() : super.internal_();
 
 
@@ -26664,6 +26855,7 @@ class MidiInputMap extends DartHtmlDomObject {
     return new MidiInputMap.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MidiInputMap.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -26725,6 +26917,7 @@ class MidiMessageEvent extends Event {
     return new MidiMessageEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MidiMessageEvent.internal_() : super.internal_();
 
 
@@ -26762,6 +26955,7 @@ class MidiOutput extends MidiPort {
     return new MidiOutput.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MidiOutput.internal_() : super.internal_();
 
 
@@ -26798,6 +26992,7 @@ class MidiOutputMap extends DartHtmlDomObject {
     return new MidiOutputMap.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MidiOutputMap.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -26869,6 +27064,7 @@ class MidiPort extends EventTarget {
     return new MidiPort.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MidiPort.internal_() : super.internal_();
 
 
@@ -26921,6 +27117,7 @@ class MimeType extends DartHtmlDomObject {
     return new MimeType.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MimeType.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -26966,6 +27163,7 @@ class MimeTypeArray extends DartHtmlDomObject with ListMixin<MimeType>, Immutabl
     return new MimeTypeArray.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MimeTypeArray.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -27058,6 +27256,7 @@ class ModElement extends HtmlElement {
     return new ModElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ModElement.internal_() : super.internal_();
 
   /**
@@ -27121,6 +27320,7 @@ class MouseEvent extends UIEvent {
     return new MouseEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MouseEvent.internal_() : super.internal_();
 
 
@@ -27312,6 +27512,7 @@ class MutationObserver extends DartHtmlDomObject {
     return new MutationObserver.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MutationObserver.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -27423,6 +27624,7 @@ class MutationRecord extends DartHtmlDomObject {
     return new MutationRecord.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MutationRecord.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -27541,6 +27743,7 @@ class Navigator extends DartHtmlDomObject implements NavigatorCpu, NavigatorLang
     return new Navigator.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Navigator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -27871,6 +28074,7 @@ class NavigatorUserMediaError extends DartHtmlDomObject {
     return new NavigatorUserMediaError.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   NavigatorUserMediaError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -27935,6 +28139,7 @@ class NetworkInformation extends EventTarget {
     return new NetworkInformation.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   NetworkInformation.internal_() : super.internal_();
 
 
@@ -28237,6 +28442,7 @@ class Node extends EventTarget {
     return new Node.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Node.internal_() : super.internal_();
 
 
@@ -28580,6 +28786,7 @@ class NodeFilter extends DartHtmlDomObject {
     return new NodeFilter.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   NodeFilter.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -28653,6 +28860,7 @@ class NodeIterator extends DartHtmlDomObject {
     return new NodeIterator.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   NodeIterator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -28709,6 +28917,7 @@ class NodeList extends DartHtmlDomObject with ListMixin<Node>, ImmutableListMixi
     return new NodeList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   NodeList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -28853,6 +29062,7 @@ class Notification extends EventTarget {
     return new Notification.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Notification.internal_() : super.internal_();
 
 
@@ -28972,6 +29182,7 @@ class OListElement extends HtmlElement {
     return new OListElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   OListElement.internal_() : super.internal_();
 
   /**
@@ -29037,6 +29248,7 @@ class ObjectElement extends HtmlElement {
     return new ObjectElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ObjectElement.internal_() : super.internal_();
 
   /**
@@ -29167,6 +29379,7 @@ class OptGroupElement extends HtmlElement {
     return new OptGroupElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   OptGroupElement.internal_() : super.internal_();
 
   /**
@@ -29220,6 +29433,7 @@ class OptionElement extends HtmlElement {
     return new OptionElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   OptionElement.internal_() : super.internal_();
 
   /**
@@ -29308,6 +29522,7 @@ class OutputElement extends HtmlElement {
     return new OutputElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   OutputElement.internal_() : super.internal_();
 
   /**
@@ -29406,6 +29621,7 @@ class OverflowEvent extends Event {
     return new OverflowEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   OverflowEvent.internal_() : super.internal_();
 
 
@@ -29459,6 +29675,7 @@ class PageTransitionEvent extends Event {
     return new PageTransitionEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PageTransitionEvent.internal_() : super.internal_();
 
 
@@ -29494,6 +29711,7 @@ class ParagraphElement extends HtmlElement {
     return new ParagraphElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ParagraphElement.internal_() : super.internal_();
 
   /**
@@ -29532,6 +29750,7 @@ class ParamElement extends HtmlElement {
     return new ParamElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ParamElement.internal_() : super.internal_();
 
   /**
@@ -29641,6 +29860,7 @@ class Path2D extends DartHtmlDomObject implements _CanvasPathMethods {
     return new Path2D.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Path2D.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -29741,6 +29961,7 @@ class Performance extends EventTarget {
     return new Performance.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Performance.internal_() : super.internal_();
 
 
@@ -29854,6 +30075,7 @@ class PerformanceEntry extends DartHtmlDomObject {
     return new PerformanceEntry.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PerformanceEntry.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -29901,6 +30123,7 @@ class PerformanceMark extends PerformanceEntry {
     return new PerformanceMark.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PerformanceMark.internal_() : super.internal_();
 
 
@@ -29930,6 +30153,7 @@ class PerformanceMeasure extends PerformanceEntry {
     return new PerformanceMeasure.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PerformanceMeasure.internal_() : super.internal_();
 
 
@@ -29957,6 +30181,7 @@ class PerformanceNavigation extends DartHtmlDomObject {
     return new PerformanceNavigation.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PerformanceNavigation.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -30012,6 +30237,7 @@ class PerformanceResourceTiming extends PerformanceEntry {
     return new PerformanceResourceTiming.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PerformanceResourceTiming.internal_() : super.internal_();
 
 
@@ -30090,6 +30316,7 @@ class PerformanceTiming extends DartHtmlDomObject {
     return new PerformanceTiming.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PerformanceTiming.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -30204,6 +30431,7 @@ class PictureElement extends HtmlElement {
     return new PictureElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PictureElement.internal_() : super.internal_();
 
   /**
@@ -30237,6 +30465,7 @@ class Plugin extends DartHtmlDomObject {
     return new Plugin.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Plugin.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -30294,6 +30523,7 @@ class PluginArray extends DartHtmlDomObject with ListMixin<Plugin>, ImmutableLis
     return new PluginArray.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PluginArray.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -30390,6 +30620,7 @@ class PluginPlaceholderElement extends DivElement {
     return new PluginPlaceholderElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PluginPlaceholderElement.internal_() : super.internal_();
 
   /**
@@ -30442,6 +30673,7 @@ class PopStateEvent extends Event {
     return new PopStateEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PopStateEvent.internal_() : super.internal_();
 
 
@@ -30483,6 +30715,7 @@ class PositionError extends DartHtmlDomObject {
     return new PositionError.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PositionError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -30546,6 +30779,7 @@ class PreElement extends HtmlElement {
     return new PreElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PreElement.internal_() : super.internal_();
 
   /**
@@ -30580,6 +30814,7 @@ class Presentation extends EventTarget {
     return new Presentation.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Presentation.internal_() : super.internal_();
 
 
@@ -30608,6 +30843,7 @@ class ProcessingInstruction extends CharacterData {
     return new ProcessingInstruction.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ProcessingInstruction.internal_() : super.internal_();
 
 
@@ -30652,6 +30888,7 @@ class ProgressElement extends HtmlElement {
     return new ProgressElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ProgressElement.internal_() : super.internal_();
 
   /**
@@ -30713,6 +30950,7 @@ class ProgressEvent extends Event {
     return new ProgressEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ProgressEvent.internal_() : super.internal_();
 
 
@@ -30753,6 +30991,7 @@ class PushEvent extends Event {
     return new PushEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PushEvent.internal_() : super.internal_();
 
 
@@ -30785,6 +31024,7 @@ class PushManager extends DartHtmlDomObject {
     return new PushManager.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PushManager.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -30819,6 +31059,7 @@ class PushRegistration extends DartHtmlDomObject {
     return new PushRegistration.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PushRegistration.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -30862,6 +31103,7 @@ class QuoteElement extends HtmlElement {
     return new QuoteElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   QuoteElement.internal_() : super.internal_();
 
   /**
@@ -30939,6 +31181,7 @@ class Range extends DartHtmlDomObject {
     return new Range.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Range.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -31136,6 +31379,7 @@ class ReadableStream extends DartHtmlDomObject {
     return new ReadableStream.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ReadableStream.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -31191,6 +31435,7 @@ class RelatedEvent extends Event {
     return new RelatedEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RelatedEvent.internal_() : super.internal_();
 
 
@@ -31234,6 +31479,7 @@ class ResourceProgressEvent extends ProgressEvent {
     return new ResourceProgressEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ResourceProgressEvent.internal_() : super.internal_();
 
 
@@ -31307,6 +31553,7 @@ class RtcDataChannel extends EventTarget {
     return new RtcDataChannel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcDataChannel.internal_() : super.internal_();
 
 
@@ -31450,6 +31697,7 @@ class RtcDataChannelEvent extends Event {
     return new RtcDataChannelEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcDataChannelEvent.internal_() : super.internal_();
 
 
@@ -31493,6 +31741,7 @@ class RtcDtmfSender extends EventTarget {
     return new RtcDtmfSender.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcDtmfSender.internal_() : super.internal_();
 
 
@@ -31560,6 +31809,7 @@ class RtcDtmfToneChangeEvent extends Event {
     return new RtcDtmfToneChangeEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcDtmfToneChangeEvent.internal_() : super.internal_();
 
 
@@ -31600,6 +31850,7 @@ class RtcIceCandidate extends DartHtmlDomObject {
     return new RtcIceCandidate.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcIceCandidate.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -31655,6 +31906,7 @@ class RtcIceCandidateEvent extends Event {
     return new RtcIceCandidateEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcIceCandidateEvent.internal_() : super.internal_();
 
 
@@ -31796,6 +32048,7 @@ class RtcPeerConnection extends EventTarget {
     return new RtcPeerConnection.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcPeerConnection.internal_() : super.internal_();
 
 
@@ -31993,6 +32246,7 @@ class RtcSessionDescription extends DartHtmlDomObject {
     return new RtcSessionDescription.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcSessionDescription.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -32039,6 +32293,7 @@ class RtcStatsReport extends DartHtmlDomObject {
     return new RtcStatsReport.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcStatsReport.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -32097,6 +32352,7 @@ class RtcStatsResponse extends DartHtmlDomObject {
     return new RtcStatsResponse.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcStatsResponse.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -32142,6 +32398,7 @@ class Screen extends DartHtmlDomObject {
     return new Screen.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Screen.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -32215,6 +32472,7 @@ class ScreenOrientation extends EventTarget {
     return new ScreenOrientation.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ScreenOrientation.internal_() : super.internal_();
 
 
@@ -32271,6 +32529,7 @@ class ScriptElement extends HtmlElement {
     return new ScriptElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ScriptElement.internal_() : super.internal_();
 
   /**
@@ -32380,6 +32639,7 @@ class SecurityPolicyViolationEvent extends Event {
     return new SecurityPolicyViolationEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SecurityPolicyViolationEvent.internal_() : super.internal_();
 
 
@@ -32449,6 +32709,7 @@ class SelectElement extends HtmlElement {
     return new SelectElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SelectElement.internal_() : super.internal_();
 
   /**
@@ -32621,6 +32882,7 @@ class Selection extends DartHtmlDomObject {
     return new Selection.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Selection.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -32774,6 +33036,7 @@ class ServiceWorkerClient extends DartHtmlDomObject {
     return new ServiceWorkerClient.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ServiceWorkerClient.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -32813,6 +33076,7 @@ class ServiceWorkerClients extends DartHtmlDomObject {
     return new ServiceWorkerClients.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ServiceWorkerClients.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -32849,6 +33113,7 @@ class ServiceWorkerContainer extends DartHtmlDomObject {
     return new ServiceWorkerContainer.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ServiceWorkerContainer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -32908,6 +33173,7 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
     return new ServiceWorkerGlobalScope.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ServiceWorkerGlobalScope.internal_() : super.internal_();
 
 
@@ -32977,6 +33243,7 @@ class ServiceWorkerRegistration extends EventTarget {
     return new ServiceWorkerRegistration.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ServiceWorkerRegistration.internal_() : super.internal_();
 
 
@@ -33036,6 +33303,7 @@ class ShadowElement extends HtmlElement {
     return new ShadowElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ShadowElement.internal_() : super.internal_();
 
   /**
@@ -33079,6 +33347,7 @@ class ShadowRoot extends DocumentFragment {
     return new ShadowRoot.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ShadowRoot.internal_() : super.internal_();
 
 
@@ -33206,6 +33475,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
     return new SharedWorker.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SharedWorker.internal_() : super.internal_();
 
 
@@ -33259,6 +33529,7 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
     return new SharedWorkerGlobalScope.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SharedWorkerGlobalScope.internal_() : super.internal_();
 
 
@@ -33299,6 +33570,7 @@ class SourceBuffer extends EventTarget {
     return new SourceBuffer.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SourceBuffer.internal_() : super.internal_();
 
 
@@ -33403,6 +33675,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
     return new SourceBufferList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SourceBufferList.internal_() : super.internal_();
 
 
@@ -33488,6 +33761,7 @@ class SourceElement extends HtmlElement {
     return new SourceElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SourceElement.internal_() : super.internal_();
 
   /**
@@ -33575,6 +33849,7 @@ class SourceInfo extends DartHtmlDomObject {
     return new SourceInfo.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SourceInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -33628,6 +33903,7 @@ class SpanElement extends HtmlElement {
     return new SpanElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpanElement.internal_() : super.internal_();
 
   /**
@@ -33668,6 +33944,7 @@ class SpeechGrammar extends DartHtmlDomObject {
     return new SpeechGrammar.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechGrammar.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -33720,6 +33997,7 @@ class SpeechGrammarList extends DartHtmlDomObject with ListMixin<SpeechGrammar>,
     return new SpeechGrammarList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechGrammarList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -33940,6 +34218,7 @@ class SpeechRecognition extends EventTarget {
     return new SpeechRecognition.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechRecognition.internal_() : super.internal_();
 
 
@@ -34079,6 +34358,7 @@ class SpeechRecognitionAlternative extends DartHtmlDomObject {
     return new SpeechRecognitionAlternative.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechRecognitionAlternative.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -34119,6 +34399,7 @@ class SpeechRecognitionError extends Event {
     return new SpeechRecognitionError.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechRecognitionError.internal_() : super.internal_();
 
 
@@ -34157,6 +34438,7 @@ class SpeechRecognitionEvent extends Event {
     return new SpeechRecognitionEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechRecognitionEvent.internal_() : super.internal_();
 
 
@@ -34202,6 +34484,7 @@ class SpeechRecognitionResult extends DartHtmlDomObject {
     return new SpeechRecognitionResult.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechRecognitionResult.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -34245,6 +34528,7 @@ class SpeechSynthesis extends EventTarget {
     return new SpeechSynthesis.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechSynthesis.internal_() : super.internal_();
 
 
@@ -34306,6 +34590,7 @@ class SpeechSynthesisEvent extends Event {
     return new SpeechSynthesisEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechSynthesisEvent.internal_() : super.internal_();
 
 
@@ -34423,6 +34708,7 @@ class SpeechSynthesisUtterance extends EventTarget {
     return new SpeechSynthesisUtterance.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechSynthesisUtterance.internal_() : super.internal_();
 
 
@@ -34534,6 +34820,7 @@ class SpeechSynthesisVoice extends DartHtmlDomObject {
     return new SpeechSynthesisVoice.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechSynthesisVoice.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -34659,6 +34946,7 @@ class Storage extends DartHtmlDomObject
     return new Storage.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Storage.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -34764,6 +35052,7 @@ class StorageEvent extends Event {
     return new StorageEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   StorageEvent.internal_() : super.internal_();
 
 
@@ -34816,6 +35105,7 @@ class StorageInfo extends DartHtmlDomObject {
     return new StorageInfo.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   StorageInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -34856,6 +35146,7 @@ class StorageQuota extends DartHtmlDomObject {
     return new StorageQuota.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   StorageQuota.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -34937,6 +35228,7 @@ class StyleElement extends HtmlElement {
     return new StyleElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   StyleElement.internal_() : super.internal_();
 
   /**
@@ -34999,6 +35291,7 @@ class StyleMedia extends DartHtmlDomObject {
     return new StyleMedia.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   StyleMedia.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -35035,6 +35328,7 @@ class StyleSheet extends DartHtmlDomObject {
     return new StyleSheet.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   StyleSheet.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -35100,6 +35394,7 @@ class TableCaptionElement extends HtmlElement {
     return new TableCaptionElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TableCaptionElement.internal_() : super.internal_();
 
   /**
@@ -35137,6 +35432,7 @@ class TableCellElement extends HtmlElement {
     return new TableCellElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TableCellElement.internal_() : super.internal_();
 
   /**
@@ -35202,6 +35498,7 @@ class TableColElement extends HtmlElement {
     return new TableColElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TableColElement.internal_() : super.internal_();
 
   /**
@@ -35265,6 +35562,7 @@ class TableElement extends HtmlElement {
     return new TableElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TableElement.internal_() : super.internal_();
 
   /**
@@ -35382,6 +35680,7 @@ class TableRowElement extends HtmlElement {
     return new TableRowElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TableRowElement.internal_() : super.internal_();
 
   /**
@@ -35447,6 +35746,7 @@ class TableSectionElement extends HtmlElement {
     return new TableSectionElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TableSectionElement.internal_() : super.internal_();
 
   /**
@@ -35501,6 +35801,7 @@ class TemplateElement extends HtmlElement {
     return new TemplateElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TemplateElement.internal_() : super.internal_();
 
   /**
@@ -35557,6 +35858,7 @@ class Text extends CharacterData {
     return new Text.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Text.internal_() : super.internal_();
 
 
@@ -35601,6 +35903,7 @@ class TextAreaElement extends HtmlElement {
     return new TextAreaElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextAreaElement.internal_() : super.internal_();
 
   /**
@@ -35847,6 +36150,7 @@ class TextEvent extends UIEvent {
     return new TextEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextEvent.internal_() : super.internal_();
 
 
@@ -35881,6 +36185,7 @@ class TextMetrics extends DartHtmlDomObject {
     return new TextMetrics.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextMetrics.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -35981,6 +36286,7 @@ class TextTrack extends EventTarget {
     return new TextTrack.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextTrack.internal_() : super.internal_();
 
 
@@ -36091,6 +36397,7 @@ class TextTrackCue extends EventTarget {
     return new TextTrackCue.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextTrackCue.internal_() : super.internal_();
 
 
@@ -36165,6 +36472,7 @@ class TextTrackCueList extends DartHtmlDomObject with ListMixin<TextTrackCue>, I
     return new TextTrackCueList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextTrackCueList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -36269,6 +36577,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
     return new TextTrackList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextTrackList.internal_() : super.internal_();
 
 
@@ -36365,6 +36674,7 @@ class TimeRanges extends DartHtmlDomObject {
     return new TimeRanges.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TimeRanges.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -36415,6 +36725,7 @@ class Timing extends DartHtmlDomObject {
     return new Timing.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Timing.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -36538,6 +36849,7 @@ class TitleElement extends HtmlElement {
     return new TitleElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TitleElement.internal_() : super.internal_();
 
   /**
@@ -36570,6 +36882,7 @@ class Touch extends DartHtmlDomObject {
     return new Touch.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Touch.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -36705,6 +37018,7 @@ class TouchEvent extends UIEvent {
     return new TouchEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TouchEvent.internal_() : super.internal_();
 
 
@@ -36777,6 +37091,7 @@ class TouchList extends DartHtmlDomObject with ListMixin<Touch>, ImmutableListMi
     return new TouchList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TouchList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -36872,6 +37187,7 @@ class TrackElement extends HtmlElement {
     return new TrackElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TrackElement.internal_() : super.internal_();
 
   /**
@@ -36983,6 +37299,7 @@ class TrackEvent extends Event {
     return new TrackEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TrackEvent.internal_() : super.internal_();
 
 
@@ -37014,6 +37331,7 @@ class TransitionEvent extends Event {
     return new TransitionEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TransitionEvent.internal_() : super.internal_();
 
 
@@ -37053,6 +37371,7 @@ class TreeWalker extends DartHtmlDomObject {
     return new TreeWalker.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TreeWalker.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -37145,6 +37464,7 @@ class UIEvent extends Event {
     return new UIEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   UIEvent.internal_() : super.internal_();
 
 
@@ -37235,6 +37555,7 @@ class UListElement extends HtmlElement {
     return new UListElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   UListElement.internal_() : super.internal_();
 
   /**
@@ -37268,6 +37589,7 @@ class UnknownElement extends HtmlElement {
     return new UnknownElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   UnknownElement.internal_() : super.internal_();
 
   /**
@@ -37300,6 +37622,7 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     return new Url.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Url.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -37657,6 +37980,7 @@ class ValidityState extends DartHtmlDomObject {
     return new ValidityState.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ValidityState.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -37727,6 +38051,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
     return new VideoElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   VideoElement.internal_() : super.internal_();
 
   /**
@@ -37827,6 +38152,7 @@ class VideoPlaybackQuality extends DartHtmlDomObject {
     return new VideoPlaybackQuality.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   VideoPlaybackQuality.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -37876,6 +38202,7 @@ class VideoTrack extends DartHtmlDomObject {
     return new VideoTrack.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   VideoTrack.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -37941,6 +38268,7 @@ class VideoTrackList extends EventTarget {
     return new VideoTrackList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   VideoTrackList.internal_() : super.internal_();
 
 
@@ -38011,6 +38339,7 @@ class VttCue extends TextTrackCue {
     return new VttCue.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   VttCue.internal_() : super.internal_();
 
 
@@ -38129,6 +38458,7 @@ class VttRegion extends DartHtmlDomObject {
     return new VttRegion.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   VttRegion.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -38243,6 +38573,7 @@ class VttRegionList extends DartHtmlDomObject {
     return new VttRegionList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   VttRegionList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -38382,6 +38713,7 @@ class WebSocket extends EventTarget {
     return new WebSocket.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   WebSocket.internal_() : super.internal_();
 
 
@@ -38555,6 +38887,7 @@ class WheelEvent extends MouseEvent {
     return new WheelEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   WheelEvent.internal_() : super.internal_();
 
 
@@ -38896,6 +39229,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
     return new Window.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Window.internal_() : super.internal_();
 
 
@@ -40374,6 +40708,7 @@ class Worker extends EventTarget implements AbstractWorker {
     return new Worker.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Worker.internal_() : super.internal_();
 
 
@@ -40424,6 +40759,7 @@ class WorkerConsole extends ConsoleBase {
     return new WorkerConsole.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   WorkerConsole.internal_() : super.internal_();
 
 
@@ -40463,6 +40799,7 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
     return new WorkerGlobalScope.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   WorkerGlobalScope.internal_() : super.internal_();
 
 
@@ -40635,6 +40972,7 @@ class WorkerPerformance extends DartHtmlDomObject {
     return new WorkerPerformance.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   WorkerPerformance.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -40681,6 +41019,7 @@ class XPathEvaluator extends DartHtmlDomObject {
     return new XPathEvaluator.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   XPathEvaluator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -40723,6 +41062,7 @@ class XPathExpression extends DartHtmlDomObject {
     return new XPathExpression.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   XPathExpression.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -40757,6 +41097,7 @@ class XPathNSResolver extends DartHtmlDomObject {
     return new XPathNSResolver.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   XPathNSResolver.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -40791,6 +41132,7 @@ class XPathResult extends DartHtmlDomObject {
     return new XPathResult.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   XPathResult.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -40897,6 +41239,7 @@ class XmlDocument extends Document {
     return new XmlDocument.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   XmlDocument.internal_() : super.internal_();
 
 
@@ -40931,6 +41274,7 @@ class XmlSerializer extends DartHtmlDomObject {
     return new XmlSerializer.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   XmlSerializer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -40973,6 +41317,7 @@ class XsltProcessor extends DartHtmlDomObject {
     return new XsltProcessor.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   XsltProcessor.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41037,6 +41382,7 @@ class _Attr extends Node {
     return new _Attr.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _Attr.internal_() : super.internal_();
 
 
@@ -41103,6 +41449,7 @@ class _CSSPrimitiveValue extends _CSSValue {
     return new _CSSPrimitiveValue.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _CSSPrimitiveValue.internal_() : super.internal_();
 
 
@@ -41132,6 +41479,7 @@ class _CSSUnknownRule extends CssRule {
     return new _CSSUnknownRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _CSSUnknownRule.internal_() : super.internal_();
 
 
@@ -41160,6 +41508,7 @@ class _CSSValue extends DartHtmlDomObject {
     return new _CSSValue.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _CSSValue.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41189,6 +41538,7 @@ class _Cache extends DartHtmlDomObject {
     return new _Cache.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _Cache.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41320,6 +41670,7 @@ class _ClientRect extends DartHtmlDomObject implements Rectangle {
     return new _ClientRect.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _ClientRect.internal_() { }
 
 
@@ -41406,6 +41757,7 @@ class _ClientRectList extends DartHtmlDomObject with ListMixin<Rectangle>, Immut
     return new _ClientRectList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _ClientRectList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41490,6 +41842,7 @@ class _Counter extends DartHtmlDomObject {
     return new _Counter.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _Counter.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41518,6 +41871,7 @@ class _CssRuleList extends DartHtmlDomObject with ListMixin<CssRule>, ImmutableL
     return new _CssRuleList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _CssRuleList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41603,6 +41957,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
     return new _CssValueList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _CssValueList.internal_() : super.internal_();
 
 
@@ -41686,6 +42041,7 @@ class _DOMFileSystemSync extends DartHtmlDomObject {
     return new _DOMFileSystemSync.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _DOMFileSystemSync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41717,6 +42073,7 @@ class _DirectoryEntrySync extends _EntrySync {
     return new _DirectoryEntrySync.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _DirectoryEntrySync.internal_() : super.internal_();
 
 
@@ -41745,6 +42102,7 @@ class _DirectoryReaderSync extends DartHtmlDomObject {
     return new _DirectoryReaderSync.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _DirectoryReaderSync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41774,6 +42132,7 @@ class _DocumentType extends Node implements ChildNode {
     return new _DocumentType.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _DocumentType.internal_() : super.internal_();
 
 
@@ -41824,6 +42183,7 @@ class _DomRect extends DomRectReadOnly {
     return new _DomRect.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _DomRect.internal_() : super.internal_();
 
 
@@ -41892,6 +42252,7 @@ class _EntrySync extends DartHtmlDomObject {
     return new _EntrySync.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _EntrySync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41923,6 +42284,7 @@ class _FileEntrySync extends _EntrySync {
     return new _FileEntrySync.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _FileEntrySync.internal_() : super.internal_();
 
 
@@ -41957,6 +42319,7 @@ class _FileReaderSync extends DartHtmlDomObject {
     return new _FileReaderSync.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _FileReaderSync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41987,6 +42350,7 @@ class _FileWriterSync extends DartHtmlDomObject {
     return new _FileWriterSync.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _FileWriterSync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42017,6 +42381,7 @@ class _GamepadList extends DartHtmlDomObject with ListMixin<Gamepad>, ImmutableL
     return new _GamepadList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _GamepadList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42101,6 +42466,7 @@ class _HTMLAllCollection extends DartHtmlDomObject {
     return new _HTMLAllCollection.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _HTMLAllCollection.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42136,6 +42502,7 @@ class _HTMLAppletElement extends HtmlElement {
     return new _HTMLAppletElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _HTMLAppletElement.internal_() : super.internal_();
 
   /**
@@ -42171,6 +42538,7 @@ class _HTMLDirectoryElement extends HtmlElement {
     return new _HTMLDirectoryElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _HTMLDirectoryElement.internal_() : super.internal_();
 
   /**
@@ -42206,6 +42574,7 @@ class _HTMLFontElement extends HtmlElement {
     return new _HTMLFontElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _HTMLFontElement.internal_() : super.internal_();
 
   /**
@@ -42241,6 +42610,7 @@ class _HTMLFrameElement extends HtmlElement {
     return new _HTMLFrameElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _HTMLFrameElement.internal_() : super.internal_();
 
   /**
@@ -42274,6 +42644,7 @@ class _HTMLFrameSetElement extends HtmlElement implements WindowEventHandlers {
     return new _HTMLFrameSetElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _HTMLFrameSetElement.internal_() : super.internal_();
 
   /**
@@ -42318,6 +42689,7 @@ class _HTMLMarqueeElement extends HtmlElement {
     return new _HTMLMarqueeElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _HTMLMarqueeElement.internal_() : super.internal_();
 
   /**
@@ -42359,6 +42731,7 @@ class _MutationEvent extends Event {
     return new _MutationEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _MutationEvent.internal_() : super.internal_();
 
 
@@ -42387,6 +42760,7 @@ class _NamedNodeMap extends DartHtmlDomObject with ListMixin<Node>, ImmutableLis
     return new _NamedNodeMap.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _NamedNodeMap.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42498,6 +42872,7 @@ class _PagePopupController extends DartHtmlDomObject {
     return new _PagePopupController.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _PagePopupController.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42528,6 +42903,7 @@ class _RGBColor extends DartHtmlDomObject {
     return new _RGBColor.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _RGBColor.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42554,6 +42930,7 @@ class _RadioNodeList extends NodeList {
     return new _RadioNodeList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _RadioNodeList.internal_() : super.internal_();
 
 
@@ -42582,6 +42959,7 @@ class _Rect extends DartHtmlDomObject {
     return new _Rect.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _Rect.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42632,6 +43010,7 @@ class _Request extends Body {
     return new _Request.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _Request.internal_() : super.internal_();
 
 
@@ -42724,6 +43103,7 @@ class _Response extends Body {
     return new _Response.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _Response.internal_() : super.internal_();
 
 
@@ -42750,6 +43130,7 @@ class _ServiceWorker extends EventTarget implements AbstractWorker {
     return new _ServiceWorker.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _ServiceWorker.internal_() : super.internal_();
 
 
@@ -42781,6 +43162,7 @@ class _SpeechRecognitionResultList extends DartHtmlDomObject with ListMixin<Spee
     return new _SpeechRecognitionResultList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SpeechRecognitionResultList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42863,6 +43245,7 @@ class _StyleSheetList extends DartHtmlDomObject with ListMixin<StyleSheet>, Immu
     return new _StyleSheetList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _StyleSheetList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42950,6 +43333,7 @@ class _SubtleCrypto extends DartHtmlDomObject {
     return new _SubtleCrypto.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SubtleCrypto.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42981,6 +43365,7 @@ class _WebKitCSSFilterValue extends _CssValueList {
     return new _WebKitCSSFilterValue.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _WebKitCSSFilterValue.internal_() : super.internal_();
 
 
@@ -43018,6 +43403,7 @@ class _WebKitCSSMatrix extends DartHtmlDomObject {
     return new _WebKitCSSMatrix.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _WebKitCSSMatrix.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -43049,6 +43435,7 @@ class _WebKitCSSTransformValue extends _CssValueList {
     return new _WebKitCSSTransformValue.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _WebKitCSSTransformValue.internal_() : super.internal_();
 
 
@@ -43110,6 +43497,7 @@ class _WorkerLocation extends DartHtmlDomObject implements UrlUtilsReadOnly {
     return new _WorkerLocation.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _WorkerLocation.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -43149,6 +43537,7 @@ class _WorkerNavigator extends DartHtmlDomObject implements NavigatorCpu, Naviga
     return new _WorkerNavigator.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _WorkerNavigator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -43190,6 +43579,7 @@ class _XMLHttpRequestProgressEvent extends ProgressEvent {
     return new _XMLHttpRequestProgressEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _XMLHttpRequestProgressEvent.internal_() : super.internal_();
 
 
@@ -47487,6 +47877,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
    *               all blink_jsObject.  Then needed private wrap/unwrap_jso
    *               functions that delegate to a public wrap/unwrap_jso.
    */
+  @Deprecated("Internal Use Only")
   js.JsObject blink_jsObject;
 
   /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
