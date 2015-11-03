@@ -276,10 +276,10 @@ class ServerPlugin implements Plugin {
     // Register analyzed file patterns.
     //
     List<String> patterns = <String>[
-      '/**/*.${AnalysisEngine.SUFFIX_DART}',
-      '/**/*.${AnalysisEngine.SUFFIX_HTML}',
-      '/**/*.${AnalysisEngine.SUFFIX_HTM}',
-      '/**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}'
+      '{*:/,/}**/*.${AnalysisEngine.SUFFIX_DART}',
+      '{*:/,/}**/*.${AnalysisEngine.SUFFIX_HTML}',
+      '{*:/,/}**/*.${AnalysisEngine.SUFFIX_HTM}',
+      '{*:/,/}**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}'
     ];
     registerExtension(ANALYZED_FILE_PATTERNS_EXTENSION_POINT_ID, patterns);
     //
