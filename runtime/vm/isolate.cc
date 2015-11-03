@@ -892,11 +892,6 @@ Isolate* Isolate::Init(const char* name_prefix,
   ASSERT(state != NULL);
   result->set_api_state(state);
 
-  // Initialize stack limit (wait until later for the VM isolate, since the
-  // needed GetStackPointer stub has not yet been generated in that case).
-  if (!is_vm_isolate) {
-    result->InitializeStackLimit();
-  }
   result->set_main_port(PortMap::CreatePort(result->message_handler()));
 #if defined(DEBUG)
   // Verify that we are never reusing a live origin id.
@@ -933,11 +928,6 @@ Isolate* Isolate::Init(const char* name_prefix,
   }
 
   return result;
-}
-
-
-void Isolate::InitializeStackLimit() {
-  SetStackLimitFromStackBase(Isolate::GetCurrentStackPointer());
 }
 
 

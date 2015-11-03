@@ -179,8 +179,6 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       Symbols::InitOnce(vm_isolate_);
     }
     Thread::InitOnceAfterObjectAndStubCode();
-    // Now that the needed stub has been generated, set the stack limit.
-    vm_isolate_->InitializeStackLimit();
     Scanner::InitOnce();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.

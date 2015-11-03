@@ -212,7 +212,6 @@ class Isolate : public BaseIsolate {
     library_tag_handler_ = value;
   }
 
-  void InitializeStackLimit();
   void SetStackLimit(uword value);
   void SetStackLimitFromStackBase(uword stack_base);
   void ClearStackLimit();
@@ -900,26 +899,29 @@ class StartIsolateScope {
       : new_isolate_(new_isolate), saved_isolate_(Isolate::Current()) {
     // TODO(koda): Audit users; passing NULL goes against naming of this class.
     if (new_isolate_ == NULL) {
+      ASSERT(Isolate::Current() == NULL);
       // Do nothing.
       return;
     }
     if (saved_isolate_ != new_isolate_) {
       ASSERT(Isolate::Current() == NULL);
+      // Ensure this is not a nested 'isolate enter' with prior state.
+      ASSERT(new_isolate_->stack_base() == 0);
       Thread::EnterIsolate(new_isolate_);
-      new_isolate_->SetStackLimitFromStackBase(
-          Isolate::GetCurrentStackPointer());
     }
   }
 
   ~StartIsolateScope() {
     if (new_isolate_ == NULL) {
+      ASSERT(Isolate::Current() == NULL);
       // Do nothing.
       return;
     }
     if (saved_isolate_ != new_isolate_) {
-      new_isolate_->ClearStackLimit();
-      Thread::ExitIsolate();
       ASSERT(saved_isolate_ == NULL);
+      // ASSERT that we have bottomed out of all Dart invocations.
+      ASSERT(new_isolate_->stack_base() == 0);
+      Thread::ExitIsolate();
     }
   }
 
