@@ -5846,6 +5846,12 @@ class SsaBuilder extends ast.Visitor
     }
   }
 
+  bool _hasNamedParameters(FunctionElement function) {
+    FunctionSignature params = function.functionSignature;
+    return params.optionalParameterCount > 0
+        && params.optionalParametersAreNamed;
+  }
+
   HForeignCode invokeJsInteropFunction(Element element,
                                        List<HInstruction> arguments,
                                        SourceInformation sourceInformation) {
@@ -5853,9 +5859,10 @@ class SsaBuilder extends ast.Visitor
     nativeEmitter.nativeMethods.add(element);
     String templateString;
 
-    if (element.isFactoryConstructor) {
-      // Treat factory constructors as syntactic sugar for creating object
-      // literals.
+    if (element.isFactoryConstructor &&
+        backend.jsInteropAnalysis.hasAnonymousAnnotation(element.contextClass)) {
+      // Factory constructor that is syntactic sugar for creating a JavaScript
+      // object literal.
       ConstructorElement constructor = element;
       FunctionSignature params = constructor.functionSignature;
       int i = 0;
@@ -5866,13 +5873,6 @@ class SsaBuilder extends ast.Visitor
         // TODO(jacobr): throw if parameter names do not match names of property
         // names in the class.
         assert (parameter.isNamed);
-        if (!parameter.isNamed) {
-          reporter.reportErrorMessage(
-              parameter, MessageKind.GENERIC,
-              {'text': 'All arguments to external constructors of JavaScript '
-                       'interop classes must be named as these constructors '
-                       'are syntactic sugar for object literals.'});
-        }
         HInstruction argument = arguments[i];
         if (argument != null) {
           filteredArguments.add(argument);
@@ -5911,10 +5911,14 @@ class SsaBuilder extends ast.Visitor
     } else if (element.isSetter) {
       codeTemplate = js.js.parseForeignJS("# = #");
     } else {
+      FunctionElement function = element;
+      FunctionSignature params = function.functionSignature;
+
       var argsStub = <String>[];
       for (int i = 0; i < arguments.length; i++) {
         argsStub.add('#');
       }
+
       if (element.isConstructor) {
         codeTemplate = js.js.parseForeignJS("new #(${argsStub.join(",")})");
       } else {

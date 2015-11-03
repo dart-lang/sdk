@@ -277,6 +277,8 @@ enum MessageKind {
   INVALID_USE_OF_SUPER,
   JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
   JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
+  JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
+  JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
   LIBRARY_NAME_MISMATCH,
   LIBRARY_NOT_FOUND,
   LIBRARY_NOT_SUPPORTED,
@@ -2168,6 +2170,51 @@ main() => A.A = 1;
 
               main() {
                 new Foo().bar();
+              }
+              """]),
+
+      MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS:
+        const MessageTemplate(
+          MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
+          "Js-interop method '#{method}' has named arguments but is not "
+          "a factory constructor of an @anonymous @JS class.",
+          howToFix: "Remove all named arguments from js-interop method or "
+                    "in the case of a factory constructor annotate the class "
+                    "as @anonymous.",
+          examples: const [
+              """
+              import 'package:js/js.dart';
+
+              @JS()
+              class Foo {
+                external bar(foo, {baz});
+              }
+
+              main() {
+                new Foo().bar(4, baz: 5);
+              }
+              """]),
+
+      MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS:
+        const MessageTemplate(
+          MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
+          "Parameter '#{parameter}' in anonymous js-interop class '#{cls}' "
+          "object literal constructor is positional instead of named."
+          ".",
+          howToFix: "Make all arguments in external factory object literal "
+                    "constructors named.",
+          examples: const [
+              """
+              import 'package:js/js.dart';
+
+              @anonymous
+              @JS()
+              class Foo {
+                external factory Foo(foo, {baz});
+              }
+
+              main() {
+                new Foo(5, baz: 5);
               }
               """]),
 

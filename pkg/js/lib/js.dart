@@ -18,3 +18,15 @@ class JS {
   final String name;
   const JS([this.name]);
 }
+
+class _Anonymous {
+  const _Anonymous();
+}
+
+/// A metadata annotation that indicates that a @JS annotated class is
+/// structural and does not have a known JavaScript prototype.
+///
+/// Factory constructors for anonymous JavaScript classes desugar to creating
+/// JavaScript object literals with name-value pairs corresponding to the
+/// parameter names and values.
+const _Anonymous anonymous = const _Anonymous();
