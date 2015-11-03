@@ -13,6 +13,60 @@ import '../utils.dart';
 
 main() {
   initializeTestEnvironment();
+
+  group('AnalysisOptionsProvider', () {
+    void expectMergesTo(String defaults, String overrides, String expected) {
+      var optionsProvider = new AnalysisOptionsProvider();
+      var defaultOptions = optionsProvider.getOptionsFromString(defaults);
+      var overrideOptions = optionsProvider.getOptionsFromString(overrides);
+      var merged = optionsProvider.merge(defaultOptions, overrideOptions);
+      expect(merged, optionsProvider.getOptionsFromString(expected));
+    }
+
+    group('merging', () {
+      test('integration', () {
+        expectMergesTo(
+            '''
+analyzer:
+  plugins:
+    - p1
+    - p2
+  errors:
+    unused_local_variable : error
+linter:
+  rules:
+    - camel_case_types
+    - one_member_abstracts
+''',
+            '''
+analyzer:
+  plugins:
+    - p3
+  errors:
+    unused_local_variable : ignore # overrides error
+linter:
+  rules:
+    one_member_abstracts: false # promotes and disables
+    always_specify_return_types: true
+''',
+            '''
+analyzer:
+  plugins:
+    - p1
+    - p2
+    - p3
+  errors:
+    unused_local_variable : ignore
+linter:
+  rules:
+    camel_case_types: true
+    one_member_abstracts: false
+    always_specify_return_types: true
+''');
+      });
+    });
+  });
+
   group('AnalysisOptionsProvider', () {
     setUp(() {
       buildResourceProvider();

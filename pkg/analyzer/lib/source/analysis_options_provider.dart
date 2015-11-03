@@ -6,6 +6,7 @@ library source.analysis_options_provider;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/util/yaml.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -65,6 +66,22 @@ class AnalysisOptionsProvider {
     }
     return options;
   }
+
+  /// Merge the given options contents where the values in [defaults] may be
+  /// overridden by [overrides].
+  ///
+  /// Some notes about merge semantics:
+  ///
+  ///   * lists are merged (without duplicates).
+  ///   * lists of scalar values can be promoted to simple maps when merged with
+  ///     maps of strings to booleans (e.g., ['opt1', 'opt2'] becomes
+  ///     {'opt1': true, 'opt2': true}.
+  ///   * maps are merged recursively.
+  ///   * if map values cannot be merged, the overriding value is taken.
+  ///
+  Map<String, YamlNode> merge(
+          Map<String, YamlNode> defaults, Map<String, YamlNode> overrides) =>
+      new Merger().merge(defaults, overrides);
 
   /// Read the contents of [file] as a string.
   /// Returns null if file does not exist.

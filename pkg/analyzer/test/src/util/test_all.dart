@@ -9,12 +9,14 @@ import 'package:unittest/unittest.dart';
 import '../../utils.dart';
 import 'asserts_test.dart' as asserts_test;
 import 'lru_map_test.dart' as lru_map_test;
+import 'yaml_test.dart' as yaml_test;
 
 /// Utility for manually running all tests.
 main() {
   initializeTestEnvironment();
-  group('task tests', () {
+  group('util tests', () {
     asserts_test.main();
     lru_map_test.main();
+    yaml_test.main();
   });
 }
