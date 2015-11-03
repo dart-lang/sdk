@@ -16,6 +16,7 @@
 
 * `dart:developer`
   * Added `Timeline` class for interacting with Observatory's timeline feature.
+  * Added `ServiceExtensionHandler`, `ServiceExtensionResponse`, and `registerExtension` which enable developers to provide their own VM service protocol extensions.
   
 * `dart:io`
   * **Breaking:** Secure networking has changed, replacing the NSS library
