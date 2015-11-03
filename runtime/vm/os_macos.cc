@@ -149,6 +149,12 @@ intptr_t OS::ActivationFrameAlignment() {
   return 8;
 #elif TARGET_ARCH_ARM64
   return 16;
+#elif TARGET_ARCH_IA32
+  return 16;  // iOS simulator
+#elif TARGET_ARCH_X64
+  return 16;  // iOS simulator
+#else
+#error Unimplemented
 #endif
 #else  // TARGET_OS_IOS
   // OS X activation frames must be 16 byte-aligned; see "Mac OS X ABI
