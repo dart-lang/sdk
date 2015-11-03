@@ -31,6 +31,9 @@
     See https://pub.dartlang.org/packages/resource to learn more. This is
     the last release to contain the Resource class.
 
+* `dart:developer`
+  * Added `Timeline` class for interacting with Observatory's timeline feature.
+  
 * `dart:io`
   * **Breaking:** Secure networking has changed, replacing the NSS library
     with the BoringSSL library. `SecureSocket`, `SecureServerSocket`,
