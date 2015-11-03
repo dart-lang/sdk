@@ -363,13 +363,6 @@ super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSe
 switch_label2_test: Crash # (switch (target){cas...  continue to a labeled switch case
 switch_label_test: Crash # (switch (animal){cas...  continue to a labeled switch case
 switch_try_catch_test: Crash # (switch (0){_0:case ...  continue to a labeled switch case
-sync_generator1_test/01: RuntimeError # Expect.equals(expected: <(1, 2, 3, 5, [6])>, actual: <(1)>) fails.
-sync_generator1_test/none: RuntimeError # Expect.equals(expected: <(1, 2, 3, 5, [6])>, actual: <(1)>) fails.
-sync_generator3_test/test1: RuntimeError # Please triage this failure.
-sync_generator3_test/test2: RuntimeError # Please triage this failure.
-syncstar_yield_test/copyParameters: RuntimeError # Please triage this failure.
-syncstar_yield_test/none: RuntimeError # Please triage this failure.
-syncstar_yieldstar_test: RuntimeError # Please triage this failure.
 type_variable_closure2_test: RuntimeError # Please triage this failure.
 type_variable_field_initializer_closure_test: RuntimeError # Please triage this failure.
 type_variable_field_initializer_test: RuntimeError # Please triage this failure.

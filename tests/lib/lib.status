@@ -339,8 +339,6 @@ convert/streamed_conversion_json_utf8_decode_test: Skip  # Timeout.
 [ $compiler == dart2js && $cps_ir ]
 async/async_await_zones_test: Crash # (await for(var x in bar().take(100)){sum+= x;}): await for
 async/stream_iterator_test: Crash # (Stream createCancel...  cannot handle sync*/async* functions
-convert/json_pretty_test: RuntimeError # Please triage this failure.
-convert/line_splitter_test: RuntimeError # Please triage this failure.
 mirrors/deferred_mirrors_metadata_test: RuntimeError # U.loadLibrary is not a function
 mirrors/deferred_mirrors_metatarget_test: RuntimeError # X.loadLibrary is not a function
 mirrors/deferred_mirrors_update_test: RuntimeError # U.loadLibrary is not a function

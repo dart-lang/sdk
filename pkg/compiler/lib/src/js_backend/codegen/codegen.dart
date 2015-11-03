@@ -895,6 +895,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
   void visitYield(tree_ir.Yield node) {
     js.Expression value = visitExpression(node.input);
     accumulator.add(new js.DartYield(value, node.hasStar));
+    visitStatement(node.next);
   }
 
   @override
