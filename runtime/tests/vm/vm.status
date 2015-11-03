@@ -25,11 +25,28 @@ cc/VerifyExplicit_Crash: Crash
 [ $system == windows ]
 cc/Dart2JSCompileAll: Skip
 cc/ExternalizeConstantStrings: Skip
+cc/ThreadInterrupterHigh: Skip
+cc/ThreadInterrupterMedium: Skip
+cc/ThreadInterrupterLow: Skip
 cc/Service_Profile: Skip
 cc/Dart2JSCompilerStats: Skip
 cc/CorelibCompilerStats: Skip
 
+
+[ $system == linux ]
+cc/ThreadInterrupterHigh: Skip
+cc/ThreadInterrupterMedium: Skip
+cc/ThreadInterrupterLow: Skip
+
+[ $system == macos ]
+cc/ThreadInterrupterHigh: Skip
+cc/ThreadInterrupterMedium: Skip
+cc/ThreadInterrupterLow: Skip
+
 [ $arch == simarm || $arch == simarmv5te || $arch == simarm64 || $arch == simmips ]
+cc/ThreadInterrupterHigh: Skip
+cc/ThreadInterrupterMedium: Skip
+cc/ThreadInterrupterLow: Skip
 cc/Service_Profile: Skip
 
 [ $arch == arm ]

@@ -1027,25 +1027,14 @@ DART_EXPORT Dart_Handle Dart_DebugName();
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
 
 /**
- * Notifies the VM that the current thread should not be profiled until a
- * matching call to Dart_ThreadEnableProfiling is made.
- *
- * NOTE: By default, if a thread has entered an isolate it will be profiled.
- * This function should be used when an embedder knows a thread is about
- * to make a blocking call and wants to avoid unnecessary interrupts by
- * the profiler.
+ * Notifies the VM that the current isolate is about to make a blocking call.
  */
-DART_EXPORT void Dart_ThreadDisableProfiling();
+DART_EXPORT void Dart_IsolateBlocked();
 
 /**
- * Notifies the VM that the current thread should be profiled.
- *
- * NOTE: It is only legal to call this function *after* calling
- *   Dart_ThreadDisableProfiling.
- *
- * NOTE: By default, if a thread has entered an isolate it will be profiled.
+ * Notifies the VM that the current isolate is no longer blocked.
  */
-DART_EXPORT void Dart_ThreadEnableProfiling();
+DART_EXPORT void Dart_IsolateUnblocked();
 
 /**
  * Exits an isolate. After this call, Dart_CurrentIsolate will

@@ -214,7 +214,8 @@ void Thread::EnsureInit() {
 Thread::Thread(bool init_vm_constants)
     : id_(OSThread::GetCurrentThreadId()),
       join_id_(OSThread::GetCurrentThreadJoinId()),
-      thread_interrupt_disabled_(1),  // Thread interrupts disabled by default.
+      thread_interrupt_callback_(NULL),
+      thread_interrupt_data_(NULL),
       isolate_(NULL),
       heap_(NULL),
       timeline_block_(NULL),
@@ -330,7 +331,8 @@ void Thread::EnterIsolate(Isolate* isolate) {
   ASSERT(isolate->heap() != NULL);
   thread->heap_ = isolate->heap();
   thread->Schedule(isolate);
-  thread->EnableThreadInterrupts();
+  // TODO(koda): Migrate profiler interface to use Thread.
+  Profiler::BeginExecution(isolate);
 }
 
 
@@ -341,10 +343,10 @@ void Thread::ExitIsolate() {
 #if defined(DEBUG)
   ASSERT(!thread->IsAnyReusableHandleScopeActive());
 #endif  // DEBUG
-  thread->DisableThreadInterrupts();
   // Clear since GC will not visit the thread once it is unscheduled.
   thread->ClearReusableHandles();
   Isolate* isolate = thread->isolate();
+  Profiler::EndExecution(isolate);
   thread->Unschedule();
   // TODO(koda): Move store_buffer_block_ into State.
   thread->StoreBufferRelease();
@@ -371,17 +373,17 @@ void Thread::EnterIsolateAsHelper(Isolate* isolate, bool bypass_safepoint) {
       thread->isolate()->store_buffer()->PopEmptyBlock();
   ASSERT(isolate->heap() != NULL);
   thread->heap_ = isolate->heap();
+  ASSERT(thread->thread_interrupt_callback_ == NULL);
+  ASSERT(thread->thread_interrupt_data_ == NULL);
   // Do not update isolate->mutator_thread, but perform sanity check:
   // this thread should not be both the main mutator and helper.
   ASSERT(!thread->IsMutatorThread());
   thread->Schedule(isolate, bypass_safepoint);
-  thread->EnableThreadInterrupts();
 }
 
 
 void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   Thread* thread = Thread::Current();
-  thread->DisableThreadInterrupts();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   thread->Unschedule(bypass_safepoint);
@@ -445,18 +447,6 @@ bool Thread::IsMutatorThread() const {
 }
 
 
-bool Thread::IsExecutingDartCode() const {
-  return (top_exit_frame_info() == 0) &&
-         (vm_tag() == VMTag::kDartTagId);
-}
-
-
-bool Thread::HasExitedDartCode() const {
-  return (top_exit_frame_info() != 0) &&
-         (vm_tag() != VMTag::kDartTagId);
-}
-
-
 CHA* Thread::cha() const {
   ASSERT(isolate_ != NULL);
   return cha_;
@@ -503,31 +493,29 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-void Thread::DisableThreadInterrupts() {
+void Thread::SetThreadInterrupter(ThreadInterruptCallback callback,
+                                  void* data) {
   ASSERT(Thread::Current() == this);
-  AtomicOperations::FetchAndIncrement(&thread_interrupt_disabled_);
+  thread_interrupt_callback_ = callback;
+  thread_interrupt_data_ = data;
 }
 
 
-void Thread::EnableThreadInterrupts() {
-  ASSERT(Thread::Current() == this);
-  uintptr_t old =
-      AtomicOperations::FetchAndDecrement(&thread_interrupt_disabled_);
-  if (old == 1) {
-    // We just decremented from 1 to 0.
-    // Make sure the thread interrupter is awake.
-    ThreadInterrupter::WakeUp();
-  }
-  if (old == 0) {
-    // We just decremented from 0, this means we've got a mismatched pair
-    // of calls to EnableThreadInterrupts and DisableThreadInterrupts.
-    FATAL("Invalid call to Thread::EnableThreadInterrupts()");
-  }
-}
-
-
-bool Thread::ThreadInterruptsEnabled() {
-  return AtomicOperations::LoadRelaxed(&thread_interrupt_disabled_) == 0;
+bool Thread::IsThreadInterrupterEnabled(ThreadInterruptCallback* callback,
+                                        void** data) const {
+#if defined(TARGET_OS_WINDOWS)
+  // On Windows we expect this to be called from the thread interrupter thread.
+  ASSERT(id() != OSThread::GetCurrentThreadId());
+#else
+  // On posix platforms, we expect this to be called from signal handler.
+  ASSERT(id() == OSThread::GetCurrentThreadId());
+#endif
+  ASSERT(callback != NULL);
+  ASSERT(data != NULL);
+  *callback = thread_interrupt_callback_;
+  *data = thread_interrupt_data_;
+  return (*callback != NULL) &&
+         (*data != NULL);
 }
 
 
@@ -601,19 +589,5 @@ Thread* ThreadIterator::Next() {
   return current;
 }
 
-
-DisableThreadInterruptsScope::DisableThreadInterruptsScope(Thread* thread)
-    : StackResource(thread) {
-  if (thread != NULL) {
-    thread->DisableThreadInterrupts();
-  }
-}
-
-
-DisableThreadInterruptsScope::~DisableThreadInterruptsScope() {
-  if (thread() != NULL) {
-    thread()->EnableThreadInterrupts();
-  }
-}
 
 }  // namespace dart

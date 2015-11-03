@@ -79,16 +79,7 @@ void StubCode::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-bool StubCode::HasBeenInitialized() {
-  // Use JumpToExceptionHandler and InvokeDart as canaries.
-  const StubEntry* entry_1 = StubCode::JumpToExceptionHandler_entry();
-  const StubEntry* entry_2 = StubCode::InvokeDartCode_entry();
-  return (entry_1 != NULL) && (entry_2 != NULL);
-}
-
-
 bool StubCode::InInvocationStub(uword pc) {
-  ASSERT(HasBeenInitialized());
   uword entry = StubCode::InvokeDartCode_entry()->EntryPoint();
   uword size = StubCode::InvokeDartCodeSize();
   return (pc >= entry) && (pc < (entry + size));
@@ -96,7 +87,6 @@ bool StubCode::InInvocationStub(uword pc) {
 
 
 bool StubCode::InJumpToExceptionHandlerStub(uword pc) {
-  ASSERT(HasBeenInitialized());
   uword entry = StubCode::JumpToExceptionHandler_entry()->EntryPoint();
   uword size = StubCode::JumpToExceptionHandlerSize();
   return (pc >= entry) && (pc < (entry + size));

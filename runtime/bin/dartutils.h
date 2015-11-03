@@ -581,11 +581,11 @@ class CObjectExternalUint8Array : public CObject {
 class ScopedBlockingCall {
  public:
   ScopedBlockingCall() {
-    Dart_ThreadDisableProfiling();
+    Dart_IsolateBlocked();
   }
 
   ~ScopedBlockingCall() {
-    Dart_ThreadEnableProfiling();
+    Dart_IsolateUnblocked();
   }
 };
 

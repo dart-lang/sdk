@@ -1051,7 +1051,13 @@ class ProfileBuilder : public ValueObject {
 
   void FilterSamples() {
     ScopeTimer sw("ProfileBuilder::FilterSamples", FLAG_trace_profiler);
-    SampleBuffer* sample_buffer = Profiler::sample_buffer();
+    Isolate* isolate = thread_->isolate();
+    MutexLocker profiler_data_lock(isolate->profiler_data_mutex());
+    IsolateProfilerData* profiler_data = isolate->profiler_data();
+    if (profiler_data == NULL) {
+      return;
+    }
+    SampleBuffer* sample_buffer = profiler_data->sample_buffer();
     if (sample_buffer == NULL) {
       return;
     }
@@ -2213,13 +2219,16 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
                                     intptr_t extra_tags,
                                     SampleFilter* filter) {
   Isolate* isolate = thread->isolate();
-  // Disable thread interrupts while processing the buffer.
-  DisableThreadInterruptsScope dtis(thread);
+  // Disable profile interrupts while processing the buffer.
+  Profiler::EndExecution(isolate);
 
-  SampleBuffer* sample_buffer = Profiler::sample_buffer();
-  if (sample_buffer == NULL) {
-    stream->PrintError(kFeatureDisabled, NULL);
-    return;
+  {
+    MutexLocker profiler_data_lock(isolate->profiler_data_mutex());
+    IsolateProfilerData* profiler_data = isolate->profiler_data();
+    if (profiler_data == NULL) {
+      stream->PrintError(kFeatureDisabled, NULL);
+      return;
+    }
   }
 
   {
@@ -2229,6 +2238,9 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
     profile.Build(thread, filter, tag_order, extra_tags);
     profile.PrintJSON(stream);
   }
+
+  // Enable profile interrupts.
+  Profiler::BeginExecution(isolate);
 }
 
 
@@ -2283,19 +2295,24 @@ void ProfilerService::PrintAllocationJSON(JSONStream* stream,
 
 
 void ProfilerService::ClearSamples() {
-  SampleBuffer* sample_buffer = Profiler::sample_buffer();
-  if (sample_buffer == NULL) {
+  Isolate* isolate = Isolate::Current();
+
+  // Disable profile interrupts while processing the buffer.
+  Profiler::EndExecution(isolate);
+
+  MutexLocker profiler_data_lock(isolate->profiler_data_mutex());
+  IsolateProfilerData* profiler_data = isolate->profiler_data();
+  if (profiler_data == NULL) {
     return;
   }
-
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-
-  // Disable thread interrupts while processing the buffer.
-  DisableThreadInterruptsScope dtis(thread);
+  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
+  ASSERT(sample_buffer != NULL);
 
   ClearProfileVisitor clear_profile(isolate);
   sample_buffer->VisitSamples(&clear_profile);
+
+  // Enable profile interrupts.
+  Profiler::BeginExecution(isolate);
 }
 
 }  // namespace dart

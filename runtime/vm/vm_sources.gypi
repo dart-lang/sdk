@@ -451,6 +451,7 @@
     'thread_interrupter_android.cc',
     'thread_interrupter_linux.cc',
     'thread_interrupter_macos.cc',
+    'thread_interrupter_test.cc',
     'thread_interrupter_win.cc',
     'thread_pool.cc',
     'thread_pool.h',

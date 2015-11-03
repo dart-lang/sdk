@@ -5,11 +5,8 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_LINUX)
 
-#include <errno.h>  // NOLINT
-
 #include "vm/flags.h"
 #include "vm/os.h"
-#include "vm/profiler.h"
 #include "vm/signal_handler.h"
 #include "vm/thread_interrupter.h"
 
@@ -29,16 +26,22 @@ class ThreadInterrupterLinux : public AllStatic {
     if (thread == NULL) {
       return;
     }
+    ThreadInterruptCallback callback = NULL;
+    void* callback_data = NULL;
+    if (!thread->IsThreadInterrupterEnabled(&callback, &callback_data)) {
+      return;
+    }
     // Extract thread state.
     ucontext_t* context = reinterpret_cast<ucontext_t*>(context_);
     mcontext_t mcontext = context->uc_mcontext;
     InterruptedThreadState its;
+    its.tid = thread->id();
     its.pc = SignalHandler::GetProgramCounter(mcontext);
     its.fp = SignalHandler::GetFramePointer(mcontext);
     its.csp = SignalHandler::GetCStackPointer(mcontext);
     its.dsp = SignalHandler::GetDartStackPointer(mcontext);
     its.lr = SignalHandler::GetLinkRegister(mcontext);
-    Profiler::SampleThread(thread, its);
+    callback(its, callback_data);
   }
 };
 
@@ -49,7 +52,7 @@ void ThreadInterrupter::InterruptThread(Thread* thread) {
               reinterpret_cast<void*>(thread->id()));
   }
   int result = pthread_kill(thread->id(), SIGPROF);
-  ASSERT((result == 0) || (result == ESRCH));
+  ASSERT(result == 0);
 }
 
 

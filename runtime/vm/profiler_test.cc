@@ -846,7 +846,7 @@ TEST_CASE(Profiler_ClassAllocation) {
     // TODO(johnmccutchan): Hookup native symbol resolver on Windows.
     EXPECT_SUBSTRING("[Native]", walker.CurrentName());
 #else
-    EXPECT_SUBSTRING("dart::Profiler::SampleAllocation", walker.CurrentName());
+    EXPECT_SUBSTRING("dart::Profiler::RecordAllocation", walker.CurrentName());
 #endif
     EXPECT(!walker.Down());
   }
