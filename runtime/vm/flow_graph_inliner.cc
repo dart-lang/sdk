@@ -614,9 +614,6 @@ class CallSiteInliner : public ValueObject {
   bool TryInlining(const Function& function,
                    const Array& argument_names,
                    InlinedCallData* call_data) {
-    if (function.is_native()) {
-      return false;
-    }
     TRACE_INLINING(THR_Print("  => %s (deopt count %d)\n",
                              function.ToCString(),
                              function.deoptimization_counter()));
@@ -1388,9 +1385,6 @@ bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
 
 bool PolymorphicInliner::TryInliningPoly(intptr_t receiver_cid,
                                         const Function& target) {
-  if (target.is_native()) {
-    return false;
-  }
   if (TryInlineRecognizedMethod(receiver_cid, target)) {
     owner_->inlined_ = true;
     return true;
