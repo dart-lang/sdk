@@ -55,6 +55,9 @@ abstract class TypeSystem<T> {
   T get constMapType;
   T get stringType;
   T get typeType;
+  T get syncStarIterableType;
+  T get asyncFutureType; // Subtype of Future returned by async methods.
+  T get asyncStarStreamType;
 
   T stringLiteralType(DartString value);
   T boolLiteralType(LiteralBool value);

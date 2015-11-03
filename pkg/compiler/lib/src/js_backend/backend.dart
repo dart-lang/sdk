@@ -1887,6 +1887,9 @@ class JavaScriptBackend extends Backend {
   ClassElement get typeImplementation => helpers.typeLiteralClass;
   ClassElement get boolImplementation => helpers.jsBoolClass;
   ClassElement get nullImplementation => helpers.jsNullClass;
+  ClassElement get syncStarIterableImplementation => helpers.syncStarIterable;
+  ClassElement get asyncFutureImplementation => helpers.futureImplementation;
+  ClassElement get asyncStarStreamImplementation => helpers.controllerStream;
 
   void registerStaticUse(Element element, Enqueuer enqueuer) {
     if (element == helpers.disableTreeShakingMarker) {

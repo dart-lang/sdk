@@ -120,6 +120,9 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask get constMapType => compiler.typesTask.constMapType;
   TypeMask get stringType => compiler.typesTask.stringType;
   TypeMask get typeType => compiler.typesTask.typeType;
+  TypeMask get syncStarIterableType => compiler.typesTask.syncStarIterableType;
+  TypeMask get asyncFutureType => compiler.typesTask.asyncFutureType;
+  TypeMask get asyncStarStreamType => compiler.typesTask.asyncStarStreamType;
   bool isNull(TypeMask mask) => mask.isEmpty && mask.isNullable;
 
   TypeMask stringLiteralType(ast.DartString value) => stringType;
@@ -650,21 +653,37 @@ class SimpleTypeInferrerVisitor<T>
         locals.update(element, inferrer.typeOfElement(element), node);
       });
       visit(node.body);
-      if (function.asyncMarker != AsyncMarker.SYNC) {
-        // TODO(herhut): Should be type Future/Iterable/Stream instead of
-        // dynamic.
-        returnType = inferrer.addReturnTypeFor(
-            analyzedElement, returnType, types.dynamicType);
-      } else if (returnType == null) {
-        // No return in the body.
-        returnType = locals.seenReturnOrThrow
-            ? types.nonNullEmpty()  // Body always throws.
-            : types.nullType;
-      } else if (!locals.seenReturnOrThrow) {
-        // We haven't seen returns on all branches. So the method may
-        // also return null.
-        returnType = inferrer.addReturnTypeFor(
-            analyzedElement, returnType, types.nullType);
+      switch (function.asyncMarker) {
+        case AsyncMarker.SYNC:
+          if (returnType == null) {
+            // No return in the body.
+            returnType = locals.seenReturnOrThrow
+                ? types.nonNullEmpty()  // Body always throws.
+                : types.nullType;
+          } else if (!locals.seenReturnOrThrow) {
+            // We haven't seen returns on all branches. So the method may
+            // also return null.
+            returnType = inferrer.addReturnTypeFor(
+                analyzedElement, returnType, types.nullType);
+          }
+          break;
+
+        case AsyncMarker.SYNC_STAR:
+          // TODO(asgerf): Maybe make a ContainerTypeMask for these? The type
+          //               contained is the method body's return type.
+          returnType = inferrer.addReturnTypeFor(
+              analyzedElement, returnType, types.syncStarIterableType);
+          break;
+
+        case AsyncMarker.ASYNC:
+          returnType = inferrer.addReturnTypeFor(
+                analyzedElement, returnType, types.asyncFutureType);
+          break;
+
+        case AsyncMarker.ASYNC_STAR:
+          returnType = inferrer.addReturnTypeFor(
+                analyzedElement, returnType, types.asyncStarStreamType);
+          break;
       }
     }
 

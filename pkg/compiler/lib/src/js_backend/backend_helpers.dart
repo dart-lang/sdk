@@ -586,6 +586,18 @@ class BackendHelpers {
     return classElement;
   }
 
+  Element get futureImplementation {
+    ClassElement classElement = findAsyncHelper('_Future');
+    classElement.ensureResolved(resolution);
+    return classElement;
+  }
+
+  Element get controllerStream {
+    ClassElement classElement = findAsyncHelper("_ControllerStream");
+    classElement.ensureResolved(resolution);
+    return classElement;
+  }
+
   Element get syncStarIterableConstructor {
     ClassElement classElement = syncStarIterable;
     classElement.ensureResolved(resolution);

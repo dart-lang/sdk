@@ -250,6 +250,12 @@ abstract class Backend {
   ClassElement get uint32Implementation => compiler.coreClasses.intClass;
   ClassElement get uint31Implementation => compiler.coreClasses.intClass;
   ClassElement get positiveIntImplementation => compiler.coreClasses.intClass;
+  ClassElement get syncStarIterableImplementation =>
+      compiler.coreClasses.iterableClass;
+  ClassElement get asyncFutureImplementation =>
+      compiler.coreClasses.futureClass;
+  ClassElement get asyncStarStreamImplementation =>
+      compiler.coreClasses.streamClass;
 
   ClassElement defaultSuperclass(ClassElement element) {
     return compiler.coreClasses.objectClass;
