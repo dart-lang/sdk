@@ -22,9 +22,8 @@ import '../enqueue.dart' show
     CodegenEnqueuer;
 import '../resolution/tree_elements.dart' show
     TreeElements;
-import '../universe/universe.dart' show
-    UniverseSelector;
 import '../universe/use.dart' show
+    DynamicUse,
     StaticUse;
 import '../universe/world_impact.dart' show
     WorldImpact,
@@ -185,9 +184,9 @@ class CodegenRegistry extends Registry {
     worldImpact.registerStaticUse(staticUse);
   }
 
-  void registerDynamicUse(UniverseSelector selector) {
-    worldImpact.registerDynamicUse(selector);
-    compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
+  void registerDynamicUse(DynamicUse dynamicUse) {
+    worldImpact.registerDynamicUse(dynamicUse);
+    compiler.dumpInfoTask.elementUsesSelector(currentElement, dynamicUse);
   }
 
   void registerIsCheck(DartType type) {

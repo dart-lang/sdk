@@ -137,13 +137,13 @@ class DartBackend extends Backend {
     }
     // Enqueue the methods that the VM might invoke on user objects because
     // we don't trust the resolution to always get these included.
-    world.registerDynamicUse(new UniverseSelector(Selectors.toString_, null));
+    world.registerDynamicUse(new DynamicUse(Selectors.toString_, null));
     world.registerDynamicUse(
-        new UniverseSelector(Selectors.hashCode_, null));
+        new DynamicUse(Selectors.hashCode_, null));
     world.registerDynamicUse(
-        new UniverseSelector(new Selector.binaryOperator('=='), null));
+        new DynamicUse(new Selector.binaryOperator('=='), null));
     world.registerDynamicUse(
-        new UniverseSelector(Selectors.compareTo, null));
+        new DynamicUse(Selectors.compareTo, null));
   }
 
   WorldImpact codegen(CodegenWorkItem work) {
@@ -274,7 +274,7 @@ class DartBackend extends Backend {
   /// of types defined in the platform libraries.
   void registerPlatformMembers(
       InterfaceType type,
-      {void registerUse(UniverseSelector selector)}) {
+      {void registerUse(DynamicUse dynamicUse)}) {
 
     // Without patching, dart2dart has no way of performing sound tree-shaking
     // in face external functions. Therefore we employ another scheme:
@@ -327,7 +327,7 @@ class DartBackend extends Backend {
               element.computeType(resolution);
               Selector selector = new Selector.fromElement(element);
               registerUse(
-                  new UniverseSelector(selector, null));
+                  new DynamicUse(selector, null));
             });
           }
         }

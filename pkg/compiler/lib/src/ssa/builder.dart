@@ -4552,7 +4552,7 @@ class SsaBuilder extends ast.Visitor
       // case the [noSuchMethod] implementation calls
       // [JSInvocationMirror._invokeOn].
       // TODO(johnniwinther): Register this more precisely.
-      registry?.registerDynamicUse(new UniverseSelector(selector, null));
+      registry?.registerDynamicUse(new DynamicUse(selector, null));
     }
     String publicName = name;
     if (selector.isSetter) publicName += '=';

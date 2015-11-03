@@ -29,9 +29,8 @@ import '../universe/call_structure.dart' show
     CallStructure;
 import '../universe/selector.dart' show
     Selector;
-import '../universe/universe.dart' show
-    UniverseSelector;
 import '../universe/use.dart' show
+    DynamicUse,
     StaticUse;
 import '../universe/world_impact.dart' show
     WorldImpactBuilder;
@@ -380,8 +379,8 @@ class ResolutionRegistry extends Registry {
         new ForeignResolutionResolver(visitor, this));
   }
 
-  void registerDynamicUse(UniverseSelector selector) {
-    worldImpact.registerDynamicUse(selector);
+  void registerDynamicUse(DynamicUse dynamicUse) {
+    worldImpact.registerDynamicUse(dynamicUse);
   }
 
   void registerConstSymbol(String name) {

@@ -86,6 +86,7 @@ import '../universe/selector.dart' show
     SelectorKind;
 import '../universe/universe.dart';
 import '../universe/use.dart' show
+    DynamicUse,
     StaticUse;
 import '../universe/world_impact.dart' show
     TransformedWorldImpact,

@@ -47,8 +47,8 @@ import '../tokens/keyword.dart' show
 import '../tree/tree.dart';
 import '../universe/selector.dart' show
     Selector;
-import '../universe/universe.dart' show
-    UniverseSelector;
+import '../universe/use.dart' show
+    DynamicUse;
 import '../universe/world_impact.dart' show
     WorldImpact,
     TransformedWorldImpact;

@@ -19,47 +19,10 @@ import '../world.dart' show
 import 'selector.dart' show
     Selector;
 import 'use.dart' show
+    DynamicUse,
+    DynamicUseKind,
     StaticUse,
     StaticUseKind;
-
-enum DynamicUseKind {
-  INVOKE,
-  GET,
-  SET,
-}
-
-// TODO(johnniwinther): Rename to `DynamicUse` and move to 'use.dart'.
-class UniverseSelector {
-  final Selector selector;
-  final ReceiverConstraint mask;
-
-  UniverseSelector(this.selector, this.mask);
-
-  bool appliesUnnamed(Element element, ClassWorld world) {
-    return selector.appliesUnnamed(element, world) &&
-        (mask == null || mask.canHit(element, selector, world));
-  }
-
-  DynamicUseKind get kind {
-    if (selector.isGetter) {
-      return DynamicUseKind.GET;
-    } else if (selector.isSetter) {
-      return DynamicUseKind.SET;
-    } else {
-      return DynamicUseKind.INVOKE;
-    }
-  }
-
-  int get hashCode => selector.hashCode * 13 + mask.hashCode * 17;
-
-  bool operator ==(other) {
-    if (identical(this, other)) return true;
-    if (other is! UniverseSelector) return false;
-    return selector == other.selector && mask == other.mask;
-  }
-
-  String toString() => '$selector,$mask';
-}
 
 /// The known constraint on receiver for a dynamic call site.
 ///
@@ -343,23 +306,23 @@ class Universe {
     return _hasMatchingSelector(_invokedSetters[member.name], member, world);
   }
 
-  bool registerDynamicUse(UniverseSelector selector) {
-    switch (selector.kind) {
+  bool registerDynamicUse(DynamicUse dynamicUse) {
+    switch (dynamicUse.kind) {
       case DynamicUseKind.INVOKE:
-        return _registerNewSelector(selector, _invokedNames);
+        return _registerNewSelector(dynamicUse, _invokedNames);
       case DynamicUseKind.GET:
-        return _registerNewSelector(selector, _invokedGetters);
+        return _registerNewSelector(dynamicUse, _invokedGetters);
       case DynamicUseKind.SET:
-        return _registerNewSelector(selector, _invokedSetters);
+        return _registerNewSelector(dynamicUse, _invokedSetters);
     }
   }
 
   bool _registerNewSelector(
-      UniverseSelector universeSelector,
+      DynamicUse dynamicUse,
       Map<String, Map<Selector, SelectorConstraints>> selectorMap) {
-    Selector selector = universeSelector.selector;
+    Selector selector = dynamicUse.selector;
     String name = selector.name;
-    ReceiverConstraint mask = universeSelector.mask;
+    ReceiverConstraint mask = dynamicUse.mask;
     Map<Selector, SelectorConstraints> selectors = selectorMap.putIfAbsent(
         name, () => new Maplet<Selector, SelectorConstraints>());
     UniverseSelectorConstraints constraints = selectors.putIfAbsent(

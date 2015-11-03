@@ -2,17 +2,68 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// This library defined `uses`. A `use` is a single impact of the world, for
+/// instance an invocation of a top level function or a call to the `foo()`
+/// method on an unknown class.
 library dart2js.universe.use;
 
 import '../closure.dart' show
   BoxFieldElement;
 import '../common.dart';
 import '../elements/elements.dart';
+import '../world.dart' show
+    ClassWorld;
 import '../util/util.dart' show
     Hashing;
 
 import 'call_structure.dart' show
     CallStructure;
+import 'selector.dart' show
+    Selector;
+import 'universe.dart' show
+    ReceiverConstraint;
+
+
+enum DynamicUseKind {
+  INVOKE,
+  GET,
+  SET,
+}
+
+/// The use of a dynamic property. [selector] defined the name and kind of the
+/// property and [mask] defines the known constraint for the object on which
+/// the property is accessed.
+class DynamicUse {
+  final Selector selector;
+  final ReceiverConstraint mask;
+
+  DynamicUse(this.selector, this.mask);
+
+  bool appliesUnnamed(Element element, ClassWorld world) {
+    return selector.appliesUnnamed(element, world) &&
+        (mask == null || mask.canHit(element, selector, world));
+  }
+
+  DynamicUseKind get kind {
+    if (selector.isGetter) {
+      return DynamicUseKind.GET;
+    } else if (selector.isSetter) {
+      return DynamicUseKind.SET;
+    } else {
+      return DynamicUseKind.INVOKE;
+    }
+  }
+
+  int get hashCode => selector.hashCode * 13 + mask.hashCode * 17;
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! DynamicUse) return false;
+    return selector == other.selector && mask == other.mask;
+  }
+
+  String toString() => '$selector,$mask';
+}
 
 enum StaticUseKind {
   GENERAL,

@@ -11,9 +11,8 @@ import '../enqueue.dart' show
 import '../elements/elements.dart' show
     Element,
     FunctionElement;
-import '../universe/universe.dart' show
-    UniverseSelector;
 import '../universe/use.dart' show
+    DynamicUse,
     StaticUse;
 
 /// Interface for registration of element dependencies.
@@ -23,7 +22,7 @@ abstract class Registry {
 
   bool get isForResolution;
 
-  void registerDynamicUse(UniverseSelector staticUse);
+  void registerDynamicUse(DynamicUse staticUse);
 
   void registerStaticUse(StaticUse staticUse);
 
@@ -40,8 +39,8 @@ class EagerRegistry extends Registry {
   bool get isForResolution => world.isResolutionQueue;
 
   @override
-  void registerDynamicUse(UniverseSelector selector) {
-    world.registerDynamicUse(selector);
+  void registerDynamicUse(DynamicUse dynamicUse) {
+    world.registerDynamicUse(dynamicUse);
   }
 
   @override

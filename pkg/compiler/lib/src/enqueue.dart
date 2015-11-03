@@ -52,6 +52,7 @@ import 'universe/selector.dart' show
     Selector;
 import 'universe/universe.dart';
 import 'universe/use.dart' show
+    DynamicUse,
     StaticUse,
     StaticUseKind;
 import 'universe/world_impact.dart' show
@@ -345,10 +346,10 @@ abstract class Enqueuer {
     });
   }
 
-  void registerDynamicUse(UniverseSelector selector) {
+  void registerDynamicUse(DynamicUse dynamicUse) {
     task.measure(() {
-      if (universe.registerDynamicUse(selector)) {
-        handleUnseenSelector(selector);
+      if (universe.registerDynamicUse(dynamicUse)) {
+        handleUnseenSelector(dynamicUse);
       }
     });
   }
@@ -406,14 +407,14 @@ abstract class Enqueuer {
         // We need to enqueue all members matching this one in subclasses, as
         // well.
         // TODO(herhut): Use TypedSelector.subtype for enqueueing
-        UniverseSelector selector = new UniverseSelector(
+        DynamicUse dynamicUse = new DynamicUse(
             new Selector.fromElement(element), null);
-        registerDynamicUse(selector);
+        registerDynamicUse(dynamicUse);
         if (element.isField) {
-          UniverseSelector selector = new UniverseSelector(
+          DynamicUse dynamicUse = new DynamicUse(
               new Selector.setter(new Name(
                   element.name, element.library, isSetter: true)), null);
-          registerDynamicUse(selector);
+          registerDynamicUse(dynamicUse);
         }
       }
     }
@@ -558,15 +559,15 @@ abstract class Enqueuer {
     processSet(instanceFunctionsByName, n, f);
   }
 
-  void handleUnseenSelector(UniverseSelector universeSelector) {
+  void handleUnseenSelector(DynamicUse universeSelector) {
     strategy.processDynamicUse(this, universeSelector);
   }
 
-  void handleUnseenSelectorInternal(UniverseSelector universeSelector) {
-    Selector selector = universeSelector.selector;
+  void handleUnseenSelectorInternal(DynamicUse dynamicUse) {
+    Selector selector = dynamicUse.selector;
     String methodName = selector.name;
     processInstanceMembers(methodName, (Element member) {
-      if (universeSelector.appliesUnnamed(member, compiler.world)) {
+      if (dynamicUse.appliesUnnamed(member, compiler.world)) {
         if (member.isFunction && selector.isGetter) {
           registerClosurizedMember(member);
         }
@@ -595,7 +596,7 @@ abstract class Enqueuer {
     });
     if (selector.isGetter) {
       processInstanceFunctions(methodName, (Element member) {
-        if (universeSelector.appliesUnnamed(member, compiler.world)) {
+        if (dynamicUse.appliesUnnamed(member, compiler.world)) {
           registerClosurizedMember(member);
           return true;
         }
@@ -871,7 +872,7 @@ class CodegenEnqueuer extends Enqueuer {
 
   final Set<Element> newlyEnqueuedElements;
 
-  final Set<UniverseSelector> newlySeenSelectors;
+  final Set<DynamicUse> newlySeenSelectors;
 
   bool enabledNoSuchMethod = false;
 
@@ -949,11 +950,11 @@ class CodegenEnqueuer extends Enqueuer {
     }
   }
 
-  void handleUnseenSelector(UniverseSelector selector) {
+  void handleUnseenSelector(DynamicUse dynamicUse) {
     if (compiler.hasIncrementalSupport) {
-      newlySeenSelectors.add(selector);
+      newlySeenSelectors.add(dynamicUse);
     }
-    super.handleUnseenSelector(selector);
+    super.handleUnseenSelector(dynamicUse);
   }
 }
 
@@ -996,8 +997,8 @@ class EnqueuerStrategy {
   /// Process a static use of and element in live code.
   void processStaticUse(Enqueuer enqueuer, StaticUse staticUse) {}
 
-  /// Process a selector for a call site in live code.
-  void processDynamicUse(Enqueuer enqueuer, UniverseSelector dynamicUse) {}
+  /// Process a dynamic use for a call site in live code.
+  void processDynamicUse(Enqueuer enqueuer, DynamicUse dynamicUse) {}
 }
 
 class TreeShakingEnqueuerStrategy implements EnqueuerStrategy {
@@ -1014,7 +1015,7 @@ class TreeShakingEnqueuerStrategy implements EnqueuerStrategy {
   }
 
   @override
-  void processDynamicUse(Enqueuer enqueuer, UniverseSelector dynamicUse) {
+  void processDynamicUse(Enqueuer enqueuer, DynamicUse dynamicUse) {
     enqueuer.handleUnseenSelectorInternal(dynamicUse);
   }
 }

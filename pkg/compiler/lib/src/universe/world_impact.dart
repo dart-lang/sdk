@@ -14,16 +14,15 @@ import '../elements/elements.dart' show
 import '../util/util.dart' show
     Setlet;
 
-import 'universe.dart' show
-    UniverseSelector;
 import 'use.dart' show
+    DynamicUse,
     StaticUse;
 
 class WorldImpact {
   const WorldImpact();
 
-  Iterable<UniverseSelector> get dynamicUses =>
-      const <UniverseSelector>[];
+  Iterable<DynamicUse> get dynamicUses =>
+      const <DynamicUse>[];
 
   Iterable<StaticUse> get staticUses => const <StaticUse>[];
 
@@ -76,7 +75,7 @@ class WorldImpact {
 class WorldImpactBuilder {
   // TODO(johnniwinther): Do we benefit from lazy initialization of the
   // [Setlet]s?
-  Setlet<UniverseSelector> _dynamicUses;
+  Setlet<DynamicUse> _dynamicUses;
   Setlet<InterfaceType> _instantiatedTypes;
   Setlet<StaticUse> _staticUses;
   Setlet<DartType> _isChecks;
@@ -86,17 +85,17 @@ class WorldImpactBuilder {
   Setlet<LocalFunctionElement> _closures;
   Setlet<DartType> _typeLiterals;
 
-  void registerDynamicUse(UniverseSelector dynamicUse) {
+  void registerDynamicUse(DynamicUse dynamicUse) {
     assert(dynamicUse != null);
     if (_dynamicUses == null) {
-      _dynamicUses = new Setlet<UniverseSelector>();
+      _dynamicUses = new Setlet<DynamicUse>();
     }
     _dynamicUses.add(dynamicUse);
   }
 
-  Iterable<UniverseSelector> get dynamicUses {
+  Iterable<DynamicUse> get dynamicUses {
     return _dynamicUses != null
-        ? _dynamicUses : const <UniverseSelector>[];
+        ? _dynamicUses : const <DynamicUse>[];
   }
 
   void registerInstantiatedType(InterfaceType type) {
@@ -207,7 +206,7 @@ class TransformedWorldImpact implements WorldImpact {
 
   Setlet<StaticUse> _staticUses;
   Setlet<InterfaceType> _instantiatedTypes;
-  Setlet<UniverseSelector> _dynamicUses;
+  Setlet<DynamicUse> _dynamicUses;
 
   TransformedWorldImpact(this.worldImpact);
 
@@ -218,7 +217,7 @@ class TransformedWorldImpact implements WorldImpact {
   Iterable<DartType> get checkedModeChecks => worldImpact.checkedModeChecks;
 
   @override
-  Iterable<UniverseSelector> get dynamicUses {
+  Iterable<DynamicUse> get dynamicUses {
     return _dynamicUses != null
         ? _dynamicUses : worldImpact.dynamicUses;
   }
@@ -231,12 +230,12 @@ class TransformedWorldImpact implements WorldImpact {
 
   _unsupported(String message) => throw new UnsupportedError(message);
 
-  void registerDynamicUse(UniverseSelector selector) {
+  void registerDynamicUse(DynamicUse dynamicUse) {
     if (_dynamicUses == null) {
-      _dynamicUses = new Setlet<UniverseSelector>();
+      _dynamicUses = new Setlet<DynamicUse>();
       _dynamicUses.addAll(worldImpact.dynamicUses);
     }
-    _dynamicUses.add(selector);
+    _dynamicUses.add(dynamicUse);
   }
 
   void registerInstantiatedType(InterfaceType type) {

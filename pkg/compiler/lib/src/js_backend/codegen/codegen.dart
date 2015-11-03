@@ -27,9 +27,8 @@ import '../../universe/call_structure.dart' show
     CallStructure;
 import '../../universe/selector.dart' show
     Selector;
-import '../../universe/universe.dart' show
-    UniverseSelector;
 import '../../universe/use.dart' show
+    DynamicUse,
     StaticUse;
 import '../../util/maplet.dart';
 
@@ -273,9 +272,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
     Selector selector = node.selector;
     TypeMask mask = node.mask;
     if (selector.isGetter) {
-      registry.registerDynamicUse(new UniverseSelector(selector, mask));
+      registry.registerDynamicUse(new DynamicUse(selector, mask));
     } else if (selector.isSetter) {
-      registry.registerDynamicUse(new UniverseSelector(selector, mask));
+      registry.registerDynamicUse(new DynamicUse(selector, mask));
     } else {
       assert(invariant(CURRENT_ELEMENT_SPANNABLE,
           selector.isCall || selector.isOperator ||
@@ -283,8 +282,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
           message: 'unexpected kind ${selector.kind}'));
       // TODO(sigurdm): We should find a better place to register the call.
       Selector call = new Selector.callClosureFrom(selector);
-      registry.registerDynamicUse(new UniverseSelector(call, null));
-      registry.registerDynamicUse(new UniverseSelector(selector, mask));
+      registry.registerDynamicUse(new DynamicUse(call, null));
+      registry.registerDynamicUse(new DynamicUse(selector, mask));
     }
   }
 

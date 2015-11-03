@@ -1425,7 +1425,7 @@ class JavaScriptBackend extends Backend {
   void enableNoSuchMethod(Enqueuer world) {
     enqueue(world, helpers.createInvocationMirror, compiler.globalDependencies);
     world.registerDynamicUse(
-        new UniverseSelector(Selectors.noSuchMethod_, null));
+        new DynamicUse(Selectors.noSuchMethod_, null));
   }
 
   void enableIsolateSupport(Enqueuer enqueuer) {

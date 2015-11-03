@@ -20,7 +20,8 @@ import 'deferred_load.dart' show OutputUnit;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'js_emitter/full_emitter/emitter.dart' as full show Emitter;
 import 'js/js.dart' as jsAst;
-import 'universe/universe.dart' show UniverseSelector;
+import 'universe/use.dart' show
+    DynamicUse;
 import 'info/send_info.dart' show collectSendMeasurements;
 
 class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
@@ -385,7 +386,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   // pretty-printed contents.
   final Map<jsAst.Node, int> _nodeToSize = <jsAst.Node, int>{};
 
-  final Map<Element, Set<UniverseSelector>> selectorsFromElement = {};
+  final Map<Element, Set<DynamicUse>> selectorsFromElement = {};
   final Map<Element, int> inlineCount = <Element, int>{};
   // A mapping from an element to a list of elements that are
   // inlined inside of it.
@@ -407,10 +408,10 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
    * Registers that a function uses a selector in the
    * function body
    */
-  void elementUsesSelector(Element element, UniverseSelector selector) {
+  void elementUsesSelector(Element element, DynamicUse selector) {
     if (compiler.dumpInfo) {
       selectorsFromElement
-          .putIfAbsent(element, () => new Set<UniverseSelector>())
+          .putIfAbsent(element, () => new Set<DynamicUse>())
           .add(selector);
     }
   }
@@ -429,7 +430,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     if (!selectorsFromElement.containsKey(element)) {
       return const <Selection>[];
     } else {
-      return selectorsFromElement[element].expand((UniverseSelector selector) {
+      return selectorsFromElement[element].expand((DynamicUse selector) {
         return compiler.world.allFunctions
             .filter(selector.selector, selector.mask)
             .map((element) {

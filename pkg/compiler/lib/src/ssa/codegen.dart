@@ -1644,24 +1644,24 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // the specific closure call method.
       Selector call = new Selector.callClosureFrom(selector);
       registry.registerDynamicUse(
-          new UniverseSelector(call, null));
+          new DynamicUse(call, null));
     }
     registry.registerDynamicUse(
-        new UniverseSelector(selector, mask));
+        new DynamicUse(selector, mask));
   }
 
   void registerSetter(HInvokeDynamic node) {
     Selector selector = node.selector;
     TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
     registry.registerDynamicUse(
-        new UniverseSelector(selector, mask));
+        new DynamicUse(selector, mask));
   }
 
   void registerGetter(HInvokeDynamic node) {
     Selector selector = node.selector;
     TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
     registry.registerDynamicUse(
-        new UniverseSelector(selector, mask));
+        new DynamicUse(selector, mask));
   }
 
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
@@ -1688,7 +1688,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                          visitArguments(node.inputs))
             .withSourceInformation(node.sourceInformation));
     registry.registerDynamicUse(
-        new UniverseSelector(call, null));
+        new DynamicUse(call, null));
   }
 
   visitInvokeStatic(HInvokeStatic node) {
@@ -1775,7 +1775,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           // TODO(floitsch): we know the target. We shouldn't register a
           // dynamic getter.
           registry.registerDynamicUse(
-              new UniverseSelector(selector, receiverType));
+              new DynamicUse(selector, receiverType));
           if (superElement.isFunction) {
             registry.registerStaticUse(
                 new StaticUse.superTearOff(superElement));

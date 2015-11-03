@@ -60,9 +60,8 @@ import '../universe/selector.dart' show
     Selector;
 import '../universe/side_effects.dart' show
     SideEffects;
-import '../universe/universe.dart' show
-    UniverseSelector;
 import '../universe/use.dart' show
+    DynamicUse,
     StaticUse;
 import '../util/util.dart';
 import '../world.dart' show
