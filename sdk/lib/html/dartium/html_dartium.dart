@@ -24403,7 +24403,7 @@ class Location extends DartHtmlDomObject implements LocationBase {
   @DomName('Location.ancestorOrigins')
   @DocsEditable()
   @Experimental() // nonstandard
-  List<String> get ancestorOrigins => _blink.BlinkLocation.instance.ancestorOrigins_Getter_(unwrap_jso(this));
+  List<String> get ancestorOrigins => wrap_jso(_blink.BlinkLocation.instance.ancestorOrigins_Getter_(unwrap_jso(this)));
   
   @DomName('Location.hash')
   @DocsEditable()
@@ -35158,7 +35158,7 @@ class StorageQuota extends DartHtmlDomObject {
   @DomName('StorageQuota.supportedTypes')
   @DocsEditable()
   @Experimental() // untriaged
-  List<String> get supportedTypes => _blink.BlinkStorageQuota.instance.supportedTypes_Getter_(unwrap_jso(this));
+  List<String> get supportedTypes => wrap_jso(_blink.BlinkStorageQuota.instance.supportedTypes_Getter_(unwrap_jso(this)));
   
   @DomName('StorageQuota.queryInfo')
   @DocsEditable()
