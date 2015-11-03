@@ -139,9 +139,6 @@
         'log_macos.cc',
         'log_win.cc',
       ],
-      'defines': [
-        'LEGACY_DEBUG_PROTOCOL_ENABLED',
-      ],
       'includes': [
         'builtin_impl_sources.gypi',
         '../platform/platform_sources.gypi',
@@ -779,7 +776,6 @@
         '../vm/vm_sources.gypi',
       ],
       'defines': [
-        'LEGACY_DEBUG_PROTOCOL_ENABLED',
         'TESTING',
       ],
       # Only include _test.[cc|h] files.

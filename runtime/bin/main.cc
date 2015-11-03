@@ -118,7 +118,10 @@ static const int kErrorExitCode = 255;
 // Exit code indicating a vm restart request.  Never returned to the user.
 static const int kRestartRequestExitCode = 1000;
 
-extern bool do_vm_shutdown;  // Defined in bin/process.cc
+// Global flag that is used to indicate that the VM should do a clean
+// shutdown.
+static bool do_vm_shutdown = false;
+
 static void ErrorExit(int exit_code, const char* format, ...) {
   va_list arguments;
   va_start(arguments, format);
