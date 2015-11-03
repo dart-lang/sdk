@@ -10,24 +10,17 @@ import 'dart:convert'
 import 'package:dart2js_info/info.dart';
 
 import 'common.dart';
-import 'common/tasks.dart' show
-    CompilerTask;
-import 'constants/values.dart' show ConstantValue;
-import 'compiler.dart' show
-    Compiler;
+import 'common/tasks.dart' show CompilerTask;
+import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
+import 'compiler.dart' show Compiler;
 import 'elements/elements.dart';
 import 'elements/visitor.dart';
-import 'types/types.dart' show
-    TypeMask;
-import 'deferred_load.dart' show
-    OutputUnit;
-import 'js_backend/js_backend.dart' show
-    JavaScriptBackend;
-import 'js_emitter/full_emitter/emitter.dart' as full show
-    Emitter;
+import 'types/types.dart' show TypeMask;
+import 'deferred_load.dart' show OutputUnit;
+import 'js_backend/js_backend.dart' show JavaScriptBackend;
+import 'js_emitter/full_emitter/emitter.dart' as full show Emitter;
 import 'js/js.dart' as jsAst;
-import 'universe/universe.dart' show
-    UniverseSelector;
+import 'universe/universe.dart' show UniverseSelector;
 import 'info/send_info.dart' show collectSendMeasurements;
 
 class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
@@ -45,10 +38,10 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       // TODO(sigmund): add dependencies on other constants
       var size = compiler.dumpInfoTask._nodeToSize[node];
       var code = jsAst.prettyPrint(node, compiler).getText();
-      var info = new ConstantInfo(size: size, code: code);
+      var info = new ConstantInfo(
+          size: size, code: code, outputUnit: _unitInfoForConstant(constant));
       _constantToInfo[constant] = info;
       result.constants.add(info);
-
     });
     compiler.libraryLoader.libraries.forEach(visit);
   }
@@ -82,7 +75,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     String libname = element.hasLibraryName ? element.libraryName : "<unnamed>";
     int size = compiler.dumpInfoTask.sizeOf(element);
     LibraryInfo info =
-      new LibraryInfo(libname, element.canonicalUri, null, size);
+        new LibraryInfo(libname, element.canonicalUri, null, size);
     _elementToInfo[element] = info;
 
     LibraryElement realElement = element.isPatched ? element.patch : element;
@@ -113,8 +106,8 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
 
   TypedefInfo visitTypedefElement(TypedefElement element, _) {
     if (!element.isResolved) return null;
-    TypedefInfo info = new TypedefInfo(element.name, '${element.alias}',
-        _unitInfoForElement(element));
+    TypedefInfo info = new TypedefInfo(
+        element.name, '${element.alias}', _unitInfoForElement(element));
     _elementToInfo[element] = info;
     result.typedefs.add(info);
     return info;
@@ -284,6 +277,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
 
     FunctionInfo info = new FunctionInfo(
         name: name,
+        functionKind: kind,
         // We use element.hashCode because it is globally unique and it is
         // available while we are doing codegen.
         coverageId: '${element.hashCode}',
@@ -323,9 +317,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     return info;
   }
 
-  OutputUnitInfo _unitInfoForElement(Element element) {
-    OutputUnit outputUnit =
-      compiler.deferredLoadTask.outputUnitForElement(element);
+  OutputUnitInfo _infoFromOutputUnit(OutputUnit outputUnit) {
     return _outputToInfo.putIfAbsent(outputUnit, () {
       // Dump-info currently only works with the full emitter. If another
       // emitter is used it will fail here.
@@ -336,6 +328,21 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       result.outputUnits.add(info);
       return info;
     });
+  }
+
+  OutputUnitInfo _unitInfoForElement(Element element) {
+    return _infoFromOutputUnit(
+        compiler.deferredLoadTask.outputUnitForElement(element));
+  }
+
+  OutputUnitInfo _unitInfoForConstant(ConstantValue constant) {
+    OutputUnit outputUnit =
+        compiler.deferredLoadTask.outputUnitForConstant(constant);
+    if (outputUnit == null) {
+      assert(constant is InterceptorConstantValue);
+      return null;
+    }
+    return _infoFromOutputUnit(outputUnit);
   }
 }
 
@@ -547,9 +554,9 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       var a = infoCollector._elementToInfo[element];
       if (a == null) continue;
       result.dependencies[a] = _dependencies[element]
-        .map((o) => infoCollector._elementToInfo[o])
-        .where((o) => o != null)
-        .toList();
+          .map((o) => infoCollector._elementToInfo[o])
+          .where((o) => o != null)
+          .toList();
     }
 
     result.deferredFiles = compiler.deferredLoadTask.computeDeferredMap();
