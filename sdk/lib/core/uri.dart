@@ -1009,26 +1009,27 @@ class Uri {
   }
 
   /**
-   * Returns the URI path split into its segments. Each of the
-   * segments in the returned list have been decoded. If the path is
-   * empty the empty list will be returned. A leading slash `/` does
-   * not affect the segments returned.
+   * Returns the URI path split into its segments. Each of the segments in the
+   * returned list have been decoded. If the path is empty the empty list will
+   * be returned. A leading slash `/` does not affect the segments returned.
    *
    * The returned list is unmodifiable and will throw [UnsupportedError] on any
    * calls that would mutate it.
    */
   List<String> get pathSegments {
-    if (_pathSegments == null) {
-      var pathToSplit = !path.isEmpty && path.codeUnitAt(0) == _SLASH
-                        ? path.substring(1)
-                        : path;
-      _pathSegments = new UnmodifiableListView(
-        pathToSplit == "" ? const<String>[]
-                          : pathToSplit.split("/")
-                                       .map(Uri.decodeComponent)
-                                       .toList(growable: false));
+    var result = _pathSegments;
+    if (result != null) return result;
+
+    var pathToSplit = path;
+    if (pathToSplit.isNotEmpty && pathToSplit.codeUnitAt(0) == _SLASH) {
+      pathToSplit = pathToSplit.substring(1);
     }
-    return _pathSegments;
+    result = (pathToSplit == "")
+        ? const<String>[]
+        : new List<String>.unmodifiable(
+              pathToSplit.split("/").map(Uri.decodeComponent));
+    _pathSegments = result;
+    return result;
   }
 
   /**
