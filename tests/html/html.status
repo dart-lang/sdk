@@ -34,6 +34,8 @@ wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant
 
 [ $compiler == dart2js && $checked ]
 js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
+
+[ $compiler == dart2js && $checked && $browser ]
 js_typed_interop_test: Fail # Issue 24822
 
 [ $compiler == dart2js && $csp && $browser ]
