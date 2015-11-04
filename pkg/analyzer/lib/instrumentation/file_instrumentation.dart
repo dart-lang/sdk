@@ -4,6 +4,7 @@
 
 library file_instrumentation;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -30,8 +31,8 @@ class FileInstrumentationServer implements InstrumentationServer {
   }
 
   @override
-  void shutdown() {
-    _sink.close();
+  Future shutdown() async {
+    await _sink.close();
     _sink = null;
   }
 }

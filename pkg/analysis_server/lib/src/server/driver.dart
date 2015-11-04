@@ -428,11 +428,11 @@ class Driver implements ServerStarter {
     }
 
     _captureExceptions(service, () {
-      stdioServer.serveStdio().then((_) {
+      stdioServer.serveStdio().then((_) async {
         if (serve_http) {
           httpServer.close();
         }
-        service.shutdown();
+        await service.shutdown();
         exit(0);
       });
     },

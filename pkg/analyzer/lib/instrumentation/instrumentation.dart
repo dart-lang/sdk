@@ -4,6 +4,7 @@
 
 library instrumentation;
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:analyzer/task/model.dart';
@@ -43,7 +44,7 @@ abstract class InstrumentationServer {
    * server. This method should be invoked exactly one time and no other methods
    * should be invoked on this instance after this method has been invoked.
    */
-  void shutdown();
+  Future shutdown();
 }
 
 /**
@@ -83,7 +84,7 @@ class InstrumentationService {
   int _subprocessCounter = 0;
 
   /**
-   * Initialize a newly created instrumentation service to comunicate with the
+   * Initialize a newly created instrumentation service to communicate with the
    * given [instrumentationServer].
    */
   InstrumentationService(this._instrumentationServer);
@@ -216,7 +217,7 @@ class InstrumentationService {
 
   /**
    * Log the result of executing a subprocess.  [subprocessId] should be the
-   * unique IDreturned by [logSubprocessStart].
+   * unique ID returned by [logSubprocessStart].
    */
   void logSubprocessResult(
       int subprocessId, int exitCode, String stdout, String stderr) {
@@ -290,9 +291,9 @@ class InstrumentationService {
    * server. This method should be invoked exactly one time and no other methods
    * should be invoked on this instance after this method has been invoked.
    */
-  void shutdown() {
+  Future shutdown() async {
     if (_instrumentationServer != null) {
-      _instrumentationServer.shutdown();
+      await _instrumentationServer.shutdown();
       _instrumentationServer = null;
     }
   }
@@ -373,9 +374,9 @@ class MulticastInstrumentationServer implements InstrumentationServer {
   }
 
   @override
-  void shutdown() {
+  Future shutdown() async {
     for (InstrumentationServer server in _servers) {
-      server.shutdown();
+      await server.shutdown();
     }
   }
 }
