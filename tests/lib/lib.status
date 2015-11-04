@@ -147,6 +147,7 @@ async/stream_periodic2_test: RuntimeError # Timer interface not supported; Issue
 async/stream_periodic3_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/stream_periodic4_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/stream_periodic5_test: RuntimeError # Timer interface not supported; Issue 7728.
+async/stream_periodic6_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/run_zoned7_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/catch_errors22_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/timer_isActive_test: RuntimeError # Timer interface not supported: Issue 7728.
