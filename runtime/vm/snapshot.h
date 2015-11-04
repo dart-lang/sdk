@@ -804,13 +804,16 @@ class InstructionsWriter : public ZoneAllocated {
                      intptr_t initial_size)
     : stream_(buffer, alloc, initial_size),
       next_offset_(InstructionsSnapshot::kHeaderSize),
+      binary_size_(0),
       instructions_() {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
 
-  // Size of the snapshot.
+  // Size of the snapshot (assembly code).
   intptr_t BytesWritten() const { return stream_.bytes_written(); }
+
+  intptr_t binary_size() { return binary_size_; }
 
   int32_t GetOffsetFor(RawInstructions* instructions);
 
@@ -848,10 +851,12 @@ class InstructionsWriter : public ZoneAllocated {
 #else
     stream_.Print(".long 0x%0.8" Px "\n", value);
 #endif
+    binary_size_ += sizeof(value);
   }
 
   WriteStream stream_;
   intptr_t next_offset_;
+  intptr_t binary_size_;
   GrowableArray<InstructionsData> instructions_;
 
   DISALLOW_COPY_AND_ASSIGN(InstructionsWriter);

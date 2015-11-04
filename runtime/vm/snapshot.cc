@@ -1951,6 +1951,15 @@ void FullSnapshotWriter::WriteFullSnapshot() {
   if (snapshot_code_) {
     instructions_writer_->WriteAssembly();
     instructions_snapshot_size_ = instructions_writer_->BytesWritten();
+
+    OS::Print("VMIsolate(CodeSize): %" Pd "\n", VmIsolateSnapshotSize());
+    OS::Print("Isolate(CodeSize): %" Pd "\n", IsolateSnapshotSize());
+    OS::Print("Instructions(CodeSize): %" Pd "\n",
+              instructions_writer_->binary_size());
+    intptr_t total = VmIsolateSnapshotSize() +
+                     IsolateSnapshotSize() +
+                     instructions_writer_->binary_size();
+    OS::Print("Total(CodeSize): %" Pd "\n", total);
   }
 }
 
