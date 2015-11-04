@@ -1177,6 +1177,20 @@ class JsFunction extends JsObject implements Function {
 
   dynamic _apply(List args, {thisArg}) native "JsFunction_apply";
 
+  call([a1 = _UNDEFINED,
+        a2 = _UNDEFINED,
+        a3 = _UNDEFINED,
+        a4 = _UNDEFINED,
+        a5 = _UNDEFINED,
+        a6 = _UNDEFINED,
+        a7 = _UNDEFINED,
+        a8 = _UNDEFINED,
+        a9 = _UNDEFINED,
+        a10 = _UNDEFINED]) {
+    return apply(
+        _stripUndefinedArgs([a1, a2, a3, a4, a5, a6, a7, a8, a9, a10]));
+  }
+
   noSuchMethod(Invocation invocation) {
     if (invocation.isMethod && invocation.memberName == #call) {
       return apply(_buildArgs(invocation));
