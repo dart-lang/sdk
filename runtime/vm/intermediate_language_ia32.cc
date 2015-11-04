@@ -818,6 +818,7 @@ LocationSummary* NativeCallInstr::MakeLocationSummary(Zone* zone,
 
 
 void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  SetupNative();
   Register result = locs()->out(0).reg();
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
   const bool is_leaf_call =

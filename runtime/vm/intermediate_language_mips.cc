@@ -975,6 +975,7 @@ LocationSummary* NativeCallInstr::MakeLocationSummary(Zone* zone,
 
 
 void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  SetupNative();
   __ Comment("NativeCallInstr");
   Register result = locs()->out(0).reg();
 
@@ -993,7 +994,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   uword entry;
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
   const bool is_leaf_call =
-    (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
+      (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
   const StubEntry* stub_entry;
   if (link_lazily()) {
     stub_entry = StubCode::CallBootstrapCFunction_entry();

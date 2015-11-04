@@ -7339,39 +7339,20 @@ void Parser::AddFormalParamsToScope(const ParamList* params,
 void Parser::ParseNativeFunctionBlock(const ParamList* params,
                                       const Function& func) {
   ASSERT(func.is_native());
-  TRACE_PARSER("ParseNativeFunctionBlock");
-  const Class& cls = Class::Handle(Z, func.Owner());
-  const Library& library = Library::Handle(Z, cls.library());
   ASSERT(func.NumParameters() == params->parameters->length());
+  TRACE_PARSER("ParseNativeFunctionBlock");
 
   // Parse the function name out.
-  const intptr_t native_pos = TokenPos();
   const String& native_name = ParseNativeDeclaration();
 
-  // Now resolve the native function to the corresponding native entrypoint.
-  const int num_params = NativeArguments::ParameterCountForResolution(func);
-  bool auto_setup_scope = true;
-  NativeFunction native_function = NativeEntry::ResolveNative(
-      library, native_name, num_params, &auto_setup_scope);
-  if (native_function == NULL) {
-    ReportError(native_pos,
-                "native function '%s' (%" Pd " arguments) cannot be found",
-                native_name.ToCString(), func.NumParameters());
-  }
-  func.SetIsNativeAutoSetupScope(auto_setup_scope);
-
   // Now add the NativeBodyNode and return statement.
-  Dart_NativeEntryResolver resolver = library.native_entry_resolver();
-  bool is_bootstrap_native = Bootstrap::IsBootstapResolver(resolver);
   current_block_->statements->Add(new(Z) ReturnNode(
       TokenPos(),
       new(Z) NativeBodyNode(
           TokenPos(),
           Function::ZoneHandle(Z, func.raw()),
           native_name,
-          native_function,
           current_block_->scope,
-          is_bootstrap_native,
           FLAG_link_natives_lazily)));
 }
 

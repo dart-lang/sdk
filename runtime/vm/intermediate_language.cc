@@ -5,6 +5,7 @@
 #include "vm/intermediate_language.h"
 
 #include "vm/bit_vector.h"
+#include "vm/bootstrap.h"
 #include "vm/compiler.h"
 #include "vm/constant_propagator.h"
 #include "vm/cpu.h"
@@ -3655,6 +3656,30 @@ intptr_t MergedMathInstr::OutputIndexOf(Token::Kind token) {
   }
 }
 
+
+void NativeCallInstr::SetupNative() {
+  Zone* Z = Thread::Current()->zone();
+  const Class& cls = Class::Handle(Z, function().Owner());
+  const Library& library = Library::Handle(Z, cls.library());
+  const int num_params =
+      NativeArguments::ParameterCountForResolution(function());
+  bool auto_setup_scope = true;
+  NativeFunction native_function = NativeEntry::ResolveNative(
+      library, native_name(), num_params, &auto_setup_scope);
+  if (native_function == NULL) {
+    Report::MessageF(Report::kError,
+                     Script::Handle(function().script()),
+                     function().token_pos(),
+                     "native function '%s' (%" Pd " arguments) cannot be found",
+                     native_name().ToCString(),
+                     function().NumParameters());
+  }
+  set_native_c_function(native_function);
+  function().SetIsNativeAutoSetupScope(auto_setup_scope);
+  Dart_NativeEntryResolver resolver = library.native_entry_resolver();
+  bool is_bootstrap_native = Bootstrap::IsBootstapResolver(resolver);
+  set_is_bootstrap_native(is_bootstrap_native);
+}
 
 #undef __
 

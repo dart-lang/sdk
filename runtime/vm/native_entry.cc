@@ -234,7 +234,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 
     const intptr_t argc_tag = NativeArguments::ComputeArgcTag(func);
     const bool is_leaf_call =
-      (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
+        (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
 
     call_through_wrapper = !is_bootstrap_native && !is_leaf_call;
 

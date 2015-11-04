@@ -3393,7 +3393,9 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
 class NativeCallInstr : public TemplateDefinition<0, Throws> {
  public:
   explicit NativeCallInstr(NativeBodyNode* node)
-      : ast_node_(*node) {}
+      : ast_node_(*node),
+        native_c_function_(NULL),
+        is_bootstrap_native_(false) { }
 
   DECLARE_INSTRUCTION(NativeCall)
 
@@ -3406,11 +3408,11 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
   }
 
   NativeFunction native_c_function() const {
-    return ast_node_.native_c_function();
+    return native_c_function_;
   }
 
   bool is_bootstrap_native() const {
-    return ast_node_.is_bootstrap_native();
+    return is_bootstrap_native_;
   }
 
   bool link_lazily() const {
@@ -3423,8 +3425,18 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
+  void SetupNative();
+
  private:
+  void set_native_c_function(NativeFunction value) {
+    native_c_function_ = value;
+  }
+
+  void set_is_bootstrap_native(bool value) { is_bootstrap_native_ = value; }
+
   const NativeBodyNode& ast_node_;
+  NativeFunction native_c_function_;
+  bool is_bootstrap_native_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeCallInstr);
 };

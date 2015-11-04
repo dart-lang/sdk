@@ -852,7 +852,6 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
           THR_Print("%s\n", error.ToErrorCString());
         }
         done = true;
-        ASSERT(optimized);
       }
 
       // Clear the error if it was not a real error, but just a bailout.
@@ -1091,8 +1090,14 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
         }
         function.SetIsOptimizable(false);
         return Error::null();
+      } else {
+        // Encountered error.
+        Error& error = Error::Handle();
+        // We got an error during compilation.
+        error = isolate->object_store()->sticky_error();
+        isolate->object_store()->clear_sticky_error();
+        return error.raw();
       }
-      UNREACHABLE();
     }
 
     per_compile_timer.Stop();
