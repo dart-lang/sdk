@@ -10276,6 +10276,11 @@ RawLibrary* Library::NativeWrappersLibrary() {
 }
 
 
+RawLibrary* Library::ProfilerLibrary() {
+  return Isolate::Current()->object_store()->profiler_library();
+}
+
+
 RawLibrary* Library::TypedDataLibrary() {
   return Isolate::Current()->object_store()->typed_data_library();
 }

@@ -9495,7 +9495,10 @@ class DataTransferItemList extends DartHtmlDomObject {
   
 
   DataTransferItem operator[] (int index) {
-    return __getter__(index);
+    // TODO(alanknight): I think that all the __getter__ generators should just
+    // do property access, but that's major surgery. This one is a problem, so
+    // just hard-code it for now.
+    return _blink.Blink_JsNative_DomException.getProperty(unwrap_jso(this), index);
   }
 
 }
@@ -24400,7 +24403,7 @@ class Location extends DartHtmlDomObject implements LocationBase {
   @DomName('Location.ancestorOrigins')
   @DocsEditable()
   @Experimental() // nonstandard
-  List<String> get ancestorOrigins => _blink.BlinkLocation.instance.ancestorOrigins_Getter_(unwrap_jso(this));
+  List<String> get ancestorOrigins => wrap_jso(_blink.BlinkLocation.instance.ancestorOrigins_Getter_(unwrap_jso(this)));
   
   @DomName('Location.hash')
   @DocsEditable()
@@ -35155,7 +35158,7 @@ class StorageQuota extends DartHtmlDomObject {
   @DomName('StorageQuota.supportedTypes')
   @DocsEditable()
   @Experimental() // untriaged
-  List<String> get supportedTypes => _blink.BlinkStorageQuota.instance.supportedTypes_Getter_(unwrap_jso(this));
+  List<String> get supportedTypes => wrap_jso(_blink.BlinkStorageQuota.instance.supportedTypes_Getter_(unwrap_jso(this)));
   
   @DomName('StorageQuota.queryInfo')
   @DocsEditable()

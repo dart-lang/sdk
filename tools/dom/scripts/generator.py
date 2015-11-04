@@ -1447,7 +1447,7 @@ def wrap_unwrap_type_blink(return_type, type_registry):
             return_type == 'SqlDatabase' or # renamed to Database
             return_type == 'HTMLElement' or
             return_type == 'MutationObserver' or
-            return_type.endswith('[]'))
+            (return_type.endswith('[]') and return_type != 'DOMString[]'))
 
 def wrap_type_blink(return_type, type_registry):
     """Returns True if the type is a blink type that requires wrap_jso but
