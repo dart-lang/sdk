@@ -933,6 +933,9 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
 
 void Profiler::SampleThread(Thread* thread,
                             const InterruptedThreadState& state) {
+  ASSERT(thread != NULL);
+  Isolate* isolate = thread->isolate();
+
   if (StubCode::HasBeenInitialized() &&
       StubCode::InJumpToExceptionHandlerStub(state.pc)) {
     // The JumpToExceptionHandler stub manually adjusts the stack pointer,
@@ -969,8 +972,6 @@ void Profiler::SampleThread(Thread* thread,
     return;
   }
 
-  ASSERT(thread != NULL);
-  Isolate* isolate = thread->isolate();
   if (!CheckIsolate(isolate)) {
     return;
   }
