@@ -120,7 +120,7 @@ static const int kRestartRequestExitCode = 1000;
 
 // Global flag that is used to indicate that the VM should do a clean
 // shutdown.
-static bool do_vm_shutdown = true;
+static bool do_vm_shutdown = false;
 
 static void ErrorExit(int exit_code, const char* format, ...) {
   va_list arguments;
