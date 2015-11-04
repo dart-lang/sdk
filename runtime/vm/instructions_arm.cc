@@ -273,6 +273,45 @@ void CallPattern::InsertDeoptCallAt(uword pc, uword target_address) {
 }
 
 
+SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
+    : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
+      cache_pool_index_(-1),
+      stub_pool_index_(-1) {
+  ASSERT(code.ContainsInstructionAt(pc));
+  // Last instruction: blx r1.
+  ASSERT(*(reinterpret_cast<uword*>(pc) - 1) == 0xe12fff31);
+
+  Register reg;
+  uword stub_load_end =
+      InstructionPattern::DecodeLoadWordFromPool(pc - 3 * Instr::kInstrSize,
+                                                 &reg,
+                                                 &stub_pool_index_);
+  ASSERT(reg == CODE_REG);
+  InstructionPattern::DecodeLoadWordFromPool(stub_load_end,
+                                             &reg,
+                                             &cache_pool_index_);
+  ASSERT(reg == R9);
+}
+
+
+RawObject* SwitchableCallPattern::cache() const {
+  return reinterpret_cast<RawCode*>(
+      object_pool_.ObjectAt(cache_pool_index_));
+}
+
+
+void SwitchableCallPattern::SetCache(const MegamorphicCache& cache) const {
+  ASSERT(Object::Handle(object_pool_.ObjectAt(cache_pool_index_)).IsICData());
+  object_pool_.SetObjectAt(cache_pool_index_, cache);
+}
+
+
+void SwitchableCallPattern::SetLookupStub(const Code& lookup_stub) const {
+  ASSERT(Object::Handle(object_pool_.ObjectAt(stub_pool_index_)).IsCode());
+  object_pool_.SetObjectAt(stub_pool_index_, lookup_stub);
+}
+
+
 ReturnPattern::ReturnPattern(uword pc)
     : pc_(pc) {
 }

@@ -138,6 +138,10 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, class_table_);
   }
 
+  static intptr_t ic_miss_code_offset() {
+    return OFFSET_OF(Isolate, ic_miss_code_);
+  }
+
   Dart_MessageNotifyCallback message_notify_callback() const {
     return message_notify_callback_;
   }
@@ -593,6 +597,8 @@ class Isolate : public BaseIsolate {
   RawUserTag* default_tag() const { return default_tag_; }
   void set_default_tag(const UserTag& tag);
 
+  void set_ic_miss_code(const Code& code);
+
   Metric* metrics_list_head() {
     return metrics_list_head_;
   }
@@ -723,6 +729,7 @@ class Isolate : public BaseIsolate {
   uword user_tag_;
   RawUserTag* current_tag_;
   RawUserTag* default_tag_;
+  RawCode* ic_miss_code_;
   ClassTable class_table_;
   bool single_step_;
 

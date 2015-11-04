@@ -1089,6 +1089,11 @@ void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t argument_count,
     LocationSummary* locs,
     const ICData& ic_data) {
+  if (Compiler::always_optimize()) {
+    EmitSwitchableInstanceCall(ic_data, argument_count,
+                               deopt_id, token_pos, locs);
+    return;
+  }
   if (FLAG_always_megamorphic_calls) {
     EmitMegamorphicInstanceCall(ic_data, argument_count,
                                 deopt_id, token_pos, locs);

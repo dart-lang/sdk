@@ -184,6 +184,64 @@ class PoolPointerCall : public ValueObject {
 };
 
 
+// Instance call that can switch from an IC call to a megamorphic call
+//   load ICData             load MegamorphicCache
+//   call ICLookup stub  ->  call MegamorphicLookup stub
+//   call target             call target
+class SwitchableCall : public ValueObject {
+ public:
+  SwitchableCall(uword return_address, const Code& code)
+      : start_(return_address - kCallPatternSize),
+        object_pool_(ObjectPool::Handle(code.GetObjectPool())) {
+    ASSERT(IsValid());
+  }
+
+  static const int kCallPatternSize = 24;
+
+  bool IsValid() const {
+    static int16_t pattern[kCallPatternSize] = {
+      0x49, 0x8b, 0x9f, -1, -1, -1, -1,  // movq rbx, [PP + cache_offs]
+      0x4d, 0x8b, 0xa7, -1, -1, -1, -1,  // movq r12, [PP + code_offs]
+      0x4d, 0x8b, 0x5c, 0x24, 0x07,      // movq r11, [r12 + entrypoint_off]
+      0x41, 0xff, 0xd3,                  // call r11
+      0xff, 0xd1,                        // call rcx
+    };
+    return MatchesPattern(start_, pattern, kCallPatternSize);
+  }
+
+  intptr_t cache_index() const {
+    return IndexFromPPLoad(start_ + 3);
+  }
+  intptr_t lookup_stub_index() const {
+    return IndexFromPPLoad(start_ + 10);
+  }
+
+  RawObject* cache() const {
+    return object_pool_.ObjectAt(cache_index());
+  }
+
+  void SetCache(const MegamorphicCache& cache) const {
+    ASSERT(Object::Handle(object_pool_.ObjectAt(cache_index())).IsICData());
+    object_pool_.SetObjectAt(cache_index(), cache);
+    // No need to flush the instruction cache, since the code is not modified.
+  }
+
+  void SetLookupStub(const Code& lookup_stub) const {
+    ASSERT(Object::Handle(object_pool_.ObjectAt(lookup_stub_index())).IsCode());
+    object_pool_.SetObjectAt(lookup_stub_index(), lookup_stub);
+    // No need to flush the instruction cache, since the code is not modified.
+  }
+
+ protected:
+  uword start_;
+  const ObjectPool& object_pool_;
+
+ private:
+  DISALLOW_IMPLICIT_CONSTRUCTORS(SwitchableCall);
+};
+
+
+
 RawCode* CodePatcher::GetStaticCallTargetAt(uword return_address,
                                             const Code& code) {
   ASSERT(code.ContainsInstructionAt(return_address));
@@ -245,6 +303,19 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
     *ic_data_result = ic_data.raw();
   }
   return ic_data.GetTargetAt(0);
+}
+
+
+void CodePatcher::PatchSwitchableCallAt(uword return_address,
+                                        const Code& code,
+                                        const ICData& ic_data,
+                                        const MegamorphicCache& cache,
+                                        const Code& lookup_stub) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  SwitchableCall call(return_address, code);
+  ASSERT(call.cache() == ic_data.raw());
+  call.SetLookupStub(lookup_stub);
+  call.SetCache(cache);
 }
 
 

@@ -350,6 +350,10 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   if (!Dart::IsRunningPrecompiledCode()) {
     MegamorphicCacheTable::InitMissHandler(I);
   }
+  const Code& miss_code =
+      Code::Handle(I->object_store()->megamorphic_miss_code());
+  I->set_ic_miss_code(miss_code);
+
   if (snapshot_buffer == NULL) {
     if (!I->object_store()->PreallocateObjects()) {
       return I->object_store()->sticky_error();

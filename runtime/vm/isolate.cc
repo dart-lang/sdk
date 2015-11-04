@@ -1926,6 +1926,10 @@ void Isolate::set_default_tag(const UserTag& tag) {
   default_tag_ = tag.raw();
 }
 
+void Isolate::set_ic_miss_code(const Code& code) {
+  ic_miss_code_ = code.raw();
+}
+
 
 void Isolate::set_deoptimized_code_array(const GrowableObjectArray& value) {
   ASSERT(Thread::Current()->IsMutatorThread());

@@ -454,6 +454,9 @@ class ObjectStore {
   void set_megamorphic_cache_table(const GrowableObjectArray& value) {
     megamorphic_cache_table_ = value.raw();
   }
+  RawCode* megamorphic_miss_code() const {
+    return megamorphic_miss_code_;
+  }
   RawFunction* megamorphic_miss_function() const {
     return megamorphic_miss_function_;
   }

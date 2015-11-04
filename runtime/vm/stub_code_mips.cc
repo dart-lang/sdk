@@ -563,7 +563,7 @@ static void GenerateDispatcherCode(Assembler* assembler,
 
   // Push space for the return value.
   // Push the receiver.
-  // Push IC data object.
+  // Push ICData/MegamorphicCache object.
   // Push arguments descriptor array.
   // Push original arguments array.
   __ addiu(SP, SP, Immediate(-4 * kWordSize));
@@ -2211,16 +2211,16 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 }
 
 
-void StubCode::EmitMegamorphicLookup(
-    Assembler* assembler, Register receiver, Register cache, Register target) {
-  ASSERT((cache != T0) && (cache != T2));
-  __ LoadTaggedClassIdMayBeSmi(T0, receiver);
+void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
+  __ LoadTaggedClassIdMayBeSmi(T0, T0);
   // T0: class ID of the receiver (smi).
-  __ lw(T2, FieldAddress(cache, MegamorphicCache::buckets_offset()));
-  __ lw(T1, FieldAddress(cache, MegamorphicCache::mask_offset()));
+  __ lw(S4, FieldAddress(S5, MegamorphicCache::arguments_descriptor_offset()));
+  __ lw(T2, FieldAddress(S5, MegamorphicCache::buckets_offset()));
+  __ lw(T1, FieldAddress(S5, MegamorphicCache::mask_offset()));
   // T2: cache buckets array.
   // T1: mask.
   __ mov(T3, T0);
+  // T3: probe.
 
   Label loop, update, call_target_function;
   __ b(&loop);
@@ -2248,18 +2248,61 @@ void StubCode::EmitMegamorphicLookup(
   __ addu(T1, T2, T1);
   __ lw(T0, FieldAddress(T1, base + kWordSize));
 
+  __ lw(T1, FieldAddress(T0, Function::entry_point_offset()));
   __ lw(CODE_REG, FieldAddress(T0, Function::code_offset()));
-  __ lw(target, FieldAddress(T0, Function::entry_point_offset()));
 }
 
 
 // Called from megamorphic calls.
-//  T0: receiver.
-//  T1: lookup cache.
+//  T0: receiver
+//  S5: MegamorphicCache (preserved)
 // Result:
-//  T1: entry point.
+//  T1: target entry point
+//  CODE_REG: target Code
+//  S4: arguments descriptor
 void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
-  EmitMegamorphicLookup(assembler, T0, T1, T1);
+  EmitMegamorphicLookup(assembler);
+  __ Ret();
+}
+
+
+// Called from switchable IC calls.
+//  T0: receiver
+//  S5: ICData (preserved)
+// Result:
+//  T1: target entry point
+//  CODE_REG: target Code object
+//  S4: arguments descriptor
+void StubCode::GenerateICLookupStub(Assembler* assembler) {
+  Label loop, found, miss;
+  __ lw(T6, FieldAddress(S5, ICData::ic_data_offset()));
+  __ lw(S4, FieldAddress(S5, ICData::arguments_descriptor_offset()));
+  __ AddImmediate(T6, T6, Array::data_offset() - kHeapObjectTag);
+  // T6: first IC entry.
+  __ LoadTaggedClassIdMayBeSmi(T1, T0);
+  // T1: receiver cid as Smi
+
+  __ Bind(&loop);
+  __ lw(T2, Address(T6, 0));
+  __ beq(T1, T2, &found);
+  ASSERT(Smi::RawValue(kIllegalCid) == 0);
+  __ beq(T2, ZR, &miss);
+
+  const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
+  __ AddImmediate(T6, entry_length);  // Next entry.
+  __ b(&loop);
+
+  __ Bind(&found);
+  const intptr_t target_offset = ICData::TargetIndexFor(1) * kWordSize;
+  __ lw(T0, Address(T6, target_offset));
+  __ lw(T1, FieldAddress(T0, Function::entry_point_offset()));
+  __ lw(CODE_REG, FieldAddress(T0, Function::code_offset()));
+  __ Ret();
+
+  __ Bind(&miss);
+  __ LoadIsolate(T2);
+  __ lw(CODE_REG, Address(T2, Isolate::ic_miss_code_offset()));
+  __ lw(T1, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ Ret();
 }
 

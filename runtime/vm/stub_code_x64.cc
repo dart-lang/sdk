@@ -510,7 +510,7 @@ static void GenerateDispatcherCode(Assembler* assembler,
       RBP, RDI, TIMES_HALF_WORD_SIZE, kParamEndSlotFromFp * kWordSize));
   __ PushObject(Object::null_object());  // Setup space on stack for result.
   __ pushq(RAX);  // Receiver.
-  __ pushq(RBX);
+  __ pushq(RBX);  // ICData/MegamorphicCache.
   __ pushq(R10);  // Arguments descriptor array.
   __ movq(R10, RDI);
   // EDX: Smi-tagged arguments array length.
@@ -2088,52 +2088,99 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 }
 
 
-void StubCode::EmitMegamorphicLookup(
-    Assembler* assembler, Register receiver, Register cache, Register target) {
-  ASSERT((cache != RAX) && (cache != RDI));
-  __ LoadTaggedClassIdMayBeSmi(RAX, receiver);
+void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
+  __ LoadTaggedClassIdMayBeSmi(RAX, RDI);
   // RAX: class ID of the receiver (smi).
-  __ movq(RDI, FieldAddress(cache, MegamorphicCache::buckets_offset()));
-  __ movq(RBX, FieldAddress(cache, MegamorphicCache::mask_offset()));
+  __ movq(R10,
+          FieldAddress(RBX, MegamorphicCache::arguments_descriptor_offset()));
+  __ movq(RDI, FieldAddress(RBX, MegamorphicCache::buckets_offset()));
+  __ movq(R9, FieldAddress(RBX, MegamorphicCache::mask_offset()));
   // RDI: cache buckets array.
   // RBX: mask.
   __ movq(RCX, RAX);
 
-  Label loop, update, call_target_function;
+  Label loop, update, load_target_function;
   __ jmp(&loop);
 
   __ Bind(&update);
   __ AddImmediate(RCX, Immediate(Smi::RawValue(1)));
   __ Bind(&loop);
-  __ andq(RCX, RBX);
+  __ andq(RCX, R9);
   const intptr_t base = Array::data_offset();
   // RCX is smi tagged, but table entries are two words, so TIMES_8.
   __ movq(RDX, FieldAddress(RDI, RCX, TIMES_8, base));
 
   ASSERT(kIllegalCid == 0);
   __ testq(RDX, RDX);
-  __ j(ZERO, &call_target_function, Assembler::kNearJump);
+  __ j(ZERO, &load_target_function, Assembler::kNearJump);
   __ cmpq(RDX, RAX);
   __ j(NOT_EQUAL, &update, Assembler::kNearJump);
 
-  __ Bind(&call_target_function);
+  __ Bind(&load_target_function);
   // Call the target found in the cache.  For a class id match, this is a
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
   __ movq(RAX, FieldAddress(RDI, RCX, TIMES_8, base + kWordSize));
+  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
   __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
-  __ movq(target, FieldAddress(RAX, Function::entry_point_offset()));
 }
 
 
 // Called from megamorphic calls.
-//  RDI: receiver.
-//  RBX: lookup cache.
+//  RDI: receiver
+//  RBX: MegamorphicCache (preserved)
 // Result:
-//  RCX: entry point.
+//  RCX: target entry point
+//  CODE_REG: target Code
+//  R10: arguments descriptor
 void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
-  EmitMegamorphicLookup(assembler, RDI, RBX, RCX);
+  EmitMegamorphicLookup(assembler);
+  __ ret();
+}
+
+
+// Called from switchable IC calls.
+//  RDI: receiver
+//  RBX: ICData (preserved)
+// Result:
+//  RCX: target entry point
+//  CODE_REG: target Code object
+//  R10: arguments descriptor
+void StubCode::GenerateICLookupStub(Assembler* assembler) {
+  Label loop, found, miss;
+
+  __ movq(R13, FieldAddress(RBX, ICData::ic_data_offset()));
+  __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));
+  __ leaq(R13, FieldAddress(R13, Array::data_offset()));
+  // R13: first IC entry
+  __ LoadTaggedClassIdMayBeSmi(RAX, RDI);
+  // RAX: receiver cid as Smi
+
+  __ Bind(&loop);
+  __ movq(R9, Address(R13, 0));
+  __ cmpq(RAX, R9);
+  __ j(EQUAL, &found, Assembler::kNearJump);
+
+  ASSERT(Smi::RawValue(kIllegalCid) == 0);
+  __ cmpq(R9, R9);
+  __ j(EQUAL, &miss, Assembler::kNearJump);
+
+  const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
+  __ addq(R13, Immediate(entry_length));  // Next entry.
+  __ jmp(&loop);
+
+  __ Bind(&found);
+  const intptr_t target_offset = ICData::TargetIndexFor(1) * kWordSize;
+  __ movq(RAX, Address(R13, target_offset));
+  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
+  __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
+  __ ret();
+
+  __ Bind(&miss);
+  __ LoadIsolate(RAX);
+  __ movq(CODE_REG, Address(RAX, Isolate::ic_miss_code_offset()));
+  __ movq(RCX, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ ret();
 }
 

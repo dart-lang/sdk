@@ -417,6 +417,12 @@ class FlowGraphCompiler : public ValueObject {
                                    intptr_t token_pos,
                                    LocationSummary* locs);
 
+  void EmitSwitchableInstanceCall(const ICData& ic_data,
+                                  intptr_t argument_count,
+                                  intptr_t deopt_id,
+                                  intptr_t token_pos,
+                                  LocationSummary* locs);
+
   void EmitTestAndCall(const ICData& ic_data,
                        intptr_t arg_count,
                        const Array& arg_names,
