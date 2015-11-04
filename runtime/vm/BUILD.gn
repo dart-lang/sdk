@@ -193,6 +193,7 @@ generate_core_libraries("core_libraries") {
     ["isolate", "isolate"],
     ["math", "math"],
     ["mirrors", "mirrors"],
+    ["profiler", "profiler"],
     ["typed_data", "typed_data"],
     ["_vmservice", "vmservice"],
   ]

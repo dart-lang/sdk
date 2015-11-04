@@ -30,6 +30,7 @@ class ObjectStore {
     kIsolate,
     kMath,
     kMirrors,
+    kProfiler,
     kTypedData,
     kVMService,
   };
@@ -263,6 +264,7 @@ class ObjectStore {
   RawLibrary* isolate_library() const { return isolate_library_; }
   RawLibrary* math_library() const { return math_library_; }
   RawLibrary* mirrors_library() const { return mirrors_library_; }
+  RawLibrary* profiler_library() const { return profiler_library_; }
   RawLibrary* typed_data_library() const { return typed_data_library_; }
   RawLibrary* vmservice_library() const { return vmservice_library_; }
 
@@ -294,6 +296,9 @@ class ObjectStore {
         break;
       case kMirrors:
         mirrors_library_ = value.raw();
+        break;
+      case kProfiler:
+        profiler_library_ = value.raw();
         break;
       case kTypedData:
         typed_data_library_ = value.raw();
@@ -527,6 +532,7 @@ class ObjectStore {
   RawLibrary* math_library_;
   RawLibrary* mirrors_library_;
   RawLibrary* native_wrappers_library_;
+  RawLibrary* profiler_library_;
   RawLibrary* root_library_;
   RawLibrary* typed_data_library_;
   RawLibrary* vmservice_library_;
