@@ -49,7 +49,8 @@ import '../tree/tree.dart';
 import '../universe/call_structure.dart' show
     CallStructure;
 import '../universe/use.dart' show
-    StaticUse;
+    StaticUse,
+    TypeUse;
 import '../universe/world_impact.dart' show
     WorldImpact;
 import '../util/util.dart' show
@@ -377,7 +378,8 @@ class ResolverTask extends CompilerTask {
       reporter.reportErrorMessage(
           element, MessageKind.FINAL_WITHOUT_INITIALIZER);
     } else {
-      registry.registerInstantiatedType(coreTypes.nullType);
+      // TODO(johnniwinther): Register a feature instead.
+      registry.registerTypeUse(new TypeUse.instantiation(coreTypes.nullType));
     }
 
     if (Elements.isStaticOrTopLevelField(element)) {

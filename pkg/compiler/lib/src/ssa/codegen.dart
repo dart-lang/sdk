@@ -2502,7 +2502,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void checkTypeViaProperty(HInstruction input, DartType type,
                             SourceInformation sourceInformation,
                             {bool negative: false}) {
-    registry.registerIsCheck(type);
+    registry.registerTypeUse(new TypeUse.isCheck(type));
 
     use(input);
 
@@ -2523,7 +2523,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       HInstruction input, DartType type,
       SourceInformation sourceInformation,
       {bool negative: false}) {
-    registry.registerIsCheck(type);
+    registry.registerTypeUse(new TypeUse.isCheck(type));
 
     use(input);
 
@@ -2615,7 +2615,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void emitIs(HIs node, String relation, SourceInformation sourceInformation)  {
     DartType type = node.typeExpression;
-    registry.registerIsCheck(type);
+    registry.registerTypeUse(new TypeUse.isCheck(type));
     HInstruction input = node.expression;
 
     // If this is changed to single == there are several places below that must
@@ -2787,9 +2787,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (type.isFunctionType) {
       // TODO(5022): We currently generate $isFunction checks for
       // function types.
-      registry.registerIsCheck(compiler.coreTypes.functionType);
+      registry.registerTypeUse(
+          new TypeUse.isCheck(compiler.coreTypes.functionType));
     }
-    registry.registerIsCheck(type);
+    registry.registerTypeUse(new TypeUse.isCheck(type));
 
     CheckedModeHelper helper;
     if (node.isBooleanConversionCheck) {

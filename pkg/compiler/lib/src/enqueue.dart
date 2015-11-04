@@ -54,7 +54,9 @@ import 'universe/universe.dart';
 import 'universe/use.dart' show
     DynamicUse,
     StaticUse,
-    StaticUseKind;
+    StaticUseKind,
+    TypeUse,
+    TypeUseKind;
 import 'universe/world_impact.dart' show
     WorldImpact;
 import 'util/util.dart' show
@@ -167,13 +169,7 @@ abstract class Enqueuer {
     // TODO(johnniwinther): Optimize the application of the world impact.
     worldImpact.dynamicUses.forEach(registerDynamicUse);
     worldImpact.staticUses.forEach(registerStaticUse);
-    worldImpact.instantiatedTypes.forEach(registerInstantiatedType);
-    worldImpact.isChecks.forEach(registerIsCheck);
-    worldImpact.asCasts.forEach(registerIsCheck);
-    if (compiler.enableTypeAssertions) {
-      worldImpact.checkedModeChecks.forEach(registerIsCheck);
-    }
-    worldImpact.onCatchTypes.forEach(registerIsCheck);
+    worldImpact.typeUses.forEach(registerTypeUse);
     worldImpact.closures.forEach(registerClosure);
   }
 
@@ -640,7 +636,29 @@ abstract class Enqueuer {
     }
   }
 
-  void registerIsCheck(DartType type) {
+  void registerTypeUse(TypeUse typeUse) {
+    DartType type = typeUse.type;
+    switch (typeUse.kind) {
+      case TypeUseKind.INSTANTIATION:
+        registerInstantiatedType(type);
+        break;
+      case TypeUseKind.INSTANTIATION:
+      case TypeUseKind.IS_CHECK:
+      case TypeUseKind.AS_CAST:
+      case TypeUseKind.CATCH_TYPE:
+        _registerIsCheck(type);
+        break;
+      case TypeUseKind.CHECKED_MODE_CHECK:
+        if (compiler.enableTypeAssertions) {
+          _registerIsCheck(type);
+        }
+        break;
+      case TypeUseKind.TYPE_LITERAL:
+        break;
+    }
+  }
+
+  void _registerIsCheck(DartType type) {
     type = universe.registerIsCheck(type, compiler);
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check

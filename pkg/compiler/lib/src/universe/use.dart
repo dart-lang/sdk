@@ -10,6 +10,7 @@ library dart2js.universe.use;
 import '../closure.dart' show
   BoxFieldElement;
 import '../common.dart';
+import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../world.dart' show
     ClassWorld;
@@ -247,3 +248,62 @@ class StaticUse {
   String toString() => 'StaticUse($element,$kind)';
 }
 
+enum TypeUseKind {
+  IS_CHECK,
+  AS_CAST,
+  CHECKED_MODE_CHECK,
+  CATCH_TYPE,
+  TYPE_LITERAL,
+  INSTANTIATION,
+}
+
+/// Use of a [DartType].
+class TypeUse {
+  final DartType type;
+  final TypeUseKind kind;
+  final int hashCode;
+
+  TypeUse._(DartType type, TypeUseKind kind)
+      : this.type = type,
+        this.kind = kind,
+        this.hashCode = Hashing.objectHash(type, Hashing.objectHash(kind));
+
+  /// [type] used in an is check, like `e is T` or `e is! T`.
+  factory TypeUse.isCheck(DartType type) {
+    return new TypeUse._(type, TypeUseKind.IS_CHECK);
+  }
+
+  /// [type] used in an as cast, like `e as T`.
+  factory TypeUse.asCast(DartType type) {
+    return new TypeUse._(type, TypeUseKind.AS_CAST);
+  }
+
+  /// [type] used as a type annotation, like `T foo;`.
+  factory TypeUse.checkedModeCheck(DartType type) {
+    return new TypeUse._(type, TypeUseKind.CHECKED_MODE_CHECK);
+  }
+
+  /// [type] used in a on type catch clause, like `try {} on T catch (e) {}`.
+  factory TypeUse.catchType(DartType type) {
+    return new TypeUse._(type, TypeUseKind.CATCH_TYPE);
+  }
+
+  /// [type] used as a type literal, like `foo() => T;`.
+  factory TypeUse.typeLiteral(DartType type) {
+    return new TypeUse._(type, TypeUseKind.TYPE_LITERAL);
+  }
+
+  /// [type] used in an instantiation, like `new T();`.
+  factory TypeUse.instantiation(InterfaceType type) {
+    return new TypeUse._(type, TypeUseKind.INSTANTIATION);
+  }
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! TypeUse) return false;
+    return type == other.type &&
+           kind == other.kind;
+  }
+
+  String toString() => 'TypeUse($type,$kind)';
+}

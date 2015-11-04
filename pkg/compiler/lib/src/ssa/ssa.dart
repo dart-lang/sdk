@@ -62,7 +62,8 @@ import '../universe/side_effects.dart' show
     SideEffects;
 import '../universe/use.dart' show
     DynamicUse,
-    StaticUse;
+    StaticUse,
+    TypeUse;
 import '../util/util.dart';
 import '../world.dart' show
     ClassWorld,

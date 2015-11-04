@@ -48,7 +48,9 @@ import '../tree/tree.dart';
 import '../universe/selector.dart' show
     Selector;
 import '../universe/use.dart' show
-    DynamicUse;
+    DynamicUse,
+    TypeUse,
+    TypeUseKind;
 import '../universe/world_impact.dart' show
     WorldImpact,
     TransformedWorldImpact;

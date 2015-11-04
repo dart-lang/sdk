@@ -24,7 +24,8 @@ import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../universe/use.dart' show
     DynamicUse,
-    StaticUse;
+    StaticUse,
+    TypeUse;
 import '../universe/world_impact.dart' show
     WorldImpact,
     WorldImpactBuilder;
@@ -189,8 +190,8 @@ class CodegenRegistry extends Registry {
     compiler.dumpInfoTask.elementUsesSelector(currentElement, dynamicUse);
   }
 
-  void registerIsCheck(DartType type) {
-    worldImpact.registerIsCheck(type);
+  void registerTypeUse(TypeUse typeUse) {
+    worldImpact.registerTypeUse(typeUse);
   }
 
   void registerCompileTimeConstant(ConstantValue constant) {
@@ -223,7 +224,7 @@ class CodegenRegistry extends Registry {
   }
 
   void registerInstantiation(InterfaceType type) {
-    worldImpact.registerInstantiatedType(type);
+    registerTypeUse(new TypeUse.instantiation(type));
   }
 
   void registerAsyncMarker(FunctionElement element) {

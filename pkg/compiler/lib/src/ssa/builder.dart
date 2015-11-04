@@ -2590,7 +2590,7 @@ class SsaBuilder extends ast.Visitor
     assert(type != null);
     type = localsHandler.substInContext(type);
     HInstruction other = buildTypeConversion(original, type, kind);
-    registry?.registerIsCheck(type);
+    registry?.registerTypeUse(new TypeUse.isCheck(type));
     return other;
   }
 

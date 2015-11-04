@@ -16,7 +16,8 @@ import '../util/util.dart' show
 
 import 'use.dart' show
     DynamicUse,
-    StaticUse;
+    StaticUse,
+    TypeUse;
 
 class WorldImpact {
   const WorldImpact();
@@ -28,21 +29,12 @@ class WorldImpact {
 
   // TODO(johnniwinther): Replace this by called constructors with type
   // arguments.
-  Iterable<InterfaceType> get instantiatedTypes => const <InterfaceType>[];
+  // TODO(johnniwinther): Collect all checked types for checked mode separately
+  // to support serialization.
 
-  // TODO(johnniwinther): Collect checked types for checked mode separately to
-  // support serialization.
-  Iterable<DartType> get isChecks => const <DartType>[];
-
-  Iterable<DartType> get checkedModeChecks => const <DartType>[];
-
-  Iterable<DartType> get asCasts => const <DartType>[];
-
-  Iterable<DartType> get onCatchTypes => const <DartType>[];
+  Iterable<TypeUse> get typeUses => const <TypeUse>[];
 
   Iterable<LocalFunctionElement> get closures => const <LocalFunctionElement>[];
-
-  Iterable<DartType> get typeLiterals => const <DartType>[];
 
   String toString() => dump(this);
 
@@ -62,13 +54,8 @@ class WorldImpact {
 
     add('dynamic uses', worldImpact.dynamicUses);
     add('static uses', worldImpact.staticUses);
-    add('instantiated types', worldImpact.instantiatedTypes);
-    add('is-checks', worldImpact.isChecks);
-    add('checked-mode checks', worldImpact.checkedModeChecks);
-    add('as-casts', worldImpact.asCasts);
-    add('on-catch-types', worldImpact.onCatchTypes);
+    add('type uses', worldImpact.typeUses);
     add('closures', worldImpact.closures);
-    add('type literals', worldImpact.typeLiterals);
   }
 }
 
@@ -76,14 +63,9 @@ class WorldImpactBuilder {
   // TODO(johnniwinther): Do we benefit from lazy initialization of the
   // [Setlet]s?
   Setlet<DynamicUse> _dynamicUses;
-  Setlet<InterfaceType> _instantiatedTypes;
   Setlet<StaticUse> _staticUses;
-  Setlet<DartType> _isChecks;
-  Setlet<DartType> _asCasts;
-  Setlet<DartType> _checkedModeChecks;
-  Setlet<DartType> _onCatchTypes;
+  Setlet<TypeUse> _typeUses;
   Setlet<LocalFunctionElement> _closures;
-  Setlet<DartType> _typeLiterals;
 
   void registerDynamicUse(DynamicUse dynamicUse) {
     assert(dynamicUse != null);
@@ -98,30 +80,17 @@ class WorldImpactBuilder {
         ? _dynamicUses : const <DynamicUse>[];
   }
 
-  void registerInstantiatedType(InterfaceType type) {
-    assert(type != null);
-    if (_instantiatedTypes == null) {
-      _instantiatedTypes = new Setlet<InterfaceType>();
+  void registerTypeUse(TypeUse typeUse) {
+    assert(typeUse != null);
+    if (_typeUses == null) {
+      _typeUses = new Setlet<TypeUse>();
     }
-    _instantiatedTypes.add(type);
+    _typeUses.add(typeUse);
   }
 
-  Iterable<InterfaceType> get instantiatedTypes {
-    return _instantiatedTypes != null
-        ? _instantiatedTypes : const <InterfaceType>[];
-  }
-
-  void registerTypeLiteral(DartType type) {
-    assert(type != null);
-    if (_typeLiterals == null) {
-      _typeLiterals = new Setlet<DartType>();
-    }
-    _typeLiterals.add(type);
-  }
-
-  Iterable<DartType> get typeLiterals {
-    return _typeLiterals != null
-        ? _typeLiterals : const <DartType>[];
+  Iterable<TypeUse> get typeUses {
+    return _typeUses != null
+        ? _typeUses : const <TypeUse>[];
   }
 
   void registerStaticUse(StaticUse staticUse) {
@@ -134,56 +103,6 @@ class WorldImpactBuilder {
 
   Iterable<StaticUse> get staticUses {
     return _staticUses != null ? _staticUses : const <StaticUse>[];
-  }
-
-  void registerIsCheck(DartType type) {
-    assert(type != null);
-    if (_isChecks == null) {
-      _isChecks = new Setlet<DartType>();
-    }
-    _isChecks.add(type);
-  }
-
-  Iterable<DartType> get isChecks {
-    return _isChecks != null
-        ? _isChecks : const <DartType>[];
-  }
-
-  void registerAsCast(DartType type) {
-    if (_asCasts == null) {
-      _asCasts = new Setlet<DartType>();
-    }
-    _asCasts.add(type);
-  }
-
-  Iterable<DartType> get asCasts {
-    return _asCasts != null
-        ? _asCasts : const <DartType>[];
-  }
-
-  void registerCheckedModeCheckedType(DartType type) {
-    if (_checkedModeChecks == null) {
-      _checkedModeChecks = new Setlet<DartType>();
-    }
-    _checkedModeChecks.add(type);
-  }
-
-  Iterable<DartType> get checkedModeChecks {
-    return _checkedModeChecks != null
-        ? _checkedModeChecks : const <DartType>[];
-  }
-
-  void registerOnCatchType(DartType type) {
-    assert(type != null);
-    if (_onCatchTypes == null) {
-      _onCatchTypes = new Setlet<DartType>();
-    }
-    _onCatchTypes.add(type);
-  }
-
-  Iterable<DartType> get onCatchTypes {
-    return _onCatchTypes != null
-        ? _onCatchTypes : const <DartType>[];
   }
 
   void registerClosure(LocalFunctionElement element) {
@@ -205,30 +124,16 @@ class TransformedWorldImpact implements WorldImpact {
   final WorldImpact worldImpact;
 
   Setlet<StaticUse> _staticUses;
-  Setlet<InterfaceType> _instantiatedTypes;
+  Setlet<TypeUse> _typeUses;
   Setlet<DynamicUse> _dynamicUses;
 
   TransformedWorldImpact(this.worldImpact);
-
-  @override
-  Iterable<DartType> get asCasts => worldImpact.asCasts;
-
-  @override
-  Iterable<DartType> get checkedModeChecks => worldImpact.checkedModeChecks;
 
   @override
   Iterable<DynamicUse> get dynamicUses {
     return _dynamicUses != null
         ? _dynamicUses : worldImpact.dynamicUses;
   }
-
-  @override
-  Iterable<DartType> get isChecks => worldImpact.isChecks;
-
-  @override
-  Iterable<DartType> get onCatchTypes => worldImpact.onCatchTypes;
-
-  _unsupported(String message) => throw new UnsupportedError(message);
 
   void registerDynamicUse(DynamicUse dynamicUse) {
     if (_dynamicUses == null) {
@@ -238,23 +143,18 @@ class TransformedWorldImpact implements WorldImpact {
     _dynamicUses.add(dynamicUse);
   }
 
-  void registerInstantiatedType(InterfaceType type) {
-    if (_instantiatedTypes == null) {
-      _instantiatedTypes = new Setlet<InterfaceType>();
-      _instantiatedTypes.addAll(worldImpact.instantiatedTypes);
+  void registerTypeUse(TypeUse typeUse) {
+    if (_typeUses == null) {
+      _typeUses = new Setlet<TypeUse>();
+      _typeUses.addAll(worldImpact.typeUses);
     }
-    _instantiatedTypes.add(type);
+    _typeUses.add(typeUse);
   }
 
   @override
-  Iterable<InterfaceType> get instantiatedTypes {
-    return _instantiatedTypes != null
-        ? _instantiatedTypes : worldImpact.instantiatedTypes;
-  }
-
-  @override
-  Iterable<DartType> get typeLiterals {
-    return worldImpact.typeLiterals;
+  Iterable<TypeUse> get typeUses {
+    return _typeUses != null
+        ? _typeUses : worldImpact.typeUses;
   }
 
   void registerStaticUse(StaticUse staticUse) {

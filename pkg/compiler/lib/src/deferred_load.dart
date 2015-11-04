@@ -48,7 +48,9 @@ import 'tree/tree.dart' show
     NewExpression,
     Node;
 import 'universe/use.dart' show
-    StaticUse;
+    StaticUse,
+    TypeUse,
+    TypeUseKind;
 import 'universe/world_impact.dart' show
     WorldImpact;
 import 'util/setlet.dart' show
@@ -318,17 +320,26 @@ class DeferredLoadTask extends CompilerTask {
           elements.add(staticUse.element);
         });
         elements.addAll(worldImpact.closures);
-        for (DartType type in worldImpact.typeLiterals) {
-          if (type.isTypedef || type.isInterfaceType) {
-            elements.add(type.element);
+        for (TypeUse typeUse in worldImpact.typeUses) {
+          DartType type = typeUse.type;
+          switch (typeUse.kind) {
+            case TypeUseKind.TYPE_LITERAL:
+              if (type.isTypedef || type.isInterfaceType) {
+                elements.add(type.element);
+              }
+              break;
+            case TypeUseKind.INSTANTIATION:
+            case TypeUseKind.IS_CHECK:
+            case TypeUseKind.AS_CAST:
+            case TypeUseKind.CATCH_TYPE:
+              collectTypeDependencies(type);
+              break;
+            case TypeUseKind.CHECKED_MODE_CHECK:
+              if (compiler.enableTypeAssertions) {
+                collectTypeDependencies(type);
+              }
+              break;
           }
-        }
-        worldImpact.instantiatedTypes.forEach(collectTypeDependencies);
-        worldImpact.isChecks.forEach(collectTypeDependencies);
-        worldImpact.asCasts.forEach(collectTypeDependencies);
-        worldImpact.onCatchTypes.forEach(collectTypeDependencies);
-        if (compiler.enableTypeAssertions) {
-          worldImpact.checkedModeChecks.forEach(collectTypeDependencies);
         }
 
         TreeElements treeElements = analyzableElement.resolvedAst.elements;

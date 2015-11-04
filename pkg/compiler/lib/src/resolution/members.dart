@@ -39,7 +39,8 @@ import '../universe/selector.dart' show
     Selector;
 import '../universe/use.dart' show
     DynamicUse,
-    StaticUse;
+    StaticUse,
+    TypeUse;
 
 import 'access_semantics.dart';
 import 'class_members.dart' show MembersCreator;
@@ -401,7 +402,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   TypeResult visitTypeAnnotation(TypeAnnotation node) {
     DartType type = resolveTypeAnnotation(node);
     if (inCheckContext) {
-      registry.registerCheckedModeCheck(type);
+      registry.registerTypeUse(new TypeUse.checkedModeCheck(type));
     }
     return new TypeResult(type);
   }
@@ -487,7 +488,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     });
     if (inCheckContext) {
       functionParameters.forEachParameter((ParameterElement element) {
-        registry.registerCheckedModeCheck(element.type);
+        registry.registerTypeUse(new TypeUse.checkedModeCheck(element.type));
       });
     }
   }
@@ -1162,7 +1163,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       type = resolveTypeAnnotation(typeNode);
       sendStructure = new IsStructure(type);
     }
-    registry.registerIsCheck(type);
+    registry.registerTypeUse(new TypeUse.isCheck(type));
     registry.registerSendStructure(node, sendStructure);
     return const NoneResult();
   }
@@ -1174,7 +1175,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     Node typeNode = node.arguments.head;
     DartType type = resolveTypeAnnotation(typeNode);
-    registry.registerAsCast(type);
+    registry.registerTypeUse(new TypeUse.asCast(type));
     registry.registerSendStructure(node, new AsStructure(type));
     return const NoneResult();
   }
@@ -3558,28 +3559,32 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ConstantResult visitLiteralInt(LiteralInt node) {
-    registry.registerInstantiatedType(coreTypes.intType);
+    // TODO(johnniwinther): Make this a feature instead.
+    registry.registerTypeUse(new TypeUse.instantiation(coreTypes.intType));
     ConstantExpression constant = new IntConstantExpression(node.value);
     registry.setConstant(node, constant);
     return new ConstantResult(node, constant);
   }
 
   ConstantResult visitLiteralDouble(LiteralDouble node) {
-    registry.registerInstantiatedType(coreTypes.doubleType);
+    // TODO(johnniwinther): Make this a feature instead.
+    registry.registerTypeUse(new TypeUse.instantiation(coreTypes.doubleType));
     ConstantExpression constant = new DoubleConstantExpression(node.value);
     registry.setConstant(node, constant);
     return new ConstantResult(node, constant);
   }
 
   ConstantResult visitLiteralBool(LiteralBool node) {
-    registry.registerInstantiatedType(coreTypes.boolType);
+    // TODO(johnniwinther): Make this a feature instead.
+    registry.registerTypeUse(new TypeUse.instantiation(coreTypes.boolType));
     ConstantExpression constant = new BoolConstantExpression(node.value);
     registry.setConstant(node, constant);
     return new ConstantResult(node, constant);
   }
 
   ResolutionResult visitLiteralString(LiteralString node) {
-    registry.registerInstantiatedType(coreTypes.stringType);
+    // TODO(johnniwinther): Make this a feature instead.
+    registry.registerTypeUse(new TypeUse.instantiation(coreTypes.stringType));
     if (node.dartString != null) {
       // [dartString] might be null on parser errors.
       ConstantExpression constant =
@@ -3591,13 +3596,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ConstantResult visitLiteralNull(LiteralNull node) {
-    registry.registerInstantiatedType(coreTypes.nullType);
+    registry.registerTypeUse(new TypeUse.instantiation(coreTypes.nullType));
     ConstantExpression constant = new NullConstantExpression();
     registry.setConstant(node, constant);
     return new ConstantResult(node, constant);
   }
 
   ConstantResult visitLiteralSymbol(LiteralSymbol node) {
+    // TODO(johnniwinther): Make this a feature instead.
     String name = node.slowNameString;
     registry.registerConstSymbol(name);
     if (!validateSymbol(node, name, reportError: false)) {
@@ -3613,7 +3619,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitStringJuxtaposition(StringJuxtaposition node) {
-    registry.registerInstantiatedType(coreTypes.stringType);
+    // TODO(johnniwinther): Make this a feature instead.
+    registry.registerTypeUse(new TypeUse.instantiation(coreTypes.stringType));
     ResolutionResult first = visit(node.first);
     ResolutionResult second = visit(node.second);
     if (first.isConstant && second.isConstant) {
@@ -3747,10 +3754,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     registry.registerStaticUse(
         new StaticUse.constructorRedirect(redirectionTarget));
-    // TODO(johnniwinther): Register the effective target type instead.
-    registry.registerInstantiatedType(
+    // TODO(johnniwinther): Register the effective target type as part of the
+    // static use instead.
+    registry.registerTypeUse(new TypeUse.instantiation(
         redirectionTarget.enclosingClass.thisType
-            .subst(type.typeArguments, targetClass.typeVariables));
+            .subst(type.typeArguments, targetClass.typeVariables)));
     if (isSymbolConstructor) {
       registry.registerSymbolConstructor();
     }
@@ -3911,7 +3919,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
     // TODO(johniwinther): Avoid registration of `type` in face of redirecting
     // factory constructors.
-    registry.registerInstantiatedType(type);
+    registry.registerTypeUse(new TypeUse.instantiation(type));
     if (constructor.isGenerativeConstructor && cls.isAbstract) {
       isValidAsConstant = false;
     }
@@ -4064,7 +4072,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         this, node, malformedIsError: malformedIsError,
         deferredIsMalformed: deferredIsMalformed);
     if (inCheckContext) {
-      registry.registerCheckedModeCheck(type);
+      registry.registerTypeUse(new TypeUse.checkedModeCheck(type));
     }
     return type;
   }
@@ -4156,7 +4164,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitStringInterpolation(StringInterpolation node) {
-    registry.registerInstantiatedType(coreTypes.stringType);
+    // TODO(johnniwinther): This should be a consequence of the registration
+    // of [registerStringInterpolation].
+    registry.registerTypeUse(new TypeUse.instantiation(coreTypes.stringType));
     registry.registerStringInterpolation();
     registerImplicitInvocation(Selectors.toString_);
 
@@ -4742,7 +4752,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             registry.getDefinition(exceptionVariable);
         exceptionElement.variables.type = exceptionType;
       }
-      registry.registerOnCatchType(exceptionType);
+      registry.registerTypeUse(new TypeUse.catchType(exceptionType));
     }
     if (stackTraceDefinition != null) {
       Node stackTraceVariable = stackTraceDefinition.definitions.nodes.head;

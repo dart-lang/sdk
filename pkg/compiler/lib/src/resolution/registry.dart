@@ -31,7 +31,8 @@ import '../universe/selector.dart' show
     Selector;
 import '../universe/use.dart' show
     DynamicUse,
-    StaticUse;
+    StaticUse,
+    TypeUse;
 import '../universe/world_impact.dart' show
     WorldImpactBuilder;
 import '../world.dart' show World;
@@ -315,24 +316,9 @@ class ResolutionRegistry extends Registry {
     worldImpact.registerFeature(Feature.THROW_NO_SUCH_METHOD);
   }
 
-  /// Register a checked mode check against [type].
-  void registerCheckedModeCheck(DartType type) {
-    worldImpact.registerCheckedModeCheckedType(type);
-  }
-
-  /// Register an on-catch clause of [type].
-  void registerOnCatchType(DartType type) {
-    worldImpact.registerOnCatchType(type);
-  }
-
-  /// Register an is-test or is-not-test of [type].
-  void registerIsCheck(DartType type) {
-    worldImpact.registerIsCheck(type);
-  }
-
-  /// Register an as-cast of [type].
-  void registerAsCast(DartType type) {
-    worldImpact.registerAsCast(type);
+  /// Register the use of a type.
+  void registerTypeUse(TypeUse typeUse) {
+    worldImpact.registerTypeUse(typeUse);
   }
 
   void registerClosure(LocalFunctionElement element) {
@@ -349,7 +335,7 @@ class ResolutionRegistry extends Registry {
 
   void registerTypeLiteral(Send node, DartType type) {
     mapping.setType(node, type);
-    worldImpact.registerTypeLiteral(type);
+    worldImpact.registerTypeUse(new TypeUse.typeLiteral(type));
   }
 
   void registerLiteralList(Node node,
@@ -391,10 +377,6 @@ class ResolutionRegistry extends Registry {
     worldImpact.registerFeature(Feature.SYMBOL_CONSTRUCTOR);
   }
 
-  void registerInstantiatedType(InterfaceType type) {
-    worldImpact.registerInstantiatedType(type);
-  }
-
   void registerAbstractClassInstantiation() {
     worldImpact.registerFeature(Feature.ABSTRACT_CLASS_INSTANTIATION);
   }
@@ -433,7 +415,7 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerInstantiation(InterfaceType type) {
-    registerInstantiatedType(type);
+    worldImpact.registerTypeUse(new TypeUse.instantiation(type));
   }
 
   void registerAssert(bool hasMessage) {
@@ -493,7 +475,7 @@ class ForeignResolutionResolver implements ForeignResolver {
 
   @override
   void registerInstantiatedType(InterfaceType type) {
-    registry.registerInstantiatedType(type);
+    registry.registerInstantiation(type);
   }
 
   @override

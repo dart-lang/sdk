@@ -29,7 +29,8 @@ import '../../universe/selector.dart' show
     Selector;
 import '../../universe/use.dart' show
     DynamicUse,
-    StaticUse;
+    StaticUse,
+    TypeUse;
 import '../../util/maplet.dart';
 
 class CodegenBailout {
@@ -382,7 +383,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     List<js.Expression> typeArguments = visitExpressionList(node.typeArguments);
     DartType type = node.type;
     if (type is InterfaceType) {
-      registry.registerIsCheck(type);
+      registry.registerTypeUse(new TypeUse.isCheck(type));
       //glue.registerIsCheck(type, registry);
       ClassElement clazz = type.element;
 
@@ -428,8 +429,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
           function,
           <js.Expression>[value, isT, typeArgumentArray, asT]);
     } else if (type is TypeVariableType || type is FunctionType) {
-      registry.registerIsCheck(type);
-      //glue.registerIsCheck(type, registry);
+      registry.registerTypeUse(new TypeUse.isCheck(type));
 
       Element function = node.isTypeTest
           ? glue.getCheckSubtypeOfRuntimeType()
@@ -450,7 +450,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     js.Expression object = visitExpression(node.object);
     DartType dartType = node.dartType;
     assert(dartType.isInterfaceType);
-    registry.registerIsCheck(dartType);
+    registry.registerTypeUse(new TypeUse.isCheck(dartType));
     //glue.registerIsCheck(dartType, registry);
     js.Expression property = glue.getTypeTestTag(dartType);
     return js.js(r'#.#', [object, property]);

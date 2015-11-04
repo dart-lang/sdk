@@ -364,12 +364,11 @@ class DartImpactTransformer extends ImpactTransformer {
         backend.usedTypeLiterals.add(typeLiteral.element);
       }
     }
-    for (InterfaceType instantiatedType in worldImpact.instantiatedTypes) {
-      // TODO(johnniwinther): Remove this when dependency tracking is done on
-      // the world impact itself.
-      transformed.registerInstantiatedType(instantiatedType);
-      backend.registerPlatformMembers(instantiatedType,
-          registerUse: transformed.registerDynamicUse);
+    for (TypeUse typeUse in worldImpact.typeUses) {
+      if (typeUse.kind == TypeUseKind.INSTANTIATION) {
+        backend.registerPlatformMembers(typeUse.type,
+            registerUse: transformed.registerDynamicUse);
+      }
     }
     return transformed;
   }

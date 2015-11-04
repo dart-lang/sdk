@@ -2770,29 +2770,52 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       }
     }
 
-    for (InterfaceType type in worldImpact.instantiatedTypes) {
-      registerRequiredType(type);
-    }
-
-    for (DartType type in worldImpact.isChecks) {
-      onIsCheck(type, transformed);
-    }
-
-    if (worldImpact.asCasts.isNotEmpty) {
-      for (DartType type in worldImpact.asCasts) {
-        onIsCheck(type, transformed);
+    bool hasAsCast = false;
+    bool hasTypeLiteral = false;
+    for (TypeUse typeUse in worldImpact.typeUses) {
+      DartType type = typeUse.type;
+      switch (typeUse.kind) {
+        case TypeUseKind.INSTANTIATION:
+          registerRequiredType(type);
+          break;
+        case TypeUseKind.IS_CHECK:
+          onIsCheck(type, transformed);
+          break;
+        case TypeUseKind.AS_CAST:
+          onIsCheck(type, transformed);
+          hasAsCast = true;
+          break;
+        case TypeUseKind.CHECKED_MODE_CHECK:
+          if (backend.compiler.enableTypeAssertions) {
+            onIsCheck(type, transformed);
+          }
+          break;
+        case TypeUseKind.CATCH_TYPE:
+          onIsCheck(type, transformed);
+          break;
+        case TypeUseKind.TYPE_LITERAL:
+          backend.customElementsAnalysis.registerTypeLiteral(type);
+          if (type.isTypedef) {
+            backend.compiler.world.allTypedefs.add(type.element);
+          }
+          if (type.isTypeVariable) {
+            ClassElement cls = type.element.enclosingClass;
+            backend.rti.registerClassUsingTypeVariableExpression(cls);
+            registerBackendImpact(transformed, impacts.typeVariableExpression);
+          }
+          hasTypeLiteral = true;
+          break;
       }
+    }
+
+    if (hasAsCast) {
       registerBackendImpact(transformed, impacts.asCheck);
     }
 
-    if (backend.compiler.enableTypeAssertions) {
-      for (DartType type in worldImpact.checkedModeChecks) {
-        onIsCheck(type, transformed);
-      }
-    }
-
-    for (DartType type in worldImpact.onCatchTypes) {
-      onIsCheck(type, transformed);
+    if (hasTypeLiteral) {
+      transformed.registerTypeUse(new TypeUse.instantiation(
+          backend.compiler.coreTypes.typeType));
+      registerBackendImpact(transformed, impacts.typeLiteral);
     }
 
     for (MapLiteralUse mapLiteralUse in worldImpact.mapLiterals) {
@@ -2801,7 +2824,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       if (mapLiteralUse.isConstant) {
         registerBackendImpact(transformed, impacts.constantMapLiteral);
       } else {
-        transformed.registerInstantiatedType(mapLiteralUse.type);
+        transformed.registerTypeUse(
+            new TypeUse.instantiation(mapLiteralUse.type));
       }
       registerRequiredType(mapLiteralUse.type);
     }
@@ -2809,24 +2833,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     for (ListLiteralUse listLiteralUse in worldImpact.listLiterals) {
       // TODO(johnniwinther): Use the [isConstant] and [isEmpty] property when
       // factory constructors are registered directly.
-      transformed.registerInstantiatedType(listLiteralUse.type);
+      transformed.registerTypeUse(
+          new TypeUse.instantiation(listLiteralUse.type));
       registerRequiredType(listLiteralUse.type);
-    }
-
-    if (worldImpact.typeLiterals.isNotEmpty) {
-      transformed.registerInstantiatedType(backend.compiler.coreTypes.typeType);
-      registerBackendImpact(transformed, impacts.typeLiteral);
-      for (DartType typeLiteral in worldImpact.typeLiterals) {
-        backend.customElementsAnalysis.registerTypeLiteral(typeLiteral);
-        if (typeLiteral.isTypedef) {
-          backend.compiler.world.allTypedefs.add(typeLiteral.element);
-        }
-        if (typeLiteral.isTypeVariable) {
-          ClassElement cls = typeLiteral.element.enclosingClass;
-          backend.rti.registerClassUsingTypeVariableExpression(cls);
-          registerBackendImpact(transformed, impacts.typeVariableExpression);
-        }
-      }
     }
 
     if (worldImpact.constSymbolNames.isNotEmpty) {
@@ -2861,12 +2870,14 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
     for (InterfaceType instantiatedType in backendImpact.instantiatedTypes) {
       backend.registerBackendUse(instantiatedType.element);
-      worldImpact.registerInstantiatedType(instantiatedType);
+      worldImpact.registerTypeUse(
+          new TypeUse.instantiation(instantiatedType));
     }
     for (ClassElement cls in backendImpact.instantiatedClasses) {
       cls.ensureResolved(backend.resolution);
       backend.registerBackendUse(cls);
-      worldImpact.registerInstantiatedType(cls.rawType);
+      worldImpact.registerTypeUse(
+          new TypeUse.instantiation(cls.rawType));
     }
     for (BackendImpact otherImpact in backendImpact.otherImpacts) {
       registerBackendImpact(worldImpact, otherImpact);
@@ -2965,12 +2976,17 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     EagerRegistry registry = impact.registry;
     Enqueuer world = registry.world;
 
-    for (InterfaceType type in impact.instantiatedTypes) {
-      backend.lookupMapAnalysis.registerInstantiatedType(type, registry);
-    }
-
-    for (DartType type in impact.isChecks) {
-      onIsCheckForCodegen(type, transformed);
+    for (TypeUse typeUse in impact.typeUses) {
+      DartType type = typeUse.type;
+      switch (typeUse.kind) {
+        case TypeUseKind.INSTANTIATION:
+          backend.lookupMapAnalysis.registerInstantiatedType(type, registry);
+          break;
+        case TypeUseKind.IS_CHECK:
+          onIsCheckForCodegen(type, transformed);
+          break;
+        default:
+      }
     }
 
     for (ConstantValue constant in impact.compileTimeConstants) {
