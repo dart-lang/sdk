@@ -1,6 +1,13 @@
+# 0.1.4
+
+* Added `always_declare_return_types` lint rule (#146).
+* Improved `always_specify_types` to detect missing types in declared identifiers and narrowed source range to the token.
+* Added `implementation_imports` lint rule (#33).
+* Test performance improvements.
+
 # 0.1.3+5
 
-* Added `always_specify_types` lint rule.
+* Added `always_specify_types` lint rule (#144).
 
 # 0.1.3+4
 
