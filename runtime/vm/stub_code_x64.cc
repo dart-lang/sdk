@@ -2163,8 +2163,8 @@ void StubCode::GenerateICLookupStub(Assembler* assembler) {
   __ j(EQUAL, &found, Assembler::kNearJump);
 
   ASSERT(Smi::RawValue(kIllegalCid) == 0);
-  __ cmpq(R9, R9);
-  __ j(EQUAL, &miss, Assembler::kNearJump);
+  __ testq(R9, R9);
+  __ j(ZERO, &miss, Assembler::kNearJump);
 
   const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
   __ addq(R13, Immediate(entry_length));  // Next entry.
