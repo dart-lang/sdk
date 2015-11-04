@@ -14,6 +14,10 @@
 
 namespace dart {
 
+// This flag is flipped by platform_win.cc when the process is exiting.
+// TODO(zra): Remove once VM shuts down cleanly.
+bool private_flag_windows_run_tls_destructors = true;
+
 class ThreadStartData {
  public:
   ThreadStartData(OSThread::ThreadStartFunction function, uword parameter)
@@ -634,6 +638,9 @@ void ThreadLocalData::Shutdown() {
 
 // Static callback function to call with each thread termination.
 void NTAPI OnDartThreadExit(PVOID module, DWORD reason, PVOID reserved) {
+  if (!dart::private_flag_windows_run_tls_destructors) {
+    return;
+  }
   // On XP SP0 & SP1, the DLL_PROCESS_ATTACH is never seen. It is sent on SP2+
   // and on W2K and W2K3. So don't assume it is sent.
   if (DLL_THREAD_DETACH == reason || DLL_PROCESS_DETACH == reason) {

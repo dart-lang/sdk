@@ -112,6 +112,7 @@ void ThreadInterrupter::Shutdown() {
   }
 }
 
+
 // Delay between interrupts.
 void ThreadInterrupter::SetInterruptPeriod(intptr_t period) {
   if (shutdown_) {

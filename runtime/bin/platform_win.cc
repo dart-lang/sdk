@@ -14,6 +14,10 @@
 
 
 namespace dart {
+
+// Defined in vm/os_thread_win.cc
+extern bool private_flag_windows_run_tls_destructors;
+
 namespace bin {
 
 bool Platform::Initialize() {
@@ -106,6 +110,8 @@ char* Platform::ResolveExecutablePath() {
 }
 
 void Platform::Exit(int exit_code) {
+  // TODO(zra): Remove once VM shuts down cleanly.
+  ::dart::private_flag_windows_run_tls_destructors = false;
   // On Windows we use ExitProcess so that threads can't clobber the exit_code.
   // See: https://code.google.com/p/nativeclient/issues/detail?id=2870
   ::ExitProcess(exit_code);
