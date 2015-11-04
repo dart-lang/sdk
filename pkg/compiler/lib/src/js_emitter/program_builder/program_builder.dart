@@ -423,7 +423,7 @@ class ProgramBuilder {
                   functionType = returnType;
                 } else if (returnType.treatAsDynamic ||
                     _compiler.types.isSubtype(returnType,
-                        backend.coreTypes.functionType)) {
+                        backend.resolution.coreTypes.functionType)) {
                   if (returnType.isTypedef) {
                     TypedefType typedef = returnType;
                     // TODO(jacobr): can we just use typdef.unaliased instead?
