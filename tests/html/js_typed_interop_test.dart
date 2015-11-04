@@ -29,6 +29,10 @@ _injectJs() {
     multiplyByX: function(arg) { return arg * this.x; },
     // This function can be torn off without having to bind this.
     multiplyBy2: function(arg) { return arg * 2; },
+    multiplyDefault2Function: function(a, b) {
+      if (arguments.length >= 2) return a * b;
+      return a * 2;
+    },
     callClosureWithArg1: function(closure, arg) {
       return closure(arg);
     },
@@ -101,17 +105,21 @@ class ClassWithConstructor {
   external get b;
 }
 
+typedef num MultiplyWithDefault(num a, [num b]);
+
 @JS()
 class Foo {
   external int get x;
   external set x(int v);
   external num multiplyByX(num y);
   external num multiplyBy2(num y);
+  external MultiplyWithDefault get multiplyDefault2Function;
+
   external callClosureWithArgAndThis(Function closure, arg);
   external callClosureWithArg1(Function closure, arg1);
   external callClosureWithArg2(Function closure, arg1, arg2);
   external Bar getBar();
-  external static int multiplyDefault2(int a, [int b]);
+  external static num multiplyDefault2(num a, [num b]);
 }
 
 @anonymous
@@ -237,6 +245,21 @@ main() {
       // Tearing off a JS closure doesn't bind this.
       // You will need to use the new method tearoff syntax to bind this.
       expect(multiplyByX(4), isNaN);
+
+      MultiplyWithDefault multiplyWithDefault = foo.multiplyDefault2Function;
+      expect(multiplyWithDefault(6, 6), equals(36));
+      expect(multiplyWithDefault(6), equals(12));
+      Function untypedFunction = foo.multiplyDefault2Function;
+      // Calling with extra bogus arguments has no impact for JavaScript
+      // methods.
+      expect(untypedFunction(6, 6, "ignored", "ignored"), equals(36));
+      expect(untypedFunction(6, 6, "ignored", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), equals(36));
+      // Calling a JavaScript method with too few arguments is also fine and
+      // defaults to JavaScript behavior of setting all unspecified arguments
+      // to undefined resulting in multiplying undefined by 2 == NAN.
+      expect(untypedFunction(), isNaN);
+
     });
   });
 
@@ -244,9 +267,10 @@ main() {
     test('call from dart', () {
       expect(Foo.multiplyDefault2(6, 7), equals(42));
       expect(Foo.multiplyDefault2(6), equals(12));
-      Function tearOffMethod = Foo.multiplyDefault2;
+      MultiplyWithDefault tearOffMethod = Foo.multiplyDefault2;
       expect(tearOffMethod(6, 6), equals(36));
       expect(tearOffMethod(6), equals(12));
+      Function untypedTearOff = Foo.multiplyDefault2;
     });
   });
 
