@@ -227,6 +227,27 @@ FlowGraphCompiler::FlowGraphCompiler(
 }
 
 
+bool FlowGraphCompiler::IsUnboxedField(const Field& field) {
+  bool valid_class = (SupportsUnboxedDoubles() &&
+                      (field.guarded_cid() == kDoubleCid)) ||
+                     (SupportsUnboxedSimd128() &&
+                      (field.guarded_cid() == kFloat32x4Cid)) ||
+                     (SupportsUnboxedSimd128() &&
+                      (field.guarded_cid() == kFloat64x2Cid));
+  return field.is_unboxing_candidate()
+      && !field.is_final()
+      && !field.is_nullable()
+      && valid_class;
+}
+
+
+bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
+  return field.is_unboxing_candidate() &&
+         (FlowGraphCompiler::IsUnboxedField(field) ||
+          (!field.is_final() && (field.guarded_cid() == kIllegalCid)));
+}
+
+
 void FlowGraphCompiler::InitCompiler() {
   pc_descriptors_list_ = new(zone()) DescriptorList(64);
   exception_handlers_list_ = new(zone())ExceptionHandlerList();

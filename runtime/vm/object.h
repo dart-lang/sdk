@@ -2954,13 +2954,8 @@ class Field : public Object {
   const char* GuardedPropertiesAsCString() const;
 
   intptr_t UnboxedFieldCid() const {
-    ASSERT(IsUnboxedField());
     return guarded_cid();
   }
-
-  bool IsUnboxedField() const;
-
-  bool IsPotentialUnboxedField() const;
 
   bool is_unboxing_candidate() const {
     return UnboxingCandidateBit::decode(raw_ptr()->kind_bits_);

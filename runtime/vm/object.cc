@@ -11,9 +11,7 @@
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
-#include "vm/code_generator.h"
 #include "vm/code_observers.h"
-#include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/compiler_stats.h"
 #include "vm/dart.h"
@@ -25,12 +23,9 @@
 #include "vm/disassembler.h"
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
-#include "vm/flow_graph_builder.h"
-#include "vm/flow_graph_compiler.h"
 #include "vm/growable_array.h"
 #include "vm/hash_table.h"
 #include "vm/heap.h"
-#include "vm/intermediate_language.h"
 #include "vm/intrinsifier.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -7579,24 +7574,6 @@ void Field::set_guarded_list_length_in_object_offset(
   StoreNonPointer(&raw_ptr()->guarded_list_length_in_object_offset_,
                   static_cast<int8_t>(list_length_offset - kHeapObjectTag));
   ASSERT(guarded_list_length_in_object_offset() == list_length_offset);
-}
-
-
-bool Field::IsUnboxedField() const {
-  bool valid_class = (FlowGraphCompiler::SupportsUnboxedDoubles() &&
-                      (guarded_cid() == kDoubleCid)) ||
-                     (FlowGraphCompiler::SupportsUnboxedSimd128() &&
-                      (guarded_cid() == kFloat32x4Cid)) ||
-                     (FlowGraphCompiler::SupportsUnboxedSimd128() &&
-                      (guarded_cid() == kFloat64x2Cid));
-  return is_unboxing_candidate() && !is_final() && !is_nullable() &&
-         valid_class;
-}
-
-
-bool Field::IsPotentialUnboxedField() const {
-  return is_unboxing_candidate() &&
-         (IsUnboxedField() || (!is_final() && (guarded_cid() == kIllegalCid)));
 }
 
 

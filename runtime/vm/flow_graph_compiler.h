@@ -281,6 +281,9 @@ class FlowGraphCompiler : public ValueObject {
   static bool SupportsUnboxedSimd128();
   static bool SupportsHardwareDivision();
 
+  static bool IsUnboxedField(const Field& field);
+  static bool IsPotentialUnboxedField(const Field& field);
+
   // Accessors.
   Assembler* assembler() const { return assembler_; }
   const ParsedFunction& parsed_function() const { return parsed_function_; }

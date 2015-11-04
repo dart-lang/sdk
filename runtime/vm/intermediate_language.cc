@@ -261,14 +261,14 @@ bool CheckClassInstr::IsDenseMask(intptr_t mask) {
 bool LoadFieldInstr::IsUnboxedLoad() const {
   return FLAG_unbox_numeric_fields
       && (field() != NULL)
-      && field()->IsUnboxedField();
+      && FlowGraphCompiler::IsUnboxedField(*field());
 }
 
 
 bool LoadFieldInstr::IsPotentialUnboxedLoad() const {
   return FLAG_unbox_numeric_fields
       && (field() != NULL)
-      && field()->IsPotentialUnboxedField();
+      && FlowGraphCompiler::IsPotentialUnboxedField(*field());
 }
 
 
@@ -293,14 +293,14 @@ Representation LoadFieldInstr::representation() const {
 bool StoreInstanceFieldInstr::IsUnboxedStore() const {
   return FLAG_unbox_numeric_fields
       && !field().IsNull()
-      && field().IsUnboxedField();
+      && FlowGraphCompiler::IsUnboxedField(field());
 }
 
 
 bool StoreInstanceFieldInstr::IsPotentialUnboxedStore() const {
   return FLAG_unbox_numeric_fields
       && !field().IsNull()
-      && field().IsPotentialUnboxedField();
+      && FlowGraphCompiler::IsPotentialUnboxedField(field());
 }
 
 
