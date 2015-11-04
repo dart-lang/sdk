@@ -139,8 +139,6 @@ abstract class Stream<T> {
    */
   factory Stream.periodic(Duration period,
                           [T computation(int computationCount)]) {
-    if (computation == null) computation = ((i) => null);
-
     Timer timer;
     int computationCount = 0;
     StreamController<T> controller;
@@ -149,7 +147,15 @@ abstract class Stream<T> {
 
     void sendEvent() {
       watch.reset();
-      T data = computation(computationCount++);
+      T data;
+      if (computation != null) {
+        try {
+          data = computation(computationCount++);
+        } catch (e, s) {
+          controller.addError(e, s);
+          return;
+        }
+      }
       controller.add(data);
     }
 
@@ -1622,9 +1628,9 @@ abstract class StreamTransformer<S, T> {
    *                 onDone: controller.close,
    *                 cancelOnError: cancelOnError);
    *             },
-   *             onPause: () => subscription.pause(),
-   *             onResume: () => subscription.resume(),
-   *             onCancel: () => subscription.cancel(),
+   *             onPause: () { subscription.pause(); },
+   *             onResume: () { subscription.resume(); },
+   *             onCancel: () { subscription.cancel(); },
    *             sync: true);
    *           return controller.stream.listen(null);
    *         });
