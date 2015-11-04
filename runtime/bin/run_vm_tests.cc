@@ -125,8 +125,10 @@ static int Main(int argc, const char** argv) {
     ASSERT(err_msg == NULL);
   }
 
+#if defined(TARGET_OS_WINDOWS)
   // TODO(zra): Remove once VM shuts down cleanly.
   private_flag_windows_run_tls_destructors = false;
+#endif
 
   // Print a warning message if no tests or benchmarks were matched.
   if (run_matches == 0) {
