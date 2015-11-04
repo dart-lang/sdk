@@ -92,7 +92,6 @@ class Zone;
   CACHED_ADDRESSES_LIST(V)                                                     \
 
 struct InterruptedThreadState {
-  ThreadId tid;
   uintptr_t pc;
   uintptr_t csp;
   uintptr_t dsp;
@@ -109,8 +108,8 @@ struct InterruptedThreadState {
 //   * Allocating memory -- Because this takes locks which may already be held,
 //                          resulting in a dead lock.
 //   * Taking a lock -- See above.
-typedef void (*ThreadInterruptCallback)(const InterruptedThreadState& state,
-                                        void* data);
+typedef void (*ThreadInterruptCallback)(Thread* thread,
+                                        const InterruptedThreadState& state);
 
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
@@ -162,6 +161,12 @@ class Thread {
     return OFFSET_OF(Thread, isolate_);
   }
   bool IsMutatorThread() const;
+
+  // Is |this| executing Dart code?
+  bool IsExecutingDartCode() const;
+
+  // Has |this| exited Dart code?
+  bool HasExitedDartCode() const;
 
   // The (topmost) CHA for the compilation in this thread.
   CHA* cha() const;
@@ -377,10 +382,10 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
     return join_id_;
   }
 
-  void SetThreadInterrupter(ThreadInterruptCallback callback, void* data);
-
-  bool IsThreadInterrupterEnabled(ThreadInterruptCallback* callback,
-                                  void** data) const;
+  // Used to temporarily disable or enable thread interrupts.
+  void DisableThreadInterrupts();
+  void EnableThreadInterrupts();
+  bool ThreadInterruptsEnabled();
 
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
@@ -424,8 +429,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
 
   const ThreadId id_;
   const ThreadId join_id_;
-  ThreadInterruptCallback thread_interrupt_callback_;
-  void* thread_interrupt_data_;
+  uintptr_t thread_interrupt_disabled_;
   Isolate* isolate_;
   Heap* heap_;
   State state_;
@@ -541,6 +545,14 @@ class ThreadIterator : public ValueObject {
 // Clears the state of the current thread and frees the allocation.
 void WindowsThreadCleanUp();
 #endif
+
+
+// Disable thread interrupts.
+class DisableThreadInterruptsScope : public StackResource {
+ public:
+  explicit DisableThreadInterruptsScope(Thread* thread);
+  ~DisableThreadInterruptsScope();
+};
 
 }  // namespace dart
 

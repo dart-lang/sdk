@@ -1464,25 +1464,21 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
 }
 
 
-DART_EXPORT void Dart_IsolateBlocked() {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  IsolateProfilerData* profiler_data = isolate->profiler_data();
-  if (profiler_data == NULL) {
+DART_EXPORT void Dart_ThreadDisableProfiling() {
+  Thread* T = Thread::Current();
+  if (T == NULL) {
     return;
   }
-  profiler_data->Block();
+  T->DisableThreadInterrupts();
 }
 
 
-DART_EXPORT void Dart_IsolateUnblocked() {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  IsolateProfilerData* profiler_data = isolate->profiler_data();
-  if (profiler_data == NULL) {
+DART_EXPORT void Dart_ThreadEnableProfiling() {
+  Thread* T = Thread::Current();
+  if (T == NULL) {
     return;
   }
-  profiler_data->Unblock();
+  T->EnableThreadInterrupts();
 }
 
 
