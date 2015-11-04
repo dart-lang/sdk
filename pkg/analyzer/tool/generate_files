@@ -48,3 +48,4 @@ VM_OPTIONS+=("--package-root=${PKG_DIR}")
 
 cd "${SCRIPT_DIR}"
 "${DART}" "${VM_OPTIONS[@]}" "task_dependency_graph/generate.dart"
+"${DART}" "${VM_OPTIONS[@]}" "summary/generate.dart"

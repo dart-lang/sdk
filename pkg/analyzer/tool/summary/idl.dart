@@ -104,6 +104,22 @@ class PrelinkedLibrary {
 }
 
 /**
+ * Information about the resolution of an [UnlinkedReference].
+ */
+class PrelinkedReference {
+  /**
+   * Index into [UnlinkedLibrary.dependencies] indicating which imported library
+   * declares the entity being referred to.
+   */
+  int dependency;
+
+  /**
+   * The kind of the entity being referred to.
+   */
+  PrelinkedReferenceKind kind;
+}
+
+/**
  * Enum used to indicate the kind of entity referred to by a
  * [PrelinkedReference].
  */
@@ -127,22 +143,6 @@ enum PrelinkedReferenceKind {
    * The entity being referred to does not exist.
    */
   unresolved
-}
-
-/**
- * Information about the resolution of an [UnlinkedReference].
- */
-class PrelinkedReference {
-  /**
-   * Index into [UnlinkedLibrary.dependencies] indicating which imported library
-   * declares the entity being referred to.
-   */
-  int dependency;
-
-  /**
-   * The kind of the entity being referred to.
-   */
-  PrelinkedReferenceKind kind;
 }
 
 /**
@@ -212,12 +212,23 @@ class UnlinkedCombinator {
   /**
    * List of names which are shown.  Empty if this is a `hide` combinator.
    */
-  List<String> shows;
+  List<UnlinkedCombinatorName> shows;
 
   /**
    * List of names which are hidden.  Empty if this is a `show` combinator.
    */
-  List<String> hides;
+  List<UnlinkedCombinatorName> hides;
+}
+
+/**
+ * Unlinked summary information about a single name in a `show` or `hide`
+ * combinator.
+ */
+class UnlinkedCombinatorName {
+  /**
+   * The name itself.
+   */
+  String name;
 }
 
 /**
@@ -251,31 +262,6 @@ class UnlinkedEnumValue {
    * Name of the enumerated value.
    */
   String name;
-}
-
-/**
- * Enum used to indicate the kind of an executable.
- */
-enum UnlinkedExecutableKind {
-  /**
-   * Executable is a function or method.
-   */
-  functionOrMethod,
-
-  /**
-   * Executable is a getter.
-   */
-  getter,
-
-  /**
-   * Executable is a setter.
-   */
-  setter,
-
-  /**
-   * Executable is a constructor.
-   */
-  constructor
 }
 
 /**
@@ -347,6 +333,31 @@ class UnlinkedExecutable {
    * Indicates whether the executable is declared using the `factory` keyword.
    */
   bool isFactory;
+}
+
+/**
+ * Enum used to indicate the kind of an executable.
+ */
+enum UnlinkedExecutableKind {
+  /**
+   * Executable is a function or method.
+   */
+  functionOrMethod,
+
+  /**
+   * Executable is a getter.
+   */
+  getter,
+
+  /**
+   * Executable is a setter.
+   */
+  setter,
+
+  /**
+   * Executable is a constructor.
+   */
+  constructor
 }
 
 /**
@@ -468,26 +479,6 @@ class UnlinkedLibrary {
 }
 
 /**
- * Enum used to indicate the kind of a parameter.
- */
-enum UnlinkedParamKind {
-  /**
-   * Parameter is required.
-   */
-  required,
-
-  /**
-   * Parameter is positional optional (enclosed in `[]`)
-   */
-  positional,
-
-  /**
-   * Parameter is named optional (enclosed in `{}`)
-   */
-  named
-}
-
-/**
  * Unlinked summary information about a function parameter.
  */
 class UnlinkedParam {
@@ -525,6 +516,26 @@ class UnlinkedParam {
    * declared using `this.` syntax).
    */
   bool isInitializingFormal;
+}
+
+/**
+ * Enum used to indicate the kind of a parameter.
+ */
+enum UnlinkedParamKind {
+  /**
+   * Parameter is required.
+   */
+  required,
+
+  /**
+   * Parameter is positional optional (enclosed in `[]`)
+   */
+  positional,
+
+  /**
+   * Parameter is named optional (enclosed in `{}`)
+   */
+  named
 }
 
 class UnlinkedPrefix {
