@@ -1765,6 +1765,9 @@ class GetHandler {
       buffer.write('<br>');
       buffer.write('Version: ');
       buffer.write(AnalysisServer.VERSION);
+      buffer.write('<br>');
+      buffer.write('Process ID: ');
+      buffer.write(pid);
       buffer.write('</p>');
 
       buffer.write('<p><b>Performance Data</b></p>');
