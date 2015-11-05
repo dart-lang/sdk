@@ -24,6 +24,7 @@ import 'package:linter/src/rules/prefer_is_not_empty.dart';
 import 'package:linter/src/rules/pub/package_names.dart';
 import 'package:linter/src/rules/slash_for_doc_comments.dart';
 import 'package:linter/src/rules/super_goes_last.dart';
+import 'package:linter/src/rules/type_annotate_public_apis.dart';
 import 'package:linter/src/rules/type_init_formals.dart';
 import 'package:linter/src/rules/unnecessary_brace_in_string_interp.dart';
 import 'package:linter/src/rules/unnecessary_getters_setters.dart';
@@ -46,6 +47,7 @@ final Registry ruleRegistry = new Registry()
   ..register(new SlashForDocComments())
   ..register(new SuperGoesLast())
   ..register(new TypeInitFormals())
+  ..register(new TypeAnnotatePublicApis())
   ..register(new UnnecessaryBraceInStringInterp())
   // Disabled pending fix: https://github.com/dart-lang/linter/issues/35
   //..register(new UnnecessaryGetters())
@@ -68,7 +70,7 @@ class Registry extends Object with IterableMixin<LintRule> {
   ///     my_rule: true
   ///
   /// enables `my_rule`.
-  /// 
+  ///
   /// Unspecified rules are treated as disabled by default.
   Iterable<LintRule> enabled(LintConfig config) => rules
       .where((rule) => config.ruleConfigs.any((rc) => rc.enables(rule.name)));

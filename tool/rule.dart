@@ -83,7 +83,7 @@ ${parser.usage}
 String toClassName(String libName) =>
     libName.split('_').map((bit) => capitalize(bit)).join();
 
-String _generateStub(String libName, String className) => '''
+String _generateStub(String libName, String className) => """
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -96,27 +96,40 @@ import 'package:linter/src/linter.dart';
 
 const desc = r' ';
 
-const details = r' ';
+const details = r'''
+
+**DO** ...
+
+**BAD:**
+```
+
+```
+
+**GOOD:**
+```
+
+```
+
+''';
 
 class $className extends LintRule {
   $className() : super(
           name: '$libName',
-          description: desc,
-          details: details,
-          group: Group.STYLE_GUIDE,
-          kind: Kind.AVOID);
+            description: desc,
+            details: details,
+            group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);
 }
 
 class Visitor extends SimpleAstVisitor {
-  LintRule rule;
+  final LintRule rule;
   Visitor(this.rule);
 
 
 }
-''';
+""";
 
 String _generateTest(String libName, String className) => '''
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file

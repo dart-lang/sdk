@@ -24,6 +24,7 @@ import 'package:analyzer/src/generated/ast.dart'
         FieldDeclaration,
         FunctionDeclaration,
         FunctionTypeAlias,
+        Identifier,
         MethodDeclaration,
         ReturnStatement,
         SimpleIdentifier,
@@ -242,6 +243,10 @@ AstNode _getNodeToAnnotate(Declaration node) {
   }
   return null;
 }
+
+/// Check if the given identifier has a private name.
+bool isPrivate(SimpleIdentifier identifier) =>
+    identifier != null ? Identifier.isPrivateName(identifier.name) : false;
 
 /// An [Element] processor function type.
 /// If `true` is returned, children of [element] will be visited.
