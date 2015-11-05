@@ -1021,6 +1021,11 @@ RawWeakProperty* SnapshotReader::NewWeakProperty() {
 }
 
 
+RawJSRegExp* SnapshotReader::NewJSRegExp() {
+  ALLOC_NEW_OBJECT(JSRegExp);
+}
+
+
 RawFloat32x4* SnapshotReader::NewFloat32x4(float v0, float v1, float v2,
                                            float v3) {
   ASSERT(kind_ == Snapshot::kFull);

@@ -62,6 +62,7 @@ oom_error_stacktrace_test: Skip
 out_of_memory_test: Skip
 verbose_gc_to_bmu_test: Skip
 precompilation_test: Skip # Standalone only test.
+precompilation_dart2js_test: Skip # Standalone only test.
 noopt_test: Skip # Standalone only test.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
@@ -106,14 +107,17 @@ javascript_compatibility_warnings_test: Skip
 unboxed_int_converter_test: Skip
 pair_location_remapping_test: Skip
 precompilation_test: Skip # Standalone only test.
+precompilation_dart2js_test: Skip # Standalone only test.
 noopt_test: Skip # Standalone only test.
 
 [ $runtime == vm && $arch == ia32]
 precompilation_test: Skip # Not expected to pass on ia32.
+precompilation_dart2js_test: Skip # Not expected to pass on ia32.
 noopt_test: Skip # Not expected to pass on ia32.
 
 [ $runtime == vm && $arch == arm]
 precompilation_test: Skip # Issue 24427
+precompilation_dart2js_test: Skip # Issue 24427
 
 [ $compiler == dart2js && $jscl ]
 assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.

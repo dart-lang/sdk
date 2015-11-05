@@ -54,6 +54,7 @@ class RawICData;
 class RawImmutableArray;
 class RawInstructions;
 class RawInt32x4;
+class RawJSRegExp;
 class RawLanguageError;
 class RawLibrary;
 class RawLibraryPrefix;
@@ -446,6 +447,7 @@ class SnapshotReader : public BaseReader {
   RawObject* NewInteger(int64_t value);
   RawStacktrace* NewStacktrace();
   RawWeakProperty* NewWeakProperty();
+  RawJSRegExp* NewJSRegExp();
 
   RawInstructions* GetInstructionsAt(int32_t offset, uword expected_tags) {
     return instructions_reader_->GetInstructionsAt(offset, expected_tags);

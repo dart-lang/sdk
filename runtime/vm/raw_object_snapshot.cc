@@ -3340,11 +3340,9 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
                                 Snapshot::Kind kind,
                                 bool as_reference) {
   ASSERT(reader != NULL);
-  ASSERT(kind == Snapshot::kMessage);
 
   // Allocate JSRegExp object.
-  JSRegExp& regex = JSRegExp::ZoneHandle(
-      reader->zone(), JSRegExp::New(HEAP_SPACE(kind)));
+  JSRegExp& regex = JSRegExp::ZoneHandle(reader->zone(), NEW_OBJECT(JSRegExp));
   reader->AddBackRef(object_id, &regex, kIsDeserialized);
 
   // Read and Set all the other fields.
@@ -3358,6 +3356,16 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
                         reader->Read<int8_t>());
 
   // TODO(18854): Need to implement a way of recreating the irrexp functions.
+  const Function& no_function = Function::Handle(reader->zone());
+  regex.set_function(kOneByteStringCid, no_function);
+  regex.set_function(kTwoByteStringCid, no_function);
+  regex.set_function(kExternalOneByteStringCid, no_function);
+  regex.set_function(kExternalTwoByteStringCid, no_function);
+
+  const TypedData& no_bytecode = TypedData::Handle(reader->zone());
+  regex.set_bytecode(true, no_bytecode);
+  regex.set_bytecode(false, no_bytecode);
+
   return regex.raw();
 }
 
@@ -3367,7 +3375,6 @@ void RawJSRegExp::WriteTo(SnapshotWriter* writer,
                           Snapshot::Kind kind,
                           bool as_reference) {
   ASSERT(writer != NULL);
-  ASSERT(kind == Snapshot::kMessage);
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
