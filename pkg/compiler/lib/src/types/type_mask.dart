@@ -89,7 +89,7 @@ abstract class TypeMask implements ReceiverConstraint {
   factory TypeMask.exact(ClassElement base, ClassWorld classWorld) {
     assert(invariant(base, classWorld.isInstantiated(base),
         message: () => "Cannot create exact type mask for uninstantiated "
-                       "class $base.\n${classWorld.dump(base)}"));
+                       "class $base.\n${classWorld.dump()}"));
     return new FlatTypeMask.exact(base);
   }
 
@@ -99,31 +99,21 @@ abstract class TypeMask implements ReceiverConstraint {
   }
 
   factory TypeMask.subclass(ClassElement base, ClassWorld classWorld) {
-    assert(invariant(base, classWorld.isInstantiated(base),
-        message: () => "Cannot create subclass type mask for uninstantiated "
-                       "class $base.\n${classWorld.dump(base)}"));
-    ClassElement topmost = classWorld.getLubOfInstantiatedSubclasses(base);
-    if (topmost == null) {
-      return new TypeMask.empty();
-    } else if (classWorld.hasAnyStrictSubclass(topmost)) {
-      return new FlatTypeMask.subclass(topmost);
+    if (classWorld.hasAnyStrictSubclass(base)) {
+      return new FlatTypeMask.subclass(base);
     } else {
-      return new TypeMask.exact(topmost, classWorld);
+      return new TypeMask.exactOrEmpty(base, classWorld);
     }
   }
 
   factory TypeMask.subtype(ClassElement base, ClassWorld classWorld) {
-    ClassElement topmost = classWorld.getLubOfInstantiatedSubtypes(base);
-    if (topmost == null) {
-      return new TypeMask.empty();
+    if (classWorld.hasOnlySubclasses(base)) {
+      return new TypeMask.subclass(base, classWorld);
     }
-    if (classWorld.hasOnlySubclasses(topmost)) {
-      return new TypeMask.subclass(topmost, classWorld);
-    }
-    if (classWorld.hasAnyStrictSubtype(topmost)) {
-      return new FlatTypeMask.subtype(topmost);
+    if (classWorld.hasAnyStrictSubtype(base)) {
+      return new FlatTypeMask.subtype(base);
     } else {
-      return new TypeMask.exact(topmost, classWorld);
+      return new TypeMask.exactOrEmpty(base, classWorld);
     }
   }
 
@@ -131,8 +121,8 @@ abstract class TypeMask implements ReceiverConstraint {
 
   factory TypeMask.nonNullExact(ClassElement base, ClassWorld classWorld) {
     assert(invariant(base, classWorld.isInstantiated(base),
-        message: () => "Cannot create exact type mask for uninstantiated "
-                       "class $base.\n${classWorld.dump(base)}"));
+        message: () => "Cannot create exact type mask for "
+                 "uninstantiated class $base.\n${classWorld.dump(base)}"));
     return new FlatTypeMask.nonNullExact(base);
   }
 
@@ -145,31 +135,21 @@ abstract class TypeMask implements ReceiverConstraint {
   }
 
   factory TypeMask.nonNullSubclass(ClassElement base, ClassWorld classWorld) {
-    assert(invariant(base, classWorld.isInstantiated(base),
-        message: () => "Cannot create subclass type mask for uninstantiated "
-                       "class $base.\n${classWorld.dump(base)}"));
-    ClassElement topmost = classWorld.getLubOfInstantiatedSubclasses(base);
-    if (topmost == null) {
-      return new TypeMask.nonNullEmpty();
-    } else if (classWorld.hasAnyStrictSubclass(topmost)) {
-      return new FlatTypeMask.nonNullSubclass(topmost);
+    if (classWorld.hasAnyStrictSubclass(base)) {
+      return new FlatTypeMask.nonNullSubclass(base);
     } else {
-      return new TypeMask.nonNullExact(topmost, classWorld);
+      return new TypeMask.nonNullExactOrEmpty(base, classWorld);
     }
   }
 
   factory TypeMask.nonNullSubtype(ClassElement base, ClassWorld classWorld) {
-    ClassElement topmost = classWorld.getLubOfInstantiatedSubtypes(base);
-    if (topmost == null) {
-      return new TypeMask.nonNullEmpty();
+    if (classWorld.hasOnlySubclasses(base)) {
+      return new TypeMask.nonNullSubclass(base, classWorld);
     }
-    if (classWorld.hasOnlySubclasses(topmost)) {
-      return new TypeMask.nonNullSubclass(topmost, classWorld);
-    }
-    if (classWorld.hasAnyStrictSubtype(topmost)) {
-      return new FlatTypeMask.nonNullSubtype(topmost);
+    if (classWorld.hasAnyStrictSubtype(base)) {
+      return new FlatTypeMask.nonNullSubtype(base);
     } else {
-      return new TypeMask.nonNullExact(topmost, classWorld);
+      return new TypeMask.nonNullExactOrEmpty(base, classWorld);
     }
   }
 

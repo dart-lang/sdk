@@ -914,7 +914,6 @@ Future testPatchAndSelector() async {
       """,
       runCompiler: true, analyzeOnly: true);
   World world = compiler.world;
-  world.populate();
 
   ClassElement cls = ensure(compiler, "A", compiler.coreLibrary.find,
                             expectIsPatched: true);

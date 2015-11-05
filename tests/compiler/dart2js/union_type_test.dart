@@ -5,29 +5,22 @@
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 import "package:compiler/src/types/types.dart";
-import "package:compiler/src/world.dart";
-import 'type_test_helper.dart';
+
+import "compiler_helper.dart";
 
 main() {
-
-  asyncTest(() async {
-    TypeEnvironment env = await TypeEnvironment.create(r"""
-      class A {}
-      class B {}
-      """,
-      mainSource: r"""
+  MockCompiler compiler = new MockCompiler.internal(analyzeOnly: true);
+  asyncTest(() => compiler.run(null, """
       main() {
-        new A();
-        new B();
+        print(2); print("Hello");
       }
-      """,
-      useMockCompiler: false);
-    World world = env.compiler.world;
-    world.populate();
-    FlatTypeMask mask1 = new FlatTypeMask.exact(env.getElement('A'));
-    FlatTypeMask mask2 = new FlatTypeMask.exact(env.getElement('B'));
-    UnionTypeMask union1 = mask1.nonNullable().union(mask2, world);
-    UnionTypeMask union2 = mask2.nonNullable().union(mask1, world);
+    """).then((_) {
+    FlatTypeMask mask1 =
+        new FlatTypeMask.exact(compiler.coreClasses.intClass);
+    FlatTypeMask mask2 =
+        new FlatTypeMask.exact(compiler.coreClasses.stringClass);
+    UnionTypeMask union1 = mask1.nonNullable().union(mask2, compiler.world);
+    UnionTypeMask union2 = mask2.nonNullable().union(mask1, compiler.world);
     Expect.equals(union1, union2);
-  });
+  }));
 }

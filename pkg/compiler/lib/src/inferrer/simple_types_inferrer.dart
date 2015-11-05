@@ -647,19 +647,7 @@ class SimpleTypeInferrerVisitor<T>
           }
         });
       }
-      if (analyzedElement.isGenerativeConstructor && cls.isAbstract) {
-        if (compiler.world.isDirectlyInstantiated(cls)) {
-          returnType = types.nonNullExact(cls);
-        } else if (compiler.world.isIndirectlyInstantiated(cls)) {
-          returnType = types.nonNullSubclass(cls);
-        } else  {
-          // TODO(johnniwinther): Avoid analyzing [analyzedElement] in this
-          // case; it's never called.
-          returnType = types.nonNullEmpty();
-        }
-      } else {
-        returnType = types.nonNullExact(cls);
-      }
+      returnType = types.nonNullExact(cls);
     } else {
       signature.forEachParameter((LocalParameterElement element) {
         locals.update(element, inferrer.typeOfElement(element), node);

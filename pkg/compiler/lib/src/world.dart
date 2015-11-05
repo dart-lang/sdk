@@ -62,15 +62,8 @@ abstract class ClassWorld {
   /// The [ClassElement] for the [String] class defined in 'dart:core'.
   ClassElement get stringClass;
 
-  /// Returns `true` if [cls] is either directly or indirectly instantiated.
+  /// Returns `true` if [cls] is instantiated.
   bool isInstantiated(ClassElement cls);
-
-  /// Returns `true` if [cls] is directly instantiated.
-  bool isDirectlyInstantiated(ClassElement cls);
-
-  /// Returns `true` if [cls] is indirectly instantiated, that is through a
-  /// subclass.
-  bool isIndirectlyInstantiated(ClassElement cls);
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassElement cls);
@@ -112,16 +105,6 @@ abstract class ClassWorld {
 
   /// Returns `true` if all live classes that implement [cls] extend it.
   bool hasOnlySubclasses(ClassElement cls);
-
-  /// Returns the most specific subclass of [cls] (including [cls]) that is
-  /// directly instantiated or a superclass of all directly instantiated
-  /// subclasses. If [cls] is not instantiated, `null` is returned.
-  ClassElement getLubOfInstantiatedSubclasses(ClassElement cls);
-
-  /// Returns the most specific subtype of [cls] (including [cls]) that is
-  /// directly instantiated or a superclass of all directly instantiated
-  /// subtypes. If no subtypes of [cls] are instantiated, `null` is returned.
-  ClassElement getLubOfInstantiatedSubtypes(ClassElement cls);
 
   /// Returns an iterable over the common supertypes of the [classes].
   Iterable<ClassElement> commonSupertypesOf(Iterable<ClassElement> classes);
@@ -207,22 +190,10 @@ class World implements ClassWorld {
     return false;
   }
 
-  @override
+  /// Returns `true` if [cls] is instantiated either directly or through a
+  /// subclass.
   bool isInstantiated(ClassElement cls) {
-    ClassHierarchyNode node = _classHierarchyNodes[cls.declaration];
-    return node != null && node.isInstantiated;
-  }
-
-  @override
-  bool isDirectlyInstantiated(ClassElement cls) {
-    ClassHierarchyNode node = _classHierarchyNodes[cls.declaration];
-    return node != null && node.isDirectlyInstantiated;
-  }
-
-  @override
-  bool isIndirectlyInstantiated(ClassElement cls) {
-    ClassHierarchyNode node = _classHierarchyNodes[cls.declaration];
-    return node != null && node.isIndirectlyInstantiated;
+    return compiler.resolverWorld.isInstantiated(cls);
   }
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
@@ -314,20 +285,6 @@ class World implements ClassWorld {
     if (subtypes == null) return true;
     Iterable<ClassElement> subclasses = strictSubclassesOf(cls);
     return subclasses != null && (subclasses.length == subtypes.length);
-  }
-
-  @override
-  ClassElement getLubOfInstantiatedSubclasses(ClassElement cls) {
-    ClassHierarchyNode hierarchy = _classHierarchyNodes[cls.declaration];
-    return hierarchy != null
-        ? hierarchy.getLubOfInstantiatedSubclasses() : null;
-  }
-
-  @override
-  ClassElement getLubOfInstantiatedSubtypes(ClassElement cls) {
-    ClassSet classSet = _classSets[cls.declaration];
-    return classSet != null
-        ? classSet.getLubOfInstantiatedSubtypes() : null;
   }
 
   /// Returns an iterable over the common supertypes of the [classes].
@@ -486,11 +443,8 @@ class World implements ClassWorld {
   ///
   /// This ensures that class hierarchy queries can be performed on [cls] and
   /// classes that extend or implement it.
-  void registerClass(ClassElement cls, {bool isDirectlyInstantiated: false}) {
+  void registerClass(ClassElement cls) {
     _ensureClassSet(cls);
-    if (isDirectlyInstantiated) {
-      _updateClassHierarchyNodeForClass(cls, directlyInstantiated: true);
-    }
   }
 
   /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
@@ -538,36 +492,29 @@ class World implements ClassWorld {
     });
   }
 
-  void _updateClassHierarchyNodeForClass(
-      ClassElement cls,
-      {bool directlyInstantiated: false,
-       bool indirectlyInstantiated: false}) {
-    ClassHierarchyNode node = getClassHierarchyNode(cls);
-    bool changed = false;
-    if (directlyInstantiated && !node.isDirectlyInstantiated) {
-      node.isDirectlyInstantiated = true;
-      changed = true;
-    }
-    if (indirectlyInstantiated && !node.isIndirectlyInstantiated) {
-      node.isIndirectlyInstantiated = true;
-      changed = true;
-    }
-    if (changed && cls.superclass != null) {
-      _updateClassHierarchyNodeForClass(
-          cls.superclass, indirectlyInstantiated: true);
-    }
-    // Ensure that classes implicitly implementing `Function` are in its
-    // subtype set.
-    if (cls != coreClasses.functionClass &&
-        cls.implementsFunction(compiler)) {
-      ClassSet subtypeSet = _ensureClassSet(coreClasses.functionClass);
-      subtypeSet.addSubtype(node);
-    }
-  }
-
   void populate() {
     /// Updates the `isDirectlyInstantiated` and `isIndirectlyInstantiated`
     /// properties of the [ClassHierarchyNode] for [cls].
+    void updateClassHierarchyNodeForClass(
+        ClassElement cls,
+        {bool directlyInstantiated: false,
+         bool indirectlyInstantiated: false}) {
+      assert(!directlyInstantiated || isInstantiated(cls));
+      ClassHierarchyNode node = getClassHierarchyNode(cls);
+      bool changed = false;
+      if (directlyInstantiated && !node.isDirectlyInstantiated) {
+        node.isDirectlyInstantiated = true;
+        changed = true;
+      }
+      if (indirectlyInstantiated && !node.isIndirectlyInstantiated) {
+        node.isIndirectlyInstantiated = true;
+        changed = true;
+      }
+      if (changed && cls.superclass != null) {
+        updateClassHierarchyNodeForClass(
+            cls.superclass, indirectlyInstantiated: true);
+      }
+    }
 
     void addSubtypes(ClassElement cls) {
       if (compiler.hasIncrementalSupport && !alreadyPopulated.add(cls)) {
@@ -578,7 +525,7 @@ class World implements ClassWorld {
         reporter.internalError(cls, 'Class "${cls.name}" is not resolved.');
       }
 
-      _updateClassHierarchyNodeForClass(cls, directlyInstantiated: true);
+      updateClassHierarchyNodeForClass(cls, directlyInstantiated: true);
 
       // Walk through the superclasses, and record the types
       // implemented by that type on the superclasses.

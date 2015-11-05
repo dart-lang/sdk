@@ -63,7 +63,7 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
           E get current => null;
       }''',
   'LinkedHashMap': r'''
-      class LinkedHashMap<K, V> implements Map<K, V> {
+      class LinkedHashMap {
         factory LinkedHashMap._empty() => null;
         factory LinkedHashMap._literal(elements) => null;
         static _makeEmpty() => null;

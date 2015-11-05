@@ -298,11 +298,8 @@ class FullFunctionSetQuery implements FunctionSetQuery {
         .map((cls) {
           if (classWorld.backend.isNullImplementation(cls)) {
             return const TypeMask.empty();
-          } else if (classWorld.isInstantiated(cls.declaration)) {
-            return new TypeMask.nonNullSubclass(cls.declaration, classWorld);
           } else {
-            // TODO(johnniwinther): Avoid the need for this case.
-            return const TypeMask.empty();
+            return new TypeMask.nonNullSubclass(cls.declaration, classWorld);
           }
         }),
         classWorld);

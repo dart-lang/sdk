@@ -3247,7 +3247,7 @@ class SsaBuilder extends ast.Visitor
     });
 
     TypeMask type =
-        new TypeMask.nonNullExact(closureClassElement, compiler.world);
+        new TypeMask.nonNullExact(coreClasses.functionClass, compiler.world);
     push(new HForeignNew(closureClassElement, type, capturedVariables)
         ..sourceInformation = sourceInformationBuilder.buildCreate(node));
 
@@ -5074,13 +5074,7 @@ class SsaBuilder extends ast.Visitor
             : inferred;
       } else if (element.isGenerativeConstructor) {
         ClassElement cls = element.enclosingClass;
-        if (cls.isAbstract) {
-          // An error will be thrown.
-          return new TypeMask.nonNullEmpty();
-        } else {
-          return new TypeMask.nonNullExact(
-              cls.thisType.element, compiler.world);
-        }
+        return new TypeMask.nonNullExact(cls.thisType.element, compiler.world);
       } else {
         return TypeMaskFactory.inferredReturnTypeForElement(
             originalElement, compiler);
