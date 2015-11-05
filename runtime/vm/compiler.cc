@@ -795,20 +795,23 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
             function.InstallOptimizedCode(code, is_osr);
           }
 
-          // TODO(srdjan): In background compilation, verify that CHA has not
-          // been invalidated in the meantime.
-          // Register code with the classes it depends on because of CHA.
-          for (intptr_t i = 0;
-               i < thread->cha()->leaf_classes().length();
-               ++i) {
-            thread->cha()->leaf_classes()[i]->RegisterCHACode(code);
-          }
-
-          for (intptr_t i = 0;
-               i < flow_graph->guarded_fields()->length();
-               i++) {
-            const Field* field = (*flow_graph->guarded_fields())[i];
-            field->RegisterDependentCode(code);
+          // TODO(srdjan): In background compilation, verify that CHA and field
+          // guards have not been invalidated in the meantime.
+          // Register code with the classes it depends on because of CHA and
+          // fields it depends on because of store guards, unless we cannot
+          // deopt.
+          if (Compiler::allow_recompilation()) {
+            for (intptr_t i = 0;
+                 i < thread->cha()->leaf_classes().length();
+                 ++i) {
+              thread->cha()->leaf_classes()[i]->RegisterCHACode(code);
+            }
+            for (intptr_t i = 0;
+                 i < flow_graph->guarded_fields()->length();
+                 i++) {
+              const Field* field = (*flow_graph->guarded_fields())[i];
+              field->RegisterDependentCode(code);
+            }
           }
         } else {  // not optimized.
           if (!Compiler::always_optimize() &&
