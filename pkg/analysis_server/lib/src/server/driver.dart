@@ -383,6 +383,7 @@ class Driver implements ServerStarter {
     //
     String logFilePath = results[INSTRUMENTATION_LOG_FILE];
     if (logFilePath != null) {
+      _rollLogFiles(logFilePath, 5);
       FileInstrumentationServer fileBasedServer =
           new FileInstrumentationServer(logFilePath);
       instrumentationServer = instrumentationServer != null
@@ -576,5 +577,21 @@ class Driver implements ServerStarter {
       uuid = 'temp-$uuid';
     }
     return uuid;
+  }
+
+  /**
+   * Perform log files rolling.
+   *
+   * Rename existing files with names `[path].(x)` to `[path].(x+1)`.
+   * Keep at most [numOld] files.
+   * Rename the file with the given [path] to `[path].1`.
+   */
+  static void _rollLogFiles(String path, int numOld) {
+    for (int i = numOld - 1; i >= 0; i--) {
+      try {
+        String oldPath = i == 0 ? path : '$path.$i';
+        new File(oldPath).renameSync('$path.${i+1}');
+      } catch (e) {}
+    }
   }
 }
