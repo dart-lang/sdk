@@ -1466,93 +1466,166 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 }
 
 
-// A simple work queue containing functions to be optimized or code generated.
-// Use PushFrontFunction and PopBackFunction to add and remove from the function
-// queue and PushBackCode and PopBackCode to add and remove from the code queue.
-// TODO(srdjan): Write a more efficient implementation.
-class CompilationWorkQueue : public ValueObject {
+// C-heap allocated background compilation queue element.
+class QueueElement {
  public:
-  explicit CompilationWorkQueue(GrowableObjectArray* data) : data_(data) {}
+  explicit QueueElement(const Function& function)
+      : next_(NULL),
+        obj_(function.raw()),
+        cha_invalidation_gen_(Isolate::kInvalidGen),
+        field_invalidation_gen_(Isolate::kInvalidGen),
+        prefix_invalidation_gen_(Isolate::kInvalidGen) {
+    ASSERT(Thread::Current()->IsMutatorThread());
+  }
 
-  intptr_t IsEmpty() const { return data_->Length() == 0; }
-  intptr_t Length() const { return data_->Length(); }
+  ~QueueElement() {
+    ASSERT(Thread::Current()->IsMutatorThread());
+    obj_ = Object::null();
+  }
 
-  void PushFrontFunction(const Function& function) { PushFront(function); }
-  RawFunction* PopBackFunction() { return Function::RawCast(PopBack()); }
-  RawFunction* LastFunction() { return Function::RawCast(Last()); }
+  void Clear() {
+    next_ = NULL;
+    obj_ = Object::null();
+    cha_invalidation_gen_ = Isolate::kInvalidGen;
+    field_invalidation_gen_ = Isolate::kInvalidGen;
+    prefix_invalidation_gen_ = Isolate::kInvalidGen;
+  }
 
-  void PushBackCode(const Code& code) { PushBack(code); }
-  void PushBackInteger(const Integer& value) { PushBack(value); }
-  RawCode* PopBackCode() { return Code::RawCast(PopBack()); }
-  RawInteger* PopBackInteger() {
-    Object& o = Object::Handle(PopBack());
-    if (o.IsNull()) {
-      return Integer::null();
-    } else {
-      return Integer::Cast(o).raw();
-    }
+  RawFunction* Function() const { return Function::RawCast(obj_); }
+  RawCode* Code() const {
+    return (obj_ == Object::null()) ? Code::null() : Code::RawCast(obj_);
+  }
+
+  uint32_t cha_invalidation_gen() const { return cha_invalidation_gen_; }
+  uint32_t field_invalidation_gen() const { return field_invalidation_gen_; }
+  uint32_t prefix_invalidation_gen() const { return prefix_invalidation_gen_; }
+
+  void set_next(QueueElement* elem) { next_ = elem; }
+  QueueElement* next() const { return next_; }
+
+  RawObject** obj_ptr() { return &obj_; }
+  RawObject* obj() const { return obj_; }
+
+  void SetFromResult(const BackgroundCompilationResult& value) {
+    ASSERT(!value.result_code().IsNull());
+    obj_ = value.result_code().raw();
+    cha_invalidation_gen_ = value.cha_invalidation_gen();
+    field_invalidation_gen_ = value.field_invalidation_gen();
+    prefix_invalidation_gen_ = value.prefix_invalidation_gen();
   }
 
  private:
-  // Adds to the queue only if 'function' is not already in there.
-  void PushFront(const Object& value) {
-    for (intptr_t i = 0; i < data_->Length(); i++) {
-      if (data_->At(i) == value.raw()) {
-        return;
-      }
-    }
-    // Insert new element in front.
-    Object& f = Object::Handle();
-    data_->Add(f, Heap::kOld);
-    for (intptr_t i = data_->Length() - 1; i > 0; i--) {
-      f = data_->At(i - 1);
-      data_->SetAt(i, f);
-    }
-    data_->SetAt(0, value);
-  }
+  QueueElement* next_;
 
+  RawObject* obj_;  // Code or Function.
+  uint32_t cha_invalidation_gen_;
+  uint32_t field_invalidation_gen_;
+  uint32_t prefix_invalidation_gen_;
 
-  void PushBack(const Object& value) {
-    data_->Add(value, Heap::kOld);
-  }
-
-
-  RawObject* PopBack() {
-    ASSERT(!IsEmpty());
-    Object& result = Object::Handle();
-    result = data_->At(data_->Length() - 1);
-    data_->SetLength(data_->Length() - 1);
-    return result.raw();
-  }
-
-  RawObject* Last() {
-    ASSERT(!IsEmpty());
-    return data_->At(data_->Length() - 1);
-  }
-
-  GrowableObjectArray* data_;
-
-  DISALLOW_IMPLICIT_CONSTRUCTORS(CompilationWorkQueue);
+  DISALLOW_COPY_AND_ASSIGN(QueueElement);
 };
 
+
+// Allocated in C-heap. Handles both input and output of background compilation.
+// It implements a FIFO queue, using Peek, Add, Remove operations.
+class BackgroundCompilationQueue {
+ public:
+  BackgroundCompilationQueue() : first_(NULL), last_(NULL) {}
+  ~BackgroundCompilationQueue() {
+    while (!IsEmpty()) {
+      QueueElement* e = Remove();
+      delete e;
+    }
+    ASSERT((first_ == NULL) && (last_ == NULL));
+  }
+
+  void VisitObjectPointers(ObjectPointerVisitor* visitor) {
+    ASSERT(visitor != NULL);
+    QueueElement* p = first_;
+    while (p != NULL) {
+      visitor->VisitPointer(p->obj_ptr());
+      p = p->next();
+    }
+  }
+
+  bool IsEmpty() const { return first_ == NULL; }
+
+  void Add(QueueElement* value) {
+    ASSERT(value != NULL);
+    if (first_ == NULL) {
+      first_ = value;
+    } else {
+      last_->set_next(value);
+    }
+    value->set_next(NULL);
+    last_ = value;
+  }
+
+  QueueElement* Peek() const {
+    return first_;
+  }
+
+  RawFunction* PeekFunction() const {
+    QueueElement* e = Peek();
+    if (e == NULL) {
+      return Function::null();
+    } else {
+      return e->Function();
+    }
+  }
+
+  QueueElement* Remove() {
+    ASSERT(first_ != NULL);
+    QueueElement* result = first_;
+    first_ = first_->next();
+    if (first_ == NULL) {
+      last_ = NULL;
+    }
+    return result;
+  }
+
+  bool ContainsObj(const Object& obj) const {
+    QueueElement* p = first_;
+    while (p != NULL) {
+      if (p->obj() == obj.raw()) {
+        return true;
+      }
+      p = p->next();
+    }
+    return false;
+  }
+
+ private:
+  QueueElement* first_;
+  QueueElement* last_;
+
+  DISALLOW_COPY_AND_ASSIGN(BackgroundCompilationQueue);
+};
 
 
 BackgroundCompilationResult::BackgroundCompilationResult()
     : result_code_(Code::Handle()),
-      cha_invalidation_gen_(Integer::Handle()),
-      field_invalidation_gen_(Integer::Handle()),
-      prefix_invalidation_gen_(Integer::Handle()) {
+      cha_invalidation_gen_(Isolate::kInvalidGen),
+      field_invalidation_gen_(Isolate::kInvalidGen),
+      prefix_invalidation_gen_(Isolate::kInvalidGen) {
 }
 
 
 void BackgroundCompilationResult::Init() {
   Isolate* i = Isolate::Current();
   result_code_ = Code::null();
-  cha_invalidation_gen_ = Integer::New(i->cha_invalidation_gen(), Heap::kOld);
-  field_invalidation_gen_ =
-      Integer::New(i->field_invalidation_gen(), Heap::kOld);
-  prefix_invalidation_gen_ =
-      Integer::New(i->prefix_invalidation_gen(), Heap::kOld);
+  cha_invalidation_gen_ = i->cha_invalidation_gen();
+  field_invalidation_gen_ = i->field_invalidation_gen();
+  prefix_invalidation_gen_ = i->prefix_invalidation_gen();
+}
+
+
+void BackgroundCompilationResult::SetFromQElement(QueueElement* value) {
+  ASSERT(value != NULL);
+  result_code_ = value->Code();
+  cha_invalidation_gen_ = value->cha_invalidation_gen();
+  field_invalidation_gen_ = value->field_invalidation_gen();
+  prefix_invalidation_gen_ = value->prefix_invalidation_gen();
 }
 
 
@@ -1561,17 +1634,16 @@ bool BackgroundCompilationResult::IsValid() const {
     return false;
   }
   Isolate* i = Isolate::Current();
-  if (!cha_invalidation_gen_.IsNull() &&
-      (cha_invalidation_gen_.AsInt64Value() != i->cha_invalidation_gen())) {
+  if ((cha_invalidation_gen_ != Isolate::kInvalidGen) &&
+      (cha_invalidation_gen_ != i->cha_invalidation_gen())) {
     return false;
   }
-  if (!field_invalidation_gen_.IsNull() &&
-      (field_invalidation_gen_.AsInt64Value() != i->field_invalidation_gen())) {
+  if ((field_invalidation_gen_ != Isolate::kInvalidGen) &&
+      (field_invalidation_gen_ != i->field_invalidation_gen())) {
     return false;
   }
-  if (!prefix_invalidation_gen_.IsNull() &&
-      (prefix_invalidation_gen_.AsInt64Value() !=
-          i->prefix_invalidation_gen())) {
+  if ((prefix_invalidation_gen_ != Isolate::kInvalidGen) &&
+      (prefix_invalidation_gen_ != i->prefix_invalidation_gen())) {
     return false;
   }
   return true;
@@ -1591,38 +1663,20 @@ void BackgroundCompilationResult::PrintValidity() const {
     return;
   }
   Isolate* i = Isolate::Current();
-  THR_Print("  cha_invalidation_gen: %s (current: %u)\n",
-      cha_invalidation_gen_.ToCString(), i->cha_invalidation_gen());
-  THR_Print("  field_invalidation_gen: %s (current: %u)\n",
-      field_invalidation_gen_.ToCString(), i->field_invalidation_gen());
-  THR_Print("  prefix_invalidation_gen: %s (current: %u)\n",
-      prefix_invalidation_gen_.ToCString(), i->prefix_invalidation_gen());
-}
-
-
-void BackgroundCompilationResult::PushOnQueue(
-    CompilationWorkQueue* queue) const {
-  queue->PushBackCode(result_code());
-  queue->PushBackInteger(cha_invalidation_gen_);
-  queue->PushBackInteger(field_invalidation_gen_);
-  queue->PushBackInteger(prefix_invalidation_gen_);
-}
-
-
-void BackgroundCompilationResult::PopFromQueue(CompilationWorkQueue* queue) {
-  prefix_invalidation_gen_ = queue->PopBackInteger();
-  field_invalidation_gen_ = queue->PopBackInteger();
-  cha_invalidation_gen_ = queue->PopBackInteger();
-  result_code_ = queue->PopBackCode();
+  THR_Print("  cha_invalidation_gen: %u (current: %u)\n",
+      cha_invalidation_gen_, i->cha_invalidation_gen());
+  THR_Print("  field_invalidation_gen: %u (current: %u)\n",
+      field_invalidation_gen_, i->field_invalidation_gen());
+  THR_Print("  prefix_invalidation_gen: %u (current: %u)\n",
+      prefix_invalidation_gen_, i->prefix_invalidation_gen());
 }
 
 
 BackgroundCompiler::BackgroundCompiler(Isolate* isolate)
     : isolate_(isolate), running_(true), done_(new bool()),
       queue_monitor_(new Monitor()), done_monitor_(new Monitor()),
-      function_queue_length_(0),
-      compilation_function_queue_(GrowableObjectArray::null()),
-      compilation_result_queue_(GrowableObjectArray::null()) {
+      function_queue_(new BackgroundCompilationQueue()),
+      result_queue_(new BackgroundCompilationQueue()) {
   *done_ = false;
 }
 
@@ -1638,12 +1692,9 @@ void BackgroundCompiler::Run() {
       Zone* zone = stack_zone.GetZone();
       HANDLESCOPE(thread);
       Function& function = Function::Handle(zone);
-      Function& temp_function = Function::Handle(zone);
-      function = LastFunctionOrNull();
+      function = function_queue()->PeekFunction();
       BackgroundCompilationResult result;
-      // Finish all compilation before exiting (even if running_ is changed to
-      // false).
-      while (!function.IsNull()) {
+      while (running_ && !function.IsNull()) {
         result.Init();
         const Error& error = Error::Handle(zone,
             Compiler::CompileOptimizedFunction(thread,
@@ -1655,25 +1706,25 @@ void BackgroundCompiler::Run() {
         // unoptimized code.
         // If it still happens mark function as not optimizable.
         ASSERT(error.IsNull());
-        temp_function = RemoveFunctionOrNull();
-        ASSERT(temp_function.raw() == function.raw());
-        function = LastFunctionOrNull();
-        ASSERT(!result.result_code().IsNull());
-        AddResult(result);
+        // Reuse the input QueueElement to return the result.
+        QueueElement* qelem = function_queue()->Remove();
+        qelem->Clear();
+        result_queue()->Add(qelem);
+        // Add 'qelem' to the queue first so that it gets visited by GC.
+        qelem->SetFromResult(result);
+        function = function_queue()->PeekFunction();
       }
     }
     Thread::ExitIsolateAsHelper();
     {
       // Wait to be notified when the work queue is not empty.
       MonitorLocker ml(queue_monitor_);
-      while ((function_queue_length() == 0) && running_) {
+      while (function_queue()->IsEmpty() && running_) {
         ml.Wait();
       }
     }
   }  // while running
 
-  compilation_function_queue_ = GrowableObjectArray::null();
-  compilation_result_queue_ = GrowableObjectArray::null();
   {
     // Notify that the thread is done.
     MonitorLocker ml_done(done_monitor_);
@@ -1684,18 +1735,28 @@ void BackgroundCompiler::Run() {
 
 
 void BackgroundCompiler::CompileOptimized(const Function& function) {
-  AddFunction(function);
+  ASSERT(Thread::Current()->IsMutatorThread());
+  MonitorLocker ml(queue_monitor_);
+  if (function_queue()->ContainsObj(function)) {
+    return;
+  }
+  QueueElement* elem = new QueueElement(function);
+  function_queue()->Add(elem);
+  ml.Notify();
 }
 
 
 void BackgroundCompiler::InstallGeneratedCode() {
   ASSERT(Thread::Current()->IsMutatorThread());
   MonitorLocker ml(queue_monitor_);
-  CompilationWorkQueue queue(ResultQueue());
   Object& owner = Object::Handle();
-  for (intptr_t i = 0; i < queue.Length(); i++) {
+  while (result_queue()->Peek() != NULL) {
     BackgroundCompilationResult result;
-    result.PopFromQueue(&queue);
+    QueueElement* elem = result_queue()->Remove();
+    ASSERT(elem != NULL);
+    result.SetFromQElement(elem);
+    delete elem;
+
     owner = result.result_code().owner();
     const Function& function = Function::Cast(owner);
     if (result.IsValid()) {
@@ -1712,67 +1773,9 @@ void BackgroundCompiler::InstallGeneratedCode() {
 }
 
 
-GrowableObjectArray* BackgroundCompiler::FunctionsQueue() const {
-  return &GrowableObjectArray::ZoneHandle(compilation_function_queue_);
-}
-
-
-GrowableObjectArray* BackgroundCompiler::ResultQueue() const {
-  return &GrowableObjectArray::ZoneHandle(compilation_result_queue_);
-}
-
-
-void BackgroundCompiler::AddFunction(const Function& f) {
-  MonitorLocker ml(queue_monitor_);
-  CompilationWorkQueue queue(FunctionsQueue());
-  queue.PushFrontFunction(f);
-  set_function_queue_length(queue.Length());
-  // Notify waiting background compiler task.
-  ml.Notify();
-}
-
-
-RawFunction* BackgroundCompiler::RemoveFunctionOrNull() {
-  MonitorLocker ml(queue_monitor_);
-  CompilationWorkQueue queue(FunctionsQueue());
-  if (queue.IsEmpty()) return Function::null();
-  set_function_queue_length(queue.Length() - 1);
-  return queue.PopBackFunction();
-}
-
-
-RawFunction* BackgroundCompiler::LastFunctionOrNull() const {
-  MonitorLocker ml(queue_monitor_);
-  CompilationWorkQueue queue(FunctionsQueue());
-  return queue.IsEmpty() ? Function::null() : queue.LastFunction();
-}
-
-
-void BackgroundCompiler::AddResult(const BackgroundCompilationResult& value) {
-  MonitorLocker ml(queue_monitor_);
-  CompilationWorkQueue queue(ResultQueue());
-  value.PushOnQueue(&queue);
-}
-
-
-void BackgroundCompiler::set_compilation_function_queue(
-    const GrowableObjectArray& value) {
-  compilation_function_queue_ = value.raw();
-}
-
-
-void BackgroundCompiler::set_compilation_result_queue(
-    const GrowableObjectArray& value) {
-  compilation_result_queue_ = value.raw();
-}
-
-
 void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(
-      &compilation_function_queue_));
-
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(
-      &compilation_result_queue_));
+  function_queue_->VisitObjectPointers(visitor);
+  result_queue_->VisitObjectPointers(visitor);
 }
 
 
@@ -1781,6 +1784,9 @@ void BackgroundCompiler::Stop(BackgroundCompiler* task) {
   if (task == NULL) {
     return;
   }
+  BackgroundCompilationQueue* function_queue = task->function_queue();
+  BackgroundCompilationQueue* result_queue = task->result_queue();
+
   Monitor* queue_monitor = task->queue_monitor_;
   Monitor* done_monitor = task->done_monitor_;
   bool* task_done = task->done_;
@@ -1802,6 +1808,8 @@ void BackgroundCompiler::Stop(BackgroundCompiler* task) {
   delete task_done;
   delete done_monitor;
   delete queue_monitor;
+  delete function_queue;
+  delete result_queue;
   Isolate::Current()->set_background_compiler(NULL);
 }
 
@@ -1814,17 +1822,6 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
     if (isolate->background_compiler() == NULL) {
       BackgroundCompiler* task = new BackgroundCompiler(isolate);
       isolate->set_background_compiler(task);
-      // TODO(srdjan): Temporary fix to prevent growing (and thus GC-ing) of
-      // queues while inside a MonitorLocker. Will replace GrowableObjectArray
-      // with C heap allocated linked list.
-      GrowableObjectArray& a = GrowableObjectArray::Handle(
-          thread->zone(), GrowableObjectArray::New(Heap::kOld));
-      a.Grow(1000, Heap::kOld);
-      task->set_compilation_function_queue(a);
-
-      a = GrowableObjectArray::New(Heap::kOld);
-      a.Grow(1000, Heap::kOld);
-      task->set_compilation_result_queue(a);
       start_task = true;
     }
   }

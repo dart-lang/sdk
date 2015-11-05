@@ -13,12 +13,14 @@
 namespace dart {
 
 // Forward declarations.
+class BackgroundCompilationQueue;
 class Class;
 class Code;
 class CompilationWorkQueue;
 class Function;
 class Library;
 class ParsedFunction;
+class QueueElement;
 class RawInstance;
 class Script;
 class SequenceNode;
@@ -36,30 +38,33 @@ class BackgroundCompilationResult : public ValueObject {
   void set_result_code(const Code& value) { result_code_ = value.raw(); }
   const Code& result_code() const { return result_code_; }
 
+  uint32_t cha_invalidation_gen() const { return cha_invalidation_gen_; }
+  uint32_t field_invalidation_gen() const { return field_invalidation_gen_; }
+  uint32_t prefix_invalidation_gen() const { return prefix_invalidation_gen_; }
+
+  void SetFromQElement(QueueElement* value);
+
   // Returns true if all relevant gen-counts are current and code is valid.
   bool IsValid() const;
 
   // Remove gen-counts from validation check.
   void ClearCHAInvalidationGen() {
-    cha_invalidation_gen_ = Integer::null();
+    cha_invalidation_gen_ = Isolate::kInvalidGen;
   }
   void ClearFieldInnvalidationGen() {
-    field_invalidation_gen_ = Integer::null();
+    field_invalidation_gen_ = Isolate::kInvalidGen;
   }
   void ClearPrefixInnvalidationGen() {
-    prefix_invalidation_gen_ = Integer::null();
+    prefix_invalidation_gen_ = Isolate::kInvalidGen;
   }
-
-  void PushOnQueue(CompilationWorkQueue* queue) const;
-  void PopFromQueue(CompilationWorkQueue* queue);
 
   void PrintValidity() const;
 
  private:
   Code& result_code_;
-  Integer& cha_invalidation_gen_;
-  Integer& field_invalidation_gen_;
-  Integer& prefix_invalidation_gen_;
+  uint32_t cha_invalidation_gen_;
+  uint32_t field_invalidation_gen_;
+  uint32_t prefix_invalidation_gen_;
 };
 
 
@@ -167,28 +172,16 @@ class BackgroundCompiler : public ThreadPool::Task {
   // Call to activate/install optimized code (must occur in the mutator thread).
   void InstallGeneratedCode();
 
-  // Access to queue length is guarded with queue_monitor_;
-  intptr_t function_queue_length() const { return function_queue_length_; }
-  void set_function_queue_length(intptr_t value) {
-    function_queue_length_ = value;
-  }
 
   void VisitPointers(ObjectPointerVisitor* visitor);
+
+  BackgroundCompilationQueue* function_queue() const { return function_queue_; }
+  BackgroundCompilationQueue* result_queue() const { return result_queue_; }
 
  private:
   explicit BackgroundCompiler(Isolate* isolate);
 
-  void set_compilation_function_queue(const GrowableObjectArray& value);
-  void set_compilation_result_queue(const GrowableObjectArray& value);
-
-  GrowableObjectArray* FunctionsQueue() const;
-  GrowableObjectArray* ResultQueue() const;
-
   virtual void Run();
-
-  void AddFunction(const Function& f);
-  RawFunction* RemoveFunctionOrNull();
-  RawFunction* LastFunctionOrNull() const;
 
   void AddResult(const BackgroundCompilationResult& value);
 
@@ -198,11 +191,8 @@ class BackgroundCompiler : public ThreadPool::Task {
   Monitor* queue_monitor_;  // Controls access to the queue.
   Monitor* done_monitor_;   // Notify/wait that the thread is done.
 
-  // Lightweight access to length of compiler queue.
-  intptr_t function_queue_length_;
-
-  RawGrowableObjectArray* compilation_function_queue_;
-  RawGrowableObjectArray* compilation_result_queue_;
+  BackgroundCompilationQueue* function_queue_;
+  BackgroundCompilationQueue* result_queue_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BackgroundCompiler);
 };

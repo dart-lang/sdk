@@ -624,16 +624,29 @@ class Isolate : public BaseIsolate {
     all_classes_finalized_ = value;
   }
 
-  void IncrCHAInvalidationGen() { cha_invalidation_gen_++; }
-  void ResetCHAInvalidationGen() { cha_invalidation_gen_ = 0; }
+  static const uint32_t kInvalidGen = 0;
+
+  void IncrCHAInvalidationGen() {
+    cha_invalidation_gen_++;
+    if (cha_invalidation_gen_ == kInvalidGen) cha_invalidation_gen_++;
+  }
+  void ResetCHAInvalidationGen() { cha_invalidation_gen_ = kInvalidGen; }
   uint32_t cha_invalidation_gen() const { return cha_invalidation_gen_; }
 
-  void IncrFieldInvalidationGen() { field_invalidation_gen_++; }
-  void ResetFieldInvalidationGen() { field_invalidation_gen_ = 0; }
+
+  void IncrFieldInvalidationGen() {
+    field_invalidation_gen_++;
+    if (field_invalidation_gen_ == kInvalidGen) field_invalidation_gen_++;
+  }
+
+  void ResetFieldInvalidationGen() { field_invalidation_gen_ = kInvalidGen; }
   uint32_t field_invalidation_gen() const { return field_invalidation_gen_; }
 
-  void IncrPrefixInvalidationGen() { prefix_invalidation_gen_++; }
-  void ResetPrefixInvalidationGen() { prefix_invalidation_gen_ = 0; }
+  void IncrPrefixInvalidationGen() {
+    prefix_invalidation_gen_++;
+    if (prefix_invalidation_gen_ == kInvalidGen) prefix_invalidation_gen_++;
+  }
+  void ResetPrefixInvalidationGen() { prefix_invalidation_gen_ = kInvalidGen; }
   uint32_t prefix_invalidation_gen() const { return prefix_invalidation_gen_; }
 
   RawObject* InvokePendingServiceExtensionCalls();

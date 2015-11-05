@@ -794,9 +794,9 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       all_classes_finalized_(false),
       next_(NULL),
       pause_loop_monitor_(NULL),
-      cha_invalidation_gen_(0),
-      field_invalidation_gen_(0),
-      prefix_invalidation_gen_(0) {
+      cha_invalidation_gen_(kInvalidGen),
+      field_invalidation_gen_(kInvalidGen),
+      prefix_invalidation_gen_(kInvalidGen) {
   flags_.CopyFrom(api_flags);
   Thread::Current()->set_vm_tag(VMTag::kEmbedderTagId);
   set_user_tag(UserTags::kDefaultUserTag);
