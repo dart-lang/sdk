@@ -1243,7 +1243,8 @@ class Uri {
     if (path != null) {
       result = _normalize(path, start, end, _pathCharOrSlashTable);
     } else {
-      result = pathSegments.map((s) => _uriEncode(_pathCharTable, s)).join("/");
+      result = pathSegments.map((s) =>
+          _uriEncode(_pathCharTable, s, UTF8, false)).join("/");
     }
     if (result.isEmpty) {
       if (isFile) return "/";
@@ -1953,7 +1954,7 @@ class Uri {
    * a [Uri].
    */
   static String encodeComponent(String component) {
-    return _uriEncode(_unreserved2396Table, component);
+    return _uriEncode(_unreserved2396Table, component, UTF8, false);
   }
 
   /**
@@ -1991,8 +1992,7 @@ class Uri {
    */
   static String encodeQueryComponent(String component,
                                      {Encoding encoding: UTF8}) {
-    return _uriEncode(
-        _unreservedTable, component, encoding: encoding, spaceToPlus: true);
+    return _uriEncode(_unreservedTable, component, encoding, true);
   }
 
   /**
@@ -2036,7 +2036,7 @@ class Uri {
    * the encodeURI function .
    */
   static String encodeFull(String uri) {
-    return _uriEncode(_encodeFullTable, uri);
+    return _uriEncode(_encodeFullTable, uri, UTF8, false);
   }
 
   /**
@@ -2252,46 +2252,10 @@ class Uri {
   static const int _LOWER_CASE_Z = 0x7A;
   static const int _BAR = 0x7C;
 
-  // Matches a String that _uriEncodes to itself regardless of the kind of
-  // component.  This corresponds to [_unreservedTable], i.e. characters that
-  // are not encoded by any encoding table.
-  static final RegExp _needsNoEncoding = new RegExp(r'^[\-\.0-9A-Z_a-z~]*$');
-
-  /**
-   * This is the internal implementation of JavaScript's encodeURI function.
-   * It encodes all characters in the string [text] except for those
-   * that appear in [canonicalTable], and returns the escaped string.
-   */
-  static String _uriEncode(List<int> canonicalTable,
-                           String text,
-                           {Encoding encoding: UTF8,
-                            bool spaceToPlus: false}) {
-    if (_needsNoEncoding.hasMatch(text)) return text;
-
-    byteToHex(byte, buffer) {
-      const String hex = '0123456789ABCDEF';
-      buffer.writeCharCode(hex.codeUnitAt(byte >> 4));
-      buffer.writeCharCode(hex.codeUnitAt(byte & 0x0f));
-    }
-
-    // Encode the string into bytes then generate an ASCII only string
-    // by percent encoding selected bytes.
-    StringBuffer result = new StringBuffer();
-    var bytes = encoding.encode(text);
-    for (int i = 0; i < bytes.length; i++) {
-      int byte = bytes[i];
-      if (byte < 128 &&
-          ((canonicalTable[byte >> 4] & (1 << (byte & 0x0f))) != 0)) {
-        result.writeCharCode(byte);
-      } else if (spaceToPlus && byte == _SPACE) {
-        result.writeCharCode(_PLUS);
-      } else {
-        result.writeCharCode(_PERCENT);
-        byteToHex(byte, result);
-      }
-    }
-    return result.toString();
-  }
+  external static String _uriEncode(List<int> canonicalTable,
+                                    String text,
+                                    Encoding encoding,
+                                    bool spaceToPlus);
 
   /**
    * Convert a byte (2 character hex sequence) in string [s] starting
