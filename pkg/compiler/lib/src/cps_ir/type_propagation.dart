@@ -3027,7 +3027,7 @@ class TypePropagationVisitor implements Visitor {
 
   void visitGetField(GetField node) {
     node.objectIsNotNull = getValue(node.object.definition).isDefinitelyNotNull;
-    setValue(node, nonConstant(typeSystem.getFieldType(node.field)));
+    setValue(node, lattice.fromMask(typeSystem.getFieldType(node.field)));
   }
 
   void visitSetField(SetField node) {}
