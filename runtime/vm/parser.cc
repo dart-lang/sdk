@@ -6584,7 +6584,7 @@ RawFunction* Parser::OpenSyncGeneratorFunction(intptr_t func_pos) {
     // Create the closure containing the body of this generator function.
     String& generator_name = String::Handle(Z, innermost_function().name());
     body_closure_name =
-        String::NewFormatted("<%s_sync_body>", generator_name.ToCString());
+        Symbols::NewFormatted("<%s_sync_body>", generator_name.ToCString());
     body_closure_name = Symbols::New(body_closure_name);
     body = Function::NewClosureFunction(body_closure_name,
                                         innermost_function(),
@@ -6861,8 +6861,8 @@ RawFunction* Parser::OpenAsyncGeneratorFunction(intptr_t async_func_pos) {
     const String& async_generator_name =
         String::Handle(Z, innermost_function().name());
     String& closure_name = String::Handle(Z,
-        String::NewFormatted("<%s_async_gen_body>",
-                             async_generator_name.ToCString()));
+        Symbols::NewFormatted("<%s_async_gen_body>",
+                              async_generator_name.ToCString()));
     closure = Function::NewClosureFunction(
         String::Handle(Z, Symbols::New(closure_name)),
         innermost_function(),

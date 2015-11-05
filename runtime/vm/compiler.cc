@@ -266,6 +266,7 @@ static void AddRelatedClassesToList(
 
 
 RawError* Compiler::CompileClass(const Class& cls) {
+  ASSERT(Thread::Current()->IsMutatorThread());
   // If class is a top level class it is already parsed.
   if (cls.IsTopLevel()) {
     return Error::null();
