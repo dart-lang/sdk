@@ -22,9 +22,7 @@ abstract class _MinifiedFieldNamer implements Namer {
     if (element is BoxFieldElement) {
       names = new _FieldNamingScope.forBox(element.box, fieldRegistry);
     } else {
-      ClassElement cls = element is ClosureFieldElement
-          ? element.closureClass
-          : element.enclosingClass;
+      ClassElement cls = element.enclosingClass;
       names =
           new _FieldNamingScope.forClass(cls, compiler.world, fieldRegistry);
     }
@@ -77,7 +75,7 @@ class _FieldNamingRegistry {
         nameStore.add(
             new StringBackedName(MinifyNamer._reservedNativeProperties[index]));
       } else {
-        nameStore.add(namer.getFreshName(NamingScope.instance, "field$index"));
+        nameStore.add(namer.getFreshName(namer.instanceScope, "field$index"));
       }
     }
 

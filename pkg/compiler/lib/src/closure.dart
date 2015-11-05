@@ -103,7 +103,7 @@ abstract class CapturedVariable implements Element {}
 // TODO(ahe): These classes continuously cause problems.  We need to
 // find a more general solution.
 class ClosureFieldElement extends ElementX
-    implements FieldElement, CapturedVariable {
+    implements FieldElement, CapturedVariable, PrivatelyNamedJSEntity {
   /// The [BoxLocal] or [LocalElement] being accessed through the field.
   final Local local;
 
@@ -119,6 +119,11 @@ class ClosureFieldElement extends ElementX
   ClosureClassElement get closureClass => super.enclosingElement;
 
   MemberElement get memberContext => closureClass.methodElement.memberContext;
+
+  @override
+  Entity get declaredEntity => local;
+  @override
+  Entity get rootOfScope => closureClass;
 
   bool get hasNode => false;
 
@@ -246,16 +251,23 @@ class BoxLocal extends Local {
 // TODO(ngeoffray, ahe): These classes continuously cause problems.  We need to
 // find a more general solution.
 class BoxFieldElement extends ElementX
-    implements TypedElement, CapturedVariable, FieldElement {
+    implements TypedElement, CapturedVariable, FieldElement,
+        PrivatelyNamedJSEntity {
   final BoxLocal box;
 
-  BoxFieldElement(String name, this.variableElement, BoxLocal box)
+  BoxFieldElement(String name, this.variableElement,
+      BoxLocal box)
       : this.box = box,
         super(name, ElementKind.FIELD, box.executableContext);
 
   DartType computeType(Resolution resolution) => type;
 
   DartType get type => variableElement.type;
+
+  @override
+  Entity get declaredEntity => variableElement;
+  @override
+  Entity get rootOfScope => box;
 
   final VariableElement variableElement;
 
@@ -519,6 +531,8 @@ class ClosureTranslator extends Visitor {
   ///
   /// Also, the names should be distinct from real field names to prevent
   /// clashes with selectors for those fields.
+  ///
+  /// These names are not used in generated code, just as element name.
   String getClosureVariableName(String name, int id) {
     return "_captured_${name}_$id";
   }
@@ -532,6 +546,8 @@ class ClosureTranslator extends Visitor {
   ///
   /// Also, the names should be distinct from real field names to prevent
   /// clashes with selectors for those fields.
+  ///
+  /// These names are not used in generated code, just as element name.
   String getBoxFieldName(int id) {
     return "_box_$id";
   }
@@ -1133,4 +1149,15 @@ class TypeVariableLocal implements Local {
     if (other is! TypeVariableLocal) return false;
     return typeVariable == other.typeVariable;
   }
+}
+
+///
+/// Move the below classes to a JS model eventually.
+///
+abstract class JSEntity implements Entity {
+  Entity get declaredEntity;
+}
+
+abstract class PrivatelyNamedJSEntity implements JSEntity {
+  Entity get rootOfScope;
 }

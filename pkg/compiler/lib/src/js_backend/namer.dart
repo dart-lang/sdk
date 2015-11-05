@@ -370,7 +370,7 @@ class Namer {
   /// Although global names are distributed across a number of global objects,
   /// (see [globalObjectFor]), we currently use a single namespace for all these
   /// names.
-  final Set<String> usedGlobalNames = new Set<String>();
+  final NamingScope globalScope = new NamingScope();
   final Map<Element, jsAst.Name> userGlobals =
       new HashMap<Element, jsAst.Name>();
   final Map<String, jsAst.Name> internalGlobals =
@@ -379,7 +379,7 @@ class Namer {
   /// Used disambiguated names in the instance namespace, issued by
   /// [_disambiguateMember], [_disambiguateInternalMember],
   /// [_disambiguateOperator], and [reservePublicMemberName].
-  final Set<String> usedInstanceNames = new Set<String>();
+  final NamingScope instanceScope = new NamingScope();
   final Map<String, jsAst.Name> userInstanceMembers =
       new HashMap<String, jsAst.Name>();
   final Map<Element, jsAst.Name> internalInstanceMembers =
@@ -388,18 +388,11 @@ class Namer {
       new HashMap<String, jsAst.Name>();
 
   /// Used to disambiguate names for constants in [constantName].
-  final Set<String> usedConstantNames = new Set<String>();
+  final NamingScope constantScope = new NamingScope();
 
-  Set<String> getUsedNames(NamingScope scope) {
-    if (scope == NamingScope.global) {
-      return usedGlobalNames;
-    } else if (scope == NamingScope.instance){
-      return usedInstanceNames;
-    } else {
-      assert(scope == NamingScope.constant);
-      return usedConstantNames;
-    }
-  }
+  /// Used to store scopes for instances of [PrivatelyNamedJsEntity]
+  final Map<Entity, NamingScope> _privateNamingScopes =
+      new Map<Entity, NamingScope>();
 
   final Map<String, int> popularNameCounters = <String, int>{};
 
@@ -417,27 +410,8 @@ class Namer {
   final Map<String, LibraryElement> shortPrivateNameOwners =
       <String, LibraryElement>{};
 
-  /// Maps proposed names to *suggested* disambiguated names.
-  ///
-  /// Suggested names are hints to the [MinifyNamer], suggesting that a specific
-  /// names be given to the first item with the given proposed name.
-  ///
-  /// This is currently used in [MinifyNamer] to assign very short minified
-  /// names to things that tend to be used very often.
   final Map<String, String> suggestedGlobalNames = <String, String>{};
   final Map<String, String> suggestedInstanceNames = <String, String>{};
-
-  Map<String, String> getSuggestedNames(NamingScope scope) {
-    if (scope == NamingScope.global) {
-      return suggestedGlobalNames;
-    } else if (scope == NamingScope.instance) {
-      return suggestedInstanceNames;
-    } else {
-      assert(scope == NamingScope.constant);
-      return const {};
-    }
-  }
-
 
   /// Used to store unique keys for library names. Keys are not used as names,
   /// nor are they visible in the output. The only serve as an internal
@@ -475,6 +449,11 @@ class Namer {
   String get STATIC_CLOSURE_NAME_NAME => r'$name';
   String get closureInvocationSelectorName => Identifiers.call;
   bool get shouldMinify => false;
+
+  NamingScope _getPrivateScopeFor(PrivatelyNamedJSEntity entity) {
+    return _privateNamingScopes.putIfAbsent(entity.rootOfScope,
+                                            () => new NamingScope());
+  }
 
   /// Returns the string that is to be used as the result of a call to
   /// [JS_GET_NAME] at [node] with argument [name].
@@ -545,7 +524,7 @@ class Namer {
     jsAst.Name result = constantNames[constant];
     if (result == null) {
       String longName = constantLongName(constant);
-      result = getFreshName(NamingScope.constant, longName);
+      result = getFreshName(constantScope, longName);
       constantNames[constant] = result;
     }
     return _newReference(result);
@@ -799,14 +778,16 @@ class Namer {
       return new StringBackedName(backend.getFixedBackendName(element));
     }
 
-    // Instances of BoxFieldElement are special. They are already created with
-    // a unique and safe name. However, as boxes are not really instances of
-    // classes, the usual naming scheme that tries to avoid name clashes with
-    // super classes does not apply. We still do not mark the name as a
-    // fixedBackendName, as we want to allow other namers to do something more
-    // clever with them.
-    if (element is BoxFieldElement) {
-      return new StringBackedName(element.name);
+    // Some elements, like e.g. instances of BoxFieldElement are special.
+    // They are created with a unique and safe name for the element model.
+    // While their name is unique, it is not very readable. So we try to
+    // preserve the original, proposed name.
+    // However, as boxes are not really instances of classes, the usual naming
+    // scheme that tries to avoid name clashes with super classes does not
+    // apply. So we can directly grab a name.
+    if (element is JSEntity) {
+      return _disambiguateInternalMember(element,
+                                         () => element.declaredEntity.name);
     }
 
     // If the name of the field might clash with another field,
@@ -882,7 +863,7 @@ class Namer {
   jsAst.Name _disambiguateInternalGlobal(String name) {
     jsAst.Name newName = internalGlobals[name];
     if (newName == null) {
-      newName = getFreshName(NamingScope.global, name);
+      newName = getFreshName(globalScope, name);
       internalGlobals[name] = newName;
     }
     return _newReference(newName);
@@ -929,7 +910,7 @@ class Namer {
     jsAst.Name newName = userGlobals[element];
     if (newName == null) {
       String proposedName = _proposeNameForGlobal(element);
-      newName = getFreshName(NamingScope.global, proposedName);
+      newName = getFreshName(globalScope, proposedName);
       userGlobals[element] = newName;
     }
     return _newReference(newName);
@@ -969,7 +950,7 @@ class Namer {
         // proposed name must be a valid identifier, but not necessarily unique.
         proposedName += r'$' + suffixes.join(r'$');
       }
-      newName = getFreshName(NamingScope.instance, proposedName,
+      newName = getFreshName(instanceScope, proposedName,
                              sanitizeForAnnotations: true);
       userInstanceMembers[key] = newName;
     }
@@ -992,7 +973,7 @@ class Namer {
     jsAst.Name newName = userInstanceMembers[key];
     if (newName == null) {
       String name = proposeName();
-      newName = getFreshName(NamingScope.instance, name,
+      newName = getFreshName(instanceScope, name,
                              sanitizeForAnnotations: true);
       userInstanceMembers[key] = newName;
     }
@@ -1014,9 +995,9 @@ class Namer {
     String suffix = ''; // We don't need any suffixes.
     String key = '$libraryPrefix@$originalName@$suffix';
     assert(!userInstanceMembers.containsKey(key));
-    assert(!usedInstanceNames.contains(disambiguatedName));
+    assert(!instanceScope.isUsed(disambiguatedName));
     userInstanceMembers[key] = new StringBackedName(disambiguatedName);
-    usedInstanceNames.add(disambiguatedName);
+    instanceScope.registerUse(disambiguatedName);
   }
 
   /// Disambiguated name unique to [element].
@@ -1030,11 +1011,21 @@ class Namer {
     jsAst.Name newName = internalInstanceMembers[element];
     if (newName == null) {
       String name = proposeName();
-      bool mayClashNative = _isUserClassExtendingNative(element.enclosingClass);
-      newName = getFreshName(NamingScope.instance, name,
-                             sanitizeForAnnotations: true,
-                             sanitizeForNatives: mayClashNative);
-      internalInstanceMembers[element] = newName;
+
+      if (element is PrivatelyNamedJSEntity) {
+        NamingScope scope = _getPrivateScopeFor(element);
+        newName = getFreshName(scope, name,
+                               sanitizeForAnnotations: true,
+                               sanitizeForNatives: false);
+        internalInstanceMembers[element] = newName;
+      } else {
+        bool mayClashNative =
+            _isUserClassExtendingNative(element.enclosingClass);
+        newName = getFreshName(instanceScope, name,
+                               sanitizeForAnnotations: true,
+                               sanitizeForNatives: mayClashNative);
+        internalInstanceMembers[element] = newName;
+      }
     }
     return _newReference(newName);
   }
@@ -1048,15 +1039,14 @@ class Namer {
   jsAst.Name _disambiguateOperator(String operatorIdentifier) {
     jsAst.Name newName = userInstanceOperators[operatorIdentifier];
     if (newName == null) {
-      newName = getFreshName(NamingScope.instance, operatorIdentifier);
+      newName = getFreshName(instanceScope, operatorIdentifier);
       userInstanceOperators[operatorIdentifier] = newName;
     }
     return _newReference(newName);
   }
 
   String _generateFreshStringForName(String proposedName,
-      Set<String> usedNames,
-      Map<String, String> suggestedNames,
+      NamingScope scope,
       {bool sanitizeForAnnotations: false,
        bool sanitizeForNatives: false}) {
     if (sanitizeForAnnotations) {
@@ -1067,18 +1057,18 @@ class Namer {
     }
     proposedName = _sanitizeForKeywords(proposedName);
     String candidate;
-    if (!usedNames.contains(proposedName)) {
+    if (scope.isUnused(proposedName)) {
       candidate = proposedName;
     } else {
       int counter = popularNameCounters[proposedName];
       int i = (counter == null) ? 0 : counter;
-      while (usedNames.contains("$proposedName$i")) {
+      while (scope.isUsed("$proposedName$i")) {
         i++;
       }
       popularNameCounters[proposedName] = i + 1;
       candidate = "$proposedName$i";
     }
-    usedNames.add(candidate);
+    scope.registerUse(candidate);
     return candidate;
   }
 
@@ -1100,8 +1090,7 @@ class Namer {
                            bool sanitizeForNatives: false}) {
     String candidate =
         _generateFreshStringForName(proposedName,
-                                    getUsedNames(scope),
-                                    getSuggestedNames(scope),
+                                    scope,
                                     sanitizeForAnnotations:
                                         sanitizeForAnnotations,
                                     sanitizeForNatives: sanitizeForNatives);
@@ -1436,7 +1425,7 @@ class Namer {
   jsAst.Name getFunctionTypeName(FunctionType functionType) {
     return functionTypeNameMap.putIfAbsent(functionType, () {
       String proposedName = functionTypeNamer.computeName(functionType);
-      return getFreshName(NamingScope.instance, proposedName);
+      return getFreshName(instanceScope, proposedName);
     });
   }
 
@@ -1572,7 +1561,6 @@ class Namer {
   void forgetElement(Element element) {
     jsAst.Name globalName = userGlobals[element];
     invariant(element, globalName != null, message: 'No global name.');
-    usedGlobalNames.remove(globalName);
     userGlobals.remove(element);
   }
 }
@@ -2028,8 +2016,29 @@ class FunctionTypeNamer extends BaseDartTypeVisitor {
   }
 }
 
-enum NamingScope {
-  global,
-  instance,
-  constant
+
+class NamingScope {
+  /// Maps proposed names to *suggested* disambiguated names.
+  ///
+  /// Suggested names are hints to the [MinifyNamer], suggesting that a specific
+  /// names be given to the first item with the given proposed name.
+  ///
+  /// This is currently used in [MinifyNamer] to assign very short minified
+  /// names to things that tend to be used very often.
+  final Map<String, String> _suggestedNames = new Map<String, String>();
+  final Set<String> _usedNames = new Set<String>();
+
+  bool isUsed(String name) => _usedNames.contains(name);
+  bool isUnused(String name) => !_usedNames.contains(name);
+  bool registerUse(String name) => _usedNames.add(name);
+
+  String suggestName(String original) => _suggestedNames[original];
+  void addSuggestion(String original, String suggestion) {
+    assert(!_suggestedNames.containsKey(original));
+    _suggestedNames[original] = suggestion;
+  }
+  bool hasSuggestion(String original) => _suggestedNames.containsKey(original);
+  bool isSuggestion(String candidate) {
+    return _suggestedNames.containsValue(candidate);
+  }
 }

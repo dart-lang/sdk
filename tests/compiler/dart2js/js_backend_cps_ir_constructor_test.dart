@@ -96,7 +96,7 @@ main() {
 r"""
 function(x, y) {
   var _box_0 = {}, v0 = new V.Sub(y, new V.Base_closure(_box_0));
-  _box_0._captured_x1_0 = x;
+  _box_0.x1 = x;
   v0.Base0$0();
   v0.Base$1(_box_0);
   v0.Sub$2(x, y);
