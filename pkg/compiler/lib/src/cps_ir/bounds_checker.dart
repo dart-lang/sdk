@@ -12,6 +12,9 @@ import 'cps_fragment.dart';
 import 'type_mask_system.dart';
 import '../world.dart';
 import '../elements/elements.dart';
+import 'loop_effects.dart';
+
+
 
 /// Eliminates bounds checks when they can be proven safe.
 ///
@@ -30,7 +33,6 @@ import '../elements/elements.dart';
 ///
 /// Loops are analyzed in two passes. The first pass establishes monotonicity
 /// of loop variables, which the second pass uses to compute upper/lower bounds.
-/// The first pass also records whether any side effects occurred in the loop.
 ///
 /// The two-pass scheme is suboptimal compared to a least fixed-point
 /// computation, but does not require repeated iteration.  Repeated iteration
@@ -56,7 +58,6 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
   final Map<Primitive, Map<int, SignedVariable>> lengthOf = {};
 
   /// Fields for the two-pass handling of loops.
-  final Set<Continuation> loopsWithSideEffects = new Set<Continuation>();
   final Map<Parameter, Monotonicity> monotonicity = <Parameter, Monotonicity>{};
   bool isStrongLoopPass;
   bool foundLoop = false;
@@ -65,6 +66,7 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
   ///
   /// The IR is divided into regions wherein the lengths of indexable objects
   /// are known not to change. Regions are identified by their "effect number".
+  LoopSideEffects loopEffects;
   final Map<Continuation, int> effectNumberAt = <Continuation, int>{};
   int currentEffectNumber = 0;
   int effectNumberCounter = 0;
@@ -72,6 +74,7 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
   BoundsChecker(this.types, this.world);
 
   void rewrite(FunctionDefinition node) {
+    loopEffects = new LoopSideEffects(node, world);
     isStrongLoopPass = false;
     visit(node);
     if (foundLoop) {
@@ -402,12 +405,8 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
           makeLessThanOrEqual(getValue(param), initialVariable);
         }
       }
-      if (loopsWithSideEffects.contains(cont)) {
-        currentEffectNumber = makeNewEffect();
-      }
-    } else {
-      // During the weak pass, conservatively make a new effect number in the
-      // loop body. This may be strengthened during the strong pass.
+    }
+    if (loopEffects.loopChangesLength(cont)) {
       currentEffectNumber = effectNumberAt[cont] = makeNewEffect();
     }
     push(cont);
@@ -439,12 +438,6 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
         // henceforth that it might be decreasing.
         markMonotonicity(cont.parameters[i], Monotonicity.Decreasing);
       }
-    }
-
-    // If a side effect has occurred between the entry and continue, mark
-    // the loop as having side effects.
-    if (currentEffectNumber != effectNumberAt[cont]) {
-      loopsWithSideEffects.add(cont);
     }
   }
 
