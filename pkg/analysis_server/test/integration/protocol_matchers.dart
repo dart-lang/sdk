@@ -1007,6 +1007,23 @@ final Matcher isExecutionLaunchDataParams = new LazyMatcher(() => new MatchesJso
   }));
 
 /**
+ * experimental.getDiagnostics params
+ */
+final Matcher isExperimentalGetDiagnosticsParams = isNull;
+
+/**
+ * experimental.getDiagnostics result
+ *
+ * {
+ *   "contexts": List<ContextData>
+ * }
+ */
+final Matcher isExperimentalGetDiagnosticsResult = new LazyMatcher(() => new MatchesJsonObject(
+  "experimental.getDiagnostics result", {
+    "contexts": isListOf(isContextData)
+  }));
+
+/**
  * AddContentOverlay
  *
  * {
@@ -1257,6 +1274,26 @@ final Matcher isCompletionSuggestionKind = new MatchesEnum("CompletionSuggestion
   "OPTIONAL_ARGUMENT",
   "PARAMETER"
 ]);
+
+/**
+ * ContextData
+ *
+ * {
+ *   "name": String
+ *   "explicitFileCount": int
+ *   "implicitFileCount": int
+ *   "workItemQueueLength": int
+ *   "cacheEntryExceptions": List<String>
+ * }
+ */
+final Matcher isContextData = new LazyMatcher(() => new MatchesJsonObject(
+  "ContextData", {
+    "name": isString,
+    "explicitFileCount": isInt,
+    "implicitFileCount": isInt,
+    "workItemQueueLength": isInt,
+    "cacheEntryExceptions": isListOf(isString)
+  }));
 
 /**
  * Element

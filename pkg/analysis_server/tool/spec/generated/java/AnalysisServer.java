@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, the Dart project authors.
+ * Copyright (c) 2015, the Dart project authors.
  *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -441,6 +441,13 @@ public interface AnalysisServer {
    * @param subscriptions A list of the services being subscribed to.
    */
   public void execution_setSubscriptions(List<String> subscriptions);
+
+  /**
+   * {@code experimental.getDiagnostics}
+   *
+   * Return server diagnostics.
+   */
+  public void experimental_getDiagnostics(GetDiagnosticsConsumer consumer);
 
   /**
    * Return {@code true} if the socket is open.

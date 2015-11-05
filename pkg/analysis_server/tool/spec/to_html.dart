@@ -388,7 +388,9 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
   @override
   void visitApi() {
-    definedTypes = api.types.keys.toSet();
+    Iterable<TypeDefinition> apiTypes =
+        api.types.where((TypeDefinition td) => !td.experimental);
+    definedTypes = apiTypes.map((TypeDefinition td) => td.name).toSet();
 
     html(() {
       translateHtml(api.html);
@@ -491,6 +493,9 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
   @override
   void visitTypeDefinition(TypeDefinition typeDefinition) {
+    if (typeDefinition.experimental) {
+      return;
+    }
     dt('typeDefinition', () {
       anchor('type_${typeDefinition.name}', () {
         write('${typeDefinition.name}: ');
