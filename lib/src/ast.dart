@@ -31,18 +31,30 @@ import 'package:analyzer/src/generated/ast.dart'
         TypeParameter,
         VariableDeclaration;
 import 'package:analyzer/src/generated/element.dart'
-    show Element, ParameterElement, PropertyAccessorElement;
+    show
+        Element,
+        GeneralizingElementVisitor,
+        ParameterElement,
+        PropertyAccessorElement;
 import 'package:analyzer/src/generated/scanner.dart'
     show Keyword, KeywordToken, KeywordTokenWithComment, Token;
 import 'package:linter/src/util.dart';
 
+/// Returns direct children of [parent].
+List<Element> getChildren(Element parent, [String name]) {
+  List<Element> children = <Element>[];
+  visitChildren(parent, (Element element) {
+    if (name == null || element.displayName == name) {
+      children.add(element);
+    }
+  });
+  return children;
+}
+
 /// Returns the most specific AST node appropriate for associating errors.
 AstNode getNodeToAnnotate(Declaration node) {
   AstNode mostSpecific = _getNodeToAnnotate(node);
-  if (mostSpecific != null) {
-    return mostSpecific;
-  }
-  return node;
+  return mostSpecific ?? node;
 }
 
 /// Returns `true` if the keyword associated with this token is `final` or
@@ -130,6 +142,12 @@ bool isValidDartIdentifier(String id) => !isKeyWord(id) && isIdentifier(id);
 
 /// Returns `true` if the keyword associated with this token is `var`.
 bool isVar(Token token) => isKeyword(token, Keyword.VAR);
+
+/// Uses [processor] to visit all of the children of [element].
+/// If [processor] returns `true`, then children of a child are visited too.
+void visitChildren(Element element, ElementProcessor processor) {
+  element.visitChildren(new _ElementVisitorAdapter(processor));
+}
 
 bool _checkForSimpleGetter(MethodDeclaration getter, Expression expression) {
   if (expression is SimpleIdentifier) {
@@ -223,4 +241,22 @@ AstNode _getNodeToAnnotate(Declaration node) {
     return node.name;
   }
   return null;
+}
+
+/// An [Element] processor function type.
+/// If `true` is returned, children of [element] will be visited.
+typedef bool ElementProcessor(Element element);
+
+/// A [GeneralizingElementVisitor] adapter for [ElementProcessor].
+class _ElementVisitorAdapter extends GeneralizingElementVisitor {
+  final ElementProcessor processor;
+  _ElementVisitorAdapter(this.processor);
+
+  @override
+  void visitElement(Element element) {
+    bool visitChildren = processor(element);
+    if (visitChildren == true) {
+      element.visitChildren(this);
+    }
+  }
 }

@@ -1,0 +1,102 @@
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library linter.src.rules.prefer_is_not_empty;
+
+import 'package:analyzer/src/generated/ast.dart'
+    show
+        AstNode,
+        AstVisitor,
+        PrefixExpression,
+        PrefixedIdentifier,
+        PropertyAccess,
+        SimpleAstVisitor,
+        SimpleIdentifier;
+import 'package:analyzer/src/generated/element.dart' show Element;
+import 'package:analyzer/src/generated/scanner.dart' show TokenType;
+import 'package:linter/src/ast.dart';
+import 'package:linter/src/linter.dart';
+
+const desc = 'Use isNotEmpty for Iterables and Maps.';
+
+const details = '''
+**PREFER** `x.isNotEmpty` to `!x.isEmpty` for Iterables and Maps.
+
+When testing whether an iterable or map is empty, prefer `isNotEmpty` over
+`!isEmpty`.
+
+**GOOD:**
+```
+if (todo.isNotEmpty) {
+  sendResults(request, todo.isEmpty);
+}
+```
+
+**BAD:**
+```
+if (!sources.isEmpty) {
+  process(sources);
+}
+```
+''';
+
+class PreferIsNotEmpty extends LintRule {
+  PreferIsNotEmpty()
+      : super(
+            name: 'prefer_is_not_empty',
+            description: desc,
+            details: details,
+            group: Group.style);
+
+  @override
+  AstVisitor getVisitor() => new Visitor(this);
+}
+
+class Visitor extends SimpleAstVisitor {
+  final LintRule rule;
+  Visitor(this.rule);
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier identifier) {
+    AstNode isEmptyAccess = null;
+    SimpleIdentifier isEmptyIdentifier = null;
+
+    AstNode parent = identifier.parent;
+    if (parent is PropertyAccess) {
+      isEmptyIdentifier = parent.propertyName;
+      isEmptyAccess = parent;
+    } else if (parent is PrefixedIdentifier) {
+      isEmptyIdentifier = parent.identifier;
+      isEmptyAccess = parent;
+    }
+
+    if (isEmptyIdentifier == null) {
+      return;
+    }
+
+    // Should be "isEmpty".
+    Element propertyElement = isEmptyIdentifier.bestElement;
+    if (propertyElement == null || 'isEmpty' != propertyElement.name) {
+      return;
+    }
+    // Should have "isNotEmpty".
+    Element propertyTarget = propertyElement.enclosingElement;
+    if (propertyTarget == null ||
+        getChildren(propertyTarget, 'isNotEmpty').isEmpty) {
+      return;
+    }
+    // Should be in PrefixExpression.
+    if (isEmptyAccess.parent is! PrefixExpression) {
+      return;
+    }
+    PrefixExpression prefixExpression =
+        isEmptyAccess.parent as PrefixExpression;
+    // Should be !
+    if (prefixExpression.operator.type != TokenType.BANG) {
+      return;
+    }
+
+    rule.reportLint(prefixExpression);
+  }
+}

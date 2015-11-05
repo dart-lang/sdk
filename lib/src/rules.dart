@@ -20,6 +20,7 @@ import 'package:linter/src/rules/non_constant_identifier_names.dart';
 import 'package:linter/src/rules/one_member_abstracts.dart';
 import 'package:linter/src/rules/package_api_docs.dart';
 import 'package:linter/src/rules/package_prefixed_library_names.dart';
+import 'package:linter/src/rules/prefer_is_not_empty.dart';
 import 'package:linter/src/rules/pub/package_names.dart';
 import 'package:linter/src/rules/slash_for_doc_comments.dart';
 import 'package:linter/src/rules/super_goes_last.dart';
@@ -37,6 +38,7 @@ final Registry ruleRegistry = new Registry()
   ..register(new LibraryNames())
   ..register(new LibraryPrefixes())
   ..register(new NonConstantIdentifierNames())
+  ..register(new PreferIsNotEmpty())
   ..register(new OneMemberAbstracts())
   ..register(new PackageApiDocs())
   ..register(new PackagePrefixedLibraryNames())

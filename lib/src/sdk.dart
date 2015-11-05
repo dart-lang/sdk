@@ -92,6 +92,7 @@ class Iterator<E> {
 abstract class Iterable<E> {
   Iterator<E> get iterator;
   bool get isEmpty;
+  bool get isNotEmpty;
 }
 
 abstract class List<E> implements Iterable<E> {
@@ -100,10 +101,14 @@ abstract class List<E> implements Iterable<E> {
   void operator []=(int index, E value);
   Iterator<E> get iterator => null;
   void clear();
+  bool get isEmpty;
+  bool get isNotEmpty;
 }
 
 abstract class Map<K, V> extends Object {
   Iterable<K> get keys;
+  bool get isEmpty;
+  bool get isNotEmpty;
 }
 
 external bool identical(Object a, Object b);
