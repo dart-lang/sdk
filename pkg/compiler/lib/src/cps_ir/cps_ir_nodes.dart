@@ -2067,7 +2067,9 @@ class TrampolineRecursiveVisitor extends DeepRecursiveVisitor {
     if (cont.isReturnContinuation) {
       traverseContinuation(cont);
     } else {
-      _trampoline(traverseContinuation(cont));
+      int initialHeight = _stack.length;
+      Expression body = traverseContinuation(cont);
+      _trampoline(body, initialHeight: initialHeight);
     }
   }
 
@@ -2107,8 +2109,8 @@ class TrampolineRecursiveVisitor extends DeepRecursiveVisitor {
     return node.body;
   }
 
-  void _trampoline(Expression node) {
-    int initialHeight = _stack.length;
+  void _trampoline(Expression node, {int initialHeight}) {
+    initialHeight = initialHeight ?? _stack.length;
     _processBlock(node);
     while (_stack.length > initialHeight) {
       StackAction callback = _stack.removeLast();
