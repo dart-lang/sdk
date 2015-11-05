@@ -310,8 +310,9 @@ String _getDeclarationName(mirrors.DeclarationMirror declaration) {
 final _JS_LIBRARY_PREFIX = "js_library";
 final _UNDEFINED_VAR = "_UNDEFINED_JS_CONST";
 
-String _accessJsPath(String path) {
-  var parts = path.split(".");
+String _accessJsPath(String path) => _accessJsPathHelper(path.split("."));
+
+String _accessJsPathHelper(Iterable<String> parts) {
   var sb = new StringBuffer();
   sb
     ..write('${_JS_LIBRARY_PREFIX}.JsNative.getProperty(' * parts.length)
@@ -322,11 +323,10 @@ String _accessJsPath(String path) {
   return sb.toString();
 }
 
-
 String _accessJsPathSetter(String path) {
   var parts = path.split(".");
-  return "${_JS_LIBRARY_PREFIX}.JsNative.setProperty(${_accessJsPath(parts.getRange(0, parts.length - 1).join('.'))
-      }, '{parts.end}', v)";
+  return "${_JS_LIBRARY_PREFIX}.JsNative.setProperty(${_accessJsPathHelper(parts.getRange(0, parts.length - 1))
+      }, '${parts.last}', v)";
 }
 
 @Deprecated("Internal Use Only")
@@ -395,13 +395,12 @@ void addMemberHelper(
   sb.write("\n");
 }
 
-// TODO(jacobr): make this check more robust.
-bool _isExternal(mirrors.Mirror mirror) {
-  /*
-  var source = mirror.source;
-  return source != null && source.startsWith("external ");
-  */
-  return mirror.isExternal;
+bool _isExternal(mirrors.MethodMirror mirror) {
+  // This try-catch block is a workaround for BUG:24834.
+  try {
+    return mirror.isExternal;
+  } catch (e) { }
+  return false;
 }
 
 List<String> _generateExternalMethods() {
