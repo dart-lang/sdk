@@ -1200,7 +1200,8 @@ class Assembler : public ValueObject {
                               Condition cond = AL);
   // Writes new_value to address and its shadow location, if enabled, after
   // verifying that its old value matches its shadow.
-  void VerifiedWrite(const Address& address,
+  void VerifiedWrite(Register object,
+                     const Address& address,
                      Register new_value,
                      FieldContent old_content);
 

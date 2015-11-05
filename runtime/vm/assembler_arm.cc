@@ -1724,7 +1724,9 @@ void Assembler::WriteShadowedFieldPair(Register base,
 
 
 Register UseRegister(Register reg, RegList* used) {
+  ASSERT(reg != THR);
   ASSERT(reg != SP);
+  ASSERT(reg != FP);
   ASSERT(reg != PC);
   ASSERT((*used & (1 << reg)) == 0);
   *used |= (1 << reg);
@@ -1740,7 +1742,8 @@ Register AllocateRegister(RegList* used) {
 }
 
 
-void Assembler::VerifiedWrite(const Address& address,
+void Assembler::VerifiedWrite(Register object,
+                              const Address& address,
                               Register new_value,
                               FieldContent old_content) {
 #if defined(DEBUG)
@@ -1750,6 +1753,9 @@ void Assembler::VerifiedWrite(const Address& address,
   RegList used = 0;
   UseRegister(new_value, &used);
   Register base = UseRegister(address.rn(), &used);
+  if ((object != base) && (object != kNoRegister)) {
+    UseRegister(object, &used);
+  }
   if (address.rm() != kNoRegister) {
     UseRegister(address.rm(), &used);
   }
@@ -1818,7 +1824,7 @@ void Assembler::StoreIntoObject(Register object,
                                 Register value,
                                 bool can_value_be_smi) {
   ASSERT(object != value);
-  VerifiedWrite(dest, value, kHeapObjectOrSmi);
+  VerifiedWrite(object, dest, value, kHeapObjectOrSmi);
   Label done;
   if (can_value_be_smi) {
     StoreIntoObjectFilter(object, value, &done);
@@ -1861,7 +1867,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          Register value,
                                          FieldContent old_content) {
-  VerifiedWrite(dest, value, old_content);
+  VerifiedWrite(object, dest, value, old_content);
 #if defined(DEBUG)
   Label done;
   StoreIntoObjectFilter(object, value, &done);
@@ -1895,7 +1901,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
          (value.IsOld() && value.IsNotTemporaryScopedHandle()));
   // No store buffer update.
   LoadObject(IP, value);
-  VerifiedWrite(dest, IP, old_content);
+  VerifiedWrite(object, dest, IP, old_content);
 }
 
 
@@ -1908,8 +1914,11 @@ void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
     StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
                              old_content);
   } else {
-    AddImmediate(IP, object, offset - kHeapObjectTag);
-    StoreIntoObjectNoBarrier(object, Address(IP), value, old_content);
+    Register base = object == R9 ? R8 : R9;
+    Push(base);
+    AddImmediate(base, object, offset - kHeapObjectTag);
+    StoreIntoObjectNoBarrier(object, Address(base), value, old_content);
+    Pop(base);
   }
 }
 
@@ -1973,7 +1982,7 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
   Stop("New value must be Smi.");
   Bind(&done);
 #endif  // defined(DEBUG)
-  VerifiedWrite(dest, value, kOnlySmi);
+  VerifiedWrite(kNoRegister, dest, value, kOnlySmi);
 }
 
 
