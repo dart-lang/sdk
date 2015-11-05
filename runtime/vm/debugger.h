@@ -655,6 +655,7 @@ class Debugger {
   Isolate* isolate_;
   Dart_Port isolate_id_;  // A unique ID for the isolate in the debugger.
   bool initialized_;
+  bool creation_message_sent_;  // The creation message has been sent.
 
   // ID number generator.
   intptr_t next_id_;

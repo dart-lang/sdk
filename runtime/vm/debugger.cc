@@ -1251,6 +1251,7 @@ Debugger::Debugger()
     : isolate_(NULL),
       isolate_id_(ILLEGAL_ISOLATE_ID),
       initialized_(false),
+      creation_message_sent_(false),
       next_id_(1),
       latent_locations_(NULL),
       breakpoint_locations_(NULL),
@@ -1299,8 +1300,11 @@ void Debugger::Shutdown() {
     bpt->Disable();
     delete bpt;
   }
-  // Signal isolate shutdown event.
-  SignalIsolateEvent(DebuggerEvent::kIsolateShutdown);
+  // Signal isolate shutdown event, but only if we previously sent the creation
+  // event.
+  if (creation_message_sent_) {
+    SignalIsolateEvent(DebuggerEvent::kIsolateShutdown);
+  }
 }
 
 
@@ -2809,8 +2813,10 @@ void Debugger::Initialize(Isolate* isolate) {
 
 void Debugger::NotifyIsolateCreated() {
   // Signal isolate creation event.
-  if (!ServiceIsolate::IsServiceIsolateDescendant(isolate_)) {
+  if ((isolate_ != Dart::vm_isolate()) &&
+      !ServiceIsolate::IsServiceIsolateDescendant(isolate_)) {
     SignalIsolateEvent(DebuggerEvent::kIsolateCreated);
+    creation_message_sent_ = true;
   }
 }
 
