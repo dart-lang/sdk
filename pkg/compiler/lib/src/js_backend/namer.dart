@@ -785,9 +785,10 @@ class Namer {
     // However, as boxes are not really instances of classes, the usual naming
     // scheme that tries to avoid name clashes with super classes does not
     // apply. So we can directly grab a name.
-    if (element is JSEntity) {
+    Entity asEntity = element;
+    if (asEntity is JSEntity) {
       return _disambiguateInternalMember(element,
-                                         () => element.declaredEntity.name);
+                                         () => asEntity.declaredEntity.name);
     }
 
     // If the name of the field might clash with another field,
@@ -1012,8 +1013,9 @@ class Namer {
     if (newName == null) {
       String name = proposeName();
 
-      if (element is PrivatelyNamedJSEntity) {
-        NamingScope scope = _getPrivateScopeFor(element);
+      Entity asEntity = element;
+      if (asEntity is PrivatelyNamedJSEntity) {
+        NamingScope scope = _getPrivateScopeFor(asEntity);
         newName = getFreshName(scope, name,
                                sanitizeForAnnotations: true,
                                sanitizeForNatives: false);
