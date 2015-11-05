@@ -1160,32 +1160,6 @@ class DartHtmlDomObject {
 
 }
 
-/// Upgrade a Dart HtmlElement to the user's Dart custom element class.
-_upgradeHtmlElement(dartInstance) {
-  // Only try upgrading HtmlElement (Dart class) if there is a failure then
-  // don't try it again - one failure is enough.
-  if (dartInstance.runtimeType == HtmlElement && !dartInstance.isBadUpgrade) {
-    // Must be exactly HtmlElement not something derived from it.
-
-    var customElementClass = getCustomElementType(dartInstance);
-
-    // Custom Element to upgrade.
-    if (customElementClass != null) {
-      var jsObject = dartInstance.blink_jsObject;
-      try {
-        dartInstance = _blink.Blink_Utils.constructElement(customElementClass, jsObject);
-      } catch (e) {
-        dartInstance._badUpgrade();
-      } finally {
-        dartInstance.blink_jsObject = jsObject;
-        js.setDartHtmlWrapperFor(jsObject, dartInstance);
-     }
-   }
-  }
-
-  return dartInstance;
-}
-
 @Deprecated("Internal Use Only")
 class DebugAssertException implements Exception {
   String message;
@@ -1235,7 +1209,12 @@ _createCustomUpgrader(Type customElementClass, $this) {
   try {
     dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
   } catch (e) {
-    dartClass._badUpgrade();
+    // Did the dartClass get allocated but the created failed?  Otherwise, other
+    // components inside of this failed somewhere (could be JS custom element).
+    if (dartClass != null) {
+      // Yes, mark as didn't upgrade.
+      dartClass._badUpgrade();
+    }
     throw e;
   } finally {
     // Need to remember the Dart class that was created for this custom so
@@ -37635,10 +37614,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
