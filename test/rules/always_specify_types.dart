@@ -32,7 +32,15 @@ main() {
   } catch (e) { // NO warning (https://codereview.chromium.org/1427223002/)
     print(e);
   }
+
+  var __; // LINT
+
+  listen((_) { // OK!
+    // ...
+  });
 }
+
+listen(void onData(Object event)) {}
 
 var z; //LINT
 
@@ -43,3 +51,4 @@ class Foo {
   var foo; //LINT
   Foo(var bar); //LINT [7:3]
 }
+

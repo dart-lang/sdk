@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/ast.dart'
         SimpleFormalParameter,
         VariableDeclarationList;
 import 'package:linter/src/linter.dart';
+import 'package:linter/src/util.dart';
 
 const desc = 'Specify type annotations.';
 
@@ -67,7 +68,7 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitSimpleFormalParameter(SimpleFormalParameter param) {
-    if (param.type == null) {
+    if (param.type == null && !isJustUnderscores(param.identifier.name)) {
       if (param.keyword != null) {
         rule.reportLintForToken(param.keyword);
       } else {

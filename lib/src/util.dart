@@ -24,6 +24,8 @@ final _lowerCaseUnderScoreWithDots =
 
 final _pubspec = new RegExp(r'^[_]?pubspec\.yaml$');
 
+final _underscores = new RegExp(r'^[_]+$');
+
 /// Create a library name prefix based on [libraryPath], [projectRoot] and
 /// current [packageName].
 String createLibraryNamePrefix(
@@ -52,6 +54,9 @@ bool isDartFileName(String fileName) => fileName.endsWith('.dart');
 /// Returns `true` if this [name] is a legal Dart identifier.
 bool isIdentifier(String name) => _identifier.hasMatch(name);
 
+/// Returns `true` of the given [name] is composed only of `_`s.
+bool isJustUnderscores(String name) => _underscores.hasMatch(name);
+
 /// Returns `true` if this [id] is `lowerCamelCase`.
 bool isLowerCamelCase(String id) => _lowerCamelCase.hasMatch(id) || id == '_';
 
@@ -64,6 +69,33 @@ bool isLowerCaseUnderScoreWithDots(String id) =>
 
 /// Returns `true` if this [fileName] is a Pubspec file.
 bool isPubspecFileName(String fileName) => _pubspec.hasMatch(fileName);
+
+class Spelunker {
+  final String path;
+  final IOSink sink;
+  Spelunker(this.path, {IOSink sink}) : this.sink = sink ?? stdout;
+
+  void spelunk() {
+    var contents = new File(path).readAsStringSync();
+
+    var errorListener = new _ErrorListener();
+
+    var reader = new CharSequenceReader(contents);
+    var stringSource = new StringSource(contents, path);
+    var scanner = new Scanner(stringSource, reader, errorListener);
+    var startToken = scanner.tokenize();
+
+    errorListener.throwIfErrors();
+
+    var parser = new Parser(stringSource, errorListener);
+    var node = parser.parseCompilationUnit(startToken);
+
+    errorListener.throwIfErrors();
+
+    var visitor = new _SourceVisitor(sink);
+    node.accept(visitor);
+  }
+}
 
 class _ErrorListener implements AnalysisErrorListener {
   final errors = <AnalysisError>[];
@@ -128,32 +160,5 @@ class _SourceVisitor extends GeneralizingAstVisitor {
 
     sink.writeln(
         '${"  " * indent}${asString(node)} ${getTrailingComment(node)}');
-  }
-}
-
-class Spelunker {
-  final String path;
-  final IOSink sink;
-  Spelunker(this.path, {IOSink sink}) : this.sink = sink ?? stdout;
-
-  void spelunk() {
-    var contents = new File(path).readAsStringSync();
-
-    var errorListener = new _ErrorListener();
-
-    var reader = new CharSequenceReader(contents);
-    var stringSource = new StringSource(contents, path);
-    var scanner = new Scanner(stringSource, reader, errorListener);
-    var startToken = scanner.tokenize();
-
-    errorListener.throwIfErrors();
-
-    var parser = new Parser(stringSource, errorListener);
-    var node = parser.parseCompilationUnit(startToken);
-
-    errorListener.throwIfErrors();
-
-    var visitor = new _SourceVisitor(sink);
-    node.accept(visitor);
   }
 }
