@@ -2024,7 +2024,6 @@ LayoutTests/fast/dom/HTMLAnchorElement/remove-href-from-focused-anchor_t01: Skip
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-hash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-host_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-hostname_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-pathname_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-port_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-protocol_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-search_t01: RuntimeError # Please triage this failure
@@ -3096,6 +3095,7 @@ WebPlatformTest/html/syntax/parsing/math-parse_t03: RuntimeError # Issue 22564
 [ $compiler == dart2js && $runtime == ff && $system != windows ]
 LayoutTests/fast/canvas/canvas-resetTransform_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-setTransform_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-pathname_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
 

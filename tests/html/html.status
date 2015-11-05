@@ -373,6 +373,10 @@ speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail
 websql_test/supported: Fail
 
+[ $compiler == dart2js && $runtime == ff && $system == windows ]
+mediasource_test/supported: Pass
+mediasource_test/functional: RuntimeError # Issue 24838
+
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.
 [ $runtime == vm ]
