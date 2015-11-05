@@ -998,6 +998,9 @@ class ClosureTranslator extends Visitor {
     String closureName = computeClosureName(element);
     ClosureClassElement globalizedElement = new ClosureClassElement(
         node, closureName, compiler, element);
+    // Extend [globalizedElement] as an instantiated class in the closed world.
+    compiler.world.registerClass(
+        globalizedElement, isDirectlyInstantiated: true);
     FunctionElement callElement =
         new SynthesizedCallMethodElementX(Identifiers.call,
                                           element,

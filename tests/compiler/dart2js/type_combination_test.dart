@@ -76,8 +76,9 @@ class RuleSet {
 
     var r1 = operate(type1, type2);
     var r2 = operate(type2, type1);
-    Expect.equals(result, r1);
-    Expect.equals(r1, r2, 'symmetry violation');
+    Expect.equals(result, r1,
+        "Unexpected result of $name($type1,$type2)");
+    Expect.equals(r1, r2, 'Symmetry violation of $name($type1,$type2)');
   }
 
   void check(type1, type2, predicate) {
@@ -731,7 +732,11 @@ void testRegressions(MockCompiler compiler) {
 }
 
 void main() {
-  asyncTest(() => MockCompiler.create((MockCompiler compiler) {
+  asyncTest(() async {
+    MockCompiler compiler = new MockCompiler.internal();
+    await compiler.init("""
+    class PatternImpl implements Pattern {}
+    """);
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     World world = compiler.world;
@@ -744,12 +749,19 @@ void main() {
             compiler.globalDependencies);
       }
     });
+    ClassElement patternImplClass = compiler.mainApp.find('PatternImpl');
+    patternImplClass.ensureResolved(compiler.resolution);
+
     backend.registerInstantiatedType(
         compiler.coreTypes.mapType(),
         compiler.enqueuer.resolution,
         compiler.globalDependencies);
     backend.registerInstantiatedType(
         compiler.coreTypes.functionType,
+        compiler.enqueuer.resolution,
+        compiler.globalDependencies);
+    backend.registerInstantiatedType(
+        patternImplClass.rawType,
         compiler.enqueuer.resolution,
         compiler.globalDependencies);
     compiler.world.populate();
@@ -805,8 +817,15 @@ void main() {
     dynamicType = new TypeMask.subclass(
         compiler.coreClasses.objectClass, world);
 
+    Expect.notEquals(emptyType, nonPrimitive1,
+        "nonPrimitive1 expected to be non-empty.");
+    Expect.notEquals(jsStringOrNull, potentialString,
+        "potentialString expected not to be exact JSString");
+    Expect.notEquals(jsArrayOrNull, potentialArray,
+        "potentialArray expected not to be JSArray subclass");
+
     testUnion(compiler);
     testIntersection(compiler);
     testRegressions(compiler);
-  }));
+  });
 }

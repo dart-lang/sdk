@@ -178,15 +178,19 @@ abstract class Enqueuer {
     task.measure(() {
       ClassElement cls = type.element;
       cls.ensureResolved(resolution);
+      bool isNative = compiler.backend.isNative(cls);
       universe.registerTypeInstantiation(
           type,
-          isNative: compiler.backend.isNative(cls),
+          isNative: isNative,
           byMirrors: mirrorUsage,
           onImplemented: (ClassElement cls) {
         compiler.backend.registerImplementedClass(
                     cls, this, compiler.globalDependencies);
       });
-      processInstantiatedClass(cls);
+      // TODO(johnniwinther): Share this reasoning with [Universe].
+      if (!cls.isAbstract || isNative || mirrorUsage) {
+        processInstantiatedClass(cls);
+      }
     });
   }
 
@@ -335,9 +339,10 @@ abstract class Enqueuer {
             superclass, this, compiler.globalDependencies);
       }
 
-      while (cls != null) {
-        processClass(cls);
-        cls = cls.superclass;
+      ClassElement superclass = cls;
+      while (superclass != null) {
+        processClass(superclass);
+        superclass = superclass.superclass;
       }
     });
   }

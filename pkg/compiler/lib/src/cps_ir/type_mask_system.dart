@@ -25,6 +25,13 @@ class TypeMaskSystem {
   final World classWorld;
   final JavaScriptBackend backend;
 
+  TypeMask _numStringBoolType;
+  TypeMask _fixedLengthType;
+  TypeMask _interceptorType;
+  TypeMask _interceptedTypes; // Does not include null.
+
+  TypeMask __indexableTypeTest;
+
   TypeMask get dynamicType => inferrer.dynamicType;
   TypeMask get typeType => inferrer.typeType;
   TypeMask get functionType => inferrer.functionType;
@@ -43,12 +50,70 @@ class TypeMaskSystem {
   TypeMask get uint32Type => inferrer.uint32Type;
   TypeMask get uintType => inferrer.positiveIntType;
 
-  TypeMask numStringBoolType;
-  TypeMask fixedLengthType;
-  TypeMask interceptorType;
-  TypeMask interceptedTypes; // Does not include null.
+  TypeMask get numStringBoolType {
+    if (_numStringBoolType == null) {
+      // Build the number+string+bool type. To make containment tests more
+      // inclusive, we use the num, String, bool types for this, not
+      // the JSNumber, JSString, JSBool subclasses.
+      TypeMask anyNum =
+          new TypeMask.nonNullSubtype(classWorld.numClass, classWorld);
+      TypeMask anyString =
+          new TypeMask.nonNullSubtype(classWorld.stringClass, classWorld);
+      TypeMask anyBool =
+          new TypeMask.nonNullSubtype(classWorld.boolClass, classWorld);
+      _numStringBoolType =
+          new TypeMask.unionOf(<TypeMask>[anyNum, anyString, anyBool],
+              classWorld);
+    }
+    return _numStringBoolType;
+  }
 
-  TypeMask _indexableTypeTest;
+  TypeMask get fixedLengthType {
+    if (_fixedLengthType == null) {
+      List<TypeMask> fixedLengthTypes =
+          <TypeMask>[stringType, backend.fixedArrayType];
+      if (classWorld.isInstantiated(helpers.typedArrayClass)) {
+        fixedLengthTypes.add(nonNullSubclass(helpers.typedArrayClass));
+      }
+      _fixedLengthType = new TypeMask.unionOf(fixedLengthTypes, classWorld);
+    }
+    return _fixedLengthType;
+  }
+
+  TypeMask get interceptorType {
+    if (_interceptorType == null) {
+      _interceptorType =
+        new TypeMask.nonNullSubtype(helpers.jsInterceptorClass, classWorld);
+    }
+    return _interceptorType;
+  }
+
+  TypeMask get interceptedTypes { // Does not include null.
+    if (_interceptedTypes == null) {
+      // We redundantly include subtypes of num/string/bool as intercepted
+      // types, because the type system does not infer that their
+      // implementations are all subclasses of Interceptor.
+      _interceptedTypes = new TypeMask.unionOf(
+          <TypeMask>[interceptorType, numStringBoolType], classWorld);
+    }
+    return _interceptedTypes;
+  }
+
+  TypeMask get _indexableTypeTest {
+    if (__indexableTypeTest == null) {
+      // Make a TypeMask containing Indexable and (redundantly) subtypes of
+      // string because the type inference does not infer that all strings are
+      // indexables.
+      TypeMask indexable =
+          new TypeMask.nonNullSubtype(helpers.jsIndexableClass, classWorld);
+      TypeMask anyString =
+          new TypeMask.nonNullSubtype(classWorld.stringClass, classWorld);
+      __indexableTypeTest = new TypeMask.unionOf(
+          <TypeMask>[indexable, anyString],
+          classWorld);
+    }
+    return __indexableTypeTest;
+  }
 
   ClassElement get jsNullClass => helpers.jsNullClass;
 
@@ -59,41 +124,6 @@ class TypeMaskSystem {
       : inferrer = compiler.typesTask,
         classWorld = compiler.world,
         backend = compiler.backend {
-
-    // Build the number+string+bool type. To make containment tests more
-    // inclusive, we use the num, String, bool types for this, not
-    // the JSNumber, JSString, JSBool subclasses.
-    TypeMask anyNum =
-        new TypeMask.nonNullSubtype(classWorld.numClass, classWorld);
-    TypeMask anyString =
-        new TypeMask.nonNullSubtype(classWorld.stringClass, classWorld);
-    TypeMask anyBool =
-        new TypeMask.nonNullSubtype(classWorld.boolClass, classWorld);
-    numStringBoolType =
-        new TypeMask.unionOf(<TypeMask>[anyNum, anyString, anyBool],
-            classWorld);
-    interceptorType =
-        new TypeMask.nonNullSubtype(helpers.jsInterceptorClass, classWorld);
-
-    // We redundantly include subtypes of num/string/bool as intercepted types,
-    // because the type system does not infer that their implementations are
-    // all subclasses of Interceptor.
-    interceptedTypes = new TypeMask.unionOf(
-        <TypeMask>[interceptorType, numStringBoolType], classWorld);
-
-    TypeMask typedArray = nonNullSubclass(helpers.typedArrayClass);
-    fixedLengthType = new TypeMask.unionOf(
-        <TypeMask>[stringType, backend.fixedArrayType, typedArray],
-        classWorld);
-
-    // Make a TypeMask containing Indexable and (redundantly) subtypes of
-    // string because the type inference does not infer that all strings are
-    // indexables.
-    TypeMask indexable =
-        new TypeMask.nonNullSubtype(helpers.jsIndexableClass, classWorld);
-    _indexableTypeTest = new TypeMask.unionOf(
-        <TypeMask>[indexable, anyString],
-        classWorld);
   }
 
   bool methodUsesReceiverArgument(FunctionElement function) {
