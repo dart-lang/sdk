@@ -1777,6 +1777,9 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     if (specializeSingleUseClosureCall(node)) return;
     if (specializeClosureCall(node)) return;
 
+    node.mask =
+      typeSystem.intersection(node.mask, getValue(getDartReceiver(node)).type);
+
     AbstractValue receiver = getValue(node.receiver.definition);
 
     if (node.receiverIsIntercepted &&

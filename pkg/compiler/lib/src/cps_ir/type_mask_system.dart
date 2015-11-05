@@ -154,6 +154,12 @@ class TypeMaskSystem {
     return a.union(b, classWorld);
   }
 
+  TypeMask intersection(TypeMask a, TypeMask b) {
+    if (a == null) return b;
+    if (b == null) return a;
+    return a.intersection(b, classWorld);
+  }
+
   TypeMask getTypeOf(ConstantValue constant) {
     return computeTypeMask(inferrer.compiler, constant);
   }
