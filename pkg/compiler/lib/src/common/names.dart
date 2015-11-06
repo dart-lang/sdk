@@ -38,6 +38,9 @@ class Identifiers {
 
   /// The name of the runtime type property on 'Object'.
   static const String runtimeType_ = 'runtimeType';
+
+  /// The name of the getter returning the size of containers and strings.
+  static const String length = 'length';
 }
 
 /// [Name]s commonly used.
@@ -67,6 +70,8 @@ class Names {
   static const Name INDEX_NAME = const PublicName("[]");
   static const Name INDEX_SET_NAME = const PublicName("[]=");
   static const Name CALL_NAME = Names.call;
+
+  static const Name length = const PublicName(Identifiers.length);
 }
 
 /// [Selector]s commonly used.
@@ -101,6 +106,8 @@ class Selectors {
       new Selector.call(const PublicName("compareTo"), CallStructure.ONE_ARG);
 
   static final Selector equals = new Selector.binaryOperator('==');
+
+  static final Selector length = new Selector.getter(Names.length);
 }
 
 /// [Uri]s commonly used.

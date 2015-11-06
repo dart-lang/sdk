@@ -138,12 +138,9 @@ main() {
   }
 }""",r"""
 function() {
-  var list = [1, 2, 3, 4, 5, 6], $length = list.length, i = 0;
-  for (; i < list.length; i = i + 1) {
+  var list = [1, 2, 3, 4, 5, 6], i = 0;
+  for (; i < 6; i = i + 1)
     P.print(list[i]);
-    if ($length !== list.length)
-      H.throwConcurrentModificationError(list);
-  }
 }"""),
   const TestEntry("""
 main() {
@@ -155,18 +152,14 @@ main() {
   }
 }""",r"""
 function() {
-  var xs = ["x", "y", "z"], ys = ["A", "B", "C"], $length = xs.length, length1 = ys.length, i = 0, i1 = 0, current, current1;
-  for (; i < xs.length; i = i + 1, i1 = i1 + 1) {
+  var xs = ["x", "y", "z"], ys = ["A", "B", "C"], i = 0, i1 = 0, current, current1;
+  for (; i < 3; i = i + 1, i1 = i1 + 1) {
     current = xs[i];
-    if (length1 !== ys.length)
-      H.throwConcurrentModificationError(ys);
-    if (!(i1 < ys.length))
+    if (!(i1 < 3))
       break;
     current1 = ys[i1];
     P.print(current);
     P.print(current1);
-    if ($length !== xs.length)
-      H.throwConcurrentModificationError(xs);
   }
 }"""),
 ];

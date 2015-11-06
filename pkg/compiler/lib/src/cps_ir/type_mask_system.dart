@@ -14,6 +14,7 @@ import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;
 import '../universe/selector.dart' show Selector;
+import '../universe/call_structure.dart' show CallStructure;
 import '../world.dart' show World;
 
 enum AbstractBool {
@@ -37,7 +38,10 @@ class TypeMaskSystem {
   TypeMask get mapType => inferrer.mapType;
   TypeMask get nonNullType => inferrer.nonNullType;
   TypeMask get nullType => inferrer.nullType;
-  TypeMask get extendableNativeListType => backend.extendableArrayType;
+  TypeMask get extendableArrayType => backend.extendableArrayType;
+  TypeMask get fixedArrayType => backend.fixedArrayType;
+  TypeMask get arrayType =>
+      new TypeMask.nonNullSubclass(helpers.jsArrayClass, classWorld);
 
   TypeMask get uint31Type => inferrer.uint31Type;
   TypeMask get uint32Type => inferrer.uint32Type;
@@ -257,25 +261,22 @@ class TypeMaskSystem {
     return t.satisfies(helpers.jsPositiveIntClass, classWorld);
   }
 
-  // TODO(sra): Find a better name.  'NativeList' is a bad name because there
-  // are many native classes in dart:html that implement List but are not (and
-  // should not be) included in this predicate.
-  bool isDefinitelyNativeList(TypeMask t, {bool allowNull: false}) {
+  bool isDefinitelyArray(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
     return t.nonNullable().satisfies(helpers.jsArrayClass, classWorld);
   }
 
-  bool isDefinitelyMutableNativeList(TypeMask t, {bool allowNull: false}) {
+  bool isDefinitelyMutableArray(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
     return t.nonNullable().satisfies(helpers.jsMutableArrayClass, classWorld);
   }
 
-  bool isDefinitelyFixedNativeList(TypeMask t, {bool allowNull: false}) {
+  bool isDefinitelyFixedArray(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
     return t.nonNullable().satisfies(helpers.jsFixedArrayClass, classWorld);
   }
 
-  bool isDefinitelyExtendableNativeList(TypeMask t, {bool allowNull: false}) {
+  bool isDefinitelyExtendableArray(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
     return t.nonNullable().satisfies(helpers.jsExtendableArrayClass,
                                      classWorld);

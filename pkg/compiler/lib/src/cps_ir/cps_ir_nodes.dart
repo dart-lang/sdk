@@ -590,12 +590,20 @@ class InvokeConstructor extends CallExpression {
   final Selector selector;
   final SourceInformation sourceInformation;
 
+  /// If non-null, this is an allocation site-specific type that is potentially
+  /// better than the inferred return type of [target].
+  ///
+  /// In particular, container type masks depend on the allocation site and
+  /// can therefore not be inferred solely based on the call target.
+  TypeMask allocationSiteType;
+
   InvokeConstructor(this.dartType,
                     this.target,
                     this.selector,
                     List<Primitive> args,
                     Continuation cont,
-                    this.sourceInformation)
+                    this.sourceInformation,
+                    {this.allocationSiteType})
       : arguments = _referenceList(args),
         continuation = new Reference<Continuation>(cont);
 
@@ -1337,7 +1345,11 @@ class LiteralList extends Primitive {
   final InterfaceType dartType;
   final List<Reference<Primitive>> values;
 
-  LiteralList(this.dartType, List<Primitive> values)
+  /// If non-null, this is an allocation site-specific type for the list
+  /// created here.
+  TypeMask allocationSiteType;
+
+  LiteralList(this.dartType, List<Primitive> values, {this.allocationSiteType})
       : this.values = _referenceList(values);
 
   accept(Visitor visitor) => visitor.visitLiteralList(this);

@@ -748,9 +748,11 @@ class IrBuilder {
   /// Creates a non-constant list literal of the provided [type] and with the
   /// provided [values].
   ir.Primitive buildListLiteral(InterfaceType type,
-                                Iterable<ir.Primitive> values) {
+                                Iterable<ir.Primitive> values,
+                                {TypeMask allocationSiteType}) {
     assert(isOpen);
-    return addPrimitive(new ir.LiteralList(type, values.toList()));
+    return addPrimitive(new ir.LiteralList(type, values.toList(),
+        allocationSiteType: allocationSiteType));
   }
 
   /// Creates a non-constant map literal of the provided [type] and with the
@@ -2635,7 +2637,8 @@ class IrBuilder {
       CallStructure callStructure,
       DartType type,
       List<ir.Primitive> arguments,
-      SourceInformation sourceInformation) {
+      SourceInformation sourceInformation,
+      {TypeMask allocationSiteType}) {
     assert(isOpen);
     Selector selector =
         new Selector(SelectorKind.CALL, element.memberName, callStructure);
@@ -2653,7 +2656,8 @@ class IrBuilder {
     }
     return _continueWithExpression(
         (k) => new ir.InvokeConstructor(
-            type, element, selector, arguments, k, sourceInformation));
+            type, element, selector, arguments, k, sourceInformation,
+            allocationSiteType: allocationSiteType));
   }
 
   ir.Primitive buildTypeExpression(DartType type) {

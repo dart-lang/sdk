@@ -235,6 +235,16 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return irBuilder.makeFunctionDefinition();
   }
 
+  /// Returns the allocation site-specific type for a given allocation.
+  ///
+  /// Currently, it is an error to call this with anything that is not the
+  /// allocation site for a List object (a literal list or a call to one
+  /// of the List constructors).
+  TypeMask getAllocationSiteType(ast.Node node) {
+    return compiler.typesTask.getGuaranteedTypeOfNode(
+        elements.analyzedElement, node);
+  }
+
   ir.Primitive visit(ast.Node node) => node.accept(this);
 
   // ## Statements ##
@@ -634,7 +644,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     }
     List<ir.Primitive> values = node.elements.nodes.mapToList(visit);
     InterfaceType type = elements.getType(node);
-    return irBuilder.buildListLiteral(type, values);
+    return irBuilder.buildListLiteral(type, values,
+        allocationSiteType: getAllocationSiteType(node));
   }
 
   ir.Primitive visitLiteralMap(ast.LiteralMap node) {
@@ -3278,12 +3289,21 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     // Use default values from the effective target, not the immediate target.
     ConstructorElement target = constructor.effectiveTarget;
     arguments = normalizeStaticArguments(callStructure, target, arguments);
+    TypeMask allocationSiteType;
+    ast.Node send = node.send;
+    if (Elements.isFixedListConstructorCall(constructor, send, compiler) ||
+        Elements.isGrowableListConstructorCall(constructor, send, compiler) ||
+        Elements.isFilledListConstructorCall(constructor, send, compiler) ||
+        Elements.isConstructorOfTypedArraySubclass(constructor, compiler)) {
+      allocationSiteType = getAllocationSiteType(send);
+    }
     return irBuilder.buildConstructorInvocation(
         target,
         callStructure,
         constructor.computeEffectiveTargetType(type),
         arguments,
-        sourceInformationBuilder.buildNew(node));
+        sourceInformationBuilder.buildNew(node),
+        allocationSiteType: allocationSiteType);
   }
 
   @override

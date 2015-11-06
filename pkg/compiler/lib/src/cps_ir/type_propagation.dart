@@ -144,30 +144,30 @@ class ConstantPropagationLattice {
         typeSystem.isDefinitelyUint(value.type, allowNull: allowNull);
   }
 
-  bool isDefinitelyNativeList(AbstractValue value,
+  bool isDefinitelyArray(AbstractValue value,
                               {bool allowNull: false}) {
     return value.isNothing ||
-        typeSystem.isDefinitelyNativeList(value.type, allowNull: allowNull);
+        typeSystem.isDefinitelyArray(value.type, allowNull: allowNull);
   }
 
-  bool isDefinitelyMutableNativeList(AbstractValue value,
+  bool isDefinitelyMutableArray(AbstractValue value,
                                      {bool allowNull: false}) {
     return value.isNothing ||
-         typeSystem.isDefinitelyMutableNativeList(value.type,
+         typeSystem.isDefinitelyMutableArray(value.type,
                                                   allowNull: allowNull);
   }
 
-  bool isDefinitelyFixedNativeList(AbstractValue value,
+  bool isDefinitelyFixedArray(AbstractValue value,
                                    {bool allowNull: false}) {
     return value.isNothing ||
-        typeSystem.isDefinitelyFixedNativeList(value.type,
+        typeSystem.isDefinitelyFixedArray(value.type,
                                                allowNull: allowNull);
   }
 
-  bool isDefinitelyExtendableNativeList(AbstractValue value,
+  bool isDefinitelyExtendableArray(AbstractValue value,
                                         {bool allowNull: false}) {
     return value.isNothing ||
-        typeSystem.isDefinitelyExtendableNativeList(value.type,
+        typeSystem.isDefinitelyExtendableArray(value.type,
                                                     allowNull: allowNull);
   }
 
@@ -1277,15 +1277,15 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     Primitive list = getDartReceiver(node);
     AbstractValue listValue = getValue(list);
     // Ensure that the object is a native list or null.
-    if (!lattice.isDefinitelyNativeList(listValue, allowNull: true)) {
+    if (!lattice.isDefinitelyArray(listValue, allowNull: true)) {
       return false;
     }
     bool isFixedLength =
-        lattice.isDefinitelyFixedNativeList(listValue, allowNull: true);
+        lattice.isDefinitelyFixedArray(listValue, allowNull: true);
     bool isMutable =
-        lattice.isDefinitelyMutableNativeList(listValue, allowNull: true);
+        lattice.isDefinitelyMutableArray(listValue, allowNull: true);
     bool isExtendable =
-        lattice.isDefinitelyExtendableNativeList(listValue, allowNull: true);
+        lattice.isDefinitelyExtendableArray(listValue, allowNull: true);
     SourceInformation sourceInfo = node.sourceInformation;
     Continuation cont = node.continuation.definition;
     switch (node.selector.name) {
@@ -2329,7 +2329,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       } else if (class_ == helpers.jsArrayClass) {
         // JSArray has compile-time subclasses like JSFixedArray, but should
         // still be considered "exact" if the input is any subclass of JSArray.
-        if (typeSystem.isDefinitelyNativeList(interceptedInputsNonNullable)) {
+        if (typeSystem.isDefinitelyArray(interceptedInputsNonNullable)) {
           node.clearFlag(Interceptor.NON_NULL_INTERCEPT_SUBCLASS);
         }
       } else {
@@ -2393,6 +2393,8 @@ class TypePropagationVisitor implements Visitor {
   TypeMaskSystem get typeSystem => lattice.typeSystem;
 
   JavaScriptBackend get backend => typeSystem.backend;
+
+  dart2js.Compiler get compiler => backend.compiler;
 
   World get classWorld => typeSystem.classWorld;
 
@@ -2631,6 +2633,19 @@ class TypePropagationVisitor implements Visitor {
     if (receiver.isNothing) {
       return;  // And come back later.
     }
+
+    // Constant fold known length of containers.
+    if (node.selector == Selectors.length) {
+      AbstractValue object = getValue(getDartReceiver(node));
+      if (typeSystem.isDefinitelyIndexable(object.type, allowNull: true)) {
+        int length = typeSystem.getContainerLength(object.type.nonNullable());
+        if (length != null) {
+          setResult(node, constantValue(new IntConstantValue(length)),
+              canReplace: !object.isNullable);
+        }
+      }
+    }
+
     if (!node.selector.isOperator) {
       // TODO(jgruber): Handle known methods on constants such as String.length.
       setResult(node, lattice.getInvokeReturnType(node.selector, node.mask));
@@ -2857,7 +2872,11 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitInvokeConstructor(InvokeConstructor node) {
-    setResult(node, nonConstant(typeSystem.getReturnType(node.target)));
+    if (node.allocationSiteType != null) {
+      setResult(node, nonConstant(node.allocationSiteType));
+    } else {
+      setResult(node, nonConstant(typeSystem.getReturnType(node.target)));
+    }
   }
 
   void visitThrow(Throw node) {
@@ -2954,9 +2973,11 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitLiteralList(LiteralList node) {
-    // Constant lists are translated into (Constant ListConstant(...)) IR nodes,
-    // and thus LiteralList nodes are NonConst.
-    setValue(node, nonConstant(typeSystem.extendableNativeListType));
+    if (node.allocationSiteType != null) {
+      setValue(node, nonConstant(node.allocationSiteType));
+    } else {
+      setValue(node, nonConstant(typeSystem.extendableArrayType));
+    }
   }
 
   void visitLiteralMap(LiteralMap node) {
@@ -3167,6 +3188,7 @@ class AbstractValue {
   bool get isNonConst => (kind == NONCONST);
   bool get isNullConstant => kind == CONSTANT && constant.isNull;
   bool get isTrueConstant => kind == CONSTANT && constant.isTrue;
+  bool get isFalseConstant => kind == CONSTANT && constant.isFalse;
 
   bool get isNullable => kind != NOTHING && type.isNullable;
   bool get isDefinitelyNotNull => kind == NOTHING || !type.isNullable;
