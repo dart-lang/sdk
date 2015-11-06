@@ -17864,7 +17864,32 @@ class History extends Interceptor implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void pushState(Object data, String title, [String url]) native;
+  void pushState(/*any*/ data, String title, [String url]) {
+    if (url != null) {
+      var data_1 = convertDartToNative_SerializedScriptValue(data);
+      _pushState_1(data_1, title, url);
+      return;
+    }
+    var data_1 = convertDartToNative_SerializedScriptValue(data);
+    _pushState_2(data_1, title);
+    return;
+  }
+  @JSName('pushState')
+  @DomName('History.pushState')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  void _pushState_1(data, title, url) native;
+  @JSName('pushState')
+  @DomName('History.pushState')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  void _pushState_2(data, title) native;
 
   @DomName('History.replaceState')
   @DocsEditable()
@@ -17872,7 +17897,32 @@ class History extends Interceptor implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void replaceState(Object data, String title, [String url]) native;
+  void replaceState(/*any*/ data, String title, [String url]) {
+    if (url != null) {
+      var data_1 = convertDartToNative_SerializedScriptValue(data);
+      _replaceState_1(data_1, title, url);
+      return;
+    }
+    var data_1 = convertDartToNative_SerializedScriptValue(data);
+    _replaceState_2(data_1, title);
+    return;
+  }
+  @JSName('replaceState')
+  @DomName('History.replaceState')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  void _replaceState_1(data, title, url) native;
+  @JSName('replaceState')
+  @DomName('History.replaceState')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  void _replaceState_2(data, title) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

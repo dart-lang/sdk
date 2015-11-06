@@ -19940,7 +19940,7 @@ class History extends DartHtmlDomObject implements HistoryBase {
   
   @DomName('History.state')
   @DocsEditable()
-  dynamic get state => _blink.BlinkHistory.instance.state_Getter_(unwrap_jso(this));
+  dynamic get state => wrap_jso(_blink.BlinkHistory.instance.state_Getter_(unwrap_jso(this)));
   
   @DomName('History.back')
   @DocsEditable()
@@ -19960,7 +19960,7 @@ class History extends DartHtmlDomObject implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void pushState(Object data, String title, [String url]) => _blink.BlinkHistory.instance.pushState_Callback_3_(unwrap_jso(this), data, title, url);
+  void pushState(Object data, String title, [String url]) => _blink.BlinkHistory.instance.pushState_Callback_3_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(data), title, url);
   
   @DomName('History.replaceState')
   @DocsEditable()
@@ -19968,7 +19968,7 @@ class History extends DartHtmlDomObject implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void replaceState(Object data, String title, [String url]) => _blink.BlinkHistory.instance.replaceState_Callback_3_(unwrap_jso(this), data, title, url);
+  void replaceState(Object data, String title, [String url]) => _blink.BlinkHistory.instance.replaceState_Callback_3_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(data), title, url);
   }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
