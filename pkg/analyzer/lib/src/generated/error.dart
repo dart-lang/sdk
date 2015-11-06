@@ -2531,6 +2531,7 @@ abstract class ErrorCode {
     CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
     CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD,
     CompileTimeErrorCode.AMBIGUOUS_EXPORT,
+    CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS,
     CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER,
     CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,
     CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
