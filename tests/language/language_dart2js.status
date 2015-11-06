@@ -334,6 +334,7 @@ first_class_types_test: RuntimeError # Please triage this failure.
 generic2_test: RuntimeError # Please triage this failure.
 generic_instanceof_test: RuntimeError # Please triage this failure.
 generic_native_test: RuntimeError # Please triage this failure.
+gc_test: Crash # Internal Error: Pending statics (see above).
 infinite_switch_label_test: Crash # (switch (target){l0:...  continue to a labeled switch case
 instanceof2_test: RuntimeError # Please triage this failure.
 instanceof4_test/01: RuntimeError # Please triage this failure.
