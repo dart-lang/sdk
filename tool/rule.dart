@@ -64,11 +64,14 @@ void main([args]) {
     return;
   }
 
-  // Generate rule stub
+  // Generate rule stub.
   generateStub(libName, outDir: outDir);
 
-  // Generate test stub
+  // Generate test stub.
   generateTest(libName, outDir: outDir);
+
+  // Update rule registry.
+  updateRuleRegistry(libName);
 }
 
 void printUsage(ArgParser parser, [String error]) {
@@ -136,8 +139,14 @@ String _generateTest(String libName, String className) => '''
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// test w/ `dart test/util/solo_test.dart $libName`
+
 ''';
 
-void addToRuleIndex(String libName, String className) {
+void updateRuleRegistry(String libName) {
   //TODO: find right place to insert into imports and ruleMap
+  print("Don't forget to update lib/rules.dart with a line like:");
+  print("  ..register(new ${toClassName(libName)}())");
+  print("Then run your test like so:");
+  print("  dart test/util/solo_test.dart $libName");
 }

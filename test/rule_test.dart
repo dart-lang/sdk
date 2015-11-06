@@ -341,6 +341,10 @@ testEach(Iterable<String> values, dynamic f(String s), Matcher m) {
 
 testRule(String ruleName, File file, {bool debug: false}) {
   test('$ruleName', () {
+    if (!file.existsSync()) {
+      throw new Exception('No rule found defined at: ${file.path}');
+    }
+
     var expected = <AnnotationMatcher>[];
 
     int lineNumber = 1;
@@ -353,8 +357,13 @@ testRule(String ruleName, File file, {bool debug: false}) {
       ++lineNumber;
     }
 
-    LinterOptions options = new LinterOptions(
-        [ruleRegistry[ruleName]].where((rule) => rule != null))
+    LintRule rule = ruleRegistry[ruleName];
+    if (rule == null) {
+      print('WARNING: Test skipped -- rule `$ruleName` is not registered.');
+      return;
+    }
+
+    LinterOptions options = new LinterOptions([rule])
       ..useMockSdk = true
       ..packageRootPath = '.';
 
