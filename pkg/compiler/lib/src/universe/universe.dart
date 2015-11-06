@@ -124,12 +124,6 @@ class Universe {
   /// See [_directlyInstantiatedClasses].
   final Set<DartType> _instantiatedTypes = new Set<DartType>();
 
-  /// The set of all instantiated classes, either directly, as superclasses or
-  /// as supertypes.
-  ///
-  /// Invariant: Elements are declaration elements.
-  final Set<ClassElement> _allInstantiatedClasses = new Set<ClassElement>();
-
   /// Classes implemented by directly instantiated classes.
   final Set<ClassElement> _implementedClasses = new Set<ClassElement>();
 
@@ -206,26 +200,12 @@ class Universe {
     return _directlyInstantiatedClasses;
   }
 
-  /// All instantiated classes, either directly, as superclasses or as
-  /// supertypes.
-  // TODO(johnniwinther): Improve semantic precision.
-  Iterable<ClassElement> get allInstantiatedClasses {
-    return _allInstantiatedClasses;
-  }
-
   /// All directly instantiated types, that is, the types of the directly
   /// instantiated classes.
   ///
   /// See [directlyInstantiatedClasses].
   // TODO(johnniwinther): Improve semantic precision.
   Iterable<DartType> get instantiatedTypes => _instantiatedTypes;
-
-  /// Returns `true` if [cls] is considered to be instantiated, either directly,
-  /// through subclasses.
-  // TODO(johnniwinther): Improve semantic precision.
-  bool isInstantiated(ClassElement cls) {
-    return _allInstantiatedClasses.contains(cls.declaration);
-  }
 
   /// Returns `true` if [cls] is considered to be implemented by an
   /// instantiated class, either directly, through subclasses or through
@@ -270,12 +250,6 @@ class Universe {
           onImplemented(supertype.element);
         }
       });
-    }
-    while (cls != null) {
-      if (!_allInstantiatedClasses.add(cls)) {
-        return;
-      }
-      cls = cls.superclass;
     }
   }
 
@@ -404,7 +378,6 @@ class Universe {
     fieldSetters.remove(element);
     fieldGetters.remove(element);
     _directlyInstantiatedClasses.remove(element);
-    _allInstantiatedClasses.remove(element);
     if (element is ClassElement) {
       assert(invariant(
           element, element.thisType.isRaw,

@@ -35,6 +35,7 @@ import '../util/util.dart' show Link;
 ///
 class ClassHierarchyNode {
   final ClassElement cls;
+  ClassElement _leastUpperInstantiatedSubclass;
 
   /// `true` if [cls] has been directly instantiated.
   ///
@@ -101,15 +102,55 @@ class ClassHierarchyNode {
         includeUninstantiated: includeUninstantiated);
   }
 
+  /// Returns the most specific subclass of [cls] (including [cls]) that is
+  /// directly instantiated or a superclass of all directly instantiated
+  /// subclasses. If [cls] is not instantiated, `null` is returned.
+  ClassElement getLubOfInstantiatedSubclasses() {
+    if (!isInstantiated) return null;
+    if (_leastUpperInstantiatedSubclass == null) {
+      _leastUpperInstantiatedSubclass =
+          _computeLeastUpperInstantiatedSubclass();
+    }
+    return _leastUpperInstantiatedSubclass;
+  }
+
+  ClassElement _computeLeastUpperInstantiatedSubclass() {
+    if (isDirectlyInstantiated) {
+      return cls;
+    }
+    ClassHierarchyNode subclass;
+    for (Link<ClassHierarchyNode> link = _directSubclasses;
+         !link.isEmpty;
+         link = link.tail) {
+      if (link.head.isInstantiated) {
+        if (subclass == null) {
+          subclass = link.head;
+        } else {
+          return cls;
+        }
+      }
+    }
+    if (subclass != null) {
+      return subclass.getLubOfInstantiatedSubclasses();
+    }
+    return cls;
+  }
+
   void printOn(StringBuffer sb, String indentation,
                {bool instantiatedOnly: false,
+                bool sorted: true,
                 ClassElement withRespectTo}) {
 
     bool isRelatedTo(ClassElement subclass) {
-      return subclass.implementsInterface(withRespectTo);
+      return subclass == withRespectTo ||
+          subclass.implementsInterface(withRespectTo);
     }
 
-    sb.write('$indentation$cls');
+    sb.write(indentation);
+    if (cls.isAbstract) {
+      sb.write('abstract ');
+    }
+    sb.write('class ${cls.name}:');
     if (isDirectlyInstantiated) {
       sb.write(' directly');
     }
@@ -120,11 +161,14 @@ class ClassHierarchyNode {
     if (_directSubclasses.isEmpty) {
       sb.write(']');
     } else {
+      var subclasses = _directSubclasses;
+      if (sorted) {
+        subclasses = _directSubclasses.toList()..sort((a, b) {
+          return a.cls.name.compareTo(b.cls.name);
+        });
+      }
       bool needsComma = false;
-      for (Link<ClassHierarchyNode> link = _directSubclasses;
-           !link.isEmpty;
-           link = link.tail) {
-        ClassHierarchyNode child = link.head;
+      for (ClassHierarchyNode child in subclasses) {
         if (instantiatedOnly && !child.isInstantiated) {
           continue;
         }
@@ -140,6 +184,7 @@ class ClassHierarchyNode {
             sb,
             '$indentation  ',
             instantiatedOnly: instantiatedOnly,
+            sorted: sorted,
             withRespectTo: withRespectTo);
         needsComma = true;
       }
@@ -211,6 +256,7 @@ class ClassHierarchyNode {
 ///
 class ClassSet {
   final ClassHierarchyNode node;
+  ClassElement _leastUpperInstantiatedSubtype;
 
   List<ClassHierarchyNode> _directSubtypes;
 
@@ -309,6 +355,42 @@ class ClassSet {
       }
       _directSubtypes = newSubtypes;
     }
+  }
+
+  /// Returns the most specific subtype of [cls] (including [cls]) that is
+  /// directly instantiated or a superclass of all directly instantiated
+  /// subtypes. If no subtypes of [cls] are instantiated, `null` is returned.
+  ClassElement getLubOfInstantiatedSubtypes() {
+    if (_leastUpperInstantiatedSubtype == null) {
+      _leastUpperInstantiatedSubtype = _computeLeastUpperInstantiatedSubtype();
+    }
+    return _leastUpperInstantiatedSubtype;
+  }
+
+  ClassElement _computeLeastUpperInstantiatedSubtype() {
+    if (node.isDirectlyInstantiated) {
+      return cls;
+    }
+    if (_directSubtypes == null) {
+      return node.getLubOfInstantiatedSubclasses();
+    }
+    ClassHierarchyNode subtype;
+    if (node.isInstantiated) {
+      subtype = node;
+    }
+    for (ClassHierarchyNode subnode in _directSubtypes) {
+      if (subnode.isInstantiated) {
+        if (subtype == null) {
+          subtype = subnode;
+        } else {
+          return cls;
+        }
+      }
+    }
+    if (subtype != null) {
+      return subtype.getLubOfInstantiatedSubclasses();
+    }
+    return null;
   }
 
   String toString() {
