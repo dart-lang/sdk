@@ -23,4 +23,12 @@ abstract class A {
   bool operator <(other); //OK
 }
 
+foo() {
+  listen((_) {}); // OK!
+  listen((__) {}); // OK!
+  listen((_____) {}); // OK!
+}
+
 Main() => null; //LINT
+
+listen(void onData(Object event)) {}

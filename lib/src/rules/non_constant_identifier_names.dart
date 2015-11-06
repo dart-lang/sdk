@@ -31,21 +31,26 @@ align(clearItems) {
 ''';
 
 class NonConstantIdentifierNames extends LintRule {
-  NonConstantIdentifierNames() : super(
-          name: 'non_constant_identifier_names',
-          description: desc,
-          details: details,
-          group: Group.style);
+  NonConstantIdentifierNames()
+      : super(
+            name: 'non_constant_identifier_names',
+            description: desc,
+            details: details,
+            group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);
 }
 
 class Visitor extends SimpleAstVisitor {
-  LintRule rule;
+  final LintRule rule;
   Visitor(this.rule);
 
-  checkIdentifier(SimpleIdentifier id) {
+  checkIdentifier(SimpleIdentifier id, {bool underscoresOk: false}) {
+    if (underscoresOk && isJustUnderscores(id.name)) {
+      // For example, `___` is OK in a callback.
+      return;
+    }
     if (!isLowerCamelCase(id.name)) {
       rule.reportLint(id);
     }
@@ -54,7 +59,7 @@ class Visitor extends SimpleAstVisitor {
   @override
   visitFormalParameterList(FormalParameterList node) {
     node.parameters.forEach((FormalParameter p) {
-      checkIdentifier(p.identifier);
+      checkIdentifier(p.identifier, underscoresOk: true);
     });
   }
 
