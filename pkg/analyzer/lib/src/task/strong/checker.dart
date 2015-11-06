@@ -602,24 +602,22 @@ class CodeChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    var target = node.realTarget;
-    if (rules.isDynamicTarget(target) &&
-        !_isObjectProperty(target, node.propertyName)) {
+  void _checkFieldAccess(AstNode node, AstNode target, SimpleIdentifier field) {
+    if ((rules.isDynamicTarget(target) || field.staticElement == null) &&
+        !_isObjectProperty(target, field)) {
       _recordDynamicInvoke(node, target);
     }
     node.visitChildren(this);
   }
 
   @override
+  void visitPropertyAccess(PropertyAccess node) {
+    _checkFieldAccess(node, node.realTarget, node.propertyName);
+  }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    final target = node.prefix;
-    if (rules.isDynamicTarget(target) &&
-        !_isObjectProperty(target, node.identifier)) {
-      _recordDynamicInvoke(node, target);
-    }
-    node.visitChildren(this);
+    _checkFieldAccess(node, node.prefix, node.identifier);
   }
 
   @override

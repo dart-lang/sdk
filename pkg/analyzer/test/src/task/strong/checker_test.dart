@@ -125,6 +125,18 @@ void main() {
           y = /*info:DynamicCast, info:DynamicInvoke*/f(3);
           (/*info:DynamicInvoke*/f(3.0));
         }
+        {
+          dynamic g = new B();
+          (/*info:DynamicInvoke*/g.call(32.0));
+          (/*info:DynamicInvoke*/g.col(42.0));
+          (/*info:DynamicInvoke*/g.foo(42.0));
+          (/*info:DynamicInvoke*/g.x);
+          A f = new B();
+          f.call(32.0);
+          (/*info:DynamicInvoke*/f.col(42.0));
+          (/*info:DynamicInvoke*/f.foo(42.0));
+          (/*info:DynamicInvoke*/f.x);
+        }
       }
     '''
   });
