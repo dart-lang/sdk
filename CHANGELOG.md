@@ -10,9 +10,7 @@
   * `Uri` added `removeFragment` method.
   * `String.allMatches` (implementing `Pattern.allMatches`) is now lazy,
     as all `allMatches` implementations are intended to be.
-  * `Resource` is deprecated in favor of the resource package.
-    See https://pub.dartlang.org/packages/resource to learn more. This is
-    the last release to contain the Resource class.
+  * `Resource` is deprecated, and will be removed in a future release.
 
 * `dart:developer`
   * Added `Timeline` class for interacting with Observatory's timeline feature.
