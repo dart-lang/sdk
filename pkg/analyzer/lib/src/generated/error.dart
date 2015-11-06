@@ -597,6 +597,26 @@ class CompileTimeErrorCode extends ErrorCode {
           "The name '{0}' is defined in the libraries '{1}' and '{2}'");
 
   /**
+   * 15 Metadata: The constant expression given in an annotation is type checked
+   * and evaluated in the scope surrounding the declaration being annotated.
+   *
+   * 12.11.2 Const: It is a compile-time error if <i>T</i> is not a class
+   * accessible in the current scope, optionally followed by type arguments.
+   *
+   * 12.11.2 Const: If <i>e</i> is of the form <i>const T.id(a<sub>1</sub>,
+   * &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;
+   * x<sub>n+k</sub>: a<sub>n+k</sub>)</i> it is a compile-time error if
+   * <i>T</i> is not a class accessible in the current scope, optionally
+   * followed by type arguments.
+   *
+   * Parameters:
+   * 0: the name of the non-type element
+   */
+  static const CompileTimeErrorCode ANNOTATION_WITH_NON_CLASS =
+      const CompileTimeErrorCode(
+          'ANNOTATION_WITH_NON_CLASS', "The name '{0}' is not a class");
+
+  /**
    * 12.33 Argument Definition Test: It is a compile time error if <i>v</i> does
    * not denote a formal parameter.
    *

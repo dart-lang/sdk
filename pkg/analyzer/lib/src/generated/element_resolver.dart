@@ -1883,6 +1883,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       _resolver.reportErrorForNode(
           CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
     }
+    // no arguments
+    if (annotation.arguments != null) {
+      _resolver.reportErrorForNode(
+          CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS,
+          annotation.name,
+          [annotation.name]);
+    }
     // OK
     return;
   }
