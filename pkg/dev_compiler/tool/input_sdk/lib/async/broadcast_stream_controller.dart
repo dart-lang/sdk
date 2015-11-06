@@ -37,8 +37,6 @@ class _BroadcastSubscription<T> extends _ControllerSubscription<T>
     _next = _previous = this;
   }
 
-  _BroadcastStreamController<T> get _controller => super._controller;
-
   bool _expectsEvent(int eventId) =>
       (_eventState & _STATE_EVENT_ID) == eventId;
 

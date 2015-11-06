@@ -1260,9 +1260,6 @@ dart_library.library('dart/async', null, /* Imports */[
         super._ControllerSubscription(dart.as(controller, _StreamControllerLifecycle$(T)), onData, onError, onDone, cancelOnError);
         this[_next] = this[_previous] = this;
       }
-      get [_controller]() {
-        return dart.as(super[_controller], _BroadcastStreamController$(T));
-      }
       [_expectsEvent](eventId) {
         return (dart.notNull(this[_eventState]) & dart.notNull(_BroadcastSubscription$()._STATE_EVENT_ID)) == eventId;
       }
