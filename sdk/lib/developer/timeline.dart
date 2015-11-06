@@ -55,12 +55,12 @@ class Timeline {
 /// An asynchronous task on the timeline. Asynchronous tasks can live
 /// longer than the current event and can even be shared between isolates.
 /// An asynchronous task can have many (nested) blocks. To share a
-/// [TimelineTask] across isolates, you must construct a [TimelineTask] in
+/// [_TimelineTask] across isolates, you must construct a [_TimelineTask] in
 /// both isolates using the same [taskId] and [category].
-class TimelineTask {
+class _TimelineTask {
   /// Create a task. [taskId] will be set by the system.
   /// Optionally you can specify a [category] name.
-  TimelineTask({String category: 'Dart'})
+  _TimelineTask({String category: 'Dart'})
       : _taskId = _getNextAsyncId(),
         category = category {
     if (category is! String) {
@@ -73,7 +73,7 @@ class TimelineTask {
   /// Create a task with an explicit [taskId]. This is useful if you are
   /// passing a task between isolates. Optionally you can specify a [category]
   /// name.
-  TimelineTask.withTaskId(int taskId, {String category: 'Dart'})
+  _TimelineTask.withTaskId(int taskId, {String category: 'Dart'})
       : _taskId = taskId,
         category = category {
     if (taskId is! int) {
@@ -90,14 +90,14 @@ class TimelineTask {
 
   /// Start a block in this task named [name]. Optionally takes
   /// a [Map] of [arguments].
-  /// Returns an [AsyncBlock] which is used to finish this block.
-  AsyncBlock start(String name, {Map arguments}) {
+  /// Returns an [_AsyncBlock] which is used to finish this block.
+  _AsyncBlock start(String name, {Map arguments}) {
     if (name is! String) {
       throw new ArgumentError.value(name,
                                     'name',
                                     'Must be a String');
     }
-    var block = new AsyncBlock._(name, _taskId, category);
+    var block = new _AsyncBlock._(name, _taskId, category);
     if (arguments is Map) {
       block.arguments.addAll(arguments);
     }
@@ -107,17 +107,17 @@ class TimelineTask {
   }
 
   /// Retrieve the asynchronous task's id. Can be used to construct a
-  /// [TimelineTask] in another isolate.
+  /// [_TimelineTask] in another isolate.
   int get taskId => _taskId;
   final int _taskId;
   /// Retrieve the asynchronous task's category. Can be used to construct a
-  /// [TimelineTask] in another isolate.
+  /// [_TimelineTask] in another isolate.
   final String category;
 }
 
 /// An asynchronous block of time on the timeline. This block can be kept
 /// open across isolate messages.
-class AsyncBlock {
+class _AsyncBlock {
   /// The category this block belongs to.
   final String category;
   /// The name of this block.
@@ -129,7 +129,7 @@ class AsyncBlock {
   final Map arguments = {};
   bool _finished = false;
 
-  AsyncBlock._(this.name, this._taskId, this.category);
+  _AsyncBlock._(this.name, this._taskId, this.category);
 
   // Emit the start event.
   void _start() {
@@ -156,7 +156,7 @@ class AsyncBlock {
   void finish() {
     if (_finished) {
       throw new StateError(
-          'It is illegal to call finish twice on the same AsyncBlock');
+          'It is illegal to call finish twice on the same _AsyncBlock');
     }
     _finished = true;
     _finish();
