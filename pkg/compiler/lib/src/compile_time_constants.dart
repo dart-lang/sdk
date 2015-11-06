@@ -508,7 +508,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       subexpressions.add(subexpression.expression);
       ConstantValue expression = subexpression.value;
       DartString expressionString;
-      if (expression.isNum || expression.isBool) {
+      if (expression.isNum || expression.isBool || expression.isNull) {
         PrimitiveConstantValue primitive = expression;
         expressionString =
             new DartString.literal(primitive.primitiveValue.toString());
