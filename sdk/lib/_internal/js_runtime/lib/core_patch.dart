@@ -558,12 +558,12 @@ class Uri {
           ((canonicalTable[byte >> 4] & (1 << (byte & 0x0f))) != 0)) {
         result.writeCharCode(byte);
       } else if (spaceToPlus && byte == _SPACE) {
-        result.writeCharCode(_PLUS);
+        result.write('+');
       } else {
         const String hexDigits = '0123456789ABCDEF';
-        result.writeCharCode(_PERCENT);
-        result.writeCharCode(hexDigits.codeUnitAt(byte >> 4));
-        result.writeCharCode(hexDigits.codeUnitAt(byte & 0x0f));
+        result.write('%');
+        result.write(hexDigits[(byte >> 4) & 0x0f]);
+        result.write(hexDigits[byte & 0x0f]);
       }
     }
     return result.toString();
