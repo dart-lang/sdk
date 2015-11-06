@@ -992,6 +992,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (node.inDeclarationContext()) {
       return null;
     }
+    if (node.staticElement is LocalVariableElement ||
+        node.staticElement is ParameterElement) {
+      return null;
+    }
     AstNode parent = node.parent;
     if (parent is FieldFormalParameter) {
       return null;
