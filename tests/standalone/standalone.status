@@ -119,6 +119,9 @@ noopt_test: Skip # Not expected to pass on ia32.
 precompilation_test: Skip # Issue 24427
 precompilation_dart2js_test: Skip # Issue 24427
 
+[ $runtime == vm && $arch == mips]
+precompilation_dart2js_test: SkipSlow
+
 [ $compiler == dart2js && $jscl ]
 assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.
 deoptimization_test: RuntimeError, OK # Requires bigint.
