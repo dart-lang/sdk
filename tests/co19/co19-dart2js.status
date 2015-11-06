@@ -29,7 +29,6 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # Iss
 Language/10_Generics/09_Generics_A01_t17: fail # Issue 21203
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A02_t02: fail # Issue 11551, also related to issue 563, 18738
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A06_t01: fail # Issue 11551, also related to issue 563, 18738
-Language/12_Expressions/01_Constants_A03_t01: CompileTimeError # Issue 13652
 Language/12_Expressions/03_Numbers_A01_t06: fail # Issue 21098
 Language/12_Expressions/03_Numbers_A01_t09: fail # Issue 21098
 Language/12_Expressions/07_Maps_A11_t01: CompileTimeError # Maybe ok. Issue 17207
