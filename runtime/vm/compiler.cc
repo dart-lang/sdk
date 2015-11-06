@@ -785,10 +785,10 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
               result->ClearCHAInvalidationGen();
             }
             if (flow_graph->guarded_fields()->is_empty()) {
-              result->ClearFieldInnvalidationGen();
+              result->ClearFieldInvalidationGen();
             }
             if (!parsed_function->HasDeferredPrefixes()) {
-              result->ClearPrefixInnvalidationGen();
+              result->ClearPrefixInvalidationGen();
             }
           } else {
             const bool is_osr = osr_id != Compiler::kNoOSRDeoptId;
@@ -1138,6 +1138,9 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     // We got an error during compilation.
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
+    ASSERT(!optimized);
+    // Do not attempt to optimize functions that can cause errors.
+    function.set_is_optimizable(false);
     return error.raw();
   }
   UNREACHABLE();
@@ -1486,18 +1489,8 @@ class QueueElement {
     obj_ = Object::null();
   }
 
-  void Clear() {
-    next_ = NULL;
-    obj_ = Object::null();
-    cha_invalidation_gen_ = Isolate::kInvalidGen;
-    field_invalidation_gen_ = Isolate::kInvalidGen;
-    prefix_invalidation_gen_ = Isolate::kInvalidGen;
-  }
-
   RawFunction* Function() const { return Function::RawCast(obj_); }
-  RawCode* Code() const {
-    return (obj_ == Object::null()) ? Code::null() : Code::RawCast(obj_);
-  }
+  RawCode* Code() const { return Code::RawCast(obj_); }
 
   uint32_t cha_invalidation_gen() const { return cha_invalidation_gen_; }
   uint32_t field_invalidation_gen() const { return field_invalidation_gen_; }
@@ -1706,15 +1699,10 @@ void BackgroundCompiler::Run() {
                                                &result));
         // TODO(srdjan): We do not expect errors while compiling optimized
         // code, any errors should have been caught when compiling
-        // unoptimized code.
-        // If it still happens mark function as not optimizable.
+        // unoptimized code. Any issues while optimizing are flagged by
+        // making the result invalid.
         ASSERT(error.IsNull());
-        // Reuse the input QueueElement to return the result.
-        QueueElement* qelem = function_queue()->Remove();
-        qelem->Clear();
-        result_queue()->Add(qelem);
-        // Add 'qelem' to the queue first so that it gets visited by GC.
-        qelem->SetFromResult(result);
+        AddResult(result);
         function = function_queue()->PeekFunction();
       }
     }
@@ -1733,6 +1721,19 @@ void BackgroundCompiler::Run() {
     MonitorLocker ml_done(done_monitor_);
     *done_ = true;
     ml_done.Notify();
+  }
+}
+
+
+// Use to first queue element to form the result element.
+void BackgroundCompiler::AddResult(const BackgroundCompilationResult& result) {
+  ASSERT(!Thread::Current()->IsMutatorThread());
+  MonitorLocker ml(queue_monitor_);
+  // Reuse the input QueueElement to return the result.
+  QueueElement* qelem = function_queue()->Remove();
+  if (result.IsValid()) {
+    qelem->SetFromResult(result);
+    result_queue()->Add(qelem);
   }
 }
 

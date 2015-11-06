@@ -51,10 +51,10 @@ class BackgroundCompilationResult : public ValueObject {
   void ClearCHAInvalidationGen() {
     cha_invalidation_gen_ = Isolate::kInvalidGen;
   }
-  void ClearFieldInnvalidationGen() {
+  void ClearFieldInvalidationGen() {
     field_invalidation_gen_ = Isolate::kInvalidGen;
   }
-  void ClearPrefixInnvalidationGen() {
+  void ClearPrefixInvalidationGen() {
     prefix_invalidation_gen_ = Isolate::kInvalidGen;
   }
 

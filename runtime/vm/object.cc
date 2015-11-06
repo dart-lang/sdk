@@ -3117,6 +3117,7 @@ RawError* Class::EnsureIsFinalized(Thread* thread) const {
   if (is_finalized()) {
     return Error::null();
   }
+  ASSERT(thread->IsMutatorThread());
   ASSERT(thread != NULL);
   const Error& error = Error::Handle(
       thread->zone(), Compiler::CompileClass(*this));
