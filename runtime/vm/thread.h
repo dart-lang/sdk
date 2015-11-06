@@ -91,25 +91,6 @@ class Zone;
   CACHED_VM_OBJECTS_LIST(V)                                                    \
   CACHED_ADDRESSES_LIST(V)                                                     \
 
-struct InterruptedThreadState {
-  uintptr_t pc;
-  uintptr_t csp;
-  uintptr_t dsp;
-  uintptr_t fp;
-  uintptr_t lr;
-};
-
-// When a thread is interrupted the thread specific interrupt callback will be
-// invoked. Each callback is given an InterruptedThreadState and the user data
-// pointer. When inside a thread interrupt callback doing any of the following
-// is forbidden:
-//   * Accessing TLS -- Because on Windows the callback will be running in a
-//                      different thread.
-//   * Allocating memory -- Because this takes locks which may already be held,
-//                          resulting in a dead lock.
-//   * Taking a lock -- See above.
-typedef void (*ThreadInterruptCallback)(Thread* thread,
-                                        const InterruptedThreadState& state);
 
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with

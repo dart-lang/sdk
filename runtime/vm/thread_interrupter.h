@@ -12,6 +12,15 @@
 
 namespace dart {
 
+struct InterruptedThreadState {
+  uintptr_t pc;
+  uintptr_t csp;
+  uintptr_t dsp;
+  uintptr_t fp;
+  uintptr_t lr;
+};
+
+
 class ThreadInterrupter : public AllStatic {
  public:
   static void InitOnce();
@@ -42,8 +51,6 @@ class ThreadInterrupter : public AllStatic {
   static bool InDeepSleep() {
     return current_wait_time_ == Monitor::kNoTimeout;
   }
-
-  static void UpdateStateObject(ThreadInterruptCallback callback, void* data);
 
   static void ThreadMain(uword parameters);
 
