@@ -5159,12 +5159,15 @@ class SsaBuilder extends ast.Visitor
       js.Template code = js.js.parseForeignJS('new Array(#)');
       var behavior = new native.NativeBehavior();
       behavior.typesReturned.add(expectedType);
-      // The allocation can throw only if the given length is a double
-      // or negative.
+      // The allocation can throw only if the given length is a double or
+      // outside the unsigned 32 bit range.
+      // TODO(sra): Array allocation should be an instruction so that canThrow
+      // can depend on a length type discovered in optimization.
       bool canThrow = true;
       if (inputs[0].isInteger(compiler) && inputs[0] is HConstant) {
         var constant = inputs[0];
-        if (constant.constant.primitiveValue >= 0) canThrow = false;
+        int value = constant.constant.primitiveValue;
+        if (0 <= value && value < 0x100000000) canThrow = false;
       }
       HForeignCode foreign = new HForeignCode(code, elementType, inputs,
           nativeBehavior: behavior,
