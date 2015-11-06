@@ -265,6 +265,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.strongMode != options.strongMode ||
         this._options.enableStrictCallChecks !=
             options.enableStrictCallChecks ||
+        this._options.enableGenericMethods != options.enableGenericMethods ||
         this._options.enableSuperMixins != options.enableSuperMixins;
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
@@ -275,6 +276,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.generateImplicitErrors = options.generateImplicitErrors;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
+    this._options.enableGenericMethods = options.enableGenericMethods;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.enableSuperMixins = options.enableSuperMixins;
     this._options.hint = options.hint;

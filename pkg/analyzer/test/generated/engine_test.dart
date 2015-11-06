@@ -2351,6 +2351,7 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       options.analyzeFunctionBodies = booleanValue;
       options.cacheSize = i;
       options.dart2jsHint = booleanValue;
+      options.enableGenericMethods = booleanValue;
       options.enableStrictCallChecks = booleanValue;
       options.enableSuperMixins = booleanValue;
       options.generateImplicitErrors = booleanValue;
@@ -2394,6 +2395,13 @@ class AnalysisOptionsImplTest extends EngineTestCase {
     bool value = !options.dart2jsHint;
     options.dart2jsHint = value;
     expect(options.dart2jsHint, value);
+  }
+
+  void test_enableGenericMethods() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    bool value = !options.enableGenericMethods;
+    options.enableGenericMethods = value;
+    expect(options.enableGenericMethods, value);
   }
 
   void test_enableSuperMixins() {

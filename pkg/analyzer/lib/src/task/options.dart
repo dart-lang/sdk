@@ -35,6 +35,7 @@ void configureContextOptions(
 /// `analyzer` analysis options constants.
 class AnalyzerOptions {
   static const String analyzer = 'analyzer';
+  static const String enableGenericMethods = 'enableGenericMethods';
   static const String enableSuperMixins = 'enableSuperMixins';
   static const String errors = 'errors';
   static const String exclude = 'exclude';
@@ -61,7 +62,10 @@ class AnalyzerOptions {
   ];
 
   /// Supported `analyzer` language configuration options.
-  static const List<String> languageOptions = const [enableSuperMixins];
+  static const List<String> languageOptions = const [
+    enableGenericMethods,
+    enableSuperMixins
+  ];
 }
 
 /// Validates `analyzer` options.
@@ -391,8 +395,16 @@ class _OptionsProcessor {
           if (feature == AnalyzerOptions.enableSuperMixins) {
             if (isTrue(v.value)) {
               AnalysisOptionsImpl options =
-                  new AnalysisOptionsImpl.from(context.analysisOptions);
+              new AnalysisOptionsImpl.from(context.analysisOptions);
               options.enableSuperMixins = true;
+              context.analysisOptions = options;
+            }
+          }
+          if (feature == AnalyzerOptions.enableGenericMethods) {
+            if (isTrue(v.value)) {
+              AnalysisOptionsImpl options =
+              new AnalysisOptionsImpl.from(context.analysisOptions);
+              options.enableGenericMethods = true;
               context.analysisOptions = options;
             }
           }

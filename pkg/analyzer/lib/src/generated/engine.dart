@@ -6469,6 +6469,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
     enableStrictCallChecks = options.enableStrictCallChecks;
+    enableGenericMethods = options.enableGenericMethods;
     enableSuperMixins = options.enableSuperMixins;
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
@@ -6490,6 +6491,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
     enableStrictCallChecks = options.enableStrictCallChecks;
+    enableGenericMethods = options.enableGenericMethods;
     enableSuperMixins = options.enableSuperMixins;
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;

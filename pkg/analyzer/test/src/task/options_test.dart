@@ -41,6 +41,16 @@ class ContextConfigurationTest extends AbstractContextTest {
   Map<String, YamlNode> parseOptions(String source) =>
       optionsProvider.getOptionsFromString(source);
 
+  test_configure_enableGenericMethods() {
+    expect(analysisOptions.enableGenericMethods, false);
+    configureContext('''
+analyzer:
+  language:
+    enableGenericMethods: true
+''');
+    expect(analysisOptions.enableGenericMethods, true);
+  }
+
   test_configure_enableSuperMixins() {
     configureContext('''
 analyzer:
@@ -245,7 +255,7 @@ analyzer:
   language:
     unsupported: true
 ''',
-        [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
+        [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
   }
 
   test_analyzer_language_unsupported_value() {
