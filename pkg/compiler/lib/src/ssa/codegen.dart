@@ -1763,26 +1763,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       Selector selector = node.selector;
       if (!backend.maybeRegisterAliasedSuperMember(superElement, selector)) {
         js.Name methodName;
-        if (selector.isGetter) {
-          // If the selector we need to register a typed getter to the
-          // [world]. The emitter needs to know if it needs to emit a
-          // bound closure for a method.
-
-          // If [superMethod] is mixed in, [superClass] might not be live.
-          // We use the superclass of the access instead.
-          TypeMask receiverType =
-              new TypeMask.nonNullExact(node.caller.superclass, compiler.world);
-          // TODO(floitsch): we know the target. We shouldn't register a
-          // dynamic getter.
-          registry.registerDynamicUse(
-              new DynamicUse(selector, receiverType));
-          if (superElement.isFunction) {
-            registry.registerStaticUse(
-                new StaticUse.superTearOff(superElement));
-          }
+        if (selector.isGetter && !superElement.isGetter) {
+          // If this is a tear-off, register the fact that a tear-off closure
+          // will be created, and that this tear-off must bypass ordinary
+          // dispatch to ensure the super method is invoked.
+          FunctionElement helper = backend.helpers.closureFromTearOff;
+          registry.registerStaticUse(new StaticUse.staticInvoke(helper,
+                new CallStructure.unnamed(helper.parameters.length)));
+          registry.registerStaticUse(new StaticUse.superTearOff(node.element));
           methodName = backend.namer.invocationName(selector);
         } else {
-          assert(invariant(node, compiler.hasIncrementalSupport));
           methodName = backend.namer.instanceMethodName(superElement);
         }
         registry.registerStaticUse(

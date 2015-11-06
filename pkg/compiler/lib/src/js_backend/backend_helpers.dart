@@ -387,7 +387,7 @@ class BackendHelpers {
     return findHelper('postTraceHelper');
   }
 
-  Element get closureFromTearOff {
+  FunctionElement get closureFromTearOff {
     return findHelper('closureFromTearOff');
   }
 

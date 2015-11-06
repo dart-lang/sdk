@@ -351,11 +351,8 @@ overridden_no_such_method_test: RuntimeError # Please triage this failure.
 regress_22443_test: RuntimeError # M.loadLibrary is not a function
 regress_23408_test: RuntimeError # G.loadLibrary is not a function
 regress_23500_test/01: Crash # (await for(var c in new Stream.fromIterable([] )){}): await for
-super_bound_closure_test/01: RuntimeError # Cannot read property 'call' of undefined
-super_bound_closure_test/none: RuntimeError # Cannot read property 'call' of undefined
 super_call4_test: RuntimeError # Please triage this failure.
 super_getter_setter_test: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
-super_implicit_closure_test: RuntimeError # Cannot read property 'call' of undefined
 super_operator_index5_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index7_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index8_test: Crash # (super[f()]=g()): visitUnresolvedSuperIndexSet

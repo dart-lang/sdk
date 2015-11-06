@@ -9548,9 +9548,6 @@ WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Ti
 
 [ $compiler == dart2js && $cps_ir ]
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: RuntimeError # Please triage this failure.
-Language/12_Expressions/13_Property_Extraction_A03_t01: RuntimeError # Cannot read property 'call' of undefined
-Language/12_Expressions/13_Property_Extraction_A03_t02: RuntimeError # Cannot read property 'call' of undefined
-Language/12_Expressions/13_Property_Extraction_A03_t03: RuntimeError # Cannot read property 'call' of undefined
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A01_t01: RuntimeError # Cannot read property 'call' of undefined
 Language/13_Statements/06_For_A01_t07: Crash # unsupported operation on erroneous element
 Language/13_Statements/12_Labels_A03_t04: Crash # (switch (i){L:case 0:flag=true;break;case 2:continue L;}): continue to a labeled switch case

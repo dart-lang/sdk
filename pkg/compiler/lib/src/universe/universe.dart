@@ -299,7 +299,8 @@ class Universe {
   }
 
   bool hasInvokedGetter(Element member, World world) {
-    return _hasMatchingSelector(_invokedGetters[member.name], member, world);
+    return _hasMatchingSelector(_invokedGetters[member.name], member, world) ||
+        member.isFunction && methodsNeedingSuperGetter.contains(member);
   }
 
   bool hasInvokedSetter(Element member, World world) {

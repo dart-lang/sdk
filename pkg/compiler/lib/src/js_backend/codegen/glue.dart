@@ -286,4 +286,6 @@ class Glue {
   ConstantValue getDefaultParameterValue(ParameterElement elem) {
     return _backend.constants.getConstantValueForVariable(elem);
   }
+
+  FunctionElement get closureFromTearOff => _backend.helpers.closureFromTearOff;
 }

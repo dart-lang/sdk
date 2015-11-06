@@ -307,6 +307,15 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitInvokeMethodDirectly(tree_ir.InvokeMethodDirectly node) {
+    if (node.isTearOff) {
+      // If this is a tear-off, register the fact that a tear-off closure
+      // will be created, and that this tear-off must bypass ordinary
+      // dispatch to ensure the super method is invoked.
+      registry.registerStaticUse(new StaticUse.staticInvoke(
+          glue.closureFromTearOff, new CallStructure.unnamed(
+            glue.closureFromTearOff.parameters.length)));
+      registry.registerStaticUse(new StaticUse.superTearOff(node.target));
+    }
     if (node.target is ConstructorBodyElement) {
       registry.registerStaticUse(
           new StaticUse.constructorBodyInvoke(

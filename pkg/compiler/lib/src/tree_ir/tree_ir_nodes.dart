@@ -236,6 +236,8 @@ class InvokeMethodDirectly extends Expression implements Invoke {
   InvokeMethodDirectly(this.receiver, this.target, this.selector,
       this.arguments, this.sourceInformation);
 
+  bool get isTearOff => selector.isGetter && !target.isGetter;
+
   accept(ExpressionVisitor visitor) => visitor.visitInvokeMethodDirectly(this);
   accept1(ExpressionVisitor1 visitor, arg) {
     return visitor.visitInvokeMethodDirectly(this, arg);
