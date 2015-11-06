@@ -729,6 +729,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 //          resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
           return null;
         }
+        ClassElementImpl typeReference = getTypeReference(target);
+        if (typeReference != null) {
+          ConstructorElement constructor =
+              typeReference.getNamedConstructor(methodName.name);
+          if (constructor != null) {
+            _recordUndefinedNode(
+                typeReference,
+                StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR,
+                methodName,
+                [methodName.name, typeReference.name]);
+            return null;
+          }
+        }
         targetTypeName = targetType == null ? null : targetType.displayName;
         ErrorCode proxyErrorCode = (generatedWithTypePropagation
             ? HintCode.UNDEFINED_METHOD
