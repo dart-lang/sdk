@@ -452,6 +452,15 @@ class InvalidMethodOverride extends InvalidOverride {
   String get message => _messageHelper('Invalid override');
 }
 
+class InvalidFieldOverride extends InvalidOverride {
+  InvalidFieldOverride(AstNode node, ExecutableElement element,
+      InterfaceType base, DartType subType, DartType baseType)
+      : super(node, element, base, subType, baseType);
+
+  String get message => 'Field declaration {3}.{1} cannot be '
+      'overridden in {0}.';
+}
+
 /// Dart constructors have one weird quirk, illustrated with this example:
 ///
 ///     class Base {

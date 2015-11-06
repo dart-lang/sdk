@@ -1132,12 +1132,53 @@ void main() {
           }
 
           class Child extends Base {
+            /*severe:InvalidFieldOverride,severe:InvalidMethodOverride*/A f1; // invalid for getter
+            /*severe:InvalidFieldOverride,severe:InvalidMethodOverride*/C f2; // invalid for setter
+            /*severe:InvalidFieldOverride*/var f3;
+            /*severe:InvalidFieldOverride,severe:InvalidMethodOverride,severe:InvalidMethodOverride*/dynamic f4;
+          }
+
+          class Child2 implements Base {
             /*severe:InvalidMethodOverride*/A f1; // invalid for getter
             /*severe:InvalidMethodOverride*/C f2; // invalid for setter
             var f3;
             /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/dynamic f4;
           }
        '''
+  });
+
+  testChecker('private override', {
+    '/helper.dart': '''
+          import 'main.dart' as main;
+
+          class Base {
+            var f1;
+            var _f2;
+            var _f3;
+            get _f4 => null;
+
+            int _m1();
+          }
+
+          class GrandChild extends main.Child {
+            /*severe:InvalidFieldOverride*/var _f2;
+            /*severe:InvalidFieldOverride*/var _f3;
+            var _f4;
+
+            /*severe:InvalidMethodOverride*/String _m1();
+          }
+    ''',
+    '/main.dart': '''
+          import 'helper.dart' as helper;
+
+          class Child extends helper.Base {
+            /*severe:InvalidFieldOverride*/var f1;
+            var _f2;
+            var _f4;
+
+            String _m1();
+          }
+    '''
   });
 
   testChecker('getter/getter override', {
@@ -1176,6 +1217,13 @@ void main() {
           }
 
           class Child extends Base {
+            /*severe:InvalidFieldOverride,severe:InvalidMethodOverride*/A get f1 => null;
+            /*severe:InvalidFieldOverride*/C get f2 => null;
+            /*severe:InvalidFieldOverride*/get f3 => null;
+            /*severe:InvalidFieldOverride,severe:InvalidMethodOverride*/dynamic get f4 => null;
+          }
+
+          class Child2 implements Base {
             /*severe:InvalidMethodOverride*/A get f1 => null;
             C get f2 => null;
             get f3 => null;
@@ -1223,6 +1271,20 @@ void main() {
           }
 
           class Child extends Base {
+            /*severe:InvalidFieldOverride*/B get f1 => null;
+            /*severe:InvalidFieldOverride*/B get f2 => null;
+            /*severe:InvalidFieldOverride*/B get f3 => null;
+            /*severe:InvalidFieldOverride*/B get f4 => null;
+            /*severe:InvalidFieldOverride*/B get f5 => null;
+
+            /*severe:InvalidFieldOverride*/void set f1(A value) {}
+            /*severe:InvalidFieldOverride,severe:InvalidMethodOverride*/void set f2(C value) {}
+            /*severe:InvalidFieldOverride*/void set f3(value) {}
+            /*severe:InvalidFieldOverride,severe:InvalidMethodOverride*/void set f4(dynamic value) {}
+            /*severe:InvalidFieldOverride*/set f5(B value) {}
+          }
+
+          class Child2 implements Base {
             B get f1 => null;
             B get f2 => null;
             B get f3 => null;
@@ -1508,17 +1570,33 @@ void main() {
             }
 
             class T1 extends Base {
-              /*severe:InvalidMethodOverride*/B get f => null;
+              /*severe:InvalidFieldOverride,severe:InvalidMethodOverride*/B get f => null;
             }
 
             class T2 extends Base {
-              /*severe:InvalidMethodOverride*/set f(B b) => null;
+              /*severe:InvalidFieldOverride,severe:InvalidMethodOverride*/set f(B b) => null;
             }
 
             class T3 extends Base {
-              /*severe:InvalidMethodOverride*/final B f;
+              /*severe:InvalidFieldOverride,severe:InvalidMethodOverride*/final B f;
             }
             class T4 extends Base {
+              // two: one for the getter one for the setter.
+              /*severe:InvalidFieldOverride,severe:InvalidMethodOverride,severe:InvalidMethodOverride*/B f;
+            }
+
+            class T5 implements Base {
+              /*severe:InvalidMethodOverride*/B get f => null;
+            }
+
+            class T6 implements Base {
+              /*severe:InvalidMethodOverride*/set f(B b) => null;
+            }
+
+            class T7 implements Base {
+              /*severe:InvalidMethodOverride*/final B f;
+            }
+            class T8 implements Base {
               // two: one for the getter one for the setter.
               /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/B f;
             }
@@ -1546,12 +1624,14 @@ void main() {
 
             class Grandparent {
                 m(A a) {}
+                int x;
             }
             class Parent extends Grandparent {
             }
 
             class Test extends Parent {
                 /*severe:InvalidMethodOverride*/m(B a) {}
+                /*severe:InvalidFieldOverride*/int x;
             }
          '''
     });
@@ -1600,17 +1680,20 @@ void main() {
 
             class Base {
                 m(A a) {}
+                int x;
             }
 
             class M1 {
                 m(B a) {}
             }
 
-            class M2 {}
+            class M2 {
+                int x;
+            }
 
             class T1 extends Base with /*severe:InvalidMethodOverride*/M1 {}
-            class T2 extends Base with /*severe:InvalidMethodOverride*/M1, M2 {}
-            class T3 extends Base with M2, /*severe:InvalidMethodOverride*/M1 {}
+            class T2 extends Base with /*severe:InvalidMethodOverride*/M1, /*severe:InvalidFieldOverride*/M2 {}
+            class T3 extends Base with /*severe:InvalidFieldOverride*/M2, /*severe:InvalidMethodOverride*/M1 {}
          '''
     });
 
@@ -1624,13 +1707,15 @@ void main() {
 
             class M1 {
                 m(B a) {}
+                int x;
             }
 
             class M2 {
                 m(A a) {}
+                int x;
             }
 
-            class T1 extends Base with M1, /*severe:InvalidMethodOverride*/M2 {}
+            class T1 extends Base with M1, /*severe:InvalidMethodOverride,severe:InvalidFieldOverride*/M2 {}
          '''
     });
 

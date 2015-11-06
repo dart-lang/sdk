@@ -540,7 +540,7 @@ void main() {
         }
 
         class B extends A {
-          get x => 3;
+          /*severe:InvalidFieldOverride*/get x => 3;
         }
 
         foo() {
@@ -613,7 +613,7 @@ void main() {
 
         class B<E> extends A<E> {
           E y;
-          get x => y;
+          /*severe:InvalidFieldOverride*/get x => y;
         }
 
         foo() {
@@ -747,13 +747,13 @@ void main() {
           final I2 a;
         }
 
-        class C1 extends A implements B {
-          /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/get a => null;
+        class C1 implements A, B {
+          /*severe:InvalidMethodOverride*/get a => null;
         }
 
         // Still ambiguous
-        class C2 extends B implements A {
-          /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/get a => null;
+        class C2 implements B, A {
+          /*severe:InvalidMethodOverride*/get a => null;
         }
     '''
   });
@@ -780,12 +780,12 @@ void main() {
           final I2 a;
         }
 
-        class C1 extends A implements B {
+        class C1 implements A, B {
           I3 get a => null;
         }
 
-        class C2 extends A implements B {
-          /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/get a => null;
+        class C2 implements A, B {
+          /*severe:InvalidMethodOverride*/get a => null;
         }
     '''
   });
@@ -797,7 +797,7 @@ void main() {
           var x;
         }
 
-        class B extends A {
+        class B implements A {
           var x = 2;
         }
 
@@ -815,7 +815,7 @@ void main() {
           final x;
         }
 
-        class B extends A {
+        class B implements A {
           final x = 2;
         }
 
@@ -832,7 +832,7 @@ void main() {
           var x, y = 2, z = "hi";
         }
 
-        class B extends A {
+        class B implements A {
           var x = 2, y = 3, z, w = 2;
         }
 
