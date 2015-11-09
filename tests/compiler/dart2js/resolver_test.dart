@@ -728,7 +728,7 @@ Future testClassHierarchy() {
       Expect.equals(2, compiler.errors.length);
       Expect.equals(MessageKind.CYCLIC_CLASS_HIERARCHY,
                     compiler.errors[0].message.kind);
-      Expect.equals(MessageKind.CANNOT_FIND_CONSTRUCTOR,
+      Expect.equals(MessageKind.CANNOT_FIND_UNNAMED_CONSTRUCTOR,
                     compiler.errors[1].message.kind);
     }),
     MockCompiler.create((MockCompiler compiler) {

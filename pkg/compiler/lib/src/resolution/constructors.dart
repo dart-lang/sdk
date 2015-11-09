@@ -127,10 +127,10 @@ class InitializerResolver {
     }
     if (target != null) {
       registry.useElement(init, target);
-      if (!target.isMalformed) {
-        registry.registerStaticUse(new StaticUse.fieldInit(target));
-      }
       checkForDuplicateInitializers(target, init);
+    }
+    if (field != null) {
+      registry.registerStaticUse(new StaticUse.fieldInit(field));
     }
     // Resolve initializing value.
     ResolutionResult result = visitor.visitInStaticContext(
@@ -161,44 +161,49 @@ class InitializerResolver {
     return constructor.enclosingClass.thisType;
   }
 
-  ResolutionResult resolveSuperOrThisForSend(Send call) {
+  ResolutionResult resolveSuperOrThisForSend(Send node) {
     // Resolve the selector and the arguments.
     ArgumentsResult argumentsResult = visitor.inStaticContext(() {
-      visitor.resolveSelector(call, null);
-      return visitor.resolveArguments(call.argumentsNode);
+      // TODO(johnniwinther): Remove this when [SendStructure] is used directly.
+      visitor.resolveSelector(node, null);
+      return visitor.resolveArguments(node.argumentsNode);
     }, inConstantInitializer: isConst);
 
-    bool isSuperCall = Initializers.isSuperConstructorCall(call);
+    bool isSuperCall = Initializers.isSuperConstructorCall(node);
     InterfaceType targetType =
-        getSuperOrThisLookupTarget(call, isSuperCall: isSuperCall);
+        getSuperOrThisLookupTarget(node, isSuperCall: isSuperCall);
     ClassElement lookupTarget = targetType.element;
-    Selector constructorSelector =
-        visitor.getRedirectingThisOrSuperConstructorSelector(call);
-    ConstructorElement calledConstructor = findConstructor(
-        constructor.library, lookupTarget, constructorSelector.name);
+    String constructorName =
+        visitor.getRedirectingThisOrSuperConstructorName(node).text;
+    ConstructorElement foundConstructor = findConstructor(
+        constructor.library, lookupTarget, constructorName);
 
     final bool isImplicitSuperCall = false;
     final String className = lookupTarget.name;
-    verifyThatConstructorMatchesCall(calledConstructor,
-                                     argumentsResult.callStructure,
-                                     isImplicitSuperCall,
-                                     call,
-                                     className,
-                                     constructorSelector);
-    if (calledConstructor != null) {
-      registry.useElement(call, calledConstructor);
+    CallStructure callStructure = argumentsResult.callStructure;
+    ConstructorElement calledConstructor = verifyThatConstructorMatchesCall(
+        node,
+        foundConstructor,
+        callStructure,
+        className,
+        constructorName: constructorName,
+        isThisCall: !isSuperCall,
+        isImplicitSuperCall: false);
+    // TODO(johnniwinther): Remove this when information is pulled from an
+    // [InitializerStructure].
+    registry.useElement(node, calledConstructor);
+    if (!calledConstructor.isError) {
       registry.registerStaticUse(
           new StaticUse.superConstructorInvoke(
-              calledConstructor, argumentsResult.callStructure));
+              calledConstructor, callStructure));
     }
     if (isConst) {
       if (isValidAsConstant &&
           calledConstructor.isConst &&
           argumentsResult.isValidAsConstant) {
-        CallStructure callStructure = argumentsResult.callStructure;
         List<ConstantExpression> arguments = argumentsResult.constantArguments;
         return new ConstantResult(
-            call,
+            node,
             new ConstructedConstantExpression(
                 targetType,
                 calledConstructor,
@@ -223,30 +228,26 @@ class InitializerResolver {
       InterfaceType targetType =
           getSuperOrThisLookupTarget(functionNode, isSuperCall: true);
       ClassElement lookupTarget = targetType.element;
-      Selector constructorSelector = new Selector.callDefaultConstructor();
-      ConstructorElement calledConstructor = findConstructor(
-          constructor.library,
-          lookupTarget,
-          constructorSelector.name);
+      ConstructorElement calledConstructor =
+          findConstructor(constructor.library, lookupTarget, '');
 
       final String className = lookupTarget.name;
-      final bool isImplicitSuperCall = true;
-      verifyThatConstructorMatchesCall(calledConstructor,
-                                       CallStructure.NO_ARGS,
-                                       isImplicitSuperCall,
-                                       functionNode,
-                                       className,
-                                       constructorSelector);
-      if (calledConstructor != null) {
+      CallStructure callStructure = CallStructure.NO_ARGS;
+      ConstructorElement result = verifyThatConstructorMatchesCall(
+          functionNode,
+          calledConstructor,
+          callStructure,
+          className,
+          isImplicitSuperCall: true);
+      if (!result.isError) {
         registry.registerStaticUse(
-            new StaticUse.constructorInvoke(
-                calledConstructor, constructorSelector.callStructure));
+            new StaticUse.constructorInvoke(calledConstructor, callStructure));
       }
 
       if (isConst && isValidAsConstant) {
         return new ConstructedConstantExpression(
             targetType,
-            calledConstructor,
+            result,
             CallStructure.NO_ARGS,
             const <ConstantExpression>[]);
       }
@@ -254,41 +255,65 @@ class InitializerResolver {
     return null;
   }
 
-  void verifyThatConstructorMatchesCall(
+  ConstructorElement reportAndCreateErroneousConstructor(
+      Spannable diagnosticNode,
+      String name,
+      MessageKind kind,
+      Map arguments) {
+    isValidAsConstant = false;
+    reporter.reportErrorMessage(
+        diagnosticNode, kind, arguments);
+    return new ErroneousConstructorElementX(
+        kind, arguments, name, visitor.currentClass);
+  }
+
+  /// Checks that [lookedupConstructor] is valid as a target for the super/this
+  /// constructor call using with the given [callStructure].
+  ///
+  /// If [lookedupConstructor] is valid it is returned, otherwise an error is
+  /// reported and an [ErroneousConstructorElement] is returned.
+  ConstructorElement verifyThatConstructorMatchesCall(
+      Node node,
       ConstructorElementX lookedupConstructor,
-      CallStructure call,
-      bool isImplicitSuperCall,
-      Node diagnosticNode,
+      CallStructure callStructure,
       String className,
-      Selector constructorSelector) {
-    if (lookedupConstructor == null ||
-        !lookedupConstructor.isGenerativeConstructor) {
-      String fullConstructorName = Elements.constructorNameForDiagnostics(
-              className,
-              constructorSelector.name);
+      {String constructorName: '',
+       bool isImplicitSuperCall: false,
+       bool isThisCall: false}) {
+    Element result = lookedupConstructor;
+    if (lookedupConstructor == null) {
+      String fullConstructorName =
+          Elements.constructorNameForDiagnostics(className, constructorName);
       MessageKind kind = isImplicitSuperCall
           ? MessageKind.CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT
           : MessageKind.CANNOT_RESOLVE_CONSTRUCTOR;
-      reporter.reportErrorMessage(
-          diagnosticNode, kind, {'constructorName': fullConstructorName});
-      isValidAsConstant = false;
+      result = reportAndCreateErroneousConstructor(
+          node, constructorName,
+          kind, {'constructorName': fullConstructorName});
+    } else if (!lookedupConstructor.isGenerativeConstructor) {
+      MessageKind kind = isThisCall
+          ? MessageKind.THIS_CALL_TO_FACTORY
+          : MessageKind.SUPER_CALL_TO_FACTORY;
+      result = reportAndCreateErroneousConstructor(
+          node, constructorName, kind, {});
     } else {
       lookedupConstructor.computeType(visitor.resolution);
-      if (!call.signatureApplies(lookedupConstructor.functionSignature)) {
+      if (!callStructure.signatureApplies(
+               lookedupConstructor.functionSignature)) {
         MessageKind kind = isImplicitSuperCall
-                           ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
-                           : MessageKind.NO_MATCHING_CONSTRUCTOR;
-        reporter.reportErrorMessage(diagnosticNode, kind);
-        isValidAsConstant = false;
-      } else if (constructor.isConst
-                 && !lookedupConstructor.isConst) {
+            ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
+            : MessageKind.NO_MATCHING_CONSTRUCTOR;
+        result = reportAndCreateErroneousConstructor(
+            node, constructorName, kind, {});
+      } else if (constructor.isConst && !lookedupConstructor.isConst) {
         MessageKind kind = isImplicitSuperCall
-                           ? MessageKind.CONST_CALLS_NON_CONST_FOR_IMPLICIT
-                           : MessageKind.CONST_CALLS_NON_CONST;
-        reporter.reportErrorMessage(diagnosticNode, kind);
-        isValidAsConstant = false;
+            ? MessageKind.CONST_CALLS_NON_CONST_FOR_IMPLICIT
+            : MessageKind.CONST_CALLS_NON_CONST;
+        result = reportAndCreateErroneousConstructor(
+            node, constructorName, kind, {});
       }
     }
+    return result;
   }
 
   /**
@@ -490,14 +515,14 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     ConstructorElement constructor = findConstructor(
         resolver.enclosingElement.library, cls, constructorName);
     if (constructor == null) {
-      String fullConstructorName =
-          Elements.constructorNameForDiagnostics(cls.name, constructorName);
+      MessageKind kind = constructorName.isEmpty
+          ? MessageKind.CANNOT_FIND_UNNAMED_CONSTRUCTOR
+          : MessageKind.CANNOT_FIND_CONSTRUCTOR;
       return reportAndCreateErroneousConstructorElement(
           diagnosticNode,
           ConstructorResultKind.UNRESOLVED_CONSTRUCTOR, type,
-          cls, constructorName,
-          MessageKind.CANNOT_FIND_CONSTRUCTOR,
-          {'constructorName': fullConstructorName},
+          cls, constructorName, kind,
+          {'className': cls.name, 'constructorName': constructorName},
           missingConstructor: true);
     } else if (inConstContext && !constructor.isConst) {
       reporter.reportErrorMessage(

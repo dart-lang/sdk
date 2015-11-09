@@ -409,13 +409,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   bool isNamedConstructor(Send node) => node.receiver != null;
 
-  Selector getRedirectingThisOrSuperConstructorSelector(Send node) {
+  Name getRedirectingThisOrSuperConstructorName(Send node) {
     if (isNamedConstructor(node)) {
       String constructorName = node.selector.asIdentifier().source;
-      return new Selector.callConstructor(
-          new Name(constructorName, enclosingElement.library));
+      return new Name(constructorName, enclosingElement.library);
     } else {
-      return new Selector.callDefaultConstructor();
+      return const PublicName('');
     }
   }
 
@@ -428,10 +427,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     Link<Node> initializers = node.initializers.nodes;
     if (!initializers.isEmpty &&
         Initializers.isConstructorRedirect(initializers.head)) {
-      Selector selector =
-          getRedirectingThisOrSuperConstructorSelector(initializers.head);
+      Name name =
+          getRedirectingThisOrSuperConstructorName(initializers.head);
       final ClassElement classElement = constructor.enclosingClass;
-      return classElement.lookupConstructor(selector.name);
+      return classElement.lookupConstructor(name.text);
     }
     return null;
   }

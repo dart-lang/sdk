@@ -193,15 +193,24 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
     if (!element.hasConstructor) {
       Element superMember = element.superclass.localLookup('');
-      if (superMember == null || !superMember.isGenerativeConstructor) {
-        MessageKind kind = MessageKind.CANNOT_FIND_CONSTRUCTOR;
-        Map arguments = {'constructorName': ''};
+      if (superMember == null) {
+        MessageKind kind = MessageKind.CANNOT_FIND_UNNAMED_CONSTRUCTOR;
+        Map arguments = {'className': element.superclass.name};
         // TODO(ahe): Why is this a compile-time error? Or if it is an error,
         // why do we bother to registerThrowNoSuchMethod below?
         reporter.reportErrorMessage(node, kind, arguments);
         superMember = new ErroneousElementX(
             kind, arguments, '', element);
         registry.registerThrowNoSuchMethod();
+      } else if (!superMember.isGenerativeConstructor) {
+          MessageKind kind = MessageKind.SUPER_CALL_TO_FACTORY;
+          Map arguments = {'className': element.superclass.name};
+          // TODO(ahe): Why is this a compile-time error? Or if it is an error,
+          // why do we bother to registerThrowNoSuchMethod below?
+          reporter.reportErrorMessage(node, kind, arguments);
+          superMember = new ErroneousElementX(
+              kind, arguments, '', element);
+          registry.registerThrowNoSuchMethod();
       } else {
         ConstructorElement superConstructor = superMember;
         superConstructor.computeType(resolution);

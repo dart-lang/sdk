@@ -5740,7 +5740,8 @@ class SsaBuilder extends ast.Visitor
     }
     if (Elements.isError(element)) {
       ErroneousElement error = element;
-      if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
+      if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR ||
+          error.messageKind == MessageKind.CANNOT_FIND_UNNAMED_CONSTRUCTOR) {
         generateThrowNoSuchMethod(
             node.send,
             noSuchMethodTargetSymbolString(error, 'constructor'),

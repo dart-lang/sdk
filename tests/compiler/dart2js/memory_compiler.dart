@@ -40,7 +40,7 @@ class DiagnosticMessage {
   DiagnosticMessage(
       this.message, this.uri, this.begin, this.end, this.text, this.kind);
 
-  String toString() => '$uri:$begin:$end:$text:$kind';
+  String toString() => '${message.kind}:$uri:$begin:$end:$text:$kind';
 }
 
 class DiagnosticCollector implements CompilerDiagnostics {

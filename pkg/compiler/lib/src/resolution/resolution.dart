@@ -134,6 +134,9 @@ class ResolverTask extends CompilerTask {
     while (redirection != null) {
       // Ensure that we follow redirections through implementation elements.
       redirection = redirection.implementation;
+      if (redirection.isError) {
+        break;
+      }
       if (seen.contains(redirection)) {
         reporter.reportErrorMessage(
             node, MessageKind.REDIRECTING_CONSTRUCTOR_CYCLE);

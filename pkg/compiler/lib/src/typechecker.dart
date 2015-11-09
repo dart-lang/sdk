@@ -1198,8 +1198,15 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     Identifier selector = node.selector.asIdentifier();
     if (Elements.isClosureSend(node, element)) {
       if (element != null) {
-        // foo() where foo is a local or a parameter.
-        return analyzeInvocation(node, createPromotedAccess(element));
+        if (element.isError) {
+          // foo() where foo is erroneous
+          return analyzeInvocation(node, const DynamicAccess());
+        } else {
+          assert(invariant(node, element.isLocal,
+              message: "Unexpected element $element in closure send."));
+          // foo() where foo is a local or a parameter.
+          return analyzeInvocation(node, createPromotedAccess(element));
+        }
       } else {
         // exp() where exp is some complex expression like (o) or foo().
         DartType type = analyze(node.selector);

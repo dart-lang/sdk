@@ -36,7 +36,8 @@ abstract class SendResolverMixin {
     if (constructor.isMalformed) {
       if (constructor is ErroneousElement) {
         ErroneousElement error = constructor;
-        if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
+        if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR ||
+            error.messageKind == MessageKind.CANNOT_FIND_UNNAMED_CONSTRUCTOR) {
           return new ConstructorAccessSemantics(
               ConstructorAccessKind.UNRESOLVED_CONSTRUCTOR, constructor, type);
         }

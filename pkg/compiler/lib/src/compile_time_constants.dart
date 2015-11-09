@@ -1151,10 +1151,16 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           // A super initializer or constructor redirection.
           Send call = link.head;
           FunctionElement target = elements[call];
-          List<AstConstant> compiledArguments = evaluateArgumentsToConstructor(
-              call, elements.getSelector(call).callStructure, call.arguments,
-              target, compileArgument: evaluateConstant);
-          evaluateSuperOrRedirectSend(compiledArguments, target);
+          if (!target.isMalformed) {
+            List<AstConstant> compiledArguments =
+                evaluateArgumentsToConstructor(
+                  call,
+                  elements.getSelector(call).callStructure,
+                  call.arguments,
+                  target,
+                  compileArgument: evaluateConstant);
+            evaluateSuperOrRedirectSend(compiledArguments, target);
+          }
           foundSuperOrRedirect = true;
         } else {
           // A field initializer.
