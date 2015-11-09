@@ -7,6 +7,7 @@ library tree_ir.optimization.statement_rewriter;
 import 'optimization.dart' show Pass;
 import '../tree_ir_nodes.dart';
 import '../../io/source_information.dart';
+import '../../elements/elements.dart';
 
 /**
  * Translates to direct-style.
@@ -513,7 +514,19 @@ class StatementRewriter extends Transformer implements Pass {
 
   Expression visitInvokeMethodDirectly(InvokeMethodDirectly node) {
     _rewriteList(node.arguments);
-    node.receiver = visitExpression(node.receiver);
+    // The target function might not exist before the enclosing class has been
+    // instantitated for the first time.  If the receiver might be the first
+    // instantiation of its class, we cannot propgate it into the receiver
+    // expression, because the target function is evaluated before the receiver.
+    // Calls to constructor bodies are compiled so that the receiver is
+    // evaluated first, so they are safe.
+    if (node.target is! ConstructorBodyElement) {
+      inEmptyEnvironment(() {
+        node.receiver = visitExpression(node.receiver);
+      });
+    } else {
+      node.receiver = visitExpression(node.receiver);
+    }
     return node;
   }
 
