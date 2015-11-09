@@ -2867,11 +2867,15 @@ class Field : public Object {
   bool is_double_initialized() const {
     return DoubleInitializedBit::decode(raw_ptr()->kind_bits_);
   }
+  // Called in parser after allocating field, immutable property otherwise.
+  // Marks fields that are initialized with a simple double constant.
   void set_is_double_initialized(bool value) const {
+    ASSERT(Thread::Current()->IsMutatorThread());
     set_kind_bits(DoubleInitializedBit::update(value, raw_ptr()->kind_bits_));
   }
 
   inline intptr_t Offset() const;
+  // Called during class finalization.
   inline void SetOffset(intptr_t offset_in_bytes) const;
 
   inline RawInstance* StaticValue() const;
@@ -2882,7 +2886,8 @@ class Field : public Object {
   RawClass* origin() const;  // Either mixin class, or same as owner().
 
   RawAbstractType* type() const  { return raw_ptr()->type_; }
-  void set_type(const AbstractType& value) const;
+  // Used by class finalizer, otherwise initialized in constructor.
+  void SetFieldType(const AbstractType& value) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawField));
@@ -2894,6 +2899,7 @@ class Field : public Object {
                        bool is_const,
                        bool is_reflectable,
                        const Class& owner,
+                       const AbstractType& type,
                        intptr_t token_pos);
 
   // Allocate new field object, clone values from this field. The
@@ -2914,7 +2920,9 @@ class Field : public Object {
   bool has_initializer() const {
     return HasInitializerBit::decode(raw_ptr()->kind_bits_);
   }
+  // Called by parser after allocating field.
   void set_has_initializer(bool has_initializer) const {
+    ASSERT(Thread::Current()->IsMutatorThread());
     set_kind_bits(HasInitializerBit::update(has_initializer,
                                             raw_ptr()->kind_bits_));
   }
@@ -2925,6 +2933,7 @@ class Field : public Object {
   intptr_t guarded_cid() const { return raw_ptr()->guarded_cid_; }
 
   void set_guarded_cid(intptr_t cid) const {
+    ASSERT(Thread::Current()->IsMutatorThread());
     StoreNonPointer(&raw_ptr()->guarded_cid_, cid);
   }
   static intptr_t guarded_cid_offset() {
@@ -2960,6 +2969,8 @@ class Field : public Object {
   bool is_unboxing_candidate() const {
     return UnboxingCandidateBit::decode(raw_ptr()->kind_bits_);
   }
+  // Default 'true', set to false once optimizing compiler determines it should
+  // be boxed.
   void set_is_unboxing_candidate(bool b) const {
     set_kind_bits(UnboxingCandidateBit::update(b, raw_ptr()->kind_bits_));
   }
@@ -2982,6 +2993,7 @@ class Field : public Object {
     return raw_ptr()->is_nullable_ == kNullCid;
   }
   void set_is_nullable(bool val) const {
+    ASSERT(Thread::Current()->IsMutatorThread());
     StoreNonPointer(&raw_ptr()->is_nullable_, val ? kNullCid : kIllegalCid);
   }
   static intptr_t is_nullable_offset() {
@@ -8126,6 +8138,7 @@ RawInstance* Field::StaticValue() const {
 
 void Field::SetStaticValue(const Instance& value,
                            bool save_initial_value) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(is_static());  // Valid only for static dart fields.
   StorePointer(&raw_ptr()->value_.static_value_, value.raw());
   if (save_initial_value) {

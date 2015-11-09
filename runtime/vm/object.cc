@@ -1566,10 +1566,10 @@ RawError* Object::Init(Isolate* isolate) {
 
 #define ADD_SET_FIELD(clazz)                                                   \
   field_name = Symbols::New("cid"#clazz);                                      \
-  field = Field::New(field_name, true, false, true, false, cls, 0);            \
+  field = Field::New(field_name, true, false, true, false, cls,                \
+      Type::Handle(Type::IntType()), 0);                                       \
   value = Smi::New(k##clazz##Cid);                                             \
   field.SetStaticValue(value, true);                                           \
-  field.set_type(Type::Handle(Type::IntType()));                               \
   cls.AddField(field);                                                         \
 
   CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
@@ -7473,9 +7473,13 @@ RawClass* Field::origin() const {
 }
 
 
-void Field::set_type(const AbstractType& value) const {
+// Called at finalization time
+void Field::SetFieldType(const AbstractType& value) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->type_, value.raw());
+  if (value.raw() != type()) {
+    StorePointer(&raw_ptr()->type_, value.raw());
+  }
 }
 
 
@@ -7494,6 +7498,7 @@ RawField* Field::New(const String& name,
                      bool is_const,
                      bool is_reflectable,
                      const Class& owner,
+                     const AbstractType& type,
                      intptr_t token_pos) {
   ASSERT(!owner.IsNull());
   const Field& result = Field::Handle(Field::New());
@@ -7507,6 +7512,7 @@ RawField* Field::New(const String& name,
   result.set_is_reflectable(is_reflectable);
   result.set_is_double_initialized(false);
   result.set_owner(owner);
+  result.SetFieldType(type);
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
   result.set_is_unboxing_candidate(true);
@@ -7538,7 +7544,7 @@ RawField* Field::Clone(const Class& new_owner) const {
     // Adjust the field type to refer to type parameters of the new owner.
     AbstractType& type = AbstractType::Handle(clone.type());
     type ^= type.CloneUninstantiated(new_owner);
-    clone.set_type(type);
+    clone.SetFieldType(type);
   }
   return clone.raw();
 }
@@ -7561,6 +7567,7 @@ intptr_t Field::guarded_list_length() const {
 
 
 void Field::set_guarded_list_length(intptr_t list_length) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   StoreSmi(&raw_ptr()->guarded_list_length_, Smi::New(list_length));
 }
 
@@ -7572,6 +7579,7 @@ intptr_t Field::guarded_list_length_in_object_offset() const {
 
 void Field::set_guarded_list_length_in_object_offset(
     intptr_t list_length_offset) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   StoreNonPointer(&raw_ptr()->guarded_list_length_in_object_offset_,
                   static_cast<int8_t>(list_length_offset - kHeapObjectTag));
   ASSERT(guarded_list_length_in_object_offset() == list_length_offset);
@@ -7699,9 +7707,9 @@ RawInstance* Field::AccessorClosure(bool make_setter) const {
                              true,  // is_const
                              false,  // is_reflectable
                              field_owner,
+                             Object::dynamic_type(),
                              this->token_pos());
   closure_field.SetStaticValue(Instance::Cast(result), true);
-  closure_field.set_type(Object::dynamic_type());
   field_owner.AddField(closure_field);
 
   return Instance::RawCast(result.raw());
@@ -9382,8 +9390,8 @@ void Library::AddMetadata(const Class& cls,
                                           false,  // is_const
                                           false,  // is_reflectable
                                           cls,
+                                          Object::dynamic_type(),
                                           token_pos));
-  field.set_type(Object::dynamic_type());
   field.SetStaticValue(Array::empty_array(), true);
   GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(this->metadata());
@@ -10904,8 +10912,8 @@ void Namespace::AddMetadata(intptr_t token_pos, const Class& owner_class) {
                                           false,  // is_const
                                           false,  // is_reflectable
                                           owner_class,
+                                          Object::dynamic_type(),
                                           token_pos));
-  field.set_type(Object::dynamic_type());
   field.SetStaticValue(Array::empty_array(), true);
   set_metadata_field(field);
   owner_class.AddField(field);

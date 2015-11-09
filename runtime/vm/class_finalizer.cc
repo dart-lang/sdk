@@ -1314,7 +1314,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
     field ^= array.At(i);
     type = field.type();
     type = FinalizeType(cls, type, kCanonicalize);
-    field.set_type(type);
+    field.SetFieldType(type);
     name = field.name();
     if (field.is_static()) {
       getter_name = Field::GetterSymbol(name);

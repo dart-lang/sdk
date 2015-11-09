@@ -4047,8 +4047,8 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
                              field->has_const,
                              is_reflectable,
                              current_class(),
+                             *field->type,
                              field->name_pos);
-    class_field.set_type(*field->type);
     class_field.set_has_initializer(has_initializer);
     members->AddField(class_field);
     field->field_ = &class_field;
@@ -4728,8 +4728,8 @@ void Parser::ParseEnumDefinition(const Class& cls) {
                            false,  // Not const.
                            true,  // Is reflectable.
                            cls,
+                           int_type,
                            cls.token_pos());
-  index_field.set_type(int_type);
   enum_members.AddField(index_field);
 
   // Add implicit getter for index field.
@@ -4800,8 +4800,8 @@ void Parser::ParseEnumDefinition(const Class& cls) {
                             /* is_const = */ true,
                             /* is_reflectable = */ true,
                             cls,
+                            Object::dynamic_type(),
                             cls.token_pos());
-    enum_value.set_type(Object::dynamic_type());
     enum_value.set_has_initializer(false);
     enum_members.AddField(enum_value);
     // Initialize the field with the ordinal value. It will be patched
@@ -4838,8 +4838,8 @@ void Parser::ParseEnumDefinition(const Class& cls) {
                             /* is_const = */ true,
                             /* is_reflectable = */ true,
                             cls,
+                            Type::Handle(Z, Type::ArrayType()),
                             cls.token_pos());
-  values_field.set_type(Type::Handle(Z, Type::ArrayType()));
   enum_members.AddField(values_field);
 
   // Allocate the immutable array containing the enumeration values.
@@ -5447,8 +5447,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
     const bool is_reflectable =
         !(library_.is_dart_scheme() && library_.IsPrivate(var_name));
     field = Field::New(var_name, is_static, is_final, is_const, is_reflectable,
-                       current_class(), name_pos);
-    field.set_type(type);
+                       current_class(), type, name_pos);
     field.SetStaticValue(Object::null_instance(), true);
     top_level->AddField(field);
     library_.AddObject(field, var_name);

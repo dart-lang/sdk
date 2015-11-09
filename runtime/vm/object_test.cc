@@ -281,7 +281,8 @@ TEST_CASE(InstanceClass) {
   const Array& one_fields = Array::Handle(Array::New(1));
   const String& field_name = String::Handle(Symbols::New("the_field"));
   const Field& field = Field::Handle(
-      Field::New(field_name, false, false, false, true, one_field_class, 0));
+      Field::New(field_name, false, false, false, true, one_field_class,
+                 Object::dynamic_type(), 0));
   one_fields.SetAt(0, field);
   one_field_class.SetFields(one_fields);
   one_field_class.Finalize();
@@ -2961,7 +2962,8 @@ static RawField* CreateTestField(const char* name) {
   const Class& cls = Class::Handle(CreateTestClass("global:"));
   const String& field_name = String::Handle(Symbols::New(name));
   const Field& field =
-      Field::Handle(Field::New(field_name, true, false, false, true, cls, 0));
+      Field::Handle(Field::New(field_name, true, false, false, true, cls,
+          Object::dynamic_type(), 0));
   return field.raw();
 }
 
