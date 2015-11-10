@@ -418,6 +418,8 @@ void ThreadPool::Worker::Shutdown() {
 // static
 void ThreadPool::Worker::Main(uword args) {
   Thread::EnsureInit();
+  Thread* thread = Thread::Current();
+  thread->set_name("Dart ThreadPool Worker");
   Worker* worker = reinterpret_cast<Worker*>(args);
   ThreadId id = OSThread::GetCurrentThreadId();
   ThreadJoinId join_id = OSThread::GetCurrentThreadJoinId();

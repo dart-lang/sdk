@@ -8,6 +8,7 @@ transformers:
     inline_stylesheets:
       lib/src/elements/css/shared.css: false
       packages/charted/charts/themes/quantum_theme.css: false
+    $exclude: [web/third_party/*.html, web/timeline.html]
 - $dart2js:
     $include: "**/*.polymer.bootstrap.dart"
     suppressWarnings: false

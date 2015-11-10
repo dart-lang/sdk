@@ -834,8 +834,8 @@ abstract class VM extends ServiceObjectOwner {
         await listenEventStream(kIsolateStream, _dispatchEventToIsolate);
         await listenEventStream(kDebugStream, _dispatchEventToIsolate);
         await listenEventStream(_kGraphStream, _dispatchEventToIsolate);
-      } on FakeVMRpcException catch (e) {
-        // ignore FakeVMRpcExceptions here.  
+      } on FakeVMRpcException catch (_) {
+        // ignore FakeVMRpcExceptions here.
       }
     }
     return await invokeRpcNoUpgrade('getVM', {});

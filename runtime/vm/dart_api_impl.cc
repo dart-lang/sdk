@@ -5737,6 +5737,8 @@ DART_EXPORT void Dart_TimelineSetRecordedStreams(int64_t stream_mask) {
       (stream_mask & DART_TIMELINE_STREAM_COMPILER) != 0);
   isolate->GetDartStream()->set_enabled(
       (stream_mask & DART_TIMELINE_STREAM_DART) != 0);
+  isolate->GetDebuggerStream()->set_enabled(
+      (stream_mask & DART_TIMELINE_STREAM_DEBUGGER) != 0);
   isolate->GetEmbedderStream()->set_enabled(
       (stream_mask & DART_TIMELINE_STREAM_EMBEDDER) != 0);
   isolate->GetGCStream()->set_enabled(
@@ -5753,6 +5755,8 @@ DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
       (stream_mask & DART_TIMELINE_STREAM_COMPILER) != 0;
   const bool dart_enabled =
       (stream_mask & DART_TIMELINE_STREAM_DART) != 0;
+  const bool debugger_enabled =
+      (stream_mask & DART_TIMELINE_STREAM_DEBUGGER) != 0;
   const bool embedder_enabled =
       (stream_mask & DART_TIMELINE_STREAM_EMBEDDER) != 0;
   const bool gc_enabled = (stream_mask & DART_TIMELINE_STREAM_GC) != 0;
@@ -5761,6 +5765,7 @@ DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
   Timeline::SetStreamAPIEnabled(api_enabled);
   Timeline::SetStreamCompilerEnabled(compiler_enabled);
   Timeline::SetStreamDartEnabled(dart_enabled);
+  Timeline::SetStreamDebuggerEnabled(debugger_enabled);
   Timeline::SetStreamEmbedderEnabled(embedder_enabled);
   Timeline::SetStreamGCEnabled(gc_enabled);
   Timeline::SetStreamIsolateEnabled(isolate_enabled);

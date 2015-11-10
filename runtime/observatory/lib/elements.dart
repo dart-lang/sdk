@@ -52,6 +52,7 @@ export 'package:observatory/src/elements/script_view.dart';
 export 'package:observatory/src/elements/service_ref.dart';
 export 'package:observatory/src/elements/service_view.dart';
 export 'package:observatory/src/elements/sliding_checkbox.dart';
+export 'package:observatory/src/elements/timeline_page.dart';
 export 'package:observatory/src/elements/view_footer.dart';
 export 'package:observatory/src/elements/vm_connect.dart';
 export 'package:observatory/src/elements/vm_ref.dart';

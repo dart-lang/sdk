@@ -2522,7 +2522,11 @@ void Debugger::Pause(DebuggerEvent* event) {
   // We are about to invoke the debuggers event handler. Disable interrupts
   // for this thread while waiting for debug commands over the service protocol.
   {
-    DisableThreadInterruptsScope dtis(Thread::Current());
+    Thread* thread = Thread::Current();
+    DisableThreadInterruptsScope dtis(thread);
+    TimelineDurationScope tds(thread,
+                              isolate_->GetDebuggerStream(),
+                              "Debugger Pause");
     InvokeEventHandler(event);
   }
 

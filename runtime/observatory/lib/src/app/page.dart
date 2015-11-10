@@ -425,3 +425,21 @@ class MetricsPage extends Page {
 
   bool canVisit(Uri uri) => uri.path == 'metrics';
 }
+
+class TimelinePage extends Page {
+  TimelinePage(app) : super(app);
+
+  void onInstall() {
+    if (element == null) {
+      element = new Element.tag('timeline-page');
+    }
+    assert(element != null);
+  }
+
+  void _visit(Uri uri) {
+    assert(element != null);
+    assert(canVisit(uri));
+  }
+
+  bool canVisit(Uri uri) => uri.path == 'timeline';
+}

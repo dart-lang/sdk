@@ -30,6 +30,7 @@ class Zone;
   V(API, false)                                                                \
   V(Compiler, false)                                                           \
   V(Dart, false)                                                               \
+  V(Debugger, false)                                                           \
   V(Embedder, false)                                                           \
   V(GC, false)                                                                 \
   V(Isolate, false)                                                            \
@@ -51,6 +52,8 @@ class Timeline : public AllStatic {
 
   // Reclaim all |TimelineEventBlocks|s that are cached by threads.
   static void ReclaimCachedBlocksFromThreads();
+
+  static void Clear();
 
 #define ISOLATE_TIMELINE_STREAM_FLAGS(name, not_used)                          \
   static const bool* Stream##name##EnabledFlag() {                             \
@@ -523,6 +526,7 @@ class TimelineEventRecorder {
   virtual void CompleteEvent(TimelineEvent* event) = 0;
   virtual TimelineEventBlock* GetHeadBlockLocked() = 0;
   virtual TimelineEventBlock* GetNewBlockLocked() = 0;
+  virtual void Clear() = 0;
 
   // Utility method(s).
   void PrintJSONMeta(JSONArray* array) const;
@@ -560,8 +564,9 @@ class TimelineEventRingRecorder : public TimelineEventRecorder {
   TimelineEventBlock* GetHeadBlockLocked();
   intptr_t FindOldestBlockIndex() const;
   TimelineEventBlock* GetNewBlockLocked();
+  void Clear();
 
-  void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter) const;
+  void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter);
 
   TimelineEventBlock** blocks_;
   intptr_t capacity_;
@@ -590,6 +595,8 @@ class TimelineEventStreamingRecorder : public TimelineEventRecorder {
   TimelineEventBlock* GetHeadBlockLocked() {
     return NULL;
   }
+  void Clear() {
+  }
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
 };
@@ -610,11 +617,9 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   void CompleteEvent(TimelineEvent* event);
   TimelineEventBlock* GetNewBlockLocked();
   TimelineEventBlock* GetHeadBlockLocked();
-
-  void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter) const;
-
-  // Useful only for testing. Only works for one thread.
   void Clear();
+
+  void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter);
 
   TimelineEventBlock* head_;
   intptr_t block_index_;

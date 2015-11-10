@@ -134,6 +134,8 @@
     'lib/src/elements/service_view.html',
     'lib/src/elements/sliding_checkbox.dart',
     'lib/src/elements/sliding_checkbox.html',
+    'lib/src/elements/timeline_page.dart',
+    'lib/src/elements/timeline_page.html',
     'lib/src/elements/view_footer.dart',
     'lib/src/elements/view_footer.html',
     'lib/src/elements/vm_connect.dart',
@@ -152,5 +154,8 @@
     'web/index.html',
     'web/main.dart',
     'web/favicon.ico',
+    'web/third_party/trace_viewer_full.html',
+    'web/timeline.js',
+    'web/timeline.html',
   ],
 }

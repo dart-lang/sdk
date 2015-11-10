@@ -93,6 +93,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   Thread::InitOnceBeforeIsolate();
   Thread::EnsureInit();
   Timeline::InitOnce();
+  Thread* thread = Thread::Current();
+  thread->set_name("Dart_Initialize");
   TimelineDurationScope tds(Timeline::GetVMStream(),
                             "Dart::InitOnce");
   Isolate::InitOnce();

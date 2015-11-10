@@ -84,7 +84,7 @@ void Timeline::InitOnce() {
   vm_stream_->Init("VM", EnableStreamByDefault("VM"), NULL);
   // Global overrides.
 #define ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT(name, not_used)                   \
-  stream_##name##_enabled_ = false;
+  stream_##name##_enabled_ = EnableStreamByDefault(#name);
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT)
 #undef ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT
 }
@@ -109,7 +109,7 @@ TimelineEventRecorder* Timeline::recorder() {
 
 bool Timeline::EnableStreamByDefault(const char* stream_name) {
   // TODO(johnmccutchan): Allow for command line control over streams.
-  return (FLAG_timeline_dir != NULL) || FLAG_timing;
+  return (FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline;
 }
 
 
@@ -141,11 +141,21 @@ void Timeline::ReclaimCachedBlocksFromThreads() {
 }
 
 
+void Timeline::Clear() {
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  if (recorder == NULL) {
+    return;
+  }
+  ReclaimCachedBlocksFromThreads();
+  recorder->Clear();
+}
+
+
 TimelineEventRecorder* Timeline::recorder_ = NULL;
 TimelineStream* Timeline::vm_stream_ = NULL;
 
 #define ISOLATE_TIMELINE_STREAM_DEFINE_FLAG(name, enabled_by_default)          \
-  bool Timeline::stream_##name##_enabled_ = false;
+  bool Timeline::stream_##name##_enabled_ = enabled_by_default;
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_DEFINE_FLAG)
 #undef ISOLATE_TIMELINE_STREAM_DEFINE_FLAG
 
@@ -631,6 +641,26 @@ TimelineEventRecorder::TimelineEventRecorder()
 
 
 void TimelineEventRecorder::PrintJSONMeta(JSONArray* events) const {
+  ThreadIterator it;
+  while (it.HasNext()) {
+    Thread* thread = it.Next();
+    const char* thread_name = thread->name();
+    if (thread_name == NULL) {
+      // Only emit a thread name if one was set.
+      continue;
+    }
+    JSONObject obj(events);
+    int64_t pid = OS::ProcessId();
+    int64_t tid = OSThread::ThreadIdToIntPtr(thread->trace_id());
+    obj.AddProperty("name", "thread_name");
+    obj.AddProperty("ph", "M");
+    obj.AddProperty64("pid", pid);
+    obj.AddProperty64("tid", tid);
+    {
+      JSONObject args(&obj, "args");
+      args.AddPropertyF("name", "%s (%" Pd64 ")", thread_name, tid);
+    }
+  }
 }
 
 
@@ -783,7 +813,8 @@ TimelineEventRingRecorder::~TimelineEventRingRecorder() {
 
 void TimelineEventRingRecorder::PrintJSONEvents(
     JSONArray* events,
-    TimelineEventFilter* filter) const {
+    TimelineEventFilter* filter) {
+  MutexLocker ml(&lock_);
   intptr_t block_offset = FindOldestBlockIndex();
   if (block_offset == -1) {
     // All blocks are empty.
@@ -807,7 +838,6 @@ void TimelineEventRingRecorder::PrintJSONEvents(
 
 void TimelineEventRingRecorder::PrintJSON(JSONStream* js,
                                           TimelineEventFilter* filter) {
-  MutexLocker ml(&lock_);
   JSONObject topLevel(js);
   topLevel.AddProperty("type", "_Timeline");
   {
@@ -840,6 +870,15 @@ TimelineEventBlock* TimelineEventRingRecorder::GetNewBlockLocked() {
   block->Reset();
   block->Open();
   return block;
+}
+
+
+void TimelineEventRingRecorder::Clear() {
+  MutexLocker ml(&lock_);
+  for (intptr_t i = 0; i < num_blocks_; i++) {
+    TimelineEventBlock* block = blocks_[i];
+    block->Reset();
+  }
 }
 
 
@@ -923,7 +962,6 @@ TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
 
 void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
                                              TimelineEventFilter* filter) {
-  MutexLocker ml(&lock_);
   JSONObject topLevel(js);
   topLevel.AddProperty("type", "_Timeline");
   {
@@ -977,9 +1015,9 @@ TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlockLocked() {
 
 void TimelineEventEndlessRecorder::PrintJSONEvents(
     JSONArray* events,
-    TimelineEventFilter* filter) const {
+    TimelineEventFilter* filter) {
+  MutexLocker ml(&lock_);
   TimelineEventBlock* current = head_;
-
   while (current != NULL) {
     if (!filter->IncludeBlock(current)) {
       current = current->next();

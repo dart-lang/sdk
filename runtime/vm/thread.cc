@@ -214,6 +214,7 @@ void Thread::EnsureInit() {
 Thread::Thread(bool init_vm_constants)
     : id_(OSThread::GetCurrentThreadId()),
       join_id_(OSThread::GetCurrentThreadJoinId()),
+      trace_id_(OSThread::GetCurrentThreadTraceId()),
       thread_interrupt_disabled_(1),  // Thread interrupts disabled by default.
       isolate_(NULL),
       heap_(NULL),
@@ -228,7 +229,8 @@ Thread::Thread(bool init_vm_constants)
       vm_tag_(0),
       pending_functions_(GrowableObjectArray::null()),
       no_callback_scope_depth_(0),
-      thread_list_next_(NULL) {
+      thread_list_next_(NULL),
+      name_(NULL) {
   ClearState();
 
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \

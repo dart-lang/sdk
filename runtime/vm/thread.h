@@ -363,6 +363,21 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
     return join_id_;
   }
 
+  ThreadId trace_id() const {
+    ASSERT(trace_id_ != OSThread::kInvalidThreadJoinId);
+    return trace_id_;
+  }
+
+  const char* name() const {
+    return name_;
+  }
+
+  void set_name(const char* name) {
+    ASSERT(Thread::Current() == this);
+    ASSERT(name_ == NULL);
+    name_ = name;
+  }
+
   // Used to temporarily disable or enable thread interrupts.
   void DisableThreadInterrupts();
   void EnableThreadInterrupts();
@@ -410,6 +425,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
 
   const ThreadId id_;
   const ThreadId join_id_;
+  const ThreadId trace_id_;
   uintptr_t thread_interrupt_disabled_;
   Isolate* isolate_;
   Heap* heap_;
@@ -458,6 +474,9 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 
   // All |Thread|s are registered in the thread list.
   Thread* thread_list_next_;
+
+  // A name for this thread.
+  const char* name_;
 
   static Thread* thread_list_head_;
   static Mutex* thread_list_lock_;

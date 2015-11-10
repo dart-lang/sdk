@@ -2492,6 +2492,90 @@ static bool GetVMMetric(Thread* thread, JSONStream* js) {
 }
 
 
+static const MethodParameter* set_vm_timeline_flag_params[] = {
+  NO_ISOLATE_PARAMETER,
+  new MethodParameter("_record", true),
+  NULL,
+};
+
+
+static bool SetVMTimelineFlag(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != NULL);
+  StackZone zone(thread);
+
+  bool recording = strcmp(js->LookupParam("_record"), "all") == 0;
+  Timeline::SetStreamAPIEnabled(recording);
+  Timeline::SetStreamCompilerEnabled(recording);
+  Timeline::SetStreamDartEnabled(recording);
+  Timeline::SetStreamDebuggerEnabled(recording);
+  Timeline::SetStreamEmbedderEnabled(recording);
+  Timeline::SetStreamGCEnabled(recording);
+  Timeline::SetStreamIsolateEnabled(recording);
+
+  PrintSuccess(js);
+
+  return true;
+}
+
+
+static const MethodParameter* get_vm_timeline_flag_params[] = {
+  NO_ISOLATE_PARAMETER,
+  new MethodParameter("_record", false),
+  NULL,
+};
+
+
+static bool GetVMTimelineFlag(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != NULL);
+  StackZone zone(thread);
+
+  js->PrintError(kFeatureDisabled, "TODO(johnmccutchan)");
+  return true;
+}
+
+
+static const MethodParameter* clear_vm_timeline_params[] = {
+  NO_ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool ClearVMTimeline(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != NULL);
+  StackZone zone(thread);
+
+  Timeline::Clear();
+
+  PrintSuccess(js);
+
+  return true;
+}
+
+
+static const MethodParameter* get_vm_timeline_params[] = {
+  NO_ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool GetVMTimeline(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != NULL);
+  StackZone zone(thread);
+  Timeline::ReclaimCachedBlocksFromThreads();
+  TimelineEventRecorder* timeline_recorder = Timeline::recorder();
+  // TODO(johnmccutchan): Return an error.
+  ASSERT(timeline_recorder != NULL);
+  TimelineEventFilter filter;
+  timeline_recorder->PrintJSON(js, &filter);
+
+  return true;
+}
+
+
 static const MethodParameter* resume_params[] = {
   ISOLATE_PARAMETER,
   NULL,
@@ -3333,6 +3417,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     add_breakpoint_at_activation_params },
   { "_clearCpuProfile", ClearCpuProfile,
     clear_cpu_profile_params },
+  { "_clearVMTimeline", ClearVMTimeline,
+    clear_vm_timeline_params, },
   { "evaluate", Evaluate,
     evaluate_params },
   { "evaluateInFrame", EvaluateInFrame,
@@ -3387,6 +3473,10 @@ static ServiceMethodDescriptor service_methods_[] = {
     get_vm_metric_params },
   { "_getVMMetricList", GetVMMetricList,
     get_vm_metric_list_params },
+  { "_getVMTimeline", GetVMTimeline,
+    get_vm_timeline_params },
+  { "_getVMTimelineFlag", GetVMTimelineFlag,
+    get_vm_timeline_flag_params },
   { "pause", Pause,
     pause_params },
   { "removeBreakpoint", RemoveBreakpoint,
@@ -3409,6 +3499,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     set_trace_class_allocation_params },
   { "setVMName", SetVMName,
     set_vm_name_params },
+  { "_setVMTimelineFlag", SetVMTimelineFlag,
+    set_vm_timeline_flag_params },
 };
 
 
