@@ -499,13 +499,6 @@ class CompilerImpl extends Compiler {
   void reportDiagnostic(DiagnosticMessage message,
                         List<DiagnosticMessage> infos,
                         api.Diagnostic kind) {
-    // TODO(johnniwinther): Move this to the [DiagnosticReporter]?
-    if (kind == api.Diagnostic.ERROR ||
-        kind == api.Diagnostic.CRASH ||
-        (reporter.options.fatalWarnings &&
-         kind == api.Diagnostic.WARNING)) {
-      compilationFailed = true;
-    }
     _reportDiagnosticMessage(message, kind);
     for (DiagnosticMessage info in infos) {
       _reportDiagnosticMessage(info, api.Diagnostic.INFO);

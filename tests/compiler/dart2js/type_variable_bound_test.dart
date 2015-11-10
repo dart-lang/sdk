@@ -23,19 +23,20 @@ test(String source, {var errors, var warnings}) {
   if (warnings == null) warnings = [];
   if (warnings is! List) warnings = [warnings];
   asyncTest(() => compile(source).then((compiler) {
+    DiagnosticCollector collector = compiler.diagnosticCollector;
     Expect.equals(!errors.isEmpty, compiler.compilationFailed);
-    Expect.equals(errors.length, compiler.errors.length,
-                  'unexpected error count: ${compiler.errors.length} '
+    Expect.equals(errors.length, collector.errors.length,
+                  'unexpected error count: ${collector.errors.length} '
                   'expected ${errors.length}');
-    Expect.equals(warnings.length, compiler.warnings.length,
-                  'unexpected warning count: ${compiler.warnings.length} '
+    Expect.equals(warnings.length, collector.warnings.length,
+                  'unexpected warning count: ${collector.warnings.length} '
                   'expected ${warnings.length}');
 
     for (int i = 0 ; i < errors.length ; i++) {
-      Expect.equals(errors[i], compiler.errors[i].message.kind);
+      Expect.equals(errors[i], collector.errors.elementAt(i).message.kind);
     }
     for (int i = 0 ; i < warnings.length ; i++) {
-      Expect.equals(warnings[i], compiler.warnings[i].message.kind);
+      Expect.equals(warnings[i], collector.warnings.elementAt(i).message.kind);
     }
   }));
 }
@@ -48,15 +49,18 @@ void main() {
   new A();
 }
 """).then((compiler) {
+    DiagnosticCollector collector = compiler.diagnosticCollector;
     Expect.isFalse(compiler.compilationFailed);
-    Expect.isTrue(compiler.errors.isEmpty,
-                  'unexpected errors: ${compiler.errors}');
-    Expect.equals(1, compiler.warnings.length,
-                  'expected exactly one warning, but got ${compiler.warnings}');
+    Expect.isTrue(collector.errors.isEmpty,
+                  'unexpected errors: ${collector.errors}');
+    Expect.equals(1, collector.warnings.length,
+                  'expected exactly one warning, but got ${collector.warnings}');
 
+    print(collector.warnings.elementAt(0));
     Expect.equals(MessageKind.CYCLIC_TYPE_VARIABLE,
-                  compiler.warnings[0].message.kind);
-    Expect.equals("T", compiler.warnings[0].node.toString());
+                  collector.warnings.elementAt(0).message.kind);
+    Expect.equals("T",
+        collector.warnings.elementAt(0).message.arguments['typeVariableName']);
   }));
 }
 
@@ -68,19 +72,22 @@ void main() {
   new B();
 }
 """).then((compiler) {
+    DiagnosticCollector collector = compiler.diagnosticCollector;
     Expect.isFalse(compiler.compilationFailed);
-    print(compiler.errors);
-    Expect.isTrue(compiler.errors.isEmpty, 'unexpected errors');
-    Expect.equals(2, compiler.warnings.length,
-                  'expected exactly two errors, but got ${compiler.warnings}');
+    print(collector.errors);
+    Expect.isTrue(collector.errors.isEmpty, 'unexpected errors');
+    Expect.equals(2, collector.warnings.length,
+                  'expected exactly two errors, but got ${collector.warnings}');
 
     Expect.equals(MessageKind.CYCLIC_TYPE_VARIABLE,
-                  compiler.warnings[0].message.kind);
-    Expect.equals("T", compiler.warnings[0].node.toString());
+                  collector.warnings.elementAt(0).message.kind);
+    Expect.equals("T",
+        collector.warnings.elementAt(0).message.arguments['typeVariableName']);
 
     Expect.equals(MessageKind.CYCLIC_TYPE_VARIABLE,
-                  compiler.warnings[1].message.kind);
-    Expect.equals("S", compiler.warnings[1].node.toString());
+                  collector.warnings.elementAt(1).message.kind);
+    Expect.equals("S",
+        collector.warnings.elementAt(1).message.arguments['typeVariableName']);
   }));
 }
 
@@ -92,23 +99,27 @@ void main() {
   new C();
 }
 """).then((compiler) {
+    DiagnosticCollector collector = compiler.diagnosticCollector;
     Expect.isFalse(compiler.compilationFailed);
-    print(compiler.errors);
-    Expect.isTrue(compiler.errors.isEmpty, 'unexpected errors');
-    Expect.equals(3, compiler.warnings.length,
-                  'expected exactly one error, but got ${compiler.warnings}');
+    print(collector.errors);
+    Expect.isTrue(collector.errors.isEmpty, 'unexpected errors');
+    Expect.equals(3, collector.warnings.length,
+                  'expected exactly one error, but got ${collector.warnings}');
 
     Expect.equals(MessageKind.CYCLIC_TYPE_VARIABLE,
-                  compiler.warnings[0].message.kind);
-    Expect.equals("T", compiler.warnings[0].node.toString());
+                  collector.warnings.elementAt(0).message.kind);
+    Expect.equals("T",
+        collector.warnings.elementAt(0).message.arguments['typeVariableName']);
 
     Expect.equals(MessageKind.CYCLIC_TYPE_VARIABLE,
-                  compiler.warnings[1].message.kind);
-    Expect.equals("S", compiler.warnings[1].node.toString());
+                  collector.warnings.elementAt(1).message.kind);
+    Expect.equals("S",
+        collector.warnings.elementAt(1).message.arguments['typeVariableName']);
 
     Expect.equals(MessageKind.CYCLIC_TYPE_VARIABLE,
-                  compiler.warnings[2].message.kind);
-    Expect.equals("U", compiler.warnings[2].node.toString());
+                  collector.warnings.elementAt(2).message.kind);
+    Expect.equals("U",
+        collector.warnings.elementAt(2).message.arguments['typeVariableName']);
   }));
 }
 
@@ -120,19 +131,22 @@ void main() {
   new D();
 }
 """).then((compiler) {
+    DiagnosticCollector collector = compiler.diagnosticCollector;
     Expect.isFalse(compiler.compilationFailed);
-    print(compiler.errors);
-    Expect.isTrue(compiler.errors.isEmpty, 'unexpected errors');
-    Expect.equals(2, compiler.warnings.length,
-                  'expected exactly one error, but got ${compiler.warnings}');
+    print(collector.errors);
+    Expect.isTrue(collector.errors.isEmpty, 'unexpected errors');
+    Expect.equals(2, collector.warnings.length,
+                  'expected exactly one error, but got ${collector.warnings}');
 
     Expect.equals(MessageKind.CYCLIC_TYPE_VARIABLE,
-                  compiler.warnings[0].message.kind);
-    Expect.equals("S", compiler.warnings[0].node.toString());
+                  collector.warnings.elementAt(0).message.kind);
+    Expect.equals("S",
+        collector.warnings.elementAt(0).message.arguments['typeVariableName']);
 
     Expect.equals(MessageKind.CYCLIC_TYPE_VARIABLE,
-                  compiler.warnings[1].message.kind);
-    Expect.equals("U", compiler.warnings[1].node.toString());
+                  collector.warnings.elementAt(1).message.kind);
+    Expect.equals("U",
+        collector.warnings.elementAt(1).message.arguments['typeVariableName']);
   }));
 }
 

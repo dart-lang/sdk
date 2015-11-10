@@ -148,7 +148,8 @@ Future<String> compileAll(String code,
   compiler.diagnosticHandler = createHandler(compiler, code);
   return compiler.run(uri).then((compilationSucceded) {
     Expect.isTrue(compilationSucceded,
-                   'Unexpected compilation error(s): ${compiler.errors}');
+                  'Unexpected compilation error(s): '
+                  '${compiler.diagnosticCollector.errors}');
     return outputCollector.getOutput('', 'js');
   });
 }

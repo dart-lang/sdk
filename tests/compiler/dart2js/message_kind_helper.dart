@@ -87,7 +87,7 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
              oldBackendIsDart == newBackendIsDart ? cachedCompiler : null);
 
     return compiler.run(Uri.parse('memory:main.dart')).then((_) {
-      Iterable<DiagnosticMessage> messages = collector.filterMessagesByKinds(
+      Iterable<CollectedMessage> messages = collector.filterMessagesByKinds(
           [Diagnostic.ERROR,
            Diagnostic.WARNING,
            Diagnostic.HINT,
@@ -101,7 +101,7 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
           new RegExp(ESCAPE_REGEXP), (m) => '\\${m[0]}');
       pattern = pattern.replaceAll(new RegExp(r'#\\\{[^}]*\\\}'), '.*');
 
-      bool checkMessage(DiagnosticMessage message) {
+      bool checkMessage(CollectedMessage message) {
         if (message.message.kind != MessageKind.GENERIC) {
           return message.message.kind == template.kind;
         } else {
@@ -113,7 +113,7 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
       // where info messages are expected.
       bool messageFound = false;
       List unexpectedMessages = [];
-      for (DiagnosticMessage message in messages) {
+      for (CollectedMessage message in messages) {
         if (!messageFound && checkMessage(message)) {
           messageFound = true;
         } else {
@@ -125,7 +125,7 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
           '${messages.join('\n ')}');
       Expect.isFalse(compiler.reporter.hasCrashed);
       if (!unexpectedMessages.isEmpty) {
-        for (DiagnosticMessage message in unexpectedMessages) {
+        for (CollectedMessage message in unexpectedMessages) {
           print("Unexpected message: $message");
         }
         if (!kindsWithExtraMessages.contains(template.kind)) {

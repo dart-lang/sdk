@@ -62,7 +62,7 @@ Future testErrorHandling() {
     compiler.reporter.setOnWarning(
         (c, n, m) => Expect.equals(foo, compiler.currentElement));
     foo.computeType(compiler.resolution);
-    Expect.equals(1, compiler.warnings.length);
+    Expect.equals(1, compiler.diagnosticCollector.warnings.length);
   });
 }
 

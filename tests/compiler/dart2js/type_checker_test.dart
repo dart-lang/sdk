@@ -2524,9 +2524,10 @@ analyzeTopLevel(String text, [expectedWarnings]) {
     // Type check last class declaration or member.
     TypeCheckerVisitor checker =
         new TypeCheckerVisitor(compiler, mapping, compiler.types);
-    compiler.clearMessages();
+    DiagnosticCollector collector = compiler.diagnosticCollector;
+    collector.clear();
     checker.analyze(node);
-    compareWarningKinds(text, expectedWarnings, compiler.warnings);
+    compareWarningKinds(text, expectedWarnings, collector.warnings);
 
     compiler.diagnosticHandler = null;
   });
@@ -2562,25 +2563,23 @@ analyze(MockCompiler compiler,
   compiler.enqueuer.resolution.emptyDeferredTaskQueue();
   TypeCheckerVisitor checker = new TypeCheckerVisitor(
       compiler, elements, compiler.types);
-  compiler.clearMessages();
+  DiagnosticCollector collector = compiler.diagnosticCollector;
+  collector.clear();
   checker.analyze(node);
   if (flushDeferred) {
     compiler.enqueuer.resolution.emptyDeferredTaskQueue();
   }
-  compareWarningKinds(text, warnings, compiler.warnings);
-  compareWarningKinds(text, errors, compiler.errors);
-  if (hints != null) compareWarningKinds(text, hints, compiler.hints);
-  if (infos != null) compareWarningKinds(text, infos, compiler.infos);
+  compareWarningKinds(text, warnings, collector.warnings);
+  compareWarningKinds(text, errors, collector.errors);
+  if (hints != null) compareWarningKinds(text, hints, collector.hints);
+  if (infos != null) compareWarningKinds(text, infos, collector.infos);
   compiler.diagnosticHandler = null;
 }
 
 void generateOutput(MockCompiler compiler, String text) {
-  for (WarningMessage message in compiler.warnings) {
-    Node node = message.node;
-    var beginToken = node.getBeginToken();
-    var endToken = node.getEndToken();
-    int begin = beginToken.charOffset;
-    int end = endToken.charOffset + endToken.charCount;
+  for (CollectedMessage message in compiler.diagnosticCollector.warnings) {
+    int begin = message.begin;
+    int end = message.end;
     SourceFile sourceFile = new StringSourceFile.fromName('analysis', text);
     print(sourceFile.getLocationMessage(message.message.toString(),
                                         begin, end));
@@ -2608,9 +2607,10 @@ analyzeIn(MockCompiler compiler,
   TreeElements elements = compiler.resolveNodeStatement(node, element);
   TypeCheckerVisitor checker = new TypeCheckerVisitor(
       compiler, elements, compiler.types);
-  compiler.clearMessages();
+  DiagnosticCollector collector = compiler.diagnosticCollector;
+  collector.clear();
   checker.analyze(node);
   generateOutput(compiler, text);
-  compareWarningKinds(text, warnings, compiler.warnings);
-  compareWarningKinds(text, hints, compiler.hints);
+  compareWarningKinds(text, warnings, collector.warnings);
+  compareWarningKinds(text, hints, collector.hints);
 }

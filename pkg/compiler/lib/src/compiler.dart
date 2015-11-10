@@ -1676,6 +1676,12 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
   void reportDiagnostic(DiagnosticMessage message,
                         List<DiagnosticMessage> infos,
                         api.Diagnostic kind) {
+    if (kind == api.Diagnostic.ERROR ||
+        kind == api.Diagnostic.CRASH ||
+        (options.fatalWarnings &&
+         kind == api.Diagnostic.WARNING)) {
+      compiler.compilationFailed = true;
+    }
     compiler.reportDiagnostic(message, infos, kind);
   }
 

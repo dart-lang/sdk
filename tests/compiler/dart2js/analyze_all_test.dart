@@ -31,26 +31,28 @@ main() {
   Uri uri = Uri.parse('test:code');
   var compiler1 = compilerFor(SOURCE, uri, analyzeAll: false);
   asyncTest(() => compiler1.run(uri).then((compilationSucceded) {
+    DiagnosticCollector collector = compiler1.diagnosticCollector;
     Expect.isTrue(compilationSucceded);
-    print(compiler1.warnings);
-    Expect.isTrue(compiler1.warnings.isEmpty, 'unexpected warnings');
-    Expect.isTrue(compiler1.errors.isEmpty, 'unexpected errors');
+    print(collector.warnings);
+    Expect.isTrue(collector.warnings.isEmpty, 'unexpected warnings');
+    Expect.isTrue(collector.errors.isEmpty, 'unexpected errors');
   }));
 
   var compiler2 = compilerFor(SOURCE, uri, analyzeAll: true);
   asyncTest(() => compiler2.run(uri).then((compilationSucceded) {
+    DiagnosticCollector collector = compiler2.diagnosticCollector;
     Expect.isFalse(compilationSucceded);
-    Expect.isTrue(compiler2.warnings.isEmpty,
-                  'unexpected warnings: ${compiler2.warnings}');
-    Expect.equals(2, compiler2.errors.length,
-                  'expected exactly two errors, but got ${compiler2.errors}');
+    Expect.isTrue(collector.warnings.isEmpty,
+                  'unexpected warnings: ${collector.warnings}');
+    Expect.equals(2, collector.errors.length,
+                  'expected exactly two errors, but got ${collector.errors}');
 
-    Expect.equals(MessageKind.CONSTRUCTOR_IS_NOT_CONST,
-                  compiler2.errors[0].message.kind);
-    Expect.equals("Foo", compiler2.errors[0].node.toString());
+    CollectedMessage first = collector.errors.first;
+    Expect.equals(MessageKind.CONSTRUCTOR_IS_NOT_CONST, first.message.kind);
+    Expect.equals("Foo", SOURCE.substring(first.begin, first.end));
 
-    Expect.equals(MessageKind.CONSTRUCTOR_IS_NOT_CONST,
-                  compiler2.errors[1].message.kind);
-    Expect.equals("Foo", compiler2.errors[1].node.toString());
+    CollectedMessage second = collector.errors.elementAt(1);
+    Expect.equals(MessageKind.CONSTRUCTOR_IS_NOT_CONST, second.message.kind);
+    Expect.equals("Foo", SOURCE.substring(second.begin, second.end));
   }));
 }

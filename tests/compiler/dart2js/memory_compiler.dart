@@ -28,64 +28,7 @@ import 'memory_source_file_helper.dart';
 export 'output_collector.dart';
 export 'package:compiler/compiler_new.dart' show
     CompilationResult;
-
-class DiagnosticMessage {
-  final Message message;
-  final Uri uri;
-  final int begin;
-  final int end;
-  final String text;
-  final Diagnostic kind;
-
-  DiagnosticMessage(
-      this.message, this.uri, this.begin, this.end, this.text, this.kind);
-
-  String toString() => '${message.kind}:$uri:$begin:$end:$text:$kind';
-}
-
-class DiagnosticCollector implements CompilerDiagnostics {
-  List<DiagnosticMessage> messages = <DiagnosticMessage>[];
-
-  void call(Uri uri, int begin, int end, String message, Diagnostic kind) {
-    report(null, uri, begin, end, message, kind);
-  }
-
-  @override
-  void report(Message message,
-              Uri uri, int begin, int end, String text, Diagnostic kind) {
-    messages.add(new DiagnosticMessage(message, uri, begin, end, text, kind));
-  }
-
-  Iterable<DiagnosticMessage> filterMessagesByKinds(List<Diagnostic> kinds) {
-    return messages.where(
-      (DiagnosticMessage message) => kinds.contains(message.kind));
-  }
-
-  Iterable<DiagnosticMessage> get errors {
-    return filterMessagesByKinds([Diagnostic.ERROR]);
-  }
-
-  Iterable<DiagnosticMessage> get warnings {
-    return filterMessagesByKinds([Diagnostic.WARNING]);
-  }
-
-  Iterable<DiagnosticMessage> get hints {
-    return filterMessagesByKinds([Diagnostic.HINT]);
-  }
-
-  Iterable<DiagnosticMessage> get infos {
-    return filterMessagesByKinds([Diagnostic.INFO]);
-  }
-
-  /// `true` if non-verbose messages has been collected.
-  bool get hasRegularMessages {
-    return messages.any((m) => m.kind != Diagnostic.VERBOSE_INFO);
-  }
-
-  void clear() {
-    messages.clear();
-  }
-}
+export 'diagnostic_helper.dart';
 
 class MultiDiagnostics implements CompilerDiagnostics {
   final List<CompilerDiagnostics> diagnosticsList;

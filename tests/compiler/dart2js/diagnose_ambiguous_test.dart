@@ -17,7 +17,7 @@ void main() {
       options: ['--analyze-all']);
 
     List<String> diagnostics = <String>[];
-    collector.messages.forEach((DiagnosticMessage message) {
+    collector.messages.forEach((CollectedMessage message) {
       if (message.kind == Diagnostic.VERBOSE_INFO) return;
       diagnostics.add(message.toString());
     });
