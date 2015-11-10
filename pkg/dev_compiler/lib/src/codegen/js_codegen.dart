@@ -566,6 +566,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         [genericName, typeParams, body, name]);
   }
 
+  final _hasDeferredSupertype = new HashSet<ClassElement>();
+
+  bool _deferIfNeeded(DartType type, ClassElement current) {
+    if (type is ParameterizedType) {
+      var typeArguments = type.typeArguments;
+      for (var typeArg in typeArguments) {
+        var typeElement = typeArg.element;
+        // FIXME(vsm): This does not track mutual recursive dependences.
+        if (current == typeElement || _deferIfNeeded(typeArg, current)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   JS.Expression _classHeritage(ClassElement element) {
     var type = element.type;
     if (type.isObject) return null;
@@ -573,7 +589,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     // Assume we can load eagerly, until proven otherwise.
     _loader.startTopLevel(element);
 
-    JS.Expression heritage = _emitTypeName(type.superclass);
+    // Find the super type
+    JS.Expression heritage;
+    var supertype = type.superclass;
+    if (_deferIfNeeded(supertype, element)) {
+      // Fall back to raw type.
+      supertype = fillDynamicTypeArgs(supertype.element.type, rules.provider);
+      _hasDeferredSupertype.add(element);
+    }
+    heritage = _emitTypeName(supertype);
+
     if (type.mixins.isNotEmpty) {
       var mixins = type.mixins.map(_emitTypeName).toList();
       mixins.insert(0, heritage);
@@ -699,6 +724,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (jsPeerName != null && classElem.typeParameters.isNotEmpty) {
       body.add(js.statement('dart.setBaseClass(#, dart.global.#);',
           [classElem.name, _propertyName(jsPeerName)]));
+    }
+
+    // Deferred Superclass
+    if (_hasDeferredSupertype.contains(classElem)) {
+      body.add(js.statement('#.prototype.__proto__ = #.prototype;',
+          [name, _emitTypeName(classElem.type.superclass)]));
     }
 
     // Interfaces

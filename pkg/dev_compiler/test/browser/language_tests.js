@@ -103,8 +103,6 @@
     'external_test_10_multi',
     'external_test_13_multi',
     'external_test_20_multi',
-    'f_bounded_equality_test',
-    'f_bounded_quantification2_test',
     'f_bounded_quantification3_test',
     'factory_type_parameter_test',
     'fast_method_extraction_test',
