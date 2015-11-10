@@ -70,15 +70,21 @@ class SourceMapPrintingContext extends JS.JavaScriptPrintingContext {
     printer.add(string);
   }
 
+  AstNode _currentTopLevelDeclaration;
+
   void enterNode(JS.Node jsNode) {
     AstNode node = jsNode.sourceInformation;
-    if (node is CompilationUnit) {
-      unit = node;
+    if (node == null || node.offset == -1) return;
+    if (unit == null) {
+      // This is a top-level declaration.  Note: consecutive top-level
+      // declarations may come from different compilation units due to
+      // parts.
+      _currentTopLevelDeclaration = node;
+      unit = node.getAncestor((n) => n is CompilationUnit);
       uri = _makeRelativeUri(unit.element.source.uri);
-      return;
     }
-    if (unit == null || node == null || node.offset == -1) return;
 
+    assert(unit != null);
     var loc = _location(node.offset);
     var name = _getIdentifier(node);
     if (name != null) {
@@ -100,15 +106,17 @@ class SourceMapPrintingContext extends JS.JavaScriptPrintingContext {
 
   void exitNode(JS.Node jsNode) {
     AstNode node = jsNode.sourceInformation;
-    if (node is CompilationUnit) {
-      unit = null;
-      uri = null;
-      return;
-    }
     if (unit == null || node == null || node.offset == -1) return;
 
     // TODO(jmesserly): in many cases marking the end will be unnecessary.
     printer.mark(_location(node.end));
+
+    if (_currentTopLevelDeclaration == node) {
+      unit = null;
+      uri = null;
+      _currentTopLevelDeclaration == null;
+      return;
+    }
   }
 
   String _getIdentifier(AstNode node) {
