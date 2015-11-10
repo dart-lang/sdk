@@ -626,6 +626,7 @@ class RawObject {
   friend class WeakProperty;  // StorePointer
   friend class Instance;  // StorePointer
   friend class StackFrame;  // GetCodeObject assertion.
+  friend class CodeLookupTableBuilder;  // profiler
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -1108,14 +1109,6 @@ class RawObjectPool : public RawObject {
 
 class RawInstructions : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instructions);
-
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->code_);
-  }
-  RawCode* code_;
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->code_);
-  }
 
   int32_t size_;
 

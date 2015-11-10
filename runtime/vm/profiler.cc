@@ -1049,6 +1049,138 @@ void Profiler::SampleThread(Thread* thread,
 }
 
 
+
+CodeDescriptor::CodeDescriptor(const Code& code) : code_(code) {
+  ASSERT(!code_.IsNull());
+}
+
+
+uword CodeDescriptor::Entry() const {
+  return code_.EntryPoint();
+}
+
+
+uword CodeDescriptor::Size() const {
+  return code_.Size();
+}
+
+
+int64_t CodeDescriptor::CompileTimestamp() const {
+  return code_.compile_timestamp();
+}
+
+
+CodeLookupTable::CodeLookupTable(Thread* thread) {
+  Build(thread);
+}
+
+
+class CodeLookupTableBuilder : public ObjectVisitor {
+ public:
+  CodeLookupTableBuilder(Isolate* isolate, CodeLookupTable* table)
+      : ObjectVisitor(isolate),
+        table_(table) {
+    ASSERT(table_ != NULL);
+  }
+
+  ~CodeLookupTableBuilder() {
+  }
+
+  void VisitObject(RawObject* raw_obj) {
+    uword tags = raw_obj->ptr()->tags_;
+    if (RawObject::ClassIdTag::decode(tags) == kCodeCid) {
+      RawCode* raw_code = reinterpret_cast<RawCode*>(raw_obj);
+      const Code& code = Code::Handle(raw_code);
+      ASSERT(!code.IsNull());
+      const Instructions& instructions =
+          Instructions::Handle(code.instructions());
+      ASSERT(!instructions.IsNull());
+      table_->Add(code);
+    }
+  }
+
+ private:
+  CodeLookupTable* table_;
+};
+
+
+void CodeLookupTable::Build(Thread* thread) {
+  ASSERT(thread != NULL);
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != NULL);
+  Isolate* vm_isolate = Dart::vm_isolate();
+  ASSERT(vm_isolate != NULL);
+
+  // Clear.
+  code_objects_.Clear();
+
+  // Add all found Code objects.
+  CodeLookupTableBuilder cltb(isolate, this);
+  vm_isolate->heap()->IterateOldObjects(&cltb);
+  isolate->heap()->IterateOldObjects(&cltb);
+
+  // Sort by entry.
+  code_objects_.Sort(CodeDescriptor::Compare);
+
+#if defined(DEBUG)
+  if (length() <= 1) {
+    return;
+  }
+  ASSERT(FindCode(0) == NULL);
+  ASSERT(FindCode(~0) == NULL);
+  // Sanity check that we don't have duplicate entries and that the entries
+  // are sorted.
+  for (intptr_t i = 0; i < length() - 1; i++) {
+    const CodeDescriptor* a = At(i);
+    const CodeDescriptor* b = At(i + 1);
+    ASSERT(a->Entry() < b->Entry());
+    ASSERT(FindCode(a->Entry()) == a);
+    ASSERT(FindCode(b->Entry()) == b);
+    ASSERT(FindCode(a->Entry() + a->Size() - 1) == a);
+    ASSERT(FindCode(b->Entry() + b->Size() - 1) == b);
+  }
+#endif
+}
+
+
+void CodeLookupTable::Add(const Code& code) {
+  ASSERT(!code.IsNull());
+  CodeDescriptor* cd = new CodeDescriptor(code);
+  code_objects_.Add(cd);
+}
+
+
+const CodeDescriptor* CodeLookupTable::FindCode(uword pc) const {
+  intptr_t first = 0;
+  intptr_t count = length();
+  while (count > 0) {
+    intptr_t current = first;
+    intptr_t step = count / 2;
+    current += step;
+    const CodeDescriptor* cd = At(current);
+    if (pc >= cd->Entry()) {
+      first = ++current;
+      count -= step + 1;
+    } else {
+      count = step;
+    }
+  }
+  // First points to the first code object whose entry is greater than PC.
+  // That means the code object we need to check is first - 1.
+  if (first == 0) {
+    return NULL;
+  }
+  first--;
+  ASSERT(first >= 0);
+  ASSERT(first < length());
+  const CodeDescriptor* cd = At(first);
+  if (cd->Contains(pc)) {
+    return cd;
+  }
+  return NULL;
+}
+
+
 ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
     SampleFilter* filter) {
   ASSERT(filter != NULL);
@@ -1084,13 +1216,15 @@ ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
       // Did not pass filter.
       continue;
     }
-    buffer->Add(BuildProcessedSample(sample));
+    buffer->Add(BuildProcessedSample(sample, buffer->code_lookup_table()));
   }
   return buffer;
 }
 
 
-ProcessedSample* SampleBuffer::BuildProcessedSample(Sample* sample) {
+ProcessedSample* SampleBuffer::BuildProcessedSample(
+    Sample* sample,
+    const CodeLookupTable& clt) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
@@ -1121,9 +1255,7 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(Sample* sample) {
   }
 
   if (!sample->exit_frame_sample()) {
-    Isolate* vm_isolate = Dart::vm_isolate();
-    processed_sample->FixupCaller(thread,
-                                  vm_isolate,
+    processed_sample->FixupCaller(clt,
                                   sample->pc_marker(),
                                   sample->GetStackBuffer());
   }
@@ -1163,31 +1295,29 @@ ProcessedSample::ProcessedSample()
 }
 
 
-void ProcessedSample::FixupCaller(Thread* thread,
-                                  Isolate* vm_isolate,
+void ProcessedSample::FixupCaller(const CodeLookupTable& clt,
                                   uword pc_marker,
                                   uword* stack_buffer) {
-  REUSABLE_CODE_HANDLESCOPE(thread);
-  // Lookup code object for leaf frame.
-  Code& code = reused_code_handle.Handle();
-  code = FindCodeForPC(thread->isolate(), vm_isolate, At(0));
-  if (code.IsNull()) {
+  const CodeDescriptor* cd = clt.FindCode(At(0));
+  if (cd == NULL) {
+    // No Dart code.
     return;
   }
-  if (code.compile_timestamp() > timestamp()) {
+  if (cd->CompileTimestamp() > timestamp()) {
     // Code compiled after sample. Ignore.
     return;
   }
-  CheckForMissingDartFrame(
-      thread->isolate(), vm_isolate, code, pc_marker, stack_buffer);
+  CheckForMissingDartFrame(clt, cd, pc_marker, stack_buffer);
 }
 
 
-void ProcessedSample::CheckForMissingDartFrame(Isolate* isolate,
-                                               Isolate* vm_isolate,
-                                               const Code& code,
+void ProcessedSample::CheckForMissingDartFrame(const CodeLookupTable& clt,
+                                               const CodeDescriptor* cd,
                                                uword pc_marker,
                                                uword* stack_buffer) {
+  ASSERT(cd != NULL);
+  const Code& code = Code::Handle(cd->code());
+  ASSERT(!code.IsNull());
   // Some stubs (and intrinsics) do not push a frame onto the stack leaving
   // the frame pointer in the caller.
   //
@@ -1204,7 +1334,6 @@ void ProcessedSample::CheckForMissingDartFrame(Isolate* isolate,
   // the PC marker. We can use the PC marker to insert DART3 into the stack
   // so that it will correctly be: STUB, DART3, DART2, DART1. Note the
   // inserted PC may not accurately reflect the true return address into DART3.
-  ASSERT(!code.IsNull());
 
   // The pc marker is our current best guess of a return address.
   uword return_address = pc_marker;
@@ -1226,8 +1355,8 @@ void ProcessedSample::CheckForMissingDartFrame(Isolate* isolate,
     }
   }
 
-  if (!ContainedInDartCodeHeaps(isolate, vm_isolate, return_address)) {
-    // return address is not from the Dart heap. Do not insert.
+  if (clt.FindCode(return_address) == NULL) {
+    // Return address is not from a Dart code object. Do not insert.
     return;
   }
 
@@ -1237,32 +1366,9 @@ void ProcessedSample::CheckForMissingDartFrame(Isolate* isolate,
 }
 
 
-RawCode* ProcessedSample::FindCodeForPC(Isolate* isolate,
-                                        Isolate* vm_isolate,
-                                        uword pc) {
-  // Check current isolate for pc.
-  if (isolate->heap()->CodeContains(pc)) {
-    return Code::LookupCode(pc);
-  }
-
-  // Check VM isolate for pc.
-  if (vm_isolate->heap()->CodeContains(pc)) {
-    return Code::LookupCodeInVmIsolate(pc);
-  }
-
-  return Code::null();
-}
-
-
-bool ProcessedSample::ContainedInDartCodeHeaps(Isolate* isolate,
-                                               Isolate* vm_isolate,
-                                               uword pc) {
-  return vm_isolate->heap()->CodeContains(pc)
-         || isolate->heap()->CodeContains(pc);
-}
-
-
-ProcessedSampleBuffer::ProcessedSampleBuffer() {
+ProcessedSampleBuffer::ProcessedSampleBuffer()
+    : code_lookup_table_(new CodeLookupTable(Thread::Current())) {
+  ASSERT(code_lookup_table_ != NULL);
 }
 
 }  // namespace dart

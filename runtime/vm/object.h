@@ -3753,13 +3753,6 @@ class Instructions : public Object {
  public:
   intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
 
-  RawCode* code() const {
-    // This should only be accessed when jitting.
-    // TODO(johnmccutchan): Remove code back pointer.
-    ASSERT(!Dart::IsRunningPrecompiledCode());
-    return raw_ptr()->code_;
-  }
-
   uword EntryPoint() const {
     return reinterpret_cast<uword>(raw_ptr()) + HeaderSize();
   }
@@ -3796,10 +3789,6 @@ class Instructions : public Object {
  private:
   void set_size(intptr_t size) const {
     StoreNonPointer(&raw_ptr()->size_, size);
-  }
-
-  void set_code(RawCode* code) const {
-    StorePointer(&raw_ptr()->code_, code);
   }
 
   // New is a private method as RawInstruction and RawCode objects should
@@ -4433,22 +4422,6 @@ class Code : public Object {
   class OptimizedBit : public BitField<bool, kOptimizedBit, 1> {};
   class AliveBit : public BitField<bool, kAliveBit, 1> {};
   class PtrOffBits : public BitField<intptr_t, kPtrOffBit, kPtrOffSize> {};
-
-  // An object finder visitor interface.
-  class FindRawCodeVisitor : public FindObjectVisitor {
-   public:
-    explicit FindRawCodeVisitor(uword pc)
-        : FindObjectVisitor(Isolate::Current()), pc_(pc) { }
-    virtual ~FindRawCodeVisitor() { }
-
-    // Check if object matches find condition.
-    virtual bool FindObject(RawObject* obj) const;
-
-   private:
-    const uword pc_;
-
-    DISALLOW_COPY_AND_ASSIGN(FindRawCodeVisitor);
-  };
 
   class SlowFindRawCodeVisitor : public FindObjectVisitor {
    public:

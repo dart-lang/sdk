@@ -1771,22 +1771,10 @@ void Object::InitializeObject(uword address,
                               intptr_t class_id,
                               intptr_t size,
                               bool is_vm_object) {
-  const uword break_instruction_value = Assembler::GetBreakInstructionFiller();
-  const uword null_value = reinterpret_cast<uword>(null_);
-  const bool is_instructions = class_id == kInstructionsCid;
-  uword initial_value =
-      is_instructions ? break_instruction_value : null_value;
+  uword initial_value = (class_id == kInstructionsCid)
+      ? Assembler::GetBreakInstructionFiller() : reinterpret_cast<uword>(null_);
   uword cur = address;
   uword end = address + size;
-  if (is_instructions) {
-    // Fill the header with null. The remainder of the Instructions object will
-    // be filled with the break_instruction_value.
-    uword header_end = address + Instructions::HeaderSize();
-    while (cur < header_end) {
-      *reinterpret_cast<uword*>(cur) = null_value;
-      cur += kWordSize;
-    }
-  }
   while (cur < end) {
     *reinterpret_cast<uword*>(cur) = initial_value;
     cur += kWordSize;
@@ -13337,7 +13325,6 @@ RawCode* Code::FinalizeCode(const char* name,
   INC_STAT(Thread::Current(), total_instr_size, assembler->CodeSize());
   INC_STAT(Thread::Current(), total_code_size, assembler->CodeSize());
 
-  instrs.set_code(code.raw());
   // Copy the instructions into the instruction area and apply all fixups.
   // Embedded pointers are still in handles at this point.
   MemoryRegion region(reinterpret_cast<void*>(instrs.EntryPoint()),
@@ -13418,17 +13405,6 @@ RawCode* Code::FinalizeCode(const Function& function,
 }
 
 
-// Check if object matches find condition.
-bool Code::FindRawCodeVisitor::FindObject(RawObject* raw_obj) const {
-  uword tags = raw_obj->ptr()->tags_;
-  if (RawObject::ClassIdTag::decode(tags) == kInstructionsCid) {
-    RawInstructions* raw_insts = reinterpret_cast<RawInstructions*>(raw_obj);
-    return RawInstructions::ContainsPC(raw_insts, pc_);
-  }
-  return false;
-}
-
-
 bool Code::SlowFindRawCodeVisitor::FindObject(RawObject* raw_obj) const {
   return RawCode::ContainsPC(raw_obj, pc_);
 }
@@ -13440,24 +13416,12 @@ RawCode* Code::LookupCodeInIsolate(Isolate* isolate, uword pc) {
     return Code::null();
   }
   NoSafepointScope no_safepoint;
-  // TODO(johnmccutchan): Make lookup without a back pointer faster and use for
-  // both cases.
-  if (Dart::IsRunningPrecompiledCode()) {
-    SlowFindRawCodeVisitor visitor(pc);
-    RawObject* needle = isolate->heap()->FindOldObject(&visitor);
-    if (needle != Code::null()) {
-      return static_cast<RawCode*>(needle);
-    }
-    return Code::null();
-  } else {
-    FindRawCodeVisitor visitor(pc);
-    RawInstructions* instr;
-    instr = isolate->heap()->FindObjectInCodeSpace(&visitor);
-    if (instr != Instructions::null()) {
-      return Instructions::Handle(instr).code();
-    }
-    return Code::null();
+  SlowFindRawCodeVisitor visitor(pc);
+  RawObject* needle = isolate->heap()->FindOldObject(&visitor);
+  if (needle != Code::null()) {
+    return static_cast<RawCode*>(needle);
   }
+  return Code::null();
 }
 
 
