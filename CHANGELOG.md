@@ -1,3 +1,11 @@
+# 0.1.5
+
+* Added `prefer_is_not_empty` lint rule (#143).
+* Added `type_annotate_public_apis` lint rule (#24).
+* Added `avoid_as` lint rule (#145).
+* Fixed `non_constant_identifier_names` rule to special case underscore identifiers in callbacks.
+* Fix to escape `_`s in callback type validation (addresses false positives in `always_specify_types`) (#147).
+
 # 0.1.4
 
 * Added `always_declare_return_types` lint rule (#146).
