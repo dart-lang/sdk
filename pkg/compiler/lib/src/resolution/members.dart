@@ -7,6 +7,8 @@ library dart2js.resolution.members;
 import '../common.dart';
 import '../common/names.dart' show
     Selectors;
+import '../common/resolution.dart' show
+    Feature;
 import '../compiler.dart' show
     Compiler;
 import '../constants/constructors.dart' show
@@ -335,7 +337,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else {
       kind = MessageKind.CANNOT_RESOLVE;
     }
-    registry.registerThrowNoSuchMethod();
+    registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
     return reportAndCreateErroneousElement(
         node, name, kind, arguments, isError: inInitializer);
   }
@@ -501,7 +503,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
     // TODO(sra): We could completely ignore the assert in production mode if we
     // didn't need it to be resolved for type checking.
-    registry.registerAssert(node.hasMessage);
+    registry.registerFeature(
+        node.hasMessage ? Feature.ASSERT_WITH_MESSAGE : Feature.ASSERT);
     visit(node.condition);
     visit(node.message);
     return const NoneResult();
@@ -775,7 +778,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           node, 'super',
           MessageKind.NO_SUPER_IN_STATIC, {},
           isError: true);
-      registry.registerCompileTimeError(error);
+      registry.registerFeature(Feature.COMPILE_TIME_ERROR);
       return new StaticAccess.invalid(error);
     }
     if (node.isConditional) {
@@ -784,7 +787,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           node, 'super',
           MessageKind.INVALID_USE_OF_SUPER, {},
           isError: true);
-      registry.registerCompileTimeError(error);
+      registry.registerFeature(Feature.COMPILE_TIME_ERROR);
       return new StaticAccess.invalid(error);
     }
     if (currentClass.supertype == null) {
@@ -795,7 +798,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           MessageKind.GENERIC,
           {'text': "Object has no superclass"},
           isError: true);
-      registry.registerCompileTimeError(error);
+      registry.registerFeature(Feature.COMPILE_TIME_ERROR);
       return new StaticAccess.invalid(error);
     }
     registry.registerSuperUse(node);
@@ -810,7 +813,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           node, 'this',
           MessageKind.NO_THIS_AVAILABLE, const {},
           isError: true);
-      registry.registerCompileTimeError(error);
+      registry.registerFeature(Feature.COMPILE_TIME_ERROR);
       return new StaticAccess.invalid(error);
     }
     return null;
@@ -1035,7 +1038,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // We still need to register the invocation, because we might
       // call [:super.noSuchMethod:] which calls [JSInvocationMirror._invokeOn].
       registry.registerDynamicUse(new DynamicUse(selector, null));
-      registry.registerSuperNoSuchMethod();
+      registry.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
     }
     return computeSuperAccessSemantics(node, target);
   }
@@ -1111,7 +1114,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           new DynamicUse(setterSelector, null));
     }
     if (getterError || setterError) {
-      registry.registerSuperNoSuchMethod();
+      registry.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
     }
     return computeCompoundSuperAccessSemantics(
         node, getter, setter, isIndex: isIndex);
@@ -1608,10 +1611,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           superMethod.computeType(resolution);
           if (!callStructure.signatureApplies(
                   superMethod.functionSignature)) {
-            registry.registerThrowNoSuchMethod();
+            registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
             registry.registerDynamicUse(
                 new DynamicUse(selector, null));
-            registry.registerSuperNoSuchMethod();
+            registry.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
             isIncompatibleInvoke = true;
           } else {
             registry.registerStaticUse(
@@ -1745,7 +1748,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Send node, Name name, ClassElement receiverClass) {
     // TODO(johnniwinther): Share code with [handleStaticInstanceMemberAccess]
     // and [handlePrivateStaticMemberAccess].
-    registry.registerThrowNoSuchMethod();
+    registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
     // TODO(johnniwinther): Produce a different error if [name] is resolves to
     // a constructor.
 
@@ -1771,7 +1774,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       SendSet node, Name name, ClassElement receiverClass) {
     // TODO(johnniwinther): Share code with [handleStaticInstanceMemberUpdate]
     // and [handlePrivateStaticMemberUpdate].
-    registry.registerThrowNoSuchMethod();
+    registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
     // TODO(johnniwinther): Produce a different error if [name] is resolves to
     // a constructor.
 
@@ -1793,7 +1796,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult handleStaticInstanceMemberAccess(
       Send node, Name name, ClassElement receiverClass, Element member) {
 
-    registry.registerThrowNoSuchMethod();
+    registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
     // TODO(johnniwinther): With the simplified [TreeElements] invariant,
     // try to resolve injected elements if [currentClass] is in the patch
     // library of [receiverClass].
@@ -1816,7 +1819,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult handleStaticInstanceMemberUpdate(
       SendSet node, Name name, ClassElement receiverClass, Element member) {
 
-    registry.registerThrowNoSuchMethod();
+    registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
     // TODO(johnniwinther): With the simplified [TreeElements] invariant,
     // try to resolve injected elements if [currentClass] is in the patch
     // library of [receiverClass].
@@ -1836,7 +1839,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// but `a` is not defined in the current library.
   ResolutionResult handlePrivateStaticMemberAccess(
       Send node, Name name, ClassElement receiverClass, Element member) {
-    registry.registerThrowNoSuchMethod();
+    registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
     ErroneousElement error = reportAndCreateErroneousElement(
         node, name.text, MessageKind.PRIVATE_ACCESS,
         {'libraryName': member.library.libraryOrScriptName,
@@ -1852,7 +1855,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// `a` but `a` is not defined in the current library.
   ResolutionResult handlePrivateStaticMemberUpdate(
       SendSet node, Name name, ClassElement receiverClass, Element member) {
-    registry.registerThrowNoSuchMethod();
+    registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
     ErroneousElement error = reportAndCreateErroneousElement(
         node, name.text, MessageKind.PRIVATE_ACCESS,
         {'libraryName': member.library.libraryOrScriptName,
@@ -1939,7 +1942,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
           {'typeVariableName': name},
           isError: true);
-      registry.registerCompileTimeError(error);
+      registry.registerFeature(Feature.COMPILE_TIME_ERROR);
       semantics = new StaticAccess.invalid(error);
       // TODO(johnniwinther): Clean up registration of elements and selectors
       // for this case.
@@ -1981,7 +1984,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
           {'typeVariableName': name},
           isError: true);
-      registry.registerCompileTimeError(error);
+      registry.registerFeature(Feature.COMPILE_TIME_ERROR);
       semantics = new StaticAccess.invalid(error);
     } else {
       ErroneousElement error;
@@ -2003,7 +2006,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       registry.useElement(node, error);
       // TODO(johnniwinther): Register only on read?
       registry.registerTypeLiteral(node, element.type);
-      registry.registerThrowNoSuchMethod();
+      registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
       semantics = new StaticAccess.typeParameterTypeLiteral(element);
     }
     return handleUpdate(node, name, semantics);
@@ -2082,7 +2085,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     // the [SendStructure].
     registry.useElement(node, error);
     registry.registerTypeLiteral(node, type);
-    registry.registerThrowNoSuchMethod();
+    registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
 
     return handleUpdate(node, name, semantics);
   }
@@ -2211,7 +2214,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     ResolutionResult result;
     Element member = prefix.lookupLocalMember(name.text);
     if (member == null) {
-      registry.registerThrowNoSuchMethod();
+      registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
       Element error = reportAndCreateErroneousElement(
           node, name.text, MessageKind.NO_SUCH_LIBRARY_MEMBER,
           {'libraryName': prefix.name, 'memberName': name});
@@ -2239,7 +2242,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     ResolutionResult result;
     Element member = prefix.lookupLocalMember(name.text);
     if (member == null) {
-      registry.registerThrowNoSuchMethod();
+      registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
       Element error = reportAndCreateErroneousElement(
           node, name.text, MessageKind.NO_SUCH_LIBRARY_MEMBER,
           {'libraryName': prefix.name, 'memberName': name});
@@ -2273,7 +2276,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           MessageKind.PREFIX_AS_EXPRESSION,
           {'prefix': name},
           isError: true);
-      registry.registerCompileTimeError(error);
+      registry.registerFeature(Feature.COMPILE_TIME_ERROR);
       return handleErroneousAccess(
           node, name, new StaticAccess.invalid(error));
     }
@@ -2392,7 +2395,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         name.text,
         MessageKind.THIS_PROPERTY, {},
         isError: true);
-    registry.registerCompileTimeError(error);
+    registry.registerFeature(Feature.COMPILE_TIME_ERROR);
     AccessSemantics accessSemantics = new StaticAccess.invalid(error);
     return handleErroneousAccess(node, name, accessSemantics);
   }
@@ -2511,7 +2514,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         element.messageKind,
         element.messageArguments,
         infos: element.computeInfos(enclosingElement, reporter));
-    registry.registerThrowNoSuchMethod();
+    registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
 
     // TODO(johnniwinther): Support ambiguous access as an [AccessSemantics].
     AccessSemantics semantics = new StaticAccess.unresolved(error);
@@ -2530,7 +2533,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         element.messageKind,
         element.messageArguments,
         infos: element.computeInfos(enclosingElement, reporter));
-    registry.registerThrowNoSuchMethod();
+    registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
 
     // TODO(johnniwinther): Support ambiguous access as an [AccessSemantics].
     AccessSemantics accessSemantics = new StaticAccess.unresolved(error);
@@ -2545,7 +2548,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         isError: true);
     // TODO(johnniwinther): Support static instance access as an
     // [AccessSemantics].
-    registry.registerCompileTimeError(error);
+    registry.registerFeature(Feature.COMPILE_TIME_ERROR);
     return new StaticAccess.invalid(error);
   }
 
@@ -2564,7 +2567,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           LocalFunctionElementX function = semantics.element;
           function.computeType(resolution);
           if (!callStructure.signatureApplies(function.functionSignature)) {
-            registry.registerThrowNoSuchMethod();
+            registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
             registry.registerDynamicUse(
                 new DynamicUse(selector, null));
             isIncompatibleInvoke = true;
@@ -2685,7 +2688,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     ResolutionResult result = handleUpdate(node, name, semantics);
     if (error != null) {
-      registry.registerThrowNoSuchMethod();
+      registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
       // TODO(23998): Remove this when all information goes through
       // the [SendStructure].
       registry.useElement(node, error);
@@ -2737,7 +2740,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           MethodElement method = semantics.element;
           method.computeType(resolution);
           if (!callStructure.signatureApplies(method.functionSignature)) {
-            registry.registerThrowNoSuchMethod();
+            registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
             registry.registerDynamicUse(
                 new DynamicUse(selector, null));
             isIncompatibleInvoke = true;
@@ -2769,7 +2772,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         case AccessKind.STATIC_SETTER:
         case AccessKind.TOPLEVEL_SETTER:
         case AccessKind.UNRESOLVED:
-          registry.registerThrowNoSuchMethod();
+          registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
           member = reportAndCreateErroneousElement(
               node.selector, name.text,
               MessageKind.CANNOT_RESOLVE_GETTER, const {});
@@ -2803,7 +2806,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         case AccessKind.STATIC_SETTER:
         case AccessKind.TOPLEVEL_SETTER:
         case AccessKind.UNRESOLVED:
-          registry.registerThrowNoSuchMethod();
+          registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
           member = reportAndCreateErroneousElement(
               node.selector, name.text,
               MessageKind.CANNOT_RESOLVE_GETTER, const {});
@@ -2841,7 +2844,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         ErroneousElement error = reportAndCreateErroneousElement(
             node.selector, name.text,
             MessageKind.CANNOT_RESOLVE_SETTER, const {});
-        registry.registerThrowNoSuchMethod();
+        registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
 
         if (node.isComplex) {
           // `a++` or `a += b` where `a` has no setter.
@@ -2864,7 +2867,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           ErroneousElement error = reportAndCreateErroneousElement(
               node.selector, name.text,
               MessageKind.CANNOT_RESOLVE_GETTER, const {});
-          registry.registerThrowNoSuchMethod();
+          registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
           // `a++` or `a += b` where `a` has no getter.
           semantics = new CompoundAccessSemantics(
               element.isTopLevel
@@ -2908,7 +2911,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         ErroneousElement error = reportAndCreateErroneousElement(
             node.selector, name.text,
             MessageKind.ASSIGNING_METHOD, const {});
-        registry.registerThrowNoSuchMethod();
+        registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
         if (node.isComplex) {
           // `a++` or `a += b` where `a` is a function.
           registry.registerStaticUse(
@@ -2929,7 +2932,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           ErroneousElement error = reportAndCreateErroneousElement(
                node.selector, name.text,
                MessageKind.CANNOT_RESOLVE_SETTER, const {});
-          registry.registerThrowNoSuchMethod();
+          registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
           semantics = member.isTopLevel
               ? new StaticAccess.finalTopLevelField(member)
               : new StaticAccess.finalStaticField(member);
@@ -3418,7 +3421,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               // TODO(johnniwinther): This shouldn't be needed.
               registry.registerDynamicUse(
                   new DynamicUse(setterSelector, null));
-              registry.registerSuperNoSuchMethod();
+              registry.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
               break;
             case AccessKind.SUPER_METHOD:
               reporter.reportWarningMessage(
@@ -3428,7 +3431,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               // TODO(johnniwinther): This shouldn't be needed.
               registry.registerDynamicUse(
                   new DynamicUse(setterSelector, null));
-              registry.registerSuperNoSuchMethod();
+              registry.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
               break;
             case AccessKind.SUPER_FIELD:
             case AccessKind.SUPER_SETTER:
@@ -3486,7 +3489,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           ? new PrefixStructure(semantics, operator)
           : new PostfixStructure(semantics, operator);
       registry.registerSendStructure(node, sendStructure);
-      registry.registerIncDecOperation();
+      registry.registerFeature(Feature.INC_DEC_OPERATION);
     } else {
       Node rhs = node.arguments.head;
       visitExpression(rhs);
@@ -3558,36 +3561,32 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ConstantResult visitLiteralInt(LiteralInt node) {
-    // TODO(johnniwinther): Make this a feature instead.
-    registry.registerTypeUse(new TypeUse.instantiation(coreTypes.intType));
     ConstantExpression constant = new IntConstantExpression(node.value);
+    registry.registerConstantLiteral(constant);
     registry.setConstant(node, constant);
     return new ConstantResult(node, constant);
   }
 
   ConstantResult visitLiteralDouble(LiteralDouble node) {
-    // TODO(johnniwinther): Make this a feature instead.
-    registry.registerTypeUse(new TypeUse.instantiation(coreTypes.doubleType));
     ConstantExpression constant = new DoubleConstantExpression(node.value);
+    registry.registerConstantLiteral(constant);
     registry.setConstant(node, constant);
     return new ConstantResult(node, constant);
   }
 
   ConstantResult visitLiteralBool(LiteralBool node) {
-    // TODO(johnniwinther): Make this a feature instead.
-    registry.registerTypeUse(new TypeUse.instantiation(coreTypes.boolType));
     ConstantExpression constant = new BoolConstantExpression(node.value);
+    registry.registerConstantLiteral(constant);
     registry.setConstant(node, constant);
     return new ConstantResult(node, constant);
   }
 
   ResolutionResult visitLiteralString(LiteralString node) {
-    // TODO(johnniwinther): Make this a feature instead.
-    registry.registerTypeUse(new TypeUse.instantiation(coreTypes.stringType));
     if (node.dartString != null) {
       // [dartString] might be null on parser errors.
       ConstantExpression constant =
           new StringConstantExpression(node.dartString.slowToString());
+      registry.registerConstantLiteral(constant);
       registry.setConstant(node, constant);
       return new ConstantResult(node, constant);
     }
@@ -3595,15 +3594,15 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ConstantResult visitLiteralNull(LiteralNull node) {
-    registry.registerTypeUse(new TypeUse.instantiation(coreTypes.nullType));
     ConstantExpression constant = new NullConstantExpression();
+    registry.registerConstantLiteral(constant);
     registry.setConstant(node, constant);
     return new ConstantResult(node, constant);
   }
 
   ConstantResult visitLiteralSymbol(LiteralSymbol node) {
-    // TODO(johnniwinther): Make this a feature instead.
     String name = node.slowNameString;
+    // TODO(johnniwinther): Use [registerConstantLiteral] instead.
     registry.registerConstSymbol(name);
     if (!validateSymbol(node, name, reportError: false)) {
       reporter.reportErrorMessage(
@@ -3618,8 +3617,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitStringJuxtaposition(StringJuxtaposition node) {
-    // TODO(johnniwinther): Make this a feature instead.
-    registry.registerTypeUse(new TypeUse.instantiation(coreTypes.stringType));
+    registry.registerFeature(Feature.STRING_JUXTAPOSITION);
     ResolutionResult first = visit(node.first);
     ResolutionResult second = visit(node.second);
     if (first.isConstant && second.isConstant) {
@@ -3698,7 +3696,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     registry.setRedirectingTargetConstructor(node, redirectionTarget);
     if (Elements.isUnresolved(redirectionTarget)) {
-      registry.registerThrowNoSuchMethod();
+      registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
       return const NoneResult();
     } else {
       if (isConstConstructor &&
@@ -3741,7 +3739,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     FunctionSignature constructorSignature = constructor.functionSignature;
     if (!targetSignature.isCompatibleWith(constructorSignature)) {
       assert(!isSubtype);
-      registry.registerThrowNoSuchMethod();
+      registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
       isValidAsConstant = false;
     }
 
@@ -3759,7 +3757,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         redirectionTarget.enclosingClass.thisType
             .subst(type.typeArguments, targetClass.typeVariables)));
     if (isSymbolConstructor) {
-      registry.registerSymbolConstructor();
+      registry.registerFeature(Feature.SYMBOL_CONSTRUCTOR);
     }
     if (isValidAsConstant) {
       List<String> names = <String>[];
@@ -3789,7 +3787,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitThrow(Throw node) {
-    registry.registerThrowExpression();
+    registry.registerFeature(Feature.THROW_EXPRESSION);
     visit(node.expression);
     return const NoneResult();
   }
@@ -3892,7 +3890,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
     constructor.computeType(resolution);
     if (!callSelector.applies(constructor, compiler.world)) {
-      registry.registerThrowNoSuchMethod();
+      registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
     }
 
     // [constructor] might be the implementation element
@@ -4166,7 +4164,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     // TODO(johnniwinther): This should be a consequence of the registration
     // of [registerStringInterpolation].
     registry.registerTypeUse(new TypeUse.instantiation(coreTypes.stringType));
-    registry.registerStringInterpolation();
+    registry.registerFeature(Feature.STRING_INTERPOLATION);
     registerImplicitInvocation(Selectors.toString_);
 
     bool isValidAsConstant = true;
@@ -4261,7 +4259,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAsyncForIn(AsyncForIn node) {
-    registry.registerAsyncForIn(node);
+    registry.registerFeature(Feature.ASYNC_FOR_IN);
     registry.registerDynamicUse(
         new DynamicUse(Selectors.current, null));
     registry.registerDynamicUse(
@@ -4276,7 +4274,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitSyncForIn(SyncForIn node) {
-    registry.registerSyncForIn(node);
+    registry.registerFeature(Feature.SYNC_FOR_IN);
     registry.registerDynamicUse(
         new DynamicUse(Selectors.iterator, null));
     registry.registerDynamicUse(
@@ -4652,7 +4650,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     });
     // TODO(15575): We should warn if we can detect a fall through
     // error.
-    registry.registerFallThroughError();
+    registry.registerFeature(Feature.FALL_THROUGH_ERROR);
     return const NoneResult();
   }
 
@@ -4683,7 +4681,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitCatchBlock(CatchBlock node) {
-    registry.registerCatchStatement();
+    registry.registerFeature(Feature.CATCH_STATEMENT);
     // Check that if catch part is present, then
     // it has one or two formal parameters.
     VariableDefinitions exceptionDefinition;
@@ -4705,7 +4703,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
                   extra, MessageKind.EXTRA_CATCH_DECLARATION);
             }
           }
-          registry.registerStackTraceInCatch();
+          registry.registerFeature(Feature.STACK_TRACE_IN_CATCH);
         }
       }
 

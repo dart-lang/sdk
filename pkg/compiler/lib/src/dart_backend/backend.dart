@@ -359,12 +359,11 @@ class DartImpactTransformer extends ImpactTransformer {
   WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
     TransformedWorldImpact transformed =
         new TransformedWorldImpact(worldImpact);
-    for (DartType typeLiteral in worldImpact.typeLiterals) {
-      if (typeLiteral.isInterfaceType) {
-        backend.usedTypeLiterals.add(typeLiteral.element);
-      }
-    }
     for (TypeUse typeUse in worldImpact.typeUses) {
+      if (typeUse.kind == TypeUseKind.TYPE_LITERAL &&
+          typeUse.type.isInterfaceType) {
+        backend.usedTypeLiterals.add(typeUse.type.element);
+      }
       if (typeUse.kind == TypeUseKind.INSTANTIATION) {
         backend.registerPlatformMembers(typeUse.type,
             registerUse: transformed.registerDynamicUse);

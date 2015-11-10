@@ -5,6 +5,8 @@
 library dart2js.resolution.class_hierarchy;
 
 import '../common.dart';
+import '../common/resolution.dart' show
+    Feature;
 import '../compiler.dart' show
     Compiler;
 import '../core_types.dart' show
@@ -201,7 +203,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         reporter.reportErrorMessage(node, kind, arguments);
         superMember = new ErroneousElementX(
             kind, arguments, '', element);
-        registry.registerThrowNoSuchMethod();
+        registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
       } else if (!superMember.isGenerativeConstructor) {
           MessageKind kind = MessageKind.SUPER_CALL_TO_FACTORY;
           Map arguments = {'className': element.superclass.name};
@@ -210,7 +212,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
           reporter.reportErrorMessage(node, kind, arguments);
           superMember = new ErroneousElementX(
               kind, arguments, '', element);
-          registry.registerThrowNoSuchMethod();
+          registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
       } else {
         ConstructorElement superConstructor = superMember;
         superConstructor.computeType(resolution);

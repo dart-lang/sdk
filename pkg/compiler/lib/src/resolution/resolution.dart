@@ -10,6 +10,7 @@ import '../common.dart';
 import '../common/names.dart' show
     Identifiers;
 import '../common/resolution.dart' show
+    Feature,
     Parsing,
     Resolution,
     ResolutionImpact;
@@ -189,15 +190,17 @@ class ResolverTask extends CompilerTask {
               {'modifier': element.asyncMarker});
         }
       }
-      registry.registerAsyncMarker(element);
       switch (element.asyncMarker) {
       case AsyncMarker.ASYNC:
+        registry.registerFeature(Feature.ASYNC);
         coreClasses.futureClass.ensureResolved(resolution);
         break;
       case AsyncMarker.ASYNC_STAR:
+        registry.registerFeature(Feature.ASYNC_STAR);
         coreClasses.streamClass.ensureResolved(resolution);
         break;
       case AsyncMarker.SYNC_STAR:
+        registry.registerFeature(Feature.SYNC_STAR);
         coreClasses.iterableClass.ensureResolved(resolution);
         break;
       }
@@ -397,7 +400,7 @@ class ResolverTask extends CompilerTask {
         if (!element.modifiers.isConst) {
           // TODO(johnniwinther): Determine the const-ness eagerly to avoid
           // unnecessary registrations.
-          registry.registerLazyField();
+          registry.registerFeature(Feature.LAZY_FIELD);
         }
       }
     }

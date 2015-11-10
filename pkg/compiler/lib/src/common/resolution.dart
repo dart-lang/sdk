@@ -8,6 +8,8 @@ library dart2js.common.resolution;
 import '../common.dart';
 import '../compiler.dart' show
     Compiler;
+import '../constants/expressions.dart' show
+    ConstantExpression;
 import '../core_types.dart' show
     CoreTypes;
 import '../dart_types.dart' show
@@ -59,15 +61,13 @@ class ResolutionWorkItem extends WorkItem {
 class ResolutionImpact extends WorldImpact {
   const ResolutionImpact();
 
-  // TODO(johnniwinther): Remove this.
-  void registerDependency(Element element) {}
-
   Iterable<Feature> get features => const <Feature>[];
-  Iterable<DartType> get requiredTypes => const <DartType>[];
   Iterable<MapLiteralUse> get mapLiterals => const <MapLiteralUse>[];
   Iterable<ListLiteralUse> get listLiterals => const <ListLiteralUse>[];
-  Iterable<DartType> get typeLiterals => const <DartType>[];
   Iterable<String> get constSymbolNames => const <String>[];
+  Iterable<ConstantExpression> get constantLiterals {
+    return const <ConstantExpression>[];
+  }
 }
 
 /// A language feature seen during resolution.
@@ -99,6 +99,8 @@ enum Feature {
   STACK_TRACE_IN_CATCH,
   /// String interpolation.
   STRING_INTERPOLATION,
+  /// String juxtaposition.
+  STRING_JUXTAPOSITION,
   /// An implicit call to `super.noSuchMethod`, like calling an unresolved
   /// super method.
   SUPER_NO_SUCH_METHOD,

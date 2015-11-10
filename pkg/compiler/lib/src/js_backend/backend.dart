@@ -2743,6 +2743,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         case Feature.STRING_INTERPOLATION:
           registerBackendImpact(transformed, impacts.stringInterpolation);
           break;
+        case Feature.STRING_JUXTAPOSITION:
+          registerBackendImpact(transformed, impacts.stringJuxtaposition);
+          break;
         case Feature.SUPER_NO_SUCH_METHOD:
           registerBackendImpact(transformed, impacts.superNoSuchMethod);
           break;
@@ -2853,6 +2856,29 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
               .closuresWithFreeTypeVariables.add(closure);
           registerBackendImpact(transformed, impacts.computeSignature);
         }
+      }
+    }
+
+    for (ConstantExpression constant in worldImpact.constantLiterals) {
+      switch (constant.kind) {
+        case ConstantExpressionKind.NULL:
+          registerBackendImpact(transformed, impacts.nullLiteral);
+          break;
+        case ConstantExpressionKind.BOOL:
+          registerBackendImpact(transformed, impacts.boolLiteral);
+          break;
+        case ConstantExpressionKind.INT:
+          registerBackendImpact(transformed, impacts.intLiteral);
+          break;
+        case ConstantExpressionKind.DOUBLE:
+          registerBackendImpact(transformed, impacts.doubleLiteral);
+          break;
+        case ConstantExpressionKind.STRING:
+          registerBackendImpact(transformed, impacts.stringLiteral);
+          break;
+        default:
+          assert(invariant(NO_LOCATION_SPANNABLE, false,
+              message: "Unexpected constant literal: ${constant.kind}."));
       }
     }
 

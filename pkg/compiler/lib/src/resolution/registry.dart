@@ -50,6 +50,7 @@ class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
   Setlet<MapLiteralUse> _mapLiterals;
   Setlet<ListLiteralUse> _listLiterals;
   Setlet<String> _constSymbolNames;
+  Setlet<ConstantExpression> _constantLiterals;
 
   _ResolutionWorldImpact(this.name);
 
@@ -104,6 +105,18 @@ class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
   @override
   Iterable<Feature> get features {
     return _features != null ? _features : const <Feature>[];
+  }
+
+  void registerConstantLiteral(ConstantExpression constant) {
+    if (_constantLiterals == null) {
+      _constantLiterals = new Setlet<ConstantExpression>();
+    }
+    _constantLiterals.add(constant);
+  }
+
+  Iterable<ConstantExpression> get constantLiterals {
+    return _constantLiterals != null
+        ? _constantLiterals : const <ConstantExpression>[];
   }
 
   String toString() => '_ResolutionWorldImpact($name)';
@@ -292,28 +305,8 @@ class ResolutionRegistry extends Registry {
     worldImpact.registerStaticUse(staticUse);
   }
 
-  void registerLazyField() {
-    worldImpact.registerFeature(Feature.LAZY_FIELD);
-  }
-
   void registerMetadataConstant(MetadataAnnotation metadata) {
     backend.registerMetadataConstant(metadata, metadata.annotatedElement, this);
-  }
-
-  void registerThrowRuntimeError() {
-    worldImpact.registerFeature(Feature.THROW_RUNTIME_ERROR);
-  }
-
-  void registerCompileTimeError(ErroneousElement error) {
-    worldImpact.registerFeature(Feature.COMPILE_TIME_ERROR);
-  }
-
-  void registerTypeVariableBoundCheck() {
-    worldImpact.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
-  }
-
-  void registerThrowNoSuchMethod() {
-    worldImpact.registerFeature(Feature.THROW_NO_SUCH_METHOD);
   }
 
   /// Register the use of a type.
@@ -327,10 +320,6 @@ class ResolutionRegistry extends Registry {
 
   void registerSuperUse(Node node) {
     mapping.addSuperUse(node);
-  }
-
-  void registerSuperNoSuchMethod() {
-    worldImpact.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
   }
 
   void registerTypeLiteral(Send node, DartType type) {
@@ -369,36 +358,16 @@ class ResolutionRegistry extends Registry {
     worldImpact.registerDynamicUse(dynamicUse);
   }
 
+  void registerFeature(Feature feature) {
+    worldImpact.registerFeature(feature);
+  }
+
   void registerConstSymbol(String name) {
     worldImpact.registerConstSymbolName(name);
   }
 
-  void registerSymbolConstructor() {
-    worldImpact.registerFeature(Feature.SYMBOL_CONSTRUCTOR);
-  }
-
-  void registerAbstractClassInstantiation() {
-    worldImpact.registerFeature(Feature.ABSTRACT_CLASS_INSTANTIATION);
-  }
-
-  void registerStringInterpolation() {
-    worldImpact.registerFeature(Feature.STRING_INTERPOLATION);
-  }
-
-  void registerFallThroughError() {
-    worldImpact.registerFeature(Feature.FALL_THROUGH_ERROR);
-  }
-
-  void registerCatchStatement() {
-    worldImpact.registerFeature(Feature.CATCH_STATEMENT);
-  }
-
-  void registerStackTraceInCatch() {
-    worldImpact.registerFeature(Feature.STACK_TRACE_IN_CATCH);
-  }
-
-  void registerSyncForIn(Node node) {
-    worldImpact.registerFeature(Feature.SYNC_FOR_IN);
+  void registerConstantLiteral(ConstantExpression constant) {
+    worldImpact.registerConstantLiteral(constant);
   }
 
   ClassElement defaultSuperclass(ClassElement element) {
@@ -410,17 +379,8 @@ class ResolutionRegistry extends Registry {
     universe.registerMixinUse(mixinApplication, mixin);
   }
 
-  void registerThrowExpression() {
-    worldImpact.registerFeature(Feature.THROW_EXPRESSION);
-  }
-
   void registerInstantiation(InterfaceType type) {
     worldImpact.registerTypeUse(new TypeUse.instantiation(type));
-  }
-
-  void registerAssert(bool hasMessage) {
-    worldImpact.registerFeature(
-        hasMessage ? Feature.ASSERT_WITH_MESSAGE : Feature.ASSERT);
   }
 
   void registerSendStructure(Send node, SendStructure sendStructure) {
@@ -431,30 +391,6 @@ class ResolutionRegistry extends Registry {
   // [ResolutionResult].
   SendStructure getSendStructure(Send node) {
     return mapping.getSendStructure(node);
-  }
-
-  void registerAsyncMarker(FunctionElement element) {
-    switch (element.asyncMarker) {
-      case AsyncMarker.SYNC:
-        break;
-      case AsyncMarker.SYNC_STAR:
-        worldImpact.registerFeature(Feature.SYNC_STAR);
-        break;
-      case AsyncMarker.ASYNC:
-        worldImpact.registerFeature(Feature.ASYNC);
-        break;
-      case AsyncMarker.ASYNC_STAR:
-        worldImpact.registerFeature(Feature.ASYNC_STAR);
-        break;
-    }
-  }
-
-  void registerAsyncForIn(AsyncForIn node) {
-    worldImpact.registerFeature(Feature.ASYNC_FOR_IN);
-  }
-
-  void registerIncDecOperation() {
-    worldImpact.registerFeature(Feature.INC_DEC_OPERATION);
   }
 
   void registerTryStatement() {

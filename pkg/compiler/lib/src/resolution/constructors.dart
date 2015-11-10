@@ -5,6 +5,8 @@
 library dart2js.resolution.constructors;
 
 import '../common.dart';
+import '../common/resolution.dart' show
+    Feature;
 import '../compiler.dart' show
     Compiler;
 import '../constants/constructors.dart' show
@@ -26,8 +28,6 @@ import '../util/util.dart' show
     Link;
 import '../universe/call_structure.dart' show
     CallStructure;
-import '../universe/selector.dart' show
-    Selector;
 import '../universe/use.dart' show
     StaticUse;
 
@@ -487,9 +487,9 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       {bool isError: false,
        bool missingConstructor: false}) {
     if (missingConstructor) {
-      registry.registerThrowNoSuchMethod();
+      registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
     } else {
-      registry.registerThrowRuntimeError();
+      registry.registerFeature(Feature.THROW_RUNTIME_ERROR);
     }
     if (isError || inConstContext) {
       reporter.reportErrorMessage(
@@ -534,7 +534,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
         if (cls.isAbstract) {
           reporter.reportWarningMessage(
               diagnosticNode, MessageKind.ABSTRACT_CLASS_INSTANTIATION);
-          registry.registerAbstractClassInstantiation();
+          registry.registerFeature(Feature.ABSTRACT_CLASS_INSTANTIATION);
           return new ConstructorResult(
               ConstructorResultKind.ABSTRACT, constructor, type);
         } else {
@@ -697,7 +697,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       error = new ErroneousConstructorElementX(
           MessageKind.NOT_A_TYPE, {'node': node},
           error.name, error);
-      registry.registerThrowRuntimeError();
+      registry.registerFeature(Feature.THROW_RUNTIME_ERROR);
     }
     return new ConstructorResult(
         ConstructorResultKind.INVALID_TYPE,

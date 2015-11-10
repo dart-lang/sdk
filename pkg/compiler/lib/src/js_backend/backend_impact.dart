@@ -200,7 +200,35 @@ class BackendImpacts {
 
   BackendImpact get stringInterpolation => new BackendImpact(
       staticUses: [
-        helpers.stringInterpolationHelper]);
+        helpers.stringInterpolationHelper],
+      otherImpacts: [
+        needsString('Strings are created.')]);
+
+  BackendImpact get stringJuxtaposition {
+    return needsString('String.concat is used.');
+  }
+
+  // TODO(johnniwinther): Point to to the JavaScript classes instead of the Dart
+  // classes in these impacts.
+  BackendImpact get nullLiteral => new BackendImpact(
+      instantiatedClasses: [
+        coreClasses.nullClass]);
+
+  BackendImpact get boolLiteral => new BackendImpact(
+      instantiatedClasses: [
+        coreClasses.boolClass]);
+
+  BackendImpact get intLiteral => new BackendImpact(
+      instantiatedClasses: [
+        coreClasses.intClass]);
+
+  BackendImpact get doubleLiteral => new BackendImpact(
+      instantiatedClasses: [
+        coreClasses.doubleClass]);
+
+  BackendImpact get stringLiteral => new BackendImpact(
+      instantiatedClasses: [
+        coreClasses.stringClass]);
 
   BackendImpact get catchStatement => new BackendImpact(
       staticUses: [
