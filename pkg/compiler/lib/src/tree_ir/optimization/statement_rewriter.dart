@@ -278,6 +278,11 @@ class StatementRewriter extends Transformer implements Pass {
     // it means we are looking at the first use.
     assert(unseenUses[node.variable] < node.variable.readCount);
     assert(unseenUses[node.variable] >= 0);
+
+    // We cannot reliably find the first dynamic use of a variable that is
+    // accessed from a JS function in a foreign code fragment.
+    if (node.variable.isCaptured) return node;
+
     bool isFirstUse = unseenUses[node.variable] == 0;
 
     // Propagate constant to use site.
@@ -1139,15 +1144,25 @@ class StatementRewriter extends Transformer implements Pass {
     return polarity ? node.thenStatement : node.elseStatement;
   }
 
+  void handleForeignCode(ForeignCode node) {
+    // Arguments will get inserted in a JS code template.  The arguments will
+    // not always be evaluated (e.g. if the template is '# && #').
+    // TODO(asgerf): We could analyze the JS AST to see if arguments are
+    //               definitely evaluated left-to-right.
+    inEmptyEnvironment(() {
+      _rewriteList(node.arguments);
+    });
+  }
+
   @override
   Expression visitForeignExpression(ForeignExpression node) {
-    _rewriteList(node.arguments);
+    handleForeignCode(node);
     return node;
   }
 
   @override
   Statement visitForeignStatement(ForeignStatement node) {
-    _rewriteList(node.arguments);
+    handleForeignCode(node);
     return node;
   }
 
