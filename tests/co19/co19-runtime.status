@@ -11,16 +11,15 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fa
 
 LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
-Language/03_Overview/1_Scoping_A02_t28: RuntimeError # Issue 21163
-Language/13_Statements/09_Switch_A01_t02: fail # Dart issue 12908
-Language/13_Statements/12_Labels_A01_t03: fail # Dart issue 2238
-Language/14_Libraries_and_Scripts/2_Exports_A04_t02: fail # Dart issue 12916
-Language/14_Libraries_and_Scripts/2_Exports_A04_t03: fail # Dart issue 12916
+Language/Statements/Switch/syntax_t02: fail # Dart issue 12908
+Language/Statements/Labels/syntax_t03: fail # Dart issue 2238
+Language/Libraries_and_Scripts/Exports/reexport_t01: fail # Dart issue 12916
+Language/Libraries_and_Scripts/Exports/reexport_t02: fail # Dart issue 12916
 
-Language/13_Statements/15_Assert_A03_t02: skip # co19 issue 734
-Language/13_Statements/15_Assert_A03_t03: skip # co19 issue 734
-Language/13_Statements/15_Assert_A04_t02: skip # co19 issue 734
-Language/13_Statements/15_Assert_A04_t05: skip # co19 issue 734
+Language/Statements/Assert/execution_t02: skip # co19 issue 734
+Language/Statements/Assert/execution_t03: skip # co19 issue 734
+Language/Statements/Assert/type_t02: skip # co19 issue 734
+Language/Statements/Assert/type_t05: skip # co19 issue 734
 
 
 LibTest/core/DateTime/parse_A03_t01: fail # Issue 12514
@@ -41,12 +40,12 @@ LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 [ $compiler == none && $runtime == vm ]
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
-Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: MissingCompileTimeError # Issue 22007
-Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: MissingCompileTimeError # Issue 22007
+Language/Expressions/Instance_Creation/Const/abstract_class_t01: MissingCompileTimeError # Issue 22007
+Language/Expressions/Instance_Creation/Const/abstract_class_t03: MissingCompileTimeError # Issue 22007
 # With asynchronous loading, the load errors in these tests are no longer recognized as compile errors:
-Language/14_Libraries_and_Scripts/1_Imports_A04_t02: Fail
-Language/14_Libraries_and_Scripts/2_Exports_A05_t02: Fail
-Language/14_Libraries_and_Scripts/3_Parts_A01_t06: Fail
+Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Fail
+Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Fail
+Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
 
 [ $runtime == vm ]
 LibTest/math/MutableRectangle/MutableRectangle.fromPoints_A01_t01: Pass, RuntimeError # co19-roll r607: Please triage this failure
@@ -83,13 +82,68 @@ LayoutTests/fast/*: SkipByDesign # DOM not supported on VM.
 WebPlatformTest/*: SkipByDesign # dart:html not supported on VM.
 
 [ $runtime == vm && $mode == debug && $builder_tag == asan ]
-Language/15_Types/4_Interface_Types_A11_t01: Skip  # Issue 21174.
+Language/Types/Interface_Types/subtype_t27: Skip  # Issue 21174.
 
 [ $runtime == vm && $arch == arm ]
 LibTest/typed_data/Float32x4/operator_multiplication_A01_t01: Fail # Dart issue 24416
 
-[ $noopt ]
+[ $runtime == vm && $noopt ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
 LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
+
+[ $runtime == vm ]
+# co19 update Sep 29, 2015 (3ed795ea02e022ef19c77cf1b6095b7c8f5584d0)
+Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: MissingCompileTimeError # Please triage this failure
+Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t02: MissingCompileTimeError # Please triage this failure
+Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: MissingCompileTimeError # Please triage this failure
+Language/Classes/Constructors/Constant_Constructors/not_a_constant_in_superclass_t01: MissingCompileTimeError # Please triage this failure
+Language/Classes/Constructors/Constant_Constructors/not_a_constant_in_superclass_t02: MissingCompileTimeError # Please triage this failure
+Language/Classes/Getters/type_object_t01: RuntimeError # Please triage this failure
+Language/Classes/Getters/type_object_t02: RuntimeError # Please triage this failure
+Language/Classes/Setters/syntax_t04: RuntimeError # Please triage this failure
+Language/Classes/Setters/type_object_t01: RuntimeError # Please triage this failure
+Language/Classes/Setters/type_object_t02: RuntimeError # Please triage this failure
+Language/Classes/Static_Methods/type_object_t01: RuntimeError # Please triage this failure
+Language/Classes/Static_Methods/type_object_t02: RuntimeError # Please triage this failure
+Language/Expressions/Property_Extraction/General_Closurization/class_object_member_t01: MissingCompileTimeError # Please triage this failure
+Language/Expressions/Property_Extraction/General_Closurization/class_object_member_t02: MissingCompileTimeError # Please triage this failure
+Language/Expressions/Property_Extraction/General_Closurization/class_object_member_t03: MissingCompileTimeError # Please triage this failure
+Language/Expressions/Property_Extraction/General_Closurization/class_object_member_t04: MissingCompileTimeError # Please triage this failure
+Language/Expressions/Property_Extraction/General_Closurization/class_object_member_t05: MissingCompileTimeError # Please triage this failure
+Language/Expressions/Property_Extraction/General_Closurization/class_object_member_t06: MissingCompileTimeError # Please triage this failure
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t01: MissingCompileTimeError # Please triage this failure
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t02: MissingCompileTimeError # Please triage this failure
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t03: MissingCompileTimeError # Please triage this failure
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t04: MissingCompileTimeError # Please triage this failure
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t05: MissingCompileTimeError # Please triage this failure
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError # Please triage this failure
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError # Please triage this failure
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Please triage this failure
+Language/Expressions/Property_Extraction/Named_Constructor_Extraction/not_class_t01: CompileTimeError # Please triage this failure
+Language/Libraries_and_Scripts/Imports/namespace_changes_t10: RuntimeError # Please triage this failure
+Language/Libraries_and_Scripts/Parts/compilation_t09: MissingCompileTimeError # Please triage this failure
+Language/Libraries_and_Scripts/URIs/syntax_t04: RuntimeError # Please triage this failure
+Language/Libraries_and_Scripts/URIs/syntax_t05: RuntimeError # Please triage this failure
+Language/Libraries_and_Scripts/URIs/syntax_t09: RuntimeError # Please triage this failure
+Language/Libraries_and_Scripts/URIs/syntax_t10: RuntimeError # Please triage this failure
+Language/Libraries_and_Scripts/URIs/syntax_t14: RuntimeError # Please triage this failure
+Language/Libraries_and_Scripts/URIs/syntax_t15: RuntimeError # Please triage this failure
+Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError # Please triage this failure
+Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError # Please triage this failure
+Language/Mixins/declaring_constructor_t01: MissingCompileTimeError # Please triage this failure
+Language/Mixins/not_object_superclass_t01: MissingCompileTimeError # Please triage this failure
+Language/Mixins/reference_to_super_t01: MissingCompileTimeError # Please triage this failure
+
+[ $runtime == vm && $mode == debug ]
+Language/Mixins/Mixin_Application/wrong_type_t02: Crash # Please triage this failure
+
+[ $runtime == vm && $checked ]
+Language/Errors_and_Warnings/static_warning_t01: RuntimeError # Please triage this failure
+Language/Errors_and_Warnings/static_warning_t02: RuntimeError # Please triage this failure
+Language/Errors_and_Warnings/static_warning_t03: RuntimeError # Please triage this failure
+Language/Errors_and_Warnings/static_warning_t04: RuntimeError # Please triage this failure
+Language/Errors_and_Warnings/static_warning_t05: RuntimeError # Please triage this failure
+Language/Errors_and_Warnings/static_warning_t06: RuntimeError # Please triage this failure
+
