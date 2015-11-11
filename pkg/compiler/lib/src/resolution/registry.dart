@@ -387,6 +387,10 @@ class ResolutionRegistry extends Registry {
     mapping.setSendStructure(node, sendStructure);
   }
 
+  void registerNewStructure(NewExpression node, NewStructure newStructure) {
+    mapping.setNewStructure(node, newStructure);
+  }
+
   // TODO(johnniwinther): Remove this when [SendStructure]s are part of the
   // [ResolutionResult].
   SendStructure getSendStructure(Send node) {

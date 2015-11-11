@@ -46,8 +46,6 @@ Language/Enums/syntax_t02: MissingCompileTimeError # Please triage this failure
 Language/Errors_and_Warnings/compile_error_t06: MissingCompileTimeError # Please triage this failure
 Language/Errors_and_Warnings/compile_error_t07: MissingCompileTimeError # Please triage this failure
 Language/Expressions/Identifier_Reference/syntax_built_in_t01: fail # Issue 21154
-Language/Expressions/Instance_Creation/Const/abstract_class_t01: fail # Issue 21134 and co19 issue 714
-Language/Expressions/Instance_Creation/Const/abstract_class_t03: fail # Issue 21134 and co19 issue 714
 Language/Expressions/Maps/static_type_dynamic_t01: CompileTimeError # Maybe ok. Issue 17207
 Language/Expressions/Numbers/syntax_t06: fail # Issue 21098
 Language/Expressions/Numbers/syntax_t09: fail # Issue 21098

@@ -51,7 +51,8 @@ import 'send_structure.dart';
 
 import 'constructors.dart' show
     ConstructorResolver,
-    ConstructorResult;
+    ConstructorResult,
+    ConstructorResultKind;
 import 'label_scope.dart' show
     StatementScope;
 import 'registry.dart' show
@@ -3673,28 +3674,45 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitRedirectingFactoryBody(RedirectingFactoryBody node) {
-    final isSymbolConstructor = enclosingElement == compiler.symbolConstructor;
     if (!enclosingElement.isFactoryConstructor) {
       reporter.reportErrorMessage(
           node, MessageKind.FACTORY_REDIRECTION_IN_NON_FACTORY);
       reporter.reportHintMessage(
           enclosingElement, MessageKind.MISSING_FACTORY_KEYWORD);
     }
+
     ConstructorElementX constructor = enclosingElement;
     bool isConstConstructor = constructor.isConst;
     bool isValidAsConstant = isConstConstructor;
-    ConstructorElement redirectionTarget = resolveRedirectingFactory(
-        node, inConstContext: isConstConstructor).element;
+    ConstructorResult result = resolveRedirectingFactory(
+        node, inConstContext: isConstConstructor);
+    ConstructorElement redirectionTarget = result.element;
     constructor.immediateRedirectionTarget = redirectionTarget;
 
     Node constructorReference = node.constructorReference;
-    if (constructorReference is Send) {
-      constructor.redirectionDeferredPrefix =
-          compiler.deferredLoadTask.deferredPrefixElement(constructorReference,
-                                                          registry.mapping);
+    if (result.isDeferred) {
+      constructor.redirectionDeferredPrefix = result.prefix;
     }
 
     registry.setRedirectingTargetConstructor(node, redirectionTarget);
+    switch (result.kind) {
+      case ConstructorResultKind.GENERATIVE:
+      case ConstructorResultKind.FACTORY:
+        // Register a post process to check for cycles in the redirection chain
+        // and set the actual generative constructor at the end of the chain.
+        addDeferredAction(constructor, () {
+          compiler.resolver.resolveRedirectionChain(constructor, node);
+        });
+        break;
+      case ConstructorResultKind.ABSTRACT:
+      case ConstructorResultKind.INVALID_TYPE:
+      case ConstructorResultKind.UNRESOLVED_CONSTRUCTOR:
+      case ConstructorResultKind.NON_CONSTANT:
+        isValidAsConstant = false;
+        constructor.setEffectiveTarget(
+            result.element, result.type, isMalformed: true);
+        break;
+    }
     if (Elements.isUnresolved(redirectionTarget)) {
       registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
       return const NoneResult();
@@ -3743,12 +3761,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       isValidAsConstant = false;
     }
 
-    // Register a post process to check for cycles in the redirection chain and
-    // set the actual generative constructor at the end of the chain.
-    addDeferredAction(constructor, () {
-      compiler.resolver.resolveRedirectionChain(constructor, node);
-    });
-
     registry.registerStaticUse(
         new StaticUse.constructorRedirect(redirectionTarget));
     // TODO(johnniwinther): Register the effective target type as part of the
@@ -3756,7 +3768,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     registry.registerTypeUse(new TypeUse.instantiation(
         redirectionTarget.enclosingClass.thisType
             .subst(type.typeArguments, targetClass.typeVariables)));
-    if (isSymbolConstructor) {
+    if (enclosingElement == compiler.symbolConstructor) {
       registry.registerFeature(Feature.SYMBOL_CONSTRUCTOR);
     }
     if (isValidAsConstant) {
@@ -3871,12 +3883,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitNewExpression(NewExpression node) {
-    bool isValidAsConstant = true;
-    ConstructorElement constructor = resolveConstructor(node).element;
-    final bool isSymbolConstructor = constructor == compiler.symbolConstructor;
-    final bool isMirrorsUsedConstant =
-        node.isConst && (constructor == compiler.mirrorsUsedConstructor);
-    Selector callSelector = resolveSelector(node.send, constructor);
+    ConstructorResult result = resolveConstructor(node);
+    ConstructorElement constructor = result.element;
     ArgumentsResult argumentsResult;
     if (node.isConst) {
       argumentsResult =
@@ -3884,45 +3892,88 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else {
       argumentsResult = resolveArguments(node.send.argumentsNode);
     }
+    // TODO(johnniwinther): Avoid the need for a [Selector].
+    Selector selector = resolveSelector(node.send, constructor);
+    CallStructure callStructure = selector.callStructure;
     registry.useElement(node.send, constructor);
-    if (Elements.isUnresolved(constructor)) {
-      return new ResolutionResult.forElement(constructor);
-    }
-    constructor.computeType(resolution);
-    if (!callSelector.applies(constructor, compiler.world)) {
-      registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
+
+    DartType type = result.type;
+    ConstructorAccessKind kind;
+    NewStructure newStructure;
+    bool isInvalid = false;
+    switch (result.kind) {
+      case ConstructorResultKind.GENERATIVE:
+        // Ensure that the signature of [constructor] has been computed.
+        constructor.computeType(resolution);
+        if (!callStructure.signatureApplies(constructor.functionSignature)) {
+          isInvalid = true;
+          kind = ConstructorAccessKind.INCOMPATIBLE;
+          registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
+        } else {
+          kind = ConstructorAccessKind.GENERATIVE;
+        }
+        break;
+      case ConstructorResultKind.FACTORY:
+        // Ensure that the signature of [constructor] has been computed.
+        constructor.computeType(resolution);
+        if (!callStructure.signatureApplies(constructor.functionSignature)) {
+          // The effective target might still be valid(!) so the is not an
+          // invalid case in itself. For instance
+          //
+          //    class A {
+          //       factory A() = A.a;
+          //       A.a(a);
+          //    }
+          //    m() => new A(0); // This creates a warning but works at runtime.
+          //
+          registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
+        }
+        kind = ConstructorAccessKind.FACTORY;
+        break;
+      case ConstructorResultKind.ABSTRACT:
+        isInvalid = true;
+        kind = ConstructorAccessKind.ABSTRACT;
+        break;
+      case ConstructorResultKind.INVALID_TYPE:
+        isInvalid = true;
+        kind = ConstructorAccessKind.UNRESOLVED_TYPE;
+        break;
+      case ConstructorResultKind.UNRESOLVED_CONSTRUCTOR:
+        // TODO(johnniwinther): Unify codepaths to only have one return.
+        registry.registerNewStructure(node,
+            new NewInvokeStructure(
+                new ConstructorAccessSemantics(
+                    ConstructorAccessKind.UNRESOLVED_CONSTRUCTOR,
+                    constructor,
+                    type),
+                selector));
+        return new ResolutionResult.forElement(constructor);
+      case ConstructorResultKind.NON_CONSTANT:
+        registry.registerNewStructure(node,
+            new NewInvokeStructure(
+                new ConstructorAccessSemantics(
+                    ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR,
+                    constructor,
+                    type),
+                selector));
+        return new ResolutionResult.forElement(constructor);
     }
 
-    // [constructor] might be the implementation element
-    // and only declaration elements may be registered.
-    registry.registerStaticUse(
-        new StaticUse.constructorInvoke(
-            constructor.declaration, callSelector.callStructure));
-    ClassElement cls = constructor.enclosingClass;
-    if (cls.isEnumClass && currentClass != cls) {
-      reporter.reportErrorMessage(
-          node,
-          MessageKind.CANNOT_INSTANTIATE_ENUM,
-          {'enumName': cls.name});
-      isValidAsConstant = false;
+    if (!isInvalid) {
+      // [constructor] might be the implementation element
+      // and only declaration elements may be registered.
+      registry.registerStaticUse(
+          new StaticUse.constructorInvoke(
+              constructor.declaration, callStructure));
+      // TODO(johniwinther): Avoid registration of `type` in face of redirecting
+      // factory constructors.
+      registry.registerTypeUse(new TypeUse.instantiation(type));
     }
 
-    InterfaceType type = registry.getType(node);
-    if (node.isConst && type.containsTypeVariables) {
-      reporter.reportErrorMessage(
-          node.send.selector,
-          MessageKind.TYPE_VARIABLE_IN_CONSTANT);
-      isValidAsConstant = false;
-    }
-    // TODO(johniwinther): Avoid registration of `type` in face of redirecting
-    // factory constructors.
-    registry.registerTypeUse(new TypeUse.instantiation(type));
-    if (constructor.isGenerativeConstructor && cls.isAbstract) {
-      isValidAsConstant = false;
-    }
+    if (node.isConst) {
+      bool isValidAsConstant = !isInvalid && constructor.isConst;
 
-    if (isSymbolConstructor) {
-      if (node.isConst) {
+      if (constructor == compiler.symbolConstructor) {
         Node argumentNode = node.send.arguments.head;
         ConstantExpression constant =
             compiler.resolver.constantCompiler.compileNode(
@@ -3941,47 +3992,67 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             registry.registerConstSymbol(nameString);
           }
         }
-      } else {
-        if (!compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(
-                enclosingElement)) {
-          reporter.reportHintMessage(
-              node.newToken, MessageKind.NON_CONST_BLOAT,
-              {'name': coreClasses.symbolClass.name});
-        }
+      } else if (constructor == compiler.mirrorsUsedConstructor) {
+        compiler.mirrorUsageAnalyzerTask.validate(node, registry.mapping);
       }
-    } else if (isMirrorsUsedConstant) {
-      compiler.mirrorUsageAnalyzerTask.validate(node, registry.mapping);
-    }
-    if (node.isConst) {
+
       analyzeConstantDeferred(node);
 
-      // TODO(johnniwinther): Compute this in the [ConstructorResolver].
-      // Check that the constructor is not deferred.
-      Send send = node.send.selector.asSend();
-      if (send != null) {
-        // Of the form `const a.b(...)`.
-        if (compiler.deferredLoadTask.deferredPrefixElement(
-                send, registry.mapping) != null) {
-          // `a` is a deferred prefix.
-          isValidAsConstant = false;
-          // TODO(johnniwinther): Create an [ErroneousConstantExpression] here
-          // when constants are only created during resolution.
-        }
+      if (type.containsTypeVariables) {
+        reporter.reportErrorMessage(
+            node.send.selector,
+            MessageKind.TYPE_VARIABLE_IN_CONSTANT);
+        isValidAsConstant = false;
+        isInvalid = true;
+      }
+
+      if (result.isDeferred) {
+        isValidAsConstant = false;
       }
 
       if (isValidAsConstant &&
-          constructor.isConst &&
-          argumentsResult.isValidAsConstant) {
+          argumentsResult.isValidAsConstant &&
+          // TODO(johnniwinther): Remove this when all constants are computed
+          // in resolution.
+          !constructor.isFromEnvironmentConstructor) {
         CallStructure callStructure = argumentsResult.callStructure;
         List<ConstantExpression> arguments = argumentsResult.constantArguments;
+
         ConstructedConstantExpression constant =
             new ConstructedConstantExpression(
                 type,
                 constructor,
                 callStructure,
                 arguments);
+        registry.registerNewStructure(node,
+            new ConstInvokeStructure(ConstantInvokeKind.CONSTRUCTED, constant));
         return new ConstantResult(node, constant);
+      } else if (isInvalid) {
+        // Known to be non-constant.
+        kind == ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR;
+        registry.registerNewStructure(node,
+            new NewInvokeStructure(
+                new ConstructorAccessSemantics(kind, constructor, type),
+                selector));
+      } else {
+        // Might be valid but we don't know for sure. The compile-time constant
+        // evaluator will compute the actual constant as a deferred action.
+        registry.registerNewStructure(node,
+            new LateConstInvokeStructure(registry.mapping));
       }
+
+    } else {
+      // Not constant.
+      if (constructor == compiler.symbolConstructor &&
+          !compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(enclosingElement)) {
+          reporter.reportHintMessage(
+              node.newToken, MessageKind.NON_CONST_BLOAT,
+              {'name': coreClasses.symbolClass.name});
+      }
+      registry.registerNewStructure(node,
+          new NewInvokeStructure(
+              new ConstructorAccessSemantics(kind, constructor, type),
+              selector));
     }
 
     return const NoneResult();

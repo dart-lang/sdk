@@ -16,8 +16,6 @@ import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../resolution/operators.dart';
 import '../resolution/semantic_visitor.dart';
-import '../resolution/send_resolver.dart' show
-    SendResolverMixin;
 import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../tree/tree.dart';
@@ -695,8 +693,7 @@ class LocalsHandler<T> {
 
 abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
     extends Visitor<T>
-    with SendResolverMixin,
-         SemanticSendResolvedMixin<T, dynamic>,
+    with SemanticSendResolvedMixin<T, dynamic>,
          CompoundBulkMixin<T, dynamic>,
          SetIfNullBulkMixin<T, dynamic>,
          PrefixBulkMixin<T, dynamic>,

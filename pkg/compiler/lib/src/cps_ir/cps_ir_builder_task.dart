@@ -30,8 +30,6 @@ import '../js_backend/js_backend.dart' show
 import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../resolution/semantic_visitor.dart';
-import '../resolution/send_resolver.dart' show
-    SendResolverMixin;
 import '../resolution/operators.dart' as op;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart' show
@@ -119,7 +117,6 @@ class IrBuilderTask extends CompilerTask {
 abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     with IrBuilderMixin<ast.Node>,
          SemanticSendResolvedMixin<ir.Primitive, dynamic>,
-         SendResolverMixin,
          ErrorBulkMixin<ir.Primitive, dynamic>,
          BaseImplementationOfStaticsMixin<ir.Primitive, dynamic>,
          BaseImplementationOfLocalsMixin<ir.Primitive, dynamic>,

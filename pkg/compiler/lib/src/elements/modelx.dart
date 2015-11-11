@@ -322,6 +322,11 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   }
 
   @override
+  get isEffectiveTargetMalformed {
+    throw new UnsupportedError("isEffectiveTargetMalformed");
+  }
+
+  @override
   bool get isFromEnvironmentConstructor => false;
 }
 
@@ -342,88 +347,132 @@ class ErroneousConstructorElementX extends ErroneousElementX
       Element enclosing)
       : super(messageKind, messageArguments, name, enclosing);
 
+  @override
   bool get isRedirectingGenerative => false;
 
+  @override
   void set isRedirectingGenerative(_) {
     throw new UnsupportedError("isRedirectingGenerative");
   }
 
+  @override
   bool get isRedirectingFactory => false;
 
+  @override
   get definingElement {
     throw new UnsupportedError("definingElement");
   }
 
+  @override
   get asyncMarker {
     throw new UnsupportedError("asyncMarker");
   }
 
+  @override
   set asyncMarker(_) {
     throw new UnsupportedError("asyncMarker=");
   }
 
-  get internalEffectiveTarget {
-    throw new UnsupportedError("internalEffectiveTarget");
+  @override
+  get effectiveTargetInternal {
+    throw new UnsupportedError("effectiveTargetInternal");
   }
 
-  set internalEffectiveTarget(_) {
-    throw new UnsupportedError("internalEffectiveTarget=");
+  @override
+  set effectiveTargetInternal(_) {
+    throw new UnsupportedError("effectiveTargetInternal=");
   }
 
+  @override
+  get _effectiveTargetType {
+    throw new UnsupportedError("_effectiveTargetType");
+  }
+
+  @override
+  set _effectiveTargetType(_) {
+    throw new UnsupportedError("_effectiveTargetType=");
+  }
+
+  @override
   get effectiveTargetType {
     throw new UnsupportedError("effectiveTargetType");
   }
 
-  set effectiveTargetType(_) {
-    throw new UnsupportedError("effectiveTargetType=");
+  @override
+  get _isEffectiveTargetMalformed {
+    throw new UnsupportedError("_isEffectiveTargetMalformed");
   }
 
+  @override
+  set _isEffectiveTargetMalformed(_) {
+    throw new UnsupportedError("_isEffectiveTargetMalformed=");
+  }
+
+  @override
+  get isEffectiveTargetMalformed {
+    throw new UnsupportedError("isEffectiveTargetMalformed");
+  }
+
+  @override
+  void setEffectiveTarget(ConstructorElement target,
+                            InterfaceType type,
+                            {bool isMalformed: false}) {
+    throw new UnsupportedError("setEffectiveTarget");
+  }
+
+  @override
   void _computeSignature(Resolution resolution) {
     throw new UnsupportedError("_computeSignature");
   }
 
+  @override
   get typeCache {
     throw new UnsupportedError("typeCache");
   }
 
+  @override
   set typeCache(_) {
     throw new UnsupportedError("typeCache=");
   }
 
+  @override
   get immediateRedirectionTarget {
     throw new UnsupportedError("immediateRedirectionTarget");
   }
 
+  @override
   set immediateRedirectionTarget(_) {
     throw new UnsupportedError("immediateRedirectionTarget=");
   }
 
+  @override
   get _functionSignatureCache {
     throw new UnsupportedError("functionSignatureCache");
   }
 
+  @override
   set _functionSignatureCache(_) {
     throw new UnsupportedError("functionSignatureCache=");
   }
 
+  @override
   set functionSignature(_) {
     throw new UnsupportedError("functionSignature=");
   }
 
+  @override
   get nestedClosures {
     throw new UnsupportedError("nestedClosures");
   }
 
+  @override
   set nestedClosures(_) {
     throw new UnsupportedError("nestedClosures=");
   }
 
+  @override
   set redirectionDeferredPrefix(_) {
     throw new UnsupportedError("redirectionDeferredPrefix=");
-  }
-
-  void set effectiveTarget(_) {
-    throw new UnsupportedError("effectiveTarget=");
   }
 }
 
@@ -2221,33 +2270,53 @@ abstract class ConstructorElementX extends FunctionElementX
   // generative constructors.
   bool get isCyclicRedirection => effectiveTarget.isRedirectingFactory;
 
-  /// This field is set by the post process queue when checking for cycles.
-  ConstructorElement internalEffectiveTarget;
-  DartType effectiveTargetType;
+  /// These fields are set by the post process queue when checking for cycles.
+  ConstructorElement effectiveTargetInternal;
+  DartType _effectiveTargetType;
+  bool _isEffectiveTargetMalformed;
 
-  void set effectiveTarget(ConstructorElement constructor) {
-    assert(constructor != null && internalEffectiveTarget == null);
-    internalEffectiveTarget = constructor;
+  void setEffectiveTarget(ConstructorElement target,
+                          DartType type,
+                          {bool isMalformed: false}) {
+    assert(invariant(this, target != null,
+        message: 'No effective target provided for $this.'));
+    assert(invariant(this, effectiveTargetInternal == null,
+        message: 'Effective target has already been computed for $this.'));
+    effectiveTargetInternal = target;
+    _effectiveTargetType = type;
+    _isEffectiveTargetMalformed = isMalformed;
   }
 
   ConstructorElement get effectiveTarget {
     if (Elements.isMalformed(immediateRedirectionTarget)) {
       return immediateRedirectionTarget;
     }
-    assert(!isRedirectingFactory || internalEffectiveTarget != null);
-    if (isRedirectingFactory) return internalEffectiveTarget;
+    assert(!isRedirectingFactory || effectiveTargetInternal != null);
+    if (isRedirectingFactory) {
+      return effectiveTargetInternal;
+    }
     if (isPatched) {
-      return internalEffectiveTarget ?? this;
+      return effectiveTargetInternal ?? this;
     }
     return this;
   }
 
+  InterfaceType get effectiveTargetType {
+    assert(invariant(this, _effectiveTargetType != null,
+        message: 'Effective target type has not yet been computed for $this.'));
+    return _effectiveTargetType;
+  }
+
   InterfaceType computeEffectiveTargetType(InterfaceType newType) {
     if (!isRedirectingFactory) return newType;
-    assert(invariant(this, effectiveTargetType != null,
-        message: 'Redirection target type has not yet been computed for '
-                 '$this.'));
     return effectiveTargetType.substByContext(newType);
+  }
+
+  bool get isEffectiveTargetMalformed {
+    if (!isRedirectingFactory) return false;
+    assert(invariant(this, _isEffectiveTargetMalformed != null,
+            message: 'Malformedness has not yet been computed for $this.'));
+    return _isEffectiveTargetMalformed == true;
   }
 
   accept(ElementVisitor visitor, arg) {

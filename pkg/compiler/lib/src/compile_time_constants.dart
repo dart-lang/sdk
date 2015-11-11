@@ -826,19 +826,33 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     // The redirection chain of this element may not have been resolved through
     // a post-process action, so we have to make sure it is done here.
     compiler.resolver.resolveRedirectionChain(constructor, node);
-    InterfaceType constructedType =
-        constructor.computeEffectiveTargetType(type);
-    ConstructorElement target = constructor.effectiveTarget;
-    // The constructor must be an implementation to ensure that field
-    // initializers are handled correctly.
-    ConstructorElement implementation = target.implementation;
 
-    if (implementation.isMalformed) {
-      // TODO(johnniwinther): This should probably be an [ErroneousAstConstant].
-      return new AstConstant(context, node, new ConstructedConstantExpression(
-              type, constructor, callStructure, const <ConstantExpression>[]),
-          new ConstructedConstantValue(
-              constructedType, const <FieldElement, ConstantValue>{}));
+    bool isInvalid = false;
+    InterfaceType constructedType = type;
+    ConstructorElement implementation;
+    if (constructor.isRedirectingFactory) {
+      if (constructor.isEffectiveTargetMalformed) {
+        isInvalid = true;
+      } else {
+        constructedType =
+            constructor.computeEffectiveTargetType(type);
+        ConstructorElement target = constructor.effectiveTarget;
+        // The constructor must be an implementation to ensure that field
+        // initializers are handled correctly.
+        implementation = target.implementation;
+      }
+    } else {
+      // The constructor must be an implementation to ensure that field
+      // initializers are handled correctly.
+      implementation = constructor.implementation;
+      isInvalid = implementation.isMalformed;
+      if (implementation.isGenerativeConstructor &&
+          constructor.enclosingClass.isAbstract) {
+        isInvalid = true;
+      }
+    }
+    if (isInvalid) {
+      return signalNotCompileTimeConstant(node);
     }
 
     List<AstConstant> concreteArguments;

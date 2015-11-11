@@ -282,7 +282,8 @@ class ResolverTask extends CompilerTask {
       }
 
       // TODO(9631): support noSuchMethod on native classes.
-      if (Elements.isInstanceMethod(element) &&
+      if (element.isFunction &&
+          element.isInstanceMember &&
           element.name == Identifiers.noSuchMethod_ &&
           _isNativeClassOrExtendsNativeClass(enclosingClass)) {
         reporter.reportErrorMessage(
@@ -435,15 +436,16 @@ class ResolverTask extends CompilerTask {
     ConstructorElementX target = constructor;
     InterfaceType targetType;
     List<Element> seen = new List<Element>();
+    bool isMalformed = false;
     // Follow the chain of redirections and check for cycles.
     while (target.isRedirectingFactory || target.isPatched) {
-      if (target.internalEffectiveTarget != null) {
+      if (target.effectiveTargetInternal != null) {
         // We found a constructor that already has been processed.
         targetType = target.effectiveTargetType;
         assert(invariant(target, targetType != null,
             message: 'Redirection target type has not been computed for '
                      '$target'));
-        target = target.internalEffectiveTarget;
+        target = target.effectiveTargetInternal;
         break;
       }
 
@@ -458,10 +460,18 @@ class ResolverTask extends CompilerTask {
         reporter.reportErrorMessage(
             node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
         targetType = target.enclosingClass.thisType;
+        isMalformed = true;
         break;
       }
       seen.add(target);
       target = nextTarget;
+    }
+
+    if (target.isGenerativeConstructor && target.enclosingClass.isAbstract) {
+      isMalformed = true;
+    }
+    if (target.isMalformed) {
+      isMalformed = true;
     }
 
     if (targetType == null) {
@@ -476,24 +486,18 @@ class ResolverTask extends CompilerTask {
     // substitution of the target type with respect to the factory type.
     while (!seen.isEmpty) {
       ConstructorElementX factory = seen.removeLast();
-
-      // [factory] must already be analyzed but the [TreeElements] might not
-      // have been stored in the enqueuer cache yet.
-      // TODO(johnniwinther): Store [TreeElements] in the cache before
-      // resolution of the element.
       TreeElements treeElements = factory.treeElements;
       assert(invariant(node, treeElements != null,
           message: 'No TreeElements cached for $factory.'));
       if (!factory.isPatched) {
-        FunctionExpression functionNode = factory.parseNode(parsing);
+        FunctionExpression functionNode = factory.node;
         RedirectingFactoryBody redirectionNode = functionNode.body;
         DartType factoryType = treeElements.getType(redirectionNode);
         if (!factoryType.isDynamic) {
           targetType = targetType.substByContext(factoryType);
         }
       }
-      factory.effectiveTarget = target;
-      factory.effectiveTargetType = targetType;
+      factory.setEffectiveTarget(target, targetType, isMalformed: isMalformed);
     }
   }
 

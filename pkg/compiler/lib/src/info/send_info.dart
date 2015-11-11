@@ -23,7 +23,6 @@ import '../elements/visitor.dart' show
     ElementVisitor;
 import '../resolution/operators.dart';
 import '../resolution/semantic_visitor.dart';
-import '../resolution/send_resolver.dart';
 import '../resolution/tree_elements.dart';
 import '../constants/expressions.dart';
 import '../parser/partial_elements.dart' show
@@ -84,7 +83,7 @@ _qualifiedName(FunctionElement f) {
 
 /// Visitor that categorizes data about an individual send.
 class _StatsVisitor<T> extends Visitor
-    with SendResolverMixin, SemanticSendResolvedMixin<dynamic, T>
+    with SemanticSendResolvedMixin<dynamic, T>
     implements SemanticSendVisitor<dynamic, T> {
 
   // TODO(sigmund): consider passing in several AnalysisResults at once, so we

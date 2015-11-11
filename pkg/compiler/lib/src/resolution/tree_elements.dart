@@ -29,7 +29,11 @@ abstract class TreeElements {
   Element operator[](Node node);
   Map<Node, DartType> get typesCache;
 
-  SendStructure getSendStructure(Send send);
+  /// Returns the [SendStructure] that describes the semantics of [node].
+  SendStructure getSendStructure(Send node);
+
+  /// Returns the [NewStructure] that describes the semantics of [node].
+  NewStructure getNewStructure(NewExpression node);
 
   // TODO(johnniwinther): Investigate whether [Node] could be a [Send].
   Selector getSelector(Node node);
@@ -114,6 +118,7 @@ class TreeElementMapping extends TreeElements {
   Map<VariableElement, List<Node>> _potentiallyMutatedInClosure;
   Map<Node, Map<VariableElement, List<Node>>> _accessedByClosureIn;
   Maplet<Send, SendStructure> _sendStructureMap;
+  Maplet<NewExpression, NewStructure> _newStructureMap;
   bool containsTryStatement = false;
 
   /// Map from nodes to the targets they define.
@@ -153,16 +158,28 @@ class TreeElementMapping extends TreeElements {
 
   operator [](Node node) => getTreeElement(node);
 
-  SendStructure getSendStructure(Send send) {
+  SendStructure getSendStructure(Send node) {
     if (_sendStructureMap == null) return null;
-    return _sendStructureMap[send];
+    return _sendStructureMap[node];
   }
 
-  void setSendStructure(Send send, SendStructure sendStructure) {
+  void setSendStructure(Send node, SendStructure sendStructure) {
     if (_sendStructureMap == null) {
       _sendStructureMap = new Maplet<Send, SendStructure>();
     }
-    _sendStructureMap[send] = sendStructure;
+    _sendStructureMap[node] = sendStructure;
+  }
+
+  NewStructure getNewStructure(NewExpression node) {
+    if (_newStructureMap == null) return null;
+    return _newStructureMap[node];
+  }
+
+  void setNewStructure(NewExpression node, NewStructure newStructure) {
+    if (_newStructureMap == null) {
+      _newStructureMap = new Maplet<NewExpression, NewStructure>();
+    }
+    _newStructureMap[node] = newStructure;
   }
 
   void setType(Node node, DartType type) {

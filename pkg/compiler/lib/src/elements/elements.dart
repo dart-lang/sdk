@@ -1249,8 +1249,6 @@ abstract class ConstructorElement extends FunctionElement
   /// constructor so its immediate redirection target is `null`.
   ConstructorElement get immediateRedirectionTarget;
 
-  bool get isCyclicRedirection;
-
   /// The prefix of the immediateRedirectionTarget, if it is deferred.
   /// [null] if it is not deferred.
   PrefixElement get redirectionDeferredPrefix;
@@ -1260,6 +1258,25 @@ abstract class ConstructorElement extends FunctionElement
 
   /// Is `true` if this constructor is a redirecting factory constructor.
   bool get isRedirectingFactory;
+
+  /// Is `true` if this constructor is a redirecting factory constructor that is
+  /// part of a redirection cycle.
+  bool get isCyclicRedirection;
+
+  /// Is `true` if the effective target of this constructor is malformed.
+  ///
+  /// A constructor is considered malformed if any of the following applies:
+  ///
+  ///     * the constructor is undefined,
+  ///     * the type of the constructor is undefined,
+  ///     * the constructor is a redirecting factory and either
+  ///       - it is part of a redirection cycle,
+  ///       - the effective target is a generative constructor on an abstract
+  ///         class, or
+  ///       - this constructor is constant but the effective target is not,
+  ///       - the arguments to this constructor are incompatible with the
+  ///         parameters of the effective target.
+  bool get isEffectiveTargetMalformed;
 
   /// Compute the type of the effective target of this constructor for an
   /// instantiation site with type [:newType:].

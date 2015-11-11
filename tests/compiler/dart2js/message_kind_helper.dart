@@ -33,6 +33,7 @@ final Set<MessageKind> kindsWithExtraMessages = new Set<MessageKind>.from([
     MessageKind.CANNOT_IMPLEMENT_MALFORMED,
     MessageKind.CANNOT_MIXIN,
     MessageKind.CANNOT_MIXIN_MALFORMED,
+    MessageKind.CANNOT_INSTANTIATE_ENUM,
     MessageKind.CYCLIC_TYPEDEF_ONE,
     MessageKind.EQUAL_MAP_ENTRY_KEY,
     MessageKind.FINAL_FUNCTION_TYPE_PARAMETER,

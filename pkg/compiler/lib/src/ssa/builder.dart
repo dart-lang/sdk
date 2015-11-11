@@ -973,7 +973,6 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
 class SsaBuilder extends ast.Visitor
     with BaseImplementationOfCompoundsMixin,
          BaseImplementationOfSetIfNullsMixin,
-         SendResolverMixin,
          SemanticSendResolvedMixin,
          NewBulkMixin,
          ErrorBulkMixin

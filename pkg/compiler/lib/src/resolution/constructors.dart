@@ -503,10 +503,11 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     if (type == null) {
       type = new MalformedType(error, null);
     }
-    return new ConstructorResult(resultKind, error, type);
+    return new ConstructorResult.forError(resultKind, error, type);
   }
 
   ConstructorResult resolveConstructor(
+      PrefixElement prefix,
       InterfaceType type,
       Node diagnosticNode,
       String constructorName) {
@@ -528,24 +529,33 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       reporter.reportErrorMessage(
           diagnosticNode, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
       return new ConstructorResult(
-          ConstructorResultKind.NON_CONSTANT, constructor, type);
+          ConstructorResultKind.NON_CONSTANT, prefix, constructor, type);
     } else {
+      if (cls.isEnumClass && resolver.currentClass != cls) {
+        return reportAndCreateErroneousConstructorElement(
+            diagnosticNode,
+            ConstructorResultKind.INVALID_TYPE, type,
+            cls, constructorName,
+            MessageKind.CANNOT_INSTANTIATE_ENUM,
+            {'enumName': cls.name},
+            isError: true);
+      }
       if (constructor.isGenerativeConstructor) {
         if (cls.isAbstract) {
           reporter.reportWarningMessage(
               diagnosticNode, MessageKind.ABSTRACT_CLASS_INSTANTIATION);
           registry.registerFeature(Feature.ABSTRACT_CLASS_INSTANTIATION);
           return new ConstructorResult(
-              ConstructorResultKind.ABSTRACT, constructor, type);
+              ConstructorResultKind.ABSTRACT, prefix, constructor, type);
         } else {
           return new ConstructorResult(
-              ConstructorResultKind.GENERATIVE, constructor, type);
+              ConstructorResultKind.GENERATIVE, prefix, constructor, type);
         }
       } else {
         assert(invariant(diagnosticNode, constructor.isFactoryConstructor,
             message: "Unexpected constructor $constructor."));
         return new ConstructorResult(
-            ConstructorResultKind.FACTORY, constructor, type);
+            ConstructorResultKind.FACTORY, prefix, constructor, type);
       }
     }
   }
@@ -576,7 +586,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     // class.
     if (result.type != null) {
       // The unnamed constructor may not exist, so [e] may become unresolved.
-      result = resolveConstructor(result.type, diagnosticNode, '');
+      result = resolveConstructor(
+          result.prefix, result.type, diagnosticNode, '');
     } else {
       Element element = result.element;
       if (element.isMalformed) {
@@ -600,7 +611,18 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
         node,
         malformedIsError: inConstContext,
         deferredIsMalformed: false);
-    return constructorResultForType(node, type);
+    Send send = node.typeName.asSend();
+    PrefixElement prefix;
+    if (send != null) {
+      // The type name is of the form [: prefix . identifier :].
+      String name = send.receiver.asIdentifier().source;
+      Element element = resolver.reportLookupErrorIfAny(
+          lookupInScope(reporter, send, resolver.scope, name), node, name);
+      if (element != null && element.isPrefix) {
+        prefix = element;
+      }
+    }
+    return constructorResultForType(node, type, prefix: prefix);
   }
 
   ConstructorResult visitSend(Send node) {
@@ -621,7 +643,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
 
     if (receiver.type != null) {
       if (receiver.type.isInterfaceType) {
-        return resolveConstructor(receiver.type, name, name.source);
+        return resolveConstructor(
+            receiver.prefix, receiver.type, name, name.source);
       } else {
         // TODO(johnniwinther): Update the message for the different types.
         return reportAndCreateErroneousConstructorElement(
@@ -633,7 +656,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     } else if (receiver.element.isPrefix) {
       PrefixElement prefix = receiver.element;
       Element member = prefix.lookupLocalMember(name.source);
-      return constructorResultForElement(node, name.source, member);
+      return constructorResultForElement(
+          node, name.source, member, prefix: prefix);
     } else {
       return reporter.internalError(
           node.receiver, 'unexpected receiver $receiver');
@@ -657,7 +681,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
   }
 
   ConstructorResult constructorResultForElement(
-      Node node, String name, Element element) {
+      Node node, String name, Element element,
+      {PrefixElement prefix}) {
     element = Elements.unwrap(element, reporter, node);
     if (element == null) {
       return reportAndCreateErroneousConstructorElement(
@@ -671,9 +696,9 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     } else if (element.isClass) {
       ClassElement cls = element;
       cls.computeType(resolution);
-      return constructorResultForType(node, cls.rawType);
+      return constructorResultForType(node, cls.rawType, prefix: prefix);
     } else if (element.isPrefix) {
-      return new ConstructorResult.forElement(element);
+      return new ConstructorResult.forPrefix(element);
     } else if (element.isTypedef) {
       TypedefElement typdef = element;
       typdef.ensureResolved(resolution);
@@ -699,7 +724,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
           error.name, error);
       registry.registerFeature(Feature.THROW_RUNTIME_ERROR);
     }
-    return new ConstructorResult(
+    return new ConstructorResult.forError(
         ConstructorResultKind.INVALID_TYPE,
         error,
         new MalformedType(error, null));
@@ -707,13 +732,14 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
 
   ConstructorResult constructorResultForType(
       Node node,
-      DartType type) {
+      DartType type,
+      {PrefixElement prefix}) {
     String name = type.name;
     if (type.isMalformed) {
-      return new ConstructorResult(
+      return new ConstructorResult.forError(
           ConstructorResultKind.INVALID_TYPE, type.element, type);
     } else if (type.isInterfaceType) {
-      return new ConstructorResult.forType(type);
+      return new ConstructorResult.forType(prefix, type);
     } else if (type.isTypedef) {
       return reportAndCreateErroneousConstructorElement(
           node,
@@ -733,40 +759,88 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
 
 }
 
+/// The kind of constructor found by the [ConstructorResolver].
 enum ConstructorResultKind {
+  /// A generative or redirecting generative constructor.
   GENERATIVE,
+  /// A factory or redirecting factory constructor.
   FACTORY,
+  /// A generative or redirecting generative constructor on an abstract class.
   ABSTRACT,
+  /// No constructor was found because the type was invalid, for instance
+  /// unresolved, an enum class, a type variable, a typedef or a non-type.
   INVALID_TYPE,
+  /// No constructor of the sought name was found on the class.
   UNRESOLVED_CONSTRUCTOR,
+  /// A non-constant constructor was found for a const constructor invocation.
   NON_CONSTANT,
 }
 
+/// The (partial) result of the resolution of a new expression used in
+/// [ConstructorResolver].
 class ConstructorResult {
+  /// The prefix used to access the constructor. For instance `prefix` in `new
+  /// prefix.Class.constructorName()`.
+  final PrefixElement prefix;
+
+  /// The kind of the found constructor.
   final ConstructorResultKind kind;
+
+  /// The currently found element. Since [ConstructorResult] is used for partial
+  /// results, this might be a [PrefixElement], a [ClassElement], a
+  /// [ConstructorElement] or in the negative cases an [ErroneousElement].
   final Element element;
+
+  /// The type of the new expression. For instance `Foo<String>` in
+  /// `new prefix.Foo<String>.constructorName()`.
   final DartType type;
 
-  ConstructorResult(this.kind, this.element, this.type);
+  /// Creates a fully resolved constructor access where [element] is resolved
+  /// to a constructor and [type] to an interface type.
+  ConstructorResult(this.kind,
+                    this.prefix,
+                    ConstructorElement this.element,
+                    InterfaceType this.type);
 
-  ConstructorResult.forElement(this.element)
-      : kind = null,
+  /// Creates a fully resolved constructor access where [element] is an
+  /// [ErroneousElement].
+  // TODO(johnniwinther): Do we still need the prefix for cases like
+  // `new deferred.Class.unresolvedConstructor()` ?
+  ConstructorResult.forError(
+      this.kind, ErroneousElement this.element, this.type)
+      : prefix = null;
+
+  /// Creates a constructor access that is partially resolved to a prefix. For
+  /// instance `prefix` of `new prefix.Class()`.
+  ConstructorResult.forPrefix(this.element)
+      : prefix = null,
+        kind = null,
         type = null;
 
-  ConstructorResult.forType(this.type)
+  /// Creates a constructor access that is partially resolved to a type. For
+  /// instance `Foo<String>` of `new Foo<String>.constructorName()`.
+  ConstructorResult.forType(this.prefix, this.type)
       : kind = null,
         element = null;
+
+  bool get isDeferred => prefix != null && prefix.isDeferred;
 
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('ConstructorResult(');
     if (kind != null) {
       sb.write('kind=$kind,');
+      if (prefix != null) {
+        sb.write('prefix=$prefix,');
+      }
       sb.write('element=$element,');
       sb.write('type=$type');
     } else if (element != null) {
       sb.write('element=$element');
     } else {
+      if (prefix != null) {
+        sb.write('prefix=$prefix,');
+      }
       sb.write('type=$type');
     }
     sb.write(')');
