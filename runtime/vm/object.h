@@ -2197,6 +2197,8 @@ class Function : public Object {
   RawContextScope* context_scope() const;
   void set_context_scope(const ContextScope& value) const;
 
+  RawField* LookupImplicitGetterSetterField() const;
+
   // Enclosing function of this local function.
   RawFunction* parent_function() const;
 

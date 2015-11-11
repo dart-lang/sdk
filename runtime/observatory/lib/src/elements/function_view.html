@@ -46,6 +46,14 @@
             <any-service-ref ref="{{ function.dartOwner }}"></any-service-ref>
           </div>
         </div>
+        <template if="{{ function.field != null }}">
+          <div class="memberItem">
+            <div class="memberName">field</div>
+            <div class="memberValue">
+              <any-service-ref ref="{{ function.field }}"></any-service-ref>
+            </div>
+          </div>
+        </template>
         <div class="memberItem">
           <div class="memberName">script</div>
           <div class="memberValue">

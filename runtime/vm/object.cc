@@ -5516,6 +5516,27 @@ void Function::set_saved_args_desc(const Array& value) const {
 }
 
 
+RawField* Function::LookupImplicitGetterSetterField() const {
+  ASSERT((kind() == RawFunction::kImplicitGetter) ||
+         (kind() == RawFunction::kImplicitSetter) ||
+         (kind() == RawFunction::kImplicitStaticFinalGetter));
+  const Class& owner = Class::Handle(Owner());
+  ASSERT(!owner.IsNull());
+  const Array& fields = Array::Handle(owner.fields());
+  ASSERT(!fields.IsNull());
+  Field& field = Field::Handle();
+  for (intptr_t i = 0; i < fields.Length(); i++) {
+    field ^= fields.At(i);
+    ASSERT(!field.IsNull());
+    if (field.token_pos() == token_pos()) {
+      return field.raw();
+    }
+  }
+  return Field::null();
+}
+
+
+
 RawFunction* Function::parent_function() const {
   if (IsClosureFunction()) {
     const Object& obj = Object::Handle(raw_ptr()->data_);
@@ -7272,6 +7293,14 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_optimizedCallSiteCount", optimized_call_site_count());
   jsobj.AddProperty("_deoptimizations",
                     static_cast<intptr_t>(deoptimization_counter()));
+  if ((kind() == RawFunction::kImplicitGetter) ||
+      (kind() == RawFunction::kImplicitSetter) ||
+      (kind() == RawFunction::kImplicitStaticFinalGetter)) {
+    const Field& field = Field::Handle(LookupImplicitGetterSetterField());
+    if (!field.IsNull()) {
+      jsobj.AddProperty("_field", field);
+    }
+  }
 
   const Script& script = Script::Handle(this->script());
   if (!script.IsNull()) {

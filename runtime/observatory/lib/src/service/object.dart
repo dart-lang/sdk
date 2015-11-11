@@ -2575,6 +2575,7 @@ class ServiceFunction extends HeapObject with Coverage {
   @observable bool isDart;
   @observable ProfileFunction profile;
   @observable Instance icDataArray;
+  @observable Field field;
 
   bool get canCache => true;
   bool get immutable => false;
@@ -2622,6 +2623,7 @@ class ServiceFunction extends HeapObject with Coverage {
     deoptimizations = map['_deoptimizations'];
     usageCounter = map['_usageCounter'];
     icDataArray = map['_icDataArray'];
+    field = map['_field'];
   }
 }
 
