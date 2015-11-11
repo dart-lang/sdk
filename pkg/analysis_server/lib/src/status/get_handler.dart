@@ -377,7 +377,8 @@ class GetHandler {
     MapIterator<AnalysisTarget, CacheEntry> iterator =
         context.analysisCache.iterator();
     while (iterator.moveNext()) {
-      if (iterator.value.exception != null) {
+      CacheEntry entry = iterator.value;
+      if (entry == null || entry.exception != null) {
         return true;
       }
     }
