@@ -604,25 +604,33 @@ class LocalsHandler<T> {
   void mergeAfterBreaks(List<LocalsHandler<T>> handlers,
                         {bool keepOwnLocals: true}) {
     Node level = locals.block;
+    // Use a separate locals handler to perform the merge in, so that Phi
+    // creation does not invalidate previous type knowledge while we might
+    // still look it up.
+    LocalsHandler merged = new LocalsHandler.from(this, level);
     Set<Local> seenLocals = new Setlet<Local>();
-    // If we want to keep the locals, we first merge [this] into itself to
-    // create the required Phi nodes.
-    if (keepOwnLocals && !seenReturnOrThrow) {
-      mergeHandler(this, seenLocals);
-    }
     bool allBranchesAbort = true;
     // Merge all other handlers.
     for (LocalsHandler handler in handlers) {
       allBranchesAbort = allBranchesAbort && handler.seenReturnOrThrow;
-      mergeHandler(handler, seenLocals);
+      merged.mergeHandler(handler, seenLocals);
     }
-    // Clean up Phi nodes with single input.
-    locals.forEachLocal((Local variable, T type) {
-      if (!seenLocals.contains(variable)) return;
-      T newType = types.simplifyPhi(level, variable, type);
-      if (newType != type) {
-        locals[variable] = newType;
+    // If we want to keep own locals, we merge [seenLocals] from [this] into
+    // [merged] to update the Phi nodes with original values.
+    if (keepOwnLocals && !seenReturnOrThrow) {
+      for (Local variable in seenLocals) {
+        T originalType = locals[variable];
+        if (originalType != null) {
+          merged.locals[variable] = types.addPhiInput(variable,
+                                                      merged.locals[variable],
+                                                      originalType);
+        }
       }
+    }
+    // Clean up Phi nodes with single input and store back result into
+    // actual locals handler.
+    merged.locals.forEachOwnLocal((Local variable, T type) {
+      locals[variable] = types.simplifyPhi(level, variable, type);
     });
     seenReturnOrThrow = allBranchesAbort &&
                         (!keepOwnLocals || seenReturnOrThrow);
