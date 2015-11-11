@@ -312,6 +312,11 @@ abstract class ContextManagerCallbacks {
  */
 class ContextManagerImpl implements ContextManager {
   /**
+   * The name of the `doc` directory.
+   */
+  static const String DOC_DIR_NAME = 'doc';
+
+  /**
    * The name of the `lib` directory.
    */
   static const String LIB_DIR_NAME = 'lib';
@@ -687,7 +692,9 @@ class ContextManagerImpl implements ContextManager {
    * Recursively adds all Dart and HTML files to the [changeSet].
    */
   void _addSourceFiles(ChangeSet changeSet, Folder folder, ContextInfo info) {
-    if (info.excludesResource(folder) || folder.shortName.startsWith('.')) {
+    if (info.excludesResource(folder) ||
+        folder.shortName.startsWith('.') ||
+        _isInTopLevelDocDir(info.folder.path, folder.path)) {
       return;
     }
     List<Resource> children = null;
@@ -1045,7 +1052,10 @@ class ContextManagerImpl implements ContextManager {
       _recomputeFolderDisposition(info);
     }
     // maybe excluded globally
-    if (_isExcluded(path) || _isContainedInDotFolder(info.folder.path, path)) {
+    if (_isExcluded(path) ||
+        _isContainedInDotFolder(info.folder.path, path) ||
+        _isInPackagesDir(info.folder.path, path) ||
+        _isInTopLevelDocDir(info.folder.path, path)) {
       return;
     }
     // maybe excluded from the context, so other context will handle it
@@ -1058,10 +1068,6 @@ class ContextManagerImpl implements ContextManager {
     // handle the change
     switch (event.type) {
       case ChangeType.ADD:
-        if (_isInPackagesDir(path, info.folder)) {
-          return;
-        }
-
         Resource resource = resourceProvider.getResource(path);
 
         String directoryPath = pathContext.dirname(path);
@@ -1197,13 +1203,23 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Determine if the path from [folder] to [path] contains a 'packages'
-   * directory.
+   * Determine whether the given [path], when interpreted relative to the
+   * context root [root], contains a 'packages' folder.
    */
-  bool _isInPackagesDir(String path, Folder folder) {
-    String relativePath = pathContext.relative(path, from: folder.path);
+  bool _isInPackagesDir(String root, String path) {
+    String relativePath = pathContext.relative(path, from: root);
     List<String> pathParts = pathContext.split(relativePath);
     return pathParts.contains(PACKAGES_NAME);
+  }
+
+  /**
+   * Determine whether the given [path] is in the direct 'doc' folder of the
+   * context root [root].
+   */
+  bool _isInTopLevelDocDir(String root, String path) {
+    String relativePath = pathContext.relative(path, from: root);
+    return relativePath == DOC_DIR_NAME ||
+        relativePath.startsWith(DOC_DIR_NAME + pathContext.separator);
   }
 
   bool _isPackagespec(String path) =>
