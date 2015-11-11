@@ -425,8 +425,9 @@ LibTest/async/DeferredLibrary/*: Skip # Issue 17458
 *: Skip
 
 [ $compiler == dart2js && $browser ]
-Language/Classes/deсlarations_t01: Skip # Times out. Please triage this failure.Language/Classes/deсlarations_t34: Skip # Times out. Please triage this failure.
-LayoutTests/fast/mediastream/getusermedia_t01: RuntimeError # Please triage this failure.
+Language/Classes/deсlarations_t01: Skip # Times out. Please triage this failure.
+Language/Classes/deсlarations_t34: Skip # Times out. Please triage this failure.
+LayoutTests/fast/mediastream/getusermedia_t01: Pass, RuntimeError, Timeout # Please triage this failure.
 LayoutTests/fast/css-generated-content/bug91547_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/filesystem/file-after-reload-crash_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/dom/HTMLButtonElement/change-type_t01: Skip # Test reloads itself. Issue 18558.
