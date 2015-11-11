@@ -985,7 +985,7 @@ abstract class DeferredNumber extends DeferredToken implements Literal {
 
   int get value;
 
-  int get precedenceLevel => PRIMARY;
+  int get precedenceLevel => value.isNegative ? UNARY : PRIMARY;
 }
 
 /// Interace for a deferred string value. An implementation has to provide
@@ -1074,6 +1074,8 @@ class LiteralNumber extends Literal {
 
   LiteralNumber(this.value);
 
+  int get precedenceLevel => value.startsWith('-') ? UNARY : PRIMARY;
+  
   accept(NodeVisitor visitor) => visitor.visitLiteralNumber(this);
   LiteralNumber _clone() => new LiteralNumber(value);
 }
