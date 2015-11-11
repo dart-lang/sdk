@@ -6,6 +6,13 @@
     random generator which reads from the entropy source provided by the
     embedder for every generated random value.
 
+* `dart:core`
+  * Added `Uri.data` getter for `data:` URIs, and `UriData` class for the
+    return type.
+
+* `dart:convert`
+  * `Base64Decoder.convert` now takes optional `start` and `end` parameters.
+
 ## 1.13.0
 
 ### Core library changes

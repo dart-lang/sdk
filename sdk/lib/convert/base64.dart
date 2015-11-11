@@ -307,12 +307,12 @@ class _Utf8Base64EncoderSink extends _Base64EncoderSink {
 class Base64Decoder extends Converter<String, List<int>> {
   const Base64Decoder();
 
-  List<int> convert(String input) {
-    if (input.isEmpty) return new Uint8List(0);
-    int length = input.length;
+  List<int> convert(String input, [int start = 0, int end]) {
+    end = RangeError.checkValidRange(start, end, input.length);
+    if (start == end) return new Uint8List(0);
     var decoder = new _Base64Decoder();
-    Uint8List buffer = decoder.decode(input, 0, input.length);
-    decoder.close(input, input.length);
+    Uint8List buffer = decoder.decode(input, start, end);
+    decoder.close(input, end);
     return buffer;
   }
 
