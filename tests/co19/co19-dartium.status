@@ -13,6 +13,7 @@ LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow_t01: Pass, Runtim
 
 [ $compiler == none && $runtime == dartium && $system == windows ]
 LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeError # Issue 21605
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: RuntimeError # Please triage this failure.
 
 [ $compiler == none && $runtime == dartium ]
 LayoutTests/fast/dom/custom/document-register-basic_t01: RuntimeError # Bad test can't register HtmlElement.

@@ -425,6 +425,8 @@ LibTest/async/DeferredLibrary/*: Skip # Issue 17458
 *: Skip
 
 [ $compiler == dart2js && $browser ]
+Language/Classes/deсlarations_t01: Skip # Times out. Please triage this failure.Language/Classes/deсlarations_t34: Skip # Times out. Please triage this failure.
+LayoutTests/fast/mediastream/getusermedia_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/css-generated-content/bug91547_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/filesystem/file-after-reload-crash_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/dom/HTMLButtonElement/change-type_t01: Skip # Test reloads itself. Issue 18558.
@@ -444,7 +446,6 @@ LayoutTests/fast/forms/submit-form-with-dirname-attribute-with-ancestor-dir-attr
 LayoutTests/fast/forms/submit-form-with-dirname-attribute-with-nonhtml-ancestor_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/submit-nil-value-field-assert_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/textarea-submit-crash_t01: Skip # Test reloads itself. Issue 18558.
-LayoutTests/fast/innerHTML/innerHTML-svg-write_t01: Fail # Test uses foreignObject tag, which sanitizer removes. co19 issue #746
 LibTest/html/IFrameElement/appendHtml_A01_t01: Pass, RuntimeError # Issue 23462
 LibTest/html/IFrameElement/appendHtml_A01_t02: Pass, RuntimeError # Issue 23462
 #
@@ -475,16 +476,8 @@ LayoutTests/fast/multicol/widows_t01: Pass, RuntimeError
 LayoutTests/fast/multicol/vertical-lr/break-properties_t01: RuntimeError
 LayoutTests/fast/multicol/orphans-relayout_t01: Pass, RuntimeError
 LayoutTests/fast/multicol/zeroColumnCount_t01: RuntimeError
-LayoutTests/fast/media/media-query-serialization_t01: RuntimeError
-LayoutTests/fast/media/mq-append-delete_t01: RuntimeError
-LayoutTests/fast/media/mq-color-index_t02: RuntimeError
-LayoutTests/fast/media/mq-js-media-except_t02: RuntimeError
-LayoutTests/fast/media/mq-js-media-except_t01: RuntimeError
-LayoutTests/fast/media/mq-js-media-except_t03: RuntimeError
-LayoutTests/fast/media/mq-js-update-media_t01: RuntimeError
 LayoutTests/fast/media/mq-parsing_t01: Pass, RuntimeError # False passes on Firefox, but trying to keep these grouped with the issue.
 LayoutTests/fast/mediastream/RTCPeerConnection-AddRemoveStream_t01: Skip # Passes on Safari, Issue 23475
-LayoutTests/fast/loader/local-css-allowed-in-strict-mode_t01: RuntimeError
 LayoutTests/fast/overflow/replaced-child-100percent-height-inside-fixed-container-with-overflow-auto_t01: Pass, RuntimeError # False pass on Safari
 LayoutTests/fast/lists/marker-preferred-margins_t01: RuntimeError
 LayoutTests/fast/lists/item-not-in-list-line-wrapping_t01: RuntimeError
@@ -511,16 +504,12 @@ LayoutTests/fast/text/line-breaks-after-closing-punctuations_t01: RuntimeError
 LayoutTests/fast/text/line-breaks-after-hyphen-before-number_t01: RuntimeError
 LayoutTests/fast/text/line-breaks-after-ideographic-comma-or-full-stop_t01: RuntimeError
 LayoutTests/fast/text/regional-indicator-symobls_t01: Pass, Fail
-LayoutTests/fast/text-autosizing/inline-width_t01: RuntimeError
-LayoutTests/fast/text-autosizing/text-removal_t01: RuntimeError
-LayoutTests/fast/text-autosizing/table-inline-width_t01: RuntimeError
 LayoutTests/fast/text/container-align-with-inlines_t01: RuntimeError
 LayoutTests/fast/text/font-fallback-synthetic-italics_t01: RuntimeError
 LayoutTests/fast/text/font-ligatures-linebreak_t01: Skip
 LayoutTests/fast/text/font-ligatures-linebreak-word_t01: Skip
 LayoutTests/fast/text/ipa-tone-letters_t01: Pass, RuntimeError
 LayoutTests/fast/text/pre-wrap-trailing-tab_t01: RuntimeError
-LayoutTests/fast/text-autosizing/display-type-change-lineHeight_t01: RuntimeError
 LayoutTests/fast/url/trivial_t01: RuntimeError
 LayoutTests/fast/url/trivial-segments_t01: RuntimeError
 LayoutTests/fast/url/scheme_t01: RuntimeError
@@ -549,39 +538,18 @@ LayoutTests/fast/table/anonymous-table-section-removed_t01: Skip
 LayoutTests/fast/table/hittest-tablecell-bottom-edge_t01: Skip
 LayoutTests/fast/table/hittest-tablecell-with-borders-bottom-edge_t01: Skip
 LayoutTests/fast/table/table-width-exceeding-max-width_t01: Pass, RuntimeError
-LayoutTests/fast/table/table-size-integer-overflow_t01: RuntimeError
 LayoutTests/fast/table/table-sections-border-spacing_t01: RuntimeError
-LayoutTests/fast/table/switch-table-layout_t01: RuntimeError
 LayoutTests/fast/table/switch-table-layout-multiple-section_t01: RuntimeError
-LayoutTests/fast/table/switch-table-layout-dynamic-cells_t01: RuntimeError
 LayoutTests/fast/table/resize-table-row_t01: RuntimeError
-LayoutTests/fast/table/resize-table-cell_t01: RuntimeError
-LayoutTests/fast/table/resize-table-binding-cell_t01: RuntimeError
 LayoutTests/fast/table/min-max-width-preferred-size_t01: Pass, RuntimeError
 LayoutTests/fast/table/margins-flipped-text-direction_t01: Pass, RuntimeError
 LayoutTests/fast/table/html-table-width-max-width-constrained_t01: Pass, RuntimeError
 LayoutTests/fast/table/fixed-table-layout-width-change_t01: Pass, RuntimeError # False passes on Firefox
-LayoutTests/fast/table/fixed-table-with-percent-width-inside-extra-large-div_t01: RuntimeError
 LayoutTests/fast/table/absolute-table-percent-lengths_t01: RuntimeError
-LayoutTests/fast/svg/whitespace-length_t01: RuntimeError
-LayoutTests/fast/svg/whitespace-number_t01: RuntimeError
-LayoutTests/fast/svg/whitespace-length-invalid_t01: RuntimeError
-LayoutTests/fast/svg/whitespace-angle_t01: RuntimeError
-LayoutTests/fast/svg/tabindex-focus_t01: RuntimeError
-LayoutTests/fast/svg/whitespace-integer_t01: RuntimeError
-LayoutTests/fast/sub-pixel/shadows-computed-style_t01: RuntimeError
-LayoutTests/fast/sub-pixel/tiled-canvas-elements_t01: RuntimeError
-LayoutTests/fast/sub-pixel/float-list-inside_t01: RuntimeError
-LayoutTests/fast/sub-pixel/float-with-margin-in-container_t01: RuntimeError
-LayoutTests/fast/sub-pixel/float-percentage-widths_t01: RuntimeError
-LayoutTests/fast/sub-pixel/computedstylemargin_t01: RuntimeError
-LayoutTests/fast/sub-pixel/block-preferred-widths-with-sub-pixel-floats_t01: RuntimeError
-LayoutTests/fast/sub-pixel/auto-table-layout-should-avoid-text-wrapping_t01: RuntimeError
 LayoutTests/fast/sub-pixel/float-containing-block-with-margin_t01: RuntimeError
 LayoutTests/fast/sub-pixel/replaced-element-baseline_t01: Pass, RuntimeError # Fails on Safari, false pass on others
 LayoutTests/fast/selectors/style-sharing-last-child_t01: RuntimeError
 LayoutTests/fast/selectors/specificity-overflow_t01: RuntimeError
-LayoutTests/fast/scrolling/scroll-element-into-view_t01: RuntimeError
 LayoutTests/fast/ruby/parse-rp_t01: Pass, RuntimeError
 LayoutTests/fast/replaced/table-replaced-element_t01: RuntimeError
 LayoutTests/fast/replaced/table-percent-height-text-controls_t01: RuntimeError
@@ -594,7 +562,6 @@ LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-anc
 LayoutTests/fast/parser/stray-param_t01: RuntimeError
 LayoutTests/fast/replaced/available-height-for-content_t01: RuntimeError
 LayoutTests/fast/parser/parse-wbr_t01: Pass, RuntimeError
-LayoutTests/fast/overflow/height-during-simplified-layout_t01: RuntimeError
 LayoutTests/fast/overflow/child-100percent-height-inside-fixed-container-with-overflow-auto_t01: RuntimeError
 WebPlatformTest/html-imports/link-import-null_t01: RuntimeError
 WebPlatformTest/html/syntax/parsing/Document.getElementsByTagName-foreign_t01: RuntimeError
