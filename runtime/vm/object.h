@@ -1183,7 +1183,6 @@ class Class : public Object {
   RawFunction* LookupFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupGetterFunction(const String& name) const;
   RawFunction* LookupSetterFunction(const String& name) const;
-  RawFunction* LookupFunctionAtToken(intptr_t token_pos) const;
   RawField* LookupInstanceField(const String& name) const;
   RawField* LookupStaticField(const String& name) const;
   RawField* LookupField(const String& name) const;
@@ -3455,9 +3454,6 @@ class Library : public Object {
   RawNamespace* ImportAt(intptr_t index) const;
   RawLibrary* ImportLibraryAt(intptr_t index) const;
   bool ImportsCorelib() const;
-
-  RawFunction* LookupFunctionInScript(const Script& script,
-                                      intptr_t token_pos) const;
 
   // Resolving native methods for script loaded in the library.
   Dart_NativeEntryResolver native_entry_resolver() const {

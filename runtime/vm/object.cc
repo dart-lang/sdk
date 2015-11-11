@@ -4295,33 +4295,6 @@ RawFunction* Class::LookupAccessorFunction(const char* prefix,
 }
 
 
-RawFunction* Class::LookupFunctionAtToken(intptr_t token_pos) const {
-  // TODO(hausner): we can shortcut the negative case if we knew the
-  // beginning and end token position of the class.
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  if (EnsureIsFinalized(thread) != Error::null()) {
-    return Function::null();
-  }
-  Function& func = Function::Handle(zone);
-  func = LookupClosureFunction(token_pos);
-  if (!func.IsNull()) {
-    return func.raw();
-  }
-  Array& funcs = Array::Handle(zone, functions());
-  intptr_t len = funcs.Length();
-  for (intptr_t i = 0; i < len; i++) {
-    func ^= funcs.At(i);
-    if ((func.token_pos() <= token_pos) &&
-        (token_pos <= func.end_token_pos())) {
-      return func.raw();
-    }
-  }
-  // No function found.
-  return Function::null();
-}
-
-
 RawField* Class::LookupInstanceField(const String& name) const {
   return LookupField(name, kInstance);
 }
@@ -9826,24 +9799,6 @@ RawScript* Library::LookupScript(const String& url) const {
     }
   }
   return Script::null();
-}
-
-
-RawFunction* Library::LookupFunctionInScript(const Script& script,
-                                             intptr_t token_pos) const {
-  Class& cls = Class::Handle();
-  Function& func = Function::Handle();
-  ClassDictionaryIterator it(*this, ClassDictionaryIterator::kIteratePrivate);
-  while (it.HasNext()) {
-    cls = it.GetNextClass();
-    if (script.raw() == cls.script()) {
-      func = cls.LookupFunctionAtToken(token_pos);
-      if (!func.IsNull()) {
-        return func.raw();
-      }
-    }
-  }
-  return Function::null();
 }
 
 
