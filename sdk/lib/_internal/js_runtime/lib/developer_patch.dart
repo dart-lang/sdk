@@ -62,6 +62,14 @@ void _reportCompleteEvent(int start,
 }
 
 @patch
+void _reportInstantEvent(int start,
+                         String category,
+                         String name,
+                         String argumentsAsJson) {
+  // TODO.
+}
+
+@patch
 int _getNextAsyncId() {
   return 0;
 }

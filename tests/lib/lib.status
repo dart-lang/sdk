@@ -320,6 +320,7 @@ mirrors/mirrors_reader_test: Pass, Slow
 
 [ $compiler == dart2js ]
 developer/metrics_num_test: Skip # Because of a int / double type test.
+developer/timeline_test: Skip # Not supported
 
 [ $arch == simarm64 ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.

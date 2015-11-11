@@ -24,3 +24,9 @@ patch void _reportCompleteEvent(
     String category,
     String name,
     String argumentsAsJson) native "Timeline_reportCompleteEvent";
+
+patch void _reportInstantEvent(
+    int start,
+    String category,
+    String name,
+    String argumentsAsJson) native "Timeline_reportInstantEvent";
