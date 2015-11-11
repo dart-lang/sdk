@@ -745,74 +745,6 @@ class Uri {
   }
 
   /**
-   * Creates a `data:` URI containing the [content] string.
-   *
-   * Converts the content to a bytes using [encoding] or the charset specified
-   * in [parameters] (defaulting to US-ASCII if not specified or unrecognized),
-   * then encodes the bytes into the resulting data URI.
-   *
-   * Defaults to encoding using percent-encoding (any non-ASCII or non-URI-valid
-   * bytes is replaced by a percent encoding). If [base64] is true, the bytes
-   * are instead encoded using [BASE64].
-   *
-   * If [encoding] is not provided and [parameters] has a `charset` entry,
-   * that name is looked up using [Encoding.getByName],
-   * and if the lookup returns an encoding, that encoding is used to convert
-   * [content] to bytes.
-   * If providing both an [encoding] and a charset [parameter], they should
-   * agree, otherwise decoding won't be able to use the charset parameter
-   * to determine the encoding.
-   *
-   * If [mimeType] and/or [parameters] are supplied, they are added to the
-   * created URI. If any of these contain characters that are not allowed
-   * in the data URI, the character is percent-escaped. If the character is
-   * non-ASCII, it is first UTF-8 encoded and then the bytes are percent
-   * encoded. An omitted [mimeType] in a data URI means `text/plain`, just
-   * as an omitted `charset` parameter defaults to meaning `US-ASCII`.
-   *
-   * To read the content back, use [UriData.contentAsString].
-   */
-  factory Uri.dataFromString(String content,
-                             {String mimeType,
-                              Encoding encoding,
-                              Map<String, String> parameters,
-                              bool base64: false}) {
-    UriData data =  new UriData.fromString(content,
-                                           mimeType: mimeType,
-                                           encoding: encoding,
-                                           parameters: parameters,
-                                           base64: base64);
-    return data.uri;
-  }
-
-  /**
-   * Creates a `data:` URI containing an encoding of [bytes].
-   *
-   * Defaults to Base64 encoding the bytes, but if [percentEncoded]
-   * is `true`, the bytes will instead be percent encoded (any non-ASCII
-   * or non-valid-ASCII-character byte is replaced by a percent encoding).
-   *
-   * To read the bytes back, use [UriData.contentAsBytes].
-   *
-   * It defaults to having the mime-type `application/octet-stream`.
-   * The [mimeType] and [parameters] are added to the created URI.
-   * If any of these contain characters that are not allowed
-   * in the data URI, the character is percent-escaped. If the character is
-   * non-ASCII, it is first UTF-8 encoded and then the bytes are percent
-   * encoded.
-   */
-  factory Uri.dataFromBytes(List<int> bytes,
-                            {mimeType: "application/octet-stream",
-                             Map<String, String> parameters,
-                             percentEncoded: false}) {
-    UriData data = new UriData.fromBytes(bytes,
-                                         mimeType: mimeType,
-                                         parameters: parameters,
-                                         percentEncoded: percentEncoded);
-    return data.uri;
-  }
-
-  /**
    * Returns the natural base URI for the current platform.
    *
    * When running in a browser this is the current URL (from
@@ -1366,6 +1298,19 @@ class Uri {
 
   static int _stringOrNullLength(String s) => (s == null) ? 0 : s.length;
 
+  static bool _isHexDigit(int char) {
+    if (_NINE >= char) return _ZERO <= char;
+    char |= 0x20;
+    return _LOWER_CASE_A <= char && _LOWER_CASE_F >= char;
+  }
+
+  static int _hexValue(int char) {
+    assert(_isHexDigit(char));
+    if (_NINE >= char) return char - _ZERO;
+    char |= 0x20;
+    return char - (_LOWER_CASE_A - 10);
+  }
+
   /**
    * Performs RFC 3986 Percent-Encoding Normalization.
    *
@@ -1386,12 +1331,10 @@ class Uri {
     }
     int firstDigit = source.codeUnitAt(index + 1);
     int secondDigit = source.codeUnitAt(index + 2);
-    int firstDigitValue = _parseHexDigit(firstDigit);
-    int secondDigitValue = _parseHexDigit(secondDigit);
-    if (firstDigitValue < 0 || secondDigitValue < 0) {
+    if (!_isHexDigit(firstDigit) || !_isHexDigit(secondDigit)) {
       return "%";  // Marks the escape as invalid.
     }
-    int value = firstDigitValue * 16 + secondDigitValue;
+    int value = _hexValue(firstDigit) * 16 + _hexValue(secondDigit);
     if (_isUnreservedChar(value)) {
       if (lowerCase && _UPPER_CASE_A <= value && _UPPER_CASE_Z >= value) {
         value |= 0x20;
@@ -1407,27 +1350,21 @@ class Uri {
     return null;
   }
 
-  // Converts a UTF-16 code-unit to its value as a hex digit.
-  // Returns -1 for non-hex digits.
-  static int _parseHexDigit(int char) {
-    int digit = char ^ Uri._ZERO;
-    if (digit <= 9) return digit;
-    int lowerCase = char | 0x20;
-    if (Uri._LOWER_CASE_A <= lowerCase && lowerCase <= _LOWER_CASE_F) {
-      return lowerCase - (_LOWER_CASE_A - 10);
-    }
-    return -1;
+  static bool _isUnreservedChar(int ch) {
+    return ch < 127 &&
+           ((_unreservedTable[ch >> 4] & (1 << (ch & 0x0f))) != 0);
   }
 
-  static String _escapeChar(int char) {
+  static String _escapeChar(char) {
     assert(char <= 0x10ffff);  // It's a valid unicode code point.
+    const hexDigits = "0123456789ABCDEF";
     List codeUnits;
     if (char < 0x80) {
       // ASCII, a single percent encoded sequence.
       codeUnits = new List(3);
       codeUnits[0] = _PERCENT;
-      codeUnits[1] = _hexDigits.codeUnitAt(char >> 4);
-      codeUnits[2] = _hexDigits.codeUnitAt(char & 0xf);
+      codeUnits[1] = hexDigits.codeUnitAt(char >> 4);
+      codeUnits[2] = hexDigits.codeUnitAt(char & 0xf);
     } else {
       // Do UTF-8 encoding of character, then percent encode bytes.
       int flag = 0xc0;  // The high-bit markers on the first byte of UTF-8.
@@ -1445,8 +1382,8 @@ class Uri {
       while (--encodedBytes >= 0) {
         int byte = ((char >> (6 * encodedBytes)) & 0x3f) | flag;
         codeUnits[index] = _PERCENT;
-        codeUnits[index + 1] = _hexDigits.codeUnitAt(byte >> 4);
-        codeUnits[index + 2] = _hexDigits.codeUnitAt(byte & 0xf);
+        codeUnits[index + 1] = hexDigits.codeUnitAt(byte >> 4);
+        codeUnits[index + 2] = hexDigits.codeUnitAt(byte & 0xf);
         index += 3;
         flag = 0x80;  // Following bytes have only high bit set.
       }
@@ -1949,16 +1886,6 @@ class Uri {
     }
   }
 
-  /**
-   * Access the structure of a `data:` URI.
-   *
-   * Returns a [UriData] object for `data:` URIs and `null` for all other
-   * URIs.
-   * The [UriData] object can be used to access the media type and data
-   * of a `data:` URI.
-   */
-  UriData get data => (scheme == "data") ? new UriData.fromUri(this) : null;
-
   String toString() {
     StringBuffer sb = new StringBuffer();
     _addIfNonEmpty(sb, scheme, scheme, ':');
@@ -1977,16 +1904,16 @@ class Uri {
   bool operator==(other) {
     if (other is! Uri) return false;
     Uri uri = other;
-    return scheme       == uri.scheme       &&
-           hasAuthority == uri.hasAuthority &&
-           userInfo     == uri.userInfo     &&
-           host         == uri.host         &&
-           port         == uri.port         &&
-           path         == uri.path         &&
-           hasQuery     == uri.hasQuery     &&
-           query        == uri.query        &&
-           hasFragment  == uri.hasFragment  &&
-           fragment     == uri.fragment;
+    return scheme == uri.scheme &&
+        hasAuthority == uri.hasAuthority &&
+        userInfo == uri.userInfo &&
+        host == uri.host &&
+        port == uri.port &&
+        path == uri.path &&
+        hasQuery == uri.hasQuery &&
+        query == uri.query &&
+        hasFragment == uri.hasFragment &&
+        fragment == uri.fragment;
   }
 
   int get hashCode {
@@ -2082,8 +2009,7 @@ class Uri {
    * decoded component.
    */
   static String decodeComponent(String encodedComponent) {
-    return _uriDecode(encodedComponent, 0, encodedComponent.length,
-                      UTF8, false);
+    return _uriDecode(encodedComponent);
   }
 
   /**
@@ -2097,8 +2023,7 @@ class Uri {
   static String decodeQueryComponent(
       String encodedComponent,
       {Encoding encoding: UTF8}) {
-    return _uriDecode(encodedComponent, 0, encodedComponent.length,
-                      encoding, true);
+    return _uriDecode(encodedComponent, plusToSpace: true, encoding: encoding);
   }
 
   /**
@@ -2123,7 +2048,7 @@ class Uri {
    * [Uri.parse] before decoding the separate components.
    */
   static String decodeFull(String uri) {
-    return _uriDecode(uri, 0, uri.length, UTF8, false);
+    return _uriDecode(uri);
   }
 
   /**
@@ -2327,8 +2252,6 @@ class Uri {
   static const int _LOWER_CASE_Z = 0x7A;
   static const int _BAR = 0x7C;
 
-  static const String _hexDigits = "0123456789ABCDEF";
-
   external static String _uriEncode(List<int> canonicalTable,
                                     String text,
                                     Encoding encoding,
@@ -2370,35 +2293,24 @@ class Uri {
    * decode the byte-list using [encoding]. The default encodingis UTF-8.
    */
   static String _uriDecode(String text,
-                           int start,
-                           int end,
-                           Encoding encoding,
-                           bool plusToSpace) {
-    assert(0 <= start);
-    assert(start <= end);
-    assert(end <= text.length);
-    assert(encoding != null);
+                           {bool plusToSpace: false,
+                            Encoding encoding: UTF8}) {
     // First check whether there is any characters which need special handling.
     bool simple = true;
-    for (int i = start; i < end; i++) {
+    for (int i = 0; i < text.length && simple; i++) {
       var codeUnit = text.codeUnitAt(i);
-      if (codeUnit > 127 ||
-          codeUnit == _PERCENT ||
-          (plusToSpace && codeUnit == _PLUS)) {
-        simple = false;
-        break;
-      }
+      simple = codeUnit != _PERCENT && codeUnit != _PLUS;
     }
     List<int> bytes;
     if (simple) {
-      if (UTF8 == encoding || LATIN1 == encoding || ASCII == encoding) {
-        return text.substring(start, end);
+      if (encoding == UTF8 || encoding == LATIN1) {
+        return text;
       } else {
-        bytes = text.substring(start, end).codeUnits;
+        bytes = text.codeUnits;
       }
     } else {
       bytes = new List();
-      for (int i = start; i < end; i++) {
+      for (int i = 0; i < text.length; i++) {
         var codeUnit = text.codeUnitAt(i);
         if (codeUnit > 127) {
           throw new ArgumentError("Illegal percent encoding in URI");
@@ -2419,15 +2331,9 @@ class Uri {
     return encoding.decode(bytes);
   }
 
-  static bool _isAlphabeticCharacter(int codeUnit) {
-    var lowerCase = codeUnit | 0x20;
-    return (_LOWER_CASE_A <= lowerCase && lowerCase <= _LOWER_CASE_Z);
-  }
-
-  static bool _isUnreservedChar(int char) {
-    return char < 127 &&
-           ((_unreservedTable[char >> 4] & (1 << (char & 0x0f))) != 0);
-  }
+  static bool _isAlphabeticCharacter(int codeUnit)
+    => (codeUnit >= _LOWER_CASE_A && codeUnit <= _LOWER_CASE_Z) ||
+       (codeUnit >= _UPPER_CASE_A && codeUnit <= _UPPER_CASE_Z);
 
   // Tables of char-codes organized as a bit vector of 128 bits where
   // each bit indicate whether a character code on the 0-127 needs to
@@ -2676,594 +2582,4 @@ class Uri {
       0xfffe,   // 0x60 - 0x6f  0111111111111111
                 //              pqrstuvwxyz   ~
       0x47ff];  // 0x70 - 0x7f  1111111111100010
-
-}
-
-// --------------------------------------------------------------------
-// Data URI
-// --------------------------------------------------------------------
-
-/**
- * A way to access the structure of a `data:` URI.
- *
- * Data URIs are non-hierarchical URIs that can contain any binary data.
- * They are defined by [RFC 2397](https://tools.ietf.org/html/rfc2397).
- *
- * This class allows parsing the URI text and extracting individual parts of the
- * URI, as well as building the URI text from structured parts.
- */
-class UriData {
-  static const int _noScheme = -1;
-  /**
-   * Contains the text content of a `data:` URI, with or without a
-   * leading `data:`.
-   *
-   * If [_separatorIndices] starts with `4` (the index of the `:`), then
-   * there is a leading `data:`, otherwise [_separatorIndices] starts with
-   * `-1`.
-   */
-  final String _text;
-
-  /**
-   * List of the separators (';', '=' and ',') in the text.
-   *
-   * Starts with the index of the `:` in `data:` of the mimeType.
-   * That is always either -1 or 4, depending on whether `_text` includes the
-   * `data:` scheme or not.
-   *
-   * The first speparator ends the mime type. We don't bother with finding
-   * the '/' inside the mime type.
-   *
-   * Each two separators after that marks a parameter key and value.
-   *
-   * If there is a single separator left, it ends the "base64" marker.
-   *
-   * So the following separators are found for a text:
-   *
-   *     data:text/plain;foo=bar;base64,ARGLEBARGLE=
-   *         ^          ^   ^   ^      ^
-   *
-   */
-  final List<int> _separatorIndices;
-
-  /**
-   * Cache of the result returned by [uri].
-   */
-  Uri _uriCache;
-
-  UriData._(this._text, this._separatorIndices, this._uriCache);
-
-  /**
-   * Creates a `data:` URI containing the [content] string.
-   *
-   * Equivalent to `new Uri.dataFromString(...).data`, but may
-   * be more efficient if the [uri] itself isn't used.
-   */
-  factory UriData.fromString(String content,
-                             {String mimeType,
-                              Encoding encoding,
-                              Map<String, String> parameters,
-                              bool base64: false}) {
-    StringBuffer buffer = new StringBuffer();
-    List indices = [_noScheme];
-    String charsetName;
-    String encodingName;
-    if (parameters != null) charsetName = parameters["charset"];
-    if (encoding == null) {
-      if (charsetName != null) {
-        encoding = Encoding.getByName(charsetName);
-      }
-    } else if (charsetName == null) {
-      // Non-null only if parameters does not contain "charset".
-      encodingName = encoding.name;
-    }
-    encoding ??= ASCII;
-    _writeUri(mimeType, encodingName, parameters, buffer, indices);
-    indices.add(buffer.length);
-    if (base64) {
-      buffer.write(';base64,');
-      indices.add(buffer.length - 1);
-      buffer.write(encoding.fuse(BASE64).encode(content));
-    } else {
-      buffer.write(',');
-      _uriEncodeBytes(_uricTable, encoding.encode(content), buffer);
-    }
-    return new UriData._(buffer.toString(), indices, null);
-  }
-
-  /**
-   * Creates a `data:` URI containing an encoding of [bytes].
-   *
-   * Equivalent to `new Uri.dataFromBytes(...).data`, but may
-   * be more efficient if the [uri] itself isn't used.
-   */
-  factory UriData.fromBytes(List<int> bytes,
-                            {mimeType: "application/octet-stream",
-                             Map<String, String> parameters,
-                             percentEncoded: false}) {
-    StringBuffer buffer = new StringBuffer();
-    List indices = [_noScheme];
-    _writeUri(mimeType, null, parameters, buffer, indices);
-    indices.add(buffer.length);
-    if (percentEncoded) {
-      buffer.write(',');
-      _uriEncodeBytes(_uricTable, bytes, buffer);
-    } else {
-      buffer.write(';base64,');
-      indices.add(buffer.length - 1);
-      BASE64.encoder
-            .startChunkedConversion(
-                new StringConversionSink.fromStringSink(buffer))
-            .addSlice(bytes, 0, bytes.length, true);
-    }
-
-    return new UriData._(buffer.toString(), indices, null);
-  }
-
-  /**
-   * Creates a `DataUri` from a [Uri] which must have `data` as [Uri.scheme].
-   *
-   * The [uri] must have scheme `data` and no authority or fragment,
-   * and the path (concatenated with the query, if there is one) must be valid
-   * as data URI content with the same rules as [parse].
-   */
-  factory UriData.fromUri(Uri uri) {
-    if (uri.scheme != "data") {
-      throw new ArgumentError.value(uri, "uri",
-                                    "Scheme must be 'data'");
-    }
-    if (uri.hasAuthority) {
-      throw new ArgumentError.value(uri, "uri",
-                                    "Data uri must not have authority");
-    }
-    if (uri.hasFragment) {
-      throw new ArgumentError.value(uri, "uri",
-                                    "Data uri must not have a fragment part");
-    }
-    if (!uri.hasQuery) {
-      return _parse(uri.path, 0, uri);
-    }
-    // Includes path and query (and leading "data:").
-    return _parse("$uri", 5, uri);
-  }
-
-  /**
-   * Writes the initial part of a `data:` uri, from after the "data:"
-   * until just before the ',' before the data, or before a `;base64,`
-   * marker.
-   *
-   * Of an [indices] list is passed, separator indices are stored in that
-   * list.
-   */
-  static void _writeUri(String mimeType,
-                        String charsetName,
-                        Map<String, String> parameters,
-                        StringBuffer buffer, List indices) {
-    if (mimeType == null || mimeType == "text/plain") {
-      mimeType = "";
-    }
-    if (mimeType.isEmpty || identical(mimeType, "application/octet-stream")) {
-      buffer.write(mimeType);  // Common cases need no escaping.
-    } else {
-      int slashIndex = _validateMimeType(mimeType);
-      if (slashIndex < 0) {
-        throw new ArgumentError.value(mimeType, "mimeType",
-                                      "Invalid MIME type");
-      }
-      buffer.write(Uri._uriEncode(_tokenCharTable,
-                                  mimeType.substring(0, slashIndex),
-                                  UTF8, false));
-      buffer.write("/");
-      buffer.write(Uri._uriEncode(_tokenCharTable,
-                                  mimeType.substring(slashIndex + 1),
-                                  UTF8, false));
-    }
-    if (charsetName != null) {
-      if (indices != null) {
-        indices..add(buffer.length)
-               ..add(buffer.length + 8);
-      }
-      buffer.write(";charset=");
-      buffer.write(Uri._uriEncode(_tokenCharTable, charsetName, UTF8, false));
-    }
-    parameters?.forEach((var key, var value) {
-      if (key.isEmpty) {
-        throw new ArgumentError.value("", "Parameter names must not be empty");
-      }
-      if (value.isEmpty) {
-        throw new ArgumentError.value("", "Parameter values must not be empty",
-                                      'parameters["$key"]');
-      }
-      if (indices != null) indices.add(buffer.length);
-      buffer.write(';');
-      // Encode any non-RFC2045-token character and both '%' and '#'.
-      buffer.write(Uri._uriEncode(_tokenCharTable, key, UTF8, false));
-      if (indices != null) indices.add(buffer.length);
-      buffer.write('=');
-      buffer.write(Uri._uriEncode(_tokenCharTable, value, UTF8, false));
-    });
-  }
-
-  /**
-   * Checks mimeType is valid-ish (`token '/' token`).
-   *
-   * Returns the index of the slash, or -1 if the mime type is not
-   * considered valid.
-   *
-   * Currently only looks for slashes, all other characters will be
-   * percent-encoded as UTF-8 if necessary.
-   */
-  static int _validateMimeType(String mimeType) {
-    int slashIndex = -1;
-    for (int i = 0; i < mimeType.length; i++) {
-      var char = mimeType.codeUnitAt(i);
-      if (char != Uri._SLASH) continue;
-      if (slashIndex < 0) {
-        slashIndex = i;
-        continue;
-      }
-      return -1;
-    }
-    return slashIndex;
-  }
-
-  /**
-   * Parses a string as a `data` URI.
-   *
-   * The string must have the format:
-   *
-   * ```
-   * 'data:' (type '/' subtype)? (';' attribute '=' value)* (';base64')? ',' data
-   * ````
-   *
-   * where `type`, `subtype`, `attribute` and `value` are specified in RFC-2045,
-   * and `data` is a sequnce of URI-characters (RFC-2396 `uric`).
-   *
-   * This means that all the characters must be ASCII, but the URI may contain
-   * percent-escapes for non-ASCII byte values that need an interpretation
-   * to be converted to the corresponding string.
-   *
-   * Parsing doesn't check the validity of any part, it just checks that the
-   * input has the correct structure with the correct sequence of `/`, `;`, `=`
-   * and `,` delimiters.
-   *
-   * Accessing the individual parts may fail later if they turn out to have
-   * content that can't be decoded sucessfully as a string.
-   */
-  static UriData parse(String uri) {
-    if (!uri.startsWith("data:")) {
-      throw new FormatException("Does not start with 'data:'", uri, 0);
-    }
-    return _parse(uri, 5, null);
-  }
-
-  /**
-   * The [Uri] that this `UriData` is giving access to.
-   *
-   * Returns a `Uri` with scheme `data` and the remainder of the data URI
-   * as path.
-   */
-  Uri get uri {
-    if (_uriCache != null) return _uriCache;
-    String path = _text;
-    String query = null;
-    int colonIndex = _separatorIndices[0];
-    int queryIndex = _text.indexOf('?', colonIndex + 1);
-    int end = null;
-    if (queryIndex >= 0) {
-      query = _text.substring(queryIndex + 1);
-      end = queryIndex;
-    }
-    path = _text.substring(colonIndex + 1, end);
-    // TODO(lrn): This is probably too simple. We should ensure URI
-    // normalization before passing in the raw strings, maybe using
-    // Uri._makePath, Uri._makeQuery.
-    _uriCache = new Uri._internal("data", "", null, null, path, query, null);
-    return _uriCache;
-  }
-
-  /**
-   * The MIME type of the data URI.
-   *
-   * A data URI consists of a "media type" followed by data.
-   * The media type starts with a MIME type and can be followed by
-   * extra parameters.
-   *
-   * Example:
-   *
-   *     data:text/plain;charset=utf-8,Hello%20World!
-   *
-   * This data URI has the media type `text/plain;charset=utf-8`, which is the
-   * MIME type `text/plain` with the parameter `charset` with value `utf-8`.
-   * See [RFC 2045](https://tools.ietf.org/html/rfc2045) for more detail.
-   *
-   * If the first part of the data URI is empty, it defaults to `text/plain`.
-   */
-  String get mimeType {
-    int start = _separatorIndices[0] + 1;
-    int end = _separatorIndices[1];
-    if (start == end) return "text/plain";
-    return Uri._uriDecode(_text, start, end, UTF8, false);
-  }
-
-  /**
-   * The charset parameter of the media type.
-   *
-   * If the parameters of the media type contains a `charset` parameter
-   * then this returns its value, otherwise it returns `US-ASCII`,
-   * which is the default charset for data URIs.
-   */
-  String get charset {
-    int parameterStart = 1;
-    int parameterEnd = _separatorIndices.length - 1;  // The ',' before data.
-    if (isBase64) {
-      // There is a ";base64" separator, so subtract one for that as well.
-      parameterEnd -= 1;
-    }
-    for (int i = parameterStart; i < parameterEnd; i += 2) {
-      var keyStart = _separatorIndices[i] + 1;
-      var keyEnd = _separatorIndices[i + 1];
-      if (keyEnd == keyStart + 7 && _text.startsWith("charset", keyStart)) {
-        return Uri._uriDecode(_text, keyEnd + 1, _separatorIndices[i + 2],
-                              UTF8, false);
-      }
-    }
-    return "US-ASCII";
-  }
-
-  /**
-   * Whether the data is Base64 encoded or not.
-   */
-  bool get isBase64 => _separatorIndices.length.isOdd;
-
-  /**
-   * The content part of the data URI, as its actual representation.
-   *
-   * This string may contain percent escapes.
-   */
-  String get contentText => _text.substring(_separatorIndices.last + 1);
-
-  /**
-   * The content part of the data URI as bytes.
-   *
-   * If the data is Base64 encoded, it will be decoded to bytes.
-   *
-   * If the data is not Base64 encoded, it will be decoded by unescaping
-   * percent-escaped characters and returning byte values of each unescaped
-   * character. The bytes will not be, e.g., UTF-8 decoded.
-   */
-  List<int> contentAsBytes() {
-    String text = _text;
-    int start = _separatorIndices.last + 1;
-    if (isBase64) {
-      return BASE64.decoder.convert(text, start);
-    }
-
-    // Not base64, do percent-decoding and return the remaining bytes.
-    // Compute result size.
-    const int percent = 0x25;
-    int length = text.length - start;
-    for (int i = start; i < text.length; i++) {
-      var codeUnit = text.codeUnitAt(i);
-      if (codeUnit == percent) {
-        i += 2;
-        length -= 2;
-      }
-    }
-    // Fill result array.
-    Uint8List result = new Uint8List(length);
-    if (length == text.length) {
-      result.setRange(0, length, text.codeUnits, start);
-      return result;
-    }
-    int index = 0;
-    for (int i = start; i < text.length; i++) {
-      var codeUnit = text.codeUnitAt(i);
-      if (codeUnit != percent) {
-        result[index++] = codeUnit;
-      } else {
-        if (i + 2 < text.length) {
-          var digit1 = Uri._parseHexDigit(text.codeUnitAt(i + 1));
-          var digit2 = Uri._parseHexDigit(text.codeUnitAt(i + 2));
-          if (digit1 >= 0 && digit2 >= 0) {
-            int byte = digit1 * 16 + digit2;
-            result[index++] = byte;
-            i += 2;
-            continue;
-          }
-        }
-        throw new FormatException("Invalid percent escape", text, i);
-      }
-    }
-    assert(index == result.length);
-    return result;
-  }
-
-  /**
-   * Returns a string created from the content of the data URI.
-   *
-   * If the content is Base64 encoded, it will be decoded to bytes and then
-   * decoded to a string using [encoding].
-   * If encoding is omitted, the value of a `charset` parameter is used
-   * if it is recongized by [Encoding.getByName], otherwise it defaults to
-   * the [ASCII] encoding, which is the default encoding for data URIs
-   * that do not specify an encoding.
-   *
-   * If the content is not Base64 encoded, it will first have percent-escapes
-   * converted to bytes and then the character codes and byte values are
-   * decoded using [encoding].
-   */
-  String contentAsString({Encoding encoding}) {
-    if (encoding == null) {
-      var charset = this.charset;  // Returns "US-ASCII" if not present.
-      encoding = Encoding.getByName(charset);
-      if (encoding == null) {
-        throw new UnsupportedError("Unknown charset: $charset");
-      }
-    }
-    String text = _text;
-    int start = _separatorIndices.last + 1;
-    if (isBase64) {
-      var converter = BASE64.decoder.fuse(encoding.decoder);
-      return converter.convert(text.substring(start));
-    }
-    return Uri._uriDecode(text, start, text.length, encoding, false);
-  }
-
-  /**
-   * A map representing the parameters of the media type.
-   *
-   * A data URI may contain parameters between the the MIME type and the
-   * data. This converts these parameters to a map from parameter name
-   * to parameter value.
-   * The map only contains parameters that actually occur in the URI.
-   * The `charset` parameter has a default value even if it doesn't occur
-   * in the URI, which is reflected by the [charset] getter. This means that
-   * [charset] may return a value even if `parameters["charset"]` is `null`.
-   *
-   * If the values contain non-ASCII values or percent escapes, they default
-   * to being decoded as UTF-8.
-   */
-  Map<String, String> get parameters {
-    var result = <String, String>{};
-    for (int i = 3; i < _separatorIndices.length; i += 2) {
-      var start = _separatorIndices[i - 2] + 1;
-      var equals = _separatorIndices[i - 1];
-      var end = _separatorIndices[i];
-      String key = Uri._uriDecode(_text, start, equals, UTF8, false);
-      String value = Uri._uriDecode(_text,equals + 1, end, UTF8, false);
-      result[key] = value;
-    }
-    return result;
-  }
-
-  static UriData _parse(String text, int start, Uri sourceUri) {
-    assert(start == 0 || start == 5);
-    assert((start == 5) == text.startsWith("data:"));
-
-    /// Character codes.
-    const int comma     = 0x2c;
-    const int slash     = 0x2f;
-    const int semicolon = 0x3b;
-    const int equals    = 0x3d;
-    List indices = [start - 1];
-    int slashIndex = -1;
-    var char;
-    int i = start;
-    for (; i < text.length; i++) {
-      char = text.codeUnitAt(i);
-      if (char == comma || char == semicolon) break;
-      if (char == slash) {
-        if (slashIndex < 0) {
-          slashIndex = i;
-          continue;
-        }
-        throw new FormatException("Invalid MIME type", text, i);
-      }
-    }
-    if (slashIndex < 0 && i > start) {
-      // An empty MIME type is allowed, but if non-empty it must contain
-      // exactly one slash.
-      throw new FormatException("Invalid MIME type", text, i);
-    }
-    while (char != comma) {
-      // Parse parameters and/or "base64".
-      indices.add(i);
-      i++;
-      int equalsIndex = -1;
-      for (; i < text.length; i++) {
-        char = text.codeUnitAt(i);
-        if (char == equals) {
-          if (equalsIndex < 0) equalsIndex = i;
-        } else if (char == semicolon || char == comma) {
-          break;
-        }
-      }
-      if (equalsIndex >= 0) {
-        indices.add(equalsIndex);
-      } else {
-        // Have to be final "base64".
-        var lastSeparator = indices.last;
-        if (char != comma ||
-            i != lastSeparator + 7 /* "base64,".length */ ||
-            !text.startsWith("base64", lastSeparator + 1)) {
-          throw new FormatException("Expecting '='", text, i);
-        }
-        break;
-      }
-    }
-    indices.add(i);
-    return new UriData._(text, indices, sourceUri);
-  }
-
-  /**
-   * Like [Uri._uriEncode] but takes the input as bytes, not a string.
-   *
-   * Encodes into [buffer] instead of creating its own buffer.
-   */
-  static void _uriEncodeBytes(List<int> canonicalTable,
-                              List<int> bytes,
-                              StringSink buffer) {
-    // Encode the string into bytes then generate an ASCII only string
-    // by percent encoding selected bytes.
-    int byteOr = 0;
-    for (int i = 0; i < bytes.length; i++) {
-      int byte = bytes[i];
-      byteOr |= byte;
-      if (byte < 128 &&
-          ((canonicalTable[byte >> 4] & (1 << (byte & 0x0f))) != 0)) {
-        buffer.writeCharCode(byte);
-      } else {
-        buffer.writeCharCode(Uri._PERCENT);
-        buffer.writeCharCode(Uri._hexDigits.codeUnitAt(byte >> 4));
-        buffer.writeCharCode(Uri._hexDigits.codeUnitAt(byte & 0x0f));
-      }
-    }
-    if ((byteOr & ~0xFF) != 0) {
-      for (int i = 0; i < bytes.length; i++) {
-        var byte = bytes[i];
-        if (byte < 0 || byte > 255) {
-          throw new ArgumentError.value(byte, "non-byte value");
-        }
-      }
-    }
-  }
-
-  String toString() =>
-      (_separatorIndices[0] == _noScheme) ? "data:$_text" : _text;
-
-  // Table of the `token` characters of RFC 2045 in a URI.
-  //
-  // A token is any US-ASCII character except SPACE, control characters and
-  // `tspecial` characters. The `tspecial` category is:
-  // '(', ')', '<', '>', '@', ',', ';', ':', '\', '"', '/', '[, ']', '?', '='.
-  //
-  // In a data URI, we also need to escape '%' and '#' characters.
-  static const _tokenCharTable = const [
-                //             LSB             MSB
-                //              |               |
-      0x0000,   // 0x00 - 0x0f  00000000 00000000
-      0x0000,   // 0x10 - 0x1f  00000000 00000000
-                //               !  $ &'   *+ -.
-      0x6cd2,   // 0x20 - 0x2f  01001011 00110110
-                //              01234567 89
-      0x03ff,   // 0x30 - 0x3f  11111111 11000000
-                //               ABCDEFG HIJKLMNO
-      0xfffe,   // 0x40 - 0x4f  01111111 11111111
-                //              PQRSTUVW XYZ   ^_
-      0xc7ff,   // 0x50 - 0x5f  11111111 11100011
-                //              `abcdefg hijklmno
-      0xffff,   // 0x60 - 0x6f  11111111 11111111
-                //              pqrstuvw xyz{|}~
-      0x7fff];  // 0x70 - 0x7f  11111111 11111110
-
-  // All non-escape RFC-2396 uric characters.
-  //
-  //  uric        =  reserved | unreserved | escaped
-  //  reserved    =  ";" | "/" | "?" | ":" | "@" | "&" | "=" | "+" | "$" | ","
-  //  unreserved  =  alphanum | mark
-  //  mark        =  "-" | "_" | "." | "!" | "~" | "*" | "'" | "(" | ")"
-  //
-  // This is the same characters as in a URI query (which is URI pchar plus '?')
-  static const _uricTable = Uri._queryCharTable;
 }
