@@ -32,7 +32,7 @@
 * `dart:developer`
   * Added `Timeline` class for interacting with Observatory's timeline feature.
   * Added `ServiceExtensionHandler`, `ServiceExtensionResponse`, and `registerExtension` which enable developers to provide their own VM service protocol extensions.
-  
+
 * `dart:io`
   * **Breaking:** Secure networking has changed, replacing the NSS library
     with the BoringSSL library. `SecureSocket`, `SecureServerSocket`,
@@ -63,7 +63,10 @@
 
 ### Tool changes
 
-* `docgen` and 'dartdocgen' no longer ship in the sdk. The `docgen` sources have
+* `dart2js` and Dartium now support improved Javascript Interoperability via the
+  [js package](https://pub.dartlang.org/packages/js).
+
+* `docgen` and `dartdocgen` no longer ship in the SDK. The `docgen` sources have
    been removed from the repository.
 
 * This is the last release to ship the VM's "legacy debug protocol".

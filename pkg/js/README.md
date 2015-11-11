@@ -26,21 +26,21 @@ There is a [full example](https://github.com/dart-lang/sdk/tree/master/pkg/js/ex
 
 ```dart
 // Calls invoke JavaScript `JSON.stringify(obj)`.
-@Js("JSON.stringify")
+@JS("JSON.stringify")
 external String stringify(obj);
 ```
 
 #### Classes and Namespaces
 
 ```dart
-@Js('google.maps')
+@JS('google.maps')
 library maps;
 
 // Invokes the JavaScript getter `google.maps.map`.
 external Map get map;
 
 // `new Map` invokes JavaScript `new google.maps.Map(location)`
-@Js()
+@JS()
 class Map {
   external Map(Location location);
   external Location getLocation();
@@ -51,21 +51,26 @@ class Map {
 // We recommend against using custom JavaScript names whenever
 // possible. It is easier for users if the JavaScript names and Dart names
 // are consistent.
-@Js("LatLng")
+@JS("LatLng")
 class Location {
   external Location(num lat, num lng);
 }
 ```
 
-#### Maps
+#### JavaScript object literals
 
-Dart `Map` objects, including literals, are "opaque" in JavaScript.
-You must create Dart classes for each of these.
-
+Many JavaScript APIs take an object literal as an argument. For example:
 ```js
 // JavaScript
 printOptions({responsive: true});
 ```
+
+If you want to use `printOptions` from Dart, you cannot simply pass a Dart `Map`
+object – they are are "opaque" in JavaScript.
+
+
+Instead, create a Dart class with both the `@JS()` and
+`@anonymous` annotations.
 
 ```dart
 // Dart
@@ -73,10 +78,11 @@ void main() {
   printOptions(new Options(responsive: true));
 }
 
-@Js()
+@JS()
 external printOptions(Options options);
 
-@Js()
+@JS()
+@anonymous
 class Options {
   external bool get responsive;
 
@@ -86,7 +92,7 @@ class Options {
 
 ## Contributing and Filing Bugs
 
-Please file bugs and features requests on the [Github issue tracker](https://github.com/dart-lang/js-interop/issues).
+Please file bugs and features requests on the [Github issue tracker](https://github.com/dart-lang/sdk/issues).
 
 We also love and accept community contributions, from API suggestions to pull requests.
 Please file an issue before beginning work so we can discuss the design and implementation.
