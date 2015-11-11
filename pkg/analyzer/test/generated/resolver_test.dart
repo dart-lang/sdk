@@ -258,8 +258,8 @@ class AnalysisContextFactory {
         streamElement.type.typeArguments;
     (parameterTypes[0] as FunctionTypeImpl).typeArguments =
         streamElement.type.typeArguments;
-    (parameterTypes[0].element as FunctionElementImpl)
-        .enclosingElement = listenMethod;
+    (parameterTypes[0].element as FunctionElementImpl).enclosingElement =
+        listenMethod;
     streamElement.methods = <MethodElement>[listenMethod];
 
     asyncUnit.types = <ClassElement>[

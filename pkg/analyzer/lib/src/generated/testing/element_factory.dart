@@ -42,6 +42,7 @@ class ElementFactory {
       String typeName, InterfaceType superclassType,
       [List<String> parameterNames]) {
     ClassElementImpl element = new ClassElementImpl(typeName, 0);
+    element.constructors = const <ConstructorElement>[];
     element.supertype = superclassType;
     InterfaceTypeImpl type = new InterfaceTypeImpl(element);
     element.type = type;
@@ -578,7 +579,8 @@ class ElementFactory {
     }
     variable.const3 = isConst;
     variable.final2 = isFinal;
-    variable.synthetic = true;
+    variable.synthetic = false;
+    variable.type = type;
     PropertyAccessorElementImpl getter =
         new PropertyAccessorElementImpl.forVariable(variable);
     getter.getter = true;

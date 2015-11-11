@@ -17,6 +17,13 @@ class ClassDeclaration {
    * Fields defined in the class.
    */
   final Map<String, FieldType> fields = <String, FieldType>{};
+
+  /**
+   * Indicates whether the class has the `topLevel` annotation.
+   */
+  final bool isTopLevel;
+
+  ClassDeclaration(this.isTopLevel);
 }
 
 /**

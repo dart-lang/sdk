@@ -22,6 +22,6 @@ class BuilderContext {
    * serialized form as a buffer.
    */
   List<int> getBuffer(Object ref) {
-    return JSON.encode(ref).codeUnits;
+    return UTF8.encode(JSON.encode(ref));
   }
 }

@@ -156,7 +156,15 @@ class _CodeGenerator {
     _idl = new idlModel.Idl();
     for (CompilationUnitMember decl in idlParsed.declarations) {
       if (decl is ClassDeclaration) {
-        idlModel.ClassDeclaration cls = new idlModel.ClassDeclaration();
+        bool isTopLevel = false;
+        for (Annotation annotation in decl.metadata) {
+          if (annotation.arguments == null &&
+              annotation.name.name == 'topLevel') {
+            isTopLevel = true;
+          }
+        }
+        idlModel.ClassDeclaration cls =
+            new idlModel.ClassDeclaration(isTopLevel);
         _idl.classes[decl.name.name] = cls;
         for (ClassMember classMember in decl.members) {
           if (classMember is FieldDeclaration) {
@@ -236,6 +244,7 @@ class _CodeGenerator {
     out();
     out('library analyzer.src.summary.format;');
     out();
+    out("import 'dart:convert';");
     out("import 'builder.dart' as builder;");
     out();
     _idl.enums.forEach((String name, idlModel.EnumDeclaration enm) {
@@ -281,6 +290,10 @@ class _CodeGenerator {
           }
         });
         out();
+        if (cls.isTopLevel) {
+          out('$name.fromBuffer(List<int> buffer) : this.fromJson(JSON.decode(UTF8.decode(buffer)));');
+          out();
+        }
         cls.fields.forEach((String fieldName, idlModel.FieldType type) {
           String def = defaultValue(type);
           String defaultSuffix = def == null ? '' : ' ?? $def';

@@ -7,6 +7,7 @@
 
 library analyzer.src.summary.format;
 
+import 'dart:convert';
 import 'builder.dart' as builder;
 
 enum PrelinkedReferenceKind {
@@ -70,6 +71,8 @@ class PrelinkedLibrary {
       _dependencies = json["dependencies"]?.map((x) => new PrelinkedDependency.fromJson(x))?.toList(),
       _importDependencies = json["importDependencies"],
       _references = json["references"]?.map((x) => new PrelinkedReference.fromJson(x))?.toList();
+
+  PrelinkedLibrary.fromBuffer(List<int> buffer) : this.fromJson(JSON.decode(UTF8.decode(buffer)));
 
   UnlinkedLibrary get unlinked => _unlinked;
   List<PrelinkedDependency> get dependencies => _dependencies ?? const <PrelinkedDependency>[];
