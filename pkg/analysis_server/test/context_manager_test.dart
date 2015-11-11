@@ -915,6 +915,19 @@ test_pack:lib/
     callbacks.assertContextFiles(project, [fileA, fileB]);
   }
 
+  void test_setRoots_ignoreDocFolder() {
+    String project = '/project';
+    String fileA = '$project/foo.dart';
+    String fileB = '$project/lib/doc/bar.dart';
+    String fileC = '$project/doc/bar.dart';
+    resourceProvider.newFile(fileA, '');
+    resourceProvider.newFile(fileB, '');
+    resourceProvider.newFile(fileC, '');
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    callbacks.assertContextPaths([project]);
+    callbacks.assertContextFiles(project, [fileA, fileB]);
+  }
+
   void test_setRoots_newFolderWithPackageRoot() {
     String packageRootPath = '/package';
     manager.setRoots(<String>[projPath], <String>[],
@@ -1193,6 +1206,44 @@ analyzer:
     callbacks.assertContextFiles(project, [fileA]);
     // add a file, ignored as excluded
     resourceProvider.newFile(fileB, 'library b;');
+    return pumpEventQueue().then((_) {
+      callbacks.assertContextPaths([project]);
+      callbacks.assertContextFiles(project, [fileA]);
+    });
+  }
+
+  test_watch_addFile_inDocFolder_inner() {
+    // prepare paths
+    String project = '/project';
+    String fileA = '$project/a.dart';
+    String fileB = '$project/lib/doc/b.dart';
+    // create files
+    resourceProvider.newFile(fileA, '');
+    // set roots
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    callbacks.assertContextPaths([project]);
+    callbacks.assertContextFiles(project, [fileA]);
+    // add a "lib/doc" file, it is not ignored
+    resourceProvider.newFile(fileB, '');
+    return pumpEventQueue().then((_) {
+      callbacks.assertContextPaths([project]);
+      callbacks.assertContextFiles(project, [fileA, fileB]);
+    });
+  }
+
+  test_watch_addFile_inDocFolder_topLevel() {
+    // prepare paths
+    String project = '/project';
+    String fileA = '$project/a.dart';
+    String fileB = '$project/doc/b.dart';
+    // create files
+    resourceProvider.newFile(fileA, '');
+    // set roots
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    callbacks.assertContextPaths([project]);
+    callbacks.assertContextFiles(project, [fileA]);
+    // add a "doc" file, it is ignored
+    resourceProvider.newFile(fileB, '');
     return pumpEventQueue().then((_) {
       callbacks.assertContextPaths([project]);
       callbacks.assertContextFiles(project, [fileA]);
