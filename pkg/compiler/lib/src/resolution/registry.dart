@@ -314,10 +314,6 @@ class ResolutionRegistry extends Registry {
     worldImpact.registerTypeUse(typeUse);
   }
 
-  void registerClosure(LocalFunctionElement element) {
-    worldImpact.registerClosure(element);
-  }
-
   void registerSuperUse(Node node) {
     mapping.addSuperUse(node);
   }

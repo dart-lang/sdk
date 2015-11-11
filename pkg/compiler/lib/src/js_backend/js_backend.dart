@@ -88,6 +88,7 @@ import '../universe/universe.dart';
 import '../universe/use.dart' show
     DynamicUse,
     StaticUse,
+    StaticUseKind,
     TypeUse,
     TypeUseKind;
 import '../universe/world_impact.dart' show

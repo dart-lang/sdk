@@ -2848,10 +2848,11 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       }
     }
 
-    if (worldImpact.closures.isNotEmpty) {
-      registerBackendImpact(transformed, impacts.closure);
-      for (LocalFunctionElement closure in worldImpact.closures) {
-        if (closure.computeType(backend.resolution).containsTypeVariables) {
+    for (StaticUse staticUse in worldImpact.staticUses) {
+      if (staticUse.kind == StaticUseKind.CLOSURE) {
+        registerBackendImpact(transformed, impacts.closure);
+        LocalFunctionElement closure = staticUse.element;
+        if (closure.type.containsTypeVariables) {
           backend.compiler.enqueuer.resolution.universe
               .closuresWithFreeTypeVariables.add(closure);
           registerBackendImpact(transformed, impacts.computeSignature);
@@ -3025,9 +3026,13 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       backend.registerTypeVariableBoundsSubtypeCheck(check.a, check.b);
     }
 
-    for (LocalFunctionElement element in impact.closures) {
-      if (backend.methodNeedsRti(element)) {
-        registerBackendImpact(transformed, impacts.computeSignature);
+
+    for (StaticUse staticUse in impact.staticUses) {
+      if (staticUse.kind == StaticUseKind.CLOSURE) {
+        LocalFunctionElement closure = staticUse.element;
+        if (backend.methodNeedsRti(closure)) {
+           registerBackendImpact(transformed, impacts.computeSignature);
+         }
       }
     }
 

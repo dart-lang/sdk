@@ -72,6 +72,7 @@ enum StaticUseKind {
   SUPER_TEAR_OFF,
   FIELD_GET,
   FIELD_SET,
+  CLOSURE,
 }
 
 /// Statically known use of an [Element].
@@ -230,6 +231,11 @@ class StaticUse {
         message: "Field init element $element must be an instance "
                  "or boxed field."));
     return new StaticUse._(element, StaticUseKind.FIELD_SET);
+  }
+
+  /// Read of a local function [element].
+  factory StaticUse.closure(LocalFunctionElement element) {
+    return new StaticUse._(element, StaticUseKind.CLOSURE);
   }
 
   /// Unknown use of [element].

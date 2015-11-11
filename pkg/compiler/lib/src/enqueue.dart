@@ -170,7 +170,6 @@ abstract class Enqueuer {
     worldImpact.dynamicUses.forEach(registerDynamicUse);
     worldImpact.staticUses.forEach(registerStaticUse);
     worldImpact.typeUses.forEach(registerTypeUse);
-    worldImpact.closures.forEach(registerClosure);
   }
 
   void registerInstantiatedType(InterfaceType type,
@@ -628,8 +627,11 @@ abstract class Enqueuer {
         break;
       case StaticUseKind.FIELD_GET:
       case StaticUseKind.FIELD_SET:
+      case StaticUseKind.CLOSURE:
         // TODO(johnniwinther): Avoid this. Currently [FIELD_GET] and
         // [FIELD_SET] contains [BoxFieldElement]s which we cannot enqueue.
+        // Also [CLOSURE] contains [LocalFunctionElement] which we cannot
+        // enqueue.
         addElement = false;
         break;
       case StaticUseKind.SUPER_TEAR_OFF:
@@ -686,10 +688,6 @@ abstract class Enqueuer {
     }
     compiler.backend.registerBoundClosure(this);
     universe.closurizedMembers.add(element);
-  }
-
-  void registerClosure(LocalFunctionElement element) {
-    universe.allClosures.add(element);
   }
 
   void forEach(void f(WorkItem work)) {

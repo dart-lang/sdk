@@ -368,6 +368,9 @@ class Universe {
         break;
       case StaticUseKind.GENERAL:
         break;
+      case StaticUseKind.CLOSURE:
+        allClosures.add(element);
+        break;
     }
   }
 

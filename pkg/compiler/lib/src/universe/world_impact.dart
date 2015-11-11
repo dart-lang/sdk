@@ -34,8 +34,6 @@ class WorldImpact {
 
   Iterable<TypeUse> get typeUses => const <TypeUse>[];
 
-  Iterable<LocalFunctionElement> get closures => const <LocalFunctionElement>[];
-
   String toString() => dump(this);
 
   static String dump(WorldImpact worldImpact) {
@@ -55,7 +53,6 @@ class WorldImpact {
     add('dynamic uses', worldImpact.dynamicUses);
     add('static uses', worldImpact.staticUses);
     add('type uses', worldImpact.typeUses);
-    add('closures', worldImpact.closures);
   }
 }
 
@@ -103,18 +100,6 @@ class WorldImpactBuilder {
 
   Iterable<StaticUse> get staticUses {
     return _staticUses != null ? _staticUses : const <StaticUse>[];
-  }
-
-  void registerClosure(LocalFunctionElement element) {
-    if (_closures == null) {
-      _closures = new Setlet<LocalFunctionElement>();
-    }
-    _closures.add(element);
-  }
-
-  Iterable<LocalFunctionElement> get closures {
-    return _closures != null
-        ? _closures : const <LocalFunctionElement>[];
   }
 }
 
@@ -169,9 +154,6 @@ class TransformedWorldImpact implements WorldImpact {
   Iterable<StaticUse> get staticUses {
     return _staticUses != null ? _staticUses : worldImpact.staticUses;
   }
-
-  @override
-  Iterable<LocalFunctionElement> get closures => worldImpact.closures;
 
   String toString() {
     StringBuffer sb = new StringBuffer();

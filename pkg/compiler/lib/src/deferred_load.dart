@@ -319,7 +319,6 @@ class DeferredLoadTask extends CompilerTask {
         worldImpact.staticUses.forEach((StaticUse staticUse) {
           elements.add(staticUse.element);
         });
-        elements.addAll(worldImpact.closures);
         for (TypeUse typeUse in worldImpact.typeUses) {
           DartType type = typeUse.type;
           switch (typeUse.kind) {

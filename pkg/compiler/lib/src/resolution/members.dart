@@ -637,7 +637,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     scope = oldScope;
     enclosingElement = previousEnclosingElement;
 
-    registry.registerClosure(function);
+    registry.registerStaticUse(new StaticUse.closure(function));
     return const NoneResult();
   }
 

@@ -204,7 +204,7 @@ class CodegenRegistry extends Registry {
   }
 
   void registerInstantiatedClosure(LocalFunctionElement element) {
-    worldImpact.registerClosure(element);
+    worldImpact.registerStaticUse(new StaticUse.closure(element));
   }
 
   void registerConstSymbol(String name) {
