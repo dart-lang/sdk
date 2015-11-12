@@ -28,6 +28,9 @@ class AbstractContextTest {
   AnalysisCache analysisCache;
   AnalysisDriver analysisDriver;
 
+  UriResolver sdkResolver;
+  UriResolver resourceResolver;
+
   AnalysisTask task;
   Map<ResultDescriptor<dynamic>, dynamic> oldOutputs;
   Map<ResultDescriptor<dynamic>, dynamic> outputs;
@@ -107,10 +110,10 @@ class AbstractContextTest {
   }
 
   void prepareAnalysisContext([AnalysisOptions options]) {
-    sourceFactory = new SourceFactory(<UriResolver>[
-      new DartUriResolver(sdk),
-      new ResourceUriResolver(resourceProvider)
-    ]);
+    sdkResolver = new DartUriResolver(sdk);
+    resourceResolver = new ResourceUriResolver(resourceProvider);
+    sourceFactory =
+        new SourceFactory(<UriResolver>[sdkResolver, resourceResolver]);
     context = createAnalysisContext();
     if (options != null) {
       context.analysisOptions = options;
