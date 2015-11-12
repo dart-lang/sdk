@@ -44,6 +44,16 @@ class BackgroundCompilationResult : public ValueObject {
 
   void SetFromQElement(QueueElement* value);
 
+  void SetLeafClasses(const GrowableArray<Class*>& leaf_classes);
+  void SetGuardedFields(const ZoneGrowableArray<const Field*>& guarded_fields);
+  void SetDeoptimizeDependentFields(const GrowableArray<const Field*>& fields);
+
+  const Array& leaf_classes() const { return leaf_classes_; }
+  const Array& guarded_fields() const { return guarded_fields_; }
+  const Array& deoptimize_dependent_fields() const {
+    return deoptimize_dependent_fields_;
+  }
+
   // Returns true if all relevant gen-counts are current and code is valid.
   bool IsValid() const;
 
@@ -62,6 +72,9 @@ class BackgroundCompilationResult : public ValueObject {
 
  private:
   Code& result_code_;
+  Array& leaf_classes_;
+  Array& guarded_fields_;
+  Array& deoptimize_dependent_fields_;
   uint32_t cha_invalidation_gen_;
   uint32_t field_invalidation_gen_;
   uint32_t prefix_invalidation_gen_;

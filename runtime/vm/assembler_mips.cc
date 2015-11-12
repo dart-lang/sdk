@@ -461,6 +461,7 @@ void Assembler::SubuDetectOverflow(Register rd, Register rs, Register rt,
 
 void Assembler::CheckCodePointer() {
 #ifdef DEBUG
+  Comment("CheckCodePointer");
   Label cid_ok, instructions_ok;
   Push(CMPRES1);
   Push(CMPRES2);

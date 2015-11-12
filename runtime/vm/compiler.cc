@@ -777,6 +777,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
 
         if (optimized) {
           if (result != NULL) {
+            // Background compilation, store compilation result in 'result'.
             ASSERT(!Thread::Current()->IsMutatorThread());
             // Do not install code, but return it instead.
             // Since code dependencies (CHA, fields) are defined eagerly,
@@ -798,22 +799,35 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
             function.InstallOptimizedCode(code, is_osr);
           }
 
-          // TODO(srdjan): In background compilation, verify that CHA and field
-          // guards have not been invalidated in the meantime.
           // Register code with the classes it depends on because of CHA and
           // fields it depends on because of store guards, unless we cannot
           // deopt.
           if (Compiler::allow_recompilation()) {
-            for (intptr_t i = 0;
-                 i < thread->cha()->leaf_classes().length();
-                 ++i) {
-              thread->cha()->leaf_classes()[i]->RegisterCHACode(code);
-            }
-            for (intptr_t i = 0;
-                 i < flow_graph->guarded_fields()->length();
-                 i++) {
-              const Field* field = (*flow_graph->guarded_fields())[i];
-              field->RegisterDependentCode(code);
+            if (result != NULL) {
+              // Background compilation: delay registering code until we are
+              // in the MutatorThread.
+              result->SetLeafClasses(thread->cha()->leaf_classes());
+              result->SetGuardedFields(*flow_graph->guarded_fields());
+              result->SetDeoptimizeDependentFields(
+                  flow_graph->deoptimize_dependent_code());
+            } else {
+              for (intptr_t i = 0;
+                   i < thread->cha()->leaf_classes().length();
+                   ++i) {
+                thread->cha()->leaf_classes()[i]->RegisterCHACode(code);
+              }
+              for (intptr_t i = 0;
+                   i < flow_graph->guarded_fields()->length();
+                   i++) {
+                const Field* field = (*flow_graph->guarded_fields())[i];
+                field->RegisterDependentCode(code);
+              }
+              for (intptr_t i = 0;
+                   i < flow_graph->deoptimize_dependent_code().length();
+                   i++) {
+                const Field* field = flow_graph->deoptimize_dependent_code()[i];
+                field->DeoptimizeDependentCode();
+              }
             }
           }
         } else {  // not optimized.
@@ -1481,6 +1495,9 @@ class QueueElement {
   explicit QueueElement(const Function& function)
       : next_(NULL),
         obj_(function.raw()),
+        leaf_classes_(Array::null()),
+        guarded_fields_(Array::null()),
+        deoptimize_dependent_fields_(Array::null()),
         cha_invalidation_gen_(Isolate::kInvalidGen),
         field_invalidation_gen_(Isolate::kInvalidGen),
         prefix_invalidation_gen_(Isolate::kInvalidGen) {
@@ -1495,6 +1512,12 @@ class QueueElement {
   RawFunction* Function() const { return Function::RawCast(obj_); }
   RawCode* Code() const { return Code::RawCast(obj_); }
 
+  RawArray* leaf_classes() const { return leaf_classes_; }
+  RawArray* guarded_fields() const { return guarded_fields_; }
+  RawArray* deoptimize_dependent_fields() const {
+    return deoptimize_dependent_fields_;
+  }
+
   uint32_t cha_invalidation_gen() const { return cha_invalidation_gen_; }
   uint32_t field_invalidation_gen() const { return field_invalidation_gen_; }
   uint32_t prefix_invalidation_gen() const { return prefix_invalidation_gen_; }
@@ -1502,12 +1525,27 @@ class QueueElement {
   void set_next(QueueElement* elem) { next_ = elem; }
   QueueElement* next() const { return next_; }
 
-  RawObject** obj_ptr() { return &obj_; }
   RawObject* obj() const { return obj_; }
+  RawObject** obj_ptr() { return &obj_; }
+
+  RawObject** leaf_classses_ptr() {
+    return reinterpret_cast<RawObject**>(&leaf_classes_);
+  }
+
+  RawObject** guarded_fields_ptr() {
+    return reinterpret_cast<RawObject**>(&guarded_fields_);
+  }
+
+  RawObject** deoptimize_dependent_fields_ptr() {
+    return reinterpret_cast<RawObject**>(&deoptimize_dependent_fields_);
+  }
 
   void SetFromResult(const BackgroundCompilationResult& value) {
     ASSERT(!value.result_code().IsNull());
     obj_ = value.result_code().raw();
+    leaf_classes_ = value.leaf_classes().raw();
+    guarded_fields_ = value.guarded_fields().raw();
+    deoptimize_dependent_fields_ = value.deoptimize_dependent_fields().raw();
     cha_invalidation_gen_ = value.cha_invalidation_gen();
     field_invalidation_gen_ = value.field_invalidation_gen();
     prefix_invalidation_gen_ = value.prefix_invalidation_gen();
@@ -1517,6 +1555,9 @@ class QueueElement {
   QueueElement* next_;
 
   RawObject* obj_;  // Code or Function.
+  RawArray* leaf_classes_;
+  RawArray* guarded_fields_;
+  RawArray* deoptimize_dependent_fields_;
   uint32_t cha_invalidation_gen_;
   uint32_t field_invalidation_gen_;
   uint32_t prefix_invalidation_gen_;
@@ -1543,6 +1584,9 @@ class BackgroundCompilationQueue {
     QueueElement* p = first_;
     while (p != NULL) {
       visitor->VisitPointer(p->obj_ptr());
+      visitor->VisitPointer(p->leaf_classses_ptr());
+      visitor->VisitPointer(p->guarded_fields_ptr());
+      visitor->VisitPointer(p->deoptimize_dependent_fields_ptr());
       p = p->next();
     }
   }
@@ -1604,6 +1648,9 @@ class BackgroundCompilationQueue {
 
 BackgroundCompilationResult::BackgroundCompilationResult()
     : result_code_(Code::Handle()),
+      leaf_classes_(Array::Handle()),
+      guarded_fields_(Array::Handle()),
+      deoptimize_dependent_fields_(Array::Handle()),
       cha_invalidation_gen_(Isolate::kInvalidGen),
       field_invalidation_gen_(Isolate::kInvalidGen),
       prefix_invalidation_gen_(Isolate::kInvalidGen) {
@@ -1613,6 +1660,9 @@ BackgroundCompilationResult::BackgroundCompilationResult()
 void BackgroundCompilationResult::Init() {
   Isolate* i = Isolate::Current();
   result_code_ = Code::null();
+  leaf_classes_ = Array::null();
+  guarded_fields_ = Array::null();
+  deoptimize_dependent_fields_ = Array::null();
   cha_invalidation_gen_ = i->cha_invalidation_gen();
   field_invalidation_gen_ = i->field_invalidation_gen();
   prefix_invalidation_gen_ = i->prefix_invalidation_gen();
@@ -1622,9 +1672,43 @@ void BackgroundCompilationResult::Init() {
 void BackgroundCompilationResult::SetFromQElement(QueueElement* value) {
   ASSERT(value != NULL);
   result_code_ = value->Code();
+  leaf_classes_ = value->leaf_classes();
+  guarded_fields_ = value->guarded_fields();
+  deoptimize_dependent_fields_ = value->deoptimize_dependent_fields();
   cha_invalidation_gen_ = value->cha_invalidation_gen();
   field_invalidation_gen_ = value->field_invalidation_gen();
   prefix_invalidation_gen_ = value->prefix_invalidation_gen();
+}
+
+
+void BackgroundCompilationResult::SetLeafClasses(
+    const GrowableArray<Class*>& leaf_classes) {
+  const Array& a = Array::Handle(Array::New(leaf_classes.length(), Heap::kOld));
+  for (intptr_t i = 0; i < leaf_classes.length(); i++) {
+    a.SetAt(i, *leaf_classes[i]);
+  }
+  leaf_classes_ = a.raw();
+}
+
+
+void BackgroundCompilationResult::SetGuardedFields(
+    const ZoneGrowableArray<const Field*>& guarded_fields) {
+  const Array& a =
+      Array::Handle(Array::New(guarded_fields.length(), Heap::kOld));
+  for (intptr_t i = 0; i < guarded_fields.length(); i++) {
+    a.SetAt(i, *guarded_fields[i]);
+  }
+  guarded_fields_ = a.raw();
+}
+
+
+void BackgroundCompilationResult::SetDeoptimizeDependentFields(
+    const GrowableArray<const Field*>& fields) {
+  const Array& a = Array::Handle(Array::New(fields.length(), Heap::kOld));
+  for (intptr_t i = 0; i < fields.length(); i++) {
+    a.SetAt(i, *fields[i]);
+  }
+  deoptimize_dependent_fields_ = a.raw();
 }
 
 
@@ -1756,7 +1840,7 @@ void BackgroundCompiler::CompileOptimized(const Function& function) {
 void BackgroundCompiler::InstallGeneratedCode() {
   ASSERT(Thread::Current()->IsMutatorThread());
   MonitorLocker ml(queue_monitor_);
-  Object& owner = Object::Handle();
+  Function& function = Function::Handle();
   while (result_queue()->Peek() != NULL) {
     BackgroundCompilationResult result;
     QueueElement* elem = result_queue()->Remove();
@@ -1764,10 +1848,26 @@ void BackgroundCompiler::InstallGeneratedCode() {
     result.SetFromQElement(elem);
     delete elem;
 
-    owner = result.result_code().owner();
-    const Function& function = Function::Cast(owner);
+    const Code& code = result.result_code();
+    function ^= code.owner();
     if (result.IsValid()) {
       function.InstallOptimizedCode(result.result_code(), false /* not OSR */);
+      // Install leaf classes and fields dependencies.
+      Class& cls = Class::Handle();
+      for (intptr_t i = 0; i < result.leaf_classes().Length(); i++) {
+        cls ^= result.leaf_classes().At(i);
+        cls.RegisterCHACode(code);
+      }
+      Field& field = Field::Handle();
+      for (intptr_t i = 0; i < result.guarded_fields().Length(); i++) {
+        field ^= result.guarded_fields().At(i);
+        field.RegisterDependentCode(code);
+      }
+      for (intptr_t i = 0; i < result.deoptimize_dependent_fields().Length();
+           i++) {
+        field ^= result.deoptimize_dependent_fields().At(i);
+        field.DeoptimizeDependentCode();
+      }
     } else if (FLAG_trace_compiler) {
       THR_Print("Drop code generated in the background compiler:\n");
       result.PrintValidity();
@@ -1822,6 +1922,18 @@ void BackgroundCompiler::Stop(BackgroundCompiler* task) {
 
 
 void BackgroundCompiler::EnsureInit(Thread* thread) {
+  ASSERT(thread->IsMutatorThread());
+  // Finalize NoSuchMethodError, _Mint; occasionally needed in optimized
+  // compilation.
+  Class& cls = Class::Handle(thread->zone(),
+      Library::LookupCoreClass(Symbols::NoSuchMethodError()));
+  Error& error = Error::Handle(thread->zone(),
+      cls.EnsureIsFinalized(thread));
+  ASSERT(error.IsNull());
+  cls = Library::LookupCoreClass(Symbols::_Mint());
+  error = cls.EnsureIsFinalized(thread);
+  ASSERT(error.IsNull());
+
   bool start_task = false;
   Isolate* isolate = thread->isolate();
   {

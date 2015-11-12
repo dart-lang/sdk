@@ -1077,6 +1077,7 @@ void Assembler::RestoreCodePointer() {
 
 void Assembler::CheckCodePointer() {
 #ifdef DEBUG
+  Comment("CheckCodePointer");
   Label cid_ok, instructions_ok;
   Push(R0);
   CompareClassId(CODE_REG, kCodeCid);
@@ -1163,6 +1164,7 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
 
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_size) {
+  Comment("EnterCallRuntimeFrame");
   EnterStubFrame();
 
   // Store fpu registers with the lowest register number at the lowest

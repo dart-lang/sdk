@@ -2888,6 +2888,7 @@ void Class::RegisterCHACode(const Code& code) {
     THR_Print("RegisterCHACode %s class %s\n",
         Function::Handle(code.function()).ToQualifiedCString(), ToCString());
   }
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(code.is_optimized());
   CHACodeArray a(*this);
   a.Register(code);
@@ -2895,6 +2896,7 @@ void Class::RegisterCHACode(const Code& code) {
 
 
 void Class::DisableCHAOptimizedCode() {
+  ASSERT(Thread::Current()->IsMutatorThread());
   CHACodeArray a(*this);
   a.DisableCode();
 }
@@ -5353,6 +5355,7 @@ bool Function::HasBreakpoint() const {
 
 
 void Function::InstallOptimizedCode(const Code& code, bool is_osr) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   // We may not have previous code if 'always_optimize' is set.
   if (!is_osr && HasCode()) {
     Code::Handle(CurrentCode()).DisableDartCode();
@@ -5374,6 +5377,7 @@ void Function::SetInstructionsSafe(const Code& value) const {
 
 
 void Function::AttachCode(const Code& value) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   // Finish setting up code before activating it.
   value.set_owner(*this);
   SetInstructions(value);
@@ -5389,6 +5393,7 @@ bool Function::HasCode() const {
 
 
 void Function::ClearCode() const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT((usage_counter() != 0) || (ic_data_array() == Array::null()));
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
   SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
@@ -5400,6 +5405,7 @@ void Function::SwitchToUnoptimizedCode() const {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
+  ASSERT(thread->IsMutatorThread());
   const Code& current_code = Code::Handle(zone, CurrentCode());
 
   if (FLAG_trace_deoptimization_verbose) {
@@ -5421,6 +5427,7 @@ void Function::SwitchToUnoptimizedCode() const {
 
 
 void Function::set_unoptimized_code(const Code& value) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(value.IsNull() || !value.is_optimized());
   StorePointer(&raw_ptr()->unoptimized_code_, value.raw());
 }
@@ -7765,6 +7772,7 @@ class FieldDependentArray : public WeakCodeReferences {
 
 
 void Field::RegisterDependentCode(const Code& code) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(code.is_optimized());
   FieldDependentArray a(*this);
   a.Register(code);
@@ -7772,6 +7780,7 @@ void Field::RegisterDependentCode(const Code& code) const {
 
 
 void Field::DeoptimizeDependentCode() const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   FieldDependentArray a(*this);
   a.DisableCode();
 }
@@ -13554,6 +13563,7 @@ bool Code::IsFunctionCode() const {
 
 
 void Code::DisableDartCode() const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsFunctionCode());
   ASSERT(instructions() == active_instructions());
   const Code& new_code =
@@ -13563,7 +13573,8 @@ void Code::DisableDartCode() const {
 
 
 void Code::DisableStubCode() const {
-ASSERT(IsAllocationStubCode());
+  ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(IsAllocationStubCode());
   ASSERT(instructions() == active_instructions());
   const Code& new_code =
       Code::Handle(StubCode::FixAllocationStubTarget_entry()->code());

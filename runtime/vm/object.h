@@ -4393,6 +4393,7 @@ class Code : public Object {
 
   void Enable() const {
     if (!IsDisabled()) return;
+    ASSERT(Thread::Current()->IsMutatorThread());
     ASSERT(instructions() != active_instructions());
     set_active_instructions(instructions());
   }
@@ -4447,6 +4448,7 @@ class Code : public Object {
   }
 
   void set_active_instructions(RawInstructions* instructions) const {
+    ASSERT(Thread::Current()->IsMutatorThread() || !is_alive());
     // RawInstructions are never allocated in New space and hence a
     // store buffer update is not needed here.
     StorePointer(&raw_ptr()->active_instructions_, instructions);
@@ -4456,6 +4458,7 @@ class Code : public Object {
   }
 
   void set_instructions(RawInstructions* instructions) const {
+    ASSERT(Thread::Current()->IsMutatorThread() || !is_alive());
     StorePointer(&raw_ptr()->instructions_, instructions);
   }
 

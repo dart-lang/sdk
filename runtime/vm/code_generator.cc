@@ -59,6 +59,7 @@ DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
 DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 
 DECLARE_FLAG(int, deoptimization_counter_threshold);
+DECLARE_FLAG(bool, enable_inlining_annotations);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(int, max_polymorphic_checks);
@@ -1487,6 +1488,9 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 
   if (CanOptimizeFunction(function, thread)) {
     if (FLAG_background_compilation) {
+      if (FLAG_enable_inlining_annotations) {
+        FATAL("Cannot enable inlining annotations and background compilation");
+      }
       // Reduce the chance of triggering optimization while the function is
       // being optimized in the background. INT_MIN should ensure that it takes
       // long time to trigger optimization.

@@ -179,7 +179,6 @@ void Heap::AllocateExternal(intptr_t size, Space space) {
 
 void Heap::FreeExternal(intptr_t size, Space space) {
   if (space == kNew) {
-    isolate()->AssertCurrentThreadIsMutator();
     new_space_.FreeExternal(size);
   } else {
     ASSERT(space == kOld);

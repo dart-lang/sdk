@@ -2570,6 +2570,7 @@ static const intptr_t kNumberOfVolatileXmmRegisters =
 
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
+  Comment("EnterCallRuntimeFrame");
   EnterFrame(0);
 
   // Preserve volatile CPU registers.
