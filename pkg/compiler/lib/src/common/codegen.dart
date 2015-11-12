@@ -187,7 +187,6 @@ class CodegenRegistry extends Registry {
 
   void registerDynamicUse(DynamicUse dynamicUse) {
     worldImpact.registerDynamicUse(dynamicUse);
-    compiler.dumpInfoTask.elementUsesSelector(currentElement, dynamicUse);
   }
 
   void registerTypeUse(TypeUse typeUse) {
@@ -263,6 +262,8 @@ class CodegenWorkItem extends WorkItem {
     if (world.isProcessed(element)) return const WorldImpact();
 
     registry = new CodegenRegistry(compiler, element);
-    return compiler.codegen(this, world);
+    var impact = compiler.codegen(this, world);
+    compiler.dumpInfoTask.registerImpact(element, impact);
+    return impact;
   }
 }

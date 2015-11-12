@@ -62,7 +62,6 @@ class WorldImpactBuilder {
   Setlet<DynamicUse> _dynamicUses;
   Setlet<StaticUse> _staticUses;
   Setlet<TypeUse> _typeUses;
-  Setlet<LocalFunctionElement> _closures;
 
   void registerDynamicUse(DynamicUse dynamicUse) {
     assert(dynamicUse != null);

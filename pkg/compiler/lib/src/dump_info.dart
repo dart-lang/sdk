@@ -20,8 +20,8 @@ import 'deferred_load.dart' show OutputUnit;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'js_emitter/full_emitter/emitter.dart' as full show Emitter;
 import 'js/js.dart' as jsAst;
-import 'universe/use.dart' show
-    DynamicUse;
+import 'universe/universe.dart' show ReceiverConstraint;
+import 'universe/world_impact.dart' show WorldImpact;
 import 'info/send_info.dart' show collectSendMeasurements;
 
 class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
@@ -52,10 +52,10 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   /// Whether to emit information about [element].
   ///
   /// By default we emit information for any element that contributes to the
-  /// output size. Either becuase the it is a function being emitted or inlined,
+  /// output size. Either because the it is a function being emitted or inlined,
   /// or because it is an element that holds dependencies to other elements.
   bool shouldKeep(Element element) {
-    return compiler.dumpInfoTask.selectorsFromElement.containsKey(element) ||
+    return compiler.dumpInfoTask.impacts.containsKey(element) ||
         compiler.dumpInfoTask.inlineCount.containsKey(element);
   }
 
@@ -349,7 +349,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
 
 class Selection {
   final Element selectedElement;
-  final TypeMask mask;
+  final ReceiverConstraint mask;
   Selection(this.selectedElement, this.mask);
 }
 
@@ -386,11 +386,12 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   // pretty-printed contents.
   final Map<jsAst.Node, int> _nodeToSize = <jsAst.Node, int>{};
 
-  final Map<Element, Set<DynamicUse>> selectorsFromElement = {};
   final Map<Element, int> inlineCount = <Element, int>{};
   // A mapping from an element to a list of elements that are
   // inlined inside of it.
   final Map<Element, List<Element>> inlineMap = <Element, List<Element>>{};
+
+  final Map<Element, WorldImpact> impacts = <Element, WorldImpact>{};
 
   /// Register the size of the generated output.
   void reportSize(int programSize) {
@@ -404,21 +405,15 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     inlineMap[inlinedFrom].add(element);
   }
 
-  /**
-   * Registers that a function uses a selector in the
-   * function body
-   */
-  void elementUsesSelector(Element element, DynamicUse selector) {
-    if (compiler.dumpInfo) {
-      selectorsFromElement
-          .putIfAbsent(element, () => new Set<DynamicUse>())
-          .add(selector);
-    }
-  }
-
   final Map<Element, Set<Element>> _dependencies = {};
   void registerDependency(Element source, Element target) {
     _dependencies.putIfAbsent(source, () => new Set()).add(target);
+  }
+
+  void registerImpact(Element element, WorldImpact impact) {
+    if (compiler.dumpInfo) {
+      impacts[element] = impact;
+    }
   }
 
   /**
@@ -427,17 +422,18 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
    * used and the selector that selected the element.
    */
   Iterable<Selection> getRetaining(Element element) {
-    if (!selectorsFromElement.containsKey(element)) {
-      return const <Selection>[];
-    } else {
-      return selectorsFromElement[element].expand((DynamicUse selector) {
-        return compiler.world.allFunctions
-            .filter(selector.selector, selector.mask)
-            .map((element) {
-          return new Selection(element, selector.mask);
-        });
-      });
-    }
+    var impact = impacts[element];
+    if (impact == null) return const <Selection>[];
+
+    var selections = <Selection>[];
+    selections.addAll(impact.dynamicUses.expand((dynamicUse) {
+      return compiler.world.allFunctions
+          .filter(dynamicUse.selector, dynamicUse.mask)
+          .map((e) => new Selection(e, dynamicUse.mask));
+    }));
+    selections.addAll(impact.staticUses
+        .map((staticUse) => new Selection(staticUse.element, null)));
+    return selections;
   }
 
   // Returns true if we care about tracking the size of

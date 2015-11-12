@@ -335,12 +335,6 @@ abstract class TypeMask implements ReceiverConstraint {
   TypeMask intersection(TypeMask other, ClassWorld classWorld);
 
   /**
-   * Returns whether this [TypeMask] applied to [selector] can hit a
-   * [noSuchMethod].
-   */
-  bool needsNoSuchMethodHandling(Selector selector, ClassWorld classWorld);
-
-  /**
    * Returns whether [element] is a potential target when being
    * invoked on this type mask. [selector] is used to ensure library
    * privacy is taken into account.

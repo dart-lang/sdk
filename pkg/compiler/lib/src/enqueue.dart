@@ -888,8 +888,7 @@ class ResolutionEnqueuer extends Enqueuer {
 /// [Enqueuer] which is specific to code generation.
 class CodegenEnqueuer extends Enqueuer {
   final Queue<CodegenWorkItem> queue;
-  final Map<Element, js.Expression> generatedCode =
-      new Map<Element, js.Expression>();
+  final Map<Element, js.Expression> generatedCode = <Element, js.Expression>{};
 
   final Set<Element> newlyEnqueuedElements;
 

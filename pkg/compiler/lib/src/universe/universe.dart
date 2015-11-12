@@ -39,6 +39,10 @@ abstract class ReceiverConstraint {
   /// invoked on a receiver with this constraint. [selector] is used to ensure
   /// library privacy is taken into account.
   bool canHit(Element element, Selector selector, ClassWorld classWorld);
+
+  /// Returns whether this [TypeMask] applied to [selector] can hit a
+  /// [noSuchMethod].
+  bool needsNoSuchMethodHandling(Selector selector, ClassWorld classWorld);
 }
 
 /// The combined constraints on receivers all the dynamic call sites of the same
@@ -58,7 +62,7 @@ abstract class ReceiverConstraint {
 ///     new A().foo(a, b);
 ///     new B().foo(0, 42);
 ///
-/// the selector constaints for dynamic calls to 'foo' with two positional
+/// the selector constraints for dynamic calls to 'foo' with two positional
 /// arguments could be 'receiver of exact instance `A` or `B`'.
 abstract class SelectorConstraints {
   /// Returns `true` if [selector] applies to [element] under these constraints
