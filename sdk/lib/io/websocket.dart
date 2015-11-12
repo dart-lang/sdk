@@ -72,19 +72,23 @@ class CompressionOptions {
   const CompressionOptions(
       {this.clientNoContextTakeover: false,
       this.serverNoContextTakeover: false,
-      this.clientMaxWindowBits: _WebSocketImpl.DEFAULT_WINDOW_BITS,
-      this.serverMaxWindowBits: _WebSocketImpl.DEFAULT_WINDOW_BITS,
+      this.clientMaxWindowBits,
+      this.serverMaxWindowBits,
       this.enabled: true});
 
   /// Parses list of requested server headers to return server compression
   /// response headers. Uses [serverMaxWindowBits] value if set, otherwise will
   /// attempt to use value from headers. Defaults to
-  /// [WebSocket.DEFAULT_WINDOW_BITS]
-  List _createServerResponseHeader(HeaderValue requested) {
-    var info = new List(2);
+  /// [WebSocket.DEFAULT_WINDOW_BITS]. Returns a [_CompressionMaxWindowBits]
+  /// object which contains the response headers and negotiated max window bits.
+  _CompressionMaxWindowBits _createServerResponseHeader(HeaderValue requested) {
+    var info = new _CompressionMaxWindowBits();
 
     int mwb;
-    var part = requested.parameters[_serverMaxWindowBits];
+    String part;
+    if (requested?.parameters != null) {
+      part = requested.parameters[_serverMaxWindowBits];
+    }
     if (part != null) {
       if (part.length >= 2 && part.startsWith('0')) {
         throw new ArgumentError("Illegal 0 padding on value.");
@@ -93,66 +97,65 @@ class CompressionOptions {
             ? int.parse(part,
                         onError: (source) => _WebSocketImpl.DEFAULT_WINDOW_BITS)
             : serverMaxWindowBits;
-        info[0] = "; server_max_window_bits=${mwb}";
-        info[1] = mwb;
+        info.headerValue = "; server_max_window_bits=${mwb}";
+        info.maxWindowBits = mwb;
       }
     } else {
-      info[1] = _WebSocketImpl.DEFAULT_WINDOW_BITS;
+      info.headerValue = "";
+      info.maxWindowBits = _WebSocketImpl.DEFAULT_WINDOW_BITS;
     }
     return info;
   }
 
   /// Returns default values for client compression request headers.
-  List _createClientRequestHeader(HeaderValue requested) {
-    var info = new List(2);
+  String _createClientRequestHeader(HeaderValue requested, int size) {
+    var info = "";
 
-    info[1] = _WebSocketImpl.DEFAULT_WINDOW_BITS;
-    if (requested != null &&
-        requested.parameters[_clientMaxWindowBits] != null) {
-      info[0] = "; client_max_window_bits=${info[1]}";
+    // If responding to a valid request, specify size
+    if (requested != null) {
+      info = "; client_max_window_bits=$size";
     } else {
-      info[0] = "; client_max_window_bits";
+      // Client request. Specify default
+      info = "; client_max_window_bits";
     }
 
     return info;
   }
 
   /// Create a Compression Header. If [requested] is null or contains
-  /// client request headers, returns Client compression request headers.
+  /// client request headers, returns Client compression request headers with
+  /// default settings for `client_max_window_bits` header value.
   /// If [requested] contains server response headers this method returns
-  /// a Server compression response header.
-  List _createHeader([HeaderValue requested]) {
+  /// a Server compression response header negotiating the max window bits
+  /// for both client and server as requested server_max_window_bits value.
+  /// This method returns a [_CompressionMaxWindowBits] object with the
+  /// response headers and negotiated maxWindowBits value.
+  _CompressionMaxWindowBits _createHeader([HeaderValue requested]) {
+    var info = new _CompressionMaxWindowBits("", 0);
     if (!enabled) {
-      return ["", 0];
+      return info;
     }
 
-    var info = new List(2);
-    var header = _WebSocketImpl.PER_MESSAGE_DEFLATE;
+    info.headerValue = _WebSocketImpl.PER_MESSAGE_DEFLATE;
 
     if (clientNoContextTakeover &&
         (requested != null &&
             requested.parameters.containsKey(_clientNoContextTakeover))) {
-      header += "; client_no_context_takeover";
+      info.headerValue += "; client_no_context_takeover";
     }
 
     if (serverNoContextTakeover &&
         (requested != null &&
             requested.parameters.containsKey(_serverNoContextTakeover))) {
-      header += "; server_no_context_takeover";
+      info.headerValue += "; server_no_context_takeover";
     }
 
-    if (requested == null ||
-        requested.parameters.containsKey(_clientMaxWindowBits)) {
-      var clientList = _createClientRequestHeader(requested);
-      header += clientList[0];
-      info[1] = clientList[1];
-    } else {
-      var headerList = _createServerResponseHeader(requested);
-      header += headerList[0];
-      info[1] = headerList[1];
-    }
+    var headerList = _createServerResponseHeader(requested);
+    info.headerValue += headerList.headerValue;
+    info.maxWindowBits = headerList.maxWindowBits;
 
-    info[0] = header;
+    info.headerValue +=
+        _createClientRequestHeader(requested, info.maxWindowBits);
 
     return info;
   }

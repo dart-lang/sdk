@@ -37,6 +37,18 @@ class _WebSocketOpcode {
 }
 
 /**
+ *  Stores the header and integer value derived from negotiation of
+ *  client_max_window_bits and server_max_window_bits. headerValue will be
+ *  set in the Websocket response headers.
+ */
+class _CompressionMaxWindowBits {
+  String headerValue;
+  int maxWindowBits;
+  _CompressionMaxWindowBits([this.headerValue, this.maxWindowBits]);
+  String toString() => headerValue;
+}
+
+/**
  * The web socket protocol transformer handles the protocol byte stream
  * which is supplied through the [:handleData:]. As the protocol is processed,
  * it'll output frame data as either a List<int> or String.
@@ -458,15 +470,13 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
       HttpResponse response, CompressionOptions compression) {
     var extensionHeader = request.headers.value("Sec-WebSocket-Extensions");
 
-    if (extensionHeader == null) {
-      extensionHeader = "";
-    }
+    extensionHeader ??= "";
 
     var hv = HeaderValue.parse(extensionHeader, valueSeparator: ',');
     if (compression.enabled && hv.value == _WebSocketImpl.PER_MESSAGE_DEFLATE) {
       var info = compression._createHeader(hv);
 
-      response.headers.add("Sec-WebSocket-Extensions", info[0]);
+      response.headers.add("Sec-WebSocket-Extensions", info.headerValue);
       var serverNoContextTakeover =
           hv.parameters.containsKey(_serverNoContextTakeover);
       var clientNoContextTakeover =
@@ -474,8 +484,8 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
       var deflate = new _WebSocketPerMessageDeflate(
           serverNoContextTakeover: serverNoContextTakeover,
           clientNoContextTakeover: clientNoContextTakeover,
-          serverMaxWindowBits: info[1],
-          clientMaxWindowBits: info[1],
+          serverMaxWindowBits: info.maxWindowBits,
+          clientMaxWindowBits: info.maxWindowBits,
           serverSide: true);
 
       return deflate;

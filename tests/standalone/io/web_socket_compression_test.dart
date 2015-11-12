@@ -11,6 +11,7 @@ import "dart:async";
 import "dart:convert";
 import "dart:io";
 import "dart:typed_data";
+import "dart:math";
 
 import "package:async_helper/async_helper.dart";
 import "package:crypto/crypto.dart";
@@ -45,6 +46,46 @@ class SecurityConfiguration {
   Future<WebSocket> createClient(int port) =>
       // TODO(whesse): Add client context argument to WebSocket.connect
       WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/');
+
+  Future<HttpClientResponse> createWebsocket(String url, String headerValue) {
+    HttpClient _httpClient = new HttpClient();
+    Uri uri = Uri.parse(url);
+
+    Random random = new Random();
+    // Generate 16 random bytes.
+    Uint8List nonceData = new Uint8List(16);
+    for (int i = 0; i < 16; i++) {
+      nonceData[i] = random.nextInt(256);
+    }
+    String nonce = CryptoUtils.bytesToBase64(nonceData);
+
+    uri = new Uri(
+        scheme: uri.scheme == "wss" ? "https" : "http",
+        userInfo: uri.userInfo,
+        host: uri.host,
+        port: uri.port,
+        path: uri.path,
+        query: uri.query,
+        fragment: uri.fragment);
+    return _httpClient.openUrl("GET", uri).then((request) {
+      if (uri.userInfo != null && !uri.userInfo.isEmpty) {
+        // If the URL contains user information use that for basic
+        // authorization.
+        String auth = CryptoUtils.bytesToBase64(UTF8.encode(uri.userInfo));
+        request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
+      }
+      // Setup the initial handshake.
+      request.headers
+        ..set(HttpHeaders.CONNECTION, "Upgrade")
+        ..set(HttpHeaders.UPGRADE, "websocket")
+        ..set("Sec-WebSocket-Key", nonce)
+        ..set("Cache-Control", "no-cache")
+        ..set("Sec-WebSocket-Version", "13")
+        ..set("Sec-WebSocket-Extensions", headerValue);
+
+      return request.close();
+    });
+  }
 
   void testCompressionSupport({server: false,
         client: false,
@@ -130,6 +171,51 @@ class SecurityConfiguration {
     });
   }
 
+  void testReturnHeaders(String headerValue, String expected) {
+    asyncStart();
+    createServer().then((server) {
+      server.listen((request) {
+        // Stuff
+        Expect.isTrue(WebSocketTransformer.isUpgradeRequest(request));
+        WebSocketTransformer.upgrade(request).then((webSocket) {
+            webSocket.listen((message) {
+              Expect.equals("Hello World", message);
+
+              webSocket.add(message);
+              webSocket.close();
+            });
+        });
+      });
+
+      var url = '${secure ? "wss" : "ws"}://$HOST_NAME:${server.port}/';
+      createWebsocket(url, headerValue)
+        .then((HttpClientResponse response) {
+          Expect.equals(response.statusCode, HttpStatus.SWITCHING_PROTOCOLS);
+          print(response.headers.value('Sec-WebSocket-Extensions'));
+          Expect.equals(response.headers.value("Sec-WebSocket-Extensions"),
+            expected);
+
+          String accept = response.headers.value("Sec-WebSocket-Accept");
+          Expect.isNotNull(accept);
+
+          var protocol = response.headers.value('Sec-WebSocket-Protocol');
+          return response.detachSocket().then((socket) =>
+              new WebSocket.fromUpgradedSocket(
+                  socket, protocol: protocol, serverSide: false));
+        }).then((websocket) {
+          var future = websocket.listen((message) {
+            Expect.equals("Hello", message);
+            websocket.close();
+          }).asFuture();
+          websocket.add("Hello World");
+          return future;
+        }).then((_) {
+          server.close();
+          asyncEnd();
+        });
+    }); // End createServer
+  }
+
   void runTests() {
     // No compression or takeover
     testCompressionSupport();
@@ -143,6 +229,17 @@ class SecurityConfiguration {
     testCompressionSupport(server: true);
 
     testCompressionHeaders();
+    // Chrome headers
+    testReturnHeaders('permessage-deflate; client_max_window_bits',
+                      "permessage-deflate; client_max_window_bits=15");
+    // Firefox headers
+    testReturnHeaders('permessage-deflate',
+                      "permessage-deflate; client_max_window_bits=15");
+    // Ensure max_window_bits resize appropriately.
+    testReturnHeaders('permessage-deflate; server_max_window_bits=10',
+                      "permessage-deflate;" 
+                      " server_max_window_bits=10;"
+                      " client_max_window_bits=10");
   }
 }
 
