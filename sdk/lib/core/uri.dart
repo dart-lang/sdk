@@ -12,8 +12,8 @@ part of dart.core;
  * * [URIs][uris] in the [library tour][libtour]
  * * [RFC-3986](http://tools.ietf.org/html/rfc3986)
  *
- * [uris]: http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-uri
- * [libtour]: http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html
+ * [uris]: https://www.dartlang.org/docs/dart-up-and-running/ch03.html#uris
+ * [libtour]: https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html
  */
 class Uri {
   /**
@@ -1102,10 +1102,10 @@ class Uri {
 
   /**
    * Returns the URI query split into a map according to the rules
-   * specified for FORM post in the [HTML 4.01 specification section 17.13.4]
-   * (http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4
-   * "HTML 4.01 section 17.13.4"). Each key and value in the returned map
-   * has been decoded. If there is no query the empty map is returned.
+   * specified for FORM post in the [HTML 4.01 specification section
+   * 17.13.4](http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4 "HTML 4.01 section 17.13.4").
+   * Each key and value in the returned map has been decoded. If there is no
+   * query the empty map is returned.
    *
    * Keys in the query string that have no value are mapped to the
    * empty string.
@@ -1667,9 +1667,8 @@ class Uri {
    *
    * Returns the resolved URI.
    *
-   * The algorithm "Transform Reference" for resolving a reference is
-   * described in [RFC-3986 Section 5]
-   * (http://tools.ietf.org/html/rfc3986#section-5 "RFC-1123").
+   * The algorithm "Transform Reference" for resolving a reference is described
+   * in [RFC-3986 Section 5](http://tools.ietf.org/html/rfc3986#section-5 "RFC-1123").
    *
    * Updated to handle the case where the base URI is just a relative path -
    * that is: when it has no scheme or authority and the path does not start
@@ -2128,11 +2127,9 @@ class Uri {
 
   /**
    * Returns the [query] split into a map according to the rules
-   * specified for FORM post in the
-   * [HTML 4.01 specification section 17.13.4]
-   * (http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4
-   * "HTML 4.01 section 17.13.4"). Each key and value in the returned
-   * map has been decoded. If the [query]
+   * specified for FORM post in the [HTML 4.01 specification section
+   * 17.13.4](http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4 "HTML 4.01 section 17.13.4").
+   * Each key and value in the returned map has been decoded. If the [query]
    * is the empty string an empty map is returned.
    *
    * Keys in the query string that have no value are mapped to the

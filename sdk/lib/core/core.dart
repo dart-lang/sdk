@@ -137,13 +137,13 @@
  *
  * ## Other documentation
  *
- * For more information about how to use the built-in types, refer to
- * [Built-in Types](http://www.dartlang.org/docs/dart-up-and-running/contents/ch02.html#built-in-types)
+ * For more information about how to use the built-in types, refer to [Built-in
+ * Types](http://www.dartlang.org/docs/dart-up-and-running/contents/ch02.html#built-in-types)
  * in Chapter 2 of
  * [Dart: Up and Running](http://www.dartlang.org/docs/dart-up-and-running/).
  *
- * Also, see
- * [dart:core - Numbers, Collections, Strings, and More](http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-dartcore---strings-collections-and-more)
+ * Also, see [dart:core - Numbers, Collections, Strings, and
+ * More](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#dartcore---numbers-collections-strings-and-more)
  * for more coverage of classes in this package.
  *
  * The

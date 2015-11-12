@@ -26,10 +26,9 @@ part of dart.core;
  *       use(it.current);
  *     }
  *
- * **See also:** [Iteration]
- * (http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-iteration)
- * in the [library tour]
- * (http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html)
+ * **See also:**
+ * [Iteration](http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#iteration)
+ * in the [library tour](http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html)
  */
 abstract class Iterator<E> {
   /**

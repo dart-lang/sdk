@@ -86,9 +86,8 @@ part of dart.core;
  * Also see:
 
  * * [Dart Cookbook](https://www.dartlang.org/docs/cookbook/#strings)
- * for String examples and recipes.
- * * [Dart Up and Running]
- * (https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-strings-and-regular-expressions)
+ *   for String examples and recipes.
+ * * [Dart Up and Running](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#strings-and-regular-expressions)
  */
 abstract class String implements Comparable<String>, Pattern {
   /**

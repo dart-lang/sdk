@@ -13,10 +13,10 @@ part of dart.core;
  * When you define a class, you should override [toString]
  * to return a string describing an instance of that class.
  * You might also need to define [hashCode] and [==], as described in the
- * [Implementing map keys]
- * (http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-implementing-map-keys)
- * section of the [library tour]
- * (http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html).
+ * [Implementing map
+ * keys](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#implementing-map-keys)
+ * section of the [library
+ * tour](http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html).
  */
 class Object {
   /**
