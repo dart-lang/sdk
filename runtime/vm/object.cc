@@ -7279,6 +7279,8 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_kind", kind_string);
   jsobj.AddProperty("static", is_static());
   jsobj.AddProperty("const", is_const());
+  jsobj.AddProperty("_intrinsic", is_intrinsic());
+  jsobj.AddProperty("_native", is_native());
   if (ref) {
     return;
   }
@@ -7292,6 +7294,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   jsobj.AddProperty("_optimizable", is_optimizable());
   jsobj.AddProperty("_inlinable", is_inlinable());
+  jsobj.AddProperty("_recognized", IsRecognized());
   code = unoptimized_code();
   if (!code.IsNull()) {
     jsobj.AddProperty("_unoptimizedCode", code);
@@ -13598,10 +13601,18 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("kind", "Dart");
   }
   jsobj.AddProperty("_optimized", is_optimized());
+  const Object& obj = Object::Handle(owner());
+  if (obj.IsFunction()) {
+    const Function& func = Function::Cast(obj);
+    jsobj.AddProperty("_intrinsic", func.is_intrinsic());
+    jsobj.AddProperty("_native", func.is_native());
+  } else {
+    jsobj.AddProperty("_intrinsic", false);
+    jsobj.AddProperty("_native", false);
+  }
   if (ref) {
     return;
   }
-  const Object& obj = Object::Handle(owner());
   if (obj.IsFunction()) {
     jsobj.AddProperty("function", obj);
   } else {

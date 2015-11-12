@@ -121,6 +121,31 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
 }
 
 
+bool DecodeLoadObjectFromPoolOrThread(uword pc,
+                                      const Code& code,
+                                      Object* obj) {
+  ASSERT(code.ContainsInstructionAt(pc));
+
+  Instr* instr = Instr::At(pc);
+  if ((instr->OpcodeField() == LW)) {
+    intptr_t offset = instr->SImmField();
+    if (instr->RsField() == PP) {
+      intptr_t index = ObjectPool::IndexFromOffset(offset);
+      const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
+      if (pool.InfoAt(index) == ObjectPool::kTaggedObject) {
+        *obj = pool.ObjectAt(index);
+        return true;
+      }
+    } else if (instr->RsField() == THR) {
+      return Thread::ObjectAtOffset(offset, obj);
+    }
+  }
+  // TODO(rmacnak): Sequence for loads beyond 16 bits.
+
+  return false;
+}
+
+
 RawICData* CallPattern::IcData() {
   if (ic_data_.IsNull()) {
     Register reg;

@@ -76,6 +76,8 @@ abstract class ProfileTreeRow<T> extends TableTreeRow {
     'optimized' : const ['O', null, 'Optimized'],
     'unoptimized' : const ['U', null, 'Unoptimized'],
     'inlined' : const ['I', null, 'Inlined'],
+    'intrinsic' : const ['It', null, 'Intrinsic'],
+    'ffi' : const ['F', null, 'FFI'],
     'dart' : const ['D', null, 'Dart'],
     'tag' : const ['T', null, 'Tag'],
     'native' : const ['N', null, 'Native'],

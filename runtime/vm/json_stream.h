@@ -136,6 +136,7 @@ class JSONStream : ValueObject {
   void OpenArray(const char* property_name = NULL);
   void CloseArray();
 
+  void PrintValueNull();
   void PrintValueBool(bool b);
   void PrintValue(intptr_t i);
   void PrintValue64(int64_t i);
@@ -328,6 +329,7 @@ class JSONArray : public ValueObject {
     stream_->CloseArray();
   }
 
+  void AddValueNull() const { stream_->PrintValueNull(); }
   void AddValue(bool b) const { stream_->PrintValueBool(b); }
   void AddValue(intptr_t i) const { stream_->PrintValue(i); }
   void AddValue64(int64_t i) const { stream_->PrintValue64(i); }

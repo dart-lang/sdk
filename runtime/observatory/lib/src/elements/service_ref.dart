@@ -56,6 +56,24 @@ class ServiceRefElement extends ObservatoryElement {
   bool get nameIsEmpty {
     return (name == null) || name.isEmpty;
   }
+
+
+  @published bool expanded = false;
+  dynamic expander() {
+    return expandEvent;
+  }
+  void expandEvent(bool expand, Function onDone) {
+    if (expand) {
+      ref.reload().then((result) {
+        ref = result;
+        notifyPropertyChange(#ref, 0, 1);
+        expanded = true;
+      }).whenComplete(onDone);
+    } else {
+      expanded = false;
+      onDone();
+    }
+  }
 }
 
 

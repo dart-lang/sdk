@@ -310,6 +310,11 @@ void JSONStream::CloseArray() {
 }
 
 
+void JSONStream::PrintValueNull() {
+  PrintCommaIfNeeded();
+  buffer_.Printf("null");
+}
+
 void JSONStream::PrintValueBool(bool b) {
   PrintCommaIfNeeded();
   buffer_.Printf("%s", b ? "true" : "false");

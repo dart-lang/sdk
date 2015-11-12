@@ -14,6 +14,29 @@
       <a on-click="{{ goto }}" _href="{{ url }}">
         <em>{{ ref.vmType }}</em> ({{ ref.length }})
       </a>
+      <curly-block callback="{{ expander() }}" expandKey="{{ expandKey }}">
+        <template if="{{ expanded }}">
+        <div class="indented">
+          <template repeat="{{ entry in ref.entries }}">
+            <div class="memberItem">
+              <div class="memberName">[PP+0x{{ entry['offset'].toRadixString(16) }}]</div>
+              <div class="memberValue">
+                <template if="{{ entry['kind'] == 'Object' }}">
+                  <any-service-ref ref="{{ entry['value'] }}">
+                  </any-service-ref>
+                </template>
+                <template if="{{ entry['kind'] == 'Immediate' }}">
+                  Immediate 0x{{ entry['value'].toRadixString(16) }}
+                </template>
+                <template if="{{ entry['kind'] == 'NativeEntry' }}">
+                  NativeEntry 0x{{ entry['value'].toRadixString(16) }}
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+        </template>
+      </curly-block>
     </template>
     <template if="{{ ref.isICData || ref.isMegamorphicCache }}">
       <a on-click="{{ goto }}" _href="{{ url }}">

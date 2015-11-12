@@ -553,6 +553,18 @@ CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
 }
 
 
+bool Thread::ObjectAtOffset(intptr_t offset, Object* object) {
+#define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
+  if (Thread::member_name##offset() == offset) {                               \
+    *object = expr;                                                            \
+    return true;                                                               \
+  }
+CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
+#undef COMPUTE_OFFSET
+  return false;
+}
+
+
 intptr_t Thread::OffsetFromThread(const RuntimeEntry* runtime_entry) {
 #define COMPUTE_OFFSET(name)                                                   \
   if (runtime_entry->function() == k##name##RuntimeEntry.function())         { \

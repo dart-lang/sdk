@@ -169,6 +169,18 @@ uword InstructionPattern::DecodeLoadWordImmediate(uword end,
 }
 
 
+static bool IsLoadWithOffset(int32_t instr, Register base,
+                             intptr_t* offset, Register* dst) {
+  if ((instr & 0xffff0000) == (0xe5900000 | (base << 16))) {
+    // ldr reg, [base, #+offset]
+    *offset = instr & 0xfff;
+    *dst = static_cast<Register>((instr & 0xf000) >> 12);
+    return true;
+  }
+  return false;
+}
+
+
 // Decodes a load sequence ending at 'end' (the last instruction of the load
 // sequence is the instruction before the one at end).  Returns a pointer to
 // the first instruction in the sequence.  Returns the register being loaded
@@ -180,10 +192,8 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
   uword start = end - Instr::kInstrSize;
   int32_t instr = Instr::At(start)->InstructionBits();
   intptr_t offset = 0;
-  if ((instr & 0xffff0000) == (0xe5950000 | (PP << 16))) {
-    // ldr reg, [pp, #+offset]
-    offset = instr & 0xfff;
-    *reg = static_cast<Register>((instr & 0xf000) >> 12);
+  if (IsLoadWithOffset(instr, PP, &offset, reg)) {
+    // ldr reg, [PP, #+offset]
   } else {
     ASSERT((instr & 0xfff00000) == 0xe5900000);  // ldr reg, [reg, #+offset]
     offset = instr & 0xfff;
@@ -203,6 +213,30 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
   }
   *index = ObjectPool::IndexFromOffset(offset);
   return start;
+}
+
+
+bool DecodeLoadObjectFromPoolOrThread(uword pc,
+                                      const Code& code,
+                                      Object* obj) {
+  ASSERT(code.ContainsInstructionAt(pc));
+
+  int32_t instr = Instr::At(pc)->InstructionBits();
+  intptr_t offset;
+  Register dst;
+  if (IsLoadWithOffset(instr, PP, &offset, &dst)) {
+    intptr_t index = ObjectPool::IndexFromOffset(offset);
+    const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
+    if (pool.InfoAt(index) == ObjectPool::kTaggedObject) {
+      *obj = pool.ObjectAt(index);
+      return true;
+    }
+  } else if (IsLoadWithOffset(instr, THR, &offset, &dst)) {
+    return Thread::ObjectAtOffset(offset, obj);
+  }
+  // TODO(rmacnak): Sequence for loads beyond 12 bits.
+
+  return false;
 }
 
 

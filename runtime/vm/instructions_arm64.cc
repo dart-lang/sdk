@@ -259,6 +259,34 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
 }
 
 
+bool DecodeLoadObjectFromPoolOrThread(uword pc,
+                                      const Code& code,
+                                      Object* obj) {
+  ASSERT(code.ContainsInstructionAt(pc));
+
+  Instr* instr = Instr::At(pc);
+  if (instr->IsLoadStoreRegOp() && (instr->Bit(22) == 1) &&
+      (instr->Bits(30, 2) == 3) && instr->Bit(24) == 1) {
+    intptr_t offset = (instr->Imm12Field() << 3);
+    if (instr->RnField() == PP) {
+      // PP is untagged on ARM64.
+      ASSERT(Utils::IsAligned(offset, 8));
+      intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
+      const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
+      if (pool.InfoAt(index) == ObjectPool::kTaggedObject) {
+        *obj = pool.ObjectAt(index);
+        return true;
+      }
+    } else if (instr->RnField() == THR) {
+      return Thread::ObjectAtOffset(offset, obj);
+    }
+  }
+  // TODO(rmacnak): Loads with offsets beyond 12 bits.
+
+  return false;
+}
+
+
 // Encodes a load sequence ending at 'end'. Encodes a fixed length two
 // instruction load from the pool pointer in PP using the destination
 // register reg as a temporary for the base address.

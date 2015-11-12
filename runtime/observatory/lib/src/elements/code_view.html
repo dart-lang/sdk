@@ -20,19 +20,25 @@
       }
 
       th:nth-of-type(2), td:nth-of-type(2) {
-        min-width: 10em;
+        min-width: 8em;
         text-align: left;
       }
 
       th:nth-of-type(3), td:nth-of-type(3) {
-        padding-right: 3em;
+        min-width: 8em;
+        text-align: left;
       }
 
       th:nth-of-type(4), td:nth-of-type(4) {
-        padding-left: 3em;
+        text-align: left;
         overflow: visible;
         white-space: pre;
-        display: block;
+        padding-right: 1em;
+      }
+
+      th:nth-of-type(5), td:nth-of-type(5) {
+        text-align: left;
+        overflow: visible;
       }
 
       tr:hover > td {
@@ -86,7 +92,7 @@
           <div class="memberValue">{{ code.profile.formattedExclusiveTicks }}</div>
         </div>
         <div class="memberItem">
-          <div class="memberName">Constant object pool</div>
+          <div class="memberName">Object pool</div>
           <div class="memberValue">
             <any-service-ref ref="{{ code.objectPool }}"></any-service-ref>
           </div>
@@ -116,10 +122,10 @@
       <table id="inlineRangeTable" class="table">
         <thead id="inlineRangeTableHead">
           <tr>
-            <th class="address" title="Address range">Address Range</th>
-            <th class="tick" title="Inclusive">Inclusive</th>
-            <th class="tick" title="Exclusive">Exclusive</th>
-            <th title="Functions">Functions</th>
+            <th class="address">Address Range</th>
+            <th class="tick">Inclusive</th>
+            <th class="tick">Exclusive</th>
+            <th>Functions</th>
           </tr>
         </thead>
         <tbody class="monospace" id="inlineRangeTableBody">
@@ -129,10 +135,11 @@
       <table id="disassemblyTable" class="table">
         <thead id="disassemblyTableHead">
           <tr>
-            <th class="address" title="Address">Address</th>
-            <th class="tick" title="Inclusive">Inclusive</th>
-            <th class="tick" title="Exclusive">Exclusive</th>
-            <th class="disassembly" title="Disassembly">Disassembly</th>
+            <th class="address">Address</th>
+            <th class="tick" title="Ticks with PC on the stack">Inclusive</th>
+            <th class="tick" title="Ticks with PC at top of stack">Exclusive</th>
+            <th class="disassembly">Disassembly</th>
+            <th class="object">Object</th>
           </tr>
         </thead>
         <tbody class="monospace" id="disassemblyTableBody">

@@ -370,15 +370,22 @@ class ProfileCode {
 
     code.profile = this;
 
-    if (code.isDartCode) {
+    if (code.kind == CodeKind.Stub) {
+      attributes.add('stub');
+    } else if (code.kind == CodeKind.Dart) {
+      if (code.isNative) {
+        attributes.add('ffi');  // Not to be confused with a C function.
+      } else {
+        attributes.add('dart');
+      }
+      if (code.hasIntrinsic) {
+        attributes.add('intrinsic');
+      }
       if (code.isOptimized) {
         attributes.add('optimized');
       } else {
         attributes.add('unoptimized');
       }
-    }
-    if (code.isDartCode) {
-      attributes.add('dart');
     } else if (code.kind == CodeKind.Tag) {
       attributes.add('tag');
     } else if (code.kind == CodeKind.Native) {
@@ -516,14 +523,18 @@ class ProfileFunction {
     if (function.kind == FunctionKind.kTag) {
       attribs.add('tag');
     } else if (function.kind == FunctionKind.kStub) {
-      attribs.add('dart');
       attribs.add('stub');
     } else if (function.kind == FunctionKind.kNative) {
       attribs.add('native');
     } else if (function.kind.isSynthetic()) {
       attribs.add('synthetic');
+    } else if (function.isNative) {
+      attribs.add('ffi');  // Not to be confused with a C function.
     } else {
       attribs.add('dart');
+    }
+    if (function.hasIntrinsic == true) {
+      attribs.add('intrinsic');
     }
   }
 
