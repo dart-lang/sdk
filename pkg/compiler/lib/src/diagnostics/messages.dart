@@ -281,6 +281,7 @@ enum MessageKind {
   JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
   JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
   JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
+  JS_PLACEHOLDER_CAPTURE,
   LIBRARY_NAME_MISMATCH,
   LIBRARY_NOT_FOUND,
   LIBRARY_NOT_SUPPORTED,
@@ -2567,6 +2568,14 @@ main() {}
           howToFix:
               "Try adding '@MirrorsUsed(...)' as described at "
               "https://goo.gl/Akrrog."),
+
+      MessageKind.JS_PLACEHOLDER_CAPTURE:
+        const MessageTemplate(
+            MessageKind.JS_PLACEHOLDER_CAPTURE,
+            "JS code must not use '#' placeholders inside functions.",
+            howToFix:
+            "Use an immediately called JavaScript function to capture the"
+            " the placeholder values as JavaScript function parameters."),
 
       MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT:
         const MessageTemplate(

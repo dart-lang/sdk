@@ -4154,6 +4154,10 @@ class SsaBuilder extends ast.Visitor
       return;
     }
 
+    if (native.HasCapturedPlaceholders.check(nativeBehavior.codeTemplate.ast)) {
+      reporter.reportErrorMessage(node, MessageKind.JS_PLACEHOLDER_CAPTURE);
+    }
+
     TypeMask ssaType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
 

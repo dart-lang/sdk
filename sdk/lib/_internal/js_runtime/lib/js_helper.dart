@@ -2570,9 +2570,9 @@ abstract class Closure implements Function {
       // captured variable `functionType` isn't reused.
       signatureFunction =
           JS('',
-             '''(function(t) {
-                    return function(){ return #(t); };
-                })(#)''',
+             '''(function(getType, t) {
+                    return function(){ return getType(t); };
+                })(#, #)''',
              RAW_DART_FUNCTION_REF(getType),
              functionType);
     } else if (!isStatic

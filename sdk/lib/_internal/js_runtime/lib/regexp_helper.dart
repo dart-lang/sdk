@@ -85,23 +85,24 @@ class JSSyntaxRegExp implements RegExp {
     String m = multiLine == true ? 'm' : '';
     String i = caseSensitive == true ? '' : 'i';
     String g = global ? 'g' : '';
-    // We're using the JavaScript's try catch instead of the Dart one
-    // to avoid dragging in Dart runtime support just because of using
-    // RegExp.
+    // We're using the JavaScript's try catch instead of the Dart one to avoid
+    // dragging in Dart runtime support just because of using RegExp.
     var regexp = JS('',
-        '(function() {'
-         'try {'
-          'return new RegExp(#, # + # + #);'
-         '} catch (e) {'
-           'return e;'
-         '}'
-        '})()', source, m, i, g);
+        r'''
+          (function(source, modifiers) {
+            try {
+              return new RegExp(source, modifiers);
+            } catch (e) {
+              return e;
+            }
+          })(#, # + # + #)''',
+        source, m, i, g);
     if (JS('bool', '# instanceof RegExp', regexp)) return regexp;
     // The returned value is the JavaScript exception. Turn it into a
     // Dart exception.
     String errorMessage = JS('String', r'String(#)', regexp);
     throw new FormatException(
-        "Illegal RegExp pattern ($errorMessage)", source);
+        'Illegal RegExp pattern ($errorMessage)', source);
   }
 
   Match firstMatch(String string) {

@@ -4,6 +4,35 @@
 
 part of native;
 
+
+class HasCapturedPlaceholders extends js.BaseVisitor {
+
+  HasCapturedPlaceholders._();
+
+  static bool check(js.Node node) {
+    HasCapturedPlaceholders visitor = new HasCapturedPlaceholders._();
+    node.accept(visitor);
+    return visitor.found;
+  }
+
+  int enclosingFunctions = 0;
+  bool found = false;
+
+  @override
+  visitFun(js.Fun node) {
+    ++enclosingFunctions;
+    node.visitChildren(this);
+    --enclosingFunctions;
+  }
+
+  @override
+  visitInterpolatedNode(js.InterpolatedNode node) {
+    if (enclosingFunctions > 0) {
+      found = true;
+    }
+  }
+}
+
 class SideEffectsVisitor extends js.BaseVisitor {
   final SideEffects sideEffects;
   SideEffectsVisitor(this.sideEffects);
