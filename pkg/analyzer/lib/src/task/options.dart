@@ -126,12 +126,12 @@ class ErrorFilterOptionValidator extends OptionsValidator {
 
   @override
   void validate(ErrorReporter reporter, Map<String, YamlNode> options) {
-    YamlNode analyzer = options[AnalyzerOptions.analyzer];
+    var analyzer = options[AnalyzerOptions.analyzer];
     if (analyzer is! YamlMap) {
       return;
     }
 
-    YamlNode filters = analyzer[AnalyzerOptions.errors];
+    var filters = analyzer[AnalyzerOptions.errors];
     if (filters is YamlMap) {
       String value;
       filters.nodes.forEach((k, v) {
@@ -233,12 +233,12 @@ class LanguageOptionValidator extends OptionsValidator {
 
   @override
   void validate(ErrorReporter reporter, Map<String, YamlNode> options) {
-    YamlNode analyzer = options[AnalyzerOptions.analyzer];
+    var analyzer = options[AnalyzerOptions.analyzer];
     if (analyzer is! YamlMap) {
       return;
     }
 
-    YamlNode language = analyzer[AnalyzerOptions.language];
+    var language = analyzer[AnalyzerOptions.language];
     if (language is YamlMap) {
       language.nodes.forEach((k, v) {
         String key, value;
