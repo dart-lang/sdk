@@ -4619,8 +4619,12 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
         }
       }
       field.set_is_unboxing_candidate(false);
-      // Delay deoptimization of dependent code to the code installation time.
-      flow_graph()->deoptimize_dependent_code().Add(&field);
+      if (Compiler::IsBackgroundCompilation()) {
+        // Delay deoptimization of dependent code to the code installation time.
+        flow_graph()->deoptimize_dependent_code().Add(&field);
+      } else {
+        field.DeoptimizeDependentCode();
+      }
     } else {
       FlowGraph::AddToGuardedFields(flow_graph_->guarded_fields(), &field);
     }
