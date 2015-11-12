@@ -1345,6 +1345,9 @@ class GetHandler {
         String key = folder.shortName;
         buffer.write(makeLink(CONTEXT_PATH, {CONTEXT_QUERY_PARAM: folder.path},
             key, _hasException(folderMap[folder])));
+        if (!folder.getChild('.packages').exists) {
+          buffer.write(' <b>[No .packages file]</b>');
+        }
       });
       // TODO(brianwilkerson) Add items for the SDK contexts (currently only one).
       buffer.write('</p>');
