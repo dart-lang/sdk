@@ -17098,7 +17098,7 @@ class Geoposition extends Interceptor {
 @DocsEditable()
 @DomName('GlobalEventHandlers')
 @Experimental() // untriaged
-abstract class GlobalEventHandlers {
+abstract class GlobalEventHandlers extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory GlobalEventHandlers._() { throw new UnsupportedError("Not supported"); }
 
