@@ -326,6 +326,8 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       full.Emitter emitter = backend.emitter.emitter;
       OutputUnitInfo info = new OutputUnitInfo(
           outputUnit.name, emitter.outputBuffers[outputUnit].length);
+      info.imports.addAll(outputUnit.imports
+          .map((d) => compiler.deferredLoadTask.importDeferName[d]));
       result.outputUnits.add(info);
       return info;
     });
