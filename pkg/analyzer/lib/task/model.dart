@@ -211,7 +211,7 @@ abstract class AnalysisTask {
     } on AnalysisException catch (exception, stackTrace) {
       caughtException = new CaughtException(exception, stackTrace);
       AnalysisEngine.instance.logger
-          .logInformation("Task failed: ${description}", caughtException);
+          .logError("Task failed: ${description}", caughtException);
     }
   }
 

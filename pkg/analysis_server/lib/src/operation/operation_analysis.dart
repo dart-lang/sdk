@@ -276,7 +276,8 @@ void _sendNotification(AnalysisServer server, f()) {
     try {
       f();
     } catch (exception, stackTrace) {
-      server.sendServerErrorNotification(exception, stackTrace);
+      server.sendServerErrorNotification(
+          'Failed to send notification', exception, stackTrace);
     }
   });
 }
@@ -418,7 +419,8 @@ class PerformAnalysisOperation extends ServerOperation {
           scheduleIndexOperation(server, file, dartUnit);
         }
       } catch (exception, stackTrace) {
-        server.sendServerErrorNotification(exception, stackTrace);
+        server.sendServerErrorNotification(
+            'Failed to index Dart file: $file', exception, stackTrace);
       }
       // HTML
       try {
@@ -427,7 +429,8 @@ class PerformAnalysisOperation extends ServerOperation {
           server.addOperation(new _HtmlIndexOperation(context, file, htmlUnit));
         }
       } catch (exception, stackTrace) {
-        server.sendServerErrorNotification(exception, stackTrace);
+        server.sendServerErrorNotification(
+            'Failed to index HTML file: $file', exception, stackTrace);
       }
     }
   }
@@ -463,7 +466,8 @@ class _DartIndexOperation extends _SingleFileOperation {
         AnalysisContext context = unit.element.context;
         index.index(context, unit);
       } catch (exception, stackTrace) {
-        server.sendServerErrorNotification(exception, stackTrace);
+        server.sendServerErrorNotification(
+            'Failed to index: $file', exception, stackTrace);
       }
     });
   }

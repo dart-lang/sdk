@@ -9,7 +9,6 @@ import 'dart:collection';
 import 'dart:core' hide Resource;
 import 'dart:math' show max;
 
-import 'package:analysis_server/plugin/analysis/analyzed_files.dart';
 import 'package:analysis_server/plugin/analysis/resolver_provider.dart';
 import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/analysis_logger.dart';
@@ -318,7 +317,7 @@ class AnalysisServer {
         options.enableIncrementalResolutionValidation;
     defaultContextOptions.generateImplicitErrors = false;
     _noErrorNotification = options.noErrorNotification;
-    AnalysisEngine.instance.logger = new AnalysisLogger();
+    AnalysisEngine.instance.logger = new AnalysisLogger(this);
     _onAnalysisStartedController = new StreamController.broadcast();
     _onFileAnalyzedController = new StreamController.broadcast();
     _onPriorityChangeController =
@@ -713,7 +712,11 @@ class AnalysisServer {
         channel.sendResponse(new Response.unknownRequest(request));
       });
     }, onError: (exception, stackTrace) {
-      sendServerErrorNotification(exception, stackTrace, fatal: true);
+      sendServerErrorNotification(
+          'Failed to handle request: ${request.toJson()}',
+          exception,
+          stackTrace,
+          fatal: true);
     });
   }
 
@@ -794,12 +797,13 @@ class AnalysisServer {
     try {
       operation.perform(this);
     } catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError("${exception}\n${stackTrace}");
+      sendServerErrorNotification(
+          'Failed to perform operation: $operation', exception, stackTrace,
+          fatal: true);
       if (rethrowExceptions) {
         throw new AnalysisException('Unexpected exception during analysis',
             new CaughtException(exception, stackTrace));
       }
-      sendServerErrorNotification(exception, stackTrace, fatal: true);
       shutdown();
     } finally {
       if (_test_onOperationPerformedCompleter != null) {
@@ -889,7 +893,8 @@ class AnalysisServer {
   /**
    * Sends a `server.error` notification.
    */
-  void sendServerErrorNotification(exception, stackTrace, {bool fatal: false}) {
+  void sendServerErrorNotification(String msg, exception, stackTrace,
+      {bool fatal: false}) {
     // prepare exception.toString()
     String exceptionString;
     if (exception != null) {
@@ -897,6 +902,8 @@ class AnalysisServer {
     } else {
       exceptionString = 'null exception';
     }
+    // prepare message
+    String message = msg != null ? '$msg\n$exceptionString' : exceptionString;
     // prepare stackTrace.toString()
     String stackTraceString;
     if (stackTrace != null) {
@@ -914,7 +921,7 @@ class AnalysisServer {
     }
     // send the notification
     channel.sendNotification(
-        new ServerErrorParams(fatal, exceptionString, stackTraceString)
+        new ServerErrorParams(fatal, message, stackTraceString)
             .toNotification());
   }
 

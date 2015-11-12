@@ -453,7 +453,8 @@ class Driver implements ServerStarter {
         dynamic exception, StackTrace stackTrace) {
       service.logPriorityException(exception, stackTrace);
       AnalysisServer analysisServer = socketServer.analysisServer;
-      analysisServer.sendServerErrorNotification(exception, stackTrace);
+      analysisServer.sendServerErrorNotification(
+          'Captured exception', exception, stackTrace);
       throw exception;
     };
     Function printFunction = print == null
