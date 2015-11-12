@@ -202,7 +202,11 @@ class LibraryInfo extends BasicInfo {
 /// program unless the application uses deferred imports, in which case there
 /// would be an additional output unit per deferred chunk.
 class OutputUnitInfo extends BasicInfo {
+  /// The deferred imports that will load this output unit.
+  List<String> imports = <String>[];
+
   static int _ids = 0;
+
   OutputUnitInfo(String name, int size)
       : super(InfoKind.outputUnit, _ids++, name, null, size, null);
 

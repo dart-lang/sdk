@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.4
+- Added `imports` field for `OutputUnitInfo`
+
 ## 0.2.3
 - Moved `deferred_library_check` functionality to a library
 

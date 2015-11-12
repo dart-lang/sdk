@@ -60,6 +60,7 @@ class JsonToAllInfoConverter extends Converter<Map, AllInfo> {
     result
       ..name = json['name']
       ..size = json['size'];
+    result.imports.addAll(json['imports'] ?? const []);
     return result;
   }
 
@@ -416,7 +417,8 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
 
   visitTypedef(TypedefInfo info) => _visitBasicInfo(info)..['type'] = info.type;
 
-  visitOutput(OutputUnitInfo info) => _visitBasicInfo(info);
+  visitOutput(OutputUnitInfo info) =>
+      _visitBasicInfo(info)..['imports'] = info.imports;
 }
 
 class AllInfoJsonCodec extends Codec<AllInfo, Map> {
