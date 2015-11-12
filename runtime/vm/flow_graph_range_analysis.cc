@@ -3126,14 +3126,7 @@ bool CheckArrayBoundInstr::IsRedundant(const RangeBoundary& length) {
     return false;
   }
 
-  RangeBoundary max = CanonicalizeBoundary(
-      RangeBoundary::FromDefinition(index()->definition()),
-      RangeBoundary::PositiveInfinity());
-
-  if (max.OverflowedSmi()) {
-    return false;
-  }
-
+  RangeBoundary max = RangeBoundary::FromDefinition(index()->definition());
 
   RangeBoundary max_upper = max.UpperBound();
   RangeBoundary length_lower = length.LowerBound();

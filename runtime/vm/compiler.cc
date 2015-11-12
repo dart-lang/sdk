@@ -604,10 +604,13 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         if (FLAG_common_subexpression_elimination) {
           if (DominatorBasedCSE::Optimize(flow_graph)) {
             DEBUG_ASSERT(flow_graph->VerifyUseLists());
+            optimizer.Canonicalize();
             // Do another round of CSE to take secondary effects into account:
             // e.g. when eliminating dependent loads (a.x[0] + a.x[0])
             // TODO(fschneider): Change to a one-pass optimization pass.
-            DominatorBasedCSE::Optimize(flow_graph);
+            if (DominatorBasedCSE::Optimize(flow_graph)) {
+              optimizer.Canonicalize();
+            }
             DEBUG_ASSERT(flow_graph->VerifyUseLists());
           }
         }
