@@ -838,6 +838,16 @@ class ContextManagerImpl implements ContextManager {
             return new CustomPackageResolverDisposition(resolver);
           }
         }
+
+        // Notify server that no `.packages` file was found (and there is no
+        // alternative resolver provider).
+        //
+        // NOTE that this is a temporary measure and will be replaced with
+        // a proper call to diagnostics when support is there.
+        // https://github.com/dart-lang/sdk/issues/24900
+        AnalysisEngine.instance.logger.logError(
+            'No `.packages` for $folder, falling back to `pub`.');
+
         ServerPerformanceStatistics.pub.makeCurrentWhile(() {
           packageMapInfo = _packageMapProvider.computePackageMap(folder);
         });
