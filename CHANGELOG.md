@@ -33,6 +33,17 @@
   * Added `Timeline` class for interacting with Observatory's timeline feature.
   * Added `ServiceExtensionHandler`, `ServiceExtensionResponse`, and `registerExtension` which enable developers to provide their own VM service protocol extensions.
 
+* `dart:html`, `dart:indexed_db`, `dart:svg`, `dart:web_audio`, `dart:web_gl`, `dart:web_sql`
+  * The return type of some APIs changed from `double` to `num`. Dartium is now
+    using
+    JS interop for most operations. JS does not distinguish between numeric
+    types, and will return a number as an int if it fits in an int. This will
+    mostly cause an error if you assign to something typed `double` in
+    checked mode. You may
+    need to insert a `toDouble()` call or accept `num`. Examples of APIs that
+    are affected include `Element.getBoundingClientRect` and
+    `TextMetrics.width`.
+
 * `dart:io`
   * **Breaking:** Secure networking has changed, replacing the NSS library
     with the BoringSSL library. `SecureSocket`, `SecureServerSocket`,
@@ -75,6 +86,17 @@
 * The VM's Service Protocol has been updated to version 3.0 to take care
   of a number of issues uncovered by the first few non-observatory
   clients.  This is a potentially breaking change for clients.
+
+* Dartium has been substantially changed. Rather than using C++ calls into
+  Chromium internals for DOM operations it now uses JS interop.
+  The DOM objects in `dart:html` and related libraries now wrap
+  a JavaScript object and delegate operations to it. This should be
+  mostly transparent to users. However, performance and memory characteristics
+  may be different from previous versions. There may be some changes in which
+  DOM objects are wrapped as Dart objects. For example, if you get a reference
+  to a Window object, even through JS interop, you will always see it as a
+  Dart Window, even when used cross-frame. We expect the change to using
+  JS interop will make it much simpler to update to new Chrome versions.
 
 ## 1.12.2 - 2015-10-21
 
