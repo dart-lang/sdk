@@ -505,8 +505,8 @@ class ContextManagerImpl implements ContextManager {
     }
 
     // Analysis options are processed 'in-line'.
-    YamlMap analyzer = options[AnalyzerOptions.analyzer];
-    if (analyzer == null) {
+    YamlNode analyzer = options[AnalyzerOptions.analyzer];
+    if (analyzer is! YamlMap) {
       // No options for analyzer.
       return;
     }

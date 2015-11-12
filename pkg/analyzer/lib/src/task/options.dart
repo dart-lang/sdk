@@ -126,8 +126,8 @@ class ErrorFilterOptionValidator extends OptionsValidator {
 
   @override
   void validate(ErrorReporter reporter, Map<String, YamlNode> options) {
-    YamlMap analyzer = options[AnalyzerOptions.analyzer];
-    if (analyzer == null) {
+    YamlNode analyzer = options[AnalyzerOptions.analyzer];
+    if (analyzer is! YamlMap) {
       return;
     }
 
@@ -233,8 +233,8 @@ class LanguageOptionValidator extends OptionsValidator {
 
   @override
   void validate(ErrorReporter reporter, Map<String, YamlNode> options) {
-    YamlMap analyzer = options[AnalyzerOptions.analyzer];
-    if (analyzer == null) {
+    YamlNode analyzer = options[AnalyzerOptions.analyzer];
+    if (analyzer is! YamlMap) {
       return;
     }
 
@@ -348,25 +348,25 @@ class _OptionsProcessor {
       return;
     }
 
-    YamlMap analyzer = options[AnalyzerOptions.analyzer];
-    if (analyzer == null) {
+    var analyzer = options[AnalyzerOptions.analyzer];
+    if (analyzer is! YamlMap) {
       return;
     }
 
     // Set strong mode (default is false).
-    bool strongMode = analyzer[AnalyzerOptions.strong_mode] ?? false;
+    var strongMode = analyzer[AnalyzerOptions.strong_mode];
     setStrongMode(context, strongMode);
 
     // Set filters.
-    YamlNode filters = analyzer[AnalyzerOptions.errors];
+    var filters = analyzer[AnalyzerOptions.errors];
     setFilters(context, filters);
 
     // Process language options.
-    YamlNode language = analyzer[AnalyzerOptions.language];
+    var language = analyzer[AnalyzerOptions.language];
     setLanguageOptions(context, language);
   }
 
-  void setFilters(AnalysisContext context, YamlNode codes) {
+  void setFilters(AnalysisContext context, Object codes) {
     List<ErrorFilter> filters = <ErrorFilter>[];
     // If codes are enumerated, collect them as filters; else leave filters
     // empty to overwrite previous value.
@@ -386,7 +386,7 @@ class _OptionsProcessor {
     context.setConfigurationData(CONFIGURED_ERROR_FILTERS, filters);
   }
 
-  void setLanguageOptions(AnalysisContext context, YamlNode configs) {
+  void setLanguageOptions(AnalysisContext context, Object configs) {
     if (configs is YamlMap) {
       configs.nodes.forEach((k, v) {
         String feature;
@@ -413,11 +413,12 @@ class _OptionsProcessor {
     }
   }
 
-  void setStrongMode(AnalysisContext context, bool strongMode) {
-    if (context.analysisOptions.strongMode != strongMode) {
+  void setStrongMode(AnalysisContext context, Object strongMode) {
+    bool strong = strongMode is bool ? strongMode : false;
+    if (context.analysisOptions.strongMode != strong) {
       AnalysisOptionsImpl options =
           new AnalysisOptionsImpl.from(context.analysisOptions);
-      options.strongMode = strongMode;
+      options.strongMode = strong;
       context.analysisOptions = options;
     }
   }

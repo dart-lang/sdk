@@ -78,21 +78,21 @@ linter:
       var optionsProvider = new AnalysisOptionsProvider();
       Map<String, YamlNode> options =
           optionsProvider.getOptions(resourceProvider.getFolder('/'));
-      expect(options.length, equals(1));
+      expect(options, hasLength(1));
       expect(options['analyzer'], isNotNull);
       YamlMap analyzer = options['analyzer'];
-      expect(analyzer.length, equals(1));
+      expect(analyzer, hasLength(1));
       expect(analyzer['ignore'], isNotNull);
       YamlList ignore = analyzer['ignore'];
-      expect(ignore.length, equals(2));
-      expect(ignore[0], equals('ignoreme.dart'));
-      expect(ignore[1], equals('sdk_ext/**'));
+      expect(ignore, hasLength(2));
+      expect(ignore[0], 'ignoreme.dart');
+      expect(ignore[1], 'sdk_ext/**');
     });
     test('test_doesnotexist', () {
       var optionsProvider = new AnalysisOptionsProvider();
       Map<String, YamlNode> options =
           optionsProvider.getOptions(resourceProvider.getFolder('/empty'));
-      expect(options.length, equals(0));
+      expect(options, isEmpty);
     });
   });
   group('AnalysisOptionsProvider', () {
@@ -130,22 +130,28 @@ linter:
     });
   });
   group('AnalysisOptionsProvider', () {
-    test('test_bad_yaml', () {
+    test('test_bad_yaml (1)', () {
       var src = '''
-      analyzer:
-  exclude:
-    - test/data/*
-  error:
-    invalid_assignment: ignore
-    unused_local_variable: # <=== bang
-linter:
-  rules:
-    - camel_case_types
+    analyzer: # <= bang
+strong-mode: true
 ''';
 
       var optionsProvider = new AnalysisOptionsProvider();
       expect(() => optionsProvider.getOptionsFromString(src),
           throwsA(new isInstanceOf<OptionsFormatException>()));
+    });
+
+    test('test_bad_yaml (2)', () {
+      var src = '''
+analyzer:
+  strong-mode:true # missing space (sdk/issues/24885)
+''';
+
+      var optionsProvider = new AnalysisOptionsProvider();
+      // Should not throw an exception.
+      var options = optionsProvider.getOptionsFromString(src);
+      // Should return a non-null options list.
+      expect(options, isNotNull);
     });
   });
 }

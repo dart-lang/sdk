@@ -93,6 +93,22 @@ analyzer:
 ''');
     expect(analysisOptions.strongMode, true);
   }
+
+  test_configure_strong_mode_bad_value() {
+    configureContext('''
+analyzer:
+  strong-mode: foo
+''');
+    expect(analysisOptions.strongMode, false);
+  }
+
+  test_configure_bad_options_contents() {
+    configureContext('''
+analyzer:
+  strong-mode:true # misformatted
+''');
+    expect(analysisOptions.strongMode, false);
+  }
 }
 
 @reflectiveTest

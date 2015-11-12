@@ -54,14 +54,24 @@ class AnalysisOptionsProvider {
           doc.span);
     }
     if (doc is YamlMap) {
-      (doc as YamlMap).forEach((k, v) {
-        if (k is! String) {
+      (doc as YamlMap).nodes.forEach((k, v) {
+        var key;
+        if (k is YamlScalar) {
+          key = k.value;
+        }
+        if (key is! String) {
           throw new OptionsFormatException(
               'Bad options file format (expected String scope key, '
               'got ${k.runtimeType})',
               k != null ? k.span : doc.span);
         }
-        options[k] = v;
+        if (v != null && v is! YamlNode) {
+          throw new OptionsFormatException(
+              'Bad options file format (expected Node value, '
+                  'got ${v.runtimeType}: `${v.toString()}`)',
+              doc.span);
+        }
+        options[key] = v;
       });
     }
     return options;
