@@ -882,7 +882,7 @@ Note: currently only implemented for dart2js.''',
    */
   _TestOptionSpecification _getSpecification(String name) {
     for (var option in _options) {
-      if (option.keys.any((key) => key == name)) {
+      if (option.keys.contains(name)) {
         return option;
       }
     }

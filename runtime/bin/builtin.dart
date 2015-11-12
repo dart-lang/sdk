@@ -44,9 +44,9 @@ _getCurrentDirectoryPath() native "Builtin_GetCurrentDirectory";
 Uri _uriBase() {
   // We are not using Dircetory.current here to limit the dependency
   // on dart:io. This code is the same as:
-  //   return new Uri.file(Directory.current.path + "/");
-  var result = _getCurrentDirectoryPath();
-  return new Uri.file("$result/");
+  //   return new Uri.directory(Directory.current.path);
+  var path = _getCurrentDirectoryPath();
+  return new Uri.directory(path);
 }
 
 

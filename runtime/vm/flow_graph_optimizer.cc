@@ -177,9 +177,6 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     // Do not make the instance call megamorphic if the callee needs to decode
     // the calling code sequence to lookup the ic data and verify if a warning
     // has already been issued or not.
-    // TryCreateICData is only invoked if the ic_data target has not been called
-    // yet, so no warning can possibly have been issued.
-    ASSERT(!call->ic_data()->IssuedJSWarning());
     if (call->ic_data()->MayCheckForJSWarning()) {
       return false;
     }
