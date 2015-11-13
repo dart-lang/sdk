@@ -470,16 +470,8 @@ class ContextManagerImpl implements ContextManager {
     Map<String, YamlNode> options;
     try {
       options = analysisOptionsProvider.getOptions(folder);
-    } catch (e, stacktrace) {
-      AnalysisEngine.instance.logger.logError(
-          'Error processing .analysis_options',
-          new CaughtException(e, stacktrace));
-      // TODO(pquitslund): contribute plugin that sends error notification on
-      // options file.
-      // Related test:
-      //   context_manager_test.test_analysis_options_parse_failure()
-      // AnalysisEngine.instance.optionsPlugin.optionsProcessors
-      //      .forEach((OptionsProcessor p) => p.onError(e));
+    } catch (_) {
+      // Parse errors are reported by GenerateOptionsErrorsTask.
     }
 
     if (options == null && !optionsRemoved) {
@@ -838,7 +830,7 @@ class ContextManagerImpl implements ContextManager {
             return new CustomPackageResolverDisposition(resolver);
           }
         }
-        
+
         ServerPerformanceStatistics.pub.makeCurrentWhile(() {
           packageMapInfo = _packageMapProvider.computePackageMap(folder);
         });
