@@ -128,7 +128,8 @@ class CircularTypeImpl extends DynamicTypeImpl {
 /**
  * An element that represents a class.
  */
-abstract class ClassElement implements TypeDefiningElement {
+abstract class ClassElement
+    implements TypeDefiningElement, TypeParameterizedElement {
   /**
    * An empty list of class elements.
    */
@@ -267,12 +268,6 @@ abstract class ClassElement implements TypeDefiningElement {
 
   @override
   InterfaceType get type;
-
-  /**
-   * Return a list containing all of the type parameters declared for this
-   * class.
-   */
-  List<TypeParameterElement> get typeParameters;
 
   /**
    * Return the unnamed constructor declared in this class, or `null` if this
@@ -1142,11 +1137,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
         }
         implicitConstructor.parameters = implicitParameters;
       }
-      FunctionTypeImpl constructorType =
-          new FunctionTypeImpl(implicitConstructor);
-      constructorType.typeArguments = type.typeArguments;
-      implicitConstructor.type = constructorType;
       implicitConstructor.enclosingElement = this;
+      implicitConstructor.type = new FunctionTypeImpl(implicitConstructor);
       return implicitConstructor;
     }).toList();
   }
@@ -3582,7 +3574,7 @@ class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl
  * An element representing an executable object, including functions, methods,
  * constructors, getters, and setters.
  */
-abstract class ExecutableElement implements Element {
+abstract class ExecutableElement implements TypeParameterizedElement {
   /**
    * An empty list of executable elements.
    */
@@ -3676,12 +3668,6 @@ abstract class ExecutableElement implements Element {
    * Return the type of function defined by this executable element.
    */
   FunctionType get type;
-
-  /**
-   * Return a list containing all of the type parameters defined for this
-   * executable element.
-   */
-  List<TypeParameterElement> get typeParameters;
 }
 
 /**
@@ -4658,7 +4644,8 @@ abstract class FunctionType implements ParameterizedType {
 /**
  * A function type alias (`typedef`).
  */
-abstract class FunctionTypeAliasElement implements TypeDefiningElement {
+abstract class FunctionTypeAliasElement
+    implements TypeDefiningElement, TypeParameterizedElement {
   /**
    * An empty array of type alias elements.
    */
@@ -4683,11 +4670,6 @@ abstract class FunctionTypeAliasElement implements TypeDefiningElement {
 
   @override
   FunctionType get type;
-
-  /**
-   * Return a list containing all of the type parameters defined for this type.
-   */
-  List<TypeParameterElement> get typeParameters;
 
   /**
    * Return the resolved function type alias node that declares this element.
@@ -4869,9 +4851,9 @@ class FunctionTypeAliasElementImpl extends ElementImpl
  */
 class FunctionTypeImpl extends TypeImpl implements FunctionType {
   /**
-   * A list containing the actual types of the type arguments.
+   * The list of [typeArguments].
    */
-  List<DartType> typeArguments = DartType.EMPTY_LIST;
+  List<DartType> _typeArguments = DartType.EMPTY_LIST;
 
   /**
    * The set of typedefs which should not be expanded when exploring this type,
@@ -4881,10 +4863,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   /**
    * Initialize a newly created function type to be declared by the given
-   * [element].
+   * [element], and also initialize [typeArguments] to match the
+   * [typeParameters], which permits later substitution.
    */
-  FunctionTypeImpl(ExecutableElement element, [this.prunedTypedefs])
-      : super(element, null);
+  FunctionTypeImpl(ExecutableElement element,
+      [List<FunctionTypeAliasElement> prunedTypedefs])
+      : this._(element, null, prunedTypedefs, null);
 
   /**
    * Initialize a newly created function type to be declared by the given
@@ -4906,14 +4890,31 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * [element].
    */
   FunctionTypeImpl.forTypedef(FunctionTypeAliasElement element,
-      [this.prunedTypedefs])
-      : super(element, element == null ? null : element.name);
+      [List<FunctionTypeAliasElement> prunedTypedefs])
+      : this._(element, element?.name, prunedTypedefs, null);
 
   /**
    * Private constructor.
    */
-  FunctionTypeImpl._(Element element, String name, this.prunedTypedefs)
-      : super(element, name);
+  FunctionTypeImpl._(Element element, String name, this.prunedTypedefs,
+      List<DartType> typeArguments)
+      : super(element, name) {
+    if (typeArguments != null) {
+      _typeArguments = typeArguments;
+    } else {
+      List<TypeParameterElement> typeParameters = this.typeParameters;
+      // TODO(jmesserly): reuse TypeParameterTypeImpl.getTypes once we can
+      // make it generic, which will allow it to return List<DartType> instead
+      // of List<TypeParameterType>.
+      if (typeParameters.isEmpty) {
+        _typeArguments = DartType.EMPTY_LIST;
+      } else {
+        _typeArguments = new List<DartType>.from(
+            typeParameters.map((t) => t.type),
+            growable: false);
+      }
+    }
+  }
 
   /**
    * Return the base parameter elements of this function element.
@@ -5165,18 +5166,23 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         TypeParameterTypeImpl.getTypes(typeParameters), newPrune);
   }
 
+  /**
+   * A list containing the actual types of the type arguments.
+   */
+  List<DartType> get typeArguments => _typeArguments;
+
   @override
   List<TypeParameterElement> get typeParameters {
-    Element element = this.element;
-    if (element is FunctionTypeAliasElement) {
-      return element.typeParameters;
+    // Combine the generic type arguments from all enclosing contexts.
+    // For example, this could be a generic method in a class, or a local
+    // function within another function.
+    List<TypeParameterElement> typeParams = <TypeParameterElement>[];
+    for (Element e = element; e != null; e = e.enclosingElement) {
+      if (e is TypeParameterizedElement) {
+        typeParams.addAll(e.typeParameters);
+      }
     }
-    ClassElement definingClass =
-        element.getAncestor((element) => element is ClassElement);
-    if (definingClass != null) {
-      return definingClass.typeParameters;
-    }
-    return TypeParameterElement.EMPTY_LIST;
+    return typeParams;
   }
 
   @override
@@ -5502,10 +5508,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       // alias, and function type aliases are always expanded by starting with
       // base types.
       assert(this.prunedTypedefs == null);
-      FunctionTypeImpl result = new FunctionTypeImpl._(element, name, prune);
-      result.typeArguments =
-          typeArguments.map((TypeImpl t) => t.pruned(prune)).toList();
-      return result;
+      List<DartType> typeArgs = typeArguments
+          .map((TypeImpl t) => t.pruned(prune))
+          .toList(growable: false);
+      return new FunctionTypeImpl._(element, name, prune, typeArgs);
     }
   }
 
@@ -5513,7 +5519,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]) {
-    // Pruned types should only ever result from peforming type variable
+    // Pruned types should only ever result from performing type variable
     // substitution, and it doesn't make sense to substitute again after
     // substituting once.
     assert(this.prunedTypedefs == null);
@@ -5529,13 +5535,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (argumentTypes.length == 0) {
       return this.pruned(prune);
     }
-    FunctionTypeImpl newType = (element is ExecutableElement)
-        ? new FunctionTypeImpl(element, prune)
-        : new FunctionTypeImpl.forTypedef(
-            element as FunctionTypeAliasElement, prune);
-    newType.typeArguments =
+    List<DartType> typeArgs =
         TypeImpl.substitute(typeArguments, argumentTypes, parameterTypes);
-    return newType;
+    return new FunctionTypeImpl._(element, name, prune, typeArgs);
   }
 
   @override
@@ -8350,6 +8352,7 @@ abstract class Member implements Element {
    * Return the list of types that results from replacing the type parameters in
    * the given [types] with the type arguments associated with this member.
    */
+  @deprecated
   List<InterfaceType> substituteFor2(List<InterfaceType> types) {
     int count = types.length;
     List<InterfaceType> substitutedTypes = new List<InterfaceType>(count);
@@ -10531,6 +10534,20 @@ class TypeParameterElementImpl extends ElementImpl
       buffer.write(bound);
     }
   }
+}
+
+/**
+ * An element that has type parameters.
+ *
+ * For example, a class or a typedef. This also includes functions and methods
+ * if support for generic methods is enabled.
+ */
+abstract class TypeParameterizedElement implements Element {
+  /**
+   * Return a list containing all of the type parameters declared for this
+   * class.
+   */
+  List<TypeParameterElement> get typeParameters;
 }
 
 /**

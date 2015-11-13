@@ -3259,6 +3259,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     AnalysisOptions options = context.analysisOptions;
     parser.parseFunctionBodies = options.analyzeFunctionBodiesPredicate(source);
     parser.parseGenericMethods = options.enableGenericMethods;
+    parser.parseGenericMethodComments = options.strongMode;
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;
 
@@ -4437,6 +4438,7 @@ class ScanDartTask extends SourceBasedAnalysisTask {
           errorListener);
       scanner.setSourceStart(fragment.line, fragment.column);
       scanner.preserveComments = context.analysisOptions.preserveComments;
+      scanner.scanGenericMethodComments = context.analysisOptions.strongMode;
 
       outputs[TOKEN_STREAM] = scanner.tokenize();
       outputs[LINE_INFO] = new LineInfo(scanner.lineStarts);
@@ -4447,6 +4449,7 @@ class ScanDartTask extends SourceBasedAnalysisTask {
       Scanner scanner =
           new Scanner(source, new CharSequenceReader(content), errorListener);
       scanner.preserveComments = context.analysisOptions.preserveComments;
+      scanner.scanGenericMethodComments = context.analysisOptions.strongMode;
 
       outputs[TOKEN_STREAM] = scanner.tokenize();
       outputs[LINE_INFO] = new LineInfo(scanner.lineStarts);

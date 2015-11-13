@@ -2553,13 +2553,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   bool _isValidMixin = false;
 
   /**
-   * A collection holding the function types defined in a class that need to have their type
-   * arguments set to the types of the type parameters for the class, or `null` if we are not
-   * currently processing nodes within a class.
-   */
-  List<FunctionTypeImpl> _functionTypesToFix = null;
-
-  /**
    * A table mapping field names to field elements for the fields defined in the current class, or
    * `null` if we are not in the scope of a class.
    */
@@ -2614,7 +2607,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitClassDeclaration(ClassDeclaration node) {
     ElementHolder holder = new ElementHolder();
     _isValidMixin = true;
-    _functionTypesToFix = new List<FunctionTypeImpl>();
     //
     // Process field declarations before constructors and methods so that field
     // formal parameters can be correctly resolved to their fields.
@@ -2655,11 +2647,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     element.methods = holder.methods;
     element.typeParameters = typeParameters;
     element.validMixin = _isValidMixin;
-    int functionTypeCount = _functionTypesToFix.length;
-    for (int i = 0; i < functionTypeCount; i++) {
-      _functionTypesToFix[i].typeArguments = typeArguments;
-    }
-    _functionTypesToFix = null;
     _currentHolder.addType(element);
     className.staticElement = element;
     _fieldMap = null;
@@ -2683,7 +2670,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     ElementHolder holder = new ElementHolder();
-    _functionTypesToFix = new List<FunctionTypeImpl>();
     _visitChildren(holder, node);
     SimpleIdentifier className = node.name;
     ClassElementImpl element = new ClassElementImpl.forNode(className);
@@ -2695,11 +2681,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
     interfaceType.typeArguments = typeArguments;
     element.type = interfaceType;
-    // set default constructor
-    for (FunctionTypeImpl functionType in _functionTypesToFix) {
-      functionType.typeArguments = typeArguments;
-    }
-    _functionTypesToFix = null;
     _currentHolder.addType(element);
     className.staticElement = element;
     holder.validate();
@@ -3038,11 +3019,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         element.setVisibleRange(functionEnd, blockEnd - functionEnd - 1);
       }
     }
-    FunctionTypeImpl type = new FunctionTypeImpl(element);
-    if (_functionTypesToFix != null) {
-      _functionTypesToFix.add(type);
-    }
-    element.type = type;
+    element.type = new FunctionTypeImpl(element);
     element.hasImplicitReturnType = true;
     _currentHolder.addFunction(element);
     node.element = element;
@@ -3062,9 +3039,8 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     _setDocRange(element, node);
     element.parameters = parameters;
     element.typeParameters = typeParameters;
-    FunctionTypeImpl type = new FunctionTypeImpl.forTypedef(element);
-    type.typeArguments = _createTypeParameterTypes(typeParameters);
-    element.type = type;
+    _createTypeParameterTypes(typeParameters);
+    element.type = new FunctionTypeImpl.forTypedef(element);
     _currentHolder.addTypeAlias(element);
     aliasName.staticElement = element;
     holder.validate();
@@ -3451,9 +3427,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         new ConstructorElementImpl.forNode(null);
     constructor.synthetic = true;
     constructor.returnType = interfaceType;
-    FunctionTypeImpl type = new FunctionTypeImpl(constructor);
-    _functionTypesToFix.add(type);
-    constructor.type = type;
+    constructor.type = new FunctionTypeImpl(constructor);
     return <ConstructorElement>[constructor];
   }
 
@@ -14060,9 +14034,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     } else {
       ClassElement definingClass = element.enclosingElement as ClassElement;
       element.returnType = definingClass.type;
-      FunctionTypeImpl type = new FunctionTypeImpl(element);
-      type.typeArguments = definingClass.type.typeArguments;
-      element.type = type;
+      element.type = new FunctionTypeImpl(element);
     }
     return null;
   }
@@ -14130,13 +14102,7 @@ class TypeResolverVisitor extends ScopedVisitor {
           new CaughtException(new AnalysisException(), null));
     }
     element.returnType = _computeReturnType(node.returnType);
-    FunctionTypeImpl type = new FunctionTypeImpl(element);
-    ClassElement definingClass =
-        element.getAncestor((element) => element is ClassElement);
-    if (definingClass != null) {
-      type.typeArguments = definingClass.type.typeArguments;
-    }
-    element.type = type;
+    element.type = new FunctionTypeImpl(element);
     return null;
   }
 
@@ -14184,21 +14150,15 @@ class TypeResolverVisitor extends ScopedVisitor {
           new CaughtException(new AnalysisException(), null));
     }
     element.returnType = _computeReturnType(node.returnType);
-    FunctionTypeImpl type = new FunctionTypeImpl(element);
-    ClassElement definingClass =
-        element.getAncestor((element) => element is ClassElement);
-    if (definingClass != null) {
-      type.typeArguments = definingClass.type.typeArguments;
-    }
-    element.type = type;
+    element.type = new FunctionTypeImpl(element);
     if (element is PropertyAccessorElement) {
       PropertyAccessorElement accessor = element as PropertyAccessorElement;
       PropertyInducingElementImpl variable =
           accessor.variable as PropertyInducingElementImpl;
       if (accessor.isGetter) {
-        variable.type = type.baseReturnType;
+        variable.type = element.returnType;
       } else if (variable.type == null) {
-        List<ParameterElement> parameters = type.baseParameters;
+        List<ParameterElement> parameters = element.parameters;
         if (parameters != null && parameters.length > 0) {
           variable.type = parameters[0].type;
         }
@@ -14539,13 +14499,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         PropertyAccessorElementImpl getter =
             variableElement.getter as PropertyAccessorElementImpl;
         getter.returnType = declaredType;
-        FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
-        ClassElement definingClass =
-            element.getAncestor((element) => element is ClassElement);
-        if (definingClass != null) {
-          getterType.typeArguments = definingClass.type.typeArguments;
-        }
-        getter.type = getterType;
+        getter.type = new FunctionTypeImpl(getter);
         PropertyAccessorElementImpl setter =
             variableElement.setter as PropertyAccessorElementImpl;
         if (setter != null) {
@@ -14554,11 +14508,7 @@ class TypeResolverVisitor extends ScopedVisitor {
             (parameters[0] as ParameterElementImpl).type = declaredType;
           }
           setter.returnType = VoidTypeImpl.instance;
-          FunctionTypeImpl setterType = new FunctionTypeImpl(setter);
-          if (definingClass != null) {
-            setterType.typeArguments = definingClass.type.typeArguments;
-          }
-          setter.type = setterType;
+          setter.type = new FunctionTypeImpl(setter);
         }
       }
     } else {
@@ -14979,12 +14929,10 @@ class TypeResolverVisitor extends ScopedVisitor {
     // compilation unit element.
     aliasElement.enclosingElement =
         element.getAncestor((element) => element is CompilationUnitElement);
-    FunctionTypeImpl type = new FunctionTypeImpl.forTypedef(aliasElement);
     ClassElement definingClass =
         element.getAncestor((element) => element is ClassElement);
     if (definingClass != null) {
       aliasElement.shareTypeParameters(definingClass.typeParameters);
-      type.typeArguments = definingClass.type.typeArguments;
     } else {
       FunctionTypeAliasElement alias =
           element.getAncestor((element) => element is FunctionTypeAliasElement);
@@ -14994,12 +14942,9 @@ class TypeResolverVisitor extends ScopedVisitor {
       }
       if (alias != null) {
         aliasElement.typeParameters = alias.typeParameters;
-        type.typeArguments = alias.type.typeArguments;
-      } else {
-        type.typeArguments = DartType.EMPTY_LIST;
       }
     }
-    element.type = type;
+    element.type = new FunctionTypeImpl.forTypedef(aliasElement);
   }
 
   /**

@@ -27,11 +27,11 @@ void setParameterType(PropertyAccessorElement element, DartType type) {
       //
       // Update the type of the setter to reflect the new parameter type.
       //
+      // TODO(jmesserly): why is this necessary? The function type should always
+      // delegate to the orginal element.
       FunctionType functionType = element.type;
       if (functionType is FunctionTypeImpl) {
-        element.type =
-            new FunctionTypeImpl(element, functionType.prunedTypedefs)
-              ..typeArguments = functionType.typeArguments;
+        element.type = new FunctionTypeImpl(element);
       } else {
         assert(false);
       }
@@ -53,11 +53,12 @@ void setReturnType(ExecutableElement element, DartType type) {
     // Update the return type of the element, which is stored in two places:
     // directly in the element and indirectly in the type of the element.
     //
+    // TODO(jmesserly): why is this necessary? The function type should always
+    // delegate to the orginal element.
     element.returnType = type;
     FunctionType functionType = element.type;
     if (functionType is FunctionTypeImpl) {
-      element.type = new FunctionTypeImpl(element, functionType.prunedTypedefs)
-        ..typeArguments = functionType.typeArguments;
+      element.type = new FunctionTypeImpl(element);
     } else {
       assert(false);
     }
