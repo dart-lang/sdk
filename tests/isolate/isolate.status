@@ -18,7 +18,7 @@ ping_test: Skip           # Resolve test issues
 ping_pause_test: Skip     # Resolve test issues
 kill3_test: Pass, Fail    # Bad test: expects total message order
 
-message3_test/int32x4: Crash # Issue 21818
+message3_test/int32x4: Crash, Timeout # Issue 21818
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 *: Skip # Isolate tests are timing out flakily on Android content_shell.  Issue 19795

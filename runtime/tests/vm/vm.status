@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # These tests are expected to crash on all platforms.
-cc/ArrayNew_Overflow_Crash: Crash
+cc/ArrayNew_Overflow_Crash: Crash, Timeout
 cc/AllocGeneric_Overflow: Crash, Timeout
 cc/CodeImmutability: Crash
 
