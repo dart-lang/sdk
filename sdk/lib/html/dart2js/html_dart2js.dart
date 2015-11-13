@@ -17095,10 +17095,19 @@ class Geoposition extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 
+// We implement EventTarget and have stubs for its methods because it's tricky to
+// convince the scripts to make our instance methods abstract, and the bodies that
+// get generated require `this` to be an EventTarget.
 @DocsEditable()
 @DomName('GlobalEventHandlers')
 @Experimental() // untriaged
-abstract class GlobalEventHandlers extends EventTarget {
+abstract class GlobalEventHandlers implements EventTarget {
+
+  void addEventListener(String type, dynamic listener(Event event), [bool useCapture]);
+  bool dispatchEvent(Event event);
+  void removeEventListener(String type, dynamic listener(Event event), [bool useCapture]);
+  Events get on;
+
   // To suppress missing implicit constructor warnings.
   factory GlobalEventHandlers._() { throw new UnsupportedError("Not supported"); }
 

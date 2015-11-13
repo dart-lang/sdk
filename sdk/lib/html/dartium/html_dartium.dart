@@ -19102,10 +19102,19 @@ class Geoposition extends DartHtmlDomObject {
 // BSD-style license that can be found in the LICENSE file.
 
 
+// We implement EventTarget and have stubs for its methods because it's tricky to
+// convince the scripts to make our instance methods abstract, and the bodies that
+// get generated require `this` to be an EventTarget.
 @DocsEditable()
 @DomName('GlobalEventHandlers')
 @Experimental() // untriaged
-abstract class GlobalEventHandlers extends EventTarget {
+abstract class GlobalEventHandlers implements EventTarget {
+
+  void addEventListener(String type, dynamic listener(Event event), [bool useCapture]);
+  bool dispatchEvent(Event event);
+  void removeEventListener(String type, dynamic listener(Event event), [bool useCapture]);
+  Events get on;
+
   // To suppress missing implicit constructor warnings.
   factory GlobalEventHandlers._() { throw new UnsupportedError("Not supported"); }
 
@@ -37614,10 +37623,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
