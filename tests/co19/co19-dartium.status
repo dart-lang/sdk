@@ -30,6 +30,7 @@ LibTest/html/IFrameElement/IFrameElement.created_A01_t01: RuntimeError # Issue 2
 LibTest/html/Window/requestFileSystem_A02_t01: Skip # Issue 24585.
 LibTest/html/Window/document_A01_t01: Skip # accesses window.document from a cross-frame window
 WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: Skip # accesses window.document from a cross-frame window
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Pass, Fail # https://github.com/dart-lang/co19/issues/12
 
 [ $compiler == none && $runtime == dartium && $checked ]
 LayoutTests/fast/css/style-scoped/style-scoped-scoping-nodes-different-order_t01: RuntimeError # Dartium JSInterop failure
