@@ -7,6 +7,7 @@ library test.src.serialization.elements_test;
 import 'dart:typed_data';
 
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/builder.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -93,6 +94,14 @@ abstract class SummaryTest {
    * Get access to the "unlinked" section of the summary.
    */
   UnlinkedLibrary get unlinked => lib.unlinked;
+
+  /**
+   * Convert [path] to a suitably formatted absolute path URI for the current
+   * platform.
+   */
+  String absUri(String path) {
+    return FileUtilities2.createFile(path).toURI().toString();
+  }
 
   /**
    * Add the given source file so that it may be referenced by the file under
@@ -245,7 +254,7 @@ abstract class SummaryTest {
     serializeLibraryText('import "foo.dart";', allowErrors: true);
     // Second import is the implicit import of dart:core
     expect(unlinked.imports, hasLength(2));
-    checkDependency(lib.importDependencies[0], 'file:///foo.dart', 'foo.dart');
+    checkDependency(lib.importDependencies[0], absUri('/foo.dart'), 'foo.dart');
   }
 
   /**
@@ -779,58 +788,59 @@ class E {}
     addNamedSource('/a.dart', 'library a; export "b.dart";');
     addNamedSource('/b.dart', 'library b;');
     serializeLibraryText('export "a.dart";');
-    checkLacksDependency('file:///a.dart', 'a.dart');
-    checkLacksDependency('file:///b.dart', 'b.dart');
+    checkLacksDependency(absUri('/a.dart'), 'a.dart');
+    checkLacksDependency(absUri('/b.dart'), 'b.dart');
   }
 
   test_dependencies_import_to_export() {
     addNamedSource('/a.dart', 'library a; export "b.dart"; class A {}');
     addNamedSource('/b.dart', 'library b;');
     serializeLibraryText('import "a.dart"; A a;');
-    checkHasDependency('file:///a.dart', 'a.dart');
+    checkHasDependency(absUri('/a.dart'), 'a.dart');
     // The main test library depends on b.dart, because names defined in
     // b.dart are exported by a.dart.
-    checkHasDependency('file:///b.dart', 'b.dart');
+    checkHasDependency(absUri('/b.dart'), 'b.dart');
   }
 
   test_dependencies_import_to_export_in_subdirs_absolute_export() {
-    addNamedSource('/a/a.dart', 'library a; export "/a/b/b.dart"; class A {}');
+    addNamedSource('/a/a.dart',
+        'library a; export "${absUri('/a/b/b.dart')}"; class A {}');
     addNamedSource('/a/b/b.dart', 'library b;');
     serializeLibraryText('import "a/a.dart"; A a;');
-    checkHasDependency('file:///a/a.dart', 'a/a.dart');
+    checkHasDependency(absUri('/a/a.dart'), 'a/a.dart');
     // The main test library depends on b.dart, because names defined in
     // b.dart are exported by a.dart.
-    checkHasDependency('file:///a/b/b.dart', '/a/b/b.dart');
+    checkHasDependency(absUri('/a/b/b.dart'), '/a/b/b.dart');
   }
 
   test_dependencies_import_to_export_in_subdirs_absolute_import() {
     addNamedSource('/a/a.dart', 'library a; export "b/b.dart"; class A {}');
     addNamedSource('/a/b/b.dart', 'library b;');
-    serializeLibraryText('import "/a/a.dart"; A a;');
-    checkHasDependency('file:///a/a.dart', '/a/a.dart');
+    serializeLibraryText('import "${absUri('/a/a.dart')}"; A a;');
+    checkHasDependency(absUri('/a/a.dart'), '/a/a.dart');
     // The main test library depends on b.dart, because names defined in
     // b.dart are exported by a.dart.
-    checkHasDependency('file:///a/b/b.dart', '/a/b/b.dart');
+    checkHasDependency(absUri('/a/b/b.dart'), '/a/b/b.dart');
   }
 
   test_dependencies_import_to_export_in_subdirs_relative() {
     addNamedSource('/a/a.dart', 'library a; export "b/b.dart"; class A {}');
     addNamedSource('/a/b/b.dart', 'library b;');
     serializeLibraryText('import "a/a.dart"; A a;');
-    checkHasDependency('file:///a/a.dart', 'a/a.dart');
+    checkHasDependency(absUri('/a/a.dart'), 'a/a.dart');
     // The main test library depends on b.dart, because names defined in
     // b.dart are exported by a.dart.
-    checkHasDependency('file:///a/b/b.dart', 'a/b/b.dart');
+    checkHasDependency(absUri('/a/b/b.dart'), 'a/b/b.dart');
   }
 
   test_dependencies_import_to_export_loop() {
     addNamedSource('/a.dart', 'library a; export "b.dart"; class A {}');
     addNamedSource('/b.dart', 'library b; export "a.dart";');
     serializeLibraryText('import "a.dart"; A a;');
-    checkHasDependency('file:///a.dart', 'a.dart');
+    checkHasDependency(absUri('/a.dart'), 'a.dart');
     // Serialization should have been able to walk the transitive export
     // dependencies to b.dart without going into an infinite loop.
-    checkHasDependency('file:///b.dart', 'b.dart');
+    checkHasDependency(absUri('/b.dart'), 'b.dart');
   }
 
   test_dependencies_import_to_export_transitive_closure() {
@@ -838,10 +848,10 @@ class E {}
     addNamedSource('/b.dart', 'library b; export "c.dart";');
     addNamedSource('/c.dart', 'library c;');
     serializeLibraryText('import "a.dart"; A a;');
-    checkHasDependency('file:///a.dart', 'a.dart');
+    checkHasDependency(absUri('/a.dart'), 'a.dart');
     // The main test library depends on c.dart, because names defined in
     // c.dart are exported by b.dart and then re-exported by a.dart.
-    checkHasDependency('file:///c.dart', 'c.dart');
+    checkHasDependency(absUri('/c.dart'), 'c.dart');
   }
 
   test_dependencies_import_transitive_closure() {
@@ -849,10 +859,10 @@ class E {}
         '/a.dart', 'library a; import "b.dart"; class A extends B {}');
     addNamedSource('/b.dart', 'library b; class B {}');
     serializeLibraryText('import "a.dart"; A a;');
-    checkHasDependency('file:///a.dart', 'a.dart');
+    checkHasDependency(absUri('/a.dart'), 'a.dart');
     // The main test library doesn't depend on b.dart, because no change to
     // b.dart can possibly affect the serialized element model for it.
-    checkLacksDependency('file:///b.dart', 'b.dart');
+    checkLacksDependency(absUri('/b.dart'), 'b.dart');
   }
 
   test_elements_in_part() {
@@ -1222,7 +1232,7 @@ typedef F();
     // part declaration for bar.dart refers to a non-existent file.
     addNamedSource('/foo.dart', 'part "bar.dart"; class C {}');
     serializeLibraryText('import "foo.dart"; C x;');
-    checkTypeRef(findVariable('x').type, 'file:///foo.dart', 'foo.dart', 'C');
+    checkTypeRef(findVariable('x').type, absUri('/foo.dart'), 'foo.dart', 'C');
   }
 
   test_import_of_missing_export() {
@@ -1230,7 +1240,7 @@ typedef F();
     // re-export of bar.dart refers to a non-existent file.
     addNamedSource('/foo.dart', 'export "bar.dart"; class C {}');
     serializeLibraryText('import "foo.dart"; C x;');
-    checkTypeRef(findVariable('x').type, 'file:///foo.dart', 'foo.dart', 'C');
+    checkTypeRef(findVariable('x').type, absUri('/foo.dart'), 'foo.dart', 'C');
   }
 
   test_import_offset() {
@@ -1442,7 +1452,7 @@ class C {
     addNamedSource('/a.dart', 'library a; export "b.dart";');
     addNamedSource('/b.dart', 'library b; class C {}');
     checkTypeRef(serializeTypeText('C', otherDeclarations: 'import "a.dart";'),
-        'file:///b.dart', 'b.dart', 'C');
+        absUri('/b.dart'), 'b.dart', 'C');
   }
 
   test_type_reference_to_import_of_export_via_prefix() {
@@ -1450,7 +1460,7 @@ class C {
     addNamedSource('/b.dart', 'library b; class C {}');
     checkTypeRef(
         serializeTypeText('p.C', otherDeclarations: 'import "a.dart" as p;'),
-        'file:///b.dart',
+        absUri('/b.dart'),
         'b.dart',
         'C',
         expectedPrefix: 'p');
@@ -1462,7 +1472,7 @@ class C {
     checkTypeRef(
         serializeTypeText('C',
             otherDeclarations: 'library my.lib; import "a.dart";'),
-        'file:///a.dart',
+        absUri('/a.dart'),
         'a.dart',
         'C');
   }
@@ -1473,7 +1483,7 @@ class C {
     checkTypeRef(
         serializeTypeText('p.C',
             otherDeclarations: 'library my.lib; import "a.dart" as p;'),
-        'file:///a.dart',
+        absUri('/a.dart'),
         'a.dart',
         'C',
         expectedPrefix: 'p');
@@ -1529,7 +1539,7 @@ class C {
     // The referenced unit should be 2, since unit 0 is a.dart and unit 1 is
     // b.dart.  a.dart and b.dart are counted even though nothing is imported
     // from them.
-    checkTypeRef(typeRef, 'file:///a.dart', 'a.dart', 'C');
+    checkTypeRef(typeRef, absUri('/a.dart'), 'a.dart', 'C');
   }
 
   test_type_unresolved() {
