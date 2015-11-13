@@ -984,18 +984,23 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
   script.StoreNonPointer(&script.raw_ptr()->kind_,
                          reader->Read<int8_t>());
 
+  *reader->StringHandle() ^= String::null();
+  script.set_source(*reader->StringHandle());
+  *reader->StreamHandle() ^= TokenStream::null();
+  script.set_tokens(*reader->StreamHandle());
+
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
   // allocations may happen.
-  intptr_t num_flds = (script.raw()->to_snapshot() - script.raw()->from());
+  RawObject** toobj = reader->snapshot_code()
+      ? script.raw()->to_precompiled_snapshot()
+      : script.raw()->to_snapshot();
+  intptr_t num_flds = (toobj - script.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
     (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
     script.StorePointer((script.raw()->from() + i),
                         reader->PassiveObjectHandle()->raw());
   }
-  // Script wasn't allocated with nulls?
-  *reader->StringHandle() ^= String::null();
-  script.set_source(*reader->StringHandle());
 
   return script.raw();
 }
@@ -1023,7 +1028,9 @@ void RawScript::WriteTo(SnapshotWriter* writer,
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
-  visitor.VisitPointers(from(), to_snapshot());
+  RawObject** toobj = writer->snapshot_code() ? to_precompiled_snapshot()
+                                              : to_snapshot();
+  visitor.VisitPointers(from(), toobj);
 }
 
 

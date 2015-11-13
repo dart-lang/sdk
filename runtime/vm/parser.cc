@@ -3825,6 +3825,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   }
 
   intptr_t method_end_pos = TokenPos();
+  String* native_name = NULL;
   if ((CurrentToken() == Token::kLBRACE) ||
       (CurrentToken() == Token::kARROW)) {
     if (method->has_abstract) {
@@ -3880,7 +3881,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       ReportError(method->name_pos,
                   "Constructor with redirection may not have a function body");
     }
-    ParseNativeDeclaration();
+    native_name = &ParseNativeDeclaration();
     method_end_pos = TokenPos();
     ExpectSemicolon();
     method->has_native = true;
@@ -3957,6 +3958,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   }
   if (method->metadata_pos > 0) {
     library_.AddFunctionMetadata(func, method->metadata_pos);
+  }
+  if (method->has_native) {
+    func.set_native_name(*native_name);
   }
 
   // If this method is a redirecting factory, set the redirection information.
@@ -5584,6 +5588,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
 
   intptr_t function_end_pos = function_pos;
   bool is_native = false;
+  String* native_name = NULL;
   if (is_external) {
     function_end_pos = TokenPos();
     ExpectSemicolon();
@@ -5603,7 +5608,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     function_end_pos = TokenPos();
     ExpectSemicolon();
   } else if (IsSymbol(Symbols::Native())) {
-    ParseNativeDeclaration();
+    native_name = &ParseNativeDeclaration();
     function_end_pos = TokenPos();
     ExpectSemicolon();
     is_native = true;
@@ -5625,6 +5630,9 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   func.set_modifier(func_modifier);
   if (library_.is_dart_scheme() && library_.IsPrivate(func_name)) {
     func.set_is_reflectable(false);
+  }
+  if (is_native) {
+    func.set_native_name(*native_name);
   }
   AddFormalParamsToFunction(&params, func);
   top_level->AddFunction(func);
@@ -5734,6 +5742,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
 
   intptr_t accessor_end_pos = accessor_pos;
   bool is_native = false;
+  String* native_name = NULL;
   if (is_external) {
     accessor_end_pos = TokenPos();
     ExpectSemicolon();
@@ -5753,7 +5762,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
     accessor_end_pos = TokenPos();
     ExpectSemicolon();
   } else if (IsSymbol(Symbols::Native())) {
-    ParseNativeDeclaration();
+    native_name = &ParseNativeDeclaration();
     accessor_end_pos = TokenPos();
     ExpectSemicolon();
     is_native = true;
@@ -5776,6 +5785,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
   func.set_modifier(func_modifier);
   if (is_native) {
     func.set_is_debuggable(false);
+    func.set_native_name(*native_name);
   }
   if (library_.is_dart_scheme() && library_.IsPrivate(accessor_name)) {
     func.set_is_reflectable(false);

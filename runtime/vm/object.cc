@@ -5572,16 +5572,31 @@ RawFunction* Function::implicit_closure_function() const {
     return Function::null();
   }
   const Object& obj = Object::Handle(raw_ptr()->data_);
-  ASSERT(obj.IsNull() || obj.IsScript() || obj.IsFunction());
-  return (obj.IsNull() || obj.IsScript()) ? Function::null()
-                                          : Function::Cast(obj).raw();
+  ASSERT(obj.IsNull() || obj.IsScript() || obj.IsFunction() || obj.IsArray());
+  if (obj.IsNull() || obj.IsScript()) {
+    return Function::null();
+  }
+  if (obj.IsFunction()) {
+    return Function::Cast(obj).raw();
+  }
+  ASSERT(is_native());
+  ASSERT(obj.IsArray());
+  const Object& res = Object::Handle(Array::Cast(obj).At(1));
+  return res.IsNull() ? Function::null() : Function::Cast(res).raw();
 }
 
 
 void Function::set_implicit_closure_function(const Function& value) const {
   ASSERT(!IsClosureFunction() && !IsSignatureFunction());
-  ASSERT(raw_ptr()->data_ == Object::null());
-  set_data(value);
+  if (is_native()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    ASSERT(obj.IsArray());
+    ASSERT((Array::Cast(obj).At(1) == Object::null()) || value.IsNull());
+    Array::Cast(obj).SetAt(1, value);
+  } else {
+    ASSERT((raw_ptr()->data_ == Object::null()) || value.IsNull());
+    set_data(value);
+  }
 }
 
 
@@ -5616,7 +5631,7 @@ void Function::set_signature_class(const Class& value) const {
 
 
 bool Function::IsRedirectingFactory() const {
-  if (!IsFactory() || (raw_ptr()->data_ == Object::null())) {
+  if (!IsFactory() || !is_redirecting()) {
     return false;
   }
   ASSERT(!IsClosureFunction());  // A factory cannot also be a closure.
@@ -5626,6 +5641,7 @@ bool Function::IsRedirectingFactory() const {
 
 RawType* Function::RedirectionType() const {
   ASSERT(IsRedirectingFactory());
+  ASSERT(!is_native());
   const Object& obj = Object::Handle(raw_ptr()->data_);
   ASSERT(!obj.IsNull());
   return RedirectionData::Cast(obj).type();
@@ -5729,6 +5745,19 @@ void Function::SetRedirectionTarget(const Function& target) const {
 }
 
 
+// This field is heavily overloaded:
+//   eval function:           Script expression source
+//   signature function:      Class signature class
+//   method extractor:        Function extracted closure function
+//   noSuchMethod dispatcher: Array arguments descriptor
+//   invoke-field dispatcher: Array arguments descriptor
+//   redirecting constructor: RedirectionData
+//   closure function:        ClosureData
+//   irregexp function:       Array[0] = JSRegExp
+//                            Array[1] = Smi string specialization cid
+//   native function:         Array[0] = String native name
+//                            Array[1] = Function implicit closure function
+//   regular function:        Function for implicit closure function
 void Function::set_data(const Object& value) const {
   StorePointer(&raw_ptr()->data_, value.raw());
 }
@@ -5780,6 +5809,24 @@ void Function::SetRegExpData(const JSRegExp& regexp,
   const Array& pair = Array::Handle(Array::New(2, Heap::kOld));
   pair.SetAt(0, regexp);
   pair.SetAt(1, Smi::Handle(Smi::New(string_specialization_cid)));
+  set_data(pair);
+}
+
+
+RawString* Function::native_name() const {
+  ASSERT(is_native());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(obj.IsArray());
+  return String::RawCast(Array::Cast(obj).At(0));
+}
+
+
+void Function::set_native_name(const String& value) const {
+  ASSERT(is_native());
+  ASSERT(raw_ptr()->data_ == Object::null());
+  const Array& pair = Array::Handle(Array::New(2, Heap::kOld));
+  pair.SetAt(0, value);
+  // pair[1] will be the implicit closure function if needed.
   set_data(pair);
 }
 
@@ -6689,7 +6736,7 @@ void Function::DropUncompiledImplicitClosureFunction() const {
   if (implicit_closure_function() != Function::null()) {
     const Function& func = Function::Handle(implicit_closure_function());
     if (!func.HasCode()) {
-      set_data(Object::null_object());
+      set_implicit_closure_function(Function::Handle());
     }
   }
 }
@@ -8710,6 +8757,10 @@ RawString* Script::Source() const {
 
 RawString* Script::GenerateSource() const {
   const TokenStream& token_stream = TokenStream::Handle(tokens());
+  if (token_stream.IsNull()) {
+    ASSERT(Dart::IsRunningPrecompiledCode());
+    return String::null();
+  }
   return token_stream.GenerateSource();
 }
 
@@ -8873,6 +8924,17 @@ void Script::GetTokenLocation(intptr_t token_pos,
                               intptr_t* token_len) const {
   ASSERT(line != NULL);
   const TokenStream& tkns = TokenStream::Handle(tokens());
+  if (tkns.IsNull()) {
+    ASSERT(Dart::IsRunningPrecompiledCode());
+    *line = -1;
+    if (column != NULL) {
+      *column = -1;
+    }
+    if (token_len != NULL) {
+      *token_len = 1;
+    }
+    return;
+  }
   if (column == NULL) {
     TokenStream::Iterator tkit(tkns, 0, TokenStream::Iterator::kAllTokens);
     intptr_t cur_line = line_offset() + 1;
@@ -9115,10 +9177,12 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& source = String::Handle(Source());
   jsobj.AddProperty("lineOffset", line_offset());
   jsobj.AddProperty("columnOffset", col_offset());
-  jsobj.AddPropertyStr("source", source);
+  if (!source.IsNull()) {
+    jsobj.AddPropertyStr("source", source);
+  }
 
   // Print the line number table
-  {
+  if (!source.IsNull()) {
     JSONArray tokenPosTable(&jsobj, "tokenPosTable");
 
     const GrowableObjectArray& lineNumberArray =

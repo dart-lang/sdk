@@ -2147,6 +2147,9 @@ class Function : public Object {
   void SetRegExpData(const JSRegExp& regexp,
                      intptr_t string_specialization_cid) const;
 
+  RawString* native_name() const;
+  void set_native_name(const String& name) const;
+
   RawAbstractType* result_type() const { return raw_ptr()->result_type_; }
   void set_result_type(const AbstractType& value) const;
 

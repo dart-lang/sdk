@@ -1155,7 +1155,9 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     // We got an error during compilation.
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
-    ASSERT(!optimized);
+    // Unoptimized compilation or precompilation may encounter compile-time
+    // errors, but regular optimized compilation should not.
+    ASSERT(!optimized || Compiler::always_optimize());
     // Do not attempt to optimize functions that can cause errors.
     function.set_is_optimizable(false);
     return error.raw();

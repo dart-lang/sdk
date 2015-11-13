@@ -944,6 +944,9 @@ class RawScript : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->url_); }
   RawString* url_;
+  RawObject** to_precompiled_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->url_);
+  }
   RawTokenStream* tokens_;
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&ptr()->tokens_);
