@@ -33,6 +33,7 @@ void main() {
   testGrowableList(new List());
   testGrowableList(new List().toList());
   testGrowableList(new List(0).toList());
+  testGrowableList(new List.filled(0, null, growable: true));
   testGrowableList([]);
   testGrowableList((const []).toList());
   testGrowableList(new MyList([]));

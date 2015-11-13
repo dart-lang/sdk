@@ -281,8 +281,9 @@ class List<E> {
   }
 
   @patch
-  factory List.filled(int length, E fill) {
-    List result = new JSArray<E>.fixed(length);
+  factory List.filled(int length, E fill, {bool growable: false}) {
+    List result = growable ? new JSArray<E>.growable(length)
+                           : new JSArray<E>.fixed(length);
     if (length != 0 && fill != null) {
       for (int i = 0; i < result.length; i++) {
         result[i] = fill;
