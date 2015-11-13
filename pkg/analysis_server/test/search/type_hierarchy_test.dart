@@ -75,7 +75,7 @@ class B extends A {
         'superclass': 1,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [1]
       },
       {
         'classElement': {
@@ -87,7 +87,7 @@ class B extends A {
         'superclass': 0,
         'interfaces': [],
         'mixins': [],
-        'subclasses': [1]
+        'subclasses': []
       }
     ]);
   }
@@ -105,6 +105,66 @@ class B extends A<int> {
     expect(itemA.classElement.name, 'A');
     expect(itemB.classElement.name, 'B');
     expect(itemA.displayName, 'A<int>');
+  }
+
+  test_class_double_subclass() async {
+    addTestFile('''
+class AAA {} // A
+
+class BBB extends AAA {}
+
+class CCC extends BBB implements AAA {}
+''');
+    List<TypeHierarchyItem> items = await _getTypeHierarchy('AAA {} // A');
+    expect(_toJson(items), [
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'AAA',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 1,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': [2, 3]
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Object',
+          'location': anything,
+          'flags': 0
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'CCC',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 0,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'BBB',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 0,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': [2]
+      }
+    ]);
   }
 
   test_class_extends_fileAndPackageUris() async {

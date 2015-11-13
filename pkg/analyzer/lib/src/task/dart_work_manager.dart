@@ -88,7 +88,8 @@ class DartWorkManager implements WorkManager {
     analysisCache.onResultInvalidated.listen((InvalidatedResult event) {
       if (event.descriptor == LIBRARY_ERRORS_READY) {
         CacheEntry entry = event.entry;
-        if (entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY) {
+        if (entry.explicitlyAdded &&
+            entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY) {
           librarySourceQueue.add(entry.target);
         }
       }
@@ -392,7 +393,10 @@ class DartWorkManager implements WorkManager {
         unitTargets.add(target);
         Source library = target.library;
         if (context.exists(library)) {
-          librarySourceQueue.add(library);
+          CacheEntry entry = iterator.value;
+          if (entry.explicitlyAdded) {
+            librarySourceQueue.add(library);
+          }
         }
       }
     }
@@ -408,6 +412,8 @@ class DartWorkManager implements WorkManager {
         entry.setState(EXPLICITLY_IMPORTED_LIBRARIES, CacheState.INVALID);
         entry.setState(EXPORTED_LIBRARIES, CacheState.INVALID);
         entry.setState(INCLUDED_PARTS, CacheState.INVALID);
+        entry.setState(LIBRARY_SPECIFIC_UNITS, CacheState.INVALID);
+        entry.setState(UNITS, CacheState.INVALID);
       }
     }
   }

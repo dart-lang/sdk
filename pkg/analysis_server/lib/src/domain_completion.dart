@@ -142,7 +142,10 @@ class CompletionDomainHandler implements RequestHandler {
       }
       return null;
     }, onError: (exception, stackTrace) {
-      server.sendServerErrorNotification(exception, stackTrace);
+      server.sendServerErrorNotification(
+          'Failed to handle completion domain request: ${request.toJson()}',
+          exception,
+          stackTrace);
     });
   }
 

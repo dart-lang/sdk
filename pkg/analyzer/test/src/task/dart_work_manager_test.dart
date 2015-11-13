@@ -64,10 +64,10 @@ class DartWorkManagerTest {
   void setUp() {
     cache = context.analysisCache;
     manager = new DartWorkManager(context);
-    entry1 = context.getCacheEntry(source1);
-    entry2 = context.getCacheEntry(source2);
-    entry3 = context.getCacheEntry(source3);
-    entry4 = context.getCacheEntry(source4);
+    entry1 = _getOrCreateEntry(source1);
+    entry2 = _getOrCreateEntry(source2);
+    entry3 = _getOrCreateEntry(source3);
+    entry4 = _getOrCreateEntry(source4);
   }
 
   void test_applyChange_add() {
@@ -509,6 +509,8 @@ class DartWorkManagerTest {
   }
 
   void test_onResultInvalidated_scheduleInvalidatedLibraries() {
+    // make source3 implicit
+    entry3.explicitlyAdded = false;
     // set SOURCE_KIND
     entry1.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
     entry2.setValue(SOURCE_KIND, SourceKind.PART, []);
@@ -519,9 +521,9 @@ class DartWorkManagerTest {
     // invalidate LIBRARY_ERRORS_READY for source1, schedule it
     entry1.setState(LIBRARY_ERRORS_READY, CacheState.INVALID);
     expect_librarySourceQueue([source1]);
-    // invalidate LIBRARY_ERRORS_READY for source3, schedule it
+    // invalidate LIBRARY_ERRORS_READY for source3, implicit, not scheduled
     entry3.setState(LIBRARY_ERRORS_READY, CacheState.INVALID);
-    expect_librarySourceQueue([source1, source3]);
+    expect_librarySourceQueue([source1]);
   }
 
   void test_onSourceFactoryChanged() {
@@ -532,6 +534,8 @@ class DartWorkManagerTest {
     entry1.setValue(EXPLICITLY_IMPORTED_LIBRARIES, <Source>[], []);
     entry1.setValue(EXPORTED_LIBRARIES, <Source>[], []);
     entry1.setValue(INCLUDED_PARTS, <Source>[], []);
+    entry1.setValue(LIBRARY_SPECIFIC_UNITS, <LibrarySpecificUnit>[], []);
+    entry1.setValue(UNITS, <Source>[], []);
     // configure LibrarySpecificUnit
     LibrarySpecificUnit unitTarget = new LibrarySpecificUnit(source2, source3);
     CacheEntry unitEntry = new CacheEntry(unitTarget);
@@ -548,6 +552,8 @@ class DartWorkManagerTest {
     expect(entry1.getState(EXPLICITLY_IMPORTED_LIBRARIES), CacheState.INVALID);
     expect(entry1.getState(EXPORTED_LIBRARIES), CacheState.INVALID);
     expect(entry1.getState(INCLUDED_PARTS), CacheState.INVALID);
+    expect(entry1.getState(LIBRARY_SPECIFIC_UNITS), CacheState.INVALID);
+    expect(entry1.getState(UNITS), CacheState.INVALID);
   }
 
   void test_resultsComputed_errors_forLibrarySpecificUnit() {
@@ -745,10 +751,11 @@ class DartWorkManagerTest {
     expect(manager.libraryPartsMap, isEmpty);
   }
 
-  CacheEntry _getOrCreateEntry(Source source) {
+  CacheEntry _getOrCreateEntry(Source source, [bool explicit = true]) {
     CacheEntry entry = cache.get(source);
     if (entry == null) {
       entry = new CacheEntry(source);
+      entry.explicitlyAdded = explicit;
       cache.put(entry);
     }
     return entry;

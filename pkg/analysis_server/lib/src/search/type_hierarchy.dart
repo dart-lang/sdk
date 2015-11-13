@@ -85,7 +85,7 @@ class TypeHierarchyComputer {
         TypeHierarchyItem subItem = _elementItemMap[subElement];
         if (subItem != null) {
           int id = _items.indexOf(subItem);
-          subItem.subclasses.add(id);
+          item.subclasses.add(id);
           continue;
         }
         // create a subclass item

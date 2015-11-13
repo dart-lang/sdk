@@ -7,6 +7,7 @@ library test.src.context.context_test;
 import 'dart:async';
 
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
@@ -34,6 +35,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/task/dart.dart';
@@ -1954,6 +1956,60 @@ library expectedToFindSemicolon
     expect(resolvedUnitUris, contains('file:///test.dart'));
   }
 
+  void test_performAnalysisTask_switchPackageVersion() {
+    // version 1
+    resourceProvider.newFile(
+        '/pkgs/crypto-1/lib/crypto.dart',
+        r'''
+library crypto;
+part 'src/hash_utils.dart';
+''');
+    resourceProvider.newFile(
+        '/pkgs/crypto-1/lib/src/hash_utils.dart',
+        r'''
+part of crypto;
+const _MASK_8 = 0xff;
+''');
+    // version 2
+    resourceProvider.newFile(
+        '/pkgs/crypto-2/lib/crypto.dart',
+        r'''
+library crypto;
+part 'src/hash_utils.dart';
+''');
+    resourceProvider.newFile(
+        '/pkgs/crypto-2/lib/src/hash_utils.dart',
+        r'''
+part of crypto;
+const _MASK_8 = 0xff;
+''');
+    // use version 1
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new PackageMapUriResolver(resourceProvider, {
+        'crypto': [resourceProvider.getFolder('/pkgs/crypto-1/lib')]
+      })
+    ]);
+    // analyze
+    addSource(
+        "/test.dart",
+        r'''
+import 'package:crypto/crypto.dart';
+''');
+    _analyzeAll_assertFinished();
+    // use version 2
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new PackageMapUriResolver(resourceProvider, {
+        'crypto': [resourceProvider.getFolder('/pkgs/crypto-2/lib')]
+      })
+    ]);
+    _analyzeAll_assertFinished();
+    _assertNoExceptions();
+  }
+
   void test_resolveCompilationUnit_import_relative() {
     Source sourceA =
         addSource("/libA.dart", "library libA; import 'libB.dart'; class A{}");
@@ -1993,6 +2049,13 @@ library expectedToFindSemicolon
     expect(compilationUnit.element, isNotNull);
   }
 
+  void test_resolveCompilationUnit_source() {
+    Source source = addSource("/lib.dart", "library lib;");
+    CompilationUnit compilationUnit =
+        context.resolveCompilationUnit2(source, source);
+    expect(compilationUnit, isNotNull);
+  }
+
 //  void test_resolveCompilationUnit_sourceChangeDuringResolution() {
 //    _context = new _AnalysisContext_sourceChangeDuringResolution();
 //    AnalysisContextFactory.initContextWithCore(_context);
@@ -2003,13 +2066,6 @@ library expectedToFindSemicolon
 //    expect(compilationUnit, isNotNull);
 //    expect(_context.getLineInfo(source), isNotNull);
 //  }
-
-  void test_resolveCompilationUnit_source() {
-    Source source = addSource("/lib.dart", "library lib;");
-    CompilationUnit compilationUnit =
-        context.resolveCompilationUnit2(source, source);
-    expect(compilationUnit, isNotNull);
-  }
 
   void test_setAnalysisOptions() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
@@ -2261,6 +2317,24 @@ int a = 0;''');
       }
     }
     fail("performAnalysisTask failed to terminate after analyzing all sources");
+  }
+
+  void _assertNoExceptions() {
+    MapIterator<AnalysisTarget, CacheEntry> iterator = analysisCache.iterator();
+    String exceptionsStr = '';
+    while (iterator.moveNext()) {
+      CaughtException exception = iterator.value.exception;
+      if (exception != null) {
+        AnalysisTarget target = iterator.key;
+        exceptionsStr +=
+            '============= key: $target   source: ${target.source}\n';
+        exceptionsStr += exception.toString();
+        exceptionsStr += '\n';
+      }
+    }
+    if (exceptionsStr.isNotEmpty) {
+      fail(exceptionsStr);
+    }
   }
 
   void _changeSource(TestSource source, String contents) {
