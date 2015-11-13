@@ -321,6 +321,11 @@ class Address : public ValueObject {
 
   Mode mode() const { return static_cast<Mode>(encoding() & kModeMask); }
 
+  bool has_writeback() const {
+    return (mode() == PreIndex) || (mode() == PostIndex) ||
+           (mode() == NegPreIndex) || (mode() == NegPostIndex);
+  }
+
   uint32_t encoding() const { return encoding_; }
 
   // Encoding for addressing mode 3.

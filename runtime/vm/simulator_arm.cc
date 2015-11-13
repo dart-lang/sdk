@@ -1996,6 +1996,7 @@ void Simulator::DecodeType01(Instr* instr) {
         HandleIllegalAccess(addr, instr);
       } else {
         if (write_back) {
+          ASSERT(rd != rn);  // Unpredictable.
           set_register(rn, rn_val);
         }
         if (!instr->HasSign()) {
@@ -2312,6 +2313,7 @@ void Simulator::DecodeType2(Instr* instr) {
     HandleIllegalAccess(addr, instr);
   } else {
     if (write_back) {
+      ASSERT(rd != rn);  // Unpredictable.
       set_register(rn, rn_val);
     }
     if (instr->HasB()) {
@@ -2424,6 +2426,7 @@ void Simulator::DecodeType3(Instr* instr) {
     HandleIllegalAccess(addr, instr);
   } else {
     if (write_back) {
+      ASSERT(rd != rn);  // Unpredictable.
       set_register(rn, rn_val);
     }
     if (instr->HasB()) {

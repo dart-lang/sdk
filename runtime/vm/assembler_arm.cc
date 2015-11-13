@@ -104,6 +104,8 @@ void Assembler::EmitMemOp(Condition cond,
                           Address ad) {
   ASSERT(rd != kNoRegister);
   ASSERT(cond != kNoCondition);
+  ASSERT(!ad.has_writeback() || (ad.rn() != rd));  // Unpredictable.
+
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
                      B26 | (ad.kind() == Address::Immediate ? 0 : B25) |
                      (load ? L : 0) |
