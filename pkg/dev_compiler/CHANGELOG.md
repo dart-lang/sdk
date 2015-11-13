@@ -1,7 +1,7 @@
 # dev_compiler changelog
 
 ## 0.1.11
-- moved js runtime files to lib/runtime/dart (dart_runtime.js -> dart/_runtime.js)
+- moved js runtime files to lib/runtime/dart (`dart_runtime.js` -> `dart/_runtime.js`)
 - bug fix to source maps
 - initial support for f-bound quantification patterns
 
