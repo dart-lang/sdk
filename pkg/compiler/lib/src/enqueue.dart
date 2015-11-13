@@ -634,6 +634,7 @@ abstract class Enqueuer {
         // enqueue.
         addElement = false;
         break;
+      case StaticUseKind.SUPER_FIELD_SET:
       case StaticUseKind.SUPER_TEAR_OFF:
       case StaticUseKind.GENERAL:
         break;

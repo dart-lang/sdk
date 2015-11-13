@@ -3350,13 +3350,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           registry.registerStaticUse(new StaticUse.superGet(semantics.getter));
           break;
         case AccessKind.SUPER_SETTER:
-          registry.registerStaticUse(new StaticUse.superSet(semantics.setter));
+          registry.registerStaticUse(
+              new StaticUse.superSetterSet(semantics.setter));
           break;
         case AccessKind.SUPER_FIELD:
           registry.registerStaticUse(
               new StaticUse.superGet(semantics.element));
           registry.registerStaticUse(
-              new StaticUse.superSet(semantics.element));
+              new StaticUse.superFieldSet(semantics.element));
           break;
         case AccessKind.SUPER_FINAL_FIELD:
           registry.registerStaticUse(
@@ -3365,22 +3366,27 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         case AccessKind.COMPOUND:
           CompoundAccessSemantics compoundSemantics = semantics;
           switch (compoundSemantics.compoundAccessKind) {
-            case CompoundAccessKind.SUPER_GETTER_SETTER:
             case CompoundAccessKind.SUPER_GETTER_FIELD:
-            case CompoundAccessKind.SUPER_FIELD_SETTER:
             case CompoundAccessKind.SUPER_FIELD_FIELD:
               registry.registerStaticUse(
                   new StaticUse.superGet(semantics.getter));
               registry.registerStaticUse(
-                  new StaticUse.superSet(semantics.setter));
+                  new StaticUse.superFieldSet(semantics.setter));
+              break;
+            case CompoundAccessKind.SUPER_FIELD_SETTER:
+            case CompoundAccessKind.SUPER_GETTER_SETTER:
+              registry.registerStaticUse(
+                  new StaticUse.superGet(semantics.getter));
+              registry.registerStaticUse(
+                  new StaticUse.superSetterSet(semantics.setter));
               break;
             case CompoundAccessKind.SUPER_METHOD_SETTER:
               registry.registerStaticUse(
-                  new StaticUse.superSet(semantics.setter));
+                  new StaticUse.superSetterSet(semantics.setter));
               break;
             case CompoundAccessKind.UNRESOLVED_SUPER_GETTER:
               registry.registerStaticUse(
-                  new StaticUse.superSet(semantics.setter));
+                  new StaticUse.superSetterSet(semantics.setter));
               break;
             case CompoundAccessKind.UNRESOLVED_SUPER_SETTER:
               registry.registerStaticUse(
@@ -3435,9 +3441,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               registry.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
               break;
             case AccessKind.SUPER_FIELD:
+              registry.registerStaticUse(
+                  new StaticUse.superFieldSet(semantics.setter));
+              break;
             case AccessKind.SUPER_SETTER:
               registry.registerStaticUse(
-                  new StaticUse.superSet(semantics.setter));
+                  new StaticUse.superSetterSet(semantics.setter));
               break;
             default:
               break;
