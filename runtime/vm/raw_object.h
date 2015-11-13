@@ -1049,9 +1049,12 @@ class RawCode : public RawObject {
   RawObject* owner_;  // Function, Null, or a Class.
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
+  RawArray* stackmaps_;
+  RawObject** to_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->stackmaps_);
+  }
   RawArray* deopt_info_array_;
   RawArray* static_calls_target_table_;  // (code-offset, function, code).
-  RawArray* stackmaps_;
   RawLocalVarDescriptors* var_descriptors_;
   RawArray* inlined_metadata_;
   RawArray* comments_;

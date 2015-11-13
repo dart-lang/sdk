@@ -668,13 +668,20 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
     // Set all the non object fields.
     func.set_token_pos(reader->Read<int32_t>());
     func.set_end_token_pos(reader->Read<int32_t>());
-    func.set_usage_counter(reader->Read<int32_t>());
     func.set_num_fixed_parameters(reader->Read<int16_t>());
     func.set_num_optional_parameters(reader->Read<int16_t>());
-    func.set_deoptimization_counter(reader->Read<int16_t>());
     func.set_kind_tag(reader->Read<uint32_t>());
-    func.set_optimized_instruction_count(reader->Read<uint16_t>());
-    func.set_optimized_call_site_count(reader->Read<uint16_t>());
+    if (reader->snapshot_code()) {
+      func.set_usage_counter(0);
+      func.set_deoptimization_counter(0);
+      func.set_optimized_instruction_count(0);
+      func.set_optimized_call_site_count(0);
+    } else {
+      func.set_usage_counter(reader->Read<int32_t>());
+      func.set_deoptimization_counter(reader->Read<int16_t>());
+      func.set_optimized_instruction_count(reader->Read<uint16_t>());
+      func.set_optimized_call_site_count(reader->Read<uint16_t>());
+    }
 
     // Set all the object fields.
     READ_OBJECT_FIELDS(func,
@@ -741,17 +748,21 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
     // Write out all the non object fields.
     writer->Write<int32_t>(ptr()->token_pos_);
     writer->Write<int32_t>(ptr()->end_token_pos_);
-    if (is_optimized) {
-      writer->Write<int32_t>(FLAG_optimization_counter_threshold);
-    } else {
-      writer->Write<int32_t>(0);
-    }
     writer->Write<int16_t>(ptr()->num_fixed_parameters_);
     writer->Write<int16_t>(ptr()->num_optional_parameters_);
-    writer->Write<int16_t>(ptr()->deoptimization_counter_);
     writer->Write<uint32_t>(ptr()->kind_tag_);
-    writer->Write<uint16_t>(ptr()->optimized_instruction_count_);
-    writer->Write<uint16_t>(ptr()->optimized_call_site_count_);
+    if (writer->snapshot_code()) {
+      // Omit fields used to support de/reoptimization.
+    } else {
+      if (is_optimized) {
+        writer->Write<int32_t>(FLAG_optimization_counter_threshold);
+      } else {
+        writer->Write<int32_t>(0);
+      }
+      writer->Write<int16_t>(ptr()->deoptimization_counter_);
+      writer->Write<uint16_t>(ptr()->optimized_instruction_count_);
+      writer->Write<uint16_t>(ptr()->optimized_call_site_count_);
+    }
 
     // Write out all the object pointer fields.
     SnapshotWriterVisitor visitor(writer, kAsReference);
@@ -1254,14 +1265,19 @@ RawCode* Code::ReadFrom(SnapshotReader* reader,
   Code& result = Code::ZoneHandle(reader->zone(), NEW_OBJECT_WITH_LEN(Code, 0));
   reader->AddBackRef(object_id, &result, kIsDeserialized);
 
-  result.set_compile_timestamp(reader->Read<int64_t>());
+  result.set_compile_timestamp(0);
   result.set_state_bits(reader->Read<int32_t>());
-  result.set_lazy_deopt_pc_offset(reader->Read<int32_t>());
+  result.set_lazy_deopt_pc_offset(-1);
 
   // Set all the object fields.
   READ_OBJECT_FIELDS(result,
-                     result.raw()->from(), result.raw()->to(),
+                     result.raw()->from(), result.raw()->to_snapshot(),
                      kAsReference);
+  for (RawObject** ptr = result.raw()->to();
+       ptr > result.raw()->to_snapshot();
+       ptr--) {
+    result.StorePointer(ptr, Object::null());
+  }
 
   // Fix entry point.
   uword new_entry = result.EntryPoint();
@@ -1283,7 +1299,7 @@ void RawCode::WriteTo(SnapshotWriter* writer,
       Code::PtrOffBits::decode(ptr()->state_bits_);
   if (pointer_offsets_length != 0) {
     // Should only be IA32.
-    FATAL("Serializing embedded pointer offsets unimplemented");
+    FATAL("Cannot serialize code with embedded pointers");
   }
 
   // Write out the serialization header value for this object.
@@ -1294,13 +1310,11 @@ void RawCode::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the non object fields.
-  writer->Write<int64_t>(ptr()->compile_timestamp_);
   writer->Write<int32_t>(ptr()->state_bits_);
-  writer->Write<int32_t>(ptr()->lazy_deopt_pc_offset_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
-  visitor.VisitPointers(from(), to());
+  visitor.VisitPointers(from(), to_snapshot());
 
   writer->SetInstructionsCode(ptr()->instructions_, this);
 }
