@@ -44,17 +44,14 @@ class Timeline {
                                     'name',
                                     'Must be a String');
     }
-    Map instantArguments = {
-      'isolateNumber': '${Timeline._isolateId}'
-    };
+    Map instantArguments;
     if (arguments is Map) {
-      instantArguments.addAll(arguments);
+      instantArguments = new Map.from(arguments);
     }
-    String argumentsAsJson = JSON.encode(instantArguments);
     _reportInstantEvent(_getTraceClock(),
                         'Dart',
                         name,
-                        argumentsAsJson);
+                        _argumentsAsJson(instantArguments));
   }
 
 
@@ -72,8 +69,8 @@ class Timeline {
   }
 
   static final List<_SyncBlock> _stack = new List<_SyncBlock>();
-
   static final int _isolateId = _getIsolateNum();
+  static final String _isolateIdString = _isolateId.toString();
 }
 
 /// An asynchronous task on the timeline. An asynchronous task can have many
@@ -121,19 +118,16 @@ class TimelineTask {
                                     'name',
                                     'Must be a String');
     }
-    Map instantArguments = {
-      'isolateNumber': '${Timeline._isolateId}'
-    };
+    Map instantArguments;
     if (arguments is Map) {
-      instantArguments.addAll(arguments);
+      instantArguments = new Map.from(arguments);
     }
-    String argumentsAsJson = JSON.encode(instantArguments);
     _reportTaskEvent(_getTraceClock(),
                      _taskId,
                      'n',
                      'Dart',
                      name,
-                     argumentsAsJson);
+                     _argumentsAsJson(instantArguments));
   }
 
   /// Finish the last synchronous operation that was started.
@@ -180,14 +174,12 @@ class _AsyncBlock {
 
   // Emit the start event.
   void _start() {
-    arguments['isolateNumber'] = '${Timeline._isolateId}';
-    String argumentsAsJson = JSON.encode(arguments);
     _reportTaskEvent(_getTraceClock(),
                      _taskId,
                      'b',
                      category,
                      name,
-                     argumentsAsJson);
+                     _argumentsAsJson(arguments));
   }
 
   // Emit the finish event.
@@ -197,7 +189,7 @@ class _AsyncBlock {
                      'e',
                      category,
                      name,
-                     JSON.encode({}));
+                     _argumentsAsJson(null));
   }
 }
 
@@ -220,20 +212,27 @@ class _SyncBlock {
   /// Finish this block of time. At this point, this block can no longer be
   /// used.
   void finish() {
-    var end = _getTraceClock();
-
-    arguments['isolateNumber'] = '${Timeline._isolateId}';
-
-    // Encode arguments map as JSON before reporting.
-    var argumentsAsJson = JSON.encode(arguments);
-
     // Report event to runtime.
     _reportCompleteEvent(_start,
-                         end,
+                         _getTraceClock(),
                          category,
                          name,
-                         argumentsAsJson);
+                         _argumentsAsJson(arguments));
   }
+}
+
+String _fastPathArguments;
+String _argumentsAsJson(Map arguments) {
+  if ((arguments == null) || (arguments.length == 0)) {
+    // Fast path no arguments. Avoid calling JSON.encode.
+    if (_fastPathArguments == null) {
+      _fastPathArguments = '{"isolateNumber":"${Timeline._isolateId}"}';
+    }
+    return _fastPathArguments;
+  }
+  // Add isolateNumber to arguments map.
+  arguments['isolateNumber'] = Timeline._isolateIdString;
+  return JSON.encode(arguments);
 }
 
 /// Returns the next async task id.

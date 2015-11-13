@@ -11,7 +11,7 @@ import 'test_helper.dart';
 
 primeTimeline() {
   Timeline.startSync('apple');
-  Timeline.instantSync('ISYNC');
+  Timeline.instantSync('ISYNC', arguments: {'fruit': 'banana'});
   Timeline.finishSync();
   TimelineTask task = new TimelineTask();
   task.start('TASK1');
@@ -32,6 +32,26 @@ bool eventsContains(List<Map> events, String phase, String name) {
   return false;
 }
 
+void allEventsHaveIsolateNumber(List<Map> events) {
+  for (Map event in events) {
+    if (event['ph'] == 'M') {
+      // Skip meta-data events.
+      continue;
+    }
+    if (event['name'] == 'Runnable' && event['ph'] == 'i') {
+      // Skip Runnable events which don't have an isolate.
+      continue;
+    }
+    if (event['cat'] == 'VM') {
+      // Skip VM category events which don't have an isolate.
+      continue;
+    }
+    Map arguments = event['args'];
+    expect(arguments, new isInstanceOf<Map>());
+    expect(arguments['isolateNumber'], new isInstanceOf<String>());
+  }
+}
+
 var tests = [
   (VM vm) async {
     Map result = await vm.invokeRpcNoUpgrade('_getVMTimeline', {});
@@ -39,6 +59,8 @@ var tests = [
     expect(result['traceEvents'], new isInstanceOf<List>());
     List<Map> dartEvents = filterForDartEvents(result['traceEvents']);
     expect(dartEvents.length, equals(5));
+    allEventsHaveIsolateNumber(dartEvents);
+    allEventsHaveIsolateNumber(result['traceEvents']);
     expect(eventsContains(dartEvents, 'I', 'ISYNC'), isTrue);
     expect(eventsContains(dartEvents, 'X', 'apple'), isTrue);
     expect(eventsContains(dartEvents, 'b', 'TASK1'), isTrue);
