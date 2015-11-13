@@ -103,6 +103,8 @@ class SqlDatabase extends Interceptor {
    *
    * [oldVersion] should match the database's current [version] exactly.
    *
+   * See also:
+   *
    * * [Database.changeVersion](http://www.w3.org/TR/webdatabase/#dom-database-changeversion) from W3C.
    */
   @DomName('Database.changeVersion')

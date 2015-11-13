@@ -2072,7 +2072,7 @@ class ApplicationCacheErrorEvent extends Event {
  *
  * See also:
  *
- * * [<area>](https://developer.mozilla.org/en-US/docs/HTML/Element/area)
+ * * [`<area>`](https://developer.mozilla.org/en-US/docs/HTML/Element/area)
  * on MDN.
  */
 @DomName('HTMLAreaElement')
@@ -3469,7 +3469,8 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
  * See also:
  *
  * * [CanvasGradient](https://developer.mozilla.org/en-US/docs/DOM/CanvasGradient) from MDN.
- * * [CanvasGradient](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvasgradient) from whatwg.
+ * * [CanvasGradient](https://html.spec.whatwg.org/multipage/scripting.html#canvasgradient)
+ *   from WHATWG.
  * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.
  */
 @DomName('CanvasGradient')
@@ -3538,7 +3539,8 @@ class CanvasGradient extends DartHtmlDomObject {
  *
  * See also:
  * * [CanvasPattern](https://developer.mozilla.org/en-US/docs/DOM/CanvasPattern) from MDN.
- * * [CanvasPattern](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvaspattern) from whatwg.
+ * * [CanvasPattern](https://html.spec.whatwg.org/multipage/scripting.html#canvaspattern)
+ *   from WHATWG.
  * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.
  */
 @DomName('CanvasPattern')
@@ -3659,9 +3661,9 @@ class CanvasRenderingContext2D extends DartHtmlDomObject implements CanvasRender
    *
    * ## Other resources
    *
-   * * [Image smoothing]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-smoothing)
-   * from WHATWG.
+   * * [Image
+   *   smoothing](https://html.spec.whatwg.org/multipage/scripting.html#image-smoothing)
+   *   from WHATWG.
    */
   @DomName('CanvasRenderingContext2D.imageSmoothingEnabled')
   @DocsEditable()
@@ -3674,9 +3676,9 @@ class CanvasRenderingContext2D extends DartHtmlDomObject implements CanvasRender
    *
    * ## Other resources
    *
-   * * [Image smoothing]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-smoothing)
-   * from WHATWG.
+   * * [Image
+   *   smoothing](https://html.spec.whatwg.org/multipage/scripting.html#image-smoothing)
+   *   from WHATWG.
    */
   @DomName('CanvasRenderingContext2D.imageSmoothingEnabled')
   @DocsEditable()
@@ -10214,7 +10216,7 @@ class DirectoryReader extends DartHtmlDomObject {
  *
  * See also:
  *
- * * [HTML <div> element](http://www.w3.org/TR/html-markup/div.html) from W3C.
+ * * [HTML `<div>` element](http://www.w3.org/TR/html-markup/div.html) from W3C.
  * * [Block-level element](http://www.w3.org/TR/CSS2/visuren.html#block-boxes) from W3C.
  * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
  */
@@ -12949,13 +12951,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondrag')
   @DocsEditable()
@@ -12967,13 +12969,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragend')
   @DocsEditable()
@@ -12985,13 +12987,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragenter')
   @DocsEditable()
@@ -13003,13 +13005,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragleave')
   @DocsEditable()
@@ -13021,13 +13023,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragover')
   @DocsEditable()
@@ -13039,13 +13041,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragstart')
   @DocsEditable()
@@ -13057,13 +13059,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondrop')
   @DocsEditable()
@@ -13485,13 +13487,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondrag')
   @DocsEditable()
@@ -13503,13 +13505,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragend')
   @DocsEditable()
@@ -13521,13 +13523,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragenter')
   @DocsEditable()
@@ -13539,13 +13541,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragleave')
   @DocsEditable()
@@ -13557,13 +13559,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragover')
   @DocsEditable()
@@ -13575,13 +13577,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragstart')
   @DocsEditable()
@@ -13593,13 +13595,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondrop')
   @DocsEditable()
@@ -15046,13 +15048,13 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dragEvent')
   @DocsEditable()
@@ -15064,13 +15066,13 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dragendEvent')
   @DocsEditable()
@@ -15082,13 +15084,13 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dragenterEvent')
   @DocsEditable()
@@ -15100,13 +15102,13 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dragleaveEvent')
   @DocsEditable()
@@ -15118,13 +15120,13 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dragoverEvent')
   @DocsEditable()
@@ -15135,13 +15137,13 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dragstartEvent')
   @DocsEditable()
@@ -15153,13 +15155,13 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dropEvent')
   @DocsEditable()
@@ -15778,12 +15780,11 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [Element.getBoundingClientRect]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Element.getBoundingClientRect)
-   * from MDN.
-   * * [The getBoundingClientRect() method]
-   * (http://www.w3.org/TR/cssom-view/#the-getclientrects-and-getboundingclientrect-methods)
-   * from W3C.
+   * * [Element.getBoundingClientRect](https://developer.mozilla.org/en-US/docs/Web/API/Element.getBoundingClientRect)
+   *   from MDN.
+   * * [The getBoundingClientRect()
+   *   method](http://www.w3.org/TR/cssom-view/#the-getclientrects()-and-getboundingclientrect()-methods)
+   *   from W3C.
    */
   @DomName('Element.getBoundingClientRect')
   @DocsEditable()
@@ -15795,12 +15796,11 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [Element.getClientRects]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Element.getClientRects)
-   * from MDN.
-   * * [The getClientRects() method]
-   * (http://www.w3.org/TR/cssom-view/#the-getclientrects-and-getboundingclientrect-methods)
-   * from W3C.
+   * * [Element.getClientRects](https://developer.mozilla.org/en-US/docs/Web/API/Element.getClientRects)
+   *   from MDN.
+   * * [The getClientRects()
+   *   method](http://www.w3.org/TR/cssom-view/#the-getclientrects()-and-getboundingclientrect()-methods)
+   *   from W3C.
    */
   @DomName('Element.getClientRects')
   @DocsEditable()
@@ -15812,9 +15812,9 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [Shadow DOM specification]
-   * (https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html)
-   * from W3C.
+   * * [Shadow DOM
+   *   specification](https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html)
+   *   from W3C.
    */
   @DomName('Element.getDestinationInsertionPoints')
   @DocsEditable()
@@ -15826,11 +15826,9 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [getElementsByClassName]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/document.getElementsByClassName)
-   * from MDN.
-   * * [DOM specification]
-   * (http://www.w3.org/TR/domcore/) from W3C.
+   * * [getElementsByClassName](https://developer.mozilla.org/en-US/docs/Web/API/document.getElementsByClassName)
+   *   from MDN.
+   * * [DOM specification](http://www.w3.org/TR/domcore/) from W3C.
    */
   @DomName('Element.getElementsByClassName')
   @DocsEditable()
@@ -16038,13 +16036,13 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondrag')
   @DocsEditable()
@@ -16056,13 +16054,13 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragend')
   @DocsEditable()
@@ -16074,13 +16072,13 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragenter')
   @DocsEditable()
@@ -16092,13 +16090,13 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragleave')
   @DocsEditable()
@@ -16110,13 +16108,13 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragover')
   @DocsEditable()
@@ -16128,13 +16126,13 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragstart')
   @DocsEditable()
@@ -16146,13 +16144,13 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondrop')
   @DocsEditable()
@@ -16884,8 +16882,8 @@ class Event extends DartHtmlDomObject {
    *
    * ## Other resources
    *
-   * * [Target phase] (http://www.w3.org/TR/DOM-Level-3-Events/#target-phase)
-   * from W3C.
+   * * [Target phase](http://www.w3.org/TR/DOM-Level-3-Events/#target-phase)
+   *   from W3C.
    */
   @DomName('Event.AT_TARGET')
   @DocsEditable()
@@ -16896,8 +16894,8 @@ class Event extends DartHtmlDomObject {
    *
    * ## Other resources
    *
-   * * [Bubble phase] (http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)
-   * from W3C.
+   * * [Bubble phase](http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)
+   *   from W3C.
    */
   @DomName('Event.BUBBLING_PHASE')
   @DocsEditable()
@@ -16909,8 +16907,8 @@ class Event extends DartHtmlDomObject {
    *
    * ## Other resources
    *
-   * * [Bubble phase] (http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)
-   * from W3C.
+   * * [Bubble phase](http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)
+   *   from W3C.
    */
   @DomName('Event.CAPTURING_PHASE')
   @DocsEditable()
@@ -16929,8 +16927,8 @@ class Event extends DartHtmlDomObject {
    *
    * ## Other resources
    *
-   * * [clipboardData specification]
-   * (http://www.w3.org/TR/clipboard-apis/#attributes) from W3C.
+   * * [clipboardData specification](http://www.w3.org/TR/clipboard-apis/#attributes)
+   *   from W3C.
    */
   @DomName('Event.clipboardData')
   @DocsEditable()
@@ -16959,9 +16957,9 @@ class Event extends DartHtmlDomObject {
    *
    * ## Other resources
    *
-   * * [Shadow DOM extensions to Event]
-   * (http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event) from
-   * W3C.
+   * * [Shadow DOM extensions to
+   *   Event](http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event)
+   *   from W3C.
    */
   @DomName('Event.path')
   @DocsEditable()
@@ -21891,7 +21889,8 @@ class HttpRequest extends HttpRequestEventTarget {
    * 'text'. Some newer browsers will throw NS_ERROR_DOM_INVALID_ACCESS_ERR if
    * `responseType` is set while performing a synchronous request.
    *
-   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)
+   * See also: [MDN
+   * responseType](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#xmlhttprequest-responsetype)
    */
   @DomName('XMLHttpRequest.responseType')
   @DocsEditable()
@@ -21905,7 +21904,8 @@ class HttpRequest extends HttpRequestEventTarget {
    * 'text'. Some newer browsers will throw NS_ERROR_DOM_INVALID_ACCESS_ERR if
    * `responseType` is set while performing a synchronous request.
    *
-   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)
+   * See also: [MDN
+   * responseType](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#xmlhttprequest-responsetype)
    */
   @DomName('XMLHttpRequest.responseType')
   @DocsEditable()
@@ -21928,8 +21928,8 @@ class HttpRequest extends HttpRequestEventTarget {
   Document get responseXml => wrap_jso(_blink.BlinkXMLHttpRequest.instance.responseXML_Getter_(unwrap_jso(this)));
   
   /**
-   * The http result code from the request (200, 404, etc).
-   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+   * The HTTP result code from the request (200, 404, etc).
+   * See also: [HTTP Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
    */
   @DomName('XMLHttpRequest.status')
   @DocsEditable()
@@ -21937,7 +21937,7 @@ class HttpRequest extends HttpRequestEventTarget {
   
   /**
    * The request response string (such as \"200 OK\").
-   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+   * See also: [HTTP Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
    */
   @DomName('XMLHttpRequest.statusText')
   @DocsEditable()
@@ -21952,12 +21952,10 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * ## Other resources
    *
-   * * [XMLHttpRequest.timeout]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#timeout)
-   * from MDN.
-   * * [The timeout attribute]
-   * (http://www.w3.org/TR/XMLHttpRequest/#the-timeout-attribute)
-   * from W3C.
+   * * [XMLHttpRequest.timeout](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#xmlhttprequest-timeout)
+   *   from MDN.
+   * * [The timeout attribute](http://www.w3.org/TR/XMLHttpRequest/#the-timeout-attribute)
+   *   from W3C.
    */
   @DomName('XMLHttpRequest.timeout')
   @DocsEditable()
@@ -21973,12 +21971,10 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * ## Other resources
    *
-   * * [XMLHttpRequest.timeout]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#timeout)
-   * from MDN.
-   * * [The timeout attribute]
-   * (http://www.w3.org/TR/XMLHttpRequest/#the-timeout-attribute)
-   * from W3C.
+   * * [XMLHttpRequest.timeout](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#xmlhttprequest-timeout)
+   *   from MDN.
+   * * [The timeout attribute](http://www.w3.org/TR/XMLHttpRequest/#the-timeout-attribute)
+   *   from W3C.
    */
   @DomName('XMLHttpRequest.timeout')
   @DocsEditable()
@@ -22032,7 +22028,8 @@ class HttpRequest extends HttpRequestEventTarget {
    * `getAllResponseHeaders` will return the response headers for the current
    * part of the request.
    *
-   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
+   * See also [HTTP response
+   * headers](https://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Response_fields)
    * for a list of common response headers.
    */
   @DomName('XMLHttpRequest.getAllResponseHeaders')
@@ -22043,7 +22040,8 @@ class HttpRequest extends HttpRequestEventTarget {
   /**
    * Return the response header named `header`, or null if not found.
    *
-   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
+   * See also [HTTP response
+   * headers](https://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Response_fields)
    * for a list of common response headers.
    */
   @DomName('XMLHttpRequest.getResponseHeader')
@@ -22056,7 +22054,7 @@ class HttpRequest extends HttpRequestEventTarget {
    * response.
    *
    * This value must be set before the request has been sent. See also the list
-   * of [common MIME types](http://en.wikipedia.org/wiki/Internet_media_type#List_of_common_media_types)
+   * of [IANA Official MIME types](https://www.iana.org/assignments/media-types/media-types.xhtml)
    */
   @DomName('XMLHttpRequest.overrideMimeType')
   @DocsEditable()
@@ -22075,9 +22073,8 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * ## Other resources
    *
-   * * [XMLHttpRequest.send]
-   * (https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)
-   * from MDN.
+   * * [XMLHttpRequest.send](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)
+   *   from MDN.
    */
   @DomName('XMLHttpRequest.send')
   @DocsEditable()
@@ -22094,12 +22091,11 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * ## Other resources
    *
-   * * [XMLHttpRequest.setRequestHeader]
-   * (https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)
-   * from MDN.
-   * * [The setRequestHeader() method]
-   * (http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method) from
-   * W3C.
+   * * [XMLHttpRequest.setRequestHeader](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#setRequestHeader())
+   *   from MDN.
+   * * [The setRequestHeader()
+   *   method](http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method)
+   *   from W3C.
    */
   @DomName('XMLHttpRequest.setRequestHeader')
   @DocsEditable()
@@ -28494,9 +28490,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.firstChild]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.firstChild)
-   * from MDN.
+   * * [Node.firstChild](https://developer.mozilla.org/en-US/docs/Web/API/Node.firstChild)
+   *   from MDN.
    */
   @DomName('Node.firstChild')
   @DocsEditable()
@@ -28507,9 +28502,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.lastChild]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.lastChild)
-   * from MDN.
+   * * [Node.lastChild](https://developer.mozilla.org/en-US/docs/Web/API/Node.lastChild)
+   *   from MDN.
    */
   @DomName('Node.lastChild')
   @DocsEditable()
@@ -28528,9 +28522,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.nextSibling]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nextSibling)
-   * from MDN.
+   * * [Node.nextSibling](https://developer.mozilla.org/en-US/docs/Web/API/Node.nextSibling)
+   *   from MDN.
    */
   @DomName('Node.nextSibling')
   @DocsEditable()
@@ -28543,10 +28536,9 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.nodeName]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeName)
-   * from MDN. This page contains a table of [nodeName] values for each
-   * [nodeType].
+   * * [Node.nodeName](https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeName)
+   *   from MDN. This page contains a table of [nodeName] values for each
+   *   [nodeType].
    */
   @DomName('Node.nodeName')
   @DocsEditable()
@@ -28572,8 +28564,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.nodeType]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeType) from MDN.
+   * * [Node.nodeType](https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeType)
+   *   from MDN.
    */
   @DomName('Node.nodeType')
   @DocsEditable()
@@ -28586,10 +28578,9 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.nodeValue]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeValue)
-   * from MDN. This page contains a table of [nodeValue] values for each
-   * [nodeType].
+   * * [Node.nodeValue](https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeValue)
+   *   from MDN. This page contains a table of [nodeValue] values for each
+   *   [nodeType].
    */
   @DomName('Node.nodeValue')
   @DocsEditable()
@@ -28602,9 +28593,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.ownerDocument]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.ownerDocument) from
-   * MDN.
+   * * [Node.ownerDocument](https://developer.mozilla.org/en-US/docs/Web/API/Node.ownerDocument)
+   *   from MDN.
    */
   @DomName('Node.ownerDocument')
   @DocsEditable()
@@ -28618,9 +28608,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.parentElement]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.parentElement) from
-   * W3C.
+   * * [Node.parentElement](https://developer.mozilla.org/en-US/docs/Web/API/Node.parentElement)
+   *   from W3C.
    */
   @DomName('Node.parentElement')
   @DocsEditable()
@@ -28631,9 +28620,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.parentNode]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.parentNode) from
-   * MDN.
+   * * [Node.parentNode](https://developer.mozilla.org/en-US/docs/Web/API/Node.parentNode)
+   *   from MDN.
    */
   @DomName('Node.parentNode')
   @DocsEditable()
@@ -28644,9 +28632,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.previousSibling]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.previousSibling)
-   * from MDN.
+   * * [Node.previousSibling](https://developer.mozilla.org/en-US/docs/Web/API/Node.previousSibling)
+   *   from MDN.
    */
   @DomName('Node.previousSibling')
   @DocsEditable()
@@ -28657,9 +28644,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.textContent]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.textContent) from
-   * MDN.
+   * * [Node.textContent](https://developer.mozilla.org/en-US/docs/Web/API/Node.textContent)
+   *   from MDN.
    */
   @DomName('Node.textContent')
   @DocsEditable()
@@ -28670,9 +28656,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.textContent]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.textContent) from
-   * MDN.
+   * * [Node.textContent](https://developer.mozilla.org/en-US/docs/Web/API/Node.textContent)
+   *   from MDN.
    */
   @DomName('Node.textContent')
   @DocsEditable()
@@ -28699,9 +28684,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.cloneNode]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.cloneNode) from
-   * MDN.
+   * * [Node.cloneNode](https://developer.mozilla.org/en-US/docs/Web/API/Node.cloneNode)
+   *   from MDN.
    */
   @DomName('Node.cloneNode')
   @DocsEditable()
@@ -28712,8 +28696,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.contains]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.contains) from MDN.
+   * * [Node.contains](https://developer.mozilla.org/en-US/docs/Web/API/Node.contains)
+   *   from MDN.
    */
   @DomName('Node.contains')
   @DocsEditable()
@@ -28724,9 +28708,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.hasChildNodes]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.hasChildNodes) from
-   * MDN.
+   * * [Node.hasChildNodes](https://developer.mozilla.org/en-US/docs/Web/API/Node.hasChildNodes)
+   *   from MDN.
    */
   @DomName('Node.hasChildNodes')
   @DocsEditable()
@@ -28737,9 +28720,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.insertBefore]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore) from
-   * MDN.
+   * * [Node.insertBefore](https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore)
+   *   from MDN.
    */
   @DomName('Node.insertBefore')
   @DocsEditable()
@@ -39230,10 +39212,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Exploring the FileSystem APIs]
-   * (http://www.html5rocks.com/en/tutorials/file/filesystem/) from HTML5Rocks.
-   * * [File API]
-   * (http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem) from W3C.
+   * * [Exploring the FileSystem
+   *   APIs](http://www.html5rocks.com/en/tutorials/file/filesystem/)
+   *   from HTML5Rocks.
+   * * [File API](http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem)
+   *   from W3C.
    */
   @DomName('Window.PERSISTENT')
   @DocsEditable()
@@ -39246,10 +39229,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Exploring the FileSystem APIs]
-   * (http://www.html5rocks.com/en/tutorials/file/filesystem/) from HTML5Rocks.
-   * * [File API]
-   * (http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem) from W3C.
+   * * [Exploring the FileSystem
+   *   APIs](http://www.html5rocks.com/en/tutorials/file/filesystem/) from HTML5Rocks.
+   * * [File API](http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem)
+   *   from W3C.
    */
   @DomName('Window.TEMPORARY')
   @DocsEditable()
@@ -39273,11 +39256,12 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [A beginner's guide to using the application cache]
-   * (http://www.html5rocks.com/en/tutorials/appcache/beginner) from HTML5Rocks.
-   * * [Application cache API]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/offline.html#application-cache-api)
-   * from WHATWG.
+   * * [A beginner's guide to using the application
+   *   cache](http://www.html5rocks.com/en/tutorials/appcache/beginner)
+   *   from HTML5Rocks.
+   * * [Application cache
+   *   API](https://html.spec.whatwg.org/multipage/browsers.html#application-cache-api)
+   *   from WHATWG.
    */
   @DomName('Window.applicationCache')
   @DocsEditable()
@@ -39333,12 +39317,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [devicePixelRatio]
-   * (http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html) from
-   * quirksmode.
-   * * [More about devicePixelRatio]
-   * (http://www.quirksmode.org/blog/archives/2012/07/more_about_devi.html) from
-   * quirksmode.
+   * * [devicePixelRatio](http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html)
+   *   from quirksmode.
+   * * [More about devicePixelRatio](http://www.quirksmode.org/blog/archives/2012/07/more_about_devi.html)
+   *   from quirksmode.
    */
   @DomName('Window.devicePixelRatio')
   @DocsEditable()
@@ -39355,9 +39337,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Loading web pages]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html)
-   * from WHATWG.
+   * * [Loading web pages](https://html.spec.whatwg.org/multipage/browsers.html)
+   *   from WHATWG.
    */
   @DomName('Window.history')
   @DocsEditable()
@@ -39376,9 +39357,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [innerHeight]
-   * (http://docs.webplatform.org/wiki/css/cssom/properties/innerHeight) from
-   * WebPlatform.org.
+   * * [innerHeight](http://docs.webplatform.org/wiki/css/cssom/properties/innerHeight)
+   *   from WebPlatform.org.
    */
   @DomName('Window.innerHeight')
   @DocsEditable()
@@ -39389,9 +39369,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [innerWidth]
-   * (http://docs.webplatform.org/wiki/css/cssom/properties/innerWidth) from
-   * WebPlatform.org.
+   * * [innerWidth](http://docs.webplatform.org/wiki/css/cssom/properties/innerWidth)
+   *   from WebPlatform.org.
    */
   @DomName('Window.innerWidth')
   @DocsEditable()
@@ -39402,13 +39381,12 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [DOM storage guide]
-   * (https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage) from
-   * MDN.
-   * * [The past, present & future of local storage for web applications]
-   * (http://diveintohtml5.info/storage.html) from Dive Into HTML5.
-   * * [Local storage specification]
-   * (http://www.w3.org/TR/webstorage/#the-localstorage-attribute) from W3C.
+   * * [DOM storage guide](https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage)
+   *   from MDN.
+   * * [The past, present & future of local storage for web
+   *   applications](http://diveintohtml5.info/storage.html) from Dive Into HTML5.
+   * * [Local storage specification](http://www.w3.org/TR/webstorage/#the-localstorage-attribute)
+   *   from W3C.
    */
   @DomName('Window.localStorage')
   @DocsEditable()
@@ -39423,9 +39401,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Browser interface elements]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
-   * from WHATWG.
+   * * [Browser interface
+   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
+   *   from WHATWG.
    */
   @DomName('Window.locationbar')
   @DocsEditable()
@@ -39436,9 +39414,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Browser interface elements]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
-   * from WHATWG.
+   * * [Browser interface
+   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
+   *   from WHATWG.
    */
   @DomName('Window.menubar')
   @DocsEditable()
@@ -39449,9 +39427,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window name]
-   * (http://docs.webplatform.org/wiki/html/attributes/name_(window)) from
-   * WebPlatform.org.
+   * * [Window name](http://docs.webplatform.org/wiki/html/attributes/name_(window))
+   *   from WebPlatform.org.
    */
   @DomName('Window.name')
   @DocsEditable()
@@ -39462,9 +39439,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window name]
-   * (http://docs.webplatform.org/wiki/html/attributes/name_(window)) from
-   * WebPlatform.org.
+   * * [Window name](http://docs.webplatform.org/wiki/html/attributes/name_(window))
+   *   from WebPlatform.org.
    */
   @DomName('Window.name')
   @DocsEditable()
@@ -39475,9 +39451,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The navigator object]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#the-navigator-object)
-   * from WHATWG.
+   * * [The navigator
+   *   object](https://html.spec.whatwg.org/multipage/webappapis.html#the-navigator-object)
+   *   from WHATWG.
    */
   @DomName('Window.navigator')
   @DocsEditable()
@@ -39488,9 +39464,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [offscreenBuffering]
-   * (http://docs.webplatform.org/wiki/dom/properties/offscreenBuffering) from
-   * WebPlatform.org.
+   * * [offscreenBuffering](http://docs.webplatform.org/wiki/dom/properties/offscreenBuffering)
+   *   from WebPlatform.org.
    */
   @DomName('Window.offscreenBuffering')
   @DocsEditable()
@@ -39515,9 +39490,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [outerHeight]
-   * (http://docs.webplatform.org/wiki/css/cssom/properties/outerHeight) from
-   * WebPlatform.org.
+   * * [outerHeight](http://docs.webplatform.org/wiki/css/cssom/properties/outerHeight)
+   *   from WebPlatform.org.
    */
   @DomName('Window.outerHeight')
   @DocsEditable()
@@ -39528,9 +39502,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [outerWidth]
-   * (http://docs.webplatform.org/wiki/css/cssom/properties/outerWidth) from
-   * WebPlatform.org.
+   * * [outerWidth](http://docs.webplatform.org/wiki/css/cssom/properties/outerWidth)
+   *   from WebPlatform.org.
    */
   @DomName('Window.outerWidth')
   @DocsEditable()
@@ -39543,10 +39516,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
-   * * [scrollX and pageXOffset]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX) from MDN.
+   * * [The Screen interface
+   *   specification](http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [scrollX and
+   *   pageXOffset](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX)
+   *   from MDN.
    */
   @DomName('Window.pageXOffset')
   @DocsEditable()
@@ -39559,10 +39533,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
-   * * [scrollY and pageYOffset]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY) from MDN.
+   * * [The Screen interface
+   *   specification](http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [scrollY and
+   *   pageYOffset](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY)
+   *   from MDN.
    */
   @DomName('Window.pageYOffset')
   @DocsEditable()
@@ -39577,11 +39552,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Measuring page load speed with navigation timeing]
-   * (http://www.html5rocks.com/en/tutorials/webperformance/basics/) from
-   * HTML5Rocks.
-   * * [Navigation timing specification]
-   * (http://www.w3.org/TR/navigation-timing/) from W3C.
+   * * [Measuring page load speed with navigation
+   *   timeing](http://www.html5rocks.com/en/tutorials/webperformance/basics/)
+   *   from HTML5Rocks.
+   * * [Navigation timing
+   *   specification](http://www.w3.org/TR/navigation-timing/) from W3C.
    */
   @DomName('Window.performance')
   @DocsEditable()
@@ -39595,8 +39570,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
+   *   from W3C.
    */
   @DomName('Window.screen')
   @DocsEditable()
@@ -39608,8 +39583,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
+   *   from W3C.
    */
   @DomName('Window.screenLeft')
   @DocsEditable()
@@ -39620,8 +39595,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
+   *   from W3C.
    */
   @DomName('Window.screenTop')
   @DocsEditable()
@@ -39632,8 +39607,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
+   *   from W3C.
    */
   @DomName('Window.screenX')
   @DocsEditable()
@@ -39644,8 +39619,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
+   *   from W3C.
    */
   @DomName('Window.screenY')
   @DocsEditable()
@@ -39664,9 +39639,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Browser interface elements]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
-   * from WHATWG.
+   * * [Browser interface
+   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
+   *   from WHATWG.
    */
   @DomName('Window.scrollbars')
   @DocsEditable()
@@ -39677,8 +39652,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.self]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.self) from MDN.
+   * * [Window.self](https://developer.mozilla.org/en-US/docs/Web/API/Window.self)
+   *   from MDN.
    */
   @DomName('Window.self')
   @DocsEditable()
@@ -39689,13 +39664,13 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [DOM storage guide]
-   * (https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage) from
-   * MDN.
-   * * [The past, present & future of local storage for web applications]
-   * (http://diveintohtml5.info/storage.html) from Dive Into HTML5.
-   * * [Local storage specification]
-   * (http://www.w3.org/TR/webstorage/#dom-sessionstorage) from W3C.
+   * * [DOM storage
+   *   guide](https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage)
+   *   from MDN.
+   * * [The past, present & future of local storage for web
+   *   applications](http://diveintohtml5.info/storage.html) from Dive Into HTML5.
+   * * [Local storage
+   *   specification](http://www.w3.org/TR/webstorage/#dom-sessionstorage) from W3C.
    */
   @DomName('Window.sessionStorage')
   @DocsEditable()
@@ -39706,9 +39681,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Web speech specification]
-   * (https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section)
-   * from W3C.
+   * * [Web speech
+   *   specification](https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section)
+   *   from W3C.
    */
   @DomName('Window.speechSynthesis')
   @DocsEditable()
@@ -39731,9 +39706,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Browser interface elements]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
-   * from WHATWG.
+   * * [Browser interface
+   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
+   *   from WHATWG.
    */
   @DomName('Window.statusbar')
   @DocsEditable()
@@ -39744,9 +39719,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [StyleMedia class reference]
-   * (https://developer.apple.com/library/safari/documentation/SafariDOMAdditions/Reference/StyleMedia/StyleMedia/StyleMedia.html)
-   * from Safari Developer Library.
+   * * [StyleMedia class
+   *   reference](https://developer.apple.com/library/safari/documentation/SafariDOMAdditions/Reference/StyleMedia/)
+   *   from Safari Developer Library.
    */
   @DomName('Window.styleMedia')
   @DocsEditable()
@@ -39759,9 +39734,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Browser interface elements]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
-   * from WHATWG.
+   * * [Browser interface
+   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
+   *   from WHATWG.
    */
   @DomName('Window.toolbar')
   @DocsEditable()
@@ -39776,8 +39751,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.window]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.window) from MDN.
+   * * [Window.window](https://developer.mozilla.org/en-US/docs/Web/API/Window.window)
+   *   from MDN.
    */
   @DomName('Window.window')
   @DocsEditable()
@@ -39822,8 +39797,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.find]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.find) from MDN.
+   * * [Window.find](https://developer.mozilla.org/en-US/docs/Web/API/Window.find)
+   *   from MDN.
    */
   @DomName('Window.find')
   @DocsEditable()
@@ -39847,9 +39822,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.getSelection]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.getSelection)
-   * from MDN.
+   * * [Window.getSelection](https://developer.mozilla.org/en-US/docs/Web/API/Window.getSelection)
+   *   from MDN.
    */
   @DomName('Window.getSelection')
   @DocsEditable()
@@ -39860,11 +39834,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Testing media queries]
-   * (https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Testing_media_queries)
-   * from MDN.
-   * * [The MediaQueryList specification]
-   * (http://www.w3.org/TR/cssom-view/#the-mediaquerylist-interface) from W3C.
+   * * [Testing media
+   *   queries](https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Testing_media_queries)
+   *   from MDN.
+   * * [The MediaQueryList
+   *   specification](http://www.w3.org/TR/cssom-view/#the-mediaquerylist-interface) from W3C.
    */
   @DomName('Window.matchMedia')
   @DocsEditable()
@@ -39877,10 +39851,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.moveBy]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.moveBy) from MDN.
-   * * [Window.moveBy]
-   * (http://dev.w3.org/csswg/cssom-view/#dom-window-moveby) from W3C.
+   * * [Window.moveBy](https://developer.mozilla.org/en-US/docs/Web/API/Window.moveBy)
+   *   from MDN.
+   * * [Window.moveBy](http://dev.w3.org/csswg/cssom-view/#dom-window-moveby) from W3C.
    */
   @DomName('Window.moveBy')
   @DocsEditable()
@@ -39910,8 +39883,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.print]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.print) from MDN.
+   * * [Window.print](https://developer.mozilla.org/en-US/docs/Web/API/Window.print)
+   *   from MDN.
    */
   @DomName('Window.print')
   @DocsEditable()
@@ -39926,8 +39899,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window resizeBy] (http://docs.webplatform.org/wiki/dom/methods/resizeBy)
-   * from WebPlatform.org.
+   * * [Window resizeBy](http://docs.webplatform.org/wiki/dom/methods/resizeBy)
+   *   from WebPlatform.org.
    */
   @DomName('Window.resizeBy')
   @DocsEditable()
@@ -39938,8 +39911,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window resizeTo] (http://docs.webplatform.org/wiki/dom/methods/resizeTo)
-   * from WebPlatform.org.
+   * * [Window resizeTo](http://docs.webplatform.org/wiki/dom/methods/resizeTo)
+   *   from WebPlatform.org.
    */
   @DomName('Window.resizeTo')
   @DocsEditable()
@@ -40010,9 +39983,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Dialogs implemented using separate documents]
-   * (http://www.w3.org/html/wg/drafts/html/master/webappapis.html#dialogs-implemented-using-separate-documents)
-   * from W3C.
+   * * [Dialogs implemented using separate
+   *   documents](http://www.w3.org/html/wg/drafts/html/master/webappapis.html#dialogs-implemented-using-separate-documents)
+   *   from W3C.
    */
   @DomName('Window.showModalDialog')
   @DocsEditable()
@@ -40023,9 +39996,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Window object]
-   * (http://www.w3.org/html/wg/drafts/html/master/browsers.html#the-window-object)
-   * from W3C.
+   * * [The Window
+   *   object](http://www.w3.org/html/wg/drafts/html/master/browsers.html#the-window-object)
+   *   from W3C.
    */
   @DomName('Window.stop')
   @DocsEditable()
