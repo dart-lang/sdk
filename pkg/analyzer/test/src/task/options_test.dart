@@ -41,6 +41,14 @@ class ContextConfigurationTest extends AbstractContextTest {
   Map<String, YamlNode> parseOptions(String source) =>
       optionsProvider.getOptionsFromString(source);
 
+  test_configure_bad_options_contents() {
+    configureContext('''
+analyzer:
+  strong-mode:true # misformatted
+''');
+    expect(analysisOptions.strongMode, false);
+  }
+
   test_configure_enableGenericMethods() {
     expect(analysisOptions.enableGenericMethods, false);
     configureContext('''
@@ -98,14 +106,6 @@ analyzer:
     configureContext('''
 analyzer:
   strong-mode: foo
-''');
-    expect(analysisOptions.strongMode, false);
-  }
-
-  test_configure_bad_options_contents() {
-    configureContext('''
-analyzer:
-  strong-mode:true # misformatted
 ''');
     expect(analysisOptions.strongMode, false);
   }
@@ -301,6 +301,15 @@ analyzer:
   strong-mode: true
     ''',
         []);
+  }
+
+  test_analyzer_supported_strong_mode_supported_bad_value() {
+    validate(
+        '''
+analyzer:
+  strong-mode: w00t
+    ''',
+        [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 
   test_analyzer_unsupported_option() {

@@ -73,6 +73,7 @@ class AnalyzerOptionsValidator extends CompositeValidator {
   AnalyzerOptionsValidator()
       : super([
           new TopLevelAnalyzerOptionsValidator(),
+          new StrongModeOptionValueValidator(),
           new ErrorFilterOptionValidator(),
           new LanguageOptionValidator()
         ]);
@@ -224,6 +225,28 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
   static GenerateOptionsErrorsTask createTask(
           AnalysisContext context, AnalysisTarget target) =>
       new GenerateOptionsErrorsTask(context, target);
+}
+
+/// Validates `analyzer` strong-mode value configuration options.
+class StrongModeOptionValueValidator extends OptionsValidator {
+  ErrorBuilder trueOrFalseBuilder = new TrueOrFalseValueErrorBuilder();
+
+  @override
+  void validate(ErrorReporter reporter, Map<String, YamlNode> options) {
+    var analyzer = options[AnalyzerOptions.analyzer];
+    if (analyzer is! YamlMap) {
+      return;
+    }
+
+    var v = analyzer.nodes[AnalyzerOptions.strong_mode];
+    if (v is YamlScalar) {
+      var value = toLowerCase(v.value);
+      if (!AnalyzerOptions.trueOrFalse.contains(value)) {
+        trueOrFalseBuilder.reportError(
+            reporter, AnalyzerOptions.strong_mode, v);
+      }
+    }
+  }
 }
 
 /// Validates `analyzer` language configuration options.
@@ -395,7 +418,7 @@ class _OptionsProcessor {
           if (feature == AnalyzerOptions.enableSuperMixins) {
             if (isTrue(v.value)) {
               AnalysisOptionsImpl options =
-              new AnalysisOptionsImpl.from(context.analysisOptions);
+                  new AnalysisOptionsImpl.from(context.analysisOptions);
               options.enableSuperMixins = true;
               context.analysisOptions = options;
             }
@@ -403,7 +426,7 @@ class _OptionsProcessor {
           if (feature == AnalyzerOptions.enableGenericMethods) {
             if (isTrue(v.value)) {
               AnalysisOptionsImpl options =
-              new AnalysisOptionsImpl.from(context.analysisOptions);
+                  new AnalysisOptionsImpl.from(context.analysisOptions);
               options.enableGenericMethods = true;
               context.analysisOptions = options;
             }
