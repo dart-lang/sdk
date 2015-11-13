@@ -53,7 +53,11 @@ int Platform::NumberOfProcessors() {
 
 
 const char* Platform::OperatingSystem() {
+#if TARGET_OS_IOS
+  return "ios";
+#else
   return "macos";
+#endif
 }
 
 

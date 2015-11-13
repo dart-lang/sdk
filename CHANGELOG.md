@@ -13,6 +13,10 @@
 * `dart:convert`
   * `Base64Decoder.convert` now takes optional `start` and `end` parameters.
 
+* `dart:io`
+  * `Platform` added an `isiOS` getter and `Platform.operatingSystem` may now
+    return `ios`.
+
 ## 1.13.0
 
 ### Core library changes

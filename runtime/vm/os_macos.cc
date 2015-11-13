@@ -27,7 +27,11 @@
 namespace dart {
 
 const char* OS::Name() {
+#if TARGET_OS_IOS
+  return "ios";
+#else
   return "macos";
+#endif
 }
 
 
