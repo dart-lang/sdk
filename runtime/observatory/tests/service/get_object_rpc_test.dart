@@ -6,10 +6,9 @@
 library get_object_rpc_test;
 
 import 'dart:typed_data';
+import 'dart:convert' show BASE64;
 import 'package:observatory/service_io.dart';
-import 'package:observatory/base64.dart';
 import 'package:unittest/unittest.dart';
-
 import 'test_helper.dart';
 
 class _DummyClass {
@@ -356,7 +355,7 @@ var tests = [
     expect(result['offset'], isNull);
     expect(result['count'], isNull);
     expect(result['bytes'], equals('AwIB'));
-    var bytes = decodeBase64(result['bytes']);
+    var bytes = BASE64.decode(result['bytes']);
     expect(bytes.buffer.asUint8List().toString(), equals('[3, 2, 1]'));
   },
 
@@ -382,7 +381,7 @@ var tests = [
     expect(result['offset'], isNull);
     expect(result['count'], equals(2));
     expect(result['bytes'], equals('AwI='));
-    var bytes = decodeBase64(result['bytes']);
+    var bytes = BASE64.decode(result['bytes']);
     expect(bytes.buffer.asUint8List().toString(), equals('[3, 2]'));
   },
 
@@ -409,7 +408,7 @@ var tests = [
     expect(result['offset'], equals(2));
     expect(result['count'], equals(1));
     expect(result['bytes'], equals('AQ=='));
-    var bytes = decodeBase64(result['bytes']);
+    var bytes = BASE64.decode(result['bytes']);
     expect(bytes.buffer.asUint8List().toString(), equals('[1]'));
   },
 
@@ -459,7 +458,7 @@ var tests = [
     expect(result['offset'], isNull);
     expect(result['count'], isNull);
     expect(result['bytes'], equals('AwAAAAAAAAACAAAAAAAAAAEAAAAAAAAA'));
-    var bytes = decodeBase64(result['bytes']);
+    var bytes = BASE64.decode(result['bytes']);
     expect(bytes.buffer.asUint64List().toString(), equals('[3, 2, 1]'));
   },
 
@@ -485,7 +484,7 @@ var tests = [
     expect(result['offset'], isNull);
     expect(result['count'], equals(2));
     expect(result['bytes'], equals('AwAAAAAAAAACAAAAAAAAAA=='));
-    var bytes = decodeBase64(result['bytes']);
+    var bytes = BASE64.decode(result['bytes']);
     expect(bytes.buffer.asUint64List().toString(), equals('[3, 2]'));
   },
 
@@ -512,7 +511,7 @@ var tests = [
     expect(result['offset'], equals(2));
     expect(result['count'], equals(1));
     expect(result['bytes'], equals('AQAAAAAAAAA='));
-    var bytes = decodeBase64(result['bytes']);
+    var bytes = BASE64.decode(result['bytes']);
     expect(bytes.buffer.asUint64List().toString(), equals('[1]'));
   },
 

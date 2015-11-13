@@ -1971,7 +1971,7 @@ class ServiceEvent extends ServiceObject {
       exceptions = map['_debuggerSettings']['_exceptions'];
     }
     if (map['bytes'] != null) {
-      var bytes = decodeBase64(map['bytes']);
+      var bytes = BASE64.decode(map['bytes']);
       bytesAsString = UTF8.decode(bytes);
     }
     if (map['logRecord'] != null) {
@@ -2413,7 +2413,7 @@ class Instance extends HeapObject {
     elements = map['elements'];
     associations = map['associations'];
     if (map['bytes'] != null) {
-      var bytes = decodeBase64(map['bytes']);
+      var bytes = BASE64.decode(map['bytes']);
       switch (map['kind']) {
         case "Uint8ClampedList":
           typedElements = bytes.buffer.asUint8ClampedList(); break;

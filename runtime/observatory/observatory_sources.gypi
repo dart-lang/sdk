@@ -6,7 +6,6 @@
 {
   'sources': [
     'lib/app.dart',
-    'lib/base64.dart',
     'lib/cli.dart',
     'lib/cpu_profile.dart',
     'lib/debugger.dart',
