@@ -174,7 +174,7 @@ abstract class Iterable<E> {
   Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
 
   /**
-   * Expands each element of this [Iterable]into zero or more elements.
+   * Expands each element of this [Iterable] into zero or more elements.
    *
    * The resulting Iterable runs through the elements returned
    * by [f] for each element of this, in iteration order.
