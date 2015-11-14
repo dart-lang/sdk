@@ -1751,9 +1751,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
               .withSourceInformation(node.sourceInformation);
       if (node.isSetter) {
         registry.registerStaticUse(
-            superElement.isSetter
-                ? new StaticUse.superSetterSet(superElement)
-                : new StaticUse.superFieldSet(superElement));
+            new StaticUse.superSet(superElement));
         use(node.value);
         push(new js.Assignment(access, pop())
             .withSourceInformation(node.sourceInformation));
