@@ -404,7 +404,7 @@ class ContextManagerImpl implements ContextManager {
    * Stream subscription we are using to watch each analysis root directory for
    * changes.
    */
-  final Map<Folder, StreamSubscription<WatchEvent>> _changeSubscriptions =
+  final Map<Folder, StreamSubscription<WatchEvent>> changeSubscriptions =
       <Folder, StreamSubscription<WatchEvent>>{};
 
   ContextManagerImpl(this.resourceProvider, this.packageResolverProvider,
@@ -601,7 +601,7 @@ class ContextManagerImpl implements ContextManager {
         return info.folder.isOrContains(includedFolder.path);
       });
       if (!wasIncluded) {
-        _changeSubscriptions[includedFolder] =
+        changeSubscriptions[includedFolder] =
             includedFolder.changes.listen(_handleWatchEvent);
         _createContexts(_rootInfo, includedFolder, false);
       }
@@ -935,9 +935,7 @@ class ContextManagerImpl implements ContextManager {
    * Clean up and destroy the context associated with the given folder.
    */
   void _destroyContext(ContextInfo info) {
-    if (_changeSubscriptions.containsKey(info.folder)) {
-      _changeSubscriptions[info.folder].cancel();
-    }
+    changeSubscriptions.remove(info.folder)?.cancel();
     callbacks.removeContext(info.folder, _computeFlushedFiles(info));
     bool wasRemoved = info.parent.children.remove(info);
     assert(wasRemoved);

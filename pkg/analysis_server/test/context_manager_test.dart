@@ -1123,9 +1123,11 @@ test_pack:lib/
     resourceProvider.newFile(pubspecPath, '');
     // add one root - there is a context
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    expect(manager.changeSubscriptions, hasLength(1));
     expect(callbacks.currentContextPaths, hasLength(1));
     // set empty roots - no contexts
     manager.setRoots(<String>[], <String>[], <String, String>{});
+    expect(manager.changeSubscriptions, hasLength(0));
     expect(callbacks.currentContextPaths, hasLength(0));
     expect(callbacks.currentContextFilePaths, hasLength(0));
   }
