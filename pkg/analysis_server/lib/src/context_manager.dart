@@ -343,16 +343,16 @@ class ContextManagerImpl implements ContextManager {
   final ResourceProvider resourceProvider;
 
   /**
-   * The context used to work with file system paths.
-   */
-  pathos.Context pathContext;
-
-  /**
    * The context used to work with absolute file system paths.
    *
    * TODO(scheglov) remove [pathContext].
    */
   AbsolutePathContext absolutePathContext;
+
+  /**
+   * The context used to work with file system paths.
+   */
+  pathos.Context pathContext;
 
   /**
    * The list of excluded paths (folders and files) most recently passed to
@@ -417,8 +417,8 @@ class ContextManagerImpl implements ContextManager {
 
   ContextManagerImpl(this.resourceProvider, this.packageResolverProvider,
       this._packageMapProvider, this._instrumentationService) {
+    absolutePathContext = resourceProvider.absolutePathContext;
     pathContext = resourceProvider.pathContext;
-    absolutePathContext = new AbsolutePathContext(pathContext.separator);
   }
 
   @override

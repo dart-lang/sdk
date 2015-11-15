@@ -10,6 +10,7 @@ import 'dart:core' hide Resource;
 
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
 
@@ -28,6 +29,9 @@ class MemoryResourceProvider implements ResourceProvider {
       new HashMap<String, List<StreamController<WatchEvent>>>();
   int nextStamp = 0;
 
+  final AbsolutePathContext absolutePathContext =
+      new AbsolutePathContext(posix.separator);
+
   @override
   Context get pathContext => posix;
 
@@ -44,7 +48,7 @@ class MemoryResourceProvider implements ResourceProvider {
 
   /**
    * Delete the folder with the given path
-   * and recurively delete nested files and folders.
+   * and recursively delete nested files and folders.
    */
   void deleteFolder(String path) {
     _checkFolderAtPath(path);

@@ -10,6 +10,7 @@ import 'dart:io' as io;
 
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
 
@@ -30,6 +31,9 @@ class PhysicalResourceProvider implements ResourceProvider {
    * store data across sessions.
    */
   static final String SERVER_DIR = ".dartServer";
+
+  final AbsolutePathContext absolutePathContext =
+      new AbsolutePathContext(io.Platform.pathSeparator);
 
   PhysicalResourceProvider(String fileReadMode(String s)) {
     if (fileReadMode != null) {
@@ -129,12 +133,12 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
 
   @override
   String canonicalizePath(String relPath) {
-    return normalize(join(_entry.absolute.path, relPath));
+    return normalize(join(path, relPath));
   }
 
   @override
   bool contains(String path) {
-    return isWithin(this.path, path);
+    return absolutePathContext.isWithin(this.path, path);
   }
 
   @override
@@ -188,6 +192,9 @@ abstract class _PhysicalResource implements Resource {
 
   _PhysicalResource(this._entry);
 
+  AbsolutePathContext get absolutePathContext =>
+      PhysicalResourceProvider.INSTANCE.absolutePathContext;
+
   @override
   bool get exists => _entry.existsSync();
 
@@ -196,7 +203,7 @@ abstract class _PhysicalResource implements Resource {
 
   @override
   Folder get parent {
-    String parentPath = dirname(path);
+    String parentPath = absolutePathContext.dirname(path);
     if (parentPath == path) {
       return null;
     }
@@ -207,7 +214,7 @@ abstract class _PhysicalResource implements Resource {
   String get path => _entry.absolute.path;
 
   @override
-  String get shortName => basename(path);
+  String get shortName => absolutePathContext.basename(path);
 
   @override
   bool operator ==(other) {
