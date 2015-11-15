@@ -33,7 +33,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:glob/glob.dart';
+import 'package:analyzer/src/util/glob.dart';
 import 'package:plugin/plugin.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
@@ -1431,7 +1431,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       for (String pattern in patterns) {
         try {
           _analyzedFilesGlobs
-              .add(new Glob(pattern, context: JavaFile.pathContext));
+              .add(new Glob(JavaFile.pathContext.separator, pattern));
         } catch (exception, stackTrace) {
           AnalysisEngine.instance.logger.logError(
               'Invalid glob pattern: "$pattern"',
