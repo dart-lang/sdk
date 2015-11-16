@@ -8,7 +8,15 @@ library analyzer.src.util.absolute_path;
 class AbsolutePathContext {
   final String separator;
 
-  AbsolutePathContext(this.separator);
+  int _separatorChar;
+
+  AbsolutePathContext(this.separator) {
+    if (separator.length != 1) {
+      throw new ArgumentError.value(
+          separator, 'separator', 'must be exactly one character long');
+    }
+    _separatorChar = separator.codeUnitAt(0);
+  }
 
   /// Append the given relative [suffix] to the given absolute [parent].
   ///
@@ -54,7 +62,15 @@ class AbsolutePathContext {
   ///     context.isWithin('/root/path', '/root/other');  // -> false
   ///     context.isWithin('/root/path', '/root/path');   // -> false
   bool isWithin(String parent, String child) {
-    return child.startsWith(parent + separator);
+    int parentLength = parent.length;
+    int childLength = child.length;
+    if (parentLength >= childLength) {
+      return false;
+    }
+    if (child.codeUnitAt(parentLength) != _separatorChar) {
+      return false;
+    }
+    return _startsWithUnsafe(child, parent);
   }
 
   /// Split [path] into its components using [separator].
@@ -68,13 +84,27 @@ class AbsolutePathContext {
   /// relative path from [parent] to [child]. Otherwise return `null`. Both
   /// the [child] and [parent] paths must be absolute paths.
   ///
-  ///     context.relative('/root/path/a/b.dart', '/root/path'); // -> 'a/b.dart'
-  ///     context.relative('/root/other.dart', '/root/path');    // -> null
-  String suffix(String child, String parent) {
+  ///     context.relative('/root/path', '/root/path/a/b.dart'); // -> 'a/b.dart'
+  ///     context.relative('/root/path', '/root/other.dart');    // -> null
+  String suffix(String parent, String child) {
     String parentPrefix = parent + separator;
     if (child.startsWith(parentPrefix)) {
       return child.substring(parentPrefix.length);
     }
     return null;
+  }
+
+  /// Return `true` if [str] starts with the given [prefix].
+  ///
+  /// The check is done from the end of [prefix], because absolute paths
+  /// usually have the same prefix, e.g. the user's home directory.
+  static bool _startsWithUnsafe(String str, String prefix) {
+    int len = prefix.length;
+    for (int i = len - 1; i >= 0; i--) {
+      if (str.codeUnitAt(i) != prefix.codeUnitAt(i)) {
+        return false;
+      }
+    }
+    return true;
   }
 }

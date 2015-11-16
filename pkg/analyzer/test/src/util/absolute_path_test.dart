@@ -50,8 +50,8 @@ class AbsolutePathContextPosixTest {
   }
 
   void test_suffix() {
-    expect(context.suffix(r'/root/path/a/b.dart', r'/root/path'), r'a/b.dart');
-    expect(context.suffix(r'/root/other.dart', r'/root/path'), isNull);
+    expect(context.suffix(r'/root/path', r'/root/path/a/b.dart'), r'a/b.dart');
+    expect(context.suffix(r'/root/path', r'/root/other.dart'), isNull);
   }
 }
 
@@ -90,7 +90,7 @@ class AbsolutePathContextWindowsTest {
 
   void test_suffix() {
     expect(
-        context.suffix(r'C:\root\path\a\b.dart', r'C:\root\path'), r'a\b.dart');
-    expect(context.suffix(r'C:\root\other.dart', r'C:\root\path'), isNull);
+        context.suffix(r'C:\root\path', r'C:\root\path\a\b.dart'), r'a\b.dart');
+    expect(context.suffix(r'C:\root\path', r'C:\root\other.dart'), isNull);
   }
 }

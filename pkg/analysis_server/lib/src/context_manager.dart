@@ -1179,7 +1179,7 @@ class ContextManagerImpl implements ContextManager {
    */
   bool _isContainedInDotFolder(String root, String path) {
     String pathDir = absolutePathContext.dirname(path);
-    String suffixPath = absolutePathContext.suffix(pathDir, root);
+    String suffixPath = absolutePathContext.suffix(root, pathDir);
     if (suffixPath == null) {
       return false;
     }
@@ -1215,7 +1215,7 @@ class ContextManagerImpl implements ContextManager {
    * context root [root], contains a 'packages' folder.
    */
   bool _isInPackagesDir(String root, String path) {
-    String suffixPath = absolutePathContext.suffix(path, root);
+    String suffixPath = absolutePathContext.suffix(root, path);
     if (suffixPath == null) {
       return false;
     }
@@ -1228,7 +1228,7 @@ class ContextManagerImpl implements ContextManager {
    * context root [root].
    */
   bool _isInTopLevelDocDir(String root, String path) {
-    String suffixPath = absolutePathContext.suffix(path, root);
+    String suffixPath = absolutePathContext.suffix(root, path);
     if (suffixPath == null) {
       return false;
     }
