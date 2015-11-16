@@ -2553,6 +2553,14 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   bool _isValidMixin = false;
 
   /**
+   * A collection holding the elements defined in a class that need to have
+   * their function type fixed to take into account type parameters of the
+   * enclosing class, or `null` if we are not currently processing nodes within
+   * a class.
+   */
+  List<ExecutableElementImpl> _functionTypesToFix = null;
+
+  /**
    * A table mapping field names to field elements for the fields defined in the current class, or
    * `null` if we are not in the scope of a class.
    */
@@ -2607,6 +2615,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitClassDeclaration(ClassDeclaration node) {
     ElementHolder holder = new ElementHolder();
     _isValidMixin = true;
+    _functionTypesToFix = new List<ExecutableElementImpl>();
     //
     // Process field declarations before constructors and methods so that field
     // formal parameters can be correctly resolved to their fields.
@@ -2632,21 +2641,24 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
     interfaceType.typeArguments = typeArguments;
     element.type = interfaceType;
-    List<ConstructorElement> constructors = holder.constructors;
-    if (constructors.length == 0) {
-      //
-      // Create the default constructor.
-      //
-      constructors = _createDefaultConstructors(interfaceType);
-    }
+    element.typeParameters = typeParameters;
     _setDocRange(element, node);
     element.abstract = node.isAbstract;
     element.accessors = holder.accessors;
+    List<ConstructorElement> constructors = holder.constructors;
+    if (constructors.isEmpty) {
+      constructors = _createDefaultConstructors(element);
+    }
     element.constructors = constructors;
     element.fields = holder.fields;
     element.methods = holder.methods;
-    element.typeParameters = typeParameters;
     element.validMixin = _isValidMixin;
+    // Function types must be initialized after the enclosing element has been
+    // set, for them to pick up the type parameters.
+    for (ExecutableElementImpl e in _functionTypesToFix) {
+      e.type = new FunctionTypeImpl(e);
+    }
+    _functionTypesToFix = null;
     _currentHolder.addType(element);
     className.staticElement = element;
     _fieldMap = null;
@@ -3019,7 +3031,15 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         element.setVisibleRange(functionEnd, blockEnd - functionEnd - 1);
       }
     }
-    element.type = new FunctionTypeImpl(element);
+    if (_functionTypesToFix != null) {
+      _functionTypesToFix.add(element);
+    } else {
+      // TODO(jmesserly): for local functions inside of top-level generic
+      // functions, this is probably not right. The function type should be set
+      // after the enclosingElement is set, otherwise we won't be able to
+      // substitute those type parameters later.
+      element.type = new FunctionTypeImpl(element);
+    }
     element.hasImplicitReturnType = true;
     _currentHolder.addFunction(element);
     node.element = element;
@@ -3422,11 +3442,12 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
    * @return the [ConstructorElement]s array with the single default constructor element
    */
   List<ConstructorElement> _createDefaultConstructors(
-      InterfaceTypeImpl interfaceType) {
+      ClassElementImpl definingClass) {
     ConstructorElementImpl constructor =
         new ConstructorElementImpl.forNode(null);
     constructor.synthetic = true;
-    constructor.returnType = interfaceType;
+    constructor.returnType = definingClass.type;
+    constructor.enclosingElement = definingClass;
     constructor.type = new FunctionTypeImpl(constructor);
     return <ConstructorElement>[constructor];
   }
