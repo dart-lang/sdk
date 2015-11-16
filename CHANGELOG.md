@@ -1,3 +1,7 @@
+# 0.1.7
+
+* Fix to `package_api_docs` (dart-lang/sdk#24947; #154).
+
 # 0.1.6
 
 * Fix to `package_prefixed_library_names` (dart-lang/sdk#24947; #154).
