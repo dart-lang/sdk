@@ -46,6 +46,15 @@ String writeJsLibrary(JS.Program jsTree, String outputPath,
     text = printer.text;
     var sourceMap = JSON.decode(printer.map);
     var sourceMapText = new JsonEncoder.withIndent('  ').convert(sourceMap);
+    // Convert:
+    //   "names": [
+    //     "state",
+    //     "print"
+    //   ]
+    // to:
+    //   "names": ["state","print"]
+    sourceMapText =
+        sourceMapText.replaceAll('\n    ', '').replaceAll('\n  ]', ']');
     new File('$outputPath.map').writeAsStringSync('$sourceMapText\n');
   } else {
     text = (context as JS.SimpleJavaScriptPrintingContext).getText();
