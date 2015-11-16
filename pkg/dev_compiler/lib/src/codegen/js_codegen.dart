@@ -248,7 +248,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   void visitLibraryDirective(LibraryDirective node) {
     assert(_jsModuleValue == null);
 
-    var jsName = findAnnotation(node.element, isJsNameAnnotation);
+    var jsName = findAnnotation(node.element, isJSAnnotation);
     _jsModuleValue =
         getConstantField(jsName, 'name', types.stringType)?.toStringValue();
   }
@@ -409,7 +409,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (jsTypeName != null && jsTypeName != dartClassName) {
       // We export the JS type as if it was a Dart type. For example this allows
       // `dom.InputElement` to actually be HTMLInputElement.
-      // TODO(jmesserly): if we had the JsName on the Element, we could just
+      // TODO(jmesserly): if we had the JS name on the Element, we could just
       // generate it correctly when we refer to it.
       if (isPublic(dartClassName)) _addExport(dartClassName);
       return js.statement('let # = #;', [dartClassName, jsTypeName]);
@@ -421,7 +421,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   JS.Statement visitClassDeclaration(ClassDeclaration node) {
     var classElem = node.element;
     var type = classElem.type;
-    var jsName = findAnnotation(classElem, isJsNameAnnotation);
+    var jsName = findAnnotation(classElem, isJSAnnotation);
 
     if (jsName != null) return _emitJsType(node.name.name, jsName);
 
@@ -2721,7 +2721,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   // TODO(jmesserly): ideally we'd check the method and see if it is marked
   // `external`, but that doesn't work because it isn't in the element model.
   bool _useNativeJsIndexer(DartType type) =>
-      findAnnotation(type.element, isJsNameAnnotation) != null;
+      findAnnotation(type.element, isJSAnnotation) != null;
 
   /// Gets the target of a [PropertyAccess], [IndexExpression], or
   /// [MethodInvocation]. These three nodes can appear in a [CascadeExpression].

@@ -2,20 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@JsName(name: 'window')
+@js.JS('window')
 library dom;
 
-@JsName()
+import 'package:js/js.dart' as js;
+
+@js.JS()
 class Window {}
 
-class JsName {
-  /// The JavaScript name.
-  /// Used for classes and libraries.
-  /// Note that this could be an expression, e.g. `lib.TypeName` in JS, but it
-  /// should be kept simple, as it will be generated directly into the code.
-  final String name;
-  const JsName({this.name});
-}
 class Overload {
   const Overload();
 }
@@ -24,7 +18,7 @@ const overload = const Overload();
 external Document get document;
 external Window get window;
 
-@JsName()
+@js.JS()
 abstract class Document extends Node {
   Element createElement(String name);
   Element querySelector(String selector);
@@ -33,7 +27,7 @@ abstract class Document extends Node {
   HTMLElement body;
 }
 
-@JsName()
+@js.JS()
 class Blob {
   external Blob(blobParts, {String type});
 }
@@ -42,19 +36,19 @@ class CustomEvent {
   external CustomEvent(String type, {detail, bubbles, cancelable});
 }
 
-@JsName()
+@js.JS()
 abstract class Element extends Node {
   void addEventListener(String type, EventListener callback, [bool capture]);
   String textContent;
 }
 
-@JsName()
+@js.JS()
 abstract class HTMLElement extends Element {
   String innerHTML;
   HTMLCollection get children;
 }
 
-@JsName()
+@js.JS()
 abstract class Node {
   bool hasChildNodes();
   NodeList get childNodes;
@@ -70,7 +64,7 @@ abstract class HTMLCollection {
   external Element operator [](num index);
 }
 
-@JsName()
+@js.JS()
 class NodeList {
   external NodeList();
   external num get length;
@@ -83,26 +77,26 @@ class NodeList {
 
 typedef void EventListener(Event e);
 
-@JsName()
+@js.JS()
 abstract class Event {}
 
 // TODO(jmesserly): rename these
-@JsName(name: 'HTMLInputElement')
+@js.JS('HTMLInputElement')
 abstract class InputElement extends HTMLElement {
   String value;
 }
 
-@JsName(name: 'HTMLCanvasElement')
+@js.JS('HTMLCanvasElement')
 abstract class CanvasElement extends HTMLElement {
   RenderingContext getContext(String contextId);
 }
 
-@JsName(name: 'HTMLDivElement')
+@js.JS('HTMLDivElement')
 abstract class DivElement extends HTMLElement {
   RenderingContext getContext(String contextId);
 }
 
-@JsName(name: 'HTMLScriptElement')
+@js.JS('HTMLScriptElement')
 abstract class ScriptElement extends HTMLElement {
   String type;
 }
@@ -113,7 +107,7 @@ abstract class ScriptElement extends HTMLElement {
 abstract class RenderingContext {}
 
 // http://www.w3.org/html/wg/drafts/2dcontext/html5_canvas_CR/
-@JsName()
+@js.JS()
 abstract class CanvasRenderingContext2D
     implements CanvasDrawingStyles, CanvasPathMethods, RenderingContext {
 
@@ -229,23 +223,23 @@ abstract class CanvasPathMethods {
       [bool anticlockwise]);
 }
 
-@JsName()
+@js.JS()
 abstract class CanvasGradient {
   // opaque object
   void addColorStop(num offset, String color);
 }
 
-@JsName()
+@js.JS()
 abstract class CanvasPattern {
   // opaque object
 }
 
-@JsName()
+@js.JS()
 abstract class TextMetrics {
   num get width;
 }
 
-@JsName()
+@js.JS()
 abstract class ImageData {
   int get width;
   int get height;

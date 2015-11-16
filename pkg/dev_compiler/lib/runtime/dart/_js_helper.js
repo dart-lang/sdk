@@ -30,15 +30,6 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   dart.setSignature(Native, {
     constructors: () => ({Native: [Native, [core.String]]})
   });
-  class JsName extends core.Object {
-    JsName(opts) {
-      let name = opts && 'name' in opts ? opts.name : null;
-      this.name = name;
-    }
-  }
-  dart.setSignature(JsName, {
-    constructors: () => ({JsName: [JsName, [], {name: core.String}]})
-  });
   class JsPeerInterface extends core.Object {
     JsPeerInterface(opts) {
       let name = opts && 'name' in opts ? opts.name : null;
@@ -1189,7 +1180,6 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   exports.NoThrows = NoThrows;
   exports.NoInline = NoInline;
   exports.Native = Native;
-  exports.JsName = JsName;
   exports.JsPeerInterface = JsPeerInterface;
   exports.SupportJsExtensionMethods = SupportJsExtensionMethods;
   exports.defineProperty = defineProperty;

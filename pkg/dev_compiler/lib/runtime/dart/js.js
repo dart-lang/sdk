@@ -390,6 +390,31 @@ dart_library.library('dart/js', null, /* Imports */[
     return value;
   }
   dart.fn(_putIfAbsent, core.Object, [dart.dynamic, dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic])]);
+  function allowInterop(f) {
+    return f;
+  }
+  dart.fn(allowInterop, core.Function, [core.Function]);
+  dart.defineLazyProperties(exports, {
+    get _interopCaptureThisExpando() {
+      return new (core.Expando$(core.Function))();
+    },
+    set _interopCaptureThisExpando(_) {}
+  });
+  function allowInteropCaptureThis(f) {
+    let ret = exports._interopCaptureThisExpando.get(f);
+    if (ret == null) {
+      ret = dart.as(function() {
+        let args = [this];
+        for (let arg of arguments) {
+          args.push(arg);
+        }
+        return f(...args);
+      }, core.Function);
+      exports._interopCaptureThisExpando.set(f, ret);
+    }
+    return ret;
+  }
+  dart.fn(allowInteropCaptureThis, core.Function, [core.Function]);
   let __CastType0$ = dart.generic(function(E) {
     let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [E]));
     return __CastType0;
@@ -400,4 +425,6 @@ dart_library.library('dart/js', null, /* Imports */[
   exports.JsFunction = JsFunction;
   exports.JsArray$ = JsArray$;
   exports.JsArray = JsArray;
+  exports.allowInterop = allowInterop;
+  exports.allowInteropCaptureThis = allowInteropCaptureThis;
 });

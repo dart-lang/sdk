@@ -5,15 +5,6 @@ dart_library.library('sunflower/dom', window, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
-  class JsName extends core.Object {
-    JsName(opts) {
-      let name = opts && 'name' in opts ? opts.name : null;
-      this.name = name;
-    }
-  }
-  dart.setSignature(JsName, {
-    constructors: () => ({JsName: [JsName, [], {name: core.String}]})
-  });
   class Overload extends core.Object {
     Overload() {
     }
@@ -50,7 +41,6 @@ dart_library.library('sunflower/dom', window, /* Imports */[
   }
   class CanvasPathMethods extends core.Object {}
   // Exports:
-  exports.JsName = JsName;
   exports.Overload = Overload;
   exports.overload = overload;
   exports.CustomEvent = CustomEvent;

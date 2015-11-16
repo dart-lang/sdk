@@ -90,7 +90,7 @@ library dart.js;
 import 'dart:collection' show HashMap, ListMixin;
 
 import 'dart:_interceptors' as _interceptors show JSArray;
-import 'dart:_js_helper' show JsName, Primitives;
+import 'dart:_js_helper' show Primitives;
 import 'dart:_foreign_helper' show JS;
 
 final JsObject context = _wrapToDart(JS('', 'dart.global'));
@@ -512,4 +512,46 @@ Object _putIfAbsent(weakMap, o, getValue(o)) {
     JS('', '#.set(#, #)', weakMap, o, value);
   }
   return value;
+}
+
+// The allowInterop method is a no-op in Dart Dev Compiler.
+// TODO(jacobr): tag methods so we can throw if a Dart method is passed to
+// JavaScript using the new interop without calling allowInterop.
+
+/// Returns a wrapper around function [f] that can be called from JavaScript
+/// using the package:js Dart-JavaScript interop.
+///
+/// For performance reasons in Dart2Js, by default Dart functions cannot be
+/// passed directly to JavaScript unless this method is called to create
+/// a Function compatible with both Dart and JavaScript.
+/// Calling this method repeatedly on a function will return the same function.
+/// The [Function] returned by this method can be used from both Dart and
+/// JavaScript. We may remove the need to call this method completely in the
+/// future if Dart2Js is refactored so that its function calling conventions
+/// are more compatible with JavaScript.
+Function allowInterop(Function f) => f;
+
+Expando<Function> _interopCaptureThisExpando = new Expando<Function>();
+
+/// Returns a [Function] that when called from JavaScript captures its 'this'
+/// binding and calls [f] with the value of this passed as the first argument.
+/// When called from Dart, [null] will be passed as the first argument.
+///
+/// See the documention for [allowInterop]. This method should only be used with
+/// package:js Dart-JavaScript interop.
+Function allowInteropCaptureThis(Function f) {
+  var ret = _interopCaptureThisExpando[f];
+  if (ret == null) {
+    ret = JS('',
+        'function(/*...arguments*/) {'
+        '  let args = [this];'
+        '  for (let arg of arguments) {'
+        '    args.push(arg);'
+        '  }'
+        '  return #(...args);'
+        '}',
+        f);
+    _interopCaptureThisExpando[f] = ret;
+  }
+  return ret;
 }

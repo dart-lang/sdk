@@ -330,7 +330,7 @@ String resourceOutputPath(Uri resourceUri, Uri entryUri, String runtimeDir) {
 ///
 /// For example if we had the ClassDeclaration node for `FontElement`:
 ///
-///    @JsName('HTMLFontElement')
+///    @js.JS('HTMLFontElement')
 ///    @deprecated
 ///    class FontElement { ... }
 ///

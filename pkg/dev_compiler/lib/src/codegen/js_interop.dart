@@ -24,8 +24,8 @@ bool isJsRestAnnotation(DartObjectImpl value) =>
 bool isJsSpreadInvocation(MethodInvocation i) =>
     _isJsLibType('spread', i.methodName?.bestElement);
 
-// TODO(jmesserly): Move JsName, JsPeerInterface to package:js (see issue #135).
-bool isJsNameAnnotation(DartObjectImpl value) => value.type.name == 'JsName';
+// TODO(jmesserly): Move JsPeerInterface to package:js (see issue #135).
+bool isJSAnnotation(DartObjectImpl value) => value.type.name == 'JS';
 
 bool isJsPeerInterface(DartObjectImpl value) =>
     value.type.name == 'JsPeerInterface';
