@@ -2829,6 +2829,7 @@ void Class::set_invocation_dispatcher_cache(const Array& cache) const {
 
 
 void Class::Finalize() const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   // Even if all regular classes are prefinalized (precompilation), signature
   // classes may be added later when we encounter local functions.
   ASSERT(IsSignatureClass() || !Isolate::Current()->all_classes_finalized());

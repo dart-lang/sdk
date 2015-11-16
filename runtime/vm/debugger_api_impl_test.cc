@@ -11,6 +11,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_osr);
 
@@ -493,6 +494,8 @@ TEST_CASE(Debug_InspectStack_NotOptimized) {
 
 
 TEST_CASE(Debug_InspectStack_Optimized) {
+  // Ensure code gets optimized.
+  FLAG_background_compilation = false;
   InspectStackTest(true);
 }
 
@@ -589,6 +592,8 @@ TEST_CASE(Debug_InspectStackWithClosure_NotOptimized) {
 
 
 TEST_CASE(Debug_InspectStackWithClosure_Optimized) {
+  // Ensure code gets optimized.
+  FLAG_background_compilation = false;
   InspectStackWithClosureTest(true);
 }
 

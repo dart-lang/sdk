@@ -1343,13 +1343,6 @@ void Assembler::fstpl(const Address& dst) {
 }
 
 
-void Assembler::fildl(const Address& src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xDF);
-  EmitOperand(5, src);
-}
-
-
 void Assembler::fincstp() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xD9);

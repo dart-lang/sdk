@@ -811,6 +811,17 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
               result->SetDeoptimizeDependentFields(
                   flow_graph->deoptimize_dependent_code());
             } else {
+              // Deoptimize field dependent code first, before registering
+              // this yet uninstalled code as dependent on a field.
+              // TODO(srdjan): Debugging dart2js crashes;
+              // FlowGraphOptimizer::VisitStoreInstanceField populates
+              // deoptimize_dependent_code() list, currently disabled.
+              for (intptr_t i = 0;
+                   i < flow_graph->deoptimize_dependent_code().length();
+                   i++) {
+                const Field* field = flow_graph->deoptimize_dependent_code()[i];
+                field->DeoptimizeDependentCode();
+              }
               for (intptr_t i = 0;
                    i < thread->cha()->leaf_classes().length();
                    ++i) {
@@ -821,12 +832,6 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
                    i++) {
                 const Field* field = (*flow_graph->guarded_fields())[i];
                 field->RegisterDependentCode(code);
-              }
-              for (intptr_t i = 0;
-                   i < flow_graph->deoptimize_dependent_code().length();
-                   i++) {
-                const Field* field = flow_graph->deoptimize_dependent_code()[i];
-                field->DeoptimizeDependentCode();
               }
             }
           }
@@ -1820,10 +1825,11 @@ void BackgroundCompiler::AddResult(const BackgroundCompilationResult& result) {
   MonitorLocker ml(queue_monitor_);
   // Reuse the input QueueElement to return the result.
   QueueElement* qelem = function_queue()->Remove();
-  if (result.IsValid()) {
-    qelem->SetFromResult(result);
-    result_queue()->Add(qelem);
-  }
+  // Always add result, even if it is invalid, since the queue element is
+  // deleted in the mutator thread and potential field based deoptimizations
+  // (carried in the result) still must be done.
+  qelem->SetFromResult(result);
+  result_queue()->Add(qelem);
 }
 
 
@@ -1845,13 +1851,20 @@ void BackgroundCompiler::InstallGeneratedCode() {
   Function& function = Function::Handle();
   while (result_queue()->Peek() != NULL) {
     BackgroundCompilationResult result;
-    QueueElement* elem = result_queue()->Remove();
-    ASSERT(elem != NULL);
-    result.SetFromQElement(elem);
-    delete elem;
+    QueueElement* qelem = result_queue()->Remove();
+    ASSERT(qelem != NULL);
+    result.SetFromQElement(qelem);
+    delete qelem;
 
     const Code& code = result.result_code();
     function ^= code.owner();
+    Field& field = Field::Handle();
+    // Always execute necessary deoptimizations, even if the result is invalid.
+    for (intptr_t i = 0; i < result.deoptimize_dependent_fields().Length();
+         i++) {
+      field ^= result.deoptimize_dependent_fields().At(i);
+      field.DeoptimizeDependentCode();
+    }
     if (result.IsValid()) {
       function.InstallOptimizedCode(result.result_code(), false /* not OSR */);
       // Install leaf classes and fields dependencies.
@@ -1860,15 +1873,9 @@ void BackgroundCompiler::InstallGeneratedCode() {
         cls ^= result.leaf_classes().At(i);
         cls.RegisterCHACode(code);
       }
-      Field& field = Field::Handle();
       for (intptr_t i = 0; i < result.guarded_fields().Length(); i++) {
         field ^= result.guarded_fields().At(i);
         field.RegisterDependentCode(code);
-      }
-      for (intptr_t i = 0; i < result.deoptimize_dependent_fields().Length();
-           i++) {
-        field ^= result.deoptimize_dependent_fields().At(i);
-        field.DeoptimizeDependentCode();
       }
     } else if (FLAG_trace_compiler) {
       THR_Print("Drop code generated in the background compiler:\n");

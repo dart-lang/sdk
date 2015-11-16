@@ -3393,22 +3393,6 @@ ASSEMBLER_TEST_RUN(IntToDoubleConversion, test) {
 }
 
 
-ASSEMBLER_TEST_GENERATE(IntToDoubleConversion2, assembler) {
-  __ pushq(CallingConventions::kArg1Reg);
-  __ fildl(Address(RSP, 0));
-  __ fstpl(Address(RSP, 0));
-  __ movsd(XMM0, Address(RSP, 0));
-  __ popq(RAX);
-  __ ret();
-}
-
-
-ASSEMBLER_TEST_RUN(IntToDoubleConversion2, test) {
-  typedef double (*IntToDoubleConversion2Code)(int i);
-  double res = reinterpret_cast<IntToDoubleConversion2Code>(test->entry())(3);
-  EXPECT_FLOAT_EQ(3.0, res, 0.001);
-}
-
 ASSEMBLER_TEST_GENERATE(DoubleToDoubleTrunc, assembler) {
   __ roundsd(XMM0, XMM0, Assembler::kRoundToZero);
   __ ret();

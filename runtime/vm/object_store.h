@@ -359,6 +359,8 @@ class ObjectStore {
 
   RawError* sticky_error() const { return sticky_error_; }
   void set_sticky_error(const Error& value) {
+    // TODO(asiva): Move sticky_error_ into thread specific area.
+    ASSERT(Thread::Current()->IsMutatorThread());
     ASSERT(!value.IsNull());
     sticky_error_ = value.raw();
   }

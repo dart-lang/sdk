@@ -4621,6 +4621,8 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
       field.set_is_unboxing_candidate(false);
       if (Compiler::IsBackgroundCompilation()) {
         // Delay deoptimization of dependent code to the code installation time.
+        // The invalidation of the background compilation result occurs only
+        // when the deoptimization is triggered at code installation.
         flow_graph()->deoptimize_dependent_code().Add(&field);
       } else {
         field.DeoptimizeDependentCode();

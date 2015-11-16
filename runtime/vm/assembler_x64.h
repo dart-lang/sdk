@@ -671,8 +671,6 @@ class Assembler : public ValueObject {
   void fldl(const Address& src);
   void fstpl(const Address& dst);
 
-  void fildl(const Address& src);
-
   void fincstp();
   void ffree(intptr_t value);
 
