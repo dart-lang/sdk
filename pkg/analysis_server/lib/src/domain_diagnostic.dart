@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library src.domain_experimental;
+library src.domain_diagnostic;
 
 import 'dart:collection';
 import 'dart:core' hide Resource;
@@ -57,34 +57,34 @@ ContextData extractData(AnalysisContext context) {
       exceptions.toList());
 }
 
-/// Instances of the class [ExperimentalDomainHandler] implement a
-/// [RequestHandler] that handles requests in the `experimental` domain.
-class ExperimentalDomainHandler implements RequestHandler {
+/// Instances of the class [DiagnosticDomainHandler] implement a
+/// [RequestHandler] that handles requests in the `diagnostic` domain.
+class DiagnosticDomainHandler implements RequestHandler {
   /// The name of the request used to get diagnostic information.
-  static const String EXPERIMENTAL_DIAGNOSTICS = 'experimental.getDiagnostics';
+  static const String DIAGNOSTICS = 'diagnostic.getDiagnostics';
 
   /// The analysis server that is using this handler to process requests.
   final AnalysisServer server;
 
   /// Initialize a newly created handler to handle requests for the given
   /// [server].
-  ExperimentalDomainHandler(this.server);
+  DiagnosticDomainHandler(this.server);
 
-  /// Answer the `experimental.diagnostics` request.
+  /// Answer the `diagnostic.diagnostics` request.
   Response computeDiagnostics(Request request) {
     List<ContextData> infos = <ContextData>[];
     server.folderMap.forEach((Folder folder, AnalysisContext context) {
       infos.add(extractData(context));
     });
 
-    return new ExperimentalGetDiagnosticsResult(infos).toResponse(request.id);
+    return new DiagnosticGetDiagnosticsResult(infos).toResponse(request.id);
   }
 
   @override
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == EXPERIMENTAL_DIAGNOSTICS) {
+      if (requestName == DIAGNOSTICS) {
         return computeDiagnostics(request);
       }
     } on RequestFailure catch (exception) {

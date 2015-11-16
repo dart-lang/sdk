@@ -1637,11 +1637,11 @@ abstract class IntegrationTestMixin {
    *
    *   The list of analysis contexts.
    */
-  Future<ExperimentalGetDiagnosticsResult> sendExperimentalGetDiagnostics() {
-    return server.send("experimental.getDiagnostics", null)
+  Future<DiagnosticGetDiagnosticsResult> sendDiagnosticGetDiagnostics() {
+    return server.send("diagnostic.getDiagnostics", null)
         .then((result) {
       ResponseDecoder decoder = new ResponseDecoder(null);
-      return new ExperimentalGetDiagnosticsResult.fromJson(decoder, 'result', result);
+      return new DiagnosticGetDiagnosticsResult.fromJson(decoder, 'result', result);
     });
   }
 

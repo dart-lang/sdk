@@ -1007,19 +1007,19 @@ final Matcher isExecutionLaunchDataParams = new LazyMatcher(() => new MatchesJso
   }));
 
 /**
- * experimental.getDiagnostics params
+ * diagnostic.getDiagnostics params
  */
-final Matcher isExperimentalGetDiagnosticsParams = isNull;
+final Matcher isDiagnosticGetDiagnosticsParams = isNull;
 
 /**
- * experimental.getDiagnostics result
+ * diagnostic.getDiagnostics result
  *
  * {
  *   "contexts": List<ContextData>
  * }
  */
-final Matcher isExperimentalGetDiagnosticsResult = new LazyMatcher(() => new MatchesJsonObject(
-  "experimental.getDiagnostics result", {
+final Matcher isDiagnosticGetDiagnosticsResult = new LazyMatcher(() => new MatchesJsonObject(
+  "diagnostic.getDiagnostics result", {
     "contexts": isListOf(isContextData)
   }));
 

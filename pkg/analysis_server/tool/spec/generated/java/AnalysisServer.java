@@ -273,6 +273,13 @@ public interface AnalysisServer {
   public void completion_getSuggestions(String file, int offset, GetSuggestionsConsumer consumer);
 
   /**
+   * {@code diagnostic.getDiagnostics}
+   *
+   * Return server diagnostics.
+   */
+  public void diagnostic_getDiagnostics(GetDiagnosticsConsumer consumer);
+
+  /**
    * {@code edit.format}
    *
    * Format the contents of a single file. The currently selected region of text is passed in so that
@@ -441,13 +448,6 @@ public interface AnalysisServer {
    * @param subscriptions A list of the services being subscribed to.
    */
   public void execution_setSubscriptions(List<String> subscriptions);
-
-  /**
-   * {@code experimental.getDiagnostics}
-   *
-   * Return server diagnostics.
-   */
-  public void experimental_getDiagnostics(GetDiagnosticsConsumer consumer);
 
   /**
    * Return {@code true} if the socket is open.

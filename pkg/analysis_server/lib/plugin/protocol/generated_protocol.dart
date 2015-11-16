@@ -7422,18 +7422,18 @@ class ExecutionLaunchDataParams implements HasToJson {
   }
 }
 /**
- * experimental.getDiagnostics params
+ * diagnostic.getDiagnostics params
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class ExperimentalGetDiagnosticsParams {
+class DiagnosticGetDiagnosticsParams {
   Request toRequest(String id) {
-    return new Request(id, "experimental.getDiagnostics", null);
+    return new Request(id, "diagnostic.getDiagnostics", null);
   }
 
   @override
   bool operator==(other) {
-    if (other is ExperimentalGetDiagnosticsParams) {
+    if (other is DiagnosticGetDiagnosticsParams) {
       return true;
     }
     return false;
@@ -7441,12 +7441,12 @@ class ExperimentalGetDiagnosticsParams {
 
   @override
   int get hashCode {
-    return 876666064;
+    return 587526202;
   }
 }
 
 /**
- * experimental.getDiagnostics result
+ * diagnostic.getDiagnostics result
  *
  * {
  *   "contexts": List<ContextData>
@@ -7454,7 +7454,7 @@ class ExperimentalGetDiagnosticsParams {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class ExperimentalGetDiagnosticsResult implements HasToJson {
+class DiagnosticGetDiagnosticsResult implements HasToJson {
   List<ContextData> _contexts;
 
   /**
@@ -7470,11 +7470,11 @@ class ExperimentalGetDiagnosticsResult implements HasToJson {
     this._contexts = value;
   }
 
-  ExperimentalGetDiagnosticsResult(List<ContextData> contexts) {
+  DiagnosticGetDiagnosticsResult(List<ContextData> contexts) {
     this.contexts = contexts;
   }
 
-  factory ExperimentalGetDiagnosticsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory DiagnosticGetDiagnosticsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -7485,14 +7485,14 @@ class ExperimentalGetDiagnosticsResult implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "contexts");
       }
-      return new ExperimentalGetDiagnosticsResult(contexts);
+      return new DiagnosticGetDiagnosticsResult(contexts);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "experimental.getDiagnostics result", json);
+      throw jsonDecoder.mismatch(jsonPath, "diagnostic.getDiagnostics result", json);
     }
   }
 
-  factory ExperimentalGetDiagnosticsResult.fromResponse(Response response) {
-    return new ExperimentalGetDiagnosticsResult.fromJson(
+  factory DiagnosticGetDiagnosticsResult.fromResponse(Response response) {
+    return new DiagnosticGetDiagnosticsResult.fromJson(
         new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
@@ -7511,7 +7511,7 @@ class ExperimentalGetDiagnosticsResult implements HasToJson {
 
   @override
   bool operator==(other) {
-    if (other is ExperimentalGetDiagnosticsResult) {
+    if (other is DiagnosticGetDiagnosticsResult) {
       return listEqual(contexts, other.contexts, (ContextData a, ContextData b) => a == b);
     }
     return false;

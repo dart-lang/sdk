@@ -20,8 +20,8 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
+import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:analysis_server/src/domain_execution.dart';
-import 'package:analysis_server/src/domain_experimental.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
@@ -316,7 +316,7 @@ class ServerPlugin implements Plugin {
     registerExtension(domainId,
         (AnalysisServer server) => new ExecutionDomainHandler(server));
     registerExtension(domainId,
-        (AnalysisServer server) => new ExperimentalDomainHandler(server));
+        (AnalysisServer server) => new DiagnosticDomainHandler(server));
     //
     // Register fix contributors.
     //
