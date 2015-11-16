@@ -4,6 +4,7 @@
 
 library dev_compiler.src.codegen.js_printer;
 
+import 'dart:convert' show JSON, JsonEncoder;
 import 'dart:io' show Directory, File, Platform, Process;
 
 import 'package:analyzer/src/generated/ast.dart';
@@ -40,10 +41,12 @@ String writeJsLibrary(JS.Program jsTree, String outputPath,
   String text;
   if (context is SourceMapPrintingContext) {
     var printer = context.printer;
-    printer.add('//# sourceMappingURL=$outFilename.map');
+    printer.add('//# sourceMappingURL=$outFilename.map\n');
     // Write output file and source map
     text = printer.text;
-    new File('$outputPath.map').writeAsStringSync(printer.map);
+    var sourceMap = JSON.decode(printer.map);
+    var sourceMapText = new JsonEncoder.withIndent('  ').convert(sourceMap);
+    new File('$outputPath.map').writeAsStringSync('$sourceMapText\n');
   } else {
     text = (context as JS.SimpleJavaScriptPrintingContext).getText();
   }
