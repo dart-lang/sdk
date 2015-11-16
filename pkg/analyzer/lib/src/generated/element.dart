@@ -4514,15 +4514,6 @@ class FunctionElementImpl extends ExecutableElementImpl
     _visibleRangeOffset = offset;
     _visibleRangeLength = length;
   }
-
-  /**
-   * Set the parameters defined by this type alias to the given [parameters]
-   * without becoming the parent of the parameters. This should only be used by
-   * the [TypeResolverVisitor] when creating a synthetic type alias.
-   */
-  void shareParameters(List<ParameterElement> parameters) {
-    this._parameters = parameters;
-  }
 }
 
 /**
@@ -4827,6 +4818,24 @@ class FunctionTypeAliasElementImpl extends ElementImpl
       }
     }
     return null;
+  }
+
+  /**
+   * Set the parameters defined by this type alias to the given [parameters]
+   * without becoming the parent of the parameters. This should only be used by
+   * the [TypeResolverVisitor] when creating a synthetic type alias.
+   */
+  void shareParameters(List<ParameterElement> parameters) {
+    this._parameters = parameters;
+  }
+
+  /**
+   * Set the type parameters defined for this type to the given [typeParameters]
+   * without becoming the parent of the parameters. This should only be used by
+   * the [TypeResolverVisitor] when creating a synthetic type alias.
+   */
+  void shareTypeParameters(List<TypeParameterElement> typeParameters) {
+    this._typeParameters = typeParameters;
   }
 
   @override

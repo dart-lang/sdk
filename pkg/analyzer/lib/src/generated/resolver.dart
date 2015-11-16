@@ -14939,12 +14939,33 @@ class TypeResolverVisitor extends ScopedVisitor {
   void _setFunctionTypedParameterType(ParameterElementImpl element,
       TypeName returnType, FormalParameterList parameterList) {
     List<ParameterElement> parameters = _getElements(parameterList);
-    FunctionElementImpl functionElement = new FunctionElementImpl.forNode(null);
-    functionElement.synthetic = true;
-    functionElement.shareParameters(parameters);
-    functionElement.returnType = _computeReturnType(returnType);
-    functionElement.enclosingElement = element;
-    element.type = new FunctionTypeImpl(functionElement);
+    FunctionTypeAliasElementImpl aliasElement =
+        new FunctionTypeAliasElementImpl.forNode(null);
+    aliasElement.synthetic = true;
+    aliasElement.shareParameters(parameters);
+    aliasElement.returnType = _computeReturnType(returnType);
+    // FunctionTypeAliasElementImpl assumes the enclosing element is a
+    // CompilationUnitElement (because non-synthetic function types can only be
+    // declared at top level), so to avoid breaking things, go find the
+    // compilation unit element.
+    aliasElement.enclosingElement =
+        element.getAncestor((element) => element is CompilationUnitElement);
+    ClassElement definingClass =
+        element.getAncestor((element) => element is ClassElement);
+    if (definingClass != null) {
+      aliasElement.shareTypeParameters(definingClass.typeParameters);
+    } else {
+      FunctionTypeAliasElement alias =
+          element.getAncestor((element) => element is FunctionTypeAliasElement);
+      while (alias != null && alias.isSynthetic) {
+        alias =
+            alias.getAncestor((element) => element is FunctionTypeAliasElement);
+      }
+      if (alias != null) {
+        aliasElement.typeParameters = alias.typeParameters;
+      }
+    }
+    element.type = new FunctionTypeImpl.forTypedef(aliasElement);
   }
 
   /**
