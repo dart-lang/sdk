@@ -168,7 +168,8 @@ class AnalysisDriver {
     }
     TaskDescriptor taskDescriptor = taskManager.findTask(target, result);
     try {
-      WorkItem workItem = new WorkItem(context, target, taskDescriptor, result);
+      WorkItem workItem =
+          new WorkItem(context, target, taskDescriptor, result, null);
       return new WorkOrder(taskManager, workItem);
     } catch (exception, stackTrace) {
       throw new AnalysisException(
@@ -550,6 +551,11 @@ class WorkItem {
   final ResultDescriptor spawningResult;
 
   /**
+   * The work order that this item is part of, may be `null`.
+   */
+  WorkOrder workOrder;
+
+  /**
    * An iterator used to iterate over the descriptors of the inputs to the task,
    * or `null` if all of the inputs have been collected and the task can be
    * created.
@@ -587,7 +593,8 @@ class WorkItem {
    * Initialize a newly created work item to compute the inputs for the task
    * described by the given descriptor.
    */
-  WorkItem(this.context, this.target, this.descriptor, this.spawningResult) {
+  WorkItem(this.context, this.target, this.descriptor, this.spawningResult,
+      this.workOrder) {
     AnalysisTarget actualTarget =
         identical(target, AnalysisContextTarget.request)
             ? new AnalysisContextTarget(context)
@@ -646,6 +653,25 @@ class WorkItem {
     while (builder != null) {
       AnalysisTarget inputTarget = builder.currentTarget;
       ResultDescriptor inputResult = builder.currentResult;
+
+      // TODO(scheglov) record information to debug
+      // https://github.com/dart-lang/sdk/issues/24939
+      if (inputTarget == null || inputResult == null) {
+        try {
+          String message =
+              'Invalid input descriptor ($inputTarget, $inputResult) for $this';
+          if (workOrder != null) {
+            message += '\nPath:\n' + workOrder.workItems.join('|\n');
+          }
+          throw new AnalysisException(message);
+        } catch (exception, stackTrace) {
+          this.exception = new CaughtException(exception, stackTrace);
+          AnalysisEngine.instance.logger
+              .logError('Task failed: $this', this.exception);
+        }
+        return null;
+      }
+
       inputTargetedResults.add(new TargetedResult(inputTarget, inputResult));
       CacheEntry inputEntry = context.getCacheEntry(inputTarget);
       CacheState inputState = inputEntry.getState(inputResult);
@@ -674,7 +700,8 @@ class WorkItem {
         try {
           TaskDescriptor descriptor =
               taskManager.findTask(inputTarget, inputResult);
-          return new WorkItem(context, inputTarget, descriptor, inputResult);
+          return new WorkItem(
+              context, inputTarget, descriptor, inputResult, workOrder);
         } on AnalysisException catch (exception, stackTrace) {
           this.exception = new CaughtException(exception, stackTrace);
           return null;
@@ -722,7 +749,9 @@ class WorkOrder implements Iterator<WorkItem> {
    * the given work item.
    */
   WorkOrder(TaskManager taskManager, WorkItem item)
-      : _dependencyWalker = new _WorkOrderDependencyWalker(taskManager, item);
+      : _dependencyWalker = new _WorkOrderDependencyWalker(taskManager, item) {
+    item.workOrder = this;
+  }
 
   @override
   WorkItem get current {
