@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart' as cache;
 import 'package:analyzer/src/context/context.dart' as newContext;
@@ -964,6 +965,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   AnalysisOptionsImpl _options = new AnalysisOptionsImpl();
 
+  /// The embedder yaml locator for this context.
+  EmbedderYamlLocator _embedderYamlLocator = new EmbedderYamlLocator(null);
+
   /**
    * A flag indicating whether errors related to implicitly analyzed sources
    * should be generated and reported.
@@ -1154,6 +1158,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   AnalysisOptions get analysisOptions => _options;
+
+  @override
+  EmbedderYamlLocator get embedderYamlLocator => _embedderYamlLocator;
 
   @override
   void set analysisOptions(AnalysisOptions options) {
@@ -9429,6 +9436,9 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    */
   dynamic get privateAnalysisCachePartition;
 
+  /// Get the [EmbedderYamlLocator] for this context.
+  EmbedderYamlLocator get embedderYamlLocator;
+  
   /**
    * A factory to override how [ResolverVisitor] is created.
    */

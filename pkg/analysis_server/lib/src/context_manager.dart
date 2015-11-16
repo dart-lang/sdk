@@ -15,6 +15,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
+import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/path_filter.dart';
@@ -1453,6 +1454,20 @@ class PackagesFileDisposition extends FolderDisposition {
   @override
   final Packages packages;
 
+  Map<String, List<Folder>> buildPackageMap(ResourceProvider resourceProvider) {
+    Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
+    if (packages == null) {
+      return packageMap;
+    }
+    packages.asMap().forEach((String name, Uri uri) {
+      if (uri.scheme == 'file' || uri.scheme == '' /* unspecified */) {
+        var path = resourceProvider.pathContext.fromUri(uri);
+        packageMap[name] = <Folder>[resourceProvider.getFolder(path)];
+      }
+    });
+    return packageMap;
+  }
+
   PackagesFileDisposition(this.packages) {}
 
   @override
@@ -1463,13 +1478,8 @@ class PackagesFileDisposition extends FolderDisposition {
       ResourceProvider resourceProvider) {
     if (packages != null) {
       // Construct package map for the SdkExtUriResolver.
-      Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
-      packages.asMap().forEach((String name, Uri uri) {
-        if (uri.scheme == 'file' || uri.scheme == '' /* unspecified */) {
-          var path = resourceProvider.pathContext.fromUri(uri);
-          packageMap[name] = <Folder>[resourceProvider.getFolder(path)];
-        }
-      });
+      Map<String, List<Folder>> packageMap =
+          buildPackageMap(resourceProvider);
       return <UriResolver>[new SdkExtUriResolver(packageMap)];
     } else {
       return const <UriResolver>[];

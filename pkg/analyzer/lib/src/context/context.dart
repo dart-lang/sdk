@@ -9,6 +9,7 @@ import 'dart:collection';
 
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/task.dart';
+import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -80,6 +81,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * The set of analysis options controlling the behavior of this context.
    */
   AnalysisOptionsImpl _options = new AnalysisOptionsImpl();
+
+  /// The embedder yaml locator for this context.
+  EmbedderYamlLocator _embedderYamlLocator = new EmbedderYamlLocator(null);
 
   /**
    * A flag indicating whether this context is disposed.
@@ -250,6 +254,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   AnalysisOptions get analysisOptions => _options;
+
+  @override
+  EmbedderYamlLocator get embedderYamlLocator => _embedderYamlLocator;
 
   @override
   void set analysisOptions(AnalysisOptions options) {

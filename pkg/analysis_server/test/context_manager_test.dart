@@ -10,6 +10,7 @@ import 'package:analysis_server/src/context_manager.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -567,6 +568,49 @@ analyzer:
     });
   }
 
+  test_embedder_packagespec() async {
+    // Create files.
+    String libPath = newFolder([projPath, LIB_NAME]);
+    newFile([libPath, 'main.dart']);
+    newFile([libPath, 'nope.dart']);
+    String sdkExtPath = newFolder([projPath, 'sdk_ext']);
+    newFile([sdkExtPath, 'entry.dart']);
+    String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
+    newFile([sdkExtSrcPath, 'part.dart']);
+    // Setup _embedder.yaml.
+    newFile(
+        [libPath, '_embedder.yaml'],
+        r'''
+embedder_libs:
+  "dart:foobar": "../sdk_ext/entry.dart"
+  "dart:typed_data": "../sdk_ext/src/part"
+  ''');
+    // Setup .packages file
+    newFile(
+        [projPath, '.packages'],
+        r'''
+test_pack:lib/''');
+    // Setup context.
+
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    await pumpEventQueue();
+    // Confirm that one context was created.
+    var contexts =
+        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
+    expect(contexts, isNotNull);
+    expect(contexts.length, equals(1));
+    var context = contexts[0];
+    var source = context.sourceFactory.forUri('dart:foobar');
+    expect(source, isNotNull);
+    expect(source.fullName, equals('/my/proj/sdk_ext/entry.dart'));
+    // We can't find dart:core because we didn't list it in our
+    // embedder_libs map.
+    expect(context.sourceFactory.forUri('dart:core'), isNull);
+    // We can find dart:typed_data because we listed it in our
+    // embedder_libs map.
+    expect(context.sourceFactory.forUri('dart:typed_data'), isNotNull);
+  }
+
   test_sdk_ext_packagespec() async {
     // Create files.
     String libPath = newFolder([projPath, LIB_NAME]);
@@ -588,8 +632,7 @@ analyzer:
     newFile(
         [projPath, '.packages'],
         r'''
-test_pack:lib/
-''');
+test_pack:lib/''');
     // Setup context.
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // Confirm that one context was created.
@@ -1900,6 +1943,19 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
    */
   Iterable<String> get currentContextPaths => currentContextTimestamps.keys;
 
+  /// If [disposition] has a package map, attempt to locate `_embedder.yaml`
+  /// files.
+  void _locateEmbedderYamls(InternalAnalysisContext context,
+                            FolderDisposition disposition) {
+    Map<String, List<Folder>> packageMap;
+    if (disposition is PackageMapDisposition) {
+      packageMap = disposition.packageMap;
+    } else if (disposition is PackagesFileDisposition) {
+      packageMap = disposition.buildPackageMap(resourceProvider);
+    }
+    context.embedderYamlLocator.refresh(packageMap);
+  }
+
   @override
   AnalysisContext addContext(Folder folder, FolderDisposition disposition) {
     String path = folder.path;
@@ -1909,7 +1965,19 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     currentContextSources[path] = new HashSet<Source>();
     currentContextDispositions[path] = disposition;
     currentContext = AnalysisEngine.instance.createAnalysisContext();
+    _locateEmbedderYamls(currentContext, disposition);
     List<UriResolver> resolvers = [];
+    if (currentContext is InternalAnalysisContext) {
+      EmbedderYamlLocator embedderYamlLocator =
+          (currentContext as InternalAnalysisContext).embedderYamlLocator;
+      EmbedderUriResolver embedderUriResolver =
+          new EmbedderUriResolver(embedderYamlLocator.embedderYamls);
+      if (embedderUriResolver.length > 0) {
+        // We have some embedder dart: uri mappings, add the resolver
+        // to the list.
+        resolvers.add(embedderUriResolver);
+      }
+    }
     resolvers.addAll(disposition.createPackageUriResolvers(resourceProvider));
     resolvers.add(new FileUriResolver());
     currentContext.sourceFactory =

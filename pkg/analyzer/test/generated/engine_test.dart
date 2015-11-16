@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart' show CacheEntry;
 import 'package:analyzer/src/generated/ast.dart';
@@ -5687,6 +5688,12 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   AnalysisOptions get analysisOptions {
     fail("Unexpected invocation of getAnalysisOptions");
+    return null;
+  }
+
+  @override
+  EmbedderYamlLocator get embedderYamlLocator {
+    fail("Unexpected invocation of get embedderYamlLocator");
     return null;
   }
 

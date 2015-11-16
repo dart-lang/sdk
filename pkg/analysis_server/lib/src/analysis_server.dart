@@ -23,6 +23,7 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -1452,7 +1453,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         AnalysisEngine.instance.createAnalysisContext();
     context.contentCache = analysisServer.overlayState;
     analysisServer.folderMap[folder] = context;
-    context.sourceFactory = _createSourceFactory(disposition);
+    _locateEmbedderYamls(context, disposition);
+    context.sourceFactory = _createSourceFactory(context, disposition);
     context.analysisOptions =
         new AnalysisOptionsImpl.from(analysisServer.defaultContextOptions);
     analysisServer._onContextsChangedController
@@ -1521,7 +1523,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   void updateContextPackageUriResolver(
       Folder contextFolder, FolderDisposition disposition) {
     AnalysisContext context = analysisServer.folderMap[contextFolder];
-    context.sourceFactory = _createSourceFactory(disposition);
+    context.sourceFactory = _createSourceFactory(context, disposition);
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
@@ -1535,17 +1537,41 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     }
   }
 
+  /// If [disposition] has a package map, attempt to locate `_embedder.yaml`
+  /// files.
+  void _locateEmbedderYamls(InternalAnalysisContext context,
+                            FolderDisposition disposition) {
+    Map<String, List<Folder>> packageMap;
+    if (disposition is PackageMapDisposition) {
+      packageMap = disposition.packageMap;
+    } else if (disposition is PackagesFileDisposition) {
+      packageMap = disposition.buildPackageMap(resourceProvider);
+    }
+    context.embedderYamlLocator.refresh(packageMap);
+  }
+
   /**
    * Set up a [SourceFactory] that resolves packages as appropriate for the
    * given [disposition].
    */
-  SourceFactory _createSourceFactory(FolderDisposition disposition) {
-    UriResolver dartResolver = new DartUriResolver(analysisServer.defaultSdk);
-    UriResolver resourceResolver = new ResourceUriResolver(resourceProvider);
+  SourceFactory _createSourceFactory(InternalAnalysisContext context,
+                                     FolderDisposition disposition) {
     List<UriResolver> resolvers = [];
-    resolvers.add(dartResolver);
-    resolvers.addAll(disposition.createPackageUriResolvers(resourceProvider));
-    resolvers.add(resourceResolver);
+    List<UriResolver> packageUriResolvers =
+        disposition.createPackageUriResolvers(resourceProvider);
+    EmbedderUriResolver embedderUriResolver =
+        new EmbedderUriResolver(context.embedderYamlLocator.embedderYamls);
+    if (embedderUriResolver.length == 0) {
+      // The embedder uri resolver has no mappings. Use the default Dart SDK
+      // uri resolver.
+      resolvers.add(new DartUriResolver(analysisServer.defaultSdk));
+    } else {
+      // The embedder uri resolver has mappings, use it instead of the default
+      // Dart SDK uri resolver.
+      resolvers.add(embedderUriResolver);
+    }
+    resolvers.addAll(packageUriResolvers);
+    resolvers.add(new ResourceUriResolver(resourceProvider));
     return new SourceFactory(resolvers, disposition.packages);
   }
 }
