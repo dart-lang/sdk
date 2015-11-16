@@ -1142,7 +1142,9 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
       DisassembleCode(function, optimized);
     } else if (FLAG_disassemble_optimized &&
                optimized &&
-               FlowGraphPrinter::ShouldPrint(function)) {
+               FlowGraphPrinter::ShouldPrint(function) &&
+               (result == NULL) /* no background compilation*/ ) {
+      // With background compilation, print when installing the code.
       // TODO(fschneider): Print unoptimized code along with the optimized code.
       THR_Print("*** BEGIN CODE\n");
       DisassembleCode(function, true);
@@ -1867,6 +1869,10 @@ void BackgroundCompiler::InstallGeneratedCode() {
     }
     if (result.IsValid()) {
       function.InstallOptimizedCode(result.result_code(), false /* not OSR */);
+      if (FLAG_trace_compiler) {
+        THR_Print("Installing optimized code for %s\n",
+            function.ToQualifiedCString());
+      }
       // Install leaf classes and fields dependencies.
       Class& cls = Class::Handle();
       for (intptr_t i = 0; i < result.leaf_classes().Length(); i++) {
@@ -1884,6 +1890,13 @@ void BackgroundCompiler::InstallGeneratedCode() {
     if (function.usage_counter() < 0) {
       // Reset to 0 so that it can be recompiled if needed.
       function.set_usage_counter(0);
+    }
+    if (result.IsValid() &&
+        FLAG_disassemble_optimized &&
+        FlowGraphPrinter::ShouldPrint(function)) {
+      THR_Print("*** BEGIN CODE\n");
+      DisassembleCode(function, true);
+      THR_Print("*** END CODE\n");
     }
   }
 }
