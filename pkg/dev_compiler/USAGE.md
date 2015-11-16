@@ -32,9 +32,10 @@ void main() {
 ```
 
 the Dart analyzer will not report a static error or warning even
-though the program will clearly fail (in checked mode).  Running DDC:
+though the program will clearly fail (in checked mode).  Running with --strong
+mode:
 
-    $ dartdevc main.dart
+    $ dartanalyzer --strong main.dart
 
 will display a severe error.  Modifying `42` to `'42'` will
 correct the error.
