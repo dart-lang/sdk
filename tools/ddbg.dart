@@ -774,7 +774,7 @@ void processCommand(String cmdLine) {
         });
     } else {
       var matchNames = matches.map((handler) => handler.name);
-      print("Ambigous command '$command' : ${matchNames.toList()}");
+      print("Ambiguous command '$command' : ${matchNames.toList()}");
       cmdo.show();
     }
   }

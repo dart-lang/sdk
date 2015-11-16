@@ -1724,7 +1724,7 @@ class ObservatoryDebugger extends Debugger {
         // Unambiguous completion.
         return completions[0];
       } else {
-        // Ambigous completion.
+        // Ambiguous completion.
         completions = completions.map((s) => s.trimRight()).toList();
         console.printBold(completions.toString());
         return _foldCompletions(completions);
