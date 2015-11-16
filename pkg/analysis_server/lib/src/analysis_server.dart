@@ -757,6 +757,10 @@ class AnalysisServer {
     if (context == null) {
       return null;
     }
+    // done if everything is already analyzed
+    if (isAnalysisComplete()) {
+      return new Future.value(AnalysisDoneReason.COMPLETE);
+    }
     // schedule context analysis
     schedulePerformAnalysisOperation(context);
     // associate with the context completer
