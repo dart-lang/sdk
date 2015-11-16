@@ -207,20 +207,17 @@ class AnalysisContextFactory {
       ElementFactory.requiredParameter2(
           "value", futureElement.typeParameters[0].type)
     ];
-    FunctionTypeAliasElementImpl aliasElement =
-        new FunctionTypeAliasElementImpl.forNode(null);
-    aliasElement.synthetic = true;
-    aliasElement.parameters = parameters;
-    aliasElement.returnType = provider.dynamicType;
-    aliasElement.enclosingElement = asyncUnit;
-    aliasElement.shareTypeParameters(futureElement.typeParameters);
-    FunctionTypeImpl aliasType = new FunctionTypeImpl.forTypedef(aliasElement);
-    aliasElement.type = aliasType;
+    FunctionElementImpl onValueFunction = new FunctionElementImpl.forNode(null);
+    onValueFunction.synthetic = true;
+    onValueFunction.parameters = parameters;
+    onValueFunction.returnType = provider.dynamicType;
+    onValueFunction.enclosingElement = futureElement;
+    onValueFunction.type = new FunctionTypeImpl(onValueFunction);
     DartType futureDynamicType =
         futureElement.type.substitute4([provider.dynamicType]);
     MethodElement thenMethod = ElementFactory.methodElementWithParameters(
         futureElement, "then", futureDynamicType, [
-      ElementFactory.requiredParameter2("onValue", aliasType),
+      ElementFactory.requiredParameter2("onValue", onValueFunction.type),
       ElementFactory.namedParameter2("onError", provider.functionType)
     ]);
     futureElement.methods = <MethodElement>[thenMethod];
@@ -12213,6 +12210,30 @@ main() {
     DartType t = e.typeParameters[0].type;
     ft = ft.substitute2([typeProvider.intType], [t]);
     expect(ft.toString(), '(String) → List<int>');
+  }
+
+  void test_genericMethod_functionTypedParameter() {
+    _resolveTestUnit(r'''
+class C<E> {
+  List/*<T>*/ f/*<T>*/(/*=T*/ f(E e)) => null;
+}
+main() {
+  C<String> cOfString;
+}
+''');
+    SimpleIdentifier f = _findIdentifier('f');
+    MethodElementImpl e = f.staticElement;
+    expect(e.typeParameters.toString(), '[T]');
+    expect(e.type.typeParameters.toString(), '[T, E]');
+    expect(e.type.typeArguments.toString(), '[T, E]');
+    expect(e.type.toString(), '((E) → T) → List<T>');
+
+    SimpleIdentifier c = _findIdentifier('cOfString');
+    FunctionType ft = (c.staticType as InterfaceType).getMethod('f').type;
+    expect(ft.toString(), '((String) → T) → List<T>');
+    DartType t = e.typeParameters[0].type;
+    ft = ft.substitute2([typeProvider.intType], [t]);
+    expect(ft.toString(), '((String) → int) → List<int>');
   }
 
   void test_pseudoGeneric_max_doubleDouble() {
