@@ -80,6 +80,11 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitLibraryDirective(LibraryDirective node) {
+    // If no project info is set, bail early.
+    // https://github.com/dart-lang/linter/issues/154
+    if (project == null) {
+      return;
+    }
     Source source = node.element.source;
     var prefix = createLibraryNamePrefix(
         libraryPath: source.fullName,

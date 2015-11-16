@@ -1,3 +1,7 @@
+# 0.1.6
+
+* Fix to `package_prefixed_library_names` (dart-lang/sdk#24947; #154).
+
 # 0.1.5
 
 * Added `prefer_is_not_empty` lint rule (#143).
