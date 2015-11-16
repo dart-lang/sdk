@@ -666,7 +666,8 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *
    * See also:
    *
-   * * [Custom data attributes](http://www.w3.org/TR/html5/global-attributes.html#custom-data-attribute)
+   * * [Custom data
+   *   attributes](http://dev.w3.org/html5/spec-preview/global-attributes.html#custom-data-attribute)
    */
   Map<String, String> get dataset =>
     new _DataAttributeMap(attributes);
@@ -892,8 +893,8 @@ $endif
    *
    * ## Other resources
    *
-   * * [Node.namespaceURI]
-   * (http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-NodeNSname) from W3C.
+   * * [Node.namespaceURI](http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-NodeNSname)
+   *   from W3C.
    */
   @DomName('Element.namespaceUri')
   String get namespaceUri => _namespaceUri;
@@ -1122,11 +1123,9 @@ $if DART2JS
    *
    * ## Other resources
    *
-   * * [Shadow DOM 101]
-   * (http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/)
-   * from HTML5Rocks.
-   * * [Shadow DOM specification]
-   * (http://www.w3.org/TR/shadow-dom/) from W3C.
+   * * [Shadow DOM 101](http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/)
+   *   from HTML5Rocks.
+   * * [Shadow DOM specification](http://www.w3.org/TR/shadow-dom/) from W3C.
    */
   @DomName('Element.createShadowRoot')
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
@@ -1142,11 +1141,10 @@ $if DART2JS
    *
    * ## Other resources
    *
-   * * [Shadow DOM 101]
-   * (http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/)
-   * from HTML5Rocks.
-   * * [Shadow DOM specification]
-   * (http://www.w3.org/TR/shadow-dom/) from W3C.
+   * * [Shadow DOM 101](http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/)
+   *   from HTML5Rocks.
+   * * [Shadow DOM specification](http://www.w3.org/TR/shadow-dom/)
+   *   from W3C.
    */
   @DomName('Element.shadowRoot')
   @SupportedBrowser(SupportedBrowser.CHROME, '25')

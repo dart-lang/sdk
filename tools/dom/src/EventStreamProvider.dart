@@ -112,9 +112,8 @@ abstract class ElementStream<T extends Event> implements Stream<T> {
    *
    * ## Other resources
    *
-   * * [Event Capture]
-   * (http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture)
-   * from the W3C DOM Events specification.
+   * * [Event Capture](http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture)
+   *   from the W3C DOM Events specification.
    */
   StreamSubscription<T> capture(void onData(T event));
 }

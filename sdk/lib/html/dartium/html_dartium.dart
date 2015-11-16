@@ -3365,10 +3365,9 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
    *
    * ## Other resources
    *
-   * * [WebGL fundamentals]
-   * (http://www.html5rocks.com/en/tutorials/webgl/webgl_fundamentals/) from
-   * HTML5Rocks.
-   * * [WebGL homepage] (http://get.webgl.org/).
+   * * [WebGL fundamentals](http://www.html5rocks.com/en/tutorials/webgl/webgl_fundamentals/)
+   *   from HTML5Rocks.
+   * * [WebGL homepage](http://get.webgl.org/).
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -14219,7 +14218,8 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * See also:
    *
-   * * [Custom data attributes](http://www.w3.org/TR/html5/global-attributes.html#custom-data-attribute)
+   * * [Custom data
+   *   attributes](http://dev.w3.org/html5/spec-preview/global-attributes.html#custom-data-attribute)
    */
   Map<String, String> get dataset =>
     new _DataAttributeMap(attributes);
@@ -14426,8 +14426,8 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *
    * ## Other resources
    *
-   * * [Node.namespaceURI]
-   * (http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-NodeNSname) from W3C.
+   * * [Node.namespaceURI](http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-NodeNSname)
+   *   from W3C.
    */
   @DomName('Element.namespaceUri')
   String get namespaceUri => _namespaceUri;
@@ -20184,11 +20184,10 @@ class HtmlDocument extends Document {
    *
    * ## Other resources
    *
-   * * [Using the fullscreen API]
-   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api) from
-   * WebPlatform.org.
-   * * [Fullscreen specification]
-   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   * * [Using the fullscreen
+   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
+   *   from WebPlatform.org.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
   @DomName('Document.webkitExitFullscreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -20212,11 +20211,10 @@ class HtmlDocument extends Document {
    *
    * ## Other resources
    *
-   * * [Using the fullscreen API]
-   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api) from
-   * WebPlatform.org.
-   * * [Fullscreen specification]
-   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   * * [Using the fullscreen
+   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
+   *   from WebPlatform.org.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
   @DomName('Document.webkitFullscreenElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -20229,11 +20227,10 @@ class HtmlDocument extends Document {
    *
    * ## Other resources
    *
-   * * [Using the fullscreen API]
-   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api) from
-   * WebPlatform.org.
-   * * [Fullscreen specification]
-   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   * * [Using the fullscreen
+   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
+   *   from WebPlatform.org.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
   @DomName('Document.webkitFullscreenEnabled')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -28409,9 +28406,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.childNodes]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
-   * from MDN.
+   * * [Node.childNodes](https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
+   *   from MDN.
    */
   @DomName('Node.childNodes')
   @DocsEditable()
@@ -43848,12 +43844,11 @@ class _DataAttributeMap implements Map<String, String> {
  *
  * ## Other resources
  *
- * * [Image sources for 2D rendering contexts]
- * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-sources-for-2d-rendering-contexts)
- * from WHATWG.
- * * [Drawing images]
- * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
- * from WHATWG.
+ * * [Image sources for 2D rendering
+ *   contexts](https://html.spec.whatwg.org/multipage/scripting.html#image-sources-for-2d-rendering-contexts)
+ *   from WHATWG.
+ * * [Drawing images](https://html.spec.whatwg.org/multipage/scripting.html#dom-context-2d-drawimage)
+ *   from WHATWG.
  */
 abstract class CanvasImageSource {}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -43896,9 +43891,9 @@ abstract class WindowBase implements EventTarget {
    *
    * ## Other resources
    *
-   * * [Session history and navigation specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/history.html)
-   * from WHATWG.
+   * * [Session history and navigation
+   *   specification](https://html.spec.whatwg.org/multipage/browsers.html#history)
+   *   from WHATWG.
    */
   HistoryBase get history;
 
@@ -43991,12 +43986,10 @@ abstract class WindowBase implements EventTarget {
    *
    * ## Other resources
    *
-   * * [window.postMessage]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.postMessage) from
-   * MDN.
-   * * [Cross-document messaging]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/web-messaging.html)
-   * from WHATWG.
+   * * [window.postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window.postMessage)
+   *   from MDN.
+   * * [Cross-document messaging](https://html.spec.whatwg.org/multipage/comms.html#web-messaging)
+   *   from WHATWG.
    */
   void postMessage(var message, String targetOrigin, [List messagePorts]);
 }
@@ -44671,9 +44664,8 @@ abstract class ElementStream<T extends Event> implements Stream<T> {
    *
    * ## Other resources
    *
-   * * [Event Capture]
-   * (http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture)
-   * from the W3C DOM Events specification.
+   * * [Event Capture](http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture)
+   *   from the W3C DOM Events specification.
    */
   StreamSubscription<T> capture(void onData(T event));
 }
@@ -48071,9 +48063,9 @@ class _WrappedEvent implements Event {
    *
    * ## Other resources
    *
-   * * [Shadow DOM extensions to Event]
-   * (http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event) from
-   * W3C.
+   * * [Shadow DOM extensions to
+   *   Event](http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event)
+   *   from W3C.
    */
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
   @Experimental()
