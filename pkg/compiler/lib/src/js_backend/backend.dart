@@ -345,12 +345,12 @@ class JavaScriptBackend extends Backend {
    */
   final Map<jsAst.Name, Selector> oneShotInterceptors;
 
-  /// All known intercepted members. Collected during resolution.
-  final Map<String, Set<Element>> _interceptedElements =
-      <String, Set<Element>>{};
-
-  /// Cache for all instantiated intercepted members for [interceptedElements].
-  Map<String, Set<Element>> _instantiatedInterceptedElements;
+  /**
+   * The members of instantiated interceptor classes: maps a member name to the
+   * list of members that have that name. This map is used by the codegen to
+   * know whether a send must be intercepted or not.
+   */
+  final Map<String, Set<Element>> interceptedElements;
 
   /**
    * The members of mixin classes that are mixed into an instantiated
@@ -363,7 +363,7 @@ class JavaScriptBackend extends Backend {
    * These members must be invoked with a correct explicit receiver even when
    * the receiver is not an intercepted class.
    */
-  final Map<String, Set<Element>> _interceptedMixinElements =
+  final Map<String, Set<Element>> interceptedMixinElements =
       new Map<String, Set<Element>>();
 
   /**
@@ -512,6 +512,7 @@ class JavaScriptBackend extends Backend {
                      bool useStartupEmitter: false})
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<jsAst.Name, Selector>(),
+        interceptedElements = new Map<String, Set<Element>>(),
         rti = new _RuntimeTypes(compiler),
         rtiEncoder = new _RuntimeTypesEncoder(compiler),
         specializedGetInterceptors = new Map<jsAst.Name, Set<ClassElement>>(),
@@ -845,35 +846,13 @@ class JavaScriptBackend extends Backend {
     return interceptedElements[selector.name] != null;
   }
 
-  /// The members of instantiated interceptor classes: maps a member name to the
-  /// list of members that have that name. This map is used by the codegen to
-  /// know whether a send must be intercepted or not.
-  Map<String, Set<Element>> get interceptedElements {
-    assert(compiler.enqueuer.resolution.queueIsClosed);
-    if (_instantiatedInterceptedElements == null) {
-      _instantiatedInterceptedElements = <String, Set<Element>>{};
-      _interceptedElements.forEach((String name, Set<Element> members) {
-        Set<Element> instantiatedMembers = new Set<Element>();
-        for (Element member in members) {
-          if (compiler.world.isInstantiated(member.enclosingClass)) {
-            instantiatedMembers.add(member);
-          }
-        }
-        if (instantiatedMembers.isNotEmpty) {
-          _instantiatedInterceptedElements[name] = instantiatedMembers;
-        }
-      });
-    }
-    return _instantiatedInterceptedElements;
-  }
-
   /**
    * Returns `true` iff [selector] matches an element defined in a class mixed
    * into an intercepted class.  These selectors are not eligible for the 'dummy
    * explicit receiver' optimization.
    */
   bool isInterceptedMixinSelector(Selector selector, TypeMask mask) {
-    Set<Element> elements = _interceptedMixinElements.putIfAbsent(
+    Set<Element> elements = interceptedMixinElements.putIfAbsent(
         selector.name,
         () {
           Set<Element> elements = interceptedElements[selector.name];
@@ -992,8 +971,8 @@ class JavaScriptBackend extends Backend {
         if (member.isSynthesized) return;
         // All methods on [Object] are shadowed by [Interceptor].
         if (classElement == coreClasses.objectClass) return;
-        Set<Element> set = _interceptedElements.putIfAbsent(
-            member.name, () => new Setlet<Element>());
+        Set<Element> set = interceptedElements.putIfAbsent(
+            member.name, () => new Set<Element>());
         set.add(member);
       },
       includeSuperAndInjectedMembers: true);
@@ -1018,8 +997,8 @@ class JavaScriptBackend extends Backend {
       cls.forEachMember((ClassElement classElement, Element member) {
           // All methods on [Object] are shadowed by [Interceptor].
           if (classElement == coreClasses.objectClass) return;
-          Set<Element> set = _interceptedElements.putIfAbsent(
-              member.name, () => new Setlet<Element>());
+          Set<Element> set = interceptedElements.putIfAbsent(
+              member.name, () => new Set<Element>());
           set.add(member);
         },
         includeSuperAndInjectedMembers: true);
