@@ -665,6 +665,12 @@ class Isolate : public BaseIsolate {
   // Handle service messages until we are told to resume execution.
   void PauseEventHandler();
 
+  void AddClosureFunction(const Function& function) const;
+  RawFunction* LookupClosureFunction(const Function& parent,
+                                     intptr_t token_pos) const;
+  intptr_t FindClosureIndex(const Function& needle) const;
+  RawFunction* ClosureFunctionFromIndex(intptr_t idx) const;
+
   bool is_service_isolate() const { return is_service_isolate_; }
 
   static void KillAllIsolates(LibMsgId msg_id);

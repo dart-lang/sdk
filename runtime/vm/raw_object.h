@@ -651,7 +651,6 @@ class RawClass : public RawObject {
   RawArray* functions_hash_table_;
   RawArray* fields_;
   RawArray* offset_in_words_to_field_;
-  RawGrowableObjectArray* closure_functions_;  // Local functions and literals.
   RawArray* interfaces_;  // Array of AbstractType.
   RawGrowableObjectArray* direct_subclasses_;  // Array of Class.
   RawScript* script_;

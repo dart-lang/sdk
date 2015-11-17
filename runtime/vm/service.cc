@@ -1264,7 +1264,7 @@ static RawObject* LookupHeapObjectClasses(Thread* thread,
       return Object::sentinel().raw();
     }
     Function& func = Function::Handle(zone);
-    func ^= cls.ClosureFunctionFromIndex(id);
+    func ^= isolate->ClosureFunctionFromIndex(id);
     if (func.IsNull()) {
       return Object::sentinel().raw();
     }

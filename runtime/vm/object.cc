@@ -2320,7 +2320,6 @@ intptr_t Class::FindInvocationDispatcherFunctionIndex(
 }
 
 
-
 RawFunction* Class::InvocationDispatcherFunctionFromIndex(intptr_t idx) const {
   Thread* thread = Thread::Current();
   REUSABLE_ARRAY_HANDLESCOPE(thread);
@@ -2333,86 +2332,6 @@ RawFunction* Class::InvocationDispatcherFunctionFromIndex(intptr_t idx) const {
     return Function::null();
   }
   return Function::Cast(object).raw();
-}
-
-
-void Class::set_closures(const GrowableObjectArray& value) const {
-  StorePointer(&raw_ptr()->closure_functions_, value.raw());
-}
-
-
-void Class::AddClosureFunction(const Function& function) const {
-  GrowableObjectArray& closures =
-      GrowableObjectArray::Handle(raw_ptr()->closure_functions_);
-  if (closures.IsNull()) {
-    closures = GrowableObjectArray::New(4, Heap::kOld);
-    StorePointer(&raw_ptr()->closure_functions_, closures.raw());
-  }
-  ASSERT(function.IsNonImplicitClosureFunction());
-  ASSERT(function.Owner() == this->raw());
-  closures.Add(function, Heap::kOld);
-}
-
-
-// Lookup the innermost closure function that contains token at token_pos.
-RawFunction* Class::LookupClosureFunction(intptr_t token_pos) const {
-  if (raw_ptr()->closure_functions_ == GrowableObjectArray::null()) {
-    return Function::null();
-  }
-  const GrowableObjectArray& closures =
-      GrowableObjectArray::Handle(raw_ptr()->closure_functions_);
-  Function& closure = Function::Handle();
-  intptr_t num_closures = closures.Length();
-  intptr_t best_fit_token_pos = -1;
-  intptr_t best_fit_index = -1;
-  for (intptr_t i = 0; i < num_closures; i++) {
-    closure ^= closures.At(i);
-    ASSERT(!closure.IsNull());
-    if ((closure.token_pos() <= token_pos) &&
-        (token_pos <= closure.end_token_pos()) &&
-        (best_fit_token_pos < closure.token_pos())) {
-      best_fit_index = i;
-      best_fit_token_pos = closure.token_pos();
-    }
-  }
-  closure = Function::null();
-  if (best_fit_index >= 0) {
-    closure ^= closures.At(best_fit_index);
-  }
-  return closure.raw();
-}
-
-intptr_t Class::FindClosureIndex(const Function& needle) const {
-  if (closures() == GrowableObjectArray::null()) {
-    return -1;
-  }
-  Thread* thread = Thread::Current();
-  const GrowableObjectArray& closures_array =
-      GrowableObjectArray::Handle(thread->zone(), closures());
-  REUSABLE_FUNCTION_HANDLESCOPE(thread);
-  Function& closure = thread->FunctionHandle();
-  intptr_t num_closures = closures_array.Length();
-  for (intptr_t i = 0; i < num_closures; i++) {
-    closure ^= closures_array.At(i);
-    ASSERT(!closure.IsNull());
-    if (closure.raw() == needle.raw()) {
-      return i;
-    }
-  }
-  return -1;
-}
-
-
-RawFunction* Class::ClosureFunctionFromIndex(intptr_t idx) const {
-  const GrowableObjectArray& closures_array =
-      GrowableObjectArray::Handle(closures());
-  if ((idx < 0) || (idx >= closures_array.Length())) {
-    return Function::null();
-  }
-  Function& func = Function::Handle();
-  func ^= closures_array.At(idx);
-  ASSERT(!func.IsNull());
-  return func.raw();
 }
 
 
@@ -7271,7 +7190,7 @@ static void AddFunctionServiceId(const JSONObject& jsobj,
   intptr_t id = -1;
   const char* selector = NULL;
   if (f.IsNonImplicitClosureFunction()) {
-    id = cls.FindClosureIndex(f);
+    id = Isolate::Current()->FindClosureIndex(f);
     selector = "closures";
   } else if (f.IsImplicitClosureFunction()) {
     id = cls.FindImplicitClosureFunctionIndex(f);

@@ -1333,22 +1333,22 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
       func.ClearCode();
     }
   }
+
   // Inner functions get added to the closures array. As part of compilation
   // more closures can be added to the end of the array. Compile all the
   // closures until we have reached the end of the "worklist".
-  GrowableObjectArray& closures =
-      GrowableObjectArray::Handle(zone, cls.closures());
-  if (!closures.IsNull()) {
-    for (int i = 0; i < closures.Length(); i++) {
-      func ^= closures.At(i);
-      if (!func.HasCode()) {
-        error = CompileFunction(thread, func);
-        if (!error.IsNull()) {
-          return error.raw();
-        }
-        func.ClearICDataArray();
-        func.ClearCode();
+  const GrowableObjectArray& closures =
+      GrowableObjectArray::Handle(zone,
+          Isolate::Current()->object_store()->closure_functions());
+  for (int i = 0; i < closures.Length(); i++) {
+    func ^= closures.At(i);
+    if ((func.Owner() == cls.raw()) && !func.HasCode()) {
+      error = CompileFunction(thread, func);
+      if (!error.IsNull()) {
+        return error.raw();
       }
+      func.ClearICDataArray();
+      func.ClearCode();
     }
   }
   return error.raw();

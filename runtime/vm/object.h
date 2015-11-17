@@ -1162,15 +1162,6 @@ class Class : public Object {
   intptr_t FindImplicitClosureFunctionIndex(const Function& needle) const;
   RawFunction* ImplicitClosureFunctionFromIndex(intptr_t idx) const;
 
-  RawGrowableObjectArray* closures() const {
-    return raw_ptr()->closure_functions_;
-  }
-  void set_closures(const GrowableObjectArray& value) const;
-  void AddClosureFunction(const Function& function) const;
-  RawFunction* LookupClosureFunction(intptr_t token_pos) const;
-  intptr_t FindClosureIndex(const Function& function) const;
-  RawFunction* ClosureFunctionFromIndex(intptr_t idx) const;
-
   RawFunction* LookupDynamicFunction(const String& name) const;
   RawFunction* LookupDynamicFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupStaticFunction(const String& name) const;

@@ -7,6 +7,7 @@
 #include "vm/flags.h"
 #include "vm/log.h"
 #include "vm/object_graph.h"
+#include "vm/object_store.h"
 #include "vm/timer.h"
 
 
@@ -193,6 +194,9 @@ char* CompilerStats::PrintToZone() {
   log.Print("Source length:           %" Pd64 " characters\n", src_length);
   log.Print("Number of source tokens: %" Pd64 "\n", num_tokens_scanned);
 
+  int64_t num_local_functions = GrowableObjectArray::Handle(
+      isolate_->object_store()->closure_functions()).Length();
+
   log.Print("==== Parser stats:\n");
   log.Print("Total tokens consumed:   %" Pd64 "\n", num_tokens_consumed);
   log.Print("Classes parsed:          %" Pd64 "\n", num_classes_parsed);
@@ -201,6 +205,7 @@ char* CompilerStats::PrintToZone() {
   log.Print("  Tokens consumed:       %" Pd64 "\n", num_func_tokens_compiled);
   log.Print("Impl getter funcs:       %" Pd64 "\n", num_implicit_final_getters);
   log.Print("Impl method extractors:  %" Pd64 "\n", num_method_extractors);
+  log.Print("Local functions:         %" Pd64 "\n", num_local_functions);
   log.Print("Consts cached:           %" Pd64 "\n", num_cached_consts);
   log.Print("Consts cache hits:       %" Pd64 "\n", num_const_cache_hits);
 

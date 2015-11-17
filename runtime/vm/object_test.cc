@@ -3883,6 +3883,7 @@ TEST_CASE(FindClosureIndex) {
   const Script& script = Script::Handle();
   const Class& cls = Class::Handle(CreateDummyClass(class_name, script));
   const Array& functions = Array::Handle(Array::New(1));
+  const Isolate* iso = Isolate::Current();
 
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New("foo_papa"));
@@ -3895,18 +3896,18 @@ TEST_CASE(FindClosureIndex) {
   const String& function_name = String::Handle(Symbols::New("foo"));
   function = Function::NewClosureFunction(function_name, parent, 0);
   // Add closure function to class.
-  cls.AddClosureFunction(function);
+  iso->AddClosureFunction(function);
 
   // The closure should return a valid index.
-  intptr_t good_closure_index = cls.FindClosureIndex(function);
+  intptr_t good_closure_index = iso->FindClosureIndex(function);
   EXPECT_GE(good_closure_index, 0);
   // The parent function should return an invalid index.
-  intptr_t bad_closure_index = cls.FindClosureIndex(parent);
+  intptr_t bad_closure_index = iso->FindClosureIndex(parent);
   EXPECT_EQ(bad_closure_index, -1);
 
   // Retrieve closure function via index.
   Function& func_from_index = Function::Handle();
-  func_from_index ^= cls.ClosureFunctionFromIndex(good_closure_index);
+  func_from_index ^= iso->ClosureFunctionFromIndex(good_closure_index);
   // Same closure function.
   EXPECT_EQ(func_from_index.raw(), function.raw());
 }

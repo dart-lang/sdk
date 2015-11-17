@@ -1393,19 +1393,17 @@ void Debugger::DeoptimizeWorld() {
           }
         }
       }
+    }
+  }
 
-      // Disable other optimized closure functions.
-      closures = cls.closures();
-      if (!closures.IsNull()) {
-        intptr_t num_closures = closures.Length();
-        for (intptr_t pos = 0; pos < num_closures; pos++) {
-          function ^= closures.At(pos);
-          ASSERT(!function.IsNull());
-          if (function.HasOptimizedCode()) {
-            function.SwitchToUnoptimizedCode();
-          }
-        }
-      }
+  // Disable optimized closure functions.
+  closures = isolate_->object_store()->closure_functions();
+  const intptr_t num_closures = closures.Length();
+  for (intptr_t pos = 0; pos < num_closures; pos++) {
+    function ^= closures.At(pos);
+    ASSERT(!function.IsNull());
+    if (function.HasOptimizedCode()) {
+      function.SwitchToUnoptimizedCode();
     }
   }
 }
@@ -1881,6 +1879,26 @@ void Debugger::FindCompiledFunctions(const Script& script,
   GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
   Function& function = Function::Handle(zone);
 
+  closures = isolate_->object_store()->closure_functions();
+  const intptr_t num_closures = closures.Length();
+  for (intptr_t pos = 0; pos < num_closures; pos++) {
+    function ^= closures.At(pos);
+    ASSERT(!function.IsNull());
+    if ((function.token_pos() == start_pos)
+        && (function.end_token_pos() == end_pos)
+        && (function.script() == script.raw())) {
+      if (function.HasCode() && function.is_debuggable()) {
+        function_list->Add(function);
+      }
+      if (function.HasImplicitClosureFunction()) {
+        function = function.ImplicitClosureFunction();
+        if (function.HasCode() && function.is_debuggable()) {
+          function_list->Add(function);
+        }
+      }
+    }
+  }
+
   const ClassTable& class_table = *isolate_->class_table();
   const intptr_t num_classes = class_table.NumCids();
   for (intptr_t i = 1; i < num_classes; i++) {
@@ -1904,27 +1922,6 @@ void Debugger::FindCompiledFunctions(const Script& script,
           ASSERT(!function.IsNull());
           // Check token position first to avoid unnecessary calls
           // to script() which allocates handles.
-          if ((function.token_pos() == start_pos)
-              && (function.end_token_pos() == end_pos)
-              && (function.script() == script.raw())) {
-            if (function.HasCode() && function.is_debuggable()) {
-              function_list->Add(function);
-            }
-            if (function.HasImplicitClosureFunction()) {
-              function = function.ImplicitClosureFunction();
-              if (function.HasCode() && function.is_debuggable()) {
-                function_list->Add(function);
-              }
-            }
-          }
-        }
-      }
-      closures = cls.closures();
-      if (!closures.IsNull()) {
-        const intptr_t num_closures = closures.Length();
-        for (intptr_t pos = 0; pos < num_closures; pos++) {
-          function ^= closures.At(pos);
-          ASSERT(!function.IsNull());
           if ((function.token_pos() == start_pos)
               && (function.end_token_pos() == end_pos)
               && (function.script() == script.raw())) {
@@ -1967,6 +1964,15 @@ RawFunction* Debugger::FindBestFit(const Script& script,
   Function& best_fit = Function::Handle(zone);
   Error& error = Error::Handle(zone);
 
+  closures = isolate_->object_store()->closure_functions();
+  const intptr_t num_closures = closures.Length();
+  for (intptr_t i = 0; i < num_closures; i++) {
+    function ^= closures.At(i);
+    if (FunctionContains(function, script, token_pos)) {
+      SelectBestFit(&best_fit, &function);
+    }
+  }
+
   const ClassTable& class_table = *isolate_->class_table();
   const intptr_t num_classes = class_table.NumCids();
   for (intptr_t i = 1; i < num_classes; i++) {
@@ -1995,18 +2001,6 @@ RawFunction* Debugger::FindBestFit(const Script& script,
         const intptr_t num_functions = functions.Length();
         for (intptr_t pos = 0; pos < num_functions; pos++) {
           function ^= functions.At(pos);
-          ASSERT(!function.IsNull());
-          if (FunctionContains(function, script, token_pos)) {
-            SelectBestFit(&best_fit, &function);
-          }
-        }
-      }
-
-      closures = cls.closures();
-      if (!closures.IsNull()) {
-        const intptr_t num_closures = closures.Length();
-        for (intptr_t pos = 0; pos < num_closures; pos++) {
-          function ^= closures.At(pos);
           ASSERT(!function.IsNull());
           if (FunctionContains(function, script, token_pos)) {
             SelectBestFit(&best_fit, &function);
@@ -2829,18 +2823,11 @@ void Debugger::NotifyIsolateCreated() {
 // the given token position.
 RawFunction* Debugger::FindInnermostClosure(const Function& function,
                                             intptr_t token_pos) {
-  const Class& owner = Class::Handle(function.Owner());
-  if (owner.closures() == GrowableObjectArray::null()) {
-    return Function::null();
-  }
-  // Note that we need to check that the closure is in the same
-  // script as the outer function. We could have closures originating
-  // in mixin classes whose source code is contained in a different
-  // script.
   Zone* zone = Thread::Current()->zone();
   const Script& outer_origin = Script::Handle(zone, function.script());
   const GrowableObjectArray& closures =
-     GrowableObjectArray::Handle(zone, owner.closures());
+     GrowableObjectArray::Handle(zone,
+         Isolate::Current()->object_store()->closure_functions());
   const intptr_t num_closures = closures.Length();
   Function& closure = Function::Handle(zone);
   Function& best_fit = Function::Handle(zone);

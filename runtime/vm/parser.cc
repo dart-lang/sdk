@@ -6581,11 +6581,8 @@ RawFunction* Parser::OpenSyncGeneratorFunction(intptr_t func_pos) {
   // function has already been created by a previous
   // compilation.
   const Function& found_func = Function::Handle(
-      Z, current_class().LookupClosureFunction(func_pos));
-  if (!found_func.IsNull() &&
-      (found_func.token_pos() == func_pos) &&
-      (found_func.script() == innermost_function().script()) &&
-      (found_func.parent_function() == innermost_function().raw())) {
+      Z, I->LookupClosureFunction(innermost_function(), func_pos));
+  if (!found_func.IsNull()) {
     ASSERT(found_func.IsSyncGenClosure());
     body = found_func.raw();
     body_closure_name = body.name();
@@ -6722,11 +6719,8 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t async_func_pos) {
   // this async function has already been created by a previous
   // compilation of this function.
   const Function& found_func = Function::Handle(
-      Z, current_class().LookupClosureFunction(async_func_pos));
-  if (!found_func.IsNull() &&
-      (found_func.token_pos() == async_func_pos) &&
-      (found_func.script() == innermost_function().script()) &&
-      (found_func.parent_function() == innermost_function().raw())) {
+      Z, I->LookupClosureFunction(innermost_function(), async_func_pos));
+  if (!found_func.IsNull()) {
     ASSERT(found_func.IsAsyncClosure());
     closure = found_func.raw();
   } else {
@@ -6858,11 +6852,8 @@ RawFunction* Parser::OpenAsyncGeneratorFunction(intptr_t async_func_pos) {
   // this async generator has already been created by a previous
   // compilation of this function.
   const Function& found_func = Function::Handle(
-      Z, current_class().LookupClosureFunction(async_func_pos));
-  if (!found_func.IsNull() &&
-      (found_func.token_pos() == async_func_pos) &&
-      (found_func.script() == innermost_function().script()) &&
-      (found_func.parent_function() == innermost_function().raw())) {
+      Z, I->LookupClosureFunction(innermost_function(), async_func_pos));
+  if (!found_func.IsNull()) {
     ASSERT(found_func.IsAsyncGenClosure());
     closure = found_func.raw();
   } else {
@@ -7629,9 +7620,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // TODO(hausner): There could be two different closures at the given
   // function_pos, one enclosed in a closurized function and one enclosed in the
   // non-closurized version of this same function.
-  function = current_class().LookupClosureFunction(function_pos);
-  if (function.IsNull() || (function.token_pos() != function_pos) ||
-      (function.parent_function() != innermost_function().raw())) {
+  function = I->LookupClosureFunction(innermost_function(), function_pos);
+  if (function.IsNull()) {
     // The function will be registered in the lookup table by the
     // EffectGraphVisitor::VisitClosureNode when the newly allocated closure
     // function has been properly setup.
@@ -13131,7 +13121,7 @@ RawFunction* Parser::BuildConstructorClosureFunction(const Function& ctr,
                                                      intptr_t token_pos) {
   ASSERT(ctr.kind() == RawFunction::kConstructor);
   Function& closure = Function::Handle(Z);
-  closure = current_class().LookupClosureFunction(token_pos);
+  closure = I->LookupClosureFunction(innermost_function(), token_pos);
   if (!closure.IsNull()) {
     ASSERT(closure.IsConstructorClosureFunction());
     return closure.raw();

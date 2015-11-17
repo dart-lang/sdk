@@ -2483,25 +2483,18 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     ASSERT(!function.HasCode());
     ASSERT(function.context_scope() == ContextScope::null());
     function.set_context_scope(context_scope);
-    const Class& cls = Class::Handle(Z, owner()->function().Owner());
+
     // The closure is now properly setup, add it to the lookup table.
     // It is possible that the compiler creates more than one function
     // object for the same closure, e.g. when inlining nodes from
     // finally clauses. If we already have a function object for the
-    // same closure, do not add a second one. We compare the origin
-    // class, token position, and parent function to detect duplicates.
-    // Note that we can have two different closure object for the same
-    // source text representation of the closure: one with a non-closurized
-    // parent, and one with a closurized parent function.
-
-    const Function& found_func = Function::Handle(
-        Z, cls.LookupClosureFunction(function.token_pos()));
-
-    if (found_func.IsNull() ||
-        (found_func.token_pos() != function.token_pos()) ||
-        (found_func.script() != function.script()) ||
-        (found_func.parent_function() != function.parent_function())) {
-      cls.AddClosureFunction(function);
+    // same closure, do not add a second one. We compare token position,
+    // and parent function to detect duplicates.
+    const Function& parent = Function::Handle(function.parent_function());
+    const Function& found_func = Function::Handle(Z,
+        isolate()->LookupClosureFunction(parent, function.token_pos()));
+    if (found_func.IsNull()) {
+      isolate()->AddClosureFunction(function);
     }
   }
   ZoneGrowableArray<PushArgumentInstr*>* arguments =

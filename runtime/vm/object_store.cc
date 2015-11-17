@@ -73,6 +73,7 @@ ObjectStore::ObjectStore()
     typed_data_library_(Library::null()),
     vmservice_library_(Library::null()),
     libraries_(GrowableObjectArray::null()),
+    closure_functions_(GrowableObjectArray::null()),
     pending_classes_(GrowableObjectArray::null()),
     pending_deferred_loads_(GrowableObjectArray::null()),
     resume_capabilities_(GrowableObjectArray::null()),
@@ -133,6 +134,7 @@ bool ObjectStore::PreallocateObjects() {
 
   this->pending_deferred_loads_ = GrowableObjectArray::New();
 
+  this->closure_functions_ = GrowableObjectArray::New();
   this->resume_capabilities_ = GrowableObjectArray::New();
   this->exit_listeners_ = GrowableObjectArray::New();
   this->error_listeners_ = GrowableObjectArray::New();

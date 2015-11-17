@@ -742,26 +742,24 @@ void Precompiler::DropUncompiledFunctions() {
         functions.SetAt(j, function);
       }
       cls.SetFunctions(functions);
+    }
+  }
 
-      closures = cls.closures();
-      if (!closures.IsNull()) {
-        retained_functions = GrowableObjectArray::New();
-        for (intptr_t j = 0; j < closures.Length(); j++) {
-          function ^= closures.At(j);
-          if (function.HasCode()) {
-            retained_functions.Add(function);
-          } else {
-            dropped_function_count_++;
-            if (FLAG_trace_precompiler) {
-              THR_Print("Precompilation dropping %s\n",
-                        function.ToLibNamePrefixedQualifiedCString());
-            }
-          }
-        }
-        cls.set_closures(retained_functions);
+  closures = isolate()->object_store()->closure_functions();
+  retained_functions = GrowableObjectArray::New();
+  for (intptr_t j = 0; j < closures.Length(); j++) {
+    function ^= closures.At(j);
+    if (function.HasCode()) {
+      retained_functions.Add(function);
+    } else {
+      dropped_function_count_++;
+      if (FLAG_trace_precompiler) {
+        THR_Print("Precompilation dropping %s\n",
+                  function.ToLibNamePrefixedQualifiedCString());
       }
     }
   }
+  isolate()->object_store()->set_closure_functions(retained_functions);
 }
 
 
@@ -894,15 +892,12 @@ void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
           visitor->VisitFunction(function);
         }
       }
-
-      closures = cls.closures();
-      if (!closures.IsNull()) {
-        for (intptr_t j = 0; j < closures.Length(); j++) {
-          function ^= closures.At(j);
-          visitor->VisitFunction(function);
-        }
-      }
     }
+  }
+  closures = isolate()->object_store()->closure_functions();
+  for (intptr_t j = 0; j < closures.Length(); j++) {
+    function ^= closures.At(j);
+    visitor->VisitFunction(function);
   }
 }
 

@@ -332,6 +332,14 @@ class ObjectStore {
     libraries_ = value.raw();
   }
 
+  RawGrowableObjectArray* closure_functions() const {
+    return closure_functions_;
+  }
+  void set_closure_functions(const GrowableObjectArray& value) {
+    ASSERT(!value.IsNull());
+    closure_functions_ = value.raw();
+  }
+
   RawGrowableObjectArray* pending_classes() const { return pending_classes_; }
   void set_pending_classes(const GrowableObjectArray& value) {
     ASSERT(!value.IsNull());
@@ -542,6 +550,7 @@ class ObjectStore {
   RawLibrary* typed_data_library_;
   RawLibrary* vmservice_library_;
   RawGrowableObjectArray* libraries_;
+  RawGrowableObjectArray* closure_functions_;
   RawGrowableObjectArray* pending_classes_;
   RawGrowableObjectArray* pending_deferred_loads_;
   RawGrowableObjectArray* resume_capabilities_;
