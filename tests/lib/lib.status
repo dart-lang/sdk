@@ -359,6 +359,9 @@ mirrors/mirrors_used_typedef_declaration_test/01: Crash # Assertion failure: typ
 mirrors/mirrors_used_typedef_declaration_test/none: Crash # Assertion failure: typedef(Foo) has not been checked for cycles.
 mirrors/typedef_library_test: Crash # Assertion failure: typedef(G) has not been checked for cycles.
 
+[ $compiler != dart2js ]
+async/dart2js_uncaught_error_test: Skip  # JS-integration only test
+
 [ $noopt ]
 mirrors/*: SkipByDesign
 convert/chunked_conversion_utf88_test: Pass, Timeout
