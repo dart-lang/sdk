@@ -181,8 +181,10 @@ class DartCompletionManager extends CompletionManager {
           return c.computeFast(request);
         });
       });
-      contributionSorter.sort(
-          new OldRequestWrapper(request), request.suggestions);
+      // TODO(danrubel) Process the AnalysisRequest returned by the
+      // contribution sorter. At this point, the target unit has been fully
+      // resolved, thus no need for additional resolution, but in the future...
+      contributionSorter.sort(request, request.suggestions);
 
       if (todo.isEmpty) {
         sendResults(request, todo.isEmpty);
@@ -223,8 +225,11 @@ class DartCompletionManager extends CompletionManager {
               performance.logElapseTime(completeTag);
               bool last = --count == 0;
               if (changed || last) {
-                contributionSorter.sort(
-                    new OldRequestWrapper(request), request.suggestions);
+                // TODO(danrubel) Process the AnalysisRequest returned by the
+                // contribution sorter. At this point, the target unit has been
+                // fully resolved, thus no need for additional resolution,
+                // but in the future...
+                contributionSorter.sort(request, request.suggestions);
                 sendResults(request, last);
               }
             });

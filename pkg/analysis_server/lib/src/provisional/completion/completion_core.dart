@@ -6,15 +6,42 @@ library analysis_server.src.provisional.completion.completion_core;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/task/model.dart';
 
 /**
- * An object used to produce completions for a specific error. Completion
- * contributors are long-lived objects and must not retain any state between
- * invocations of [computeSuggestions].
+ * A method or function called when the requested analysis has been performed.
+ */
+typedef AnalysisRequest AnalysisCallback<V>(
+    CompletionRequest request, V computedValue);
+
+/**
+ * A request from a contributor for additional analysis.
+ */
+class AnalysisRequest<V> {
+  /**
+   * An object with which an analysis result can be associated.
+   */
+  AnalysisTarget target;
+
+  /**
+   * A description of an analysis result that can be computed by an [AnalysisTask].
+   */
+  ResultDescriptor<V> descriptor;
+
+  /**
+   * A method or function called when the requested analysis has been performed.
+   */
+  AnalysisCallback<V> callback;
+
+  AnalysisRequest(this.target, this.descriptor, this.callback);
+}
+
+/**
+ * An object used to produce completions at a specific location within a file.
  *
- * Clients may implement this class when implementing plugins.
+ * Clients may extend this class when implementing plugins.
  */
 abstract class CompletionContributor {
   /**

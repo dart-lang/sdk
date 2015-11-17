@@ -6,6 +6,7 @@ library services.completion.sorter;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
+import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 
 /**
  * The abstract class `ContributionSorter` defines the behavior of objects
@@ -17,10 +18,10 @@ abstract class ContributionSorter {
   /**
    * After [CompletionSuggestion]s have been computed,
    * this method is called to adjust the relevance of those suggestions.
-   * The compilation unit and completion node
-   * in the given completion context may not be resolved.
+   * Return an [AnalysisRequest] if more analysis is needed,
+   * or `null` if suggestion sorting is complete.
    * This method should execute quickly and not block.
    */
-  void sort(DartCompletionRequest request,
-      Iterable<CompletionSuggestion> suggestions);
+  AnalysisRequest sort(
+      CompletionRequest request, Iterable<CompletionSuggestion> suggestions);
 }

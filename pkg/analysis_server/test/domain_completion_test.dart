@@ -15,7 +15,7 @@ import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show CompletionRequest, CompletionResult;
+    show AnalysisRequest, CompletionRequest, CompletionResult;
 import 'package:analysis_server/src/provisional/completion/completion_dart.dart'
     as newApi;
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
@@ -726,11 +726,12 @@ class MockRelevancySorter implements ContributionSorter {
   bool enabled = true;
 
   @override
-  void sort(newApi.DartCompletionRequest request,
-      List<CompletionSuggestion> suggestions) {
+  AnalysisRequest sort(CompletionRequest request,
+      Iterable<CompletionSuggestion> suggestions) {
     if (!enabled) {
       throw 'unexpected sort';
     }
+    return null;
   }
 }
 
