@@ -11,6 +11,7 @@ import 'dart:_js_helper' show
     convertDartClosureToJS,
     getTraceFromException,
     requiresPreamble,
+    wrapException,
     unwrapException;
 import 'dart:_isolate_helper' show
     IsolateNatives,
@@ -509,5 +510,7 @@ class _SyncStarIterable extends IterableBase {
 
 @patch
 void _rethrow(Object error, StackTrace stackTrace) {
-  throw new AsyncError(error, stackTrace);
+  error = wrapException(error);
+  JS("void", "#.stack = #", error, stackTrace.toString());
+  JS("void", "throw #", error);
 }
