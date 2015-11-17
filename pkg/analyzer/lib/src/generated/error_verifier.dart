@@ -6046,6 +6046,12 @@ class GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference
   }
 
   @override
+  Object visitFunctionElement(FunctionElement element) {
+    _addTypeToCheck(element.returnType);
+    return super.visitFunctionElement(element);
+  }
+
+  @override
   Object visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
     _addTypeToCheck(element.returnType);
     return super.visitFunctionTypeAliasElement(element);
