@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
+import "dart:collection";
 import "dart:isolate";
 
 // This type corresponds to the VM-internal class LibraryPrefix.
@@ -39,7 +40,7 @@ class _LibraryPrefix {
   }
 }
 
-var _outstandingLoadRequests = new Map<_LibraryPrefix, Completer>();
+var _outstandingLoadRequests = new HashMap<_LibraryPrefix, Completer>();
 
 
 // Called from the VM when all outstanding load requests have
