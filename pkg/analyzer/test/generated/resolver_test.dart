@@ -12219,6 +12219,9 @@ main() {
   }
 
   void test_genericMethod_functionTypedParameter() {
+    if (!AnalysisEngine.instance.useTaskModel) {
+      return;
+    }
     _resolveTestUnit(r'''
 class C<E> {
   List/*<T>*/ f/*<T>*/(/*=T*/ f(E e)) => null;
