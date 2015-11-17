@@ -28,17 +28,28 @@ class Glob {
    */
   final String _separator;
 
-  final String pattern;
-  final RegExp _regex;
+  /**
+   * The pattern string.
+   */
+  final String _pattern;
 
-  Glob(this._separator, String pattern)
-      : pattern = pattern,
-        _regex = _regexpFromGlobPattern(pattern);
+  String _suffix;
+  RegExp _regex;
+
+  Glob(this._separator, this._pattern) {
+    if (_hasJustPrefix(_pattern, '**/*')) {
+      _suffix = _pattern.substring(4).toLowerCase();
+    } else if (_hasJustPrefix(_pattern, '**')) {
+      _suffix = _pattern.substring(2).toLowerCase();
+    } else {
+      _regex = _regexpFromGlobPattern(_pattern);
+    }
+  }
 
   @override
-  int get hashCode => pattern.hashCode;
+  int get hashCode => _pattern.hashCode;
 
-  bool operator ==(other) => other is Glob && pattern == other.pattern;
+  bool operator ==(other) => other is Glob && _pattern == other._pattern;
 
   /**
    * Return `true` if the given [path] matches this glob.
@@ -46,11 +57,14 @@ class Glob {
    */
   bool matches(String path) {
     String posixPath = _toPosixPath(path);
+    if (_suffix != null) {
+      return posixPath.toLowerCase().endsWith(_suffix);
+    }
     return _regex.matchAsPrefix(posixPath) != null;
   }
 
   @override
-  String toString() => pattern;
+  String toString() => _pattern;
 
   /**
    * Return the Posix version of the given [path].
@@ -60,6 +74,19 @@ class Glob {
       return path;
     }
     return path.replaceAll(_separator, '/');
+  }
+
+  /**
+   * Return `true` if the [pattern] start with the given [prefix] and does
+   * not have `*` or `?` characters after the [prefix].
+   */
+  static bool _hasJustPrefix(String pattern, String prefix) {
+    if (pattern.startsWith(prefix)) {
+      int prefixLength = prefix.length;
+      return pattern.indexOf('*', prefixLength) == -1 &&
+          pattern.indexOf('?', prefixLength) == -1;
+    }
+    return false;
   }
 
   static RegExp _regexpFromGlobPattern(String pattern) {

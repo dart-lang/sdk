@@ -18,6 +18,14 @@ main() {
 
 @reflectiveTest
 class GlobPosixTest {
+  void test_case() {
+    Glob glob = new Glob(r'\', r'**.DaRt');
+    expect(glob.matches(r'aaa.dart'), isTrue);
+    expect(glob.matches(r'bbb.DART'), isTrue);
+    expect(glob.matches(r'ccc.dArT'), isTrue);
+    expect(glob.matches(r'ddd.DaRt'), isTrue);
+  }
+
   void test_question() {
     Glob glob = new Glob(r'/', r'?.dart');
     expect(glob.matches(r'a.dart'), isTrue);
@@ -55,6 +63,16 @@ class GlobPosixTest {
 
   void test_starStar() {
     Glob glob = new Glob(r'/', r'**.dart');
+    expect(glob.matches(r'foo/bar.dart'), isTrue);
+    expect(glob.matches(r'foo/bar/baz.dart'), isTrue);
+    expect(glob.matches(r'/foo/bar.dart'), isTrue);
+    expect(glob.matches(r'/foo/bar/baz.dart'), isTrue);
+    // does not end with 'dart'
+    expect(glob.matches(r'/web/foo.html'), isFalse);
+  }
+
+  void test_starStar_star() {
+    Glob glob = new Glob(r'/', r'**/*.dart');
     expect(glob.matches(r'foo/bar.dart'), isTrue);
     expect(glob.matches(r'foo/bar/baz.dart'), isTrue);
     expect(glob.matches(r'/foo/bar.dart'), isTrue);
