@@ -437,6 +437,134 @@ abstract class SummaryTest {
     return findVariable(variableName, failIfAbsent: true);
   }
 
+  test_cascaded_export_hide_hide() {
+    addNamedSource('/lib1.dart', 'export "lib2.dart" hide C hide B, C;');
+    addNamedSource('/lib2.dart', 'class A {} class B {} class C {}');
+    serializeLibraryText(
+        '''
+import 'lib1.dart';
+A a;
+B b;
+C c;
+    ''',
+        allowErrors: true);
+    checkTypeRef(
+        findVariable('a').type, absUri('/lib2.dart'), 'lib2.dart', 'A');
+    checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
+    checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
+  }
+
+  test_cascaded_export_hide_show() {
+    addNamedSource('/lib1.dart', 'export "lib2.dart" hide C show A, C;');
+    addNamedSource('/lib2.dart', 'class A {} class B {} class C {}');
+    serializeLibraryText(
+        '''
+import 'lib1.dart';
+A a;
+B b;
+C c;
+    ''',
+        allowErrors: true);
+    checkTypeRef(
+        findVariable('a').type, absUri('/lib2.dart'), 'lib2.dart', 'A');
+    checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
+    checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
+  }
+
+  test_cascaded_export_show_hide() {
+    addNamedSource('/lib1.dart', 'export "lib2.dart" show A, B hide B, C;');
+    addNamedSource('/lib2.dart', 'class A {} class B {} class C {}');
+    serializeLibraryText(
+        '''
+import 'lib1.dart';
+A a;
+B b;
+C c;
+    ''',
+        allowErrors: true);
+    checkTypeRef(
+        findVariable('a').type, absUri('/lib2.dart'), 'lib2.dart', 'A');
+    checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
+    checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
+  }
+
+  test_cascaded_export_show_show() {
+    addNamedSource('/lib1.dart', 'export "lib2.dart" show A, B show A, C;');
+    addNamedSource('/lib2.dart', 'class A {} class B {} class C {}');
+    serializeLibraryText(
+        '''
+import 'lib1.dart';
+A a;
+B b;
+C c;
+    ''',
+        allowErrors: true);
+    checkTypeRef(
+        findVariable('a').type, absUri('/lib2.dart'), 'lib2.dart', 'A');
+    checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
+    checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
+  }
+
+  test_cascaded_import_hide_hide() {
+    addNamedSource('/lib.dart', 'class A {} class B {} class C {}');
+    serializeLibraryText(
+        '''
+import 'lib.dart' hide C hide B, C;
+A a;
+B b;
+C c;
+    ''',
+        allowErrors: true);
+    checkTypeRef(findVariable('a').type, absUri('/lib.dart'), 'lib.dart', 'A');
+    checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
+    checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
+  }
+
+  test_cascaded_import_hide_show() {
+    addNamedSource('/lib.dart', 'class A {} class B {} class C {}');
+    serializeLibraryText(
+        '''
+import 'lib.dart' hide C show A, C;
+A a;
+B b;
+C c;
+    ''',
+        allowErrors: true);
+    checkTypeRef(findVariable('a').type, absUri('/lib.dart'), 'lib.dart', 'A');
+    checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
+    checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
+  }
+
+  test_cascaded_import_show_hide() {
+    addNamedSource('/lib.dart', 'class A {} class B {} class C {}');
+    serializeLibraryText(
+        '''
+import 'lib.dart' show A, B hide B, C;
+A a;
+B b;
+C c;
+    ''',
+        allowErrors: true);
+    checkTypeRef(findVariable('a').type, absUri('/lib.dart'), 'lib.dart', 'A');
+    checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
+    checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
+  }
+
+  test_cascaded_import_show_show() {
+    addNamedSource('/lib.dart', 'class A {} class B {} class C {}');
+    serializeLibraryText(
+        '''
+import 'lib.dart' show A, B show A, C;
+A a;
+B b;
+C c;
+    ''',
+        allowErrors: true);
+    checkTypeRef(findVariable('a').type, absUri('/lib.dart'), 'lib.dart', 'A');
+    checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
+    checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
+  }
+
   test_class_abstract() {
     UnlinkedClass cls = serializeClassText('abstract class C {}');
     expect(cls.isAbstract, true);
