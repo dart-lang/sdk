@@ -9,5 +9,5 @@
 const char* {{VAR_NAME}}[] = {
 {{LIBRARY_SOURCE_MAP}}
 {{PART_SOURCE_MAP}}
-  NULL, NULL
+  NULL, NULL, NULL
 };
