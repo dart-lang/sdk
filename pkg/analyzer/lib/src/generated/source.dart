@@ -743,7 +743,7 @@ class SourceFactory {
     } catch (exception, stackTrace) {
       String containingFullName =
           containingSource != null ? containingSource.fullName : '<null>';
-      AnalysisEngine.instance.logger.logError(
+      AnalysisEngine.instance.logger.logInformation(
           "Could not resolve URI ($containedUri) relative to source ($containingFullName)",
           new CaughtException(exception, stackTrace));
       return null;
