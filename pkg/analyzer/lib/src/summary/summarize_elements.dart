@@ -13,11 +13,8 @@ import 'package:analyzer/src/summary/format.dart';
 /**
  * Serialize all the elements in [lib] to a summary using [ctx] as the context
  * for building the summary, and using [typeProvider] to find built-in types.
- *
- * Return an object which may safely be passed to [BuilderContext.getBuffer] or
- * included in an aggregate summary.
  */
-Object serializeLibrary(
+PrelinkedLibraryBuilder serializeLibrary(
     BuilderContext ctx, LibraryElement lib, TypeProvider typeProvider) {
   return new _LibrarySerializer(ctx, lib, typeProvider).serializeLibrary();
 }
@@ -40,32 +37,33 @@ class _LibrarySerializer {
   /**
    * List of objects which should be written to [UnlinkedLibrary.classes].
    */
-  final List<Object> classes = <Object>[];
+  final List<UnlinkedClassBuilder> classes = <UnlinkedClassBuilder>[];
 
   /**
    * List of objects which should be written to [UnlinkedLibrary.enums].
    */
-  final List<Object> enums = <Object>[];
+  final List<UnlinkedEnumBuilder> enums = <UnlinkedEnumBuilder>[];
 
   /**
    * List of objects which should be written to [UnlinkedLibrary.executables].
    */
-  final List<Object> executables = <Object>[];
+  final List<UnlinkedExecutableBuilder> executables =
+      <UnlinkedExecutableBuilder>[];
 
   /**
    * List of objects which should be written to [UnlinkedLibrary.typedefs].
    */
-  final List<Object> typedefs = <Object>[];
+  final List<UnlinkedTypedefBuilder> typedefs = <UnlinkedTypedefBuilder>[];
 
   /**
    * List of objects which should be written to [UnlinkedLibrary.units].
    */
-  final List<Object> units = <Object>[];
+  final List<UnlinkedUnitBuilder> units = <UnlinkedUnitBuilder>[];
 
   /**
    * List of objects which should be written to [UnlinkedLibrary.variables].
    */
-  final List<Object> variables = <Object>[];
+  final List<UnlinkedVariableBuilder> variables = <UnlinkedVariableBuilder>[];
 
   /**
    * Map from [LibraryElement] to the index of the entry in the "dependency
@@ -77,19 +75,20 @@ class _LibrarySerializer {
    * The "dependency table".  This is the list of objects which should be
    * written to [PrelinkedLibrary.dependencies].
    */
-  final List<Object> dependencies = <Object>[];
+  final List<PrelinkedDependencyBuilder> dependencies =
+      <PrelinkedDependencyBuilder>[];
 
   /**
    * The unlinked portion of the "imports table".  This is the list of objects
    * which should be written to [UnlinkedLibrary.imports].
    */
-  final List<Object> unlinkedImports = <Object>[];
+  final List<UnlinkedImportBuilder> unlinkedImports = <UnlinkedImportBuilder>[];
 
   /**
    * The prelinked portion of the "imports table".  This is the list of ints
    * which should be written to [PrelinkedLibrary.imports].
    */
-  final List<Object> prelinkedImports = <int>[];
+  final List<int> prelinkedImports = <int>[];
 
   /**
    * Map from prefix [String] to the index of the entry in the "prefix" table
@@ -101,7 +100,7 @@ class _LibrarySerializer {
    * The "prefix table".  This is the list of objects which should be written
    * to [UnlinkedLibrary.prefixes].
    */
-  final List<Object> prefixes = <Object>[];
+  final List<UnlinkedPrefixBuilder> prefixes = <UnlinkedPrefixBuilder>[];
 
   /**
    * Map from [Element] to the index of the entry in the "references table"
@@ -113,13 +112,15 @@ class _LibrarySerializer {
    * The unlinked portion of the "references table".  This is the list of
    * objects which should be written to [UnlinkedLibrary.references].
    */
-  final List<Object> unlinkedReferences = <Object>[];
+  final List<UnlinkedReferenceBuilder> unlinkedReferences =
+      <UnlinkedReferenceBuilder>[];
 
   /**
    * The prelinked portion of the "references table".  This is the list of
    * objects which should be written to [PrelinkedLibrary.references].
    */
-  final List<Object> prelinkedReferences = <Object>[];
+  final List<PrelinkedReferenceBuilder> prelinkedReferences =
+      <PrelinkedReferenceBuilder>[];
 
   //final Map<String, int> prefixIndices = <String, int>{};
 
@@ -171,7 +172,7 @@ class _LibrarySerializer {
     if (element.uri != null) {
       b.uri = element.uri;
     }
-    units.add(b.finish());
+    units.add(b);
     for (ClassElement cls in element.types) {
       classes.add(serializeClass(cls, unitNum));
     }
@@ -242,7 +243,7 @@ class _LibrarySerializer {
    * Serialize the given [classElement], which exists in the unit numbered
    * [unitNum], creating an [UnlinkedClass].
    */
-  Object serializeClass(ClassElement classElement, int unitNum) {
+  UnlinkedClassBuilder serializeClass(ClassElement classElement, int unitNum) {
     UnlinkedClassBuilder b = new UnlinkedClassBuilder(ctx);
     b.name = classElement.name;
     b.unit = unitNum;
@@ -253,8 +254,8 @@ class _LibrarySerializer {
     }
     b.mixins = classElement.mixins.map(serializeTypeRef).toList();
     b.interfaces = classElement.interfaces.map(serializeTypeRef).toList();
-    List<Object> fields = <Object>[];
-    List<Object> executables = <Object>[];
+    List<UnlinkedVariableBuilder> fields = <UnlinkedVariableBuilder>[];
+    List<UnlinkedExecutableBuilder> executables = <UnlinkedExecutableBuilder>[];
     for (ConstructorElement executable in classElement.constructors) {
       if (!executable.isSynthetic) {
         executables.add(serializeExecutable(executable, 0));
@@ -277,26 +278,27 @@ class _LibrarySerializer {
     b.executables = executables;
     b.isAbstract = classElement.isAbstract;
     b.isMixinApplication = classElement.isMixinApplication;
-    return b.finish();
+    return b;
   }
 
   /**
    * Serialize the given [combinator] into an [UnlinkedCombinator].
    */
-  Object serializeCombinator(NamespaceCombinator combinator) {
+  UnlinkedCombinatorBuilder serializeCombinator(
+      NamespaceCombinator combinator) {
     UnlinkedCombinatorBuilder b = new UnlinkedCombinatorBuilder(ctx);
     if (combinator is ShowElementCombinator) {
       b.shows = combinator.shownNames.map(serializeCombinatorName).toList();
     } else if (combinator is HideElementCombinator) {
       b.hides = combinator.hiddenNames.map(serializeCombinatorName).toList();
     }
-    return b.finish();
+    return b;
   }
 
   /**
    * Serialize the given [name] into an [UnlinkedCombinatorName].
    */
-  Object serializeCombinatorName(String name) {
+  UnlinkedCombinatorNameBuilder serializeCombinatorName(String name) {
     return encodeUnlinkedCombinatorName(ctx, name: name);
   }
 
@@ -335,10 +337,10 @@ class _LibrarySerializer {
    * Serialize the given [enumElement], which exists in the unit numbered
    * [unitNum], creating an [UnlinkedEnum].
    */
-  Object serializeEnum(ClassElement enumElement, int unitNum) {
+  UnlinkedEnumBuilder serializeEnum(ClassElement enumElement, int unitNum) {
     UnlinkedEnumBuilder b = new UnlinkedEnumBuilder(ctx);
     b.name = enumElement.name;
-    List<Object> values = <Object>[];
+    List<UnlinkedEnumValueBuilder> values = <UnlinkedEnumValueBuilder>[];
     for (FieldElement field in enumElement.fields) {
       if (field.isConst && field.type.element == enumElement) {
         values.add(encodeUnlinkedEnumValue(ctx, name: field.name));
@@ -346,7 +348,7 @@ class _LibrarySerializer {
     }
     b.values = values;
     b.unit = unitNum;
-    return b.finish();
+    return b;
   }
 
   /**
@@ -354,7 +356,8 @@ class _LibrarySerializer {
    * [unitNum], creating an [UnlinkedExecutable].  For elements declared inside
    * a class, [unitNum] should be zero.
    */
-  Object serializeExecutable(ExecutableElement executableElement, int unitNum) {
+  UnlinkedExecutableBuilder serializeExecutable(
+      ExecutableElement executableElement, int unitNum) {
     if (executableElement.enclosingElement is ClassElement) {
       assert(unitNum == 0);
     }
@@ -383,17 +386,17 @@ class _LibrarySerializer {
     b.isAbstract = executableElement.isAbstract;
     b.isStatic = executableElement.isStatic &&
         executableElement.enclosingElement is ClassElement;
-    return b.finish();
+    return b;
   }
 
   /**
    * Serialize the given [exportElement] into an [UnlinkedExport].
    */
-  Object serializeExport(ExportElement exportElement) {
+  UnlinkedExportBuilder serializeExport(ExportElement exportElement) {
     UnlinkedExportBuilder b = new UnlinkedExportBuilder(ctx);
     b.uri = exportElement.uri;
     b.combinators = exportElement.combinators.map(serializeCombinator).toList();
-    return b.finish();
+    return b;
   }
 
   /**
@@ -420,7 +423,7 @@ class _LibrarySerializer {
       b.uri = importElement.uri;
     }
     addTransitiveExportClosure(importElement.importedLibrary);
-    unlinkedImports.add(b.finish());
+    unlinkedImports.add(b);
     prelinkedImports.add(serializeDependency(importElement.importedLibrary));
   }
 
@@ -428,7 +431,7 @@ class _LibrarySerializer {
    * Serialize the whole library element into a [PrelinkedLibrary].  Should be
    * called exactly once for each instance of [_LibrarySerializer].
    */
-  Object serializeLibrary() {
+  PrelinkedLibraryBuilder serializeLibrary() {
     UnlinkedLibraryBuilder ub = new UnlinkedLibraryBuilder(ctx);
     PrelinkedLibraryBuilder pb = new PrelinkedLibraryBuilder(ctx);
     if (libraryElement.name.isNotEmpty) {
@@ -451,17 +454,17 @@ class _LibrarySerializer {
     ub.typedefs = typedefs;
     ub.units = units;
     ub.variables = variables;
-    pb.unlinked = ub.finish();
+    pb.unlinked = ub;
     pb.dependencies = dependencies;
     pb.importDependencies = prelinkedImports;
     pb.references = prelinkedReferences;
-    return pb.finish();
+    return pb;
   }
 
   /**
    * Serialize the given [parameter] into an [UnlinkedParam].
    */
-  Object serializeParam(ParameterElement parameter) {
+  UnlinkedParamBuilder serializeParam(ParameterElement parameter) {
     UnlinkedParamBuilder b = new UnlinkedParamBuilder(ctx);
     b.name = parameter.name;
     switch (parameter.parameterKind) {
@@ -486,14 +489,14 @@ class _LibrarySerializer {
     } else {
       b.type = serializeTypeRef(type);
     }
-    return b.finish();
+    return b;
   }
 
   /**
    * Serialize the given [typedefElement], which exists in the unit numbered
    * [unitNum], creating an [UnlinkedTypedef].
    */
-  Object serializeTypedef(
+  UnlinkedTypedefBuilder serializeTypedef(
       FunctionTypeAliasElement typedefElement, int unitNum) {
     UnlinkedTypedefBuilder b = new UnlinkedTypedefBuilder(ctx);
     b.name = typedefElement.name;
@@ -504,25 +507,26 @@ class _LibrarySerializer {
       b.returnType = serializeTypeRef(typedefElement.returnType);
     }
     b.parameters = typedefElement.parameters.map(serializeParam).toList();
-    return b.finish();
+    return b;
   }
 
   /**
    * Serialize the given [typeParameter] into an [UnlinkedTypeParam].
    */
-  Object serializeTypeParam(TypeParameterElement typeParameter) {
+  UnlinkedTypeParamBuilder serializeTypeParam(
+      TypeParameterElement typeParameter) {
     UnlinkedTypeParamBuilder b = new UnlinkedTypeParamBuilder(ctx);
     b.name = typeParameter.name;
     if (typeParameter.bound != null) {
       b.bound = serializeTypeRef(typeParameter.bound);
     }
-    return b.finish();
+    return b;
   }
 
   /**
    * Serialize the given [type] into an [UnlinkedTypeRef].
    */
-  Object serializeTypeRef(DartType type) {
+  UnlinkedTypeRefBuilder serializeTypeRef(DartType type) {
     UnlinkedTypeRefBuilder b = new UnlinkedTypeRefBuilder(ctx);
     if (type is TypeParameterType) {
       Element enclosingElement = type.element.enclosingElement;
@@ -565,7 +569,7 @@ class _LibrarySerializer {
         b.typeArguments = typeArguments.map(serializeTypeRef).toList();
       }
     }
-    return b.finish();
+    return b;
   }
 
   /**
@@ -593,7 +597,8 @@ class _LibrarySerializer {
    * [unitNum], creating an [UnlinkedVariable].  For variables declared inside
    * a class (i.e. fields), [unitNum] should be zero.
    */
-  Object serializeVariable(PropertyInducingElement variable, int unitNum) {
+  UnlinkedVariableBuilder serializeVariable(
+      PropertyInducingElement variable, int unitNum) {
     if (variable.enclosingElement is ClassElement) {
       assert(unitNum == 0);
     }
@@ -604,6 +609,6 @@ class _LibrarySerializer {
     b.isStatic = variable.isStatic && variable.enclosingElement is ClassElement;
     b.isFinal = variable.isFinal;
     b.isConst = variable.isConst;
-    return b.finish();
+    return b;
   }
 }

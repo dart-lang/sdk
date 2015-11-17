@@ -51,13 +51,13 @@ class PrelinkedDependencyBuilder {
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodePrelinkedDependency(builder.BuilderContext builderContext, {String uri}) {
+PrelinkedDependencyBuilder encodePrelinkedDependency(builder.BuilderContext builderContext, {String uri}) {
   PrelinkedDependencyBuilder builder = new PrelinkedDependencyBuilder(builderContext);
   builder.uri = uri;
-  return builder.finish();
+  return builder;
 }
 
 class PrelinkedLibrary {
@@ -85,17 +85,17 @@ class PrelinkedLibraryBuilder {
 
   PrelinkedLibraryBuilder(builder.BuilderContext context);
 
-  void set unlinked(Object _value) {
+  void set unlinked(UnlinkedLibraryBuilder _value) {
     assert(!_json.containsKey("unlinked"));
     if (_value != null) {
-      _json["unlinked"] = _value;
+      _json["unlinked"] = _value.finish();
     }
   }
 
-  void set dependencies(List<Object> _value) {
+  void set dependencies(List<PrelinkedDependencyBuilder> _value) {
     assert(!_json.containsKey("dependencies"));
     if (_value != null || _value.isEmpty) {
-      _json["dependencies"] = _value.toList();
+      _json["dependencies"] = _value.map((b) => b.finish()).toList();
     }
   }
 
@@ -106,23 +106,25 @@ class PrelinkedLibraryBuilder {
     }
   }
 
-  void set references(List<Object> _value) {
+  void set references(List<PrelinkedReferenceBuilder> _value) {
     assert(!_json.containsKey("references"));
     if (_value != null || _value.isEmpty) {
-      _json["references"] = _value.toList();
+      _json["references"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  Object finish() => _json;
+  List<int> toBuffer() => UTF8.encode(JSON.encode(finish()));
+
+  Map finish() => _json;
 }
 
-Object encodePrelinkedLibrary(builder.BuilderContext builderContext, {Object unlinked, List<Object> dependencies, List<int> importDependencies, List<Object> references}) {
+PrelinkedLibraryBuilder encodePrelinkedLibrary(builder.BuilderContext builderContext, {UnlinkedLibraryBuilder unlinked, List<PrelinkedDependencyBuilder> dependencies, List<int> importDependencies, List<PrelinkedReferenceBuilder> references}) {
   PrelinkedLibraryBuilder builder = new PrelinkedLibraryBuilder(builderContext);
   builder.unlinked = unlinked;
   builder.dependencies = dependencies;
   builder.importDependencies = importDependencies;
   builder.references = references;
-  return builder.finish();
+  return builder;
 }
 
 class PrelinkedReference {
@@ -156,14 +158,14 @@ class PrelinkedReferenceBuilder {
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodePrelinkedReference(builder.BuilderContext builderContext, {int dependency, PrelinkedReferenceKind kind}) {
+PrelinkedReferenceBuilder encodePrelinkedReference(builder.BuilderContext builderContext, {int dependency, PrelinkedReferenceKind kind}) {
   PrelinkedReferenceBuilder builder = new PrelinkedReferenceBuilder(builderContext);
   builder.dependency = dependency;
   builder.kind = kind;
-  return builder.finish();
+  return builder;
 }
 
 class UnlinkedClass {
@@ -221,45 +223,45 @@ class UnlinkedClassBuilder {
     }
   }
 
-  void set typeParameters(List<Object> _value) {
+  void set typeParameters(List<UnlinkedTypeParamBuilder> _value) {
     assert(!_json.containsKey("typeParameters"));
     if (_value != null || _value.isEmpty) {
-      _json["typeParameters"] = _value.toList();
+      _json["typeParameters"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  void set supertype(Object _value) {
+  void set supertype(UnlinkedTypeRefBuilder _value) {
     assert(!_json.containsKey("supertype"));
     if (_value != null) {
-      _json["supertype"] = _value;
+      _json["supertype"] = _value.finish();
     }
   }
 
-  void set mixins(List<Object> _value) {
+  void set mixins(List<UnlinkedTypeRefBuilder> _value) {
     assert(!_json.containsKey("mixins"));
     if (_value != null || _value.isEmpty) {
-      _json["mixins"] = _value.toList();
+      _json["mixins"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  void set interfaces(List<Object> _value) {
+  void set interfaces(List<UnlinkedTypeRefBuilder> _value) {
     assert(!_json.containsKey("interfaces"));
     if (_value != null || _value.isEmpty) {
-      _json["interfaces"] = _value.toList();
+      _json["interfaces"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  void set fields(List<Object> _value) {
+  void set fields(List<UnlinkedVariableBuilder> _value) {
     assert(!_json.containsKey("fields"));
     if (_value != null || _value.isEmpty) {
-      _json["fields"] = _value.toList();
+      _json["fields"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  void set executables(List<Object> _value) {
+  void set executables(List<UnlinkedExecutableBuilder> _value) {
     assert(!_json.containsKey("executables"));
     if (_value != null || _value.isEmpty) {
-      _json["executables"] = _value.toList();
+      _json["executables"] = _value.map((b) => b.finish()).toList();
     }
   }
 
@@ -277,10 +279,10 @@ class UnlinkedClassBuilder {
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodeUnlinkedClass(builder.BuilderContext builderContext, {String name, int unit, List<Object> typeParameters, Object supertype, List<Object> mixins, List<Object> interfaces, List<Object> fields, List<Object> executables, bool isAbstract, bool isMixinApplication}) {
+UnlinkedClassBuilder encodeUnlinkedClass(builder.BuilderContext builderContext, {String name, int unit, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder supertype, List<UnlinkedTypeRefBuilder> mixins, List<UnlinkedTypeRefBuilder> interfaces, List<UnlinkedVariableBuilder> fields, List<UnlinkedExecutableBuilder> executables, bool isAbstract, bool isMixinApplication}) {
   UnlinkedClassBuilder builder = new UnlinkedClassBuilder(builderContext);
   builder.name = name;
   builder.unit = unit;
@@ -292,7 +294,7 @@ Object encodeUnlinkedClass(builder.BuilderContext builderContext, {String name, 
   builder.executables = executables;
   builder.isAbstract = isAbstract;
   builder.isMixinApplication = isMixinApplication;
-  return builder.finish();
+  return builder;
 }
 
 class UnlinkedCombinator {
@@ -312,28 +314,28 @@ class UnlinkedCombinatorBuilder {
 
   UnlinkedCombinatorBuilder(builder.BuilderContext context);
 
-  void set shows(List<Object> _value) {
+  void set shows(List<UnlinkedCombinatorNameBuilder> _value) {
     assert(!_json.containsKey("shows"));
     if (_value != null || _value.isEmpty) {
-      _json["shows"] = _value.toList();
+      _json["shows"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  void set hides(List<Object> _value) {
+  void set hides(List<UnlinkedCombinatorNameBuilder> _value) {
     assert(!_json.containsKey("hides"));
     if (_value != null || _value.isEmpty) {
-      _json["hides"] = _value.toList();
+      _json["hides"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodeUnlinkedCombinator(builder.BuilderContext builderContext, {List<Object> shows, List<Object> hides}) {
+UnlinkedCombinatorBuilder encodeUnlinkedCombinator(builder.BuilderContext builderContext, {List<UnlinkedCombinatorNameBuilder> shows, List<UnlinkedCombinatorNameBuilder> hides}) {
   UnlinkedCombinatorBuilder builder = new UnlinkedCombinatorBuilder(builderContext);
   builder.shows = shows;
   builder.hides = hides;
-  return builder.finish();
+  return builder;
 }
 
 class UnlinkedCombinatorName {
@@ -357,13 +359,13 @@ class UnlinkedCombinatorNameBuilder {
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodeUnlinkedCombinatorName(builder.BuilderContext builderContext, {String name}) {
+UnlinkedCombinatorNameBuilder encodeUnlinkedCombinatorName(builder.BuilderContext builderContext, {String name}) {
   UnlinkedCombinatorNameBuilder builder = new UnlinkedCombinatorNameBuilder(builderContext);
   builder.name = name;
-  return builder.finish();
+  return builder;
 }
 
 class UnlinkedEnum {
@@ -393,10 +395,10 @@ class UnlinkedEnumBuilder {
     }
   }
 
-  void set values(List<Object> _value) {
+  void set values(List<UnlinkedEnumValueBuilder> _value) {
     assert(!_json.containsKey("values"));
     if (_value != null || _value.isEmpty) {
-      _json["values"] = _value.toList();
+      _json["values"] = _value.map((b) => b.finish()).toList();
     }
   }
 
@@ -407,15 +409,15 @@ class UnlinkedEnumBuilder {
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodeUnlinkedEnum(builder.BuilderContext builderContext, {String name, List<Object> values, int unit}) {
+UnlinkedEnumBuilder encodeUnlinkedEnum(builder.BuilderContext builderContext, {String name, List<UnlinkedEnumValueBuilder> values, int unit}) {
   UnlinkedEnumBuilder builder = new UnlinkedEnumBuilder(builderContext);
   builder.name = name;
   builder.values = values;
   builder.unit = unit;
-  return builder.finish();
+  return builder;
 }
 
 class UnlinkedEnumValue {
@@ -439,13 +441,13 @@ class UnlinkedEnumValueBuilder {
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodeUnlinkedEnumValue(builder.BuilderContext builderContext, {String name}) {
+UnlinkedEnumValueBuilder encodeUnlinkedEnumValue(builder.BuilderContext builderContext, {String name}) {
   UnlinkedEnumValueBuilder builder = new UnlinkedEnumValueBuilder(builderContext);
   builder.name = name;
-  return builder.finish();
+  return builder;
 }
 
 class UnlinkedExecutable {
@@ -503,24 +505,24 @@ class UnlinkedExecutableBuilder {
     }
   }
 
-  void set typeParameters(List<Object> _value) {
+  void set typeParameters(List<UnlinkedTypeParamBuilder> _value) {
     assert(!_json.containsKey("typeParameters"));
     if (_value != null || _value.isEmpty) {
-      _json["typeParameters"] = _value.toList();
+      _json["typeParameters"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  void set returnType(Object _value) {
+  void set returnType(UnlinkedTypeRefBuilder _value) {
     assert(!_json.containsKey("returnType"));
     if (_value != null) {
-      _json["returnType"] = _value;
+      _json["returnType"] = _value.finish();
     }
   }
 
-  void set parameters(List<Object> _value) {
+  void set parameters(List<UnlinkedParamBuilder> _value) {
     assert(!_json.containsKey("parameters"));
     if (_value != null || _value.isEmpty) {
-      _json["parameters"] = _value.toList();
+      _json["parameters"] = _value.map((b) => b.finish()).toList();
     }
   }
 
@@ -559,10 +561,10 @@ class UnlinkedExecutableBuilder {
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodeUnlinkedExecutable(builder.BuilderContext builderContext, {String name, int unit, List<Object> typeParameters, Object returnType, List<Object> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory}) {
+UnlinkedExecutableBuilder encodeUnlinkedExecutable(builder.BuilderContext builderContext, {String name, int unit, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory}) {
   UnlinkedExecutableBuilder builder = new UnlinkedExecutableBuilder(builderContext);
   builder.name = name;
   builder.unit = unit;
@@ -574,7 +576,7 @@ Object encodeUnlinkedExecutable(builder.BuilderContext builderContext, {String n
   builder.isStatic = isStatic;
   builder.isConst = isConst;
   builder.isFactory = isFactory;
-  return builder.finish();
+  return builder;
 }
 
 class UnlinkedExport {
@@ -601,21 +603,21 @@ class UnlinkedExportBuilder {
     }
   }
 
-  void set combinators(List<Object> _value) {
+  void set combinators(List<UnlinkedCombinatorBuilder> _value) {
     assert(!_json.containsKey("combinators"));
     if (_value != null || _value.isEmpty) {
-      _json["combinators"] = _value.toList();
+      _json["combinators"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodeUnlinkedExport(builder.BuilderContext builderContext, {String uri, List<Object> combinators}) {
+UnlinkedExportBuilder encodeUnlinkedExport(builder.BuilderContext builderContext, {String uri, List<UnlinkedCombinatorBuilder> combinators}) {
   UnlinkedExportBuilder builder = new UnlinkedExportBuilder(builderContext);
   builder.uri = uri;
   builder.combinators = combinators;
-  return builder.finish();
+  return builder;
 }
 
 class UnlinkedImport {
@@ -668,10 +670,10 @@ class UnlinkedImportBuilder {
     }
   }
 
-  void set combinators(List<Object> _value) {
+  void set combinators(List<UnlinkedCombinatorBuilder> _value) {
     assert(!_json.containsKey("combinators"));
     if (_value != null || _value.isEmpty) {
-      _json["combinators"] = _value.toList();
+      _json["combinators"] = _value.map((b) => b.finish()).toList();
     }
   }
 
@@ -689,10 +691,10 @@ class UnlinkedImportBuilder {
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodeUnlinkedImport(builder.BuilderContext builderContext, {String uri, int offset, int prefix, List<Object> combinators, bool isDeferred, bool isImplicit}) {
+UnlinkedImportBuilder encodeUnlinkedImport(builder.BuilderContext builderContext, {String uri, int offset, int prefix, List<UnlinkedCombinatorBuilder> combinators, bool isDeferred, bool isImplicit}) {
   UnlinkedImportBuilder builder = new UnlinkedImportBuilder(builderContext);
   builder.uri = uri;
   builder.offset = offset;
@@ -700,7 +702,7 @@ Object encodeUnlinkedImport(builder.BuilderContext builderContext, {String uri, 
   builder.combinators = combinators;
   builder.isDeferred = isDeferred;
   builder.isImplicit = isImplicit;
-  return builder.finish();
+  return builder;
 }
 
 class UnlinkedLibrary {
@@ -747,17 +749,17 @@ class UnlinkedLibraryBuilder {
 
   UnlinkedLibraryBuilder(builder.BuilderContext context);
 
-  void set references(List<Object> _value) {
+  void set references(List<UnlinkedReferenceBuilder> _value) {
     assert(!_json.containsKey("references"));
     if (_value != null || _value.isEmpty) {
-      _json["references"] = _value.toList();
+      _json["references"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  void set units(List<Object> _value) {
+  void set units(List<UnlinkedUnitBuilder> _value) {
     assert(!_json.containsKey("units"));
     if (_value != null || _value.isEmpty) {
-      _json["units"] = _value.toList();
+      _json["units"] = _value.map((b) => b.finish()).toList();
     }
   }
 
@@ -768,66 +770,66 @@ class UnlinkedLibraryBuilder {
     }
   }
 
-  void set classes(List<Object> _value) {
+  void set classes(List<UnlinkedClassBuilder> _value) {
     assert(!_json.containsKey("classes"));
     if (_value != null || _value.isEmpty) {
-      _json["classes"] = _value.toList();
+      _json["classes"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  void set enums(List<Object> _value) {
+  void set enums(List<UnlinkedEnumBuilder> _value) {
     assert(!_json.containsKey("enums"));
     if (_value != null || _value.isEmpty) {
-      _json["enums"] = _value.toList();
+      _json["enums"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  void set executables(List<Object> _value) {
+  void set executables(List<UnlinkedExecutableBuilder> _value) {
     assert(!_json.containsKey("executables"));
     if (_value != null || _value.isEmpty) {
-      _json["executables"] = _value.toList();
+      _json["executables"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  void set exports(List<Object> _value) {
+  void set exports(List<UnlinkedExportBuilder> _value) {
     assert(!_json.containsKey("exports"));
     if (_value != null || _value.isEmpty) {
-      _json["exports"] = _value.toList();
+      _json["exports"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  void set imports(List<Object> _value) {
+  void set imports(List<UnlinkedImportBuilder> _value) {
     assert(!_json.containsKey("imports"));
     if (_value != null || _value.isEmpty) {
-      _json["imports"] = _value.toList();
+      _json["imports"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  void set typedefs(List<Object> _value) {
+  void set typedefs(List<UnlinkedTypedefBuilder> _value) {
     assert(!_json.containsKey("typedefs"));
     if (_value != null || _value.isEmpty) {
-      _json["typedefs"] = _value.toList();
+      _json["typedefs"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  void set variables(List<Object> _value) {
+  void set variables(List<UnlinkedVariableBuilder> _value) {
     assert(!_json.containsKey("variables"));
     if (_value != null || _value.isEmpty) {
-      _json["variables"] = _value.toList();
+      _json["variables"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  void set prefixes(List<Object> _value) {
+  void set prefixes(List<UnlinkedPrefixBuilder> _value) {
     assert(!_json.containsKey("prefixes"));
     if (_value != null || _value.isEmpty) {
-      _json["prefixes"] = _value.toList();
+      _json["prefixes"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodeUnlinkedLibrary(builder.BuilderContext builderContext, {List<Object> references, List<Object> units, String name, List<Object> classes, List<Object> enums, List<Object> executables, List<Object> exports, List<Object> imports, List<Object> typedefs, List<Object> variables, List<Object> prefixes}) {
+UnlinkedLibraryBuilder encodeUnlinkedLibrary(builder.BuilderContext builderContext, {List<UnlinkedReferenceBuilder> references, List<UnlinkedUnitBuilder> units, String name, List<UnlinkedClassBuilder> classes, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportBuilder> exports, List<UnlinkedImportBuilder> imports, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables, List<UnlinkedPrefixBuilder> prefixes}) {
   UnlinkedLibraryBuilder builder = new UnlinkedLibraryBuilder(builderContext);
   builder.references = references;
   builder.units = units;
@@ -840,7 +842,7 @@ Object encodeUnlinkedLibrary(builder.BuilderContext builderContext, {List<Object
   builder.typedefs = typedefs;
   builder.variables = variables;
   builder.prefixes = prefixes;
-  return builder.finish();
+  return builder;
 }
 
 class UnlinkedParam {
@@ -879,17 +881,17 @@ class UnlinkedParamBuilder {
     }
   }
 
-  void set type(Object _value) {
+  void set type(UnlinkedTypeRefBuilder _value) {
     assert(!_json.containsKey("type"));
     if (_value != null) {
-      _json["type"] = _value;
+      _json["type"] = _value.finish();
     }
   }
 
-  void set parameters(List<Object> _value) {
+  void set parameters(List<UnlinkedParamBuilder> _value) {
     assert(!_json.containsKey("parameters"));
     if (_value != null || _value.isEmpty) {
-      _json["parameters"] = _value.toList();
+      _json["parameters"] = _value.map((b) => b.finish()).toList();
     }
   }
 
@@ -914,10 +916,10 @@ class UnlinkedParamBuilder {
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodeUnlinkedParam(builder.BuilderContext builderContext, {String name, Object type, List<Object> parameters, UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal}) {
+UnlinkedParamBuilder encodeUnlinkedParam(builder.BuilderContext builderContext, {String name, UnlinkedTypeRefBuilder type, List<UnlinkedParamBuilder> parameters, UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal}) {
   UnlinkedParamBuilder builder = new UnlinkedParamBuilder(builderContext);
   builder.name = name;
   builder.type = type;
@@ -925,7 +927,7 @@ Object encodeUnlinkedParam(builder.BuilderContext builderContext, {String name, 
   builder.kind = kind;
   builder.isFunctionTyped = isFunctionTyped;
   builder.isInitializingFormal = isInitializingFormal;
-  return builder.finish();
+  return builder;
 }
 
 class UnlinkedPrefix {
@@ -949,13 +951,13 @@ class UnlinkedPrefixBuilder {
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodeUnlinkedPrefix(builder.BuilderContext builderContext, {String name}) {
+UnlinkedPrefixBuilder encodeUnlinkedPrefix(builder.BuilderContext builderContext, {String name}) {
   UnlinkedPrefixBuilder builder = new UnlinkedPrefixBuilder(builderContext);
   builder.name = name;
-  return builder.finish();
+  return builder;
 }
 
 class UnlinkedReference {
@@ -989,14 +991,14 @@ class UnlinkedReferenceBuilder {
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodeUnlinkedReference(builder.BuilderContext builderContext, {String name, int prefix}) {
+UnlinkedReferenceBuilder encodeUnlinkedReference(builder.BuilderContext builderContext, {String name, int prefix}) {
   UnlinkedReferenceBuilder builder = new UnlinkedReferenceBuilder(builderContext);
   builder.name = name;
   builder.prefix = prefix;
-  return builder.finish();
+  return builder;
 }
 
 class UnlinkedTypedef {
@@ -1039,38 +1041,38 @@ class UnlinkedTypedefBuilder {
     }
   }
 
-  void set typeParameters(List<Object> _value) {
+  void set typeParameters(List<UnlinkedTypeParamBuilder> _value) {
     assert(!_json.containsKey("typeParameters"));
     if (_value != null || _value.isEmpty) {
-      _json["typeParameters"] = _value.toList();
+      _json["typeParameters"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  void set returnType(Object _value) {
+  void set returnType(UnlinkedTypeRefBuilder _value) {
     assert(!_json.containsKey("returnType"));
     if (_value != null) {
-      _json["returnType"] = _value;
+      _json["returnType"] = _value.finish();
     }
   }
 
-  void set parameters(List<Object> _value) {
+  void set parameters(List<UnlinkedParamBuilder> _value) {
     assert(!_json.containsKey("parameters"));
     if (_value != null || _value.isEmpty) {
-      _json["parameters"] = _value.toList();
+      _json["parameters"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodeUnlinkedTypedef(builder.BuilderContext builderContext, {String name, int unit, List<Object> typeParameters, Object returnType, List<Object> parameters}) {
+UnlinkedTypedefBuilder encodeUnlinkedTypedef(builder.BuilderContext builderContext, {String name, int unit, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters}) {
   UnlinkedTypedefBuilder builder = new UnlinkedTypedefBuilder(builderContext);
   builder.name = name;
   builder.unit = unit;
   builder.typeParameters = typeParameters;
   builder.returnType = returnType;
   builder.parameters = parameters;
-  return builder.finish();
+  return builder;
 }
 
 class UnlinkedTypeParam {
@@ -1097,21 +1099,21 @@ class UnlinkedTypeParamBuilder {
     }
   }
 
-  void set bound(Object _value) {
+  void set bound(UnlinkedTypeRefBuilder _value) {
     assert(!_json.containsKey("bound"));
     if (_value != null) {
-      _json["bound"] = _value;
+      _json["bound"] = _value.finish();
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodeUnlinkedTypeParam(builder.BuilderContext builderContext, {String name, Object bound}) {
+UnlinkedTypeParamBuilder encodeUnlinkedTypeParam(builder.BuilderContext builderContext, {String name, UnlinkedTypeRefBuilder bound}) {
   UnlinkedTypeParamBuilder builder = new UnlinkedTypeParamBuilder(builderContext);
   builder.name = name;
   builder.bound = bound;
-  return builder.finish();
+  return builder;
 }
 
 class UnlinkedTypeRef {
@@ -1148,22 +1150,22 @@ class UnlinkedTypeRefBuilder {
     }
   }
 
-  void set typeArguments(List<Object> _value) {
+  void set typeArguments(List<UnlinkedTypeRefBuilder> _value) {
     assert(!_json.containsKey("typeArguments"));
     if (_value != null || _value.isEmpty) {
-      _json["typeArguments"] = _value.toList();
+      _json["typeArguments"] = _value.map((b) => b.finish()).toList();
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodeUnlinkedTypeRef(builder.BuilderContext builderContext, {int reference, int paramReference, List<Object> typeArguments}) {
+UnlinkedTypeRefBuilder encodeUnlinkedTypeRef(builder.BuilderContext builderContext, {int reference, int paramReference, List<UnlinkedTypeRefBuilder> typeArguments}) {
   UnlinkedTypeRefBuilder builder = new UnlinkedTypeRefBuilder(builderContext);
   builder.reference = reference;
   builder.paramReference = paramReference;
   builder.typeArguments = typeArguments;
-  return builder.finish();
+  return builder;
 }
 
 class UnlinkedUnit {
@@ -1187,13 +1189,13 @@ class UnlinkedUnitBuilder {
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodeUnlinkedUnit(builder.BuilderContext builderContext, {String uri}) {
+UnlinkedUnitBuilder encodeUnlinkedUnit(builder.BuilderContext builderContext, {String uri}) {
   UnlinkedUnitBuilder builder = new UnlinkedUnitBuilder(builderContext);
   builder.uri = uri;
-  return builder.finish();
+  return builder;
 }
 
 class UnlinkedVariable {
@@ -1239,10 +1241,10 @@ class UnlinkedVariableBuilder {
     }
   }
 
-  void set type(Object _value) {
+  void set type(UnlinkedTypeRefBuilder _value) {
     assert(!_json.containsKey("type"));
     if (_value != null) {
-      _json["type"] = _value;
+      _json["type"] = _value.finish();
     }
   }
 
@@ -1267,10 +1269,10 @@ class UnlinkedVariableBuilder {
     }
   }
 
-  Object finish() => _json;
+  Map finish() => _json;
 }
 
-Object encodeUnlinkedVariable(builder.BuilderContext builderContext, {String name, int unit, Object type, bool isStatic, bool isFinal, bool isConst}) {
+UnlinkedVariableBuilder encodeUnlinkedVariable(builder.BuilderContext builderContext, {String name, int unit, UnlinkedTypeRefBuilder type, bool isStatic, bool isFinal, bool isConst}) {
   UnlinkedVariableBuilder builder = new UnlinkedVariableBuilder(builderContext);
   builder.name = name;
   builder.unit = unit;
@@ -1278,6 +1280,6 @@ Object encodeUnlinkedVariable(builder.BuilderContext builderContext, {String nam
   builder.isStatic = isStatic;
   builder.isFinal = isFinal;
   builder.isConst = isConst;
-  return builder.finish();
+  return builder;
 }
 

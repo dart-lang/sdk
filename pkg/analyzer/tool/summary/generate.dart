@@ -135,16 +135,16 @@ class _CodeGenerator {
    * represent [type] while building a serialized data structure.
    */
   String encodedType(idlModel.FieldType type) {
-    if (type.isList) {
-      if (type.typeName == 'int') {
-        return 'List<int>';
-      } else {
-        return 'List<Object>';
-      }
-    } else if (_idl.classes.containsKey(type.typeName)) {
-      return 'Object';
+    String typeStr;
+    if (_idl.classes.containsKey(type.typeName)) {
+      typeStr = '${type.typeName}Builder';
     } else {
-      return dartType(type);
+      typeStr = type.typeName;
+    }
+    if (type.isList) {
+      return 'List<$typeStr>';
+    } else {
+      return typeStr;
     }
   }
 
@@ -313,11 +313,17 @@ class _CodeGenerator {
           String conversion = '_value';
           String condition = '';
           if (type.isList) {
-            conversion = '$conversion.toList()';
+            if (_idl.classes.containsKey(type.typeName)) {
+              conversion = '$conversion.map((b) => b.finish()).toList()';
+            } else {
+              conversion = '$conversion.toList()';
+            }
             condition = ' || _value.isEmpty';
           } else if (_idl.enums.containsKey(type.typeName)) {
             conversion = '$conversion.index';
             condition = ' || _value == ${defaultValue(type)}';
+          } else if (_idl.classes.containsKey(type.typeName)) {
+            conversion = '$conversion.finish()';
           }
           builderParams.add('${encodedType(type)} $fieldName');
           out('void set $fieldName(${encodedType(type)} _value) {');
@@ -331,18 +337,22 @@ class _CodeGenerator {
           });
           out('}');
         });
+        if (cls.isTopLevel) {
+          out();
+          out('List<int> toBuffer() => UTF8.encode(JSON.encode(finish()));');
+        }
         out();
-        out('Object finish() => _json;');
+        out('Map finish() => _json;');
       });
       out('}');
       out();
-      out('Object encode$name(builder.BuilderContext builderContext, {${builderParams.join(', ')}}) {');
+      out('${name}Builder encode$name(builder.BuilderContext builderContext, {${builderParams.join(', ')}}) {');
       indent(() {
         out('${name}Builder builder = new ${name}Builder(builderContext);');
         cls.fields.forEach((String fieldName, idlModel.FieldType type) {
           out('builder.$fieldName = $fieldName;');
         });
-        out('return builder.finish();');
+        out('return builder;');
       });
       out('}');
       out();

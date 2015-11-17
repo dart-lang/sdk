@@ -17,11 +17,8 @@ import 'dart:convert';
  * Builder classes.
  */
 class BuilderContext {
-  /**
-   * Finalize the serialized object represented by [ref] and return it in
-   * serialized form as a buffer.
-   */
-  List<int> getBuffer(Object ref) {
-    return UTF8.encode(JSON.encode(ref));
-  }
+  // Note: at the moment this is a placeholder class since the current
+  // serialization format (JSON) doesn't require any state tracking.  If/when
+  // we switch to a serialization format that requires state tracking, the
+  // state will be stored here.
 }

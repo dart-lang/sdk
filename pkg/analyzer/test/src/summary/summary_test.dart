@@ -46,9 +46,9 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
    */
   void serializeLibraryElement(LibraryElement library) {
     BuilderContext builderContext = new BuilderContext();
-    Object serializedLib = summarize_elements.serializeLibrary(
+    PrelinkedLibraryBuilder serializedLib = summarize_elements.serializeLibrary(
         builderContext, library, typeProvider);
-    List<int> encodedLib = builderContext.getBuffer(serializedLib);
+    List<int> encodedLib = serializedLib.toBuffer();
     lib = new PrelinkedLibrary.fromBuffer(encodedLib);
   }
 
