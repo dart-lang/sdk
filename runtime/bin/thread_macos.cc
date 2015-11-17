@@ -19,6 +19,7 @@
 #include <mach/thread_act.h>  // NOLINT
 
 #include "platform/assert.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -27,7 +28,7 @@ namespace bin {
   if (result != 0) { \
     const int kBufferSize = 1024; \
     char error_message[kBufferSize]; \
-    strerror_r(result, error_message, kBufferSize); \
+    Utils::StrError(result, error_message, kBufferSize); \
     FATAL2("pthread error: %d (%s)", result, error_message); \
   }
 
@@ -37,7 +38,7 @@ namespace bin {
   if (result != 0) { \
     const int kBufferSize = 1024; \
     char error_message[kBufferSize]; \
-    strerror_r(result, error_message, kBufferSize); \
+    Utils::StrError(result, error_message, kBufferSize); \
     fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", \
             __FILE__, __LINE__, result, error_message); \
     return result; \
