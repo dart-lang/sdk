@@ -12173,6 +12173,9 @@ main() {
   }
 
   void test_genericFunction() {
+    if (!AnalysisEngine.instance.useTaskModel) {
+      return;
+    }
     // TODO(jmesserly): we're missing a case in the parser for the return type,
     // so "dynamic" must be used to workaround this.
     _resolveTestUnit(r'''
@@ -12192,6 +12195,9 @@ dynamic/*=T*/ f/*<T>*/(/*=T*/ x) => null;
   }
 
   void test_genericMethod() {
+    if (!AnalysisEngine.instance.useTaskModel) {
+      return;
+    }
     _resolveTestUnit(r'''
 class C<E> {
   List/*<T>*/ f/*<T>*/(E e) => null;
