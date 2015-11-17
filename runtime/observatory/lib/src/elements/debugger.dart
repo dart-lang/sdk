@@ -1914,6 +1914,7 @@ class DebuggerPageElement extends ObservatoryElement {
       // TODO(turnidge): How do we want to handle this in general?
       _stdoutSubscriptionFuture.catchError((e, st) {
         Logger.root.info('Failed to subscribe to stdout: $e\n$st\n');
+        _stdoutSubscriptionFuture = null;
       });
     }
     _stderrSubscriptionFuture =
@@ -1922,6 +1923,7 @@ class DebuggerPageElement extends ObservatoryElement {
       // TODO(turnidge): How do we want to handle this in general?
       _stderrSubscriptionFuture.catchError((e, st) {
         Logger.root.info('Failed to subscribe to stderr: $e\n$st\n');
+        _stderrSubscriptionFuture = null;
       });
     }
     _logSubscriptionFuture =
