@@ -3015,6 +3015,17 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else if (element.isTypeVariable) {
       // `T = b`, `T++`, or 'T += b` where 'T' is a type variable.
       return handleTypeVariableTypeLiteralUpdate(node, name, element);
+    } else if (element.isPrefix) {
+      // `p = b` where `p` is a prefix.
+      ErroneousElement error = reportAndCreateErroneousElement(
+           node,
+           name.text,
+           MessageKind.PREFIX_AS_EXPRESSION,
+           {'prefix': name},
+           isError: true);
+      registry.registerFeature(Feature.COMPILE_TIME_ERROR);
+      return handleUpdate(
+          node, name, new StaticAccess.invalid(error));
     } else if (element.isLocal) {
       return handleLocalUpdate(node, name, element);
     } else if (element.isStatic || element.isTopLevel) {
