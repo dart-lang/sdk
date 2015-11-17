@@ -663,12 +663,24 @@ class ScriptInsetElement extends ObservatoryElement {
   }
 
   Library resolveDependency(String relativeUri) {
+    // This isn't really correct: we need to ask the embedder to do the
+    // uri canonicalization for us, but Observatory isn't in a position
+    // to invoke the library tag handler. Handle the most common cases.
     var targetUri = Uri.parse(script.library.uri).resolve(relativeUri);
     for (Library l in script.isolate.libraries) {
       if (targetUri.toString() == l.uri) {
         return l;
       }
     }
+    if (targetUri.scheme == 'package') {
+      targetUri = "packages/${targetUri.path}";
+      for (Library l in script.isolate.libraries) {
+        if (targetUri.toString() == l.uri) {
+          return l;
+        }
+      }
+    }
+
     Logger.root.info("Could not resolve library dependency: $relativeUri");
     return null;
   }
