@@ -5869,8 +5869,9 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  void applyChanges(ChangeSet changeSet) {
+  ApplyChangesStatus applyChanges(ChangeSet changeSet) {
     fail("Unexpected invocation of applyChanges");
+    return null;
   }
 
   @override
@@ -6238,8 +6239,9 @@ class TestAnalysisContext_test_applyChanges extends TestAnalysisContext {
   bool invoked = false;
   TestAnalysisContext_test_applyChanges();
   @override
-  void applyChanges(ChangeSet changeSet) {
+  ApplyChangesStatus applyChanges(ChangeSet changeSet) {
     invoked = true;
+    return new ApplyChangesStatus(false);
   }
 }
 

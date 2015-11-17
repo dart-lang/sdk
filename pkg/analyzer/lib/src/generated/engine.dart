@@ -453,7 +453,7 @@ abstract class AnalysisContext {
    * analysis results that have been invalidated by these changes will be
    * removed.
    */
-  void applyChanges(ChangeSet changeSet);
+  ApplyChangesStatus applyChanges(ChangeSet changeSet);
 
   /**
    * Return the documentation comment for the given [element] as it appears in
@@ -1623,9 +1623,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  void applyChanges(ChangeSet changeSet) {
+  ApplyChangesStatus applyChanges(ChangeSet changeSet) {
     if (changeSet.isEmpty) {
-      return;
+      return new ApplyChangesStatus(false);
     }
     //
     // First, compute the list of sources that have been removed.
@@ -1665,6 +1665,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _sourceRemoved(source);
     }
     _onSourcesChangedController.add(new SourcesChangedEvent(changeSet));
+    return new ApplyChangesStatus(true);
   }
 
   @override
@@ -6806,6 +6807,18 @@ abstract class AnalysisTaskVisitor<E> {
    * throw an AnalysisException if the visitor throws an exception.
    */
   E visitScanDartTask(ScanDartTask task);
+}
+
+/**
+ * The result of applying a [ChangeSet] to a [AnalysisContext].
+ */
+class ApplyChangesStatus {
+  /**
+   * Is `true` if the given [ChangeSet] caused any changes in the context.
+   */
+  final bool hasChanges;
+
+  ApplyChangesStatus(this.hasChanges);
 }
 
 /**

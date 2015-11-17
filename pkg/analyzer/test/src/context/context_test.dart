@@ -25,6 +25,7 @@ import 'package:analyzer/src/generated/engine.dart'
         AnalysisOptions,
         AnalysisOptionsImpl,
         AnalysisResult,
+        ApplyChangesStatus,
         CacheState,
         ChangeNotice,
         ChangeSet,
@@ -296,8 +297,9 @@ int b = aa;''';
   }
 
   void test_applyChanges_overriddenSource() {
-    // Note: addSource adds the source to the contentCache.
-    Source source = addSource("/test.dart", "library test;");
+    String content = "library test;";
+    Source source = addSource("/test.dart", content);
+    context.setContents(source, content);
     context.computeErrors(source);
     while (!context.sourcesNeedingProcessing.isEmpty) {
       context.performAnalysisTask();
@@ -306,7 +308,8 @@ int b = aa;''';
     // it is already overridden in the content cache.
     ChangeSet changeSet = new ChangeSet();
     changeSet.changedSource(source);
-    context.applyChanges(changeSet);
+    ApplyChangesStatus changesStatus = context.applyChanges(changeSet);
+    expect(changesStatus.hasChanges, isFalse);
     expect(context.sourcesNeedingProcessing, hasLength(0));
   }
 

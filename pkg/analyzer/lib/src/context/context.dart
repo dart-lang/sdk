@@ -529,15 +529,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  void applyChanges(ChangeSet changeSet) {
+  ApplyChangesStatus applyChanges(ChangeSet changeSet) {
     if (changeSet.isEmpty) {
-      return;
+      return new ApplyChangesStatus(false);
     }
     //
     // First, compute the list of sources that have been removed.
     //
-    List<Source> removedSources =
-        new List<Source>.from(changeSet.removedSources);
+    List<Source> removedSources = changeSet.removedSources.toList();
     for (SourceContainer container in changeSet.removedContainers) {
       _addSourcesInContainer(removedSources, container);
     }
@@ -547,13 +546,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     for (Source source in changeSet.addedSources) {
       _sourceAvailable(source);
     }
-    for (Source source in changeSet.changedSources) {
-      if (_contentCache.getContents(source) != null) {
-        // This source is overridden in the content cache, so the change will
-        // have no effect. Just ignore it to avoid wasting time doing
-        // re-analysis.
-        continue;
-      }
+    // Exclude sources that are overridden in the content cache, so the change
+    // will have no effect. Just ignore it to avoid wasting time doing
+    // re-analysis.
+    List<Source> changedSources = changeSet.changedSources
+        .where((s) => _contentCache.getContents(s) == null)
+        .toList();
+    for (Source source in changedSources) {
       _sourceChanged(source);
     }
     changeSet.changedContents.forEach((Source key, String value) {
@@ -572,9 +571,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     for (WorkManager workManager in workManagers) {
       workManager.applyChange(
-          changeSet.addedSources, changeSet.changedSources, removedSources);
+          changeSet.addedSources, changedSources, removedSources);
     }
     _onSourcesChangedController.add(new SourcesChangedEvent(changeSet));
+    return new ApplyChangesStatus(changeSet.addedSources.isNotEmpty ||
+        changeSet.changedContents.isNotEmpty ||
+        changeSet.deletedSources.isNotEmpty ||
+        changedSources.isNotEmpty ||
+        removedSources.isNotEmpty);
   }
 
   @override

@@ -1467,8 +1467,10 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
     AnalysisContext context = analysisServer.folderMap[contextFolder];
     if (context != null) {
-      context.applyChanges(changeSet);
-      analysisServer.schedulePerformAnalysisOperation(context);
+      ApplyChangesStatus changesStatus = context.applyChanges(changeSet);
+      if (changesStatus.hasChanges) {
+        analysisServer.schedulePerformAnalysisOperation(context);
+      }
       List<String> flushedFiles = new List<String>();
       for (Source source in changeSet.removedSources) {
         flushedFiles.add(source.fullName);
