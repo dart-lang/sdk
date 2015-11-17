@@ -3,26 +3,28 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
-import "dart:collection";
 import "dart:isolate";
 
 // This type corresponds to the VM-internal class LibraryPrefix.
 class _LibraryPrefix {
-
   bool _load() native "LibraryPrefix_load";
   Error _loadError() native "LibraryPrefix_loadError";
   bool isLoaded() native "LibraryPrefix_isLoaded";
-
   bool _invalidateDependentCode()
       native "LibraryPrefix_invalidateDependentCode";
 
   loadLibrary() {
-    var completer = _outstandingLoadRequests[this];
-    if (completer != null) {
-      return completer.future;
+    for (int i = 0; i < _outstandingLoadRequests.length; i++) {
+      if (_outstandingLoadRequests[i][0] == this) {
+        return _outstandingLoadRequests[i][1].future;
+      }
     }
-    completer = new Completer<bool>();
-    _outstandingLoadRequests[this] = completer;
+
+    var completer = new Completer<bool>();
+    var pair = new List();
+    pair.add(this);
+    pair.add(completer);
+    _outstandingLoadRequests.add(pair);
     Timer.run(() {
       var hasCompleted = this._load();
       // Loading can complete immediately, for example when the same
@@ -33,20 +35,23 @@ class _LibraryPrefix {
       if (hasCompleted) {
         _invalidateDependentCode();
         completer.complete(true);
-        _outstandingLoadRequests.remove(this);
+        _outstandingLoadRequests.remove(pair);
       }
     });
     return completer.future;
   }
 }
 
-var _outstandingLoadRequests = new HashMap<_LibraryPrefix, Completer>();
-
+// A list of two element lists. The first element is the _LibraryPrefix. The
+// second element is the Completer for the load request.
+var _outstandingLoadRequests = new List<List>();
 
 // Called from the VM when all outstanding load requests have
 // finished.
 _completeDeferredLoads() {
-  _outstandingLoadRequests.forEach((prefix, completer) {
+  for (int i = 0; i < _outstandingLoadRequests.length; i++) {
+    var prefix = _outstandingLoadRequests[i][0];
+    var completer = _outstandingLoadRequests[i][1];
     var error = prefix._loadError();
     if (error != null) {
       completer.completeError(error);
@@ -54,6 +59,6 @@ _completeDeferredLoads() {
       prefix._invalidateDependentCode();
       completer.complete(true);
     }
-  });
+  }
   _outstandingLoadRequests.clear();
 }
