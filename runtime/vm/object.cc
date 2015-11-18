@@ -114,6 +114,7 @@ Bool* Object::bool_false_ = NULL;
 Smi* Object::smi_illegal_cid_ = NULL;
 LanguageError* Object::snapshot_writer_error_ = NULL;
 LanguageError* Object::branch_offset_error_ = NULL;
+LanguageError* Object::speculative_inlining_error_ = NULL;
 Array* Object::vm_isolate_snapshot_object_table_ = NULL;
 Type* Object::dynamic_type_ = NULL;
 Type* Object::void_type_ = NULL;
@@ -487,6 +488,7 @@ void Object::InitOnce(Isolate* isolate) {
   smi_illegal_cid_ = Smi::ReadOnlyHandle();
   snapshot_writer_error_ = LanguageError::ReadOnlyHandle();
   branch_offset_error_ = LanguageError::ReadOnlyHandle();
+  speculative_inlining_error_ = LanguageError::ReadOnlyHandle();
   vm_isolate_snapshot_object_table_ = Array::ReadOnlyHandle();
   dynamic_type_ = Type::ReadOnlyHandle();
   void_type_ = Type::ReadOnlyHandle();
@@ -830,6 +832,10 @@ void Object::InitOnce(Isolate* isolate) {
   *branch_offset_error_ = LanguageError::New(error_str,
                                              Report::kBailout,
                                              Heap::kOld);
+  error_str = String::New("Speculative inlining failed", Heap::kOld);
+  *speculative_inlining_error_ = LanguageError::New(error_str,
+                                                    Report::kBailout,
+                                                    Heap::kOld);
 
   ASSERT(!null_object_->IsSmi());
   ASSERT(!null_array_->IsSmi());
@@ -869,6 +875,8 @@ void Object::InitOnce(Isolate* isolate) {
   ASSERT(snapshot_writer_error_->IsLanguageError());
   ASSERT(!branch_offset_error_->IsSmi());
   ASSERT(branch_offset_error_->IsLanguageError());
+  ASSERT(!speculative_inlining_error_->IsSmi());
+  ASSERT(speculative_inlining_error_->IsLanguageError());
   ASSERT(!vm_isolate_snapshot_object_table_->IsSmi());
   ASSERT(vm_isolate_snapshot_object_table_->IsArray());
 }

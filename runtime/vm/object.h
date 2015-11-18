@@ -468,6 +468,11 @@ class Object {
     return *branch_offset_error_;
   }
 
+  static const LanguageError& speculative_inlining_error() {
+    ASSERT(speculative_inlining_error_ != NULL);
+    return *speculative_inlining_error_;
+  }
+
   static const Array& vm_isolate_snapshot_object_table() {
     ASSERT(vm_isolate_snapshot_object_table_ != NULL);
     return *vm_isolate_snapshot_object_table_;
@@ -802,6 +807,7 @@ class Object {
   static Smi* smi_illegal_cid_;
   static LanguageError* snapshot_writer_error_;
   static LanguageError* branch_offset_error_;
+  static LanguageError* speculative_inlining_error_;
   static Array* vm_isolate_snapshot_object_table_;
   static Type* dynamic_type_;
   static Type* void_type_;

@@ -63,6 +63,8 @@ DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
 DEFINE_FLAG(bool, verify_compiler, false,
     "Enable compiler verification assertions");
+DEFINE_FLAG(int, max_speculative_inlining_attempts, 1,
+    "Max number of attempts with speculative inlining (precompilation only)");
 
 DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(bool, load_deferred_eagerly);
@@ -412,11 +414,15 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
   bool done = false;
   // volatile because the variable may be clobbered by a longjmp.
   volatile bool use_far_branches = false;
+  volatile bool use_speculative_inlining = true;
+  GrowableArray<intptr_t> inlining_black_list;
+
   while (!done) {
     const intptr_t prev_deopt_id = thread->deopt_id();
     thread->set_deopt_id(0);
     LongJumpScope jump;
-    if (setjmp(*jump.Set()) == 0) {
+    const intptr_t val = setjmp(*jump.Set());
+    if (val == 0) {
       FlowGraph* flow_graph = NULL;
 
       // Class hierarchy analysis is registered with the isolate in the
@@ -500,9 +506,17 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         caller_inline_id.Add(-1);
         CSTAT_TIMER_SCOPE(thread, graphoptimizer_timer);
 
-        FlowGraphOptimizer optimizer(flow_graph);
+        FlowGraphOptimizer optimizer(flow_graph,
+                                     use_speculative_inlining,
+                                     &inlining_black_list);
         if (Compiler::always_optimize()) {
           optimizer.PopulateWithICData();
+
+          optimizer.ApplyClassIds();
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+
+          FlowGraphTypePropagator::Propagate(flow_graph);
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
         optimizer.ApplyICData();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -870,6 +884,26 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         done = false;
         ASSERT(!use_far_branches);
         use_far_branches = true;
+      } else if (error.raw() == Object::speculative_inlining_error().raw()) {
+        // The return value of setjmp is the deopt id of the check instruction
+        // that caused the bailout.
+        done = false;
+#if defined(DEBUG)
+        ASSERT(Compiler::always_optimize());
+        ASSERT(use_speculative_inlining);
+        for (intptr_t i = 0; i < inlining_black_list.length(); ++i) {
+          ASSERT(inlining_black_list[i] != val);
+        }
+#endif
+        inlining_black_list.Add(val);
+        const intptr_t max_attempts = FLAG_max_speculative_inlining_attempts;
+        if (inlining_black_list.length() >= max_attempts) {
+          use_speculative_inlining = false;
+          if (FLAG_trace_compiler) {
+            THR_Print("Disabled speculative inlining after %" Pd " attempts.\n",
+                      inlining_black_list.length());
+          }
+        }
       } else {
         // If the error isn't due to an out of range branch offset, we don't
         // try again (done = true), and indicate that we did not finish

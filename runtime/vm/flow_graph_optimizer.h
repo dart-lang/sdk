@@ -16,9 +16,16 @@ class ParsedFunction;
 
 class FlowGraphOptimizer : public FlowGraphVisitor {
  public:
-  explicit FlowGraphOptimizer(FlowGraph* flow_graph)
+  explicit FlowGraphOptimizer(
+      FlowGraph* flow_graph,
+      bool use_speculative_inlining = false,
+      GrowableArray<intptr_t>* inlining_black_list = NULL)
       : FlowGraphVisitor(flow_graph->reverse_postorder()),
-        flow_graph_(flow_graph) { }
+        flow_graph_(flow_graph),
+        use_speculative_inlining_(use_speculative_inlining),
+        inlining_black_list_(inlining_black_list) {
+    ASSERT(!use_speculative_inlining || (inlining_black_list != NULL));
+  }
   virtual ~FlowGraphOptimizer() {}
 
   FlowGraph* flow_graph() const { return flow_graph_; }
@@ -264,7 +271,13 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   const Function& function() const { return flow_graph_->function(); }
 
+  bool IsBlackListedForInlining(intptr_t deopt_id);
+
   FlowGraph* flow_graph_;
+
+  const bool use_speculative_inlining_;
+
+  GrowableArray<intptr_t>* inlining_black_list_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphOptimizer);
 };

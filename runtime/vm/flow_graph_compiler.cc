@@ -75,6 +75,7 @@ DECLARE_FLAG(bool, lazy_dispatchers);
 DECLARE_FLAG(bool, interpret_irregexp);
 DECLARE_FLAG(bool, enable_mirrors);
 DECLARE_FLAG(bool, link_natives_lazily);
+DECLARE_FLAG(bool, trace_compiler);
 
 bool FLAG_precompilation = false;
 static void PrecompilationModeHandler(bool value) {
@@ -916,7 +917,17 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
   }
 
   // No deoptimization allowed when 'always_optimize' is set.
-  ASSERT(!Compiler::always_optimize());
+  if (Compiler::always_optimize()) {
+    if (FLAG_trace_compiler) {
+      THR_Print(
+          "Retrying compilation %s, suppressing inlining of deopt_id:%" Pd "\n",
+          parsed_function_.function().ToFullyQualifiedCString(), deopt_id);
+    }
+    ASSERT(deopt_id != 0);  // longjmp must return non-zero value.
+    Thread::Current()->long_jump_base()->Jump(
+        deopt_id, Object::speculative_inlining_error());
+  }
+
   ASSERT(is_optimizing_);
   CompilerDeoptInfoWithStub* stub =
       new(zone()) CompilerDeoptInfoWithStub(deopt_id,

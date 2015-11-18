@@ -4202,6 +4202,13 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
 }
 
 
+bool FlowGraphOptimizer::IsBlackListedForInlining(intptr_t call_deopt_id) {
+  for (intptr_t i = 0; i < inlining_black_list_->length(); ++i) {
+    if ((*inlining_black_list_)[i] == call_deopt_id) return true;
+  }
+  return false;
+}
+
 // Special optimizations when running in --noopt mode.
 void FlowGraphOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
   // TODO(srdjan): Investigate other attempts, as they are not allowed to
@@ -4228,6 +4235,34 @@ void FlowGraphOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
       (op_kind == Token::kSET) &&
       TryInlineInstanceSetter(instr, unary_checks, false /* no checks */)) {
     return;
+  }
+
+  if (use_speculative_inlining_ &&
+      !IsBlackListedForInlining(instr->deopt_id()) &&
+      (unary_checks.NumberOfChecks() > 0)) {
+    if ((op_kind == Token::kINDEX) && TryReplaceWithIndexedOp(instr)) {
+      return;
+    }
+    if ((op_kind == Token::kASSIGN_INDEX) && TryReplaceWithIndexedOp(instr)) {
+      return;
+    }
+    if ((op_kind == Token::kEQ) && TryReplaceWithEqualityOp(instr, op_kind)) {
+      return;
+    }
+
+    if (Token::IsRelationalOperator(op_kind) &&
+        TryReplaceWithRelationalOp(instr, op_kind)) {
+      return;
+    }
+
+    if (Token::IsBinaryOperator(op_kind) &&
+        TryReplaceWithBinaryOp(instr, op_kind)) {
+      return;
+    }
+    if (Token::IsUnaryOperator(op_kind) &&
+        TryReplaceWithUnaryOp(instr, op_kind)) {
+      return;
+    }
   }
 
   bool has_one_target =
@@ -5176,8 +5211,11 @@ static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
 
 
 void LICM::OptimisticallySpecializeSmiPhis() {
-  if (!flow_graph()->function().allows_hoisting_check_class()) {
-    // Do not hoist any.
+  if (!flow_graph()->function().allows_hoisting_check_class() ||
+      Compiler::always_optimize()) {
+    // Do not hoist any: Either deoptimized on a hoisted check,
+    // or compiling precompiled code where we can't do optimistic
+    // hoisting of checks.
     return;
   }
 
