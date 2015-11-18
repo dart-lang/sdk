@@ -21,17 +21,34 @@ narrowly-typed variable (this avoids the type check in release mode; `as`
 is not compiled out in release mode). If you don't know whether the type is
 correct, check using `is` (this avoids the exception that `as` raises).
 
+
 **BAD:**
 ```
-try {
-   (pm as Person).firstName = 'Seth';
-} on CastError { }
+(pm as Person).firstName = 'Seth';
 ```
 
 **GOOD:**
 ```
 Person person = pm;
 person.firstName = 'Seth';
+```
+
+or
+
+**GOOD:**
+```
+if (pm is Person)
+  pm.firstName = 'Seth';
+```
+
+but certainly not
+
+**BAD:**
+```
+try {
+   (pm as Person).firstName = 'Seth';
+} on CastError { }
+
 ```
 ''';
 
