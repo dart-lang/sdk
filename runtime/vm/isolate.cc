@@ -2407,6 +2407,8 @@ static const char* NewConstChar(const char* chars) {
 
 
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
+                                     Dart_Port origin_id,
+                                     void* init_data,
                                      const Function& func,
                                      const Instance& message,
                                      bool paused,
@@ -2415,6 +2417,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      Dart_Port on_error_port)
     : isolate_(NULL),
       parent_port_(parent_port),
+      origin_id_(origin_id),
+      init_data_(init_data),
       on_exit_port_(on_exit_port),
       on_error_port_(on_error_port),
       script_url_(NULL),
@@ -2452,6 +2456,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
 
 
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
+                                     void* init_data,
                                      const char* script_url,
                                      const char* package_root,
                                      const char** package_map,
@@ -2463,6 +2468,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      Dart_Port on_error_port)
     : isolate_(NULL),
       parent_port_(parent_port),
+      origin_id_(ILLEGAL_PORT),
+      init_data_(init_data),
       on_exit_port_(on_exit_port),
       on_error_port_(on_error_port),
       script_url_(script_url),

@@ -944,6 +944,8 @@ class StartIsolateScope {
 class IsolateSpawnState {
  public:
   IsolateSpawnState(Dart_Port parent_port,
+                    Dart_Port origin_id,
+                    void* init_data,
                     const Function& func,
                     const Instance& message,
                     bool paused,
@@ -951,6 +953,7 @@ class IsolateSpawnState {
                     Dart_Port onExit,
                     Dart_Port onError);
   IsolateSpawnState(Dart_Port parent_port,
+                    void* init_data,
                     const char* script_url,
                     const char* package_root,
                     const char** package_map,
@@ -966,6 +969,8 @@ class IsolateSpawnState {
   void set_isolate(Isolate* value) { isolate_ = value; }
 
   Dart_Port parent_port() const { return parent_port_; }
+  Dart_Port origin_id() const { return origin_id_; }
+  void* init_data() const { return init_data_; }
   Dart_Port on_exit_port() const { return on_exit_port_; }
   Dart_Port on_error_port() const { return on_error_port_; }
   const char* script_url() const { return script_url_; }
@@ -986,6 +991,8 @@ class IsolateSpawnState {
  private:
   Isolate* isolate_;
   Dart_Port parent_port_;
+  Dart_Port origin_id_;
+  void* init_data_;
   Dart_Port on_exit_port_;
   Dart_Port on_error_port_;
   const char* script_url_;
